@@ -4,22 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cooked Mains — Strict UPSC Handwritten Answer Evaluator</title>
-  <!-- Tailwind CSS CDN -->
+  <!-- Local Offline-First Tailwind CSS -->
+  <link rel="stylesheet" href="/static/tailwind.min.css">
+  <!-- Optional Tailwind CDN (as fallback) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = {
-      darkMode: 'class'
-    };
+    try {
+      if (typeof tailwind !== 'undefined') {
+        tailwind.config = { darkMode: 'class' };
+      }
+    } catch(e) {}
   </script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Chart.js for Radar Scorecards -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Local Lucide Icons + CDN Fallback -->
+  <script src="/static/lucide.min.js"></script>
+  <script>if (typeof lucide === 'undefined') { document.write('<script src="https://unpkg.com/lucide@latest"><\/script>'); }</script>
+  <!-- Local Chart.js + CDN Fallback -->
+  <script src="/static/chart.min.js"></script>
+  <script>if (typeof Chart === 'undefined') { document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>'); }</script>
   <!-- Google Fonts: Inter & Merriweather (for authentic UPSC editorial feel) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css?v=2.2">
+  <link rel="stylesheet" href="/static/style.css?v=2.3">
+
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-amber-500 selection:text-white transition-colors duration-200">
 

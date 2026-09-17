@@ -1,4 +1,8 @@
 /* MainsMentor AI Custom CSS */
+.hidden {
+  display: none !important;
+}
+
 
 /* Custom font styles */
 .font-serif {
