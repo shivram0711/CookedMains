@@ -373,6 +373,48 @@ async function saveUpiSetting(e) {
   }
 }
 
+async function changeAdminPassword(e) {
+  if (e) e.preventDefault();
+  const currentPin = (document.getElementById("currentPinInput").value || "").trim();
+  const newPin = (document.getElementById("newPinInput").value || "").trim();
+  const confirmPin = (document.getElementById("confirmPinInput").value || "").trim();
+  const msgEl = document.getElementById("passwordChangeMsg");
+
+  if (newPin !== confirmPin) {
+    msgEl.className = "text-xs py-2 px-3 rounded-lg bg-red-500/20 text-red-300 border border-red-500/40";
+    msgEl.textContent = "New passwords do not match. Please re-type.";
+    msgEl.classList.remove("hidden");
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/admin/settings/password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ current_pin: currentPin, new_pin: newPin })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Failed to update password");
+
+    if (data.token) {
+      adminToken = data.token;
+      localStorage.setItem("mainsmentor_admin_token", adminToken);
+    }
+
+    msgEl.className = "text-xs py-2 px-3 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+    msgEl.textContent = "✓ Admin password updated successfully!";
+    msgEl.classList.remove("hidden");
+
+    document.getElementById("currentPinInput").value = "";
+    document.getElementById("newPinInput").value = "";
+    document.getElementById("confirmPinInput").value = "";
+  } catch (err) {
+    msgEl.className = "text-xs py-2 px-3 rounded-lg bg-red-500/20 text-red-300 border border-red-500/40";
+    msgEl.textContent = "Error: " + err.message;
+    msgEl.classList.remove("hidden");
+  }
+}
+
 function escapeHtml(text) {
   if (!text) return "";
   return String(text)
@@ -382,3 +424,4 @@ function escapeHtml(text) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+

@@ -926,7 +926,7 @@ async def api_admin_login(request: Request):
     except Exception:
         data = {}
     pin = (data.get("pin") or "").strip()
-    master_pin = get_admin_setting("admin_pin", "Admin@MainsMentor2026")
+    master_pin = os.environ.get("ADMIN_PASSWORD") or get_admin_setting("admin_pin", "Admin@MainsMentor2026")
     
     if pin == master_pin:
         # Simple hashed token for admin session
@@ -1018,6 +1018,32 @@ async def api_admin_set_upi(request: Request):
         raise HTTPException(status_code=400, detail="Please enter a valid UPI ID (e.g. 9661228832-2@ybl).")
     set_admin_setting("admin_upi_id", upi_id)
     return {"status": "success", "admin_upi_id": upi_id}
+
+@app.post("/api/admin/settings/password")
+async def api_admin_set_password(request: Request):
+    """Updates the admin master password in database."""
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+    current_pin = (data.get("current_pin") or "").strip()
+    new_pin = (data.get("new_pin") or "").strip()
+    
+    master_pin = os.environ.get("ADMIN_PASSWORD") or get_admin_setting("admin_pin", "Admin@MainsMentor2026")
+    
+    if current_pin != master_pin:
+        raise HTTPException(status_code=401, detail="Current master password is incorrect.")
+    
+    if not new_pin or len(new_pin) < 4:
+        raise HTTPException(status_code=400, detail="New password must be at least 4 characters long.")
+    
+    set_admin_setting("admin_pin", new_pin)
+    if "ADMIN_PASSWORD" in os.environ:
+        os.environ["ADMIN_PASSWORD"] = new_pin
+        
+    new_token = hashlib.sha256(f"mainsmentor_admin_{new_pin}".encode()).hexdigest()
+    return {"status": "success", "message": "Admin password updated successfully!", "token": new_token}
+
 
 def is_page_image_completely_blank(img: Image.Image) -> bool:
     """
