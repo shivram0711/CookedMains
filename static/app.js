@@ -23,7 +23,8 @@ const state = {
   user: null,
   isRewriteMode: false,
   isControlsLocked: false,
-  dailyQuestion: null
+  dailyQuestion: null,
+  activeStudioView: "intake"
 };
 
 // DOM Elements
@@ -208,6 +209,153 @@ window.closeAppNotice = function() {
     modal.classList.remove("flex");
   }
 };
+
+// Central In-App Confirmation Dialog with Safe Locker Preservation Guarantee
+window.showAppConfirm = function({ title = "Please Confirm", message = "", confirmText = "Proceed", cancelText = "Cancel", onConfirm, onCancel }) {
+  const modal = document.getElementById("appConfirmModal");
+  if (!modal) {
+    const plainMsg = String(message || "").replace(/<[^>]+>/g, "");
+    if (confirm(plainMsg)) {
+      if (typeof onConfirm === "function") onConfirm();
+    } else {
+      if (typeof onCancel === "function") onCancel();
+    }
+    return;
+  }
+  const titleEl = document.getElementById("appConfirmTitle");
+  const msgEl = document.getElementById("appConfirmMessage");
+  const proceedBtn = document.getElementById("appConfirmProceedBtn");
+  const cancelBtn = document.getElementById("appConfirmCancelBtn");
+
+  if (titleEl) titleEl.textContent = title;
+  if (msgEl) msgEl.innerHTML = String(message || "");
+  if (proceedBtn) {
+    proceedBtn.innerHTML = `<span>${confirmText}</span>`;
+    proceedBtn.onclick = () => {
+      window.closeAppConfirm();
+      if (typeof onConfirm === "function") onConfirm();
+    };
+  }
+  if (cancelBtn) {
+    cancelBtn.textContent = cancelText;
+    cancelBtn.onclick = () => {
+      window.closeAppConfirm();
+      if (typeof onCancel === "function") onCancel();
+    };
+  }
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  if (window.lucide) {
+    try { lucide.createIcons({ root: modal }); } catch(e){}
+  }
+};
+
+window.closeAppConfirm = function() {
+  const modal = document.getElementById("appConfirmModal");
+  if (modal) {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  }
+};
+
+// Reset completely to a clean Answer Intake page ready to upload a new answer sheet
+window.resetToCleanIntake = function(shouldScroll = true) {
+  state.uploadedFiles = [];
+  state.activePages = [];
+  state.currentPageIndex = 0;
+  state.currentEvaluation = null;
+  state.activeSampleId = null;
+  state.isRewriteMode = false;
+
+  const previewStrip = document.getElementById("previewStrip");
+  if (previewStrip) {
+    previewStrip.innerHTML = "";
+    previewStrip.classList.add("hidden");
+  }
+
+  const pInput = document.getElementById("pdfFileInput");
+  const gInput = document.getElementById("galleryFileInput");
+  const cInput = document.getElementById("cameraFileInput");
+  const fInput = document.getElementById("fileInput");
+  if (pInput) pInput.value = "";
+  if (gInput) gInput.value = "";
+  if (cInput) cInput.value = "";
+  if (fInput) fInput.value = "";
+
+  if (typeof setAnswersheetLockedState === "function") {
+    setAnswersheetLockedState(false);
+  }
+
+  if (typeof updateViewer === "function") {
+    updateViewer();
+  }
+
+  window.switchStudioState("intake");
+
+  if (shouldScroll) {
+    const intakeDeck = document.getElementById("intakeDeck");
+    if (intakeDeck) {
+      intakeDeck.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  if (typeof window.showAppToast === "function") {
+    window.showAppToast("Upload chamber ready. All past evaluated sheets are safe in your Answer Locker.");
+  }
+};
+
+// User confirmation before clearing current on-screen evaluation draft
+window.confirmLeaveStudioOrReset = function(targetAction) {
+  const hasActiveEval = Boolean(state.currentEvaluation || state.activeStudioView === "studio");
+  const hasStagedFiles = Boolean(state.uploadedFiles && state.uploadedFiles.length > 0);
+
+  if (hasActiveEval || hasStagedFiles) {
+    window.showAppConfirm({
+      title: "Evaluate Another Answer Copy?",
+      message: "Current on-screen draft will be cleared so you can upload a fresh answer sheet.<br><br>🛡️ <strong>Locker Preserved:</strong> All your past evaluations and scores remain 100% safe in your <strong>Answer Locker</strong>.",
+      confirmText: "Upload New Answer Copy",
+      cancelText: "Stay on Current Page",
+      onConfirm: () => {
+        window.resetToCleanIntake(true);
+        if (typeof targetAction === "function") targetAction();
+      }
+    });
+  } else {
+    window.resetToCleanIntake(true);
+    if (typeof targetAction === "function") targetAction();
+  }
+};
+
+// Browser Refresh & Close Warning: Alert aspirant that draft clears while Locker preserves copies
+window.addEventListener("beforeunload", (e) => {
+  if (state.activeStudioView === "studio" || (state.uploadedFiles && state.uploadedFiles.length > 0)) {
+    const msg = "Current answer sheet draft on screen will be cleared, but your evaluated copies are safely stored in your Answer Locker.";
+    e.preventDefault();
+    e.returnValue = msg;
+    return msg;
+  }
+});
+
+// Browser Back Button Navigation: Prompt before leaving Studio
+window.addEventListener("popstate", (e) => {
+  if (state.activeStudioView === "studio") {
+    window.showAppConfirm({
+      title: "Return to Intake Chamber?",
+      message: "Current answer sheet draft on screen will be cleared, but your evaluated copies are safely stored in your Answer Locker. Would you like to clear the draft and upload a new answer copy?",
+      confirmText: "Yes, Upload New Answer",
+      cancelText: "Stay in Studio",
+      onConfirm: () => {
+        window.resetToCleanIntake(true);
+      },
+      onCancel: () => {
+        try {
+          history.pushState({ page: "studio" }, "", window.location.href);
+        } catch(err) {}
+      }
+    });
+  }
+});
 
 // Global alert override to completely intercept native Chrome dialogs
 window.alert = function(msg) {
@@ -496,16 +644,46 @@ window.toggleMobileMarginScroll = function() {
 window.switchStudioState = function(mode) {
   const intakeDeck = document.getElementById("intakeDeck");
   const evaluationStudio = document.getElementById("evaluationStudio");
+  const heroSection = document.getElementById("heroLandingSection");
+  const firstPageSub = document.getElementById("firstPageSubscriptionSection");
+
   if (mode === "studio") {
-    if (intakeDeck) intakeDeck.classList.add("hidden");
-    if (evaluationStudio) evaluationStudio.classList.remove("hidden");
+    state.activeStudioView = "studio";
+    if (heroSection) {
+      heroSection.style.display = "none";
+      heroSection.classList.add("hidden");
+    }
+    if (firstPageSub) {
+      firstPageSub.style.display = "none";
+      firstPageSub.classList.add("hidden");
+    }
+    if (intakeDeck) {
+      intakeDeck.style.setProperty("display", "none", "important");
+      intakeDeck.classList.add("hidden");
+    }
+    if (evaluationStudio) {
+      evaluationStudio.style.setProperty("display", "flex", "important");
+      evaluationStudio.classList.remove("hidden");
+    }
     window.switchStudioTab("audit");
     if (window.lucide) lucide.createIcons();
     window.scrollTo({ top: 0, behavior: "smooth" });
+    try {
+      if (!history.state || history.state.page !== "studio") {
+        history.pushState({ page: "studio" }, "", window.location.href);
+      }
+    } catch(e) {}
   } else {
     // Mode is "intake"
-    if (evaluationStudio) evaluationStudio.classList.add("hidden");
-    if (intakeDeck) intakeDeck.classList.remove("hidden");
+    state.activeStudioView = "intake";
+    if (evaluationStudio) {
+      evaluationStudio.style.setProperty("display", "none", "important");
+      evaluationStudio.classList.add("hidden");
+    }
+    if (intakeDeck) {
+      intakeDeck.style.setProperty("display", "flex", "important");
+      intakeDeck.classList.remove("hidden");
+    }
     const stickyFooter = document.getElementById("stickyRewriteFooter");
     if (stickyFooter) stickyFooter.classList.add("hidden");
     if (typeof stop24hRewriteTimer === "function") stop24hRewriteTimer();
@@ -1708,7 +1886,12 @@ function updateUserUI() {
     firstPageSub.style.display = "none";
     firstPageSub.classList.add("hidden");
   }
-  if (intakeDeck) {
+  if (state.activeStudioView === "studio") {
+    if (intakeDeck) {
+      intakeDeck.style.setProperty("display", "none", "important");
+      intakeDeck.classList.add("hidden");
+    }
+  } else if (intakeDeck) {
     intakeDeck.style.setProperty("display", "flex", "important");
     intakeDeck.classList.remove("hidden");
   }
@@ -2899,13 +3082,73 @@ function renderAnnotationsOverlay() {
   // Define section layout matching authentic UPSC answer pages
   const sections = [];
 
-  if (currentPg === 1) {
-    // PAGE 1: Introduction (lines 1-4) & Body (points 1-4)
+  if (totalPages === 1) {
+    // SINGLE-PAGE ANSWER COPY: Perfectly Bracket Intro, Body, and Conclusion
     const rawIntro = rawAnns.find(a => {
       const t = String(a.tag || "").toLowerCase();
       return t.includes("intro") || t.includes("premise") || t.includes("definition") || (a.approx_y_percent && a.approx_y_percent <= 36);
     });
-    const introAudit = activeEval.intro_audit || (activeEval.rubric_breakdown && activeEval.rubric_breakdown.introduction) || {};
+    const defaultIntroText = "✓ **Good Premise**: Clearly defined constitutional supremacy and core premise.\n✎ **Contextual Hook**: Integrate relevant constitutional article or background.";
+    const introBody = rawIntro ? parseBullets(rawIntro.remark, 2) : parseBullets(defaultIntroText, 2);
+    const introMarks = rawIntro ? (rawIntro.marks_awarded || "+1.5 / 2.5") : "+1.5 / 2.5";
+
+    sections.push({
+      zone: "intro",
+      title: "INTRO",
+      icon: "✓",
+      isTick: true,
+      startYPercent: 16,
+      endYPercent: 36,
+      marks: introMarks,
+      bodyHtml: introBody,
+      targetKey: "intro"
+    });
+
+    const rawBody = rawAnns.find(a => {
+      const t = String(a.tag || "").toLowerCase();
+      return !t.includes("intro") && !t.includes("premise") && !t.includes("definition") && !t.includes("conclusion") && !t.includes("synthesis");
+    });
+    const defaultBodyText = "✓ **Core Multi-Dimensional Analysis**: Solid multidimensional arguments presented.\n✎ **Substantiation**: Anchor arguments with empirical data points or committee reports.";
+    const bodyText = rawBody ? parseBullets(rawBody.remark, 2) : parseBullets(defaultBodyText, 2);
+    const bodyMarks = rawBody ? (rawBody.marks_awarded || "+2.5 / 5.0") : "+2.5 / 5.0";
+
+    sections.push({
+      zone: "body",
+      title: rawBody && rawBody.tag ? rawBody.tag.toUpperCase() : "BODY: CORE DEMAND",
+      icon: "✓",
+      isTick: true,
+      startYPercent: 38,
+      endYPercent: 76,
+      marks: bodyMarks,
+      bodyHtml: bodyText,
+      targetKey: "body"
+    });
+
+    const rawConc = rawAnns.find(a => {
+      const t = String(a.tag || "").toLowerCase();
+      return t.includes("conclusion") || t.includes("synthesis") || t.includes("finish") || t.includes("way forward") || (a.approx_y_percent && a.approx_y_percent >= 70);
+    });
+    const concDefault = "✓ **Balanced Synthesis**: Crisp forward-looking conclusion aligning with constitutional vision.\n✎ **Enrichment**: Anchor with sustainable governance roadmap.";
+    const concText = rawConc ? parseBullets(rawConc.remark, 2) : parseBullets(concDefault, 2);
+    const concMarks = rawConc ? (rawConc.marks_awarded || "+1.0 / 2.5") : "+1.0 / 2.5";
+
+    sections.push({
+      zone: "conclusion",
+      title: "CONCLUSION",
+      icon: "✓",
+      isTick: true,
+      startYPercent: 78,
+      endYPercent: 95,
+      marks: concMarks,
+      bodyHtml: concText,
+      targetKey: "conclusion"
+    });
+  } else if (currentPg === 1) {
+    // MULTI-PAGE COPY: PAGE 1: Introduction (lines 1-4) & Body Dimension 1
+    const rawIntro = rawAnns.find(a => {
+      const t = String(a.tag || "").toLowerCase();
+      return t.includes("intro") || t.includes("premise") || t.includes("definition") || (a.approx_y_percent && a.approx_y_percent <= 36);
+    });
     const defaultIntroText = "✓ **Good Premise**: Clearly defined constitutional supremacy.\n✎ **Missing**: Contextual hook with Article 13.";
     const introBody = rawIntro ? parseBullets(rawIntro.remark, 2) : parseBullets(defaultIntroText, 2);
     const introMarks = rawIntro ? (rawIntro.marks_awarded || "+1.5 / 2.5") : "+1.5 / 2.5";
@@ -2915,8 +3158,8 @@ function renderAnnotationsOverlay() {
       title: "INTRO",
       icon: "✓",
       isTick: true,
-      startYPercent: 22,
-      endYPercent: 37,
+      startYPercent: 16,
+      endYPercent: 36,
       marks: introMarks,
       bodyHtml: introBody,
       targetKey: "intro"
@@ -2932,7 +3175,7 @@ function renderAnnotationsOverlay() {
 
     sections.push({
       zone: "body",
-      title: rawBody && rawBody.tag ? rawBody.tag.toUpperCase() : "BODY",
+      title: rawBody && rawBody.tag ? rawBody.tag.toUpperCase() : "BODY: CORE DEMAND",
       icon: "✓",
       isTick: true,
       startYPercent: 38,
@@ -2949,7 +3192,7 @@ function renderAnnotationsOverlay() {
     const b1Default = "✓ **Rich Precedents**: Navtej Johar & Shreya Singhal cases well cited.\n✎ **Depth**: Connect Sec 66A deletion to Art 19(1)(a).";
     sections.push({
       zone: "body",
-      title: bodyAnn1 && bodyAnn1.tag ? bodyAnn1.tag.toUpperCase() : "BODY",
+      title: bodyAnn1 && bodyAnn1.tag ? bodyAnn1.tag.toUpperCase() : "BODY: DIMENSION 1",
       icon: "✓",
       isTick: true,
       startYPercent: 12,
@@ -2973,24 +3216,22 @@ function renderAnnotationsOverlay() {
     });
   } else {
     // FINAL PAGE: Body Way Forward & Conclusion
-    if (totalPages > 1) {
-      const rawBody = rawAnns.find(a => {
-        const t = String(a.tag || "").toLowerCase();
-        return !t.includes("conclusion") && !t.includes("synthesis") && !t.includes("finish");
-      });
-      const bWayForward = "✓ **Balanced View**: Outlined executive-judiciary equilibrium.\n✎ **Substantiation**: Reference recent Supreme Court rulings.";
-      sections.push({
-        zone: "body",
-        title: rawBody && rawBody.tag ? rawBody.tag.toUpperCase() : "BODY: WAY FORWARD",
-        icon: "✓",
-        isTick: true,
-        startYPercent: 10,
-        endYPercent: 65,
-        marks: rawBody ? (rawBody.marks_awarded || "+1.5 / 3.0") : "+1.5 / 3.0",
-        bodyHtml: rawBody ? parseBullets(rawBody.remark, 2) : parseBullets(bWayForward, 2),
-        targetKey: "body"
-      });
-    }
+    const rawBody = rawAnns.find(a => {
+      const t = String(a.tag || "").toLowerCase();
+      return !t.includes("conclusion") && !t.includes("synthesis") && !t.includes("finish");
+    });
+    const bWayForward = "✓ **Balanced View**: Outlined executive-judiciary equilibrium.\n✎ **Substantiation**: Reference recent Supreme Court rulings.";
+    sections.push({
+      zone: "body",
+      title: rawBody && rawBody.tag ? rawBody.tag.toUpperCase() : "BODY: WAY FORWARD",
+      icon: "✓",
+      isTick: true,
+      startYPercent: 10,
+      endYPercent: 65,
+      marks: rawBody ? (rawBody.marks_awarded || "+1.5 / 3.0") : "+1.5 / 3.0",
+      bodyHtml: rawBody ? parseBullets(rawBody.remark, 2) : parseBullets(bWayForward, 2),
+      targetKey: "body"
+    });
 
     const rawConc = rawAnns.find(a => {
       const t = String(a.tag || "").toLowerCase();
@@ -6759,13 +7000,7 @@ window.scrollToEvaluation = function() {
     window.openAuthModal("Sign in or register to unlock your 5 Free Evaluations and access the evaluation chamber.");
     return;
   }
-  updateUserUI();
-  const intake = document.getElementById("intakeDeck");
-  if (intake) {
-    intake.style.setProperty("display", "flex", "important");
-    intake.classList.remove("hidden");
-    intake.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+  window.switchStudioState("intake");
 };
 
 // Smooth scroll to 1st page subscription section or open pricing modal
@@ -7009,12 +7244,7 @@ window.submitUpiPaymentProof = async function() {
 window.onInstantSubscriptionComplete = function() {
   window.closeUpiCheckoutModal();
   updateUserUI();
-  const intake = document.getElementById("intakeDeck");
-  if (intake) {
-    intake.style.setProperty("display", "flex", "important");
-    intake.classList.remove("hidden");
-    intake.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+  window.switchStudioState("intake");
 };
 
 // Initialize User, Daily Question, Locker, and Pricing Listeners
@@ -7055,10 +7285,7 @@ window.loadEvaluationById = async function(evalId) {
       state.currentPageIndex = 0;
       updateViewer();
     }
-    const intake = document.getElementById("intakeDeck");
-    const studio = document.getElementById("evaluationStudio");
-    if (intake) intake.classList.add("hidden");
-    if (studio) studio.classList.remove("hidden");
+    window.switchStudioState("studio");
     return true;
   } catch(e) {
     console.error("Failed to load evaluation by ID:", e);
@@ -7858,6 +8085,7 @@ window.logoutAspirant = function() {
   localStorage.removeItem("mainsmentor_user");
   localStorage.removeItem("mainsmentor_api_key");
   state.user = null;
+  state.activeStudioView = "intake";
 
   window.closeAccountModal();
   updateUserUI();
