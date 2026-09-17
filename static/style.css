@@ -3,6 +3,32 @@
   display: none !important;
 }
 
+/* Bulletproof Theme Visibility for Brand Logos and Utilities */
+.brand-logo-light {
+  display: block !important;
+}
+.brand-logo-dark {
+  display: none !important;
+}
+html.dark .brand-logo-light {
+  display: none !important;
+}
+html.dark .brand-logo-dark {
+  display: block !important;
+}
+
+html.dark .dark\:block {
+  display: block !important;
+}
+html.dark .dark\:hidden {
+  display: none !important;
+}
+html:not(.dark) .dark\:block {
+  display: none !important;
+}
+html:not(.dark) .dark\:hidden {
+  display: block !important;
+}
 
 /* Custom font styles */
 .font-serif {
