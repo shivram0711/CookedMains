@@ -1846,6 +1846,7 @@ async function initUserSession() {
 function updateUserUI() {
   const loginRegisterBtn = document.getElementById("loginRegisterBtn");
   const myAccountBtn = document.getElementById("myAccountBtn");
+  const navSignOutBtn = document.getElementById("navSignOutBtn");
   const navCreditsCountMobile = document.getElementById("navCreditsCountMobile");
   const modalCreditsDisplay = document.getElementById("modalCreditsDisplay");
 
@@ -1857,6 +1858,7 @@ function updateUserUI() {
     // Aspirant is unauthenticated / guest — show Page 1 (Hero & Subscription), strictly hide Intake Deck
     if (loginRegisterBtn) loginRegisterBtn.classList.remove("hidden");
     if (myAccountBtn) myAccountBtn.classList.add("hidden");
+    if (navSignOutBtn) navSignOutBtn.classList.add("hidden");
     if (navCreditsCount) navCreditsCount.textContent = "5 Free Checks";
     if (navCreditsCountMobile) navCreditsCountMobile.textContent = "5 Free";
     if (modalCreditsDisplay) modalCreditsDisplay.textContent = "5 Checks Free";
@@ -1878,6 +1880,7 @@ function updateUserUI() {
   // Aspirant is signed in / sign up complete — open Page 2 (Daily Question & Intake Deck), hide Page 1 Hero & Subscription
   if (loginRegisterBtn) loginRegisterBtn.classList.add("hidden");
   if (myAccountBtn) myAccountBtn.classList.remove("hidden");
+  if (navSignOutBtn) navSignOutBtn.classList.remove("hidden");
   if (heroSection) {
     heroSection.style.display = "none";
     heroSection.classList.add("hidden");
@@ -7326,6 +7329,9 @@ window.openAccountModal = function(tab = 'profile') {
   modal.classList.add("flex");
   updateUserUI();
   window.switchAccountTab(tab);
+  if (window.lucide) {
+    try { lucide.createIcons(); } catch(e) {}
+  }
 };
 
 window.closeAccountModal = function() {
