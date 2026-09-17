@@ -2,8 +2,18 @@
 
 let adminToken = localStorage.getItem("mainsmentor_admin_token");
 
+function safeCreateIcons() {
+  try {
+    if (typeof lucide !== 'undefined' && lucide && typeof lucide.createIcons === 'function') {
+      lucide.createIcons();
+    }
+  } catch (err) {
+    console.warn("Lucide notice:", err);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  lucide.createIcons();
+  safeCreateIcons();
   checkAdminAuth();
 });
 
@@ -16,6 +26,7 @@ function checkAdminAuth() {
     loadAllAdminData();
   }
 }
+
 
 async function handleAdminLogin(e) {
   if (e) e.preventDefault();
