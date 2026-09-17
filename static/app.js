@@ -24,7 +24,7 @@ const state = {
   isRewriteMode: false,
   isControlsLocked: false,
   dailyQuestion: null,
-  activeStudioView: "intake"
+  activeStudioView: "landing"
 };
 
 // DOM Elements
@@ -647,7 +647,30 @@ window.switchStudioState = function(mode) {
   const heroSection = document.getElementById("heroLandingSection");
   const firstPageSub = document.getElementById("firstPageSubscriptionSection");
 
-  if (mode === "studio") {
+  if (mode === "landing") {
+    state.activeStudioView = "landing";
+    if (evaluationStudio) {
+      evaluationStudio.style.setProperty("display", "none", "important");
+      evaluationStudio.classList.add("hidden");
+    }
+    if (intakeDeck) {
+      intakeDeck.style.setProperty("display", "none", "important");
+      intakeDeck.classList.add("hidden");
+    }
+    if (heroSection) {
+      heroSection.style.display = "flex";
+      heroSection.classList.remove("hidden");
+    }
+    if (firstPageSub) {
+      firstPageSub.style.display = "flex";
+      firstPageSub.classList.remove("hidden");
+    }
+    const stickyFooter = document.getElementById("stickyRewriteFooter");
+    if (stickyFooter) stickyFooter.classList.add("hidden");
+    if (typeof stop24hRewriteTimer === "function") stop24hRewriteTimer();
+    if (window.lucide) lucide.createIcons();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if (mode === "studio") {
     state.activeStudioView = "studio";
     if (heroSection) {
       heroSection.style.display = "none";
@@ -676,6 +699,14 @@ window.switchStudioState = function(mode) {
   } else {
     // Mode is "intake"
     state.activeStudioView = "intake";
+    if (heroSection) {
+      heroSection.style.display = "none";
+      heroSection.classList.add("hidden");
+    }
+    if (firstPageSub) {
+      firstPageSub.style.display = "none";
+      firstPageSub.classList.add("hidden");
+    }
     if (evaluationStudio) {
       evaluationStudio.style.setProperty("display", "none", "important");
       evaluationStudio.classList.add("hidden");
@@ -690,6 +721,10 @@ window.switchStudioState = function(mode) {
     if (window.lucide) lucide.createIcons();
     if (intakeDeck) intakeDeck.scrollIntoView({ behavior: "smooth", block: "start" });
   }
+};
+
+window.navigateToHome = function() {
+  window.switchStudioState("landing");
 };
 
 window.switchStudioTab = function(tabId) {
@@ -1854,18 +1889,25 @@ function updateUserUI() {
   const firstPageSub = document.getElementById("firstPageSubscriptionSection");
   const heroSection = document.getElementById("heroLandingSection");
 
+  const evaluationStudio = document.getElementById("evaluationStudio");
+
   if (!state.user || !state.user.email) {
-    // Aspirant is unauthenticated / guest — show Page 1 (Hero & Subscription), strictly hide Intake Deck
+    // Aspirant is unauthenticated / guest
     if (loginRegisterBtn) loginRegisterBtn.classList.remove("hidden");
     if (myAccountBtn) myAccountBtn.classList.add("hidden");
     if (navSignOutBtn) navSignOutBtn.classList.add("hidden");
     if (navCreditsCount) navCreditsCount.textContent = "5 Free Checks";
     if (navCreditsCountMobile) navCreditsCountMobile.textContent = "5 Free";
     if (modalCreditsDisplay) modalCreditsDisplay.textContent = "5 Checks Free";
-    if (intakeDeck) {
-      intakeDeck.style.setProperty("display", "none", "important");
-      intakeDeck.classList.add("hidden");
-    }
+  } else {
+    // Aspirant is signed in
+    if (loginRegisterBtn) loginRegisterBtn.classList.add("hidden");
+    if (myAccountBtn) myAccountBtn.classList.remove("hidden");
+    if (navSignOutBtn) navSignOutBtn.classList.remove("hidden");
+  }
+
+  // Synchronize view visibility based on state.activeStudioView (defaults to "landing" so Home Hero opens first)
+  if (state.activeStudioView === "landing") {
     if (heroSection) {
       heroSection.style.display = "flex";
       heroSection.classList.remove("hidden");
@@ -1874,29 +1916,53 @@ function updateUserUI() {
       firstPageSub.style.display = "flex";
       firstPageSub.classList.remove("hidden");
     }
-    return;
-  }
-
-  // Aspirant is signed in / sign up complete — open Page 2 (Daily Question & Intake Deck), hide Page 1 Hero & Subscription
-  if (loginRegisterBtn) loginRegisterBtn.classList.add("hidden");
-  if (myAccountBtn) myAccountBtn.classList.remove("hidden");
-  if (navSignOutBtn) navSignOutBtn.classList.remove("hidden");
-  if (heroSection) {
-    heroSection.style.display = "none";
-    heroSection.classList.add("hidden");
-  }
-  if (firstPageSub) {
-    firstPageSub.style.display = "none";
-    firstPageSub.classList.add("hidden");
-  }
-  if (state.activeStudioView === "studio") {
     if (intakeDeck) {
       intakeDeck.style.setProperty("display", "none", "important");
       intakeDeck.classList.add("hidden");
     }
-  } else if (intakeDeck) {
-    intakeDeck.style.setProperty("display", "flex", "important");
-    intakeDeck.classList.remove("hidden");
+    if (evaluationStudio) {
+      evaluationStudio.style.setProperty("display", "none", "important");
+      evaluationStudio.classList.add("hidden");
+    }
+  } else if (state.activeStudioView === "studio") {
+    if (heroSection) {
+      heroSection.style.display = "none";
+      heroSection.classList.add("hidden");
+    }
+    if (firstPageSub) {
+      firstPageSub.style.display = "none";
+      firstPageSub.classList.add("hidden");
+    }
+    if (intakeDeck) {
+      intakeDeck.style.setProperty("display", "none", "important");
+      intakeDeck.classList.add("hidden");
+    }
+    if (evaluationStudio) {
+      evaluationStudio.style.setProperty("display", "flex", "important");
+      evaluationStudio.classList.remove("hidden");
+    }
+  } else {
+    // Mode is "intake"
+    if (heroSection) {
+      heroSection.style.display = "none";
+      heroSection.classList.add("hidden");
+    }
+    if (firstPageSub) {
+      firstPageSub.style.display = "none";
+      firstPageSub.classList.add("hidden");
+    }
+    if (evaluationStudio) {
+      evaluationStudio.style.setProperty("display", "none", "important");
+      evaluationStudio.classList.add("hidden");
+    }
+    if (intakeDeck) {
+      intakeDeck.style.setProperty("display", "flex", "important");
+      intakeDeck.classList.remove("hidden");
+    }
+  }
+
+  if (!state.user || !state.user.email) {
+    return;
   }
 
   const userName = state.user.name || "Aspirant";
@@ -6073,6 +6139,7 @@ function setupUserAndModalListeners() {
   // Daily Target Button in Navbar
   if (navDawBtn && dailyQuestionBanner) {
     navDawBtn.addEventListener("click", () => {
+      window.switchStudioState("intake");
       dailyQuestionBanner.classList.remove("hidden");
       dailyQuestionBanner.scrollIntoView({ behavior: "smooth", block: "start" });
     });
@@ -8091,7 +8158,7 @@ window.logoutAspirant = function() {
   localStorage.removeItem("mainsmentor_user");
   localStorage.removeItem("mainsmentor_api_key");
   state.user = null;
-  state.activeStudioView = "intake";
+  state.activeStudioView = "landing";
 
   window.closeAccountModal();
   updateUserUI();
