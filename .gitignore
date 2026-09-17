@@ -1,0 +1,31 @@
+﻿# Environment variables & API keys
+.env
+.env.local
+.env.*.local
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Local databases
+*.db
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Temporary test captures & debug output
+inspect_out.txt
+pdf_debug.txt
+page_*.png
+p1_*.png
+p2_*.png
+test_*.png
+scratch/
+
+# OS files
+.DS_Store
+Thumbs.db

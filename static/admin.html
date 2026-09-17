@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cooked Mains — Founder Admin Suite</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    };
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
+
+  <!-- Top Admin Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-xl">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
+        <img src="/static/brand_logo_dark.png" alt="Cooked Mains" class="h-full w-full object-contain shrink-0">
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 class="text-base font-extrabold text-white tracking-tight">Cooked <span class="text-amber-500">Mains</span></h1>
+          <span class="text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30">Founder Suite</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Accountability &amp; Aspirant Revenue Command Center • Let Me Cook</p>
+      </div>
+    </div>
+
+    <div class="flex items-center space-x-3">
+      <a href="/" target="_blank" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 transition flex items-center space-x-1.5">
+        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+        <span>Live Site</span>
+      </a>
+      <button onclick="adminLogout()" class="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold border border-rose-500/30 transition flex items-center space-x-1.5 cursor-pointer">
+        <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+        <span>Lock Portal</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Login Modal (Overlay when not authenticated) -->
+  <div id="adminLoginModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-5">
+      <div class="text-center space-y-2">
+        <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto shadow-inner">
+          <i data-lucide="lock" class="w-6 h-6"></i>
+        </div>
+        <h2 class="text-lg font-extrabold text-white">Private Admin Access</h2>
+        <p class="text-xs text-slate-400">Enter your master PIN or password to manage aspirants, UPI payments, and feedback.</p>
+      </div>
+
+      <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Master PIN / Password</label>
+          <input type="password" id="adminPinInput" placeholder="••••••••••••" autofocus required
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 font-mono">
+        </div>
+        <p id="loginError" class="text-xs text-rose-400 hidden"></p>
+        <button type="submit" id="loginSubmitBtn"
+          class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-bold text-xs shadow-lg transition flex items-center justify-center space-x-1.5 cursor-pointer">
+          <i data-lucide="key" class="w-4 h-4"></i>
+          <span>Unlock Dashboard</span>
+        </button>
+      </form>
+      <div class="text-center">
+        <span class="text-[10px] text-slate-500 font-mono">Default PIN: Admin@MainsMentor2026</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Admin Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 space-y-6">
+
+    <!-- KPI Metric Cards Strip -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3.5">
+      <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1 shadow-sm">
+        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Registered Aspirants</span>
+        <div class="text-2xl font-extrabold text-white font-mono" id="statAspirants">0</div>
+        <p class="text-[10px] text-slate-500">Total accounts</p>
+      </div>
+      <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1 shadow-sm">
+        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Copies Evaluated</span>
+        <div class="text-2xl font-extrabold text-amber-400 font-mono" id="statEvaluations">0</div>
+        <p class="text-[10px] text-slate-500">Single &amp; Rewrite scripts</p>
+      </div>
+      <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1 shadow-sm">
+        <span class="text-[10.5px] font-bold text-amber-300 uppercase tracking-wider flex items-center justify-between">
+          <span>Pending Orders</span>
+          <span id="statPendingBadge" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+        </span>
+        <div class="text-2xl font-extrabold text-amber-300 font-mono" id="statPending">0</div>
+        <p class="text-[10px] text-amber-400/80">Require UPI verification</p>
+      </div>
+      <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1 shadow-sm">
+        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Approved Revenue</span>
+        <div class="text-2xl font-extrabold text-emerald-400 font-mono" id="statRevenue">₹0</div>
+        <p class="text-[10px] text-slate-500">Collected to your UPI ID</p>
+      </div>
+      <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1 shadow-sm col-span-2 md:col-span-1">
+        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Satisfaction Rating</span>
+        <div class="text-2xl font-extrabold text-amber-400 font-mono flex items-center space-x-1">
+          <span id="statRating">5.0</span>
+          <span class="text-xs text-amber-400">★</span>
+        </div>
+        <p class="text-[10px] text-slate-500" id="statFeedbackCount">0 ratings received</p>
+      </div>
+    </div>
+
+    <!-- Tab Navigation Navigation -->
+    <div class="flex items-center space-x-2 border-b border-slate-800 pb-2 overflow-x-auto no-scrollbar">
+      <button onclick="switchTab('transactions')" id="tabBtn_transactions" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-amber-500 text-slate-950 cursor-pointer">
+        <i data-lucide="receipt" class="w-4 h-4"></i>
+        <span>UPI Subscriptions &amp; Orders</span>
+        <span id="txCountBadge" class="px-1.5 py-0.2 text-[9px] font-mono font-bold rounded-full bg-slate-950 text-amber-300">0</span>
+      </button>
+      <button onclick="switchTab('aspirants')" id="tabBtn_aspirants" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white cursor-pointer">
+        <i data-lucide="users" class="w-4 h-4"></i>
+        <span>Aspirants Database</span>
+      </button>
+      <button onclick="switchTab('feedback')" id="tabBtn_feedback" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white cursor-pointer">
+        <i data-lucide="message-square" class="w-4 h-4"></i>
+        <span>Feedback &amp; Bug Reports</span>
+      </button>
+      <button onclick="switchTab('settings')" id="tabBtn_settings" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white cursor-pointer">
+        <i data-lucide="settings" class="w-4 h-4"></i>
+        <span>Settings &amp; UPI ID</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: UPI ORDERS & APPROVALS -->
+    <div id="tabContent_transactions" class="space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-white">Pending &amp; Completed UPI Transactions</h2>
+          <p class="text-xs text-slate-400">Match the 12-digit UTR against your SBI PhonePe / GPay notification and click Approve.</p>
+        </div>
+        <button onclick="loadAdminTransactions()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition cursor-pointer">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span>Refresh Orders</span>
+        </button>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-800/60 text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-800">
+            <tr>
+              <th class="p-3.5">Order ID &amp; Date</th>
+              <th class="p-3.5">Aspirant Details</th>
+              <th class="p-3.5">Plan Chosen</th>
+              <th class="p-3.5">Amount</th>
+              <th class="p-3.5">12-Digit UTR / Ref</th>
+              <th class="p-3.5">Status</th>
+              <th class="p-3.5 text-right">One-Click Action</th>
+            </tr>
+          </thead>
+          <tbody id="transactionsTableBody" class="divide-y divide-slate-800/60 font-sans">
+            <tr>
+              <td colspan="7" class="p-8 text-center text-slate-500">Loading transactions...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: ASPIRANTS DATABASE -->
+    <div id="tabContent_aspirants" class="hidden space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-sm font-bold text-white">Registered UPSC Aspirants Database</h2>
+          <p class="text-xs text-slate-400">Manage quotas, inspect answer counts, or manually gift test packs.</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <input type="text" id="aspirantSearchInput" oninput="debounceAspirantSearch()" placeholder="Search by name or email..."
+            class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 w-56">
+          <button onclick="loadAspirants()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition cursor-pointer">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-800/60 text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-800">
+            <tr>
+              <th class="p-3.5">Cadet ID / User</th>
+              <th class="p-3.5">Target Year &amp; Optional</th>
+              <th class="p-3.5">Active Tier</th>
+              <th class="p-3.5">Remaining Checks</th>
+              <th class="p-3.5">Rewrites Left</th>
+              <th class="p-3.5">Evaluations Run</th>
+              <th class="p-3.5 text-right">Quick Management</th>
+            </tr>
+          </thead>
+          <tbody id="aspirantsTableBody" class="divide-y divide-slate-800/60">
+            <tr>
+              <td colspan="7" class="p-8 text-center text-slate-500">Loading aspirants...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: FEEDBACK & BUG REPORTS -->
+    <div id="tabContent_feedback" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-white">Aspirant Feedback &amp; Bug Reports</h2>
+          <p class="text-xs text-slate-400">Direct feedback sent by users via the "My Account" portal.</p>
+        </div>
+        <button onclick="loadAdminFeedbacks()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition cursor-pointer">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span>Refresh</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="feedbacksContainer">
+        <!-- Dynamically rendered feedback cards -->
+      </div>
+    </div>
+
+    <!-- TAB 4: SYSTEM SETTINGS -->
+    <div id="tabContent_settings" class="hidden space-y-4">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-5 max-w-xl">
+        <div>
+          <h2 class="text-sm font-bold text-white">Payment &amp; UPI Configuration</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Change the UPI ID where all aspirant payments are routed.</p>
+        </div>
+
+        <form onsubmit="saveUpiSetting(event)" class="space-y-4">
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Your Active UPI ID</label>
+            <input type="text" id="adminUpiInput" value="9661228832-2@ybl" required
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-amber-500">
+            <p class="text-[11px] text-slate-500 mt-1">Aspirants will see this UPI ID and QR code on the payment checkout page.</p>
+          </div>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition flex items-center space-x-1.5 cursor-pointer">
+            <i data-lucide="save" class="w-3.5 h-3.5"></i>
+            <span>Update UPI ID</span>
+          </button>
+        </form>
+
+        <div class="pt-4 border-t border-slate-800 space-y-2">
+          <h3 class="text-xs font-bold text-slate-300">Bank Associated</h3>
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center space-x-3 text-xs">
+            <div class="w-8 h-8 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold">
+              SBI
+            </div>
+            <div>
+              <p class="font-bold text-white">State Bank of India</p>
+              <p class="text-[11px] text-slate-400 font-mono">Linked to PhonePe QR Code</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="/static/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+﻿# ==============================================================================
+# Render.com Infrastructure Blueprint
+# Auto-deploys Cooked Mains AI with persistent database storage
+# ==============================================================================
+
+services:
+  - type: web
+    name: cooked-mains
+    runtime: python
+    region: singapore # Closest to India for ultra-low latency
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn main:app --host 0.0.0.0 --port $PORT --workers 2
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DATA_DIR
+        value: /var/data
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+    disk:
+      name: cooked-mains-data
+      mountPath: /var/data
+      sizeGB: 1

@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Split-Console Workbench — MainsMentor AI Demo</title>
+  <!-- Tailwind CSS CDN with dark mode class configuration -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Consolas', 'monospace'],
+            serif: ['Merriweather', 'Georgia', 'serif']
+          }
+        }
+      }
+    };
+  </script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Custom Scrollbar for Workbench Panes */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.3);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.5);
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.5);
+    }
+    .dark ::-webkit-scrollbar-thumb:hover {
+      background: rgba(71, 85, 105, 0.7);
+    }
+
+    /* Print Optimization: clean printout of answer sheet and diff */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans min-h-screen flex flex-col antialiased transition-colors duration-200">
+
+  <!-- ========================================================================= -->
+  <!-- 1. TOP BAR (h-14, sticky, non-overlapping light/dark tokens)               -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-40 h-14 border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-4 sm:px-6 flex items-center justify-between shadow-sm transition-colors duration-200">
+    
+    <!-- Left: Question title pill + Paper tag (GS-2) -->
+    <div class="flex items-center space-x-2.5 overflow-hidden">
+      <a href="/" class="flex items-center space-x-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition mr-1">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        <span class="hidden sm:inline">Main App</span>
+      </a>
+      <span class="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/80 shrink-0">
+        GS-2
+      </span>
+      <div class="h-4 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"></div>
+      <span class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 truncate max-w-[220px] sm:max-w-xs md:max-w-md" title="Separation of Powers & Constitutional Checks and Balances">
+        "Separation of Powers & Checks and Balances"
+      </span>
+      <span class="hidden lg:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80">
+        Critically Analyse
+      </span>
+    </div>
+
+    <!-- Center: Score indicator [ 4.5 / 10.0 ] (font-mono font-bold) -->
+    <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-1.5 px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-slate-100 shadow-sm transition-colors">
+        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 font-mono hidden sm:inline">Award:</span>
+        <span class="font-mono text-sm sm:text-base font-extrabold text-amber-600 dark:text-amber-400">4.5</span>
+        <span class="font-mono text-xs text-slate-400 dark:text-slate-500">/ 10.0</span>
+      </div>
+      <span class="hidden md:inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80">
+        Top 15% Band
+      </span>
+    </div>
+
+    <!-- Right: Theme toggle button + 'Export PDF' button -->
+    <div class="flex items-center space-x-2">
+      <!-- Dark / Light Theme Toggle -->
+      <button id="themeToggleBtn" type="button" title="Toggle Light / Dark Mode" class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-semibold transition shadow-sm">
+        <i id="themeIcon" data-lucide="sun" class="w-3.5 h-3.5 text-amber-500"></i>
+        <span id="themeLabel" class="hidden sm:inline">Light Mode</span>
+      </button>
+
+      <!-- Export PDF Button -->
+      <button onclick="window.print()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm transition">
+        <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+        <span>Export PDF</span>
+      </button>
+    </div>
+
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- 2. SPLIT-SCREEN LAYOUT (h-[calc(100vh-3.5rem)], 45% left / 55% right)      -->
+  <!-- ========================================================================= -->
+  <main class="flex-1 flex flex-col md:flex-row w-full h-[calc(100vh-3.5rem)] overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
+
+    <!-- ======================================================================= -->
+    <!-- LEFT PANE (45% width, fixed full-height, document viewer wrapper)       -->
+    <!-- ======================================================================= -->
+    <section class="w-full md:w-[45%] h-full flex flex-col bg-slate-200/80 dark:bg-slate-900/50 p-4 sm:p-6 overflow-y-auto border-r border-slate-200 dark:border-slate-800 transition-colors duration-200">
+      
+      <!-- Document Control Bar -->
+      <div class="flex items-center justify-between pb-3 text-xs text-slate-600 dark:text-slate-400 border-b border-slate-300 dark:border-slate-800/80 mb-4 shrink-0">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="file-text" class="w-4 h-4 text-amber-600 dark:text-amber-400"></i>
+          <span class="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px]">Candidate Answer Sheet</span>
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-300 dark:bg-slate-800 text-slate-700 dark:text-slate-300">UPSC Ruled Booklet</span>
+        </div>
+        <div class="flex items-center space-x-1.5 font-mono text-[11px]">
+          <span class="font-bold text-slate-800 dark:text-slate-200">Page 1</span>
+          <span class="text-slate-400">/ 2</span>
+        </div>
+      </div>
+
+      <!-- Centered Authentic A4 Sheet Simulation -->
+      <div class="max-w-[560px] w-full mx-auto bg-white text-slate-900 shadow-xl border border-slate-300 dark:border-slate-700/60 rounded-sm p-5 sm:p-7 relative font-serif text-xs leading-relaxed my-auto min-h-[760px] flex flex-col justify-between select-none">
+        
+        <!-- UPSC Booklet Authentic Margin Guidelines -->
+        <!-- Left vertical line -->
+        <div class="absolute top-0 bottom-0 left-12 w-px bg-slate-300 pointer-events-none"></div>
+        <!-- Right vertical line -->
+        <div class="absolute top-0 bottom-0 right-12 w-px bg-slate-300 pointer-events-none"></div>
+
+        <!-- Left Margin Warning Text (Simulated Hindi & English) -->
+        <div class="absolute left-1.5 top-32 text-[8px] text-slate-400 font-sans leading-tight text-center w-9 select-none">
+          उम्मीदवारों को<br>इस हाशिए में<br>नहीं लिखना<br>चाहिए
+        </div>
+        <div class="absolute left-1.5 top-56 text-[8px] text-slate-400 font-sans leading-tight text-center w-9 select-none">
+          Candidates<br>must not<br>write on<br>this margin
+        </div>
+
+        <!-- Right Margin Warning Text -->
+        <div class="absolute right-1.5 top-32 text-[8px] text-slate-400 font-sans leading-tight text-center w-9 select-none">
+          उम्मीदवारों को<br>इस हाशिए में<br>नहीं लिखना<br>चाहिए
+        </div>
+        <div class="absolute right-1.5 top-56 text-[8px] text-slate-400 font-sans leading-tight text-center w-9 select-none">
+          Candidates<br>must not<br>write on<br>this margin
+        </div>
+
+        <!-- Main Answer Script Content (Between Margins) -->
+        <div class="mx-6 sm:mx-8 space-y-4">
+
+          <!-- 1. Pre-printed UPSC Question Header Box -->
+          <div class="border border-slate-400 bg-slate-50/70 p-3 rounded-sm space-y-1 font-sans">
+            <div class="flex items-center justify-between text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+              <span>Question 1 (a)</span>
+              <span>10 Marks • 150 Words</span>
+            </div>
+            <p class="font-serif text-[11px] font-bold text-slate-900 leading-snug">
+              "The doctrine of separation of powers is not rigidly followed in the Indian Constitution, yet checks and balances prevent authoritarianism. Critically analyse."
+            </p>
+          </div>
+
+          <!-- 2. Candidate Handwritten Content (Blue Ink Simulation) -->
+          <div class="space-y-3.5 text-slate-900 font-sans text-xs leading-relaxed">
+            
+            <!-- Intro Paragraph -->
+            <p class="text-blue-950 font-medium">
+              <span class="font-bold underline text-blue-900">Introduction:</span> The doctrine of separation of powers, formulated by French jurist Montesquieu, divides governance into Executive, Legislature, and Judiciary to preserve liberty.
+            </p>
+
+            <!-- Bounding Box 1 (GREEN Outline: Strong Constitutional Anchor) -->
+            <div class="relative border-2 border-emerald-500 bg-emerald-50/40 rounded-lg p-3 my-2 shadow-sm transition">
+              <!-- Pin / Flag Badge -->
+              <span class="absolute -top-2.5 right-2 px-2 py-0.5 rounded bg-emerald-600 text-white font-mono font-bold text-[9px] uppercase tracking-wider shadow-sm flex items-center gap-1">
+                <i data-lucide="check" class="w-3 h-3"></i>
+                <span>Strong Anchor (+1.0M)</span>
+              </span>
+              <p class="text-blue-950 leading-relaxed">
+                <span class="font-semibold text-blue-900">1. Non-Rigid Separation in India:</span> The Indian Constitution establishes functional differentiation rather than water-tight compartments. Under <strong class="text-emerald-950 bg-emerald-200/60 px-1 rounded">Article 75(3)</strong>, the Council of Ministers is collectively responsible to the Lok Sabha, fusing the Executive and Legislature.
+              </p>
+              <div class="mt-1.5 pt-1.5 border-t border-emerald-200/80 text-[10px] font-mono text-emerald-800 flex items-center justify-between">
+                <span>Examiner Note: Clear identification of Art 75(3) collective responsibility.</span>
+                <span class="font-bold">+1.0 / 1.5</span>
+              </div>
+            </div>
+
+            <!-- Intermediary Text -->
+            <p class="text-blue-950 leading-relaxed">
+              Similarly, the President possesses legislative powers such as issuing ordinances under Article 123 during parliamentary recess. In turn, the Judiciary can invalidate unconstitutional executive actions.
+            </p>
+
+            <!-- Bounding Box 2 (ROSE Outline: Critical Evaluator Gap) -->
+            <div class="relative border-2 border-rose-500 bg-rose-50/50 rounded-lg p-3 my-2 shadow-sm transition">
+              <!-- Pin / Flag Badge -->
+              <span class="absolute -top-2.5 right-2 px-2 py-0.5 rounded bg-rose-600 text-white font-mono font-bold text-[9px] uppercase tracking-wider shadow-sm flex items-center gap-1">
+                <i data-lucide="alert-circle" class="w-3 h-3"></i>
+                <span>Critical Gap (-1.0M)</span>
+              </span>
+              <p class="text-blue-950 leading-relaxed">
+                <span class="font-semibold text-rose-900">2. Systemic Checks & Balances:</span> Independent bodies like CAG and ECI ensure audit and free elections. However, recent trends show ordinances being promulgated without adequate post-session parliamentary debate.
+              </p>
+              <div class="mt-1.5 pt-1.5 border-t border-rose-200/80 text-[10px] font-mono text-rose-800 flex items-center justify-between">
+                <span>Omitted Indira Gandhi (1975) Basic Structure doctrine on separation of powers.</span>
+                <span class="font-bold text-rose-700">-1.0 Gap</span>
+              </div>
+            </div>
+
+            <!-- Candidate Conclusion -->
+            <p class="text-blue-950 leading-relaxed">
+              <span class="font-bold underline text-blue-900">Way Forward:</span> Constitutional morality and revitalizing Parliamentary Standing Committees are vital to safeguard systemic equilibrium.
+            </p>
+
+          </div>
+
+        </div>
+
+        <!-- Sheet Footer -->
+        <div class="mx-6 sm:mx-8 pt-3 border-t border-slate-200 text-[9px] font-mono text-slate-400 flex items-center justify-between">
+          <span>UPSC Mains Calibrated Script • MM-2026-ASPIRANT</span>
+          <span>- Page 1 of 2 -</span>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- RIGHT PANE (55% width, fixed full-height, analytical workbench panel)    -->
+    <!-- ======================================================================= -->
+    <section class="w-full md:w-[55%] h-full overflow-y-auto p-4 sm:p-6 flex flex-col space-y-5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
+
+      <!-- Tab Navigation Bar -->
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5 shrink-0">
+        <div class="flex items-center space-x-1.5 p-1 rounded-xl bg-slate-200/70 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-xs">
+          <button id="tabBtnRubric" onclick="switchWorkbenchTab('rubric')" class="tab-btn px-3 py-1.5 rounded-lg font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition">
+            Marks & Rubric
+          </button>
+          <button id="tabBtnMultipliers" onclick="switchWorkbenchTab('multipliers')" class="tab-btn px-3 py-1.5 rounded-lg font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition">
+            Value Multipliers
+          </button>
+          <button id="tabBtnRewrite" onclick="switchWorkbenchTab('rewrite')" class="tab-btn active px-3 py-1.5 rounded-lg font-semibold bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm transition">
+            Topper Rewrite Diff
+          </button>
+        </div>
+
+        <span class="text-[11px] font-mono text-slate-500 dark:text-slate-400 hidden lg:inline">
+          Dholpur House Calibrated
+        </span>
+      </div>
+
+      <!-- ===================================================================== -->
+      <!-- TAB 1: TOPPER REWRITE DIFF (ACTIVE DEFAULT)                           -->
+      <!-- ===================================================================== -->
+      <div id="paneRewrite" class="space-y-6 animate-fade-in">
+
+        <!-- Header Callout -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">
+              Paragraph Transformation Diff
+            </h3>
+            <p class="text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+              Comparative Analysis: Candidate Baseline vs. Topper Model Rewrite
+            </p>
+          </div>
+          <span class="px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 self-start sm:self-auto">
+            +1.5 Marks Upside
+          </span>
+        </div>
+
+        <!-- Side-by-Side Card -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          
+          <!-- Left: Candidate Excerpt (Rose Theme) -->
+          <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-900 dark:text-rose-200 border border-rose-200 dark:border-rose-900 flex flex-col justify-between space-y-3 shadow-sm transition-colors">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between pb-2 border-b border-rose-200 dark:border-rose-900/80">
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-rose-800 dark:text-rose-300">
+                  Candidate Excerpt
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
+                  Baseline Attempt
+                </span>
+              </div>
+              <p class="text-xs text-rose-950 dark:text-rose-200 leading-relaxed font-serif">
+                "The doctrine of separation of powers says executive, legislature and judiciary must be separate. In India, PM is in parliament so it is not separate. But courts can review laws so there is balance. Recently ordinances are issued without discussion."
+              </p>
+            </div>
+            <div class="text-[11px] font-mono text-rose-800 dark:text-rose-300 pt-2 border-t border-rose-200 dark:border-rose-900/80">
+              ⚠️ <strong>Diagnostic Gap:</strong> Lacks precise constitutional article anchors (Art 50, 75(3)), Montesquieu doctrine attribution, and Indira Gandhi (1975) precedent.
+            </div>
+          </div>
+
+          <!-- Right: Topper Model Upgrade (Emerald Theme) -->
+          <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-900 flex flex-col justify-between space-y-3 shadow-sm transition-colors">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between pb-2 border-b border-emerald-200 dark:border-emerald-900/80">
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+                  Topper Model Upgrade
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                  Top 5% Benchmark
+                </span>
+              </div>
+              <p class="text-xs text-emerald-950 dark:text-emerald-100 leading-relaxed font-serif font-medium">
+                "Unlike Montesquieu's rigid presidential separation, India embodies 'organic separation with parliamentary executive' (<strong class="underline decoration-emerald-500">Art 50, 75(3)</strong>). In <em class="italic">Indira Nehru Gandhi (1975)</em>, the Supreme Court affirmed that constitutional checks and balances form an inviolable facet of the Basic Structure."
+              </p>
+            </div>
+            <div class="text-[11px] font-mono text-emerald-800 dark:text-emerald-300 pt-2 border-t border-emerald-200 dark:border-emerald-900/80">
+              ✓ <strong>High-Yield Elements:</strong> Article 50 (DPSP), Article 75(3) (Collective Responsibility), Indira Nehru Gandhi (1975), Basic Structure Doctrine.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Value-Add Matrix (Structured Table) -->
+        <div class="p-4 sm:p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3 transition-colors">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">
+              High-Yield Plug-in Matrix
+            </h4>
+            <span class="text-[10px] font-mono text-slate-400 dark:text-slate-500">Score Multiplier Blueprint</span>
+          </div>
+
+          <div class="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-lg">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-100 dark:bg-slate-850 border-b border-slate-200 dark:border-slate-800 text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                  <th class="py-2.5 px-3.5 w-[22%]">Type</th>
+                  <th class="py-2.5 px-3.5 w-[42%]">Recommendation</th>
+                  <th class="py-2.5 px-3.5 w-[36%]">Where to Insert</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 dark:divide-slate-800/80 text-slate-800 dark:text-slate-200 font-sans">
+                
+                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-850/40 transition">
+                  <td class="py-2.5 px-3.5 font-semibold text-blue-700 dark:text-blue-400">
+                    Constitutional Article
+                  </td>
+                  <td class="py-2.5 px-3.5 font-medium">
+                    <strong class="font-mono text-slate-900 dark:text-slate-100">Article 50 & 75(3)</strong> — Separation of Judiciary from Executive & Collective Responsibility to Lok Sabha.
+                  </td>
+                  <td class="py-2.5 px-3.5 text-slate-600 dark:text-slate-400 text-[11px]">
+                    Introduction, immediately following Montesquieu's definition.
+                  </td>
+                </tr>
+
+                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-850/40 transition">
+                  <td class="py-2.5 px-3.5 font-semibold text-amber-700 dark:text-amber-400">
+                    Landmark Judgment
+                  </td>
+                  <td class="py-2.5 px-3.5 font-medium">
+                    <strong class="font-mono text-slate-900 dark:text-slate-100">Indira Nehru Gandhi v. Raj Narain (1975)</strong> — Checks & balances recognized as Basic Structure.
+                  </td>
+                  <td class="py-2.5 px-3.5 text-slate-600 dark:text-slate-400 text-[11px]">
+                    Body Para 1, to substantiate non-negotiable institutional limits.
+                  </td>
+                </tr>
+
+                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-850/40 transition">
+                  <td class="py-2.5 px-3.5 font-semibold text-purple-700 dark:text-purple-400">
+                    Committee / Report
+                  </td>
+                  <td class="py-2.5 px-3.5 font-medium">
+                    <strong class="font-mono text-slate-900 dark:text-slate-100">2nd ARC (Ethics in Governance)</strong> & NCRWC Recommendations on Standing Committee scrutiny.
+                  </td>
+                  <td class="py-2.5 px-3.5 text-slate-600 dark:text-slate-400 text-[11px]">
+                    Way Forward section, proposing institutional reforms.
+                  </td>
+                </tr>
+
+                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-850/40 transition">
+                  <td class="py-2.5 px-3.5 font-semibold text-rose-700 dark:text-rose-400">
+                    Quantitative Data
+                  </td>
+                  <td class="py-2.5 px-3.5 font-medium">
+                    <strong class="font-mono text-slate-900 dark:text-slate-100">PRS Legislative Data</strong>: Referral of bills to DRSCs dropped from 71% (15th LS) to under 16% (17th LS).
+                  </td>
+                  <td class="py-2.5 px-3.5 text-slate-600 dark:text-slate-400 text-[11px]">
+                    Critical Analysis section, providing empirical backing.
+                  </td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ===================================================================== -->
+      <!-- TAB 2: MARKS & RUBRIC (INTERACTIVE SECONDARY TAB)                     -->
+      <!-- ===================================================================== -->
+      <div id="paneRubric" class="hidden space-y-5 animate-fade-in">
+        <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">Dholpur House 5-Pillar Scorecard</h3>
+              <p class="text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5">UPSC Mains Evaluation Breakdown</p>
+            </div>
+            <span class="font-mono text-lg font-extrabold text-amber-500">4.5 / 10.0</span>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <!-- Pillar 1 -->
+            <div class="space-y-1">
+              <div class="flex justify-between font-semibold text-slate-700 dark:text-slate-300">
+                <span>1. Introduction & Contextual Anchor</span>
+                <span class="font-mono font-bold">1.0 / 1.5</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                <div class="h-full bg-emerald-500 rounded-full" style="width: 66%"></div>
+              </div>
+            </div>
+
+            <!-- Pillar 2 -->
+            <div class="space-y-1">
+              <div class="flex justify-between font-semibold text-slate-700 dark:text-slate-300">
+                <span>2. Directive Adherence ("Critically Analyse")</span>
+                <span class="font-mono font-bold">2.0 / 4.0</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                <div class="h-full bg-amber-500 rounded-full" style="width: 50%"></div>
+              </div>
+            </div>
+
+            <!-- Pillar 3 -->
+            <div class="space-y-1">
+              <div class="flex justify-between font-semibold text-slate-700 dark:text-slate-300">
+                <span>3. Content Depth & Structural Balance</span>
+                <span class="font-mono font-bold">1.0 / 2.5</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                <div class="h-full bg-blue-500 rounded-full" style="width: 40%"></div>
+              </div>
+            </div>
+
+            <!-- Pillar 4 -->
+            <div class="space-y-1">
+              <div class="flex justify-between font-semibold text-slate-700 dark:text-slate-300">
+                <span>4. High-Yield Value Additions (Cases/Data)</span>
+                <span class="font-mono font-bold">0.5 / 1.0</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                <div class="h-full bg-purple-500 rounded-full" style="width: 50%"></div>
+              </div>
+            </div>
+
+            <!-- Pillar 5 -->
+            <div class="space-y-1">
+              <div class="flex justify-between font-semibold text-slate-700 dark:text-slate-300">
+                <span>5. Conclusion & Forward-Looking Roadmap</span>
+                <span class="font-mono font-bold">0.5 / 1.0</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                <div class="h-full bg-teal-500 rounded-full" style="width: 50%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================================================================== -->
+      <!-- TAB 3: VALUE MULTIPLIERS (INTERACTIVE TERTIARY TAB)                   -->
+      <!-- ===================================================================== -->
+      <div id="paneMultipliers" class="hidden space-y-5 animate-fade-in">
+        <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">Recommended Diagram Blueprint</h3>
+          
+          <div class="p-4 rounded-xl bg-slate-100 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center space-y-2">
+            <span class="text-xs font-bold text-slate-900 dark:text-slate-100">Trias Politica Systemic Equilibrium</span>
+            <div class="flex flex-wrap items-center justify-center gap-2 pt-2">
+              <span class="px-2.5 py-1 rounded bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-semibold">Legislature</span>
+              <span class="text-xs font-bold text-amber-500">⇄</span>
+              <span class="px-2.5 py-1 rounded bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-semibold">Executive (Art 75(3))</span>
+              <span class="text-xs font-bold text-amber-500">⇄</span>
+              <span class="px-2.5 py-1 rounded bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-semibold">Judiciary (Art 32/136)</span>
+            </div>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 italic pt-2">Draw this 45-second triangular schematic in the answer copy to gain +1.0 Visual Multiplier.</p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- 3. SCRIPT: THEME TOGGLE & TAB SWITCHER                                    -->
+  <!-- ========================================================================= -->
+  <script>
+    // Theme Toggle Implementation with zero color clash
+    const htmlEl = document.documentElement;
+    const themeBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeLabel = document.getElementById('themeLabel');
+
+    function updateThemeUI(isDark) {
+      if (isDark) {
+        htmlEl.classList.add('dark');
+        if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
+        if (themeLabel) themeLabel.textContent = 'Light Mode';
+        localStorage.setItem('workbench_theme', 'dark');
+      } else {
+        htmlEl.classList.remove('dark');
+        if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
+        if (themeLabel) themeLabel.textContent = 'Dark Mode';
+        localStorage.setItem('workbench_theme', 'light');
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // Initialize from storage or default to dark
+    const savedTheme = localStorage.getItem('workbench_theme') || 'dark';
+    updateThemeUI(savedTheme === 'dark');
+
+    themeBtn.addEventListener('click', () => {
+      const isCurrentlyDark = htmlEl.classList.contains('dark');
+      updateThemeUI(!isCurrentlyDark);
+    });
+
+    // Tab Switching
+    function switchWorkbenchTab(tab) {
+      const tabs = {
+        rubric: { btn: document.getElementById('tabBtnRubric'), pane: document.getElementById('paneRubric') },
+        multipliers: { btn: document.getElementById('tabBtnMultipliers'), pane: document.getElementById('paneMultipliers') },
+        rewrite: { btn: document.getElementById('tabBtnRewrite'), pane: document.getElementById('paneRewrite') }
+      };
+
+      Object.keys(tabs).forEach(k => {
+        const item = tabs[k];
+        if (k === tab) {
+          item.btn.className = "tab-btn active px-3 py-1.5 rounded-lg font-semibold bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm transition";
+          item.pane.classList.remove('hidden');
+        } else {
+          item.btn.className = "tab-btn px-3 py-1.5 rounded-lg font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition";
+          item.pane.classList.add('hidden');
+        }
+      });
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // Initialize icons on mount
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+
+</body>
+</html>

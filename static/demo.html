@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MainsMentor AI • Direct Intake Deck Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Custom scrollbar matching theme */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.3);
+      border-radius: 9999px;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: rgba(71, 85, 105, 0.4);
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-white transition-colors duration-200">
+
+  <!-- 1. Top Navigation Bar (h-16, sticky, backdrop blur) -->
+  <header class="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md transition-colors duration-200">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-2 sm:gap-4">
+      
+      <!-- Brand with Orange/Gold Emblem Icon -->
+      <a href="/demo" class="flex items-center space-x-3 group shrink-0">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600 flex items-center justify-center shadow-md shadow-orange-500/20 group-hover:scale-105 transition-transform shrink-0">
+          <!-- Feather / Quill / Emblem Icon -->
+          <svg class="w-5 h-5 text-white drop-shadow-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/>
+            <line x1="16" y1="8" x2="2" y2="22"/>
+            <line x1="17.5" y1="15" x2="9" y2="15"/>
+          </svg>
+        </div>
+        <div class="flex flex-col min-w-0">
+          <div class="flex items-center space-x-1.5">
+            <span class="font-extrabold text-base tracking-tight text-slate-900 dark:text-slate-100 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors truncate">MainsMentor</span>
+            <span class="text-xs font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 shrink-0">AI</span>
+          </div>
+          <span class="text-[10px] text-slate-500 dark:text-slate-400 font-medium hidden sm:block truncate">UPSC Civil Services Evaluation Chamber</span>
+        </div>
+      </a>
+
+      <!-- Middle/Right Controls: Catchy Exam Utility Badges & Theme Toggle -->
+      <div class="flex items-center space-x-2 sm:space-x-2.5 overflow-x-auto no-scrollbar py-1 max-w-full">
+        
+        <!-- 🎯 Daily Drill Pill -->
+        <button type="button" onclick="showToast('Daily Editorial Drill active: 1 new challenge today', '🎯')" 
+                class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium px-3 py-1 rounded-full text-xs flex items-center gap-1.5 shrink-0 transition-colors shadow-sm">
+          <svg class="w-3.5 h-3.5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+          </svg>
+          <span class="whitespace-nowrap">Daily Drill</span>
+        </button>
+
+        <!-- 📂 Answer Vault [3] Pill -->
+        <button type="button" onclick="showToast('Answer Vault: 3 evaluated copies archived', '📂')"
+                class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium px-3 py-1 rounded-full text-xs flex items-center gap-1.5 shrink-0 transition-colors shadow-sm">
+          <svg class="w-3.5 h-3.5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>
+          </svg>
+          <span class="whitespace-nowrap">Answer Vault <strong class="text-slate-900 dark:text-slate-100">[3]</strong></span>
+        </button>
+
+        <!-- ⚡ 2 Free Credits with subtle '+ Add' pill in amber/gold -->
+        <div class="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 shrink-0 shadow-sm">
+          <svg class="w-3.5 h-3.5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m13 2-2 10h8L7 22l2-10H1L13 2Z"/>
+          </svg>
+          <span class="whitespace-nowrap">2 Free Credits</span>
+          <button type="button" onclick="showToast('Recharge Practice Pack: 10/25/50 Evaluations', '⚡')" 
+                  class="ml-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-[10px] font-bold text-amber-700 dark:text-amber-300 transition-colors">
+            + Add
+          </button>
+        </div>
+
+        <!-- 🎓 Cadet 7666 Profile Pill -->
+        <div class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1 rounded-full text-xs flex items-center gap-1.5 shrink-0 shadow-sm">
+          <svg class="w-3.5 h-3.5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
+          <span class="font-medium whitespace-nowrap">Cadet 7666</span>
+        </div>
+
+        <!-- Working Light/Dark Toggle Button -->
+        <button type="button" onclick="toggleTheme()" id="themeToggleBtn" aria-label="Toggle Light/Dark Theme" class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-amber-500/50 shrink-0">
+          <span id="themeIconContainer">
+            <svg id="themeMoonIcon" class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+            </svg>
+            <svg id="themeSunIcon" class="w-4 h-4 text-amber-500 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v2"/><path d="M12 20v2"/>
+              <path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/>
+              <path d="M2 12h2"/><path d="M20 12h2"/>
+              <path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+            </svg>
+          </span>
+          <span id="themeLabelText" class="hidden sm:inline">Dark</span>
+        </button>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container: 2-Column Direct Intake Deck -->
+  <main class="flex-1 max-w-6xl w-full mx-auto py-8 md:py-12 px-4">
+    
+    <!-- Header Notice & Breadcrumb -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+          Direct Intake Deck
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Handwritten UPSC answer sheet ingestion with multimodal OCR and strict rubric evaluation.
+        </p>
+      </div>
+      <div class="inline-flex items-center space-x-2 self-start sm:self-auto bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full px-3 py-1">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Live AI Engine Ready</span>
+      </div>
+    </div>
+
+    <!-- 2-Column Grid Layout (Single-col on mobile/tablet, 2-col on desktop lg) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+
+      <!-- ========================================================= -->
+      <!-- LEFT COLUMN: Daily Challenge & Editorial Context           -->
+      <!-- ========================================================= -->
+      <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-sm space-y-5 transition-colors duration-200">
+        
+        <!-- 1. Dedicated Paper Switchbar with Live Sync & Reshuffle -->
+        <div class="flex flex-wrap items-center justify-between gap-2.5 pb-4 border-b border-slate-200 dark:border-slate-800">
+          
+          <!-- Pills: [Today] [GS 1] [GS 2] [GS 3] [GS 4] -->
+          <nav class="flex items-center overflow-x-auto whitespace-nowrap no-scrollbar pb-1 max-w-full p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60" id="paperSwitcherGroup">
+            <button type="button" onclick="selectPaper('Today')" class="paper-pill shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all">
+              Today
+            </button>
+            <button type="button" onclick="selectPaper('GS 1')" class="paper-pill shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all">
+              GS 1
+            </button>
+            <button type="button" onclick="selectPaper('GS 2')" class="paper-pill shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all">
+              GS 2
+            </button>
+            <button type="button" onclick="selectPaper('GS 3')" class="paper-pill shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm border border-slate-200/80 dark:border-slate-700 transition-all" data-active="true">
+              GS 3
+            </button>
+            <button type="button" onclick="selectPaper('GS 4')" class="paper-pill shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all">
+              GS 4
+            </button>
+          </nav>
+
+          <!-- Right side of switchbar: Reshuffle Question & Live Sync Indicator -->
+          <div class="flex items-center space-x-2">
+            
+            <!-- Reshuffle Question Button with subtle spin animation on click -->
+            <button type="button" onclick="reshuffleQuestion()" id="reshuffleBtn" 
+                    title="Reshuffle Question from UPSC Question Bank"
+                    class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center space-x-1.5 transition-all shadow-sm active:scale-95">
+              <svg id="reshuffleIcon" class="w-3.5 h-3.5 text-amber-500 transition-transform duration-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/>
+                <path d="m18 2 4 4-4 4"/>
+                <path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/>
+                <path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/>
+                <path d="m18 14 4 4-4 4"/>
+              </svg>
+              <span>Reshuffle</span>
+            </button>
+
+            <!-- 🟢 Live Sync Active Pulse Badge -->
+            <div class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-400 text-[11px] font-semibold">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Live Sync Active</span>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- 2. Badges: Editorial Source + Subject Domain -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Live Editorial Pill -->
+          <span id="editorialSourcePill" class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
+            <svg class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
+              <path d="M18 14h-8"/>
+              <path d="M15 18h-5"/>
+              <path d="M10 6h8v4h-8V6Z"/>
+            </svg>
+            <span>Live Editorial • The Hindu</span>
+          </span>
+
+          <!-- Paper & Domain Pill -->
+          <span id="domainBadge" class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+            <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+            </svg>
+            <span>GS-3 Disaster Management</span>
+          </span>
+        </div>
+
+        <!-- 3. Question Statement: High-contrast editorial typography -->
+        <div class="space-y-2.5">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center space-x-1.5">
+            <span>UPSC Mains Question Formulation</span>
+          </div>
+          <h2 id="questionStatement" class="text-xl sm:text-[22px] font-bold text-slate-900 dark:text-slate-100 leading-relaxed font-sans">
+            “The recurring disasters during pilgrimage seasons in the ecologically fragile Himalayan region highlight the deep conflict between infrastructure-led tourism and ecological sustainability. Critically analyze.”
+          </h2>
+        </div>
+
+        <!-- 4. Metadata Strip: 3 Clean Badges -->
+        <div class="flex flex-wrap items-center gap-2.5 pt-0.5">
+          <span class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60">
+            <svg class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+            <span id="marksTag">15 Marks</span>
+          </span>
+
+          <span class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+            <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <span id="wordsTag">250 Words</span>
+          </span>
+
+          <span class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
+            <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span id="targetTimeTag">Target: 9 Mins</span>
+          </span>
+        </div>
+
+        <!-- 5. Directly Beneath Tags: High-Contrast Source Callout Box (No washed-out text) -->
+        <div id="editorialCalloutBox" class="rounded-xl p-3.5 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 flex items-start space-x-2.5 transition-colors">
+          <span class="text-base leading-none shrink-0 mt-0.5">📰</span>
+          <div class="leading-relaxed min-w-0">
+            <span class="font-bold text-slate-900 dark:text-slate-100">Editorial Grounding:</span>
+            <span id="editorialCalloutText" class="text-slate-700 dark:text-slate-300 ml-1">The Hindu (National) • Infrastructure &amp; Disaster Resilience in Fragile Zones</span>
+          </div>
+        </div>
+
+        <!-- 6. Structural Directive Tip Card -->
+        <div class="rounded-xl p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 space-y-1.5">
+          <div class="flex items-center space-x-1.5 font-bold text-slate-800 dark:text-slate-200">
+            <svg class="w-4 h-4 text-amber-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/>
+              <path d="M9 18h6"/>
+              <path d="M10 22h4"/>
+            </svg>
+            <span id="directiveBadgeText">Directive Scrutiny: "Critically Analyze"</span>
+          </div>
+          <div id="directiveTipList" class="space-y-1.5 pt-1"></div>
+          <p id="directiveTipText" class="hidden">
+            Address both sides: (1) Economic imperative of pilgrim economy &amp; border connectivity vs. (2) Carrying capacity violation, slope destabilization &amp; glacial lake hazard (GLOF). Provide a pragmatic way forward.
+          </p>
+        </div>
+
+        <!-- Bottom Action: Minimalist Button to Download Blank Sheet -->
+        <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
+          <button type="button" onclick="triggerDownloadSheet()" class="w-full py-3 px-4 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs sm:text-sm font-semibold flex items-center justify-center space-x-2.5 transition shadow-sm hover:border-slate-400 dark:hover:border-slate-600 active:scale-[0.99]">
+            <span class="text-base leading-none">📄</span>
+            <span>Download Blank UPSC Margin Sheet</span>
+            <svg class="w-4 h-4 text-slate-400 dark:text-slate-500 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          </button>
+        </div>
+
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- RIGHT COLUMN: Evaluation Chamber / Upload Deck             -->
+      <!-- ========================================================= -->
+      <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-sm space-y-6 transition-colors duration-200">
+        
+        <!-- Section Header + Calibrated Badge -->
+        <div class="flex items-center justify-between gap-3 pb-1 border-b border-slate-200 dark:border-slate-800">
+          <div>
+            <h3 class="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
+              Answer Intake Chamber
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Submit your handwritten pages for line-by-line feedback.
+            </p>
+          </div>
+          <span class="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60">
+            UPSC Bell-Curve Calibrated
+          </span>
+        </div>
+
+        <!-- Paper / Subject Selection -->
+        <div class="space-y-2" id="demoStep1Wrapper">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+              Select Paper / Subject
+            </label>
+            <span id="demoStep1Badge" class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">✓ GS 3 Active</span>
+          </div>
+          <div class="flex overflow-x-auto whitespace-nowrap no-scrollbar pb-1 sm:grid sm:grid-cols-6 gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60" id="demoPaperTabs">
+            <button type="button" onclick="selectIntakePaper('GS 1')" class="demo-paper-pill shrink-0 sm:shrink py-2 px-3 sm:px-0 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all text-center">GS 1</button>
+            <button type="button" onclick="selectIntakePaper('GS 2')" class="demo-paper-pill shrink-0 sm:shrink py-2 px-3 sm:px-0 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all text-center">GS 2</button>
+            <button type="button" onclick="selectIntakePaper('GS 3')" class="demo-paper-pill shrink-0 sm:shrink active py-2 px-3 sm:px-0 text-xs font-semibold rounded-lg bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm border border-slate-200/80 dark:border-slate-700 transition-all text-center" data-active="true">GS 3</button>
+            <button type="button" onclick="selectIntakePaper('GS 4')" class="demo-paper-pill shrink-0 sm:shrink py-2 px-3 sm:px-0 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all text-center">GS 4</button>
+            <button type="button" onclick="selectIntakePaper('Essay')" class="demo-paper-pill shrink-0 sm:shrink py-2 px-3 sm:px-0 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all text-center">Essay</button>
+            <button type="button" onclick="selectIntakePaper('Optional')" class="demo-paper-pill shrink-0 sm:shrink py-2 px-3 sm:px-0 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all text-center">Optional</button>
+          </div>
+        </div>
+
+        <!-- Marks Selector: 3 Clean Selectable Pill Buttons -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+              Select Question Marks Weightage
+            </label>
+            <span id="demoStep2Badge" class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">✓ 15 Marks</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2" id="marksPillGroup">
+            
+            <button type="button" onclick="selectIntakeMarks(10)" class="marks-pill min-h-[48px] px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-center transition-all text-xs font-semibold focus:outline-none flex flex-col justify-center items-center">
+              <span class="block font-bold">10 Marks</span>
+              <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal mt-0.5">150 words</span>
+            </button>
+
+            <button type="button" onclick="selectIntakeMarks(15)" class="marks-pill min-h-[48px] active px-2.5 py-2 rounded-xl border border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-center transition-all text-xs font-semibold shadow-sm focus:outline-none flex flex-col justify-center items-center" data-active="true">
+              <span class="block font-bold">15 Marks</span>
+              <span class="block text-[10px] text-amber-600/80 dark:text-amber-400/80 font-normal mt-0.5">250 words</span>
+            </button>
+
+            <button type="button" onclick="selectIntakeMarks(20)" class="marks-pill min-h-[48px] px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-center transition-all text-xs font-semibold focus:outline-none flex flex-col justify-center items-center">
+              <span class="block font-bold">20 Marks</span>
+              <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-normal mt-0.5">GS4/Optional</span>
+            </button>
+
+          </div>
+        </div>
+
+        <!-- Drag-and-Drop Area: Dashed Border Container -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+            Handwritten Answer Booklet Upload
+          </label>
+          
+          <div id="dropzone" onclick="document.getElementById('fileInput').click()" 
+               class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 rounded-xl p-7 text-center transition-colors cursor-pointer bg-slate-50/50 dark:bg-slate-950/40 group relative min-h-[48px]">
+            
+            <input type="file" id="fileInput" accept=".pdf,image/png,image/jpeg,image/webp" multiple class="hidden" onchange="handleFileSelected(event)">
+
+            <div class="flex flex-col items-center justify-center space-y-3 pointer-events-none">
+              
+              <!-- Upload Cloud Icon with Hover Glow -->
+              <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900 transition-all shadow-sm">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>
+                  <path d="M12 12v9"/>
+                  <path d="m16 16-4-4-4 4"/>
+                </svg>
+              </div>
+
+              <!-- Main Upload Text & Subtext -->
+              <div class="space-y-1">
+                <p id="dropzoneTitle" class="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  Drop your handwritten answer booklet (PDF or JPG) here
+                </p>
+                <p id="dropzoneSubtitle" class="text-xs text-slate-500 dark:text-slate-400">
+                  Auto-detects margins, question number, and word limits
+                </p>
+              </div>
+
+              <!-- Quick formats indicator -->
+              <div class="flex items-center space-x-2 pt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                <span class="px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800 font-mono">PDF</span>
+                <span class="px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800 font-mono">PNG / JPG</span>
+                <span>• Up to 25 MB</span>
+              </div>
+
+            </div>
+
+            <!-- Uploaded Files Preview Chip (Hidden until selected) -->
+            <div id="fileSelectedBadge" class="hidden mt-4 p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center justify-between">
+              <div class="flex items-center space-x-2 truncate">
+                <svg class="w-4 h-4 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg>
+                <span id="selectedFileName" class="font-semibold truncate">answer_copy_scanned.pdf</span>
+              </div>
+              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-600 text-white shrink-0 ml-2">Ready</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Pre-Evaluation Script Protocol / Checklist -->
+        <div class="space-y-3 pt-1">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <div class="text-[11px] font-mono font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400">
+                PRE-EVALUATION SCRIPT PROTOCOL
+              </div>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Ensure high-fidelity multimodal OCR & strict rubric alignment
+              </p>
+            </div>
+            <span class="hidden sm:inline-flex items-center space-x-1 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 shrink-0">
+              <span>6-POINT PROTOCOL</span>
+            </span>
+          </div>
+
+          <!-- Grid Layout (2 Columns x 3 Rows) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            
+            <!-- 1. Glare-Free Overhead Scan -->
+            <div class="bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-xl p-3 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex items-start gap-2.5 group">
+              <div class="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 7V5a2 2 0 0 1 2-2h2"/>
+                  <path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+                  <path d="M21 17v2a2 2 0 0 1-2 2h-2"/>
+                  <path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+                  <line x1="7" y1="12" x2="17" y2="12"/>
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">Glare-Free Overhead Scan</h4>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">Shoot flat from above under even light; avoid shadows over margin text.</p>
+              </div>
+            </div>
+
+            <!-- 2. Chronological Page Order -->
+            <div class="bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-xl p-3 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex items-start gap-2.5 group">
+              <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                  <polyline points="2 17 12 22 22 17"/>
+                  <polyline points="2 12 12 17 22 12"/>
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">Chronological Page Order</h4>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">Ensure 150w (2-page) or 250w (3-page) copies are uploaded in sequential order.</p>
+              </div>
+            </div>
+
+            <!-- 3. Explicit Margin Question # -->
+            <div class="bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-xl p-3 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex items-start gap-2.5 group">
+              <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/70 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="4" y1="9" x2="20" y2="9"/>
+                  <line x1="4" y1="15" x2="20" y2="15"/>
+                  <line x1="10" y1="3" x2="8" y2="21"/>
+                  <line x1="16" y1="3" x2="14" y2="21"/>
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">Explicit Margin Question #</h4>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">Mark question number clearly in the left margin for instant rubric anchoring.</p>
+              </div>
+            </div>
+
+            <!-- 4. Standard UPSC Margin Paper -->
+            <div class="bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-xl p-3 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex items-start gap-2.5 group">
+              <div class="w-7 h-7 rounded-lg bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800/70 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <path d="M8 13h2"/>
+                  <path d="M8 17h2"/>
+                  <path d="M14 13h2"/>
+                  <path d="M14 17h2"/>
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">Standard UPSC Margin Paper</h4>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">Use blank/unruled sheets with UPSC-style side margins for diagram detection.</p>
+              </div>
+            </div>
+
+            <!-- 5. High-Density Dark Ink -->
+            <div class="bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-xl p-3 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex items-start gap-2.5 group">
+              <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/70 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m12 19 7-7 3 3-7 7-3-3z"/>
+                  <path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+                  <path d="m2 2 7.586 7.586"/>
+                  <circle cx="11" cy="11" r="2"/>
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">High-Density Dark Ink</h4>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">Black or dark royal blue ink gives the highest handwriting recognition fidelity.</p>
+              </div>
+            </div>
+
+            <!-- 6. Multimodal Question Auto-Sync -->
+            <div class="bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 rounded-xl p-3 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex items-start gap-2.5 group">
+              <div class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/70 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="16" height="16" x="4" y="4" rx="2"/>
+                  <rect width="6" height="6" x="9" y="9" rx="1"/>
+                  <path d="M15 2v2"/>
+                  <path d="M15 20v2"/>
+                  <path d="M2 15h2"/>
+                  <path d="M2 9h2"/>
+                  <path d="M20 15h2"/>
+                  <path d="M20 9h2"/>
+                  <path d="M9 2v2"/>
+                  <path d="M9 20v2"/>
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">Multimodal Question Auto-Sync</h4>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-0.5">Booklet headers are auto-detected by OCR; no manual question typing required.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Primary Evaluation CTA Button -->
+        <div class="pt-2 space-y-3">
+          <button type="button" onclick="triggerEvaluation()" id="evaluateBtn" class="w-full min-h-[48px] py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:via-orange-400 hover:to-amber-500 text-slate-950 dark:text-slate-950 font-bold text-sm sm:text-base shadow-md hover:shadow-orange-500/20 active:scale-[0.99] transition-all flex items-center justify-center space-x-2">
+            <span>Evaluate Answer Copy</span>
+            <svg class="w-4 h-4 text-slate-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14"/>
+              <path d="m12 5 7 7-7 7"/>
+            </svg>
+          </button>
+
+          <!-- Security / Accuracy Calibration Footer -->
+          <div class="flex items-center justify-center space-x-2 text-xs text-slate-500 dark:text-slate-400 text-center">
+            <svg class="w-4 h-4 text-emerald-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+            <span>Strictly confidential • End-to-end encrypted evaluation</span>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+
+    <!-- Live Toast Notification Feedback Element -->
+    <div id="demoToast" class="fixed bottom-6 right-6 z-50 hidden items-center space-x-3 px-4 py-3 rounded-xl bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white shadow-xl text-xs font-semibold transition-all">
+      <span id="demoToastIcon">✓</span>
+      <span id="demoToastMsg">Action completed</span>
+    </div>
+
+  </main>
+
+  <!-- Clean Footer with Theme Status -->
+  <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 py-6 transition-colors duration-200">
+    <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-2">
+      <div class="flex items-center space-x-2">
+        <span class="font-bold text-slate-700 dark:text-slate-300">MainsMentor AI</span>
+        <span>• Direct Intake Chamber Demo</span>
+      </div>
+      <div class="flex items-center space-x-3">
+        <span>No hardcoded color clashes</span>
+        <span>• Pure Tailwind Dark Mode Variants</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================= -->
+  <!-- INLINE JAVASCRIPT: Theme Toggle & State Controller        -->
+  <!-- ========================================================= -->
+  <script>
+    // 1. Working Theme Toggle Logic
+    function applyTheme(isDark) {
+      const htmlEl = document.documentElement;
+      const moonIcon = document.getElementById("themeMoonIcon");
+      const sunIcon = document.getElementById("themeSunIcon");
+      const labelText = document.getElementById("themeLabelText");
+
+      if (isDark) {
+        htmlEl.classList.add("dark");
+        if (moonIcon) moonIcon.classList.remove("hidden");
+        if (sunIcon) sunIcon.classList.add("hidden");
+        if (labelText) labelText.textContent = "Dark";
+        localStorage.setItem("mainsmentor_demo_theme", "dark");
+      } else {
+        htmlEl.classList.remove("dark");
+        if (moonIcon) moonIcon.classList.add("hidden");
+        if (sunIcon) sunIcon.classList.remove("hidden");
+        if (labelText) labelText.textContent = "Light";
+        localStorage.setItem("mainsmentor_demo_theme", "light");
+      }
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.contains("dark");
+      applyTheme(!isDark);
+      showToast(`Switched to ${!isDark ? 'Dark' : 'Light'} Mode`, "🌓");
+    }
+
+    // Initialize Theme from localStorage or Default Dark
+    (function initTheme() {
+      const savedTheme = localStorage.getItem("mainsmentor_demo_theme");
+      if (savedTheme) {
+        applyTheme(savedTheme === "dark");
+      } else {
+        // Default to dark as configured
+        applyTheme(true);
+      }
+    })();
+
+    // 2. Paper Switcher & UPSC Question Bank Controller
+    let currentPaperKey = "GS 3";
+    let currentQuestionIndex = 0;
+
+    const paperQuestionBank = {
+      "Today": [
+        {
+          domain: "GS-3 Disaster Management",
+          editorial: "Live Editorial • The Hindu",
+          grounding: "The Hindu (National) • Infrastructure & Disaster Resilience in Fragile Zones",
+          source_url: "https://www.thehindu.com/news/national/other-states/himalayan-infrastructure-disaster-resilience-carrying-capacity-char-dham/article67234567.ece",
+          question: "“The recurring disasters during pilgrimage seasons in the ecologically fragile Himalayan region highlight the deep conflict between infrastructure-led tourism and ecological sustainability. Critically analyze.”",
+          marks: 15,
+          words: 250,
+          time: 9,
+          directive: "Critically Analyze",
+          directiveTip: "1. Adopt a balanced dialectical approach addressing both infrastructure imperatives and ecological limits. 2. Begin with a 2-3 line contextual introduction citing recent Joshimath subsidence and Supreme Court observations on carrying capacity. 3. Dedicate 50% of the body to substantiating economic imperatives: religious pilgrim economy, border security logistics, and hill connectivity. 4. Allocate 35% of the body space to interrogating systemic ecological risks: blast-induced slope destabilization, seismicity, and flash flood hazards. 5. Propose evidence-backed value additions: cite the Ravi Chopra High Powered Committee and NDMA guidelines on glacial lake outbursts. 6. Conclude with a 15% pragmatic synthesis advocating mandatory Cumulative Impact Assessments, seasonal visitor caps, and green bio-engineering."
+        },
+        {
+          domain: "GS-2 Governance & Social Justice",
+          editorial: "Live Editorial • Indian Express",
+          grounding: "Indian Express (Opinion) • Algorithmic Bias & Exclusion in Digital Welfare Architecture",
+          source_url: "https://indianexpress.com/article/opinion/columns/techno-solutionism-biometrics-welfare-exclusion-aadhaar-9234567/",
+          question: "“Techno-solutionism in biometric social welfare delivery architecture risks converting substantive constitutional entitlements into conditional digital privileges. Discuss in light of recent exclusion audits.”",
+          marks: 15,
+          words: 250,
+          time: 9,
+          directive: "Discuss",
+          directiveTip: "1. Adopt an expansive multi-dimensional analytical framework covering PESTLE dimensions (Political, Economic, Social, Technological, Legal, Environmental). 2. Open with a crisp contextual thesis unpacking the core scope and significance of the question. 3. Formulate clear thematic sub-headings for each dimension rather than writing generic paragraphs. 4. Substantiate each argument with verifiable facts, government schemes, or landmark judicial precedents. 5. Include a conceptual schematic or stakeholder mapping flowchart to visually reinforce depth. 6. Conclude with a forward-looking, visionary conclusion rooted in sustainable development and constitutional values."
+        }
+      ],
+      "GS 1": [
+        {
+          domain: "GS-1 Geography & Urban Hydrology",
+          editorial: "Live Editorial • Down to Earth",
+          grounding: "Down to Earth • Traditional Water Architecture vs. Urban Heat Island Effects",
+          source_url: "https://www.downtoearth.org.in/water/rethinking-urban-drainage-traditional-water-architecture-india-89214",
+          question: "“Examine the role of traditional water-harvesting mechanisms (Bawalis, Johads, Ahar-Pynes) in drought-prone regions and analyze why modern concrete civil engineering failed to replace them sustainably.”",
+          marks: 10,
+          words: 150,
+          time: 7,
+          directive: "Examine",
+          directiveTip: "1. Structure your answer using a balanced dialectical approach addressing both thesis and antithesis. 2. Begin with a concise 2-3 line introduction contextualizing the issue through historical water wisdom. 3. Dedicate the primary body section to substantiating core arguments with empirical data, regional traditional architectures, and ecological resilience. 4. Dedicate the secondary body section to unearthing systemic bottlenecks and modern urban civil engineering failures. 5. Emphasize multi-dimensional perspectives using clean sub-headings and a neat schematic diagram. 6. Conclude with a pragmatic, constitutional synthesis outlining actionable Sponge City policy recommendations."
+        },
+        {
+          domain: "GS-1 History & Society",
+          editorial: "Editorial • EPW",
+          grounding: "Economic & Political Weekly • Decolonizing Architectural History & Urban Spaces",
+          source_url: "https://www.thehindu.com/entertainment/art/colonial-architecture-delhi-imperial-planning/article67112233.ece",
+          question: "“Assess how colonial public architecture was systematically utilized as an instrument of psychological subjugation and political authority in 19th-century imperial India.”",
+          marks: 15,
+          words: 250,
+          time: 9,
+          directive: "Assess",
+          directiveTip: "1. Undertake a rigorous criteria-based assessment weighing architectural symbolism against imperial political objectives. 2. Begin with a sharp introductory baseline outlining British spatial hegemony post-1857. 3. Structure the first half around spatial segregation: Civil Lines vs Native Bazaars and hill stations as racial enclaves. 4. Devote the second half to architectural iconography: Indo-Saracenic pastiche co-opting indigenous motifs to project imperial legitimacy. 5. Support evaluation with concrete case studies (Victoria Memorial, Lutyens New Delhi, Crawford Market). 6. Conclude with a definitive, judicious verdict on decolonizing public urban memory."
+        }
+      ],
+      "GS 2": [
+        {
+          domain: "GS-2 Governance & Panchayati Raj",
+          editorial: "Live Editorial • The Hindu",
+          grounding: "The Hindu (Law & Governance) • De Facto Exclusion in De Jure Decentralization",
+          source_url: "https://www.thehindu.com/news/national/sarpanch-pati-system-panchayati-raj-women-reservation/article67334455.ece",
+          question: "“The structural phenomenon of 'Sarpanch Pati' reveals how entrenched patriarchy hollows out constitutional devolution under Article 243D. Discuss corrective legal and institutional reforms.”",
+          marks: 15,
+          words: 250,
+          time: 9,
+          directive: "Discuss",
+          directiveTip: "1. Adopt an expansive multi-dimensional analytical framework covering political, administrative, sociocultural, and legal dimensions. 2. Open with a crisp contextual thesis anchoring Article 243D (33% minimum reservation for women in Panchayats). 3. Group structural inhibitors under thematic subheadings: proxy governance, lack of administrative capacity, and entrenched rural patriarchy. 4. Substantiate corrective reforms: disqualification rules for proxy attendance, independent Mahila Sabhas, and dedicated honorarium accounts. 5. Include a conceptual schematic contrasting de jure representation with substantive empowerment. 6. Conclude with a forward-looking perspective linking grassroot female political leadership to transformative social development."
+        },
+        {
+          domain: "GS-2 Constitutional Safeguards",
+          editorial: "Editorial • LiveLaw",
+          grounding: "LiveLaw Analysis • The Doctrine of Proportionality and Preventive Detention",
+          source_url: "https://www.thehindu.com/news/national/supreme-court-preventive-detention-article-22-liberty/article67445566.ece",
+          question: "“Preventive detention laws represent an exceptional constitutional carve-out that risks becoming an administrative convenience. Evaluate judicial safeguards evolved to protect liberty under Article 22.”",
+          marks: 15,
+          words: 250,
+          time: 9,
+          directive: "Evaluate",
+          directiveTip: "1. Undertake a rigorous criteria-based assessment weighing executive detention powers against fundamental personal liberty under Article 21 and 22. 2. Begin with a sharp introductory baseline acknowledging preventive detention as an extraordinary peacetime constitutional anomaly. 3. Structure the first half around procedural safeguards: grounds communication timelines, Advisory Board scrutiny, and representation rights. 4. Devote the second half to an evidence-backed audit of executive misuse: mechanical invocations for ordinary law-and-order infractions. 5. Benchmark judicial safeguards developed through landmark rulings (AK Roy, Rekha, Ameena Begum) enforcing strict proportionality. 6. Conclude with a definitive verdict demanding mandatory judicial review before detention extension."
+        }
+      ],
+      "GS 3": [
+        {
+          domain: "GS-3 Disaster Management",
+          editorial: "Live Editorial • The Hindu",
+          grounding: "The Hindu (National) • Infrastructure & Disaster Resilience in Fragile Zones",
+          source_url: "https://www.thehindu.com/news/national/other-states/himalayan-infrastructure-disaster-resilience-carrying-capacity-char-dham/article67234567.ece",
+          question: "“The recurring disasters during pilgrimage seasons in the ecologically fragile Himalayan region highlight the deep conflict between infrastructure-led tourism and ecological sustainability. Critically analyze.”",
+          marks: 15,
+          words: 250,
+          time: 9,
+          directive: "Critically Analyze",
+          directiveTip: "1. Adopt a balanced dialectical approach addressing both infrastructure imperatives and ecological limits. 2. Begin with a 2-3 line contextual introduction citing recent Joshimath subsidence and Supreme Court observations on carrying capacity. 3. Dedicate 50% of the body to substantiating economic imperatives: religious pilgrim economy, border security logistics, and hill connectivity. 4. Allocate 35% of the body space to interrogating systemic ecological risks: blast-induced slope destabilization, seismicity, and flash flood hazards. 5. Propose evidence-backed value additions: cite the Ravi Chopra High Powered Committee and NDMA guidelines on glacial lake outbursts. 6. Conclude with a 15% pragmatic synthesis advocating mandatory Cumulative Impact Assessments, seasonal visitor caps, and green bio-engineering."
+        },
+        {
+          domain: "GS-3 Indian Economy & Energy",
+          editorial: "Live Editorial • Financial Express",
+          grounding: "Financial Express • Grid Parity and Critical Mineral Supply Chain Security",
+          source_url: "https://www.financialexpress.com/policy/economy-critical-minerals-supply-chain-clean-energy-transition-kabil-auction-3345678/",
+          question: "“India’s transition towards renewable energy cannot succeed without simultaneously addressing supply chain vulnerabilities in critical minerals. Elaborate on strategic policy imperatives.”",
+          marks: 15,
+          words: 250,
+          time: 9,
+          directive: "Elaborate",
+          directiveTip: "1. Focus on making the strategic supply chain imperatives unmistakably clear across domestic, geopolitical, and technological fronts. 2. Begin with a precise operational thesis stating that decarbonisation replaces fossil fuel dependence with critical mineral chokepoints. 3. Unpack the processing vulnerability: geographical concentration of Lithium, Cobalt, and REE refining in China. 4. Detail domestic levers: MMDR Amendment Act 2023, commercial block auctions, and circular battery recycling mandates. 5. Elaborate on diplomatic initiatives: KABIL overseas acquisitions in Argentina and the Minerals Security Partnership. 6. Conclude by summarizing how secure mineral access directly safeguards India's 500 GW non-fossil energy target by 2030."
+        }
+      ],
+      "GS 4": [
+        {
+          domain: "GS-4 Ethics & Human Interface",
+          editorial: "Case Discussion • Centre for Policy Research",
+          grounding: "Civil Services Ethics Review • Empathy vs. Procedural Neutrality in Public Service",
+          source_url: "https://pib.gov.in/PressReleasePage.aspx?PRID=1894567",
+          question: "“'Efficiency without empathy transforms public administration into bureaucratic cruelty.' In the context of digital welfare delivery exclusions, substantiate this view with suitable ethical frameworks.”",
+          marks: 20,
+          words: 250,
+          time: 11,
+          directive: "Substantiate",
+          directiveTip: "1. Substantiate the quote through robust ethical frameworks contrasting procedural rationality against substantive moral duty. 2. Open with an introduction defining empathy as the emotional rudder that prevents Max Weber's 'iron cage of bureaucracy'. 3. Apply ethical doctrines: Kant's Deontology (citizens as moral ends, not biometric data points) vs Utilitarian cost-cutting. 4. Contrast rigid rule fetishism (Jharkhand Aadhaar biometric starvation) against compassionate discretion (Swarochish Somavanshi IAS). 5. Evaluate Gandhi's Talisman as the supreme practical test for civil servants facing discretionary ambiguity. 6. Conclude with 2nd ARC recommendations on codifying the Nolan Principle of Compassion in the Civil Services Code of Ethics."
+        },
+        {
+          domain: "GS-4 Applied Administrative Ethics",
+          editorial: "Opinion • The Hindu",
+          grounding: "The Hindu (Editorial) • Post-Retirement Appointments and Judicial Independence",
+          source_url: "https://www.thehindu.com/opinion/editorial/cooling-off-period-post-retirement-jobs-judiciary/article67554433.ece",
+          question: "“The practice of appointing retired judges and civil servants to lucrative tribunals immediately upon demitting office compromises public perception of institutional integrity. Discuss the ethical dilemmas involved.”",
+          marks: 15,
+          words: 250,
+          time: 9,
+          directive: "Discuss",
+          directiveTip: "1. Structure your analysis around institutional probity, public trust, and the doctrine of separation of powers. 2. Begin with a concise introduction defining the 'cooling-off period' as a firewall against quid-pro-quo perceptions. 3. Detail the core conflict of interest: prospective employment compromising judicial neutrality in matters where the State is the primary litigant. 4. Present counter-perspectives: utilizing rare domain expertise and constitutional jurisprudence for specialized tribunals. 5. Reference authoritative recommendations: Law Commission 14th Report, Justice Lodha Committee, and international Bangalore Principles of Judicial Conduct. 6. Conclude with a constructive proposal advocating a mandatory 2-year cooling-off period with dignified pension parity."
+        }
+      ]
+    };
+
+    function renderCurrentQuestion() {
+      const questions = paperQuestionBank[currentPaperKey] || paperQuestionBank["GS 3"];
+      if (!questions || questions.length === 0) return;
+
+      const data = questions[currentQuestionIndex % questions.length];
+
+      const domainEl = document.getElementById("syllabusDomainBadge");
+      if (domainEl && domainEl.querySelector("span:last-child")) {
+        domainEl.querySelector("span:last-child").textContent = data.domain;
+      }
+
+      const editorialPill = document.getElementById("editorialSourcePill");
+      if (editorialPill && editorialPill.querySelector("span:last-child")) {
+        editorialPill.querySelector("span:last-child").textContent = data.editorial;
+      }
+
+      const qStatement = document.getElementById("questionStatement");
+      if (qStatement) {
+        qStatement.textContent = data.question;
+      }
+
+      const calloutText = document.getElementById("editorialCalloutText");
+      if (calloutText) {
+        const srcUrl = data.source_url || "https://www.thehindu.com/opinion/editorial/";
+        calloutText.innerHTML = `<span class="font-semibold text-slate-700 dark:text-slate-300">Editorial Grounding:</span> <a href="${srcUrl}" target="_blank" rel="noopener noreferrer" class="text-amber-600 dark:text-amber-400 hover:text-amber-500 hover:underline inline-flex items-center gap-1 font-semibold ml-1 transition-colors"><span>${data.grounding}</span> <svg class="w-3.5 h-3.5 inline shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>`;
+      }
+
+      const directiveBadge = document.getElementById("directiveBadgeText");
+      if (directiveBadge) {
+        directiveBadge.textContent = `Directive Scrutiny: "${data.directive}"`;
+      }
+
+      const directiveTip = document.getElementById("directiveTipText");
+      if (directiveTip) {
+        directiveTip.textContent = data.directiveTip;
+      }
+
+      const directiveTipList = document.getElementById("directiveTipList");
+      if (directiveTipList && data.directiveTip) {
+        directiveTipList.innerHTML = "";
+        const raw = data.directiveTip.split(/(?:^|\s+)(?=\d+\.\s+)/).map(s => s.trim()).filter(Boolean);
+        const points = raw.length > 1 ? raw.map(p => p.replace(/^\d+\.\s*/, "").trim()) : [data.directiveTip.trim()];
+        points.forEach((pt, idx) => {
+          const card = document.createElement("div");
+          card.className = "flex items-start space-x-2.5 p-2 rounded-lg bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 text-xs shadow-xs transition-colors";
+          
+          const badge = document.createElement("span");
+          badge.className = "inline-flex items-center justify-center w-5 h-5 rounded-md bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 font-bold text-[11px] shrink-0 mt-0.5 border border-amber-300/60 dark:border-amber-700/60";
+          badge.textContent = `${idx + 1}`;
+
+          const textDiv = document.createElement("div");
+          textDiv.className = "leading-relaxed text-slate-700 dark:text-slate-300 flex-1";
+
+          let formatted = pt;
+          if (pt.includes(":") && pt.indexOf(":") < 45) {
+            const parts = pt.split(":");
+            formatted = `<strong class="text-slate-900 dark:text-slate-100 font-semibold">${parts[0].trim()}:</strong> ${parts.slice(1).join(":").trim()}`;
+          } else {
+            const match = pt.match(/^([^,.;]{4,32}[,;:]?)\s+(.*)$/);
+            if (match) {
+              formatted = `<strong class="text-slate-900 dark:text-slate-100 font-semibold">${match[1]}</strong> ${match[2]}`;
+            }
+          }
+          textDiv.innerHTML = formatted;
+
+          card.appendChild(badge);
+          card.appendChild(textDiv);
+          directiveTipList.appendChild(card);
+        });
+      }
+
+      setDailyQuestionSpecs(data.marks, data.words, data.time);
+    }
+
+    function setDailyQuestionSpecs(marks, words, time) {
+      const mTag = document.getElementById("marksTag");
+      if (mTag) mTag.textContent = `${marks} Marks`;
+      const wTag = document.getElementById("wordsTag");
+      if (wTag) wTag.textContent = `${words} Words`;
+      const tTag = document.getElementById("targetTimeTag");
+      if (tTag) tTag.textContent = `Target: ${time} Mins`;
+    }
+
+    // Left Column: Daily Target Paper Switcher (ONLY affects Left Column)
+    function selectPaper(paperKey) {
+      currentPaperKey = paperKey;
+      currentQuestionIndex = 0;
+
+      // Update pill styling on Left Column switchbar
+      const pills = document.querySelectorAll(".paper-pill");
+      pills.forEach(p => {
+        if (p.textContent.trim() === paperKey) {
+          p.className = "paper-pill px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm border border-slate-200/80 dark:border-slate-700 transition-all";
+          p.setAttribute("data-active", "true");
+        } else {
+          p.className = "paper-pill px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all";
+          p.removeAttribute("data-active");
+        }
+      });
+
+      renderCurrentQuestion();
+      showToast(`Switched Daily Target to ${paperKey}`, "📑");
+    }
+
+    // Right Column: Intake Deck Paper Selection (ONLY affects Upload Chamber)
+    function selectIntakePaper(paperKey) {
+      const demoPills = document.querySelectorAll(".demo-paper-pill");
+      demoPills.forEach(dp => {
+        if (dp.textContent.trim() === paperKey) {
+          dp.className = "demo-paper-pill active py-2 text-xs font-semibold rounded-lg bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm border border-slate-200/80 dark:border-slate-700 transition-all text-center";
+        } else {
+          dp.className = "demo-paper-pill py-2 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all text-center";
+        }
+      });
+      const badge = document.getElementById("demoStep1Badge");
+      if (badge) badge.textContent = `✓ ${paperKey} Active`;
+      showToast(`Upload Subject configured: ${paperKey}`, "✓");
+    }
+
+    // Right Column: Intake Deck Marks Selection (ONLY affects Upload Chamber)
+    function selectIntakeMarks(marks) {
+      const pills = document.querySelectorAll(".marks-pill");
+      pills.forEach(p => {
+        if (p.querySelector("span").textContent.includes(marks + " Marks")) {
+          p.className = "marks-pill px-2.5 py-2.5 rounded-xl border border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-center transition-all text-xs font-semibold shadow-sm focus:outline-none";
+          p.setAttribute("data-active", "true");
+        } else {
+          p.className = "marks-pill px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-center transition-all text-xs font-semibold focus:outline-none";
+          p.removeAttribute("data-active");
+        }
+      });
+      const badge = document.getElementById("demoStep2Badge");
+      if (badge) badge.textContent = `✓ ${marks} Marks`;
+      showToast(`Upload Marks configured: ${marks} Marks`, "✓");
+    }
+
+    function reshuffleQuestion() {
+      const icon = document.getElementById("reshuffleIcon");
+      if (icon) {
+        icon.classList.add("rotate-180");
+        setTimeout(() => icon.classList.remove("rotate-180"), 500);
+      }
+      const bank = paperQuestionBank[currentPaperKey] || paperQuestionBank["Today"];
+      currentQuestionIndex = (currentQuestionIndex + 1) % bank.length;
+      renderCurrentQuestion();
+      showToast(`Reshuffled: Question #${currentQuestionIndex + 1} (${currentPaperKey})`, "🔀");
+    }
+
+    // 4. File Drop & Input Handler
+    function handleFileSelected(e) {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        const badge = document.getElementById("fileSelectedBadge");
+        const nameEl = document.getElementById("selectedFileName");
+        if (badge && nameEl) {
+          nameEl.textContent = `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+          badge.classList.remove("hidden");
+        }
+        showToast(`Selected: ${file.name}`, "📎");
+      }
+    }
+
+    // Drag-and-drop dragover visual effects
+    const dz = document.getElementById("dropzone");
+    if (dz) {
+      dz.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dz.classList.add("border-amber-500", "dark:border-amber-400", "bg-amber-500/5");
+      });
+      dz.addEventListener("dragleave", () => {
+        dz.classList.remove("border-amber-500", "dark:border-amber-400", "bg-amber-500/5");
+      });
+      dz.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dz.classList.remove("border-amber-500", "dark:border-amber-400", "bg-amber-500/5");
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          document.getElementById("fileInput").files = e.dataTransfer.files;
+          handleFileSelected({ target: { files: e.dataTransfer.files } });
+        }
+      });
+    }
+
+    // 5. Download Blank Margin Sheet
+    function triggerDownloadSheet() {
+      showToast("Generating authentic UPSC Blank Margin Sheet PDF...", "📄");
+      const qText = document.getElementById("questionStatement") ? document.getElementById("questionStatement").textContent.trim() : "";
+      const pKey = (currentPaperKey || "GS 3").replace(/\s+/g, "");
+      setTimeout(() => {
+        const url = `/api/upsc-blank-sheet?paper=${encodeURIComponent(pKey)}&marks=15&word_limit=250&question=${encodeURIComponent(qText)}`;
+        window.open(url, "_blank");
+      }, 300);
+    }
+
+    // 6. Evaluation Action
+    function triggerEvaluation() {
+      showToast("Opening UPSC Evaluation Studio with Topper Benchmark Copy...", "🚀");
+      setTimeout(() => {
+        window.location.href = "/?load_sample=true";
+      }, 400);
+    }
+
+    // 7. Toast Notification Utility
+    let toastTimer = null;
+    function showToast(msg, icon = "✓") {
+      const toast = document.getElementById("demoToast");
+      const msgEl = document.getElementById("demoToastMsg");
+      const iconEl = document.getElementById("demoToastIcon");
+      if (!toast || !msgEl) return;
+      msgEl.textContent = msg;
+      if (iconEl) iconEl.textContent = icon;
+      toast.classList.remove("hidden");
+      toast.classList.add("flex");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.add("hidden");
+        toast.classList.remove("flex");
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
