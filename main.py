@@ -49,16 +49,20 @@ app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__
 SAMPLE_DATASETS = get_sample_datasets()
 
 @app.get("/")
+@app.get("/index.html")
 async def root():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "index.html"))
 
 @app.get("/demo-workbench")
+@app.get("/demo-workbench.html")
 async def demo_workbench():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "demo-workbench.html"))
 
 @app.get("/demo")
+@app.get("/demo.html")
 async def demo():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "demo.html"))
+
 
 @app.get("/api/config")
 async def get_config():
@@ -911,6 +915,7 @@ async def api_payment_submit_utr(request: Request):
 # =====================================================================
 
 @app.get("/admin")
+@app.get("/admin.html")
 async def serve_admin_page():
     """Serves the standalone secured Admin Dashboard."""
     admin_html_path = os.path.join(os.path.dirname(__file__), "static", "admin.html")
