@@ -66,7 +66,7 @@
         </button>
 
         <!-- 3. My Account Button (Shown when logged in) -->
-        <button id="myAccountBtn" onclick="window.openAccountModal('profile')" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 sm:gap-2 shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm transition cursor-pointer" title="My Account Portal (Profile, Subscription, Locker, Tracker, Feedback)">
+        <button id="myAccountBtn" onclick="window.openAccountModal('profile')" class="hidden bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 sm:gap-2 shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm transition cursor-pointer" title="My Account Portal (Profile, Subscription, Locker, Tracker, Feedback)">
           <div class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs font-bold font-mono" id="navAvatarInitials">
             <i data-lucide="user" class="w-3.5 h-3.5"></i>
           </div>
@@ -82,9 +82,9 @@
         </button>
 
         <!-- 5. Sign In / Register Button (Shown when logged out) -->
-        <button id="loginRegisterBtn" onclick="window.openAuthModal()" class="hidden bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-bold px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer">
-          <i data-lucide="log-in" class="w-3.5 h-3.5"></i>
-          <span>Sign In</span>
+        <button id="loginRegisterBtn" onclick="window.openAuthModal()" class="bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer shrink-0">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+          <span class="whitespace-nowrap font-bold">Sign In</span>
         </button>
       </div>
     </div>

@@ -3,6 +3,27 @@
   display: none !important;
 }
 
+/* Responsive display overrides for elements with responsive display classes */
+@media (min-width: 400px) {
+  .min-\[400px\]\:inline { display: inline !important; }
+  .min-\[400px\]\:block { display: block !important; }
+  .min-\[400px\]\:flex { display: flex !important; }
+}
+@media (min-width: 640px) {
+  .sm\:inline { display: inline !important; }
+  .sm\:inline-block { display: inline-block !important; }
+  .sm\:block { display: block !important; }
+  .sm\:flex { display: flex !important; }
+  .sm\:hidden { display: none !important; }
+}
+@media (min-width: 768px) {
+  .md\:inline { display: inline !important; }
+  .md\:inline-block { display: inline-block !important; }
+  .md\:block { display: block !important; }
+  .md\:flex { display: flex !important; }
+  .md\:hidden { display: none !important; }
+}
+
 /* Bulletproof Theme Visibility for Brand Logos and Utilities */
 .brand-logo-light {
   display: block !important;

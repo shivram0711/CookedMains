@@ -1850,24 +1850,31 @@ function handleMobileTabSwitch(tab) {
 
 // User Session & Daily Question Initialization
 async function initUserSession() {
-  const saved = localStorage.getItem("mainsmentor_user");
-  if (saved) {
+  // Session is maintained in sessionStorage so fresh visits to the first page always start logged out with "Sign In",
+  // and the My Account icon and Sign Out button only appear once the user actually signs in.
+  const sessionUser = sessionStorage.getItem("mainsmentor_user");
+  if (sessionUser) {
     try {
-      state.user = JSON.parse(saved);
+      state.user = JSON.parse(sessionUser);
     } catch (e) {
       state.user = null;
+      sessionStorage.removeItem("mainsmentor_user");
     }
   } else {
     state.user = null;
+    // Clear any stale persistent logins from previous browser sessions
+    try {
+      localStorage.removeItem("mainsmentor_user");
+    } catch (e) {}
   }
 
-  // If user is saved, sync profile from server
+  // If user has an active session in this window/tab, sync profile from server
   if (state.user && state.user.email) {
     try {
       const res = await fetch(`/api/user/profile?email=${encodeURIComponent(state.user.email)}`);
       if (res.ok) {
         state.user = await res.json();
-        localStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+        sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
       }
     } catch (err) {
       console.warn("User profile sync error:", err);
@@ -3680,7 +3687,7 @@ window.runEvaluation = async function(allowAutoAligned = false) {
     // Sync updated credits
     if (data.user_credits !== undefined && state.user) {
       state.user.credits = data.user_credits;
-      localStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+      sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
       updateUserUI();
     }
     refreshLockerBadge();
@@ -6614,7 +6621,7 @@ function setupUserAndModalListeners() {
         });
         if (res.ok) {
           state.user = await res.json();
-          localStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+          sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
           updateUserUI();
           refreshLockerBadge();
           window.closeAuthModal();
@@ -6632,11 +6639,7 @@ function setupUserAndModalListeners() {
             }, 300);
           } else {
             setTimeout(() => {
-              const intake = document.getElementById("intakeDeck");
-              if (intake) {
-                intake.classList.remove("hidden");
-                intake.scrollIntoView({ behavior: "smooth", block: "start" });
-              }
+              window.switchStudioState("intake");
             }, 300);
           }
         } else {
@@ -6665,7 +6668,7 @@ function setupUserAndModalListeners() {
         });
         if (res.ok) {
           state.user = await res.json();
-          localStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+          sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
           updateUserUI();
           refreshLockerBadge();
           window.closeAuthModal();
@@ -6683,11 +6686,7 @@ function setupUserAndModalListeners() {
             }, 300);
           } else {
             setTimeout(() => {
-              const intake = document.getElementById("intakeDeck");
-              if (intake) {
-                intake.classList.remove("hidden");
-                intake.scrollIntoView({ behavior: "smooth", block: "start" });
-              }
+              window.switchStudioState("intake");
             }, 300);
           }
         } else {
@@ -7278,7 +7277,7 @@ window.submitUpiPaymentProof = async function() {
     // Instant Zero-Wait Subscription Activation: Sync User & Balance
     if (data.user) {
       state.user = data.user;
-      localStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+      sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
       updateUserUI();
       refreshLockerBadge();
     }
@@ -7505,7 +7504,7 @@ window.saveAspirantProfile = async function() {
     if (!res.ok) throw new Error("Failed to save profile changes");
     const updated = await res.json();
     state.user = { ...state.user, ...updated };
-    localStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+    sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
     updateUserUI();
 
     if (typeof window.showAppToast === 'function') {
@@ -8155,6 +8154,7 @@ window.submitAspirantFeedback = async function() {
 // 5. Logout & Switch Cadet (Lands on Top of Home Page)
 // -------------------------------------------------------------
 window.logoutAspirant = function() {
+  sessionStorage.removeItem("mainsmentor_user");
   localStorage.removeItem("mainsmentor_user");
   localStorage.removeItem("mainsmentor_api_key");
   state.user = null;
