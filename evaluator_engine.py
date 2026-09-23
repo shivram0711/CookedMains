@@ -8,7 +8,7 @@ try:
     HAS_PIL = True
 except ImportError:
     HAS_PIL = False
-    Image = Any
+    Image = None
 import io
 from google import genai
 from google.genai import types
@@ -1692,7 +1692,7 @@ async def get_dynamic_grounded_context(question: str, paper: str) -> str:
     return "\n".join(context_parts)
 
 async def evaluate_with_gemini(
-    images: List[Image.Image],
+    images: List[Any],
     question: str,
     paper: str,
     max_marks: int,
@@ -1730,11 +1730,12 @@ async def evaluate_with_gemini(
     processed_imgs = []
     if images:
         for img in images:
-            if HAS_PIL and hasattr(img, "convert"):
+            if HAS_PIL and Image and hasattr(img, "convert"):
                 curr = img.convert("RGB")
                 max_dim = 1000
                 if max(curr.size) > max_dim:
-                    curr.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
+                    resample_filter = getattr(getattr(Image, "Resampling", None), "LANCZOS", 1)
+                    curr.thumbnail((max_dim, max_dim), resample_filter)
                 processed_imgs.append(curr)
             else:
                 processed_imgs.append(img)
