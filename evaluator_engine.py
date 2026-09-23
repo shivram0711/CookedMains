@@ -1742,13 +1742,13 @@ async def evaluate_with_gemini(
     def _sync_call():
         # High-speed verified multimodal models in strict priority
         candidate_models = [
-            "gemini-2.5-flash",
-            "gemini-3.5-flash",
+            "gemini-flash-lite-latest",
             "gemini-3.5-flash-lite",
-            "gemini-flash-latest",
             "gemini-3.6-flash",
-            "gemini-2.0-flash",
-            "gemini-1.5-flash"
+            "gemini-3.5-flash",
+            "gemini-3-flash-preview",
+            "gemini-flash-latest",
+            "gemini-2.5-flash"
         ]
 
         config = types.GenerateContentConfig(
@@ -1777,8 +1777,8 @@ async def evaluate_with_gemini(
                 except Exception as e:
                     last_err = e
                     err_str = str(e).lower()
-                    # If this key is invalid or unauthenticated, break immediately to try the next key
-                    if any(t in err_str for t in ["401", "400", "unauthenticated", "invalid_argument", "api_key_invalid", "api key not valid", "access_token_type_unsupported", "permission_denied"]):
+                    # Only break key loop if the API key itself is unauthenticated/invalid
+                    if any(t in err_str for t in ["api_key_invalid", "api key not valid", "unauthenticated", "permission_denied", "access_token_type_unsupported"]):
                         failed_auth = True
                         break
                     continue
@@ -1791,7 +1791,11 @@ async def evaluate_with_gemini(
                 for m in client.models.list():
                     if m.supported_actions and "generateContent" in m.supported_actions:
                         mod_name = m.name.replace("models/", "")
-                        if mod_name not in candidate_models and ("flash" in mod_name or "pro" in mod_name) and "tts" not in mod_name:
+                        if (
+                            mod_name not in candidate_models
+                            and ("flash" in mod_name or "pro" in mod_name)
+                            and not any(bad in mod_name for bad in ["preview", "research", "tts", "audio", "customtools", "image-preview", "er-2", "computer-use", "lyria", "gemma"])
+                        ):
                             try:
                                 response = client.models.generate_content(
                                     model=mod_name,
@@ -1801,7 +1805,8 @@ async def evaluate_with_gemini(
                                 if response and response.text:
                                     return response.text
                             except Exception as de:
-                                last_err = de
+                                if "Interactions" not in str(de):
+                                    last_err = de
                                 pass
             except Exception:
                 pass
