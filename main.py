@@ -1,13 +1,20 @@
 import os
 import io
 import hashlib
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
-from PIL import Image
-import pypdf
 import base64
+import tempfile
+import uuid
+
+try:
+    from PIL import Image
+    HAS_PIL = True
+except ImportError:
+    Image = None
+    HAS_PIL = False
 
 # Load .env file if present
 env_path = os.path.join(os.path.dirname(__file__), ".env")
@@ -19,7 +26,25 @@ if os.path.exists(env_path):
                 k, v = line.split("=", 1)
                 os.environ[k.strip()] = v.strip().strip('"').strip("'")
 
-from evaluator_engine import evaluate_with_gemini, detect_directive, PAPER_TAXONOMIES, are_questions_semantically_mismatched, infer_paper_from_question_content
+from google import genai
+from google.genai import types
+from supabase import create_client, Client
+
+supabase_url = os.environ.get("SUPABASE_URL")
+supabase_key = os.environ.get("SUPABASE_KEY")
+supabase: Optional[Client] = None
+if supabase_url and supabase_key:
+    try:
+        supabase = create_client(supabase_url, supabase_key)
+    except Exception as e:
+        print(f"Supabase client initialization notice: {e}")
+
+from evaluator_engine import (
+    evaluate_with_gemini, detect_directive, PAPER_TAXONOMIES,
+    are_questions_semantically_mismatched, infer_paper_from_question_content,
+    detect_academic_discipline, build_evaluation_prompt,
+    get_dynamic_grounded_context, parse_llm_json_response, normalize_evaluation_data
+)
 from sample_data import get_sample_datasets, get_daily_question, get_sample_test_series
 from storage import (
     get_or_create_user, get_user, use_user_credit, use_user_rewrite,
@@ -35,7 +60,8 @@ from storage import (
     get_all_aspirants_admin, update_user_credits_admin, get_all_feedbacks_admin,
     get_admin_setting, set_admin_setting,
     get_user_daily_quota, get_daily_evaluations_count,
-    DAILY_EVALUATION_LIMIT, DAILY_REWRITE_LIMIT
+    DAILY_EVALUATION_LIMIT, DAILY_REWRITE_LIMIT,
+    upload_file_to_supabase, insert_supabase_evaluation, get_db
 )
 from news_ingestion import ingest_all_feeds, get_top_editorial_articles
 from question_generator import get_or_generate_today_questions, generate_daily_questions_cohort
@@ -99,13 +125,12 @@ async def get_samples():
 async def render_preview(files: List[UploadFile] = File(...)):
     """Fast endpoint to render uploaded PDF/images into viewer previews immediately on selection."""
     previews = []
-    import pypdfium2 as pdfium
-    import base64
     for file in files:
         content = await file.read()
         filename = (file.filename or "").lower()
         if filename.endswith(".pdf"):
             try:
+                import pypdfium2 as pdfium
                 pdf = pdfium.PdfDocument(content)
                 for page in pdf:
                     pil_img = page.render(scale=1.5).to_pil().convert("RGB")
@@ -114,14 +139,12 @@ async def render_preview(files: List[UploadFile] = File(...)):
                     b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
                     previews.append(f"data:image/jpeg;base64,{b64}")
             except Exception as e:
-                print("PDF preview error:", e)
+                print("PDF preview notice:", e)
         else:
             try:
-                img = Image.open(io.BytesIO(content)).convert("RGB")
-                buf = io.BytesIO()
-                img.save(buf, format="JPEG", quality=80)
-                b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-                previews.append(f"data:image/jpeg;base64,{b64}")
+                b64 = base64.b64encode(content).decode("utf-8")
+                mime = "image/png" if filename.endswith(".png") else "image/jpeg"
+                previews.append(f"data:{mime};base64,{b64}")
             except Exception as e:
                 print("Image preview error:", e)
     return {"pages": previews, "num_pages": len(previews)}
@@ -766,11 +789,42 @@ async def api_submit_feedback(request: Request):
     result = save_feedback(user_email, user_name, category, rating, message, screenshot_data)
     return {"status": "success", "message": "Feedback received. Thank you for helping us improve Cooked Mains!"}
 
+@app.get("/locker")
+@app.get("/history")
 @app.get("/api/user/history")
-async def api_user_history(email: str):
-    """Returns list of student's past evaluated answer copies for the side drawer."""
-    history = get_user_evaluations(email)
-    return {"status": "success", "evaluations": history}
+async def api_user_history(email: Optional[str] = None, user_id: Optional[str] = None):
+    """Returns list of student's past evaluated answer copies ordered by created_at desc."""
+    if supabase and user_id:
+        try:
+            res = supabase.table("evaluations").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
+            if res and res.data:
+                return res.data
+        except Exception as e:
+            print(f"Supabase /locker query error: {e}")
+
+    if email:
+        return get_user_evaluations(email)
+
+    if supabase:
+        try:
+            res = supabase.table("evaluations").select("*").order("created_at", desc=True).limit(50).execute()
+            if res and res.data:
+                return res.data
+        except Exception as e:
+            print(f"Supabase /locker query error: {e}")
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, created_at, paper, max_marks, question, overall_score, percentage, thumbnail, is_rewrite,
+               has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
+        FROM evaluations
+        ORDER BY created_at DESC
+        LIMIT 50
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 @app.get("/api/user/history/{eval_id}")
 async def api_history_detail(eval_id: str):
@@ -1058,11 +1112,13 @@ async def api_admin_set_password(request: Request):
     return {"status": "success", "message": "Admin password updated successfully!", "token": new_token}
 
 
-def is_page_image_completely_blank(img: Image.Image) -> bool:
+def is_page_image_completely_blank(img: Any) -> bool:
     """
     Detects if an image is completely blank canvas, solid color,
     or an empty template page with no handwritten content in the writing zone.
     """
+    if not HAS_PIL or not hasattr(img, "convert"):
+        return False
     try:
         gray = img.convert("L")
         w, h = gray.size
@@ -1125,77 +1181,45 @@ async def evaluate_answer(
                         "evaluation": s["precomputed_evaluation"],
                         "pages": s["pages"]
                     }
+            raise HTTPException(status_code=400, detail=f"Sample copy '{sample_id}' not found.")
 
-        # If user uploaded files
-        processed_images: List[Image.Image] = []
+        # Ingest uploaded answer copy without heavy in-memory rasterization
         uploaded_page_previews: List[str] = []
         file_hashes: List[str] = []
         submission_hash: Optional[str] = None
+        primary_content: Optional[bytes] = None
+        primary_filename: str = ""
+        is_pdf = False
 
         if files and len(files) > 0 and files[0].filename != "":
-            import base64
             for file in files:
                 content = await file.read()
-                filename = file.filename.lower()
+                if not content:
+                    continue
+                filename = (file.filename or "").lower()
                 file_hashes.append(hashlib.sha256(content).hexdigest())
 
-                if filename.endswith(".pdf"):
-                    import pypdfium2 as pdfium
-                    pdf = pdfium.PdfDocument(content)
-                    for page in pdf:
-                        # Render actual full page at 1.5x scale for sharp legibility without bloat
-                        pil_img = page.render(scale=1.5).to_pil().convert("RGB")
-                        processed_images.append(pil_img)
+                if not primary_content:
+                    primary_content = content
+                    primary_filename = filename
+                    is_pdf = filename.endswith(".pdf") or "pdf" in (file.content_type or "").lower()
 
-                        buf = io.BytesIO()
-                        pil_img.save(buf, format="JPEG", quality=82)
-                        b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-                        uploaded_page_previews.append(f"data:image/jpeg;base64,{b64}")
+                if filename.endswith(".pdf"):
+                    # Direct PDF ingestion: avoid local rasterization into RAM
+                    pass
                 else:
                     try:
-                        img = Image.open(io.BytesIO(content))
-                        processed_images.append(img)
-
-                        buf = io.BytesIO()
-                        img.convert("RGB").save(buf, format="JPEG", quality=80)
-                        b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-                        uploaded_page_previews.append(f"data:image/jpeg;base64,{b64}")
+                        b64 = base64.b64encode(content).decode("utf-8")
+                        mime = "image/png" if filename.endswith(".png") else "image/jpeg"
+                        uploaded_page_previews.append(f"data:{mime};base64,{b64}")
                     except Exception as img_err:
-                        raise HTTPException(status_code=400, detail=f"Failed to parse image {file.filename}: {str(img_err)}")
+                        print(f"Notice: image preview encoding failed: {img_err}")
 
             if file_hashes:
                 submission_hash = hashlib.sha256("".join(file_hashes).encode("utf-8")).hexdigest()
 
-        if not processed_images:
-            if sample_id:
-                for s in SAMPLE_DATASETS:
-                    if s["id"] == sample_id:
-                        return {
-                            "source": "sample",
-                            "question": s["question"],
-                            "paper": s["paper"],
-                            "max_marks": s["marks"],
-                            "evaluation": s["precomputed_evaluation"],
-                            "pages": s["pages"]
-                        }
+        if not primary_content:
             raise HTTPException(status_code=400, detail="Please upload at least one handwritten answer image/page or select a sample copy.")
-
-        # Strict Blank Sheet Guard (Pre-AI Computer Vision Check)
-        if processed_images and not sample_id:
-            all_blank = all(is_page_image_completely_blank(p_img) for p_img in processed_images)
-            if all_blank:
-                return JSONResponse(
-                    status_code=400,
-                    content={
-                        "status": "blank_sheet",
-                        "error_type": "blank_sheet",
-                        "title": "Blank / Unwritten Answer Sheet Detected",
-                        "message": "The uploaded answer sheet is completely blank or contains no handwritten answer. Our examiners cannot evaluate an empty page.",
-                        "warning": "⚠️ Zero Credits Deducted: No evaluation was performed. Please upload your actual handwritten answer copy.",
-                        "action_hint": "Please upload a clear photograph or PDF of your handwritten answer sheet to receive your marks and feedback.",
-                        "credits_deducted": 0
-                    }
-                )
 
         # Check user credits and evaluate Rewrite Loophole Integrity
         user = None
@@ -1366,16 +1390,93 @@ async def evaluate_answer(
                 detail="No Master API Key is configured on the server. Please set it once in Settings so all students can evaluate freely, or click 'Try Preloaded Sample Answer'."
             )
 
-        # Run Multimodal Evaluation with Rewrite Integrity Check
+        # Direct Gemini Files API Ingestion and Multimodal Generation
         prev_q = (prev_record.get("question") if prev_record else None) or baseline_question if is_rewrite else None
-        evaluation_result = await evaluate_with_gemini(
-            images=processed_images,
+        detected_paper = detect_academic_discipline(question, paper)
+        directive_info = detect_directive(question)
+        current_affairs_context = await get_dynamic_grounded_context(question, detected_paper)
+
+        evaluator_prompt_text = build_evaluation_prompt(
             question=question,
-            paper=paper,
+            paper_key=detected_paper,
             max_marks=max_marks,
-            api_key=key,
-            previous_question=prev_q
+            directive_info=directive_info,
+            previous_question=prev_q,
+            current_affairs_context=current_affairs_context
         )
+
+        evaluation_result = None
+        client = genai.Client(api_key=key.strip())
+        uploaded_file = None
+        temp_path = None
+
+        try:
+            if primary_content:
+                suffix = ".pdf" if is_pdf else (os.path.splitext(primary_filename)[1] or ".jpg")
+                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+                temp_path = temp_file.name
+                temp_file.write(primary_content)
+                temp_file.flush()
+                temp_file.close()
+
+                uploaded_file = client.files.upload(file=temp_path)
+
+                gen_config = types.GenerateContentConfig(
+                    temperature=0.2,
+                    response_mime_type="application/json"
+                )
+
+                candidate_models = [
+                    "gemini-2.5-flash",
+                    "gemini-3.5-flash",
+                    "gemini-3.5-flash-lite",
+                    "gemini-flash-latest",
+                    "gemini-3.6-flash",
+                    "gemini-2.0-flash",
+                    "gemini-1.5-flash"
+                ]
+
+                last_gen_err = None
+                for model_candidate in candidate_models:
+                    try:
+                        response = client.models.generate_content(
+                            model=model_candidate,
+                            contents=[uploaded_file, evaluator_prompt_text],
+                            config=gen_config
+                        )
+                        if response and response.text:
+                            raw_text = response.text
+                            parsed_eval = parse_llm_json_response(raw_text)
+                            if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
+                                parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
+                            evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
+                            break
+                    except Exception as ge:
+                        last_gen_err = ge
+                        continue
+
+                if not evaluation_result:
+                    raise RuntimeError(f"Could not evaluate with available models. Last error: {last_gen_err}")
+            else:
+                evaluation_result = await evaluate_with_gemini(
+                    images=[],
+                    question=question,
+                    paper=paper,
+                    max_marks=max_marks,
+                    api_key=key,
+                    previous_question=prev_q
+                )
+        finally:
+            if temp_path and os.path.exists(temp_path):
+                try:
+                    os.unlink(temp_path)
+                except Exception as ue:
+                    print(f"Notice: temp file unlink skipped ({ue})")
+            if uploaded_file and hasattr(uploaded_file, "name"):
+                try:
+                    client.files.delete(name=uploaded_file.name)
+                except Exception as de:
+                    print(f"Notice: Gemini file cleanup skipped ({de})")
 
         # AI Vision Blank Sheet Verification Check
         is_ai_blank = bool(evaluation_result.get("is_blank_sheet")) or (
@@ -1516,6 +1617,25 @@ async def evaluate_answer(
                 }
             )
 
+        # Supabase Persistent Storage and Record Insertion
+        user_id = user["id"] if user and user.get("id") else (user_email or "guest")
+        public_file_url = None
+        if primary_content:
+            file_ext = ".pdf" if is_pdf else (os.path.splitext(primary_filename)[1] or ".jpg")
+            mime_type = "application/pdf" if is_pdf else ("image/png" if file_ext == ".png" else "image/jpeg")
+            try:
+                public_file_url = upload_file_to_supabase(
+                    user_id=user_id,
+                    file_bytes=primary_content,
+                    file_ext=file_ext,
+                    content_type=mime_type
+                )
+            except Exception as se:
+                print(f"Notice: Supabase storage upload error: {se}")
+
+        if not uploaded_page_previews and public_file_url:
+            uploaded_page_previews = [public_file_url]
+
         eval_id = None
         user_info = None
         final_paper = true_detected_paper if (allow_auto_aligned and (paper_mismatch or marks_mismatch)) else (evaluation_result.get("detected_paper") or paper)
@@ -1540,9 +1660,21 @@ async def evaluate_answer(
                 pages_list=uploaded_page_previews,
                 is_rewrite=is_rewrite,
                 file_hash=submission_hash,
-                baseline_eval_id=(baseline_eval_id or (prev_record.get("id") if prev_record else None)) if is_rewrite else None
+                baseline_eval_id=(baseline_eval_id or (prev_record.get("id") if prev_record else None)) if is_rewrite else None,
+                file_url=public_file_url
             )
             user_info = get_user(user_email)
+        elif public_file_url:
+            try:
+                insert_supabase_evaluation(
+                    user_id=user_id,
+                    question_title=final_question,
+                    file_url=public_file_url,
+                    total_marks=final_max_marks,
+                    result_json=evaluation_result
+                )
+            except Exception as se:
+                print(f"Notice: Supabase guest record insert error: {se}")
 
         return {
             "source": "live_ai",
@@ -1554,6 +1686,7 @@ async def evaluate_answer(
             "max_marks": final_max_marks,
             "evaluation": evaluation_result,
             "pages": uploaded_page_previews,
+            "file_url": public_file_url,
             "eval_id": eval_id,
             "user": user_info,
             "user_credits": user_info.get("free_credits") if user_info else None,
@@ -1593,7 +1726,10 @@ async def process_test_series_background(test_id: str, questions: List[dict], pa
             try:
                 raw_b64 = p.split(",", 1)[1] if "," in p else p
                 img_bytes = base64.b64decode(raw_b64)
-                pil_images.append(Image.open(io.BytesIO(img_bytes)).convert("RGB"))
+                if HAS_PIL and Image:
+                    pil_images.append(Image.open(io.BytesIO(img_bytes)).convert("RGB"))
+                else:
+                    pil_images.append(img_bytes)
             except Exception as e:
                 print(f"Error decoding image for Test {test_id} Q{q_num}:", e)
                 

@@ -6,6 +6,19 @@ import re
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 
+# Supabase Client Initialization
+from supabase import create_client, Client
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+
+supabase: Optional[Client] = None
+if SUPABASE_URL and SUPABASE_KEY:
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    except Exception as _supa_err:
+        print(f"Notice: Supabase client initialization error: {_supa_err}")
+
 # Support persistent volume disks (e.g. Render /data mount) or default local directory
 DATA_DIR = os.getenv("DATA_DIR", "")
 if DATA_DIR and os.path.exists(DATA_DIR):
@@ -69,6 +82,7 @@ def init_db():
         "ALTER TABLE evaluations ADD COLUMN has_been_rewritten INTEGER DEFAULT 0",
         "ALTER TABLE evaluations ADD COLUMN rewrite_eval_id TEXT",
         "ALTER TABLE evaluations ADD COLUMN baseline_eval_id TEXT",
+        "ALTER TABLE evaluations ADD COLUMN file_url TEXT",
         "ALTER TABLE users ADD COLUMN free_rewrites INTEGER DEFAULT 2",
         "ALTER TABLE users ADD COLUMN target_year TEXT DEFAULT '2026'",
         "ALTER TABLE users ADD COLUMN optional_subject TEXT DEFAULT 'PSIR'",
@@ -386,6 +400,44 @@ def add_user_credits(email: str, credits_to_add: int, set_pro: bool = False) -> 
     conn.close()
     return dict(updated)
 
+def upload_file_to_supabase(user_id: str, file_bytes: bytes, file_ext: str = ".pdf", content_type: str = "application/pdf") -> Optional[str]:
+    """Uploads student PDF/image to Supabase storage bucket 'answer-sheets' and returns public URL."""
+    if not supabase:
+        return None
+    try:
+        clean_ext = file_ext if file_ext.startswith(".") else f".{file_ext}"
+        storage_path = f"{user_id}/{uuid.uuid4()}{clean_ext}"
+        supabase.storage.from_("answer-sheets").upload(
+            file=file_bytes,
+            path=storage_path,
+            file_options={"content-type": content_type}
+        )
+        public_url = supabase.storage.from_("answer-sheets").get_public_url(storage_path)
+        return public_url
+    except Exception as e:
+        print(f"Supabase storage upload error: {e}")
+        return None
+
+def insert_supabase_evaluation(user_id: str, question_title: str, file_url: Optional[str], total_marks: int, result_json: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Inserts evaluation record into Supabase 'evaluations' table."""
+    if not supabase:
+        return None
+    try:
+        payload = {
+            "user_id": user_id,
+            "question_title": question_title,
+            "file_url": file_url or "",
+            "total_marks": total_marks,
+            "evaluation_json": result_json
+        }
+        res = supabase.table("evaluations").insert(payload).execute()
+        if res and res.data and len(res.data) > 0:
+            return res.data[0]
+        return None
+    except Exception as e:
+        print(f"Supabase evaluations insert error: {e}")
+        return None
+
 def save_evaluation_record(
     email: str,
     paper: str,
@@ -398,14 +450,30 @@ def save_evaluation_record(
     thumbnail: Optional[str] = None,
     is_rewrite: bool = False,
     file_hash: Optional[str] = None,
-    baseline_eval_id: Optional[str] = None
+    baseline_eval_id: Optional[str] = None,
+    file_url: Optional[str] = None
 ) -> str:
-    """Saves an evaluated copy into the student's personal answer locker and locks baseline if rewritten."""
+    """Saves an evaluated copy into the student's personal answer locker (both Supabase & SQLite)."""
     user = get_or_create_user(email)
     eval_id = f"eval_{int(datetime.now().timestamp())}_{uuid.uuid4().hex[:6]}"
     
     if not thumbnail and pages_list and len(pages_list) > 0:
         thumbnail = pages_list[0]
+    elif not thumbnail and file_url:
+        thumbnail = file_url
+        
+    # 1. Supabase Persistent Database Insert
+    if supabase and user and user.get("id"):
+        try:
+            insert_supabase_evaluation(
+                user_id=user["id"],
+                question_title=question,
+                file_url=file_url,
+                total_marks=max_marks,
+                result_json=evaluation_dict
+            )
+        except Exception as se:
+            print(f"Notice: Supabase save skipped: {se}")
         
     conn = get_db()
     cursor = conn.cursor()
@@ -422,8 +490,8 @@ def save_evaluation_record(
         INSERT INTO evaluations (
             id, user_id, user_email, paper, max_marks, question,
             overall_score, percentage, evaluation_json, pages_json, thumbnail, is_rewrite, file_hash,
-            has_been_rewritten, rewrite_eval_id, baseline_eval_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         eval_id,
         user["id"],
@@ -440,19 +508,58 @@ def save_evaluation_record(
         file_hash,
         0,
         None,
-        baseline_eval_id if is_rewrite else None
+        baseline_eval_id if is_rewrite else None,
+        file_url
     ))
     conn.commit()
     conn.close()
     return eval_id
 
 def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
-    """Returns list of student's past evaluated answer copies for the side drawer."""
+    """Returns list of student's past evaluated answer copies (queries Supabase if connected, else SQLite)."""
+    user = get_user(email)
+    if supabase and user and user.get("id"):
+        try:
+            res = supabase.table("evaluations").select("*").eq("user_id", user["id"]).order("created_at", desc=True).execute()
+            if res and res.data and len(res.data) > 0:
+                supa_list = []
+                for row in res.data:
+                    eval_data = row.get("evaluation_json") or {}
+                    if isinstance(eval_data, str):
+                        try:
+                            eval_data = json.loads(eval_data)
+                        except Exception:
+                            eval_data = {}
+                    score = float(eval_data.get("overall_score") or 0.0)
+                    total_m = int(row.get("total_marks") or eval_data.get("max_marks") or 10)
+                    pct = round((score / total_m) * 100, 1) if total_m > 0 else 0.0
+                    f_url = row.get("file_url") or ""
+                    supa_list.append({
+                        "id": str(row.get("id")),
+                        "created_at": row.get("created_at"),
+                        "paper": eval_data.get("detected_paper") or "GS",
+                        "max_marks": total_m,
+                        "question": row.get("question_title") or eval_data.get("question") or "UPSC Mains Answer",
+                        "overall_score": score,
+                        "total_score": score,
+                        "percentage": pct,
+                        "thumbnail": f_url,
+                        "file_url": f_url,
+                        "pages": [f_url] if f_url else [],
+                        "is_rewrite": 0,
+                        "has_been_rewritten": 0,
+                        "rewrite_eval_id": None,
+                        "baseline_eval_id": None
+                    })
+                return supa_list
+        except Exception as se:
+            print(f"Supabase get_user_evaluations notice: {se}")
+
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
         SELECT id, created_at, paper, max_marks, question, overall_score, percentage, thumbnail, is_rewrite,
-               has_been_rewritten, rewrite_eval_id, baseline_eval_id
+               has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
         FROM evaluations
         WHERE user_email = ?
         ORDER BY created_at DESC
@@ -473,19 +580,56 @@ def get_evaluation_by_id(eval_id: str) -> Optional[Dict[str, Any]]:
     cursor.execute("SELECT * FROM evaluations WHERE id = ?", (eval_id.strip(),))
     row = cursor.fetchone()
     conn.close()
-    if not row:
-        return None
-    res = dict(row)
-    res["total_score"] = res["overall_score"]
-    res["evaluation"] = json.loads(res["evaluation_json"])
-    res["evaluation_data"] = res["evaluation"]
-    res["pages"] = json.loads(res["pages_json"])
-    res["page_images"] = res["pages"]
-    if res.get("has_been_rewritten") or res.get("rewrite_eval_id"):
-        res["has_been_rewritten"] = 1
-        res["evaluation"]["has_been_rewritten"] = 1
-        res["evaluation"]["rewrite_eval_id"] = res.get("rewrite_eval_id")
-    return res
+    if row:
+        res = dict(row)
+        res["total_score"] = res["overall_score"]
+        res["evaluation"] = json.loads(res["evaluation_json"])
+        res["evaluation_data"] = res["evaluation"]
+        res["pages"] = json.loads(res["pages_json"]) if res.get("pages_json") else []
+        res["page_images"] = res["pages"]
+        if res.get("has_been_rewritten") or res.get("rewrite_eval_id"):
+            res["has_been_rewritten"] = 1
+            res["evaluation"]["has_been_rewritten"] = 1
+            res["evaluation"]["rewrite_eval_id"] = res.get("rewrite_eval_id")
+        return res
+
+    if supabase:
+        try:
+            res = supabase.table("evaluations").select("*").eq("id", eval_id.strip()).execute()
+            if res and res.data and len(res.data) > 0:
+                row = res.data[0]
+                eval_data = row.get("evaluation_json") or {}
+                if isinstance(eval_data, str):
+                    try:
+                        eval_data = json.loads(eval_data)
+                    except Exception:
+                        eval_data = {}
+                score = float(eval_data.get("overall_score") or 0.0)
+                total_m = int(row.get("total_marks") or eval_data.get("max_marks") or 10)
+                f_url = row.get("file_url") or ""
+                return {
+                    "id": str(row.get("id")),
+                    "created_at": row.get("created_at"),
+                    "paper": eval_data.get("detected_paper") or "GS",
+                    "max_marks": total_m,
+                    "question": row.get("question_title") or eval_data.get("question") or "UPSC Mains Answer",
+                    "overall_score": score,
+                    "total_score": score,
+                    "percentage": round((score / total_m) * 100, 1) if total_m > 0 else 0.0,
+                    "thumbnail": f_url,
+                    "file_url": f_url,
+                    "pages": [f_url] if f_url else [],
+                    "page_images": [f_url] if f_url else [],
+                    "evaluation": eval_data,
+                    "evaluation_data": eval_data,
+                    "is_rewrite": 0,
+                    "has_been_rewritten": 0,
+                    "rewrite_eval_id": None,
+                    "baseline_eval_id": None
+                }
+        except Exception as se:
+            print(f"Supabase get_evaluation_by_id notice: {se}")
+    return None
 
 def get_last_evaluation_for_user(email: str) -> Optional[Dict[str, Any]]:
     """Returns the most recent evaluation for the user to compare against a rewrite."""
@@ -631,19 +775,23 @@ def segment_qcab_pdf(pdf_bytes: bytes) -> List[Dict[str, Any]]:
         {"question_number": 1, "marks": 10, "pages": [b64_img1, b64_img2]}, ...
     ]
     """
-    import pymupdf
-    import base64
-    doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
-    total_pages = len(doc)
-    
-    # Pre-render all pages to base64 jpeg
-    rendered_pages = []
-    for p_idx in range(total_pages):
-        page = doc[p_idx]
-        pix = page.get_pixmap(dpi=150)
-        img_b64 = "data:image/jpeg;base64," + base64.b64encode(pix.tobytes("jpeg")).decode("utf-8")
-        rendered_pages.append(img_b64)
-    doc.close()
+    try:
+        import pymupdf
+        import base64
+        doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
+        total_pages = len(doc)
+        
+        # Pre-render all pages to base64 jpeg
+        rendered_pages = []
+        for p_idx in range(total_pages):
+            page = doc[p_idx]
+            pix = page.get_pixmap(dpi=150)
+            img_b64 = "data:image/jpeg;base64," + base64.b64encode(pix.tobytes("jpeg")).decode("utf-8")
+            rendered_pages.append(img_b64)
+        doc.close()
+    except Exception as e:
+        print(f"Notice: PDF segmentation skipped without local pymupdf: {e}")
+        return []
     
     # Segment into questions
     questions = []

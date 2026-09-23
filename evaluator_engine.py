@@ -3,7 +3,12 @@ import json
 import re
 import asyncio
 from typing import List, Dict, Any, Optional
-from PIL import Image
+try:
+    from PIL import Image
+    HAS_PIL = True
+except ImportError:
+    HAS_PIL = False
+    Image = Any
 import io
 from google import genai
 from google.genai import types
@@ -1721,24 +1726,29 @@ async def evaluate_with_gemini(
         current_affairs_context=current_affairs_context
     )
 
-    # Resize images if too large to conserve bandwidth and speed up vision processing
+    # Prepare items for Gemini contents (handles PIL images, Gemini File objects, or raw bytes)
     processed_imgs = []
-    for img in images:
-        curr = img.convert("RGB")
-        max_dim = 1000
-        if max(curr.size) > max_dim:
-            curr.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
-        processed_imgs.append(curr)
+    if images:
+        for img in images:
+            if HAS_PIL and hasattr(img, "convert"):
+                curr = img.convert("RGB")
+                max_dim = 1000
+                if max(curr.size) > max_dim:
+                    curr.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
+                processed_imgs.append(curr)
+            else:
+                processed_imgs.append(img)
 
     def _sync_call():
         # High-speed verified multimodal models in strict priority
         candidate_models = [
-            "gemini-3.6-flash",
+            "gemini-2.5-flash",
             "gemini-3.5-flash",
-            "gemini-3.7-flash",
-            "gemini-flash-lite-latest",
-            "gemini-3.1-flash-lite",
-            "gemini-3.1-pro-preview"
+            "gemini-3.5-flash-lite",
+            "gemini-flash-latest",
+            "gemini-3.6-flash",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash"
         ]
 
         config = types.GenerateContentConfig(

@@ -1,6 +1,10 @@
 import os
 import datetime
-from PIL import Image, ImageDraw, ImageFont
+try:
+    from PIL import Image, ImageDraw, ImageFont
+    HAS_PIL = True
+except ImportError:
+    HAS_PIL = False
 import io
 import base64
 
@@ -18,6 +22,9 @@ def generate_sample_upsc_sheet(
     official warning headers, printed question, and realistic candidate handwriting simulation.
     Returns base64 data URI of the JPEG.
     """
+    if not HAS_PIL:
+        return "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MDAiIGhlaWdodD0iMTIwMCIgdmlld0JveD0iMCAwIDkwMCAxMjAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmNmYmY4Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM4ODgiPlVQU0MgTWFpbnMgU2FtcGxlIFNoZWV0PC90ZXh0Pjwvc3ZnPg=="
+
     width, height = 900, 1200
     img = Image.new("RGB", (width, height), color=(252, 251, 248))
     draw = ImageDraw.Draw(img)
