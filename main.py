@@ -1205,8 +1205,20 @@ async def evaluate_answer(
                     is_pdf = filename.endswith(".pdf") or "pdf" in (file.content_type or "").lower()
 
                 if filename.endswith(".pdf"):
-                    # Direct PDF ingestion: avoid local rasterization into RAM
-                    pass
+                    # Direct PDF ingestion: Gemini evaluates PDF via Files API,
+                    # while lightweight previews are generated for the answersheet viewer
+                    try:
+                        import pypdfium2 as pdfium
+                        pdf = pdfium.PdfDocument(content)
+                        for page in pdf:
+                            pil_img = page.render(scale=1.2).to_pil().convert("RGB")
+                            buf = io.BytesIO()
+                            pil_img.save(buf, format="JPEG", quality=75)
+                            b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+                            uploaded_page_previews.append(f"data:image/jpeg;base64,{b64}")
+                            del pil_img
+                    except Exception as pe:
+                        print(f"Notice: PDF page preview generation error: {pe}")
                 else:
                     try:
                         b64 = base64.b64encode(content).decode("utf-8")

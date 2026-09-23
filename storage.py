@@ -817,21 +817,32 @@ def segment_qcab_pdf(pdf_bytes: bytes) -> List[Dict[str, Any]]:
     ]
     """
     try:
-        import pymupdf
         import base64
-        doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
-        total_pages = len(doc)
-        
-        # Pre-render all pages to base64 jpeg
         rendered_pages = []
-        for p_idx in range(total_pages):
-            page = doc[p_idx]
-            pix = page.get_pixmap(dpi=150)
-            img_b64 = "data:image/jpeg;base64," + base64.b64encode(pix.tobytes("jpeg")).decode("utf-8")
-            rendered_pages.append(img_b64)
-        doc.close()
+        try:
+            import pymupdf
+            doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
+            total_pages = len(doc)
+            for p_idx in range(total_pages):
+                page = doc[p_idx]
+                pix = page.get_pixmap(dpi=150)
+                img_b64 = "data:image/jpeg;base64," + base64.b64encode(pix.tobytes("jpeg")).decode("utf-8")
+                rendered_pages.append(img_b64)
+            doc.close()
+        except ImportError:
+            import pypdfium2 as pdfium
+            import io
+            pdf = pdfium.PdfDocument(pdf_bytes)
+            total_pages = len(pdf)
+            for page in pdf:
+                pil_img = page.render(scale=1.2).to_pil().convert("RGB")
+                buf = io.BytesIO()
+                pil_img.save(buf, format="JPEG", quality=75)
+                img_b64 = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode("utf-8")
+                rendered_pages.append(img_b64)
+                del pil_img
     except Exception as e:
-        print(f"Notice: PDF segmentation skipped without local pymupdf: {e}")
+        print(f"Notice: PDF segmentation error: {e}")
         return []
     
     # Segment into questions
