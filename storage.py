@@ -4,6 +4,7 @@ import json
 import uuid
 import re
 from datetime import datetime
+import tempfile
 from typing import Optional, Dict, Any, List
 
 # Supabase Client Initialization
@@ -19,12 +20,43 @@ if SUPABASE_URL and SUPABASE_KEY:
     except Exception as _supa_err:
         print(f"Notice: Supabase client initialization error: {_supa_err}")
 
-# Support persistent volume disks (e.g. Render /data mount) or default local directory
-DATA_DIR = os.getenv("DATA_DIR", "")
-if DATA_DIR and os.path.exists(DATA_DIR):
-    DB_PATH = os.path.join(DATA_DIR, "evaluations.db")
-else:
-    DB_PATH = os.getenv("DATABASE_PATH", os.path.join(os.path.dirname(__file__), "evaluations.db"))
+# Safe database path resolver (supports Render /data mount, local repo dir, or /tmp fallback)
+def _resolve_db_path() -> str:
+    env_db = os.getenv("DATABASE_PATH", "").strip()
+    if env_db:
+        try:
+            parent = os.path.dirname(os.path.abspath(env_db))
+            if parent:
+                os.makedirs(parent, exist_ok=True)
+            return env_db
+        except Exception:
+            pass
+
+    data_dir = os.getenv("DATA_DIR", "").strip()
+    if data_dir:
+        try:
+            os.makedirs(data_dir, exist_ok=True)
+            test_file = os.path.join(data_dir, ".perm_test")
+            with open(test_file, "w") as f:
+                f.write("1")
+            os.remove(test_file)
+            return os.path.join(data_dir, "evaluations.db")
+        except Exception:
+            pass
+
+    try:
+        local_dir = os.path.dirname(os.path.abspath(__file__))
+        test_file = os.path.join(local_dir, ".perm_test")
+        with open(test_file, "w") as f:
+            f.write("1")
+        os.remove(test_file)
+        return os.path.join(local_dir, "evaluations.db")
+    except Exception:
+        pass
+
+    return os.path.join(tempfile.gettempdir(), "evaluations.db")
+
+DB_PATH = _resolve_db_path()
 
 def get_db():
     conn = sqlite3.connect(DB_PATH, timeout=20.0)
@@ -38,6 +70,12 @@ def get_db():
 
 def init_db():
     """Initializes SQLite tables for users, single evaluations, and full 20-question test series."""
+    try:
+        _init_db_tables()
+    except Exception as _db_err:
+        print(f"Notice: init_db safe notice: {_db_err}")
+
+def _init_db_tables():
     conn = get_db()
     cursor = conn.cursor()
     
@@ -223,7 +261,10 @@ def init_db():
     conn.close()
 
 # Auto-initialize DB on import
-init_db()
+try:
+    init_db()
+except Exception as _e:
+    print(f"Notice: DB startup init notice: {_e}")
 
 def get_or_create_user(email: str, name: Optional[str] = None, avatar: Optional[str] = None) -> Dict[str, Any]:
     """Retrieves an existing user or registers a new aspirant with 5 free evaluation credits and 2 free re-evaluations."""
