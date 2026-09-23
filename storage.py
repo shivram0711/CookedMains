@@ -275,34 +275,58 @@ def update_user_profile(email: str, name: Optional[str] = None, target_year: Opt
     conn.close()
     return dict(row) if row else user
 
+DAILY_EVALUATION_LIMIT = 15
+DAILY_REWRITE_LIMIT = 5
+
+def get_daily_evaluations_count(email: str, is_rewrite: bool = False) -> int:
+    """Returns the number of answer copies evaluated by the user today (IST midnight to midnight)."""
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT COUNT(*) FROM evaluations 
+        WHERE LOWER(user_email) = ? 
+          AND is_rewrite = ?
+          AND strftime('%Y-%m-%d', created_at, '+330 minutes') = strftime('%Y-%m-%d', 'now', '+330 minutes')
+    """, (email.strip().lower(), 1 if is_rewrite else 0))
+    row = cursor.fetchone()
+    count = row[0] if row else 0
+    conn.close()
+    return count
+
+def get_user_daily_quota(email: str) -> Dict[str, Any]:
+    """Returns today's usage and remaining allowance for an aspirant (15 copies/day, 5 rewrites/day)."""
+    evals_today = get_daily_evaluations_count(email, is_rewrite=False)
+    rewrites_today = get_daily_evaluations_count(email, is_rewrite=True)
+    return {
+        "daily_eval_limit": DAILY_EVALUATION_LIMIT,
+        "daily_eval_used": evals_today,
+        "daily_eval_remaining": max(0, DAILY_EVALUATION_LIMIT - evals_today),
+        "daily_rewrite_limit": DAILY_REWRITE_LIMIT,
+        "daily_rewrite_used": rewrites_today,
+        "daily_rewrite_remaining": max(0, DAILY_REWRITE_LIMIT - rewrites_today),
+        "resets_at": "Midnight IST"
+    }
+
 def use_user_rewrite(email: str) -> Dict[str, Any]:
     """
-    Consumes 1 free rewrite/re-evaluation credit if user is not pro.
-    Max 2 free re-evaluations for free-tier users.
+    Checks rewrite usage under the generous daily limit (5 rewrites/day).
+    100% free for all aspirants.
     """
     user = get_or_create_user(email)
-    if user.get("is_pro"):
-        return {"success": True, "free_rewrites": 999, "is_pro": True}
-    
-    rewrites = user.get("free_rewrites", 2)
-    if rewrites is None:
-        rewrites = 2
-    if rewrites <= 0:
+    quota = get_user_daily_quota(email)
+    if quota["daily_rewrite_remaining"] <= 0:
         return {
             "success": False,
             "free_rewrites": 0,
-            "is_pro": False,
-            "error": "Free Re-evaluation quota exhausted (2 of 2 used). Upgrade to Mains Pro for unlimited 24-hour rewrite re-evaluations!"
+            "daily_quota": quota,
+            "error": "Daily re-evaluation limit reached (5 of 5 used today). Resets at midnight IST."
         }
-    
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE users SET free_rewrites = free_rewrites - 1 WHERE email = ?", (email.strip().lower(),))
-    conn.commit()
-    cursor.execute("SELECT * FROM users WHERE email = ?", (email.strip().lower(),))
-    updated = cursor.fetchone()
-    conn.close()
-    return {"success": True, "free_rewrites": updated["free_rewrites"], "is_pro": bool(updated["is_pro"])}
+    return {
+        "success": True,
+        "free_rewrites": quota["daily_rewrite_remaining"],
+        "daily_quota": quota,
+        "is_pro": True
+    }
 
 def save_feedback(user_email: str, user_name: str, category: str, rating: int, message: str, screenshot_data: Optional[str] = None) -> Dict[str, Any]:
     """Persists candidate bug report, review, or suggestions along with optional screenshot."""
@@ -328,25 +352,24 @@ def get_user(email: str) -> Optional[Dict[str, Any]]:
 
 def use_user_credit(email: str) -> Dict[str, Any]:
     """
-    Consumes 1 evaluation credit if user is on free tier.
-    Pro users have unlimited evaluations.
+    Checks standard evaluation usage under the generous daily limit (15 copies/day).
+    100% free for all aspirants.
     """
     user = get_or_create_user(email)
-    if user.get("is_pro"):
-        return {"success": True, "free_credits": user.get("free_credits", 0), "is_pro": True}
-    
-    credits = user.get("free_credits", 0)
-    if credits <= 0:
-        return {"success": False, "free_credits": 0, "is_pro": False, "error": "No credits remaining. Please recharge."}
-    
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE users SET free_credits = free_credits - 1 WHERE email = ?", (email.strip().lower(),))
-    conn.commit()
-    cursor.execute("SELECT * FROM users WHERE email = ?", (email.strip().lower(),))
-    updated = cursor.fetchone()
-    conn.close()
-    return {"success": True, "free_credits": updated["free_credits"], "is_pro": bool(updated["is_pro"])}
+    quota = get_user_daily_quota(email)
+    if quota["daily_eval_remaining"] <= 0:
+        return {
+            "success": False,
+            "free_credits": 0,
+            "daily_quota": quota,
+            "error": "Daily evaluation limit reached (15 of 15 used today). Resets at midnight IST."
+        }
+    return {
+        "success": True,
+        "free_credits": quota["daily_eval_remaining"],
+        "daily_quota": quota,
+        "is_pro": True
+    }
 
 def add_user_credits(email: str, credits_to_add: int, set_pro: bool = False) -> Dict[str, Any]:
     """Adds evaluation credits or upgrades user to Pro plan."""

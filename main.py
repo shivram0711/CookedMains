@@ -33,7 +33,9 @@ from storage import (
     create_transaction, get_transaction_by_id, get_all_transactions,
     approve_transaction, reject_transaction, get_admin_dashboard_stats,
     get_all_aspirants_admin, update_user_credits_admin, get_all_feedbacks_admin,
-    get_admin_setting, set_admin_setting
+    get_admin_setting, set_admin_setting,
+    get_user_daily_quota, get_daily_evaluations_count,
+    DAILY_EVALUATION_LIMIT, DAILY_REWRITE_LIMIT
 )
 from news_ingestion import ingest_all_feeds, get_top_editorial_articles
 from question_generator import get_or_generate_today_questions, generate_daily_questions_cohort
@@ -681,34 +683,38 @@ async def api_user_login(request: Request):
 
     user = get_or_create_user(email, name, avatar)
     history = get_user_evaluations(email)
+    quota = get_user_daily_quota(email)
     return {
         "email": user["email"],
         "name": user["name"],
         "avatar": user["avatar"],
-        "credits": user.get("free_credits", 5),
-        "free_credits": user.get("free_credits", 5),
-        "free_rewrites": user.get("free_rewrites", 2),
+        "credits": quota["daily_eval_remaining"],
+        "free_credits": quota["daily_eval_remaining"],
+        "free_rewrites": quota["daily_rewrite_remaining"],
+        "daily_quota": quota,
         "target_year": user.get("target_year", "2026"),
         "optional_subject": user.get("optional_subject", "PSIR"),
-        "is_pro": bool(user.get("is_pro", 0)),
+        "is_pro": True,
         "evaluations_count": len(history)
     }
 
 @app.get("/api/user/profile")
 async def api_user_profile(email: str):
-    """Fetches user profile and remaining credits."""
+    """Fetches user profile and remaining daily quota."""
     user = get_or_create_user(email)
     history = get_user_evaluations(email)
+    quota = get_user_daily_quota(email)
     return {
         "email": user["email"],
         "name": user["name"],
         "avatar": user["avatar"],
-        "credits": user.get("free_credits", 5),
-        "free_credits": user.get("free_credits", 5),
-        "free_rewrites": user.get("free_rewrites", 2),
+        "credits": quota["daily_eval_remaining"],
+        "free_credits": quota["daily_eval_remaining"],
+        "free_rewrites": quota["daily_rewrite_remaining"],
+        "daily_quota": quota,
         "target_year": user.get("target_year", "2026"),
         "optional_subject": user.get("optional_subject", "PSIR"),
-        "is_pro": bool(user.get("is_pro", 0)),
+        "is_pro": True,
         "evaluations_count": len(history)
     }
 
@@ -727,16 +733,18 @@ async def api_user_profile_update(request: Request):
     optional_subject = data.get("optional_subject")
     user = update_user_profile(email, name, target_year, optional_subject)
     history = get_user_evaluations(email)
+    quota = get_user_daily_quota(email)
     return {
         "email": user["email"],
         "name": user["name"],
         "avatar": user["avatar"],
-        "credits": user.get("free_credits", 5),
-        "free_credits": user.get("free_credits", 5),
-        "free_rewrites": user.get("free_rewrites", 2),
+        "credits": quota["daily_eval_remaining"],
+        "free_credits": quota["daily_eval_remaining"],
+        "free_rewrites": quota["daily_rewrite_remaining"],
+        "daily_quota": quota,
         "target_year": user.get("target_year", "2026"),
         "optional_subject": user.get("optional_subject", "PSIR"),
-        "is_pro": bool(user.get("is_pro", 0)),
+        "is_pro": True,
         "evaluations_count": len(history)
     }
 
@@ -1195,28 +1203,24 @@ async def evaluate_answer(
         rewrite_loophole_warning = None
         if user_email and not sample_id:
             user = get_or_create_user(user_email)
-            is_pro = bool(user.get("is_pro"))
-            credits = user.get("free_credits", 0)
+            is_pro = True
+            daily_quota = get_user_daily_quota(user_email)
 
             # Pre-checks for Rewrite Mode vs Standard Check:
             if is_rewrite:
-                if not is_pro:
-                    rewrites_left = user.get("free_rewrites", 2)
-                    if rewrites_left is None:
-                        rewrites_left = 2
-                    if rewrites_left <= 0:
-                        return JSONResponse(
-                            status_code=402,
-                            content={
-                                "status": "quota_exhausted",
-                                "error_type": "rewrite_quota_exhausted",
-                                "title": "Free Re-evaluation Quota Exhausted (2 of 2 Used)",
-                                "message": "You have utilized both 2 free re-evaluations included with your starter pack. Re-checking is a premium feature included in paid practice plans.",
-                                "warning": "Upgrade to Mains Pro or a Practice Pack for unlimited 24-hour rewrite re-evaluations!",
-                                "action_hint": "Choose a practice plan to continue re-evaluating rewritten copies!",
-                                "credits_deducted": 0
-                            }
-                        )
+                if daily_quota["daily_rewrite_remaining"] <= 0:
+                    return JSONResponse(
+                        status_code=429,
+                        content={
+                            "status": "quota_exhausted",
+                            "error_type": "daily_rewrite_quota_exhausted",
+                            "title": "Daily Re-Evaluation Limit Reached (5 of 5 Used Today)",
+                            "message": "You have utilized all 5 free re-evaluations for today. Your daily re-evaluation allowance resets at midnight (IST).",
+                            "warning": "All UPSC aspirants receive 5 free re-evaluations every single day without subscription fees.",
+                            "action_hint": "Please submit your next rewritten draft tomorrow after incorporating faculty remarks!",
+                            "credits_deducted": 0
+                        }
+                    )
                 if baseline_eval_id:
                     prev_record = get_evaluation_by_id(baseline_eval_id)
                 if not prev_record and user_email:
@@ -1339,11 +1343,19 @@ async def evaluate_answer(
                                 }
                             )
 
-            # Credit check for standard evaluation
-            if not is_pro and not is_rewrite and credits <= 0:
-                raise HTTPException(
-                    status_code=402,
-                    detail="You have used all 5 complimentary starter evaluations. Please select an Aspirant Practice Pack (from ₹49) to continue evaluating copies."
+            # Daily evaluation quota check (15 copies/day, 100% free)
+            if not is_rewrite and daily_quota["daily_eval_remaining"] <= 0:
+                return JSONResponse(
+                    status_code=429,
+                    content={
+                        "status": "quota_exhausted",
+                        "error_type": "daily_eval_quota_exhausted",
+                        "title": "Daily Free Evaluation Limit Reached (15 of 15 Copies Used Today)",
+                        "message": "You have evaluated 15 answer copies today! Your daily allowance resets at midnight IST to keep server processing rapid and fair for all aspirants.",
+                        "warning": "Cooked Mains is 100% free with 15 evaluations every single day. Zero subscription fees.",
+                        "action_hint": "Review your evaluated copies in your Answer Locker or explore Model Rubrics while your daily quota refreshes!",
+                        "credits_deducted": 0
+                    }
                 )
 
         # Determine Key (user key or server master key)
@@ -1545,6 +1557,7 @@ async def evaluate_answer(
             "eval_id": eval_id,
             "user": user_info,
             "user_credits": user_info.get("free_credits") if user_info else None,
+            "daily_quota": get_user_daily_quota(user_email) if user_email else None,
             "is_rewrite": is_rewrite,
             "has_been_rewritten": 0,
             "rewrite_eval_id": None,

@@ -1067,9 +1067,9 @@ window.parseEvaluationResponse = async function parseEvaluationResponse(response
     }
   }
 
-  if (response.status === 402) {
-    const msg = (data && (data.detail || data.message)) || "You have exhausted your complimentary starter evaluations. Choose a practice pack to continue!";
-    return { ok: false, is402: true, message: msg };
+  if (response.status === 402 || response.status === 429) {
+    const msg = (data && (data.detail || data.message)) || "You have reached your daily evaluation quota (15 copies / 5 rewrites per day). Quota resets automatically at midnight IST!";
+    return { ok: false, isQuotaExceeded: true, message: msg };
   }
 
   if (!response.ok) {
@@ -1188,9 +1188,11 @@ window.executeRewriteEvaluation = async function() {
 
     const parsed = await parseEvaluationResponse(res);
     if (!parsed.ok) {
-      if (parsed.is402) {
+      if (parsed.isQuotaExceeded || parsed.is402) {
+        stopForensicProgress();
+        if (sLoader) sLoader.classList.add("hidden");
+        if (mLoader) mLoader.classList.add("hidden");
         alert(parsed.message);
-        window.openPricingModal();
         return;
       }
       if (parsed.guardModal) {
@@ -1903,9 +1905,9 @@ function updateUserUI() {
     if (loginRegisterBtn) loginRegisterBtn.classList.remove("hidden");
     if (myAccountBtn) myAccountBtn.classList.add("hidden");
     if (navSignOutBtn) navSignOutBtn.classList.add("hidden");
-    if (navCreditsCount) navCreditsCount.textContent = "5 Free Checks";
-    if (navCreditsCountMobile) navCreditsCountMobile.textContent = "5 Free";
-    if (modalCreditsDisplay) modalCreditsDisplay.textContent = "5 Checks Free";
+    if (navCreditsCount) navCreditsCount.textContent = "100% Free Evaluation";
+    if (navCreditsCountMobile) navCreditsCountMobile.textContent = "Free Access";
+    if (modalCreditsDisplay) modalCreditsDisplay.textContent = "15 Free Daily";
   } else {
     // Aspirant is signed in
     if (loginRegisterBtn) loginRegisterBtn.classList.add("hidden");
@@ -1983,26 +1985,26 @@ function updateUserUI() {
     navAvatarInitials.textContent = (userName.charAt(0) || "A").toUpperCase();
   }
 
-  const c = state.user.credits !== undefined ? state.user.credits : 5;
-  const r = state.user.free_rewrites !== undefined ? state.user.free_rewrites : 2;
-  const evalsCount = state.user.evaluations_count || 0;
+  const dailyQuota = (state.user && state.user.daily_quota) || {
+    daily_eval_limit: 15,
+    daily_eval_used: 0,
+    daily_eval_remaining: 15,
+    daily_rewrite_limit: 5,
+    daily_rewrite_used: 0,
+    daily_rewrite_remaining: 5
+  };
+  const evalRemaining = dailyQuota.daily_eval_remaining !== undefined ? dailyQuota.daily_eval_remaining : 15;
+  const rewriteRemaining = dailyQuota.daily_rewrite_remaining !== undefined ? dailyQuota.daily_rewrite_remaining : 5;
+  const evalsCount = (state.user && state.user.evaluations_count) || 0;
 
   if (navCreditsCount) {
-    if (state.user.is_pro) {
-      navCreditsCount.textContent = "Pro Unlimited";
-    } else {
-      navCreditsCount.textContent = `${c} Free Check${c === 1 ? '' : 's'}`;
-    }
+    navCreditsCount.textContent = "100% Free Evaluation";
   }
   if (navCreditsCountMobile) {
-    if (state.user.is_pro) {
-      navCreditsCountMobile.textContent = "Pro";
-    } else {
-      navCreditsCountMobile.textContent = `${c} Free`;
-    }
+    navCreditsCountMobile.textContent = "Free Access";
   }
   if (modalCreditsDisplay) {
-    modalCreditsDisplay.textContent = state.user.is_pro ? "Pro Unlimited" : `${c} Checks Left`;
+    modalCreditsDisplay.textContent = `${evalRemaining} Daily Copies Left`;
   }
 
   // Sync My Account Modal Profile Card
@@ -2014,7 +2016,7 @@ function updateUserUI() {
   if (accountAvatarInitials) accountAvatarInitials.textContent = (userName.charAt(0) || "A").toUpperCase();
   const accountTierBadge = document.getElementById("accountTierBadge");
   if (accountTierBadge) {
-    accountTierBadge.textContent = state.user.is_pro ? "Mains Pro" : "Free Tier";
+    accountTierBadge.textContent = "100% Free Access";
   }
   const accountCadetId = document.getElementById("accountCadetId");
   if (accountCadetId) {
@@ -2023,7 +2025,7 @@ function updateUserUI() {
   }
   const accountNavCreditsPill = document.getElementById("accountNavCreditsPill");
   if (accountNavCreditsPill) {
-    accountNavCreditsPill.textContent = state.user.is_pro ? "Unlimited" : `${c} Left`;
+    accountNavCreditsPill.textContent = `${evalRemaining} Daily Left`;
   }
 
   // Profile Form Inputs
@@ -2038,41 +2040,36 @@ function updateUserUI() {
 
   // Profile Metric Counters
   const profileFreeChecksCount = document.getElementById("profileFreeChecksCount");
-  if (profileFreeChecksCount) profileFreeChecksCount.textContent = c.toString();
+  if (profileFreeChecksCount) profileFreeChecksCount.textContent = evalRemaining.toString();
   const profileFreeRewritesCount = document.getElementById("profileFreeRewritesCount");
-  if (profileFreeRewritesCount) profileFreeRewritesCount.textContent = r.toString();
+  if (profileFreeRewritesCount) profileFreeRewritesCount.textContent = rewriteRemaining.toString();
   const profileEvaluatedCount = document.getElementById("profileEvaluatedCount");
   if (profileEvaluatedCount) profileEvaluatedCount.textContent = evalsCount.toString();
 
   // Subscription Tab Quota Progress
   const subRemainingChecksBadge = document.getElementById("subRemainingChecksBadge");
   if (subRemainingChecksBadge) {
-    subRemainingChecksBadge.textContent = state.user.is_pro ? "Unlimited Checks" : `${c} / 5 Remaining`;
+    subRemainingChecksBadge.textContent = `${evalRemaining} / 15 Remaining Today`;
   }
   const subChecksProgressBar = document.getElementById("subChecksProgressBar");
   if (subChecksProgressBar) {
-    const pct = state.user.is_pro ? 100 : Math.min(100, Math.max(0, (c / 5) * 100));
+    const pct = Math.min(100, Math.max(0, (evalRemaining / 15) * 100));
     subChecksProgressBar.style.width = `${pct}%`;
   }
   const subRemainingRewritesBadge = document.getElementById("subRemainingRewritesBadge");
   if (subRemainingRewritesBadge) {
-    subRemainingRewritesBadge.textContent = state.user.is_pro ? "Unlimited Re-evaluations" : `${r} / 2 Remaining`;
+    subRemainingRewritesBadge.textContent = `${rewriteRemaining} / 5 Remaining Today`;
   }
   const subRewritesProgressBar = document.getElementById("subRewritesProgressBar");
   if (subRewritesProgressBar) {
-    const pct = state.user.is_pro ? 100 : Math.min(100, Math.max(0, (r / 2) * 100));
+    const pct = Math.min(100, Math.max(0, (rewriteRemaining / 5) * 100));
     subRewritesProgressBar.style.width = `${pct}%`;
   }
 
   const modalDisplay = document.getElementById("modalCreditsDisplay");
   if (modalDisplay) {
-    if (state.user.is_pro) {
-      modalDisplay.textContent = "Unlimited Pro Active";
-      modalDisplay.className = "px-3 py-1.5 rounded-xl bg-sky-500/20 border border-sky-500/40 text-xs font-mono font-bold text-sky-300 shrink-0";
-    } else {
-      modalDisplay.textContent = `${c} Check${c === 1 ? '' : 's'} Remaining`;
-      modalDisplay.className = `px-3 py-1.5 rounded-xl ${c > 0 ? 'bg-slate-900 border border-slate-700 text-amber-300' : 'bg-rose-500/20 border border-rose-500/40 text-rose-300'} text-xs font-mono font-bold shrink-0`;
-    }
+    modalDisplay.textContent = `${evalRemaining} Daily Checks Left`;
+    modalDisplay.className = `px-3 py-1.5 rounded-xl ${evalRemaining > 0 ? 'bg-slate-900 border border-slate-700 text-amber-300' : 'bg-rose-500/20 border border-rose-500/40 text-rose-300'} text-xs font-mono font-bold shrink-0`;
   }
 }
 
@@ -3619,9 +3616,8 @@ window.runEvaluation = async function(allowAutoAligned = false) {
 
     const parsed = await parseEvaluationResponse(response);
     if (!parsed.ok) {
-      if (parsed.is402) {
+      if (parsed.isQuotaExceeded || parsed.is402) {
         alert(parsed.message);
-        window.openPricingModal();
         return;
       }
       if (parsed.guardModal) {
@@ -6579,13 +6575,11 @@ function setupUserAndModalListeners() {
     });
   }
 
-  // Pricing Modal
+  // Free Evaluation Badge Click
   if (openPricingBtn) {
-    openPricingBtn.addEventListener("click", window.openPricingModal);
-  }
-
-  if (closePricingModalBtn) {
-    closePricingModalBtn.addEventListener("click", window.closePricingModal);
+    openPricingBtn.addEventListener("click", () => {
+      window.scrollToSubscriptionPlans();
+    });
   }
 
   // Auth Modal
@@ -6627,21 +6621,12 @@ function setupUserAndModalListeners() {
           window.closeAuthModal();
 
           if (typeof window.showAppToast === 'function') {
-            window.showAppToast(`Signed in as ${state.user.name}! 5 Free Checks active.`);
+            window.showAppToast(`Signed in as ${state.user.name}! 15 Free Daily Copies active.`);
           }
 
-          // Resume pending pack purchase if aspirant clicked a plan while logged out
-          if (window.pendingCheckoutPack) {
-            const pendingPack = window.pendingCheckoutPack;
-            window.pendingCheckoutPack = null;
-            setTimeout(() => {
-              window.startSubscriptionCheckout(pendingPack);
-            }, 300);
-          } else {
-            setTimeout(() => {
-              window.switchStudioState("intake");
-            }, 300);
-          }
+          setTimeout(() => {
+            window.switchStudioState("intake");
+          }, 300);
         } else {
           const err = await res.json();
           alert("Sign in failed: " + (err.detail || "Server error"));
@@ -6674,21 +6659,12 @@ function setupUserAndModalListeners() {
           window.closeAuthModal();
 
           if (typeof window.showAppToast === 'function') {
-            window.showAppToast(`Welcome back, ${state.user.name}! 5 Free Checks active.`);
+            window.showAppToast(`Welcome back, ${state.user.name}! 15 Free Daily Copies active.`);
           }
 
-          // Resume pending pack purchase
-          if (window.pendingCheckoutPack) {
-            const pendingPack = window.pendingCheckoutPack;
-            window.pendingCheckoutPack = null;
-            setTimeout(() => {
-              window.startSubscriptionCheckout(pendingPack);
-            }, 300);
-          } else {
-            setTimeout(() => {
-              window.switchStudioState("intake");
-            }, 300);
-          }
+          setTimeout(() => {
+            window.switchStudioState("intake");
+          }, 300);
         } else {
           const err = await res.json();
           alert("Sign in failed: " + (err.detail || "Server error"));
@@ -6903,10 +6879,7 @@ window.closeAuthModal = function() {
 function closeAuthModal() { window.closeAuthModal(); }
 
 window.openPricingModal = function() {
-  if (pricingModal) {
-    pricingModal.classList.remove("hidden");
-    pricingModal.classList.add("flex");
-  }
+  window.scrollToSubscriptionPlans();
 };
 
 window.closePricingModal = function() {
@@ -7066,107 +7039,32 @@ window.viewSavedCopy = async function(evalId) {
 // Smooth scroll to intake chamber (gates for auth first if aspirant is not signed in)
 window.scrollToEvaluation = function() {
   if (!state.user || !state.user.email) {
-    window.openAuthModal("Sign in or register to unlock your 5 Free Evaluations and access the evaluation chamber.");
+    window.openAuthModal("Sign in or register to unlock your 15 Free Daily Evaluations and access the evaluation chamber.");
     return;
   }
   window.switchStudioState("intake");
 };
 
-// Smooth scroll to 1st page subscription section or open pricing modal
+// Smooth scroll to 1st page free evaluation section or switch to intake
 window.scrollToSubscriptionPlans = function() {
   const firstPageSub = document.getElementById("firstPageSubscriptionSection");
   if (firstPageSub && !firstPageSub.classList.contains("hidden") && firstPageSub.style.display !== "none") {
     firstPageSub.scrollIntoView({ behavior: "smooth", block: "start" });
   } else {
-    window.openPricingModal();
+    window.switchStudioState("intake");
   }
 };
 
 // =====================================================================
-// 💳 DIRECT ZERO-FEE UPI CHECKOUT SUITE (PhonePe / SBI QR: 9661228832-2@ybl)
+// 100% FREE UPSC MAINS EVALUATION PLATFORM (15 Copies & 5 Rewrites Daily)
 // =====================================================================
-
-// Starts subscription checkout: gates for auth first, then calls create-order and opens #upiCheckoutModal
-window.startSubscriptionCheckout = async function(packId) {
-  if (!state.user || !state.user.email) {
-    window.pendingCheckoutPack = packId;
-    const packLabels = {
-      'sachet_3': 'Sachet Pack (₹49)',
-      'sachet_49': 'Sachet Pack (₹49)',
-      'revision_10': 'Revision Pack (₹149)',
-      'revision_149': 'Revision Pack (₹149)',
-      'monthly_pro': 'Mains Pro (₹399/mo)',
-      'pro_399': 'Mains Pro (₹399/mo)'
-    };
-    const packLabel = packLabels[packId] || 'Practice Pack';
-    window.openAuthModal(`Please sign in or create an account first to unlock your ${packLabel}. Checkout opens immediately!`);
-    return;
+window.startSubscriptionCheckout = function(packId) {
+  if (typeof window.showAppToast === 'function') {
+    window.showAppToast("Cooked Mains is 100% Free! You have 15 evaluations and 5 rewrites every day.");
   }
-
-  // Close modals
-  window.closePricingModal();
-  window.closeAccountModal();
-
-  try {
-    const res = await fetch("/api/payment/create-order", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: state.user.email,
-        name: state.user.name || "Aspirant",
-        plan_id: packId
-      })
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || "Could not initialize UPI order");
-    }
-
-    const order = await res.json();
-    window.activeCheckoutOrder = order;
-
-    // Populate #upiCheckoutModal
-    const planNameEl = document.getElementById("checkoutPlanName");
-    if (planNameEl) planNameEl.textContent = order.plan_name;
-    const orderIdBadge = document.getElementById("checkoutOrderIdBadge");
-    if (orderIdBadge) orderIdBadge.textContent = order.order_id;
-    const amountEl = document.getElementById("checkoutAmountDisplay");
-    if (amountEl) amountEl.textContent = `₹${order.amount}`;
-    const upiIdEl = document.getElementById("checkoutUpiIdText");
-    if (upiIdEl) upiIdEl.textContent = order.upi_id;
-    const qrImgEl = document.getElementById("checkoutQrImage");
-    if (qrImgEl) qrImgEl.src = order.qr_image_url || "/static/sbi_phonepe_qr.jpg";
-    const intentBtn = document.getElementById("checkoutUpiIntentBtn");
-    if (intentBtn && order.upi_url) intentBtn.href = order.upi_url;
-
-    // Reset inputs
-    const utrInput = document.getElementById("checkoutUtrInput");
-    if (utrInput) utrInput.value = "";
-    const utrCounter = document.getElementById("checkoutUtrCounter");
-    if (utrCounter) utrCounter.textContent = "0 / 12 Digits";
-    const screenshotInput = document.getElementById("checkoutScreenshotInput");
-    if (screenshotInput) screenshotInput.value = "";
-
-    // Show form state, hide success state
-    const formState = document.getElementById("checkoutFormState");
-    const successState = document.getElementById("checkoutSuccessState");
-    if (formState) formState.classList.remove("hidden");
-    if (successState) successState.classList.add("hidden");
-
-    // Open upiCheckoutModal
-    const upiModal = document.getElementById("upiCheckoutModal");
-    if (upiModal) {
-      upiModal.classList.remove("hidden");
-      upiModal.classList.add("flex");
-      if (window.lucide) lucide.createIcons();
-    }
-  } catch (e) {
-    alert("Checkout error: " + e.message);
-  }
+  window.switchStudioState("intake");
 };
 
-// Backwards compatibility for rechargePack calls
 window.rechargePack = function(packType) {
   window.startSubscriptionCheckout(packType);
 };
@@ -7179,137 +7077,9 @@ window.closeUpiCheckoutModal = function() {
   }
 };
 
-window.copyCheckoutUpiId = function() {
-  const upiIdEl = document.getElementById("checkoutUpiIdText");
-  const upiId = (upiIdEl ? upiIdEl.textContent : "9661228832-2@ybl").trim();
-  navigator.clipboard.writeText(upiId).then(() => {
-    const label = document.getElementById("copyUpiIdLabel");
-    if (label) {
-      const orig = label.textContent;
-      label.textContent = "Copied!";
-      setTimeout(() => { label.textContent = orig; }, 2200);
-    }
-    if (typeof window.showAppToast === "function") {
-      window.showAppToast(`Copied UPI ID: ${upiId}`);
-    }
-  }).catch(() => {
-    alert(`UPI ID: ${upiId}`);
-  });
-};
-
-window.handleUtrInput = function(input) {
-  if (!input) return;
-  input.value = input.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-  const counter = document.getElementById("checkoutUtrCounter");
-  if (counter) {
-    const len = input.value.length;
-    counter.textContent = `${len} / 12 Digits`;
-    if (len >= 12) {
-      counter.classList.add("text-emerald-400");
-      counter.classList.remove("text-slate-400");
-    } else {
-      counter.classList.remove("text-emerald-400");
-      counter.classList.add("text-slate-400");
-    }
-  }
-};
-
-window.submitUpiPaymentProof = async function() {
-  const utrInput = document.getElementById("checkoutUtrInput");
-  const utr = utrInput ? utrInput.value.trim() : "";
-  if (!utr || utr.length < 6) {
-    alert("Please enter a valid UPI UTR / Transaction Reference Number (usually 12 digits from your PhonePe/GPay receipt).");
-    if (utrInput) utrInput.focus();
-    return;
-  }
-
-  if (!window.activeCheckoutOrder) {
-    alert("Order session expired. Please re-select your plan.");
-    window.closeUpiCheckoutModal();
-    return;
-  }
-
-  const submitBtn = document.getElementById("submitCheckoutProofBtn");
-  const origContent = submitBtn ? submitBtn.innerHTML : "";
-  if (submitBtn) {
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = `<span>Submitting Proof...</span>`;
-  }
-
-  let screenshotData = null;
-  const screenshotInput = document.getElementById("checkoutScreenshotInput");
-  if (screenshotInput && screenshotInput.files && screenshotInput.files[0]) {
-    try {
-      screenshotData = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
-        reader.onerror = () => resolve(null);
-        reader.readAsDataURL(screenshotInput.files[0]);
-      });
-    } catch (err) {
-      screenshotData = null;
-    }
-  }
-
-  try {
-    const res = await fetch("/api/payment/submit-utr", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        order_id: window.activeCheckoutOrder.order_id,
-        email: state.user.email,
-        name: state.user.name || "Aspirant",
-        plan_id: window.activeCheckoutOrder.plan_id,
-        plan_name: window.activeCheckoutOrder.plan_name,
-        amount: window.activeCheckoutOrder.amount,
-        utr_number: utr,
-        screenshot_data: screenshotData
-      })
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || "Failed to submit transaction proof");
-    }
-
-    const data = await res.json();
-
-    // Instant Zero-Wait Subscription Activation: Sync User & Balance
-    if (data.user) {
-      state.user = data.user;
-      sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
-      updateUserUI();
-      refreshLockerBadge();
-    }
-
-    // Show instant celebration success state in modal
-    const formState = document.getElementById("checkoutFormState");
-    const successState = document.getElementById("checkoutSuccessState");
-    if (formState) formState.classList.add("hidden");
-    if (successState) successState.classList.remove("hidden");
-
-    const successOrderId = document.getElementById("successOrderId");
-    if (successOrderId) successOrderId.textContent = window.activeCheckoutOrder.order_id;
-    const successUtrNumber = document.getElementById("successUtrNumber");
-    if (successUtrNumber) successUtrNumber.textContent = utr;
-
-    if (window.lucide) lucide.createIcons();
-
-    if (typeof window.showAppToast === "function") {
-      window.showAppToast("🎉 Subscription verified & activated instantly! Credits unlocked.");
-    }
-  } catch (e) {
-    alert("Submission Error: " + e.message);
-  } finally {
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = origContent;
-      if (window.lucide) lucide.createIcons();
-    }
-  }
-};
-
-// Immediate continuation after instant UPI subscription checkout
+window.copyCheckoutUpiId = function() {};
+window.handleUtrInput = function() {};
+window.submitUpiPaymentProof = function() {};
 window.onInstantSubscriptionComplete = function() {
   window.closeUpiCheckoutModal();
   updateUserUI();

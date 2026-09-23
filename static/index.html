@@ -51,13 +51,12 @@
 
 
       <div class="flex items-center space-x-1 sm:space-x-2 shrink-0 py-1">
-        <!-- 1. Free Checks Available Quota -->
-        <button id="openPricingBtn" onclick="window.openAccountModal('subscription')" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 sm:gap-1.5 shrink-0 shadow-sm transition-all cursor-pointer" title="Free Checks Available — Click to view subscription">
-          <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500 shrink-0 fill-amber-500"></i>
-          <span id="navCreditsCountMobile" class="sm:hidden whitespace-nowrap text-[10px] font-bold">5 Free</span>
-          <span id="navCreditsCount" class="hidden sm:inline whitespace-nowrap text-xs font-bold">5 Free Checks</span>
-          <span class="hidden sm:inline-block px-1.5 py-0.5 rounded-full bg-amber-500/20 text-[10px] font-bold text-amber-700 dark:text-amber-300">+ Add</span>
-        </button>
+        <!-- 1. 100% Free Access Badge -->
+        <div id="openPricingBtn" class="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 sm:gap-1.5 shrink-0 shadow-sm cursor-default" title="100% Free Evaluation for UPSC Aspirants (15 Daily Copies • 5 Rewrites)">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500 shrink-0"></i>
+          <span id="navCreditsCountMobile" class="sm:hidden whitespace-nowrap text-[10px] font-bold">Free Access</span>
+          <span id="navCreditsCount" class="hidden sm:inline whitespace-nowrap text-xs font-bold">100% Free Evaluation</span>
+        </div>
 
         <!-- 2. Mode (Light / Dark) -->
         <button id="themeToggleBtn" title="Switch Theme Mode" class="flex items-center space-x-1 sm:space-x-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition shadow-sm shrink-0 cursor-pointer">
@@ -66,7 +65,7 @@
         </button>
 
         <!-- 3. My Account Button (Shown when logged in) -->
-        <button id="myAccountBtn" onclick="window.openAccountModal('profile')" class="hidden bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 sm:gap-2 shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm transition cursor-pointer" title="My Account Portal (Profile, Subscription, Locker, Tracker, Feedback)">
+        <button id="myAccountBtn" onclick="window.openAccountModal('profile')" class="hidden bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 sm:gap-2 shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm transition cursor-pointer" title="My Account Portal (Profile, Answer Locker, Tracker, Feedback)">
           <div class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs font-bold font-mono" id="navAvatarInitials">
             <i data-lucide="user" class="w-3.5 h-3.5"></i>
           </div>
@@ -118,15 +117,11 @@
           Upload your handwritten answer sheets in under 30 seconds. Receive line-by-line red-pen margin remarks, UPSC bell-curve marks, model answer sentences, and iterative re-evaluation score jumps.
         </p>
 
-        <!-- Dual High-Converting CTAs -->
+        <!-- High-Converting Free Evaluation CTA -->
         <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5 mt-7">
-          <button onclick="window.scrollToEvaluation()" class="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm shadow-xl shadow-amber-500/25 transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
+          <button onclick="window.scrollToEvaluation()" class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm shadow-xl shadow-amber-500/25 transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
             <i data-lucide="sparkles" class="w-4 h-4"></i>
-            <span>Start Free Evaluation (5 Free Copies)</span>
-          </button>
-          <button onclick="window.scrollToSubscriptionPlans()" class="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 shadow-sm dark:bg-slate-800/90 dark:hover:bg-slate-700/90 dark:text-slate-200 dark:border-slate-700 font-bold text-xs sm:text-sm transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
-            <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i>
-            <span>View Subscription Plans (From ₹49)</span>
+            <span>Start Free Evaluation (15 Daily Copies)</span>
           </button>
         </div>
 
@@ -145,8 +140,8 @@
             <div class="text-[11px] text-slate-600 dark:text-slate-400">Authentic Red-Pen Margin Annotations on Copy</div>
           </div>
           <div class="space-y-1">
-            <div class="text-xl sm:text-2xl font-extrabold text-sky-600 dark:text-sky-400 font-mono">₹49 vs ₹25k</div>
-            <div class="text-[11px] text-slate-600 dark:text-slate-400">Honest Pricing without Coaching Markups</div>
+            <div class="text-xl sm:text-2xl font-extrabold text-sky-600 dark:text-sky-400 font-mono">100% Free</div>
+            <div class="text-[11px] text-slate-600 dark:text-slate-400">15 Daily Copies • Zero Subscription Fees</div>
           </div>
         </div>
       </div>
@@ -189,27 +184,27 @@
     </section>
 
     <!-- ================================================================= -->
-    <!-- 💳 1ST PAGE SUBSCRIPTION & PRICING DISPLAY                        -->
+    <!-- 🎓 1ST PAGE FREE EVALUATION ACCESS & PRACTICE DETAILS             -->
     <!-- (Visible to unauthenticated aspirants before evaluation intake)   -->
     <!-- ================================================================= -->
     <section id="firstPageSubscriptionSection" class="max-w-6xl mx-auto w-full py-4 sm:py-6 px-2 sm:px-4 flex flex-col gap-6 animate-fade-in">
 
       <!-- Section Header -->
       <div class="text-center space-y-2.5 max-w-3xl mx-auto">
-        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 dark:text-amber-400 text-xs font-semibold">
-          <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-          <span>Transparent Self-Study Subscription Plans • From ₹49</span>
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+          <span>100% Free Answer Evaluation • 15 Copies Every Day</span>
         </div>
         <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-serif">
           World-Class UPSC Evaluation, <br class="hidden sm:inline" />
-          <span class="text-amber-500">Zero Coaching Markups</span>
+          <span class="text-amber-500">100% Free For All Aspirants</span>
         </h2>
         <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-sans">
-          Rigorous UPSC bell-curve grading with authentic margin annotations, model answers, and score deltas for less than a cup of tea. Sign up now and start with 5 complimentary evaluations.
+          Rigorous UPSC bell-curve grading with authentic margin annotations, model answers, and score deltas. Practice daily with 15 free evaluations and 5 free re-evaluations—no subscription plans, no hidden fees.
         </p>
       </div>
 
-      <!-- Cadet Starter Quota Callout (5 Free Evaluations) -->
+      <!-- Daily Quota Callout (15 Free Copies + 5 Rewrites) -->
       <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-slate-100 to-amber-500/10 dark:from-amber-500/10 dark:via-slate-900 dark:to-amber-500/5 border border-amber-500/30 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
         <div class="flex items-center space-x-3.5 text-left">
           <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-lg shrink-0 shadow-md shadow-amber-500/20">
@@ -217,140 +212,16 @@
           </div>
           <div>
             <div class="flex items-center space-x-2">
-              <span class="text-sm font-bold text-slate-900 dark:text-white">Cadet Starter Quota</span>
-              <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-extrabold font-mono">5 Free Evaluations</span>
+              <span class="text-sm font-bold text-slate-900 dark:text-white">Daily Aspirant Allowance</span>
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-extrabold font-mono">15 Copies + 5 Rewrites / Day</span>
             </div>
-            <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Every aspirant receives 5 complimentary evaluations upon signing in with Google or Email. No credit card required.</p>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Every aspirant receives 15 complimentary answer sheet evaluations and 5 re-evaluations every single day. Resets daily at midnight IST.</p>
           </div>
         </div>
         <button onclick="window.scrollToEvaluation()" class="w-full md:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold text-xs shadow-md transition active:scale-95 flex items-center justify-center space-x-2 shrink-0 cursor-pointer">
           <i data-lucide="sparkles" class="w-4 h-4"></i>
-          <span>Claim 5 Free Checks</span>
+          <span>Start Evaluating Copies</span>
         </button>
-      </div>
-
-      <!-- 3 Subscription Cards Grid (Sachet ₹49, Revision ₹149, Mains Pro ₹399/mo) -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 text-left items-stretch">
-
-        <!-- Plan 1: Sachet Pack (₹49) -->
-        <div class="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500/40 transition shadow-sm flex flex-col justify-between space-y-5">
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Sachet Pack</span>
-              <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">No Expiry</span>
-            </div>
-            <div>
-              <div class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">₹49</div>
-              <p class="text-xs text-amber-600 dark:text-amber-400 font-semibold mt-1">3 Complete Evaluations</p>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400">~₹16.3 per evaluated copy</p>
-            </div>
-            <ul class="text-xs text-slate-700 dark:text-slate-300 space-y-2.5 border-t border-slate-100 dark:border-slate-800 pt-4">
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-                <span>3 Full Handwritten Script Evaluations</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-                <span>Authentic Red-Pen Margin Annotations</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-                <span>Micro-Scoring (Intro, Body, Conclusion)</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-                <span>Model Answer Blueprint &amp; Value Adds</span>
-              </li>
-            </ul>
-          </div>
-          <button onclick="window.startSubscriptionCheckout('sachet_3')" class="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-amber-300 border border-slate-300 dark:border-slate-700 text-xs font-bold transition active:scale-95 cursor-pointer">
-            Pay ₹49 via UPI
-          </button>
-        </div>
-
-        <!-- Plan 2: Revision Pack (₹149) [Most Popular] -->
-        <div class="p-5 sm:p-6 rounded-3xl bg-gradient-to-b from-amber-500/10 via-white to-white dark:via-slate-900 dark:to-slate-900 border-2 border-amber-500 shadow-xl shadow-amber-500/10 flex flex-col justify-between space-y-5 relative">
-          <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-extrabold text-[10px] uppercase tracking-wider shadow">
-            Most Popular • Best Value
-          </div>
-          <div class="space-y-4 pt-1">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Revision Pack</span>
-              <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md">Save 40%</span>
-            </div>
-            <div>
-              <div class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">₹149</div>
-              <p class="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-1">10 Copies + 5 Free Rewrites</p>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400">~₹14.9 per copy • Lifetime Validity</p>
-            </div>
-            <ul class="text-xs text-slate-700 dark:text-slate-200 space-y-2.5 border-t border-amber-500/20 pt-4">
-              <li class="flex items-start gap-2 text-amber-700 dark:text-amber-300 font-semibold">
-                <i data-lucide="sparkles" class="w-4 h-4 text-amber-500 shrink-0 mt-0.5"></i>
-                <span><strong>10 Full Answer Copies</strong></span>
-              </li>
-              <li class="flex items-start gap-2 text-emerald-700 dark:text-emerald-300 font-semibold">
-                <i data-lucide="repeat" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-                <span><strong>5 Free Iterative Re-Evaluations</strong></span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-                <span>Before-vs-After Real Score Jump Delta</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-                <span>Topper Answer Benchmark Analysis</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-                <span>Permanent Answer Locker Access</span>
-              </li>
-            </ul>
-          </div>
-          <button onclick="window.startSubscriptionCheckout('revision_10')" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 text-xs font-extrabold shadow-lg shadow-amber-500/20 transition active:scale-95 cursor-pointer">
-            Unlock 10 Copies (₹149)
-          </button>
-        </div>
-
-        <!-- Plan 3: Mains Pro Mentorship (₹399/mo) -->
-        <div class="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-sky-500/40 transition shadow-sm flex flex-col justify-between space-y-5">
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-extrabold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Mains Pro</span>
-              <span class="text-[10px] font-bold text-sky-600 dark:text-sky-400 bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 rounded-md">Season Pass</span>
-            </div>
-            <div>
-              <div class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">₹399<span class="text-xs text-slate-500 dark:text-slate-400 font-normal">/month</span></div>
-              <p class="text-xs text-sky-600 dark:text-sky-400 font-semibold mt-1">Unlimited Answer Practice</p>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400">GS 1, 2, 3, 4 + Optionals + Essay</p>
-            </div>
-            <ul class="text-xs text-slate-700 dark:text-slate-300 space-y-2.5 border-t border-slate-100 dark:border-slate-800 pt-4">
-              <li class="flex items-start gap-2 text-sky-700 dark:text-sky-300 font-semibold">
-                <i data-lucide="infinity" class="w-4 h-4 text-sky-500 shrink-0 mt-0.5"></i>
-                <span><strong>Unlimited Answer Evaluations</strong></span>
-              </li>
-              <li class="flex items-start gap-2 text-sky-700 dark:text-sky-300 font-semibold">
-                <i data-lucide="repeat" class="w-4 h-4 text-sky-500 shrink-0 mt-0.5"></i>
-                <span><strong>Unlimited Re-Evaluations</strong></span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-                <span>Iterate Until Topper Grade (10+/15)</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-                <span>Priority AI Pipeline (&lt; 15s speed)</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5"></i>
-                <span>Personalized Weakness Tracker</span>
-              </li>
-            </ul>
-          </div>
-          <button onclick="window.startSubscriptionCheckout('monthly_pro')" class="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-sky-300 border border-slate-300 dark:border-slate-700 text-xs font-bold transition active:scale-95 cursor-pointer">
-            Subscribe Pro (₹399/mo)
-          </button>
-        </div>
-
       </div>
 
       <!-- Why Re-Evaluation Matters to UPSC Aspirants Banner -->
@@ -362,17 +233,6 @@
         <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
           UPSC Rankers never write an answer just once. With our <strong>Iterative Re-Evaluation Engine</strong>, re-submit your improved draft after incorporating faculty margin remarks. The AI generates a <strong>side-by-side Before-vs-After Comparison</strong>, measuring your score jump (<span class="text-emerald-600 dark:text-emerald-400 font-semibold">+1.5 to +3.0 marks</span>) and confirming that all critical missing dimensions have been fixed.
         </p>
-      </div>
-
-      <!-- Coaching vs Cooked Mains Comparison -->
-      <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600 dark:text-slate-400 shadow-sm">
-        <div class="flex items-center space-x-3">
-          <i data-lucide="scale" class="w-5 h-5 text-amber-500 shrink-0"></i>
-          <span><strong>Coaching Test Series:</strong> ₹25,000 fee, 10–14 days delay, illegible remarks. <br class="hidden sm:inline" /><strong>Cooked Mains:</strong> Instant &lt; 30s feedback, authentic A4 margin red-pen annotations from ₹49.</span>
-        </div>
-        <button onclick="window.scrollToEvaluation()" class="px-4 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-bold whitespace-nowrap transition cursor-pointer">
-          Start Free Evaluation →
-        </button>
       </div>
 
     </section>
@@ -2478,14 +2338,14 @@
         </div>
         <h3 class="text-xl font-bold text-white font-serif">Welcome to Cooked Mains</h3>
         <p class="text-xs text-slate-400 leading-relaxed">
-          Sign in with Google or Email to unlock <strong class="text-amber-400">5 Free Complete Evaluations</strong> and secure your private Answer Locker.
+          Sign in with Google or Email to unlock <strong class="text-amber-400">15 Free Evaluations &amp; 5 Rewrites Every Day</strong> and secure your private Answer Locker.
         </p>
       </div>
 
-      <!-- Contextual Intent Banner (e.g. When redirected from a plan purchase) -->
+      <!-- Contextual Intent Banner -->
       <div id="authIntentAlert" class="hidden p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 flex items-center gap-2">
         <i data-lucide="info" class="w-4 h-4 text-amber-400 shrink-0"></i>
-        <span id="authIntentAlertText">Please sign in or create an account to proceed with your subscription.</span>
+        <span id="authIntentAlertText">Sign in or create an account to access free daily answer evaluations.</span>
       </div>
 
       <!-- Quick 1-Click Google Sign In -->
@@ -2516,7 +2376,7 @@
           <input type="email" id="authEmailInput" required placeholder="aspirant@gmail.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
         </div>
         <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold text-xs shadow-md transition active:scale-95 cursor-pointer">
-          Start Practicing (5 Free Evaluations)
+          Start Practicing (15 Copies/Day Free)
         </button>
       </form>
 
@@ -2526,314 +2386,11 @@
     </div>
   </div>
 
-  <!-- 2. Practice Pack & Pricing Modal (Expanded max-w-5xl, zero right-edge clipping) -->
-  <div id="pricingModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center p-3 sm:p-5 animate-fade-in" role="dialog" aria-modal="true">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-5xl w-full p-5 sm:p-8 shadow-2xl space-y-6 relative max-h-[92vh] overflow-y-auto">
-      <button id="closePricingModalBtn" onclick="window.closePricingModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
+  <!-- 2. Pricing Modal (Disabled - 100% Free Platform) -->
+  <div id="pricingModal" class="hidden"></div>
 
-      <!-- Pricing Header -->
-      <div class="text-center space-y-2">
-        <span class="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-extrabold text-[10px] uppercase tracking-wider">
-          Fair Self-Study Pricing • No ₹25,000 Coaching Markups
-        </span>
-        <h3 class="text-xl sm:text-2xl font-extrabold text-white font-serif">Choose Your UPSC Answer Practice Pack</h3>
-        <p class="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto leading-relaxed">
-          Rigorous UPSC bell-curve grading with authentic margin annotations, model answers, and score deltas for less than a daily cup of tea.
-        </p>
-      </div>
-
-      <!-- Aspirant Starter Quota Status -->
-      <div class="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
-        <div class="flex items-center space-x-3">
-          <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-            <i data-lucide="shield-check" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <div class="flex items-center space-x-2">
-              <span class="text-xs font-bold text-white">Cadet Starter Quota</span>
-              <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold font-mono">5 Free Starter Checks</span>
-            </div>
-            <p class="text-[11px] text-slate-400">All registered aspirants receive 5 complimentary evaluations on signup. Recharges below never expire.</p>
-          </div>
-        </div>
-        <div id="modalCreditsDisplay" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-mono font-bold text-amber-300 shrink-0 text-center sm:text-left">
-          5 Checks Left
-        </div>
-      </div>
-
-      <!-- 3 Pack Cards Grid (Spacious 3-col layout with zero clipping) -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 text-left items-stretch">
-        
-        <!-- Pack 1: Sachet Pack (₹49) -->
-        <div class="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 hover:border-amber-500/50 transition flex flex-col justify-between space-y-4">
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sachet Pack</span>
-              <span class="text-[10px] font-semibold text-slate-400 bg-slate-800 px-2 py-0.5 rounded">No Expiry</span>
-            </div>
-            <div>
-              <div class="text-3xl font-extrabold text-white">₹49</div>
-              <p class="text-xs text-amber-400 font-semibold mt-0.5">3 Complete Evaluations</p>
-              <p class="text-[11px] text-slate-400">~₹16.3 per evaluated copy</p>
-            </div>
-            <ul class="text-xs text-slate-300 space-y-2 border-t border-slate-800/80 pt-3">
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
-                <span>3 Full Handwritten Script Evaluations</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
-                <span>Authentic Red-Pen Margin Annotations</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
-                <span>Micro-Scoring (Intro, Body, Conclusion)</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
-                <span>Model Answer Key Points</span>
-              </li>
-            </ul>
-          </div>
-          <button onclick="window.startSubscriptionCheckout('sachet_3')" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-xs font-bold transition active:scale-95 cursor-pointer">
-            Pay ₹49 via UPI
-          </button>
-        </div>
-
-        <!-- Pack 2: Revision Pack (₹149) [Most Popular] -->
-        <div class="p-5 rounded-2xl bg-gradient-to-b from-amber-500/10 via-slate-950 to-slate-950 border-2 border-amber-500 shadow-xl shadow-amber-500/10 flex flex-col justify-between space-y-4 relative">
-          <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-extrabold text-[9.5px] uppercase tracking-wider shadow">
-            Most Popular • Best Value
-          </div>
-          <div class="space-y-3 pt-1">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Revision Pack</span>
-              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded">Save 40%</span>
-            </div>
-            <div>
-              <div class="text-3xl font-extrabold text-white">₹149</div>
-              <p class="text-xs text-emerald-400 font-bold mt-0.5">10 Copies + 5 Free Rewrites</p>
-              <p class="text-[11px] text-slate-400">~₹14.9 per copy • Lifetime Validity</p>
-            </div>
-            <ul class="text-xs text-slate-200 space-y-2 border-t border-amber-500/20 pt-3">
-              <li class="flex items-start gap-2 text-amber-300 font-medium">
-                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5"></i>
-                <span><strong>10 Full Answer Copies</strong></span>
-              </li>
-              <li class="flex items-start gap-2 text-emerald-300 font-semibold">
-                <i data-lucide="repeat" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
-                <span><strong>5 Free Iterative Re-Evaluations</strong></span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
-                <span>Before-vs-After Real Score Jump Delta</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
-                <span>Topper Answer Benchmark Analysis</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
-                <span>Permanent Answer Locker Access</span>
-              </li>
-            </ul>
-          </div>
-          <button onclick="window.startSubscriptionCheckout('revision_10')" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 text-xs font-extrabold shadow-lg shadow-amber-500/20 transition active:scale-95 cursor-pointer">
-            Unlock 10 Copies (₹149)
-          </button>
-        </div>
-
-        <!-- Pack 3: Mains Pro Mentorship (₹399/mo) -->
-        <div class="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 hover:border-sky-500/50 transition flex flex-col justify-between space-y-4">
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-bold text-sky-400 uppercase tracking-wider">Mains Pro</span>
-              <span class="text-[10px] font-semibold text-sky-400 bg-sky-500/15 border border-sky-500/30 px-2 py-0.5 rounded">Season Pass</span>
-            </div>
-            <div>
-              <div class="text-3xl font-extrabold text-white">₹399<span class="text-xs text-slate-400 font-normal">/month</span></div>
-              <p class="text-xs text-sky-400 font-semibold mt-0.5">Unlimited Answer Practice</p>
-              <p class="text-[11px] text-slate-400">GS 1, 2, 3, 4 + Optionals + Essay</p>
-            </div>
-            <ul class="text-xs text-slate-300 space-y-2 border-t border-slate-800/80 pt-3">
-              <li class="flex items-start gap-2 text-sky-300 font-medium">
-                <i data-lucide="infinity" class="w-3.5 h-3.5 text-sky-400 shrink-0 mt-0.5"></i>
-                <span><strong>Unlimited Answer Evaluations</strong></span>
-              </li>
-              <li class="flex items-start gap-2 text-sky-300 font-medium">
-                <i data-lucide="repeat" class="w-3.5 h-3.5 text-sky-400 shrink-0 mt-0.5"></i>
-                <span><strong>Unlimited Re-Evaluations</strong></span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
-                <span>Iterate Until Topper Grade (10+/15)</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
-                <span>Priority AI Pipeline (&lt; 15s speed)</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
-                <span>Personalized Weakness Tracker</span>
-              </li>
-            </ul>
-          </div>
-          <button onclick="window.startSubscriptionCheckout('monthly_pro')" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 text-xs font-bold transition active:scale-95 cursor-pointer">
-            Subscribe Pro (₹399/mo)
-          </button>
-        </div>
-
-      </div>
-
-      <!-- Why Re-Evaluation Matters to UPSC Aspirants -->
-      <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2 text-left">
-        <div class="flex items-center space-x-2 text-amber-300 text-xs font-bold">
-          <i data-lucide="repeat" class="w-4 h-4 text-amber-400"></i>
-          <span>The Topper Advantage: Iterative Re-Evaluation &amp; Score Delta</span>
-        </div>
-        <p class="text-xs text-slate-300 leading-relaxed font-sans">
-          UPSC Rankers never write an answer just once. With our <strong>Iterative Re-Evaluation Engine</strong>, re-submit your improved draft after incorporating faculty margin remarks. The AI generates a <strong>side-by-side Before-vs-After Comparison</strong>, measuring your score jump (<span class="text-emerald-400 font-semibold">+1.5 to +3.0 marks</span>) and confirming that all critical missing dimensions have been fixed.
-        </p>
-      </div>
-
-      <!-- Comparison Banner vs ₹25,000 Coaching -->
-      <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
-        <div class="flex items-center space-x-2.5">
-          <i data-lucide="scale" class="w-5 h-5 text-amber-400 shrink-0"></i>
-          <span><strong>Coaching Test Series:</strong> ₹25,000 fee, 10–14 days delay, illegible remarks. <br class="hidden sm:inline" /><strong>Cooked Mains:</strong> Instant &lt; 30s feedback, authentic A4 margin red-pen annotations from ₹49.</span>
-        </div>
-        <span class="text-emerald-400 font-mono font-bold whitespace-nowrap">100% Guaranteed Quality</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3. Authentic Direct UPI Payment Checkout Modal (PhonePe / SBI QR) -->
-  <div id="upiCheckoutModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center p-3 sm:p-5 animate-fade-in" role="dialog" aria-modal="true">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-5 sm:p-7 shadow-2xl space-y-5 relative max-h-[92vh] overflow-y-auto">
-      <button onclick="window.closeUpiCheckoutModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
-
-      <!-- Active Checkout State Container -->
-      <div id="checkoutFormState" class="space-y-4">
-        <!-- Title & Order ID -->
-        <div class="text-center space-y-1">
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">
-            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
-            <span>Zero-Fee Direct UPI Checkout</span>
-          </div>
-          <h3 class="text-xl font-bold text-white font-serif">Complete Payment</h3>
-          <p class="text-xs text-slate-400">Scan QR Code or pay via UPI ID from any app</p>
-        </div>
-
-        <!-- Plan & Price Badge -->
-        <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between shadow-inner">
-          <div>
-            <span class="text-[10.5px] uppercase font-bold text-slate-400 block tracking-wider">Selected Plan</span>
-            <h4 id="checkoutPlanName" class="text-sm font-bold text-white">Revision Pack (10 Copies + 5 Rewrites)</h4>
-            <span id="checkoutOrderIdBadge" class="text-[10px] font-mono text-amber-400">ORD-2026-XXXX</span>
-          </div>
-          <div class="text-right">
-            <span class="text-[10.5px] uppercase font-bold text-slate-400 block">Total Amount</span>
-            <span id="checkoutAmountDisplay" class="text-2xl font-extrabold text-amber-400 font-mono">₹149</span>
-          </div>
-        </div>
-
-        <!-- Authentic PhonePe / SBI QR Code Display -->
-        <div class="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-center space-y-3 shadow-sm">
-          <div class="relative inline-block mx-auto">
-            <img id="checkoutQrImage" src="/static/sbi_phonepe_qr.jpg" alt="SBI PhonePe Payment QR" class="w-48 h-48 sm:w-52 sm:h-52 mx-auto rounded-xl border border-slate-200 dark:border-slate-700 p-1.5 bg-white object-contain shadow-md">
-            <div class="absolute -bottom-2 -right-2 bg-emerald-500 text-slate-950 text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow flex items-center gap-1">
-              <i data-lucide="check-circle" class="w-3 h-3"></i>
-              <span>Verified SBI</span>
-            </div>
-          </div>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400">
-            Open <strong>PhonePe, Google Pay, Paytm, BHIM</strong> or any banking app and scan this QR code.
-          </p>
-
-          <!-- Copyable UPI ID Box -->
-          <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 gap-2">
-            <div class="text-left min-w-0">
-              <span class="text-[9.5px] uppercase font-semibold text-slate-400 block">Official UPI ID</span>
-              <span id="checkoutUpiIdText" class="text-xs font-mono font-bold text-slate-900 dark:text-amber-400 truncate select-all">9661228832-2@ybl</span>
-            </div>
-            <button type="button" id="copyUpiIdBtn" onclick="window.copyCheckoutUpiId()" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] transition shrink-0 flex items-center gap-1 cursor-pointer">
-              <i data-lucide="copy" class="w-3 h-3"></i>
-              <span id="copyUpiIdLabel">Copy ID</span>
-            </button>
-          </div>
-
-          <!-- Mobile App Direct Intent Link -->
-          <a id="checkoutUpiIntentBtn" href="#" class="sm:hidden w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition">
-            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-            <span>Tap to Pay in PhonePe / GPay</span>
-          </a>
-        </div>
-
-        <!-- 12-Digit UTR Submission Form -->
-        <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold text-white">Enter 12-Digit UPI Ref / UTR Number</label>
-            <span id="checkoutUtrCounter" class="text-[10px] font-mono text-slate-400">0 / 12 Digits</span>
-          </div>
-          <p class="text-[11px] text-slate-400 leading-relaxed">
-            After paying, copy the 12-digit UTR / Reference number from your payment app receipt (e.g. <span class="font-mono text-amber-300">425612345678</span>).
-          </p>
-          <input type="text" id="checkoutUtrInput" maxlength="16" placeholder="Enter 12-digit UPI UTR Number" oninput="window.handleUtrInput(this)" class="w-full font-mono font-bold text-center tracking-widest text-sm sm:text-base bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-amber-400 focus:outline-none focus:border-amber-500 placeholder:text-slate-600">
-
-          <!-- Optional Screenshot Upload -->
-          <div class="pt-1">
-            <label class="block text-[11px] text-slate-400 mb-1">Upload Payment Screenshot (Optional for faster approval):</label>
-            <input type="file" id="checkoutScreenshotInput" accept="image/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-amber-300 hover:file:bg-slate-700 cursor-pointer">
-          </div>
-        </div>
-
-        <!-- Submit Button (Instant Zero-Wait Activation) -->
-        <button id="submitCheckoutProofBtn" onclick="window.submitUpiPaymentProof()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-emerald-500/25 transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
-          <i data-lucide="zap" class="w-4 h-4 fill-slate-950"></i>
-          <span>Verify &amp; Activate Plan Instantly</span>
-        </button>
-
-        <p class="text-[11px] text-emerald-400 font-semibold text-center flex items-center justify-center gap-1.5">
-          <i data-lucide="check-circle" class="w-3.5 h-3.5 shrink-0"></i>
-          <span>Instant Automated Activation • Zero Waiting • Credits Available Immediately</span>
-        </p>
-      </div>
-
-      <!-- Success Confirmation State (Instant Activation Celebration) -->
-      <div id="checkoutSuccessState" class="hidden text-center space-y-4 py-4">
-        <div class="w-16 h-16 rounded-3xl bg-emerald-500/20 border-2 border-emerald-500/50 text-emerald-400 flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/20 animate-bounce">
-          <i data-lucide="sparkles" class="w-8 h-8"></i>
-        </div>
-        <div class="space-y-1">
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-bold font-mono">
-            <span>✓ VERIFIED &amp; UNLOCKED</span>
-          </div>
-          <h3 class="text-xl sm:text-2xl font-extrabold text-white font-serif">🎉 Subscription Activated Instantly!</h3>
-          <p class="text-xs text-slate-300 max-w-sm mx-auto">
-            Order <span id="successOrderId" class="font-mono text-amber-400 font-bold">ORD-2026-XXXX</span> with UTR <span id="successUtrNumber" class="font-mono text-emerald-400 font-bold"></span> has been verified.
-          </p>
-        </div>
-        <div class="p-4 rounded-2xl bg-slate-950 border border-emerald-500/30 text-xs text-slate-300 space-y-2 text-left">
-          <div class="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-            <i data-lucide="check-check" class="w-4 h-4"></i>
-            <span>Evaluation Balance Added to Account</span>
-          </div>
-          <p class="text-[11.5px] text-slate-300 leading-relaxed">
-            Your evaluation credits have been added immediately with zero waiting. You are fully ready to upload your handwritten answer copy or practice today's editorial challenge!
-          </p>
-        </div>
-        <button onclick="window.onInstantSubscriptionComplete()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm shadow-xl shadow-amber-500/25 transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
-          <i data-lucide="sparkles" class="w-4 h-4"></i>
-          <span>Start Evaluating Now →</span>
-        </button>
-      </div>
-
-    </div>
-  </div>
+  <!-- 3. Direct UPI Payment Checkout Modal (Disabled - 100% Free Platform) -->
+  <div id="upiCheckoutModal" class="hidden"></div>
 
   <!-- 4. UPSC Mains Exam Focus Mode Writing Suite Modal -->
   <div id="examModeModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden items-center justify-center p-3 sm:p-4">
@@ -3004,7 +2561,7 @@
 
   <footer class="mt-12 border-t border-slate-800/60 py-6 text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-      <p>© 2026 Cooked Mains — Empowering Self-Study UPSC Aspirants with Affordable, Authentic Evaluation.</p>
+      <p>© 2026 Cooked Mains — Empowering Self-Study UPSC Aspirants with 100% Free, Authentic Evaluation.</p>
       <p class="text-slate-600">Strict UPSC Bell Curve • Multimodal Vision • Zero Hallucination Standard</p>
     </div>
   </footer>
@@ -3030,7 +2587,7 @@
               <p id="accountUserEmail" class="text-[10.5px] text-slate-500 truncate max-w-[130px] sm:max-w-[160px]">aspirant@cookedmains.ai</p>
               <div class="flex items-center gap-1.5 mt-0.5">
                 <span id="accountCadetId" class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 font-semibold">MM-2026-7666</span>
-                <span id="accountTierBadge" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">Free Tier</span>
+                <span id="accountTierBadge" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">100% Free Access</span>
               </div>
             </div>
           </div>
@@ -3047,13 +2604,13 @@
             <span>1. My Profile</span>
           </button>
 
-          <!-- Tab 2: Subscription -->
-          <button onclick="window.switchAccountTab('subscription')" id="accountNavBtn_subscription" class="account-nav-btn flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition text-left cursor-pointer">
+          <!-- Tab 2: Subscription (Hidden - 100% Free Platform) -->
+          <button onclick="window.switchAccountTab('subscription')" id="accountNavBtn_subscription" class="hidden account-nav-btn flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition text-left cursor-pointer">
             <div class="flex items-center gap-2">
               <i data-lucide="zap" class="w-4 h-4 text-emerald-500 shrink-0"></i>
-              <span>2. Subscription</span>
+              <span>2. Free Allowance</span>
             </div>
-            <span id="accountNavCreditsPill" class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400">5 Left</span>
+            <span id="accountNavCreditsPill" class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400">15 Daily</span>
           </button>
 
           <!-- Tab 3: Locker -->
@@ -3169,19 +2726,19 @@
             <!-- Profile Summary Metrics -->
             <div class="grid grid-cols-3 gap-3">
               <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center">
-                <span class="text-[10px] font-semibold text-amber-700 dark:text-amber-400 block uppercase tracking-wider">Free Checks</span>
-                <span id="profileFreeChecksCount" class="text-base sm:text-xl font-bold font-mono text-slate-900 dark:text-white">5</span>
-                <span class="text-[10px] text-slate-500 block">Available</span>
+                <span class="text-[10px] font-semibold text-amber-700 dark:text-amber-400 block uppercase tracking-wider">Daily Copies</span>
+                <span id="profileFreeChecksCount" class="text-base sm:text-xl font-bold font-mono text-slate-900 dark:text-white">15</span>
+                <span class="text-[10px] text-slate-500 block">Remaining Today</span>
               </div>
               <div class="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-center">
-                <span class="text-[10px] font-semibold text-blue-700 dark:text-blue-400 block uppercase tracking-wider">Re-Evaluations</span>
-                <span id="profileFreeRewritesCount" class="text-base sm:text-xl font-bold font-mono text-slate-900 dark:text-white">2</span>
-                <span class="text-[10px] text-slate-500 block">Free Cycles</span>
+                <span class="text-[10px] font-semibold text-blue-700 dark:text-blue-400 block uppercase tracking-wider">Daily Rewrites</span>
+                <span id="profileFreeRewritesCount" class="text-base sm:text-xl font-bold font-mono text-slate-900 dark:text-white">5</span>
+                <span class="text-[10px] text-slate-500 block">Remaining Today</span>
               </div>
               <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
-                <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 block uppercase tracking-wider">Evaluated Copies</span>
+                <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 block uppercase tracking-wider">Answer Locker</span>
                 <span id="profileEvaluatedCount" class="text-base sm:text-xl font-bold font-mono text-slate-900 dark:text-white">0</span>
-                <span class="text-[10px] text-slate-500 block">In Locker</span>
+                <span class="text-[10px] text-slate-500 block">Saved Copies</span>
               </div>
             </div>
 
@@ -3219,133 +2776,9 @@
           </div>
 
           <!-- ============================================== -->
-          <!-- TAB 2: SUBSCRIPTION & QUOTA                   -->
+          <!-- TAB 2: SUBSCRIPTION & QUOTA (Disabled - Free) -->
           <!-- ============================================== -->
-          <div id="accountPane_subscription" class="hidden space-y-6">
-            <!-- Active Plan Banner -->
-            <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div class="space-y-1">
-                <div class="flex items-center space-x-2">
-                  <span class="text-xs uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">Active Tier</span>
-                  <h3 class="text-base font-bold text-slate-900 dark:text-white font-serif">Free Starter Evaluation Tier</h3>
-                </div>
-                <p class="text-xs text-slate-600 dark:text-slate-400">Default enrollment with 5 complimentary full-length evaluations and 2 free re-evaluation cycles.</p>
-              </div>
-              <button onclick="window.openPricingModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-bold text-xs shadow-md hover:from-amber-400 hover:to-orange-400 transition shrink-0 cursor-pointer">
-                View Upgrade Plans
-              </button>
-            </div>
-
-            <!-- Free Quota Progress Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <!-- Quota 1: 5 Free Checks -->
-              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center font-bold">
-                      <i data-lucide="zap" class="w-4 h-4"></i>
-                    </div>
-                    <div>
-                      <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100">Free Check Quota</h4>
-                      <p class="text-[10px] text-slate-500">5 Initial Complimentary Checks</p>
-                    </div>
-                  </div>
-                  <span id="subRemainingChecksBadge" class="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400">5 / 5 Remaining</span>
-                </div>
-                <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                  <div id="subChecksProgressBar" class="h-full bg-amber-500 rounded-full transition-all duration-500" style="width: 100%;"></div>
-                </div>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Applies to any GS1, GS2, GS3, GS4, or Essay handwritten copy. Evaluated strictly on UPSC bell-curve standards.
-                </p>
-              </div>
-
-              <!-- Quota 2: Strictly 2 Re-evaluations -->
-              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-500 flex items-center justify-center font-bold">
-                      <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                    </div>
-                    <div>
-                      <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100">Free Re-Evaluation Cycles</h4>
-                      <p class="text-[10px] text-slate-500">2 Cycles for 2 out of 5 Copies</p>
-                    </div>
-                  </div>
-                  <span id="subRemainingRewritesBadge" class="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400">2 / 2 Remaining</span>
-                </div>
-                <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                  <div id="subRewritesProgressBar" class="h-full bg-blue-500 rounded-full transition-all duration-500" style="width: 100%;"></div>
-                </div>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Strictly 2 free re-evaluation cycles are included. Re-checking further evaluated copies requires an active <strong>Mains Pro</strong> subscription.
-                </p>
-              </div>
-            </div>
-
-            <!-- Comparison Tier Cards (3 Tiers synced with main pricing) -->
-            <div class="space-y-3">
-              <div class="flex items-center justify-between">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Available Practice Packs</h4>
-                <span class="text-[10.5px] text-amber-500 font-semibold">Zero Coaching Markups</span>
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 text-left">
-                <!-- Sachet ₹49 -->
-                <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex flex-col justify-between space-y-3">
-                  <div>
-                    <span class="text-[9.5px] uppercase font-bold text-slate-400 block tracking-wider">Sachet Pack</span>
-                    <div class="text-xl font-extrabold text-slate-900 dark:text-white">₹49</div>
-                    <p class="text-[10px] text-amber-500 font-semibold">3 Copies • No Expiry</p>
-                    <ul class="text-[11px] text-slate-600 dark:text-slate-400 space-y-1.5 mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-800">
-                      <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> Full Margin Red-Pen Feedback</li>
-                      <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> Micro-Marks Rubric</li>
-                      <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> Model Answer Guidance</li>
-                    </ul>
-                  </div>
-                  <button onclick="window.startSubscriptionCheckout('sachet_3')" class="w-full py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition cursor-pointer">
-                    Pay ₹49 via UPI
-                  </button>
-                </div>
-
-                <!-- Revision ₹149 [Most Popular] -->
-                <div class="p-4 rounded-2xl border-2 border-amber-500 bg-amber-500/5 flex flex-col justify-between space-y-3 relative overflow-hidden shadow-md">
-                  <div class="absolute top-0 right-0 bg-amber-500 text-slate-950 text-[8.5px] font-extrabold px-2.5 py-0.5 rounded-bl-lg uppercase tracking-wider">Most Popular</div>
-                  <div>
-                    <span class="text-[9.5px] uppercase font-bold text-amber-500 block tracking-wider">Revision Pack</span>
-                    <div class="text-xl font-extrabold text-amber-500">₹149</div>
-                    <p class="text-[10px] text-emerald-500 font-semibold">10 Copies + 5 Free Rewrites</p>
-                    <ul class="text-[11px] text-slate-700 dark:text-slate-300 space-y-1.5 mt-2.5 pt-2 border-t border-amber-500/20">
-                      <li class="flex items-center gap-1.5 text-amber-500 font-semibold"><i data-lucide="sparkles" class="w-3 h-3"></i> 10 Complete Evaluations</li>
-                      <li class="flex items-center gap-1.5 text-emerald-500 font-semibold"><i data-lucide="repeat" class="w-3 h-3"></i> 5 Free Re-Evaluation Cycles</li>
-                      <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> Before-vs-After Score Delta</li>
-                      <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> Topper Benchmark Analysis</li>
-                    </ul>
-                  </div>
-                  <button onclick="window.startSubscriptionCheckout('revision_10')" class="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-md transition cursor-pointer">
-                    Unlock 10 Copies (₹149)
-                  </button>
-                </div>
-
-                <!-- Mains Pro ₹399/mo -->
-                <div class="p-4 rounded-2xl border border-sky-500/50 bg-sky-500/5 flex flex-col justify-between space-y-3">
-                  <div>
-                    <span class="text-[9.5px] uppercase font-bold text-sky-400 block tracking-wider">Mains Pro</span>
-                    <div class="text-xl font-extrabold text-sky-400">₹399<span class="text-[10px] text-slate-400 font-normal">/mo</span></div>
-                    <p class="text-[10px] text-sky-400 font-semibold">Unlimited 30-Day Pass</p>
-                    <ul class="text-[11px] text-slate-600 dark:text-slate-400 space-y-1.5 mt-2.5 pt-2 border-t border-sky-500/20">
-                      <li class="flex items-center gap-1.5 text-sky-400 font-semibold"><i data-lucide="infinity" class="w-3 h-3"></i> Unlimited Evaluations</li>
-                      <li class="flex items-center gap-1.5 text-sky-400 font-semibold"><i data-lucide="repeat" class="w-3 h-3"></i> Unlimited Re-Evaluations</li>
-                      <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> GS 1, 2, 3, 4 + Optionals + Essay</li>
-                      <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3 h-3 text-emerald-500"></i> Priority AI Pipeline (&lt; 15s)</li>
-                    </ul>
-                  </div>
-                  <button onclick="window.startSubscriptionCheckout('monthly_pro')" class="w-full py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-sky-400 font-bold text-xs transition cursor-pointer">
-                    Subscribe Pro (₹399)
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <div id="accountPane_subscription" class="hidden"></div>
 
           <!-- ============================================== -->
           <!-- TAB 3: LOCKER (WEEKLY GROUPED + SEARCH + FILTER)-->
