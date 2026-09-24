@@ -2367,40 +2367,80 @@
         <div class="flex-1 h-px bg-slate-800"></div>
       </div>
 
-      <!-- Email / Name / Password Sign-In Form -->
+      <!-- Email / Name / Password Sign-In & Register Form -->
       <form id="authForm" class="space-y-3">
+        <!-- Mode Switcher: Sign In vs Create New Account -->
+        <div class="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-950 border border-slate-800">
+          <button type="button" id="authTabLoginBtn" onclick="window.setAuthFormMode('login')" class="py-2 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 shadow transition cursor-pointer">
+            Sign In (Existing ID)
+          </button>
+          <button type="button" id="authTabRegisterBtn" onclick="window.setAuthFormMode('register')" class="py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">
+            Create New Account
+          </button>
+        </div>
+
+        <input type="hidden" id="authModeInput" value="login">
+
         <div id="authFormError" class="hidden p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/40 text-[11px] text-rose-300 font-medium flex items-center gap-2">
           <i data-lucide="alert-circle" class="w-4 h-4 text-rose-400 shrink-0"></i>
           <span id="authFormErrorText">Incorrect password. Please try again.</span>
         </div>
-        <div>
+
+        <div id="authNameFieldWrap" class="hidden">
           <label class="block text-[11px] font-semibold text-slate-300 mb-1">Aspirant Full Name</label>
-          <input type="text" id="authNameInput" required placeholder="e.g. Priya Sharma" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+          <input type="text" id="authNameInput" placeholder="e.g. Priya Sharma" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
         </div>
+
         <div>
-          <label class="block text-[11px] font-semibold text-slate-300 mb-1">Email Address</label>
+          <label class="block text-[11px] font-semibold text-slate-300 mb-1">Gmail / Email Address</label>
           <input type="email" id="authEmailInput" required placeholder="aspirant@gmail.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
         </div>
+
         <div>
           <div class="flex items-center justify-between mb-1">
-            <label class="block text-[11px] font-semibold text-slate-300">Account Password</label>
+            <label id="authPasswordLabel" class="block text-[11px] font-semibold text-slate-300">Account Password</label>
             <span class="text-[10px] text-amber-400/90">Protects your Answer Locker</span>
           </div>
           <div class="relative">
-            <input type="password" id="authPasswordInput" required minlength="4" placeholder="Create or enter your password (min 4 chars)" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-3.5 pr-16 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+            <input type="password" id="authPasswordInput" required minlength="4" placeholder="Enter your account password (min 4 chars)" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-3.5 pr-16 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
             <button type="button" onclick="const p=document.getElementById('authPasswordInput');if(p){p.type=p.type==='password'?'text':'password';this.textContent=p.type==='password'?'Show':'Hide';}" class="absolute right-2.5 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md bg-slate-900 hover:bg-slate-800 text-[10px] font-semibold text-slate-400 hover:text-amber-400 transition cursor-pointer">
               Show
             </button>
           </div>
         </div>
-        <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold text-xs shadow-md transition active:scale-95 cursor-pointer">
-          Sign In / Register (15 Copies/Day Free)
+
+        <button type="submit" id="authSubmitBtn" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold text-xs shadow-md transition active:scale-95 cursor-pointer">
+          Sign In to My Account (15 Copies/Day Free)
         </button>
       </form>
 
       <p class="text-[10.5px] text-slate-400 text-center leading-relaxed">
-        🔒 <strong class="text-amber-400/90">1 Genuine Account per Aspirant/Device:</strong> Your device &amp; Answer Locker are permanently bound to your original Google/Email ID to prevent duplicate accounts.
+        🔒 <strong class="text-amber-400/90">Strict 1 Account per Gmail ID:</strong> Each Gmail address can only register ONE permanent account. Duplicate registrations are strictly blocked.
       </p>
+    </div>
+  </div>
+
+  <!-- 1B. Sign-Out Re-Confirmation Dialog Modal -->
+  <div id="signOutConfirmModal" class="fixed inset-0 z-[70] bg-slate-950/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border-2 border-rose-500/40 rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-5 relative text-center">
+      <div class="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-400">
+        <i data-lucide="log-out" class="w-6 h-6"></i>
+      </div>
+      <div class="space-y-1.5">
+        <h3 class="text-lg font-extrabold text-white">Confirm Sign Out?</h3>
+        <p id="signOutConfirmUserLabel" class="text-xs font-semibold text-amber-400"></p>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          Are you sure you want to sign out of your account? Your Answer Locker and remaining daily copies will stay safely saved in the cloud.
+        </p>
+      </div>
+      <div class="grid grid-cols-2 gap-3 pt-1">
+        <button type="button" onclick="window.closeSignOutConfirmModal()" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition cursor-pointer">
+          Cancel
+        </button>
+        <button type="button" onclick="window.confirmLogoutAspirant()" class="py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs shadow-lg transition cursor-pointer">
+          Yes, Sign Out
+        </button>
+      </div>
     </div>
   </div>
 
@@ -3148,7 +3188,7 @@
 
   </div>
 
-  <script src="/static/app.js?v=3.1"></script>
+  <script src="/static/app.js?v=3.2"></script>
   <script>
     if (window.lucide) {
       try { lucide.createIcons(); } catch(e) {}

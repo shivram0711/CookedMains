@@ -6739,15 +6739,69 @@ function setupUserAndModalListeners() {
     });
   }
 
-  // Manual Name/Email/Password Sign-In Form
+  // Mode switcher between "Sign In (Existing ID)" and "Create New Account"
+  window.setAuthFormMode = function(mode) {
+    clearAuthFormError();
+    const modeInput = document.getElementById("authModeInput");
+    const nameWrap = document.getElementById("authNameFieldWrap");
+    const tabLogin = document.getElementById("authTabLoginBtn");
+    const tabReg = document.getElementById("authTabRegisterBtn");
+    const pwLabel = document.getElementById("authPasswordLabel");
+    const submitBtn = document.getElementById("authSubmitBtn");
+    const isReg = mode === "register";
+
+    if (modeInput) modeInput.value = isReg ? "register" : "login";
+    if (nameWrap) {
+      if (isReg) {
+        nameWrap.classList.remove("hidden");
+        if (authNameInput) authNameInput.setAttribute("required", "required");
+      } else {
+        nameWrap.classList.add("hidden");
+        if (authNameInput) {
+          authNameInput.removeAttribute("required");
+          authNameInput.value = "";
+        }
+      }
+    }
+    if (tabLogin && tabReg) {
+      if (isReg) {
+        tabReg.className = "py-2 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 shadow transition cursor-pointer";
+        tabLogin.className = "py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+      } else {
+        tabLogin.className = "py-2 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 shadow transition cursor-pointer";
+        tabReg.className = "py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer";
+      }
+    }
+    if (pwLabel) {
+      pwLabel.textContent = isReg ? "Create Account Password" : "Account Password";
+    }
+    if (authPasswordInput) {
+      authPasswordInput.placeholder = isReg
+        ? "Create a password (min 4 chars) to lock your Gmail ID"
+        : "Enter your account password (min 4 chars)";
+    }
+    if (submitBtn) {
+      submitBtn.textContent = isReg
+        ? "Create My Single Permanent Account"
+        : "Sign In to My Account (15 Copies/Day Free)";
+    }
+  };
+
+  // Manual Name/Email/Password Sign-In & Registration Form
   if (authForm) {
     authForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       clearAuthFormError();
+      const modeInput = document.getElementById("authModeInput");
+      const mode = (modeInput && modeInput.value) ? modeInput.value : "login";
       const name = authNameInput ? authNameInput.value.trim() : "";
       const email = authEmailInput ? authEmailInput.value.trim() : "";
       const password = authPasswordInput ? authPasswordInput.value : "";
       if (!email) return;
+      if (mode === "register" && !name) {
+        showAuthFormError("Please enter your Full Name to register your single permanent account.");
+        return;
+      }
       if (!password || password.trim().length < 4) {
         showAuthFormError("Please enter a password (at least 4 characters) to protect your account.");
         return;
@@ -6759,8 +6813,9 @@ function setupUserAndModalListeners() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email,
-            name: name || "Aspirant",
+            name: mode === "register" ? name : undefined,
             password,
+            mode,
             device_id: getOrCreateDeviceId()
           })
         });
@@ -6783,7 +6838,7 @@ function setupUserAndModalListeners() {
           }, 300);
         } else {
           const err = await res.json();
-          showAuthFormError(err.detail || "Incorrect password. Please try again.");
+          showAuthFormError(err.detail || "Authentication failed. Please check your credentials.");
         }
       } catch (e) {
         showAuthFormError("Sign in error: " + e.message);
@@ -8037,9 +8092,37 @@ window.submitAspirantFeedback = async function() {
 };
 
 // -------------------------------------------------------------
-// 5. Logout & Switch Cadet (Lands on Top of Home Page)
+// 5. Logout & Switch Cadet (With Re-Confirmation Dialog Modal)
 // -------------------------------------------------------------
 window.logoutAspirant = function() {
+  const modal = document.getElementById("signOutConfirmModal");
+  const userLabel = document.getElementById("signOutConfirmUserLabel");
+  if (userLabel && state.user) {
+    userLabel.textContent = `${state.user.name || "Aspirant"} (${state.user.email || ""})`;
+  }
+  if (modal) {
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    if (window.lucide) {
+      try { lucide.createIcons(); } catch (e) {}
+    }
+    return;
+  }
+  if (window.confirm("Are you sure you want to sign out of your account?")) {
+    window.confirmLogoutAspirant();
+  }
+};
+
+window.closeSignOutConfirmModal = function() {
+  const modal = document.getElementById("signOutConfirmModal");
+  if (modal) {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  }
+};
+
+window.confirmLogoutAspirant = function() {
+  window.closeSignOutConfirmModal();
   sessionStorage.removeItem("mainsmentor_user");
   localStorage.removeItem("mainsmentor_user");
   localStorage.removeItem("mainsmentor_api_key");
@@ -8076,7 +8159,7 @@ window.logoutAspirant = function() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 
   if (typeof window.showAppToast === 'function') {
-    window.showAppToast("Signed out successfully. Welcome back anytime!");
+    window.showAppToast("Signed out safely. See you back in the Evaluation Studio!");
   }
 };
 

@@ -891,7 +891,8 @@ async def api_user_login(request: Request):
         avatar=avatar,
         provider=provider,
         device_id=device_id,
-        client_ip=client_ip
+        client_ip=client_ip,
+        mode=data.get("mode")
     )
     if not auth_res.get("success"):
         raise HTTPException(status_code=401, detail=auth_res.get("error") or "Authentication failed.")

@@ -557,6 +557,39 @@ def get_or_create_user(email: str, name: Optional[str] = None, avatar: Optional[
         _save_supabase_account_profile(res_user)
     return res_user
 
+def _check_gmail_already_registered(clean_email: str) -> Optional[Dict[str, Any]]:
+    """
+    Checks SQLite (including canonicalized dot/alias matches) and Supabase to see if an account
+    has already been created with this Gmail/Email ID.
+    """
+    det_id = get_deterministic_user_id(clean_email)
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT id, email, name, password_hash FROM users")
+        all_users = cursor.fetchall()
+        for u in all_users:
+            u_dict = dict(u)
+            if canonicalize_email(u_dict.get("email") or "") == clean_email:
+                # Normalize email in DB if it had dots/aliases earlier
+                if u_dict.get("email") != clean_email:
+                    try:
+                        cursor.execute("DELETE FROM users WHERE email = ? AND email != ?", (u_dict["email"], clean_email))
+                        conn.commit()
+                    except Exception:
+                        pass
+                if u_dict.get("password_hash"):
+                    conn.close()
+                    return u_dict
+    except Exception:
+        pass
+    conn.close()
+
+    supa_prof = _get_supabase_account_profile(det_id)
+    if supa_prof and (supa_prof.get("password_hash") or supa_prof.get("_is_account_profile")):
+        return supa_prof
+    return None
+
 def authenticate_or_register_user(
     email: str,
     password: Optional[str] = None,
@@ -565,30 +598,39 @@ def authenticate_or_register_user(
     provider: Optional[str] = None,
     device_id: Optional[str] = None,
     client_ip: Optional[str] = None,
-    verified_oauth: bool = False
+    verified_oauth: bool = False,
+    mode: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Enforces strict Single-Account-Per-Aspirant registration and PBKDF2-HMAC-SHA256 password or Google OAuth verification:
+    Enforces strict Single-Account-Per-Gmail and Single-Account-Per-Device registration:
     1. Rejects disposable, synthetic, numeric, or non-standard email domains.
-    2. Canonicalizes Gmail dots (.) and +aliases so 1 inbox = 1 single account.
-    3. Locks each browser/device (device_id) to a single primary account so users cannot create multiple random IDs.
-    4. Requires password verification (or cryptographically verified Google OAuth token) for all accounts.
+    2. Canonicalizes Gmail dots (.) and +aliases so 1 Gmail inbox = 1 single account forever.
+    3. Strictly blocks creating a 2nd account with an already-registered Gmail ID (in mode='register' or with a different name).
+    4. Locks each browser/device (device_id) to a single primary account.
     """
     email_err = validate_genuine_email(email)
     if email_err:
         return {"success": False, "error": email_err}
 
     clean_email = canonicalize_email(email)
-    det_id = get_deterministic_user_id(clean_email)
+    existing_acct = _check_gmail_already_registered(clean_email)
+    account_already_exists = existing_acct is not None
+    req_mode = (mode or "").strip().lower()
 
-    # Check if this account already exists in SQLite or Supabase
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT password_hash FROM users WHERE email = ?", (clean_email,))
-    existing_local = cursor.fetchone()
-    conn.close()
-    supa_prof = _get_supabase_account_profile(det_id)
-    account_already_exists = bool((existing_local and existing_local[0]) or (supa_prof and supa_prof.get("password_hash")))
+    # If user explicitly clicked "Create Account / Register" on an already-registered Gmail, strictly block!
+    if req_mode == "register" and account_already_exists:
+        existing_name = existing_acct.get("name") or "Aspirant"
+        return {
+            "success": False,
+            "error": f"Duplicate Account Blocked: '{clean_email}' is already registered (Account Name: '{existing_name}'). Only 1 account can be created per Gmail ID. Please switch to 'Sign In' to log into your existing account."
+        }
+
+    # If user is in "Sign In" mode for an email that has never been registered, guide them to Create Account
+    if req_mode == "login" and not account_already_exists and not verified_oauth:
+        return {
+            "success": False,
+            "error": f"No account found for '{clean_email}'. Please click the 'Create New Account' tab to register your single account."
+        }
 
     # If this is a brand-new account registration, verify that this device isn't already bound to another email!
     if not account_already_exists and device_id:
@@ -599,19 +641,43 @@ def authenticate_or_register_user(
                 "error": f"Single-Account Policy: This device is already registered to '{bound_email}'. Creating multiple IDs is restricted to protect database load. Please sign in with '{bound_email}'."
             }
 
-    user = get_or_create_user(clean_email, name, avatar)
+    # Preserve existing account's original name so logging in with a different name never creates/overwrites a 2nd identity
+    preserve_name = existing_acct.get("name") if existing_acct and existing_acct.get("name") else name
+    user = get_or_create_user(clean_email, preserve_name, avatar)
     stored_hash = (user.get("password_hash") or "").strip()
     clean_pw = (password or "").strip()
 
     # If cryptographically verified via browser Google OAuth (Google Identity Services / Supabase OAuth)
     if verified_oauth:
+        if not stored_hash:
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute("UPDATE users SET password_hash = ? WHERE email = ?", ("__GOOGLE_OAUTH_LOCKED__", clean_email))
+            conn.commit()
+            conn.close()
+            user["password_hash"] = "__GOOGLE_OAUTH_LOCKED__"
         if device_id:
             bind_device_to_account(device_id, clean_email, client_ip)
         _save_supabase_account_profile(user, device_id=device_id)
         return {"success": True, "user": user}
 
-    # If account already has a password hash, always require password verification
+    # If account already exists, check if someone is trying to register a 2nd identity with a different name
+    if account_already_exists and req_mode != "login":
+        supplied_name = (name or "").strip()
+        orig_name = (user.get("name") or "").strip()
+        if supplied_name and orig_name and supplied_name.lower() != orig_name.lower() and supplied_name.lower() != "aspirant":
+            return {
+                "success": False,
+                "error": f"Duplicate Account Blocked: '{clean_email}' is already registered under '{orig_name}'. You cannot create a 2nd account with the same Gmail ID. Please use 'Sign In'."
+            }
+
+    # If account already has a password hash (or Google OAuth lock), require verification
     if stored_hash:
+        if stored_hash == "__GOOGLE_OAUTH_LOCKED__":
+            return {
+                "success": False,
+                "error": f"'{clean_email}' was registered using Google Sign-In. Please click 'Continue with Google' above to access your single account."
+            }
         if not clean_pw:
             return {
                 "success": False,
@@ -623,9 +689,6 @@ def authenticate_or_register_user(
                 "success": False,
                 "error": "Incorrect password for this email account. Please enter the password you registered with."
             }
-        # Update name if provided
-        if name and name.strip() and user.get("name") != name.strip():
-            user = update_user_profile(clean_email, name=name.strip())
         if device_id:
             bind_device_to_account(device_id, clean_email, client_ip)
         return {"success": True, "user": user}
