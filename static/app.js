@@ -6591,10 +6591,32 @@ function setupUserAndModalListeners() {
     closeAuthModalBtn.addEventListener("click", closeAuthModal);
   }
 
-  // Google 1-Click Fast Sign-In
+  // Persistent Device Fingerprint ID + Single-Account Binding
+  const getOrCreateDeviceId = () => {
+    let devId = localStorage.getItem("cookedmains_device_id");
+    if (!devId || devId.length < 12) {
+      devId = "dev_" + Date.now().toString(36) + "_" + Math.random().toString(36).substring(2, 12);
+      localStorage.setItem("cookedmains_device_id", devId);
+    }
+    return devId;
+  };
+
   const authPasswordInput = document.getElementById("authPasswordInput");
   const authFormError = document.getElementById("authFormError");
   const authFormErrorText = document.getElementById("authFormErrorText");
+
+  // Auto-fill bound single account if this device is already registered
+  const prefillBoundAccount = () => {
+    const boundEmail = localStorage.getItem("cookedmains_bound_email");
+    const boundName = localStorage.getItem("cookedmains_bound_name");
+    if (boundEmail && authEmailInput && !authEmailInput.value) {
+      authEmailInput.value = boundEmail;
+    }
+    if (boundName && authNameInput && !authNameInput.value) {
+      authNameInput.value = boundName;
+    }
+  };
+  prefillBoundAccount();
 
   const showAuthFormError = (msg) => {
     if (authFormError && authFormErrorText) {
@@ -6613,16 +6635,26 @@ function setupUserAndModalListeners() {
   if (googleSignInBtn) {
     googleSignInBtn.addEventListener("click", async () => {
       clearAuthFormError();
+      prefillBoundAccount();
       let googleName = (authNameInput && authNameInput.value.trim()) || "";
       let googleEmail = (authEmailInput && authEmailInput.value.trim()) || "";
       let googlePassword = (authPasswordInput && authPasswordInput.value) || "";
 
       if (!googleEmail) {
-        // Provide seamless Cadet Google account
-        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-        googleName = googleName || `Cadet Aspirant`;
-        googleEmail = `cadet.upsc${randomSuffix}@gmail.com`;
-      } else if (!googleName) {
+        if (authEmailInput) authEmailInput.focus();
+        showAuthFormError("Please enter your @gmail.com Google address and password below to link your single permanent Google account.");
+        return;
+      }
+      if (!googleEmail.toLowerCase().endsWith("@gmail.com") && !googleEmail.toLowerCase().endsWith("@googlemail.com")) {
+        showAuthFormError("For Google Sign-In, please enter a valid @gmail.com address, or use the Sign In button below.");
+        return;
+      }
+      if (!googlePassword || googlePassword.trim().length < 4) {
+        if (authPasswordInput) authPasswordInput.focus();
+        showAuthFormError("Please enter your account password (min 4 chars) to verify and lock your Google account.");
+        return;
+      }
+      if (!googleName) {
         googleName = googleEmail.split("@")[0].replace(/[\._\-]+/g, " ");
         googleName = googleName.charAt(0).toUpperCase() + googleName.slice(1);
       }
@@ -6635,19 +6667,22 @@ function setupUserAndModalListeners() {
             email: googleEmail,
             name: googleName,
             password: googlePassword,
-            provider: "google"
+            provider: "google",
+            device_id: getOrCreateDeviceId()
           })
         });
         if (res.ok) {
           state.user = await res.json();
           sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+          localStorage.setItem("cookedmains_bound_email", state.user.email);
+          localStorage.setItem("cookedmains_bound_name", state.user.name);
           if (authPasswordInput) authPasswordInput.value = "";
           updateUserUI();
           refreshLockerBadge();
           window.closeAuthModal();
 
           if (typeof window.showAppToast === 'function') {
-            window.showAppToast(`Signed in as ${state.user.name}! 15 Free Daily Copies active.`);
+            window.showAppToast(`Signed in as ${state.user.name} (${state.user.email})!`);
           }
 
           setTimeout(() => {
@@ -6681,18 +6716,25 @@ function setupUserAndModalListeners() {
         const res = await fetch("/api/user/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, name: name || "Aspirant", password })
+          body: JSON.stringify({
+            email,
+            name: name || "Aspirant",
+            password,
+            device_id: getOrCreateDeviceId()
+          })
         });
         if (res.ok) {
           state.user = await res.json();
           sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+          localStorage.setItem("cookedmains_bound_email", state.user.email);
+          localStorage.setItem("cookedmains_bound_name", state.user.name);
           if (authPasswordInput) authPasswordInput.value = "";
           updateUserUI();
           refreshLockerBadge();
           window.closeAuthModal();
 
           if (typeof window.showAppToast === 'function') {
-            window.showAppToast(`Welcome, ${state.user.name}! Account secured & 15 Free Daily Copies active.`);
+            window.showAppToast(`Welcome, ${state.user.name}! Single Account verified & 15 Free Daily Copies active.`);
           }
 
           setTimeout(() => {

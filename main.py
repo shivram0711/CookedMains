@@ -1,12 +1,13 @@
-import sentry_sdk
+try:
+    import sentry_sdk
+    sentry_sdk.init(
+        dsn="https://9bd555734be9acd75c23679680edc311@o4512140848269312.ingest.us.sentry.io/4512140858165248",
+        send_default_pii=True,
+        traces_sample_rate=1.0,
+    )
+except ImportError:
+    sentry_sdk = None
 
-sentry_sdk.init(
-    dsn="https://9bd555734be9acd75c23679680edc311@o4512140848269312.ingest.us.sentry.io/4512140858165248",
-    send_default_pii=True,
-    traces_sample_rate=1.0,
-)
-
-import os
 import os
 import io
 import hashlib
@@ -751,20 +752,25 @@ async def api_user_login(request: Request):
     avatar = data.get("avatar")
     password = data.get("password")
     provider = data.get("provider")
+    device_id = (data.get("device_id") or "").strip()
+    forwarded_for = request.headers.get("x-forwarded-for", "")
+    client_ip = forwarded_for.split(",")[0].strip() if forwarded_for else (request.client.host if request.client else "")
 
     auth_res = authenticate_or_register_user(
         email=email,
         password=password,
         name=name,
         avatar=avatar,
-        provider=provider
+        provider=provider,
+        device_id=device_id,
+        client_ip=client_ip
     )
     if not auth_res.get("success"):
         raise HTTPException(status_code=401, detail=auth_res.get("error") or "Authentication failed.")
 
     user = auth_res["user"]
-    history = get_user_evaluations(email)
-    quota = get_user_daily_quota(email)
+    history = get_user_evaluations(user["email"])
+    quota = get_user_daily_quota(user["email"])
     return {
         "email": user["email"],
         "name": user["name"],

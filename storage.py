@@ -91,6 +91,16 @@ def _init_db_tables():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
+    # Device-to-Account Single Identity Binding table (prevents creating multiple random accounts on same device/IP)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS device_bindings (
+            device_id TEXT PRIMARY KEY,
+            bound_email TEXT NOT NULL,
+            client_ip TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
     
     # Evaluated answer scripts history locker
     cursor.execute("""
@@ -269,15 +279,89 @@ except Exception as _e:
 
 import hashlib
 import hmac
+import re
+
+DISPOSABLE_EMAIL_DOMAINS = {
+    "yopmail.com", "mailinator.com", "tempmail.com", "temp-mail.org", "10minutemail.com",
+    "guerrillamail.com", "sharklasers.com", "trashmail.com", "maildrop.cc", "getnada.com",
+    "dispostable.com", "mohmal.com", "emailondeck.com", "fakeinbox.com", "mintemail.com",
+    "throwawaymail.com", "mailnesia.com", "tempmailaddress.com", "burnermail.io", "inboxbear.com",
+    "mytemp.email", "spamgourmet.com", "harakirimail.com", "jetable.org", "mailcatch.com",
+    "example.com", "test.com", "fake.com", "invalid.com", "localhost"
+}
+
+TRUSTED_EMAIL_DOMAINS = {
+    "gmail.com", "googlemail.com", "outlook.com", "yahoo.com", "yahoo.co.in", "yahoo.in",
+    "icloud.com", "hotmail.com", "live.com", "proton.me", "protonmail.com", "zoho.com",
+    "zohomail.in", "rediffmail.com", "aol.com", "msn.com", "gmx.com", "mail.com", "me.com"
+}
+
+TRUSTED_DOMAIN_SUFFIXES = (
+    ".ac.in", ".edu.in", ".gov.in", ".nic.in", ".org.in", ".res.in", ".edu", ".in", ".org"
+)
+
+def canonicalize_email(email: str) -> str:
+    """
+    Normalizes email addresses so Gmail dot-variants (r.a.h.u.l@gmail.com) and +alias tricks
+    (rahul+1@gmail.com, rahul+2@gmail.com) always resolve to ONE single canonical email account.
+    """
+    raw = (email or "").strip().lower()
+    if "@" not in raw:
+        return raw
+    local, domain = raw.split("@", 1)
+    # Strip any +alias tag (e.g. user+2@gmail.com -> user@gmail.com)
+    if "+" in local:
+        local = local.split("+", 1)[0]
+    if domain == "googlemail.com":
+        domain = "gmail.com"
+    if domain == "gmail.com":
+        local = local.replace(".", "")
+    return f"{local}@{domain}"
+
+def validate_genuine_email(email: str) -> Optional[str]:
+    """
+    Validates that an email is a genuine personal/academic email or Google account,
+    blocking random generated IDs, disposable domains, and gibberish addresses.
+    Returns None if valid, or an error string if rejected.
+    """
+    raw = (email or "").strip().lower()
+    if not raw or "@" not in raw:
+        return "Please enter a valid email address."
+    if not re.match(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$", raw):
+        return "Invalid email format. Please enter your genuine email or Google account."
+
+    canonical = canonicalize_email(raw)
+    local, domain = canonical.split("@", 1)
+
+    # Block synthetic / guest / random prefixes
+    blocked_prefixes = ("cadet.upsc", "guest@", "demo@", "test@", "fake@", "temp@", "random@", "admin@")
+    if any(raw.startswith(p) or canonical.startswith(p) for p in blocked_prefixes):
+        return "Auto-generated or guest IDs are disabled. Please sign in with your genuine Google or Email account."
+
+    if domain in DISPOSABLE_EMAIL_DOMAINS:
+        return f"Disposable or temporary email provider (@{domain}) is not allowed. Please use your real Google or personal email."
+
+    if not (domain in TRUSTED_EMAIL_DOMAINS or domain.endswith(TRUSTED_DOMAIN_SUFFIXES)):
+        return "Please use an official Google (@gmail.com), Outlook, Yahoo, iCloud, Proton, or institutional (.ac.in / .edu) email address."
+
+    if len(local) < 3:
+        return "Email username is too short. Please enter your genuine email address."
+
+    # Must contain at least 2 alphabetic letters (blocks pure numbers like 123456@gmail.com)
+    alpha_count = sum(1 for c in local if c.isalpha())
+    if alpha_count < 2:
+        return "Please enter a genuine email address (numeric-only IDs are not permitted)."
+
+    return None
 
 def get_deterministic_user_id(email: str) -> str:
-    """Generates a deterministic UUIDv5 for an email so user_id never changes across server redeploys."""
-    clean = (email or "guest@upsc.gov.in").strip().lower()
+    """Generates a deterministic UUIDv5 for the canonicalized email so dot/+ aliases map to the exact same ID."""
+    clean = canonicalize_email(email or "guest@upsc.gov.in")
     return str(uuid.uuid5(uuid.NAMESPACE_DNS, f"cookedmains.user.{clean}"))
 
 def hash_user_password(email: str, password: str) -> str:
     """Cryptographically hashes a user password using PBKDF2-HMAC-SHA256 (100,000 iterations)."""
-    clean_email = (email or "").strip().lower()
+    clean_email = canonicalize_email(email or "")
     salt = f"cookedmains.salt.v1.{clean_email}".encode("utf-8")
     return hashlib.pbkdf2_hmac("sha256", (password or "").strip().encode("utf-8"), salt, 100000).hex()
 
@@ -301,23 +385,77 @@ def _get_supabase_account_profile(user_id: str) -> Optional[Dict[str, Any]]:
         pass
     return None
 
-def _save_supabase_account_profile(user_dict: Dict[str, Any]) -> None:
-    """Persists user profile & encrypted password_hash inside Supabase so accounts survive any server redeploy."""
+def _find_supabase_account_by_device_id(device_id: str) -> Optional[str]:
+    """Checks if a device_id is already bound to an existing account in Supabase or SQLite."""
+    clean_dev = (device_id or "").strip()
+    if not clean_dev or len(clean_dev) < 8:
+        return None
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT bound_email FROM device_bindings WHERE device_id = ?", (clean_dev,))
+        row = cursor.fetchone()
+        if row and row[0]:
+            conn.close()
+            return canonicalize_email(row[0])
+    except Exception:
+        pass
+    conn.close()
+
+    if supabase:
+        try:
+            res = supabase.table("evaluations").select("evaluation_json").eq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(250).execute()
+            if res and res.data:
+                for r in res.data:
+                    ev = r.get("evaluation_json") or {}
+                    if isinstance(ev, str):
+                        try:
+                            ev = json.loads(ev)
+                        except Exception:
+                            ev = {}
+                    if ev.get("_meta_device_id") == clean_dev and ev.get("email"):
+                        return canonicalize_email(ev["email"])
+        except Exception:
+            pass
+    return None
+
+def bind_device_to_account(device_id: Optional[str], email: str, client_ip: Optional[str] = None) -> None:
+    """Records a permanent 1-to-1 binding between a browser/device ID and the aspirant's canonical email."""
+    clean_dev = (device_id or "").strip()
+    clean_email = canonicalize_email(email)
+    if not clean_dev or len(clean_dev) < 8 or not clean_email:
+        return
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "INSERT OR IGNORE INTO device_bindings (device_id, bound_email, client_ip) VALUES (?, ?, ?)",
+            (clean_dev, clean_email, (client_ip or "").strip())
+        )
+        conn.commit()
+    except Exception:
+        pass
+    conn.close()
+
+def _save_supabase_account_profile(user_dict: Dict[str, Any], device_id: Optional[str] = None) -> None:
+    """Persists user profile, encrypted password_hash, and bound device_id inside Supabase."""
     if not supabase or not user_dict or not user_dict.get("id"):
         return
     try:
         uid = user_dict["id"]
+        existing = _get_supabase_account_profile(uid)
+        saved_device_id = (device_id or "").strip() or (existing.get("_meta_device_id") if existing else "") or ""
         profile_payload = {
             "_is_account_profile": True,
             "id": uid,
-            "email": (user_dict.get("email") or "").strip().lower(),
+            "email": canonicalize_email(user_dict.get("email") or ""),
             "name": user_dict.get("name") or "Aspirant",
             "avatar": user_dict.get("avatar") or "",
             "password_hash": user_dict.get("password_hash") or "",
             "target_year": user_dict.get("target_year") or "2026",
-            "optional_subject": user_dict.get("optional_subject") or "PSIR"
+            "optional_subject": user_dict.get("optional_subject") or "PSIR",
+            "_meta_device_id": saved_device_id
         }
-        existing = _get_supabase_account_profile(uid)
         if existing and existing.get("_supa_profile_row_id"):
             supabase.table("evaluations").update({
                 "evaluation_json": profile_payload
@@ -334,8 +472,8 @@ def _save_supabase_account_profile(user_dict: Dict[str, Any]) -> None:
         print(f"Notice: Supabase account profile sync notice: {e}")
 
 def get_or_create_user(email: str, name: Optional[str] = None, avatar: Optional[str] = None) -> Dict[str, Any]:
-    """Retrieves an existing user or registers a new aspirant with deterministic UUID and persistent Supabase sync."""
-    email = (email or "guest@upsc.gov.in").strip().lower()
+    """Retrieves an existing user or registers a new aspirant with canonical email, deterministic UUID, and Supabase sync."""
+    email = canonicalize_email(email or "guest@upsc.gov.in")
     det_id = get_deterministic_user_id(email)
     if not name:
         name = email.split("@")[0].capitalize()
@@ -424,15 +562,41 @@ def authenticate_or_register_user(
     password: Optional[str] = None,
     name: Optional[str] = None,
     avatar: Optional[str] = None,
-    provider: Optional[str] = None
+    provider: Optional[str] = None,
+    device_id: Optional[str] = None,
+    client_ip: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Authenticates an existing aspirant with PBKDF2 password verification or registers a new password-protected account.
-    Returns {"success": True, "user": user_dict} or {"success": False, "error": "..."}.
+    Enforces strict Single-Account-Per-Aspirant registration and PBKDF2-HMAC-SHA256 password verification:
+    1. Rejects disposable, synthetic, numeric, or non-standard email domains.
+    2. Canonicalizes Gmail dots (.) and +aliases so 1 inbox = 1 single account.
+    3. Locks each browser/device (device_id) to a single primary account so users cannot create multiple random IDs.
+    4. Requires password verification for all accounts.
     """
-    clean_email = (email or "").strip().lower()
-    if not clean_email:
-        return {"success": False, "error": "Email address is required."}
+    email_err = validate_genuine_email(email)
+    if email_err:
+        return {"success": False, "error": email_err}
+
+    clean_email = canonicalize_email(email)
+    det_id = get_deterministic_user_id(clean_email)
+
+    # Check if this account already exists in SQLite or Supabase
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT password_hash FROM users WHERE email = ?", (clean_email,))
+    existing_local = cursor.fetchone()
+    conn.close()
+    supa_prof = _get_supabase_account_profile(det_id)
+    account_already_exists = bool((existing_local and existing_local[0]) or (supa_prof and supa_prof.get("password_hash")))
+
+    # If this is a brand-new account registration, verify that this device isn't already bound to another email!
+    if not account_already_exists and device_id:
+        bound_email = _find_supabase_account_by_device_id(device_id)
+        if bound_email and bound_email != clean_email:
+            return {
+                "success": False,
+                "error": f"Single-Account Policy: This device is already registered to '{bound_email}'. Creating multiple IDs is restricted to protect database load. Please sign in with '{bound_email}'."
+            }
 
     user = get_or_create_user(clean_email, name, avatar)
     stored_hash = (user.get("password_hash") or "").strip()
@@ -454,26 +618,31 @@ def authenticate_or_register_user(
         # Update name if provided
         if name and name.strip() and user.get("name") != name.strip():
             user = update_user_profile(clean_email, name=name.strip())
+        if device_id:
+            bind_device_to_account(device_id, clean_email, client_ip)
         return {"success": True, "user": user}
 
-    # Account does not have a password yet -> set password if supplied
-    if clean_pw:
-        if len(clean_pw) < 4:
-            return {"success": False, "error": "Password must be at least 4 characters long."}
-        new_hash = hash_user_password(clean_email, clean_pw)
-        conn = get_db()
-        cursor = conn.cursor()
-        if name and name.strip():
-            cursor.execute("UPDATE users SET password_hash = ?, name = ? WHERE email = ?", (new_hash, name.strip(), clean_email))
-            user["name"] = name.strip()
-        else:
-            cursor.execute("UPDATE users SET password_hash = ? WHERE email = ?", (new_hash, clean_email))
-        conn.commit()
-        conn.close()
-        user["password_hash"] = new_hash
-        _save_supabase_account_profile(user)
+    # New account registration MUST provide a password (min 4 chars)
+    if not clean_pw or len(clean_pw) < 4:
+        return {
+            "success": False,
+            "error": "Please set a password (minimum 4 characters) to register and lock your permanent account."
+        }
+
+    new_hash = hash_user_password(clean_email, clean_pw)
+    conn = get_db()
+    cursor = conn.cursor()
+    if name and name.strip():
+        cursor.execute("UPDATE users SET password_hash = ?, name = ? WHERE email = ?", (new_hash, name.strip(), clean_email))
+        user["name"] = name.strip()
     else:
-        _save_supabase_account_profile(user)
+        cursor.execute("UPDATE users SET password_hash = ? WHERE email = ?", (new_hash, clean_email))
+    conn.commit()
+    conn.close()
+    user["password_hash"] = new_hash
+    if device_id:
+        bind_device_to_account(device_id, clean_email, client_ip)
+    _save_supabase_account_profile(user, device_id=device_id)
 
     return {"success": True, "user": user}
 
