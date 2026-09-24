@@ -1,3 +1,12 @@
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn="https://9bd555734be9acd75c23679680edc311@o4512140848269312.ingest.us.sentry.io/4512140858165248",
+    send_default_pii=True,
+    traces_sample_rate=1.0,
+)
+
+import os
 import os
 import io
 import hashlib
@@ -71,7 +80,10 @@ import urllib.request
 
 
 app = FastAPI(title="Cooked Mains - UPSC Mains Evaluator")
-
+@app.get("/sentry-debug")
+async def trigger_error():
+    division_by_zero = 1 / 0
+    return division_by_zero
 # Ensure static folder exists
 os.makedirs(os.path.join(os.path.dirname(__file__), "static"), exist_ok=True)
 app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
