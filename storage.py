@@ -266,9 +266,15 @@ try:
 except Exception as _e:
     print(f"Notice: DB startup init notice: {_e}")
 
+def get_deterministic_user_id(email: str) -> str:
+    """Generates a deterministic UUIDv5 for an email so user_id never changes across server redeploys."""
+    clean = (email or "guest@upsc.gov.in").strip().lower()
+    return str(uuid.uuid5(uuid.NAMESPACE_DNS, f"cookedmains.user.{clean}"))
+
 def get_or_create_user(email: str, name: Optional[str] = None, avatar: Optional[str] = None) -> Dict[str, Any]:
-    """Retrieves an existing user or registers a new aspirant with 5 free evaluation credits and 2 free re-evaluations."""
-    email = email.strip().lower()
+    """Retrieves an existing user or registers a new aspirant with deterministic UUID and persistent Supabase sync."""
+    email = (email or "guest@upsc.gov.in").strip().lower()
+    det_id = get_deterministic_user_id(email)
     if not name:
         name = email.split("@")[0].capitalize()
     if not avatar:
@@ -281,8 +287,15 @@ def get_or_create_user(email: str, name: Optional[str] = None, avatar: Optional[
     
     if row:
         user_dict = dict(row)
+        if user_dict.get("id") != det_id:
+            try:
+                cursor.execute("UPDATE users SET id = ? WHERE email = ?", (det_id, email))
+                conn.commit()
+                user_dict["id"] = det_id
+            except Exception:
+                pass
         if "free_rewrites" not in user_dict or user_dict["free_rewrites"] is None:
-            user_dict["free_rewrites"] = 2
+            user_dict["free_rewrites"] = 5
         if "target_year" not in user_dict or not user_dict["target_year"]:
             user_dict["target_year"] = "2026"
         if "optional_subject" not in user_dict or not user_dict["optional_subject"]:
@@ -290,40 +303,77 @@ def get_or_create_user(email: str, name: Optional[str] = None, avatar: Optional[
         conn.close()
         return user_dict
     
-    # Register new aspirant with 5 free evaluations and 2 free rewrites
-    user_id = str(uuid.uuid4())
+    # Register aspirant with deterministic ID
+    user_id = det_id
     cursor.execute(
-        "INSERT INTO users (id, email, name, avatar, free_credits, is_pro, free_rewrites, target_year, optional_subject) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (user_id, email, name, avatar, 5, 0, 2, "2026", "PSIR")
+        "INSERT OR REPLACE INTO users (id, email, name, avatar, free_credits, is_pro, free_rewrites, target_year, optional_subject) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (user_id, email, name, avatar, 15, 1, 5, "2026", "PSIR")
     )
     conn.commit()
     cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
     new_row = cursor.fetchone()
     conn.close()
-    return dict(new_row)
+
+    if supabase:
+        try:
+            supabase.table("users").upsert({
+                "id": user_id,
+                "email": email,
+                "name": name,
+                "avatar": avatar,
+                "target_year": "2026",
+                "optional_subject": "PSIR"
+            }).execute()
+        except Exception:
+            pass
+
+    return dict(new_row) if new_row else {
+        "id": user_id,
+        "email": email,
+        "name": name,
+        "avatar": avatar,
+        "free_credits": 15,
+        "is_pro": 1,
+        "free_rewrites": 5,
+        "target_year": "2026",
+        "optional_subject": "PSIR"
+    }
 
 def update_user_profile(email: str, name: Optional[str] = None, target_year: Optional[str] = None, optional_subject: Optional[str] = None) -> Dict[str, Any]:
-    """Updates candidate profile attributes."""
+    """Updates candidate profile attributes locally and in Supabase."""
     conn = get_db()
     cursor = conn.cursor()
     user = get_or_create_user(email)
     
     updates = []
     params = []
+    supa_updates = {}
     if name:
         updates.append("name = ?")
         params.append(name.strip())
+        supa_updates["name"] = name.strip()
     if target_year:
         updates.append("target_year = ?")
         params.append(target_year.strip())
+        supa_updates["target_year"] = target_year.strip()
     if optional_subject:
         updates.append("optional_subject = ?")
         params.append(optional_subject.strip())
+        supa_updates["optional_subject"] = optional_subject.strip()
         
     if updates:
         params.append(email.strip().lower())
         cursor.execute(f"UPDATE users SET {', '.join(updates)} WHERE email = ?", params)
         conn.commit()
+        if supabase and supa_updates:
+            try:
+                supabase.table("users").upsert({
+                    "id": user["id"],
+                    "email": email.strip().lower(),
+                    **supa_updates
+                }).execute()
+            except Exception:
+                pass
         
     cursor.execute("SELECT * FROM users WHERE email = ?", (email.strip().lower(),))
     row = cursor.fetchone()
@@ -334,7 +384,10 @@ DAILY_EVALUATION_LIMIT = 15
 DAILY_REWRITE_LIMIT = 5
 
 def get_daily_evaluations_count(email: str, is_rewrite: bool = False) -> int:
-    """Returns the number of answer copies evaluated by the user today (IST midnight to midnight)."""
+    """Returns the number of answer copies evaluated by the user today (IST midnight to midnight) across SQLite & Supabase."""
+    clean_email = (email or "").strip().lower()
+    target_rewrite = 1 if is_rewrite else 0
+
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
@@ -342,11 +395,42 @@ def get_daily_evaluations_count(email: str, is_rewrite: bool = False) -> int:
         WHERE LOWER(user_email) = ? 
           AND is_rewrite = ?
           AND strftime('%Y-%m-%d', created_at, '+330 minutes') = strftime('%Y-%m-%d', 'now', '+330 minutes')
-    """, (email.strip().lower(), 1 if is_rewrite else 0))
+    """, (clean_email, target_rewrite))
     row = cursor.fetchone()
-    count = row[0] if row else 0
+    sqlite_count = row[0] if row else 0
     conn.close()
-    return count
+
+    supa_count = 0
+    if supabase and clean_email:
+        try:
+            from datetime import timezone, timedelta
+            ist_tz = timezone(timedelta(hours=5, minutes=30))
+            now_ist = datetime.now(ist_tz)
+            today_str = now_ist.strftime("%Y-%m-%d")
+            det_id = get_deterministic_user_id(clean_email)
+            res = supabase.table("evaluations").select("created_at,evaluation_json").eq("user_id", det_id).order("created_at", desc=True).limit(40).execute()
+            if res and res.data:
+                for item in res.data:
+                    c_at = item.get("created_at") or ""
+                    ev_j = item.get("evaluation_json") or {}
+                    if isinstance(ev_j, str):
+                        try:
+                            ev_j = json.loads(ev_j)
+                        except Exception:
+                            ev_j = {}
+                    item_rw = int(ev_j.get("_meta_is_rewrite") or 0)
+                    if item_rw == target_rewrite and c_at:
+                        try:
+                            dt_utc = datetime.fromisoformat(c_at.replace("Z", "+00:00"))
+                            dt_ist = dt_utc.astimezone(ist_tz)
+                            if dt_ist.strftime("%Y-%m-%d") == today_str:
+                                supa_count += 1
+                        except Exception:
+                            pass
+        except Exception:
+            pass
+
+    return max(sqlite_count, supa_count)
 
 def get_user_daily_quota(email: str) -> Dict[str, Any]:
     """Returns today's usage and remaining allowance for an aspirant (15 copies/day, 5 rewrites/day)."""
@@ -397,13 +481,10 @@ def save_feedback(user_email: str, user_name: str, category: str, rating: int, m
     return {"id": fid, "status": "success"}
 
 def get_user(email: str) -> Optional[Dict[str, Any]]:
-    """Fetches user record by email."""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE email = ?", (email.strip().lower(),))
-    row = cursor.fetchone()
-    conn.close()
-    return dict(row) if row else None
+    """Fetches user record by email (auto-reconstructs deterministic user if local DB was reset)."""
+    if not email or not email.strip():
+        return None
+    return get_or_create_user(email.strip().lower())
 
 def use_user_credit(email: str) -> Dict[str, Any]:
     """
@@ -502,17 +583,31 @@ def save_evaluation_record(
         thumbnail = pages_list[0]
     elif not thumbnail and file_url:
         thumbnail = file_url
+
+    enriched_dict = dict(evaluation_dict)
+    enriched_dict["_meta_eval_id"] = eval_id
+    enriched_dict["_meta_user_email"] = (email or "").strip().lower()
+    enriched_dict["_meta_paper"] = paper
+    enriched_dict["_meta_max_marks"] = max_marks
+    enriched_dict["_meta_is_rewrite"] = 1 if is_rewrite else 0
+    enriched_dict["_meta_baseline_eval_id"] = baseline_eval_id
+    enriched_dict["_meta_file_hash"] = file_hash
+    enriched_dict["_meta_thumbnail"] = thumbnail or ""
+    enriched_dict["_meta_pages"] = pages_list if pages_list else ([file_url] if file_url else [])
         
     # 1. Supabase Persistent Database Insert
     if supabase and user and user.get("id"):
         try:
-            insert_supabase_evaluation(
+            supa_row = insert_supabase_evaluation(
                 user_id=user["id"],
                 question_title=question,
                 file_url=file_url,
                 total_marks=max_marks,
-                result_json=evaluation_dict
+                result_json=enriched_dict
             )
+            if supa_row and supa_row.get("id"):
+                eval_id = str(supa_row["id"])
+                enriched_dict["_meta_eval_id"] = eval_id
         except Exception as se:
             print(f"Notice: Supabase save skipped: {se}")
         
@@ -528,7 +623,7 @@ def save_evaluation_record(
         """, (eval_id, baseline_eval_id.strip()))
 
     cursor.execute("""
-        INSERT INTO evaluations (
+        INSERT OR REPLACE INTO evaluations (
             id, user_id, user_email, paper, max_marks, question,
             overall_score, percentage, evaluation_json, pages_json, thumbnail, is_rewrite, file_hash,
             has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
@@ -542,7 +637,7 @@ def save_evaluation_record(
         question,
         overall_score,
         percentage,
-        json.dumps(evaluation_dict),
+        json.dumps(enriched_dict),
         json.dumps(pages_list),
         thumbnail,
         1 if is_rewrite else 0,
@@ -556,43 +651,63 @@ def save_evaluation_record(
     conn.close()
     return eval_id
 
+def _format_supabase_eval_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    """Converts a raw Supabase evaluations row into the exact frontend Locker & Viewer schema."""
+    eval_data = row.get("evaluation_json") or {}
+    if isinstance(eval_data, str):
+        try:
+            eval_data = json.loads(eval_data)
+        except Exception:
+            eval_data = {}
+    score = float(eval_data.get("overall_score") or 0.0)
+    total_m = int(row.get("total_marks") or eval_data.get("_meta_max_marks") or eval_data.get("max_marks") or 10)
+    pct = round((score / total_m) * 100, 1) if total_m > 0 else 0.0
+    f_url = row.get("file_url") or ""
+    meta_pages = eval_data.get("_meta_pages")
+    pages = meta_pages if (isinstance(meta_pages, list) and len(meta_pages) > 0) else ([f_url] if f_url else [])
+    thumb = eval_data.get("_meta_thumbnail") or (pages[0] if pages else f_url)
+    paper_code = eval_data.get("_meta_paper") or eval_data.get("detected_paper") or "GS"
+    is_rw = int(eval_data.get("_meta_is_rewrite") or 0)
+    has_rw = int(eval_data.get("has_been_rewritten") or eval_data.get("_meta_has_been_rewritten") or 0)
+    q_title = row.get("question_title") or eval_data.get("question") or "UPSC Mains Answer"
+    return {
+        "id": str(row.get("id")),
+        "user_id": str(row.get("user_id") or ""),
+        "created_at": row.get("created_at"),
+        "paper": paper_code,
+        "max_marks": total_m,
+        "total_marks": total_m,
+        "question": q_title,
+        "question_title": q_title,
+        "overall_score": score,
+        "total_score": score,
+        "percentage": pct,
+        "thumbnail": thumb,
+        "file_url": f_url,
+        "pages": pages,
+        "page_images": pages,
+        "evaluation": eval_data,
+        "evaluation_data": eval_data,
+        "evaluation_json": eval_data,
+        "is_rewrite": is_rw,
+        "has_been_rewritten": has_rw,
+        "rewrite_eval_id": eval_data.get("rewrite_eval_id"),
+        "baseline_eval_id": eval_data.get("_meta_baseline_eval_id")
+    }
+
 def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
-    """Returns list of student's past evaluated answer copies (queries Supabase if connected, else SQLite)."""
-    user = get_user(email)
+    """Returns list of student's past evaluated answer copies (merges Supabase & SQLite so zero copies are ever lost)."""
+    clean_email = (email or "").strip().lower()
+    user = get_or_create_user(clean_email)
+    merged_by_id: Dict[str, Dict[str, Any]] = {}
+
     if supabase and user and user.get("id"):
         try:
             res = supabase.table("evaluations").select("*").eq("user_id", user["id"]).order("created_at", desc=True).execute()
-            if res and res.data and len(res.data) > 0:
-                supa_list = []
+            if res and res.data:
                 for row in res.data:
-                    eval_data = row.get("evaluation_json") or {}
-                    if isinstance(eval_data, str):
-                        try:
-                            eval_data = json.loads(eval_data)
-                        except Exception:
-                            eval_data = {}
-                    score = float(eval_data.get("overall_score") or 0.0)
-                    total_m = int(row.get("total_marks") or eval_data.get("max_marks") or 10)
-                    pct = round((score / total_m) * 100, 1) if total_m > 0 else 0.0
-                    f_url = row.get("file_url") or ""
-                    supa_list.append({
-                        "id": str(row.get("id")),
-                        "created_at": row.get("created_at"),
-                        "paper": eval_data.get("detected_paper") or "GS",
-                        "max_marks": total_m,
-                        "question": row.get("question_title") or eval_data.get("question") or "UPSC Mains Answer",
-                        "overall_score": score,
-                        "total_score": score,
-                        "percentage": pct,
-                        "thumbnail": f_url,
-                        "file_url": f_url,
-                        "pages": [f_url] if f_url else [],
-                        "is_rewrite": 0,
-                        "has_been_rewritten": 0,
-                        "rewrite_eval_id": None,
-                        "baseline_eval_id": None
-                    })
-                return supa_list
+                    formatted = _format_supabase_eval_row(row)
+                    merged_by_id[formatted["id"]] = formatted
         except Exception as se:
             print(f"Supabase get_user_evaluations notice: {se}")
 
@@ -602,23 +717,30 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
         SELECT id, created_at, paper, max_marks, question, overall_score, percentage, thumbnail, is_rewrite,
                has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
         FROM evaluations
-        WHERE user_email = ?
+        WHERE LOWER(user_email) = ?
         ORDER BY created_at DESC
-    """, (email.strip().lower(),))
+    """, (clean_email,))
     rows = cursor.fetchall()
     conn.close()
-    result = []
     for r in rows:
         d = dict(r)
         d["total_score"] = d["overall_score"]
-        result.append(d)
-    return result
+        if d["id"] not in merged_by_id:
+            merged_by_id[d["id"]] = d
+
+    final_list = list(merged_by_id.values())
+    final_list.sort(key=lambda x: str(x.get("created_at") or ""), reverse=True)
+    return final_list
 
 def get_evaluation_by_id(eval_id: str) -> Optional[Dict[str, Any]]:
-    """Fetches complete copy payload including annotations and pages."""
+    """Fetches complete copy payload including annotations and pages from SQLite or Supabase."""
+    clean_id = (eval_id or "").strip()
+    if not clean_id:
+        return None
+
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM evaluations WHERE id = ?", (eval_id.strip(),))
+    cursor.execute("SELECT * FROM evaluations WHERE id = ?", (clean_id,))
     row = cursor.fetchone()
     conn.close()
     if row:
@@ -636,38 +758,9 @@ def get_evaluation_by_id(eval_id: str) -> Optional[Dict[str, Any]]:
 
     if supabase:
         try:
-            res = supabase.table("evaluations").select("*").eq("id", eval_id.strip()).execute()
+            res = supabase.table("evaluations").select("*").eq("id", clean_id).execute()
             if res and res.data and len(res.data) > 0:
-                row = res.data[0]
-                eval_data = row.get("evaluation_json") or {}
-                if isinstance(eval_data, str):
-                    try:
-                        eval_data = json.loads(eval_data)
-                    except Exception:
-                        eval_data = {}
-                score = float(eval_data.get("overall_score") or 0.0)
-                total_m = int(row.get("total_marks") or eval_data.get("max_marks") or 10)
-                f_url = row.get("file_url") or ""
-                return {
-                    "id": str(row.get("id")),
-                    "created_at": row.get("created_at"),
-                    "paper": eval_data.get("detected_paper") or "GS",
-                    "max_marks": total_m,
-                    "question": row.get("question_title") or eval_data.get("question") or "UPSC Mains Answer",
-                    "overall_score": score,
-                    "total_score": score,
-                    "percentage": round((score / total_m) * 100, 1) if total_m > 0 else 0.0,
-                    "thumbnail": f_url,
-                    "file_url": f_url,
-                    "pages": [f_url] if f_url else [],
-                    "page_images": [f_url] if f_url else [],
-                    "evaluation": eval_data,
-                    "evaluation_data": eval_data,
-                    "is_rewrite": 0,
-                    "has_been_rewritten": 0,
-                    "rewrite_eval_id": None,
-                    "baseline_eval_id": None
-                }
+                return _format_supabase_eval_row(res.data[0])
         except Exception as se:
             print(f"Supabase get_evaluation_by_id notice: {se}")
     return None

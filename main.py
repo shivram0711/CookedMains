@@ -61,10 +61,13 @@ from storage import (
     get_admin_setting, set_admin_setting,
     get_user_daily_quota, get_daily_evaluations_count,
     DAILY_EVALUATION_LIMIT, DAILY_REWRITE_LIMIT,
-    upload_file_to_supabase, insert_supabase_evaluation, get_db
+    upload_file_to_supabase, insert_supabase_evaluation, get_db,
+    get_deterministic_user_id, _format_supabase_eval_row
 )
 from news_ingestion import ingest_all_feeds, get_top_editorial_articles
 from question_generator import get_or_generate_today_questions, generate_daily_questions_cohort
+import asyncio
+import urllib.request
 
 
 app = FastAPI(title="Cooked Mains - UPSC Mains Evaluator")
@@ -75,6 +78,39 @@ app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__
 
 # Cache sample datasets
 SAMPLE_DATASETS = get_sample_datasets()
+
+async def _self_keep_alive_loop():
+    """Background task that pings the external Render URL every 10 minutes to prevent free-tier spin-down."""
+    await asyncio.sleep(30)
+    while True:
+        try:
+            ext_url = os.environ.get("RENDER_EXTERNAL_URL") or os.environ.get("APP_URL")
+            if ext_url:
+                ping_url = ext_url.rstrip("/") + "/healthz"
+                def _ping():
+                    req = urllib.request.Request(ping_url, headers={"User-Agent": "CookedMains-KeepAlive/1.0"})
+                    with urllib.request.urlopen(req, timeout=10) as resp:
+                        return resp.status
+                await asyncio.to_thread(_ping)
+        except Exception:
+            pass
+        await asyncio.sleep(600)  # Every 10 minutes
+
+@app.on_event("startup")
+async def _startup_keep_alive():
+    asyncio.create_task(_self_keep_alive_loop())
+
+@app.get("/healthz")
+@app.get("/ping")
+@app.get("/api/health")
+async def health_check():
+    """24/7 Health Check & UptimeRobot Heartbeat Endpoint."""
+    return {
+        "status": "healthy",
+        "service": "Cooked Mains AI",
+        "supabase_connected": bool(supabase is not None),
+        "gemini_key_configured": bool(os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"))
+    }
 
 @app.get("/")
 @app.get("/index.html")
@@ -97,7 +133,8 @@ async def get_config():
     """Tells frontend whether a server master key is active, so students don't have to enter one."""
     server_has_key = bool(os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"))
     return {
-        "server_has_key": server_has_key
+        "server_has_key": server_has_key,
+        "supabase_connected": bool(supabase is not None)
     }
 
 @app.get("/api/samples")
@@ -794,22 +831,22 @@ async def api_submit_feedback(request: Request):
 @app.get("/api/user/history")
 async def api_user_history(email: Optional[str] = None, user_id: Optional[str] = None):
     """Returns list of student's past evaluated answer copies ordered by created_at desc."""
+    if email:
+        return get_user_evaluations(email)
+
     if supabase and user_id:
         try:
             res = supabase.table("evaluations").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
             if res and res.data:
-                return res.data
+                return [_format_supabase_eval_row(r) for r in res.data]
         except Exception as e:
             print(f"Supabase /locker query error: {e}")
-
-    if email:
-        return get_user_evaluations(email)
 
     if supabase:
         try:
             res = supabase.table("evaluations").select("*").order("created_at", desc=True).limit(50).execute()
             if res and res.data:
-                return res.data
+                return [_format_supabase_eval_row(r) for r in res.data]
         except Exception as e:
             print(f"Supabase /locker query error: {e}")
 
@@ -1630,7 +1667,7 @@ async def evaluate_answer(
             )
 
         # Supabase Persistent Storage and Record Insertion
-        user_id = user["id"] if user and user.get("id") else (user_email or "guest")
+        user_id = user["id"] if (user and user.get("id")) else get_deterministic_user_id(user_email or "guest@upsc.gov.in")
         public_file_url = None
         if primary_content:
             file_ext = ".pdf" if is_pdf else (os.path.splitext(primary_filename)[1] or ".jpg")
