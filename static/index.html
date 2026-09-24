@@ -2365,8 +2365,12 @@
         <div class="flex-1 h-px bg-slate-800"></div>
       </div>
 
-      <!-- Email / Name Sign-In Form -->
+      <!-- Email / Name / Password Sign-In Form -->
       <form id="authForm" class="space-y-3">
+        <div id="authFormError" class="hidden p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/40 text-[11px] text-rose-300 font-medium flex items-center gap-2">
+          <i data-lucide="alert-circle" class="w-4 h-4 text-rose-400 shrink-0"></i>
+          <span id="authFormErrorText">Incorrect password. Please try again.</span>
+        </div>
         <div>
           <label class="block text-[11px] font-semibold text-slate-300 mb-1">Aspirant Full Name</label>
           <input type="text" id="authNameInput" required placeholder="e.g. Priya Sharma" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
@@ -2375,8 +2379,20 @@
           <label class="block text-[11px] font-semibold text-slate-300 mb-1">Email Address</label>
           <input type="email" id="authEmailInput" required placeholder="aspirant@gmail.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
         </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-[11px] font-semibold text-slate-300">Account Password</label>
+            <span class="text-[10px] text-amber-400/90">Protects your Answer Locker</span>
+          </div>
+          <div class="relative">
+            <input type="password" id="authPasswordInput" required minlength="4" placeholder="Create or enter your password (min 4 chars)" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-3.5 pr-16 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+            <button type="button" onclick="const p=document.getElementById('authPasswordInput');if(p){p.type=p.type==='password'?'text':'password';this.textContent=p.type==='password'?'Show':'Hide';}" class="absolute right-2.5 top-1/2 -translate-y-1/2 px-2 py-1 rounded-md bg-slate-900 hover:bg-slate-800 text-[10px] font-semibold text-slate-400 hover:text-amber-400 transition cursor-pointer">
+              Show
+            </button>
+          </div>
+        </div>
         <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold text-xs shadow-md transition active:scale-95 cursor-pointer">
-          Start Practicing (15 Copies/Day Free)
+          Sign In / Register (15 Copies/Day Free)
         </button>
       </form>
 

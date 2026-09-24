@@ -6592,10 +6592,30 @@ function setupUserAndModalListeners() {
   }
 
   // Google 1-Click Fast Sign-In
+  const authPasswordInput = document.getElementById("authPasswordInput");
+  const authFormError = document.getElementById("authFormError");
+  const authFormErrorText = document.getElementById("authFormErrorText");
+
+  const showAuthFormError = (msg) => {
+    if (authFormError && authFormErrorText) {
+      authFormErrorText.textContent = msg;
+      authFormError.classList.remove("hidden");
+    } else {
+      alert(msg);
+    }
+    if (authPasswordInput) authPasswordInput.focus();
+  };
+
+  const clearAuthFormError = () => {
+    if (authFormError) authFormError.classList.add("hidden");
+  };
+
   if (googleSignInBtn) {
     googleSignInBtn.addEventListener("click", async () => {
+      clearAuthFormError();
       let googleName = (authNameInput && authNameInput.value.trim()) || "";
       let googleEmail = (authEmailInput && authEmailInput.value.trim()) || "";
+      let googlePassword = (authPasswordInput && authPasswordInput.value) || "";
 
       if (!googleEmail) {
         // Provide seamless Cadet Google account
@@ -6611,11 +6631,17 @@ function setupUserAndModalListeners() {
         const res = await fetch("/api/user/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: googleEmail, name: googleName, provider: "google" })
+          body: JSON.stringify({
+            email: googleEmail,
+            name: googleName,
+            password: googlePassword,
+            provider: "google"
+          })
         });
         if (res.ok) {
           state.user = await res.json();
           sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+          if (authPasswordInput) authPasswordInput.value = "";
           updateUserUI();
           refreshLockerBadge();
           window.closeAuthModal();
@@ -6629,37 +6655,44 @@ function setupUserAndModalListeners() {
           }, 300);
         } else {
           const err = await res.json();
-          alert("Sign in failed: " + (err.detail || "Server error"));
+          showAuthFormError(err.detail || "Sign in failed. Please check your credentials.");
         }
       } catch (e) {
-        alert("Sign in error: " + e.message);
+        showAuthFormError("Sign in error: " + e.message);
       }
     });
   }
 
-  // Manual Name/Email Sign-In Form
+  // Manual Name/Email/Password Sign-In Form
   if (authForm) {
     authForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+      clearAuthFormError();
       const name = authNameInput ? authNameInput.value.trim() : "";
       const email = authEmailInput ? authEmailInput.value.trim() : "";
+      const password = authPasswordInput ? authPasswordInput.value : "";
       if (!email) return;
+      if (!password || password.trim().length < 4) {
+        showAuthFormError("Please enter a password (at least 4 characters) to protect your account.");
+        return;
+      }
 
       try {
         const res = await fetch("/api/user/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, name: name || "Aspirant" })
+          body: JSON.stringify({ email, name: name || "Aspirant", password })
         });
         if (res.ok) {
           state.user = await res.json();
           sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+          if (authPasswordInput) authPasswordInput.value = "";
           updateUserUI();
           refreshLockerBadge();
           window.closeAuthModal();
 
           if (typeof window.showAppToast === 'function') {
-            window.showAppToast(`Welcome back, ${state.user.name}! 15 Free Daily Copies active.`);
+            window.showAppToast(`Welcome, ${state.user.name}! Account secured & 15 Free Daily Copies active.`);
           }
 
           setTimeout(() => {
@@ -6667,10 +6700,10 @@ function setupUserAndModalListeners() {
           }, 300);
         } else {
           const err = await res.json();
-          alert("Sign in failed: " + (err.detail || "Server error"));
+          showAuthFormError(err.detail || "Incorrect password. Please try again.");
         }
       } catch (e) {
-        alert("Sign in error: " + e.message);
+        showAuthFormError("Sign in error: " + e.message);
       }
     });
   }

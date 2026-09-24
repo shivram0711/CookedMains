@@ -126,7 +126,8 @@ def _init_db_tables():
         "ALTER TABLE users ADD COLUMN optional_subject TEXT DEFAULT 'PSIR'",
         "ALTER TABLE users ADD COLUMN plan_tier TEXT DEFAULT 'starter'",
         "ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0",
-        "ALTER TABLE users ADD COLUMN last_active TIMESTAMP"
+        "ALTER TABLE users ADD COLUMN last_active TIMESTAMP",
+        "ALTER TABLE users ADD COLUMN password_hash TEXT"
     ]:
         try:
             cursor.execute(col_def)
@@ -266,10 +267,71 @@ try:
 except Exception as _e:
     print(f"Notice: DB startup init notice: {_e}")
 
+import hashlib
+import hmac
+
 def get_deterministic_user_id(email: str) -> str:
     """Generates a deterministic UUIDv5 for an email so user_id never changes across server redeploys."""
     clean = (email or "guest@upsc.gov.in").strip().lower()
     return str(uuid.uuid5(uuid.NAMESPACE_DNS, f"cookedmains.user.{clean}"))
+
+def hash_user_password(email: str, password: str) -> str:
+    """Cryptographically hashes a user password using PBKDF2-HMAC-SHA256 (100,000 iterations)."""
+    clean_email = (email or "").strip().lower()
+    salt = f"cookedmains.salt.v1.{clean_email}".encode("utf-8")
+    return hashlib.pbkdf2_hmac("sha256", (password or "").strip().encode("utf-8"), salt, 100000).hex()
+
+def _get_supabase_account_profile(user_id: str) -> Optional[Dict[str, Any]]:
+    """Fetches persistent account profile & password_hash from Supabase across server redeploys."""
+    if not supabase or not user_id:
+        return None
+    try:
+        res = supabase.table("evaluations").select("id,evaluation_json").eq("user_id", user_id).eq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(1).execute()
+        if res and res.data and len(res.data) > 0:
+            row = res.data[0]
+            ev = row.get("evaluation_json") or {}
+            if isinstance(ev, str):
+                try:
+                    ev = json.loads(ev)
+                except Exception:
+                    ev = {}
+            ev["_supa_profile_row_id"] = row.get("id")
+            return ev
+    except Exception:
+        pass
+    return None
+
+def _save_supabase_account_profile(user_dict: Dict[str, Any]) -> None:
+    """Persists user profile & encrypted password_hash inside Supabase so accounts survive any server redeploy."""
+    if not supabase or not user_dict or not user_dict.get("id"):
+        return
+    try:
+        uid = user_dict["id"]
+        profile_payload = {
+            "_is_account_profile": True,
+            "id": uid,
+            "email": (user_dict.get("email") or "").strip().lower(),
+            "name": user_dict.get("name") or "Aspirant",
+            "avatar": user_dict.get("avatar") or "",
+            "password_hash": user_dict.get("password_hash") or "",
+            "target_year": user_dict.get("target_year") or "2026",
+            "optional_subject": user_dict.get("optional_subject") or "PSIR"
+        }
+        existing = _get_supabase_account_profile(uid)
+        if existing and existing.get("_supa_profile_row_id"):
+            supabase.table("evaluations").update({
+                "evaluation_json": profile_payload
+            }).eq("id", existing["_supa_profile_row_id"]).execute()
+        else:
+            supabase.table("evaluations").insert({
+                "user_id": uid,
+                "question_title": "__USER_ACCOUNT_PROFILE__",
+                "file_url": "",
+                "total_marks": 0,
+                "evaluation_json": profile_payload
+            }).execute()
+    except Exception as e:
+        print(f"Notice: Supabase account profile sync notice: {e}")
 
 def get_or_create_user(email: str, name: Optional[str] = None, avatar: Optional[str] = None) -> Dict[str, Any]:
     """Retrieves an existing user or registers a new aspirant with deterministic UUID and persistent Supabase sync."""
@@ -294,6 +356,21 @@ def get_or_create_user(email: str, name: Optional[str] = None, avatar: Optional[
                 user_dict["id"] = det_id
             except Exception:
                 pass
+        if not user_dict.get("password_hash"):
+            supa_prof = _get_supabase_account_profile(det_id)
+            if supa_prof and supa_prof.get("password_hash"):
+                user_dict["password_hash"] = supa_prof["password_hash"]
+                user_dict["name"] = supa_prof.get("name") or user_dict.get("name") or name
+                user_dict["target_year"] = supa_prof.get("target_year") or user_dict.get("target_year") or "2026"
+                user_dict["optional_subject"] = supa_prof.get("optional_subject") or user_dict.get("optional_subject") or "PSIR"
+                try:
+                    cursor.execute(
+                        "UPDATE users SET password_hash = ?, name = ?, target_year = ?, optional_subject = ? WHERE email = ?",
+                        (user_dict["password_hash"], user_dict["name"], user_dict["target_year"], user_dict["optional_subject"], email)
+                    )
+                    conn.commit()
+                except Exception:
+                    pass
         if "free_rewrites" not in user_dict or user_dict["free_rewrites"] is None:
             user_dict["free_rewrites"] = 5
         if "target_year" not in user_dict or not user_dict["target_year"]:
@@ -303,31 +380,30 @@ def get_or_create_user(email: str, name: Optional[str] = None, avatar: Optional[
         conn.close()
         return user_dict
     
+    # Check if account already exists in Supabase (e.g. after a Render container redeploy)
+    supa_prof = _get_supabase_account_profile(det_id)
+    pw_hash = None
+    t_year = "2026"
+    opt_subj = "PSIR"
+    if supa_prof:
+        name = supa_prof.get("name") or name
+        avatar = supa_prof.get("avatar") or avatar
+        pw_hash = supa_prof.get("password_hash") or None
+        t_year = supa_prof.get("target_year") or "2026"
+        opt_subj = supa_prof.get("optional_subject") or "PSIR"
+
     # Register aspirant with deterministic ID
     user_id = det_id
     cursor.execute(
-        "INSERT OR REPLACE INTO users (id, email, name, avatar, free_credits, is_pro, free_rewrites, target_year, optional_subject) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (user_id, email, name, avatar, 15, 1, 5, "2026", "PSIR")
+        "INSERT OR REPLACE INTO users (id, email, name, avatar, free_credits, is_pro, free_rewrites, target_year, optional_subject, password_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (user_id, email, name, avatar, 15, 1, 5, t_year, opt_subj, pw_hash)
     )
     conn.commit()
     cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
     new_row = cursor.fetchone()
     conn.close()
 
-    if supabase:
-        try:
-            supabase.table("users").upsert({
-                "id": user_id,
-                "email": email,
-                "name": name,
-                "avatar": avatar,
-                "target_year": "2026",
-                "optional_subject": "PSIR"
-            }).execute()
-        except Exception:
-            pass
-
-    return dict(new_row) if new_row else {
+    res_user = dict(new_row) if new_row else {
         "id": user_id,
         "email": email,
         "name": name,
@@ -335,9 +411,71 @@ def get_or_create_user(email: str, name: Optional[str] = None, avatar: Optional[
         "free_credits": 15,
         "is_pro": 1,
         "free_rewrites": 5,
-        "target_year": "2026",
-        "optional_subject": "PSIR"
+        "target_year": t_year,
+        "optional_subject": opt_subj,
+        "password_hash": pw_hash
     }
+    if not supa_prof:
+        _save_supabase_account_profile(res_user)
+    return res_user
+
+def authenticate_or_register_user(
+    email: str,
+    password: Optional[str] = None,
+    name: Optional[str] = None,
+    avatar: Optional[str] = None,
+    provider: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Authenticates an existing aspirant with PBKDF2 password verification or registers a new password-protected account.
+    Returns {"success": True, "user": user_dict} or {"success": False, "error": "..."}.
+    """
+    clean_email = (email or "").strip().lower()
+    if not clean_email:
+        return {"success": False, "error": "Email address is required."}
+
+    user = get_or_create_user(clean_email, name, avatar)
+    stored_hash = (user.get("password_hash") or "").strip()
+    clean_pw = (password or "").strip()
+
+    # If account already has a password hash, always require password verification
+    if stored_hash:
+        if not clean_pw:
+            return {
+                "success": False,
+                "error": "This account is password-protected. Please enter your password below to sign in."
+            }
+        candidate_hash = hash_user_password(clean_email, clean_pw)
+        if not hmac.compare_digest(stored_hash, candidate_hash):
+            return {
+                "success": False,
+                "error": "Incorrect password for this email account. Please enter the password you registered with."
+            }
+        # Update name if provided
+        if name and name.strip() and user.get("name") != name.strip():
+            user = update_user_profile(clean_email, name=name.strip())
+        return {"success": True, "user": user}
+
+    # Account does not have a password yet -> set password if supplied
+    if clean_pw:
+        if len(clean_pw) < 4:
+            return {"success": False, "error": "Password must be at least 4 characters long."}
+        new_hash = hash_user_password(clean_email, clean_pw)
+        conn = get_db()
+        cursor = conn.cursor()
+        if name and name.strip():
+            cursor.execute("UPDATE users SET password_hash = ?, name = ? WHERE email = ?", (new_hash, name.strip(), clean_email))
+            user["name"] = name.strip()
+        else:
+            cursor.execute("UPDATE users SET password_hash = ? WHERE email = ?", (new_hash, clean_email))
+        conn.commit()
+        conn.close()
+        user["password_hash"] = new_hash
+        _save_supabase_account_profile(user)
+    else:
+        _save_supabase_account_profile(user)
+
+    return {"success": True, "user": user}
 
 def update_user_profile(email: str, name: Optional[str] = None, target_year: Optional[str] = None, optional_subject: Optional[str] = None) -> Dict[str, Any]:
     """Updates candidate profile attributes locally and in Supabase."""
@@ -347,33 +485,24 @@ def update_user_profile(email: str, name: Optional[str] = None, target_year: Opt
     
     updates = []
     params = []
-    supa_updates = {}
     if name:
         updates.append("name = ?")
         params.append(name.strip())
-        supa_updates["name"] = name.strip()
+        user["name"] = name.strip()
     if target_year:
         updates.append("target_year = ?")
         params.append(target_year.strip())
-        supa_updates["target_year"] = target_year.strip()
+        user["target_year"] = target_year.strip()
     if optional_subject:
         updates.append("optional_subject = ?")
         params.append(optional_subject.strip())
-        supa_updates["optional_subject"] = optional_subject.strip()
+        user["optional_subject"] = optional_subject.strip()
         
     if updates:
         params.append(email.strip().lower())
         cursor.execute(f"UPDATE users SET {', '.join(updates)} WHERE email = ?", params)
         conn.commit()
-        if supabase and supa_updates:
-            try:
-                supabase.table("users").upsert({
-                    "id": user["id"],
-                    "email": email.strip().lower(),
-                    **supa_updates
-                }).execute()
-            except Exception:
-                pass
+        _save_supabase_account_profile(user)
         
     cursor.execute("SELECT * FROM users WHERE email = ?", (email.strip().lower(),))
     row = cursor.fetchone()
@@ -394,6 +523,7 @@ def get_daily_evaluations_count(email: str, is_rewrite: bool = False) -> int:
         SELECT COUNT(*) FROM evaluations 
         WHERE LOWER(user_email) = ? 
           AND is_rewrite = ?
+          AND question != '__USER_ACCOUNT_PROFILE__'
           AND strftime('%Y-%m-%d', created_at, '+330 minutes') = strftime('%Y-%m-%d', 'now', '+330 minutes')
     """, (clean_email, target_rewrite))
     row = cursor.fetchone()
@@ -408,9 +538,11 @@ def get_daily_evaluations_count(email: str, is_rewrite: bool = False) -> int:
             now_ist = datetime.now(ist_tz)
             today_str = now_ist.strftime("%Y-%m-%d")
             det_id = get_deterministic_user_id(clean_email)
-            res = supabase.table("evaluations").select("created_at,evaluation_json").eq("user_id", det_id).order("created_at", desc=True).limit(40).execute()
+            res = supabase.table("evaluations").select("question_title,created_at,evaluation_json").eq("user_id", det_id).order("created_at", desc=True).limit(40).execute()
             if res and res.data:
                 for item in res.data:
+                    if item.get("question_title") == "__USER_ACCOUNT_PROFILE__":
+                        continue
                     c_at = item.get("created_at") or ""
                     ev_j = item.get("evaluation_json") or {}
                     if isinstance(ev_j, str):
@@ -418,6 +550,8 @@ def get_daily_evaluations_count(email: str, is_rewrite: bool = False) -> int:
                             ev_j = json.loads(ev_j)
                         except Exception:
                             ev_j = {}
+                    if ev_j.get("_is_account_profile"):
+                        continue
                     item_rw = int(ev_j.get("_meta_is_rewrite") or 0)
                     if item_rw == target_rewrite and c_at:
                         try:
@@ -706,7 +840,11 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
             res = supabase.table("evaluations").select("*").eq("user_id", user["id"]).order("created_at", desc=True).execute()
             if res and res.data:
                 for row in res.data:
+                    if row.get("question_title") == "__USER_ACCOUNT_PROFILE__":
+                        continue
                     formatted = _format_supabase_eval_row(row)
+                    if formatted.get("question") == "__USER_ACCOUNT_PROFILE__" or (formatted.get("evaluation") or {}).get("_is_account_profile"):
+                        continue
                     merged_by_id[formatted["id"]] = formatted
         except Exception as se:
             print(f"Supabase get_user_evaluations notice: {se}")
@@ -718,12 +856,15 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
                has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
         FROM evaluations
         WHERE LOWER(user_email) = ?
+          AND question != '__USER_ACCOUNT_PROFILE__'
         ORDER BY created_at DESC
     """, (clean_email,))
     rows = cursor.fetchall()
     conn.close()
     for r in rows:
         d = dict(r)
+        if d.get("question") == "__USER_ACCOUNT_PROFILE__":
+            continue
         d["total_score"] = d["overall_score"]
         if d["id"] not in merged_by_id:
             merged_by_id[d["id"]] = d

@@ -56,7 +56,7 @@ from evaluator_engine import (
 )
 from sample_data import get_sample_datasets, get_daily_question, get_sample_test_series
 from storage import (
-    get_or_create_user, get_user, use_user_credit, use_user_rewrite,
+    get_or_create_user, authenticate_or_register_user, get_user, use_user_credit, use_user_rewrite,
     add_user_credits, save_evaluation_record, save_feedback, update_user_profile,
     get_user_evaluations, get_evaluation_by_id,
     get_last_evaluation_for_user, has_user_rewritten_question, find_evaluation_by_hash,
@@ -733,7 +733,7 @@ async def api_upsc_blank_sheet(
 
 @app.post("/api/user/login")
 async def api_user_login(request: Request):
-    """Registers or logs in aspirant with 2 free evaluations by default."""
+    """Registers or authenticates aspirant with PBKDF2-HMAC-SHA256 password protection and Supabase profile persistence."""
     try:
         content_type = request.headers.get("content-type", "")
         if "application/json" in content_type:
@@ -749,8 +749,20 @@ async def api_user_login(request: Request):
         raise HTTPException(status_code=400, detail="Email is required.")
     name = data.get("name")
     avatar = data.get("avatar")
+    password = data.get("password")
+    provider = data.get("provider")
 
-    user = get_or_create_user(email, name, avatar)
+    auth_res = authenticate_or_register_user(
+        email=email,
+        password=password,
+        name=name,
+        avatar=avatar,
+        provider=provider
+    )
+    if not auth_res.get("success"):
+        raise HTTPException(status_code=401, detail=auth_res.get("error") or "Authentication failed.")
+
+    user = auth_res["user"]
     history = get_user_evaluations(email)
     quota = get_user_daily_quota(email)
     return {
@@ -764,6 +776,7 @@ async def api_user_login(request: Request):
         "target_year": user.get("target_year", "2026"),
         "optional_subject": user.get("optional_subject", "PSIR"),
         "is_pro": True,
+        "has_password": bool(user.get("password_hash")),
         "evaluations_count": len(history)
     }
 
@@ -784,6 +797,7 @@ async def api_user_profile(email: str):
         "target_year": user.get("target_year", "2026"),
         "optional_subject": user.get("optional_subject", "PSIR"),
         "is_pro": True,
+        "has_password": bool(user.get("password_hash")),
         "evaluations_count": len(history)
     }
 
@@ -814,6 +828,7 @@ async def api_user_profile_update(request: Request):
         "target_year": user.get("target_year", "2026"),
         "optional_subject": user.get("optional_subject", "PSIR"),
         "is_pro": True,
+        "has_password": bool(user.get("password_hash")),
         "evaluations_count": len(history)
     }
 
@@ -847,7 +862,7 @@ async def api_user_history(email: Optional[str] = None, user_id: Optional[str] =
         try:
             res = supabase.table("evaluations").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
             if res and res.data:
-                return [_format_supabase_eval_row(r) for r in res.data]
+                return [_format_supabase_eval_row(r) for r in res.data if r.get("question_title") != "__USER_ACCOUNT_PROFILE__"]
         except Exception as e:
             print(f"Supabase /locker query error: {e}")
 
@@ -855,7 +870,7 @@ async def api_user_history(email: Optional[str] = None, user_id: Optional[str] =
         try:
             res = supabase.table("evaluations").select("*").order("created_at", desc=True).limit(50).execute()
             if res and res.data:
-                return [_format_supabase_eval_row(r) for r in res.data]
+                return [_format_supabase_eval_row(r) for r in res.data if r.get("question_title") != "__USER_ACCOUNT_PROFILE__"]
         except Exception as e:
             print(f"Supabase /locker query error: {e}")
 
@@ -865,6 +880,7 @@ async def api_user_history(email: Optional[str] = None, user_id: Optional[str] =
         SELECT id, created_at, paper, max_marks, question, overall_score, percentage, thumbnail, is_rewrite,
                has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
         FROM evaluations
+        WHERE question != '__USER_ACCOUNT_PROFILE__'
         ORDER BY created_at DESC
         LIMIT 50
     """)
