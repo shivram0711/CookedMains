@@ -1,5 +1,15 @@
 // MainsMentor AI Frontend Application Logic
 
+// One-time Clean-Slate Reset for Pilot Launch (clears old test sessions & bindings once)
+if (localStorage.getItem("cookedmains_clean_slate_v1") !== "done") {
+  sessionStorage.clear();
+  localStorage.removeItem("mainsmentor_user");
+  localStorage.removeItem("cookedmains_device_id");
+  localStorage.removeItem("cookedmains_bound_email");
+  localStorage.removeItem("cookedmains_bound_name");
+  localStorage.setItem("cookedmains_clean_slate_v1", "done");
+}
+
 // App State
 const state = {
   paper: "GS3",

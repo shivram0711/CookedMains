@@ -68,10 +68,95 @@ def get_db():
         pass
     return conn
 
+def perform_clean_slate_reset(force: bool = False) -> Dict[str, Any]:
+    """
+    Performs a complete Clean-Slate Reset of all test accounts, evaluations, device bindings, and PDFs
+    across both SQLite and Supabase (evaluations table + answer-sheets bucket).
+    Uses a permanent marker ('__SYSTEM_CLEAN_SLATE_V1__') so automatic startup reset runs only ONCE.
+    """
+    marker_title = "__SYSTEM_CLEAN_SLATE_V1__"
+    system_uid = "00000000-0000-0000-0000-000000000001"
+
+    # Check if clean slate V1 has already been executed in Supabase
+    if not force and supabase:
+        try:
+            chk = supabase.table("evaluations").select("id").eq("question_title", marker_title).limit(1).execute()
+            if chk and chk.data and len(chk.data) > 0:
+                return {"status": "already_clean", "message": "Clean slate V1 already applied."}
+        except Exception:
+            pass
+
+    deleted_evals = 0
+    deleted_files = 0
+
+    # 1. Wipe all rows from Supabase evaluations table & all files in answer-sheets bucket
+    if supabase:
+        try:
+            all_rows = supabase.table("evaluations").select("id").limit(1000).execute()
+            if all_rows and all_rows.data:
+                for r in all_rows.data:
+                    rid = r.get("id")
+                    if rid:
+                        supabase.table("evaluations").delete().eq("id", rid).execute()
+                        deleted_evals += 1
+        except Exception as e:
+            print(f"Supabase evaluations clean-slate notice: {e}")
+
+        try:
+            bucket = supabase.storage.from_("answer-sheets")
+            top_items = bucket.list() or []
+            paths_to_remove = []
+            for item in top_items:
+                item_name = item.get("name")
+                if not item_name:
+                    continue
+                if item.get("id") is None:
+                    sub_items = bucket.list(item_name) or []
+                    for sub in sub_items:
+                        if sub.get("name"):
+                            paths_to_remove.append(f"{item_name}/{sub['name']}")
+                else:
+                    paths_to_remove.append(item_name)
+            if paths_to_remove:
+                bucket.remove(paths_to_remove)
+                deleted_files = len(paths_to_remove)
+        except Exception as se:
+            print(f"Supabase storage clean-slate notice: {se}")
+
+        # Write permanent marker so startup only wipes once
+        try:
+            supabase.table("evaluations").insert({
+                "user_id": system_uid,
+                "question_title": marker_title,
+                "file_url": "",
+                "total_marks": 0,
+                "evaluation_json": {"_is_account_profile": True, "_is_system_marker": True, "version": "v1"}
+            }).execute()
+        except Exception:
+            pass
+
+    # 2. Wipe all local SQLite tables
+    conn = get_db()
+    cursor = conn.cursor()
+    for tbl in ("evaluations", "users", "device_bindings", "feedback"):
+        try:
+            cursor.execute(f"DELETE FROM {tbl}")
+        except Exception:
+            pass
+    conn.commit()
+    conn.close()
+
+    return {
+        "status": "clean_slate_completed",
+        "deleted_supabase_rows": deleted_evals,
+        "deleted_storage_files": deleted_files
+    }
+
 def init_db():
     """Initializes SQLite tables for users, single evaluations, and full 20-question test series."""
     try:
         _init_db_tables()
+        perform_clean_slate_reset(force=False)
     except Exception as _db_err:
         print(f"Notice: init_db safe notice: {_db_err}")
 
@@ -1080,10 +1165,11 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
             res = supabase.table("evaluations").select("*").eq("user_id", user["id"]).order("created_at", desc=True).execute()
             if res and res.data:
                 for row in res.data:
-                    if row.get("question_title") == "__USER_ACCOUNT_PROFILE__":
+                    q_t = str(row.get("question_title") or "")
+                    if q_t.startswith("__"):
                         continue
                     formatted = _format_supabase_eval_row(row)
-                    if formatted.get("question") == "__USER_ACCOUNT_PROFILE__" or (formatted.get("evaluation") or {}).get("_is_account_profile"):
+                    if str(formatted.get("question") or "").startswith("__") or (formatted.get("evaluation") or {}).get("_is_account_profile"):
                         continue
                     merged_by_id[formatted["id"]] = formatted
         except Exception as se:

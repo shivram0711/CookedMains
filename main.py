@@ -985,6 +985,12 @@ async def api_submit_feedback(request: Request):
     result = save_feedback(user_email, user_name, category, rating, message, screenshot_data)
     return {"status": "success", "message": "Feedback received. Thank you for helping us improve Cooked Mains!"}
 
+@app.post("/api/admin/factory-reset")
+async def api_admin_factory_reset():
+    """Clears all existing test accounts, evaluations, and PDFs for a 100% clean pilot launch."""
+    from storage import perform_clean_slate_reset
+    return perform_clean_slate_reset(force=True)
+
 @app.get("/locker")
 @app.get("/history")
 @app.get("/api/user/history")
@@ -997,7 +1003,7 @@ async def api_user_history(email: Optional[str] = None, user_id: Optional[str] =
         try:
             res = supabase.table("evaluations").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
             if res and res.data:
-                return [_format_supabase_eval_row(r) for r in res.data if r.get("question_title") != "__USER_ACCOUNT_PROFILE__"]
+                return [_format_supabase_eval_row(r) for r in res.data if not str(r.get("question_title") or "").startswith("__")]
         except Exception as e:
             print(f"Supabase /locker query error: {e}")
 
@@ -1005,7 +1011,7 @@ async def api_user_history(email: Optional[str] = None, user_id: Optional[str] =
         try:
             res = supabase.table("evaluations").select("*").order("created_at", desc=True).limit(50).execute()
             if res and res.data:
-                return [_format_supabase_eval_row(r) for r in res.data if r.get("question_title") != "__USER_ACCOUNT_PROFILE__"]
+                return [_format_supabase_eval_row(r) for r in res.data if not str(r.get("question_title") or "").startswith("__")]
         except Exception as e:
             print(f"Supabase /locker query error: {e}")
 
@@ -1015,7 +1021,7 @@ async def api_user_history(email: Optional[str] = None, user_id: Optional[str] =
         SELECT id, created_at, paper, max_marks, question, overall_score, percentage, thumbnail, is_rewrite,
                has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
         FROM evaluations
-        WHERE question != '__USER_ACCOUNT_PROFILE__'
+        WHERE question NOT LIKE '__%'
         ORDER BY created_at DESC
         LIMIT 50
     """)
