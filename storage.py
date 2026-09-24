@@ -564,14 +564,15 @@ def authenticate_or_register_user(
     avatar: Optional[str] = None,
     provider: Optional[str] = None,
     device_id: Optional[str] = None,
-    client_ip: Optional[str] = None
+    client_ip: Optional[str] = None,
+    verified_oauth: bool = False
 ) -> Dict[str, Any]:
     """
-    Enforces strict Single-Account-Per-Aspirant registration and PBKDF2-HMAC-SHA256 password verification:
+    Enforces strict Single-Account-Per-Aspirant registration and PBKDF2-HMAC-SHA256 password or Google OAuth verification:
     1. Rejects disposable, synthetic, numeric, or non-standard email domains.
     2. Canonicalizes Gmail dots (.) and +aliases so 1 inbox = 1 single account.
     3. Locks each browser/device (device_id) to a single primary account so users cannot create multiple random IDs.
-    4. Requires password verification for all accounts.
+    4. Requires password verification (or cryptographically verified Google OAuth token) for all accounts.
     """
     email_err = validate_genuine_email(email)
     if email_err:
@@ -601,6 +602,13 @@ def authenticate_or_register_user(
     user = get_or_create_user(clean_email, name, avatar)
     stored_hash = (user.get("password_hash") or "").strip()
     clean_pw = (password or "").strip()
+
+    # If cryptographically verified via browser Google OAuth (Google Identity Services / Supabase OAuth)
+    if verified_oauth:
+        if device_id:
+            bind_device_to_account(device_id, clean_email, client_ip)
+        _save_supabase_account_profile(user, device_id=device_id)
+        return {"success": True, "user": user}
 
     # If account already has a password hash, always require password verification
     if stored_hash:

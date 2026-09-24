@@ -6632,9 +6632,83 @@ function setupUserAndModalListeners() {
     if (authFormError) authFormError.classList.add("hidden");
   };
 
+  // Fetch Google OAuth & Supabase OAuth configuration and handle OAuth return tokens
+  let authOAuthConfig = { google_client_id: "", supabase_google_enabled: false, supabase_oauth_url: "" };
+  const completeVerifiedGoogleLogin = async (payload) => {
+    try {
+      const res = await fetch("/api/auth/google/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, device_id: getOrCreateDeviceId() })
+      });
+      if (res.ok) {
+        state.user = await res.json();
+        sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+        localStorage.setItem("cookedmains_bound_email", state.user.email);
+        localStorage.setItem("cookedmains_bound_name", state.user.name);
+        if (authPasswordInput) authPasswordInput.value = "";
+        updateUserUI();
+        refreshLockerBadge();
+        window.closeAuthModal();
+        if (typeof window.showAppToast === 'function') {
+          window.showAppToast(`Signed in with Google as ${state.user.name} (${state.user.email})!`);
+        }
+        setTimeout(() => {
+          window.switchStudioState("intake");
+        }, 300);
+      } else {
+        const err = await res.json();
+        showAuthFormError(err.detail || "Google sign-in failed.");
+      }
+    } catch (e) {
+      showAuthFormError("Google verification error: " + e.message);
+    }
+  };
+
+  // Check if returning from Supabase Google OAuth redirect (#access_token=...)
+  if (window.location.hash && window.location.hash.includes("access_token=")) {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const supaAccessToken = hashParams.get("access_token");
+    if (supaAccessToken) {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      completeVerifiedGoogleLogin({ supabase_access_token: supaAccessToken });
+    }
+  }
+
+  fetch("/api/auth/config")
+    .then(r => r.ok ? r.json() : null)
+    .then(cfg => {
+      if (cfg) authOAuthConfig = cfg;
+    })
+    .catch(() => {});
+
   if (googleSignInBtn) {
     googleSignInBtn.addEventListener("click", async () => {
       clearAuthFormError();
+
+      // 1. If Google OAuth Client ID is configured, open native Browser Google Account Chooser Popup!
+      if (authOAuthConfig.google_client_id && window.google && window.google.accounts && window.google.accounts.oauth2) {
+        const tokenClient = window.google.accounts.oauth2.initTokenClient({
+          client_id: authOAuthConfig.google_client_id,
+          scope: "openid email profile",
+          prompt: "select_account",
+          callback: (tokenResponse) => {
+            if (tokenResponse && tokenResponse.access_token) {
+              completeVerifiedGoogleLogin({ access_token: tokenResponse.access_token });
+            }
+          }
+        });
+        tokenClient.requestAccessToken();
+        return;
+      }
+
+      // 2. If Supabase Google OAuth Provider is enabled, redirect to Google Account Chooser via Supabase!
+      if (authOAuthConfig.supabase_google_enabled && authOAuthConfig.supabase_oauth_url) {
+        window.location.href = authOAuthConfig.supabase_oauth_url;
+        return;
+      }
+
+      // 3. Fallback if Google OAuth Client ID isn't pasted into Render/Supabase yet:
       prefillBoundAccount();
       let googleName = (authNameInput && authNameInput.value.trim()) || "";
       let googleEmail = (authEmailInput && authEmailInput.value.trim()) || "";
@@ -6642,7 +6716,7 @@ function setupUserAndModalListeners() {
 
       if (!googleEmail) {
         if (authEmailInput) authEmailInput.focus();
-        showAuthFormError("Please enter your @gmail.com Google address and password below to link your single permanent Google account.");
+        showAuthFormError("Please enter your @gmail.com Google address and password below (or add GOOGLE_CLIENT_ID in Render to enable 1-click Google popup).");
         return;
       }
       if (!googleEmail.toLowerCase().endsWith("@gmail.com") && !googleEmail.toLowerCase().endsWith("@googlemail.com")) {

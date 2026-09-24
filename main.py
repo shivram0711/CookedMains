@@ -732,6 +732,132 @@ async def api_upsc_blank_sheet(
     return HTMLResponse(content=full_html)
 
 
+@app.get("/api/auth/config")
+async def api_auth_config(request: Request):
+    """Returns Google OAuth Client ID and Supabase OAuth availability for native 1-click browser Google login."""
+    google_client_id = (os.environ.get("GOOGLE_CLIENT_ID") or "").strip()
+    supa_google_enabled = False
+    if supabase_url and supabase_key:
+        try:
+            import urllib.request
+            import json as _json
+            req = urllib.request.Request(
+                f"{supabase_url.rstrip('/')}/auth/v1/settings",
+                headers={"apikey": supabase_key}
+            )
+            with urllib.request.urlopen(req, timeout=4) as resp:
+                settings_data = _json.loads(resp.read().decode("utf-8"))
+                supa_google_enabled = bool((settings_data.get("external") or {}).get("google"))
+        except Exception:
+            supa_google_enabled = False
+
+    origin = str(request.base_url).rstrip("/")
+    if "onrender.com" in origin and origin.startswith("http://"):
+        origin = origin.replace("http://", "https://", 1)
+    supa_oauth_url = (
+        f"{supabase_url.rstrip('/')}/auth/v1/authorize?provider=google&redirect_to={origin}/"
+        if (supabase_url and supa_google_enabled) else ""
+    )
+    return {
+        "google_client_id": google_client_id,
+        "supabase_google_enabled": supa_google_enabled,
+        "supabase_oauth_url": supa_oauth_url
+    }
+
+
+@app.post("/api/auth/google/verify")
+async def api_auth_google_verify(request: Request):
+    """Verifies a browser Google OAuth token (Google Identity Services or Supabase OAuth) and signs in the single verified account."""
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+
+    credential = (data.get("credential") or "").strip()
+    access_token = (data.get("access_token") or "").strip()
+    supa_token = (data.get("supabase_access_token") or "").strip()
+    device_id = (data.get("device_id") or "").strip()
+    forwarded_for = request.headers.get("x-forwarded-for", "")
+    client_ip = forwarded_for.split(",")[0].strip() if forwarded_for else (request.client.host if request.client else "")
+
+    import urllib.request
+    import json as _json
+
+    verified_email = ""
+    verified_name = ""
+    verified_avatar = ""
+
+    try:
+        if credential:
+            req = urllib.request.Request(f"https://oauth2.googleapis.com/tokeninfo?id_token={credential}")
+            with urllib.request.urlopen(req, timeout=6) as resp:
+                gdata = _json.loads(resp.read().decode("utf-8"))
+                if str(gdata.get("email_verified")).lower() == "true":
+                    verified_email = (gdata.get("email") or "").strip().lower()
+                    verified_name = (gdata.get("name") or "").strip()
+                    verified_avatar = (gdata.get("picture") or "").strip()
+        elif access_token:
+            req = urllib.request.Request(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
+            with urllib.request.urlopen(req, timeout=6) as resp:
+                gdata = _json.loads(resp.read().decode("utf-8"))
+                if gdata.get("email_verified") is True or str(gdata.get("email_verified")).lower() == "true":
+                    verified_email = (gdata.get("email") or "").strip().lower()
+                    verified_name = (gdata.get("name") or "").strip()
+                    verified_avatar = (gdata.get("picture") or "").strip()
+        elif supa_token and supabase_url and supabase_key:
+            req = urllib.request.Request(
+                f"{supabase_url.rstrip('/')}/auth/v1/user",
+                headers={
+                    "apikey": supabase_key,
+                    "Authorization": f"Bearer {supa_token}"
+                }
+            )
+            with urllib.request.urlopen(req, timeout=6) as resp:
+                sdata = _json.loads(resp.read().decode("utf-8"))
+                verified_email = (sdata.get("email") or "").strip().lower()
+                umeta = sdata.get("user_metadata") or {}
+                verified_name = (umeta.get("full_name") or umeta.get("name") or "").strip()
+                verified_avatar = (umeta.get("avatar_url") or umeta.get("picture") or "").strip()
+    except Exception as ve:
+        raise HTTPException(status_code=401, detail=f"Google verification failed: {ve}")
+
+    if not verified_email:
+        raise HTTPException(status_code=401, detail="Could not verify Google account email.")
+
+    auth_res = authenticate_or_register_user(
+        email=verified_email,
+        name=verified_name,
+        avatar=verified_avatar,
+        provider="google",
+        device_id=device_id,
+        client_ip=client_ip,
+        verified_oauth=True
+    )
+    if not auth_res.get("success"):
+        raise HTTPException(status_code=401, detail=auth_res.get("error") or "Google sign-in blocked by Single-Account policy.")
+
+    user = auth_res["user"]
+    history = get_user_evaluations(user["email"])
+    quota = get_user_daily_quota(user["email"])
+    return {
+        "email": user["email"],
+        "name": user["name"],
+        "avatar": user["avatar"],
+        "credits": quota["daily_eval_remaining"],
+        "free_credits": quota["daily_eval_remaining"],
+        "free_rewrites": quota["daily_rewrite_remaining"],
+        "daily_quota": quota,
+        "target_year": user.get("target_year", "2026"),
+        "optional_subject": user.get("optional_subject", "PSIR"),
+        "is_pro": True,
+        "has_password": bool(user.get("password_hash")),
+        "evaluations_count": len(history)
+    }
+
+
 @app.post("/api/user/login")
 async def api_user_login(request: Request):
     """Registers or authenticates aspirant with PBKDF2-HMAC-SHA256 password protection and Supabase profile persistence."""
