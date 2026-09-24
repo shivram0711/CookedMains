@@ -80,10 +80,7 @@ import urllib.request
 
 
 app = FastAPI(title="Cooked Mains - UPSC Mains Evaluator")
-@app.get("/sentry-debug")
-async def trigger_error():
-    division_by_zero = 1 / 0
-    return division_by_zero
+
 # Ensure static folder exists
 os.makedirs(os.path.join(os.path.dirname(__file__), "static"), exist_ok=True)
 app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
