@@ -6782,8 +6782,8 @@ function setupUserAndModalListeners() {
     }
     if (submitBtn) {
       submitBtn.textContent = isReg
-        ? "Create My Single Permanent Account"
-        : "Sign In to My Account (15 Copies/Day Free)";
+        ? "Create Permanent Account"
+        : "Sign In to My Account";
     }
   };
 
