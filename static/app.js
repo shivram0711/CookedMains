@@ -6605,18 +6605,12 @@ function setupUserAndModalListeners() {
   const authFormError = document.getElementById("authFormError");
   const authFormErrorText = document.getElementById("authFormErrorText");
 
-  // Auto-fill bound single account if this device is already registered
-  const prefillBoundAccount = () => {
-    const boundEmail = localStorage.getItem("cookedmains_bound_email");
-    const boundName = localStorage.getItem("cookedmains_bound_name");
-    if (boundEmail && authEmailInput && !authEmailInput.value) {
-      authEmailInput.value = boundEmail;
-    }
-    if (boundName && authNameInput && !authNameInput.value) {
-      authNameInput.value = boundName;
-    }
-  };
-  prefillBoundAccount();
+  // Clear any old pre-filled inputs or cached bound email/name so the sign-in modal always starts completely clean
+  localStorage.removeItem("cookedmains_bound_email");
+  localStorage.removeItem("cookedmains_bound_name");
+  if (authEmailInput) authEmailInput.value = "";
+  if (authNameInput) authNameInput.value = "";
+  if (authPasswordInput) authPasswordInput.value = "";
 
   const showAuthFormError = (msg) => {
     if (authFormError && authFormErrorText) {
@@ -6625,15 +6619,46 @@ function setupUserAndModalListeners() {
     } else {
       alert(msg);
     }
-    if (authPasswordInput) authPasswordInput.focus();
   };
 
   const clearAuthFormError = () => {
     if (authFormError) authFormError.classList.add("hidden");
   };
 
-  // Fetch Google OAuth & Supabase OAuth configuration and handle OAuth return tokens
-  let authOAuthConfig = { google_client_id: "", supabase_google_enabled: false, supabase_oauth_url: "" };
+  // Default Google OAuth Client ID for CookedMains + dynamic config fetch
+  const DEFAULT_GOOGLE_CLIENT_ID = "920708567221-cg6u0n4jnraou5360bkt7lruaap9cca1.apps.googleusercontent.com";
+  let authOAuthConfig = {
+    google_client_id: DEFAULT_GOOGLE_CLIENT_ID,
+    supabase_google_enabled: false,
+    supabase_oauth_url: ""
+  };
+
+  const ensureGoogleGsiLoaded = () => {
+    return new Promise((resolve, reject) => {
+      if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+        return resolve(window.google);
+      }
+      const existingScript = document.querySelector('script[src*="accounts.google.com/gsi/client"]');
+      if (!existingScript) {
+        const s = document.createElement("script");
+        s.src = "https://accounts.google.com/gsi/client";
+        s.async = true;
+        document.head.appendChild(s);
+      }
+      let attempts = 0;
+      const timer = setInterval(() => {
+        attempts++;
+        if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+          clearInterval(timer);
+          resolve(window.google);
+        } else if (attempts > 40) {
+          clearInterval(timer);
+          reject(new Error("Google Sign-In script took too long to load. Please check your internet connection."));
+        }
+      }, 100);
+    });
+  };
+
   const completeVerifiedGoogleLogin = async (payload) => {
     try {
       const res = await fetch("/api/auth/google/verify", {
@@ -6644,8 +6669,8 @@ function setupUserAndModalListeners() {
       if (res.ok) {
         state.user = await res.json();
         sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
-        localStorage.setItem("cookedmains_bound_email", state.user.email);
-        localStorage.setItem("cookedmains_bound_name", state.user.name);
+        if (authEmailInput) authEmailInput.value = "";
+        if (authNameInput) authNameInput.value = "";
         if (authPasswordInput) authPasswordInput.value = "";
         updateUserUI();
         refreshLockerBadge();
@@ -6678,7 +6703,9 @@ function setupUserAndModalListeners() {
   fetch("/api/auth/config")
     .then(r => r.ok ? r.json() : null)
     .then(cfg => {
-      if (cfg) authOAuthConfig = cfg;
+      if (cfg && cfg.google_client_id) {
+        authOAuthConfig = cfg;
+      }
     })
     .catch(() => {});
 
@@ -6686,88 +6713,28 @@ function setupUserAndModalListeners() {
     googleSignInBtn.addEventListener("click", async () => {
       clearAuthFormError();
 
-      // 1. If Google OAuth Client ID is configured, open native Browser Google Account Chooser Popup!
-      if (authOAuthConfig.google_client_id && window.google && window.google.accounts && window.google.accounts.oauth2) {
+      try {
+        await ensureGoogleGsiLoaded();
+        const clientId = authOAuthConfig.google_client_id || DEFAULT_GOOGLE_CLIENT_ID;
         const tokenClient = window.google.accounts.oauth2.initTokenClient({
-          client_id: authOAuthConfig.google_client_id,
+          client_id: clientId,
           scope: "openid email profile",
           prompt: "select_account",
           callback: (tokenResponse) => {
             if (tokenResponse && tokenResponse.access_token) {
               completeVerifiedGoogleLogin({ access_token: tokenResponse.access_token });
+            } else if (tokenResponse && tokenResponse.error) {
+              showAuthFormError("Google login cancelled or failed: " + tokenResponse.error);
             }
           }
         });
-        tokenClient.requestAccessToken();
-        return;
-      }
-
-      // 2. If Supabase Google OAuth Provider is enabled, redirect to Google Account Chooser via Supabase!
-      if (authOAuthConfig.supabase_google_enabled && authOAuthConfig.supabase_oauth_url) {
-        window.location.href = authOAuthConfig.supabase_oauth_url;
-        return;
-      }
-
-      // 3. Fallback if Google OAuth Client ID isn't pasted into Render/Supabase yet:
-      prefillBoundAccount();
-      let googleName = (authNameInput && authNameInput.value.trim()) || "";
-      let googleEmail = (authEmailInput && authEmailInput.value.trim()) || "";
-      let googlePassword = (authPasswordInput && authPasswordInput.value) || "";
-
-      if (!googleEmail) {
-        if (authEmailInput) authEmailInput.focus();
-        showAuthFormError("Please enter your @gmail.com Google address and password below (or add GOOGLE_CLIENT_ID in Render to enable 1-click Google popup).");
-        return;
-      }
-      if (!googleEmail.toLowerCase().endsWith("@gmail.com") && !googleEmail.toLowerCase().endsWith("@googlemail.com")) {
-        showAuthFormError("For Google Sign-In, please enter a valid @gmail.com address, or use the Sign In button below.");
-        return;
-      }
-      if (!googlePassword || googlePassword.trim().length < 4) {
-        if (authPasswordInput) authPasswordInput.focus();
-        showAuthFormError("Please enter your account password (min 4 chars) to verify and lock your Google account.");
-        return;
-      }
-      if (!googleName) {
-        googleName = googleEmail.split("@")[0].replace(/[\._\-]+/g, " ");
-        googleName = googleName.charAt(0).toUpperCase() + googleName.slice(1);
-      }
-
-      try {
-        const res = await fetch("/api/user/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: googleEmail,
-            name: googleName,
-            password: googlePassword,
-            provider: "google",
-            device_id: getOrCreateDeviceId()
-          })
-        });
-        if (res.ok) {
-          state.user = await res.json();
-          sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
-          localStorage.setItem("cookedmains_bound_email", state.user.email);
-          localStorage.setItem("cookedmains_bound_name", state.user.name);
-          if (authPasswordInput) authPasswordInput.value = "";
-          updateUserUI();
-          refreshLockerBadge();
-          window.closeAuthModal();
-
-          if (typeof window.showAppToast === 'function') {
-            window.showAppToast(`Signed in as ${state.user.name} (${state.user.email})!`);
-          }
-
-          setTimeout(() => {
-            window.switchStudioState("intake");
-          }, 300);
-        } else {
-          const err = await res.json();
-          showAuthFormError(err.detail || "Sign in failed. Please check your credentials.");
+        tokenClient.requestAccessToken({ prompt: "select_account" });
+      } catch (err) {
+        if (authOAuthConfig.supabase_google_enabled && authOAuthConfig.supabase_oauth_url) {
+          window.location.href = authOAuthConfig.supabase_oauth_url;
+          return;
         }
-      } catch (e) {
-        showAuthFormError("Sign in error: " + e.message);
+        showAuthFormError(err.message || "Unable to open Google Sign-In popup.");
       }
     });
   }
@@ -6800,8 +6767,8 @@ function setupUserAndModalListeners() {
         if (res.ok) {
           state.user = await res.json();
           sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
-          localStorage.setItem("cookedmains_bound_email", state.user.email);
-          localStorage.setItem("cookedmains_bound_name", state.user.name);
+          if (authEmailInput) authEmailInput.value = "";
+          if (authNameInput) authNameInput.value = "";
           if (authPasswordInput) authPasswordInput.value = "";
           updateUserUI();
           refreshLockerBadge();

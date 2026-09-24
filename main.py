@@ -732,10 +732,12 @@ async def api_upsc_blank_sheet(
     return HTMLResponse(content=full_html)
 
 
+DEFAULT_GOOGLE_CLIENT_ID = "920708567221-cg6u0n4jnraou5360bkt7lruaap9cca1.apps.googleusercontent.com"
+
 @app.get("/api/auth/config")
 async def api_auth_config(request: Request):
     """Returns Google OAuth Client ID and Supabase OAuth availability for native 1-click browser Google login."""
-    google_client_id = (os.environ.get("GOOGLE_CLIENT_ID") or "").strip()
+    google_client_id = (os.environ.get("GOOGLE_CLIENT_ID") or DEFAULT_GOOGLE_CLIENT_ID).strip()
     supa_google_enabled = False
     if supabase_url and supabase_key:
         try:
