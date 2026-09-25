@@ -724,27 +724,27 @@ def build_evaluation_prompt(
     detected_paper = detect_academic_discipline(question, paper_key)
     taxonomy = PAPER_TAXONOMIES.get(detected_paper, PAPER_TAXONOMIES.get("GS2"))
     
-    # Precise mathematical denominators based on max_marks
+    # Precise mathematical denominators based on max_marks (100% synchronized between Margin Cards & Analytical Rubric)
     if max_marks == 10:
-        intro_d, body_d, conc_d = 2.0, 6.5, 1.5
+        intro_d, body_d, conc_d = 1.5, 7.0, 1.5
         sample_score = 4.0
         sample_intro_aw, sample_body_aw, sample_conc_aw = 1.0, 2.5, 0.5
-        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 2.0, 4.5, 1.5, 1.0, 1.0
+        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 1.5, 4.5, 1.5, 1.0, 1.5
     elif max_marks == 15:
-        intro_d, body_d, conc_d = 2.5, 10.5, 2.0
+        intro_d, body_d, conc_d = 2.0, 11.0, 2.0
         sample_score = 6.5
         sample_intro_aw, sample_body_aw, sample_conc_aw = 1.5, 4.0, 1.0
-        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 2.5, 7.0, 2.5, 1.5, 1.5
+        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 2.0, 7.0, 2.5, 1.5, 2.0
     elif max_marks == 20:
-        intro_d, body_d, conc_d = 3.5, 13.5, 3.0
+        intro_d, body_d, conc_d = 2.5, 15.0, 2.5
         sample_score = 8.5
-        sample_intro_aw, sample_body_aw, sample_conc_aw = 2.0, 5.5, 1.0
-        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 3.0, 9.5, 3.5, 2.0, 2.0
+        sample_intro_aw, sample_body_aw, sample_conc_aw = 1.5, 5.5, 1.5
+        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 2.5, 9.5, 3.5, 2.0, 2.5
     else: # Essay 125M
         intro_d, body_d, conc_d = 20.0, 85.0, 20.0
         sample_score = 55.0
         sample_intro_aw, sample_body_aw, sample_conc_aw = 10.0, 38.0, 7.0
-        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 20.0, 60.0, 25.0, 10.0, 10.0
+        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 20.0, 50.0, 20.0, 15.0, 20.0
     
     rewrite_check_instructions = ""
     if previous_question:
@@ -1521,24 +1521,114 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
             }
         }
 
-    # 5. Strict Mathematical Alignment for Analytical Rubric Scores
+    # 5. Strict 100% Mathematical Synchronization Between Margin Annotations (visual_annotations) & Right-Panel Rubric (rubric_scores)
     rubric = data.get("rubric_scores")
-    if isinstance(rubric, dict):
+    if not isinstance(rubric, dict):
+        rubric = {}
+
+    if max_marks == 10:
+        canon_i_max, canon_c_max, canon_v_max, canon_p_max, canon_co_max = 1.5, 4.5, 1.5, 1.0, 1.5
+    elif max_marks == 15:
+        canon_i_max, canon_c_max, canon_v_max, canon_p_max, canon_co_max = 2.0, 7.0, 2.5, 1.5, 2.0
+    elif max_marks == 20:
+        canon_i_max, canon_c_max, canon_v_max, canon_p_max, canon_co_max = 2.5, 9.5, 3.5, 2.0, 2.5
+    else:
+        canon_i_max, canon_c_max, canon_v_max, canon_p_max, canon_co_max = 20.0, 50.0, 20.0, 15.0, 20.0
+
+    rubric["intro_max"] = canon_i_max
+    rubric["core_demand_max"] = canon_c_max
+    rubric["value_add_max"] = canon_v_max
+    rubric["presentation_max"] = canon_p_max
+    rubric["conclusion_max"] = canon_co_max
+
+    # Extract exact awarded marks & denominators from visual_annotations so Margin Cards and Right-Panel Rubric NEVER disagree
+    graded_anns = [a for a in (data.get("visual_annotations") or []) if a.get("marks_awarded") and str(a.get("type", "")).lower() != "info"]
+    if graded_anns:
+        first_ann = graded_anns[0]
+        last_ann = graded_anns[-1] if len(graded_anns) > 1 else None
+        mid_anns = graded_anns[1:-1] if len(graded_anns) > 2 else []
+
+        def _parse_aw_den(ann_obj, def_aw, def_den):
+            if not ann_obj:
+                return def_aw, def_den
+            m_match = re.search(r'([+-]?\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)', str(ann_obj.get("marks_awarded", "")))
+            if m_match:
+                return float(m_match.group(1)), float(m_match.group(2))
+            return def_aw, def_den
+
+        intro_aw, intro_den = _parse_aw_den(first_ann, float(rubric.get("intro_score", 1.0)), canon_i_max)
+        conc_aw, conc_den = _parse_aw_den(last_ann, float(rubric.get("conclusion_score", 0.5)), canon_co_max)
+
+        # Force first annotation (Intro) and last annotation (Conclusion) denominators to match canonical rubric max
+        intro_aw = min(canon_i_max, max(0.0, round(intro_aw * 2) / 2))
+        conc_aw = min(canon_co_max, max(0.0, round(conc_aw * 2) / 2))
+        if intro_aw + conc_aw > overall_score:
+            conc_aw = max(0.0, round((overall_score - intro_aw) * 2) / 2)
+
+        body_target_aw = max(0.0, round((overall_score - intro_aw - conc_aw) * 2) / 2)
+        body_target_den = round(max_marks - canon_i_max - canon_co_max, 1)
+
+        first_ann["marks_awarded"] = f"+{intro_aw:.1f} / {canon_i_max:.1f}"
+        if last_ann:
+            last_ann["marks_awarded"] = f"+{conc_aw:.1f} / {canon_co_max:.1f}"
+
+        if mid_anns:
+            raw_mid_aws = [_parse_aw_den(ma, 1.0, 3.0)[0] for ma in mid_anns]
+            sum_mid_aws = sum(raw_mid_aws)
+            curr_b_den = 0.0
+            curr_b_aw = 0.0
+            for idx_m, ma in enumerate(mid_anns):
+                if idx_m == len(mid_anns) - 1:
+                    m_den = round(body_target_den - curr_b_den, 1)
+                    m_aw = max(0.0, min(m_den, round(body_target_aw - curr_b_aw, 1)))
+                else:
+                    m_den = round((body_target_den / len(mid_anns)) * 2) / 2
+                    curr_b_den += m_den
+                    prop = (raw_mid_aws[idx_m] / sum_mid_aws) if sum_mid_aws > 0 else (1.0 / len(mid_anns))
+                    m_aw = max(0.0, min(m_den, round(body_target_aw * prop * 2) / 2))
+                    curr_b_aw += m_aw
+                ma["marks_awarded"] = f"+{m_aw:.1f} / {m_den:.1f}"
+
+        # Lock rubric Intro and Conclusion scores to the exact Margin Card Intro and Conclusion scores!
+        rubric["intro_score"] = intro_aw
+        rubric["conclusion_score"] = conc_aw
+
+        # Distribute body_target_aw across Core Demand, Value Addition, and Presentation
+        raw_c = max(0.25, float(rubric.get("core_demand_score", body_target_aw * 0.6)))
+        raw_v = max(0.25, float(rubric.get("value_add_score", body_target_aw * 0.2)))
+        raw_p = max(0.25, float(rubric.get("presentation_score", body_target_aw * 0.2)))
+        raw_body_sum = raw_c + raw_v + raw_p
+        if body_target_aw <= 0:
+            rubric["core_demand_score"] = 0.0
+            rubric["value_add_score"] = 0.0
+            rubric["presentation_score"] = 0.0
+        else:
+            c_val = min(canon_c_max, round((body_target_aw * (raw_c / raw_body_sum)) * 2) / 2)
+            v_val = min(canon_v_max, round((body_target_aw * (raw_v / raw_body_sum)) * 2) / 2)
+            p_val = max(0.0, min(canon_p_max, round((body_target_aw - c_val - v_val) * 2) / 2))
+            rem_fix = round((body_target_aw - (c_val + v_val + p_val)) * 2) / 2
+            if abs(rem_fix) > 0.01:
+                c_val = max(0.0, min(canon_c_max, round((c_val + rem_fix) * 2) / 2))
+            rubric["core_demand_score"] = c_val
+            rubric["value_add_score"] = v_val
+            rubric["presentation_score"] = p_val
+    else:
         i_sc = float(rubric.get("intro_score", 0.0))
         c_sc = float(rubric.get("core_demand_score", 0.0))
         v_sc = float(rubric.get("value_add_score", 0.0))
         p_sc = float(rubric.get("presentation_score", 0.0))
         co_sc = float(rubric.get("conclusion_score", 0.0))
         sub_sum = i_sc + c_sc + v_sc + p_sc + co_sc
-
         if abs(sub_sum - overall_score) > 0.01 and sub_sum > 0:
             scale = overall_score / sub_sum
             rubric["intro_score"] = round(i_sc * scale * 2) / 2
-            rubric["core_demand_score"] = round(c_sc * scale * 2) / 2
+            rubric["conclusion_score"] = round(co_sc * scale * 2) / 2
             rubric["value_add_score"] = round(v_sc * scale * 2) / 2
             rubric["presentation_score"] = round(p_sc * scale * 2) / 2
-            allocated = rubric["intro_score"] + rubric["core_demand_score"] + rubric["value_add_score"] + rubric["presentation_score"]
-            rubric["conclusion_score"] = max(0.0, round((overall_score - allocated) * 2) / 2)
+            allocated = rubric["intro_score"] + rubric["conclusion_score"] + rubric["value_add_score"] + rubric["presentation_score"]
+            rubric["core_demand_score"] = max(0.0, round((overall_score - allocated) * 2) / 2)
+
+    data["rubric_scores"] = rubric
 
     # 6. Current Affairs & Value Addition Grounding Normalization
     ca_va = data.get("current_affairs_value_add")

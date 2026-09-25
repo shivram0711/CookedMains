@@ -3377,6 +3377,15 @@ function renderAnnotationsOverlay() {
   const rawAnns = (activeEval.visual_annotations || []).filter(a => (a.page || 1) === currentPg);
 
   // Define section layout matching authentic UPSC answer pages
+  // Synchronize Rubric Breakdown & Margin Annotations so scores and denominators never conflict
+  syncRubricAndMarginScores(activeEval);
+  const syncedRubric = activeEval.rubric_scores || {};
+  const fallbackIntroMarks = `+${(parseFloat(syncedRubric.intro_score) || 1.0).toFixed(1)} / ${(parseFloat(syncedRubric.intro_max) || 2.0).toFixed(1)}`;
+  const fallbackConcMarks = `+${(parseFloat(syncedRubric.conclusion_score) || 1.0).toFixed(1)} / ${(parseFloat(syncedRubric.conclusion_max) || 2.0).toFixed(1)}`;
+  const totalBodyScore = (parseFloat(syncedRubric.core_demand_score) || 0) + (parseFloat(syncedRubric.value_add_score) || 0) + (parseFloat(syncedRubric.presentation_score) || 0);
+  const totalBodyMax = (parseFloat(syncedRubric.core_demand_max) || 7.0) + (parseFloat(syncedRubric.value_add_max) || 2.5) + (parseFloat(syncedRubric.presentation_max) || 1.5);
+  const fallbackBodyMarks = `+${totalBodyScore.toFixed(1)} / ${totalBodyMax.toFixed(1)}`;
+
   const sections = [];
 
   if (totalPages === 1) {
@@ -3387,7 +3396,7 @@ function renderAnnotationsOverlay() {
     });
     const defaultIntroText = "✓ **Good Premise**: Clearly defined constitutional supremacy and core premise.\n✎ **Contextual Hook**: Integrate relevant constitutional article or background.";
     const introBody = rawIntro ? parseBullets(rawIntro.remark, 2) : parseBullets(defaultIntroText, 2);
-    const introMarks = rawIntro ? (rawIntro.marks_awarded || "+1.5 / 2.5") : "+1.5 / 2.5";
+    const introMarks = fallbackIntroMarks;
 
     sections.push({
       zone: "intro",
@@ -3407,7 +3416,7 @@ function renderAnnotationsOverlay() {
     });
     const defaultBodyText = "✓ **Core Multi-Dimensional Analysis**: Solid multidimensional arguments presented.\n✎ **Substantiation**: Anchor arguments with empirical data points or committee reports.";
     const bodyText = rawBody ? parseBullets(rawBody.remark, 2) : parseBullets(defaultBodyText, 2);
-    const bodyMarks = rawBody ? (rawBody.marks_awarded || "+2.5 / 5.0") : "+2.5 / 5.0";
+    const bodyMarks = fallbackBodyMarks;
 
     sections.push({
       zone: "body",
@@ -3427,7 +3436,7 @@ function renderAnnotationsOverlay() {
     });
     const concDefault = "✓ **Balanced Synthesis**: Crisp forward-looking conclusion aligning with constitutional vision.\n✎ **Enrichment**: Anchor with sustainable governance roadmap.";
     const concText = rawConc ? parseBullets(rawConc.remark, 2) : parseBullets(concDefault, 2);
-    const concMarks = rawConc ? (rawConc.marks_awarded || "+1.0 / 2.5") : "+1.0 / 2.5";
+    const concMarks = fallbackConcMarks;
 
     sections.push({
       zone: "conclusion",
@@ -3448,7 +3457,7 @@ function renderAnnotationsOverlay() {
     });
     const defaultIntroText = "✓ **Good Premise**: Clearly defined constitutional supremacy.\n✎ **Missing**: Contextual hook with Article 13.";
     const introBody = rawIntro ? parseBullets(rawIntro.remark, 2) : parseBullets(defaultIntroText, 2);
-    const introMarks = rawIntro ? (rawIntro.marks_awarded || "+1.5 / 2.5") : "+1.5 / 2.5";
+    const introMarks = fallbackIntroMarks;
 
     sections.push({
       zone: "intro",
@@ -3468,7 +3477,7 @@ function renderAnnotationsOverlay() {
     });
     const defaultBodyText = "✓ **Case Law Integration**: Excellent use of Maneka Gandhi and NJAC ruling.\n✎ **Structure**: Group points under clear sub-headings.";
     const bodyText = rawBody ? parseBullets(rawBody.remark, 2) : parseBullets(defaultBodyText, 2);
-    const bodyMarks = rawBody ? (rawBody.marks_awarded || "+2.0 / 3.5") : "+2.0 / 3.5";
+    const bodyMarks = rawBody && rawBody.marks_awarded ? rawBody.marks_awarded : `+${(totalBodyScore / 2).toFixed(1)} / ${(totalBodyMax / 2).toFixed(1)}`;
 
     sections.push({
       zone: "body",
@@ -3525,7 +3534,7 @@ function renderAnnotationsOverlay() {
       isTick: true,
       startYPercent: 10,
       endYPercent: 65,
-      marks: rawBody ? (rawBody.marks_awarded || "+1.5 / 3.0") : "+1.5 / 3.0",
+      marks: rawBody && rawBody.marks_awarded ? rawBody.marks_awarded : `+${(totalBodyScore / 2).toFixed(1)} / ${(totalBodyMax / 2).toFixed(1)}`,
       bodyHtml: rawBody ? parseBullets(rawBody.remark, 2) : parseBullets(bWayForward, 2),
       targetKey: "body"
     });
@@ -3542,7 +3551,7 @@ function renderAnnotationsOverlay() {
       isTick: true,
       startYPercent: 67,
       endYPercent: 94,
-      marks: rawConc ? (rawConc.marks_awarded || "+1.5 / 2.5") : "+1.5 / 2.5",
+      marks: fallbackConcMarks,
       bodyHtml: rawConc ? parseBullets(rawConc.remark, 2) : parseBullets(concDefault, 2),
       targetKey: "conclusion"
     });
@@ -4127,8 +4136,135 @@ function stop24hRewriteTimer() {
   }
 }
 
+// Guarantee 100% Mathematical & Visual Synchronization between Answer Sheet Margin Cards (visual_annotations)
+// and the Right-Panel Analytical Rubric Breakdown (rubric_scores) for both new and Locker-stored evaluations.
+function syncRubricAndMarginScores(evalData) {
+  if (!evalData || typeof evalData !== "object") return;
+  const maxMarks = parseInt(evalData.max_marks || state.marks || 10, 10);
+  const overallScore = Math.round((parseFloat(evalData.overall_score) || 0.0) * 2) / 2;
+  evalData.overall_score = overallScore;
+
+  // Canonical rubric denominators identical across Margin Cards and Right-Panel Analytical Rubric
+  let rIntroMax = 1.5, rCoreMax = 4.5, rValMax = 1.5, rPresMax = 1.0, rConcMax = 1.5;
+  if (maxMarks === 15) {
+    rIntroMax = 2.0; rCoreMax = 7.0; rValMax = 2.5; rPresMax = 1.5; rConcMax = 2.0;
+  } else if (maxMarks === 20) {
+    rIntroMax = 2.5; rCoreMax = 9.5; rValMax = 3.5; rPresMax = 2.0; rConcMax = 2.5;
+  }
+  const rBodyMax = rCoreMax + rValMax + rPresMax;
+
+  if (!evalData.rubric_scores || typeof evalData.rubric_scores !== "object") {
+    evalData.rubric_scores = {};
+  }
+  const rubric = evalData.rubric_scores;
+  rubric.intro_max = rIntroMax;
+  rubric.core_demand_max = rCoreMax;
+  rubric.value_add_max = rValMax;
+  rubric.presentation_max = rPresMax;
+  rubric.conclusion_max = rConcMax;
+
+  const parseAwarded = (marksStr) => {
+    const m = String(marksStr || "").match(/([0-9]+(?:\.[0-9]+)?)/);
+    return m ? parseFloat(m[1]) : NaN;
+  };
+
+  const anns = Array.isArray(evalData.visual_annotations) ? evalData.visual_annotations : [];
+  let introAnn = anns.find(a => {
+    const t = String(a.tag || "").toLowerCase();
+    return t.includes("intro") || t.includes("premise") || t.includes("definition");
+  }) || (anns.length > 0 ? anns[0] : null);
+
+  let concAnn = [...anns].reverse().find(a => {
+    const t = String(a.tag || "").toLowerCase();
+    return t.includes("conclusion") || t.includes("synthesis") || t.includes("finish") || t.includes("way forward");
+  }) || (anns.length > 1 ? anns[anns.length - 1] : null);
+
+  let introAw = introAnn ? parseAwarded(introAnn.marks_awarded) : NaN;
+  if (isNaN(introAw)) {
+    introAw = parseFloat(rubric.intro_score);
+    if (isNaN(introAw)) introAw = Math.round((overallScore * (rIntroMax / maxMarks)) * 2) / 2;
+  }
+  introAw = Math.min(rIntroMax, Math.max(0.0, Math.round(introAw * 2) / 2));
+
+  let concAw = concAnn ? parseAwarded(concAnn.marks_awarded) : NaN;
+  const rawRubricConc = parseFloat(rubric.conclusion_score);
+  // If margin annotation gave > 0 (e.g. +1.0 / 2.0) while rubric_scores crushed conclusion_score to 0.0, honor margin annotation!
+  if (isNaN(concAw) || (concAw === 0 && !isNaN(rawRubricConc) && rawRubricConc > 0)) {
+    concAw = !isNaN(rawRubricConc) ? rawRubricConc : Math.round((overallScore * (rConcMax / maxMarks)) * 2) / 2;
+  }
+  concAw = Math.min(rConcMax, Math.max(0.0, Math.round(concAw * 2) / 2));
+
+  // Ensure introAw + concAw never exceeds overallScore
+  if (introAw + concAw > overallScore) {
+    const scale = overallScore / (introAw + concAw || 1);
+    introAw = Math.round((introAw * scale) * 2) / 2;
+    concAw = Math.max(0.0, Math.round((overallScore - introAw) * 2) / 2);
+  }
+
+  rubric.intro_score = introAw;
+  rubric.conclusion_score = concAw;
+
+  // Remaining marks strictly belong to Body (Core Demand + Value Addition + Presentation)
+  const bodyTargetAw = Math.max(0.0, Math.round((overallScore - introAw - concAw) * 2) / 2);
+  let coreRaw = parseFloat(rubric.core_demand_score);
+  let valRaw = parseFloat(rubric.value_add_score);
+  let presRaw = parseFloat(rubric.presentation_score);
+  if (isNaN(coreRaw)) coreRaw = bodyTargetAw * (rCoreMax / rBodyMax);
+  if (isNaN(valRaw)) valRaw = bodyTargetAw * (rValMax / rBodyMax);
+  if (isNaN(presRaw)) presRaw = bodyTargetAw * (rPresMax / rBodyMax);
+
+  const rawBodySum = coreRaw + valRaw + presRaw;
+  let cAw, vAw, pAw;
+  if (rawBodySum > 0) {
+    const factor = bodyTargetAw / rawBodySum;
+    cAw = Math.min(rCoreMax, Math.max(0.0, Math.round((coreRaw * factor) * 2) / 2));
+    vAw = Math.min(rValMax, Math.max(0.0, Math.round((valRaw * factor) * 2) / 2));
+    pAw = Math.min(rPresMax, Math.max(0.0, Math.round((presRaw * factor) * 2) / 2));
+  } else {
+    cAw = Math.min(rCoreMax, Math.max(0.0, Math.round((bodyTargetAw * (rCoreMax / rBodyMax)) * 2) / 2));
+    vAw = Math.min(rValMax, Math.max(0.0, Math.round((bodyTargetAw * (rValMax / rBodyMax)) * 2) / 2));
+    pAw = Math.min(rPresMax, Math.max(0.0, Math.round((bodyTargetAw * (rPresMax / rBodyMax)) * 2) / 2));
+  }
+
+  // Absorb any 0.5 rounding delta into Core Demand (or Value Add / Presentation) so sum === bodyTargetAw
+  let rem = Math.round((bodyTargetAw - (cAw + vAw + pAw)) * 2) / 2;
+  if (rem !== 0) {
+    if (cAw + rem >= 0 && cAw + rem <= rCoreMax) {
+      cAw = Math.round((cAw + rem) * 2) / 2;
+    } else if (vAw + rem >= 0 && vAw + rem <= rValMax) {
+      vAw = Math.round((vAw + rem) * 2) / 2;
+    } else if (pAw + rem >= 0 && pAw + rem <= rPresMax) {
+      pAw = Math.round((pAw + rem) * 2) / 2;
+    }
+  }
+
+  rubric.core_demand_score = cAw;
+  rubric.value_add_score = vAw;
+  rubric.presentation_score = pAw;
+
+  // Also synchronize visual_annotations marks_awarded strings so Margin Cards match 100%
+  if (introAnn) {
+    introAnn.marks_awarded = `+${introAw.toFixed(1)} / ${rIntroMax.toFixed(1)}`;
+  }
+  if (concAnn && concAnn !== introAnn) {
+    concAnn.marks_awarded = `+${concAw.toFixed(1)} / ${rConcMax.toFixed(1)}`;
+  }
+  const bodyAnns = anns.filter(a => a !== introAnn && a !== concAnn);
+  if (bodyAnns.length === 1) {
+    bodyAnns[0].marks_awarded = `+${bodyTargetAw.toFixed(1)} / ${rBodyMax.toFixed(1)}`;
+  } else if (bodyAnns.length >= 2) {
+    const b1Max = Math.round((rBodyMax / 2) * 2) / 2;
+    const b2Max = Math.round((rBodyMax - b1Max) * 2) / 2;
+    const b1Aw = Math.min(b1Max, Math.round((bodyTargetAw / 2) * 2) / 2);
+    const b2Aw = Math.max(0.0, Math.round((bodyTargetAw - b1Aw) * 2) / 2);
+    bodyAnns[0].marks_awarded = `+${b1Aw.toFixed(1)} / ${b1Max.toFixed(1)}`;
+    bodyAnns[1].marks_awarded = `+${b2Aw.toFixed(1)} / ${b2Max.toFixed(1)}`;
+  }
+}
+
 // Render the Full Evaluation Scorecard
 function renderEvaluation(evalData) {
+  syncRubricAndMarginScores(evalData);
   state.currentEvaluation = evalData;
 
   // 0. Build Glossary Map for Instant Inline Jargon Decoding across remarks and model answer
