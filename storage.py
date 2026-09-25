@@ -3,9 +3,18 @@ import os
 import json
 import uuid
 import re
+import base64
+import io
 from datetime import datetime
 import tempfile
 from typing import Optional, Dict, Any, List
+
+try:
+    from PIL import Image
+    HAS_PIL = True
+except ImportError:
+    Image = None
+    HAS_PIL = False
 
 # Supabase Client Initialization
 from supabase import create_client, Client
@@ -1323,9 +1332,10 @@ def compute_visual_handwriting_signature(pages_b64: List[str]) -> List[str]:
     (15%-85% width, 12%-90% height) for each page so re-saved/re-uploaded copies of the same
     handwriting from any account are traced with 100% accuracy.
     """
-    if not HAS_PIL or not Image or not pages_b64:
+    if not HAS_PIL or Image is None or not pages_b64:
         return []
     signatures: List[str] = []
+    resample_filter = getattr(getattr(Image, "Resampling", None), "BILINEAR", getattr(Image, "BILINEAR", 2))
     for b64_str in pages_b64[:8]:
         try:
             if not b64_str or "base64," not in b64_str:
@@ -1334,7 +1344,7 @@ def compute_visual_handwriting_signature(pages_b64: List[str]) -> List[str]:
             img = Image.open(io.BytesIO(raw_bytes)).convert("L")
             w, h = img.size
             crop = img.crop((int(w * 0.15), int(h * 0.12), int(w * 0.85), int(h * 0.90)))
-            resized = crop.resize((9, 8), Image.Resampling.BILINEAR)
+            resized = crop.resize((9, 8), resample_filter)
             pixels = list(resized.getdata())
             bits = 0
             for row_idx in range(8):
