@@ -73,7 +73,8 @@ from storage import (
     DAILY_EVALUATION_LIMIT, DAILY_REWRITE_LIMIT,
     upload_file_to_supabase, insert_supabase_evaluation, get_db,
     get_deterministic_user_id, _format_supabase_eval_row,
-    compute_visual_handwriting_signature, find_canonical_evaluation_for_script
+    compute_visual_handwriting_signature, find_canonical_evaluation_for_script,
+    restore_evaluations_to_vault
 )
 import copy
 from news_ingestion import ingest_all_feeds, get_top_editorial_articles
@@ -1038,6 +1039,24 @@ async def api_history_detail(eval_id: str):
     if not record:
         raise HTTPException(status_code=404, detail="Evaluated copy not found.")
     return record
+
+@app.post("/api/user/sync-vault")
+async def api_user_sync_vault(request: Request):
+    """Synchronizes and restores any evaluated copies from the aspirant's browser vault into SQLite & Supabase."""
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+    email = (data.get("email") or "").strip().lower()
+    records = data.get("records") or []
+    if not email or not isinstance(records, list):
+        return {"restored": 0, "evaluations": []}
+    sync_res = restore_evaluations_to_vault(email, records)
+    updated_list = get_user_evaluations(email)
+    return {
+        "restored": sync_res.get("restored", 0),
+        "evaluations": updated_list
+    }
 
 @app.post("/api/user/recharge")
 async def api_user_recharge(request: Request):

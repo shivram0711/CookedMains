@@ -1862,31 +1862,29 @@ function handleMobileTabSwitch(tab) {
 
 // User Session & Daily Question Initialization
 async function initUserSession() {
-  // Session is maintained in sessionStorage so fresh visits to the first page always start logged out with "Sign In",
-  // and the My Account icon and Sign Out button only appear once the user actually signs in.
-  const sessionUser = sessionStorage.getItem("mainsmentor_user");
+  const sessionUser = sessionStorage.getItem("mainsmentor_user") || localStorage.getItem("mainsmentor_user");
   if (sessionUser) {
     try {
       state.user = JSON.parse(sessionUser);
+      sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+      localStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
     } catch (e) {
       state.user = null;
       sessionStorage.removeItem("mainsmentor_user");
+      localStorage.removeItem("mainsmentor_user");
     }
   } else {
     state.user = null;
-    // Clear any stale persistent logins from previous browser sessions
-    try {
-      localStorage.removeItem("mainsmentor_user");
-    } catch (e) {}
   }
 
-  // If user has an active session in this window/tab, sync profile from server
+  // If user has an active session, sync profile from server
   if (state.user && state.user.email) {
     try {
       const res = await fetch(`/api/user/profile?email=${encodeURIComponent(state.user.email)}`);
       if (res.ok) {
         state.user = await res.json();
         sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+        localStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
       }
     } catch (err) {
       console.warn("User profile sync error:", err);
@@ -1894,7 +1892,7 @@ async function initUserSession() {
   }
 
   updateUserUI();
-  refreshLockerBadge();
+  await refreshLockerBadge();
 }
 
 function updateUserUI() {
@@ -2083,16 +2081,232 @@ function updateUserUI() {
   }
 }
 
+// =========================================================================
+// 🛡️ PERMANENT ANSWER VAULT (IndexedDB + localStorage + Auto Server Heal)
+// Guarantees ZERO evaluation data loss across refreshes or server restarts
+// =========================================================================
+function _openBrowserVaultDB() {
+  return new Promise((resolve) => {
+    if (!window.indexedDB) return resolve(null);
+    try {
+      const req = window.indexedDB.open("CookedMainsVaultDB", 1);
+      req.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains("evaluations")) {
+          const store = db.createObjectStore("evaluations", { keyPath: "id" });
+          store.createIndex("user_email", "user_email", { unique: false });
+        }
+      };
+      req.onsuccess = (e) => resolve(e.target.result);
+      req.onerror = () => resolve(null);
+    } catch (err) {
+      resolve(null);
+    }
+  });
+}
+
+window.saveEvaluationToBrowserVault = async function(email, rawRecord) {
+  const cleanEmail = String(email || state.user?.email || "").trim().toLowerCase();
+  if (!cleanEmail || !rawRecord) return;
+  const evalObj = rawRecord.evaluation || rawRecord.evaluation_data || {};
+  const id = String(rawRecord.id || rawRecord.eval_id || evalObj.eval_id || `eval_${Date.now()}`).trim();
+  const pages = rawRecord.pages || rawRecord.page_images || state.activePages || [];
+  const overallScore = Number(rawRecord.overall_score ?? rawRecord.total_score ?? evalObj.overall_score ?? 0);
+  const maxMarks = Number(rawRecord.max_marks ?? evalObj.max_marks ?? state.marks ?? 15);
+  const pct = maxMarks > 0 ? Number(((overallScore / maxMarks) * 100).toFixed(1)) : 0;
+
+  const vaultRecord = {
+    id: id,
+    eval_id: id,
+    user_email: cleanEmail,
+    created_at: rawRecord.created_at || new Date().toISOString(),
+    paper: rawRecord.paper || evalObj.detected_paper || state.paper || "GS2",
+    max_marks: maxMarks,
+    question: rawRecord.question || rawRecord.detected_question || evalObj.detected_question || state.question || "UPSC Mains Answer",
+    overall_score: overallScore,
+    total_score: overallScore,
+    percentage: pct,
+    thumbnail: rawRecord.thumbnail || (pages.length > 0 ? pages[0] : ""),
+    pages: pages,
+    page_images: pages,
+    evaluation: evalObj,
+    evaluation_data: evalObj,
+    is_rewrite: Boolean(rawRecord.is_rewrite || evalObj.is_rewrite) ? 1 : 0,
+    has_been_rewritten: Boolean(rawRecord.has_been_rewritten || evalObj.has_been_rewritten) ? 1 : 0
+  };
+
+  // 1. Save full record with high-res pages in IndexedDB
+  try {
+    const db = await _openBrowserVaultDB();
+    if (db) {
+      await new Promise((resolve) => {
+        const tx = db.transaction("evaluations", "readwrite");
+        tx.objectStore("evaluations").put(vaultRecord);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+      });
+    }
+  } catch (e) {}
+
+  // 2. Save metadata + evaluation JSON in localStorage (strip oversized base64 if needed to stay well within 5MB quota)
+  try {
+    const lsKey = `cookedmains_vault_${cleanEmail}`;
+    const existingRaw = localStorage.getItem(lsKey);
+    let list = existingRaw ? JSON.parse(existingRaw) : [];
+    if (!Array.isArray(list)) list = [];
+    const slimPages = (pages || []).slice(0, 4).map(p => (typeof p === "string" && p.length < 180000) ? p : "");
+    const slimRecord = {
+      ...vaultRecord,
+      pages: slimPages.filter(Boolean),
+      page_images: slimPages.filter(Boolean),
+      thumbnail: (vaultRecord.thumbnail && vaultRecord.thumbnail.length < 180000) ? vaultRecord.thumbnail : ""
+    };
+    list = [slimRecord, ...list.filter(item => item && item.id !== id)].slice(0, 25);
+    localStorage.setItem(lsKey, JSON.stringify(list));
+  } catch (e) {}
+};
+
+window.getEvaluationsFromBrowserVault = async function(email) {
+  const cleanEmail = String(email || state.user?.email || "").trim().toLowerCase();
+  if (!cleanEmail) return [];
+  const byId = new Map();
+
+  try {
+    const lsKey = `cookedmains_vault_${cleanEmail}`;
+    const existingRaw = localStorage.getItem(lsKey);
+    const lsList = existingRaw ? JSON.parse(existingRaw) : [];
+    if (Array.isArray(lsList)) {
+      lsList.forEach(item => {
+        if (item && item.id) byId.set(String(item.id), item);
+      });
+    }
+  } catch (e) {}
+
+  try {
+    const db = await _openBrowserVaultDB();
+    if (db) {
+      const idbRecords = await new Promise((resolve) => {
+        const tx = db.transaction("evaluations", "readonly");
+        const store = tx.objectStore("evaluations");
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => resolve([]);
+      });
+      idbRecords.forEach(item => {
+        if (item && item.id && String(item.user_email || "").toLowerCase() === cleanEmail) {
+          byId.set(String(item.id), item);
+        }
+      });
+    }
+  } catch (e) {}
+
+  const merged = Array.from(byId.values());
+  merged.sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
+  return merged;
+};
+
+window.getEvaluationByIdFromBrowserVault = async function(evalId) {
+  const cleanId = String(evalId || "").trim();
+  if (!cleanId) return null;
+  try {
+    const db = await _openBrowserVaultDB();
+    if (db) {
+      const rec = await new Promise((resolve) => {
+        const tx = db.transaction("evaluations", "readonly");
+        const req = tx.objectStore("evaluations").get(cleanId);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      });
+      if (rec) return rec;
+    }
+  } catch (e) {}
+  const all = await window.getEvaluationsFromBrowserVault(state.user?.email);
+  return all.find(x => String(x.id) === cleanId) || null;
+};
+
+window.fetchAndSyncUserLockerHistory = async function(email) {
+  const cleanEmail = String(email || state.user?.email || "").trim().toLowerCase();
+  if (!cleanEmail) return [];
+
+  let serverList = [];
+  try {
+    const res = await fetch(`/api/user/history?email=${encodeURIComponent(cleanEmail)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) serverList = data;
+    }
+  } catch (e) {}
+
+  const localList = await window.getEvaluationsFromBrowserVault(cleanEmail);
+  const serverIds = new Set(serverList.map(x => String(x.id)));
+  const localIds = new Set(localList.map(x => String(x.id)));
+
+  // Back up any server copies into browser vault
+  for (const sItem of serverList) {
+    if (sItem && sItem.id && (!localIds.has(String(sItem.id)) || (sItem.evaluation && Object.keys(sItem.evaluation).length > 0))) {
+      await window.saveEvaluationToBrowserVault(cleanEmail, sItem);
+    }
+  }
+
+  // Check if local vault has evaluated copies that are missing on the server (e.g. after server container restart)
+  const missingOnServer = localList.filter(item => item && item.id && !serverIds.has(String(item.id)) && item.evaluation);
+  if (missingOnServer.length > 0) {
+    try {
+      const syncRes = await fetch("/api/user/sync-vault", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail, records: missingOnServer })
+      });
+      if (syncRes.ok) {
+        const syncData = await syncRes.json();
+        if (Array.isArray(syncData.evaluations) && syncData.evaluations.length > 0) {
+          serverList = syncData.evaluations;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // Merge serverList and localList so zero evaluations are ever hidden
+  const mergedMap = new Map();
+  serverList.forEach(item => { if (item && item.id) mergedMap.set(String(item.id), item); });
+  localList.forEach(item => {
+    if (item && item.id) {
+      const existing = mergedMap.get(String(item.id));
+      if (!existing) {
+        mergedMap.set(String(item.id), item);
+      } else {
+        if ((!existing.pages || existing.pages.length === 0) && item.pages && item.pages.length > 0) {
+          existing.pages = item.pages;
+          existing.page_images = item.pages;
+        }
+        if ((!existing.evaluation || Object.keys(existing.evaluation).length === 0) && item.evaluation) {
+          existing.evaluation = item.evaluation;
+          existing.evaluation_data = item.evaluation;
+        }
+      }
+    }
+  });
+
+  const finalHistory = Array.from(mergedMap.values());
+  finalHistory.sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
+  state.lockerHistory = finalHistory;
+
+  const countStr = finalHistory.length.toString();
+  if (lockerCountBadge) lockerCountBadge.textContent = countStr;
+  const navLockerCount = document.getElementById("accountNavLockerCount");
+  if (navLockerCount) navLockerCount.textContent = countStr;
+  const mbBadge = document.getElementById("mbLockerBadge");
+  if (mbBadge) mbBadge.textContent = countStr;
+  const profileEvaluatedCount = document.getElementById("profileEvaluatedCount");
+  if (profileEvaluatedCount) profileEvaluatedCount.textContent = countStr;
+
+  return finalHistory;
+};
+
 async function refreshLockerBadge() {
   if (!state.user || !state.user.email) return;
   try {
-    const res = await fetch(`/api/user/history?email=${encodeURIComponent(state.user.email)}`);
-    if (res.ok) {
-      const history = await res.json();
-      if (lockerCountBadge) {
-        lockerCountBadge.textContent = history.length.toString();
-      }
-    }
+    await window.fetchAndSyncUserLockerHistory(state.user.email);
   } catch (err) {
     console.warn("Locker badge refresh error:", err);
   }
@@ -3690,13 +3904,29 @@ window.runEvaluation = async function(allowAutoAligned = false) {
       updateViewer();
     }
 
+    // Immediately back up evaluated copy into Permanent Browser Answer Vault (IndexedDB + localStorage)
+    if (state.user && state.user.email && typeof window.saveEvaluationToBrowserVault === "function") {
+      await window.saveEvaluationToBrowserVault(state.user.email, {
+        id: data.eval_id || state.currentEvalId,
+        eval_id: data.eval_id || state.currentEvalId,
+        paper: data.paper || state.paper,
+        max_marks: data.max_marks || state.marks,
+        question: data.detected_question || state.question,
+        overall_score: data.evaluation?.overall_score,
+        evaluation: data.evaluation,
+        pages: data.pages || state.activePages,
+        is_rewrite: data.is_rewrite
+      });
+    }
+
     // Sync updated credits
     if (data.user_credits !== undefined && state.user) {
       state.user.credits = data.user_credits;
       sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+      localStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
       updateUserUI();
     }
-    refreshLockerBadge();
+    await refreshLockerBadge();
 
     // Reset rewrite mode if active
     if (state.isRewriteMode) {
@@ -7083,9 +7313,7 @@ async function loadLockerHistory() {
   `;
 
   try {
-    const res = await fetch(`/api/user/history?email=${encodeURIComponent(state.user.email)}`);
-    if (!res.ok) throw new Error("Failed to load history");
-    const list = await res.json();
+    const list = await window.fetchAndSyncUserLockerHistory(state.user.email);
 
     if (lockerCountBadge) {
       lockerCountBadge.textContent = list.length.toString();
@@ -7160,12 +7388,21 @@ async function loadLockerHistory() {
   }
 }
 
-// Restore a saved evaluated copy from Locker
+// Restore a saved evaluated copy from Locker (with automatic Browser Vault fallback)
 window.viewSavedCopy = async function(evalId) {
   try {
-    const res = await fetch(`/api/user/history/${evalId}`);
-    if (!res.ok) throw new Error("Copy not found");
-    const record = await res.json();
+    let record = null;
+    try {
+      const res = await fetch(`/api/user/history/${evalId}`);
+      if (res.ok) {
+        record = await res.json();
+      }
+    } catch (e) {}
+
+    if (!record && typeof window.getEvaluationByIdFromBrowserVault === "function") {
+      record = await window.getEvaluationByIdFromBrowserVault(evalId);
+    }
+    if (!record) throw new Error("Copy not found");
 
     // Close drawer & account modal
     if (answerLockerDrawer) {
@@ -7274,12 +7511,20 @@ setupUserAndModalListeners();
 window.loadEvaluationById = async function(evalId) {
   if (!evalId) return false;
   try {
-    const res = await fetch(`/api/user/history/${encodeURIComponent(evalId)}`);
-    if (!res.ok) {
-      console.warn("Could not fetch evaluation:", evalId, res.status);
+    let record = null;
+    try {
+      const res = await fetch(`/api/user/history/${encodeURIComponent(evalId)}`);
+      if (res.ok) {
+        record = await res.json();
+      }
+    } catch (e) {}
+    if (!record && typeof window.getEvaluationByIdFromBrowserVault === "function") {
+      record = await window.getEvaluationByIdFromBrowserVault(evalId);
+    }
+    if (!record) {
+      console.warn("Could not fetch evaluation:", evalId);
       return false;
     }
-    const record = await res.json();
     state.currentEvalId = record.id;
     state.currentEvalRecord = record;
     if (record.paper) state.paper = record.paper;
@@ -7456,6 +7701,7 @@ window.saveAspirantProfile = async function() {
     const updated = await res.json();
     state.user = { ...state.user, ...updated };
     sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+    localStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
     updateUserUI();
 
     if (typeof window.showAppToast === 'function') {
@@ -7517,9 +7763,7 @@ window.loadWeeklyLocker = async function() {
   `;
 
   try {
-    const res = await fetch(`/api/user/history?email=${encodeURIComponent(state.user.email)}`);
-    if (!res.ok) throw new Error("Failed to fetch locker history");
-    const list = await res.json();
+    const list = await window.fetchAndSyncUserLockerHistory(state.user.email);
     state.lockerHistory = Array.isArray(list) ? list : [];
 
     // Sync badges

@@ -162,10 +162,9 @@ def perform_clean_slate_reset(force: bool = False) -> Dict[str, Any]:
     }
 
 def init_db():
-    """Initializes SQLite tables for users, single evaluations, and full 20-question test series."""
+    """Initializes SQLite tables for users, single evaluations, and full 20-question test series. Never wipes existing data."""
     try:
         _init_db_tables()
-        perform_clean_slate_reset(force=False)
     except Exception as _db_err:
         print(f"Notice: init_db safe notice: {_db_err}")
 
@@ -1028,6 +1027,33 @@ def insert_supabase_evaluation(user_id: str, question_title: str, file_url: Opti
         print(f"Supabase evaluations insert error: {e}")
         return None
 
+def _compact_pages_for_cloud_json(pages_list: List[str], max_dim: int = 650, quality: int = 58) -> List[str]:
+    """Compresses base64 page images into lightweight ~35KB previews so Supabase JSONB inserts never exceed payload limits."""
+    if not pages_list:
+        return []
+    if not HAS_PIL or Image is None:
+        return [p for p in pages_list[:6] if isinstance(p, str) and len(p) < 250000]
+    compact: List[str] = []
+    resample_filter = getattr(getattr(Image, "Resampling", None), "LANCZOS", getattr(Image, "LANCZOS", 1))
+    for b64_str in pages_list[:8]:
+        try:
+            if not isinstance(b64_str, str):
+                continue
+            if not b64_str.startswith("data:image/"):
+                compact.append(b64_str)
+                continue
+            raw_bytes = base64.b64decode(b64_str.split("base64,", 1)[1])
+            img = Image.open(io.BytesIO(raw_bytes)).convert("RGB")
+            if max(img.size) > max_dim:
+                img.thumbnail((max_dim, max_dim), resample_filter)
+            out_buf = io.BytesIO()
+            img.save(out_buf, format="JPEG", quality=quality, optimize=True)
+            compact.append("data:image/jpeg;base64," + base64.b64encode(out_buf.getvalue()).decode("ascii"))
+        except Exception:
+            if len(b64_str) < 250000:
+                compact.append(b64_str)
+    return compact
+
 def save_evaluation_record(
     email: str,
     paper: str,
@@ -1041,13 +1067,17 @@ def save_evaluation_record(
     is_rewrite: bool = False,
     file_hash: Optional[str] = None,
     baseline_eval_id: Optional[str] = None,
-    file_url: Optional[str] = None
+    file_url: Optional[str] = None,
+    forced_eval_id: Optional[str] = None
 ) -> str:
-    """Saves an evaluated copy into the student's personal answer locker (both Supabase & SQLite)."""
+    """Saves an evaluated copy into the student's personal answer locker (both Supabase & SQLite with guaranteed persistence)."""
     user = get_or_create_user(email)
-    eval_id = f"eval_{int(datetime.now().timestamp())}_{uuid.uuid4().hex[:6]}"
+    eval_id = forced_eval_id or f"eval_{int(datetime.now().timestamp())}_{uuid.uuid4().hex[:6]}"
     
-    if not thumbnail and pages_list and len(pages_list) > 0:
+    compact_pages = _compact_pages_for_cloud_json(pages_list)
+    if not thumbnail and compact_pages and len(compact_pages) > 0:
+        thumbnail = compact_pages[0]
+    elif not thumbnail and pages_list and len(pages_list) > 0:
         thumbnail = pages_list[0]
     elif not thumbnail and file_url:
         thumbnail = file_url
@@ -1062,10 +1092,10 @@ def save_evaluation_record(
     enriched_dict["_meta_file_hash"] = file_hash
     if "_meta_visual_hashes" not in enriched_dict and pages_list:
         enriched_dict["_meta_visual_hashes"] = compute_visual_handwriting_signature(pages_list)
-    enriched_dict["_meta_thumbnail"] = thumbnail or ""
-    enriched_dict["_meta_pages"] = pages_list if pages_list else ([file_url] if file_url else [])
+    enriched_dict["_meta_thumbnail"] = (compact_pages[0] if compact_pages else (thumbnail or ""))
+    enriched_dict["_meta_pages"] = compact_pages if compact_pages else ([file_url] if file_url else [])
         
-    # 1. Supabase Persistent Database Insert
+    # 1. Supabase Persistent Database Insert (with automatic lightweight fallback so insert never fails)
     if supabase and user and user.get("id"):
         try:
             supa_row = insert_supabase_evaluation(
@@ -1075,7 +1105,17 @@ def save_evaluation_record(
                 total_marks=max_marks,
                 result_json=enriched_dict
             )
-            if supa_row and supa_row.get("id"):
+            if not supa_row:
+                slim_dict = dict(enriched_dict)
+                slim_dict["_meta_pages"] = [file_url] if file_url else (compact_pages[:1] if compact_pages else [])
+                supa_row = insert_supabase_evaluation(
+                    user_id=user["id"],
+                    question_title=question,
+                    file_url=file_url,
+                    total_marks=max_marks,
+                    result_json=slim_dict
+                )
+            if supa_row and supa_row.get("id") and not forced_eval_id:
                 eval_id = str(supa_row["id"])
                 enriched_dict["_meta_eval_id"] = eval_id
         except Exception as se:
@@ -1108,7 +1148,7 @@ def save_evaluation_record(
         overall_score,
         percentage,
         json.dumps(enriched_dict),
-        json.dumps(pages_list),
+        json.dumps(pages_list if pages_list else compact_pages),
         thumbnail,
         1 if is_rewrite else 0,
         file_hash,
@@ -1166,7 +1206,7 @@ def _format_supabase_eval_row(row: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
-    """Returns list of student's past evaluated answer copies (merges Supabase & SQLite so zero copies are ever lost)."""
+    """Returns list of student's past evaluated answer copies (merges Supabase & SQLite and auto-backfills SQLite so zero copies are ever lost)."""
     clean_email = (email or "").strip().lower()
     user = get_or_create_user(clean_email)
     merged_by_id: Dict[str, Dict[str, Any]] = {}
@@ -1175,6 +1215,8 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
         try:
             res = supabase.table("evaluations").select("*").eq("user_id", user["id"]).order("created_at", desc=True).execute()
             if res and res.data:
+                conn_bf = get_db()
+                cur_bf = conn_bf.cursor()
                 for row in res.data:
                     q_t = str(row.get("question_title") or "")
                     if q_t.startswith("__"):
@@ -1183,6 +1225,32 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
                     if str(formatted.get("question") or "").startswith("__") or (formatted.get("evaluation") or {}).get("_is_account_profile"):
                         continue
                     merged_by_id[formatted["id"]] = formatted
+                    try:
+                        cur_bf.execute("""
+                            INSERT OR IGNORE INTO evaluations (
+                                id, user_id, user_email, created_at, paper, max_marks, question,
+                                overall_score, percentage, evaluation_json, pages_json, thumbnail, is_rewrite, file_url
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (
+                            formatted["id"],
+                            user["id"],
+                            clean_email,
+                            formatted.get("created_at") or datetime.now().isoformat(),
+                            formatted["paper"],
+                            formatted["max_marks"],
+                            formatted["question"],
+                            formatted["overall_score"],
+                            formatted["percentage"],
+                            json.dumps(formatted.get("evaluation") or {}),
+                            json.dumps(formatted.get("pages") or []),
+                            formatted.get("thumbnail") or "",
+                            formatted.get("is_rewrite") or 0,
+                            formatted.get("file_url") or ""
+                        ))
+                    except Exception:
+                        pass
+                conn_bf.commit()
+                conn_bf.close()
         except Exception as se:
             print(f"Supabase get_user_evaluations notice: {se}")
 
@@ -1190,7 +1258,7 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
     cursor = conn.cursor()
     cursor.execute("""
         SELECT id, created_at, paper, max_marks, question, overall_score, percentage, thumbnail, is_rewrite,
-               has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
+               has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url, evaluation_json, pages_json
         FROM evaluations
         WHERE LOWER(user_email) = ?
           AND question != '__USER_ACCOUNT_PROFILE__'
@@ -1203,12 +1271,67 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
         if d.get("question") == "__USER_ACCOUNT_PROFILE__":
             continue
         d["total_score"] = d["overall_score"]
+        try:
+            d["evaluation"] = json.loads(d["evaluation_json"]) if d.get("evaluation_json") else {}
+        except Exception:
+            d["evaluation"] = {}
+        try:
+            d["pages"] = json.loads(d["pages_json"]) if d.get("pages_json") else []
+        except Exception:
+            d["pages"] = []
+        d.pop("evaluation_json", None)
+        d.pop("pages_json", None)
         if d["id"] not in merged_by_id:
             merged_by_id[d["id"]] = d
 
     final_list = list(merged_by_id.values())
     final_list.sort(key=lambda x: str(x.get("created_at") or ""), reverse=True)
     return final_list
+
+def restore_evaluations_to_vault(email: str, records: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Restores any evaluated answer copies from the aspirant's browser Answer Vault back into SQLite & Supabase
+    if they are missing on the server (e.g. after a server container restart).
+    """
+    clean_email = (email or "").strip().lower()
+    if not clean_email or not records:
+        return {"restored": 0}
+    existing = get_user_evaluations(clean_email)
+    existing_ids = {str(x.get("id")) for x in existing if x.get("id")}
+    restored_count = 0
+    for rec in records:
+        if not isinstance(rec, dict):
+            continue
+        rid = str(rec.get("id") or rec.get("eval_id") or "").strip()
+        eval_obj = rec.get("evaluation") or rec.get("evaluation_data") or {}
+        if not isinstance(eval_obj, dict) or not eval_obj:
+            continue
+        if rid and rid in existing_ids:
+            continue
+        paper = str(rec.get("paper") or eval_obj.get("detected_paper") or "GS2")
+        max_marks = int(rec.get("max_marks") or eval_obj.get("max_marks") or 15)
+        question = str(rec.get("question") or eval_obj.get("detected_question") or "UPSC Mains Question")
+        overall_score = float(rec.get("overall_score") or eval_obj.get("overall_score") or 0.0)
+        pct = round((overall_score / max_marks) * 100, 1) if max_marks > 0 else 0.0
+        pages = rec.get("pages") or rec.get("page_images") or []
+        thumb = rec.get("thumbnail") or (pages[0] if pages else "")
+        save_evaluation_record(
+            email=clean_email,
+            paper=paper,
+            max_marks=max_marks,
+            question=question,
+            overall_score=overall_score,
+            percentage=pct,
+            evaluation_dict=eval_obj,
+            pages_list=pages if isinstance(pages, list) else [],
+            thumbnail=thumb,
+            is_rewrite=bool(rec.get("is_rewrite")),
+            forced_eval_id=rid if rid else None
+        )
+        if rid:
+            existing_ids.add(rid)
+        restored_count += 1
+    return {"restored": restored_count}
 
 def get_evaluation_by_id(eval_id: str) -> Optional[Dict[str, Any]]:
     """Fetches complete copy payload including annotations and pages from SQLite or Supabase."""
