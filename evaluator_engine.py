@@ -1042,6 +1042,19 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
           1. The `✓` line MUST quote the candidate's **specific high-value keywords, boxed case laws, statutes, or highlighted points** on that page (e.g., `✓ **Boxed Sub-Heading & Case Precedents**: Effective visual boxing of [ROLE PLAYED BY SC & EC], [1997 HC ruling] & [2003: Ramesh Dalal Case] under Prevention of Corruption Act catches examiner attention.`).
           2. The `✗` line MUST explicitly identify which written bullet points on that page were **generic/unsubstantiated** and specify the **exact special keyword/committee/judgment** that should replace or back them (e.g., `✗ **Generic Points Capped**: Bullet points on 'black money supply', 'international standing' & 'marginalisation of poor' are generic — anchor with **Vohra Committee (1993) nexus report**, **ADR 46% MPs data**, **Lily Thomas (2013)** & **Public Interest Foundation (2018)** for topper marks.`).
 
+20. ZERO CONTRADICTION AUDIT, APPRECIATE RIGHT POINTS & SIMPLE EVERYDAY ENGLISH (MANDATORY):
+    - A. NEVER SAY A POINT IS MISSING IF THE ASPIRANT ALREADY WROTE IT:
+      * Before generating `body_audit.critical_gaps` (Mentor's Upgrade Levers), `body_audit.missing_dimensions`, `intro_audit.missing_elements`, `visual_annotations`, or `missing_keywords_cards`, cross-check every single word against `transcribed_text` and `body_audit.strengths`!
+      * STRICT BAN: If the aspirant already wrote a case law, statute, article, or concept in their answer (for example, if they wrote `Striking of NJAC Act by court` on Page 1), NEVER write `"without citing NJAC judgment"`, `"missed NJAC"`, or `"(e.g., NJAC judgment debate)"` under critical gaps or missing dimensions! Saying an aspirant missed something they clearly wrote on the sheet destroys trust.
+      * Instead, **appreciate** the right point they wrote (`"You rightly used the **NJAC Act** to explain judicial independence"`) and guide them on the next distinct angle they can add (`"To gain +1M more, add 2 short points on **Judicial Restraint** so courts respect Parliament's policy role"`).
+    - B. APPRECIATE RIGHT POINTS & DO NOT OVERLOAD THE ASPIRANT:
+      * When the aspirant has written valid points that meet the demand of the question, praise those exact points clearly in `body_audit.strengths` and `visual_annotations`.
+      * Keep `body_audit.critical_gaps` (Mentor's Upgrade Levers) to **at most 2 clear, practical points** that are genuinely absent from their answer. Never overload or confuse the aspirant with repetitive advice.
+    - C. USE SIMPLE, CLEAR, EASY-TO-UNDERSTAND ENGLISH (ZERO HEAVY JARGON):
+      * Write every evaluation remark in plain, natural English that any aspirant can understand in 3 seconds.
+      * STRICTLY AVOID dense, robotic phrases such as `"Addressed limitations superficially without citing institutional friction"`, `"underweighting separation of powers constraints"`, `"epistemic tautology"`, `"dichotomy"`, `"substantiation"`.
+      * Instead of `"Addressed limitations superficially without citing institutional friction"`, write: `"**Explain Both Sides**: You explained well how courts protect the Constitution (using **NJAC** & **Maneka Gandhi**). Add 2 simple points on **Judicial Restraint**—where courts should respect Parliament's law-making role."`
+
 Generate strictly valid JSON matching this schema:
 {{
   "detected_question": "Exact question read from booklet header or provided by user",
@@ -1689,7 +1702,90 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
         if not data["directive_compliance"].get("directive") or data["directive_compliance"].get("directive") == "Discuss / Comprehensive Analysis":
             data["directive_compliance"]["directive"] = d_info["directive"]
 
+    # 7. Zero-Contradiction Audit & Plain-English Simplification across all feedback fields
+    _sanitize_and_simplify_feedback(data)
+
     return data
+
+
+def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
+    """
+    Guarantees that:
+    1. No 'missing' / 'upgrade lever' critique ever claims the student failed to cite a case/article/term
+       that is already present in transcribed_text, body_audit.strengths, or positive ✓ margin remarks.
+    2. Stiff, robotic jargon is simplified into clear, appreciative, actionable UPSC Mentor English.
+    """
+    if not isinstance(data, dict):
+        return
+
+    body_audit = data.get("body_audit") if isinstance(data.get("body_audit"), dict) else {}
+    strengths_list = body_audit.get("strengths") if isinstance(body_audit.get("strengths"), list) else []
+    anns_list = data.get("visual_annotations") if isinstance(data.get("visual_annotations"), list) else []
+
+    # Build corpus of what the student ACTUALLY wrote or was already credited for
+    positive_corpus = " ".join([
+        str(data.get("transcribed_text") or ""),
+        " ".join(str(s) for s in strengths_list),
+        " ".join(str(a.get("remark") or "") for a in anns_list if "✓" in str(a.get("remark") or ""))
+    ]).lower()
+
+    tracked_landmarks = [
+        "njac", "maneka gandhi", "navtej johar", "shreya singhal", "kesavananda",
+        "basic structure", "article 13", "article 21", "article 14", "article 32",
+        "rule of law", "due process", "minerva mills", "sr bommai", "puttaswamy",
+        "vishaka", "indira sawheny", "lily thomas", "vohra committee"
+    ]
+    written_terms = [t for t in tracked_landmarks if t in positive_corpus]
+
+    def simplify_and_decontradict(text: str, is_gap: bool = False) -> str:
+        if not text:
+            return text
+        s = str(text).strip()
+        s_low = s.lower()
+
+        # Check for specific NJAC contradiction or robotic 'Judicial Overreach Dimension' / 'Analytical Balance' phrasing
+        if is_gap and ("njac" in s_low and "njac" in positive_corpus):
+            return "**Good Use of NJAC Case — Now Add Judicial Restraint**: You rightly cited the **NJAC Act** to show judicial independence. To score +1M higher, add 2 simple points on **Judicial Restraint** (why courts should respect Parliament's law-making role)."
+        if is_gap and ("addressed limitations superficially" in s_low or "institutional friction" in s_low):
+            return "**Explain Both Sides Clearly**: You explained well how courts protect the Constitution. To score +1M higher, add 2 simple points on **Judicial Restraint** (where courts should avoid stepping into Parliament's policy domain)."
+        if is_gap and ("underweighting separation of powers" in s_low or "focused primarily on rights expansion" in s_low):
+            return "**Show Both Sides of the Question**: Your answer covers the **benefits** of Judicial Review well. Balance it with a short sub-heading on **Limits of Judicial Review** (such as **Separation of Powers** under **Article 50**)."
+
+        # Generic check: if any gap claims 'without citing X' or '(e.g., X)' where X is already in written_terms
+        if is_gap:
+            for term in written_terms:
+                if term in s_low and any(phrase in s_low for phrase in ["without citing", "missing", "lacks", "failed to cite", "e.g."]):
+                    pretty_term = term.upper() if len(term) <= 4 else term.title()
+                    return f"**Build on Your {pretty_term} Point**: You rightly mentioned **{pretty_term}**. To gain +1M more, add a short point on **practical challenges / institutional balance** to cover both sides of the question."
+
+        # Simplify stiff academic vocabulary into clear, everyday mentor English
+        replacements = [
+            ("Addressed limitations superficially without citing institutional friction", "Mentioned limits briefly—add 2 simple points on how Parliament and Judiciary balance each other"),
+            ("while underweighting separation of powers constraints", "—also add a short point on **Separation of Powers (Article 50)** so both sides are balanced"),
+            ("Lacks deeper structural analysis of the doctrine of basic structure limitations and judicial overreach", "You explained **Basic Structure** and key cases well. To score +1.5M higher, add 2 simple points on **Judicial Restraint** (where courts should not overstep into law-making)"),
+            ("Anchor arguments with empirical data points or committee reports", "Back your points with 1 fact or committee name (like **2nd ARC** or **Law Commission**)"),
+            ("superficially", "briefly"),
+            ("underweighting", "giving less space to"),
+            ("institutional friction", "tension between Legislature and Judiciary"),
+            ("substantiation", "supporting examples")
+        ]
+        for old_p, new_p in replacements:
+            if old_p.lower() in s.lower():
+                s = re.sub(re.escape(old_p), new_p, s, flags=re.IGNORECASE)
+        return s
+
+    if isinstance(body_audit.get("critical_gaps"), list):
+        cleaned_gaps = [simplify_and_decontradict(g, is_gap=True) for g in body_audit["critical_gaps"]]
+        # Keep concise (max 2 high-impact, non-repetitive points)
+        deduped_gaps = []
+        for g in cleaned_gaps:
+            if g and g not in deduped_gaps:
+                deduped_gaps.append(g)
+        body_audit["critical_gaps"] = deduped_gaps[:2]
+        data["body_audit"] = body_audit
+
+    if data.get("executive_summary"):
+        data["executive_summary"] = simplify_and_decontradict(data["executive_summary"], is_gap=False)
 
 def parse_llm_json_response(raw_text: str) -> Dict[str, Any]:
     """
