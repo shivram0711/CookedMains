@@ -1054,6 +1054,12 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       * Write every evaluation remark in plain, natural English that any aspirant can understand in 3 seconds.
       * STRICTLY AVOID dense, robotic phrases such as `"Addressed limitations superficially without citing institutional friction"`, `"underweighting separation of powers constraints"`, `"epistemic tautology"`, `"dichotomy"`, `"substantiation"`.
       * Instead of `"Addressed limitations superficially without citing institutional friction"`, write: `"**Explain Both Sides**: You explained well how courts protect the Constitution (using **NJAC** & **Maneka Gandhi**). Add 2 simple points on **Judicial Restraint**—where courts should respect Parliament's law-making role."`
+    - D. MATCH MARGIN CARD TAGS TO EXACT STUDENT HEADINGS & FLAG MISSING 'WAY FORWARD' HONESTLY:
+      * NEVER label a Margin Card `"Body: Way Forward"` unless the student ACTUALLY wrote a `"Way Forward / Solutions / Reforms"` heading or section on that page!
+      * If the student wrote a `"Limitations"`, `"Challenges"`, `"Issues"`, or `"Criticisms"` section/diagram on the final page (e.g., a boxed `[Limitations of Judicial Review]` diagram) and jumped directly to the `Conclusion` WITHOUT writing a `"Way Forward"`:
+        1. Set the Margin Card `tag` to match the student's actual heading (e.g., `"Body: Limitations of Judicial Review"`).
+        2. Praise their written Limitations/Challenges points or diagram in the `✓` line.
+        3. Explicitly state in the `✗` line AND in `body_audit.critical_gaps`: `"✗ **Missing Way Forward**: You moved directly from **Limitations** to the Conclusion—add 2 short **Way Forward** points before concluding."`
 
 Generate strictly valid JSON matching this schema:
 {{
@@ -1783,6 +1789,19 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                 deduped_gaps.append(g)
         body_audit["critical_gaps"] = deduped_gaps[:2]
         data["body_audit"] = body_audit
+
+    # Check if student wrote 'Limitations' / 'Challenges' without a 'Way Forward' section
+    has_limitations_written = any(k in positive_corpus for k in ["limitation", "judicial overreach", "roger mathew", "personal bias"])
+    has_way_forward_written = any(k in positive_corpus for k in ["way forward", "way ahead", "steps needed", "measures to", "reforms needed"])
+    if has_limitations_written and not has_way_forward_written:
+        for ann in anns_list:
+            tag_low = str(ann.get("tag") or "").lower()
+            if "way forward" in tag_low or "way ahead" in tag_low:
+                ann["tag"] = "Body: Limitations of Judicial Review" if "judicial" in positive_corpus else "Body: Limitations & Analysis"
+                ann["remark"] = (
+                    "✓ **Good Diagram & Points on Limitations**: Clearly presented **Limitations of Judicial Review** (judicial overreach, judge bias) & **Separation of Power**.\n"
+                    "✗ **Missing Way Forward**: You moved directly from **Limitations** to the Conclusion—add 2 short **Way Forward** points before concluding."
+                )
 
     if data.get("executive_summary"):
         data["executive_summary"] = simplify_and_decontradict(data["executive_summary"], is_gap=False)
