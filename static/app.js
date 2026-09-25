@@ -4337,7 +4337,12 @@ function start24hRewriteTimer(evalTimestamp) {
 
   const rawTs = evalTimestamp || (state.currentEvalRecord && state.currentEvalRecord.created_at) || (state.currentEvaluation && (state.currentEvaluation.created_at || state.currentEvaluation.evaluated_at));
   if (rawTs) {
-    const tsStr = String(rawTs).includes("T") ? String(rawTs) : String(rawTs).replace(" ", "T");
+    let tsStr = String(rawTs).trim();
+    if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/.test(tsStr)) {
+      tsStr = tsStr.replace(/\s+/, "T") + "Z";
+    } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(tsStr) && !tsStr.endsWith("Z") && !/[+-]\d{2}:?\d{2}$/.test(tsStr)) {
+      tsStr = tsStr + "Z";
+    }
     let parsed = new Date(tsStr).getTime();
     if (isNaN(parsed)) {
       parsed = new Date(rawTs).getTime();
@@ -7870,7 +7875,7 @@ async function loadLockerHistory() {
 
     let html = "";
     list.forEach(item => {
-      const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "Recently";
+      const dateStr = window.formatLockerTimestampIST ? window.formatLockerTimestampIST(item.created_at) : "Recently";
       const isRewriteBadge = item.is_rewrite 
         ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Rewrite (1/1)</span>` 
         : (item.has_been_rewritten 
@@ -8390,8 +8395,39 @@ window.renderWeeklyLocker = function() {
     earlier: { title: "Earlier History & Archive", icon: "archive", items: [] }
   };
 
+  // Ensure SQLite UTC timestamps ("YYYY-MM-DD HH:MM:SS") are parsed as UTC ('Z') and displayed in Indian Standard Time (IST +05:30)
+  window.parseDatabaseUtcDate = function(rawTs) {
+    if (!rawTs) return new Date();
+    let s = String(rawTs).trim();
+    if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/.test(s)) {
+      s = s.replace(/\s+/, "T") + "Z";
+    } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s) && !s.endsWith("Z") && !/[+-]\d{2}:?\d{2}$/.test(s)) {
+      s = s + "Z";
+    }
+    const d = new Date(s);
+    return isNaN(d.getTime()) ? new Date(rawTs) : d;
+  };
+
+  window.formatLockerTimestampIST = function(rawTs) {
+    if (!rawTs) return "Recently";
+    const d = window.parseDatabaseUtcDate(rawTs);
+    if (isNaN(d.getTime())) return "Recently";
+    try {
+      return d.toLocaleDateString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+      });
+    } catch (e) {
+      return d.toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    }
+  };
+
   filtered.forEach(item => {
-    const created = item.created_at ? new Date(item.created_at) : new Date();
+    const created = item.created_at ? window.parseDatabaseUtcDate(item.created_at) : new Date();
     const diffDays = Math.floor((now - created) / (1000 * 60 * 60 * 24));
 
     if (diffDays < 7) {
@@ -8422,7 +8458,7 @@ window.renderWeeklyLocker = function() {
     `;
 
     grp.items.forEach(item => {
-      const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "Recently";
+      const dateStr = window.formatLockerTimestampIST(item.created_at);
       const isRewriteBadge = item.is_rewrite 
         ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">Rewrite (1/1)</span>` 
         : (item.has_been_rewritten 

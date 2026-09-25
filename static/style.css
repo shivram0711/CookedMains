@@ -2339,6 +2339,32 @@ html:not(.dark) #answerLockerDrawer > div {
   color: #1E293B !important;
 }
 
+html:not(.dark) #authModal #authGoBackBtn {
+  background-color: #F1F5F9 !important;
+  color: #1E293B !important;
+  border: 1px solid #CBD5E1 !important;
+}
+html:not(.dark) #authModal #authGoBackBtn:hover {
+  background-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+html:not(.dark) #authModal #authGoBackBtn * {
+  color: #1E293B !important;
+}
+
+html:not(.dark) #authModal #closeAuthModalBtn {
+  background-color: #FFF1F2 !important;
+  color: #E11D48 !important;
+  border: 1px solid #FECDD3 !important;
+}
+html:not(.dark) #authModal #closeAuthModalBtn:hover {
+  background-color: #FFE4E6 !important;
+  color: #BE123C !important;
+}
+html:not(.dark) #authModal #closeAuthModalBtn * {
+  color: #E11D48 !important;
+}
+
 html:not(.dark) #answerLockerDrawer .bg-slate-950\/80,
 html:not(.dark) #answerLockerDrawer .bg-slate-950 {
   background-color: #FAF8F5 !important;

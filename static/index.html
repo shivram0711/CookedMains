@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css?v=3.2">
+  <link rel="stylesheet" href="/static/style.css?v=3.3">
   <!-- Google Identity Services for 1-Click Native Browser Google Account Chooser -->
   <script src="https://accounts.google.com/gsi/client"></script>
 
@@ -2329,11 +2329,11 @@
     <div class="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-md w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 shadow-2xl space-y-3.5 relative my-auto">
       <!-- Top Bar: Go Back & Close Buttons -->
       <div class="flex items-center justify-between">
-        <button type="button" onclick="window.closeAuthModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-bold border border-slate-700 transition cursor-pointer">
+        <button id="authGoBackBtn" type="button" onclick="window.closeAuthModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white text-xs font-bold border border-slate-300 dark:border-slate-700 transition cursor-pointer shadow-xs">
           <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
           <span>Go Back</span>
         </button>
-        <button id="closeAuthModalBtn" type="button" onclick="window.closeAuthModal()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 text-xs font-bold border border-slate-700 hover:border-rose-500/40 transition cursor-pointer" title="Cancel & Close">
+        <button id="closeAuthModalBtn" type="button" onclick="window.closeAuthModal()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-slate-800 dark:hover:bg-rose-500/20 text-rose-600 dark:text-slate-300 hover:text-rose-700 dark:hover:text-rose-300 text-xs font-bold border border-rose-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-500/40 transition cursor-pointer shadow-xs" title="Cancel & Close">
           <i data-lucide="x" class="w-4 h-4"></i>
           <span>Cancel</span>
         </button>
@@ -2684,32 +2684,32 @@
             <span id="accountNavCreditsPill" class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400">15 Daily</span>
           </button>
 
-          <!-- Tab 3: Locker -->
+          <!-- Tab 2: Locker -->
           <button onclick="window.switchAccountTab('locker')" id="accountNavBtn_locker" class="account-nav-btn flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition text-left cursor-pointer">
             <div class="flex items-center gap-2">
               <i data-lucide="folder-clock" class="w-4 h-4 text-blue-500 shrink-0"></i>
-              <span>3. Locker</span>
+              <span>2. Locker</span>
             </div>
             <span id="accountNavLockerCount" class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">0</span>
           </button>
 
-          <!-- Tab 4: Tracker -->
+          <!-- Tab 3: Tracker -->
           <button onclick="window.switchAccountTab('tracker')" id="accountNavBtn_tracker" class="account-nav-btn flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition text-left cursor-pointer">
             <i data-lucide="line-chart" class="w-4 h-4 text-purple-500 shrink-0"></i>
-            <span>4. Tracker</span>
+            <span>3. Tracker</span>
           </button>
 
-          <!-- Tab 5: Feedback -->
+          <!-- Tab 4: Feedback -->
           <button onclick="window.switchAccountTab('feedback')" id="accountNavBtn_feedback" class="account-nav-btn flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition text-left cursor-pointer">
             <i data-lucide="message-square-heart" class="w-4 h-4 text-rose-500 shrink-0"></i>
-            <span>5. Feedback &amp; Glitches</span>
+            <span>4. Feedback &amp; Glitches</span>
           </button>
 
-          <!-- Tab 6: Sign Out / Logout Option -->
+          <!-- Tab 5: Sign Out / Logout Option -->
           <button onclick="window.logoutAspirant()" id="accountNavBtn_logout" class="account-nav-btn flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition text-left cursor-pointer text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 hover:text-rose-700 dark:hover:text-rose-300 mt-2 border border-rose-500/30">
             <div class="flex items-center gap-2">
               <i data-lucide="log-out" class="w-4 h-4 text-rose-500 shrink-0"></i>
-              <span class="font-bold">6. Sign Out / Switch</span>
+              <span class="font-bold">5. Sign Out / Switch</span>
             </div>
             <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-rose-400 hidden md:inline"></i>
           </button>
@@ -3201,7 +3201,7 @@
 
   </div>
 
-  <script src="/static/app.js?v=3.9"></script>
+  <script src="/static/app.js?v=4.0"></script>
   <script>
     if (window.lucide) {
       try { lucide.createIcons(); } catch(e) {}
