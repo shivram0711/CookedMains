@@ -830,6 +830,25 @@ EVALUATION PARAMETERS:
 EXPECTED DISCIPLINARY BENCHMARKS:
 {chr(10).join('- ' + elem for elem in taxonomy['expected_elements'])}
 
+MASTER UPSC SUBJECT-SPECIFIC ESSENCE, CORE VALUES & WRITING DNA (EVALUATE AS A SENIOR DOMAIN PROFESSOR):
+Every UPSC Mains paper and micro-subject has its own distinct soul, technical lexicon, evidence standard, and way of writing. Once you read the printed question on the booklet (or user prompt), lock 100% into that exact sub-discipline's evaluation DNA:
+- IF GS-1 (HISTORY, ART & CULTURE, INDIAN SOCIETY, GEOGRAPHY):
+  * History & Art/Culture DNA: Evaluate for chronological periodization, architectural/artistic vocabulary (Nagara vs Dravida, Tribhanga, Pietra Dura), primary sources/inscriptions/numismatics, ideological currents (Moderates, Extremists, Subaltern, Bhakti-Sufi synthesis), and cause-effect-consequence analysis (penalize mere storytelling).
+  * Indian Society DNA: Evaluate for sociological concepts (Sanskritization, Secularization, Care Economy, Demographic Dividend, Urbanization-Induced Alienation, Regionalism vs Communalism, Melting Pot vs Salad Bowl), empirical baselines (NFHS-5, PLFS, Census), and constitutional social harmony.
+  * Geography & Resources DNA: Evaluate for physical/geomorphic processes (Coriolis force, Albedo, ITCZ, Plate Tectonics, Thermohaline circulation, Western Disturbances), spatial location accuracy, **hand-drawn India/World sketch maps or cross-section diagrams**, and contemporary flashpoints (GLOFs, Wayanad landslides, Urban Heat Islands).
+- IF GS-2 (CONSTITUTION, POLITY, GOVERNANCE, SOCIAL JUSTICE & INTERNATIONAL RELATIONS):
+  * Constitution & Polity DNA: Evaluate for exact Constitutional Articles, Doctrines (Basic Structure, Pith & Substance, Colourable Legislation, Harmonious Construction, Constitutional Morality, Separation of Powers vs Checks & Balances), Supreme Court Constitution Bench rulings, and Sarkaria / Punchhi / NCRWC / Law Commission reports.
+  * Governance & Social Justice DNA: Evaluate for institutional delivery mechanisms (Sevottam Model, Citizen Charters, Social Audit, Digital Public Infrastructure - Aadhaar/UPI/ONDC, 3Fs of 73rd/74th Amendments), Amartya Sen's Capability Approach, NEP 2020, POSHAN 2.0, and 2nd ARC recommendations.
+  * International Relations (IR) DNA: Evaluate for geopolitical vocabulary (Strategic Autonomy, Multi-alignment, De-hyphenation, Voice of Global South, Indo-Pacific architecture, Soft vs Hard Power, Track-1.5/2 diplomacy), bilateral treaties, and minilateral groupings (Quad, I2U2, BRICS+, SCO, BIMSTEC).
+- IF GS-3 (ECONOMY, AGRICULTURE, SCIENCE & TECH, ENVIRONMENT, INTERNAL SECURITY & DISASTER MGMT):
+  * Economy & Inclusive Growth DNA: Evaluate for macroeconomic & structural precision (Total Factor Productivity, ICOR, Fiscal Consolidation, Crowding-In, MSME Dwarfism / 'Small by Choice', Global Value Chains, Formalization), backed by Economic Survey, Union Budget, RBI, and NITI Aayog data.
+  * Agriculture & Food Processing DNA: Evaluate across the Farm-to-Fork supply chain (Input -> Credit -> Production -> Post-Harvest APMC/e-NAM -> FCI Buffer Stock -> PDS), citing Ashok Dalwai Committee (Doubling Farmers' Income), Shanta Kumar Committee, MSP & Crop Diversification (Shree Anna / Oilseeds).
+  * Science & Technology (Deep-Tech, AI, Space, Biotech, Quantum) DNA: Evaluate for R&D ecosystem metrics (GERD ~0.65% of GDP, Researcher Density per lakh, TRL - Technology Readiness Levels, Lab-to-Market Valley of Death, Patient Capital), flagship missions (ANRF, National Quantum Mission, IndiaAI Mission, India Semiconductor Mission, BioE3 Policy, Space Policy 2023, VAIBHAV, iDEX), and indigenous IP creation.
+  * Environment, Security & Disaster Management DNA: Evaluate for global conventions (UNFCCC COP, Panchamrit Net Zero 2070, Mission LiFE, Kunming-Montreal 30x30, Sendai Framework 4 Priorities), NDMA guidelines, Gadgil/Kasturirangan reports, and internal security doctrines (NATGRID, MAC, Hybrid/Cyber Warfare, SAMADHAN, CIBMS, Vibrant Villages).
+- IF GS-4 (ETHICS, INTEGRITY & APTITUDE - SECTION A & SECTION B CASE STUDIES):
+  * Section A (Ethical Theory, Attitude, EI & Probity) DNA: Enforce the KEE Model (Keyword -> Ethical Explanation -> Real Administrative/Societal Example), Indian + Western Philosophical Synthesis (Nishkam Karma, Antyodaya, Madhyam Marg, Kantian Categorical Imperative, Mill's Utilitarianism, Rawls' Veil of Ignorance, Virtue Ethics), CAB Model of Attitude, Daniel Goleman's Emotional Intelligence, and 2nd ARC 4th Report (Ethics in Governance).
+  * Section B (Case Studies) DNA: Evaluate for Stakeholder Matrix, Ethical & Constitutional Dilemmas, **2-column Merits vs. Demerits evaluation with explicit Demerit Mitigation**, and a 3-phased Course of Action (Immediate De-escalation -> Due Process Inquiry -> Long-Term Systemic Safeguards).
+
 CRITICAL MANDATES (NON-NEGOTIABLE):
 0. FORENSIC DISTINCTION: TYPESET PRINTED QUESTION / CASE STUDY VS. CANDIDATE'S HANDWRITING:
    - In UPSC Question-Cum-Answer-Booklets (QCAB) and standard mock test copies:
