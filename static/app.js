@@ -3557,8 +3557,249 @@ function renderAnnotationsOverlay() {
     });
   }
 
+// Forensic Canvas Handwriting Boundary Detector:
+// Scans the actual uploaded answer sheet image pixels to lock curly braces '}' strictly onto the student's
+// handwritten Intro, Body, and Conclusion lines (excluding top printed headers/questions and bottom printed evaluation boxes/blank space).
+function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, rawAnns) {
+  window.applyPreciseHandwritingBounds = applyPreciseHandwritingBounds;
+  if (!sections || !sections.length) return;
+
+  // Step 1: Apply calibrated UPSC booklet baseline bounds (already far more accurate than legacy 16..36 / 67..94)
+  if (totalPages === 1 && sections.length === 3) {
+    sections[0].startYPercent = 25; sections[0].endYPercent = 39;
+    sections[1].startYPercent = 41; sections[1].endYPercent = 66;
+    sections[2].startYPercent = 68; sections[2].endYPercent = 86;
+  } else if (currentPg === 1 && sections.length === 2) {
+    sections[0].startYPercent = 25; sections[0].endYPercent = 39.5;
+    sections[1].startYPercent = 41.5; sections[1].endYPercent = 89;
+  } else if (currentPg < totalPages && sections.length === 2) {
+    sections[0].startYPercent = 8; sections[0].endYPercent = 49;
+    sections[1].startYPercent = 51; sections[1].endYPercent = 89;
+  } else if (sections.length === 2) {
+    // Final page: Body Way Forward (top) + Conclusion (above bottom printed evaluation box)
+    sections[0].startYPercent = 7; sections[0].endYPercent = 40.5;
+    sections[1].startYPercent = 42.5; sections[1].endYPercent = 69.5;
+  }
+
+  // Honor explicit AI-calibrated start_y_percent / end_y_percent when within realistic handwritten bounds
+  if (Array.isArray(rawAnns) && rawAnns.length > 0) {
+    sections.forEach(sec => {
+      const matchingAnn = rawAnns.find(a => {
+        const t = String(a.tag || "").toLowerCase();
+        if (sec.zone === "intro") return t.includes("intro") || t.includes("premise") || t.includes("definition");
+        if (sec.zone === "conclusion" || sec.zone === "concl") return t.includes("concl") || t.includes("synthesis") || t.includes("finish");
+        return !t.includes("intro") && !t.includes("concl") && !t.includes("synthesis");
+      });
+      if (matchingAnn) {
+        const sY = parseFloat(matchingAnn.start_y_percent);
+        const eY = parseFloat(matchingAnn.end_y_percent);
+        if (!isNaN(sY) && !isNaN(eY) && eY - sY >= 8 && sY >= 5 && eY <= 96) {
+          if (currentPg === 1 && sec.zone === "intro") {
+            sec.startYPercent = Math.max(22, Math.min(34, sY));
+            sec.endYPercent = Math.max(sec.startYPercent + 10, Math.min(48, eY));
+          } else {
+            sec.startYPercent = sY;
+            sec.endYPercent = eY;
+          }
+        }
+      }
+    });
+  }
+
+  // Step 2: Real-Time Pixel Ink-Profile Scan on the loaded Answer Sheet Image
+  if (!imgEl || !imgEl.complete || !imgEl.naturalWidth || !imgEl.naturalHeight) return;
+
+  try {
+    const W = 240;
+    const H = 340;
+    const canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return;
+    ctx.drawImage(imgEl, 0, 0, W, H);
+    const imgData = ctx.getImageData(0, 0, W, H).data;
+
+    const leftStroke = new Float32Array(100);
+    const rightStroke = new Float32Array(100);
+    const totalStroke = new Float32Array(100);
+
+    const xLeftStart = Math.floor(W * 0.18);
+    const xMidSplit = Math.floor(W * 0.37);
+    const xRightEnd = Math.floor(W * 0.79);
+    const bandWidth = xRightEnd - xLeftStart;
+
+    for (let y = 0; y < H; y++) {
+      const p = Math.min(99, Math.floor((y / H) * 100));
+      // Check if row y is a continuous horizontal table/header border line
+      let horizDarkRun = 0;
+      for (let x = xLeftStart; x < xRightEnd; x++) {
+        const idx = (y * W + x) * 4;
+        const lum = (imgData[idx] + imgData[idx + 1] + imgData[idx + 2]) / 3;
+        if (lum < 185) horizDarkRun++;
+      }
+      if (horizDarkRun > bandWidth * 0.42) {
+        // Skip straight horizontal border rules so table boxes never count as handwriting
+        continue;
+      }
+
+      for (let x = xLeftStart; x < xRightEnd; x++) {
+        const idx = (y * W + x) * 4;
+        const r = imgData[idx], g = imgData[idx + 1], b = imgData[idx + 2];
+        const lum = (r + g + b) / 3;
+
+        // Local horizontal background luminance (normalizes out peach/orange Vajiram watermarks & shadows)
+        const idxL = (y * W + Math.max(0, x - 6)) * 4;
+        const idxR = (y * W + Math.min(W - 1, x + 6)) * 4;
+        const bgL = (imgData[idxL] + imgData[idxL + 1] + imgData[idxL + 2]) / 3;
+        const bgR = (imgData[idxR] + imgData[idxR + 1] + imgData[idxR + 2]) / 3;
+        const localBg = Math.max(bgL, bgR);
+
+        const isInkStroke = (localBg - lum >= 24 && lum < 205) || (b - r >= 10 && lum < 210);
+        if (isInkStroke) {
+          if (x < xMidSplit) {
+            leftStroke[p] += 1;
+          } else {
+            rightStroke[p] += 1;
+          }
+          totalStroke[p] += 1;
+        }
+      }
+    }
+
+    // Determine exact top of student handwriting (handwritingTopY)
+    let handwritingTopY = currentPg === 1 ? 25.0 : 6.5;
+    if (currentPg === 1) {
+      // Check if there is a printed header + question in 10%..23% followed by a whitespace gap in 22%..30%
+      let bestGapP = 24;
+      let minGapVal = Infinity;
+      for (let p = 22; p <= 30; p++) {
+        const v = totalStroke[p] + 0.5 * (totalStroke[p - 1] || 0);
+        if (v < minGapVal) {
+          minGapVal = v;
+          bestGapP = p;
+        }
+      }
+      // First active handwriting band right after the printed question gap
+      let foundTop = bestGapP + 1;
+      for (let p = bestGapP; p <= 36; p++) {
+        if (totalStroke[p] >= 5 || rightStroke[p] >= 3) {
+          foundTop = p;
+          break;
+        }
+      }
+      handwritingTopY = Math.max(23.5, Math.min(33.0, foundTop));
+    } else {
+      for (let p = 5; p <= 35; p++) {
+        if (rightStroke[p] >= 3 || totalStroke[p] >= 6) {
+          handwritingTopY = Math.max(5.5, p - 0.5);
+          break;
+        }
+      }
+    }
+
+    // Determine exact bottom of student handwriting (handwritingBottomY)
+    // First detect if p = 73%..91% has an unwritten bottom evaluation box (where right-half 'Suggestions:' is blank)
+    let boxRightActiveCount = 0;
+    for (let p = 74; p <= 90; p++) {
+      if (rightStroke[p] >= 4.5) boxRightActiveCount++;
+    }
+    // If the right-side 'Suggestions:' zone in 74%..90% has <= 3 active bands, the bottom evaluation box is unwritten!
+    const maxScanBottomP = (boxRightActiveCount <= 3) ? 70 : 95;
+
+    let handwritingBottomY = currentPg === 1 ? 89.5 : 69.5;
+    for (let p = maxScanBottomP; p >= handwritingTopY + 14; p--) {
+      // Check a 5-band window [p-4 .. p] for genuine multi-row handwriting
+      let activeRowsInWindow = 0;
+      for (let k = Math.max(0, p - 4); k <= p; k++) {
+        if (rightStroke[k] >= 3.0 || (totalStroke[k] >= 6.0 && rightStroke[k] >= 1.5)) {
+          activeRowsInWindow++;
+        }
+      }
+      if (activeRowsInWindow >= 3) {
+        handwritingBottomY = Math.min(95.5, p + 0.5);
+        break;
+      }
+    }
+
+    const span = Math.max(18, handwritingBottomY - handwritingTopY);
+
+    // Helper to find the cleanest inter-paragraph whitespace valley in [minP, maxP]
+    const findValley = (minP, maxP, idealP) => {
+      const lo = Math.max(Math.round(handwritingTopY + 6), Math.round(minP));
+      const hi = Math.min(Math.round(handwritingBottomY - 6), Math.round(maxP));
+      if (lo >= hi) return idealP;
+      let bestP = Math.round(idealP);
+      let bestScore = Infinity;
+      for (let p = lo; p <= hi; p++) {
+        const strokeVal = (totalStroke[p] || 0) + 0.4 * ((totalStroke[p - 1] || 0) + (totalStroke[p + 1] || 0));
+        const distPenalty = Math.abs(p - idealP) * 0.35;
+        const score = strokeVal + distPenalty;
+        if (score < bestScore) {
+          bestScore = score;
+          bestP = p;
+        }
+      }
+      return bestP;
+    };
+
+    if (sections.length === 3) {
+      // Single-page copy: Intro + Body + Conclusion
+      const s1 = findValley(handwritingTopY + span * 0.18, handwritingTopY + span * 0.32, handwritingTopY + span * 0.24);
+      const s2 = findValley(handwritingTopY + span * 0.66, handwritingTopY + span * 0.84, handwritingTopY + span * 0.75);
+      sections[0].startYPercent = handwritingTopY;
+      sections[0].endYPercent = s1;
+      sections[1].startYPercent = s1 + 1.5;
+      sections[1].endYPercent = s2 - 1.5;
+      sections[2].startYPercent = s2;
+      sections[2].endYPercent = handwritingBottomY;
+    } else if (sections.length === 2 && currentPg === 1) {
+      // Multi-page Page 1: Intro + Body
+      const introEnd = findValley(
+        handwritingTopY + Math.max(11, span * 0.18),
+        handwritingTopY + Math.min(22, span * 0.32),
+        handwritingTopY + span * 0.23
+      );
+      sections[0].startYPercent = handwritingTopY;
+      sections[0].endYPercent = introEnd;
+      sections[1].startYPercent = introEnd + 1.5;
+      sections[1].endYPercent = handwritingBottomY;
+    } else if (sections.length === 2 && currentPg === totalPages) {
+      // Final page: Body Way Forward + Conclusion (strictly above any unwritten bottom evaluation box)
+      const concStart = findValley(
+        handwritingTopY + span * 0.44,
+        handwritingTopY + span * 0.66,
+        handwritingTopY + span * 0.55
+      );
+      sections[0].startYPercent = handwritingTopY;
+      sections[0].endYPercent = concStart - 1.5;
+      sections[1].startYPercent = concStart;
+      sections[1].endYPercent = handwritingBottomY;
+    } else if (sections.length === 2) {
+      // Intermediate page: Body Dimension 1 + Body Enrichment
+      const midSplit = findValley(
+        handwritingTopY + span * 0.38,
+        handwritingTopY + span * 0.62,
+        handwritingTopY + span * 0.50
+      );
+      sections[0].startYPercent = handwritingTopY;
+      sections[0].endYPercent = midSplit - 1.5;
+      sections[1].startYPercent = midSplit;
+      sections[1].endYPercent = handwritingBottomY;
+    }
+
+    // Update cardTopPercent if present (for Print Preview alignment)
+    sections.forEach(sec => {
+      sec.cardTopPercent = Math.max(4, Math.round(sec.startYPercent));
+    });
+  } catch (err) {
+    // Non-fatal fallback: calibrated UPSC bounds already applied in Step 1
+  }
+}
+
   if (marginContainer) {
     const imgEl = document.getElementById("activePageImage");
+    applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, rawAnns);
     const containerHeight = (imgEl && imgEl.clientHeight > 200) ? imgEl.clientHeight : (marginContainer.clientHeight || 750);
 
     // 1. Render SVG '}' Curly Braces on the Answer Copy (embracing the exact lines)
@@ -6140,6 +6381,12 @@ function populatePrintAnnotatedCopies(evalData, pages, targetContainer) {
         marks: conclMarks,
         bulletsHtml: formatPrintCardBullets(conclRemark)
       });
+    }
+
+    if (typeof window.applyPreciseHandwritingBounds === "function") {
+      const tempImg = new Image();
+      tempImg.src = pageSrc;
+      window.applyPreciseHandwritingBounds(tempImg, pageNum, totalPages, sections, pageAnns);
     }
 
     // Generate Curly Braces SVG overlay HTML

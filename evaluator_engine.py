@@ -1223,15 +1223,15 @@ Generate strictly valid JSON matching this schema:
     }}
   }},
   "visual_annotations": [
-    // CRITICAL: If Page 1 is purely a pre-printed Case Study prompt with NO student handwriting:
-    // Page 1 gets an info annotation with NO marks (marks_awarded: ""). Candidate Intro is placed on Page 2 where handwriting begins!
-    // Example for Case Study with Prompt on Page 1 and answer starting on Page 2:
-    // Example: page: 1, tag: "Case Study Prompt", type: "info", marks_awarded: "", remark: "Printed Case Study Prompt"
-    // Example: page: 2, tag: "Intro", type: "tick", marks_awarded: "+sample_marks / intro_d"
-    // Example for standard question where student handwriting begins on Page 1:
+    // CRITICAL FOR CURLY BRACE PRECISION:
+    // 1. Provide exact "start_y_percent" and "end_y_percent" (0-100) tracing ONLY the student's actual HANDWRITTEN lines for that section on that page.
+    // 2. On Page 1, "start_y_percent" for Intro MUST start BELOW the printed coaching header (e.g. VAJIRAM & RAVI / VISION IAS) and BELOW the printed Question statement (typically around 24%-27%, NEVER at 12%-18% on top of the printed question!).
+    // 3. On the final page, "end_y_percent" for Conclusion MUST end right at the last handwritten line of the student's conclusion (e.g. 68%-72% if there is a printed 'Students should not write anything inside the box / Introduction / Body / Conclusion / Marks' evaluation box below, or 40%-55% if the answer is incomplete, or 95% if the student wrote all the way to the bottom edge). NEVER wrap empty paper or printed evaluation boxes!
     {{
       "page": 1,
-      "approx_y_percent": 18,
+      "approx_y_percent": 32,
+      "start_y_percent": 25,
+      "end_y_percent": 39,
       "tag": "Intro",
       "type": "tick",
       "marks_awarded": "+{sample_intro_aw:.1f} / {intro_d:.1f}",
@@ -1239,7 +1239,9 @@ Generate strictly valid JSON matching this schema:
     }},
     {{
       "page": 1,
-      "approx_y_percent": 55,
+      "approx_y_percent": 64,
+      "start_y_percent": 41,
+      "end_y_percent": 89,
       "tag": "Body",
       "type": "warning",
       "marks_awarded": "+{sample_body_aw:.1f} / {body_d:.1f}",
@@ -1247,7 +1249,9 @@ Generate strictly valid JSON matching this schema:
     }},
     {{
       "page": 2,
-      "approx_y_percent": 88,
+      "approx_y_percent": 56,
+      "start_y_percent": 42,
+      "end_y_percent": 69,
       "tag": "Conclusion",
       "type": "suggestion",
       "marks_awarded": "+{sample_conc_aw:.1f} / {conc_d:.1f}",

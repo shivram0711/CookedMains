@@ -52,30 +52,36 @@ html:not(.dark) .dark\:hidden {
 }
 
 /* =========================================================
-   WINDOWS / DESKTOP EXTENDED HEIGHT & STICKY SCRIPT VIEWER
+   WINDOWS / DESKTOP A4 PROPORTIONAL LENGTH & STICKY VIEWER
+   (Strictly @media min-width: 1024px — Mobile & Tablet untouched)
    ========================================================= */
 @media (min-width: 1024px) {
   .studio-sticky-viewer {
     position: -webkit-sticky !important;
     position: sticky !important;
     top: 68px !important;
-    height: calc(100vh - 84px) !important;
-    max-height: calc(100vh - 84px) !important;
+    height: auto !important;
+    min-height: 880px !important;
+    max-height: none !important;
     align-self: flex-start !important;
     z-index: 20;
   }
   .studio-sticky-viewer #pageViewerCard {
-    height: 100% !important;
-    max-height: 100% !important;
+    height: auto !important;
+    min-height: 880px !important;
+    max-height: none !important;
   }
   .studio-sticky-viewer #viewerWrapper {
-    height: 100% !important;
+    height: auto !important;
+    min-height: 830px !important;
+    max-height: none !important;
     flex: 1 1 auto !important;
-    min-height: 0 !important;
   }
   .studio-scroll-extended {
-    height: 100% !important;
-    min-height: calc(100vh - 170px) !important;
+    height: auto !important;
+    min-height: 800px !important;
+    max-height: none !important;
+    overflow-y: visible !important;
   }
 }
 
