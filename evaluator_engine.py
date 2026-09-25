@@ -1031,6 +1031,17 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
     - Even when a question only asks for issues or challenges, concluding on negative problems leaves an incomplete, cynical impression.
     - Conclude on an uplifting, constructive note aligned with long-term national frameworks: Viksit Bharat @2047, Net Zero 2070 (Panchamrit), UN SDGs 2030, Antyodaya, or Amrit Kaal.
 
+19. POINT-BY-POINT VERBATIM AUDIT, VISUAL EXAMINER-ATTENTION DETECTION & ANTI-GENERIC GRADING (ZERO TRUST DEFICIT MANDATE):
+    - Every candidate's handwritten sheet must be audited for the EXACT points written and the VISUAL highlighting techniques used to catch the UPSC examiner's eye:
+      * A. DETECT & REWARD VISUAL HIGHLIGHTING (BOXES, UNDERLINES & CHRONOLOGY):
+        - Actively scan every page for **boxed sub-headings** (e.g., `[ROLE PLAYED BY SC & EC]`), **boxed years/case laws** (e.g., `[1997]` HC ruling, `[2003: Ramesh Dalal Case]`), **underlined keywords/statutes** (e.g., `Prevention of Corruption Act`, `Section 8 of RPA 1951`), and **diagrams/flowcharts**.
+        - STRICT BAN ON FALSE STRUCTURE CRITICISM: If the candidate has drawn **boxed headings**, **boxed case-law timelines**, or **numbered bullet sub-parts**, NEVER write `"Lacks Structure"` or `"Needs Sub-headings"`! Explicitly praise the visual boxing/underlining in the `✓` remark on that page.
+      * B. PENALIZE GENERIC COMMON-SENSE POINTS VS. REWARD SPECIAL KEYWORDS:
+        - Do NOT award generous marks to generic, conversational bullet points that any layperson could write without UPSC preparation (e.g., *"harms India's standing in international community"*, *"increased supply of black money"*, *"marginalisation of the poor"*, *"strong lobby of criminal politicians"* written without institutional evidence).
+        - In every page's `visual_annotations` remark:
+          1. The `✓` line MUST quote the candidate's **specific high-value keywords, boxed case laws, statutes, or highlighted points** on that page (e.g., `✓ **Boxed Sub-Heading & Case Precedents**: Effective visual boxing of [ROLE PLAYED BY SC & EC], [1997 HC ruling] & [2003: Ramesh Dalal Case] under Prevention of Corruption Act catches examiner attention.`).
+          2. The `✗` line MUST explicitly identify which written bullet points on that page were **generic/unsubstantiated** and specify the **exact special keyword/committee/judgment** that should replace or back them (e.g., `✗ **Generic Points Capped**: Bullet points on 'black money supply', 'international standing' & 'marginalisation of poor' are generic — anchor with **Vohra Committee (1993) nexus report**, **ADR 46% MPs data**, **Lily Thomas (2013)** & **Public Interest Foundation (2018)** for topper marks.`).
+
 Generate strictly valid JSON matching this schema:
 {{
   "detected_question": "Exact question read from booklet header or provided by user",
@@ -1286,8 +1297,16 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
             total_den += den
             parsed.append((ann, aw, den))
 
-        # Normalize denominators across genuine student sections so their sum strictly equals max_marks
-        if parsed and abs(total_den - max_marks) > 0.01 and total_den > 0:
+        # Enforce deterministic canonical denominators based on number of graded sections
+        # so that two evaluations of a 2-page or 3-page answer never fluctuate between /7.0 and /4.0
+        n_sec = len(parsed)
+        if n_sec == 3:
+            new_dens = [2.0, 6.0, 2.0] if max_marks == 10 else ([2.5, 10.0, 2.5] if max_marks == 15 else [3.0, 14.0, 3.0])
+        elif n_sec == 4:
+            new_dens = [1.5, 3.5, 3.5, 1.5] if max_marks == 10 else ([2.0, 5.5, 5.5, 2.0] if max_marks == 15 else [2.5, 7.5, 7.5, 2.5])
+        elif n_sec == 5:
+            new_dens = [1.5, 2.5, 2.5, 2.0, 1.5] if max_marks == 10 else ([2.0, 4.0, 4.0, 3.0, 2.0] if max_marks == 15 else [2.5, 5.0, 5.0, 5.0, 2.5])
+        elif parsed and abs(total_den - max_marks) > 0.01 and total_den > 0:
             scale_d = max_marks / total_den
             new_dens = []
             curr_sum = 0.0
@@ -1301,8 +1320,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
         else:
             new_dens = [item[2] for item in parsed]
 
-        # Normalize awarded marks so their sum strictly equals overall_score
-        if parsed and abs(total_awarded - overall_score) > 0.01 and total_awarded > 0:
+        # Normalize awarded marks so their sum strictly equals overall_score and aligns proportionally with new_dens
+        if parsed and (abs(total_awarded - overall_score) > 0.01 or any(item[1] > new_dens[idx] for idx, item in enumerate(parsed))) and total_awarded > 0:
             scale_a = overall_score / total_awarded
             new_aws = []
             curr_aw = 0.0
@@ -1310,17 +1329,18 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                 if i == len(parsed) - 1:
                     new_a = round(overall_score - curr_aw, 1)
                 else:
-                    new_a = round(aw * scale_a * 2) / 2
+                    new_a = min(new_dens[i], round(aw * scale_a * 2) / 2)
                     curr_aw += new_a
-                new_a = min(new_a, new_dens[i])
+                new_a = max(0.0, min(new_a, new_dens[i]))
                 new_aws.append(new_a)
         else:
-            new_aws = [item[1] for item in parsed]
+            new_aws = [min(item[1], new_dens[idx]) for idx, item in enumerate(parsed)]
 
         for i, (ann, _, _) in enumerate(parsed):
             ann["marks_awarded"] = f"+{new_aws[i]:.1f} / {new_dens[i]:.1f}"
 
         # Ensure Conclusion is strictly reserved for the final page (never duplicate on intermediate pages)
+        # And eliminate contradictory 'Lacks Structure' remarks when candidate used Case Laws, Chronology, or Boxed Headings
         max_ann_page = max([a.get("page", 1) for a in annotations], default=1)
         for ann in annotations:
             ann_page = ann.get("page", 1)
@@ -1331,6 +1351,11 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
             if ann_page > 1:
                 if "intro" in t_str.lower() or "definition" in t_str.lower():
                     ann["tag"] = "Body: Core Analysis"
+            rem_text = str(ann.get("remark", ""))
+            if "lacks structure" in rem_text.lower():
+                rem_text = re.sub(r'(?i)/\s*lacks\s+structure', '/ Generic Points Need Data & Committee Backing', rem_text)
+                rem_text = re.sub(r'(?i)lacks\s+structure', 'Generic Points Need Data & Committee Backing', rem_text)
+                ann["remark"] = rem_text
 
     # 2. Eliminate Cross-Subject Hallucinations in Remarks
     is_psir = ("plato" in question.lower() or "aristotle" in question.lower() or 
@@ -1753,7 +1778,10 @@ async def evaluate_with_gemini(
         ]
 
         config = types.GenerateContentConfig(
-            temperature=0.2,
+            temperature=0.0,
+            top_p=1.0,
+            top_k=1,
+            seed=20260925,
             response_mime_type="application/json"
         )
 

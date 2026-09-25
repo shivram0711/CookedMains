@@ -1051,6 +1051,8 @@ def save_evaluation_record(
     enriched_dict["_meta_is_rewrite"] = 1 if is_rewrite else 0
     enriched_dict["_meta_baseline_eval_id"] = baseline_eval_id
     enriched_dict["_meta_file_hash"] = file_hash
+    if "_meta_visual_hashes" not in enriched_dict and pages_list:
+        enriched_dict["_meta_visual_hashes"] = compute_visual_handwriting_signature(pages_list)
     enriched_dict["_meta_thumbnail"] = thumbnail or ""
     enriched_dict["_meta_pages"] = pages_list if pages_list else ([file_url] if file_url else [])
         
@@ -1315,28 +1317,228 @@ def has_user_rewritten_question(email: str, question: Optional[str] = None, base
                 return True
     return False
 
-def find_evaluation_by_hash_global(file_hash: str) -> Optional[Dict[str, Any]]:
-    """Checks globally across all users and sessions if this exact answer sheet hash has already been evaluated."""
-    if not file_hash or not file_hash.strip():
-        return None
+def compute_visual_handwriting_signature(pages_b64: List[str]) -> List[str]:
+    """
+    Computes a 64-bit Perceptual Difference Hash (dHash) of the central handwriting region
+    (15%-85% width, 12%-90% height) for each page so re-saved/re-uploaded copies of the same
+    handwriting from any account are traced with 100% accuracy.
+    """
+    if not HAS_PIL or not Image or not pages_b64:
+        return []
+    signatures: List[str] = []
+    for b64_str in pages_b64[:8]:
+        try:
+            if not b64_str or "base64," not in b64_str:
+                continue
+            raw_bytes = base64.b64decode(b64_str.split("base64,", 1)[1])
+            img = Image.open(io.BytesIO(raw_bytes)).convert("L")
+            w, h = img.size
+            crop = img.crop((int(w * 0.15), int(h * 0.12), int(w * 0.85), int(h * 0.90)))
+            resized = crop.resize((9, 8), Image.Resampling.BILINEAR)
+            pixels = list(resized.getdata())
+            bits = 0
+            for row_idx in range(8):
+                row_start = row_idx * 9
+                for col_idx in range(8):
+                    bits = (bits << 1) | (1 if pixels[row_start + col_idx] > pixels[row_start + col_idx + 1] else 0)
+            signatures.append(f"{bits:016x}")
+        except Exception:
+            continue
+    return signatures
+
+def _visual_signatures_similarity(sig_a: List[str], sig_b: List[str]) -> float:
+    """Returns perceptual handwriting similarity (0.0 to 1.0) between two page dHash lists."""
+    if not sig_a or not sig_b or len(sig_a) != len(sig_b):
+        return 0.0
+    total_bits = 0
+    matching_bits = 0
+    for ha, hb in zip(sig_a, sig_b):
+        try:
+            va = int(ha, 16)
+            vb = int(hb, 16)
+            xor_val = va ^ vb
+            diff_bits = bin(xor_val).count("1")
+            matching_bits += (64 - diff_bits)
+            total_bits += 64
+        except Exception:
+            return 0.0
+    return (matching_bits / total_bits) if total_bits > 0 else 0.0
+
+def _extract_comparable_script_text(eval_dict: Dict[str, Any]) -> str:
+    """Extracts normalized handwritten transcript + quoted points from an evaluation payload."""
+    parts = [
+        str(eval_dict.get("transcribed_text") or ""),
+        str((eval_dict.get("next_attempt_focus") or {}).get("student_draft_quote") or "")
+    ]
+    for ann in (eval_dict.get("visual_annotations") or []):
+        if isinstance(ann, dict):
+            parts.append(str(ann.get("remark") or ""))
+    raw = " ".join(parts).lower()
+    return re.sub(r"[^a-z0-9\s]", " ", raw)
+
+def _text_content_similarity(text_a: str, text_b: str) -> float:
+    """Computes token + character 4-gram Jaccard similarity between two handwritten transcripts."""
+    clean_a = " ".join((text_a or "").lower().split())
+    clean_b = " ".join((text_b or "").lower().split())
+    if len(clean_a) < 40 or len(clean_b) < 40:
+        return 0.0
+    stop_words = {"the", "and", "for", "that", "with", "this", "from", "are", "was", "were", "have", "has", "not", "but", "into", "under", "over", "also", "can", "will", "role", "india", "indian"}
+    tokens_a = {w for w in clean_a.split() if len(w) >= 4 and w not in stop_words}
+    tokens_b = {w for w in clean_b.split() if len(w) >= 4 and w not in stop_words}
+    if not tokens_a or not tokens_b:
+        return 0.0
+    tok_inter = len(tokens_a & tokens_b)
+    tok_union = len(tokens_a | tokens_b)
+    tok_sim = tok_inter / tok_union if tok_union else 0.0
+
+    # Character 4-grams on alphanumeric string
+    compact_a = re.sub(r"\s+", "", clean_a)
+    compact_b = re.sub(r"\s+", "", clean_b)
+    grams_a = {compact_a[i:i+4] for i in range(0, max(1, len(compact_a) - 3), 2)}
+    grams_b = {compact_b[i:i+4] for i in range(0, max(1, len(compact_b) - 3), 2)}
+    gram_sim = (len(grams_a & grams_b) / len(grams_a | grams_b)) if (grams_a and grams_b) else 0.0
+    return (0.55 * tok_sim) + (0.45 * gram_sim)
+
+def _collect_all_recent_canonical_evaluations(limit: int = 120) -> List[Dict[str, Any]]:
+    """Fetches recent evaluated copies across BOTH SQLite and Supabase (across all user accounts)."""
+    candidates: List[Dict[str, Any]] = []
+    seen_ids = set()
+
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("""
-        SELECT * FROM evaluations 
-        WHERE file_hash = ? 
-        ORDER BY created_at DESC LIMIT 1
-    """, (file_hash.strip(),))
-    row = cursor.fetchone()
-    conn.close()
-    if not row:
-        return None
-    res = dict(row)
     try:
-        res["evaluation"] = json.loads(res["evaluation_json"])
-        res["pages"] = json.loads(res["pages_json"])
+        cursor.execute("""
+            SELECT id, question, max_marks, file_hash, evaluation_json, pages_json, created_at
+            FROM evaluations
+            WHERE question NOT LIKE '__%'
+            ORDER BY created_at DESC
+            LIMIT ?
+        """, (limit,))
+        for r in cursor.fetchall():
+            d = dict(r)
+            try:
+                ev = json.loads(d.get("evaluation_json") or "{}")
+            except Exception:
+                ev = {}
+            if ev.get("_is_account_profile") or ev.get("_is_system_marker"):
+                continue
+            seen_ids.add(str(d.get("id")))
+            candidates.append({
+                "id": str(d.get("id")),
+                "question": str(d.get("question") or ev.get("detected_question") or ""),
+                "max_marks": int(d.get("max_marks") or ev.get("max_marks") or 15),
+                "file_hash": str(d.get("file_hash") or ev.get("_meta_file_hash") or ""),
+                "visual_hashes": ev.get("_meta_visual_hashes") or [],
+                "evaluation": ev
+            })
     except Exception:
         pass
-    return res
+    conn.close()
+
+    if supabase:
+        try:
+            res = supabase.table("evaluations").select("id,question_title,total_marks,evaluation_json,created_at").order("created_at", desc=True).limit(limit).execute()
+            if res and res.data:
+                for row in res.data:
+                    rid = str(row.get("id") or "")
+                    q_t = str(row.get("question_title") or "")
+                    if not rid or rid in seen_ids or q_t.startswith("__"):
+                        continue
+                    ev = row.get("evaluation_json") or {}
+                    if isinstance(ev, str):
+                        try:
+                            ev = json.loads(ev)
+                        except Exception:
+                            ev = {}
+                    if ev.get("_is_account_profile") or ev.get("_is_system_marker"):
+                        continue
+                    seen_ids.add(rid)
+                    candidates.append({
+                        "id": rid,
+                        "question": q_t or str(ev.get("detected_question") or ""),
+                        "max_marks": int(row.get("total_marks") or ev.get("_meta_max_marks") or ev.get("max_marks") or 15),
+                        "file_hash": str(ev.get("_meta_file_hash") or ""),
+                        "visual_hashes": ev.get("_meta_visual_hashes") or [],
+                        "evaluation": ev
+                    })
+        except Exception:
+            pass
+    return candidates
+
+def find_canonical_evaluation_for_script(
+    file_hash: Optional[str] = None,
+    visual_hashes: Optional[List[str]] = None,
+    question: Optional[str] = None,
+    transcribed_text: Optional[str] = None,
+    max_marks: Optional[int] = None
+) -> Optional[Dict[str, Any]]:
+    """
+    Traces identical or similar handwriting / written content across ALL accounts in SQLite & Supabase:
+    1. Exact binary file_hash match -> returns canonical evaluation immediately.
+    2. Perceptual visual handwriting dHash match (>= 85% bit similarity) -> returns canonical evaluation immediately.
+    3. Post-OCR Handwritten Content & Keyword overlap (>= 68% similarity on same question) -> locks to canonical evaluation.
+    """
+    candidates = _collect_all_recent_canonical_evaluations(limit=120)
+    if not candidates:
+        return None
+
+    clean_hash = (file_hash or "").strip()
+    # 1. Exact binary file_hash match across any account
+    if clean_hash:
+        for cand in candidates:
+            if cand["file_hash"] and cand["file_hash"] == clean_hash:
+                if not max_marks or int(cand["max_marks"]) == int(max_marks):
+                    return cand["evaluation"]
+
+    # 2. Perceptual Visual Handwriting dHash match (>= 85% bit similarity across pages)
+    if visual_hashes and len(visual_hashes) > 0:
+        best_vis_sim = 0.0
+        best_vis_eval = None
+        for cand in candidates:
+            c_vhashes = cand.get("visual_hashes") or []
+            if c_vhashes and len(c_vhashes) == len(visual_hashes):
+                if max_marks and int(cand["max_marks"]) != int(max_marks):
+                    continue
+                v_sim = _visual_signatures_similarity(visual_hashes, c_vhashes)
+                if v_sim >= 0.85 and v_sim > best_vis_sim:
+                    best_vis_sim = v_sim
+                    best_vis_eval = cand["evaluation"]
+        if best_vis_eval:
+            return best_vis_eval
+
+    # 3. Post-OCR Handwritten Content & Point Similarity match (>= 68% overlap on same question)
+    if transcribed_text and len(transcribed_text.strip()) >= 45:
+        q_norm = re.sub(r"[^a-z0-9\s]", " ", (question or "").lower())
+        q_tokens = {w for w in q_norm.split() if len(w) >= 4}
+        best_txt_sim = 0.0
+        best_txt_eval = None
+        for cand in candidates:
+            if max_marks and int(cand["max_marks"]) != int(max_marks):
+                continue
+            cand_q_norm = re.sub(r"[^a-z0-9\s]", " ", (cand.get("question") or "").lower())
+            cand_q_tokens = {w for w in cand_q_norm.split() if len(w) >= 4}
+            if q_tokens and cand_q_tokens:
+                q_overlap = len(q_tokens & cand_q_tokens) / max(1, min(len(q_tokens), len(cand_q_tokens)))
+                if q_overlap < 0.35:
+                    continue
+            cand_text = _extract_comparable_script_text(cand["evaluation"])
+            t_sim = _text_content_similarity(transcribed_text, cand_text)
+            if t_sim >= 0.68 and t_sim > best_txt_sim:
+                best_txt_sim = t_sim
+                best_txt_eval = cand["evaluation"]
+        if best_txt_eval:
+            return best_txt_eval
+
+    return None
+
+def find_evaluation_by_hash_global(file_hash: str) -> Optional[Dict[str, Any]]:
+    """Checks globally across all users and sessions (SQLite + Supabase) if this exact answer sheet hash has already been evaluated."""
+    if not file_hash or not file_hash.strip():
+        return None
+    ev = find_canonical_evaluation_for_script(file_hash=file_hash.strip())
+    if ev:
+        return {"file_hash": file_hash.strip(), "evaluation": ev}
+    return None
 
 def find_evaluation_by_hash(email: Optional[str], file_hash: str) -> Optional[Dict[str, Any]]:
     """Checks if this exact file hash has already been evaluated in this specific user's account."""

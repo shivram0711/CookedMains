@@ -72,8 +72,10 @@ from storage import (
     get_user_daily_quota, get_daily_evaluations_count,
     DAILY_EVALUATION_LIMIT, DAILY_REWRITE_LIMIT,
     upload_file_to_supabase, insert_supabase_evaluation, get_db,
-    get_deterministic_user_id, _format_supabase_eval_row
+    get_deterministic_user_id, _format_supabase_eval_row,
+    compute_visual_handwriting_signature, find_canonical_evaluation_for_script
 )
+import copy
 from news_ingestion import ingest_all_feeds, get_top_editorial_articles
 from question_generator import get_or_generate_today_questions, generate_daily_questions_cohort
 import asyncio
@@ -1597,101 +1599,121 @@ async def evaluate_answer(
                     }
                 )
 
-        # Determine Key (user key or server master key)
-        key = api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-        if not key:
-            raise HTTPException(
-                status_code=400,
-                detail="No Master API Key is configured on the server. Please set it once in Settings so all students can evaluate freely, or click 'Try Preloaded Sample Answer'."
+        # Compute perceptual handwriting signature (dHash across pages) for cross-account consistency
+        visual_hashes = compute_visual_handwriting_signature(uploaded_page_previews)
+
+        # PRE-LLM CANONICAL SCRIPT CHECK (100% Cross-Account Consistency for Same File or Same Handwriting Sheet)
+        evaluation_result = None
+        if not is_rewrite:
+            canonical_pre = find_canonical_evaluation_for_script(
+                file_hash=submission_hash,
+                visual_hashes=visual_hashes,
+                question=question,
+                transcribed_text="",
+                max_marks=max_marks
+            )
+            if canonical_pre and isinstance(canonical_pre, dict) and canonical_pre.get("overall_score") is not None:
+                evaluation_result = copy.deepcopy(canonical_pre)
+                print(f"[CANONICAL LOCK - PRE-LLM] Matched identical/similar handwritten script across accounts -> Score: {evaluation_result.get('overall_score')}/{max_marks}")
+
+        if evaluation_result is None:
+            # Determine Key (user key or server master key)
+            key = api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+            if not key:
+                raise HTTPException(
+                    status_code=400,
+                    detail="No Master API Key is configured on the server. Please set it once in Settings so all students can evaluate freely, or click 'Try Preloaded Sample Answer'."
+                )
+
+            # Direct Gemini Files API Ingestion and Multimodal Generation
+            prev_q = (prev_record.get("question") if prev_record else None) or baseline_question if is_rewrite else None
+            detected_paper = detect_academic_discipline(question, paper)
+            directive_info = detect_directive(question)
+            current_affairs_context = await get_dynamic_grounded_context(question, detected_paper)
+
+            evaluator_prompt_text = build_evaluation_prompt(
+                question=question,
+                paper_key=detected_paper,
+                max_marks=max_marks,
+                directive_info=directive_info,
+                previous_question=prev_q,
+                current_affairs_context=current_affairs_context
             )
 
-        # Direct Gemini Files API Ingestion and Multimodal Generation
-        prev_q = (prev_record.get("question") if prev_record else None) or baseline_question if is_rewrite else None
-        detected_paper = detect_academic_discipline(question, paper)
-        directive_info = detect_directive(question)
-        current_affairs_context = await get_dynamic_grounded_context(question, detected_paper)
+            client = genai.Client(api_key=key.strip())
+            uploaded_file = None
+            temp_path = None
 
-        evaluator_prompt_text = build_evaluation_prompt(
-            question=question,
-            paper_key=detected_paper,
-            max_marks=max_marks,
-            directive_info=directive_info,
-            previous_question=prev_q,
-            current_affairs_context=current_affairs_context
-        )
+            try:
+                if primary_content:
+                    suffix = ".pdf" if is_pdf else (os.path.splitext(primary_filename)[1] or ".jpg")
+                    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+                    temp_path = temp_file.name
+                    temp_file.write(primary_content)
+                    temp_file.flush()
+                    temp_file.close()
 
-        evaluation_result = None
-        client = genai.Client(api_key=key.strip())
-        uploaded_file = None
-        temp_path = None
+                    uploaded_file = client.files.upload(file=temp_path)
 
-        try:
-            if primary_content:
-                suffix = ".pdf" if is_pdf else (os.path.splitext(primary_filename)[1] or ".jpg")
-                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
-                temp_path = temp_file.name
-                temp_file.write(primary_content)
-                temp_file.flush()
-                temp_file.close()
+                    gen_config = types.GenerateContentConfig(
+                        temperature=0.0,
+                        top_p=1.0,
+                        top_k=1,
+                        seed=20260925,
+                        response_mime_type="application/json"
+                    )
 
-                uploaded_file = client.files.upload(file=temp_path)
+                    candidate_models = [
+                        "gemini-flash-lite-latest",
+                        "gemini-3.5-flash-lite",
+                        "gemini-3.6-flash",
+                        "gemini-3.5-flash",
+                        "gemini-3-flash-preview",
+                        "gemini-flash-latest",
+                        "gemini-2.5-flash"
+                    ]
 
-                gen_config = types.GenerateContentConfig(
-                    temperature=0.2,
-                    response_mime_type="application/json"
-                )
+                    last_gen_err = None
+                    for model_candidate in candidate_models:
+                        try:
+                            response = client.models.generate_content(
+                                model=model_candidate,
+                                contents=[uploaded_file, evaluator_prompt_text],
+                                config=gen_config
+                            )
+                            if response and response.text:
+                                raw_text = response.text
+                                parsed_eval = parse_llm_json_response(raw_text)
+                                if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
+                                    parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
+                                evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
+                                break
+                        except Exception as ge:
+                            last_gen_err = ge
+                            continue
 
-                candidate_models = [
-                    "gemini-flash-lite-latest",
-                    "gemini-3.5-flash-lite",
-                    "gemini-3.6-flash",
-                    "gemini-3.5-flash",
-                    "gemini-3-flash-preview",
-                    "gemini-flash-latest",
-                    "gemini-2.5-flash"
-                ]
-
-                last_gen_err = None
-                for model_candidate in candidate_models:
+                    if not evaluation_result:
+                        raise RuntimeError(f"Could not evaluate with available models. Last error: {last_gen_err}")
+                else:
+                    evaluation_result = await evaluate_with_gemini(
+                        images=[],
+                        question=question,
+                        paper=paper,
+                        max_marks=max_marks,
+                        api_key=key,
+                        previous_question=prev_q
+                    )
+            finally:
+                if temp_path and os.path.exists(temp_path):
                     try:
-                        response = client.models.generate_content(
-                            model=model_candidate,
-                            contents=[uploaded_file, evaluator_prompt_text],
-                            config=gen_config
-                        )
-                        if response and response.text:
-                            raw_text = response.text
-                            parsed_eval = parse_llm_json_response(raw_text)
-                            if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
-                                parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
-                            evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
-                            break
-                    except Exception as ge:
-                        last_gen_err = ge
-                        continue
-
-                if not evaluation_result:
-                    raise RuntimeError(f"Could not evaluate with available models. Last error: {last_gen_err}")
-            else:
-                evaluation_result = await evaluate_with_gemini(
-                    images=[],
-                    question=question,
-                    paper=paper,
-                    max_marks=max_marks,
-                    api_key=key,
-                    previous_question=prev_q
-                )
-        finally:
-            if temp_path and os.path.exists(temp_path):
-                try:
-                    os.unlink(temp_path)
-                except Exception as ue:
-                    print(f"Notice: temp file unlink skipped ({ue})")
-            if uploaded_file and hasattr(uploaded_file, "name"):
-                try:
-                    client.files.delete(name=uploaded_file.name)
-                except Exception as de:
-                    print(f"Notice: Gemini file cleanup skipped ({de})")
+                        os.unlink(temp_path)
+                    except Exception as ue:
+                        print(f"Notice: temp file unlink skipped ({ue})")
+                if uploaded_file and hasattr(uploaded_file, "name"):
+                    try:
+                        client.files.delete(name=uploaded_file.name)
+                    except Exception as de:
+                        print(f"Notice: Gemini file cleanup skipped ({de})")
 
         # AI Vision Blank Sheet Verification Check
         is_ai_blank = bool(evaluation_result.get("is_blank_sheet")) or (
@@ -1716,6 +1738,25 @@ async def evaluate_answer(
             )
 
         final_question = evaluation_result.get("detected_question") or question or "UPSC Mains Question"
+
+        # POST-LLM CONTENT & HANDWRITING CANONICAL LOCK
+        # If two accounts upload photos/scans of the same written answer content (>=68% point/text similarity on same question),
+        # lock to the canonical evaluation so marks, rubric breakdown, and margin remarks are 100% identical!
+        if not is_rewrite:
+            canonical_post = find_canonical_evaluation_for_script(
+                file_hash=submission_hash,
+                visual_hashes=visual_hashes,
+                question=final_question,
+                transcribed_text=evaluation_result.get("transcribed_text") or "",
+                max_marks=max_marks
+            )
+            if canonical_post and isinstance(canonical_post, dict) and canonical_post.get("overall_score") is not None:
+                evaluation_result = copy.deepcopy(canonical_post)
+                final_question = evaluation_result.get("detected_question") or final_question
+                print(f"[CANONICAL LOCK - POST-LLM CONTENT] Matched written content across accounts -> Score: {evaluation_result.get('overall_score')}/{max_marks}")
+
+        if visual_hashes:
+            evaluation_result["_meta_visual_hashes"] = visual_hashes
 
         # Semantic Rewrite Verification Check
         if is_rewrite and prev_record:
