@@ -1061,6 +1061,21 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
         2. Praise their written Limitations/Challenges points or diagram in the `✓` line.
         3. Explicitly state in the `✗` line AND in `body_audit.critical_gaps`: `"✗ **Missing Way Forward**: You moved directly from **Limitations** to the Conclusion—add 2 short **Way Forward** points before concluding."`
 
+21. REAL UPSC EXAMINER PER-PAGE MARGIN EVALUATION & STRICT SUBJECT ISOLATION (NON-NEGOTIABLE):
+    - Think and grade like a senior UPSC Mains Evaluator reading each physical page of the candidate's answer booklet:
+      * A. COMPLETE 2-CARD PER-PAGE COVERAGE FOR MULTI-PAGE COPIES:
+        - For a multi-page answer copy (2 or 3 pages), you MUST output **2 `visual_annotations` for EVERY page** so neither the upper half nor the lower half of any page is left un-annotated:
+          - **Page 1**: Annotation 1 = `"Intro"` (lines 1-4 below printed header); Annotation 2 = `"Body: [Exact First Sub-Part / Diagram Heading]"` (lower half of Page 1).
+          - **Page 2 (Intermediate Page)**: Annotation 1 = `"Body: [Upper Half Points 1-3 Heading]"` (`start_y_percent: 10, end_y_percent: 50`); Annotation 2 = `"Body: [Lower Half Points 4-6 Heading]"` (`start_y_percent: 52, end_y_percent: 90`).
+          - **Final Page (Page 2 of 2 or Page 3 of 3)**: Annotation 1 = `"Body: [Exact Final Section Heading, e.g., Strategies to Bridge Gap / Way Forward / Limitations]"` (`start_y_percent: 10, end_y_percent: 62`); Annotation 2 = `"Conclusion"` (`start_y_percent: 65, end_y_percent: 90`).
+      * B. QUOTE THE CANDIDATE'S EXACT HANDWRITTEN KEYWORDS, DATA & FLOWCHARTS ON EACH PAGE:
+        - Every margin card's `✓` bullet MUST cite the exact facts, schemes, statistics, or diagrams written by the student on that specific half-page (e.g., for a GS-3 Startup & Deep-Tech answer: quote **`Startup India, Standup India`**, **`260 researchers/lakh vs China 1602`**, **`GERD 0.65% of GDP`**, **`OLA/Zomato service skew`**, and the **`[Strategies to Bridge Gap]`** flowchart citing **`ANRF, NEP 2020 & VAIBHAV`**).
+        - Every margin card's `✗` / `✎` bullet MUST state the exact domain-specific keyword, policy, or dimension needed for that specific sub-part (e.g., **`₹1 Lakh Cr RDI Fund`**, **`National Deep-Tech Startup Policy (NDTSP)`**, **`India Semiconductor Mission (ISM)`**, **`iDEX Defence procurement`**).
+      * C. ZERO INTERMIXING OF POLITY / GS-2 INTO GS-3, GS-1, OR GS-4:
+        - NEVER cite GS-2 Polity cases/articles (`Maneka Gandhi`, `NJAC`, `Navtej Johar`, `Shreya Singhal`, `Constitutional Morality`, `Article 13`, `2nd ARC`) inside a GS-3 Economy/Science-Tech, GS-1 Geography/History, or GS-4 Ethics evaluation! Every word must belong 100% to the evaluated question's subject and demand.
+      * D. NEVER PLACE BODY DIAGRAM / STRATEGIES PRAISE INSIDE THE 'CONCLUSION' CARD:
+        - If the candidate drew a `[Strategies to bridge gap]` or `[Way Forward]` flowchart/section on the final page above their concluding paragraph, put the praise for that diagram/schemes (`ANRF, NEP 2020, VAIBHAV`) inside the Final Page **`Body: Strategies to Bridge Gap`** card, and reserve the **`Conclusion`** card strictly for evaluating their concluding lines!
+
 Generate strictly valid JSON matching this schema:
 {{
   "detected_question": "Exact question read from booklet header or provided by user",
@@ -1291,9 +1306,101 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
     data["overall_score"] = round(overall_score, 1)
     data["max_marks"] = max_marks
 
-    # 1. Mathematical Normalization of Visual Annotations
+    # 1. Per-Page Visual Annotations Completeness & Mathematical Normalization
     annotations = data.get("visual_annotations", [])
     if annotations:
+        body_audit_obj = data.get("body_audit") if isinstance(data.get("body_audit"), dict) else {}
+        b_strengths = [str(s).strip() for s in (body_audit_obj.get("strengths") or []) if s]
+        b_gaps = [str(g).strip() for g in (body_audit_obj.get("critical_gaps") or []) if g]
+        b_missing = [str(m).strip() for m in (body_audit_obj.get("missing_dimensions") or []) if m]
+        conc_audit_obj = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
+
+        def _fmt_bullet(text_line: str, prefix: str) -> str:
+            clean = str(text_line or "").strip()
+            if not clean:
+                return ""
+            if clean[0] in ("✓", "✔", "✎", "✗", "×", "✘"):
+                return clean
+            return f"{prefix} {clean}"
+
+        def _synth_body_remark(slot_idx: int) -> str:
+            s_val = b_strengths[slot_idx] if slot_idx < len(b_strengths) else (b_strengths[0] if b_strengths else "**Core Demand Addressed**: Covered relevant sub-dimensions of the question.")
+            g_list = b_gaps + b_missing
+            g_val = g_list[slot_idx] if slot_idx < len(g_list) else (g_list[0] if g_list else "**Substantiation**: Back arguments with specific empirical data, reports, or policy schemes.")
+            return f"{_fmt_bullet(s_val, '✓')}\n{_fmt_bullet(g_val, '✎')}"
+
+        max_pg = max([int(a.get("page", 1) or 1) for a in annotations], default=1)
+        if max_pg >= 2:
+            expanded_anns = []
+            for pg in range(1, max_pg + 1):
+                pg_anns = [a for a in annotations if (int(a.get("page", 1) or 1) == pg)]
+                if pg == 1:
+                    has_intro = any("intro" in str(a.get("tag", "")).lower() or "premise" in str(a.get("tag", "")).lower() for a in pg_anns)
+                    has_body = any("intro" not in str(a.get("tag", "")).lower() and "premise" not in str(a.get("tag", "")).lower() for a in pg_anns)
+                    expanded_anns.extend(pg_anns)
+                    if has_intro and not has_body:
+                        expanded_anns.append({
+                            "page": 1,
+                            "approx_y_percent": 65,
+                            "start_y_percent": 41,
+                            "end_y_percent": 89,
+                            "tag": "Body: Core Demand",
+                            "type": "tick",
+                            "marks_awarded": "+1.5 / 3.5",
+                            "remark": _synth_body_remark(0)
+                        })
+                elif pg < max_pg:
+                    expanded_anns.extend(pg_anns)
+                    if len(pg_anns) == 1:
+                        expanded_anns.append({
+                            "page": pg,
+                            "approx_y_percent": 72,
+                            "start_y_percent": 52,
+                            "end_y_percent": 90,
+                            "tag": "Body: Depth & Substantiation",
+                            "type": "suggestion",
+                            "marks_awarded": "+1.5 / 3.0",
+                            "remark": _synth_body_remark(1)
+                        })
+                else:
+                    # Final page: check if Conclusion annotation accidentally holds praise for a body flowchart/schematic
+                    conc_ann = next((a for a in pg_anns if "concl" in str(a.get("tag", "")).lower() or "synthesis" in str(a.get("tag", "")).lower()), None)
+                    body_ann = next((a for a in pg_anns if a is not conc_ann), None)
+                    if conc_ann and not body_ann:
+                        c_rem = str(conc_ann.get("remark", ""))
+                        if re.search(r'(?i)(flowchart|schematic|diagram|anrf|vaibhav|strategies)', c_rem):
+                            new_body_rem = c_rem
+                            c_crit = str(conc_audit_obj.get("current_critique") or "**Visionary Synthesis**: Forward-looking concluding synthesis.")
+                            c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "Anchor with **Viksit Bharat @2047** & sustainable national targets.")
+                            conc_ann["remark"] = f"{_fmt_bullet(c_crit, '✓')}\n✎ **Topper Finish**: {c_rew[:120]}"
+                            expanded_anns.append({
+                                "page": pg,
+                                "approx_y_percent": 35,
+                                "start_y_percent": 10,
+                                "end_y_percent": 62,
+                                "tag": "Body: Strategies & Way Forward",
+                                "type": "tick",
+                                "marks_awarded": "+1.5 / 2.5",
+                                "remark": new_body_rem
+                            })
+                            expanded_anns.append(conc_ann)
+                        else:
+                            expanded_anns.append({
+                                "page": pg,
+                                "approx_y_percent": 35,
+                                "start_y_percent": 10,
+                                "end_y_percent": 62,
+                                "tag": "Body: Key Dimensions",
+                                "type": "tick",
+                                "marks_awarded": "+1.5 / 2.5",
+                                "remark": _synth_body_remark(1)
+                            })
+                            expanded_anns.append(conc_ann)
+                    else:
+                        expanded_anns.extend(pg_anns)
+            annotations = expanded_anns
+            data["visual_annotations"] = annotations
+
         total_awarded = 0.0
         total_den = 0.0
         parsed = []
