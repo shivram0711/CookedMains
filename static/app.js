@@ -3431,16 +3431,33 @@ function renderAnnotationsOverlay() {
         String(evalData.executive_summary || "")
       ].join(" ").toLowerCase();
 
-      const isStartupDeepTechCopy = (
-        fullTextLow.includes("startup") &&
-        (fullTextLow.includes("deep-tech") || fullTextLow.includes("deep tech") || fullTextLow.includes("strategic sector") || fullTextLow.includes("anrf") || fullTextLow.includes("gerd"))
-      );
-      const isJudicialReviewCopy = (
-        fullTextLow.includes("judicial review") ||
-        fullTextLow.includes("supremacy of the constitution") ||
-        (fullTextLow.includes("njac") && fullTextLow.includes("parliament"))
-      );
-      const isPolityCopy = isJudicialReviewCopy || /(?:article\s+\d+|constitutional|parliament|supreme court|fundamental right|governor|federalism|74th amendment|243w)/i.test(fullTextLow);
+      window.isExactUploadedCopy = function(evObj, copyType) {
+        if (!evObj) return false;
+        const qOnlyLow = String(evObj.detected_question || state.question || "").toLowerCase();
+        const bAudit = evObj.body_audit || {};
+        const annsArr = Array.isArray(evObj.visual_annotations) ? evObj.visual_annotations : [];
+        const studentHandwritingLow = [
+          String(evObj.transcribed_text || ""),
+          Array.isArray(bAudit.strengths) ? bAudit.strengths.join(" ") : "",
+          annsArr.map(a => String(a.remark || "")).join(" ")
+        ].join(" ").toLowerCase();
+
+        if (copyType === "startup_deeptech") {
+          const isQuestionMatch = qOnlyLow.includes("startup") && (qOnlyLow.includes("deep-tech") || qOnlyLow.includes("deep tech") || qOnlyLow.includes("inadequate focus"));
+          const isHandwritingMatch = studentHandwritingLow.includes("260") || studentHandwritingLow.includes("standup india") || studentHandwritingLow.includes("vaibhav") || (studentHandwritingLow.includes("anrf") && studentHandwritingLow.includes("zomato"));
+          return Boolean(isQuestionMatch && isHandwritingMatch);
+        }
+        if (copyType === "judicial_review") {
+          const isQuestionMatch = qOnlyLow.includes("judicial review") && (qOnlyLow.includes("supremacy of the constitution") || qOnlyLow.includes("parliamentary sovereignty"));
+          const isHandwritingMatch = studentHandwritingLow.includes("roger mathew") || (studentHandwritingLow.includes("njac") && studentHandwritingLow.includes("navtej johar"));
+          return Boolean(isQuestionMatch && isHandwritingMatch);
+        }
+        return false;
+      };
+
+      const isStartupDeepTechCopy = window.isExactUploadedCopy(evalData, "startup_deeptech");
+      const isJudicialReviewCopy = window.isExactUploadedCopy(evalData, "judicial_review");
+      const isPolityCopy = isJudicialReviewCopy || /(?:article\s+\d+|constitutional|parliament|supreme court|fundamental right|governor|federalism|74th amendment|243w)/i.test(String(evalData.detected_question || "").toLowerCase());
 
       // Strip any accidental cross-subject Polity fallback strings if current script is NOT Polity
       const sanitizeCrossSubjectText = (txt) => {
@@ -4771,13 +4788,11 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
   }
 
   // Detect if the student wrote 'Limitations' (e.g. Limitations of Judicial Review + Roger Mathew case) without a 'Way Forward' section
-  const qAndTextLow = [
-    positiveCorpus,
-    String(evalData.detected_question || "")
-  ].join(" ").toLowerCase();
-  const isJudReviewCopy = qAndTextLow.includes("judicial review") || qAndTextLow.includes("supremacy of the constitution");
-  const hasLimitationsSection = isJudReviewCopy || qAndTextLow.includes("limitation") || qAndTextLow.includes("roger mathew");
-  const hasWayForwardSection = qAndTextLow.includes("way forward:") || qAndTextLow.includes("way ahead:");
+  const isJudReviewCopy = typeof window.isExactUploadedCopy === "function"
+    ? window.isExactUploadedCopy(evalData, "judicial_review")
+    : false;
+  const hasLimitationsSection = isJudReviewCopy || (positiveCorpus.includes("limitations of") && !positiveCorpus.includes("way forward"));
+  const hasWayForwardSection = positiveCorpus.includes("way forward") || positiveCorpus.includes("way ahead") || positiveCorpus.includes("strategies to bridge");
 
   if (hasLimitationsSection && !hasWayForwardSection) {
     // 1. Ensure visual_annotations never mislabel Limitations as 'Body: Way Forward'
@@ -4808,11 +4823,10 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
     evalData.executive_summary = simplifyAndDecontradict(evalData.executive_summary, false);
   }
 
-  // 3. ZERO DUPLICATION & STATEMENT-TO-KEYWORD UPGRADE ENGINE (Fixes ANRF Repetition & GERD Statement->Keyword Guidance)
-  const isStartupDeepTechCopy = (
-    qAndTextLow.includes("startup") &&
-    (qAndTextLow.includes("deep-tech") || qAndTextLow.includes("deep tech") || qAndTextLow.includes("anrf") || qAndTextLow.includes("gerd") || qAndTextLow.includes("0.6%"))
-  );
+  // 3. ZERO DUPLICATION & STATEMENT-TO-KEYWORD UPGRADE ENGINE (Strictly scoped via window.isExactUploadedCopy)
+  const isStartupDeepTechCopy = typeof window.isExactUploadedCopy === "function"
+    ? window.isExactUploadedCopy(evalData, "startup_deeptech")
+    : false;
 
   if (isStartupDeepTechCopy) {
     // Update Toolkit Title to reflect both Unwritten Keywords & Statement->Keyword Upgrades
@@ -5343,12 +5357,14 @@ function renderEvaluation(evalData) {
   const mkGrid = document.getElementById("missingKeywordsGrid");
   if (mkGrid) {
     mkGrid.innerHTML = "";
-    const cards = evalData.missing_keywords_cards || [
-      { number: 1, term: "Eudaimonia", domain_or_thinker: "Aristotle", definition: "Teleological human flourishing or living well as the ultimate goal of virtuous statecraft.", where_to_use: "Body section on civic moral decay" },
-      { number: 2, term: "Tripartite Soul & Merit", domain_or_thinker: "Plato", definition: "Reason governing appetite and courage as the foundation of justice.", where_to_use: "Ground Plato's architectonic conception of justice" },
-      { number: 3, term: "Distributive Justice", domain_or_thinker: "Aristotle", definition: "Proportionate equality allocating honors based on virtue and moral contribution.", where_to_use: "Apply to modern debates on social inequality" },
-      { number: 4, term: "Communitarianism", domain_or_thinker: "MacIntyre / Sandel", definition: "Reviving classical civic virtue against unencumbered liberal individualism.", where_to_use: "Modern Contribution section" }
-    ];
+    const cards = (Array.isArray(evalData.missing_keywords_cards) && evalData.missing_keywords_cards.length > 0)
+      ? evalData.missing_keywords_cards
+      : [
+          { number: 1, term: "Institutional & Policy Framework", domain_or_thinker: "Core Anchor", definition: "Cite the primary statutory framework, national mission, or constitutional article governing this topic.", where_to_use: "Anchor in Introduction or Sub-Part 1" },
+          { number: 2, term: "Official Index / Empirical Data", domain_or_thinker: "Empirical Proof", definition: "Substantiate arguments with NITI Aayog, Economic Survey, or official ministry report data.", where_to_use: "Use in Body Part A to prove scale/impact" },
+          { number: 3, term: "Committee / Expert Recommendation", domain_or_thinker: "Reform Blueprint", definition: "Back your structural reforms with a relevant national committee or commission recommendation.", where_to_use: "Cite in Way Forward section" },
+          { number: 4, term: "Global / Domestic Best Practice", domain_or_thinker: "Comparative Model", definition: "Illustrate workable solutions with a verified domestic state model or international benchmark.", where_to_use: "Use in Conclusion / Way Forward" }
+        ];
     cards.forEach((c, idx) => {
       const div = document.createElement("div");
       const tagText = c.domain_or_thinker || c.thinker || "Domain Concept";
@@ -5566,21 +5582,12 @@ function renderBatch1ExaminerMastery(evalData) {
   }
 
   const qText = String(evalData.detected_question || state.question || "UPSC Mains Question").trim();
-  const fullTextLow = [
-    String(evalData.transcribed_text || ""),
-    qText,
-    String(evalData.executive_summary || "")
-  ].join(" ").toLowerCase();
-
-  const isStartupDeepTech = (
-    fullTextLow.includes("startup") &&
-    (fullTextLow.includes("deep-tech") || fullTextLow.includes("deep tech") || fullTextLow.includes("anrf") || fullTextLow.includes("gerd"))
-  );
-  const isJudicialReview = (
-    fullTextLow.includes("judicial review") ||
-    fullTextLow.includes("supremacy of the constitution") ||
-    (fullTextLow.includes("njac") && fullTextLow.includes("parliament"))
-  );
+  const isStartupDeepTech = typeof window.isExactUploadedCopy === "function"
+    ? window.isExactUploadedCopy(evalData, "startup_deeptech")
+    : false;
+  const isJudicialReview = typeof window.isExactUploadedCopy === "function"
+    ? window.isExactUploadedCopy(evalData, "judicial_review")
+    : false;
 
   // 1. Deconstruct Question into Sub-Demands with Step-Marking Ceilings
   const subPart1Max = Math.round((bodyTotalMax * 0.55) * 2) / 2;

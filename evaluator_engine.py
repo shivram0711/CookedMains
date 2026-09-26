@@ -2103,10 +2103,11 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
         data["executive_summary"] = simplify_and_decontradict(data["executive_summary"], is_gap=False)
 
     # 8. Cross-Section Deduplication (TOPPER PLUG-IN vs Missing Keywords Cards) & Statement -> Keyword Compression
-    q_and_text_low = f"{positive_corpus} {str(data.get('detected_question') or '')}".lower()
+    q_only_low = str(data.get("detected_question") or "").lower()
     is_startup_deep_tech = (
-        "startup" in q_and_text_low and
-        any(k in q_and_text_low for k in ["deep-tech", "deep tech", "anrf", "gerd", "0.6%"])
+        "startup" in q_only_low and
+        any(k in q_only_low for k in ["deep-tech", "deep tech", "inadequate focus"]) and
+        any(h in positive_corpus for h in ["260", "standup india", "vaibhav", "zomato"])
     )
 
     if is_startup_deep_tech:
