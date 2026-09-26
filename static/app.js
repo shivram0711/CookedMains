@@ -5586,16 +5586,28 @@ function renderBatch1ExaminerMastery(evalData) {
         detail: "Directly answers Part B with current 2024–26 flagship schemes (**ANRF** & **VAIBHAV**). Add **₹1 Lakh Cr RDI Fund** & **India Semiconductor Mission (ISM)** for a 10/10 finish."
       }
     ];
+  } else if (Array.isArray(evalData.point_by_point_audit) && evalData.point_by_point_audit.length >= 3) {
+    pointRows = evalData.point_by_point_audit.map((p, idx) => ({
+      page: parseInt(p.page, 10) || Math.min(idx + 1, (state.activePages && state.activePages.length) || 2),
+      loc: String(p.badge || `Page ${p.page || idx + 1} • Point #${idx + 1}`),
+      pointTitle: String(p.title || `Handwritten Argument #${idx + 1}`).replace(/\*\*/g, ""),
+      badge: String(p.credit_badge || (p.is_positive !== false ? "✓ +1.25M Credit" : "✎ +0.75M Scope")),
+      isPositive: p.is_positive !== false,
+      detail: p.what_you_wrote
+        ? `**What You Wrote**: "${String(p.what_you_wrote).replace(/^["']|["']$/g, "")}" — ${String(p.examiner_verdict || "")}`
+        : String(p.examiner_verdict || "")
+    }));
   } else {
     const bAudit = evalData.body_audit || {};
     const sList = Array.isArray(bAudit.strengths) ? bAudit.strengths : [];
     const gList = Array.isArray(bAudit.critical_gaps) ? bAudit.critical_gaps : [];
-    const anns = Array.isArray(evalData.visual_annotations) ? evalData.visual_annotations : [];
 
     sList.slice(0, 3).forEach((sText, idx) => {
       const cleanS = String(sText).replace(/^[✓✔✎✗×]\s*/, "");
+      const pgNum = Math.min(idx + 1, (state.activePages && state.activePages.length) || 2);
       pointRows.push({
-        loc: `Page ${Math.min(idx + 1, (state.activePages && state.activePages.length) || 2)} • Verified Strength #${idx + 1}`,
+        page: pgNum,
+        loc: `Page ${pgNum} • Verified Strength #${idx + 1}`,
         pointTitle: cleanS.split(":")[0].replace(/\*\*/g, "") || `Handwritten Argument #${idx + 1}`,
         badge: `✓ +${(bodyTotalScore / Math.max(2, sList.length)).toFixed(1)}M • Fetched Marks`,
         isPositive: true,
@@ -5605,8 +5617,10 @@ function renderBatch1ExaminerMastery(evalData) {
 
     gList.slice(0, 2).forEach((gText, idx) => {
       const cleanG = String(gText).replace(/^[✓✔✎✗×]\s*/, "");
+      const pgNum = Math.min(idx + 2, (state.activePages && state.activePages.length) || 2);
       pointRows.push({
-        loc: `Upgrade Lever #${idx + 1}`,
+        page: pgNum,
+        loc: `Page ${pgNum} • Upgrade Lever #${idx + 1}`,
         pointTitle: cleanG.split(":")[0].replace(/\*\*/g, "") || `High-Yield Point Upgrade #${idx + 1}`,
         badge: "✎ +1.0M Recoverable",
         isPositive: false,
@@ -5615,17 +5629,34 @@ function renderBatch1ExaminerMastery(evalData) {
     });
   }
 
+  window.jumpToAnswerSheetPage = function(pageNumber) {
+    const totalPages = (state.activePages && state.activePages.length) || 1;
+    const targetIdx = Math.max(0, Math.min(totalPages - 1, (parseInt(pageNumber, 10) || 1) - 1));
+    if (typeof window.selectPage === "function") {
+      window.selectPage(targetIdx);
+    } else {
+      state.currentPageIndex = targetIdx;
+      if (typeof updateActivePageView === "function") updateActivePageView();
+    }
+    const viewerEl = document.getElementById("viewerFrame");
+    if (viewerEl && window.innerWidth < 1024) {
+      viewerEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
   pointListEl.innerHTML = pointRows.map(r => {
     const badgeStyle = r.isPositive
       ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
       : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30";
+    const pageMatch = String(r.loc || "").match(/Page\s*(\d+)/i);
+    const targetPage = r.page || (pageMatch ? parseInt(pageMatch[1], 10) : 1);
     return `
       <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-1.5 min-w-0">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex flex-wrap items-center gap-1.5 min-w-0">
-            <span class="text-[10.5px] font-bold uppercase px-2 py-0.5 rounded bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shrink-0">
-              ${escapeHtml(r.loc)}
-            </span>
+            <button type="button" onclick="window.jumpToAnswerSheetPage(${targetPage})" title="Click to view Page ${targetPage} on Answer Sheet" class="text-[10.5px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 transition cursor-pointer shrink-0">
+              ${escapeHtml(r.loc)} ↗
+            </button>
             <span class="text-xs font-extrabold text-slate-900 dark:text-slate-100 break-words">
               ${escapeHtml(r.pointTitle)}
             </span>
