@@ -2810,7 +2810,7 @@ const btnUploadPdf = document.getElementById("btnUploadPdf");
 const btnUploadGallery = document.getElementById("btnUploadGallery");
 const btnUploadCamera = document.getElementById("btnUploadCamera");
 
-// Fast client-side image compression to prevent mobile timeout and Cloudflare 502/504 errors
+// Fast client-side image compression + CamScanner-style Adaptive Ink-Contrast Enhancement for mobile camera photos
 async function compressImageIfNeeded(file) {
   if (!file || !file.type || !file.type.startsWith("image/")) {
     return file;
@@ -2821,13 +2821,9 @@ async function compressImageIfNeeded(file) {
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          const maxDim = 1800;
+          const maxDim = 1550;
           let w = img.width;
           let h = img.height;
-          if (w <= maxDim && h <= maxDim && file.size < 1.2 * 1024 * 1024) {
-            resolve(file);
-            return;
-          }
           if (w > h) {
             if (w > maxDim) {
               h = Math.round((h * maxDim) / w);
@@ -2842,11 +2838,50 @@ async function compressImageIfNeeded(file) {
           const canvas = document.createElement("canvas");
           canvas.width = w;
           canvas.height = h;
-          const ctx = canvas.getContext("2d");
+          const ctx = canvas.getContext("2d", { willReadFrequently: true });
           ctx.drawImage(img, 0, 0, w, h);
+
+          // Adaptive Document-Scanner Ink & Paper Enhancement for phone camera shadows
+          try {
+            const imgData = ctx.getImageData(0, 0, w, h);
+            const d = imgData.data;
+            let sumLum = 0;
+            const sampleStep = 16; // Fast sub-sampled luminance check
+            let count = 0;
+            for (let i = 0; i < d.length; i += 4 * sampleStep) {
+              sumLum += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+              count++;
+            }
+            const avgLum = count > 0 ? sumLum / count : 215;
+            // Apply subtle document-scanner contrast levels if image is shadowy/dim phone capture (avgLum < 205)
+            if (avgLum < 205) {
+              const whitePoint = Math.min(242, Math.max(185, avgLum + 28));
+              const blackPoint = Math.max(18, Math.min(55, avgLum * 0.22));
+              const scale = 255 / Math.max(80, whitePoint - blackPoint);
+              for (let i = 0; i < d.length; i += 4) {
+                const r = d[i], g = d[i + 1], b = d[i + 2];
+                const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                if (lum > whitePoint - 12) {
+                  // Brighten shadowy paper background cleanly toward crisp white
+                  d[i] = Math.min(255, r + (255 - r) * 0.55);
+                  d[i + 1] = Math.min(255, g + (255 - g) * 0.55);
+                  d[i + 2] = Math.min(255, b + (255 - b) * 0.55);
+                } else if (lum < 135) {
+                  // Deepen blue/black ballpoint pen ink strokes for crisp OCR
+                  d[i] = Math.max(0, Math.min(255, (r - blackPoint) * scale * 0.92));
+                  d[i + 1] = Math.max(0, Math.min(255, (g - blackPoint) * scale * 0.92));
+                  d[i + 2] = Math.max(0, Math.min(255, (b - blackPoint) * scale * 0.96));
+                }
+              }
+              ctx.putImageData(imgData, 0, 0);
+            }
+          } catch (scanErr) {
+            // Ignore pixel manipulation errors and proceed with standard canvas compression
+          }
+
           canvas.toBlob(
             (blob) => {
-              if (blob && blob.size < file.size) {
+              if (blob && (blob.size < file.size || file.size > 450 * 1024)) {
                 const compressedFile = new File(
                   [blob],
                   file.name.replace(/\.[^/.]+$/, "") + ".jpg",
@@ -2858,7 +2893,7 @@ async function compressImageIfNeeded(file) {
               }
             },
             "image/jpeg",
-            0.82
+            0.80
           );
         };
         img.onerror = () => resolve(file);

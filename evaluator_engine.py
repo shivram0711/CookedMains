@@ -2051,6 +2051,8 @@ async def get_dynamic_grounded_context(question: str, paper: str) -> str:
 
     return "\n".join(context_parts)
 
+_GEMINI_EVAL_SEMAPHORE = asyncio.Semaphore(6)
+
 async def evaluate_with_gemini(
     images: List[Any],
     question: str,
@@ -2061,27 +2063,39 @@ async def evaluate_with_gemini(
 ) -> Dict[str, Any]:
     """
     Evaluates handwritten images using the official Google GenAI SDK.
-    Dynamically falls back across available Gemini models (gemini-2.5-flash, gemini-2.0-flash, etc.).
+    Features Launch-Day Bulletproofing:
+      1. Multi-Key Pool support (user key + primary/secondary server keys or comma-separated pool).
+      2. Verified production Gemini multimodal model failover (zero wasted 404 calls).
+      3. Automatic 429/503 exponential backoff + in-loop JSON parsing verification.
+      4. Concurrency semaphore to prevent event-loop saturation under simultaneous traffic.
     """
-    # Collect candidate API keys (user-supplied key first, then server master key)
-    keys_to_try = []
+    import time
+
+    # Collect candidate API keys (user-supplied key first, then server master key pool)
+    keys_to_try: List[str] = []
     if api_key and api_key.strip():
-        keys_to_try.append(api_key.strip())
-    server_master_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-    if server_master_key and server_master_key.strip() and server_master_key.strip() not in keys_to_try:
-        keys_to_try.append(server_master_key.strip())
+        for k_part in api_key.split(","):
+            if k_part.strip() and k_part.strip() not in keys_to_try:
+                keys_to_try.append(k_part.strip())
+
+    for env_var in ("GEMINI_API_KEY", "GOOGLE_API_KEY", "GEMINI_API_KEY_2", "GEMINI_API_KEY_3"):
+        raw_val = os.environ.get(env_var) or ""
+        for k_part in raw_val.split(","):
+            clean_k = k_part.strip()
+            if clean_k and clean_k not in keys_to_try:
+                keys_to_try.append(clean_k)
 
     if not keys_to_try:
         raise ValueError("No Gemini API key provided. Please configure a master server key or enter one in the UI.")
 
     detected_paper = detect_academic_discipline(question, paper)
     directive_info = detect_directive(question)
-    
+
     # Grounded Current Affairs Retrieval (Local Knowledge Store + Optional Web Search)
     current_affairs_context = await get_dynamic_grounded_context(question, detected_paper)
-    
+
     prompt = build_evaluation_prompt(
-        question, detected_paper, max_marks, directive_info, 
+        question, detected_paper, max_marks, directive_info,
         previous_question=previous_question,
         current_affairs_context=current_affairs_context
     )
@@ -2092,7 +2106,7 @@ async def evaluate_with_gemini(
         for img in images:
             if HAS_PIL and Image and hasattr(img, "convert"):
                 curr = img.convert("RGB")
-                max_dim = 1000
+                max_dim = 1200
                 if max(curr.size) > max_dim:
                     resample_filter = getattr(getattr(Image, "Resampling", None), "LANCZOS", 1)
                     curr.thumbnail((max_dim, max_dim), resample_filter)
@@ -2100,16 +2114,16 @@ async def evaluate_with_gemini(
             else:
                 processed_imgs.append(img)
 
-    def _sync_call():
-        # High-speed verified multimodal models in strict priority
+    def _sync_call() -> Dict[str, Any]:
+        # Verified production multimodal models in strict reliability & speed priority
         candidate_models = [
-            "gemini-flash-lite-latest",
-            "gemini-3.5-flash-lite",
-            "gemini-3.6-flash",
-            "gemini-3.5-flash",
-            "gemini-3-flash-preview",
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+            "gemini-2.5-flash-lite",
+            "gemini-2.0-flash-lite",
             "gemini-flash-latest",
-            "gemini-2.5-flash"
+            "gemini-flash-lite-latest",
+            "gemini-1.5-flash"
         ]
 
         config = types.GenerateContentConfig(
@@ -2130,27 +2144,35 @@ async def evaluate_with_gemini(
 
             failed_auth = False
             for model_name in candidate_models:
-                try:
-                    response = client.models.generate_content(
-                        model=model_name,
-                        contents=[prompt] + processed_imgs,
-                        config=config
-                    )
-                    if response and response.text:
-                        return response.text
-                except Exception as e:
-                    last_err = e
-                    err_str = str(e).lower()
-                    # Only break key loop if the API key itself is unauthenticated/invalid
-                    if any(t in err_str for t in ["api_key_invalid", "api key not valid", "unauthenticated", "permission_denied", "access_token_type_unsupported"]):
-                        failed_auth = True
+                for attempt in range(2):
+                    try:
+                        response = client.models.generate_content(
+                            model=model_name,
+                            contents=[prompt] + processed_imgs,
+                            config=config
+                        )
+                        if response and response.text:
+                            # Validate JSON inside retry loop so truncated responses automatically retry/failover
+                            parsed_dict = parse_llm_json_response(response.text)
+                            if isinstance(parsed_dict, dict) and len(parsed_dict) > 0:
+                                return parsed_dict
+                    except Exception as e:
+                        last_err = e
+                        err_str = str(e).lower()
+                        if any(t in err_str for t in ["api_key_invalid", "api key not valid", "unauthenticated", "permission_denied", "access_token_type_unsupported"]):
+                            failed_auth = True
+                            break
+                        if any(t in err_str for t in ["429", "resource_exhausted", "quota", "503", "unavailable", "overloaded"]) and attempt == 0:
+                            time.sleep(0.8)
+                            continue
                         break
-                    continue
+                if failed_auth:
+                    break
 
             if failed_auth:
                 continue
 
-            # If candidate list fails for this key, try discovering any available vision model
+            # Dynamic discovery fallback if standard model aliases changed
             try:
                 for m in client.models.list():
                     if m.supported_actions and "generateContent" in m.supported_actions:
@@ -2167,21 +2189,19 @@ async def evaluate_with_gemini(
                                     config=config
                                 )
                                 if response and response.text:
-                                    return response.text
+                                    parsed_dict = parse_llm_json_response(response.text)
+                                    if isinstance(parsed_dict, dict) and len(parsed_dict) > 0:
+                                        return parsed_dict
                             except Exception as de:
                                 if "Interactions" not in str(de):
                                     last_err = de
-                                pass
             except Exception:
                 pass
 
-        raise RuntimeError(f"Could not evaluate with available models. Last error: {last_err}")
+        raise RuntimeError(f"Could not evaluate with available Gemini models. Last error: {last_err}")
 
-    # Run blocking call in asyncio threadpool
-    raw_text = await asyncio.to_thread(_sync_call)
-
-    # Clean and parse JSON response robustly
-    data = parse_llm_json_response(raw_text)
+    async with _GEMINI_EVAL_SEMAPHORE:
+        data = await asyncio.to_thread(_sync_call)
 
     if "directive_compliance" in data and not data["directive_compliance"].get("directive"):
         data["directive_compliance"]["directive"] = directive_info["directive"]

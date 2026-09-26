@@ -531,7 +531,7 @@ def bind_device_to_account(device_id: Optional[str], email: str, client_ip: Opti
     conn.close()
 
 def _save_supabase_account_profile(user_dict: Dict[str, Any], device_id: Optional[str] = None) -> None:
-    """Persists user profile, encrypted password_hash, and bound device_id inside Supabase."""
+    """Persists user profile, encrypted password_hash, paid plan_tier, credits, and bound device_id inside Supabase."""
     if not supabase or not user_dict or not user_dict.get("id"):
         return
     try:
@@ -547,6 +547,10 @@ def _save_supabase_account_profile(user_dict: Dict[str, Any], device_id: Optiona
             "password_hash": user_dict.get("password_hash") or "",
             "target_year": user_dict.get("target_year") or "2026",
             "optional_subject": user_dict.get("optional_subject") or "PSIR",
+            "free_credits": int(user_dict.get("free_credits") if user_dict.get("free_credits") is not None else 15),
+            "free_rewrites": int(user_dict.get("free_rewrites") if user_dict.get("free_rewrites") is not None else 5),
+            "is_pro": int(user_dict.get("is_pro") if user_dict.get("is_pro") is not None else 1),
+            "plan_tier": str(user_dict.get("plan_tier") or "free"),
             "_meta_device_id": saved_device_id
         }
         if existing and existing.get("_supa_profile_row_id"):
@@ -594,10 +598,14 @@ def get_or_create_user(email: str, name: Optional[str] = None, avatar: Optional[
                 user_dict["name"] = supa_prof.get("name") or user_dict.get("name") or name
                 user_dict["target_year"] = supa_prof.get("target_year") or user_dict.get("target_year") or "2026"
                 user_dict["optional_subject"] = supa_prof.get("optional_subject") or user_dict.get("optional_subject") or "PSIR"
+                if supa_prof.get("free_credits") is not None:
+                    user_dict["free_credits"] = max(int(user_dict.get("free_credits") or 15), int(supa_prof["free_credits"]))
+                if supa_prof.get("plan_tier"):
+                    user_dict["plan_tier"] = supa_prof["plan_tier"]
                 try:
                     cursor.execute(
-                        "UPDATE users SET password_hash = ?, name = ?, target_year = ?, optional_subject = ? WHERE email = ?",
-                        (user_dict["password_hash"], user_dict["name"], user_dict["target_year"], user_dict["optional_subject"], email)
+                        "UPDATE users SET password_hash = ?, name = ?, target_year = ?, optional_subject = ?, free_credits = ?, plan_tier = ? WHERE email = ?",
+                        (user_dict["password_hash"], user_dict["name"], user_dict["target_year"], user_dict["optional_subject"], user_dict.get("free_credits", 15), user_dict.get("plan_tier", "free"), email)
                     )
                     conn.commit()
                 except Exception:
@@ -616,18 +624,30 @@ def get_or_create_user(email: str, name: Optional[str] = None, avatar: Optional[
     pw_hash = None
     t_year = "2026"
     opt_subj = "PSIR"
+    f_credits = 15
+    f_rewrites = 5
+    is_pro_val = 1
+    p_tier = "free"
     if supa_prof:
         name = supa_prof.get("name") or name
         avatar = supa_prof.get("avatar") or avatar
         pw_hash = supa_prof.get("password_hash") or None
         t_year = supa_prof.get("target_year") or "2026"
         opt_subj = supa_prof.get("optional_subject") or "PSIR"
+        if supa_prof.get("free_credits") is not None:
+            f_credits = int(supa_prof["free_credits"])
+        if supa_prof.get("free_rewrites") is not None:
+            f_rewrites = int(supa_prof["free_rewrites"])
+        if supa_prof.get("is_pro") is not None:
+            is_pro_val = int(supa_prof["is_pro"])
+        if supa_prof.get("plan_tier"):
+            p_tier = str(supa_prof["plan_tier"])
 
     # Register aspirant with deterministic ID
     user_id = det_id
     cursor.execute(
-        "INSERT OR REPLACE INTO users (id, email, name, avatar, free_credits, is_pro, free_rewrites, target_year, optional_subject, password_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (user_id, email, name, avatar, 15, 1, 5, t_year, opt_subj, pw_hash)
+        "INSERT OR REPLACE INTO users (id, email, name, avatar, free_credits, is_pro, free_rewrites, target_year, optional_subject, password_hash, plan_tier) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (user_id, email, name, avatar, f_credits, is_pro_val, f_rewrites, t_year, opt_subj, pw_hash, p_tier)
     )
     conn.commit()
     cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
@@ -639,12 +659,13 @@ def get_or_create_user(email: str, name: Optional[str] = None, avatar: Optional[
         "email": email,
         "name": name,
         "avatar": avatar,
-        "free_credits": 15,
-        "is_pro": 1,
-        "free_rewrites": 5,
+        "free_credits": f_credits,
+        "is_pro": is_pro_val,
+        "free_rewrites": f_rewrites,
         "target_year": t_year,
         "optional_subject": opt_subj,
-        "password_hash": pw_hash
+        "password_hash": pw_hash,
+        "plan_tier": p_tier
     }
     if not supa_prof:
         _save_supabase_account_profile(res_user)
@@ -2192,9 +2213,16 @@ def approve_transaction(tx_id: str, admin_notes: Optional[str] = None) -> Dict[s
         cursor.execute("UPDATE users SET free_credits = free_credits + 5 WHERE email = ?", (email,))
 
     conn.commit()
+    cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+    u_row = cursor.fetchone()
     cursor.execute("SELECT * FROM transactions WHERE id = ?", (tx_id,))
     updated = cursor.fetchone()
     conn.close()
+    if u_row:
+        try:
+            _save_supabase_account_profile(dict(u_row))
+        except Exception:
+            pass
     return dict(updated)
 
 def reject_transaction(tx_id: str, admin_notes: Optional[str] = None) -> Dict[str, Any]:
@@ -2289,7 +2317,13 @@ def update_user_credits_admin(email: str, delta_credits: int, delta_rewrites: in
     cursor.execute("SELECT * FROM users WHERE email = ?", (email.strip().lower(),))
     user = cursor.fetchone()
     conn.close()
-    return dict(user) if user else {}
+    res_u = dict(user) if user else {}
+    if res_u:
+        try:
+            _save_supabase_account_profile(res_u)
+        except Exception:
+            pass
+    return res_u
 
 def get_all_feedbacks_admin() -> List[Dict[str, Any]]:
     conn = get_db()
