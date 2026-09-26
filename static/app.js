@@ -6976,36 +6976,52 @@ function renderValueAddCategories(vaData, paper, question, seenPhrasesSet) {
     { border: "border-amber-500/30", text: "text-amber-400", badge: "bg-amber-500/10 text-amber-300 border-amber-500/20", icon: "git-merge" }
   ];
 
-  let renderedCategoryCount = 0;
-
+  // First pass: collect valid categories with unique items
+  const validCategories = [];
   categories.forEach((cat, idx) => {
     if (!cat.items || cat.items.length === 0) return;
-    // Skip schematic category if already shown in Current Affairs Recommended Diagram & Visual Flowchart below
-    if (/diagram|schematic|flowchart|map/i.test(String(cat.title || ""))) return;
+    // Skip schematic/diagram category since Exam-Hall Boxed Schematic Blueprint is displayed directly below
+    if (/diagram|schematic|flowchart|map/i.test(String(cat.title || ""))) {
+      return;
+    }
 
     const uniqueItems = cat.items.filter(it => !isDuplicateItem(it));
-    if (uniqueItems.length === 0) return;
+    const itemsToKeep = uniqueItems.length > 0 ? uniqueItems : cat.items.slice(0, 2);
+    if (itemsToKeep.length === 0) return;
 
-    uniqueItems.forEach(it => {
+    itemsToKeep.forEach(it => {
       const cleanTitle = String(it.item || "").replace(/[*_#`]/g, "").split("(")[0].trim().toLowerCase();
       if (cleanTitle.length >= 4) localSeen.add(cleanTitle);
     });
 
-    renderedCategoryCount++;
-    const theme = catThemes[idx % catThemes.length];
+    validCategories.push({
+      title: cat.title,
+      items: itemsToKeep,
+      theme: catThemes[idx % catThemes.length]
+    });
+  });
+
+  // Second pass: render cards with 100% balanced 2-column geometry (zero empty right column!)
+  // When there is an odd number of cards (e.g. 3 cards or 1 card), the trailing card spans full width
+  // (.va-cat-card-full-span) and lays out its items side-by-side in 2 columns (.va-items-two-col-grid)!
+  validCategories.forEach((cat, renderIdx) => {
+    const isOddTrailingCard = (validCategories.length % 2 === 1) && (renderIdx === validCategories.length - 1);
+    const theme = cat.theme;
     const card = document.createElement("div");
-    card.className = `va-cat-card p-3.5 rounded-xl bg-slate-900/90 border ${theme.border} space-y-2.5`;
+    card.className = `va-cat-card p-3.5 rounded-xl bg-slate-900/90 border ${theme.border} space-y-2.5 flex flex-col justify-between ${isOddTrailingCard ? 'va-cat-card-full-span sm:col-span-2 md:col-span-2' : ''}`;
 
     let itemsHtml = "";
-    uniqueItems.forEach(it => {
+    cat.items.forEach(it => {
       itemsHtml += `
-        <div class="va-item-box p-2.5 rounded-lg bg-slate-950 border border-slate-800/80 space-y-1.5">
-          <div class="va-item-title text-xs font-bold text-slate-900 dark:text-slate-100 flex items-start justify-between gap-1">
-            <span>${escapeHtml(it.item)}</span>
-          </div>
-          <div class="va-where-to-write text-[10px] text-sky-700 dark:text-sky-300 font-medium flex items-center space-x-1.5">
-            <i data-lucide="map-pin" class="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0"></i>
-            <span><strong>Where to Write:</strong> ${escapeHtml(it.where_to_write)}</span>
+        <div class="va-item-box p-2.5 rounded-lg bg-slate-950 border border-slate-800/80 space-y-1.5 flex flex-col justify-between h-full">
+          <div class="space-y-1">
+            <div class="va-item-title text-xs font-bold text-slate-900 dark:text-slate-100 flex items-start justify-between gap-1">
+              <span>${escapeHtml(it.item)}</span>
+            </div>
+            <div class="va-where-to-write text-[10px] text-sky-700 dark:text-sky-300 font-medium flex items-center space-x-1.5">
+              <i data-lucide="map-pin" class="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0"></i>
+              <span><strong>Where to Write:</strong> ${escapeHtml(it.where_to_write)}</span>
+            </div>
           </div>
           <div class="va-how-to-write-box p-2.5 rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-300/70 dark:border-amber-500/30 text-[11px] leading-relaxed font-sans">
             <span class="va-how-to-write-title text-[9.5px] font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider block mb-0.5">✍️ How to Write (2-Line Exam Format):</span>
@@ -7015,15 +7031,19 @@ function renderValueAddCategories(vaData, paper, question, seenPhrasesSet) {
       `;
     });
 
+    const innerLayoutClass = (isOddTrailingCard && cat.items.length >= 2)
+      ? "va-items-two-col-grid grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-0.5 flex-1"
+      : "space-y-2 pt-0.5 flex-1";
+
     card.innerHTML = `
       <div class="flex items-center justify-between pb-1.5 border-b border-slate-800">
         <span class="text-[11px] font-bold ${theme.text} uppercase tracking-wider flex items-center space-x-1.5">
           <i data-lucide="${theme.icon}" class="w-3.5 h-3.5"></i>
           <span>${escapeHtml(cat.title)}</span>
         </span>
-        <span class="text-[9px] font-semibold px-2 py-0.5 rounded border ${theme.badge}">${uniqueItems.length} ${uniqueItems.length === 1 ? 'Element' : 'Elements'}</span>
+        <span class="text-[9px] font-semibold px-2 py-0.5 rounded border ${theme.badge}">${cat.items.length} ${cat.items.length === 1 ? 'Element' : 'Elements'}</span>
       </div>
-      <div class="space-y-2 pt-0.5">
+      <div class="${innerLayoutClass}">
         ${itemsHtml}
       </div>
     `;
@@ -7031,7 +7051,7 @@ function renderValueAddCategories(vaData, paper, question, seenPhrasesSet) {
   });
 
   if (parentBlock) {
-    if (renderedCategoryCount === 0) {
+    if (validCategories.length === 0) {
       parentBlock.classList.add("hidden");
     } else {
       parentBlock.classList.remove("hidden");

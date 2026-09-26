@@ -15,6 +15,12 @@
   .sm\:block { display: block !important; }
   .sm\:flex { display: flex !important; }
   .sm\:hidden { display: none !important; }
+  .sm\:col-span-2, .va-cat-card-full-span { grid-column: 1 / -1 !important; }
+  .va-items-two-col-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.65rem !important;
+  }
 }
 @media (min-width: 768px) {
   .md\:inline { display: inline !important; }
@@ -22,6 +28,8 @@
   .md\:block { display: block !important; }
   .md\:flex { display: flex !important; }
   .md\:hidden { display: none !important; }
+  .md\:col-span-2 { grid-column: 1 / -1 !important; }
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 }
 
 /* Bulletproof Theme Visibility for Brand Logos and Utilities */
