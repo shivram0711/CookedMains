@@ -1105,6 +1105,47 @@
             </div>
           </div>
 
+          <!-- COMPACT REWRITE SCORE & EXAM-HALL EFFICIENCY BANNER (Visible ONLY on Rewritten Copies in Tab 1) -->
+          <div id="auditRewriteRecoveryBanner" class="hidden p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/75 via-slate-900 to-teal-950/75 border border-emerald-500/40 shadow-xl space-y-3.5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-emerald-500/25">
+              <div class="flex items-center space-x-2.5">
+                <span class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center shrink-0">
+                  <i data-lucide="trending-up" class="w-4 h-4 text-emerald-400"></i>
+                </span>
+                <div>
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <h4 class="text-xs sm:text-sm font-extrabold text-white tracking-tight">Draft 1 → Draft 2 Exam-Hall Efficiency &amp; Score Recovery</h4>
+                    <span id="auditRewriteRealismBadge" class="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">✓ True Exam Compression</span>
+                  </div>
+                  <p class="text-[11px] text-slate-300" id="auditRewriteRealismSubtext">Dual-polygon radar overlay active below (Solid Emerald = Draft 2 • Dashed Amber = Draft 1)</p>
+                </div>
+              </div>
+              <button type="button" onclick="window.openRewriteEvolutionLab()" class="w-full sm:w-auto shrink-0 px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-[11px] shadow-md transition flex items-center justify-center space-x-1.5 cursor-pointer">
+                <span>Open Full Skill Evolution Lab</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 text-xs">
+              <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
+                <span class="text-[10px] text-slate-400 block font-medium">Score Evolution</span>
+                <span id="auditRewriteScoreJump" class="font-mono text-sm sm:text-base font-extrabold text-emerald-300">4.5 → 6.5 (+2.0M)</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
+                <span class="text-[10px] text-slate-400 block font-medium">Word Budget Discipline</span>
+                <span id="auditRewriteWordDiscipline" class="font-mono text-sm sm:text-base font-bold text-slate-200">142w → 154w / 150w</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
+                <span class="text-[10px] text-slate-400 block font-medium">Marks per 25 Words</span>
+                <span id="auditRewriteWordDensity" class="font-mono text-sm sm:text-base font-bold text-amber-300">0.79M → 1.05M</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
+                <span class="text-[10px] text-slate-400 block font-medium">Feedback Absorbed</span>
+                <span id="auditRewriteAbsorptionRate" class="font-mono text-sm sm:text-base font-extrabold text-emerald-400">85% Applied</span>
+              </div>
+            </div>
+          </div>
+
               <!-- 2. Rubric Radar & Directive Adherence Grid -->
           <div id="rubricAndDirectiveRow" class="grid grid-cols-1 xl:grid-cols-12 gap-4">
             
@@ -1657,49 +1698,82 @@
                 </button>
               </div>
 
-              <!-- REWRITE IMPROVEMENT & MARK RECOVERY CARD (Active when rewrite evaluation is rendered) -->
-              <div id="rewriteComparisonCard" class="hidden p-5 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-slate-900 to-teal-950/80 border-2 border-emerald-500/50 shadow-2xl space-y-4">
+              <!-- REWRITE IMPROVEMENT & SKILL EVOLUTION LAB (Active when rewrite evaluation is rendered) -->
+              <div id="rewriteComparisonCard" class="hidden p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/85 via-slate-900 to-teal-950/85 border-2 border-emerald-500/50 shadow-2xl space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-emerald-500/30">
                   <div class="flex items-center space-x-2.5">
-                    <span class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center text-base font-bold">📈</span>
+                    <span class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center text-base font-bold shrink-0">📈</span>
                     <div>
-                      <h3 class="text-sm font-bold text-white flex items-center space-x-2">
-                        <span>Rewrite Mark Recovery Report</span>
+                      <div class="flex flex-wrap items-center gap-1.5">
+                        <h3 class="text-sm font-extrabold text-white">Forensic Draft-1 vs. Draft-2 Skill Evolution Lab</h3>
                         <span class="text-[9px] bg-emerald-500/20 text-emerald-300 font-semibold px-2 py-0.5 rounded-full border border-emerald-500/30">0 Credits Deducted</span>
-                      </h3>
-                      <p class="text-[11px] text-slate-400">Comparing your rewritten copy against your previous draft</p>
+                      </div>
+                      <p class="text-[11px] text-slate-400">Measuring your feedback absorption, sentence compression &amp; exam-hall skill transfer</p>
                     </div>
                   </div>
-                  <div id="rewriteDeltaBadge" class="px-3.5 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs shadow-lg flex items-center space-x-1.5 self-start sm:self-auto">
+                  <div id="rewriteDeltaBadge" class="px-3.5 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs shadow-lg flex items-center space-x-1.5 self-start sm:self-auto shrink-0">
                     <i data-lucide="trending-up" class="w-4 h-4"></i>
                     <span id="rewriteDeltaText">+2.0 Marks Recovered (+20%)</span>
                   </div>
                 </div>
 
-                <!-- Score Delta Grid -->
+                <!-- Score Delta Grid (4 Responsive Tiles) -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
-                  <div class="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5">
-                    <span class="text-[10px] text-slate-400 block font-medium">Original Draft</span>
-                    <span id="prevOverallScore" class="font-mono text-base font-bold text-slate-300">4.5 / 10.0</span>
+                  <div class="p-2.5 rounded-xl bg-slate-950/75 border border-slate-800 space-y-0.5">
+                    <span class="text-[10px] text-slate-400 block font-medium">Original (Draft 1)</span>
+                    <span id="prevOverallScore" class="font-mono text-sm sm:text-base font-bold text-slate-300">4.5 / 10.0</span>
                   </div>
                   <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/40 space-y-0.5">
-                    <span class="text-[10px] text-emerald-400 block font-bold">Rewritten Copy</span>
-                    <span id="currOverallScore" class="font-mono text-base font-bold text-emerald-300">6.5 / 10.0</span>
+                    <span class="text-[10px] text-emerald-400 block font-bold">Rewritten (Draft 2)</span>
+                    <span id="currOverallScore" class="font-mono text-sm sm:text-base font-bold text-emerald-300">6.5 / 10.0</span>
                   </div>
-                  <div class="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5">
-                    <span class="text-[10px] text-slate-400 block font-medium">Band Shift</span>
+                  <div class="p-2.5 rounded-xl bg-slate-950/75 border border-slate-800 space-y-0.5">
+                    <span class="text-[10px] text-slate-400 block font-medium">Band Progression</span>
                     <span id="bandJumpText" class="text-xs font-bold text-amber-300">Needs Work → Topper</span>
                   </div>
-                  <div class="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5">
-                    <span class="text-[10px] text-slate-400 block font-medium">Marks Recovered</span>
-                    <span id="markRecoveryDelta" class="font-mono text-base font-extrabold text-emerald-400">+2.0M</span>
+                  <div class="p-2.5 rounded-xl bg-slate-950/75 border border-slate-800 space-y-0.5">
+                    <span class="text-[10px] text-slate-400 block font-medium">Net Marks Gained</span>
+                    <span id="markRecoveryDelta" class="font-mono text-sm sm:text-base font-extrabold text-emerald-400">+2.0M</span>
                   </div>
                 </div>
 
                 <!-- Section-by-Section Recovery Breakdown -->
-                <div class="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
-                  <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Section-Wise Marks Recovered:</span>
-                  <div id="sectionRecoveryGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs"></div>
+                <div class="p-3 sm:p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">1. 5-Axis Rubric Recovery Breakdown:</span>
+                    <span id="rewriteEfficiencySummaryPill" class="text-[10px] font-mono font-semibold text-cyan-300 bg-cyan-500/10 px-2.5 py-0.5 rounded-full border border-cyan-500/30">Word Budget: Within Exam Limit</span>
+                  </div>
+                  <div id="sectionRecoveryGrid" class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-2 text-xs"></div>
+                </div>
+
+                <!-- Module 2: Feedback Absorption & Prescription Tracker (Did you fix what Draft 1 asked?) -->
+                <div class="p-3.5 sm:p-4 rounded-xl bg-slate-950/85 border border-slate-800 space-y-3">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                    <div class="flex items-center space-x-2">
+                      <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                      <h4 class="text-xs font-extrabold uppercase tracking-wider text-emerald-300">2. Draft-1 Prescription Absorption Tracker</h4>
+                    </div>
+                    <span id="rewriteAbsorptionBadge" class="text-[10px] font-mono font-bold text-emerald-300 bg-emerald-500/15 px-2.5 py-0.5 rounded-full border border-emerald-500/30 self-start sm:self-auto">Prescription Compliance Audit</span>
+                  </div>
+                  <div id="rewriteAbsorptionGrid" class="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs"></div>
+                </div>
+
+                <!-- Module 3: Side-by-Side "Self vs. Self" Sentence Evolution (Draft 1 -> Draft 2 -> Skill Unlocked) -->
+                <div class="p-3.5 sm:p-4 rounded-xl bg-slate-950/85 border border-slate-800 space-y-3">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                    <div class="flex items-center space-x-2">
+                      <i data-lucide="git-compare" class="w-4 h-4 text-amber-400 shrink-0"></i>
+                      <h4 class="text-xs font-extrabold uppercase tracking-wider text-amber-300">3. Self-vs-Self Sentence Evolution (Draft 1 → Draft 2)</h4>
+                    </div>
+                    <span class="text-[10px] text-slate-400">How your own writing evolved across drafts</span>
+                  </div>
+                  <div id="rewriteSentenceDiffGrid" class="grid grid-cols-1 lg:grid-cols-3 gap-2.5 text-xs"></div>
+                </div>
+
+                <!-- Module 4 & 5: Regression / Trade-off Radar + 30-Second Revision Flashcard -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  <div id="rewriteTradeoffBox" class="p-3.5 rounded-xl bg-slate-950/85 border border-amber-500/30 space-y-2 text-xs"></div>
+                  <div id="rewriteRevisionFlashcard" class="p-3.5 rounded-xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/40 border border-emerald-500/35 space-y-2 text-xs"></div>
                 </div>
               </div>
 
@@ -3250,7 +3324,7 @@
 
   </div>
 
-  <script src="/static/app.js?v=5.6"></script>
+  <script src="/static/app.js?v=5.7"></script>
   <script>
     if (window.lucide) {
       try { lucide.createIcons(); } catch(e) {}

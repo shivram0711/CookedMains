@@ -1650,13 +1650,15 @@ async def evaluate_answer(
             directive_info = detect_directive(question)
             current_affairs_context = await get_dynamic_grounded_context(question, detected_paper)
 
+            prev_eval_dict = prev_record.get("evaluation") if (prev_record and is_rewrite) else None
             evaluator_prompt_text = build_evaluation_prompt(
                 question=question,
                 paper_key=detected_paper,
                 max_marks=max_marks,
                 directive_info=directive_info,
                 previous_question=prev_q,
-                current_affairs_context=current_affairs_context
+                current_affairs_context=current_affairs_context,
+                previous_evaluation=prev_eval_dict
             )
 
             client = genai.Client(api_key=key.strip())
@@ -1924,6 +1926,16 @@ async def evaluate_answer(
         final_paper = true_detected_paper if (allow_auto_aligned and (paper_mismatch or marks_mismatch)) else (evaluation_result.get("detected_paper") or paper)
         final_paper_display = evaluation_result.get("detected_paper_display") or final_paper
         final_max_marks = true_detected_marks if (allow_auto_aligned and (paper_mismatch or marks_mismatch)) else max_marks
+
+        if is_rewrite and prev_record:
+            prev_eval_clean = copy.deepcopy(prev_record.get("evaluation") or {})
+            if isinstance(prev_eval_clean, dict):
+                prev_eval_clean.pop("previous_evaluation", None)
+                prev_eval_clean.pop("previous_pages", None)
+                evaluation_result["previous_evaluation"] = prev_eval_clean
+            if prev_record.get("pages"):
+                evaluation_result["previous_pages"] = prev_record.get("pages")
+            evaluation_result["is_rewrite"] = True
 
         if user_email:
             if not is_rewrite:

@@ -719,7 +719,8 @@ def build_evaluation_prompt(
     max_marks: int, 
     directive_info: Dict[str, str], 
     previous_question: Optional[str] = None,
-    current_affairs_context: Optional[str] = None
+    current_affairs_context: Optional[str] = None,
+    previous_evaluation: Optional[Dict[str, Any]] = None
 ) -> str:
     detected_paper = detect_academic_discipline(question, paper_key)
     taxonomy = PAPER_TAXONOMIES.get(detected_paper, PAPER_TAXONOMIES.get("GS2"))
@@ -748,6 +749,25 @@ def build_evaluation_prompt(
     
     rewrite_check_instructions = ""
     if previous_question:
+        prev_context_summary = ""
+        if isinstance(previous_evaluation, dict):
+            prev_score_val = previous_evaluation.get("overall_score", "N/A")
+            prev_kw_cards = previous_evaluation.get("missing_keywords_cards") or []
+            prev_kws = [str(c.get("keyword") or c.get("title") or "") for c in prev_kw_cards if isinstance(c, dict) and (c.get("keyword") or c.get("title"))][:6]
+            prev_weaknesses = []
+            for sec_k in ["intro_audit", "body_audit", "conclusion_audit"]:
+                sec_obj = previous_evaluation.get(sec_k) or (previous_evaluation.get("section_by_section_audit") or {}).get(sec_k) or {}
+                if isinstance(sec_obj, dict):
+                    w_list = sec_obj.get("weaknesses") or []
+                    if isinstance(w_list, list):
+                        prev_weaknesses.extend([str(w) for w in w_list[:2]])
+            prev_context_summary = f"""
+3. FORENSIC DRAFT-1 VS DRAFT-2 EVOLUTION AUDIT:
+   - Draft 1 Baseline Score: {prev_score_val} / {max_marks}
+   - Prescriptions & Keywords Advised in Draft 1: {", ".join(prev_kws) if prev_kws else "Constitutional articles, committee reports, empirical data, and sub-part balance"}
+   - Key Weaknesses Flagged in Draft 1: {" | ".join(prev_weaknesses[:4]) if prev_weaknesses else "Generic introduction, missing substantiation, and weak conclusion"}
+   - Cross-check whether the student absorbed these prescriptions in Draft 2, whether they maintained exam-hall word discipline ({150 if max_marks <= 10 else 250} words), and whether any new trade-off occurred.
+"""
         rewrite_check_instructions = f"""
 🚨 ZERO-TOLERANCE REWRITE & DUPLICATE PROCTORING AUDIT:
 The student submitted this answer copy under 24-Hour Free Rewrite Mode, claiming it is a revised draft of:
@@ -757,7 +777,7 @@ YOU MUST INSPECT THE HANDWRITTEN ANSWER AS A STRICT EXAM PROCTOR:
 1. TOPIC / QUESTION MISMATCH CHECK:
    - Carefully read the handwritten question prompt, title, and body content written on the booklet.
    - Does this copy address the EXACT SAME baseline topic/question: "{previous_question}"?
-   - If this copy answers ANY OTHER QUESTION, TOPIC, OR ESSAY PROMPT (e.g. baseline was on cyclones/climate, but this copy answers international humanitarian law or polity; OR baseline was on separation of powers, but this copy answers UCC):
+   - If this copy answers ANY OTHER QUESTION, TOPIC, OR ESSAY PROMPT:
      YOU MUST SET:
      "is_same_question_topic": false
      "mismatch_reason": "Uploaded answer copy discusses an entirely different question or topic instead of the baseline question '{previous_question[:80]}...'."
@@ -770,7 +790,7 @@ YOU MUST INSPECT THE HANDWRITTEN ANSWER AS A STRICT EXAM PROCTOR:
      "improvements_detected": false
      "improvement_summary": "Identical unrevised answer copy submitted with no new revisions or additions."
    - If the candidate genuinely revised their answer with new points or corrections, set "is_identical_copy": false, "improvements_detected": true.
-"""
+{prev_context_summary}"""
 
     ca_section = ""
     if current_affairs_context and current_affairs_context.strip():

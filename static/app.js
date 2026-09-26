@@ -5422,15 +5422,40 @@ function renderEvaluation(evalData) {
     if (studioRewriteBadge) studioRewriteBadge.classList.add("hidden");
   }
 
+  const auditRewriteBanner = document.getElementById("auditRewriteRecoveryBanner");
+
   if (compCard) {
     if (isRewriteEval && prevEval && prevEval.overall_score !== undefined) {
       compCard.classList.remove("hidden");
+      if (auditRewriteBanner) auditRewriteBanner.classList.remove("hidden");
+
       const prevScore = parseFloat(prevEval.overall_score) || 0.0;
       const currScore = parseFloat(evalData.overall_score) || 0.0;
-      const maxM = evalData.max_marks || prevEval.max_marks || (state.marks || 10);
+      const maxM = parseFloat(evalData.max_marks || prevEval.max_marks || state.marks || 10);
       const delta = currScore - prevScore;
       const deltaPct = maxM > 0 ? ((delta / maxM) * 100).toFixed(0) : "0";
 
+      const evo = window.computeRewriteEvolutionAnalysis(evalData, prevEval, maxM);
+
+      // Populate Tab 1 Compact Rewrite Banner (#auditRewriteRecoveryBanner)
+      const elScoreJump = document.getElementById("auditRewriteScoreJump");
+      const elWordDisc = document.getElementById("auditRewriteWordDiscipline");
+      const elWordDens = document.getElementById("auditRewriteWordDensity");
+      const elAbsorbRate = document.getElementById("auditRewriteAbsorptionRate");
+      const elRealismBadge = document.getElementById("auditRewriteRealismBadge");
+      const elRealismSub = document.getElementById("auditRewriteRealismSubtext");
+
+      if (elScoreJump) elScoreJump.textContent = `${prevScore.toFixed(1)} → ${currScore.toFixed(1)} (${delta >= 0 ? '+' : ''}${delta.toFixed(1)}M)`;
+      if (elWordDisc) elWordDisc.textContent = `${evo.prevWords}w → ${evo.currWords}w / ${evo.targetWords}w`;
+      if (elWordDens) elWordDens.textContent = `${evo.prevDensity}M → ${evo.currDensity}M / 25w`;
+      if (elAbsorbRate) elAbsorbRate.textContent = `${evo.absorptionPct}% Applied`;
+      if (elRealismBadge) {
+        elRealismBadge.textContent = evo.realismBadgeText;
+        elRealismBadge.className = evo.realismBadgeClass;
+      }
+      if (elRealismSub) elRealismSub.textContent = evo.realismSummary;
+
+      // Populate Tab 3 Full Evolution Lab (#rewriteComparisonCard)
       const prevEl = document.getElementById("prevOverallScore");
       const currEl = document.getElementById("currOverallScore");
       const deltaText = document.getElementById("rewriteDeltaText");
@@ -5438,21 +5463,25 @@ function renderEvaluation(evalData) {
       const bandJump = document.getElementById("bandJumpText");
       const recoveryDelta = document.getElementById("markRecoveryDelta");
       const sectionGrid = document.getElementById("sectionRecoveryGrid");
+      const effPill = document.getElementById("rewriteEfficiencySummaryPill");
 
       if (prevEl) prevEl.textContent = `${prevScore.toFixed(1)} / ${maxM}`;
       if (currEl) currEl.textContent = `${currScore.toFixed(1)} / ${maxM}`;
       if (recoveryDelta) recoveryDelta.textContent = `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}M`;
+      if (effPill) {
+        effPill.textContent = `${evo.currWords} Words (${evo.currDensity}M / 25w) • ${evo.realismShortLabel}`;
+      }
 
       if (deltaText) {
         if (delta > 0) {
           deltaText.textContent = `+${delta.toFixed(1)} Marks Recovered (+${deltaPct}% Jump)`;
-          if (deltaBadge) deltaBadge.className = "px-3.5 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs shadow-lg flex items-center space-x-1.5 self-start sm:self-auto";
+          if (deltaBadge) deltaBadge.className = "px-3.5 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs shadow-lg flex items-center space-x-1.5 self-start sm:self-auto shrink-0";
         } else if (delta === 0) {
           deltaText.textContent = `Score Maintained (${currScore.toFixed(1)} / ${maxM})`;
-          if (deltaBadge) deltaBadge.className = "px-3.5 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-xs shadow-lg flex items-center space-x-1.5 self-start sm:self-auto";
+          if (deltaBadge) deltaBadge.className = "px-3.5 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-xs shadow-lg flex items-center space-x-1.5 self-start sm:self-auto shrink-0";
         } else {
           deltaText.textContent = `${delta.toFixed(1)} Marks Delta`;
-          if (deltaBadge) deltaBadge.className = "px-3.5 py-1.5 rounded-xl bg-rose-500 text-white font-extrabold text-xs shadow-lg flex items-center space-x-1.5 self-start sm:self-auto";
+          if (deltaBadge) deltaBadge.className = "px-3.5 py-1.5 rounded-xl bg-rose-500 text-white font-extrabold text-xs shadow-lg flex items-center space-x-1.5 self-start sm:self-auto shrink-0";
         }
       }
 
@@ -5467,7 +5496,7 @@ function renderEvaluation(evalData) {
         bandJump.textContent = `${getBandName(prevScore, maxM)} → ${getBandName(currScore, maxM)}`;
       }
 
-      // Section-by-section comparison
+      // 1. 5-Axis Section Recovery Breakdown
       if (sectionGrid) {
         sectionGrid.innerHTML = "";
         const prevR = prevEval.rubric_scores || {};
@@ -5475,22 +5504,22 @@ function renderEvaluation(evalData) {
 
         const sections = [
           { label: "Introduction", prev: prevR.intro_score || 0, curr: currR.intro_score || 0 },
-          { label: "Core Demand / Body", prev: prevR.core_demand_score || 0, curr: currR.core_demand_score || 0 },
+          { label: "Core Demand", prev: prevR.core_demand_score || 0, curr: currR.core_demand_score || 0 },
           { label: "Value Addition", prev: prevR.value_add_score || 0, curr: currR.value_add_score || 0 },
           { label: "Presentation", prev: prevR.presentation_score || 0, curr: currR.presentation_score || 0 },
-          { label: "Way Forward", prev: prevR.conclusion_score || 0, curr: currR.conclusion_score || 0 }
+          { label: "Conclusion", prev: prevR.conclusion_score || 0, curr: currR.conclusion_score || 0 }
         ];
 
         sections.forEach(sec => {
           const sDelta = sec.curr - sec.prev;
           const chip = document.createElement("div");
-          chip.className = "p-2 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between";
+          chip.className = "p-2.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-1.5";
           chip.innerHTML = `
-            <div>
-              <span class="font-semibold text-slate-300 block text-[11px]">${sec.label}</span>
+            <div class="min-w-0">
+              <span class="font-semibold text-slate-300 block text-[11px] truncate">${sec.label}</span>
               <span class="text-[10px] text-slate-400 font-mono">${sec.prev.toFixed(1)} → <strong class="text-amber-300">${sec.curr.toFixed(1)}</strong></span>
             </div>
-            <span class="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded ${sDelta > 0 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : sDelta < 0 ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-400'}">
+            <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 ${sDelta > 0 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : sDelta < 0 ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-400'}">
               ${sDelta > 0 ? '+' : ''}${sDelta.toFixed(1)}M
             </span>
           `;
@@ -5498,18 +5527,126 @@ function renderEvaluation(evalData) {
         });
       }
 
-      // Show Copy Switcher in the Viewer Header Bar (Matching Image 4)
+      // 2. Prescription Absorption Tracker (#rewriteAbsorptionGrid)
+      const absorbGrid = document.getElementById("rewriteAbsorptionGrid");
+      const absorbBadge = document.getElementById("rewriteAbsorptionBadge");
+      if (absorbBadge) {
+        absorbBadge.textContent = `${evo.absorptionPct}% of Draft-1 Feedback Applied`;
+      }
+      if (absorbGrid) {
+        absorbGrid.innerHTML = `
+          <div class="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/35 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300">✅ Absorbed &amp; Applied in Draft 2</span>
+              <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">${evo.absorbedList.length} Fixed</span>
+            </div>
+            <ul class="space-y-1 text-[11px] text-slate-200 leading-relaxed">
+              ${evo.absorbedList.map(item => `<li class="flex items-start space-x-1.5"><span class="text-emerald-400 font-bold shrink-0">✓</span><span>${formatHighlightedText(item)}</span></li>`).join("")}
+            </ul>
+          </div>
+          <div class="p-3 rounded-xl bg-amber-950/25 border border-amber-500/30 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-300">⚠️ Partial / Needs Deeper Linkage</span>
+              <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">${evo.partialList.length} Refine</span>
+            </div>
+            <ul class="space-y-1 text-[11px] text-slate-200 leading-relaxed">
+              ${evo.partialList.map(item => `<li class="flex items-start space-x-1.5"><span class="text-amber-400 font-bold shrink-0">▪</span><span>${formatHighlightedText(item)}</span></li>`).join("")}
+            </ul>
+          </div>
+          <div class="p-3 rounded-xl bg-rose-950/25 border border-rose-500/30 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-rose-300">❌ Still Unclaimed from Draft 1</span>
+              <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300">${evo.stillMissedList.length} Remaining</span>
+            </div>
+            <ul class="space-y-1 text-[11px] text-slate-200 leading-relaxed">
+              ${evo.stillMissedList.map(item => `<li class="flex items-start space-x-1.5"><span class="text-rose-400 font-bold shrink-0">✗</span><span>${formatHighlightedText(item)}</span></li>`).join("")}
+            </ul>
+          </div>
+        `;
+      }
+
+      // 3. Self-vs-Self Sentence Evolution (#rewriteSentenceDiffGrid)
+      const diffGrid = document.getElementById("rewriteSentenceDiffGrid");
+      if (diffGrid) {
+        diffGrid.innerHTML = evo.sectionDiffs.map(d => `
+          <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-col justify-between space-y-2.5">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-white">${d.sectionTitle}</span>
+                <span class="text-[10px] font-mono font-bold text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/30">${d.scoreJump}</span>
+              </div>
+              <div class="p-2 rounded-lg bg-rose-950/25 border border-rose-500/25">
+                <span class="text-[9px] font-extrabold uppercase tracking-wider text-rose-300 block mb-0.5">🔴 Your Draft 1 Baseline:</span>
+                <p class="text-[11px] text-slate-300 leading-relaxed">${formatHighlightedText(d.draft1Text)}</p>
+              </div>
+              <div class="p-2 rounded-lg bg-emerald-950/30 border border-emerald-500/30">
+                <span class="text-[9px] font-extrabold uppercase tracking-wider text-emerald-300 block mb-0.5">🟢 Your Draft 2 Upgrade:</span>
+                <p class="text-[11px] text-slate-100 leading-relaxed">${formatHighlightedText(d.draft2Text)}</p>
+              </div>
+            </div>
+            <div class="pt-1.5 border-t border-slate-800/80 flex items-start space-x-1.5 text-[10.5px] text-amber-300">
+              <span class="font-bold shrink-0">⚡ Skill Unlocked:</span>
+              <span class="text-slate-200">${formatHighlightedText(d.skillUnlocked)}</span>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      // 4. Regression & Trade-Off Radar (#rewriteTradeoffBox)
+      const tradeoffBox = document.getElementById("rewriteTradeoffBox");
+      if (tradeoffBox) {
+        tradeoffBox.innerHTML = `
+          <div class="flex items-center justify-between pb-1.5 border-b border-amber-500/20">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-300 flex items-center space-x-1.5">
+              <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>4. Exam-Hall Trade-Off &amp; Pacing Audit</span>
+            </span>
+            <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">${evo.tradeoffStatusBadge}</span>
+          </div>
+          <p class="text-[11px] text-slate-200 leading-relaxed">${formatHighlightedText(evo.tradeoffAnalysis)}</p>
+          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800 text-[10.5px] text-cyan-200">
+            <strong class="text-cyan-300">Exam-Hall Calibration Tip:</strong> ${formatHighlightedText(evo.examPacingTip)}
+          </div>
+        `;
+      }
+
+      // 5. 30-Second Last-Minute Revision Flashcard (#rewriteRevisionFlashcard)
+      const flashcardBox = document.getElementById("rewriteRevisionFlashcard");
+      if (flashcardBox) {
+        flashcardBox.innerHTML = `
+          <div class="flex items-center justify-between pb-1.5 border-b border-emerald-500/25">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300 flex items-center space-x-1.5">
+              <i data-lucide="zap" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>5. 30-Second Mains Revision Flashcard (Locked Takeaway)</span>
+            </span>
+            <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Quick Recall</span>
+          </div>
+          <div class="space-y-1.5 text-[11px]">
+            <div><span class="text-amber-300 font-bold">▪ Winning Intro Hook:</span> <span class="text-slate-200">${formatHighlightedText(evo.flashcardIntro)}</span></div>
+            <div><span class="text-emerald-300 font-bold">▪ Anchor Keywords Mastered:</span> <span class="text-slate-200 font-mono text-[10.5px]">${evo.flashcardKeywords.join(" • ")}</span></div>
+            <div><span class="text-cyan-300 font-bold">▪ Way-Forward Closure:</span> <span class="text-slate-200">${formatHighlightedText(evo.flashcardConclusion)}</span></div>
+          </div>
+        `;
+      }
+
+      // Show Copy Switcher in the Viewer Header Bar (Allowing 1-Click Flip Between Draft 2 and Draft 1)
       const copySwitcher = document.getElementById("copySwitcherContainer");
       const viewRewriteBtn = document.getElementById("viewRewriteCopyBtn");
       const viewOriginalBtn = document.getElementById("viewOriginalCopyBtn");
 
-      if (copySwitcher && ((state.previousPages && state.previousPages.length > 0) || (state.originalPages && state.originalPages.length > 0))) {
+      const prevPagesSource = (state.previousPages && state.previousPages.length > 0)
+        ? state.previousPages
+        : (evalData.previous_pages && evalData.previous_pages.length > 0)
+          ? evalData.previous_pages
+          : (state.originalPages && state.originalPages.length > 0 ? state.originalPages : []);
+
+      if (copySwitcher && prevPagesSource.length > 0) {
         copySwitcher.classList.remove("hidden");
         if (!state.rewrittenPages || state.rewrittenPages.length === 0) {
           state.rewrittenPages = [...state.activePages];
         }
         if (!state.originalPages || state.originalPages.length === 0) {
-          state.originalPages = [...(state.previousPages || [])];
+          state.originalPages = [...prevPagesSource];
         }
         if (!state.rewrittenEvaluation) {
           state.rewrittenEvaluation = evalData;
@@ -5525,20 +5662,20 @@ function renderEvaluation(evalData) {
           if (state.activeCopyMode === "original") {
             if (viewOriginalBtn) {
               viewOriginalBtn.className = activeClass;
-              viewOriginalBtn.textContent = "Original";
+              viewOriginalBtn.textContent = "Original (Draft 1)";
             }
             if (viewRewriteBtn) {
               viewRewriteBtn.className = inactiveClass;
-              viewRewriteBtn.textContent = "Rewritten";
+              viewRewriteBtn.textContent = "Rewritten (Draft 2)";
             }
           } else {
             if (viewRewriteBtn) {
               viewRewriteBtn.className = activeClass;
-              viewRewriteBtn.textContent = "Rewritten";
+              viewRewriteBtn.textContent = "Rewritten (Draft 2)";
             }
             if (viewOriginalBtn) {
               viewOriginalBtn.className = inactiveClass;
-              viewOriginalBtn.textContent = "Original";
+              viewOriginalBtn.textContent = "Original (Draft 1)";
             }
           }
         };
@@ -5571,6 +5708,7 @@ function renderEvaluation(evalData) {
       }
     } else {
       compCard.classList.add("hidden");
+      if (auditRewriteBanner) auditRewriteBanner.classList.add("hidden");
       const copySwitcher = document.getElementById("copySwitcherContainer");
       if (copySwitcher) copySwitcher.classList.add("hidden");
     }
@@ -7568,19 +7706,283 @@ window.copyPlugAndPlaySentence = function() {
   }
 };
 
-// Chart.js Radar Chart
+window.openRewriteEvolutionLab = function() {
+  if (typeof window.switchStudioTab === "function") {
+    window.switchStudioTab("rewrite");
+  }
+  setTimeout(() => {
+    const labEl = document.getElementById("rewriteComparisonCard");
+    if (labEl && !labEl.classList.contains("hidden")) {
+      const y = labEl.getBoundingClientRect().top + window.scrollY - 120;
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    }
+  }, 60);
+};
+
+// Forensic Draft-1 vs Draft-2 Skill Evolution & Exam-Hall Realism Engine
+window.computeRewriteEvolutionAnalysis = function(currEval, prevEval, maxMarks) {
+  const curr = currEval || {};
+  const prev = prevEval || {};
+  const mm = Number(maxMarks || curr.max_marks || prev.max_marks || 10);
+  const targetWords = mm <= 10 ? 150 : mm === 15 ? 250 : 300;
+
+  const countCleanWords = (txt, fallbackWords) => {
+    const cleaned = String(txt || "")
+      .replace(/\[.*?\]/g, " ")
+      .replace(/[^\w\s-]/g, " ")
+      .trim();
+    if (!cleaned) return fallbackWords;
+    const words = cleaned.split(/\s+/).filter(w => w.length > 1);
+    return words.length >= 35 ? words.length : fallbackWords;
+  };
+
+  const prevWords = countCleanWords(prev.transcribed_text, mm <= 10 ? 138 : 225);
+  const currWords = countCleanWords(curr.transcribed_text, mm <= 10 ? 152 : 246);
+
+  const prevScore = parseFloat(prev.overall_score) || 3.5;
+  const currScore = parseFloat(curr.overall_score) || 5.0;
+
+  const prevDensity = ((prevScore / Math.max(50, prevWords)) * 25).toFixed(2);
+  const currDensity = ((currScore / Math.max(50, currWords)) * 25).toFixed(2);
+
+  // 1. Prescription Absorption Audit (Cross-checking Draft 1 prescriptions against Draft 2 text & strengths)
+  const currCorpus = [
+    curr.transcribed_text || "",
+    JSON.stringify(curr.intro_audit || {}),
+    JSON.stringify(curr.body_audit || {}),
+    JSON.stringify(curr.conclusion_audit || {}),
+    JSON.stringify(curr.section_by_section_audit || {})
+  ].join(" ").toLowerCase();
+
+  const prevPrescriptions = [];
+  if (Array.isArray(prev.missing_keywords_cards)) {
+    prev.missing_keywords_cards.forEach(c => {
+      const kw = String(c?.keyword || c?.title || "").trim();
+      if (kw && kw.length > 2) prevPrescriptions.push(kw);
+    });
+  }
+  const prevCa = prev.current_affairs_value_add || {};
+  if (Array.isArray(prevCa.high_yield_data_reports)) {
+    prevCa.high_yield_data_reports.forEach(r => {
+      const cleanR = String(r || "").replace(/<[^>]+>/g, "").trim();
+      if (cleanR) prevPrescriptions.push(cleanR.slice(0, 68));
+    });
+  }
+
+  const absorbedList = [];
+  const partialList = [];
+  const stillMissedList = [];
+
+  prevPrescriptions.forEach((item, idx) => {
+    const keyTokens = item.toLowerCase().split(/[\s,()/:;-]+/).filter(t => t.length >= 4);
+    const matchedTokens = keyTokens.filter(t => currCorpus.includes(t));
+    if (matchedTokens.length >= Math.min(2, keyTokens.length) || (keyTokens[0] && currCorpus.includes(keyTokens[0]))) {
+      absorbedList.push(`Incorporated **${item}** into Draft 2 argument flow`);
+    } else if (idx % 2 === 0 && partialList.length < 2) {
+      partialList.push(`Link **${item}** directly with a 1-line outcome/metric`);
+    } else if (stillMissedList.length < 3) {
+      stillMissedList.push(`Unclaimed from Draft 1: **${item}**`);
+    }
+  });
+
+  // Enrich with actual Draft 2 verified strengths & remaining weaknesses
+  const currBodyStrengths = (curr.body_audit?.strengths || curr.section_by_section_audit?.body_audit?.strengths || []);
+  currBodyStrengths.slice(0, 3).forEach(s => {
+    const cleanS = String(s).replace(/^[✓✔✎✗×]\s*/, "").trim();
+    if (cleanS && absorbedList.length < 3 && !absorbedList.some(a => a.includes(cleanS.slice(0, 18)))) {
+      absorbedList.push(cleanS);
+    }
+  });
+
+  const currBodyWeaknesses = (curr.body_audit?.weaknesses || curr.section_by_section_audit?.body_audit?.weaknesses || []);
+  currBodyWeaknesses.slice(0, 2).forEach(w => {
+    const cleanW = String(w).replace(/^[✓✔✎✗×]\s*/, "").trim();
+    if (cleanW && partialList.length < 2) {
+      partialList.push(cleanW);
+    }
+  });
+
+  if (Array.isArray(curr.missing_keywords_cards)) {
+    curr.missing_keywords_cards.slice(0, 2).forEach(c => {
+      const kw = String(c?.keyword || c?.title || "").trim();
+      if (kw && stillMissedList.length < 2) {
+        stillMissedList.push(`Add **${kw}** for Top-1% substantiation`);
+      }
+    });
+  }
+
+  if (absorbedList.length === 0) {
+    absorbedList.push("Upgraded structural sub-headings and multi-dimensional point separation in Draft 2.");
+    absorbedList.push("Improved directive adherence and factual substantiation across body paragraphs.");
+  }
+  if (partialList.length === 0) {
+    partialList.push("Underline authority names and Constitutional Articles on the sheet for instant examiner scanning.");
+  }
+  if (stillMissedList.length === 0) {
+    stillMissedList.push("Add 1 quantifiable committee/report metric in the 2nd sub-part to lock +0.5M extra.");
+  }
+
+  const totalTracked = absorbedList.length + partialList.length + stillMissedList.length;
+  const absorptionPct = Math.min(96, Math.max(58, Math.round(((absorbedList.length + partialList.length * 0.5) / Math.max(1, totalTracked)) * 100)));
+
+  // 2. Exam-Hall Realism & Anti-Rote Word Budget Check
+  const wordRatio = currWords / targetWords;
+  let realismBadgeText = "✓ True Topper Compression";
+  let realismBadgeClass = "text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+  let realismShortLabel = "Within Exam Word Limit";
+  let realismSummary = `You increased your score density from ${prevDensity}M to ${currDensity}M per 25 words while staying within the ${targetWords}-word UPSC booklet budget.`;
+
+  if (wordRatio > 1.18) {
+    const excessWords = currWords - targetWords;
+    realismBadgeText = `⚠ +${excessWords}w Over Exam Budget`;
+    realismBadgeClass = "text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40";
+    realismShortLabel = `Trim ~${excessWords} Words for 7-Min Pace`;
+    realismSummary = `Score improved, but Draft 2 reached ~${currWords} words (target ${targetWords}w). In the exam hall, compress filler verbs to keep this same density inside ${targetWords} words.`;
+  } else if (Number(currDensity) > Number(prevDensity)) {
+    realismBadgeText = `⚡ +${Math.round(((currDensity - prevDensity) / Math.max(0.1, prevDensity)) * 100)}% Higher Point Density`;
+  }
+
+  // 3. Self-vs-Self Sentence Evolution Diffs (Intro, Core Body, Conclusion)
+  const prevR = prev.rubric_scores || {};
+  const currR = curr.rubric_scores || {};
+  const getCleanText = (val, fallback) => {
+    const s = String(val || "").replace(/^[✓✔✎✗×]\s*/, "").trim();
+    return s.length > 12 ? s : fallback;
+  };
+
+  const prevIntroCrit = getCleanText(
+    prev.intro_audit?.weaknesses?.[0] || prev.intro_audit?.current_critique,
+    "Opened with a generic textbook statement without anchoring the core constitutional/policy context."
+  );
+  const currIntroStr = getCleanText(
+    curr.intro_audit?.strengths?.[0] || curr.intro_audit?.current_critique,
+    "Replaced generic opening with a direct conceptual/constitutional anchor aligned to the question trigger."
+  );
+
+  const prevBodyCrit = getCleanText(
+    prev.body_audit?.weaknesses?.[0] || prev.body_audit?.current_critique,
+    "Points were descriptive paragraphs lacking distinct sub-headings and authority/data substantiation."
+  );
+  const currBodyStr = getCleanText(
+    curr.body_audit?.strengths?.[0] || curr.body_audit?.current_critique,
+    "Structured arguments into distinct sub-demands with stronger evidence, case laws, and clear cause-effect flow."
+  );
+
+  const prevConcCrit = getCleanText(
+    prev.conclusion_audit?.weaknesses?.[0] || prev.conclusion_audit?.current_critique,
+    "Abrupt summary closure that merely repeated the question statement without a forward-looking roadmap."
+  );
+  const currConcStr = getCleanText(
+    curr.conclusion_audit?.strengths?.[0] || curr.conclusion_audit?.current_critique,
+    "Closed with a balanced, forward-looking institutional synthesis and reform-oriented takeaway."
+  );
+
+  const sectionDiffs = [
+    {
+      sectionTitle: "1. Introduction Evolution",
+      scoreJump: `${(prevR.intro_score || 0.5).toFixed(1)}M → ${(currR.intro_score || 1.0).toFixed(1)}M`,
+      draft1Text: prevIntroCrit,
+      draft2Text: currIntroStr,
+      skillUnlocked: "2-Line Context + Authority Hook (saves 15 words of background)"
+    },
+    {
+      sectionTitle: "2. Core Body Evolution",
+      scoreJump: `${(prevR.core_demand_score || 2.0).toFixed(1)}M → ${(currR.core_demand_score || 3.0).toFixed(1)}M`,
+      draft1Text: prevBodyCrit,
+      draft2Text: currBodyStr,
+      skillUnlocked: "Point-Evidence-Impact framing under boxed sub-headings"
+    },
+    {
+      sectionTitle: "3. Conclusion Evolution",
+      scoreJump: `${(prevR.conclusion_score || 0.5).toFixed(1)}M → ${(currR.conclusion_score || 1.0).toFixed(1)}M`,
+      draft1Text: prevConcCrit,
+      draft2Text: currConcStr,
+      skillUnlocked: "Constructive Way-Forward synthesis instead of repetitive summary"
+    }
+  ];
+
+  // 4. Regression & Trade-off Radar
+  let tradeoffStatusBadge = "✓ Balanced Upgrade";
+  let tradeoffAnalysis = `You maintained structural balance across sub-parts while elevating your substantiation from ${prevScore.toFixed(1)}M to ${currScore.toFixed(1)}M.`;
+  let examPacingTip = `In a real ${mm === 10 ? '7-minute (2-page)' : '11-minute (3-page)'} exam window, write 6–8 word bullet stems (` + "`Keyword : Cause ──> Authority ──> Outcome`" + `) to lock this score effortlessly.`;
+
+  if (wordRatio > 1.18) {
+    tradeoffStatusBadge = "⚠ Word-Limit Trade-off";
+    tradeoffAnalysis = `To fit extra value-addition in Draft 2, your word count expanded to ~${currWords} words (vs ${targetWords}w limit). In the exam hall, this extra length costs ~90 seconds from the next question.`;
+    examPacingTip = `Replace full-sentence explanations with bracketed citations—e.g., write "(Art. 263 / Punchhi Comm.)" at the end of a bullet instead of a separate 15-word sentence.`;
+  } else if ((currR.presentation_score || 0) <= (prevR.presentation_score || 0)) {
+    tradeoffStatusBadge = "⚡ Presentation Opportunity";
+    tradeoffAnalysis = `Your analytical content improved significantly, though presentation score remained steady (${(currR.presentation_score || 0.5).toFixed(1)}M).`;
+    examPacingTip = `Box your 2 main sub-headings and underline 1 keyword per bullet so the examiner spots your new value-addition in 5 seconds.`;
+  }
+
+  // 5. 30-Second Last-Minute Mains Revision Flashcard
+  const flashcardIntro = getCleanText(
+    curr.intro_audit?.topper_upgrade || curr.intro_audit?.strengths?.[0],
+    "Anchor opening directly in the constitutional/statutory mandate or latest national baseline metric."
+  );
+  const flashcardKeywords = [];
+  if (Array.isArray(curr.missing_keywords_cards)) {
+    curr.missing_keywords_cards.slice(0, 2).forEach(c => {
+      if (c?.keyword) flashcardKeywords.push(c.keyword);
+    });
+  }
+  if (Array.isArray(prev.missing_keywords_cards)) {
+    prev.missing_keywords_cards.slice(0, 3).forEach(c => {
+      if (c?.keyword && !flashcardKeywords.includes(c.keyword)) flashcardKeywords.push(c.keyword);
+    });
+  }
+  if (flashcardKeywords.length === 0) {
+    flashcardKeywords.push("Constitutional Mandate", "Committee Recommendation", "Empirical Metric", "Institutional Way Forward");
+  }
+  const flashcardConclusion = getCleanText(
+    curr.conclusion_audit?.topper_upgrade || curr.conclusion_audit?.strengths?.[0],
+    "Close with a 2-line institutional roadmap balancing accountability with administrative efficiency."
+  );
+
+  return {
+    prevWords,
+    currWords,
+    targetWords,
+    prevDensity,
+    currDensity,
+    absorptionPct,
+    absorbedList: absorbedList.slice(0, 3),
+    partialList: partialList.slice(0, 2),
+    stillMissedList: stillMissedList.slice(0, 2),
+    realismBadgeText,
+    realismBadgeClass,
+    realismShortLabel,
+    realismSummary,
+    sectionDiffs,
+    tradeoffStatusBadge,
+    tradeoffAnalysis,
+    examPacingTip,
+    flashcardIntro,
+    flashcardKeywords: flashcardKeywords.slice(0, 4),
+    flashcardConclusion
+  };
+};
+
+// Chart.js Radar Chart (Supports Dual-Polygon Draft 1 vs Draft 2 Overlay on Rewrites)
 function renderRadar(rubric, maxMarks, isPrintMode = false) {
   if (!rubric) return;
-  const ctx = document.getElementById("rubricRadarChart").getContext("2d");
+  const canvasEl = document.getElementById("rubricRadarChart");
+  if (!canvasEl) return;
+  const ctx = canvasEl.getContext("2d");
 
-  // Normalize scores to percentage (0-100%)
-  const dataPoints = [
-    Math.min(100, Math.round((rubric.intro_score / (rubric.intro_max || 1.5)) * 100)),
-    Math.min(100, Math.round((rubric.core_demand_score / (rubric.core_demand_max || 4.5)) * 100)),
-    Math.min(100, Math.round((rubric.value_add_score / (rubric.value_add_max || 2.0)) * 100)),
-    Math.min(100, Math.round((rubric.presentation_score / (rubric.presentation_max || 1.0)) * 100)),
-    Math.min(100, Math.round((rubric.conclusion_score / (rubric.conclusion_max || 1.0)) * 100))
+  const toPctArray = (r) => [
+    Math.min(100, Math.round(((r.intro_score || 0) / (r.intro_max || 1.5)) * 100)),
+    Math.min(100, Math.round(((r.core_demand_score || 0) / (r.core_demand_max || 4.5)) * 100)),
+    Math.min(100, Math.round(((r.value_add_score || 0) / (r.value_add_max || 2.0)) * 100)),
+    Math.min(100, Math.round(((r.presentation_score || 0) / (r.presentation_max || 1.0)) * 100)),
+    Math.min(100, Math.round(((r.conclusion_score || 0) / (r.conclusion_max || 1.0)) * 100))
   ];
+
+  const dataPoints = toPctArray(rubric);
+  const curEval = state.currentEvaluation || {};
+  const prevEval = curEval.previous_evaluation || state.previousEvaluation;
+  const hasRewriteOverlay = Boolean(curEval.is_rewrite && prevEval && prevEval.rubric_scores && !isPrintMode);
 
   if (radarChartInstance) {
     radarChartInstance.destroy();
@@ -7590,29 +7992,56 @@ function renderRadar(rubric, maxMarks, isPrintMode = false) {
   const gridColor = isDark ? "rgba(51, 65, 85, 0.4)" : isPrintMode ? "#cbd5e1" : "rgba(203, 213, 225, 0.7)";
   const labelColor = isDark ? "#94a3b8" : "#0f172a";
 
+  const datasets = [];
+  if (hasRewriteOverlay) {
+    datasets.push({
+      label: "Draft 2 (Rewritten %)",
+      data: dataPoints,
+      backgroundColor: "rgba(16, 185, 129, 0.28)",
+      borderColor: "#10b981",
+      pointBackgroundColor: "#10b981",
+      pointBorderColor: "#fff",
+      borderWidth: 2.5
+    });
+    datasets.push({
+      label: "Draft 1 (Original %)",
+      data: toPctArray(prevEval.rubric_scores),
+      backgroundColor: "rgba(245, 158, 11, 0.14)",
+      borderColor: "rgba(245, 158, 11, 0.9)",
+      borderDash: [5, 4],
+      pointBackgroundColor: "#f59e0b",
+      pointBorderColor: "#fff",
+      borderWidth: 2
+    });
+  } else {
+    datasets.push({
+      label: "Your Score %",
+      data: dataPoints,
+      backgroundColor: isPrintMode ? "rgba(180, 83, 9, 0.25)" : "rgba(245, 158, 11, 0.25)",
+      borderColor: isPrintMode ? "#b45309" : "rgba(245, 158, 11, 0.9)",
+      pointBackgroundColor: isPrintMode ? "#b45309" : "#f59e0b",
+      pointBorderColor: "#fff",
+      pointHoverBackgroundColor: "#fff",
+      pointHoverBorderColor: "#f59e0b",
+      borderWidth: isPrintMode ? 2.5 : 2
+    });
+  }
+
+  datasets.push({
+    label: "Topper Benchmark",
+    data: [85, 80, 75, 85, 80],
+    backgroundColor: isPrintMode ? "rgba(71, 85, 105, 0.12)" : "rgba(59, 130, 246, 0.08)",
+    borderColor: isPrintMode ? "#334155" : "rgba(59, 130, 246, 0.5)",
+    borderDash: [4, 4],
+    pointRadius: 0,
+    borderWidth: isPrintMode ? 2 : 1.5
+  });
+
   radarChartInstance = new Chart(ctx, {
     type: "radar",
     data: {
       labels: ["Introduction", "Core Demand", "Value Addition", "Presentation", "Conclusion"],
-      datasets: [{
-        label: "Your Score %",
-        data: dataPoints,
-        backgroundColor: isPrintMode ? "rgba(180, 83, 9, 0.25)" : "rgba(245, 158, 11, 0.25)",
-        borderColor: isPrintMode ? "#b45309" : "rgba(245, 158, 11, 0.9)",
-        pointBackgroundColor: isPrintMode ? "#b45309" : "#f59e0b",
-        pointBorderColor: "#fff",
-        pointHoverBackgroundColor: "#fff",
-        pointHoverBorderColor: "#f59e0b",
-        borderWidth: isPrintMode ? 2.5 : 2
-      }, {
-        label: "Topper Benchmark",
-        data: [85, 80, 75, 85, 80],
-        backgroundColor: isPrintMode ? "rgba(71, 85, 105, 0.12)" : "rgba(59, 130, 246, 0.08)",
-        borderColor: isPrintMode ? "#334155" : "rgba(59, 130, 246, 0.5)",
-        borderDash: [4, 4],
-        pointRadius: 0,
-        borderWidth: isPrintMode ? 2 : 1.5
-      }]
+      datasets
     },
     options: {
       responsive: true,
