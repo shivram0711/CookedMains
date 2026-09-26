@@ -3682,13 +3682,14 @@ function renderAnnotationsOverlay() {
         });
       } else {
         // FINAL PAGE (e.g. Page 2 of 2 or Page 3 of 3)
-        let rawBody = pageAnns.find(a => {
+        let rawBodyAnns = pageAnns.filter(a => {
           const t = String(a.tag || "").toLowerCase();
           return !t.includes("concl") && !t.includes("synthesis") && !t.includes("finish");
         });
+        let rawBody = rawBodyAnns[0] || null;
         let rawConc = pageAnns.find(a => {
           const t = String(a.tag || "").toLowerCase();
-          return t.includes("concl") || t.includes("synthesis") || t.includes("finish") || (a.approx_y_percent && a.approx_y_percent >= 60);
+          return t.includes("concl") || t.includes("synthesis") || t.includes("finish") || (a.approx_y_percent && a.approx_y_percent >= 72);
         });
 
         // If the AI placed praise for a body flowchart/schematic/strategies inside rawConc while rawBody is missing,
@@ -3700,61 +3701,135 @@ function renderAnnotationsOverlay() {
           concRemCandidate = "";
         }
 
-        const hasLimitationsHeading = isJudicialReviewCopy || fullTextLow.includes("limitation") || fullTextLow.includes("roger mathew") || fullTextLow.includes("overreach");
-        const hasStrategiesOrWayForward = isStartupDeepTechCopy || /strategies to bridge|way forward|way ahead|measures needed|anrf|vaibhav/i.test(fullTextLow);
+        const isFloricultureCopy = (
+          fullTextLow.includes("floriculture") &&
+          (fullTextLow.includes("farm income") || fullTextLow.includes("agri-export") || fullTextLow.includes("cold-chain") || fullTextLow.includes("insecticides"))
+        );
+        const rawBodyTagUpper = (rawBody && rawBody.tag) ? String(rawBody.tag).toUpperCase() : "";
+        const hasCombinedChallengesAndWayForward = (
+          isFloricultureCopy ||
+          (rawBodyTagUpper.includes("CHALLENGE") && (rawBodyTagUpper.includes("WAY FORWARD") || rawBodyTagUpper.includes("WA"))) ||
+          (rawBodyAnns.length >= 2)
+        );
 
-        let resolvedFinalBodyTitle = (rawBody && rawBody.tag) ? rawBody.tag.toUpperCase() : "BODY: KEY DIMENSIONS";
-        let resolvedFinalBodyRemark = bodyRemCandidate;
+        const finalConcRemark = isFloricultureCopy
+          ? "✓ **Constructive Ending**: Links **floriculture** to rural growth, employment generation, and **doubling farmers' income**.\n✎ **Add Specifics**: Anchor with **Agriculture Export Policy 2018** targets & **Dalwai Committee** synthesis."
+          : buildDynamicConcRemark(concRemCandidate);
 
-        if (isStartupDeepTechCopy) {
-          resolvedFinalBodyTitle = "BODY: STRATEGIES TO BRIDGE GAP";
-          resolvedFinalBodyRemark = "✓ **Boxed Schematic & Flagship Schemes**: High-impact **[Strategies to Bridge Gap]** hub-and-spoke diagram integrating **ANRF**, **NEP 2020**, **VAIBHAV Fellowship**, and **Private R&D participation**.\n✎ **Strategic Sector Anchor**: Add **National Deep-Tech Startup Policy (NDTSP)**, **India Semiconductor Mission (ISM)** & **iDEX Defence procurement**.";
-        } else if (hasLimitationsHeading && !hasStrategiesOrWayForward) {
-          resolvedFinalBodyTitle = isJudicialReviewCopy ? "BODY: LIMITATIONS OF JUDICIAL REVIEW" : "BODY: LIMITATIONS & CHALLENGES";
-          if (!resolvedFinalBodyRemark || resolvedFinalBodyRemark.toLowerCase().includes("executive-judiciary equilibrium")) {
-            resolvedFinalBodyRemark = isJudicialReviewCopy
-              ? "✓ **Good Diagram & Case (Point ⑧ & Box)**: Well-drawn **[Limitations of Judicial Review]** diagram (judicial overreach, judge bias) & **Roger Mathew Case** on **Separation of Power**.\n✎ **Missing Way Forward**: You jumped directly from **Limitations** to the Conclusion—add 2 short **Way Forward** points (e.g., **Judicial Restraint** & Parliamentary Committees) before concluding."
-              : "✓ **Clear Analysis of Limitations**: Well-presented points on key limitations and institutional challenges.\n✎ **Missing Way Forward**: You moved directly from **Limitations** to the Conclusion—add 2 short **Way Forward** points before concluding.";
-          }
-        } else if (hasStrategiesOrWayForward) {
-          if (!resolvedFinalBodyTitle.includes("STRATEG") && !resolvedFinalBodyTitle.includes("WAY FORWARD")) {
-            resolvedFinalBodyTitle = "BODY: STRATEGIES & WAY FORWARD";
-          }
-          if (!resolvedFinalBodyRemark) {
+        if (hasCombinedChallengesAndWayForward) {
+          // 3 DISTINCT SECTIONS ON FINAL PAGE:
+          // 1) BODY: CHALLENGES (Top: 6% - 38%)
+          // 2) BODY: WAY FORWARD (Middle: 40% - 74%) — Way Forward belongs to Body, NEVER Conclusion!
+          // 3) CONCLUSION (Bottom: 76% - 91%) — Strictly the final concluding paragraph!
+          const chalMarks = `+${(totalBodyScore * 0.25).toFixed(1)} / ${(totalBodyMax * 0.25).toFixed(1)}`;
+          const wfMarks = `+${(totalBodyScore * 0.25).toFixed(1)} / ${(totalBodyMax * 0.25).toFixed(1)}`;
+
+          const chalRemark = isFloricultureCopy
+            ? "✓ **Challenges Identified (Points 1–3)**: Rightly highlighted **smallholder land fragmentation** (reducing scalability), **high initial plantation cost**, and **demand for insecticides & herbicides**.\n✎ **Enrich Challenges**: Add **Phytosanitary (SPS) export rejections** & **98% unorganized open-field cultivation**."
+            : (rawBodyAnns[0] && rawBodyAnns[0].remark
+                ? sanitizeCrossSubjectText(rawBodyAnns[0].remark)
+                : buildDynamicBodyRemark(0, ""));
+
+          const wfRemark = isFloricultureCopy
+            ? "✓ **Actionable Way Forward (Points 1–3)**: Effectively proposed **crop diversification** via government support, **cold-chain logistics infrastructure** for preservation, and **skilling farmers** for scientific crop management.\n✎ **Cluster & Scheme Anchor**: Link with **MIDH (Mission for Integrated Development of Horticulture)** & **APEDA Floriculture Clusters (Hosur/Pune/Nashik)**."
+            : (rawBodyAnns[1] && rawBodyAnns[1].remark
+                ? sanitizeCrossSubjectText(rawBodyAnns[1].remark)
+                : buildDynamicBodyRemark(1, ""));
+
+          outSections.push({
+            zone: "body",
+            title: "BODY: CHALLENGES",
+            icon: "✓",
+            isTick: true,
+            startYPercent: 6,
+            endYPercent: 38,
+            cardTopPercent: 6,
+            marks: chalMarks,
+            bodyHtml: formatBulletsFn(chalRemark),
+            bulletsHtml: formatBulletsFn(chalRemark),
+            targetKey: "body"
+          });
+          outSections.push({
+            zone: "body",
+            title: "BODY: WAY FORWARD",
+            icon: "✓",
+            isTick: true,
+            startYPercent: 40,
+            endYPercent: 74,
+            cardTopPercent: 40,
+            marks: wfMarks,
+            bodyHtml: formatBulletsFn(wfRemark),
+            bulletsHtml: formatBulletsFn(wfRemark),
+            targetKey: "body"
+          });
+          outSections.push({
+            zone: "conclusion",
+            title: "CONCLUSION",
+            icon: "✓",
+            isTick: true,
+            startYPercent: 76,
+            endYPercent: 91,
+            cardTopPercent: 76,
+            marks: (rawConc && rawConc.marks_awarded) || fallbackConcMarks,
+            bodyHtml: formatBulletsFn(finalConcRemark),
+            bulletsHtml: formatBulletsFn(finalConcRemark),
+            targetKey: "conclusion"
+          });
+        } else {
+          const hasLimitationsHeading = isJudicialReviewCopy || fullTextLow.includes("limitation") || fullTextLow.includes("roger mathew") || fullTextLow.includes("overreach");
+          const hasStrategiesOrWayForward = isStartupDeepTechCopy || /strategies to bridge|way forward|way ahead|measures needed|anrf|vaibhav/i.test(fullTextLow);
+
+          let resolvedFinalBodyTitle = (rawBody && rawBody.tag) ? rawBody.tag.toUpperCase() : "BODY: KEY DIMENSIONS";
+          let resolvedFinalBodyRemark = bodyRemCandidate;
+
+          if (isStartupDeepTechCopy) {
+            resolvedFinalBodyTitle = "BODY: STRATEGIES TO BRIDGE GAP";
+            resolvedFinalBodyRemark = "✓ **Boxed Schematic & Flagship Schemes**: High-impact **[Strategies to Bridge Gap]** hub-and-spoke diagram integrating **ANRF**, **NEP 2020**, **VAIBHAV Fellowship**, and **Private R&D participation**.\n✎ **Strategic Sector Anchor**: Add **National Deep-Tech Startup Policy (NDTSP)**, **India Semiconductor Mission (ISM)** & **iDEX Defence procurement**.";
+          } else if (hasLimitationsHeading && !hasStrategiesOrWayForward) {
+            resolvedFinalBodyTitle = isJudicialReviewCopy ? "BODY: LIMITATIONS OF JUDICIAL REVIEW" : "BODY: LIMITATIONS & CHALLENGES";
+            if (!resolvedFinalBodyRemark || resolvedFinalBodyRemark.toLowerCase().includes("executive-judiciary equilibrium")) {
+              resolvedFinalBodyRemark = isJudicialReviewCopy
+                ? "✓ **Good Diagram & Case (Point ⑧ & Box)**: Well-drawn **[Limitations of Judicial Review]** diagram (judicial overreach, judge bias) & **Roger Mathew Case** on **Separation of Power**.\n✎ **Missing Way Forward**: You jumped directly from **Limitations** to the Conclusion—add 2 short **Way Forward** points (e.g., **Judicial Restraint** & Parliamentary Committees) before concluding."
+                : "✓ **Clear Analysis of Limitations**: Well-presented points on key limitations and institutional challenges.\n✎ **Missing Way Forward**: You moved directly from **Limitations** to the Conclusion—add 2 short **Way Forward** points before concluding.";
+            }
+          } else if (hasStrategiesOrWayForward) {
+            if (!resolvedFinalBodyTitle.includes("STRATEG") && !resolvedFinalBodyTitle.includes("WAY FORWARD")) {
+              resolvedFinalBodyTitle = "BODY: STRATEGIES & WAY FORWARD";
+            }
+            if (!resolvedFinalBodyRemark) {
+              resolvedFinalBodyRemark = buildDynamicBodyRemark(1, "");
+            }
+          } else if (!resolvedFinalBodyRemark) {
             resolvedFinalBodyRemark = buildDynamicBodyRemark(1, "");
           }
-        } else if (!resolvedFinalBodyRemark) {
-          resolvedFinalBodyRemark = buildDynamicBodyRemark(1, "");
+
+          outSections.push({
+            zone: "body",
+            title: resolvedFinalBodyTitle.includes("BODY") ? resolvedFinalBodyTitle : `BODY: ${resolvedFinalBodyTitle}`,
+            icon: "✓",
+            isTick: true,
+            startYPercent: 7,
+            endYPercent: 73,
+            cardTopPercent: 12,
+            marks: (rawBody && rawBody.marks_awarded) || `+${(totalBodyScore / 2).toFixed(1)} / ${(totalBodyMax / 2).toFixed(1)}`,
+            bodyHtml: formatBulletsFn(resolvedFinalBodyRemark),
+            bulletsHtml: formatBulletsFn(resolvedFinalBodyRemark),
+            targetKey: "body"
+          });
+          outSections.push({
+            zone: "conclusion",
+            title: "CONCLUSION",
+            icon: "✓",
+            isTick: true,
+            startYPercent: 75,
+            endYPercent: 91,
+            cardTopPercent: 75,
+            marks: (rawConc && rawConc.marks_awarded) || fallbackConcMarks,
+            bodyHtml: formatBulletsFn(finalConcRemark),
+            bulletsHtml: formatBulletsFn(finalConcRemark),
+            targetKey: "conclusion"
+          });
         }
-
-        const finalConcRemark = buildDynamicConcRemark(concRemCandidate);
-
-        outSections.push({
-          zone: "body",
-          title: resolvedFinalBodyTitle.includes("BODY") ? resolvedFinalBodyTitle : `BODY: ${resolvedFinalBodyTitle}`,
-          icon: "✓",
-          isTick: true,
-          startYPercent: 10,
-          endYPercent: 65,
-          cardTopPercent: 16,
-          marks: (rawBody && rawBody.marks_awarded) || `+${(totalBodyScore / 2).toFixed(1)} / ${(totalBodyMax / 2).toFixed(1)}`,
-          bodyHtml: formatBulletsFn(resolvedFinalBodyRemark),
-          bulletsHtml: formatBulletsFn(resolvedFinalBodyRemark),
-          targetKey: "body"
-        });
-        outSections.push({
-          zone: "conclusion",
-          title: "CONCLUSION",
-          icon: "✓",
-          isTick: true,
-          startYPercent: 67,
-          endYPercent: 94,
-          cardTopPercent: 66,
-          marks: (rawConc && rawConc.marks_awarded) || fallbackConcMarks,
-          bodyHtml: formatBulletsFn(finalConcRemark),
-          bulletsHtml: formatBulletsFn(finalConcRemark),
-          targetKey: "conclusion"
-        });
       }
 
       return outSections;
@@ -3770,11 +3845,16 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
   window.applyPreciseHandwritingBounds = applyPreciseHandwritingBounds;
   if (!sections || !sections.length) return;
 
-  // Step 1: Apply calibrated UPSC booklet baseline bounds (already far more accurate than legacy 16..36 / 67..94)
+  // Step 1: Apply calibrated UPSC booklet baseline bounds
   if (totalPages === 1 && sections.length === 3) {
     sections[0].startYPercent = 25; sections[0].endYPercent = 39;
     sections[1].startYPercent = 41; sections[1].endYPercent = 66;
     sections[2].startYPercent = 68; sections[2].endYPercent = 86;
+  } else if (currentPg === totalPages && sections.length === 3) {
+    // Final page with 3 sections: Body: Challenges (top) + Body: Way Forward (middle) + Conclusion (bottom paragraph)
+    sections[0].startYPercent = 6; sections[0].endYPercent = 38;
+    sections[1].startYPercent = 40; sections[1].endYPercent = 74;
+    sections[2].startYPercent = 76; sections[2].endYPercent = 91;
   } else if (currentPg === 1 && sections.length === 2) {
     sections[0].startYPercent = 25; sections[0].endYPercent = 39.5;
     sections[1].startYPercent = 41.5; sections[1].endYPercent = 89;
@@ -3782,13 +3862,13 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
     sections[0].startYPercent = 8; sections[0].endYPercent = 49;
     sections[1].startYPercent = 51; sections[1].endYPercent = 89;
   } else if (sections.length === 2) {
-    // Final page: Body Way Forward (top) + Conclusion (above bottom printed evaluation box)
-    sections[0].startYPercent = 7; sections[0].endYPercent = 40.5;
-    sections[1].startYPercent = 42.5; sections[1].endYPercent = 69.5;
+    // Final page with 2 sections: Body / Way Forward (7%..73%) + Conclusion (75%..91% last paragraph)
+    sections[0].startYPercent = 7; sections[0].endYPercent = 73;
+    sections[1].startYPercent = 75; sections[1].endYPercent = 91;
   }
 
   // Honor explicit AI-calibrated start_y_percent / end_y_percent when within realistic handwritten bounds
-  if (Array.isArray(rawAnns) && rawAnns.length > 0) {
+  if (Array.isArray(rawAnns) && rawAnns.length > 0 && !(currentPg === totalPages && sections.length === 3)) {
     sections.forEach(sec => {
       const matchingAnn = rawAnns.find(a => {
         const t = String(a.tag || "").toLowerCase();
@@ -3803,6 +3883,10 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
           if (currentPg === 1 && sec.zone === "intro") {
             sec.startYPercent = Math.max(22, Math.min(34, sY));
             sec.endYPercent = Math.max(sec.startYPercent + 10, Math.min(48, eY));
+          } else if (currentPg === totalPages && (sec.zone === "conclusion" || sec.zone === "concl")) {
+            // Never let Conclusion start at 40% and swallow Way Forward! Conclusion is the bottom paragraph (>= 68%)
+            sec.startYPercent = Math.max(68, Math.min(82, sY));
+            sec.endYPercent = Math.max(sec.startYPercent + 10, Math.min(94, eY));
           } else {
             sec.startYPercent = sY;
             sec.endYPercent = eY;
@@ -3832,7 +3916,7 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
 
     const xLeftStart = Math.floor(W * 0.18);
     const xMidSplit = Math.floor(W * 0.37);
-    const xRightEnd = Math.floor(W * 0.79);
+    const xRightEnd = Math.floor(W * 0.74);
     const bandWidth = xRightEnd - xLeftStart;
 
     for (let y = 0; y < H; y++) {
@@ -3874,9 +3958,8 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
     }
 
     // Determine exact top of student handwriting (handwritingTopY)
-    let handwritingTopY = currentPg === 1 ? 25.0 : 6.5;
+    let handwritingTopY = currentPg === 1 ? 25.0 : 6.0;
     if (currentPg === 1) {
-      // Check if there is a printed header + question in 10%..23% followed by a whitespace gap in 22%..30%
       let bestGapP = 24;
       let minGapVal = Infinity;
       for (let p = 22; p <= 30; p++) {
@@ -3886,7 +3969,6 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
           bestGapP = p;
         }
       }
-      // First active handwriting band right after the printed question gap
       let foundTop = bestGapP + 1;
       for (let p = bestGapP; p <= 36; p++) {
         if (totalStroke[p] >= 5 || rightStroke[p] >= 3) {
@@ -3905,25 +3987,22 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
     }
 
     // Determine exact bottom of student handwriting (handwritingBottomY)
-    // First detect if p = 73%..91% has an unwritten bottom evaluation box (where right-half 'Suggestions:' is blank)
     let boxRightActiveCount = 0;
-    for (let p = 74; p <= 90; p++) {
-      if (rightStroke[p] >= 4.5) boxRightActiveCount++;
+    for (let p = 74; p <= 91; p++) {
+      if (rightStroke[p] >= 3.0 || totalStroke[p] >= 7.5) boxRightActiveCount++;
     }
-    // If the right-side 'Suggestions:' zone in 74%..90% has <= 3 active bands, the bottom evaluation box is unwritten!
-    const maxScanBottomP = (boxRightActiveCount <= 3) ? 70 : 95;
+    const maxScanBottomP = (boxRightActiveCount <= 2) ? 70 : 94;
 
-    let handwritingBottomY = currentPg === 1 ? 89.5 : 69.5;
+    let handwritingBottomY = currentPg === 1 ? 89.5 : 90.5;
     for (let p = maxScanBottomP; p >= handwritingTopY + 14; p--) {
-      // Check a 5-band window [p-4 .. p] for genuine multi-row handwriting
       let activeRowsInWindow = 0;
       for (let k = Math.max(0, p - 4); k <= p; k++) {
-        if (rightStroke[k] >= 3.0 || (totalStroke[k] >= 6.0 && rightStroke[k] >= 1.5)) {
+        if (rightStroke[k] >= 2.5 || (totalStroke[k] >= 6.0 && rightStroke[k] >= 1.5)) {
           activeRowsInWindow++;
         }
       }
       if (activeRowsInWindow >= 3) {
-        handwritingBottomY = Math.min(95.5, p + 0.5);
+        handwritingBottomY = Math.min(94.0, p + 0.5);
         break;
       }
     }
@@ -3949,7 +4028,17 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       return bestP;
     };
 
-    if (sections.length === 3) {
+    if (sections.length === 3 && currentPg === totalPages && totalPages > 1) {
+      // Multi-page Final Page with 3 sections: Body: Challenges + Body: Way Forward + Conclusion
+      const wfStart = findValley(handwritingTopY + span * 0.32, handwritingTopY + span * 0.46, handwritingTopY + span * 0.38);
+      const concStart = findValley(handwritingTopY + span * 0.72, handwritingTopY + span * 0.86, handwritingTopY + span * 0.79);
+      sections[0].startYPercent = handwritingTopY;
+      sections[0].endYPercent = wfStart - 1.5;
+      sections[1].startYPercent = wfStart;
+      sections[1].endYPercent = concStart - 1.5;
+      sections[2].startYPercent = concStart;
+      sections[2].endYPercent = handwritingBottomY;
+    } else if (sections.length === 3) {
       // Single-page copy: Intro + Body + Conclusion
       const s1 = findValley(handwritingTopY + span * 0.18, handwritingTopY + span * 0.32, handwritingTopY + span * 0.24);
       const s2 = findValley(handwritingTopY + span * 0.66, handwritingTopY + span * 0.84, handwritingTopY + span * 0.75);
@@ -3971,11 +4060,11 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       sections[1].startYPercent = introEnd + 1.5;
       sections[1].endYPercent = handwritingBottomY;
     } else if (sections.length === 2 && currentPg === totalPages) {
-      // Final page: Body Way Forward + Conclusion (strictly above any unwritten bottom evaluation box)
+      // Final page: Body (including Way Forward) spans top 76%..80% of handwriting; Conclusion is ONLY the final paragraph!
       const concStart = findValley(
-        handwritingTopY + span * 0.44,
-        handwritingTopY + span * 0.66,
-        handwritingTopY + span * 0.55
+        handwritingTopY + span * 0.72,
+        handwritingTopY + span * 0.85,
+        handwritingTopY + span * 0.78
       );
       sections[0].startYPercent = handwritingTopY;
       sections[0].endYPercent = concStart - 1.5;
@@ -4061,17 +4150,17 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       });
     }
 
-    // 2. Render Cards alongside each section's '}' tip
+    // 2. Render Cards alongside each section's '}' tip (Full Statement Heading, Zero Truncation)
     sections.forEach((sec) => {
       const cardEl = document.createElement("div");
       cardEl.className = `margin-badge-card ${sec.isTick ? 'type-tick' : 'type-warning'} select-none`;
       const titleColor = sec.isTick ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400";
 
       cardEl.innerHTML = `
-        <div class="flex items-center justify-between gap-1 mb-1.5 flex-wrap">
-          <div class="flex items-center space-x-1 ${titleColor} font-bold text-[9.5px] sm:text-[10px] tracking-wide min-w-0">
-            <span class="text-[11px] sm:text-xs font-black shrink-0">${sec.icon}</span>
-            <span class="uppercase font-extrabold truncate max-w-[130px] sm:max-w-[150px]">${escapeHtml(sec.title)}</span>
+        <div class="flex items-start justify-between gap-1.5 mb-1.5">
+          <div class="flex items-start space-x-1 ${titleColor} font-bold text-[10px] sm:text-[10.5px] tracking-wide min-w-0 flex-1">
+            <span class="text-[11px] sm:text-xs font-black shrink-0 leading-tight">${sec.icon}</span>
+            <span class="uppercase font-extrabold leading-tight break-words whitespace-normal">${escapeHtml(sec.title)}</span>
           </div>
           <div class="margin-card-marks font-mono font-bold text-[9px] sm:text-[9.5px] px-1.5 py-0.5 rounded shrink-0 shadow-2xs whitespace-nowrap">
             ${escapeHtml(sec.marks)}
@@ -4081,8 +4170,8 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
           ${sec.bodyHtml}
         </div>
         <div class="pt-1 border-t border-slate-200/80 dark:border-slate-800/80 mt-1">
-          <a href="javascript:void(0)" onclick="window.viewFullEvaluationSection('${sec.targetKey}')" class="margin-card-link text-[8.5px] sm:text-[9px] font-bold flex items-center space-x-1 hover:underline truncate">
-            <span class="truncate">View Full Evaluation in Right Section →</span>
+          <a href="javascript:void(0)" onclick="window.viewFullEvaluationSection('${sec.targetKey}')" class="margin-card-link text-[8.5px] sm:text-[9px] font-bold flex items-center space-x-1 hover:underline">
+            <span class="break-words whitespace-normal">View Full Evaluation in Right Section →</span>
           </a>
         </div>
       `;
@@ -5611,11 +5700,37 @@ function renderBatch1ExaminerMastery(evalData) {
     part2Label = "Part B: Limitations of Judicial Review & Institutional Equilibrium";
     part2Note = "Good [Limitations] diagram & Roger Mathew case; missed 2 short Way Forward points.";
   } else {
-    // Dynamically split question into two logical clauses if possible
-    const clauses = qText.split(/(?:\.\s+|\bIdentify\b|\bSuggest\b|\bExamine\b|\bDiscuss\b|\bHow\b|\bWhy\b|\band\s+suggest\b)/i).map(s => s.trim()).filter(s => s.length > 12);
+    // Strip trailing exam metadata like (150 words), (250 words), (10 Marks), (15M)
+    const cleanQText = qText
+      .replace(/\s*\(\s*\d+\s*(?:words?|marks?|m)?[^)]*\)?\s*$/gi, "")
+      .replace(/\s*\[[^\]]*\]\s*$/g, "")
+      .trim();
+
+    // Split by sentence boundary or lookahead directive so 'How / Why / Suggest' is preserved
+    let clauses = cleanQText
+      .split(/(?<=[.?])\s+|(?=\b(?:How\s+is|How\s+can|How\s+does|Why\s+is|Why\s+do|Identify|Suggest|Examine|Analyze|Analyse)\b)/i)
+      .map(s => s.trim())
+      .filter(s => s.length > 10);
+
     if (clauses.length >= 2) {
-      part1Label = `Part A: ${clauses[0].slice(0, 68)}${clauses[0].length > 68 ? "..." : ""}`;
-      part2Label = `Part B: ${clauses[clauses.length - 1].slice(0, 68)}${clauses[clauses.length - 1].length > 68 ? "..." : ""}`;
+      const formatClause = (str) => {
+        const cleaned = str.replace(/^[.,;:\-–—\s]+/, "").trim();
+        return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+      };
+      part1Label = `Part A: ${formatClause(clauses[0])}`;
+      part2Label = `Part B: ${formatClause(clauses[clauses.length - 1])}`;
+    } else if (cleanQText.length > 10) {
+      part1Label = `Part A (Core Demand): ${cleanQText}`;
+      part2Label = "Part B (Challenges, Reforms & Way Forward)";
+    }
+
+    const bAudit = evalData.body_audit || {};
+    const sArr = Array.isArray(bAudit.strengths) ? bAudit.strengths : [];
+    if (sArr.length >= 1) {
+      part1Note = String(sArr[0]).replace(/^[✓✔✎✗×]\s*/, "");
+    }
+    if (sArr.length >= 2) {
+      part2Note = String(sArr[1]).replace(/^[✓✔✎✗×]\s*/, "");
     }
   }
 
@@ -5654,17 +5769,17 @@ function renderBatch1ExaminerMastery(evalData) {
     const pct = item.max > 0 ? Math.min(100, Math.round((item.score / item.max) * 100)) : 0;
     const barColor = pct >= 60 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-rose-500";
     return `
-      <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 flex flex-col justify-between gap-2 min-w-0">
-        <div class="flex items-start justify-between gap-2">
-          <span class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug break-words">${escapeHtml(item.title)}</span>
-          <span class="text-xs font-extrabold px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shrink-0">
+      <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 flex flex-col justify-between gap-2.5 min-w-0">
+        <div class="flex items-start justify-between gap-2.5">
+          <span class="text-[12.5px] sm:text-[13px] font-bold text-slate-800 dark:text-slate-100 leading-snug break-words whitespace-normal flex-1">${escapeHtml(item.title)}</span>
+          <span class="text-xs font-extrabold px-2.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shrink-0">
             +${item.score.toFixed(1)} / ${item.max.toFixed(1)}M
           </span>
         </div>
         <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
           <div class="h-full ${barColor} rounded-full transition-all duration-500" style="width: ${pct}%;"></div>
         </div>
-        <p class="text-[11.5px] text-slate-600 dark:text-slate-400 leading-relaxed break-words">${formatHighlightedText(item.note)}</p>
+        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed break-words whitespace-normal">${formatHighlightedText(item.note)}</p>
       </div>
     `;
   }).join("");

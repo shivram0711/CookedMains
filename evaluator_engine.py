@@ -1086,14 +1086,19 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
         - For a multi-page answer copy (2 or 3 pages), you MUST output **2 `visual_annotations` for EVERY page** so neither the upper half nor the lower half of any page is left un-annotated:
           - **Page 1**: Annotation 1 = `"Intro"` (lines 1-4 below printed header); Annotation 2 = `"Body: [Exact First Sub-Part / Diagram Heading]"` (lower half of Page 1).
           - **Page 2 (Intermediate Page)**: Annotation 1 = `"Body: [Upper Half Points 1-3 Heading]"` (`start_y_percent: 10, end_y_percent: 50`); Annotation 2 = `"Body: [Lower Half Points 4-6 Heading]"` (`start_y_percent: 52, end_y_percent: 90`).
-          - **Final Page (Page 2 of 2 or Page 3 of 3)**: Annotation 1 = `"Body: [Exact Final Section Heading, e.g., Strategies to Bridge Gap / Way Forward / Limitations]"` (`start_y_percent: 10, end_y_percent: 62`); Annotation 2 = `"Conclusion"` (`start_y_percent: 65, end_y_percent: 90`).
+          - **Final Page (Page 2 of 2 or Page 3 of 3)**:
+            * If the candidate wrote **both** a `Challenges / Constraints` section (`~6%–38%`) **AND** a `Way Forward / Measures` section (`~40%–74%`) followed by a `Conclusion` paragraph (`~76%–91%`), output **3 `visual_annotations`** on the Final Page:
+              1. `"Body: Challenges"` (`start_y_percent: 6, end_y_percent: 38`) — evaluate ONLY the Challenges points written in that top block (NEVER include Way Forward points like cold-chain logistics here!).
+              2. `"Body: Way Forward"` (`start_y_percent: 40, end_y_percent: 74`) — evaluate ONLY the Way Forward points written in that middle block (Way Forward ALWAYS belongs to Body, NEVER Conclusion!).
+              3. `"Conclusion"` (`start_y_percent: 76, end_y_percent: 91`) — evaluate ONLY the final concluding paragraph at the bottom of the page.
+            * If the candidate wrote 1 Body section (`Way Forward` or `Strategies` or `Limitations`) + `Conclusion`, output Annotation 1 = `"Body: [Exact Final Section Heading]"` (`start_y_percent: 7, end_y_percent: 73`) and Annotation 2 = `"Conclusion"` (`start_y_percent: 75, end_y_percent: 91`).
       * B. QUOTE THE CANDIDATE'S EXACT HANDWRITTEN KEYWORDS, DATA & FLOWCHARTS ON EACH PAGE:
-        - Every margin card's `✓` bullet MUST cite the exact facts, schemes, statistics, or diagrams written by the student on that specific half-page (e.g., for a GS-3 Startup & Deep-Tech answer: quote **`Startup India, Standup India`**, **`260 researchers/lakh vs China 1602`**, **`GERD 0.65% of GDP`**, **`OLA/Zomato service skew`**, and the **`[Strategies to Bridge Gap]`** flowchart citing **`ANRF, NEP 2020 & VAIBHAV`**).
-        - Every margin card's `✗` / `✎` bullet MUST state the exact domain-specific keyword, policy, or dimension needed for that specific sub-part (e.g., **`₹1 Lakh Cr RDI Fund`**, **`National Deep-Tech Startup Policy (NDTSP)`**, **`India Semiconductor Mission (ISM)`**, **`iDEX Defence procurement`**).
+        - Every margin card's `✓` bullet MUST cite ONLY the exact facts, schemes, statistics, or diagrams written by the student inside that specific curly brace `{` region! Never mix a `Way Forward` point into a `Challenges` card, and never wrap `Way Forward` inside the `Conclusion` curly brace!
+        - Every margin card's `✗` / `✎` bullet MUST state the exact domain-specific keyword, policy, or dimension needed for that specific sub-part.
       * C. ZERO INTERMIXING OF POLITY / GS-2 INTO GS-3, GS-1, OR GS-4:
         - NEVER cite GS-2 Polity cases/articles (`Maneka Gandhi`, `NJAC`, `Navtej Johar`, `Shreya Singhal`, `Constitutional Morality`, `Article 13`, `2nd ARC`) inside a GS-3 Economy/Science-Tech, GS-1 Geography/History, or GS-4 Ethics evaluation! Every word must belong 100% to the evaluated question's subject and demand.
-      * D. NEVER PLACE BODY DIAGRAM / STRATEGIES PRAISE INSIDE THE 'CONCLUSION' CARD:
-        - If the candidate drew a `[Strategies to bridge gap]` or `[Way Forward]` flowchart/section on the final page above their concluding paragraph, put the praise for that diagram/schemes (`ANRF, NEP 2020, VAIBHAV`) inside the Final Page **`Body: Strategies to Bridge Gap`** card, and reserve the **`Conclusion`** card strictly for evaluating their concluding lines!
+      * D. NEVER PLACE 'WAY FORWARD' OR BODY DIAGRAMS INSIDE THE 'CONCLUSION' CURLY BRACE OR CARD:
+        - `Way Forward` is ALWAYS part of the `Body` section (`Body: Way Forward`), NEVER part of the `Conclusion`! Reserve the `Conclusion` curly brace (`76%–91%`) and `Conclusion` card strictly for the final concluding paragraph at the bottom of the sheet!
 
 Generate strictly valid JSON matching this schema:
 {{
