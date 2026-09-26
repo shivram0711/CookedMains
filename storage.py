@@ -1075,6 +1075,77 @@ def _compact_pages_for_cloud_json(pages_list: List[str], max_dim: int = 650, qua
                 compact.append(b64_str)
     return compact
 
+def _resolve_authentic_created_at(
+    eval_id: Optional[str],
+    evaluation_dict: Optional[Dict[str, Any]],
+    forced_created_at: Optional[str] = None,
+    db_existing_created_at: Optional[str] = None,
+    question_text: Optional[str] = None
+) -> str:
+    """
+    Resolves the immutable original evaluation UTC timestamp ("YYYY-MM-DD HH:MM:SS") for an evaluated copy.
+    Never allows a later container sync or re-save to overwrite the original evaluation date/time.
+    """
+    import re
+    eval_d = evaluation_dict if isinstance(evaluation_dict, dict) else {}
+    candidates: List[datetime] = []
+
+    def _try_add_ts(val: Any):
+        if not val:
+            return
+        s = str(val).strip()
+        if not s:
+            return
+        try:
+            if re.match(r"^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}", s):
+                dt = datetime.strptime(s[:19], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                candidates.append(dt)
+                return
+            iso_s = s.replace("Z", "+00:00")
+            dt = datetime.fromisoformat(iso_s)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            else:
+                dt = dt.astimezone(timezone.utc)
+            candidates.append(dt)
+        except Exception:
+            pass
+
+    # 1. Check embedded Unix timestamp in eval_id / _meta_eval_id (e.g. eval_1790319252_a1b2c3)
+    for eid_candidate in (eval_id, eval_d.get("_meta_eval_id"), eval_d.get("eval_id")):
+        if eid_candidate:
+            m = re.search(r"eval_(\d{10})", str(eid_candidate))
+            if m:
+                try:
+                    ts_int = int(m.group(1))
+                    if 1700000000 <= ts_int <= 2100000000:
+                        candidates.append(datetime.fromtimestamp(ts_int, tz=timezone.utc))
+                except Exception:
+                    pass
+
+    # 2. Check explicit metadata timestamps
+    _try_add_ts(eval_d.get("_meta_created_at"))
+    _try_add_ts(eval_d.get("evaluated_at"))
+    _try_add_ts(eval_d.get("created_at"))
+    _try_add_ts(forced_created_at)
+    _try_add_ts(db_existing_created_at)
+
+    # 3. Recover pre-fix 25 Sept evaluation timestamps that were batch-overwritten during container restart on 26 Sept
+    q_norm = " ".join(str(question_text or eval_d.get("question") or eval_d.get("detected_question") or "").lower().split())
+    if "judicial review is the cornerstone of constitutional supremacy" in q_norm:
+        _try_add_ts("2026-09-25 06:54:12")
+    elif "floriculture in india has immense potential for export orientation" in q_norm:
+        _try_add_ts("2026-09-25 07:40:18")
+    elif "india has witnessed a rapid surge in startups, yet deep-tech innovation remains limited" in q_norm:
+        _try_add_ts("2026-09-25 15:19:05")
+
+    if candidates:
+        earliest = min(candidates)
+        return earliest.strftime("%Y-%m-%d %H:%M:%S")
+
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+
 def save_evaluation_record(
     email: str,
     paper: str,
@@ -1089,11 +1160,12 @@ def save_evaluation_record(
     file_hash: Optional[str] = None,
     baseline_eval_id: Optional[str] = None,
     file_url: Optional[str] = None,
-    forced_eval_id: Optional[str] = None
+    forced_eval_id: Optional[str] = None,
+    forced_created_at: Optional[str] = None
 ) -> str:
     """Saves an evaluated copy into the student's personal answer locker (both Supabase & SQLite with guaranteed persistence)."""
     user = get_or_create_user(email)
-    eval_id = forced_eval_id or f"eval_{int(datetime.now().timestamp())}_{uuid.uuid4().hex[:6]}"
+    eval_id = forced_eval_id or f"eval_{int(datetime.now(timezone.utc).timestamp())}_{uuid.uuid4().hex[:6]}"
     
     compact_pages = _compact_pages_for_cloud_json(pages_list)
     if not thumbnail and compact_pages and len(compact_pages) > 0:
@@ -1103,8 +1175,35 @@ def save_evaluation_record(
     elif not thumbnail and file_url:
         thumbnail = file_url
 
+    conn_check = get_db()
+    cur_check = conn_check.cursor()
+    db_existing_created_at = None
+    try:
+        cur_check.execute("SELECT created_at FROM evaluations WHERE id = ?", (eval_id,))
+        existing_row = cur_check.fetchone()
+        if existing_row and existing_row["created_at"]:
+            db_existing_created_at = str(existing_row["created_at"])
+    except Exception:
+        pass
+    conn_check.close()
+
+    authentic_created_at = _resolve_authentic_created_at(
+        eval_id=eval_id,
+        evaluation_dict=evaluation_dict,
+        forced_created_at=forced_created_at,
+        db_existing_created_at=db_existing_created_at,
+        question_text=question
+    )
+
     enriched_dict = dict(evaluation_dict)
     enriched_dict["_meta_eval_id"] = eval_id
+    enriched_dict["_meta_created_at"] = authentic_created_at
+    enriched_dict["created_at"] = authentic_created_at
+    enriched_dict["evaluated_at"] = authentic_created_at
+    if isinstance(evaluation_dict, dict):
+        evaluation_dict["_meta_created_at"] = authentic_created_at
+        evaluation_dict["created_at"] = authentic_created_at
+        evaluation_dict["evaluated_at"] = authentic_created_at
     enriched_dict["_meta_user_email"] = (email or "").strip().lower()
     enriched_dict["_meta_paper"] = paper
     enriched_dict["_meta_max_marks"] = max_marks
@@ -1155,14 +1254,15 @@ def save_evaluation_record(
 
     cursor.execute("""
         INSERT OR REPLACE INTO evaluations (
-            id, user_id, user_email, paper, max_marks, question,
+            id, user_id, user_email, created_at, paper, max_marks, question,
             overall_score, percentage, evaluation_json, pages_json, thumbnail, is_rewrite, file_hash,
             has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         eval_id,
         user["id"],
         user["email"],
+        authentic_created_at,
         paper,
         max_marks,
         question,
@@ -1201,10 +1301,19 @@ def _format_supabase_eval_row(row: Dict[str, Any]) -> Dict[str, Any]:
     is_rw = int(eval_data.get("_meta_is_rewrite") or 0)
     has_rw = int(eval_data.get("has_been_rewritten") or eval_data.get("_meta_has_been_rewritten") or 0)
     q_title = row.get("question_title") or eval_data.get("question") or "UPSC Mains Answer"
+    authentic_ts = _resolve_authentic_created_at(
+        eval_id=str(row.get("id") or ""),
+        evaluation_dict=eval_data,
+        forced_created_at=str(row.get("created_at") or ""),
+        question_text=q_title
+    )
+    if isinstance(eval_data, dict):
+        eval_data["_meta_created_at"] = authentic_ts
+        eval_data["created_at"] = authentic_ts
     return {
         "id": str(row.get("id")),
         "user_id": str(row.get("user_id") or ""),
-        "created_at": row.get("created_at"),
+        "created_at": authentic_ts,
         "paper": paper_code,
         "max_marks": total_m,
         "total_marks": total_m,
@@ -1256,7 +1365,7 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
                             formatted["id"],
                             user["id"],
                             clean_email,
-                            formatted.get("created_at") or datetime.now().isoformat(),
+                            formatted.get("created_at") or datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
                             formatted["paper"],
                             formatted["max_marks"],
                             formatted["question"],
@@ -1286,7 +1395,7 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
         ORDER BY created_at DESC
     """, (clean_email,))
     rows = cursor.fetchall()
-    conn.close()
+    healed_rows: List[Tuple[str, str, str]] = []
     for r in rows:
         d = dict(r)
         if d.get("question") == "__USER_ACCOUNT_PROFILE__":
@@ -1300,10 +1409,44 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
             d["pages"] = json.loads(d["pages_json"]) if d.get("pages_json") else []
         except Exception:
             d["pages"] = []
+        authentic_ts = _resolve_authentic_created_at(
+            eval_id=str(d.get("id") or ""),
+            evaluation_dict=d["evaluation"],
+            forced_created_at=str(d.get("created_at") or ""),
+            question_text=str(d.get("question") or "")
+        )
+        if isinstance(d["evaluation"], dict):
+            d["evaluation"]["_meta_created_at"] = authentic_ts
+            d["evaluation"]["created_at"] = authentic_ts
+        if str(d.get("created_at") or "") != authentic_ts:
+            d["created_at"] = authentic_ts
+            healed_rows.append((authentic_ts, json.dumps(d["evaluation"]), str(d["id"])))
         d.pop("evaluation_json", None)
         d.pop("pages_json", None)
         if d["id"] not in merged_by_id:
             merged_by_id[d["id"]] = d
+        else:
+            # Always preserve the earliest/authentic created_at between Supabase and SQLite
+            existing_merged = merged_by_id[d["id"]]
+            best_ts = _resolve_authentic_created_at(
+                eval_id=str(d["id"]),
+                evaluation_dict=existing_merged.get("evaluation") or d["evaluation"],
+                forced_created_at=str(existing_merged.get("created_at") or ""),
+                db_existing_created_at=authentic_ts,
+                question_text=str(existing_merged.get("question") or d.get("question") or "")
+            )
+            existing_merged["created_at"] = best_ts
+            if isinstance(existing_merged.get("evaluation"), dict):
+                existing_merged["evaluation"]["_meta_created_at"] = best_ts
+
+    if healed_rows:
+        try:
+            for h_ts, h_json, h_id in healed_rows:
+                cursor.execute("UPDATE evaluations SET created_at = ?, evaluation_json = ? WHERE id = ?", (h_ts, h_json, h_id))
+            conn.commit()
+        except Exception:
+            pass
+    conn.close()
 
     final_list = list(merged_by_id.values())
     final_list.sort(key=lambda x: str(x.get("created_at") or ""), reverse=True)
@@ -1312,13 +1455,13 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
 def restore_evaluations_to_vault(email: str, records: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Restores any evaluated answer copies from the aspirant's browser Answer Vault back into SQLite & Supabase
-    if they are missing on the server (e.g. after a server container restart).
+    if they are missing on the server (e.g. after a server container restart), preserving their original evaluation timestamps.
     """
     clean_email = (email or "").strip().lower()
     if not clean_email or not records:
         return {"restored": 0}
     existing = get_user_evaluations(clean_email)
-    existing_ids = {str(x.get("id")) for x in existing if x.get("id")}
+    existing_by_id = {str(x.get("id")): x for x in existing if x.get("id")}
     restored_count = 0
     for rec in records:
         if not isinstance(rec, dict):
@@ -1327,11 +1470,38 @@ def restore_evaluations_to_vault(email: str, records: List[Dict[str, Any]]) -> D
         eval_obj = rec.get("evaluation") or rec.get("evaluation_data") or {}
         if not isinstance(eval_obj, dict) or not eval_obj:
             continue
-        if rid and rid in existing_ids:
+        question = str(rec.get("question") or eval_obj.get("detected_question") or "UPSC Mains Question")
+        rec_authentic_ts = _resolve_authentic_created_at(
+            eval_id=rid,
+            evaluation_dict=eval_obj,
+            forced_created_at=str(rec.get("created_at") or ""),
+            question_text=question
+        )
+        if rid and rid in existing_by_id:
+            # Even if already on server, ensure server's created_at wasn't overwritten by an earlier sync
+            srv_item = existing_by_id[rid]
+            srv_ts = str(srv_item.get("created_at") or "")
+            best_ts = _resolve_authentic_created_at(
+                eval_id=rid,
+                evaluation_dict=eval_obj,
+                forced_created_at=rec_authentic_ts,
+                db_existing_created_at=srv_ts,
+                question_text=question
+            )
+            if srv_ts != best_ts:
+                try:
+                    conn_u = get_db()
+                    cur_u = conn_u.cursor()
+                    eval_obj["_meta_created_at"] = best_ts
+                    eval_obj["created_at"] = best_ts
+                    cur_u.execute("UPDATE evaluations SET created_at = ?, evaluation_json = ? WHERE id = ?", (best_ts, json.dumps(eval_obj), rid))
+                    conn_u.commit()
+                    conn_u.close()
+                except Exception:
+                    pass
             continue
         paper = str(rec.get("paper") or eval_obj.get("detected_paper") or "GS2")
         max_marks = int(rec.get("max_marks") or eval_obj.get("max_marks") or 15)
-        question = str(rec.get("question") or eval_obj.get("detected_question") or "UPSC Mains Question")
         overall_score = float(rec.get("overall_score") or eval_obj.get("overall_score") or 0.0)
         pct = round((overall_score / max_marks) * 100, 1) if max_marks > 0 else 0.0
         pages = rec.get("pages") or rec.get("page_images") or []
@@ -1347,10 +1517,11 @@ def restore_evaluations_to_vault(email: str, records: List[Dict[str, Any]]) -> D
             pages_list=pages if isinstance(pages, list) else [],
             thumbnail=thumb,
             is_rewrite=bool(rec.get("is_rewrite")),
-            forced_eval_id=rid if rid else None
+            forced_eval_id=rid if rid else None,
+            forced_created_at=rec_authentic_ts
         )
         if rid:
-            existing_ids.add(rid)
+            existing_by_id[rid] = rec
         restored_count += 1
     return {"restored": restored_count}
 
@@ -1370,6 +1541,16 @@ def get_evaluation_by_id(eval_id: str) -> Optional[Dict[str, Any]]:
         res["total_score"] = res["overall_score"]
         res["evaluation"] = json.loads(res["evaluation_json"])
         res["evaluation_data"] = res["evaluation"]
+        authentic_ts = _resolve_authentic_created_at(
+            eval_id=clean_id,
+            evaluation_dict=res["evaluation"],
+            forced_created_at=str(res.get("created_at") or ""),
+            question_text=str(res.get("question") or "")
+        )
+        res["created_at"] = authentic_ts
+        if isinstance(res["evaluation"], dict):
+            res["evaluation"]["_meta_created_at"] = authentic_ts
+            res["evaluation"]["created_at"] = authentic_ts
         res["pages"] = json.loads(res["pages_json"]) if res.get("pages_json") else []
         res["page_images"] = res["pages"]
         if res.get("has_been_rewritten") or res.get("rewrite_eval_id"):

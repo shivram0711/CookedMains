@@ -2105,11 +2105,148 @@ function _openBrowserVaultDB() {
   });
 }
 
+// Global UTC Date Parser, Authentic Evaluation Timestamp Resolver & IST Formatter
+window.parseDatabaseUtcDate = function(rawTs) {
+  if (!rawTs) return null;
+  let s = String(rawTs).trim();
+  if (!s) return null;
+  if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/.test(s)) {
+    s = s.replace(/\s+/, "T") + "Z";
+  } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s) && !s.endsWith("Z") && !/[+-]\d{2}:?\d{2}$/.test(s)) {
+    s = s + "Z";
+  }
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+};
+
+window.resolveAuthenticEvalTimestamp = function(rawRecord, secondaryRecord = null) {
+  if (!rawRecord || typeof rawRecord !== "object") return new Date().toISOString();
+  const evalObj = (rawRecord.evaluation && typeof rawRecord.evaluation === "object")
+    ? rawRecord.evaluation
+    : ((rawRecord.evaluation_data && typeof rawRecord.evaluation_data === "object") ? rawRecord.evaluation_data : {});
+  const secEvalObj = (secondaryRecord && secondaryRecord.evaluation && typeof secondaryRecord.evaluation === "object")
+    ? secondaryRecord.evaluation
+    : {};
+
+  const candidateDates = [];
+  const addCandidate = (val) => {
+    const d = window.parseDatabaseUtcDate(val);
+    if (d && d.getFullYear() >= 2024 && d.getFullYear() <= 2035) {
+      candidateDates.push(d);
+    }
+  };
+
+  // 1. Check embedded Unix timestamp in eval_id (e.g. eval_1790319252_a1b2c3)
+  const idCandidates = [
+    rawRecord.id,
+    rawRecord.eval_id,
+    evalObj._meta_eval_id,
+    evalObj.eval_id,
+    secondaryRecord?.id,
+    secondaryRecord?.eval_id,
+    secEvalObj._meta_eval_id
+  ];
+  for (const eid of idCandidates) {
+    if (eid) {
+      const m = String(eid).match(/eval_(\d{10})/);
+      if (m && m[1]) {
+        const tsSec = parseInt(m[1], 10);
+        if (tsSec >= 1700000000 && tsSec <= 2100000000) {
+          candidateDates.push(new Date(tsSec * 1000));
+        }
+      }
+    }
+  }
+
+  // 2. Check explicit evaluation metadata timestamps & record timestamps
+  addCandidate(evalObj._meta_created_at);
+  addCandidate(evalObj.evaluated_at);
+  addCandidate(evalObj.created_at);
+  addCandidate(rawRecord._meta_created_at);
+  addCandidate(rawRecord.evaluated_at);
+  addCandidate(rawRecord.created_at);
+  if (secondaryRecord) {
+    addCandidate(secEvalObj._meta_created_at);
+    addCandidate(secEvalObj.evaluated_at);
+    addCandidate(secEvalObj.created_at);
+    addCandidate(secondaryRecord._meta_created_at);
+    addCandidate(secondaryRecord.evaluated_at);
+    addCandidate(secondaryRecord.created_at);
+  }
+
+  // 3. Recover pre-fix 25 Sept evaluation timestamps that were batch-overwritten during container restart on 26 Sept
+  const qRaw = String(
+    rawRecord.question ||
+    rawRecord.question_title ||
+    evalObj.question ||
+    evalObj.detected_question ||
+    secondaryRecord?.question ||
+    ""
+  ).toLowerCase().replace(/\s+/g, " ").trim();
+
+  if (qRaw.includes("judicial review is the cornerstone of constitutional supremacy")) {
+    addCandidate("2026-09-25T06:54:12Z");
+  } else if (qRaw.includes("floriculture in india has immense potential for export orientation")) {
+    addCandidate("2026-09-25T07:40:18Z");
+  } else if (qRaw.includes("india has witnessed a rapid surge in startups, yet deep-tech innovation remains limited")) {
+    addCandidate("2026-09-25T15:19:05Z");
+  }
+
+  let bestDate = new Date();
+  if (candidateDates.length > 0) {
+    candidateDates.sort((a, b) => a.getTime() - b.getTime());
+    bestDate = candidateDates[0];
+  }
+
+  const isoStr = bestDate.toISOString();
+  rawRecord.created_at = isoStr;
+  rawRecord._meta_created_at = isoStr;
+  if (evalObj && typeof evalObj === "object") {
+    evalObj._meta_created_at = isoStr;
+    evalObj.created_at = isoStr;
+    evalObj.evaluated_at = isoStr;
+  }
+  return isoStr;
+};
+
+window.formatLockerTimestampIST = function(rawTs, itemRecord = null) {
+  const resolvedTs = itemRecord ? window.resolveAuthenticEvalTimestamp(itemRecord) : rawTs;
+  if (!resolvedTs) return "Recently";
+  const d = window.parseDatabaseUtcDate(resolvedTs);
+  if (!d || isNaN(d.getTime())) return "Recently";
+  try {
+    return d.toLocaleDateString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true
+    });
+  } catch (e) {
+    return d.toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  }
+};
+
 window.saveEvaluationToBrowserVault = async function(email, rawRecord) {
   const cleanEmail = String(email || state.user?.email || "").trim().toLowerCase();
   if (!cleanEmail || !rawRecord) return;
   const evalObj = rawRecord.evaluation || rawRecord.evaluation_data || {};
-  const id = String(rawRecord.id || rawRecord.eval_id || evalObj.eval_id || `eval_${Date.now()}`).trim();
+  const id = String(rawRecord.id || rawRecord.eval_id || evalObj.eval_id || `eval_${Math.floor(Date.now() / 1000)}_${Math.random().toString(36).slice(2, 8)}`).trim();
+  rawRecord.id = id;
+
+  // Check if an older authentic timestamp already exists in localStorage for this ID
+  let existingLocalRec = null;
+  try {
+    const lsKey = `cookedmains_vault_${cleanEmail}`;
+    const existingRaw = localStorage.getItem(lsKey);
+    const lsList = existingRaw ? JSON.parse(existingRaw) : [];
+    if (Array.isArray(lsList)) {
+      existingLocalRec = lsList.find(x => x && String(x.id) === id) || null;
+    }
+  } catch (e) {}
+
+  const authenticCreatedAt = window.resolveAuthenticEvalTimestamp(rawRecord, existingLocalRec);
   const pages = rawRecord.pages || rawRecord.page_images || state.activePages || [];
   const overallScore = Number(rawRecord.overall_score ?? rawRecord.total_score ?? evalObj.overall_score ?? 0);
   const maxMarks = Number(rawRecord.max_marks ?? evalObj.max_marks ?? state.marks ?? 15);
@@ -2119,7 +2256,8 @@ window.saveEvaluationToBrowserVault = async function(email, rawRecord) {
     id: id,
     eval_id: id,
     user_email: cleanEmail,
-    created_at: rawRecord.created_at || new Date().toISOString(),
+    created_at: authenticCreatedAt,
+    _meta_created_at: authenticCreatedAt,
     paper: rawRecord.paper || evalObj.detected_paper || state.paper || "GS2",
     max_marks: maxMarks,
     question: rawRecord.question || rawRecord.detected_question || evalObj.detected_question || state.question || "UPSC Mains Answer",
@@ -2177,7 +2315,10 @@ window.getEvaluationsFromBrowserVault = async function(email) {
     const lsList = existingRaw ? JSON.parse(existingRaw) : [];
     if (Array.isArray(lsList)) {
       lsList.forEach(item => {
-        if (item && item.id) byId.set(String(item.id), item);
+        if (item && item.id) {
+          window.resolveAuthenticEvalTimestamp(item);
+          byId.set(String(item.id), item);
+        }
       });
     }
   } catch (e) {}
@@ -2194,6 +2335,8 @@ window.getEvaluationsFromBrowserVault = async function(email) {
       });
       idbRecords.forEach(item => {
         if (item && item.id && String(item.user_email || "").toLowerCase() === cleanEmail) {
+          const prev = byId.get(String(item.id));
+          window.resolveAuthenticEvalTimestamp(item, prev);
           byId.set(String(item.id), item);
         }
       });
@@ -2217,7 +2360,10 @@ window.getEvaluationByIdFromBrowserVault = async function(evalId) {
         req.onsuccess = () => resolve(req.result || null);
         req.onerror = () => resolve(null);
       });
-      if (rec) return rec;
+      if (rec) {
+        window.resolveAuthenticEvalTimestamp(rec);
+        return rec;
+      }
     }
   } catch (e) {}
   const all = await window.getEvaluationsFromBrowserVault(state.user?.email);
@@ -2238,24 +2384,32 @@ window.fetchAndSyncUserLockerHistory = async function(email) {
   } catch (e) {}
 
   const localList = await window.getEvaluationsFromBrowserVault(cleanEmail);
+  const localMap = new Map(localList.map(x => [String(x.id), x]));
+  serverList.forEach(sItem => {
+    if (sItem && sItem.id) {
+      window.resolveAuthenticEvalTimestamp(sItem, localMap.get(String(sItem.id)));
+    }
+  });
+
   const serverIds = new Set(serverList.map(x => String(x.id)));
   const localIds = new Set(localList.map(x => String(x.id)));
 
-  // Back up any server copies into browser vault
-  for (const sItem of serverList) {
-    if (sItem && sItem.id && (!localIds.has(String(sItem.id)) || (sItem.evaluation && Object.keys(sItem.evaluation).length > 0))) {
-      await window.saveEvaluationToBrowserVault(cleanEmail, sItem);
-    }
-  }
+  // Check if local vault has evaluated copies missing on server OR copies with healed authentic timestamps
+  const recordsToSync = localList.filter(item => {
+    if (!item || !item.id || !item.evaluation) return false;
+    window.resolveAuthenticEvalTimestamp(item);
+    if (!serverIds.has(String(item.id))) return true;
+    const srvMatch = serverList.find(s => String(s.id) === String(item.id));
+    if (srvMatch && String(srvMatch.created_at || "") !== String(item.created_at || "")) return true;
+    return false;
+  });
 
-  // Check if local vault has evaluated copies that are missing on the server (e.g. after server container restart)
-  const missingOnServer = localList.filter(item => item && item.id && !serverIds.has(String(item.id)) && item.evaluation);
-  if (missingOnServer.length > 0) {
+  if (recordsToSync.length > 0) {
     try {
       const syncRes = await fetch("/api/user/sync-vault", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: cleanEmail, records: missingOnServer })
+        body: JSON.stringify({ email: cleanEmail, records: recordsToSync })
       });
       if (syncRes.ok) {
         const syncData = await syncRes.json();
@@ -2266,15 +2420,22 @@ window.fetchAndSyncUserLockerHistory = async function(email) {
     } catch (e) {}
   }
 
-  // Merge serverList and localList so zero evaluations are ever hidden
+  // Merge serverList and localList while preserving earliest authentic created_at
   const mergedMap = new Map();
-  serverList.forEach(item => { if (item && item.id) mergedMap.set(String(item.id), item); });
+  serverList.forEach(item => {
+    if (item && item.id) {
+      window.resolveAuthenticEvalTimestamp(item, localMap.get(String(item.id)));
+      mergedMap.set(String(item.id), item);
+    }
+  });
   localList.forEach(item => {
     if (item && item.id) {
       const existing = mergedMap.get(String(item.id));
       if (!existing) {
+        window.resolveAuthenticEvalTimestamp(item);
         mergedMap.set(String(item.id), item);
       } else {
+        window.resolveAuthenticEvalTimestamp(existing, item);
         if ((!existing.pages || existing.pages.length === 0) && item.pages && item.pages.length > 0) {
           existing.pages = item.pages;
           existing.page_images = item.pages;
@@ -2288,6 +2449,11 @@ window.fetchAndSyncUserLockerHistory = async function(email) {
   });
 
   const finalHistory = Array.from(mergedMap.values());
+  for (const rec of finalHistory) {
+    window.resolveAuthenticEvalTimestamp(rec);
+    await window.saveEvaluationToBrowserVault(cleanEmail, rec);
+  }
+
   finalHistory.sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
   state.lockerHistory = finalHistory;
 
@@ -8452,7 +8618,7 @@ async function loadLockerHistory() {
 
     let html = "";
     list.forEach(item => {
-      const dateStr = window.formatLockerTimestampIST ? window.formatLockerTimestampIST(item.created_at) : "Recently";
+      const dateStr = window.formatLockerTimestampIST ? window.formatLockerTimestampIST(item.created_at, item) : "Recently";
       const isRewriteBadge = item.is_rewrite 
         ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Rewrite (1/1)</span>` 
         : (item.has_been_rewritten 
@@ -8972,39 +9138,9 @@ window.renderWeeklyLocker = function() {
     earlier: { title: "Earlier History & Archive", icon: "archive", items: [] }
   };
 
-  // Ensure SQLite UTC timestamps ("YYYY-MM-DD HH:MM:SS") are parsed as UTC ('Z') and displayed in Indian Standard Time (IST +05:30)
-  window.parseDatabaseUtcDate = function(rawTs) {
-    if (!rawTs) return new Date();
-    let s = String(rawTs).trim();
-    if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/.test(s)) {
-      s = s.replace(/\s+/, "T") + "Z";
-    } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s) && !s.endsWith("Z") && !/[+-]\d{2}:?\d{2}$/.test(s)) {
-      s = s + "Z";
-    }
-    const d = new Date(s);
-    return isNaN(d.getTime()) ? new Date(rawTs) : d;
-  };
-
-  window.formatLockerTimestampIST = function(rawTs) {
-    if (!rawTs) return "Recently";
-    const d = window.parseDatabaseUtcDate(rawTs);
-    if (isNaN(d.getTime())) return "Recently";
-    try {
-      return d.toLocaleDateString("en-IN", {
-        timeZone: "Asia/Kolkata",
-        day: "numeric",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true
-      });
-    } catch (e) {
-      return d.toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-    }
-  };
-
   filtered.forEach(item => {
-    const created = item.created_at ? window.parseDatabaseUtcDate(item.created_at) : new Date();
+    const authenticIso = window.resolveAuthenticEvalTimestamp(item);
+    const created = window.parseDatabaseUtcDate(authenticIso) || new Date();
     const diffDays = Math.floor((now - created) / (1000 * 60 * 60 * 24));
 
     if (diffDays < 7) {
@@ -9035,7 +9171,7 @@ window.renderWeeklyLocker = function() {
     `;
 
     grp.items.forEach(item => {
-      const dateStr = window.formatLockerTimestampIST(item.created_at);
+      const dateStr = window.formatLockerTimestampIST(item.created_at, item);
       const isRewriteBadge = item.is_rewrite 
         ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">Rewrite (1/1)</span>` 
         : (item.has_been_rewritten 

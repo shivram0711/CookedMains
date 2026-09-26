@@ -1971,6 +1971,7 @@ async def evaluate_answer(
             "pages": uploaded_page_previews,
             "file_url": public_file_url,
             "eval_id": eval_id,
+            "created_at": evaluation_result.get("_meta_created_at") or evaluation_result.get("created_at") or datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "user": user_info,
             "user_credits": user_info.get("free_credits") if user_info else None,
             "daily_quota": get_user_daily_quota(user_email) if user_email else None,
