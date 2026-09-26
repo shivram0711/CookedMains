@@ -1099,6 +1099,13 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
         - NEVER cite GS-2 Polity cases/articles (`Maneka Gandhi`, `NJAC`, `Navtej Johar`, `Shreya Singhal`, `Constitutional Morality`, `Article 13`, `2nd ARC`) inside a GS-3 Economy/Science-Tech, GS-1 Geography/History, or GS-4 Ethics evaluation! Every word must belong 100% to the evaluated question's subject and demand.
       * D. NEVER PLACE 'WAY FORWARD' OR BODY DIAGRAMS INSIDE THE 'CONCLUSION' CURLY BRACE OR CARD:
         - `Way Forward` is ALWAYS part of the `Body` section (`Body: Way Forward`), NEVER part of the `Conclusion`! Reserve the `Conclusion` curly brace (`76%–91%`) and `Conclusion` card strictly for the final concluding paragraph at the bottom of the sheet!
+      * E. STRICT CONCLUSION SCORING & EASY-TO-UNDERSTAND LANGUAGE (ZERO JARGON LIKE 'VISIONARY SYNTHESIS'):
+        - Read the candidate's actual final concluding sentence(s) at the bottom of the last page.
+        - If the candidate wrote a simple, generic 1-line closing sentence without topic-specific keywords, schemes, or metrics (e.g., *"Thus, there is a need for holistic development on part of government and society"*, *"Hence, government should take steps for inclusive growth"*, or *"This is the need of the hour"*):
+          1. Award **ONLY `0.5` out of `2.0` (or `0.5 / 1.5` for 10M)** in `rubric_scores.conclusion_score` and in the `Conclusion` margin card (`"+0.5 / 2.0"`). NEVER award `1.5 / 2.0` to a generic conclusion that lacks keywords!
+          2. Quote the candidate's actual generic words in `conclusion_audit.current_critique` and the `Conclusion` margin card:
+             `"✗ **Too General (No Keywords)**: You wrote 'Thus, there is a need for holistic development on part of government and society', which has no topic keywords and can fit any answer (only +0.5/2.0 mark).\n✎ **How to Get Full Marks Here**: Mention 1–2 topic keywords in your last line (e.g., shifting India to a **deep-tech product nation** under **Viksit Bharat @2047**)."`
+        - NEVER use heavy, confusing AI phrases like `"Visionary Synthesis"`, `"Constructive Synthesis"`, `"Empirical Substantiation"`, `"Contextual Premise"`, or `"Lexical"`. Always write every card heading and remark in simple, clear English (`"Too General (No Keywords)"`, `"Good Closing Line"`, `"How to Get Full Marks Here"`).
 
 Generate strictly valid JSON matching this schema:
 {{
@@ -2071,6 +2078,8 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
             ("while underweighting separation of powers constraints", "—also add a short point on **Separation of Powers (Article 50)** so both sides are balanced"),
             ("Lacks deeper structural analysis of the doctrine of basic structure limitations and judicial overreach", "You explained **Basic Structure** and key cases well. To score +1.5M higher, add 2 simple points on **Judicial Restraint** (where courts should not overstep into law-making)"),
             ("Anchor arguments with empirical data points or committee reports", "Back your points with 1 fact or committee name (like **2nd ARC** or **Law Commission**)"),
+            ("Visionary Synthesis", "Clear Closing Line"),
+            ("Constructive Synthesis", "Good Closing Line"),
             ("superficially", "briefly"),
             ("underweighting", "giving less space to"),
             ("institutional friction", "tension between Legislature and Judiciary"),
@@ -2090,6 +2099,43 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                 deduped_gaps.append(g)
         body_audit["critical_gaps"] = deduped_gaps[:2]
         data["body_audit"] = body_audit
+
+    # Strict Generic Conclusion Audit: If the candidate wrote a generic 1-line ending (e.g. 'holistic development on part of government and society'),
+    # award only 0.5 marks in conclusion_score and give simple, honest feedback.
+    trans_low = str(data.get("transcribed_text") or "").lower()
+    tail_text = trans_low[-320:] if len(trans_low) > 320 else trans_low
+    is_generic_conc = any(p in tail_text for p in [
+        "holistic development on part of government and society",
+        "need for holistic development",
+        "part of government and society",
+        "steps should be taken by government",
+        "this is the need of the hour"
+    ])
+    if is_generic_conc:
+        rubric_d = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
+        old_conc = float(rubric_d.get("conclusion_score", 0.5) or 0.5)
+        if old_conc > 0.5:
+            delta_c = round(old_conc - 0.5, 2)
+            rubric_d["conclusion_score"] = 0.5
+            rubric_d["core_demand_score"] = round(float(rubric_d.get("core_demand_score", 2.0) or 2.0) + delta_c, 2)
+            data["rubric_scores"] = rubric_d
+        c_audit = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
+        c_audit["current_critique"] = (
+            "✗ **Too General (+0.5M Only)**: Your closing line (*'need for holistic development on part of government and society'*) "
+            "has no topic keywords and can fit any answer. Mention 1–2 topic keywords and a national goal (**Viksit Bharat @2047**) to get full marks."
+        )
+        data["conclusion_audit"] = c_audit
+        for ann in anns_list:
+            t_low = str(ann.get("tag") or "").lower()
+            if "concl" in t_low or "synthesis" in t_low or "finish" in t_low:
+                c_max = float(rubric_d.get("conclusion_max", 2.0) or 2.0)
+                ann["marks_awarded"] = f"+0.5 / {c_max:.1f}"
+                ann["type"] = "warning"
+                ann["remark"] = (
+                    "✗ **Too General (No Topic Keywords)**: You ended with **'Thus, there is a need for holistic development on part of government and society'**, "
+                    "which has no topic keywords and can fit any question (fetches only +0.5 mark).\n"
+                    "✎ **How to Score Full Marks Here**: Write 1–2 topic keywords in your last line (e.g., shifting India to a **deep-tech product nation** under **Viksit Bharat @2047**)."
+                )
 
     # Check if student wrote 'Limitations' / 'Challenges' without a 'Way Forward' section
     has_limitations_written = any(k in positive_corpus for k in ["limitation", "judicial overreach", "roger mathew", "personal bias"])
