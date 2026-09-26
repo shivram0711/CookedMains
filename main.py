@@ -1492,34 +1492,37 @@ async def evaluate_answer(
                         parsed_base = json.loads(baseline_evaluation_json)
                         if isinstance(parsed_base, dict):
                             base_eval_inner = parsed_base.get("evaluation") if isinstance(parsed_base.get("evaluation"), dict) else parsed_base
+                            true_base_q = base_eval_inner.get("detected_question") or parsed_base.get("detected_question") or parsed_base.get("question") or baseline_question or question
                             prev_record = {
                                 "id": baseline_eval_id or parsed_base.get("id") or parsed_base.get("eval_id"),
                                 "paper": baseline_paper or base_eval_inner.get("detected_paper") or base_eval_inner.get("paper") or paper,
                                 "max_marks": int(baseline_marks or base_eval_inner.get("max_marks") or max_marks or 10),
-                                "question": baseline_question or base_eval_inner.get("detected_question") or base_eval_inner.get("question") or question,
+                                "question": true_base_q,
                                 "overall_score": float(base_eval_inner.get("overall_score") or 4.0),
                                 "evaluation": base_eval_inner,
                                 "pages": parsed_base.get("pages") or base_eval_inner.get("pages") or [],
-                                "is_rewrite": 0,
-                                "has_been_rewritten": 0
+                                "file_hash": parsed_base.get("file_hash") or base_eval_inner.get("file_hash"),
+                                "is_rewrite": int(bool(parsed_base.get("is_rewrite") or base_eval_inner.get("is_rewrite"))),
+                                "has_been_rewritten": int(bool(parsed_base.get("has_been_rewritten") or base_eval_inner.get("has_been_rewritten"))),
+                                "rewrite_eval_id": parsed_base.get("rewrite_eval_id") or base_eval_inner.get("rewrite_eval_id")
                             }
                     except Exception as bj_err:
                         print(f"Notice: baseline_evaluation_json parse fallback: {bj_err}")
 
-                # Fallback 2: Reconstruct prev_record from baseline form metadata when container SQLite reset on Render redeploy
-                if not prev_record:
+                # Fallback 2: Only if valid baseline_question (non-empty) was explicitly supplied from an active baseline session
+                if not prev_record and baseline_question and len(baseline_question.strip()) > 5:
                     fallback_mm = int(baseline_marks or max_marks or 10)
                     prev_record = {
                         "id": baseline_eval_id,
                         "paper": baseline_paper or paper,
                         "max_marks": fallback_mm,
-                        "question": baseline_question or question,
+                        "question": baseline_question.strip(),
                         "overall_score": round(fallback_mm * 0.4, 1),
                         "evaluation": {
                             "overall_score": round(fallback_mm * 0.4, 1),
                             "max_marks": fallback_mm,
                             "paper": baseline_paper or paper,
-                            "detected_question": baseline_question or question,
+                            "detected_question": baseline_question.strip(),
                             "rubric_scores": {
                                 "intro_score": round(fallback_mm * 0.06, 1),
                                 "core_demand_score": round(fallback_mm * 0.22, 1),
@@ -1533,10 +1536,31 @@ async def evaluate_answer(
                         "has_been_rewritten": 0
                     }
 
-                if prev_record:
-                    # 0b. Single Re-evaluation Enforcement: Prevent infinite rewrite loops
+                if not prev_record:
+                    return JSONResponse(
+                        status_code=400,
+                        content={
+                            "status": "error",
+                            "error_type": "invalid_baseline",
+                            "title": "Invalid Re-evaluation Request",
+                            "message": "A valid baseline evaluation was not found. Re-evaluation requires an existing baseline answer copy to measure improvements.",
+                            "warning": "Cannot re-evaluate without a verified baseline answer copy.",
+                            "action_hint": "Please select your baseline copy from your Answer Vault, or exit Rewrite Mode to submit a new evaluation.",
+                            "credits_deducted": 0
+                        }
+                    )
+                else:
+                    # 0b. Single Re-evaluation Enforcement: Prevent infinite rewrite loops globally and locally
                     baseline_id_to_check = baseline_eval_id or prev_record.get("id")
-                    if bool(prev_record.get("is_rewrite")) or bool(prev_record.get("has_been_rewritten")) or prev_record.get("rewrite_eval_id") or (baseline_id_to_check and has_evaluation_been_rewritten(baseline_id_to_check)):
+                    prev_eval_obj = prev_record.get("evaluation") if isinstance(prev_record.get("evaluation"), dict) else {}
+                    baseline_q_to_check = prev_eval_obj.get("detected_question") or prev_record.get("question") or baseline_question or question
+                    if (
+                        bool(prev_record.get("is_rewrite"))
+                        or bool(prev_record.get("has_been_rewritten"))
+                        or prev_record.get("rewrite_eval_id")
+                        or (baseline_id_to_check and has_evaluation_been_rewritten(baseline_id_to_check))
+                        or has_user_rewritten_question(effective_email, baseline_q_to_check, baseline_id_to_check)
+                    ):
                         return JSONResponse(
                             status_code=400,
                             content={
@@ -1681,12 +1705,16 @@ async def evaluate_answer(
                 )
 
             # Direct Gemini Files API Ingestion and Multimodal Generation
-            prev_q = (prev_record.get("question") if prev_record else None) or baseline_question if is_rewrite else None
+            prev_eval_dict = prev_record.get("evaluation") if (prev_record and is_rewrite and isinstance(prev_record.get("evaluation"), dict)) else None
+            prev_q = None
+            if is_rewrite:
+                cand_q = (prev_eval_dict.get("detected_question") if prev_eval_dict else None) or (prev_record.get("question") if prev_record else None) or baseline_question
+                if cand_q and "extract question printed" not in cand_q.lower():
+                    prev_q = cand_q
             detected_paper = detect_academic_discipline(question, paper)
             directive_info = detect_directive(question)
             current_affairs_context = await get_dynamic_grounded_context(question, detected_paper)
 
-            prev_eval_dict = prev_record.get("evaluation") if (prev_record and is_rewrite) else None
             evaluator_prompt_text = build_evaluation_prompt(
                 question=question,
                 paper_key=detected_paper,
