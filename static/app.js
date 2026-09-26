@@ -1197,6 +1197,12 @@ window.executeRewriteEvaluation = async function() {
   if (question) fd.append("baseline_question", question);
   if (paper) fd.append("baseline_paper", paper);
   if (maxMarks) fd.append("baseline_marks", maxMarks);
+  const baseEvalPayload = state.previousEvaluation || state.currentEvaluation || (state.currentEvalRecord && state.currentEvalRecord.evaluation) || null;
+  if (baseEvalPayload) {
+    try {
+      fd.append("baseline_evaluation_json", JSON.stringify(baseEvalPayload));
+    } catch (e) {}
+  }
   if (state.apiKey) fd.append("api_key", state.apiKey);
   if (state.user && state.user.email) fd.append("user_email", state.user.email);
 
@@ -4654,6 +4660,12 @@ window.runEvaluation = async function(allowAutoAligned = false) {
     if (baseline.question || state.question) formData.append("baseline_question", baseline.question || state.question);
     if (baseline.paper || state.paper) formData.append("baseline_paper", baseline.paper || state.paper);
     if (baseline.marks || state.marks) formData.append("baseline_marks", baseline.marks || state.marks);
+    const baseEvalPayload = state.previousEvaluation || state.currentEvaluation || (state.currentEvalRecord && state.currentEvalRecord.evaluation) || null;
+    if (baseEvalPayload) {
+      try {
+        formData.append("baseline_evaluation_json", JSON.stringify(baseEvalPayload));
+      } catch (e) {}
+    }
   }
 
   state.uploadedFiles.forEach(file => {
