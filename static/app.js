@@ -737,7 +737,7 @@ window.navigateToHome = function() {
   window.switchStudioState("landing");
 };
 
-window.switchStudioTab = function(tabId) {
+window.switchStudioTab = function(tabId, skipScrollToTop = false) {
   const tabBtns = document.querySelectorAll(".studio-tab-btn");
   tabBtns.forEach(btn => {
     if (btn.getAttribute("data-studio-tab") === tabId) {
@@ -768,19 +768,28 @@ window.switchStudioTab = function(tabId) {
     panes[tabId].scrollTop = 0;
   }
 
-  // If the candidate has scrolled down inside the evaluation panel and clicks another tab on the sticky bar,
-  // smoothly align the top of the right-hand evaluation panel right below the sticky header.
-  const rightPanelContainer = document.getElementById("resultsContainer");
-  const stickyTabHeader = document.getElementById("studioTabNavHeader");
-  if (rightPanelContainer && stickyTabHeader) {
-    const isMobile = window.innerWidth < 640;
-    const navbarHeight = isMobile ? 64 : 80;
-    const panelRect = rightPanelContainer.getBoundingClientRect();
-    // Only scroll if the top of the right-hand evaluation panel has scrolled above the sticky navbar
-    if (panelRect.top < navbarHeight - 8) {
-      const targetY = panelRect.top + window.pageYOffset - navbarHeight;
-      window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
-    }
+  // Always land at the TOP of the right-hand evaluation studio card when switching tabs
+  // (especially when clicking the bottom 'Next: Deep Evaluation' or 'Next: Rewrite Workshop' button)
+  if (!skipScrollToTop) {
+    const scrollToStudioTop = () => {
+      const rightStudioCard = document.getElementById("rightEvaluationStudioCard") ||
+                              document.getElementById("rightEvaluationColumn") ||
+                              document.getElementById("studioTabNavHeader");
+      if (rightStudioCard) {
+        const isMobile = window.innerWidth < 640;
+        const navbarHeight = isMobile ? 68 : 86;
+        const currentScrollY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+        const rect = rightStudioCard.getBoundingClientRect();
+        const targetY = Math.max(0, rect.top + currentScrollY - navbarHeight);
+        window.scrollTo({ top: targetY, behavior: "smooth" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    };
+    scrollToStudioTop();
+    requestAnimationFrame(() => {
+      scrollToStudioTop();
+    });
   }
 
   if (tabId === "audit" && typeof radarChartInstance !== "undefined" && radarChartInstance) {
@@ -3433,35 +3442,59 @@ nextPageBtn.addEventListener("click", () => {
   }
 });
 
-// Navigate and highlight evaluation sections in right panel
+// Navigate and highlight specific evaluation sections in Deep Evaluation tab when clicking 'View Full Evaluation in Right Section →'
 window.viewFullEvaluationSection = function(sectionKey) {
+  // Switch to Tab 2: Deep Evaluation ('multipliers') where Section-by-Section Forensic Audit resides,
+  // passing skipScrollToTop = true so we can scroll directly to the exact sub-section (Intro / Body / Conclusion)
   if (typeof window.switchStudioTab === "function") {
-    window.switchStudioTab("audit");
+    window.switchStudioTab("multipliers", true);
   }
 
-  let targetId = "introSection";
+  let targetId = "bodySection";
+  let boxId = "bodyAuditBox";
   const key = String(sectionKey || "").toLowerCase();
 
   if (key.includes("intro") || key.includes("definition") || key.includes("premise")) {
     targetId = "introSection";
-  } else if (key.includes("conc") || key.includes("way") || key.includes("forward") || key.includes("ending") || key.includes("synthesis")) {
+    boxId = "introAuditBox";
+  } else if (key.includes("conc") || key.includes("ending") || key.includes("synthesis")) {
     targetId = "conclusionSection";
-  } else if (key.includes("value") || key.includes("data") || key.includes("multiplier")) {
-    targetId = "valueAddSection";
+    boxId = "conclusionAuditBox";
+  } else if (key.includes("value") || key.includes("multiplier")) {
+    targetId = "currentAffairsCard";
+    boxId = "currentAffairsCard";
   } else {
+    // 'body', 'challenges', 'way forward', 'income', etc. all belong to Body Strengths & Missing Dimensions
     targetId = "bodySection";
+    boxId = "bodyAuditBox";
   }
 
   const targetEl = document.getElementById(targetId);
   if (targetEl) {
     targetEl.classList.remove("hidden");
-    const parentBox = targetEl.closest(".rounded-xl") || targetEl;
-    parentBox.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  setTimeout(() => {
+    const parentBox = document.getElementById(boxId) || (targetEl && targetEl.closest(".rounded-xl")) || targetEl;
+    if (!parentBox) return;
+
+    const isMobile = window.innerWidth < 640;
+    const stickyHeaderEl = document.getElementById("studioTabNavHeader");
+    const stickyTabBarHeight = (stickyHeaderEl && stickyHeaderEl.offsetHeight) ? stickyHeaderEl.offsetHeight : 48;
+    const navbarHeight = isMobile ? 64 : 80;
+    const totalStickyOffset = navbarHeight + stickyTabBarHeight + 14;
+
+    const currentScrollY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    const boxRect = parentBox.getBoundingClientRect();
+    const targetY = Math.max(0, boxRect.top + currentScrollY - totalStickyOffset);
+
+    window.scrollTo({ top: targetY, behavior: "smooth" });
+
     parentBox.classList.add("ring-2", "ring-amber-500", "dark:ring-amber-400", "ring-offset-2", "transition-all", "duration-300");
     setTimeout(() => {
       parentBox.classList.remove("ring-2", "ring-amber-500", "dark:ring-amber-400", "ring-offset-2");
-    }, 2000);
-  }
+    }, 2400);
+  }, 30);
 };
 
 // Safe view mode compatibility stub

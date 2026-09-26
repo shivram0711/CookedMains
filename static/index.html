@@ -1030,8 +1030,8 @@
         </div>
 
         <!-- RIGHT COLUMN (45% Width): Comfortable, Focused UPSC Evaluation, Rubrics & Multipliers -->
-        <div class="w-full lg:w-[45%] xl:w-[45%] flex-1 flex flex-col gap-4 min-w-0">
-          <div class="studio-card p-4 sm:p-5 shadow-xl space-y-5">
+        <div id="rightEvaluationColumn" class="w-full lg:w-[45%] xl:w-[45%] flex-1 flex flex-col gap-4 min-w-0">
+          <div id="rightEvaluationStudioCard" class="studio-card p-4 sm:p-5 shadow-xl space-y-5">
             
             <!-- Sticky Linear-Style Tab Navigation Header (Remains pinned while scrolling) -->
             <div id="studioTabNavHeader" class="sticky top-16 sm:top-20 z-40 bg-white/95 dark:bg-[#12151E]/95 backdrop-blur-md flex items-center justify-between sm:justify-start border-b border-slate-200 dark:border-[#1E2333] pt-2 pb-0 -mx-4 px-2 sm:-mx-5 sm:px-5 shadow-md transition-colors overflow-x-auto no-scrollbar">
@@ -1352,7 +1352,7 @@
             </div>
 
             <!-- 1. Introduction Audit & Model Rewrite -->
-            <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 overflow-hidden shadow-xs">
+            <div id="introAuditBox" class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 overflow-hidden shadow-xs">
               <button class="accordion-btn w-full px-4 py-3 flex items-center justify-between text-left text-xs font-semibold bg-slate-100/90 hover:bg-slate-200/90 dark:bg-slate-900/90 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition border-b border-slate-200 dark:border-slate-800/80" onclick="toggleSection('introSection')">
                 <span class="flex items-center space-x-2">
                   <span class="w-2 h-2 rounded-full bg-amber-500"></span>
@@ -1383,7 +1383,7 @@
             </div>
 
             <!-- 2. Body Strengths & Missing Dimensions -->
-            <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 overflow-hidden shadow-xs">
+            <div id="bodyAuditBox" class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 overflow-hidden shadow-xs">
               <button class="accordion-btn w-full px-4 py-3 flex items-center justify-between text-left text-xs font-semibold bg-slate-100/90 hover:bg-slate-200/90 dark:bg-slate-900/90 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition border-b border-slate-200 dark:border-slate-800/80" onclick="toggleSection('bodySection')">
                 <span class="flex items-center space-x-2">
                   <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -1420,7 +1420,7 @@
             </div>
 
             <!-- 3. Conclusion Audit & Model Closing -->
-            <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 overflow-hidden shadow-xs">
+            <div id="conclusionAuditBox" class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 overflow-hidden shadow-xs">
               <button class="accordion-btn w-full px-4 py-3 flex items-center justify-between text-left text-xs font-semibold bg-slate-100/90 hover:bg-slate-200/90 dark:bg-slate-900/90 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition border-b border-slate-200 dark:border-slate-800/80" onclick="toggleSection('conclusionSection')">
                 <span class="flex items-center space-x-2">
                   <span class="w-2 h-2 rounded-full bg-violet-500"></span>
@@ -3220,7 +3220,7 @@
 
   </div>
 
-  <script src="/static/app.js?v=5.2"></script>
+  <script src="/static/app.js?v=5.3"></script>
   <script>
     if (window.lucide) {
       try { lucide.createIcons(); } catch(e) {}
