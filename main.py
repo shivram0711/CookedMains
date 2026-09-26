@@ -1683,33 +1683,41 @@ async def evaluate_answer(
                     )
 
                     candidate_models = [
-                        "gemini-flash-lite-latest",
-                        "gemini-3.5-flash-lite",
-                        "gemini-3.6-flash",
-                        "gemini-3.5-flash",
-                        "gemini-3-flash-preview",
+                        "gemini-2.5-flash",
+                        "gemini-2.0-flash",
+                        "gemini-2.5-flash-lite",
+                        "gemini-2.0-flash-lite",
                         "gemini-flash-latest",
-                        "gemini-2.5-flash"
+                        "gemini-flash-lite-latest",
+                        "gemini-1.5-flash"
                     ]
 
+                    import time as _time
                     last_gen_err = None
                     for model_candidate in candidate_models:
-                        try:
-                            response = client.models.generate_content(
-                                model=model_candidate,
-                                contents=[uploaded_file, evaluator_prompt_text],
-                                config=gen_config
-                            )
-                            if response and response.text:
-                                raw_text = response.text
-                                parsed_eval = parse_llm_json_response(raw_text)
-                                if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
-                                    parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
-                                evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
+                        for attempt in range(2):
+                            try:
+                                response = client.models.generate_content(
+                                    model=model_candidate,
+                                    contents=[uploaded_file, evaluator_prompt_text],
+                                    config=gen_config
+                                )
+                                if response and response.text:
+                                    raw_text = response.text
+                                    parsed_eval = parse_llm_json_response(raw_text)
+                                    if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
+                                        parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
+                                    evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
+                                    break
+                            except Exception as ge:
+                                last_gen_err = ge
+                                err_s = str(ge).lower()
+                                if any(t in err_s for t in ["429", "resource_exhausted", "quota", "503", "unavailable"]) and attempt == 0:
+                                    _time.sleep(0.8)
+                                    continue
                                 break
-                        except Exception as ge:
-                            last_gen_err = ge
-                            continue
+                        if evaluation_result:
+                            break
 
                     if not evaluation_result:
                         raise RuntimeError(f"Could not evaluate with available models. Last error: {last_gen_err}")

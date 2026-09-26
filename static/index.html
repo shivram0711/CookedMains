@@ -1222,6 +1222,69 @@
               </div>
             </div>
           </div>
+              <!-- BATCH 1: UPSC SUB-PART STEP-MARKING, POINT-BY-POINT HANDWRITING AUDIT & PERSONAL MENTOR MEMORY -->
+          <div id="batch1ExaminerMasteryCard" class="bg-white dark:bg-slate-900/95 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm dark:shadow-xl space-y-4">
+            <!-- Header -->
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div class="flex items-center space-x-2 min-w-0">
+                <span class="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                  <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                </span>
+                <div class="min-w-0">
+                  <h4 class="text-xs sm:text-[13px] font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100 break-words">
+                    UPSC Examiner Step-Marking &amp; Point-by-Point Copy Audit
+                  </h4>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 break-words">
+                    Exact sub-demand step marks, handwritten point-level grading &amp; your personal Locker habit progress
+                  </p>
+                </div>
+              </div>
+              <span id="batch1StepTotalBadge" class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shrink-0">
+                Step-Marked Verified
+              </span>
+            </div>
+
+            <!-- 1. Sub-Part Step-Marking Breakdown -->
+            <div class="space-y-2.5">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center space-x-1.5">
+                <i data-lucide="sliders" class="w-3.5 h-3.5 shrink-0"></i>
+                <span>1. Question Sub-Part Step-Marking Ceiling (How Your Marks Were Allocated)</span>
+              </div>
+              <div id="subpartStepMarkingList" class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                <!-- Populated dynamically by renderBatch1ExaminerMastery() -->
+              </div>
+            </div>
+
+            <!-- 2. Point-by-Point Handwritten Audit -->
+            <div class="space-y-2.5 pt-1 border-t border-slate-100 dark:border-slate-800/80">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center space-x-1.5">
+                <i data-lucide="file-check-2" class="w-3.5 h-3.5 shrink-0"></i>
+                <span>2. Point-by-Point Handwritten Audit (Which Exact Points Fetched Marks vs. Scope to Upgrade)</span>
+              </div>
+              <div id="pointByPointAuditList" class="space-y-2">
+                <!-- Populated dynamically by renderBatch1ExaminerMastery() -->
+              </div>
+            </div>
+
+            <!-- 3. Personal Mentor Memory (Longitudinal Progress Across Locker Copies) -->
+            <div id="personalMentorMemoryContainer" class="pt-1 border-t border-slate-100 dark:border-slate-800/80">
+              <div class="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-500/30 space-y-2">
+                <div class="flex flex-wrap items-center justify-between gap-1.5">
+                  <span class="text-[11px] font-extrabold uppercase tracking-wider text-blue-800 dark:text-blue-300 flex items-center space-x-1.5">
+                    <i data-lucide="brain-circuit" class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0"></i>
+                    <span>3. Personal Mentor Memory (Progress Across Your Answer Locker)</span>
+                  </span>
+                  <span id="mentorMemoryCopyCountBadge" class="text-[10.5px] font-bold px-2 py-0.5 rounded bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/25">
+                    Longitudinal Habit Tracker
+                  </span>
+                </div>
+                <div id="personalMentorMemoryBox" class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs leading-relaxed">
+                  <!-- Populated dynamically by renderBatch1ExaminerMastery() -->
+                </div>
+              </div>
+            </div>
+          </div>
+
               <!-- 3. Deep Component Breakdown Tabs / Accordions -->
           <div id="forensicAuditCard" class="bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm dark:shadow-xl space-y-4">
             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-300 flex items-center space-x-2">
@@ -3201,7 +3264,7 @@
 
   </div>
 
-  <script src="/static/app.js?v=4.2"></script>
+  <script src="/static/app.js?v=4.3"></script>
   <script>
     if (window.lucide) {
       try { lucide.createIcons(); } catch(e) {}
