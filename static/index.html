@@ -1339,39 +1339,51 @@
             <!-- Tab 2: [Deep Evaluation] (Structured, Non-Repeating Reading Flow) -->
             <div id="tabPaneMultipliers" class="studio-tab-pane hidden space-y-5">
 
-              <!-- STAGE 1: SECTION-BY-SECTION FORENSIC AUDIT (Intro -> Body -> Conclusion) -->
-          <div id="forensicAuditCard" class="bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm dark:shadow-xl space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+              <!-- UNIFIED SECTION-BY-SECTION DEEP EVALUATION (Intro -> Body + Value Addition -> Conclusion) -->
+          <div id="forensicAuditCard" class="bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm dark:shadow-xl space-y-5">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-200 dark:border-slate-800">
               <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center space-x-2">
                 <i data-lucide="layers" class="w-4 h-4 text-amber-500 dark:text-amber-400"></i>
-                <span>Step 1: Section-by-Section Forensic Audit (Intro • Body • Conclusion)</span>
+                <span>Section-by-Section Deep Evaluation &amp; Value Addition (Intro • Body • Conclusion)</span>
               </h4>
               <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                Structural Flow
+                Where &amp; How to Write
               </span>
             </div>
 
-            <!-- 1. Introduction Audit & Model Rewrite -->
+            <!-- =======================================================================
+                 1. INTRODUCTION AUDIT, VALUE ADDITION & MODEL OPENING
+                 ======================================================================= -->
             <div id="introAuditBox" class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 overflow-hidden shadow-xs">
               <button class="accordion-btn w-full px-4 py-3 flex items-center justify-between text-left text-xs font-semibold bg-slate-100/90 hover:bg-slate-200/90 dark:bg-slate-900/90 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition border-b border-slate-200 dark:border-slate-800/80" onclick="toggleSection('introSection')">
                 <span class="flex items-center space-x-2">
-                  <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                  <span class="font-semibold text-slate-800 dark:text-slate-200">1. Introduction Audit &amp; Model Opening</span>
+                  <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                  <span class="font-bold text-slate-800 dark:text-slate-200">1. Introduction Audit, Value Addition &amp; Model Opening</span>
                 </span>
                 <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
               </button>
-              <div id="introSection" class="px-4 pb-4 pt-2 space-y-3 text-xs bg-white dark:bg-slate-950/40">
+              <div id="introSection" class="px-4 pb-4 pt-3 space-y-3.5 text-xs bg-white dark:bg-slate-950/40">
                 <div class="space-y-1">
                   <span class="text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Examiner Critique:</span>
                   <p class="text-slate-700 dark:text-slate-300 leading-relaxed" id="introCritiqueText"></p>
                 </div>
-                <div class="space-y-1">
-                  <span class="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Missing Intro Elements:</span>
-                  <ul class="list-disc list-inside space-y-0.5 text-slate-600 dark:text-slate-400 text-[11px]" id="introMissingList"></ul>
+
+                <!-- Value Addition & Missing Elements Specifically for Introduction -->
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 space-y-2.5">
+                  <div class="flex flex-wrap items-center justify-between gap-1.5">
+                    <span class="text-[11px] font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider flex items-center space-x-1.5">
+                      <i data-lucide="sparkles" class="w-3.5 h-3.5 text-sky-500 shrink-0"></i>
+                      <span>Value Addition for Introduction (What, Where &amp; How to Write):</span>
+                    </span>
+                    <span class="text-[9.5px] font-semibold px-2 py-0.5 rounded bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20">Opening Hook (+0.5M)</span>
+                  </div>
+                  <ul class="list-disc list-inside space-y-1 text-slate-700 dark:text-slate-300 text-[11px]" id="introMissingList"></ul>
+                  <div id="introValueAddGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 hidden"></div>
                 </div>
+
                 <div class="p-3 rounded-xl bg-amber-50/70 dark:bg-slate-900 border border-amber-200 dark:border-amber-500/20 space-y-1">
                   <div class="flex items-center justify-between text-[11px] font-bold text-amber-700 dark:text-amber-400">
-                    <span>Topper Model Introduction (30-40 Words):</span>
+                    <span>Topper Model Introduction (30–40 Words):</span>
                     <button onclick="copyModelIntro()" class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center space-x-1 text-[10px] cursor-pointer">
                       <i data-lucide="copy" class="w-3 h-3"></i>
                       <span>Copy</span>
@@ -1382,28 +1394,31 @@
               </div>
             </div>
 
-            <!-- 2. Body Strengths & Missing Dimensions -->
+            <!-- =======================================================================
+                 2. BODY AUDIT, INTEGRATED VALUE ADDITION & CURRENT AFFAIRS (WHERE & HOW TO WRITE)
+                 ======================================================================= -->
             <div id="bodyAuditBox" class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 overflow-hidden shadow-xs">
               <button class="accordion-btn w-full px-4 py-3 flex items-center justify-between text-left text-xs font-semibold bg-slate-100/90 hover:bg-slate-200/90 dark:bg-slate-900/90 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition border-b border-slate-200 dark:border-slate-800/80" onclick="toggleSection('bodySection')">
                 <span class="flex items-center space-x-2">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  <span class="font-semibold text-slate-800 dark:text-slate-200">2. Body Strengths &amp; Missing Dimensions</span>
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                  <span class="font-bold text-slate-800 dark:text-slate-200">2. Body Audit, Value Addition &amp; Current Affairs (Where &amp; How to Write)</span>
                 </span>
                 <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
               </button>
-              <div id="bodySection" class="px-4 pb-4 pt-2 space-y-3 text-xs bg-white dark:bg-slate-950/40">
+              <div id="bodySection" class="px-4 pb-4 pt-3 space-y-4 text-xs bg-white dark:bg-slate-950/40">
+                <!-- Part 2A: Body Strengths & Upgrade Levers -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-200 dark:border-emerald-500/20 space-y-1.5">
                     <span class="text-[11px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider flex items-center space-x-1">
                       <i data-lucide="check" class="w-3 h-3"></i>
-                      <span>What Fetched Marks:</span>
+                      <span>What Fetched Marks in Body:</span>
                     </span>
                     <ul class="space-y-1 text-slate-700 dark:text-slate-300 text-[11px]" id="bodyStrengthsList"></ul>
                   </div>
                   <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/25 space-y-1.5">
                     <span class="text-[11px] font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider flex items-center space-x-1">
                       <i data-lucide="compass" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400"></i>
-                      <span>Mentor's Upgrade Levers (Gain +1.5 to +2.5M):</span>
+                      <span>Body Upgrade Levers (Gain +1.5 to +2.5M):</span>
                     </span>
                     <ul class="space-y-1 text-slate-700 dark:text-slate-300 text-[11px]" id="bodyGapsList"></ul>
                   </div>
@@ -1412,129 +1427,141 @@
                 <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1.5">
                   <span class="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider flex items-center space-x-1">
                     <i data-lucide="grid" class="w-3 h-3"></i>
-                    <span>Missing Dimensions (PESTLE / Stakeholder):</span>
+                    <span>Missing Body Dimensions (PESTLE / Stakeholder):</span>
                   </span>
                   <ul class="list-disc list-inside space-y-0.5 text-slate-700 dark:text-slate-300 text-[11px]" id="bodyMissingDimensionsList"></ul>
+                </div>
+
+                <!-- Part 2B: UNIFIED BODY VALUE ADDITION (Current Affairs, Data, Keywords & Schematics — Where & How to Write) -->
+                <div class="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-4">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-[11.5px] font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center space-x-1.5">
+                      <i data-lucide="zap" class="w-4 h-4 text-emerald-500 shrink-0"></i>
+                      <span>Value Addition &amp; Current Affairs for Body (Where &amp; How to Write)</span>
+                    </span>
+                    <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                      Integrated Value Multipliers
+                    </span>
+                  </div>
+
+                  <!-- Integrated Current Affairs & Empirical Data Value-Add Card (Inside Body!) -->
+                  <div id="currentAffairsCard" class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/95 border border-emerald-500/30 space-y-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <!-- Left: Current Affairs Example Plug-In (Where & How to Write) -->
+                      <div class="p-3 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5 flex flex-col justify-between">
+                        <div class="space-y-1">
+                          <div class="flex flex-wrap items-center justify-between gap-1">
+                            <span class="text-[11px] font-bold text-slate-900 dark:text-slate-100">Current Affairs &amp; Contemporary Example</span>
+                            <span id="caMarksGainBadge" class="text-[9.5px] font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">+0.5 to +1.0M</span>
+                          </div>
+                          <div class="text-[10px] text-sky-700 dark:text-sky-300 font-medium flex items-center space-x-1.5">
+                            <i data-lucide="map-pin" class="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0"></i>
+                            <span><strong>Where to Write:</strong> <span id="caExampleTarget">Body Paragraph 2</span></span>
+                          </div>
+                          <p id="caCurrentWeakness" class="text-[10.5px] text-rose-600 dark:text-rose-300/90 italic pl-2 border-l-2 border-rose-500/40"></p>
+                        </div>
+                        <div class="va-how-to-write-box p-2.5 rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-300/70 dark:border-amber-500/30 text-[11px] leading-relaxed font-sans">
+                          <span class="va-how-to-write-title text-[9.5px] font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider block mb-0.5">✍️ How to Write in Body (2-Line Exam Format):</span>
+                          <span id="caRecommendedInsertion" class="va-how-to-write-content text-slate-800 dark:text-slate-200 font-medium"></span>
+                        </div>
+                      </div>
+
+                      <!-- Right: High-Yield Reports, Committees & Data (Where & How to Write) -->
+                      <div class="p-3 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 flex flex-col justify-between">
+                        <div class="space-y-1">
+                          <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-900 dark:text-slate-100">Official Reports, Committees &amp; Data</span>
+                            <span class="text-[9.5px] font-semibold px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">Authority Anchor</span>
+                          </div>
+                          <div class="text-[10px] text-sky-700 dark:text-sky-300 font-medium flex items-center space-x-1.5">
+                            <i data-lucide="map-pin" class="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0"></i>
+                            <span><strong>Where to Write:</strong> Cite alongside Body arguments &amp; Way Forward</span>
+                          </div>
+                        </div>
+                        <ul id="caDataReportsList" class="space-y-1.5 text-[11px] text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/80 p-2.5 rounded-md border border-slate-200/70 dark:border-slate-800 flex-1"></ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- High-Yield Keywords, Constitutional Articles & Doctrines for Body -->
+                  <div id="missingKeywordsSection" class="space-y-2.5">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center space-x-1.5">
+                        <i data-lucide="bookmark" class="w-3.5 h-3.5 text-amber-500 shrink-0"></i>
+                        <span id="missingKeywordsHeading">High-Yield Keywords, Articles &amp; Doctrines for Body</span>
+                      </span>
+                      <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">Exact Keyword Placement</span>
+                    </div>
+                    <div id="missingKeywordsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <!-- Dynamically rendered concept cards for Body -->
+                    </div>
+                  </div>
+
+                  <!-- Additional Body Value-Add Categories (Where & How to Write in Body) -->
+                  <div id="valueAddSection" class="space-y-3">
+                    <div id="valueAddCategoriesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      <!-- Dynamically rendered non-repeating Body categories -->
+                    </div>
+                  </div>
+
+                  <!-- Integrated Exam-Hall Diagram & Schematic Blueprint for Body -->
+                  <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-amber-500/30 space-y-2.5">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <span class="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center space-x-1.5">
+                        <i data-lucide="git-merge" class="w-4 h-4 shrink-0"></i>
+                        <span>Exam-Hall Diagram to Draw in Body: <span id="caDiagramTitle" class="text-slate-900 dark:text-white"></span></span>
+                      </span>
+                      <span class="text-[10px] text-amber-800 dark:text-amber-300/80 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">+1.0 Extra Mark in Body</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 text-[10.5px] text-sky-700 dark:text-sky-300">
+                      <span id="caDiagramStructure" class="font-mono bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20"></span>
+                      <span id="caDiagramTip" class="italic text-slate-600 dark:text-slate-400"></span>
+                    </div>
+                    <div id="visualFlowchartContainer" class="p-3 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono text-emerald-300 whitespace-pre overflow-x-auto leading-relaxed shadow-inner">
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- 3. Conclusion Audit & Model Closing -->
+            <!-- =======================================================================
+                 3. CONCLUSION AUDIT, VALUE ADDITION & MODEL CLOSING
+                 ======================================================================= -->
             <div id="conclusionAuditBox" class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 overflow-hidden shadow-xs">
               <button class="accordion-btn w-full px-4 py-3 flex items-center justify-between text-left text-xs font-semibold bg-slate-100/90 hover:bg-slate-200/90 dark:bg-slate-900/90 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition border-b border-slate-200 dark:border-slate-800/80" onclick="toggleSection('conclusionSection')">
                 <span class="flex items-center space-x-2">
-                  <span class="w-2 h-2 rounded-full bg-violet-500"></span>
-                  <span class="font-semibold text-slate-800 dark:text-slate-200">3. Conclusion Audit &amp; Model Closing</span>
+                  <span class="w-2.5 h-2.5 rounded-full bg-violet-500"></span>
+                  <span class="font-bold text-slate-800 dark:text-slate-200">3. Conclusion Audit, Value Addition &amp; Model Closing</span>
                 </span>
                 <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
               </button>
-              <div id="conclusionSection" class="px-4 pb-4 pt-2 space-y-3 text-xs bg-white dark:bg-slate-950/40">
+              <div id="conclusionSection" class="px-4 pb-4 pt-3 space-y-3.5 text-xs bg-white dark:bg-slate-950/40">
                 <div class="space-y-1">
                   <span class="text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Examiner Critique:</span>
                   <p class="text-slate-700 dark:text-slate-300 leading-relaxed" id="conclusionCritiqueText"></p>
                 </div>
+
+                <!-- Value Addition & Keywords Specifically for Conclusion -->
+                <div id="conclusionValueAddSection" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 space-y-2.5">
+                  <div class="flex flex-wrap items-center justify-between gap-1.5">
+                    <span class="text-[11px] font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider flex items-center space-x-1.5">
+                      <i data-lucide="award" class="w-3.5 h-3.5 text-violet-500 shrink-0"></i>
+                      <span>Value Addition for Conclusion (Where &amp; How to Write Closing Line):</span>
+                    </span>
+                    <span class="text-[9.5px] font-semibold px-2 py-0.5 rounded bg-violet-500/10 text-violet-700 dark:text-violet-300 border border-violet-500/20">Closing Upgrade (+0.5 to +1.0M)</span>
+                  </div>
+                  <div id="conclusionValueAddGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+                </div>
+
                 <div class="p-3 rounded-xl bg-amber-50/70 dark:bg-slate-900 border border-amber-200 dark:border-amber-500/20 space-y-1">
                   <div class="flex items-center justify-between text-[11px] font-bold text-amber-700 dark:text-amber-400">
-                    <span>Topper Model Closing Line (Keyword &amp; Viksit Bharat @2047):</span>
+                    <span>Topper Model Closing Line (Keyword &amp; National Goal):</span>
                     <button onclick="copyModelConclusion()" class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center space-x-1 text-[10px] cursor-pointer">
                       <i data-lucide="copy" class="w-3 h-3"></i>
                       <span>Copy</span>
                     </button>
                   </div>
                   <p class="font-serif text-slate-800 dark:text-slate-200 italic leading-relaxed text-xs" id="modelConclusionText"></p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-              <!-- STAGE 2: ⚡ CURRENT AFFAIRS & VALUE-ADDITION MULTIPLIERS (Matching Image 3) -->
-          <div id="currentAffairsCard" class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-slate-900 to-teal-950/60 border border-emerald-500/40 shadow-xl space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-emerald-500/25">
-              <div class="flex items-center space-x-2">
-                <span class="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center text-xs font-bold shrink-0">⚡</span>
-                <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-200">Step 2: Current Affairs &amp; Value-Addition Multipliers (2025–2026 Grounded)</h4>
-              </div>
-              <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center space-x-1 shrink-0">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>Live Grounded Radar</span>
-              </span>
-            </div>
-
-            <!-- Dimension 1: Paragraph-Specific Example Insertion -->
-            <div class="p-3.5 rounded-xl bg-slate-950/90 border border-emerald-500/30 space-y-2">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <span class="text-[11px] font-bold text-emerald-300 flex items-center space-x-1.5">
-                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
-                  <span>1. Current Example Insertion (<span id="caExampleTarget" class="text-amber-300">Body Paragraph 2</span>):</span>
-                </span>
-                <span id="caMarksGainBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">+0.5 to +1.0 Mark</span>
-              </div>
-              <p id="caCurrentWeakness" class="text-xs text-rose-300/90 italic pl-2.5 border-l-2 border-rose-500/40"></p>
-              <div class="bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/25">
-                <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-1">Topper Plug-In:</div>
-                <p id="caRecommendedInsertion" class="text-xs text-emerald-100 font-serif leading-relaxed"></p>
-              </div>
-            </div>
-
-            <!-- Dimension 2 & 3: High-Yield Data/Reports & Diagram Concept -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-              <!-- High-Yield Data & Reports -->
-              <div class="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
-                <span class="text-[11px] font-bold text-amber-300 flex items-center space-x-1.5">
-                  <i data-lucide="database" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
-                  <span>2. High-Yield Data &amp; Reports:</span>
-                </span>
-                <ul id="caDataReportsList" class="space-y-1.5 text-[11px] text-slate-300"></ul>
-              </div>
-
-              <!-- Diagram / Schematic Recommendation -->
-              <div class="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
-                <span class="text-[11px] font-bold text-sky-300 flex items-center space-x-1.5">
-                  <i data-lucide="git-merge" class="w-3.5 h-3.5 text-sky-400 shrink-0"></i>
-                  <span>3. Recommended Diagram / Schematic:</span>
-                </span>
-                <div class="bg-sky-500/10 p-2 rounded-lg border border-sky-500/20 space-y-1">
-                  <div id="caDiagramTitle" class="text-xs font-bold text-sky-200"></div>
-                  <div id="caDiagramStructure" class="text-[10px] text-slate-300 font-mono"></div>
-                  <div id="caDiagramTip" class="text-[10px] text-sky-300/80 italic"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-              <!-- STAGE 3: 4-CARD HIGH-YIELD KEYWORDS & VALUE-ADDITION TOOLKIT (Matching Image 3) -->
-          <div id="missingKeywordsSection" class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
-              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center space-x-2">
-                <i data-lucide="bookmark" class="w-4 h-4 text-amber-500 dark:text-amber-400"></i>
-                <span id="missingKeywordsHeading">Step 3: Constitutional Articles, Doctrines &amp; High-Yield Keywords</span>
-              </h4>
-              <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">4 High-Yield Concepts</span>
-            </div>
-            <div id="missingKeywordsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <!-- Dynamically rendered 4 concept cards -->
-            </div>
-
-            <!-- Actionable Value-Addition Checklist & Visual Flowchart (Integrated cleanly without repetition) -->
-            <div id="valueAddSection" class="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-3 text-xs">
-              <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-sky-700 dark:text-sky-400 flex items-center space-x-1.5">
-                  <i data-lucide="check-square" class="w-3.5 h-3.5"></i>
-                  <span>Where &amp; How to Use Additional Value-Add Points in Your Answer</span>
-                </span>
-              </div>
-              <div id="valueAddCategoriesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <!-- Dynamically rendered non-repeating categories -->
-              </div>
-              <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-amber-500/30 space-y-2">
-                <div class="flex items-center justify-between text-xs font-bold text-amber-700 dark:text-amber-400">
-                  <span class="flex items-center space-x-1.5">
-                    <i data-lucide="git-merge" class="w-4 h-4"></i>
-                    <span>Exam-Hall Boxed Schematic Blueprint:</span>
-                  </span>
-                  <span class="text-[10px] text-amber-800 dark:text-amber-300/80 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">+1.0 Extra Mark Fetched</span>
-                </div>
-                <div id="visualFlowchartContainer" class="p-3 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono text-emerald-300 whitespace-pre overflow-x-auto leading-relaxed shadow-inner">
                 </div>
               </div>
             </div>
@@ -3220,7 +3247,7 @@
 
   </div>
 
-  <script src="/static/app.js?v=5.4"></script>
+  <script src="/static/app.js?v=5.5"></script>
   <script>
     if (window.lucide) {
       try { lucide.createIcons(); } catch(e) {}

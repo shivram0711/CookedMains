@@ -5643,16 +5643,151 @@ function renderEvaluation(evalData) {
   // Render Radar Chart
   renderRadar(evalData.rubric_scores, evalData.max_marks);
 
-  // Section 1: Intro Audit
+  // Helper to classify whether a Value-Add / Keyword item belongs in Intro, Body, or Conclusion
+  const classifyPlacementSection = (whereText) => {
+    const w = String(whereText || "").toLowerCase();
+    if (/\b(?:intro|introduction|opening|sentence\s*1|first\s+sentence|first\s+line|hook)\b/.test(w) && !/\bbody\b/.test(w)) {
+      return "intro";
+    }
+    if (/\b(?:conclusion|concluding|closing|final\s+sentence|last\s+line|last\s+paragraph|end\s+of\s+answer)\b/.test(w) && !/\bbody\b/.test(w)) {
+      return "conclusion";
+    }
+    return "body";
+  };
+
+  // Collect all raw cards and checklist items so we can route them strictly to Intro, Body, or Conclusion
+  const rawKeywordCards = (Array.isArray(evalData.missing_keywords_cards) && evalData.missing_keywords_cards.length > 0)
+    ? evalData.missing_keywords_cards
+    : [
+        { number: 1, term: "Institutional & Policy Framework", domain_or_thinker: "Core Anchor", definition: "Cite the primary statutory framework, national mission, or constitutional article governing this topic.", where_to_use: "Anchor in Introduction (Opening 2 Lines)" },
+        { number: 2, term: "Official Index / Empirical Data", domain_or_thinker: "Empirical Proof", definition: "Substantiate arguments with NITI Aayog, Economic Survey, or official ministry report data.", where_to_use: "Use in Body Part A to prove scale/impact" },
+        { number: 3, term: "Committee / Expert Recommendation", domain_or_thinker: "Reform Blueprint", definition: "Back your structural reforms with a relevant national committee or commission recommendation.", where_to_use: "Cite in Body (Way Forward section)" },
+        { number: 4, term: "Long-Term National Policy Target", domain_or_thinker: "Closing Anchor", definition: "Tie your final lines to a concrete national mission target, constitutional ideal, or SDG milestone.", where_to_use: "Use in Conclusion (Final 2 Lines)" }
+      ];
+
+  const introValueItems = [];
+  const conclusionValueItems = [];
+  const bodyKeywordCards = [];
+
+  rawKeywordCards.forEach((c) => {
+    if (!c || !c.term) return;
+    const secType = classifyPlacementSection(c.where_to_use);
+    if (secType === "intro") {
+      introValueItems.push({
+        title: c.term,
+        badge: c.domain_or_thinker || "Opening Hook",
+        where: c.where_to_use || "Page 1 • Introduction (Opening 2 Lines)",
+        how: c.definition || ""
+      });
+    } else if (secType === "conclusion") {
+      conclusionValueItems.push({
+        title: c.term,
+        badge: c.domain_or_thinker || "Closing Anchor",
+        where: c.where_to_use || "Final Paragraph • Conclusion (Last 2–3 Lines)",
+        how: c.definition || ""
+      });
+    } else {
+      bodyKeywordCards.push(c);
+    }
+  });
+
+  // Also scan value_add_checklist for any items explicitly targeting Intro or Conclusion
+  const vaDataObj = evalData.value_add_checklist || {};
+  ['category_1', 'category_2', 'category_3', 'category_4'].forEach(catKey => {
+    const cat = vaDataObj[catKey];
+    if (cat && Array.isArray(cat.items)) {
+      cat.items.forEach(it => {
+        if (!it || !it.item) return;
+        const secType = classifyPlacementSection(it.where_to_write);
+        if (secType === "intro") {
+          introValueItems.push({
+            title: it.item,
+            badge: cat.title || "Intro Value-Add",
+            where: it.where_to_write || "Page 1 • Introduction",
+            how: it.how_to_write || ""
+          });
+        } else if (secType === "conclusion") {
+          conclusionValueItems.push({
+            title: it.item,
+            badge: cat.title || "Conclusion Value-Add",
+            where: it.where_to_write || "Final Paragraph • Conclusion",
+            how: it.how_to_write || ""
+          });
+        }
+      });
+    }
+  });
+
+  // Render helper for section-specific Where & How to Write cards (used in Intro and Conclusion)
+  const renderSectionValueCards = (gridEl, itemsArr, accentTheme = "sky") => {
+    if (!gridEl) return;
+    gridEl.innerHTML = "";
+    if (!itemsArr || itemsArr.length === 0) {
+      gridEl.classList.add("hidden");
+      return;
+    }
+    gridEl.classList.remove("hidden");
+    itemsArr.forEach((item, idx) => {
+      const isOddTrailing = (itemsArr.length % 2 === 1) && (idx === itemsArr.length - 1);
+      const card = document.createElement("div");
+      card.className = `p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5 flex flex-col justify-between ${isOddTrailing && itemsArr.length > 1 ? 'va-cat-card-full-span sm:col-span-2 md:col-span-2' : ''}`;
+      card.innerHTML = `
+        <div class="space-y-1">
+          <div class="flex flex-wrap items-start justify-between gap-1.5">
+            <span class="text-xs font-bold text-slate-900 dark:text-slate-100 break-words">${escapeHtml(item.title)}</span>
+            <span class="text-[9.5px] font-semibold px-2 py-0.5 rounded bg-${accentTheme}-500/15 text-${accentTheme}-700 dark:text-${accentTheme}-300 border border-${accentTheme}-500/30 shrink-0">${escapeHtml(item.badge || 'Value-Add')}</span>
+          </div>
+          <div class="text-[10px] text-sky-700 dark:text-sky-300 font-medium flex items-center space-x-1.5">
+            <i data-lucide="map-pin" class="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0"></i>
+            <span><strong>Where to Write:</strong> ${escapeHtml(item.where)}</span>
+          </div>
+        </div>
+        <div class="va-how-to-write-box p-2.5 rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-300/70 dark:border-amber-500/30 text-[11px] leading-relaxed font-sans">
+          <span class="va-how-to-write-title text-[9.5px] font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider block mb-0.5">✍️ How to Write (2-Line Exam Format):</span>
+          <span class="va-how-to-write-content text-slate-800 dark:text-slate-200 font-medium">${formatHighlightedText(item.how)}</span>
+        </div>
+      `;
+      gridEl.appendChild(card);
+    });
+  };
+
+  // Section 1: Intro Audit & Intro Value-Addition
   const intro = evalData.intro_audit || {};
   document.getElementById("introCritiqueText").innerHTML = formatHighlightedText(intro.current_critique || "");
   const missingIntroEl = document.getElementById("introMissingList");
-  missingIntroEl.innerHTML = "";
-  (intro.missing_elements || []).forEach(item => {
-    const li = document.createElement("li");
-    li.innerHTML = formatHighlightedText(item);
-    missingIntroEl.appendChild(li);
+  const introValueGridEl = document.getElementById("introValueAddGrid");
+
+  // Convert intro.missing_elements into structured Where & How to Write cards if needed
+  (intro.missing_elements || []).forEach((mItem) => {
+    const cleanM = String(mItem || "").trim();
+    if (!cleanM) return;
+    const parts = cleanM.split(":");
+    const leadTitle = parts.length > 1 ? parts[0].replace(/[*_#`]/g, "").trim() : "Baseline Opening Hook";
+    const bodyDesc = parts.length > 1 ? parts.slice(1).join(":").trim() : cleanM;
+    const alreadyAdded = introValueItems.some(x => x.title.toLowerCase().includes(leadTitle.toLowerCase().slice(0, 8)));
+    if (!alreadyAdded) {
+      introValueItems.push({
+        title: leadTitle,
+        badge: "Intro Value-Add",
+        where: "Page 1 • Introduction (Sentence 1 or 2)",
+        how: bodyDesc
+      });
+    }
   });
+
+  if (introValueItems.length > 0 && introValueGridEl) {
+    if (missingIntroEl) missingIntroEl.classList.add("hidden");
+    renderSectionValueCards(introValueGridEl, introValueItems, "sky");
+  } else if (missingIntroEl) {
+    missingIntroEl.classList.remove("hidden");
+    missingIntroEl.innerHTML = "";
+    (intro.missing_elements || []).forEach(item => {
+      const li = document.createElement("li");
+      li.innerHTML = formatHighlightedText(item);
+      missingIntroEl.appendChild(li);
+    });
+    if (introValueGridEl) introValueGridEl.classList.add("hidden");
+  }
   document.getElementById("modelIntroText").innerHTML = `"${formatHighlightedText(intro.model_intro_rewrite || '')}"`;
 
   // Section 2: Body Audit (with strict cross-list deduplication inside Deep Evaluation)
@@ -5662,17 +5797,14 @@ function renderEvaluation(evalData) {
       .replace(/[*_#`✓✔✎✗×]/g, "")
       .toLowerCase();
     const phrases = [];
-    // Extract bold/lead title before colon
     const lead = clean.split(":")[0].trim();
     if (lead && lead.length >= 5) phrases.push(lead);
-    // Extract acronyms in parentheses or standalone uppercase terms
     const acrs = String(str || "").match(/\b[A-Z]{3,8}\b/g) || [];
     acrs.forEach(a => {
       if (!["THE", "AND", "FOR", "WITH", "BODY", "PAGE", "PART", "UPSC", "GDP", "INDIA"].includes(a)) {
         phrases.push(a.toLowerCase());
       }
     });
-    // Extract article numbers or case names
     const arts = clean.match(/\barticle\s+\d+[a-z]?|\b[a-z]+\s+v\.?\s+[a-z]+|\b[a-z]+\s+case\b/gi) || [];
     arts.forEach(ar => phrases.push(ar.toLowerCase()));
     return phrases;
@@ -5689,6 +5821,10 @@ function renderEvaluation(evalData) {
   const registerInDeepEval = (text) => {
     extractCoreKeyPhrases(text).forEach(p => deepEvalSeenPhrases.add(p));
   };
+
+  // Register Intro & Conclusion items so Body never repeats them
+  introValueItems.forEach(it => registerInDeepEval(it.title));
+  conclusionValueItems.forEach(it => registerInDeepEval(it.title));
 
   const strengthsEl = document.getElementById("bodyStrengthsList");
   strengthsEl.innerHTML = "";
@@ -5721,26 +5857,48 @@ function renderEvaluation(evalData) {
     missingDimEl.appendChild(li);
   });
 
-  // Pre-register missing_keywords_cards so value_add_checklist and caDataReportsList never repeat them
-  (evalData.missing_keywords_cards || []).forEach(c => {
+  // Pre-register bodyKeywordCards so value_add_checklist and caDataReportsList never repeat them
+  bodyKeywordCards.forEach(c => {
     if (c && c.term) registerInDeepEval(c.term);
   });
 
-  // Section 3: Actionable Value Add Checklist (filtered against Body Audit & 4-Card Concept Toolkit)
+  // Section 2B: Actionable Value Add Checklist for Body (filtered against Intro, Conclusion, Body Audit & Keywords)
   renderValueAddCategories(evalData.value_add_checklist, state.paper, state.question, deepEvalSeenPhrases);
 
-  // Section 4: Conclusion Audit
+  // Section 3: Conclusion Audit & Conclusion Value-Addition
   const conc = evalData.conclusion_audit || {};
   document.getElementById("conclusionCritiqueText").innerHTML = formatHighlightedText(conc.current_critique || "");
   document.getElementById("modelConclusionText").innerHTML = `"${formatHighlightedText(conc.model_conclusion_rewrite || '')}"`;
 
-  // Section 5: Candidate Deciphered Handwriting
+  const conclusionValueGridEl = document.getElementById("conclusionValueAddGrid");
+  if (conclusionValueItems.length < 2) {
+    const modelConcRaw = String(conc.model_conclusion_rewrite || "").replace(/[*_#`"]/g, "").trim();
+    conclusionValueItems.push({
+      title: "Topic Keywords & Institutional Reform Anchor",
+      badge: "Closing Keyword Rule",
+      where: "Final Page • Conclusion Paragraph (First Sentence of Closing)",
+      how: "Avoid ending with a generic 1-line wish ('need for holistic development'). Explicitly name 2 core topic keywords and the primary institutional mechanism in your closing sentence."
+    });
+    if (conclusionValueItems.length < 2) {
+      conclusionValueItems.push({
+        title: "Forward-Looking National Policy Target / SDG Link",
+        badge: "High-Scoring Finish (+0.5M)",
+        where: "Final Page • Conclusion Paragraph (Final Sentence)",
+        how: modelConcRaw
+          ? `Close by tying the reform to a concrete national target: "${modelConcRaw}"`
+          : "Tie your final line to a concrete national policy mission, constitutional vision, or Viksit Bharat @2047 target."
+      });
+    }
+  }
+  renderSectionValueCards(conclusionValueGridEl, conclusionValueItems, "violet");
+
+  // Section 4: Candidate Deciphered Handwriting
   const transEl = document.getElementById("transcribedAnswerText");
   if (transEl) {
     transEl.textContent = evalData.transcribed_text || "Transcription deciphered from candidate handwritten sheet.";
   }
 
-  // Section 6: Complete Topper Model Answer with Embedded Diagram & Inline Keywords
+  // Section 5: Complete Topper Model Answer with Embedded Diagram & Inline Keywords
   renderModelAnswer(evalData.full_model_answer, evalData.recommended_diagram_visual, evalData.max_marks);
 
   // --- NEW ASPIRANT-FRIENDLY EXTRACTED COMPONENTS ---
@@ -5762,47 +5920,42 @@ function renderEvaluation(evalData) {
     }
   }
 
-  // 2. Next Attempt Focus Data (merged into Value Addition Topper Plug-In if needed; hidden in Rewrite Workshop)
+  // 2. Next Attempt Focus Data (merged into Body Value Addition Topper Plug-In if needed; hidden in Rewrite Workshop)
   const na = evalData.next_attempt_focus;
 
-  // 3. Dynamic High-Yield Missing Keywords & Concepts Toolkit
+  // 3. Dynamic High-Yield Missing Keywords & Concepts Toolkit (Strictly for Body Section)
   const mkTitle = document.getElementById("missingKeywordsHeading");
   if (mkTitle) {
-    mkTitle.textContent = evalData.keyword_toolkit_title || "Domain Concepts & High-Yield Keywords (Missing Keywords)";
+    mkTitle.textContent = evalData.keyword_toolkit_title || "High-Yield Keywords, Articles & Doctrines for Body";
   }
   const mkGrid = document.getElementById("missingKeywordsGrid");
   if (mkGrid) {
     mkGrid.innerHTML = "";
-    const cards = (Array.isArray(evalData.missing_keywords_cards) && evalData.missing_keywords_cards.length > 0)
-      ? evalData.missing_keywords_cards
-      : [
-          { number: 1, term: "Institutional & Policy Framework", domain_or_thinker: "Core Anchor", definition: "Cite the primary statutory framework, national mission, or constitutional article governing this topic.", where_to_use: "Anchor in Introduction or Sub-Part 1" },
-          { number: 2, term: "Official Index / Empirical Data", domain_or_thinker: "Empirical Proof", definition: "Substantiate arguments with NITI Aayog, Economic Survey, or official ministry report data.", where_to_use: "Use in Body Part A to prove scale/impact" },
-          { number: 3, term: "Committee / Expert Recommendation", domain_or_thinker: "Reform Blueprint", definition: "Back your structural reforms with a relevant national committee or commission recommendation.", where_to_use: "Cite in Way Forward section" },
-          { number: 4, term: "Global / Domestic Best Practice", domain_or_thinker: "Comparative Model", definition: "Illustrate workable solutions with a verified domestic state model or international benchmark.", where_to_use: "Use in Conclusion / Way Forward" }
-        ];
+    const cards = bodyKeywordCards.length > 0 ? bodyKeywordCards : rawKeywordCards;
     cards.forEach((c, idx) => {
+      const isOddLastCard = (cards.length % 2 === 1) && (idx === cards.length - 1) && cards.length > 1;
       const div = document.createElement("div");
       const tagText = c.domain_or_thinker || c.thinker || "Domain Concept";
       const isUpgradeCard = /Keyword Upgrade|Written/i.test(tagText);
-      div.className = isUpgradeCard
+      const baseClass = isUpgradeCard
         ? "keyword-card space-y-1.5 ring-1 ring-emerald-500/40 bg-emerald-500/[0.04]"
         : "keyword-card space-y-1.5";
+      div.className = isOddLastCard ? `${baseClass} va-cat-card-full-span sm:col-span-2 md:col-span-2` : baseClass;
       const tagBadgeClass = isUpgradeCard
         ? "text-[9.5px] self-start px-2 py-0.5 rounded font-bold mt-0.5 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 whitespace-normal break-words"
         : "keyword-tag text-[9.5px] self-start px-2 py-0.5 rounded font-semibold mt-0.5 whitespace-normal break-words";
       div.innerHTML = `
         <div class="flex flex-wrap items-start justify-between gap-1.5 sm:gap-2">
           <div class="flex items-start space-x-2 flex-1 min-w-[130px]">
-            <span class="w-5 h-5 shrink-0 rounded-full ${isUpgradeCard ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40' : 'bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/40'} border text-[10px] font-extrabold flex items-center justify-center mt-0.5">${c.number || (idx + 1)}</span>
+            <span class="w-5 h-5 shrink-0 rounded-full ${isUpgradeCard ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40' : 'bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/40'} border text-[10px] font-extrabold flex items-center justify-center mt-0.5">${idx + 1}</span>
             <span class="keyword-term font-bold text-xs leading-snug text-slate-900 dark:text-slate-100 break-words">${escapeHtml(c.term)}</span>
           </div>
           <span class="${tagBadgeClass}" title="${escapeHtml(tagText)}">${escapeHtml(tagText)}</span>
         </div>
         <p class="keyword-desc text-[11px] leading-relaxed font-sans text-slate-700 dark:text-slate-300 mt-1 break-words">${formatHighlightedText(c.definition)}</p>
         <div class="keyword-action pt-1.5 border-t border-slate-200 dark:border-slate-700/60 flex items-center space-x-1.5 text-[10.5px] font-semibold text-emerald-700 dark:text-emerald-400">
-          <i data-lucide="crosshair" class="w-3.5 h-3.5 shrink-0 text-emerald-700 dark:text-emerald-400"></i>
-          <span class="break-words">${escapeHtml(c.where_to_use || 'Plug into Body section')}</span>
+          <i data-lucide="map-pin" class="w-3.5 h-3.5 shrink-0 text-emerald-700 dark:text-emerald-400"></i>
+          <span class="break-words"><strong>Where to Write:</strong> ${escapeHtml(c.where_to_use || 'Plug into Body section')}</span>
         </div>
       `;
       mkGrid.appendChild(div);
@@ -6957,9 +7110,21 @@ function renderValueAddCategories(vaData, paper, question, seenPhrasesSet) {
   }
 
   const localSeen = seenPhrasesSet instanceof Set ? new Set(seenPhrasesSet) : new Set();
+  const isIntroOrConclusionTarget = (whereText) => {
+    const w = String(whereText || "").toLowerCase();
+    if (/\b(?:intro|introduction|opening|sentence\s*1|first\s+sentence|first\s+line|hook)\b/.test(w) && !/\bbody\b/.test(w)) {
+      return true;
+    }
+    if (/\b(?:conclusion|concluding|closing|final\s+sentence|last\s+line|last\s+paragraph|end\s+of\s+answer)\b/.test(w) && !/\bbody\b/.test(w)) {
+      return true;
+    }
+    return false;
+  };
   const isDuplicateItem = (it) => {
-    const titleStr = String((it && it.item) || "").toLowerCase();
-    const howStr = String((it && it.how_to_write) || "").toLowerCase();
+    if (!it) return true;
+    if (isIntroOrConclusionTarget(it.where_to_write)) return true;
+    const titleStr = String(it.item || "").toLowerCase();
+    const howStr = String(it.how_to_write || "").toLowerCase();
     if (!titleStr) return true;
     for (const phrase of localSeen) {
       if (phrase.length >= 4 && (titleStr.includes(phrase) || howStr.includes(phrase))) {
@@ -6976,7 +7141,7 @@ function renderValueAddCategories(vaData, paper, question, seenPhrasesSet) {
     { border: "border-amber-500/30", text: "text-amber-400", badge: "bg-amber-500/10 text-amber-300 border-amber-500/20", icon: "git-merge" }
   ];
 
-  // First pass: collect valid categories with unique items
+  // First pass: collect valid Body categories with unique items (never repeating Intro or Conclusion items)
   const validCategories = [];
   categories.forEach((cat, idx) => {
     if (!cat.items || cat.items.length === 0) return;
@@ -6985,8 +7150,9 @@ function renderValueAddCategories(vaData, paper, question, seenPhrasesSet) {
       return;
     }
 
-    const uniqueItems = cat.items.filter(it => !isDuplicateItem(it));
-    const itemsToKeep = uniqueItems.length > 0 ? uniqueItems : cat.items.slice(0, 2);
+    const bodyOnlyItems = cat.items.filter(it => it && !isIntroOrConclusionTarget(it.where_to_write));
+    const uniqueItems = bodyOnlyItems.filter(it => !isDuplicateItem(it));
+    const itemsToKeep = uniqueItems.length > 0 ? uniqueItems : bodyOnlyItems.slice(0, 2);
     if (itemsToKeep.length === 0) return;
 
     itemsToKeep.forEach(it => {
