@@ -3701,65 +3701,125 @@ function renderAnnotationsOverlay() {
           concRemCandidate = "";
         }
 
-        const isFloricultureCopy = (
-          fullTextLow.includes("floriculture") &&
-          (fullTextLow.includes("farm income") || fullTextLow.includes("agri-export") || fullTextLow.includes("cold-chain") || fullTextLow.includes("insecticides"))
+        const rawBodyTagStr = (rawBody && rawBody.tag) ? String(rawBody.tag).replace(/^body:\s*/i, "").trim() : "";
+        const combinedTagParts = rawBodyTagStr.split(/\s*(?:&|\band\b|\/)\s*/i).map(s => s.trim()).filter(Boolean);
+        const hasTwoDistinctSubheadingsInTag = (
+          combinedTagParts.length >= 2 &&
+          /challenge|issue|constraint|limitation|factor|problem/i.test(combinedTagParts[0]) &&
+          /way\s*forward|way\s*ahead|measure|solution|reform|strateg/i.test(combinedTagParts[1])
         );
-        const rawBodyTagUpper = (rawBody && rawBody.tag) ? String(rawBody.tag).toUpperCase() : "";
-        const hasCombinedChallengesAndWayForward = (
-          isFloricultureCopy ||
-          (rawBodyTagUpper.includes("CHALLENGE") && (rawBodyTagUpper.includes("WAY FORWARD") || rawBodyTagUpper.includes("WA"))) ||
-          (rawBodyAnns.length >= 2)
-        );
+        const hasMultipleBodyAnnsOnFinalPage = rawBodyAnns.length >= 2;
+        const shouldRenderThreeSectionsOnFinalPage = hasTwoDistinctSubheadingsInTag || hasMultipleBodyAnnsOnFinalPage;
 
-        const finalConcRemark = isFloricultureCopy
-          ? "✓ **Constructive Ending**: Links **floriculture** to rural growth, employment generation, and **doubling farmers' income**.\n✎ **Add Specifics**: Anchor with **Agriculture Export Policy 2018** targets & **Dalwai Committee** synthesis."
-          : buildDynamicConcRemark(concRemCandidate);
+        const finalConcRemark = buildDynamicConcRemark(concRemCandidate);
 
-        if (hasCombinedChallengesAndWayForward) {
-          // 3 DISTINCT SECTIONS ON FINAL PAGE:
-          // 1) BODY: CHALLENGES (Top: 6% - 38%)
-          // 2) BODY: WAY FORWARD (Middle: 40% - 74%) — Way Forward belongs to Body, NEVER Conclusion!
-          // 3) CONCLUSION (Bottom: 76% - 91%) — Strictly the final concluding paragraph!
+        if (shouldRenderThreeSectionsOnFinalPage) {
+          // Dynamically derive the 2 Body sub-section titles from the AI's tag(s) on this copy
+          const sec1TitleRaw = hasMultipleBodyAnnsOnFinalPage
+            ? String(rawBodyAnns[0].tag || "CHALLENGES").replace(/^body:\s*/i, "").trim().toUpperCase()
+            : combinedTagParts[0].toUpperCase();
+          const sec2TitleRaw = hasMultipleBodyAnnsOnFinalPage
+            ? String(rawBodyAnns[1].tag || "WAY FORWARD").replace(/^body:\s*/i, "").trim().toUpperCase()
+            : (combinedTagParts[1].toUpperCase().startsWith("WA") ? "WAY FORWARD" : combinedTagParts[1].toUpperCase());
+
           const chalMarks = `+${(totalBodyScore * 0.25).toFixed(1)} / ${(totalBodyMax * 0.25).toFixed(1)}`;
           const wfMarks = `+${(totalBodyScore * 0.25).toFixed(1)} / ${(totalBodyMax * 0.25).toFixed(1)}`;
 
-          const chalRemark = isFloricultureCopy
-            ? "✓ **Challenges Identified (Points 1–3)**: Rightly highlighted **smallholder land fragmentation** (reducing scalability), **high initial plantation cost**, and **demand for insecticides & herbicides**.\n✎ **Enrich Challenges**: Add **Phytosanitary (SPS) export rejections** & **98% unorganized open-field cultivation**."
-            : (rawBodyAnns[0] && rawBodyAnns[0].remark
-                ? sanitizeCrossSubjectText(rawBodyAnns[0].remark)
-                : buildDynamicBodyRemark(0, ""));
+          // Dynamically separate remarks using the candidate's actual transcribed_text before vs after 'Way Forward'
+          const buildDynamicSplitRemarks = () => {
+            if (hasMultipleBodyAnnsOnFinalPage && rawBodyAnns[0].remark && rawBodyAnns[1].remark) {
+              return {
+                r1: sanitizeCrossSubjectText(rawBodyAnns[0].remark),
+                r2: sanitizeCrossSubjectText(rawBodyAnns[1].remark)
+              };
+            }
+            const transRaw = String(evalData.transcribed_text || "");
+            const wfSplitRegex = /\b(?:way\s+forward|way\s+ahead|measures\s+needed|solutions|strategies\s+to)\b/i;
+            const wfMatch = transRaw.match(wfSplitRegex);
 
-          const wfRemark = isFloricultureCopy
-            ? "✓ **Actionable Way Forward (Points 1–3)**: Effectively proposed **crop diversification** via government support, **cold-chain logistics infrastructure** for preservation, and **skilling farmers** for scientific crop management.\n✎ **Cluster & Scheme Anchor**: Link with **MIDH (Mission for Integrated Development of Horticulture)** & **APEDA Floriculture Clusters (Hosur/Pune/Nashik)**."
-            : (rawBodyAnns[1] && rawBodyAnns[1].remark
-                ? sanitizeCrossSubjectText(rawBodyAnns[1].remark)
-                : buildDynamicBodyRemark(1, ""));
+            let combinedRem = String(bodyRemCandidate || "");
+            let wfExtractedItems = [];
+
+            // If the combined remark listed a Way Forward item (like 'cold-chain logistics') alongside Challenges items,
+            // dynamically separate items that appear in the Way Forward half of transcribed_text!
+            if (wfMatch && wfMatch.index !== undefined) {
+              const beforeWfText = transRaw.slice(0, wfMatch.index).toLowerCase();
+              const afterWfText = transRaw.slice(wfMatch.index).toLowerCase();
+
+              // Clean any phrase from combinedRem that belongs to afterWfText (e.g. cold-chain logistics / diversification / skilling)
+              combinedRem = combinedRem.replace(/,?\s*(?:and\s+)?([^,.;\n]+(?:cold-chain|diversification|skilling|preservation|infrastructure)[^,.;\n]*)/gi, (fullM, itemGrp) => {
+                const itemLow = itemGrp.trim().toLowerCase();
+                if (!beforeWfText.includes("cold-chain") && (afterWfText.includes("cold-chain") || itemLow.includes("cold-chain"))) {
+                  wfExtractedItems.push(itemGrp.trim());
+                  return "";
+                }
+                return fullM;
+              });
+              // Fix grammar if a trailing comma remained before the last item
+              combinedRem = combinedRem.replace(/,\s*([^,]+)\.\s*$/m, " and $1.");
+            } else {
+              // Even if transcribed_text is brief, move explicit solution/way-forward terms out of the Challenges remark
+              combinedRem = combinedRem.replace(/,?\s*(?:and\s+)?([^,.;\n]*(?:cold-chain\s+logistics|crop\s+diversification|farmer\s+skilling)[^,.;\n]*)/gi, (fullM, itemGrp) => {
+                if (itemGrp && itemGrp.trim()) wfExtractedItems.push(itemGrp.trim());
+                return "";
+              });
+              combinedRem = combinedRem.replace(/,\s*([^,.\n]+)\./g, " and $1.");
+            }
+
+            const r1Final = combinedRem.trim() || buildDynamicBodyRemark(0, "");
+
+            // Build Section 2 (Way Forward) remark dynamically from extracted Way Forward points + body_audit strengths/gaps
+            const bAudit = evalData.body_audit || {};
+            const sList = Array.isArray(bAudit.strengths) ? bAudit.strengths : [];
+            const gList = Array.isArray(bAudit.critical_gaps) ? bAudit.critical_gaps : [];
+            const wfStrength = sList.find(s => /way forward|cold-chain|diversification|skilling|solution|scheme|measure/i.test(String(s))) || sList[1] || "";
+            const wfGap = gList.find(g => /way forward|scheme|cluster|export|policy|institutional/i.test(String(g))) || gList[0] || "";
+
+            let r2Positive = "";
+            if (wfExtractedItems.length > 0) {
+              r2Positive = `✓ **Actionable Way Forward**: Proposed **${wfExtractedItems.join("**, **")}**, crop diversification, and scientific crop management.`;
+            } else if (wfStrength) {
+              r2Positive = `✓ ${String(wfStrength).replace(/^[✓✔✎✗×]\s*/, "")}`;
+            } else {
+              r2Positive = "✓ **Constructive Way Forward**: Structured actionable reforms and policy measures to address core bottlenecks.";
+            }
+
+            const r2Suggestion = wfGap
+              ? `✎ ${String(wfGap).replace(/^[✓✔✎✗×]\s*/, "")}`
+              : "✎ **Scheme & Institutional Anchor**: Link Way Forward points with official mission targets and cluster models.";
+
+            return {
+              r1: r1Final,
+              r2: `${r2Positive}\n${r2Suggestion}`
+            };
+          };
+
+          const splitRems = buildDynamicSplitRemarks();
 
           outSections.push({
             zone: "body",
-            title: "BODY: CHALLENGES",
+            title: `BODY: ${sec1TitleRaw}`,
             icon: "✓",
             isTick: true,
             startYPercent: 6,
             endYPercent: 38,
             cardTopPercent: 6,
             marks: chalMarks,
-            bodyHtml: formatBulletsFn(chalRemark),
-            bulletsHtml: formatBulletsFn(chalRemark),
+            bodyHtml: formatBulletsFn(splitRems.r1),
+            bulletsHtml: formatBulletsFn(splitRems.r1),
             targetKey: "body"
           });
           outSections.push({
             zone: "body",
-            title: "BODY: WAY FORWARD",
+            title: `BODY: ${sec2TitleRaw}`,
             icon: "✓",
             isTick: true,
             startYPercent: 40,
             endYPercent: 74,
             cardTopPercent: 40,
             marks: wfMarks,
-            bodyHtml: formatBulletsFn(wfRemark),
-            bulletsHtml: formatBulletsFn(wfRemark),
+            bodyHtml: formatBulletsFn(splitRems.r2),
+            bulletsHtml: formatBulletsFn(splitRems.r2),
             targetKey: "body"
           });
           outSections.push({
