@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css?v=3.3">
+  <link rel="stylesheet" href="/static/style.css?v=3.6">
   <!-- Google Identity Services for 1-Click Native Browser Google Account Chooser -->
   <script src="https://accounts.google.com/gsi/client"></script>
 
@@ -1033,18 +1033,18 @@
         <div class="w-full lg:w-[45%] xl:w-[45%] flex-1 flex flex-col gap-4 min-w-0">
           <div class="studio-card p-4 sm:p-5 shadow-xl space-y-5">
             
-            <!-- Sticky Linear-Style Tab Navigation Header -->
-            <div id="studioTabNavHeader" class="sticky top-[52px] z-20 bg-white/95 dark:bg-[#12151E]/95 backdrop-blur-md flex items-center border-b border-slate-200 dark:border-[#1E2333] pt-2.5 pb-0 -mx-4 px-4 sm:-mx-5 sm:px-5 shadow-sm dark:shadow-none transition-colors">
+            <!-- Sticky Linear-Style Tab Navigation Header (Remains pinned while scrolling) -->
+            <div id="studioTabNavHeader" class="sticky top-16 sm:top-20 z-40 bg-white/95 dark:bg-[#12151E]/95 backdrop-blur-md flex items-center justify-between sm:justify-start border-b border-slate-200 dark:border-[#1E2333] pt-2 pb-0 -mx-4 px-2 sm:-mx-5 sm:px-5 shadow-md transition-colors overflow-x-auto no-scrollbar">
               <button data-studio-tab="audit" onclick="window.switchStudioTab('audit')" class="studio-tab-btn active">
-                <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>
-                <span>Audit & Marks</span>
+                <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 shrink-0"></i>
+                <span>Audit &amp; Marks</span>
               </button>
               <button data-studio-tab="multipliers" onclick="window.switchStudioTab('multipliers')" class="studio-tab-btn">
-                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-                <span>Value Multipliers</span>
+                <i data-lucide="layers" class="w-3.5 h-3.5 shrink-0"></i>
+                <span>Deep Evaluation</span>
               </button>
               <button data-studio-tab="rewrite" onclick="window.switchStudioTab('rewrite')" class="studio-tab-btn">
-                <i data-lucide="pen-tool" class="w-3.5 h-3.5"></i>
+                <i data-lucide="pen-tool" class="w-3.5 h-3.5 shrink-0"></i>
                 <span>Rewrite Workshop</span>
               </button>
             </div>
@@ -1063,7 +1063,7 @@
                   </span>
                   <span id="resultPaperBadge" class="text-xs text-slate-400">GS 2</span>
                 </div>
-                <h3 class="text-lg font-bold text-white font-serif" id="resultQuestionSummary">Separation of Powers & Checks</h3>
+                <h3 class="text-lg font-bold text-white font-serif" id="resultQuestionSummary">Separation of Powers &amp; Checks</h3>
               </div>
 
               <!-- Score Circle Display -->
@@ -1077,7 +1077,7 @@
             <div class="mt-4 space-y-2">
               <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
                 <i data-lucide="stethoscope" class="w-3.5 h-3.5 text-amber-400"></i>
-                <span>UPSC Mentor's Diagnostic & Action Plan</span>
+                <span>UPSC Mentor's Diagnostic &amp; Action Plan</span>
               </div>
               <p class="text-xs text-slate-300 leading-relaxed font-serif italic pl-3 border-l-2 border-amber-500/60" id="resultExecutiveSummary">
                 Evaluation summary loading...
@@ -1104,6 +1104,7 @@
               </div>
             </div>
           </div>
+
               <!-- 2. Rubric Radar & Directive Adherence Grid -->
           <div id="rubricAndDirectiveRow" class="grid grid-cols-1 xl:grid-cols-12 gap-4">
             
@@ -1196,12 +1197,13 @@
             </div>
 
           </div>
+
               <!-- FATAL BLUNDER & DISCIPLINARY LEAK ALERT BANNER -->
           <div id="fatalBlunderBanner" class="hidden p-4 rounded-2xl bg-rose-950/40 border border-rose-500/40 shadow-lg space-y-2">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-2 text-rose-400 font-bold text-xs">
                 <i data-lucide="alert-octagon" class="w-4 h-4 text-rose-400"></i>
-                <span id="fatalBlunderTitle">Critical Attribution & Disciplinary Alerts</span>
+                <span id="fatalBlunderTitle">Critical Attribution &amp; Disciplinary Alerts</span>
               </div>
               <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">-2.0 to -3.0 Penalty</span>
             </div>
@@ -1222,6 +1224,7 @@
               </div>
             </div>
           </div>
+
               <!-- BATCH 1: UPSC SUB-PART STEP-MARKING, POINT-BY-POINT HANDWRITING AUDIT & PERSONAL MENTOR MEMORY -->
           <div id="batch1ExaminerMasteryCard" class="bg-white dark:bg-slate-900/95 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm dark:shadow-xl space-y-4">
             <!-- Header -->
@@ -1285,19 +1288,75 @@
             </div>
           </div>
 
-              <!-- 3. Deep Component Breakdown Tabs / Accordions -->
-          <div id="forensicAuditCard" class="bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm dark:shadow-xl space-y-4">
-            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-300 flex items-center space-x-2">
-              <i data-lucide="layers" class="w-4 h-4 text-amber-500 dark:text-amber-400"></i>
-              <span>Section-by-Section Forensic Audit</span>
-            </h4>
+              <!-- MICRO-HYGIENE & PRESENTATION POLISH (Remains in Audit & Marks Tab) -->
+          <div id="microHygieneCard" class="p-4 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-lg space-y-2.5">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800/80">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-300 flex items-center space-x-2">
+                <i data-lucide="check-check" class="w-4 h-4 text-emerald-500 dark:text-emerald-400"></i>
+                <span>Micro-Hygiene &amp; Presentation Polish</span>
+              </h4>
+              <span class="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-500/20">Examiner Impression</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                <div class="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider flex items-center space-x-1">
+                  <i data-lucide="spell-check" class="w-3 h-3"></i>
+                  <span>Spelling Catches:</span>
+                </div>
+                <div id="hygieneSpelling" class="text-slate-700 dark:text-slate-300 text-[11px]"></div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                <div class="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider flex items-center space-x-1">
+                  <i data-lucide="type" class="w-3 h-3"></i>
+                  <span>Grammar &amp; Syntax:</span>
+                </div>
+                <div id="hygieneGrammar" class="text-slate-700 dark:text-slate-300 text-[11px]"></div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                <div class="text-[10px] font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider flex items-center space-x-1">
+                  <i data-lucide="layout" class="w-3 h-3"></i>
+                  <span>Presentation &amp; Budget:</span>
+                </div>
+                <div id="hygienePresentation" class="text-slate-700 dark:text-slate-300 text-[11px]"></div>
+              </div>
+            </div>
+          </div>
 
-            <!-- Accordion 1: Introduction Audit & Model Rewrite -->
+          <!-- Smooth Section Navigation Footer -->
+          <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+              <span class="text-xs text-slate-600 dark:text-slate-400 font-medium">Completed Section 1: Audit &amp; Marks</span>
+            </div>
+            <button type="button" onclick="window.switchStudioTab('multipliers')" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center space-x-2 shadow transition hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
+              <span>Next: Deep Evaluation (Section Audit &amp; Value Multipliers)</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+        </div>
+
+            <!-- Tab 2: [Deep Evaluation] (Structured, Non-Repeating Reading Flow) -->
+            <div id="tabPaneMultipliers" class="studio-tab-pane hidden space-y-5">
+
+              <!-- STAGE 1: SECTION-BY-SECTION FORENSIC AUDIT (Intro -> Body -> Conclusion) -->
+          <div id="forensicAuditCard" class="bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm dark:shadow-xl space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center space-x-2">
+                <i data-lucide="layers" class="w-4 h-4 text-amber-500 dark:text-amber-400"></i>
+                <span>Step 1: Section-by-Section Forensic Audit (Intro • Body • Conclusion)</span>
+              </h4>
+              <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                Structural Flow
+              </span>
+            </div>
+
+            <!-- 1. Introduction Audit & Model Rewrite -->
             <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 overflow-hidden shadow-xs">
               <button class="accordion-btn w-full px-4 py-3 flex items-center justify-between text-left text-xs font-semibold bg-slate-100/90 hover:bg-slate-200/90 dark:bg-slate-900/90 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition border-b border-slate-200 dark:border-slate-800/80" onclick="toggleSection('introSection')">
                 <span class="flex items-center space-x-2">
                   <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                  <span class="font-semibold text-slate-800 dark:text-slate-200">1. Introduction Audit & Model Rewrite</span>
+                  <span class="font-semibold text-slate-800 dark:text-slate-200">1. Introduction Audit &amp; Model Opening</span>
                 </span>
                 <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
               </button>
@@ -1313,7 +1372,7 @@
                 <div class="p-3 rounded-xl bg-amber-50/70 dark:bg-slate-900 border border-amber-200 dark:border-amber-500/20 space-y-1">
                   <div class="flex items-center justify-between text-[11px] font-bold text-amber-700 dark:text-amber-400">
                     <span>Topper Model Introduction (30-40 Words):</span>
-                    <button onclick="copyModelIntro()" class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center space-x-1 text-[10px]">
+                    <button onclick="copyModelIntro()" class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center space-x-1 text-[10px] cursor-pointer">
                       <i data-lucide="copy" class="w-3 h-3"></i>
                       <span>Copy</span>
                     </button>
@@ -1323,12 +1382,12 @@
               </div>
             </div>
 
-            <!-- Accordion 2: Body Points, Strengths & Critical Gaps -->
+            <!-- 2. Body Strengths & Missing Dimensions -->
             <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 overflow-hidden shadow-xs">
               <button class="accordion-btn w-full px-4 py-3 flex items-center justify-between text-left text-xs font-semibold bg-slate-100/90 hover:bg-slate-200/90 dark:bg-slate-900/90 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition border-b border-slate-200 dark:border-slate-800/80" onclick="toggleSection('bodySection')">
                 <span class="flex items-center space-x-2">
                   <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  <span class="font-semibold text-slate-800 dark:text-slate-200">2. Body Strengths & Missing Dimensions</span>
+                  <span class="font-semibold text-slate-800 dark:text-slate-200">2. Body Strengths &amp; Missing Dimensions</span>
                 </span>
                 <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
               </button>
@@ -1360,42 +1419,12 @@
               </div>
             </div>
 
-            <!-- Accordion 3: UPSC High-Yield Value-Add Checklist -->
-            <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 overflow-hidden shadow-xs">
-              <button class="accordion-btn w-full px-4 py-3 flex items-center justify-between text-left text-xs font-semibold bg-slate-100/90 hover:bg-slate-200/90 dark:bg-slate-900/90 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition border-b border-slate-200 dark:border-slate-800/80" onclick="toggleSection('valueAddSection')">
-                <span class="flex items-center space-x-2">
-                  <span class="w-2 h-2 rounded-full bg-sky-500"></span>
-                  <span class="font-semibold text-slate-800 dark:text-slate-200">3. Value Addition Checklist (Articles, Cases, Committees, Diagrams)</span>
-                </span>
-                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-              </button>
-              <div id="valueAddSection" class="px-4 pb-4 pt-2 space-y-3 text-xs bg-white dark:bg-slate-950/40">
-                <!-- Dynamic Actionable Value-Addition Categories Grid -->
-                <div id="valueAddCategoriesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <!-- Dynamically rendered 4 subject-tailored categories with 'Where to Write' and 'How to Write' action cards -->
-                </div>
-
-                <!-- Visual Flowchart Box -->
-                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-amber-500/30 space-y-2 mt-3">
-                  <div class="flex items-center justify-between text-xs font-bold text-amber-700 dark:text-amber-400">
-                    <span class="flex items-center space-x-1.5">
-                      <i data-lucide="git-merge" class="w-4 h-4"></i>
-                      <span>Visual Flowchart / Diagram Recommended:</span>
-                    </span>
-                    <span class="text-[10px] text-amber-800 dark:text-amber-300/80 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">+1.0 Extra Mark Fetched</span>
-                  </div>
-                  <div id="visualFlowchartContainer" class="p-3 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono text-emerald-300 whitespace-pre overflow-x-auto leading-relaxed shadow-inner">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Accordion 4: Conclusion Audit & Model Way Forward -->
+            <!-- 3. Conclusion Audit & Model Closing -->
             <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 overflow-hidden shadow-xs">
               <button class="accordion-btn w-full px-4 py-3 flex items-center justify-between text-left text-xs font-semibold bg-slate-100/90 hover:bg-slate-200/90 dark:bg-slate-900/90 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition border-b border-slate-200 dark:border-slate-800/80" onclick="toggleSection('conclusionSection')">
                 <span class="flex items-center space-x-2">
                   <span class="w-2 h-2 rounded-full bg-violet-500"></span>
-                  <span class="font-semibold text-slate-800 dark:text-slate-200">4. Conclusion Audit & Model Way Forward</span>
+                  <span class="font-semibold text-slate-800 dark:text-slate-200">3. Conclusion Audit &amp; Model Closing</span>
                 </span>
                 <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
               </button>
@@ -1406,8 +1435,8 @@
                 </div>
                 <div class="p-3 rounded-xl bg-amber-50/70 dark:bg-slate-900 border border-amber-200 dark:border-amber-500/20 space-y-1">
                   <div class="flex items-center justify-between text-[11px] font-bold text-amber-700 dark:text-amber-400">
-                    <span>Topper Model Way Forward (Visionary / SDG / Viksit Bharat):</span>
-                    <button onclick="copyModelConclusion()" class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center space-x-1 text-[10px]">
+                    <span>Topper Model Closing Line (Keyword &amp; Viksit Bharat @2047):</span>
+                    <button onclick="copyModelConclusion()" class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center space-x-1 text-[10px] cursor-pointer">
                       <i data-lucide="copy" class="w-3 h-3"></i>
                       <span>Copy</span>
                     </button>
@@ -1416,87 +1445,16 @@
                 </div>
               </div>
             </div>
-
-            <!-- Accordion 5: Candidate Deciphered Handwriting (Multimodal OCR Transcription) -->
-            <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 overflow-hidden shadow-xs">
-              <button class="accordion-btn w-full px-4 py-3 flex items-center justify-between text-left text-xs font-semibold bg-slate-100/90 hover:bg-slate-200/90 dark:bg-slate-900/90 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition border-b border-slate-200 dark:border-slate-800/80" onclick="toggleSection('transcriptionSection')">
-                <span class="flex items-center space-x-2">
-                  <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
-                  <span class="font-semibold text-slate-800 dark:text-slate-200">5. Deciphered Handwriting (What the Examiner Read)</span>
-                </span>
-                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-              </button>
-              <div id="transcriptionSection" class="hidden px-4 pb-4 pt-2 space-y-3 text-xs bg-white dark:bg-slate-950/40">
-                <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                  <span>Deciphered using Gemini 2.5 Multimodal OCR:</span>
-                  <button onclick="copyTranscribedText()" class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center space-x-1 text-[10px]">
-                    <i data-lucide="copy" class="w-3 h-3"></i>
-                    <span>Copy Text</span>
-                  </button>
-                </div>
-                <pre class="whitespace-pre-wrap font-mono text-[11px] text-slate-800 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/90 p-3 rounded-xl border border-slate-200 dark:border-slate-800 leading-relaxed max-h-60 overflow-y-auto" id="transcribedAnswerText"></pre>
-              </div>
-            </div>
-
-          </div>
-              <!-- MICRO-HYGIENE & PRESENTATION POLISH -->
-          <div id="microHygieneCard" class="p-4 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-lg space-y-2.5">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800/80">
-              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-300 flex items-center space-x-2">
-                <i data-lucide="check-check" class="w-4 h-4 text-emerald-500 dark:text-emerald-400"></i>
-                <span>Micro-Hygiene & Presentation Polish</span>
-              </h4>
-              <span class="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-500/20">Examiner Impression</span>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
-                <div class="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider flex items-center space-x-1">
-                  <i data-lucide="spell-check" class="w-3 h-3"></i>
-                  <span>Spelling Catches:</span>
-                </div>
-                <div id="hygieneSpelling" class="text-slate-700 dark:text-slate-300 text-[11px]"></div>
-              </div>
-              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
-                <div class="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider flex items-center space-x-1">
-                  <i data-lucide="type" class="w-3 h-3"></i>
-                  <span>Grammar & Syntax:</span>
-                </div>
-                <div id="hygieneGrammar" class="text-slate-700 dark:text-slate-300 text-[11px]"></div>
-              </div>
-              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
-                <div class="text-[10px] font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider flex items-center space-x-1">
-                  <i data-lucide="layout" class="w-3 h-3"></i>
-                  <span>Presentation & Budget:</span>
-                </div>
-                <div id="hygienePresentation" class="text-slate-700 dark:text-slate-300 text-[11px]"></div>
-              </div>
-            </div>
           </div>
 
-          <!-- Smooth Section Navigation Footer -->
-          <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
-            <div class="flex items-center space-x-2.5">
-              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-              <span class="text-xs text-slate-600 dark:text-slate-400 font-medium">Completed Section 1: Scorecard & Rubrics</span>
-            </div>
-            <button type="button" onclick="window.switchStudioTab('multipliers')" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center space-x-2 shadow transition hover:scale-[1.01] active:scale-[0.99]">
-              <span>Next: Value Multipliers (Cases & Flowcharts)</span>
-              <i data-lucide="arrow-right" class="w-4 h-4"></i>
-            </button>
-          </div>
-
-        </div>
-
-            <!-- Tab 2: [Value Multipliers] -->
-            <div id="tabPaneMultipliers" class="studio-tab-pane hidden space-y-5">
-              <!-- ⚡ DYNAMIC CURRENT AFFAIRS & VALUE-ADDITION MULTIPLIERS -->
-          <div id="currentAffairsCard" class="p-5 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-slate-900 to-teal-950/60 border border-emerald-500/40 shadow-xl space-y-4">
-            <div class="flex items-center justify-between pb-2.5 border-b border-emerald-500/25">
+              <!-- STAGE 2: ⚡ CURRENT AFFAIRS & VALUE-ADDITION MULTIPLIERS (Matching Image 3) -->
+          <div id="currentAffairsCard" class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-slate-900 to-teal-950/60 border border-emerald-500/40 shadow-xl space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-emerald-500/25">
               <div class="flex items-center space-x-2">
-                <span class="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center text-xs font-bold">⚡</span>
-                <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-200">Current Affairs & Value-Addition Multipliers (2025–2026 Grounded)</h4>
+                <span class="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center text-xs font-bold shrink-0">⚡</span>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-200">Step 2: Current Affairs &amp; Value-Addition Multipliers (2025–2026 Grounded)</h4>
               </div>
-              <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center space-x-1">
+              <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center space-x-1 shrink-0">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                 <span>Live Grounded Radar</span>
               </span>
@@ -1504,9 +1462,9 @@
 
             <!-- Dimension 1: Paragraph-Specific Example Insertion -->
             <div class="p-3.5 rounded-xl bg-slate-950/90 border border-emerald-500/30 space-y-2">
-              <div class="flex items-center justify-between">
+              <div class="flex flex-wrap items-center justify-between gap-2">
                 <span class="text-[11px] font-bold text-emerald-300 flex items-center space-x-1.5">
-                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-400"></i>
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
                   <span>1. Current Example Insertion (<span id="caExampleTarget" class="text-amber-300">Body Paragraph 2</span>):</span>
                 </span>
                 <span id="caMarksGainBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">+0.5 to +1.0 Mark</span>
@@ -1523,8 +1481,8 @@
               <!-- High-Yield Data & Reports -->
               <div class="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
                 <span class="text-[11px] font-bold text-amber-300 flex items-center space-x-1.5">
-                  <i data-lucide="database" class="w-3.5 h-3.5 text-amber-400"></i>
-                  <span>2. High-Yield Data & Reports:</span>
+                  <i data-lucide="database" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+                  <span>2. High-Yield Data &amp; Reports:</span>
                 </span>
                 <ul id="caDataReportsList" class="space-y-1.5 text-[11px] text-slate-300"></ul>
               </div>
@@ -1532,7 +1490,7 @@
               <!-- Diagram / Schematic Recommendation -->
               <div class="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
                 <span class="text-[11px] font-bold text-sky-300 flex items-center space-x-1.5">
-                  <i data-lucide="git-merge" class="w-3.5 h-3.5 text-sky-400"></i>
+                  <i data-lucide="git-merge" class="w-3.5 h-3.5 text-sky-400 shrink-0"></i>
                   <span>3. Recommended Diagram / Schematic:</span>
                 </span>
                 <div class="bg-sky-500/10 p-2 rounded-lg border border-sky-500/20 space-y-1">
@@ -1543,222 +1501,220 @@
               </div>
             </div>
           </div>
-              <!-- 4-CARD HIGH-YIELD MISSING KEYWORDS & THINKER TOOLKIT -->
-          <div id="missingKeywordsSection" class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-3">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center space-x-2">
-                <i data-lucide="bookmark" class="w-4 h-4 text-amber-400"></i>
-                <span id="missingKeywordsHeading">Domain Concepts & High-Yield Keywords</span>
+
+              <!-- STAGE 3: 4-CARD HIGH-YIELD KEYWORDS & VALUE-ADDITION TOOLKIT (Matching Image 3) -->
+          <div id="missingKeywordsSection" class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center space-x-2">
+                <i data-lucide="bookmark" class="w-4 h-4 text-amber-500 dark:text-amber-400"></i>
+                <span id="missingKeywordsHeading">Step 3: Constitutional Articles, Doctrines &amp; High-Yield Keywords</span>
               </h4>
-              <span class="text-[10px] text-slate-400">4 High-Yield Concepts</span>
+              <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">4 High-Yield Concepts</span>
             </div>
             <div id="missingKeywordsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <!-- Dynamically rendered 4 concept cards -->
+            </div>
+
+            <!-- Actionable Value-Addition Checklist & Visual Flowchart (Integrated cleanly without repetition) -->
+            <div id="valueAddSection" class="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-3 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-sky-700 dark:text-sky-400 flex items-center space-x-1.5">
+                  <i data-lucide="check-square" class="w-3.5 h-3.5"></i>
+                  <span>Where &amp; How to Use Additional Value-Add Points in Your Answer</span>
+                </span>
+              </div>
+              <div id="valueAddCategoriesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <!-- Dynamically rendered non-repeating categories -->
+              </div>
+              <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-amber-500/30 space-y-2">
+                <div class="flex items-center justify-between text-xs font-bold text-amber-700 dark:text-amber-400">
+                  <span class="flex items-center space-x-1.5">
+                    <i data-lucide="git-merge" class="w-4 h-4"></i>
+                    <span>Exam-Hall Boxed Schematic Blueprint:</span>
+                  </span>
+                  <span class="text-[10px] text-amber-800 dark:text-amber-300/80 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">+1.0 Extra Mark Fetched</span>
+                </div>
+                <div id="visualFlowchartContainer" class="p-3 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono text-emerald-300 whitespace-pre overflow-x-auto leading-relaxed shadow-inner">
+                </div>
+              </div>
+            </div>
+          </div>
+
+              <!-- STAGE 4: DECIPHERED HANDWRITING (Collapsible OCR Reference) -->
+          <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 overflow-hidden shadow-sm">
+            <button class="accordion-btn w-full px-4 py-3 flex items-center justify-between text-left text-xs font-semibold bg-slate-100/90 hover:bg-slate-200/90 dark:bg-slate-900/90 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition" onclick="toggleSection('transcriptionSection')">
+              <span class="flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
+                <span class="font-semibold text-slate-800 dark:text-slate-200">Step 4: Deciphered Handwriting (What the Examiner Read)</span>
+              </span>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
+            </button>
+            <div id="transcriptionSection" class="hidden px-4 pb-4 pt-2 space-y-3 text-xs bg-white dark:bg-slate-950/40 border-t border-slate-200 dark:border-slate-800">
+              <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                <span>Deciphered using Gemini 2.5 Multimodal OCR:</span>
+                <button onclick="copyTranscribedText()" class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center space-x-1 text-[10px] cursor-pointer">
+                  <i data-lucide="copy" class="w-3 h-3"></i>
+                  <span>Copy Text</span>
+                </button>
+              </div>
+              <pre class="whitespace-pre-wrap font-mono text-[11px] text-slate-800 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/90 p-3 rounded-xl border border-slate-200 dark:border-slate-800 leading-relaxed max-h-60 overflow-y-auto" id="transcribedAnswerText"></pre>
             </div>
           </div>
 
           <!-- Smooth Section Navigation Footer -->
           <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
-            <button type="button" onclick="window.switchStudioTab('audit')" class="w-full sm:w-auto px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold text-xs flex items-center justify-center space-x-1.5 transition">
+            <button type="button" onclick="window.switchStudioTab('audit')" class="w-full sm:w-auto px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold text-xs flex items-center justify-center space-x-1.5 transition cursor-pointer">
               <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
-              <span>Previous: Audit & Marks</span>
+              <span>Previous: Audit &amp; Marks</span>
             </button>
-            <button type="button" onclick="window.switchStudioTab('rewrite')" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow transition hover:scale-[1.01] active:scale-[0.99]">
-              <span>Next: Mentor's Rewrite Workshop</span>
+            <button type="button" onclick="window.switchStudioTab('rewrite')" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow transition hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
+              <span>Next: Rewrite Workshop (Model Answer &amp; Rewrite)</span>
               <i data-lucide="arrow-right" class="w-4 h-4"></i>
             </button>
           </div>
 
         </div>
 
-            <!-- Tab 3: [Rewrite Workshop] -->
+            <!-- Tab 3: [Rewrite Workshop] (Strictly Model Answer & Rewrite Option Only) -->
             <div id="tabPaneRewrite" class="studio-tab-pane hidden space-y-5">
-              <!-- NEXT ATTEMPT FOCUS: MENTOR'S SENTENCE-BY-SENTENCE REWRITE STUDIO -->
-          <div id="nextAttemptCard" class="p-5 rounded-2xl bg-gradient-to-r from-indigo-950/70 via-slate-900 to-indigo-950/50 border border-indigo-500/40 shadow-xl space-y-3.5">
-            <div class="flex items-center justify-between pb-2.5 border-b border-indigo-500/25">
-              <div class="flex items-center space-x-2">
-                <span class="w-6 h-6 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 flex items-center justify-center text-xs font-bold">🎓</span>
-                <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-200">Mentor's Rewrite Workshop (How to Upgrade Your Draft)</h4>
+              <!-- Hidden DOM placeholders for nextAttemptCard so legacy/print JS bindings never throw null errors -->
+              <div id="nextAttemptCard" class="hidden" aria-hidden="true">
+                <span id="nextAttemptTargetBadge"></span>
+                <p id="studentDraftQuote"></p>
+                <p id="nextAttemptExample"></p>
+                <p id="mentorWhyText"></p>
+                <p id="bookletPlacementText"></p>
               </div>
-              <span id="nextAttemptTargetBadge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-500/30">
-                Body & Application (-1.5M Recoverable)
-              </span>
-            </div>
 
-            <!-- Step 1: Student's Actual Draft from Copy -->
-            <div class="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-1">
-              <div class="text-[10px] font-bold text-rose-400 uppercase tracking-wider flex items-center space-x-1.5">
-                <i data-lucide="file-x-2" class="w-3.5 h-3.5 text-rose-400"></i>
-                <span>1. Where Your Draft Fell Short (From Your Script):</span>
-              </div>
-              <p id="studentDraftQuote" class="text-xs text-slate-300 italic font-serif leading-relaxed pl-2.5 border-l-2 border-rose-500/50"></p>
-            </div>
-
-            <!-- Step 2: Mentor's Topper Upgrade -->
-            <div class="p-3.5 rounded-xl bg-slate-950/90 border border-amber-500/40 space-y-2">
-              <div class="flex items-center justify-between text-[11px] font-bold text-amber-300">
-                <span class="flex items-center space-x-1.5">
-                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
-                  <span>2. Mentor's Topper Transformation (25-Word Exam Upgrade):</span>
-                </span>
-                <button onclick="copyPlugAndPlaySentence()" class="text-amber-400 hover:text-white flex items-center space-x-1 text-[10px] bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30 transition">
-                  <i data-lucide="copy" class="w-3 h-3"></i>
-                  <span>Copy Upgrade</span>
+              <!-- 1. 24-HOUR FREE REWRITE OPTION (Top of Rewrite Workshop for Immediate Access) -->
+              <div id="rewriteCompletedCard" class="hidden p-4 rounded-2xl bg-emerald-500/10 dark:bg-emerald-950/30 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div class="space-y-1">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <h4 class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center space-x-1.5">
+                      <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"></i>
+                      <span>24-Hour Free Rewrite Completed</span>
+                    </h4>
+                    <span class="text-[9px] bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/40 font-mono font-bold">1 of 1 Used</span>
+                  </div>
+                  <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed">
+                    You have successfully re-evaluated your revised answer copy for this question. Single re-evaluation limit reached.
+                  </p>
+                </div>
+                <button type="button" onclick="window.switchStudioTab('audit')" class="shrink-0 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition flex items-center space-x-1.5 cursor-pointer">
+                  <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+                  <span>View Marks Recovery</span>
                 </button>
               </div>
-              <p id="nextAttemptExample" class="text-xs text-amber-100 font-serif leading-relaxed bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/25"></p>
-            </div>
 
-            <!-- Step 3 & 4: Why This Earns Marks & Where to Place in Exam Sheet -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
-              <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-1">
-                <span class="text-[10px] font-bold text-emerald-300 uppercase tracking-wider flex items-center space-x-1">
-                  <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-400"></i>
-                  <span>3. Marks Unlocked (+0.5 to +1.0M):</span>
-                </span>
-                <p id="mentorWhyText" class="text-[11px] text-slate-300 leading-relaxed font-sans"></p>
+              <div id="rewriteChallengeCard" class="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/50 via-slate-900 to-slate-950 border border-emerald-500/40 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div class="space-y-1">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <h4 class="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center space-x-1.5">
+                      <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-emerald-400"></i>
+                      <span>24-Hour Free Rewrite Challenge</span>
+                    </h4>
+                    <span class="text-[9px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/40 font-mono font-bold">0 Credits</span>
+                  </div>
+                  <p class="text-[11px] text-slate-300 leading-relaxed">
+                    Read the Topper Model Answer below, rewrite this answer on a fresh UPSC sheet incorporating the feedback, and re-upload within 24 hours for a <strong class="text-emerald-300">FREE Re-Evaluation</strong>!
+                  </p>
+                </div>
+                <button id="activateRewriteBtn" onclick="window.openRewriteModal()" class="shrink-0 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shadow-md transition flex items-center space-x-1.5 cursor-pointer">
+                  <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                  <span>Upload Rewrite</span>
+                </button>
               </div>
-              <div class="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/30 space-y-1">
-                <span class="text-[10px] font-bold text-sky-300 uppercase tracking-wider flex items-center space-x-1">
-                  <i data-lucide="map-pin" class="w-3.5 h-3.5 text-sky-400"></i>
-                  <span>4. Booklet Placement Guide:</span>
-                </span>
-                <p id="bookletPlacementText" class="text-[11px] text-slate-300 leading-relaxed font-sans"></p>
-              </div>
-            </div>
-          </div>
+
               <!-- REWRITE IMPROVEMENT & MARK RECOVERY CARD (Active when rewrite evaluation is rendered) -->
-          <div id="rewriteComparisonCard" class="hidden p-5 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-slate-900 to-teal-950/80 border-2 border-emerald-500/50 shadow-2xl space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-emerald-500/30">
-              <div class="flex items-center space-x-2.5">
-                <span class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center text-base font-bold">📈</span>
-                <div>
-                  <h3 class="text-sm font-bold text-white flex items-center space-x-2">
-                    <span>Rewrite Mark Recovery Report</span>
-                    <span class="text-[9px] bg-emerald-500/20 text-emerald-300 font-semibold px-2 py-0.5 rounded-full border border-emerald-500/30">0 Credits Deducted</span>
-                  </h3>
-                  <p class="text-[11px] text-slate-400">Comparing your rewritten copy against your previous draft</p>
+              <div id="rewriteComparisonCard" class="hidden p-5 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-slate-900 to-teal-950/80 border-2 border-emerald-500/50 shadow-2xl space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-emerald-500/30">
+                  <div class="flex items-center space-x-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center justify-center text-base font-bold">📈</span>
+                    <div>
+                      <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                        <span>Rewrite Mark Recovery Report</span>
+                        <span class="text-[9px] bg-emerald-500/20 text-emerald-300 font-semibold px-2 py-0.5 rounded-full border border-emerald-500/30">0 Credits Deducted</span>
+                      </h3>
+                      <p class="text-[11px] text-slate-400">Comparing your rewritten copy against your previous draft</p>
+                    </div>
+                  </div>
+                  <div id="rewriteDeltaBadge" class="px-3.5 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs shadow-lg flex items-center space-x-1.5 self-start sm:self-auto">
+                    <i data-lucide="trending-up" class="w-4 h-4"></i>
+                    <span id="rewriteDeltaText">+2.0 Marks Recovered (+20%)</span>
+                  </div>
                 </div>
-              </div>
-              <div id="rewriteDeltaBadge" class="px-3.5 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs shadow-lg flex items-center space-x-1.5 self-start sm:self-auto">
-                <i data-lucide="trending-up" class="w-4 h-4"></i>
-                <span id="rewriteDeltaText">+2.0 Marks Recovered (+20%)</span>
-              </div>
-            </div>
 
-            <!-- Score Delta Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
-              <div class="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5">
-                <span class="text-[10px] text-slate-400 block font-medium">Original Draft</span>
-                <span id="prevOverallScore" class="font-mono text-base font-bold text-slate-300">4.5 / 10.0</span>
-              </div>
-              <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/40 space-y-0.5">
-                <span class="text-[10px] text-emerald-400 block font-bold">Rewritten Copy</span>
-                <span id="currOverallScore" class="font-mono text-base font-bold text-emerald-300">6.5 / 10.0</span>
-              </div>
-              <div class="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5">
-                <span class="text-[10px] text-slate-400 block font-medium">Band Shift</span>
-                <span id="bandJumpText" class="text-xs font-bold text-amber-300">Needs Work → Topper</span>
-              </div>
-              <div class="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5">
-                <span class="text-[10px] text-slate-400 block font-medium">Marks Recovered</span>
-                <span id="markRecoveryDelta" class="font-mono text-base font-extrabold text-emerald-400">+2.0M</span>
-              </div>
-            </div>
+                <!-- Score Delta Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                  <div class="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5">
+                    <span class="text-[10px] text-slate-400 block font-medium">Original Draft</span>
+                    <span id="prevOverallScore" class="font-mono text-base font-bold text-slate-300">4.5 / 10.0</span>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/40 space-y-0.5">
+                    <span class="text-[10px] text-emerald-400 block font-bold">Rewritten Copy</span>
+                    <span id="currOverallScore" class="font-mono text-base font-bold text-emerald-300">6.5 / 10.0</span>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5">
+                    <span class="text-[10px] text-slate-400 block font-medium">Band Shift</span>
+                    <span id="bandJumpText" class="text-xs font-bold text-amber-300">Needs Work → Topper</span>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-0.5">
+                    <span class="text-[10px] text-slate-400 block font-medium">Marks Recovered</span>
+                    <span id="markRecoveryDelta" class="font-mono text-base font-extrabold text-emerald-400">+2.0M</span>
+                  </div>
+                </div>
 
-            <!-- Section-by-Section Recovery Breakdown -->
-            <div class="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
-              <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Section-Wise Marks Recovered:</span>
-              <div id="sectionRecoveryGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs"></div>
-            </div>
-          </div>
-              <!-- Accordion 6: Complete Topper Model Answer (UPSC Booklet Format) -->
-          <div id="modelAnswerCard" class="rounded-2xl border-2 border-amber-500/40 bg-slate-950 shadow-2xl overflow-hidden">
-            <!-- Header Strip -->
-            <div id="modelAnswerHeaderStrip" class="px-4 sm:px-6 py-3.5 bg-gradient-to-r from-amber-500/20 via-slate-900 to-amber-500/10 border-b border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
-              <div class="flex items-center space-x-2.5">
-                <span class="w-7 h-7 rounded-xl bg-amber-500 text-slate-950 font-extrabold flex items-center justify-center text-xs shadow-md shadow-amber-500/30">
-                  <i data-lucide="award" class="w-4 h-4"></i>
-                </span>
-                <div>
-                  <h3 class="text-xs font-extrabold uppercase tracking-wider text-amber-300">UPSC Topper Answer Copy Blueprint</h3>
-                  <p class="text-[10px] text-slate-400">Structured strictly in authentic multi-dimensional UPSC booklet format</p>
+                <!-- Section-by-Section Recovery Breakdown -->
+                <div class="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+                  <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Section-Wise Marks Recovered:</span>
+                  <div id="sectionRecoveryGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs"></div>
                 </div>
               </div>
 
-              <!-- Spec Badges & Copy Button -->
-              <div class="flex flex-wrap items-center gap-1.5 text-[10px]">
-                <span class="px-2 py-0.5 rounded-md bg-slate-900 text-slate-300 border border-slate-800" id="modelWordBudgetBadge">Target: ~300 Words</span>
-                <span class="px-2 py-0.5 rounded-md bg-slate-900 text-slate-300 border border-slate-800" id="modelTimeBadge">Time: 11 Mins</span>
-                <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-bold" id="modelBenchmarkBadge">13.5 / 20.0 (Top 1%)</span>
-                <button onclick="copyFullModelAnswer()" class="text-slate-950 bg-amber-400 hover:bg-amber-300 font-bold px-2.5 py-1 rounded-md shadow transition flex items-center space-x-1">
-                  <i data-lucide="copy" class="w-3 h-3"></i>
-                  <span>Copy Answer</span>
+              <!-- 2. COMPLETE TOPPER MODEL ANSWER (UPSC Booklet Format) -->
+              <div id="modelAnswerCard" class="rounded-2xl border-2 border-amber-500/40 bg-slate-950 shadow-2xl overflow-hidden">
+                <!-- Header Strip -->
+                <div id="modelAnswerHeaderStrip" class="px-4 sm:px-6 py-3.5 bg-gradient-to-r from-amber-500/20 via-slate-900 to-amber-500/10 border-b border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+                  <div class="flex items-center space-x-2.5">
+                    <span class="w-7 h-7 rounded-xl bg-amber-500 text-slate-950 font-extrabold flex items-center justify-center text-xs shadow-md shadow-amber-500/30">
+                      <i data-lucide="award" class="w-4 h-4"></i>
+                    </span>
+                    <div>
+                      <h3 class="text-xs font-extrabold uppercase tracking-wider text-amber-300">UPSC Topper Answer Copy Blueprint</h3>
+                      <p class="text-[10px] text-slate-400">Structured strictly in authentic multi-dimensional UPSC booklet format</p>
+                    </div>
+                  </div>
+
+                  <!-- Spec Badges & Copy Button -->
+                  <div class="flex flex-wrap items-center gap-1.5 text-[10px]">
+                    <span class="px-2 py-0.5 rounded-md bg-slate-900 text-slate-300 border border-slate-800" id="modelWordBudgetBadge">Target: ~300 Words</span>
+                    <span class="px-2 py-0.5 rounded-md bg-slate-900 text-slate-300 border border-slate-800" id="modelTimeBadge">Time: 11 Mins</span>
+                    <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-bold" id="modelBenchmarkBadge">13.5 / 20.0 (Top 1%)</span>
+                    <button onclick="copyFullModelAnswer()" class="text-slate-950 bg-amber-400 hover:bg-amber-300 font-bold px-2.5 py-1 rounded-md shadow transition flex items-center space-x-1 cursor-pointer">
+                      <i data-lucide="copy" class="w-3 h-3"></i>
+                      <span>Copy Answer</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Answer Booklet Body -->
+                <div id="modelAnswerSection" class="p-4 sm:p-6 space-y-4">
+                  <div id="fullModelAnswerContainer" class="space-y-4 text-xs text-slate-200 leading-relaxed font-serif"></div>
+                  <pre class="hidden" id="fullModelAnswerText"></pre>
+                </div>
+              </div>
+
+              <!-- Smooth Section Navigation Footer -->
+              <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+                <button type="button" onclick="window.switchStudioTab('multipliers')" class="w-full sm:w-auto px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold text-xs flex items-center justify-center space-x-1.5 transition cursor-pointer">
+                  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                  <span>Previous: Deep Evaluation</span>
                 </button>
               </div>
+
             </div>
-
-            <!-- Answer Booklet Body -->
-            <div id="modelAnswerSection" class="p-4 sm:p-6 space-y-4">
-              <div id="fullModelAnswerContainer" class="space-y-4 text-xs text-slate-200 leading-relaxed font-serif"></div>
-              <pre class="hidden" id="fullModelAnswerText"></pre>
-            </div>
-          </div>
-
-          <div class="no-print flex items-center justify-end pt-3 border-t border-slate-800/80">
-            <span class="text-xs text-slate-500 italic">Cooked Mains — Rigorous UPSC Feedback</span>
-          </div>
-              <!-- REWRITE COMPLETED BADGE (Shown when answer was already re-evaluated) -->
-          <div id="rewriteCompletedCard" class="hidden p-3.5 rounded-2xl bg-emerald-500/10 dark:bg-emerald-950/30 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div class="space-y-1">
-              <div class="flex items-center space-x-2">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <h4 class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center space-x-1.5">
-                  <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"></i>
-                  <span>24-Hour Free Rewrite Completed</span>
-                </h4>
-                <span class="text-[9px] bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/40 font-mono font-bold">1 of 1 Used</span>
-              </div>
-              <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed">
-                You have successfully re-evaluated your revised answer copy for this question. Single re-evaluation limit reached.
-              </p>
-            </div>
-            <button type="button" onclick="window.switchStudioTab('audit')" class="shrink-0 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition flex items-center space-x-1.5">
-              <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
-              <span>View Marks Recovery</span>
-            </button>
-          </div>
-
-              <!-- REWRITE & RE-EVALUATE 24H FREE CHALLENGE -->
-          <div id="rewriteChallengeCard" class="hidden p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-950 border border-emerald-500/40 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div class="space-y-1">
-              <div class="flex items-center space-x-2">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <h4 class="text-xs font-bold text-emerald-300 uppercase tracking-wider flex items-center space-x-1.5">
-                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-emerald-400"></i>
-                  <span>24-Hour Free Rewrite Challenge</span>
-                </h4>
-                <span class="text-[9px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/40 font-mono font-bold">0 Credits</span>
-              </div>
-              <p class="text-[11px] text-slate-300 leading-relaxed">
-                Incorporate examiner feedback on a fresh sheet and re-upload within 24 hours. We evaluate your rewritten version for <strong class="text-emerald-300">FREE</strong> to measure your mark recovery!
-              </p>
-            </div>
-            <button id="activateRewriteBtn" onclick="window.openRewriteModal()" class="shrink-0 px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md transition flex items-center space-x-1.5">
-              <i data-lucide="upload" class="w-3.5 h-3.5"></i>
-              <span>Upload Rewrite</span>
-            </button>
-          </div>
-
-          <!-- Smooth Section Navigation Footer -->
-          <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
-            <button type="button" onclick="window.switchStudioTab('multipliers')" class="w-full sm:w-auto px-3.5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold text-xs flex items-center justify-center space-x-1.5 transition cursor-pointer">
-              <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
-              <span>Previous: Value Multipliers</span>
-            </button>
-          </div>
-
-        </div>
 
           </div>
         </div>
@@ -3264,7 +3220,7 @@
 
   </div>
 
-  <script src="/static/app.js?v=5.0"></script>
+  <script src="/static/app.js?v=5.2"></script>
   <script>
     if (window.lucide) {
       try { lucide.createIcons(); } catch(e) {}

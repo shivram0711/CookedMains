@@ -768,13 +768,19 @@ window.switchStudioTab = function(tabId) {
     panes[tabId].scrollTop = 0;
   }
 
-  // Smoothly scroll window to top of studio tab view so candidate never has to manually scroll up
-  const studioCard = document.querySelector(".studio-card") || document.getElementById("studioTabNavHeader") || document.getElementById("studioTopBar");
-  if (studioCard) {
-    const isMobile = window.innerWidth < 1024;
-    const headerOffset = isMobile ? 54 : 15;
-    const targetY = studioCard.getBoundingClientRect().top + window.pageYOffset - headerOffset;
-    window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
+  // If the candidate has scrolled down inside the evaluation panel and clicks another tab on the sticky bar,
+  // smoothly align the top of the right-hand evaluation panel right below the sticky header.
+  const rightPanelContainer = document.getElementById("resultsContainer");
+  const stickyTabHeader = document.getElementById("studioTabNavHeader");
+  if (rightPanelContainer && stickyTabHeader) {
+    const isMobile = window.innerWidth < 640;
+    const navbarHeight = isMobile ? 64 : 80;
+    const panelRect = rightPanelContainer.getBoundingClientRect();
+    // Only scroll if the top of the right-hand evaluation panel has scrolled above the sticky navbar
+    if (panelRect.top < navbarHeight - 8) {
+      const targetY = panelRect.top + window.pageYOffset - navbarHeight;
+      window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
+    }
   }
 
   if (tabId === "audit" && typeof radarChartInstance !== "undefined" && radarChartInstance) {
@@ -5616,11 +5622,45 @@ function renderEvaluation(evalData) {
   });
   document.getElementById("modelIntroText").innerHTML = `"${formatHighlightedText(intro.model_intro_rewrite || '')}"`;
 
-  // Section 2: Body Audit
+  // Section 2: Body Audit (with strict cross-list deduplication inside Deep Evaluation)
   const body = evalData.body_audit || {};
+  const extractCoreKeyPhrases = (str) => {
+    const clean = String(str || "")
+      .replace(/[*_#`✓✔✎✗×]/g, "")
+      .toLowerCase();
+    const phrases = [];
+    // Extract bold/lead title before colon
+    const lead = clean.split(":")[0].trim();
+    if (lead && lead.length >= 5) phrases.push(lead);
+    // Extract acronyms in parentheses or standalone uppercase terms
+    const acrs = String(str || "").match(/\b[A-Z]{3,8}\b/g) || [];
+    acrs.forEach(a => {
+      if (!["THE", "AND", "FOR", "WITH", "BODY", "PAGE", "PART", "UPSC", "GDP", "INDIA"].includes(a)) {
+        phrases.push(a.toLowerCase());
+      }
+    });
+    // Extract article numbers or case names
+    const arts = clean.match(/\barticle\s+\d+[a-z]?|\b[a-z]+\s+v\.?\s+[a-z]+|\b[a-z]+\s+case\b/gi) || [];
+    arts.forEach(ar => phrases.push(ar.toLowerCase()));
+    return phrases;
+  };
+
+  const deepEvalSeenPhrases = new Set();
+  const isAlreadyInDeepEval = (text) => {
+    const low = String(text || "").toLowerCase();
+    for (const p of deepEvalSeenPhrases) {
+      if (p.length >= 4 && low.includes(p)) return true;
+    }
+    return false;
+  };
+  const registerInDeepEval = (text) => {
+    extractCoreKeyPhrases(text).forEach(p => deepEvalSeenPhrases.add(p));
+  };
+
   const strengthsEl = document.getElementById("bodyStrengthsList");
   strengthsEl.innerHTML = "";
   (body.strengths || []).forEach(s => {
+    registerInDeepEval(s);
     const li = document.createElement("li");
     li.className = "flex items-start space-x-1.5";
     li.innerHTML = `<span class="text-emerald-400 font-bold">✓</span><span>${formatHighlightedText(s)}</span>`;
@@ -5630,6 +5670,7 @@ function renderEvaluation(evalData) {
   const gapsEl = document.getElementById("bodyGapsList");
   gapsEl.innerHTML = "";
   (body.critical_gaps || []).forEach(g => {
+    registerInDeepEval(g);
     const li = document.createElement("li");
     li.className = "flex items-start space-x-1.5";
     li.innerHTML = `<span class="text-amber-400 font-bold">✎</span><span>${formatHighlightedText(g)}</span>`;
@@ -5638,14 +5679,22 @@ function renderEvaluation(evalData) {
 
   const missingDimEl = document.getElementById("bodyMissingDimensionsList");
   missingDimEl.innerHTML = "";
-  (body.missing_dimensions || []).forEach(d => {
+  const uniqueMissingDims = (body.missing_dimensions || []).filter(d => !isAlreadyInDeepEval(d));
+  const dimsToRender = uniqueMissingDims.length > 0 ? uniqueMissingDims : (body.missing_dimensions || []).slice(0, 2);
+  dimsToRender.forEach(d => {
+    registerInDeepEval(d);
     const li = document.createElement("li");
     li.innerHTML = formatHighlightedText(d);
     missingDimEl.appendChild(li);
   });
 
-  // Section 3: Actionable Value Add Checklist
-  renderValueAddCategories(evalData.value_add_checklist, state.paper, state.question);
+  // Pre-register missing_keywords_cards so value_add_checklist and caDataReportsList never repeat them
+  (evalData.missing_keywords_cards || []).forEach(c => {
+    if (c && c.term) registerInDeepEval(c.term);
+  });
+
+  // Section 3: Actionable Value Add Checklist (filtered against Body Audit & 4-Card Concept Toolkit)
+  renderValueAddCategories(evalData.value_add_checklist, state.paper, state.question, deepEvalSeenPhrases);
 
   // Section 4: Conclusion Audit
   const conc = evalData.conclusion_audit || {};
@@ -5680,29 +5729,8 @@ function renderEvaluation(evalData) {
     }
   }
 
-  // 2. Next Attempt Focus Card (Mentor's Rewrite Workshop)
+  // 2. Next Attempt Focus Data (merged into Value Addition Topper Plug-In if needed; hidden in Rewrite Workshop)
   const na = evalData.next_attempt_focus;
-  const naCard = document.getElementById("nextAttemptCard");
-  if (naCard && na) {
-    const naBadge = document.getElementById("nextAttemptTargetBadge");
-    if (naBadge) naBadge.textContent = na.target_section || na.weakest_area || "High-Yield Upgrade (-1.5M Recoverable)";
-    const naDir = document.getElementById("nextAttemptDirective");
-    if (naDir) naDir.innerHTML = formatHighlightedText(na.core_directive || "Address core question demand with dialectical synthesis.");
-    const draftQuote = document.getElementById("studentDraftQuote");
-    if (draftQuote) {
-      draftQuote.textContent = na.student_draft_quote || "Candidate draft: Lacked explicit counter-arguments and analytical transition.";
-    }
-    const naEx = document.getElementById("nextAttemptExample");
-    if (naEx) naEx.textContent = na.topper_transformation || na.plug_and_play_example || "";
-    const whyText = document.getElementById("mentorWhyText");
-    if (whyText) {
-      whyText.textContent = na.mentor_why || na.why_it_earns_marks || "Directly satisfies the directive and introduces empirical substantiation, earning +0.5 to +1.0M.";
-    }
-    const placementText = document.getElementById("bookletPlacementText");
-    if (placementText) {
-      placementText.textContent = na.booklet_placement || na.where_to_place_in_sheet || "Insert as the opening transition of your 2nd sub-heading on Page 2.";
-    }
-  }
 
   // 3. Dynamic High-Yield Missing Keywords & Concepts Toolkit
   const mkTitle = document.getElementById("missingKeywordsHeading");
@@ -5751,7 +5779,7 @@ function renderEvaluation(evalData) {
     }
   }
 
-  // 4. Micro-Hygiene & Presentation Polish
+  // 4. Micro-Hygiene & Presentation Polish (Stays in Tab 1: Audit & Marks)
   const mh = evalData.micro_hygiene || {};
   const spellEl = document.getElementById("hygieneSpelling");
   if (spellEl) {
@@ -5782,15 +5810,22 @@ function renderEvaluation(evalData) {
     const caCurrentWeakness = document.getElementById("caCurrentWeakness");
     const caRecommendedInsertion = document.getElementById("caRecommendedInsertion");
 
-    if (caExampleTarget) caExampleTarget.textContent = exIns.paragraph_target || "Body Paragraph 2";
+    const resolvedTarget = exIns.paragraph_target || (na && (na.booklet_placement || na.target_section)) || "Body Paragraph 2";
+    const resolvedWeakness = exIns.current_weakness || (na && na.student_draft_quote) || "Lacked specific contemporary scheme or legal authority.";
+    const resolvedInsertion = exIns.recommended_insertion || (na && (na.topper_transformation || na.plug_and_play_example)) || "Quote recent statutory framework or mission targets.";
+
+    if (caExampleTarget) caExampleTarget.textContent = resolvedTarget;
     if (caMarksGainBadge) caMarksGainBadge.textContent = exIns.marks_gain || "+0.5 to +1.0 Mark";
-    if (caCurrentWeakness) caCurrentWeakness.textContent = exIns.current_weakness || "Lacked specific contemporary scheme or legal authority.";
-    if (caRecommendedInsertion) caRecommendedInsertion.innerHTML = formatHighlightedText(exIns.recommended_insertion || "Quote recent statutory framework or mission targets.");
+    if (caCurrentWeakness) caCurrentWeakness.textContent = resolvedWeakness;
+    if (caRecommendedInsertion) caRecommendedInsertion.innerHTML = formatHighlightedText(resolvedInsertion);
 
     const caDataList = document.getElementById("caDataReportsList");
     if (caDataList) {
-      const reports = caData.high_yield_data_reports || [];
-      caDataList.innerHTML = reports.map(rep => `
+      const rawReports = caData.high_yield_data_reports || [];
+      const uniqueReports = rawReports.filter(rep => !isAlreadyInDeepEval(rep));
+      const reportsToRender = uniqueReports.length > 0 ? uniqueReports : rawReports.slice(0, 2);
+      reportsToRender.forEach(rep => registerInDeepEval(rep));
+      caDataList.innerHTML = reportsToRender.map(rep => `
         <li class="flex items-start space-x-2">
           <span class="text-amber-400 font-bold shrink-0">▪</span>
           <span class="leading-relaxed">${formatHighlightedText(rep)}</span>
@@ -6826,14 +6861,15 @@ function injectInlineGlossary(container, glossaryMap) {
   });
 }
 
-// Actionable Value Addition Categories Renderer
-function renderValueAddCategories(vaData, paper, question) {
+// Actionable Value Addition Categories Renderer (Deduplicated against Body Audit & 4-Card Concept Toolkit)
+function renderValueAddCategories(vaData, paper, question, seenPhrasesSet) {
   const grid = document.getElementById("valueAddCategoriesGrid");
   if (!grid) return;
   grid.innerHTML = "";
+  const parentBlock = grid.parentElement;
 
   if (!vaData || typeof vaData !== "object") {
-    grid.innerHTML = `<p class="text-slate-500 italic text-xs">No value-addition checklist generated.</p>`;
+    if (parentBlock) parentBlock.classList.add("hidden");
     return;
   }
 
@@ -6887,6 +6923,19 @@ function renderValueAddCategories(vaData, paper, question) {
     ];
   }
 
+  const localSeen = seenPhrasesSet instanceof Set ? new Set(seenPhrasesSet) : new Set();
+  const isDuplicateItem = (it) => {
+    const titleStr = String((it && it.item) || "").toLowerCase();
+    const howStr = String((it && it.how_to_write) || "").toLowerCase();
+    if (!titleStr) return true;
+    for (const phrase of localSeen) {
+      if (phrase.length >= 4 && (titleStr.includes(phrase) || howStr.includes(phrase))) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   const catThemes = [
     { border: "border-sky-500/30", text: "text-sky-400", badge: "bg-sky-500/10 text-sky-300 border-sky-500/20", icon: "shield" },
     { border: "border-indigo-500/30", text: "text-indigo-400", badge: "bg-indigo-500/10 text-indigo-300 border-indigo-500/20", icon: "book-open" },
@@ -6894,14 +6943,28 @@ function renderValueAddCategories(vaData, paper, question) {
     { border: "border-amber-500/30", text: "text-amber-400", badge: "bg-amber-500/10 text-amber-300 border-amber-500/20", icon: "git-merge" }
   ];
 
+  let renderedCategoryCount = 0;
+
   categories.forEach((cat, idx) => {
     if (!cat.items || cat.items.length === 0) return;
+    // Skip schematic category if already shown in Current Affairs Recommended Diagram & Visual Flowchart below
+    if (/diagram|schematic|flowchart|map/i.test(String(cat.title || ""))) return;
+
+    const uniqueItems = cat.items.filter(it => !isDuplicateItem(it));
+    if (uniqueItems.length === 0) return;
+
+    uniqueItems.forEach(it => {
+      const cleanTitle = String(it.item || "").replace(/[*_#`]/g, "").split("(")[0].trim().toLowerCase();
+      if (cleanTitle.length >= 4) localSeen.add(cleanTitle);
+    });
+
+    renderedCategoryCount++;
     const theme = catThemes[idx % catThemes.length];
     const card = document.createElement("div");
     card.className = `va-cat-card p-3.5 rounded-xl bg-slate-900/90 border ${theme.border} space-y-2.5`;
 
     let itemsHtml = "";
-    cat.items.forEach(it => {
+    uniqueItems.forEach(it => {
       itemsHtml += `
         <div class="va-item-box p-2.5 rounded-lg bg-slate-950 border border-slate-800/80 space-y-1.5">
           <div class="va-item-title text-xs font-bold text-slate-900 dark:text-slate-100 flex items-start justify-between gap-1">
@@ -6925,7 +6988,7 @@ function renderValueAddCategories(vaData, paper, question) {
           <i data-lucide="${theme.icon}" class="w-3.5 h-3.5"></i>
           <span>${escapeHtml(cat.title)}</span>
         </span>
-        <span class="text-[9px] font-semibold px-2 py-0.5 rounded border ${theme.badge}">${cat.items.length} ${cat.items.length === 1 ? 'Element' : 'Elements'}</span>
+        <span class="text-[9px] font-semibold px-2 py-0.5 rounded border ${theme.badge}">${uniqueItems.length} ${uniqueItems.length === 1 ? 'Element' : 'Elements'}</span>
       </div>
       <div class="space-y-2 pt-0.5">
         ${itemsHtml}
@@ -6933,6 +6996,14 @@ function renderValueAddCategories(vaData, paper, question) {
     `;
     grid.appendChild(card);
   });
+
+  if (parentBlock) {
+    if (renderedCategoryCount === 0) {
+      parentBlock.classList.add("hidden");
+    } else {
+      parentBlock.classList.remove("hidden");
+    }
+  }
 
   if (window.lucide) {
     try { window.lucide.createIcons({ root: grid }); } catch (e) {}
