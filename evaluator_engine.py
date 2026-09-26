@@ -1093,7 +1093,7 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
               3. `"Conclusion"` (`start_y_percent: 76, end_y_percent: 91`) — evaluate ONLY the final concluding paragraph at the bottom of the page.
             * If the candidate wrote 1 Body section (`Way Forward` or `Strategies` or `Limitations`) + `Conclusion`, output Annotation 1 = `"Body: [Exact Final Section Heading]"` (`start_y_percent: 7, end_y_percent: 73`) and Annotation 2 = `"Conclusion"` (`start_y_percent: 75, end_y_percent: 91`).
       * B. QUOTE THE CANDIDATE'S EXACT HANDWRITTEN KEYWORDS, DATA & FLOWCHARTS ON EACH PAGE:
-        - Every margin card's `✓` bullet MUST cite ONLY the exact facts, schemes, statistics, or diagrams written by the student inside that specific curly brace `{{` region! Never mix a `Way Forward` point into a `Challenges` card, and never wrap `Way Forward` inside the `Conclusion` curly brace!
+        - Every margin card's `✓` bullet MUST cite ONLY the exact facts, schemes, statistics, or diagrams written by the student inside that specific bracketed margin region! Never mix a `Way Forward` point into a `Challenges` card, and never wrap `Way Forward` inside the `Conclusion` bracket!
         - Every margin card's `✗` / `✎` bullet MUST state the exact domain-specific keyword, policy, or dimension needed for that specific sub-part.
       * C. ZERO INTERMIXING OF POLITY / GS-2 INTO GS-3, GS-1, OR GS-4:
         - NEVER cite GS-2 Polity cases/articles (`Maneka Gandhi`, `NJAC`, `Navtej Johar`, `Shreya Singhal`, `Constitutional Morality`, `Article 13`, `2nd ARC`) inside a GS-3 Economy/Science-Tech, GS-1 Geography/History, or GS-4 Ethics evaluation! Every word must belong 100% to the evaluated question's subject and demand.
