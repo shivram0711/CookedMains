@@ -6019,14 +6019,26 @@ function renderEvaluation(evalData) {
       `).join("");
     }
 
-    const diagRec = caData.diagram_recommendation || {};
+    const diagProfile = window.computeDiagramRelevanceProfile(evalData);
     const caDiagTitle = document.getElementById("caDiagramTitle");
     const caDiagStructure = document.getElementById("caDiagramStructure");
     const caDiagTip = document.getElementById("caDiagramTip");
+    const diagHeadingLabel = document.getElementById("diagramCardHeadingLabel");
+    const diagBadge = document.getElementById("diagramRelevanceBadge");
+    const diagAdviceBox = document.getElementById("diagramSpaceAdviceBox");
 
-    if (caDiagTitle) caDiagTitle.textContent = diagRec.concept_title || "Multi-Dimensional Analytical Framework";
-    if (caDiagStructure) caDiagStructure.textContent = diagRec.structure || "Policy Hub -> Coordination -> Execution";
-    if (caDiagTip) caDiagTip.textContent = `★ ${diagRec.exam_hall_sketch_tip || 'Sketch a clean 45-second micro-diagram'}`;
+    if (diagHeadingLabel) diagHeadingLabel.textContent = diagProfile.headingLabel;
+    if (diagBadge) {
+      diagBadge.textContent = diagProfile.badgeText;
+      diagBadge.className = diagProfile.badgeClass;
+    }
+    if (diagAdviceBox) {
+      diagAdviceBox.innerHTML = `<span class="font-bold text-slate-100">${diagProfile.adviceTitle}:</span> ${diagProfile.spaceAdvice}`;
+      diagAdviceBox.className = diagProfile.adviceBoxClass;
+    }
+    if (caDiagTitle) caDiagTitle.textContent = diagProfile.conceptTitle;
+    if (caDiagStructure) caDiagStructure.textContent = diagProfile.structureText;
+    if (caDiagTip) caDiagTip.textContent = `★ ${diagProfile.sketchTip}`;
   } else if (caCard) {
     caCard.classList.add("hidden");
   }
@@ -6072,18 +6084,11 @@ function renderEvaluation(evalData) {
     verdictLabel.textContent = `Total: ${evalData.overall_score.toFixed(1)} / ${mm}`;
   }
 
-  // Visual Flowchart Container
+  // Visual Flowchart Container (Dynamic Space-Aware Rendering)
   const flowEl = document.getElementById("visualFlowchartContainer");
   if (flowEl) {
-    flowEl.textContent = evalData.recommended_diagram_visual || 
-      `┌────────────────────────────────────────────────────────┐
-│             EXAM HALL SCHEMATIC (DRAW THIS)            │
-├────────────────────────────────────────────────────────┤
-│  [Dimension 1: Theoretical] ──> [Dimension 2: Empirical]│
-│            │                              │            │
-│            ▼                              ▼            │
-│  [Aristotle: Master Science] <──> [David Easton: Values]│
-└────────────────────────────────────────────────────────┘`;
+    const diagProfile = window.computeDiagramRelevanceProfile(evalData);
+    flowEl.textContent = diagProfile.visualBlueprint;
   }
 
   // Show 24-Hour Free Rewrite Challenge Card or Completed Card
@@ -7229,6 +7234,136 @@ function renderValueAddCategories(vaData, paper, question, seenPhrasesSet) {
   }
 }
 
+// Dynamic Diagram Relevance & Exam-Hall Space-Management Engine
+window.computeDiagramRelevanceProfile = function(evalData) {
+  const data = evalData || state.currentEvaluation || {};
+  const caData = data.current_affairs_value_add || {};
+  const diagRec = caData.diagram_recommendation || {};
+  const mm = Number(data.max_marks || state.marks || 10);
+  const paper = String(data.paper || state.paper || "GS2").toUpperCase();
+  const qText = String(data.question_text || data.extracted_question || state.question || "").toLowerCase();
+  const transcribed = String(data.transcribed_text || "").toLowerCase();
+  const bodyAuditStr = JSON.stringify(data.section_by_section_audit?.body_audit || {}).toLowerCase();
+  const annotationsStr = JSON.stringify(data.visual_annotations || []).toLowerCase();
+
+  // 1. Check if aspirant ALREADY drew a diagram/flowchart on their sheet
+  const alreadyDrawnInText = /\[flowchart|\[diagram|\[map|flowchart drawn|diagram drawn|schematic drawn|hub-and-spoke|visual flowchart/i.test(
+    `${transcribed} ${bodyAuditStr} ${annotationsStr}`
+  );
+
+  let verdict = String(diagRec.relevance_verdict || "").toUpperCase();
+  if (alreadyDrawnInText && !verdict) {
+    verdict = "ALREADY_DRAWN";
+  }
+
+  // 2. Dynamic Question & Subject Demand Classification when verdict is missing or generic
+  const highVisualKeywords = /geography|geomorph|climate|monsoon|cyclone|ocean|tectonic|volcan|glacier|river|drainage|mineral|corridor|supply chain|logistics|port|industrial|ecosystem|food chain|carbon|energy grid|circular economy|value chain|semiconductor|space|biotech|disaster|flood|earthquake|urbani[sz]ation|smart cit|border|indo-pacific|map|location|distribution/i;
+  const doctrinalOrSkipKeywords = /basic structure|preamble|constitutional morality|judicial review|article \d+|fundamental right|directive principle|parliamentary sovereignty|ethics|integrity|probity|aptitude|emotional intelligence|attitude|philosoph|kant|rawls|gandhi|categorical imperative|quote|opinion|comment critically on the statement|do you agree/i;
+
+  if (!["HIGH_ROI", "COMPACT_2_LINE", "NOT_NEEDED_SAVE_SPACE", "ALREADY_DRAWN"].includes(verdict)) {
+    if (alreadyDrawnInText) {
+      verdict = "ALREADY_DRAWN";
+    } else if (highVisualKeywords.test(qText) || paper.includes("GS1")) {
+      verdict = "HIGH_ROI";
+    } else if (mm <= 10 && doctrinalOrSkipKeywords.test(qText)) {
+      verdict = "NOT_NEEDED_SAVE_SPACE";
+    } else if (mm <= 10) {
+      verdict = "COMPACT_2_LINE";
+    } else if (doctrinalOrSkipKeywords.test(qText) && !highVisualKeywords.test(qText)) {
+      verdict = "COMPACT_2_LINE";
+    } else {
+      verdict = "HIGH_ROI";
+    }
+  }
+
+  // Helper to build a clean 2-line horizontal chain from structure or concept_title
+  const rawStructure = diagRec.structure || "Trigger / Mandate ──> Institutional Mechanism ──> Measurable Outcome";
+  const chainParts = rawStructure
+    .split(/->|──>|→|\||,/)
+    .map(s => s.replace(/[\[\]]/g, "").trim())
+    .filter(Boolean)
+    .slice(0, 4);
+  const compactArrowChain = chainParts.length >= 2
+    ? chainParts.map(p => `[${p}]`).join(" ──> ")
+    : `[Constitutional Mandate] ──> [Institutional Bottleneck] ──> [Way Forward]`;
+
+  const rawConcept = diagRec.concept_title || "Core Analytical Flow";
+
+  if (verdict === "ALREADY_DRAWN") {
+    return {
+      verdict: "ALREADY_DRAWN",
+      headingLabel: "Diagram & Space Audit (Visual Already Present on Sheet):",
+      badgeText: "✓ DIAGRAM ALREADY DRAWN • 0 EXTRA SPACE NEEDED",
+      badgeClass: "text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40",
+      adviceTitle: "Exam-Hall Space Verdict (Already Drawn)",
+      spaceAdvice: diagRec.space_utilization_advice || `You already included a flowchart/diagram on your answer sheet! Do NOT draw a second diagram—that would waste 25–30% of your ${mm <= 10 ? '2-page (150w)' : '3-page (250w)'} booklet. Keep your existing layout and simply enrich node labels with 1–2 technical keywords below.`,
+      adviceBoxClass: "mb-2.5 p-2.5 rounded-lg bg-emerald-950/35 border border-emerald-500/30 text-[11px] text-emerald-100/90 leading-relaxed",
+      conceptTitle: `Label Upgrade for Your Existing Diagram: ${rawConcept}`,
+      structureText: compactArrowChain,
+      sketchTip: diagRec.exam_hall_sketch_tip || "Keep your existing visual compact (under 5 lines) and underline key Articles/Data inside the nodes.",
+      visualBlueprint: `┌── KEEP YOUR EXISTING DIAGRAM COMPACT (ZERO EXTRA LINES) ──┐\n  ${compactArrowChain}\n  [Tip: Add 1 Committee / Article label directly onto your existing arrow]`,
+      includeBoxInModelAnswer: false,
+      compactChainForModelAnswer: compactArrowChain
+    };
+  }
+
+  if (verdict === "NOT_NEEDED_SAVE_SPACE") {
+    return {
+      verdict: "NOT_NEEDED_SAVE_SPACE",
+      headingLabel: "Diagram & Space Audit (Skip Box Diagram — Save Page Space):",
+      badgeText: `⚠ SKIP BOX DIAGRAM • SAVE SPACE FOR +2 POINTS (${mm}M / ${mm <= 10 ? '2 PAGES' : '3 PAGES'})`,
+      badgeClass: "text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40",
+      adviceTitle: `Why You Should NOT Draw a Box Diagram Here (${mm}-Marker Space Rule)`,
+      spaceAdvice: diagRec.space_utilization_advice || `In a ${mm}-Marker (${mm <= 10 ? 'only 2 pages / 150 words' : 'tight booklet space'}), drawing a forced box diagram for this doctrinal/constitutional question eats ~35% of a page (7–9 lines) and forces you to drop 2 substantiated points. Skip the box diagram! Use Boxed Sub-Headings + Underlined Articles/Case Laws to get full presentation marks in 0 extra lines.`,
+      adviceBoxClass: "mb-2.5 p-2.5 rounded-lg bg-rose-950/35 border border-rose-500/30 text-[11px] text-rose-100/90 leading-relaxed",
+      conceptTitle: `Zero-Space Presentation Alternative (Instead of Forced Diagram)`,
+      structureText: `Box Sub-Headings: [ 1. ${rawConcept.slice(0, 28).toUpperCase()} ] + Underline Authorities`,
+      sketchTip: "Do NOT draw a box diagram here. Box your 2 main sub-headings and use 1-line arrow chains inside bullets.",
+      visualBlueprint: `[SPACE-SAVER PRESENTATION BLUEPRINT — 0 EXTRA LINES USED]\n1. Box Your Sub-Headings :  [ A. CORE MANDATE ]   [ B. STRUCTURAL GAPS ]\n2. Inline Point Format   :  ${compactArrowChain}`,
+      includeBoxInModelAnswer: false,
+      compactChainForModelAnswer: null
+    };
+  }
+
+  if (verdict === "COMPACT_2_LINE") {
+    return {
+      verdict: "COMPACT_2_LINE",
+      headingLabel: "Diagram & Space Audit (2-Line Space-Saver Flow):",
+      badgeText: `⚡ 2-LINE INLINE FLOW ONLY • AVOID TALL BOX (${mm}M SPACE SAVER)`,
+      badgeClass: "text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40",
+      adviceTitle: `Smart Space Allocation (${mm <= 10 ? '2-Page 10-Marker' : '3-Page 15-Marker'})`,
+      spaceAdvice: diagRec.space_utilization_advice || `A large multi-box diagram takes 8–10 lines (~35% of a page) and steals space from your substantive arguments. Instead, draw this 2-Line Horizontal Arrow Chain between Intro and Body—it uses only 2 lines of space while breaking text monotony for the examiner!`,
+      adviceBoxClass: "mb-2.5 p-2.5 rounded-lg bg-cyan-950/35 border border-cyan-500/30 text-[11px] text-cyan-100/90 leading-relaxed",
+      conceptTitle: `${rawConcept} (2-Line Inline Flow)`,
+      structureText: compactArrowChain,
+      sketchTip: diagRec.exam_hall_sketch_tip || "Takes 15 seconds & only 2 lines on your sheet—leaves full space for 5–6 analytical points.",
+      visualBlueprint: `[2-LINE EXAM-HALL SPACE-SAVER FLOW — TAKES ONLY 2 LINES]\n${compactArrowChain}`,
+      includeBoxInModelAnswer: false,
+      compactChainForModelAnswer: compactArrowChain
+    };
+  }
+
+  // Default: HIGH_ROI (Geography, GS3 Supply Chain / Infrastructure / Environment / 15-Marker Process)
+  const rawVisual = data.recommended_diagram_visual ||
+    `┌────────────────────────────────────────────────────────┐\n│  ${rawConcept.slice(0, 50).padEnd(50, ' ')}    │\n├────────────────────────────────────────────────────────┤\n│  ${compactArrowChain.slice(0, 52).padEnd(52, ' ')}  │\n└────────────────────────────────────────────────────────┘`;
+
+  return {
+    verdict: "HIGH_ROI",
+    headingLabel: "High-ROI Exam-Hall Diagram Blueprint (Recommended):",
+    badgeText: `★ HIGH-ROI VISUAL • DRAW IN 35 SECS (+0.5 TO +1.0M)`,
+    badgeClass: "text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40",
+    adviceTitle: `High Visual ROI for This Question (${mm <= 10 ? 'Max 5 Lines / 20% Page' : 'Max 6 Lines on Page 2'})`,
+    spaceAdvice: diagRec.space_utilization_advice || `This topic has high visual payoff! Dedicate 5–6 lines (${mm <= 10 ? 'top-right corner box on Page 1' : 'center of Page 2'}) to sketch this schematic. It compresses 40+ words of explanation and earns +0.5 to +1.0 presentation marks.`,
+    adviceBoxClass: "mb-2.5 p-2.5 rounded-lg bg-amber-950/35 border border-amber-500/30 text-[11px] text-amber-100/90 leading-relaxed",
+    conceptTitle: rawConcept,
+    structureText: rawStructure,
+    sketchTip: diagRec.exam_hall_sketch_tip || "Keep strictly within 5–6 lines so you don't crowd out your substantive points.",
+    visualBlueprint: rawVisual,
+    includeBoxInModelAnswer: true,
+    compactChainForModelAnswer: compactArrowChain
+  };
+};
+
 // Revamped Authentic UPSC Topper Model Answer Renderer
 function renderModelAnswer(fullText, diagramVisual, maxMarks) {
   const container = document.getElementById("fullModelAnswerContainer");
@@ -7267,8 +7402,28 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     }
   }
 
+  const diagProfile = window.computeDiagramRelevanceProfile(state.currentEvaluation);
   let processedText = fullText;
-  if (diagramVisual && !processedText.includes("+---") && !processedText.includes("┌──") && !processedText.includes("[EXAM-HALL")) {
+
+  // If diagram is NOT_NEEDED_SAVE_SPACE, strip any forced multi-line ASCII boxes so the Model Answer saves space too
+  if (diagProfile && diagProfile.verdict === "NOT_NEEDED_SAVE_SPACE") {
+    processedText = processedText
+      .replace(/\[EXAM-HALL.*?\]:?\s*\n(?:[┌├│└+|-].*\n?)+/gi, "")
+      .replace(/(?:^[┌├│└+].*\n?){3,}/gm, "");
+  } else if (diagProfile && (diagProfile.verdict === "COMPACT_2_LINE" || diagProfile.verdict === "ALREADY_DRAWN")) {
+    // Replace any bulky ASCII box with the sleek 2-line inline chain
+    const compactBlock = `[EXAM-HALL 2-LINE SPACE-SAVER FLOW]:\n${diagProfile.compactChainForModelAnswer}`;
+    if (processedText.includes("+---") || processedText.includes("┌──") || processedText.includes("[EXAM-HALL")) {
+      processedText = processedText
+        .replace(/\[EXAM-HALL.*?\]:?\s*\n(?:[┌├│└+|-].*\n?)+/gi, `${compactBlock}\n\n`)
+        .replace(/(?:^[┌├│└+].*\n?){3,}/gm, `${compactBlock}\n\n`);
+    } else if (diagProfile.compactChainForModelAnswer) {
+      const parts = processedText.split(/\n(?=(?:1\.|2\.|Body|Dimension))/i);
+      if (parts.length > 1) {
+        processedText = `${parts[0]}\n\n${compactBlock}\n\n${parts.slice(1).join('\n')}`;
+      }
+    }
+  } else if (diagramVisual && !processedText.includes("+---") && !processedText.includes("┌──") && !processedText.includes("[EXAM-HALL")) {
     const parts = processedText.split(/\n(?=(?:1\.|2\.|Body|Dimension))/i);
     if (parts.length > 1) {
       processedText = `${parts[0]}\n\n[EXAM-HALL SCHEMATIC / FLOWCHART]:\n${diagramVisual}\n\n${parts.slice(1).join('\n')}`;
@@ -7286,17 +7441,18 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     let b = block.trim();
     if (!b) return;
 
-    // 1. Exam-Hall Flowchart / ASCII Diagram
+    // 1. Exam-Hall Flowchart / ASCII Diagram or 2-Line Space-Saver Flow
     if (b.includes("+---") || b.includes("┌──") || b.includes("|  ") || b.includes("[EXAM-HALL")) {
+      const isCompact2Line = b.includes("2-LINE SPACE-SAVER") || (diagProfile && diagProfile.verdict === "COMPACT_2_LINE");
       const cleanDiagram = b.replace(/\[EXAM-HALL.*?\]:?\s*/i, '');
       html += `
-        <div class="my-4 p-4 rounded-xl bg-slate-900/95 border-2 border-amber-500/40 text-emerald-300 font-mono text-xs leading-relaxed whitespace-pre overflow-x-auto shadow-2xl">
-          <div class="text-[10px] font-extrabold text-amber-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+        <div class="my-3.5 p-3.5 rounded-xl bg-slate-900/95 border ${isCompact2Line ? 'border-cyan-500/40 text-cyan-300' : 'border-2 border-amber-500/40 text-emerald-300'} font-mono text-xs leading-relaxed whitespace-pre-wrap overflow-x-auto shadow-xl">
+          <div class="text-[10px] font-extrabold ${isCompact2Line ? 'text-cyan-400' : 'text-amber-400'} uppercase tracking-wider mb-1 flex items-center justify-between">
             <span class="flex items-center space-x-1.5">
-              <i data-lucide="git-merge" class="w-3.5 h-3.5 text-amber-400"></i>
-              <span>Exam-Hall Flowchart (Topper Schematic):</span>
+              <i data-lucide="git-merge" class="w-3.5 h-3.5 ${isCompact2Line ? 'text-cyan-400' : 'text-amber-400'}"></i>
+              <span>${isCompact2Line ? '2-Line Inline Flow (10M Space-Saver — Only 2 Lines on Sheet):' : 'Exam-Hall Flowchart (High-ROI Schematic):'}</span>
             </span>
-            <span class="text-emerald-400 font-sans font-semibold text-[9px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Draw in 45 secs</span>
+            <span class="text-emerald-400 font-sans font-semibold text-[9px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">${isCompact2Line ? 'Takes 15 secs • 2 Lines' : 'Draw in 35 secs'}</span>
           </div>
           ${cleanDiagram}
         </div>

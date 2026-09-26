@@ -1107,6 +1107,22 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
              `"✗ **Too General (No Keywords)**: You wrote 'Thus, there is a need for holistic development on part of government and society', which has no topic keywords and can fit any answer (only +0.5/2.0 mark).\n✎ **How to Get Full Marks Here**: Mention 1–2 topic keywords in your last line (e.g., shifting India to a **deep-tech product nation** under **Viksit Bharat @2047**)."`
         - NEVER use heavy, confusing AI phrases like `"Visionary Synthesis"`, `"Constructive Synthesis"`, `"Empirical Substantiation"`, `"Contextual Premise"`, or `"Lexical"`. Always write every card heading and remark in simple, clear English (`"Too General (No Keywords)"`, `"Good Closing Line"`, `"How to Get Full Marks Here"`).
 
+22. DYNAMIC DIAGRAM RELEVANCE & EXAM-HALL SPACE UTILISATION AUDIT (CRITICAL):
+    - In a real UPSC Mains exam (2 pages for 10M, 3 pages for 15M), drawing a large box diagram on EVERY question wastes precious vertical writing space and forces the student to cut 2–3 analytical points!
+    - You MUST evaluate whether a diagram is genuinely needed for THIS specific question and set `"diagram_recommendation"` accordingly:
+      1. If the candidate ALREADY drew a diagram/flowchart/schematic on their sheet:
+         - Set `"relevance_verdict": "ALREADY_DRAWN"`.
+         - Praise their existing diagram in `"space_utilization_advice"` and advise them NOT to draw a second diagram so they save page space for written arguments.
+      2. If the question is GS-1 Geography (maps, corridors, geomorphic processes) or GS-3 Supply Chain / Infrastructure / Environment / S&T Ecosystem, or a 15-Marker (3 pages) with a natural multi-stage process:
+         - Set `"relevance_verdict": "HIGH_ROI"`.
+         - Explain in `"space_utilization_advice"` why a 30-second map or 4-node value-chain flowchart saves ~35 words and fetches +0.5 to +1.0M.
+      3. If the question is a 10-Marker (only 2 pages) or a comparative/institutional question where a big box diagram would waste space:
+         - Set `"relevance_verdict": "COMPACT_2_LINE"`.
+         - Advise the student NOT to draw a tall box diagram; instead recommend a 2-line inline arrow chain (`A ──> B ──> C`) or a 2-column mini-comparison table that uses only 2 lines on the sheet.
+      4. If the question is a pure constitutional, legal, philosophical, or opinion 10-marker where any diagram would look forced:
+         - Set `"relevance_verdict": "NOT_NEEDED_SAVE_SPACE"`.
+         - Explicitly tell the student in `"space_utilization_advice"`: `"No diagram is needed for this question. Save your 2-page booklet space for 2 extra substantiated points with Constitutional Articles, Supreme Court Judgments, and boxed sub-headings."`
+
 Generate strictly valid JSON matching this schema:
 {{
   "detected_question": "Exact question read from booklet header or provided by user",
@@ -1354,9 +1370,11 @@ Generate strictly valid JSON matching this schema:
       "Article 39(b) / Law Commission 281st Report / Supreme Court Constitution Bench principles."
     ],
     "diagram_recommendation": {{
+      "relevance_verdict": "HIGH_ROI", // Must be one of: "HIGH_ROI", "COMPACT_2_LINE", "NOT_NEEDED_SAVE_SPACE", or "ALREADY_DRAWN"
+      "space_utilization_advice": "Honest 1-2 line exam-hall space advice explaining whether to draw a full diagram, use a 2-line arrow flow, or skip the diagram to save space for written points.",
       "concept_title": "3-Tier Hub-and-Spoke Implementation Matrix",
       "structure": "Policy Hub -> State Agile Coordination -> Panchayati Grassroots Execution",
-      "exam_hall_sketch_tip": "Draw a neat 45-second circular hub with 4 radial spokes connecting stakeholders."
+      "exam_hall_sketch_tip": "Draw a neat 30-second flow or skip if space is tight."
     }}
   }},
   "visual_annotations": [
