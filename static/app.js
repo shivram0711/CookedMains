@@ -6327,24 +6327,31 @@ function renderBatch1ExaminerMastery(evalData) {
   const subPart1Score = Math.min(subPart1Max, Math.round((bodyTotalScore * 0.56) * 2) / 2);
   const subPart2Score = Math.max(0, Math.min(subPart2Max, Math.round((bodyTotalScore - subPart1Score) * 2) / 2));
 
-  let part1Label = "Sub-Demand A: Core Analytical Factors & Drivers";
+  let part1Heading = "2. Part A (Core Demand)";
+  let part1Statement = "Core Analytical Factors & Drivers";
   let part1Note = "Evaluated on conceptual precision, comparative data & multidimensional points.";
-  let part2Label = "Sub-Demand B: Structural Reforms & Way Forward";
+  let part2Heading = "3. Part B (Secondary Demand & Way Forward)";
+  let part2Statement = "Structural Reforms, Challenges & Way Forward";
   let part2Note = "Evaluated on actionable schemes, institutional solutions & diagram clarity.";
 
   if (isStartupDeepTech) {
-    part1Label = "Part A: Factors for Inadequate Focus on Deep-Tech";
+    part1Heading = "2. Part A (Core Demand)";
+    part1Statement = "Factors for Inadequate Focus on Deep-Tech";
     part1Note = "6 points written (Points ①–⑥): Strong GERD (0.65%) & researcher density (260/lakh) data.";
-    part2Label = "Part B: Strategies to Bridge the Deep-Tech Gap";
+    part2Heading = "3. Part B (Secondary Demand & Way Forward)";
+    part2Statement = "Strategies to Bridge the Deep-Tech Gap";
     part2Note = "Boxed 6-spoke [Strategies to bridge gap] diagram citing ANRF, NEP 2020 & VAIBHAV.";
   } else if (isJudicialReview) {
-    part1Label = "Part A: Blending Constitutional Supremacy & Parliamentary Sovereignty";
+    part1Heading = "2. Part A (Core Demand)";
+    part1Statement = "Blending Constitutional Supremacy & Parliamentary Sovereignty";
     part1Note = "Strong integration of Article 13, Kesavananda Bharati, Maneka Gandhi & NJAC ruling.";
-    part2Label = "Part B: Limitations of Judicial Review & Institutional Equilibrium";
+    part2Heading = "3. Part B (Secondary Demand & Way Forward)";
+    part2Statement = "Limitations of Judicial Review & Institutional Equilibrium";
     part2Note = "Good [Limitations] diagram & Roger Mathew case; missed 2 short Way Forward points.";
   } else {
-    // Strip trailing exam metadata like (150 words), (250 words), (10 Marks), (15M)
+    // Strip leading question prefixes like "Q.1)", "Q1.", "1." and trailing exam metadata like (150 words), (15M)
     const cleanQText = qText
+      .replace(/^(?:Q\.?\s*\d+[).:\-\s]*|\d+[).:\-\s]+)/i, "")
       .replace(/\s*\(\s*\d+\s*(?:words?|marks?|m)?[^)]*\)?\s*$/gi, "")
       .replace(/\s*\[[^\]]*\]\s*$/g, "")
       .trim();
@@ -6355,16 +6362,21 @@ function renderBatch1ExaminerMastery(evalData) {
       .map(s => s.trim())
       .filter(s => s.length > 10);
 
+    const formatClause = (str) => {
+      const cleaned = str.replace(/^(?:Q\.?\s*\d+[).:\-\s]*|[.,;:\-–—\s]+)/i, "").trim();
+      return cleaned ? (cleaned.charAt(0).toUpperCase() + cleaned.slice(1)) : "";
+    };
+
     if (clauses.length >= 2) {
-      const formatClause = (str) => {
-        const cleaned = str.replace(/^[.,;:\-–—\s]+/, "").trim();
-        return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-      };
-      part1Label = `Part A: ${formatClause(clauses[0])}`;
-      part2Label = `Part B: ${formatClause(clauses[clauses.length - 1])}`;
+      part1Heading = "2. Part A (Core Demand)";
+      part1Statement = formatClause(clauses[0]);
+      part2Heading = "3. Part B (Secondary Demand)";
+      part2Statement = formatClause(clauses[clauses.length - 1]);
     } else if (cleanQText.length > 10) {
-      part1Label = `Part A (Core Demand): ${cleanQText}`;
-      part2Label = "Part B (Challenges, Reforms & Way Forward)";
+      part1Heading = "2. Part A (Core Demand)";
+      part1Statement = formatClause(cleanQText);
+      part2Heading = "3. Part B (Challenges, Reforms & Way Forward)";
+      part2Statement = "";
     }
 
     const bAudit = evalData.body_audit || {};
@@ -6379,7 +6391,8 @@ function renderBatch1ExaminerMastery(evalData) {
 
   const stepItems = [
     {
-      title: "Introduction (Context & Baseline Hook)",
+      heading: "1. Introduction (Context & Baseline Hook)",
+      statement: "",
       score: introScore,
       max: introMax,
       note: (evalData.intro_audit && evalData.intro_audit.current_critique)
@@ -6387,19 +6400,22 @@ function renderBatch1ExaminerMastery(evalData) {
         : "Evaluated on 2-line conceptual opening & baseline data hook."
     },
     {
-      title: part1Label,
+      heading: part1Heading,
+      statement: part1Statement,
       score: subPart1Score,
       max: subPart1Max,
       note: part1Note
     },
     {
-      title: part2Label,
+      heading: part2Heading,
+      statement: part2Statement,
       score: subPart2Score,
       max: subPart2Max,
       note: part2Note
     },
     {
-      title: "Conclusion (Closing Line & Topic Keywords)",
+      heading: "4. Conclusion (Closing Line & Topic Keywords)",
+      statement: "",
       score: concScore,
       max: concMax,
       note: (evalData.conclusion_audit && evalData.conclusion_audit.current_critique)
@@ -6411,18 +6427,22 @@ function renderBatch1ExaminerMastery(evalData) {
   stepListEl.innerHTML = stepItems.map(item => {
     const pct = item.max > 0 ? Math.min(100, Math.round((item.score / item.max) * 100)) : 0;
     const barColor = pct >= 60 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-rose-500";
+    const statementHtml = item.statement
+      ? `<p class="w-full text-xs font-semibold text-slate-800 dark:text-slate-200 leading-relaxed bg-white dark:bg-slate-900/90 px-3 py-2 rounded-lg border border-slate-200/80 dark:border-slate-800">${escapeHtml(item.statement)}</p>`
+      : "";
     return `
-      <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 flex flex-col justify-between gap-2.5 min-w-0">
-        <div class="flex items-start justify-between gap-2.5">
-          <span class="text-[12.5px] sm:text-[13px] font-bold text-slate-800 dark:text-slate-100 leading-snug break-words whitespace-normal flex-1">${escapeHtml(item.title)}</span>
-          <span class="text-xs font-extrabold px-2.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shrink-0">
+      <div class="w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 flex flex-col gap-2 min-w-0">
+        <div class="w-full flex items-center justify-between gap-3">
+          <span class="text-xs sm:text-[13px] font-extrabold text-slate-900 dark:text-slate-100 leading-snug">${escapeHtml(item.heading)}</span>
+          <span class="text-xs font-extrabold px-2.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shrink-0 whitespace-nowrap">
             +${item.score.toFixed(1)} / ${item.max.toFixed(1)}M
           </span>
         </div>
+        ${statementHtml}
         <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
           <div class="h-full ${barColor} rounded-full transition-all duration-500" style="width: ${pct}%;"></div>
         </div>
-        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed break-words whitespace-normal">${formatHighlightedText(item.note)}</p>
+        <p class="w-full text-xs text-slate-700 dark:text-slate-300 leading-relaxed">${formatHighlightedText(item.note)}</p>
       </div>
     `;
   }).join("");
@@ -6532,21 +6552,19 @@ function renderBatch1ExaminerMastery(evalData) {
     const pageMatch = String(r.loc || "").match(/Page\s*(\d+)/i);
     const targetPage = r.page || (pageMatch ? parseInt(pageMatch[1], 10) : 1);
     return `
-      <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-1.5 min-w-0">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div class="flex flex-wrap items-center gap-1.5 min-w-0">
-            <button type="button" onclick="window.jumpToAnswerSheetPage(${targetPage})" title="Click to view Page ${targetPage} on Answer Sheet" class="text-[10.5px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 transition cursor-pointer shrink-0">
-              ${escapeHtml(r.loc)} ↗
-            </button>
-            <span class="text-xs font-extrabold text-slate-900 dark:text-slate-100 break-words">
-              ${escapeHtml(r.pointTitle)}
-            </span>
-          </div>
-          <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-md border ${badgeStyle} shrink-0">
+      <div class="w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-2 min-w-0">
+        <div class="w-full flex items-center justify-between gap-2">
+          <button type="button" onclick="window.jumpToAnswerSheetPage(${targetPage})" title="Click to view Page ${targetPage} on Answer Sheet" class="text-[10.5px] font-bold uppercase px-2.5 py-0.5 rounded bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 transition cursor-pointer shrink-0 whitespace-nowrap">
+            ${escapeHtml(r.loc)} ↗
+          </button>
+          <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-md border ${badgeStyle} shrink-0 whitespace-nowrap">
             ${escapeHtml(r.badge)}
           </span>
         </div>
-        <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed break-words">
+        <div class="w-full text-xs font-extrabold text-slate-900 dark:text-slate-100 leading-snug">
+          ${escapeHtml(r.pointTitle)}
+        </div>
+        <p class="w-full text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
           ${formatHighlightedText(r.detail)}
         </p>
       </div>
