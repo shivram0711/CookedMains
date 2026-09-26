@@ -5508,30 +5508,30 @@ function renderEvaluation(evalData) {
         bandJump.textContent = `${getBandName(prevScore, maxM)} → ${getBandName(currScore, maxM)}`;
       }
 
-      // 1. 5-Axis Section Recovery Breakdown
+      // 1. 5-Axis Section Recovery Breakdown (Spacious 2-Column Grid, Zero Truncation)
       if (sectionGrid) {
         sectionGrid.innerHTML = "";
         const prevR = prevEval.rubric_scores || {};
         const currR = evalData.rubric_scores || {};
 
         const sections = [
-          { label: "Introduction", prev: prevR.intro_score || 0, curr: currR.intro_score || 0 },
-          { label: "Core Demand", prev: prevR.core_demand_score || 0, curr: currR.core_demand_score || 0 },
-          { label: "Value Addition", prev: prevR.value_add_score || 0, curr: currR.value_add_score || 0 },
-          { label: "Presentation", prev: prevR.presentation_score || 0, curr: currR.presentation_score || 0 },
-          { label: "Conclusion", prev: prevR.conclusion_score || 0, curr: currR.conclusion_score || 0 }
+          { label: "1. Introduction", prev: prevR.intro_score || 0, curr: currR.intro_score || 0 },
+          { label: "2. Core Demand (Body)", prev: prevR.core_demand_score || 0, curr: currR.core_demand_score || 0 },
+          { label: "3. Value Addition", prev: prevR.value_add_score || 0, curr: currR.value_add_score || 0 },
+          { label: "4. Presentation & Visuals", prev: prevR.presentation_score || 0, curr: currR.presentation_score || 0 },
+          { label: "5. Conclusion & Way Forward", prev: prevR.conclusion_score || 0, curr: currR.conclusion_score || 0 }
         ];
 
-        sections.forEach(sec => {
+        sections.forEach((sec, idx) => {
           const sDelta = sec.curr - sec.prev;
           const chip = document.createElement("div");
-          chip.className = "p-2.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-1.5";
+          chip.className = `p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 ${idx === 4 ? 'sm:col-span-2' : ''}`;
           chip.innerHTML = `
-            <div class="min-w-0">
-              <span class="font-semibold text-slate-300 block text-[11px] truncate">${sec.label}</span>
-              <span class="text-[10px] text-slate-400 font-mono">${sec.prev.toFixed(1)} → <strong class="text-amber-300">${sec.curr.toFixed(1)}</strong></span>
+            <div>
+              <span class="font-bold text-slate-800 dark:text-slate-200 block text-xs">${sec.label}</span>
+              <span class="text-[11px] text-slate-600 dark:text-slate-400 font-mono">Draft 1: ${sec.prev.toFixed(1)}M → <strong class="text-emerald-700 dark:text-amber-300">Draft 2: ${sec.curr.toFixed(1)}M</strong></span>
             </div>
-            <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 ${sDelta > 0 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : sDelta < 0 ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-400'}">
+            <span class="text-[11px] font-mono font-extrabold px-2.5 py-1 rounded-lg shrink-0 ${sDelta > 0 ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30' : sDelta < 0 ? 'bg-rose-500/20 text-rose-800 dark:text-rose-300 border border-rose-500/30' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}">
               ${sDelta > 0 ? '+' : ''}${sDelta.toFixed(1)}M
             </span>
           `;
@@ -5539,7 +5539,7 @@ function renderEvaluation(evalData) {
         });
       }
 
-      // 2. Prescription Absorption Tracker (#rewriteAbsorptionGrid)
+      // 2. Prescription Absorption Tracker (#rewriteAbsorptionGrid — Full-Width Horizontal Cards)
       const absorbGrid = document.getElementById("rewriteAbsorptionGrid");
       const absorbBadge = document.getElementById("rewriteAbsorptionBadge");
       if (absorbBadge) {
@@ -5547,58 +5547,59 @@ function renderEvaluation(evalData) {
       }
       if (absorbGrid) {
         absorbGrid.innerHTML = `
-          <div class="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/35 space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300">✅ Absorbed &amp; Applied in Draft 2</span>
-              <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">${evo.absorbedList.length} Fixed</span>
+          <div class="p-3.5 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-500/35 space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-900 dark:text-emerald-300">✅ Absorbed &amp; Applied in Draft 2</span>
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-600 text-white dark:bg-emerald-500/20 dark:text-emerald-300">${evo.absorbedList.length} Fixed</span>
             </div>
-            <ul class="space-y-1 text-[11px] text-slate-200 leading-relaxed">
-              ${evo.absorbedList.map(item => `<li class="flex items-start space-x-1.5"><span class="text-emerald-400 font-bold shrink-0">✓</span><span>${formatHighlightedText(item)}</span></li>`).join("")}
+            <ul class="space-y-1.5 text-xs text-slate-800 dark:text-slate-200 leading-relaxed">
+              ${evo.absorbedList.map(item => `<li class="flex items-start space-x-2"><span class="text-emerald-600 dark:text-emerald-400 font-bold shrink-0">✓</span><span class="flex-1">${item}</span></li>`).join("")}
             </ul>
           </div>
-          <div class="p-3 rounded-xl bg-amber-950/25 border border-amber-500/30 space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-300">⚠️ Partial / Needs Deeper Linkage</span>
-              <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">${evo.partialList.length} Refine</span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div class="p-3.5 rounded-xl bg-amber-50/90 dark:bg-amber-950/25 border border-amber-300 dark:border-amber-500/30 space-y-2">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">⚠️ Partial / Refine Linkage</span>
+                <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-600 text-white dark:bg-amber-500/20 dark:text-amber-300">${evo.partialList.length} Refine</span>
+              </div>
+              <ul class="space-y-1.5 text-xs text-slate-800 dark:text-slate-200 leading-relaxed">
+                ${evo.partialList.map(item => `<li class="flex items-start space-x-2"><span class="text-amber-600 dark:text-amber-400 font-bold shrink-0">▪</span><span class="flex-1">${item}</span></li>`).join("")}
+              </ul>
             </div>
-            <ul class="space-y-1 text-[11px] text-slate-200 leading-relaxed">
-              ${evo.partialList.map(item => `<li class="flex items-start space-x-1.5"><span class="text-amber-400 font-bold shrink-0">▪</span><span>${formatHighlightedText(item)}</span></li>`).join("")}
-            </ul>
-          </div>
-          <div class="p-3 rounded-xl bg-rose-950/25 border border-rose-500/30 space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-extrabold uppercase tracking-wider text-rose-300">❌ Still Unclaimed from Draft 1</span>
-              <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300">${evo.stillMissedList.length} Remaining</span>
+            <div class="p-3.5 rounded-xl bg-rose-50/90 dark:bg-rose-950/25 border border-rose-300 dark:border-rose-500/30 space-y-2">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-rose-900 dark:text-rose-300">❌ Still Unclaimed from Draft 1</span>
+                <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-rose-600 text-white dark:bg-rose-500/20 dark:text-rose-300">${evo.stillMissedList.length} Remaining</span>
+              </div>
+              <ul class="space-y-1.5 text-xs text-slate-800 dark:text-slate-200 leading-relaxed">
+                ${evo.stillMissedList.map(item => `<li class="flex items-start space-x-2"><span class="text-rose-600 dark:text-rose-400 font-bold shrink-0">✗</span><span class="flex-1">${item}</span></li>`).join("")}
+              </ul>
             </div>
-            <ul class="space-y-1 text-[11px] text-slate-200 leading-relaxed">
-              ${evo.stillMissedList.map(item => `<li class="flex items-start space-x-1.5"><span class="text-rose-400 font-bold shrink-0">✗</span><span>${formatHighlightedText(item)}</span></li>`).join("")}
-            </ul>
           </div>
         `;
       }
 
-      // 3. Self-vs-Self Sentence Evolution (#rewriteSentenceDiffGrid)
+      // 3. Self-vs-Self Sentence Evolution (#rewriteSentenceDiffGrid — Full-Width Section Cards with 2-Col Comparison)
       const diffGrid = document.getElementById("rewriteSentenceDiffGrid");
       if (diffGrid) {
         diffGrid.innerHTML = evo.sectionDiffs.map(d => `
-          <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-col justify-between space-y-2.5">
-            <div class="space-y-2">
-              <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                <span class="text-[10px] font-extrabold uppercase tracking-wider text-white">${d.sectionTitle}</span>
-                <span class="text-[10px] font-mono font-bold text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/30">${d.scoreJump}</span>
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2.5">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-white">${d.sectionTitle}</span>
+              <span class="text-[11px] font-mono font-extrabold text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 px-2.5 py-0.5 rounded-md border border-emerald-500/30">${d.scoreJump}</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div class="p-3 rounded-lg bg-rose-50/90 dark:bg-rose-950/25 border border-rose-200 dark:border-rose-500/25">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-rose-800 dark:text-rose-300 block mb-1">🔴 Your Draft 1 Baseline:</span>
+                <p class="text-xs text-slate-800 dark:text-slate-200 leading-relaxed">${d.draft1Text}</p>
               </div>
-              <div class="p-2 rounded-lg bg-rose-950/25 border border-rose-500/25">
-                <span class="text-[9px] font-extrabold uppercase tracking-wider text-rose-300 block mb-0.5">🔴 Your Draft 1 Baseline:</span>
-                <p class="text-[11px] text-slate-300 leading-relaxed">${formatHighlightedText(d.draft1Text)}</p>
-              </div>
-              <div class="p-2 rounded-lg bg-emerald-950/30 border border-emerald-500/30">
-                <span class="text-[9px] font-extrabold uppercase tracking-wider text-emerald-300 block mb-0.5">🟢 Your Draft 2 Upgrade:</span>
-                <p class="text-[11px] text-slate-100 leading-relaxed">${formatHighlightedText(d.draft2Text)}</p>
+              <div class="p-3 rounded-lg bg-emerald-50/90 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-500/30">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 block mb-1">🟢 Your Draft 2 Upgrade:</span>
+                <p class="text-xs text-slate-900 dark:text-slate-100 leading-relaxed">${d.draft2Text}</p>
               </div>
             </div>
-            <div class="pt-1.5 border-t border-slate-800/80 flex items-start space-x-1.5 text-[10.5px] text-amber-300">
-              <span class="font-bold shrink-0">⚡ Skill Unlocked:</span>
-              <span class="text-slate-200">${formatHighlightedText(d.skillUnlocked)}</span>
+            <div class="p-2.5 rounded-lg bg-amber-50/90 dark:bg-slate-950 border border-amber-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 leading-relaxed">
+              <strong class="text-amber-800 dark:text-amber-300 font-extrabold">⚡ Skill Unlocked:</strong> ${d.skillUnlocked}
             </div>
           </div>
         `).join("");
@@ -5608,16 +5609,16 @@ function renderEvaluation(evalData) {
       const tradeoffBox = document.getElementById("rewriteTradeoffBox");
       if (tradeoffBox) {
         tradeoffBox.innerHTML = `
-          <div class="flex items-center justify-between pb-1.5 border-b border-amber-500/20">
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-300 flex items-center space-x-1.5">
-              <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-amber-400"></i>
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-amber-500/25">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300 flex items-center space-x-1.5">
+              <i data-lucide="shield-alert" class="w-4 h-4 text-amber-600 dark:text-amber-400"></i>
               <span>4. Exam-Hall Trade-Off &amp; Pacing Audit</span>
             </span>
-            <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">${evo.tradeoffStatusBadge}</span>
+            <span class="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-md bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-500/30">${evo.tradeoffStatusBadge}</span>
           </div>
-          <p class="text-[11px] text-slate-200 leading-relaxed">${formatHighlightedText(evo.tradeoffAnalysis)}</p>
-          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800 text-[10.5px] text-cyan-200">
-            <strong class="text-cyan-300">Exam-Hall Calibration Tip:</strong> ${formatHighlightedText(evo.examPacingTip)}
+          <p class="text-xs text-slate-800 dark:text-slate-200 leading-relaxed">${evo.tradeoffAnalysis}</p>
+          <div class="p-3 rounded-lg bg-cyan-50/90 dark:bg-slate-900 border border-cyan-300 dark:border-slate-800 text-xs text-slate-800 dark:text-cyan-100 leading-relaxed">
+            <strong class="text-cyan-900 dark:text-cyan-300 font-extrabold">Exam-Hall Calibration Tip:</strong> ${evo.examPacingTip}
           </div>
         `;
       }
@@ -5626,17 +5627,17 @@ function renderEvaluation(evalData) {
       const flashcardBox = document.getElementById("rewriteRevisionFlashcard");
       if (flashcardBox) {
         flashcardBox.innerHTML = `
-          <div class="flex items-center justify-between pb-1.5 border-b border-emerald-500/25">
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300 flex items-center space-x-1.5">
-              <i data-lucide="zap" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-emerald-500/25">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-900 dark:text-emerald-300 flex items-center space-x-1.5">
+              <i data-lucide="zap" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
               <span>5. 30-Second Mains Revision Flashcard (Locked Takeaway)</span>
             </span>
-            <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Quick Recall</span>
+            <span class="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-900 dark:text-emerald-300 border border-emerald-500/30">Quick Recall</span>
           </div>
-          <div class="space-y-1.5 text-[11px]">
-            <div><span class="text-amber-300 font-bold">▪ Winning Intro Hook:</span> <span class="text-slate-200">${formatHighlightedText(evo.flashcardIntro)}</span></div>
-            <div><span class="text-emerald-300 font-bold">▪ Anchor Keywords Mastered:</span> <span class="text-slate-200 font-mono text-[10.5px]">${evo.flashcardKeywords.join(" • ")}</span></div>
-            <div><span class="text-cyan-300 font-bold">▪ Way-Forward Closure:</span> <span class="text-slate-200">${formatHighlightedText(evo.flashcardConclusion)}</span></div>
+          <div class="space-y-2 text-xs leading-relaxed">
+            <div class="text-slate-800 dark:text-slate-200"><strong class="text-amber-800 dark:text-amber-300 font-extrabold">▪ Winning Intro Hook:</strong> ${evo.flashcardIntro}</div>
+            <div class="text-slate-800 dark:text-slate-200"><strong class="text-emerald-800 dark:text-emerald-300 font-extrabold">▪ Anchor Keywords Mastered:</strong> <span class="font-mono text-[11px] bg-emerald-500/10 px-1.5 py-0.5 rounded">${evo.flashcardKeywords.join(" • ")}</span></div>
+            <div class="text-slate-800 dark:text-slate-200"><strong class="text-cyan-800 dark:text-cyan-300 font-extrabold">▪ Way-Forward Closure:</strong> ${evo.flashcardConclusion}</div>
           </div>
         `;
       }
@@ -6183,7 +6184,7 @@ function renderEvaluation(evalData) {
       diagBadge.className = diagProfile.badgeClass;
     }
     if (diagAdviceBox) {
-      diagAdviceBox.innerHTML = `<span class="font-bold text-slate-100">${diagProfile.adviceTitle}:</span> ${diagProfile.spaceAdvice}`;
+      diagAdviceBox.innerHTML = `<strong class="font-extrabold text-slate-900 dark:text-white">${diagProfile.adviceTitle}:</strong> ${diagProfile.spaceAdvice}`;
       diagAdviceBox.className = diagProfile.adviceBoxClass;
     }
     if (caDiagTitle) caDiagTitle.textContent = diagProfile.conceptTitle;
@@ -7781,6 +7782,11 @@ window.computeRewriteEvolutionAnalysis = function(currEval, prevEval, maxMarks) 
     });
   }
 
+  const cleanInline = (s) => String(s || "")
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900 dark:text-white">$1</strong>')
+    .replace(/^[✓✔✎✗×]\s*/, "")
+    .trim();
+
   const absorbedList = [];
   const partialList = [];
   const stillMissedList = [];
@@ -7789,18 +7795,18 @@ window.computeRewriteEvolutionAnalysis = function(currEval, prevEval, maxMarks) 
     const keyTokens = item.toLowerCase().split(/[\s,()/:;-]+/).filter(t => t.length >= 4);
     const matchedTokens = keyTokens.filter(t => currCorpus.includes(t));
     if (matchedTokens.length >= Math.min(2, keyTokens.length) || (keyTokens[0] && currCorpus.includes(keyTokens[0]))) {
-      absorbedList.push(`Incorporated **${item}** into Draft 2 argument flow`);
+      absorbedList.push(`Incorporated <strong class="font-bold text-emerald-900 dark:text-emerald-300">${item}</strong> into Draft 2 argument flow`);
     } else if (idx % 2 === 0 && partialList.length < 2) {
-      partialList.push(`Link **${item}** directly with a 1-line outcome/metric`);
+      partialList.push(`Link <strong class="font-bold text-amber-900 dark:text-amber-300">${item}</strong> directly with a 1-line outcome/metric`);
     } else if (stillMissedList.length < 3) {
-      stillMissedList.push(`Unclaimed from Draft 1: **${item}**`);
+      stillMissedList.push(`Unclaimed from Draft 1: <strong class="font-bold text-rose-900 dark:text-rose-300">${item}</strong>`);
     }
   });
 
   // Enrich with actual Draft 2 verified strengths & remaining weaknesses
   const currBodyStrengths = (curr.body_audit?.strengths || curr.section_by_section_audit?.body_audit?.strengths || []);
   currBodyStrengths.slice(0, 3).forEach(s => {
-    const cleanS = String(s).replace(/^[✓✔✎✗×]\s*/, "").trim();
+    const cleanS = cleanInline(s);
     if (cleanS && absorbedList.length < 3 && !absorbedList.some(a => a.includes(cleanS.slice(0, 18)))) {
       absorbedList.push(cleanS);
     }
@@ -7808,7 +7814,7 @@ window.computeRewriteEvolutionAnalysis = function(currEval, prevEval, maxMarks) 
 
   const currBodyWeaknesses = (curr.body_audit?.weaknesses || curr.section_by_section_audit?.body_audit?.weaknesses || []);
   currBodyWeaknesses.slice(0, 2).forEach(w => {
-    const cleanW = String(w).replace(/^[✓✔✎✗×]\s*/, "").trim();
+    const cleanW = cleanInline(w);
     if (cleanW && partialList.length < 2) {
       partialList.push(cleanW);
     }
@@ -7818,7 +7824,7 @@ window.computeRewriteEvolutionAnalysis = function(currEval, prevEval, maxMarks) 
     curr.missing_keywords_cards.slice(0, 2).forEach(c => {
       const kw = String(c?.keyword || c?.title || "").trim();
       if (kw && stillMissedList.length < 2) {
-        stillMissedList.push(`Add **${kw}** for Top-1% substantiation`);
+        stillMissedList.push(`Add <strong class="font-bold text-rose-900 dark:text-rose-300">${kw}</strong> for Top-1% substantiation`);
       }
     });
   }
@@ -7840,14 +7846,16 @@ window.computeRewriteEvolutionAnalysis = function(currEval, prevEval, maxMarks) 
   // 2. Exam-Hall Realism & Anti-Rote Word Budget Check
   const wordRatio = currWords / targetWords;
   let realismBadgeText = "✓ True Topper Compression";
-  let realismBadgeClass = "text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+  let realismBadgeClass = "text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40";
   let realismShortLabel = "Within Exam Word Limit";
-  let realismSummary = `You increased your score density from ${prevDensity}M to ${currDensity}M per 25 words while staying within the ${targetWords}-word UPSC booklet budget.`;
+  let realismSummary = Number(currDensity) >= Number(prevDensity)
+    ? `You increased your score density from ${prevDensity}M to ${currDensity}M per 25 words while staying within the ${targetWords}-word UPSC booklet budget.`
+    : `Your total marks improved (${prevScore.toFixed(1)} → ${currScore.toFixed(1)}) within the ${targetWords}-word limit (${prevWords}w → ${currWords}w). Tightening filler phrasing will boost per-word density (${prevDensity}M → ${currDensity}M / 25w) even higher.`;
 
   if (wordRatio > 1.18) {
     const excessWords = currWords - targetWords;
     realismBadgeText = `⚠ +${excessWords}w Over Exam Budget`;
-    realismBadgeClass = "text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40";
+    realismBadgeClass = "text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/40";
     realismShortLabel = `Trim ~${excessWords} Words for 7-Min Pace`;
     realismSummary = `Score improved, but Draft 2 reached ~${currWords} words (target ${targetWords}w). In the exam hall, compress filler verbs to keep this same density inside ${targetWords} words.`;
   } else if (Number(currDensity) > Number(prevDensity)) {

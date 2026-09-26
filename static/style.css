@@ -1349,6 +1349,7 @@ html:not(.dark) header {
 }
 
 html:not(.dark) .bg-slate-900,
+html:not(.dark) .bg-slate-900\/95,
 html:not(.dark) .bg-slate-900\/90,
 html:not(.dark) .bg-slate-900\/80,
 html:not(.dark) .bg-slate-850 {
@@ -1361,7 +1362,9 @@ html:not(.dark) .bg-slate-850 {
 html:not(.dark) .bg-slate-950,
 html:not(.dark) .bg-slate-950\/60,
 html:not(.dark) .bg-slate-950\/70,
-html:not(.dark) .bg-slate-950\/80 {
+html:not(.dark) .bg-slate-950\/75,
+html:not(.dark) .bg-slate-950\/80,
+html:not(.dark) .bg-slate-950\/85 {
   background-color: #F7F5F0 !important;
   border-color: #E5E0D8 !important;
   color: #1E293B !important;
