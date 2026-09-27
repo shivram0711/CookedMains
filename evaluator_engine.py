@@ -1153,6 +1153,14 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
          - Set `"relevance_verdict": "NOT_NEEDED_SAVE_SPACE"`.
          - Explicitly tell the student in `"space_utilization_advice"`: `"No diagram is needed for this question. Save your 2-page booklet space for 2 extra substantiated points with Constitutional Articles, Supreme Court Judgments, and boxed sub-headings."`
 
+23. SUBJECT-EXPERT DOMAIN PRECISION & ZERO-BOILERPLATE MANDATE ACROSS EVERY SECTION (NON-NEGOTIABLE):
+    - Every aspirant must experience an evaluation that feels hand-checked by a senior UPSC Subject-Matter Expert (`GS-1 Historian/Geographer/Sociologist`, `GS-2 Constitutional Jurist/Diplomacy Scholar`, `GS-3 Economist/Agricultural Scientist/Technologist/Security Analyst`, `GS-4 Ethics & Public Administration Faculty`).
+    - ZERO REPETITIVE OR GENERIC FILLER ACROSS ALL SECTIONS:
+      * **Section 1 (`subpart_marks_breakdown` & `executive_summary`)**: Never write generic praise like `"Good attempt with structured points"`. Always quote the exact sub-part demand of the question, the exact points/examples written on the candidate's sheet, and the exact marks awarded out of the sub-part maximum.
+      * **Section 2 (`intro_audit`)**: Supply a `model_intro_rewrite` that opens with an authentic definition, constitutional article, statutory anchor, or official survey metric specific to THAT exact question (never a generic paraphrase of the prompt).
+      * **Section 3 (`body_audit`, `missing_keywords_cards`, `value_add_checklist`, `current_affairs_value_add`)**: Every recommended keyword, committee report, judgment, or scheme MUST belong 100% to the sub-topic of the question (e.g., APEDA/MIDH/Dalwai Committee for Horticulture; NSO/CWS-US/SCES/ILO for PLFS; ANRF/TRL-9/NDTSP/GFR-173 for Deep-Tech; Art 13/50/Kesavananda/NJAC for Judicial Review). Never reuse the same default schemes, committees, or case laws across unrelated questions.
+      * **Section 4 (`conclusion_audit` & `full_model_answer` closing)**: Every conclusion MUST synthesize the specific institutional, constitutional, or policy mechanism of THAT question—never end every answer with a mechanical `"Viksit Bharat @2047"` or `"by 2047"` catchphrase.
+
 Generate strictly valid JSON matching this schema:
 {{
   "detected_question": "Exact question read from booklet header or provided by user",
