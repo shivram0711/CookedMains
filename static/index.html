@@ -836,10 +836,10 @@
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
             <span class="hidden md:inline">24h Rewrite</span>
           </button>
-          <div id="studioRewriteCompletedBadge" class="hidden px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-semibold text-xs flex items-center space-x-1 sm:space-x-1.5 shadow-sm shrink-0" title="24-Hour Rewrite Completed (1 of 1 Used)">
-            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-500"></i>
-            <span class="hidden sm:inline">Rewrite Evaluated (1/1)</span>
-          </div>
+          <button id="studioRewriteCompletedBadge" type="button" onclick="window.openRewriteEvolutionLab()" class="hidden px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center space-x-1.5 shadow-sm shrink-0 cursor-pointer transition" title="Click to view your Draft 1 vs. Draft 2 Rewrite Comparison (1 of 1 Credit Used)">
+            <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"></i>
+            <span class="hidden sm:inline">📈 Rewrite Comparison (1/1)</span>
+          </button>
         </div>
       </div>
 
@@ -1599,7 +1599,7 @@
 
                 <div class="p-3 rounded-xl bg-amber-50/70 dark:bg-slate-900 border border-amber-200 dark:border-amber-500/20 space-y-1">
                   <div class="flex items-center justify-between text-[11px] font-bold text-amber-700 dark:text-amber-400">
-                    <span>Topper Model Closing Line (Keyword &amp; National Goal):</span>
+                    <span>Topper Model Closing Line (Question-Specific Synthesis &amp; Institutional Anchor):</span>
                     <button onclick="copyModelConclusion()" class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center space-x-1 text-[10px] cursor-pointer">
                       <i data-lucide="copy" class="w-3 h-3"></i>
                       <span>Copy</span>
@@ -1666,15 +1666,15 @@
                       <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"></i>
                       <span>24-Hour Free Rewrite Completed</span>
                     </h4>
-                    <span class="text-[9px] bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/40 font-mono font-bold">1 of 1 Used</span>
+                    <span class="text-[9px] bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/40 font-mono font-bold">1 of 1 Credit Used</span>
                   </div>
                   <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed">
-                    You have successfully re-evaluated your revised answer copy for this question. Single re-evaluation limit reached.
+                    You have already evaluated your revised Draft 2 copy for this question. Your full <strong class="text-emerald-700 dark:text-emerald-300">Draft 1 vs. Draft 2 Comparison Lab</strong> is permanently unlocked below.
                   </p>
                 </div>
-                <button type="button" onclick="window.switchStudioTab('audit')" class="shrink-0 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition flex items-center space-x-1.5 cursor-pointer">
+                <button type="button" onclick="document.getElementById('rewriteComparisonCard')?.scrollIntoView({behavior:'smooth', block:'start'})" class="shrink-0 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition flex items-center space-x-1.5 cursor-pointer">
                   <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
-                  <span>View Marks Recovery</span>
+                  <span>📈 View Draft 1 vs. Draft 2 Comparison</span>
                 </button>
               </div>
 
@@ -3324,7 +3324,7 @@
 
   </div>
 
-  <script src="/static/app.js?v=6.1"></script>
+  <script src="/static/app.js?v=6.3"></script>
   <script>
     if (window.lucide) {
       try { lucide.createIcons(); } catch(e) {}

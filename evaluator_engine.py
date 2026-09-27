@@ -1071,9 +1071,14 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
     - Never write a circular introduction that merely repeats or paraphrases the prompt's words (e.g. defining compassion as "compassion is feeling pain and acting on it" when the question already stated that).
     - Flag circular introductions in "intro_audit", penalize "intro_score", and supply a data-backed, constitutional, or conceptual model opening.
 
-18. FUTURISTIC NATIONAL GOAL CONCLUSIONS:
-    - Even when a question only asks for issues or challenges, concluding on negative problems leaves an incomplete, cynical impression.
-    - Conclude on an uplifting, constructive note aligned with long-term national frameworks: Viksit Bharat @2047, Net Zero 2070 (Panchamrit), UN SDGs 2030, Antyodaya, or Amrit Kaal.
+18. QUESTION-SPECIFIC, DOMAIN-AUTHENTIC CONCLUSIONS (STRICT BAN ON REPETITIVE 'VIKSIT BHARAT @2047' CLICHÉS):
+    - NEVER end every answer with `"Viksit Bharat @2047"`, `"by 2047"`, or `"Amrit Kaal"`! Ending Polity, Judiciary, Labour Survey, Agriculture, Science-Tech, and Ethics answers with `"Viksit Bharat @2047"` is a mechanical template cliché that real UPSC examiners penalize.
+    - Every `model_conclusion_rewrite` MUST be 100% tailored to the specific question's core subject, institutional mechanism, or constitutional/committee doctrine:
+      * For **GS-2 Polity & Judiciary**: Conclude with **Constitutional Morality**, **Institutional Comity (Article 50)**, **Granville Austin's 'Seamless Web'**, or **Checks and Balances**.
+      * For **GS-3 Agriculture & Allied (e.g., Floriculture)**: Conclude with **Ashok Dalwai Committee (Doubling Farmers' Income)**, **APEDA Cold-Chain Corridors**, and **Plough-to-Port Export Value-Addition**.
+      * For **GS-3 Labour & Employment (e.g., PLFS)**: Conclude with **ILO Labour Statistics Standards**, **Standing Committee on Economic Statistics (SCES)** reforms, and **Evidence-Based Transition to Decent Formal Work (SDG-8)**.
+      * For **GS-3 Science & Deep-Tech Startups**: Conclude with **ANRF Patient Capital**, **Bridging the TRL 4–9 'Valley of Death'**, and **Sovereign IP Commercialization**.
+      * For **GS-4 Ethics**: Conclude with **2nd ARC 'Ethics in Governance'**, **Gandhian Sarvodaya/Trusteeship**, or **Constitutional Compassion**.
 
 19. POINT-BY-POINT VERBATIM AUDIT, VISUAL EXAMINER-ATTENTION DETECTION & ANTI-GENERIC GRADING (ZERO TRUST DEFICIT MANDATE):
     - Every candidate's handwritten sheet must be audited for the EXACT points written and the VISUAL highlighting techniques used to catch the UPSC examiner's eye:
@@ -1129,7 +1134,7 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
         - If the candidate wrote a simple, generic 1-line closing sentence without topic-specific keywords, schemes, or metrics (e.g., *"Thus, there is a need for holistic development on part of government and society"*, *"Hence, government should take steps for inclusive growth"*, or *"This is the need of the hour"*):
           1. Award **ONLY `0.5` out of `2.0` (or `0.5 / 1.5` for 10M)** in `rubric_scores.conclusion_score` and in the `Conclusion` margin card (`"+0.5 / 2.0"`). NEVER award `1.5 / 2.0` to a generic conclusion that lacks keywords!
           2. Quote the candidate's actual generic words in `conclusion_audit.current_critique` and the `Conclusion` margin card:
-             `"✗ **Too General (No Keywords)**: You wrote 'Thus, there is a need for holistic development on part of government and society', which has no topic keywords and can fit any answer (only +0.5/2.0 mark).\n✎ **How to Get Full Marks Here**: Mention 1–2 topic keywords in your last line (e.g., shifting India to a **deep-tech product nation** under **Viksit Bharat @2047**)."`
+             `"✗ **Too General (No Keywords)**: You wrote 'Thus, there is a need for holistic development on part of government and society', which has no topic keywords and can fit any answer (only +0.5/2.0 mark).\n✎ **How to Get Full Marks Here**: Mention 1–2 topic-specific keywords and the core institutional/committee anchor in your last line (NEVER use a generic 'Viksit Bharat @2047' slogan)."`
         - NEVER use heavy, confusing AI phrases like `"Visionary Synthesis"`, `"Constructive Synthesis"`, `"Empirical Substantiation"`, `"Contextual Premise"`, or `"Lexical"`. Always write every card heading and remark in simple, clear English (`"Too General (No Keywords)"`, `"Good Closing Line"`, `"How to Get Full Marks Here"`).
 
 22. DYNAMIC DIAGRAM RELEVANCE & EXAM-HALL SPACE UTILISATION AUDIT (CRITICAL):
@@ -1516,8 +1521,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                         c_rem = str(conc_ann.get("remark", ""))
                         if re.search(r'(?i)(flowchart|schematic|diagram|anrf|vaibhav|strategies)', c_rem):
                             new_body_rem = c_rem
-                            c_crit = str(conc_audit_obj.get("current_critique") or "**Visionary Synthesis**: Forward-looking concluding synthesis.")
-                            c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "Anchor with **Viksit Bharat @2047** & sustainable national targets.")
+                            c_crit = str(conc_audit_obj.get("current_critique") or "**Good Closing Line**: Balanced concluding synthesis.")
+                            c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "Anchor closing sentence with topic-specific institutional and policy reforms.")
                             conc_ann["remark"] = f"{_fmt_bullet(c_crit, '✓')}\n✎ **Topper Finish**: {c_rew[:120]}"
                             expanded_anns.append({
                                 "page": pg,
@@ -2059,10 +2064,59 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
                 "awarded": conc_aw,
                 "max": conc_max,
                 "quoted_written": str(conc_audit.get("current_critique") or "Concluded with a balanced synthesis."),
-                "step_up_lever": str(conc_audit.get("model_conclusion_rewrite") or "Connect the closing sentence to Viksit Bharat @2047 / SDG / Constitutional vision.")
+                "step_up_lever": str(conc_audit.get("model_conclusion_rewrite") or "Anchor the closing sentence in the core institutional mechanism, committee recommendation, or constitutional principle of the question.")
             }
         ]
 
+
+
+def _build_domain_specific_conclusion(question_text: str, paper_name: str, existing_text: str = "") -> str:
+    q_low = f"{question_text} {existing_text}".lower()
+    p_up = str(paper_name or "").upper()
+    if "floriculture" in q_low or ("agri" in q_low and "export" in q_low):
+        return (
+            "Operationalizing **APEDA's cold-chain corridors**, **MIDH protected-cultivation clusters**, and **phyto-sanitary certification** "
+            "will realize the **Ashok Dalwai Committee's** vision—turning Indian floriculture into a high-margin **plough-to-port income multiplier** for smallholder farmers."
+        )
+    if "plfs" in q_low or "periodic labour force" in q_low:
+        return (
+            "Integrating **PLFS high-frequency CWS/US labour telemetry** with **e-Shram** and **National Career Service (NCS)** databases "
+            "will align India's workforce metrics with **ILO decent-work standards (SDG-8)**—shifting policy focus from headline employment counts to **formal wage quality and productive female workforce participation**."
+        )
+    if "deep-tech" in q_low or "deep tech" in q_low or "startup" in q_low:
+        return (
+            "Operationalizing the **Rs 1 Lakh Crore ANRF R&D Fund** alongside **patient risk capital** and **GFR Rule 173 domestic procurement** "
+            "will bridge the **'Valley of Death' (TRL 4–9)**—transforming Indian startups from service-delivery platforms into **globally competitive sovereign IP creators**."
+        )
+    if "supremacy of the constitution" in q_low or "judicial review" in q_low or "njac" in q_low:
+        return (
+            "Harmonizing **Article 13** judicial review with **Article 50** separation of powers ensures that **Constitutional Supremacy** thrives through "
+            "**mutual institutional comity** and **constitutional morality**, preserving what **Granville Austin** termed the Constitution's 'seamless web' of checks and balances."
+        )
+    if "criminal" in q_low and ("politic" in q_low or "rpa" in q_low):
+        return (
+            "Fast-tracking special MP/MLA courts alongside statutory **inner-party democracy (Law Commission 255th Report)** and **state funding reforms (Indrajit Gupta Committee)** "
+            "is essential to cleanse the legislature and uphold the **purity of the ballot under Article 324**."
+        )
+    if "GS2" in p_up or "POLITY" in p_up:
+        return (
+            "Harmonizing **constitutional morality** with **institutional accountability (2nd ARC)** ensures that democratic governance delivers "
+            "both **substantive justice** and **cooperative federalism**."
+        )
+    if "GS4" in p_up or "ETHICS" in p_up:
+        return (
+            "Anchoring public administration in **Nishkama Karma**, **2nd ARC 'Ethics in Governance' norms**, and **Gandhian Antyodaya** "
+            "transforms civil servants from mere rule-enforcers into **compassionate trustees of public welfare**."
+        )
+    if "GS1" in p_up:
+        return (
+            "Synthesizing **community-led resilience**, **spatial equity**, and **composite cultural preservation** ensures sustainable social transformation "
+            "rooted in constitutional fraternity."
+        )
+    return (
+        "Integrating **evidence-based institutional reforms**, **last-mile capacity building**, and **outcome-linked fiscal governance** "
+        "will translate policy intent into durable, equitable structural transformation."
+    )
 
 
 def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
@@ -2071,6 +2125,7 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
     1. No 'missing' / 'upgrade lever' critique ever claims the student failed to cite a case/article/term
        that is already present in transcribed_text, body_audit.strengths, or positive ✓ margin remarks.
     2. Stiff, robotic jargon is simplified into clear, appreciative, actionable UPSC Mentor English.
+    3. Repetitive 'Viksit Bharat @2047' / 'by 2047' conclusion clichés are replaced with question-specific syntheses.
     """
     if not isinstance(data, dict):
         return
@@ -2143,6 +2198,17 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
         body_audit["critical_gaps"] = deduped_gaps[:2]
         data["body_audit"] = body_audit
 
+    q_str = str(data.get("detected_question") or data.get("question") or "")
+    p_str = str(data.get("detected_paper") or data.get("paper") or "GS2")
+    c_audit = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
+    domain_conc = _build_domain_specific_conclusion(q_str, p_str, str(c_audit.get("model_conclusion_rewrite") or ""))
+
+    # Sanitize repetitive Viksit Bharat @2047 / by 2047 endings from model_conclusion_rewrite
+    raw_model_conc = str(c_audit.get("model_conclusion_rewrite") or "")
+    if not raw_model_conc or re.search(r'(?i)(viksit\s*bharat|@\s*2047|by\s*2047)', raw_model_conc):
+        c_audit["model_conclusion_rewrite"] = domain_conc
+        data["conclusion_audit"] = c_audit
+
     # Strict Generic Conclusion Audit: If the candidate wrote a generic 1-line ending (e.g. 'holistic development on part of government and society'),
     # award only 0.5 marks in conclusion_score and give simple, honest feedback.
     trans_low = str(data.get("transcribed_text") or "").lower()
@@ -2162,11 +2228,11 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
             rubric_d["conclusion_score"] = 0.5
             rubric_d["core_demand_score"] = round(float(rubric_d.get("core_demand_score", 2.0) or 2.0) + delta_c, 2)
             data["rubric_scores"] = rubric_d
-        c_audit = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
         c_audit["current_critique"] = (
             "✗ **Too General (+0.5M Only)**: Your closing line (*'need for holistic development on part of government and society'*) "
-            "has no topic keywords and can fit any answer. Mention 1–2 topic keywords and a national goal (**Viksit Bharat @2047**) to get full marks."
+            "has no topic keywords and can fit any answer. Mention 1–2 topic-specific keywords and the core institutional/committee anchor to get full marks."
         )
+        c_audit["model_conclusion_rewrite"] = domain_conc
         data["conclusion_audit"] = c_audit
         for ann in anns_list:
             t_low = str(ann.get("tag") or "").lower()
@@ -2177,7 +2243,7 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                 ann["remark"] = (
                     "✗ **Too General (No Topic Keywords)**: You ended with **'Thus, there is a need for holistic development on part of government and society'**, "
                     "which has no topic keywords and can fit any question (fetches only +0.5 mark).\n"
-                    "✎ **How to Score Full Marks Here**: Write 1–2 topic keywords in your last line (e.g., shifting India to a **deep-tech product nation** under **Viksit Bharat @2047**)."
+                    f"✎ **How to Score Full Marks Here**: {domain_conc}"
                 )
 
     # Check if student wrote 'Limitations' / 'Challenges' without a 'Way Forward' section
