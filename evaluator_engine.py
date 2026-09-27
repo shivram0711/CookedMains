@@ -2457,7 +2457,7 @@ async def evaluate_with_gemini(
             "gemini-2.0-flash-lite",
             "gemini-flash-latest",
             "gemini-flash-lite-latest",
-            "gemini-1.5-flash"
+            "gemini-2.5-pro"
         ]
 
         config = types.GenerateContentConfig(
@@ -2468,6 +2468,7 @@ async def evaluate_with_gemini(
             response_mime_type="application/json"
         )
 
+        primary_err = None
         last_err = None
         for current_key in keys_to_try:
             try:
@@ -2491,13 +2492,15 @@ async def evaluate_with_gemini(
                             if isinstance(parsed_dict, dict) and len(parsed_dict) > 0:
                                 return parsed_dict
                     except Exception as e:
-                        last_err = e
                         err_str = str(e).lower()
+                        if "404" not in err_str and "not_found" not in err_str and primary_err is None:
+                            primary_err = e
+                        last_err = e
                         if any(t in err_str for t in ["api_key_invalid", "api key not valid", "unauthenticated", "permission_denied", "access_token_type_unsupported"]):
                             failed_auth = True
                             break
                         if any(t in err_str for t in ["429", "resource_exhausted", "quota", "503", "unavailable", "overloaded"]) and attempt == 0:
-                            time.sleep(0.8)
+                            time.sleep(1.5)
                             continue
                         break
                 if failed_auth:
@@ -2514,7 +2517,7 @@ async def evaluate_with_gemini(
                         if (
                             mod_name not in candidate_models
                             and ("flash" in mod_name or "pro" in mod_name)
-                            and not any(bad in mod_name for bad in ["preview", "research", "tts", "audio", "customtools", "image-preview", "er-2", "computer-use", "lyria", "gemma"])
+                            and not any(bad in mod_name for bad in ["1.5", "preview", "research", "tts", "audio", "customtools", "image-preview", "er-2", "computer-use", "lyria", "gemma"])
                         ):
                             try:
                                 response = client.models.generate_content(
@@ -2527,12 +2530,12 @@ async def evaluate_with_gemini(
                                     if isinstance(parsed_dict, dict) and len(parsed_dict) > 0:
                                         return parsed_dict
                             except Exception as de:
-                                if "Interactions" not in str(de):
+                                if "Interactions" not in str(de) and "404" not in str(de).lower():
                                     last_err = de
             except Exception:
                 pass
 
-        raise RuntimeError(f"Could not evaluate with available Gemini models. Last error: {last_err}")
+        raise RuntimeError(f"Could not evaluate with available Gemini models. Last error: {primary_err or last_err}")
 
     async with _GEMINI_EVAL_SEMAPHORE:
         data = await asyncio.to_thread(_sync_call)

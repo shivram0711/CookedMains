@@ -1413,8 +1413,9 @@ async def evaluate_answer(
                     }
             raise HTTPException(status_code=400, detail=f"Sample copy '{sample_id}' not found.")
 
-        # Ingest uploaded answer copy without heavy in-memory rasterization
+        # Ingest uploaded answer copy with automatic mobile image & PDF page normalization
         uploaded_page_previews: List[str] = []
+        multimodal_parts: List[Any] = []
         file_hashes: List[str] = []
         submission_hash: Optional[str] = None
         primary_content: Optional[bytes] = None
@@ -1422,38 +1423,68 @@ async def evaluate_answer(
         is_pdf = False
 
         if files and len(files) > 0 and files[0].filename != "":
+            from PIL import ImageOps
             for file in files:
                 content = await file.read()
                 if not content:
                     continue
                 filename = (file.filename or "").lower()
+                ctype = (file.content_type or "").lower()
                 file_hashes.append(hashlib.sha256(content).hexdigest())
 
+                file_is_pdf = filename.endswith(".pdf") or "pdf" in ctype or content[:4] == b"%PDF"
                 if not primary_content:
                     primary_content = content
                     primary_filename = filename
-                    is_pdf = filename.endswith(".pdf") or "pdf" in (file.content_type or "").lower()
+                    is_pdf = file_is_pdf
 
-                if filename.endswith(".pdf"):
+                if file_is_pdf:
+                    pdf_pages_added = 0
                     try:
                         import pypdfium2 as pdfium
                         pdf = pdfium.PdfDocument(content)
                         for page in pdf:
-                            pil_img = page.render(scale=1.2).to_pil().convert("RGB")
+                            pil_img = page.render(scale=1.4).to_pil().convert("RGB")
+                            if max(pil_img.size) > 1500:
+                                pil_img.thumbnail((1500, 1500))
                             buf = io.BytesIO()
-                            pil_img.save(buf, format="JPEG", quality=75)
-                            b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+                            pil_img.save(buf, format="JPEG", quality=82)
+                            jpeg_bytes = buf.getvalue()
+                            b64 = base64.b64encode(jpeg_bytes).decode("utf-8")
                             uploaded_page_previews.append(f"data:image/jpeg;base64,{b64}")
+                            multimodal_parts.append(types.Part.from_bytes(data=jpeg_bytes, mime_type="image/jpeg"))
+                            pdf_pages_added += 1
                             del pil_img
                     except Exception as pe:
                         print(f"Notice: PDF page preview generation error: {pe}")
+                    if pdf_pages_added == 0:
+                        multimodal_parts.append(types.Part.from_bytes(data=content, mime_type="application/pdf"))
                 else:
+                    # Normalize phone camera/gallery images (.jpg, .png, .webp, .jfif, extensionless Android URIs) into RGB JPEG
                     try:
-                        b64 = base64.b64encode(content).decode("utf-8")
-                        mime = "image/png" if filename.endswith(".png") else "image/jpeg"
-                        uploaded_page_previews.append(f"data:{mime};base64,{b64}")
+                        pil_img = Image.open(io.BytesIO(content))
+                        try:
+                            pil_img = ImageOps.exif_transpose(pil_img)
+                        except Exception:
+                            pass
+                        pil_img = pil_img.convert("RGB")
+                        if max(pil_img.size) > 1500:
+                            pil_img.thumbnail((1500, 1500))
+                        buf = io.BytesIO()
+                        pil_img.save(buf, format="JPEG", quality=82)
+                        jpeg_bytes = buf.getvalue()
+                        b64 = base64.b64encode(jpeg_bytes).decode("utf-8")
+                        uploaded_page_previews.append(f"data:image/jpeg;base64,{b64}")
+                        multimodal_parts.append(types.Part.from_bytes(data=jpeg_bytes, mime_type="image/jpeg"))
                     except Exception as img_err:
-                        print(f"Notice: image preview encoding failed: {img_err}")
+                        print(f"Notice: PIL image normalization fallback ({img_err})")
+                        try:
+                            b64 = base64.b64encode(content).decode("utf-8")
+                            mime = "image/png" if filename.endswith(".png") else ("image/webp" if filename.endswith(".webp") else "image/jpeg")
+                            uploaded_page_previews.append(f"data:{mime};base64,{b64}")
+                            multimodal_parts.append(types.Part.from_bytes(data=content, mime_type=mime))
+                        except Exception as raw_err:
+                            print(f"Notice: image preview encoding failed: {raw_err}")
 
             if file_hashes:
                 submission_hash = hashlib.sha256("".join(file_hashes).encode("utf-8")).hexdigest()
@@ -1701,15 +1732,23 @@ async def evaluate_answer(
                 print(f"[CANONICAL LOCK - PRE-LLM] Matched identical/similar handwritten script across accounts -> Score: {evaluation_result.get('overall_score')}/{max_marks}")
 
         if evaluation_result is None:
-            # Determine Key (user key or server master key)
-            key = api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-            if not key:
+            # Collect all configured API keys (user key + server master keys) for resilient failover
+            keys_to_try: List[str] = []
+            if api_key and api_key.strip():
+                keys_to_try.append(api_key.strip())
+            for env_var in ("GEMINI_API_KEY", "GOOGLE_API_KEY", "GEMINI_API_KEY_2", "GEMINI_API_KEY_3"):
+                raw_val = os.environ.get(env_var) or ""
+                for k_part in raw_val.split(","):
+                    clean_k = k_part.strip()
+                    if clean_k and clean_k not in keys_to_try:
+                        keys_to_try.append(clean_k)
+
+            if not keys_to_try:
                 raise HTTPException(
                     status_code=400,
                     detail="No Master API Key is configured on the server. Please set it once in Settings so all students can evaluate freely, or click 'Try Preloaded Sample Answer'."
                 )
 
-            # Direct Gemini Files API Ingestion and Multimodal Generation
             prev_eval_dict = prev_record.get("evaluation") if (prev_record and is_rewrite and isinstance(prev_record.get("evaluation"), dict)) else None
             prev_q = None
             if is_rewrite:
@@ -1730,88 +1769,107 @@ async def evaluate_answer(
                 previous_evaluation=prev_eval_dict
             )
 
-            client = genai.Client(api_key=key.strip())
-            uploaded_file = None
-            temp_path = None
+            gen_config = types.GenerateContentConfig(
+                temperature=0.0,
+                top_p=1.0,
+                top_k=1,
+                seed=20260925,
+                response_mime_type="application/json"
+            )
 
-            try:
-                if primary_content:
-                    suffix = ".pdf" if is_pdf else (os.path.splitext(primary_filename)[1] or ".jpg")
-                    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
-                    temp_path = temp_file.name
-                    temp_file.write(primary_content)
-                    temp_file.flush()
-                    temp_file.close()
+            # Active Gemini v1beta multimodal models (retired gemini-1.5-flash removed so it never triggers 404 NOT_FOUND)
+            candidate_models = [
+                "gemini-2.5-flash",
+                "gemini-2.0-flash",
+                "gemini-2.5-flash-lite",
+                "gemini-2.0-flash-lite",
+                "gemini-flash-latest",
+                "gemini-flash-lite-latest",
+                "gemini-2.5-pro"
+            ]
 
-                    uploaded_file = client.files.upload(file=temp_path)
+            contents_payload = (multimodal_parts + [evaluator_prompt_text]) if multimodal_parts else [evaluator_prompt_text]
+            primary_gen_err = None
+            last_gen_err = None
 
-                    gen_config = types.GenerateContentConfig(
-                        temperature=0.0,
-                        top_p=1.0,
-                        top_k=1,
-                        seed=20260925,
-                        response_mime_type="application/json"
-                    )
+            for current_key in keys_to_try:
+                try:
+                    client = genai.Client(api_key=current_key)
+                except Exception as ce:
+                    last_gen_err = ce
+                    continue
 
-                    candidate_models = [
-                        "gemini-2.5-flash",
-                        "gemini-2.0-flash",
-                        "gemini-2.5-flash-lite",
-                        "gemini-2.0-flash-lite",
-                        "gemini-flash-latest",
-                        "gemini-flash-lite-latest",
-                        "gemini-1.5-flash"
-                    ]
-
-                    import time as _time
-                    last_gen_err = None
-                    for model_candidate in candidate_models:
-                        for attempt in range(2):
-                            try:
-                                response = client.models.generate_content(
-                                    model=model_candidate,
-                                    contents=[uploaded_file, evaluator_prompt_text],
-                                    config=gen_config
-                                )
-                                if response and response.text:
-                                    raw_text = response.text
-                                    parsed_eval = parse_llm_json_response(raw_text)
+                failed_auth = False
+                for model_candidate in candidate_models:
+                    for attempt in range(2):
+                        try:
+                            response = client.models.generate_content(
+                                model=model_candidate,
+                                contents=contents_payload,
+                                config=gen_config
+                            )
+                            if response and response.text:
+                                raw_text = response.text
+                                parsed_eval = parse_llm_json_response(raw_text)
+                                if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
                                     if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
                                         parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
                                     evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
                                     break
-                            except Exception as ge:
-                                last_gen_err = ge
-                                err_s = str(ge).lower()
-                                if any(t in err_s for t in ["429", "resource_exhausted", "quota", "503", "unavailable"]) and attempt == 0:
-                                    _time.sleep(0.8)
-                                    continue
+                        except Exception as ge:
+                            err_s = str(ge).lower()
+                            if "404" not in err_s and "not_found" not in err_s and primary_gen_err is None:
+                                primary_gen_err = ge
+                            last_gen_err = ge
+                            if any(t in err_s for t in ["api_key_invalid", "api key not valid", "unauthenticated", "permission_denied"]):
+                                failed_auth = True
                                 break
-                        if evaluation_result:
+                            if any(t in err_s for t in ["429", "resource_exhausted", "quota", "503", "unavailable", "overloaded"]) and attempt == 0:
+                                time.sleep(1.5)
+                                continue
                             break
+                    if evaluation_result or failed_auth:
+                        break
 
-                    if not evaluation_result:
-                        raise RuntimeError(f"Could not evaluate with available models. Last error: {last_gen_err}")
-                else:
-                    evaluation_result = await evaluate_with_gemini(
-                        images=[],
-                        question=question,
-                        paper=paper,
-                        max_marks=max_marks,
-                        api_key=key,
-                        previous_question=prev_q
-                    )
-            finally:
-                if temp_path and os.path.exists(temp_path):
+                if evaluation_result:
+                    break
+
+                # Dynamic model discovery fallback if standard aliases were rate-limited or updated
+                if not failed_auth and not evaluation_result:
                     try:
-                        os.unlink(temp_path)
-                    except Exception as ue:
-                        print(f"Notice: temp file unlink skipped ({ue})")
-                if uploaded_file and hasattr(uploaded_file, "name"):
-                    try:
-                        client.files.delete(name=uploaded_file.name)
-                    except Exception as de:
-                        print(f"Notice: Gemini file cleanup skipped ({de})")
+                        for m in client.models.list():
+                            if m.supported_actions and "generateContent" in m.supported_actions:
+                                mod_name = m.name.replace("models/", "")
+                                if (
+                                    mod_name not in candidate_models
+                                    and ("flash" in mod_name or "pro" in mod_name)
+                                    and not any(bad in mod_name for bad in ["1.5", "preview", "research", "tts", "audio", "customtools", "image-preview", "er-2", "computer-use", "lyria", "gemma"])
+                                ):
+                                    try:
+                                        response = client.models.generate_content(
+                                            model=mod_name,
+                                            contents=contents_payload,
+                                            config=gen_config
+                                        )
+                                        if response and response.text:
+                                            parsed_eval = parse_llm_json_response(response.text)
+                                            if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
+                                                if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
+                                                    parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
+                                                evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
+                                                break
+                                    except Exception as de:
+                                        if "404" not in str(de).lower():
+                                            last_gen_err = de
+                    except Exception:
+                        pass
+
+                if evaluation_result:
+                    break
+
+            if not evaluation_result:
+                report_err = primary_gen_err or last_gen_err
+                raise RuntimeError(f"Could not evaluate with available models. Last error: {report_err}")
 
         # AI Vision Blank Sheet Verification Check
         is_ai_blank = bool(evaluation_result.get("is_blank_sheet")) or (

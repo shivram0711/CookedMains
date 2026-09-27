@@ -1008,7 +1008,10 @@ window.initModalRewriteDropzone = function() {
 
 window.handleRewriteFiles = async function(files) {
   if (!files || files.length === 0) return;
-  state.uploadedFiles = Array.from(files);
+  const rawArr = Array.from(files);
+  state.uploadedFiles = await Promise.all(
+    rawArr.map(f => (typeof compressImageIfNeeded === "function" ? compressImageIfNeeded(f) : f))
+  );
   state.isRewriteMode = true;
 
   const pStrip = document.getElementById("modalRewritePreviewStrip");
