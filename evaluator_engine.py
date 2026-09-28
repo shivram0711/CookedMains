@@ -2670,16 +2670,6 @@ async def evaluate_with_gemini(
                 processed_imgs.append(img)
 
     def _sync_call() -> Optional[Dict[str, Any]]:
-        candidate_models = [
-            "gemini-2.5-flash",
-            "gemini-2.0-flash",
-            "gemini-2.5-flash-lite",
-            "gemini-2.0-flash-lite",
-            "gemini-flash-latest",
-            "gemini-flash-lite-latest",
-            "gemini-2.5-pro"
-        ]
-
         config = types.GenerateContentConfig(
             temperature=0.0,
             top_p=1.0,
@@ -2690,62 +2680,53 @@ async def evaluate_with_gemini(
 
         for current_key in keys_to_try:
             try:
-                client = genai.Client(api_key=current_key)
+                client = create_fast_gemini_client(current_key)
             except Exception:
                 continue
 
             failed_auth = False
+            candidate_models = get_active_gemini_models(client)
             for model_name in candidate_models:
-                for attempt in range(2):
-                    try:
-                        response = client.models.generate_content(
-                            model=model_name,
-                            contents=[prompt] + processed_imgs,
-                            config=config
-                        )
-                        if response and response.text:
-                            parsed_dict = parse_llm_json_response(response.text)
-                            if isinstance(parsed_dict, dict) and len(parsed_dict) > 0:
-                                return parsed_dict
-                    except Exception as e:
-                        err_str = str(e).lower()
-                        if any(t in err_str for t in ["api_key_invalid", "api key not valid", "unauthenticated", "permission_denied", "access_token_type_unsupported"]):
-                            failed_auth = True
-                            break
-                        if any(t in err_str for t in ["429", "resource_exhausted", "quota", "503", "unavailable", "overloaded"]) and attempt == 0:
-                            time.sleep(1.5)
-                            continue
+                try:
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=[prompt] + processed_imgs,
+                        config=config
+                    )
+                    if response and response.text:
+                        parsed_dict = parse_llm_json_response(response.text)
+                        if isinstance(parsed_dict, dict) and len(parsed_dict) > 0:
+                            record_gemini_model_outcome(model_name, True)
+                            return parsed_dict
+                except Exception as e:
+                    err_str = str(e)
+                    record_gemini_model_outcome(model_name, False, err_str)
+                    err_low = err_str.lower()
+                    if any(t in err_low for t in ["api_key_invalid", "api key not valid", "unauthenticated", "permission_denied", "access_token_type_unsupported"]):
+                        failed_auth = True
                         break
-                if failed_auth:
-                    break
+                    continue
 
             if failed_auth:
                 continue
 
-            # Dynamic discovery fallback if standard model aliases changed
-            try:
-                for m in client.models.list():
-                    if m.supported_actions and "generateContent" in m.supported_actions:
-                        mod_name = m.name.replace("models/", "")
-                        if (
-                            mod_name not in candidate_models
-                            and ("flash" in mod_name or "pro" in mod_name)
-                            and not any(bad in mod_name for bad in ["1.5", "preview", "research", "tts", "audio", "customtools", "image-preview", "er-2", "computer-use", "lyria", "gemma"])
-                        ):
-                            try:
-                                response = client.models.generate_content(
-                                    model=mod_name,
-                                    contents=[prompt] + processed_imgs,
-                                    config=config
-                                )
-                                if response and response.text:
-                                    parsed_dict = parse_llm_json_response(response.text)
-                                    if isinstance(parsed_dict, dict) and len(parsed_dict) > 0:
-                                        return parsed_dict
-                            except Exception:
-                                pass
-            except Exception:
-                pass
+            # If static/cached candidates failed, force a live model refresh from client.models.list()
+            for model_name in get_active_gemini_models(client, force_refresh=True):
+                if model_name in candidate_models:
+                    continue
+                try:
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=[prompt] + processed_imgs,
+                        config=config
+                    )
+                    if response and response.text:
+                        parsed_dict = parse_llm_json_response(response.text)
+                        if isinstance(parsed_dict, dict) and len(parsed_dict) > 0:
+                            record_gemini_model_outcome(model_name, True)
+                            return parsed_dict
+                except Exception as e2:
+                    record_gemini_model_outcome(model_name, False, str(e2))
 
         return None
 
@@ -2761,4 +2742,112 @@ async def evaluate_with_gemini(
     # Post-process to ensure 100% mathematical accuracy, granular subject taxonomy, and diagram embedding
     data = normalize_evaluation_data(data, max_marks, question, detected_paper)
     return data
+
+
+# ==============================================================================
+# PERMANENT SELF-HEALING GEMINI MODEL ROUTER (Prevents "Model Inactive" Forever)
+# ==============================================================================
+_LAST_WORKING_GEMINI_MODEL: Optional[str] = None
+_INACTIVE_GEMINI_MODELS: set = {
+    "gemini-1.5-flash",
+    "gemini-1.5-pro",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-pro",
+}
+_DISCOVERED_GEMINI_MODELS_CACHE: List[str] = []
+_DISCOVERED_GEMINI_MODELS_TS: float = 0.0
+
+
+def record_gemini_model_outcome(model_name: str, success: bool, error_str: str = "") -> None:
+    """Tracks live working models and permanently blacklists deprecated/404 models in memory."""
+    global _LAST_WORKING_GEMINI_MODEL, _DISCOVERED_GEMINI_MODELS_TS
+    clean_name = str(model_name or "").replace("models/", "").strip()
+    if not clean_name:
+        return
+    if success:
+        _LAST_WORKING_GEMINI_MODEL = clean_name
+        _INACTIVE_GEMINI_MODELS.discard(clean_name)
+        return
+
+    err_low = str(error_str or "").lower()
+    if any(tok in err_low for tok in ["404", "not_found", "not found", "deprecated", "no longer available", "not supported for generatecontent", "is not found"]):
+        _INACTIVE_GEMINI_MODELS.add(clean_name)
+        if _LAST_WORKING_GEMINI_MODEL == clean_name:
+            _LAST_WORKING_GEMINI_MODEL = None
+        # Trigger fresh discovery from client.models.list() if needed
+        _DISCOVERED_GEMINI_MODELS_TS = 0.0
+
+
+def get_active_gemini_models(client: Any = None, force_refresh: bool = False) -> List[str]:
+    """Returns an ordered list of active Gemini models, combining verified live cache,
+    evergreen rolling aliases, and dynamic API model discovery via client.models.list()."""
+    global _DISCOVERED_GEMINI_MODELS_CACHE, _DISCOVERED_GEMINI_MODELS_TS
+    ordered: List[str] = []
+
+    if _LAST_WORKING_GEMINI_MODEL and _LAST_WORKING_GEMINI_MODEL not in _INACTIVE_GEMINI_MODELS:
+        ordered.append(_LAST_WORKING_GEMINI_MODEL)
+
+    static_priority = [
+        "gemini-3.6-flash",
+        "gemini-3.1-flash-lite",
+        "gemini-flash-lite-latest",
+        "gemini-flash-latest",
+        "gemini-3.8-flash",
+        "gemini-3.7-flash",
+        "gemini-3.5-flash",
+        "gemini-3.5-flash-lite",
+    ]
+    for m in static_priority:
+        if m not in _INACTIVE_GEMINI_MODELS and m not in ordered:
+            ordered.append(m)
+
+    now_ts = time.time()
+    if client is not None and (force_refresh or not _DISCOVERED_GEMINI_MODELS_CACHE or (now_ts - _DISCOVERED_GEMINI_MODELS_TS) > 1800):
+        try:
+            discovered_flash: List[str] = []
+            discovered_pro: List[str] = []
+            for m_obj in client.models.list():
+                actions = getattr(m_obj, "supported_actions", None) or []
+                if "generateContent" not in actions:
+                    continue
+                mod_name = str(getattr(m_obj, "name", "") or "").replace("models/", "").strip()
+                if not mod_name or mod_name in _INACTIVE_GEMINI_MODELS:
+                    continue
+                if any(bad in mod_name for bad in [
+                    "1.5", "2.0", "2.5", "tts", "audio", "customtools", "image", "embedding",
+                    "er-2", "computer-use", "lyria", "gemma", "robotics", "research"
+                ]):
+                    continue
+                if "flash" in mod_name:
+                    discovered_flash.append(mod_name)
+                elif "pro" in mod_name:
+                    discovered_pro.append(mod_name)
+            discovered_flash.sort(reverse=True)
+            discovered_pro.sort(reverse=True)
+            _DISCOVERED_GEMINI_MODELS_CACHE = discovered_flash + discovered_pro
+            _DISCOVERED_GEMINI_MODELS_TS = now_ts
+        except Exception:
+            pass
+
+    for dm in _DISCOVERED_GEMINI_MODELS_CACHE:
+        if dm not in _INACTIVE_GEMINI_MODELS and dm not in ordered:
+            ordered.append(dm)
+
+    return ordered
+
+
+def create_fast_gemini_client(api_key: str) -> Any:
+    """Creates a genai.Client with 1-attempt HTTP retry options so dead/busy models fail-over in <150ms."""
+    try:
+        return genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(
+                retry_options=types.HttpRetryOptions(attempts=1)
+            )
+        )
+    except Exception:
+        return genai.Client(api_key=api_key)
 

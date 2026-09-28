@@ -66,14 +66,16 @@ Return strictly a single valid JSON object with NO markdown formatting, backtick
 """
 
 def _get_gemini_client(api_key: Optional[str] = None):
+    from evaluator_engine import create_fast_gemini_client
     key = api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     if not key:
         raise ValueError("No Gemini API key available for question generation.")
-    return genai.Client(api_key=key.strip())
+    return create_fast_gemini_client(key.strip())
 
 def generate_question_from_article(article: Dict[str, Any], api_key: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """Generates a structured UPSC question from a single news article."""
     try:
+        from evaluator_engine import get_active_gemini_models, record_gemini_model_outcome
         client = _get_gemini_client(api_key)
         prompt = QUESTION_GENERATOR_PROMPT.format(
             title=article.get("title", ""),
@@ -82,14 +84,7 @@ def generate_question_from_article(article: Dict[str, Any], api_key: Optional[st
             summary=article.get("summary", "")
         )
 
-        candidate_models = [
-            "gemini-2.5-flash",
-            "gemini-2.0-flash",
-            "gemini-2.5-flash-lite",
-            "gemini-2.0-flash-lite",
-            "gemini-flash-latest",
-            "gemini-flash-lite-latest"
-        ]
+        candidate_models = get_active_gemini_models(client)
 
         config = types.GenerateContentConfig(
             temperature=0.3,
@@ -105,9 +100,11 @@ def generate_question_from_article(article: Dict[str, Any], api_key: Optional[st
                     config=config
                 )
                 if response and response.text:
+                    record_gemini_model_outcome(mod, True)
                     raw_text = response.text
                     break
-            except Exception:
+            except Exception as e:
+                record_gemini_model_outcome(mod, False, str(e))
                 continue
 
         if not raw_text:

@@ -1,5 +1,8 @@
 // MainsMentor AI Frontend Application Logic
 
+// Temporary Feature Flag: Rewrite & Re-evaluation paused while refining core evaluation
+window.ENABLE_REWRITE_FEATURE = false;
+
 // One-time Clean-Slate Reset for Pilot Launch (clears old test sessions & bindings once)
 if (localStorage.getItem("cookedmains_clean_slate_v1") !== "done") {
   sessionStorage.clear();
@@ -811,6 +814,7 @@ window.triggerRewriteFromStudio = function() {
 };
 
 window.openRewriteModal = function() {
+  if (!window.ENABLE_REWRITE_FEATURE) return;
   // 0. Strict Single Rewrite Enforcement: Prevent re-evaluation loops
   const cur = state.currentEvaluation;
   const rec = state.currentEvalRecord;
@@ -6022,13 +6026,20 @@ function renderEvaluation(evalData) {
   }
   state.isRewriteMode = false;
 
-  const isRewriteAlreadyDone = Boolean(
+  if (!window.ENABLE_REWRITE_FEATURE && evalData) {
+    evalData.is_rewrite = false;
+    evalData.has_been_rewritten = false;
+    delete evalData.previous_evaluation;
+    delete evalData.rewritten_evaluation;
+  }
+
+  const isRewriteAlreadyDone = window.ENABLE_REWRITE_FEATURE ? Boolean(
     isRewriteEval || 
     evalData.has_been_rewritten || 
     evalData.rewrite_eval_id || 
     evalData.rewritten_evaluation ||
     (state.currentEvalRecord && (state.currentEvalRecord.is_rewrite || state.currentEvalRecord.has_been_rewritten || state.currentEvalRecord.rewrite_eval_id || state.currentEvalRecord.rewritten_evaluation))
-  );
+  ) : false;
 
   // Resolve Draft 1 (prevEval) and Draft 2 (currCompareEval) whether user opened Draft 1 or Draft 2
   const prevEval = isRewriteEval
@@ -6041,7 +6052,10 @@ function renderEvaluation(evalData) {
   // Studio Header: Toggle Rewrite Button vs Completed Badge
   const studioRewriteBtn = document.getElementById("studioRewriteBtn");
   const studioRewriteBadge = document.getElementById("studioRewriteCompletedBadge");
-  if (isRewriteAlreadyDone) {
+  if (!window.ENABLE_REWRITE_FEATURE) {
+    if (studioRewriteBtn) studioRewriteBtn.classList.add("hidden");
+    if (studioRewriteBadge) studioRewriteBadge.classList.add("hidden");
+  } else if (isRewriteAlreadyDone) {
     if (studioRewriteBtn) studioRewriteBtn.classList.add("hidden");
     if (studioRewriteBadge) studioRewriteBadge.classList.remove("hidden");
   } else {
@@ -6862,7 +6876,10 @@ function renderEvaluation(evalData) {
 
   // Show 24-Hour Free Rewrite Challenge Card or Completed Card
   const rewriteCompletedCard = document.getElementById("rewriteCompletedCard");
-  if (isRewriteAlreadyDone) {
+  if (!window.ENABLE_REWRITE_FEATURE) {
+    if (rewriteChallengeCard) rewriteChallengeCard.classList.add("hidden");
+    if (rewriteCompletedCard) rewriteCompletedCard.classList.add("hidden");
+  } else if (isRewriteAlreadyDone) {
     if (rewriteChallengeCard) rewriteChallengeCard.classList.add("hidden");
     if (rewriteCompletedCard) rewriteCompletedCard.classList.remove("hidden");
   } else {
@@ -6877,7 +6894,7 @@ function renderEvaluation(evalData) {
   // Show Sticky Rewrite Action Bar (ONLY if not already re-evaluated)
   const stickyFooter = document.getElementById("stickyRewriteFooter");
   if (stickyFooter) {
-    if (isRewriteAlreadyDone) {
+    if (!window.ENABLE_REWRITE_FEATURE || isRewriteAlreadyDone) {
       stickyFooter.classList.add("hidden");
       stop24hRewriteTimer();
     } else {
@@ -10365,7 +10382,7 @@ async function loadLockerHistory() {
     let html = "";
     list.forEach(item => {
       const dateStr = window.formatLockerTimestampIST ? window.formatLockerTimestampIST(item.created_at, item) : "Recently";
-      const hasRewriteData = Boolean(item.is_rewrite || item.has_been_rewritten || item.rewritten_evaluation);
+      const hasRewriteData = window.ENABLE_REWRITE_FEATURE ? Boolean(item.is_rewrite || item.has_been_rewritten || item.rewritten_evaluation) : false;
       const baseScoreNum = Number(item.baseline_score ?? item.previous_evaluation?.overall_score ?? item.overall_score ?? item.total_score ?? 0);
       const rwScoreNum = Number(item.rewrite_score ?? item.rewritten_evaluation?.overall_score ?? (item.is_rewrite ? item.overall_score : baseScoreNum));
       const displayScoreNum = hasRewriteData && rwScoreNum > baseScoreNum ? rwScoreNum : (Number(item.total_score ?? item.overall_score) || 0);
@@ -10439,7 +10456,7 @@ window.viewSavedCopy = async function(evalId, openComparisonTab = false) {
     }
     if (!record) throw new Error("Copy not found");
 
-    if (typeof window.healAndLinkRewriteRecords === "function") {
+    if (window.ENABLE_REWRITE_FEATURE && typeof window.healAndLinkRewriteRecords === "function") {
       window.healAndLinkRewriteRecords([record]);
     }
 
@@ -10472,14 +10489,14 @@ window.viewSavedCopy = async function(evalId, openComparisonTab = false) {
 
     const rawEvalData = record.evaluation || record.evaluation_data;
     const pages = record.pages || record.page_images || [];
-    const hasRewritePair = Boolean(
+    const hasRewritePair = window.ENABLE_REWRITE_FEATURE ? Boolean(
       record.has_been_rewritten ||
       record.is_rewrite ||
       record.rewritten_evaluation ||
       rawEvalData?.has_been_rewritten ||
       rawEvalData?.is_rewrite ||
       rawEvalData?.rewritten_evaluation
-    );
+    ) : false;
 
     if (rawEvalData && hasRewritePair) {
       // Resolve Draft 1 (Original) and Draft 2 (Rewritten)
@@ -10991,7 +11008,7 @@ window.renderWeeklyLocker = function() {
 
     grp.items.forEach(item => {
       const dateStr = window.formatLockerTimestampIST(item.created_at, item);
-      const hasRewriteData = Boolean(item.is_rewrite || item.has_been_rewritten || item.rewritten_evaluation);
+      const hasRewriteData = window.ENABLE_REWRITE_FEATURE ? Boolean(item.is_rewrite || item.has_been_rewritten || item.rewritten_evaluation) : false;
       const baseScoreNum = Number(item.baseline_score ?? item.previous_evaluation?.overall_score ?? item.overall_score ?? item.total_score ?? 0);
       const rwScoreNum = Number(item.rewrite_score ?? item.rewritten_evaluation?.overall_score ?? (item.is_rewrite ? item.overall_score : baseScoreNum));
       const displayScoreNum = hasRewriteData && rwScoreNum > baseScoreNum ? rwScoreNum : (Number(item.total_score ?? item.overall_score) || 0);

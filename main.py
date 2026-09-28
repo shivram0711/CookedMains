@@ -1508,6 +1508,14 @@ async def evaluate_answer(
         if not primary_content:
             raise HTTPException(status_code=400, detail="Please upload at least one handwritten answer image/page or select a sample copy.")
 
+        # Temporary feature flag: Rewrite & Re-evaluation disabled while refining core evaluation
+        ENABLE_REWRITE_FEATURE = False
+        if not ENABLE_REWRITE_FEATURE:
+            is_rewrite = False
+            baseline_eval_id = None
+            baseline_evaluation_json = None
+            baseline_question = None
+
         # Check user credits and evaluate Rewrite Loophole Integrity
         user = None
         prev_record = None
@@ -1780,49 +1788,43 @@ async def evaluate_answer(
                     response_mime_type="application/json"
                 )
 
-                candidate_models = [
-                    "gemini-2.5-flash",
-                    "gemini-2.0-flash",
-                    "gemini-2.5-flash-lite",
-                    "gemini-2.0-flash-lite",
-                    "gemini-flash-latest",
-                    "gemini-flash-lite-latest",
-                    "gemini-2.5-pro"
-                ]
+                from evaluator_engine import (
+                    create_fast_gemini_client,
+                    get_active_gemini_models,
+                    record_gemini_model_outcome,
+                )
 
                 contents_payload = (multimodal_parts + [evaluator_prompt_text]) if multimodal_parts else [evaluator_prompt_text]
 
                 for current_key in keys_to_try:
                     try:
-                        client = genai.Client(api_key=current_key)
+                        client = create_fast_gemini_client(current_key)
                     except Exception:
                         continue
 
                     failed_auth = False
+                    candidate_models = get_active_gemini_models(client)
                     for model_candidate in candidate_models:
-                        for attempt in range(2):
-                            try:
-                                response = client.models.generate_content(
-                                    model=model_candidate,
-                                    contents=contents_payload,
-                                    config=gen_config
-                                )
-                                if response and response.text:
-                                    raw_text = response.text
-                                    parsed_eval = parse_llm_json_response(raw_text)
-                                    if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
-                                        if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
-                                            parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
-                                        evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
-                                        break
-                            except Exception as ge:
-                                err_s = str(ge).lower()
-                                if any(t in err_s for t in ["api_key_invalid", "api key not valid", "unauthenticated", "permission_denied"]):
-                                    failed_auth = True
+                        try:
+                            response = client.models.generate_content(
+                                model=model_candidate,
+                                contents=contents_payload,
+                                config=gen_config
+                            )
+                            if response and response.text:
+                                raw_text = response.text
+                                parsed_eval = parse_llm_json_response(raw_text)
+                                if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
+                                    record_gemini_model_outcome(model_candidate, True)
+                                    if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
+                                        parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
+                                    evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
                                     break
-                                if any(t in err_s for t in ["429", "resource_exhausted", "quota", "503", "unavailable", "overloaded"]) and attempt == 0:
-                                    time.sleep(1.5)
-                                    continue
+                        except Exception as ge:
+                            err_s = str(ge)
+                            record_gemini_model_outcome(model_candidate, False, err_s)
+                            if any(t in err_s.lower() for t in ["api_key_invalid", "api key not valid", "unauthenticated", "permission_denied"]):
+                                failed_auth = True
                                 break
                         if evaluation_result or failed_auth:
                             break
@@ -1830,34 +1832,27 @@ async def evaluate_answer(
                     if evaluation_result:
                         break
 
-                    # Dynamic model discovery fallback if standard aliases were rate-limited or updated
+                    # Dynamic model discovery refresh if standard aliases were rate-limited or updated
                     if not failed_auth and not evaluation_result:
-                        try:
-                            for m in client.models.list():
-                                if m.supported_actions and "generateContent" in m.supported_actions:
-                                    mod_name = m.name.replace("models/", "")
-                                    if (
-                                        mod_name not in candidate_models
-                                        and ("flash" in mod_name or "pro" in mod_name)
-                                        and not any(bad in mod_name for bad in ["1.5", "preview", "research", "tts", "audio", "customtools", "image-preview", "er-2", "computer-use", "lyria", "gemma"])
-                                    ):
-                                        try:
-                                            response = client.models.generate_content(
-                                                model=mod_name,
-                                                contents=contents_payload,
-                                                config=gen_config
-                                            )
-                                            if response and response.text:
-                                                parsed_eval = parse_llm_json_response(response.text)
-                                                if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
-                                                    if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
-                                                        parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
-                                                    evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
-                                                    break
-                                        except Exception:
-                                            pass
-                        except Exception:
-                            pass
+                        for mod_name in get_active_gemini_models(client, force_refresh=True):
+                            if mod_name in candidate_models:
+                                continue
+                            try:
+                                response = client.models.generate_content(
+                                    model=mod_name,
+                                    contents=contents_payload,
+                                    config=gen_config
+                                )
+                                if response and response.text:
+                                    parsed_eval = parse_llm_json_response(response.text)
+                                    if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
+                                        record_gemini_model_outcome(mod_name, True)
+                                        if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
+                                            parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
+                                        evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
+                                        break
+                            except Exception as ge2:
+                                record_gemini_model_outcome(mod_name, False, str(ge2))
 
                     if evaluation_result:
                         break

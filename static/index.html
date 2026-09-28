@@ -175,11 +175,11 @@
         <!-- Feature 3 -->
         <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2.5 transition">
           <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
-            <i data-lucide="repeat" class="w-5 h-5"></i>
+            <i data-lucide="award" class="w-5 h-5"></i>
           </div>
-          <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">3. Re-Write &amp; Score Delta Engine</h3>
+          <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">3. Topper Blueprint &amp; Model Answer</h3>
           <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Fix your missing dimensions, re-upload your improved draft, and see your score jump (+1.5 to +3.0 marks) with side-by-side comparison.
+            Study structured, exam-ready UPSC Topper Model Answers tailored to your question's exact directive, word limit, and schematic diagrams.
           </p>
         </div>
       </div>
@@ -202,11 +202,11 @@
           <span class="text-amber-500">100% Free For All Aspirants</span>
         </h2>
         <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-sans">
-          Rigorous UPSC bell-curve grading with authentic margin annotations, model answers, and score deltas. Practice daily with 15 free evaluations and 5 free re-evaluations—no subscription plans, no hidden fees.
+          Rigorous UPSC bell-curve grading with authentic margin annotations, rubric diagnostics, and Topper Model Answers. Practice daily with 15 free evaluations—no subscription plans, no hidden fees.
         </p>
       </div>
 
-      <!-- Daily Quota Callout (15 Free Copies + 5 Rewrites) -->
+      <!-- Daily Quota Callout (15 Free Copies) -->
       <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-slate-100 to-amber-500/10 dark:from-amber-500/10 dark:via-slate-900 dark:to-amber-500/5 border border-amber-500/30 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
         <div class="flex items-center space-x-3.5 text-left">
           <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-lg shrink-0 shadow-md shadow-amber-500/20">
@@ -215,9 +215,9 @@
           <div>
             <div class="flex items-center space-x-2">
               <span class="text-sm font-bold text-slate-900 dark:text-white">Daily Aspirant Allowance</span>
-              <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-extrabold font-mono">15 Copies + 5 Rewrites / Day</span>
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-extrabold font-mono">15 Copies / Day</span>
             </div>
-            <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Every aspirant receives 15 complimentary answer sheet evaluations and 5 re-evaluations every single day. Resets daily at midnight IST.</p>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Every aspirant receives 15 complimentary answer sheet evaluations every single day. Resets daily at midnight IST.</p>
           </div>
         </div>
         <button onclick="window.scrollToEvaluation()" class="w-full md:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold text-xs shadow-md transition active:scale-95 flex items-center justify-center space-x-2 shrink-0 cursor-pointer">
@@ -226,8 +226,8 @@
         </button>
       </div>
 
-      <!-- Why Re-Evaluation Matters to UPSC Aspirants Banner -->
-      <div class="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2.5 text-left">
+      <!-- Why Re-Evaluation Matters Banner (Temporarily hidden while rewrite feature is paused) -->
+      <div style="display: none !important;" class="hidden p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2.5 text-left">
         <div class="flex items-center space-x-2 text-amber-700 dark:text-amber-300 text-xs sm:text-sm font-bold">
           <i data-lucide="repeat" class="w-4 h-4 text-amber-500"></i>
           <span>The Topper Advantage: Iterative Re-Evaluation &amp; Score Recovery Delta</span>
@@ -831,12 +831,12 @@
             <span id="studioTopMaxMarks" class="text-xs text-slate-500 dark:text-slate-400 font-mono">/ 10</span>
             <span id="studioTopBand" class="hidden md:inline-block ml-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-[#0A0C10] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#1E2333] uppercase">Top 15%</span>
           </div>
-          <!-- 24h Rewrite Action -->
-          <button id="studioRewriteBtn" onclick="window.openRewriteModal()" title="24-Hour Free Rewrite Workshop" class="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/15 dark:hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-semibold text-xs transition flex items-center space-x-1 sm:space-x-1.5 shrink-0">
+          <!-- 24h Rewrite Action (Temporarily hidden while rewrite feature is paused) -->
+          <button id="studioRewriteBtn" style="display: none !important;" onclick="window.openRewriteModal()" title="24-Hour Free Rewrite Workshop" class="hidden px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/15 dark:hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-semibold text-xs transition flex items-center space-x-1 sm:space-x-1.5 shrink-0">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
             <span class="hidden md:inline">24h Rewrite</span>
           </button>
-          <button id="studioRewriteCompletedBadge" type="button" onclick="window.openRewriteEvolutionLab()" class="hidden px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center space-x-1.5 shadow-sm shrink-0 cursor-pointer transition" title="Click to view your Draft 1 vs. Draft 2 Rewrite Comparison (1 of 1 Credit Used)">
+          <button id="studioRewriteCompletedBadge" style="display: none !important;" type="button" onclick="window.openRewriteEvolutionLab()" class="hidden px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center space-x-1.5 shadow-sm shrink-0 cursor-pointer transition" title="Click to view your Draft 1 vs. Draft 2 Rewrite Comparison (1 of 1 Credit Used)">
             <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"></i>
             <span class="hidden sm:inline">📈 Rewrite Comparison (1/1)</span>
           </button>
@@ -859,7 +859,7 @@
           </div>
 
           <!-- In-Studio Re-evaluation Action Bar (Stacked Layout for narrow left column) -->
-          <div id="studioReEvalBar" class="hidden p-3.5 rounded-2xl bg-white dark:bg-[#121622] border border-emerald-500 text-xs shadow-xl space-y-3 transition-colors shrink-0">
+          <div id="studioReEvalBar" style="display: none !important;" class="hidden p-3.5 rounded-2xl bg-white dark:bg-[#121622] border border-emerald-500 text-xs shadow-xl space-y-3 transition-colors shrink-0">
             <!-- Header Row: Status badge + 0 Credits Pill -->
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center space-x-2">
@@ -903,7 +903,7 @@
               <div class="flex items-center justify-between text-xs">
                 <div class="flex items-center space-x-2">
                   <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-                  <span id="studioLoadingStep" class="font-bold text-slate-900 dark:text-white text-xs">Re-evaluating revised draft against UPSC Bell Curve...</span>
+                  <span id="studioLoadingStep" class="font-bold text-slate-900 dark:text-white text-xs">Evaluating answer script against UPSC Bell Curve...</span>
                 </div>
                 <span id="studioForensicProgressPercent" class="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-xs">15%</span>
               </div>
@@ -934,14 +934,14 @@
             <div id="studioForensicTipCard" class="p-3 rounded-xl bg-amber-50 dark:bg-[#161B28] border border-amber-200 dark:border-slate-700/80 flex items-start space-x-2.5 text-left">
               <i data-lucide="lightbulb" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"></i>
               <p id="studioForensicTipText" class="text-xs text-amber-950 dark:text-slate-200 leading-relaxed font-sans">
-                Comparing structural improvements: introduction framing, clear subheadings, and examiner margin notes recovery.
+                Auditing structural framing, subheadings, and examiner margin remarks.
               </p>
             </div>
 
             <!-- Active Cancel Button during re-evaluation -->
-            <button id="studioCancelEvalProgressBtn" type="button" onclick="window.cancelRewriteMode()" class="w-full py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-500/40 text-rose-700 dark:text-rose-300 font-semibold text-xs transition flex items-center justify-center space-x-1.5 shadow-xs">
+            <button id="studioCancelEvalProgressBtn" style="display: none !important;" type="button" onclick="window.cancelRewriteMode()" class="hidden w-full py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-500/40 text-rose-700 dark:text-rose-300 font-semibold text-xs transition flex items-center justify-center space-x-1.5 shadow-xs">
               <i data-lucide="x" class="w-3.5 h-3.5"></i>
-              <span>Cancel Re-evaluation & Re-upload</span>
+              <span>Cancel Evaluation</span>
             </button>
           </div>
 
@@ -953,8 +953,8 @@
               <div class="flex items-center space-x-1 sm:space-x-1.5 text-slate-900 dark:text-slate-200 font-semibold text-[10.5px] sm:text-[11px] shrink-0">
                 <i data-lucide="file-text" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0"></i>
                 <span id="bookletCopyLabel" class="tracking-wide hidden sm:inline">Candidate Copy</span>
-                <!-- Rewrite Comparison Copy Switcher -->
-                <div id="copySwitcherContainer" class="hidden flex items-center bg-slate-100 dark:bg-slate-900 p-0.5 rounded-lg border border-slate-300 dark:border-emerald-500/40 shadow-xs shrink-0">
+                <!-- Rewrite Comparison Copy Switcher (Temporarily hidden while rewrite feature is paused) -->
+                <div id="copySwitcherContainer" style="display: none !important;" class="hidden flex items-center bg-slate-100 dark:bg-slate-900 p-0.5 rounded-lg border border-slate-300 dark:border-emerald-500/40 shadow-xs shrink-0">
                   <button id="viewRewriteCopyBtn" type="button" class="px-2 py-0.5 rounded-md text-[9.5px] sm:text-[10px] font-bold bg-emerald-500 text-white transition shadow-xs whitespace-nowrap cursor-pointer">Rewritten</button>
                   <button id="viewOriginalCopyBtn" type="button" class="px-2 py-0.5 rounded-md text-[9.5px] sm:text-[10px] font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition whitespace-nowrap cursor-pointer">Original</button>
                 </div>
@@ -1044,8 +1044,8 @@
                 <span>Deep Evaluation</span>
               </button>
               <button data-studio-tab="rewrite" onclick="window.switchStudioTab('rewrite')" class="studio-tab-btn">
-                <i data-lucide="pen-tool" class="w-3.5 h-3.5 shrink-0"></i>
-                <span>Rewrite Workshop</span>
+                <i data-lucide="award" class="w-3.5 h-3.5 shrink-0"></i>
+                <span>Topper Model Answer</span>
               </button>
             </div>
 
@@ -1105,8 +1105,8 @@
             </div>
           </div>
 
-          <!-- COMPACT REWRITE SCORE & EXAM-HALL EFFICIENCY BANNER (Visible ONLY on Rewritten Copies in Tab 1) -->
-          <div id="auditRewriteRecoveryBanner" class="hidden p-4 sm:p-5 rounded-2xl bg-emerald-50/90 dark:bg-slate-900 border-2 border-emerald-500/40 shadow-md space-y-3.5">
+          <!-- COMPACT REWRITE SCORE & EXAM-HALL EFFICIENCY BANNER (Temporarily hidden while rewrite feature is paused) -->
+          <div id="auditRewriteRecoveryBanner" style="display: none !important;" class="hidden p-4 sm:p-5 rounded-2xl bg-emerald-50/90 dark:bg-slate-900 border-2 border-emerald-500/40 shadow-md space-y-3.5">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-emerald-500/25">
               <div class="flex items-start sm:items-center space-x-2.5">
                 <span class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
@@ -1627,14 +1627,14 @@
               <span>Previous: Audit &amp; Marks</span>
             </button>
             <button type="button" onclick="window.switchStudioTab('rewrite')" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow transition hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
-              <span>Next: Rewrite Workshop (Model Answer &amp; Rewrite)</span>
+              <span>Next: Topper Model Answer</span>
               <i data-lucide="arrow-right" class="w-4 h-4"></i>
             </button>
           </div>
 
         </div>
 
-            <!-- Tab 3: [Rewrite Workshop] (Strictly Model Answer & Rewrite Option Only) -->
+            <!-- Tab 3: [Topper Model Answer] (Rewrite Workshop temporarily hidden) -->
             <div id="tabPaneRewrite" class="studio-tab-pane hidden space-y-5">
               <!-- Hidden DOM placeholders for nextAttemptCard so legacy/print JS bindings never throw null errors -->
               <div id="nextAttemptCard" class="hidden" aria-hidden="true">
@@ -1645,8 +1645,8 @@
                 <p id="bookletPlacementText"></p>
               </div>
 
-              <!-- 1. 24-HOUR FREE REWRITE OPTION (Top of Rewrite Workshop for Immediate Access) -->
-              <div id="rewriteCompletedCard" class="hidden p-4 rounded-2xl bg-emerald-500/10 dark:bg-emerald-950/30 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <!-- 1. 24-HOUR FREE REWRITE OPTION (Temporarily hidden while rewrite feature is paused) -->
+              <div id="rewriteCompletedCard" style="display: none !important;" class="hidden p-4 rounded-2xl bg-emerald-500/10 dark:bg-emerald-950/30 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div class="space-y-1">
                   <div class="flex items-center space-x-2">
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -1666,7 +1666,7 @@
                 </button>
               </div>
 
-              <div id="rewriteChallengeCard" class="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/50 via-slate-900 to-slate-950 border border-emerald-500/40 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div id="rewriteChallengeCard" style="display: none !important;" class="hidden p-4 rounded-2xl bg-gradient-to-r from-emerald-950/50 via-slate-900 to-slate-950 border border-emerald-500/40 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div class="space-y-1">
                   <div class="flex items-center space-x-2">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -1686,8 +1686,8 @@
                 </button>
               </div>
 
-              <!-- REWRITE IMPROVEMENT & SKILL EVOLUTION LAB (Active when rewrite evaluation is rendered) -->
-              <div id="rewriteComparisonCard" class="hidden p-4 sm:p-5 rounded-2xl bg-emerald-50/70 dark:bg-slate-900 border-2 border-emerald-500/45 shadow-xl space-y-4">
+              <!-- REWRITE IMPROVEMENT & SKILL EVOLUTION LAB (Temporarily hidden while rewrite feature is paused) -->
+              <div id="rewriteComparisonCard" style="display: none !important;" class="hidden p-4 sm:p-5 rounded-2xl bg-emerald-50/70 dark:bg-slate-900 border-2 border-emerald-500/45 shadow-xl space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-emerald-500/25">
                   <div class="flex items-start sm:items-center space-x-2.5">
                     <span class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-base font-bold shrink-0">📈</span>
@@ -2267,8 +2267,8 @@
       </div>
     </div>
 
-    <!-- 24-HOUR RE-UPLOAD & RE-EVALUATION MODAL (Fixed-Viewport Architecture) -->
-    <div id="rewriteUploadModal" class="hidden fixed inset-0 z-50 bg-[#0A0C10]/85 backdrop-blur-md items-center justify-center p-3 sm:p-4 overflow-hidden animate-fade-in">
+    <!-- 24-HOUR RE-UPLOAD & RE-EVALUATION MODAL (Temporarily hidden while rewrite feature is paused) -->
+    <div id="rewriteUploadModal" style="display: none !important;" class="hidden fixed inset-0 z-50 bg-[#0A0C10]/85 backdrop-blur-md items-center justify-center p-3 sm:p-4 overflow-hidden animate-fade-in">
       <div class="w-full max-w-xl max-h-[88vh] flex flex-col rounded-2xl bg-[#12151E] border border-emerald-500/40 shadow-2xl overflow-hidden relative">
         
         <!-- Sticky Fixed Header (Always visible at the top) -->
@@ -2705,8 +2705,8 @@
     </div>
   </div>
 
-  <!-- Sticky Bottom Evaluation Action Bar (Shown when results are displayed) -->
-  <div id="stickyRewriteFooter" class="hidden fixed bottom-0 md:bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-4 py-2.5 shadow-2xl flex items-center justify-between gap-3">
+  <!-- Sticky Bottom Evaluation Action Bar (Temporarily hidden while rewrite feature is paused) -->
+  <div id="stickyRewriteFooter" style="display: none !important;" class="hidden fixed bottom-0 md:bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-4 py-2.5 shadow-2xl flex items-center justify-between gap-3">
     <div class="flex items-center space-x-2 text-xs">
       <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
       <span class="font-bold text-slate-800 dark:text-slate-100 font-sans">24h Free Rewrite Window:</span>
@@ -2906,13 +2906,13 @@
             </div>
 
             <!-- Profile Summary Metrics -->
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-2 gap-3">
               <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center">
                 <span class="text-[10px] font-semibold text-amber-700 dark:text-amber-400 block uppercase tracking-wider">Daily Copies</span>
                 <span id="profileFreeChecksCount" class="text-base sm:text-xl font-bold font-mono text-slate-900 dark:text-white">15</span>
                 <span class="text-[10px] text-slate-500 block">Remaining Today</span>
               </div>
-              <div class="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-center">
+              <div style="display: none !important;" class="hidden p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-center">
                 <span class="text-[10px] font-semibold text-blue-700 dark:text-blue-400 block uppercase tracking-wider">Daily Rewrites</span>
                 <span id="profileFreeRewritesCount" class="text-base sm:text-xl font-bold font-mono text-slate-900 dark:text-white">5</span>
                 <span class="text-[10px] text-slate-500 block">Remaining Today</span>
