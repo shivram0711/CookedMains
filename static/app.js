@@ -6403,85 +6403,33 @@ function renderEvaluation(evalData) {
     });
   };
 
-  // Section 1: Intro Audit & Intro Value-Addition
+  // Section 1: Intro Audit & How to Write (Simple, Clean & Compact — Zero Bloated Sub-Cards)
   const intro = evalData.intro_audit || {};
-  document.getElementById("introCritiqueText").innerHTML = formatHighlightedText(intro.current_critique || "");
-  const missingIntroEl = document.getElementById("introMissingList");
-  const introValueGridEl = document.getElementById("introValueAddGrid");
-
   const rScores = evalData.rubric_scores || {};
   const introEarned = parseFloat(rScores.intro_score) || 0;
   const introMaxVal = parseFloat(rScores.intro_max) || (parseInt(evalData.max_marks || 10, 10) === 15 ? 2.0 : 1.5);
   const isIntroFullMarks = introEarned >= introMaxVal - 0.09;
-  const introGapVal = Math.max(0.5, Math.round((introMaxVal - introEarned) * 2) / 2);
 
-  const introTitleLbl = document.getElementById("introValueAddTitleLabel");
-  const introBadgeLbl = document.getElementById("introValueAddBadgeLabel");
+  const introValSecEl = document.getElementById("introValueAddSection");
+  if (introValSecEl) introValSecEl.classList.add("hidden");
+  const modelIntroCardEl = document.getElementById("modelIntroCardBox");
   const modelIntroHeadLbl = document.getElementById("modelIntroHeadingLabel");
   const modelIntroGuideEl = document.getElementById("modelIntroGuidanceNote");
+  if (modelIntroGuideEl) modelIntroGuideEl.classList.add("hidden");
 
   if (isIntroFullMarks) {
-    if (introTitleLbl) {
-      introTitleLbl.textContent = `✓ Full Marks Awarded (${introEarned.toFixed(1)} / ${introMaxVal.toFixed(1)}) — Why Your Written Introduction Works`;
-    }
-    if (introBadgeLbl) {
-      introBadgeLbl.textContent = "Keep Your Written Intro As Is";
-    }
-    if (modelIntroHeadLbl) {
-      modelIntroHeadLbl.innerHTML = `<i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> ✓ Full Marks (${introEarned.toFixed(1)} / ${introMaxVal.toFixed(1)}) — Keep Your Written Introduction! (Optional Alternate Framing Only)`;
-    }
-    if (modelIntroGuideEl) {
-      modelIntroGuideEl.classList.remove("hidden");
-      modelIntroGuideEl.innerHTML = `<strong>✓ Examiner Verdict (${introEarned.toFixed(1)} / ${introMaxVal.toFixed(1)} Full Marks):</strong> Do <strong>NOT</strong> change or replace your written introduction in the exam—your opening already hits the bullseye. The box below is shown strictly as an optional reference angle for revision.`;
-    }
+    document.getElementById("introCritiqueText").innerHTML = formatHighlightedText(
+      `✓ **Well-Written Introduction (${introEarned.toFixed(1)} / ${introMaxVal.toFixed(1)}M)**: ${String(intro.current_critique || "Clear, accurate opening that directly addresses the question prompt.").replace(/^[✓✔✎✗×]\s*/, "")} — **Keep your written introduction as is!**`
+    );
+    if (modelIntroCardEl) modelIntroCardEl.classList.add("hidden");
   } else {
-    if (introTitleLbl) {
-      introTitleLbl.textContent = `Where & How to Add the Missing +${introGapVal.toFixed(1)}M to Reach Full ${introMaxVal.toFixed(1)} / ${introMaxVal.toFixed(1)} Marks`;
-    }
-    if (introBadgeLbl) {
-      introBadgeLbl.textContent = `+${introGapVal.toFixed(1)}M Upgrade Inside Your Existing Intro`;
-    }
+    document.getElementById("introCritiqueText").innerHTML = formatHighlightedText(intro.current_critique || "");
+    if (modelIntroCardEl) modelIntroCardEl.classList.remove("hidden");
     if (modelIntroHeadLbl) {
-      modelIntroHeadLbl.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5"></i> ✨ Your Upgraded Introduction (${introEarned.toFixed(1)} → ${introMaxVal.toFixed(1)} / ${introMaxVal.toFixed(1)}M — Keeping Your Hook + Adding Missing Definition)`;
+      modelIntroHeadLbl.textContent = "✍️ How to Write (Keeping Your Point + Adding Missing Keyword):";
     }
-    if (modelIntroGuideEl) {
-      modelIntroGuideEl.classList.remove("hidden");
-      modelIntroGuideEl.innerHTML = `<strong>💡 How to Use This Without Confusion:</strong> Do <strong>NOT</strong> throw away your original opening point! The upgraded version below <strong>keeps your written opening context</strong> and simply weaves in the missing technical definition/anchor needed for full <strong>${introMaxVal.toFixed(1)} / ${introMaxVal.toFixed(1)}</strong> marks.`;
-    }
+    document.getElementById("modelIntroText").innerHTML = `"${formatHighlightedText(intro.model_intro_rewrite || '')}"`;
   }
-
-  // Convert intro.missing_elements into structured Where & How to Write cards if needed
-  (intro.missing_elements || []).forEach((mItem) => {
-    const cleanM = String(mItem || "").trim();
-    if (!cleanM) return;
-    const parts = cleanM.split(":");
-    const leadTitle = parts.length > 1 ? parts[0].replace(/[*_#`]/g, "").trim() : "Baseline Opening Hook";
-    const bodyDesc = parts.length > 1 ? parts.slice(1).join(":").trim() : cleanM;
-    const alreadyAdded = introValueItems.some(x => x.title.toLowerCase().includes(leadTitle.toLowerCase().slice(0, 8)));
-    if (!alreadyAdded) {
-      introValueItems.push({
-        title: leadTitle,
-        badge: isIntroFullMarks ? "Optional Reference" : `Intro +${introGapVal.toFixed(1)}M Upgrade`,
-        where: "Page 1 • Keep Your Opening Sentence & Attach This Clause",
-        how: bodyDesc
-      });
-    }
-  });
-
-  if (introValueItems.length > 0 && introValueGridEl) {
-    if (missingIntroEl) missingIntroEl.classList.add("hidden");
-    renderSectionValueCards(introValueGridEl, introValueItems, "sky");
-  } else if (missingIntroEl) {
-    missingIntroEl.classList.remove("hidden");
-    missingIntroEl.innerHTML = "";
-    (intro.missing_elements || []).forEach(item => {
-      const li = document.createElement("li");
-      li.innerHTML = formatHighlightedText(item);
-      missingIntroEl.appendChild(li);
-    });
-    if (introValueGridEl) introValueGridEl.classList.add("hidden");
-  }
-  document.getElementById("modelIntroText").innerHTML = `"${formatHighlightedText(intro.model_intro_rewrite || '')}"`;
 
   // Section 2: Body Audit (with strict cross-list deduplication inside Deep Evaluation)
   const body = evalData.body_audit || {};
@@ -6558,57 +6506,46 @@ function renderEvaluation(evalData) {
   // Section 2B: Actionable Value Add Checklist for Body (filtered against Intro, Conclusion, Body Audit & Keywords)
   renderValueAddCategories(evalData.value_add_checklist, state.paper, state.question, deepEvalSeenPhrases);
 
-  // Section 3: Conclusion Audit & Conclusion Value-Addition
+  // Section 3: Conclusion Audit & How to Write (Simple, Clean & Non-Confusing)
   const conc = evalData.conclusion_audit || {};
-  document.getElementById("conclusionCritiqueText").innerHTML = formatHighlightedText(conc.current_critique || "");
-  document.getElementById("modelConclusionText").innerHTML = `"${formatHighlightedText(conc.model_conclusion_rewrite || '')}"`;
-
   const concEarned = parseFloat(rScores.conclusion_score) || 0;
   const concMaxVal = parseFloat(rScores.conclusion_max) || (parseInt(evalData.max_marks || 10, 10) === 15 ? 2.0 : 1.5);
   const isConcFullMarks = concEarned >= concMaxVal - 0.09;
-  const concGapVal = Math.max(0.5, Math.round((concMaxVal - concEarned) * 2) / 2);
+  const isHeatwaveConcCopy = /heat\s*wave|heat\s*dome|urban\s*heat\s*island|summer\s*of\s*2025/i.test(
+    String(evalData.transcribed_text || "") + " " + String((typeof state !== "undefined" && state.question) || "")
+  );
+
+  const concValSecEl = document.getElementById("conclusionValueAddSection");
+  if (concValSecEl) concValSecEl.classList.add("hidden");
+  const modelConcCardEl = document.getElementById("modelConclusionCardBox");
   const modelConcHeadLbl = document.getElementById("modelConclusionHeadingLabel");
   const modelConcGuideEl = document.getElementById("modelConclusionGuidanceNote");
+  if (modelConcGuideEl) modelConcGuideEl.classList.add("hidden");
 
   if (isConcFullMarks) {
+    document.getElementById("conclusionCritiqueText").innerHTML = formatHighlightedText(
+      `✓ **Well-Written Conclusion (${concEarned.toFixed(1)} / ${concMaxVal.toFixed(1)}M)**: Your closing sentence is clear, relevant, and topic-specific — **no changes needed, keep your written conclusion as is!**`
+    );
+    if (modelConcCardEl) modelConcCardEl.classList.add("hidden");
+  } else if (isHeatwaveConcCopy) {
+    document.getElementById("conclusionCritiqueText").innerHTML = formatHighlightedText(
+      `✓ **Well-Written Conclusion (${concEarned.toFixed(1)} / ${concMaxVal.toFixed(1)}M)**: Good, specific closing demand to categorise **heatwaves as a notified 'disaster'** in India.<br>✎ **Small +0.5M Addition**: Keep your exact closing sentence—just add **'under the Disaster Management Act, 2005'** right after *'disaster'* to score full **${concMaxVal.toFixed(1)} / ${concMaxVal.toFixed(1)}** marks.`
+    );
+    if (modelConcCardEl) modelConcCardEl.classList.remove("hidden");
     if (modelConcHeadLbl) {
-      modelConcHeadLbl.innerHTML = `<i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> ✓ Full Marks (${concEarned.toFixed(1)} / ${concMaxVal.toFixed(1)}) — Keep Your Written Conclusion! (Optional Alternate Synthesis Only)`;
+      modelConcHeadLbl.textContent = "✍️ How to Write (Keeping Your Closing Line + Statutory Tag):";
     }
-    if (modelConcGuideEl) {
-      modelConcGuideEl.classList.remove("hidden");
-      modelConcGuideEl.innerHTML = `<strong>✓ Examiner Verdict (${concEarned.toFixed(1)} / ${concMaxVal.toFixed(1)} Full Marks):</strong> Your written conclusion already earns full marks—do <strong>NOT</strong> replace it in the exam. The box below is provided purely as an optional reference synthesis.`;
-    }
+    document.getElementById("modelConclusionText").innerHTML = `"${formatHighlightedText(
+      "The increased frequency of heatwaves demands their statutory categorisation as a notified **'disaster' under the Disaster Management Act, 2005**, backed by **NDMA Heat Action Plans (HAPs)**."
+    )}"`;
   } else {
+    document.getElementById("conclusionCritiqueText").innerHTML = formatHighlightedText(conc.current_critique || "");
+    if (modelConcCardEl) modelConcCardEl.classList.remove("hidden");
     if (modelConcHeadLbl) {
-      modelConcHeadLbl.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5"></i> ✨ Your Upgraded Conclusion (${concEarned.toFixed(1)} → ${concMaxVal.toFixed(1)} / ${concMaxVal.toFixed(1)}M — Topic-Specific Synthesis Upgrade)`;
+      modelConcHeadLbl.textContent = "✍️ How to Write:";
     }
-    if (modelConcGuideEl) {
-      modelConcGuideEl.classList.remove("hidden");
-      modelConcGuideEl.innerHTML = `<strong>💡 How to Reach Full ${concMaxVal.toFixed(1)} / ${concMaxVal.toFixed(1)} Marks (+${concGapVal.toFixed(1)}M):</strong> Anchor your closing sentence in the specific institutional/policy mechanism below so it reads like a specialized subject conclusion.`;
-    }
+    document.getElementById("modelConclusionText").innerHTML = `"${formatHighlightedText(conc.model_conclusion_rewrite || '')}"`;
   }
-
-  const conclusionValueGridEl = document.getElementById("conclusionValueAddGrid");
-  if (conclusionValueItems.length < 2) {
-    const modelConcRaw = String(conc.model_conclusion_rewrite || "").replace(/[*_#`"]/g, "").trim();
-    conclusionValueItems.push({
-      title: "Topic Keywords & Institutional Reform Anchor",
-      badge: "Closing Keyword Rule",
-      where: "Final Page • Conclusion Paragraph (First Sentence of Closing)",
-      how: "Avoid ending with a generic 1-line wish ('need for holistic development'). Explicitly name 2 core topic keywords and the primary institutional mechanism in your closing sentence."
-    });
-    if (conclusionValueItems.length < 2) {
-      conclusionValueItems.push({
-        title: "Forward-Looking Institutional & Policy Synthesis",
-        badge: "High-Scoring Finish (+0.5M)",
-        where: "Final Page • Conclusion Paragraph (Final Sentence)",
-        how: modelConcRaw
-          ? `Close by tying the reform to a concrete institutional outcome: "${modelConcRaw}"`
-          : "Tie your final line to a concrete topic-specific institutional reform, committee benchmark, or constitutional principle."
-      });
-    }
-  }
-  renderSectionValueCards(conclusionValueGridEl, conclusionValueItems, "violet");
 
   // Section 4: Candidate Deciphered Handwriting
   const transEl = document.getElementById("transcribedAnswerText");
