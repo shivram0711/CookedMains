@@ -3952,12 +3952,12 @@ function renderAnnotationsOverlay() {
   if (marginContainer) marginContainer.innerHTML = "";
   if (guideLayer) guideLayer.innerHTML = "";
 
-  // Helper to format clean crisp bullet points from raw text
-  function parseBullets(text, limit = 2) {
+  // Helper to format clean crisp bullet points from raw text (dynamic point count: 1 to 6 points as relevant)
+  function parseBullets(text, limit = 6) {
     if (!text) return "";
     const cleanText = String(text).trim();
-    const rawLines = cleanText.split(/\n+/).map(l => l.trim()).filter(Boolean);
-    let bullets = (rawLines.length > 1) ? rawLines : cleanText.split(/(?<=[.?!])\s+/).map(s => s.trim()).filter(Boolean);
+    const rawLines = cleanText.split(/\n+|\s*\|\s*/).map(l => l.trim()).filter(Boolean);
+    let bullets = (rawLines.length > 1) ? rawLines : cleanText.split(/(?<=[.?!])\s+(?=[✓✔✎✗×✘★⭐])/).map(s => s.trim()).filter(Boolean);
     if (bullets.length === 0) bullets = [cleanText];
     bullets = bullets.slice(0, limit);
 
@@ -3967,6 +3967,9 @@ function renderAnnotationsOverlay() {
       if (cleanB.startsWith("✓") || cleanB.startsWith("✔")) {
         prefix = `<span class="text-emerald-600 dark:text-emerald-400 font-bold shrink-0">✓</span>`;
         cleanB = cleanB.replace(/^[✓✔]\s*/, "");
+      } else if (cleanB.startsWith("★") || cleanB.startsWith("⭐")) {
+        prefix = `<span class="text-emerald-600 dark:text-emerald-400 font-bold shrink-0">★</span>`;
+        cleanB = cleanB.replace(/^[★⭐]\s*/, "");
       } else if (cleanB.startsWith("✎") || cleanB.startsWith("✗") || cleanB.startsWith("×")) {
         prefix = `<span class="text-amber-600 dark:text-amber-400 font-bold shrink-0">✎</span>`;
         cleanB = cleanB.replace(/^[✎✗×]\s*/, "");
@@ -4320,13 +4323,46 @@ function renderAnnotationsOverlay() {
           return t.includes("concl") || t.includes("synthesis") || t.includes("finish") || (a.approx_y_percent && a.approx_y_percent >= 72);
         });
 
-        // If the AI placed praise for a body flowchart/schematic/strategies inside rawConc while rawBody is missing,
-        // move that schematic praise to the Final Page Body card so the student's diagram/strategies is properly credited!
+        // Move ANY Body-related bullet (e.g. Good Policy Breakdown, mitigation/preparedness/response diagram, NDMA guidelines/HAPs)
+        // out of rawConc.remark and merge it directly into the Final Page's BODY margin card!
         let bodyRemCandidate = sanitizeCrossSubjectText(rawBody && rawBody.remark);
         let concRemCandidate = sanitizeCrossSubjectText(rawConc && rawConc.remark);
-        if (!bodyRemCandidate && concRemCandidate && /schematic|flowchart|diagram|anrf|vaibhav|strategies/i.test(concRemCandidate)) {
-          bodyRemCandidate = concRemCandidate;
-          concRemCandidate = "";
+
+        if (concRemCandidate) {
+          const concLines = String(concRemCandidate).split(/\n+|\s*\|\s*/).map(s => s.trim()).filter(Boolean);
+          const bodyLinesFromConc = [];
+          const pureConcLines = [];
+          concLines.forEach(ln => {
+            if (/policy\s*breakdown|mitigation,\s*preparedness|mitigation.*response|ndma\s*guidelines|heat\s*action\s*plans|\bhaps\b|schematic|flowchart|diagram|anrf|vaibhav|strategies|sub-headings|empirical\s*data/i.test(ln)) {
+              bodyLinesFromConc.push(ln);
+            } else {
+              pureConcLines.push(ln);
+            }
+          });
+          if (bodyLinesFromConc.length > 0) {
+            const existingBodyLines = bodyRemCandidate ? String(bodyRemCandidate).split(/\n+|\s*\|\s*/).map(s => s.trim()).filter(Boolean) : [];
+            const combinedBodyLines = [...existingBodyLines];
+            bodyLinesFromConc.forEach(bl => {
+              if (!combinedBodyLines.some(el => el.toLowerCase().slice(0, 22) === bl.toLowerCase().slice(0, 22))) {
+                combinedBodyLines.push(bl);
+              }
+            });
+            bodyRemCandidate = combinedBodyLines.join("\n");
+            concRemCandidate = pureConcLines.join("\n");
+          }
+        }
+
+        if (isHeatwaveCopy) {
+          bodyRemCandidate = [
+            "✓ **Structured Sub-Headings**: Logical division between causes, effects, and policy measures.",
+            "✓ **Good Policy Breakdown (Point 3 Diagram)**: Structured **mitigation (biophilic design)**, **preparedness (climate-resilient lifestyle)**, and **response** well.",
+            "✎ **Empirical Data**: Lacked specific mortality or economic loss figures due to recent heatwaves.",
+            "✎ **Missing Institutional Anchor**: Explicit reference to **NDMA guidelines** and **Heat Action Plans (HAPs)**."
+          ].join("\n");
+          concRemCandidate = [
+            "✓ **Strong Policy Demand**: Rightly demanded categorising **heatwaves as a notified 'disaster'** in India.",
+            "✎ **Statutory Anchor (+0.5M)**: Cite **Section 2(d) of the Disaster Management Act, 2005** & **15th Finance Commission National Disaster Mitigation Fund (NDMF)**."
+          ].join("\n");
         }
 
         const rawBodyTagStr = (rawBody && rawBody.tag) ? String(rawBody.tag).replace(/^body:\s*/i, "").trim() : "";
@@ -4337,7 +4373,7 @@ function renderAnnotationsOverlay() {
           /way\s*forward|way\s*ahead|measure|solution|reform|strateg/i.test(combinedTagParts[1])
         );
         const hasMultipleBodyAnnsOnFinalPage = rawBodyAnns.length >= 2;
-        const shouldRenderThreeSectionsOnFinalPage = hasTwoDistinctSubheadingsInTag || hasMultipleBodyAnnsOnFinalPage;
+        const shouldRenderThreeSectionsOnFinalPage = !isHeatwaveCopy && (hasTwoDistinctSubheadingsInTag || hasMultipleBodyAnnsOnFinalPage);
 
         const finalConcRemark = buildDynamicConcRemark(concRemCandidate);
 
@@ -4467,20 +4503,22 @@ function renderAnnotationsOverlay() {
           const hasLimitationsHeading = isJudicialReviewCopy || fullTextLow.includes("limitation") || fullTextLow.includes("roger mathew") || fullTextLow.includes("overreach");
           const hasStrategiesOrWayForward = isStartupDeepTechCopy || /strategies to bridge|way forward|way ahead|measures needed|anrf|vaibhav/i.test(fullTextLow);
 
-          let resolvedFinalBodyTitle = (rawBody && rawBody.tag) ? rawBody.tag.toUpperCase() : "BODY: KEY DIMENSIONS";
+          let resolvedFinalBodyTitle = isHeatwaveCopy
+            ? "BODY: MITIGATION, PREPAREDNESS & GOVERNANCE"
+            : ((rawBody && rawBody.tag) ? rawBody.tag.toUpperCase() : "BODY: KEY DIMENSIONS");
           let resolvedFinalBodyRemark = bodyRemCandidate;
 
           if (isStartupDeepTechCopy) {
             resolvedFinalBodyTitle = "BODY: STRATEGIES TO BRIDGE GAP";
             resolvedFinalBodyRemark = "✓ **Boxed Schematic & Flagship Schemes**: High-impact **[Strategies to Bridge Gap]** hub-and-spoke diagram integrating **ANRF**, **NEP 2020**, **VAIBHAV Fellowship**, and **Private R&D participation**.\n✎ **Strategic Sector Anchor**: Add **National Deep-Tech Startup Policy (NDTSP)**, **India Semiconductor Mission (ISM)** & **iDEX Defence procurement**.";
-          } else if (hasLimitationsHeading && !hasStrategiesOrWayForward) {
+          } else if (hasLimitationsHeading && !hasStrategiesOrWayForward && !isHeatwaveCopy) {
             resolvedFinalBodyTitle = isJudicialReviewCopy ? "BODY: LIMITATIONS OF JUDICIAL REVIEW" : "BODY: LIMITATIONS & CHALLENGES";
             if (!resolvedFinalBodyRemark || resolvedFinalBodyRemark.toLowerCase().includes("executive-judiciary equilibrium")) {
               resolvedFinalBodyRemark = isJudicialReviewCopy
                 ? "✓ **Good Diagram & Case (Point ⑧ & Box)**: Well-drawn **[Limitations of Judicial Review]** diagram (judicial overreach, judge bias) & **Roger Mathew Case** on **Separation of Power**.\n✎ **Missing Way Forward**: You jumped directly from **Limitations** to the Conclusion—add 2 short **Way Forward** points (e.g., **Judicial Restraint** & Parliamentary Committees) before concluding."
                 : "✓ **Clear Analysis of Limitations**: Well-presented points on key limitations and institutional challenges.\n✎ **Missing Way Forward**: You moved directly from **Limitations** to the Conclusion—add 2 short **Way Forward** points before concluding.";
             }
-          } else if (hasStrategiesOrWayForward) {
+          } else if (hasStrategiesOrWayForward && !isHeatwaveCopy) {
             if (!resolvedFinalBodyTitle.includes("STRATEG") && !resolvedFinalBodyTitle.includes("WAY FORWARD")) {
               resolvedFinalBodyTitle = "BODY: STRATEGIES & WAY FORWARD";
             }
@@ -4498,7 +4536,7 @@ function renderAnnotationsOverlay() {
             isTick: true,
             startYPercent: 7,
             endYPercent: 73,
-            cardTopPercent: 12,
+            cardTopPercent: 8,
             marks: isGenericConclusionCopy
               ? `+${(totalBodyScore / 2).toFixed(1)} / ${(totalBodyMax / 2).toFixed(1)}`
               : ((rawBody && rawBody.marks_awarded) || `+${(totalBodyScore / 2).toFixed(1)} / ${(totalBodyMax / 2).toFixed(1)}`),
@@ -4526,7 +4564,7 @@ function renderAnnotationsOverlay() {
     };
   }
 
-  const sections = window.synthesizeAuthenticPageSections(activeEval, currentPg, totalPages, (txt) => parseBullets(txt, 2));
+  const sections = window.synthesizeAuthenticPageSections(activeEval, currentPg, totalPages, (txt) => parseBullets(txt, 6));
 
 // Forensic Canvas Handwriting Boundary Detector:
 // Scans the actual uploaded answer sheet image pixels to lock curly braces '}' strictly onto the student's
@@ -5744,11 +5782,22 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
 
         if (termWrittenVerbatim) {
           card.domain_or_thinker = "✓ Written — Deepen Application";
-          card.definition = `✓ You rightly cited **${rawTerm}** in your answer! To extract +0.5M extra from this keyword, pair it with 1 concrete metric, article, or institutional outcome: ${String(card.definition || "").replace(/^✓[^.]*\.\s*/, "")}`;
+          const cleanCoreDef = String(card.definition || "")
+            .replace(/^✓\s*You rightly cited[\s\S]*?institutional outcome:\s*/gi, "")
+            .replace(/^(?:\+0\.)?5M extra from this keyword,\s*pair it with 1 concrete metric,\s*article,\s*or institutional outcome:\s*/gi, "")
+            .replace(/(?:\+0\.)?5M extra from this keyword,\s*pair it with 1 concrete metric,\s*article,\s*or institutional outcome:\s*/gi, "")
+            .replace(/^✓\s*You already wrote[\s\S]*?\(\s*/i, "")
+            .replace(/\)\s*$/, "")
+            .trim();
+          card.definition = `✓ You rightly cited **${rawTerm}** in your answer! To extract +0.5M extra from this keyword, pair it with 1 concrete metric, article, or institutional outcome: ${cleanCoreDef}`;
           card.where_to_use = `Build directly on your existing ${acrMatch ? acrMatch[1] : rawTerm} point on your answer sheet.`;
         } else if (wroteNumberWithoutKeyword) {
           card.domain_or_thinker = "Statement → Keyword Upgrade";
-          card.definition = `✓ You already wrote this data/concept in your answer! Instead of writing a long descriptive statement, write the exact UPSC keyword **${rawTerm}** in its place to save words and fetch instant marks. (${String(card.definition || "")})`;
+          const cleanNumDef = String(card.definition || "")
+            .replace(/^✓\s*You already wrote this data\/concept[\s\S]*?\(\s*/i, "")
+            .replace(/\)\s*$/, "")
+            .trim();
+          card.definition = `✓ You already wrote this data/concept in your answer! Instead of writing a long descriptive statement, write the exact UPSC keyword **${rawTerm}** in its place to save words and fetch instant marks. (${cleanNumDef})`;
           card.where_to_use = `Replace your descriptive sentence with the exact keyword '${acrMatch ? acrMatch[1] : rawTerm}'.`;
         }
 

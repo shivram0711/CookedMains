@@ -1541,39 +1541,55 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                             "remark": _synth_body_remark(1)
                         })
                 else:
-                    # Final page: check if Conclusion annotation accidentally holds praise for a body flowchart/schematic
+                    # Final page: move ANY Body-related lines (e.g. policy breakdown, mitigation/preparedness/response, NDMA guidelines/HAPs, diagrams)
+                    # out of Conclusion annotation and merge them into the Final Page Body annotation!
                     conc_ann = next((a for a in pg_anns if "concl" in str(a.get("tag", "")).lower() or "synthesis" in str(a.get("tag", "")).lower()), None)
                     body_ann = next((a for a in pg_anns if a is not conc_ann), None)
-                    if conc_ann and not body_ann:
+                    if conc_ann:
                         c_rem = str(conc_ann.get("remark", ""))
-                        if re.search(r'(?i)(flowchart|schematic|diagram|anrf|vaibhav|strategies)', c_rem):
-                            new_body_rem = c_rem
-                            c_crit = str(conc_audit_obj.get("current_critique") or "**Good Closing Line**: Balanced concluding synthesis.")
-                            c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "Anchor closing sentence with topic-specific institutional and policy reforms.")
-                            conc_ann["remark"] = f"{_fmt_bullet(c_crit, '✓')}\n✎ **Topper Finish**: {c_rew[:120]}"
-                            expanded_anns.append({
-                                "page": pg,
-                                "approx_y_percent": 35,
-                                "start_y_percent": 10,
-                                "end_y_percent": 62,
-                                "tag": "Body: Strategies & Way Forward",
-                                "type": "tick",
-                                "marks_awarded": "+1.5 / 2.5",
-                                "remark": new_body_rem
-                            })
-                            expanded_anns.append(conc_ann)
-                        else:
-                            expanded_anns.append({
-                                "page": pg,
-                                "approx_y_percent": 35,
-                                "start_y_percent": 10,
-                                "end_y_percent": 62,
-                                "tag": "Body: Key Dimensions",
-                                "type": "tick",
-                                "marks_awarded": "+1.5 / 2.5",
-                                "remark": _synth_body_remark(1)
-                            })
-                            expanded_anns.append(conc_ann)
+                        c_lines = [ln.strip() for ln in re.split(r'\n+|\s*\|\s*', c_rem) if ln.strip()]
+                        leaked_body_lines = [
+                            ln for ln in c_lines
+                            if re.search(r'(?i)(policy\s*breakdown|mitigation,\s*preparedness|mitigation.*response|ndma\s*guidelines|heat\s*action\s*plans|\bhaps\b|flowchart|schematic|diagram|anrf|vaibhav|strategies|sub-headings|empirical\s*data)', ln)
+                        ]
+                        pure_conc_lines = [ln for ln in c_lines if ln not in leaked_body_lines]
+                        if leaked_body_lines:
+                            c_crit = str(conc_audit_obj.get("current_critique") or "✓ **Good Closing Line**: Balanced concluding stand on the core demand.")
+                            c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "Anchor closing sentence with topic-specific institutional and statutory reforms.")
+                            if pure_conc_lines:
+                                conc_ann["remark"] = "\n".join(pure_conc_lines)
+                            else:
+                                conc_ann["remark"] = f"{_fmt_bullet(c_crit, '✓')}\n✎ **Topper Finish**: {c_rew[:140]}"
+                            if body_ann:
+                                b_existing = [ln.strip() for ln in re.split(r'\n+|\s*\|\s*', str(body_ann.get("remark", ""))) if ln.strip()]
+                                for bl in leaked_body_lines:
+                                    if not any(bl[:20].lower() in ex.lower() for ex in b_existing):
+                                        b_existing.append(_fmt_bullet(bl, '✓' if ('good' in bl.lower() or 'structured' in bl.lower()) else '✎'))
+                                body_ann["remark"] = "\n".join(b_existing)
+                            else:
+                                body_ann = {
+                                    "page": pg,
+                                    "approx_y_percent": 35,
+                                    "start_y_percent": 10,
+                                    "end_y_percent": 62,
+                                    "tag": "Body: Key Dimensions",
+                                    "type": "tick",
+                                    "marks_awarded": "+1.5 / 2.5",
+                                    "remark": "\n".join(leaked_body_lines)
+                                }
+                                pg_anns.insert(0, body_ann)
+                    if conc_ann and not body_ann:
+                        expanded_anns.append({
+                            "page": pg,
+                            "approx_y_percent": 35,
+                            "start_y_percent": 10,
+                            "end_y_percent": 62,
+                            "tag": "Body: Key Dimensions",
+                            "type": "tick",
+                            "marks_awarded": "+1.5 / 2.5",
+                            "remark": _synth_body_remark(1)
+                        })
+                        expanded_anns.append(conc_ann)
                     else:
                         expanded_anns.extend(pg_anns)
             annotations = expanded_anns
@@ -2382,11 +2398,13 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
 
             if term_written:
                 card["domain_or_thinker"] = "✓ Written — Deepen Application"
-                card["definition"] = f"✓ You rightly cited **{raw_term}** in your answer! To extract +0.5M extra from this keyword, pair it with 1 concrete metric, article, or institutional outcome: {str(card.get('definition') or '')}"
+                raw_def_clean = re.sub(r'^(?:✓\s*You rightly cited[\s\S]*?institutional outcome:\s*|(?:\+0\.)?5M extra from this keyword,\s*pair it with 1 concrete metric,\s*article,\s*or institutional outcome:\s*)+', '', str(card.get("definition") or ""), flags=re.I).strip()
+                card["definition"] = f"✓ You rightly cited **{raw_term}** in your answer! To extract +0.5M extra from this keyword, pair it with 1 concrete metric, article, or institutional outcome: {raw_def_clean}"
                 card["where_to_use"] = f"Build directly on your existing {acr_m.group(1) if acr_m else raw_term} point on your answer sheet."
             elif wrote_num_without_kw:
                 card["domain_or_thinker"] = "Statement → Keyword Upgrade"
-                card["definition"] = f"✓ You already wrote this data/concept in your answer! Instead of writing a long descriptive statement, write the exact UPSC keyword **{raw_term}** in its place to save words and fetch instant marks. ({str(card.get('definition') or '')})"
+                raw_def_clean = re.sub(r'^✓\s*You already wrote this data/concept[\s\S]*?\(\s*', '', str(card.get("definition") or ""), flags=re.I).rstrip(')').strip()
+                card["definition"] = f"✓ You already wrote this data/concept in your answer! Instead of writing a long descriptive statement, write the exact UPSC keyword **{raw_term}** in its place to save words and fetch instant marks. ({raw_def_clean})"
                 card["where_to_use"] = f"Replace your descriptive sentence with the exact keyword '{acr_m.group(1) if acr_m else raw_term}'."
             card["number"] = idx + 1
 
