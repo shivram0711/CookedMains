@@ -1246,38 +1246,50 @@ Generate strictly valid JSON matching this schema:
     "conclusion_max": {rubric_co_max}
   }},
   // CRITICAL MANDATE: The sum of intro_score + core_demand_score + value_add_score + presentation_score + conclusion_score MUST EXACTLY EQUAL overall_score! There must be ZERO discrepancy.
+  // CRITICAL MANDATE FOR sub_part_step_marking:
+  // 1. Deconstruct the question into its TRUE analytical demands as a real UPSC Subject Examiner—NEVER just split the question sentence by a period ('.') and copy-paste the prompt text!
+  // 2. Dynamically include 2, 3, or 4 Body Sub-Parts (e.g. Part A, Part B, Part C) depending on how many distinct demands the question actually has (plus Intro at #1 and Conclusion at the end).
+  // 3. For each sub-part, 'sub_heading' MUST explain WHAT the question demands conceptually (e.g. 'Constitutional Basis of Supremacy & Conformity of Laws (Art. 13, 32, 246)' or 'Meteorological & Urban Microclimate Causes of Heatwaves'), and 'quoted_written' MUST state whether the candidate fulfilled that demand ('✓ Demand Met' / '⚠️ Partially Met' / '✗ Demand Missed') citing their exact written points and why marks were awarded or held back.
   "sub_part_step_marking": [
     {{
-      "step_label": "1. INTRO & CONTEXT",
-      "sub_heading": "Opening Definition / Data Anchor",
+      "step_label": "1. Introduction (Context & Baseline Hook)",
+      "sub_heading": "Conceptual Definition, Constitutional/Statutory Anchor or Contemporary Context",
+      "demand_status": "Partially Fulfilled",
       "awarded": {sample_intro_aw:.2f},
       "max": {intro_d:.1f},
-      "quoted_written": "Exact 1-line quote or summary of what the candidate wrote in the Introduction",
-      "step_up_lever": "Exact +0.5M upgrade tip (e.g. 'Anchor line 1 with DPIIT count / Article / Report')"
+      "quoted_written": "Awarded marks for [exact opening hook written]; [X]M held back for [missing technical/statutory anchor]."
     }},
     {{
-      "step_label": "2. CORE DEMAND — PART A",
-      "sub_heading": "Primary Question Sub-Part",
-      "awarded": {round(sample_body_aw * 0.55, 2):.2f},
-      "max": {round(body_d * 0.55, 1):.1f},
-      "quoted_written": "Exact quote of candidate's strongest points & data in Part A",
-      "step_up_lever": "Exact +1.0M step-up lever for Part A"
+      "step_label": "2. Part A — Primary Analytical Demand",
+      "sub_heading": "Explain what Sub-Part 1 actually demands (NEVER copy-paste the raw question sentence)",
+      "demand_status": "Demand Fulfilled",
+      "awarded": {round(sample_body_aw * 0.40, 2):.2f},
+      "max": {round(body_d * 0.40, 1):.1f},
+      "quoted_written": "✓ Demand Met: Candidate addressed [exact points/articles/diagrams written on sheet]."
     }},
     {{
-      "step_label": "3. CORE DEMAND — PART B",
-      "sub_heading": "Secondary Sub-Part & Way Forward",
-      "awarded": {round(sample_body_aw - round(sample_body_aw * 0.55, 2), 2):.2f},
-      "max": {round(body_d - round(body_d * 0.55, 1), 1):.1f},
-      "quoted_written": "Exact quote of candidate's points / boxed diagram / strategies in Part B",
-      "step_up_lever": "Exact +1.0M step-up lever for Part B"
+      "step_label": "3. Part B — Secondary Analytical Demand",
+      "sub_heading": "Explain what Sub-Part 2 actually demands (e.g. Enforcement Mechanism / Multidimensional Effects)",
+      "demand_status": "Demand Fulfilled",
+      "awarded": {round(sample_body_aw * 0.35, 2):.2f},
+      "max": {round(body_d * 0.35, 1):.1f},
+      "quoted_written": "✓ Demand Met: Candidate substantiated with [exact case laws / data / points written]."
     }},
     {{
-      "step_label": "4. CONCLUSION & SYNTHESIS",
-      "sub_heading": "Closing Synthesis & National Vision",
+      "step_label": "4. Part C — Tertiary Demand / Limitations / Way Forward (Include whenever question has 3 demands)",
+      "sub_heading": "Explain what Sub-Part 3 demands (e.g. Institutional Limitations, Challenges & Reform Measures)",
+      "demand_status": "Partially Fulfilled",
+      "awarded": {round(sample_body_aw - round(sample_body_aw * 0.40, 2) - round(sample_body_aw * 0.35, 2), 2):.2f},
+      "max": {round(body_d - round(body_d * 0.40, 1) - round(body_d * 0.35, 1), 1):.1f},
+      "quoted_written": "⚠️ Partially Met: Covered [points written]; [X]M held back for omitting [missing dimension]."
+    }},
+    {{
+      "step_label": "5. Conclusion (Closing Synthesis)",
+      "sub_heading": "Topic-Specific Institutional, Constitutional or Policy Synthesis",
+      "demand_status": "Demand Fulfilled",
       "awarded": {sample_conc_aw:.2f},
       "max": {conc_d:.1f},
-      "quoted_written": "Exact quote or summary of the candidate's concluding sentence",
-      "step_up_lever": "Exact +0.5M closing synthesis upgrade"
+      "quoted_written": "Awarded marks for [exact closing line summary]."
     }}
   ],
   "point_by_point_audit": [
