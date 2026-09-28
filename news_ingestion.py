@@ -9,34 +9,40 @@ from storage import save_current_affairs_articles, get_recent_current_affairs, s
 
 RSS_FEEDS = [
     {
-        "source": "The Hindu - Editorial & Opinion",
+        "source": "The Hindu - Editorial",
         "url": "https://www.thehindu.com/opinion/editorial/feeder/default.rss",
+        "category": "editorial",
+        "priority": 1
+    },
+    {
+        "source": "The Hindu - Lead Op-Ed",
+        "url": "https://www.thehindu.com/opinion/lead/feeder/default.rss",
         "category": "opinion",
         "priority": 1
     },
     {
-        "source": "The Hindu - National",
-        "url": "https://www.thehindu.com/news/national/feeder/default.rss",
-        "category": "national",
-        "priority": 2
-    },
-    {
-        "source": "Indian Express - Explained",
+        "source": "The Indian Express - Explained",
         "url": "https://indianexpress.com/section/explained/feed/",
         "category": "explained",
         "priority": 1
     },
     {
-        "source": "Indian Express - Editorials",
+        "source": "The Indian Express - Editorials",
         "url": "https://indianexpress.com/section/opinion/editorials/feed/",
         "category": "editorial",
         "priority": 1
     },
     {
-        "source": "LiveMint - Economy & Policy",
-        "url": "https://www.livemint.com/rss/economy",
+        "source": "The Hindu - Economy & Policy",
+        "url": "https://www.thehindu.com/business/Economy/feeder/default.rss",
         "category": "economy",
-        "priority": 2
+        "priority": 1
+    },
+    {
+        "source": "The Hindu - Environment & Sci-Tech",
+        "url": "https://www.thehindu.com/sci-tech/energy-and-environment/feeder/default.rss",
+        "category": "environment",
+        "priority": 1
     }
 ]
 
@@ -44,28 +50,31 @@ UPSC_KEYWORDS = [
     # GS 1
     "heritage", "culture", "monument", "temple", "tribal", "women", "urbanization", 
     "cyclone", "monsoon", "earthquake", "water crisis", "glacier", "heatwave", "population",
+    "drought", "landslide", "depression", "western disturbance", "freedom struggle",
     # GS 2
     "constitution", "supreme court", "high court", "governor", "parliament", "bill", "act",
-    "ordinance", "election", "eci", "cbi", "ed", "rti", "privacy", "dpdp", "fundamental right",
-    "judicial", "panchayat", "federalism", "brics", "g20", "quad", "sco", "asean",
-    "unsc", "foreign policy", "diplomacy", "bilateral", "extradition", "welfare", "poverty",
-    "citizenship", "secular", "reservation", "delicacy", "lokpal", "civil services",
+    "ordinance", "election commission", "eci", "electoral roll", "rti", "privacy", "dpdp", "fundamental right",
+    "judicial", "panchayat", "federalism", "brics", "g20", "quad", "sco", "asean", "fta",
+    "unsc", "united nations", "foreign policy", "diplomacy", "bilateral", "welfare", "poverty",
+    "citizenship", "secular", "reservation", "lokpal", "civil services", "ngo", "fcra",
     # GS 3
-    "economy", "gdp", "inflation", "rbi", "monetary policy", "fiscal deficit", "disinvestment",
-    "semiconductor", "chip", "green hydrogen", "renewable energy", "solar", "battery", "ev",
-    "climate change", "cop28", "cop29", "pollution", "biodiversity", "wildlife", "forest",
-    "msp", "agriculture", "farmer", "irrigation", "fertilizer", "ai", "artificial intelligence",
-    "space", "isro", "defence", "drdo", "cyber security", "border management", "money laundering",
-    "pmla", "infrastructure", "logistics", "supply chain",
+    "economy", "gdp", "inflation", "rbi", "monetary policy", "fiscal deficit", "make in india", "manufacturing",
+    "semiconductor", "chip", "green hydrogen", "renewable energy", "solar", "blue bond", "upi",
+    "climate change", "cop", "kasturirangan", "western ghats", "pollution", "biodiversity", "wildlife", "forest",
+    "msp", "agriculture", "farmer", "irrigation", "crop", "artificial intelligence", "ai safety",
+    "space", "isro", "defence", "drdo", "cyber security", "border management", "disaster management",
+    "infrastructure", "logistics", "supply chain",
     # GS 4
     "ethics", "corruption", "integrity", "probity", "whistleblower", "accountability", "governance",
-    "moral", "compassion", "empathy", "conflict of interest"
+    "moral", "compassion", "empathy", "conflict of interest", "fiduciary", "trusteeship"
 ]
 
 NOISE_KEYWORDS = [
-    "cricket", "ipl", "scorecard", "box office", "bollywood", "hollywood", "cinema",
+    "cricket", "ipl", "scorecard", "table tennis", "bronze medal", "olympics", "football", "wrestler",
+    "box office", "bollywood", "hollywood", "cinema", "saxophone", "jazz", "photography exhibition",
     "gold rate", "silver price", "horoscope", "astrology", "burglary", "theft", "arrested for murder",
-    "accident killed", "bjp vs congress", "rally speech", "election campaign slur", "fashion"
+    "accident killed", "building collapse", "bjp vs congress", "rally speech", "election campaign slur",
+    "fashion", "bypolls", "years ago", "lottery", "parking rules", "cockroach"
 ]
 
 def clean_html(text: str) -> str:

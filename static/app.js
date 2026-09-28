@@ -1852,11 +1852,51 @@ window.applyTheme = applyTheme;
 // MOBILE & RESPONSIVE CONTROLS
 // =========================================================
 
+function setActiveMobileNavTab(activeId) {
+  ["mbNavEvaluate", "mbNavDaily", "mbNavLocker", "mbNavTracker"].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    const isAct = id === activeId;
+    btn.classList.toggle("text-amber-600", isAct);
+    btn.classList.toggle("dark:text-amber-400", isAct);
+    btn.classList.toggle("text-slate-600", !isAct);
+    btn.classList.toggle("dark:text-slate-400", !isAct);
+    const span = btn.querySelector("span:not(#mbLockerBadge)");
+    if (span) {
+      span.classList.toggle("font-bold", isAct);
+      span.classList.toggle("font-medium", !isAct);
+    }
+  });
+}
+
+window.openMobileLocker = function() {
+  setActiveMobileNavTab("mbNavLocker");
+  if (typeof window.openAccountModal === "function") {
+    window.openAccountModal("locker");
+    return;
+  }
+  const drawer = document.getElementById("answerLockerDrawer");
+  if (drawer) {
+    drawer.classList.remove("hidden");
+    drawer.classList.add("flex");
+    if (typeof loadLockerHistory === "function") loadLockerHistory();
+  }
+};
+
+window.openMobileTracker = function() {
+  setActiveMobileNavTab("mbNavTracker");
+  if (typeof window.openAccountModal === "function") {
+    window.openAccountModal("tracker");
+  }
+};
+
 function setupMobileAndResponsiveListeners() {
   // 1. Mobile Bottom Navigation Bar (< 768px)
   const mbNavEvaluate = document.getElementById("mbNavEvaluate");
   if (mbNavEvaluate) {
     mbNavEvaluate.addEventListener("click", () => {
+      setActiveMobileNavTab("mbNavEvaluate");
+      if (typeof window.closeAccountModal === "function") window.closeAccountModal();
       const step1 = document.getElementById("step1Wrapper");
       if (step1) step1.scrollIntoView({ behavior: "smooth", block: "start" });
     });
@@ -1865,6 +1905,8 @@ function setupMobileAndResponsiveListeners() {
   const mbNavDaily = document.getElementById("mbNavDaily");
   if (mbNavDaily) {
     mbNavDaily.addEventListener("click", () => {
+      setActiveMobileNavTab("mbNavDaily");
+      if (typeof window.closeAccountModal === "function") window.closeAccountModal();
       const daw = document.getElementById("dailyQuestionBanner");
       if (daw) {
         daw.classList.remove("hidden");
@@ -1875,22 +1917,17 @@ function setupMobileAndResponsiveListeners() {
 
   const mbNavLocker = document.getElementById("mbNavLocker");
   if (mbNavLocker) {
-    mbNavLocker.addEventListener("click", () => {
-      const openLockerBtn = document.getElementById("openLockerBtn");
-      if (openLockerBtn) openLockerBtn.click();
+    mbNavLocker.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.openMobileLocker();
     });
   }
 
-  const mbNavRubrics = document.getElementById("mbNavRubrics");
-  if (mbNavRubrics) {
-    mbNavRubrics.addEventListener("click", () => {
-      const res = document.getElementById("resultsContainer");
-      if (res && !res.classList.contains("hidden")) {
-        res.scrollIntoView({ behavior: "smooth", block: "start" });
-      } else {
-        const loadDawBtn = document.getElementById("loadDawBtn");
-        if (loadDawBtn) loadDawBtn.click();
-      }
+  const mbNavTracker = document.getElementById("mbNavTracker");
+  if (mbNavTracker) {
+    mbNavTracker.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.openMobileTracker();
     });
   }
 
@@ -2881,9 +2918,14 @@ async function loadDailyQuestion(paper = null, offset = 0) {
     if (dawTimeBadge && daw.time_target) dawTimeBadge.textContent = `Target: ${daw.time_target}`;
     if (dawQuestionText) dawQuestionText.textContent = daw.question;
     if (dawContextText) {
+      const headline = daw.source_headline || daw.context || "UPSC Mains Current Affairs Editorial";
+      const srcName = daw.source_name || "The Hindu (Editorial)";
+      const srcUrl = daw.source_url || "https://www.thehindu.com/opinion/editorial/";
       dawContextText.innerHTML = `
-        <i data-lucide="info" class="w-3.5 h-3.5 text-amber-400/80 shrink-0"></i>
-        <span>${daw.context}</span>
+        <a href="${srcUrl}" target="_blank" rel="noopener noreferrer" class="text-amber-600 dark:text-amber-400 hover:text-amber-500 hover:underline inline-flex items-center gap-1 font-semibold text-xs transition-colors">
+          <span>${escapeHtml(srcName)} • ${escapeHtml(headline)}</span>
+          <i data-lucide="external-link" class="w-3 h-3 inline-block shrink-0"></i>
+        </a>
       `;
     }
     if (window.lucide) lucide.createIcons();
@@ -3893,16 +3935,78 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
+const BUILTIN_UPSC_GLOSSARY = {
+  "midh": "Mission for Integrated Development of Horticulture (MIDH) • Centrally Sponsored Scheme providing 50% credit-linked capital subsidy for polyhouse/greenhouse cultivation, shade-nets, and post-harvest packhouses.",
+  "midh scheme": "Mission for Integrated Development of Horticulture (MIDH) • Centrally Sponsored Scheme providing 50% capital subsidy for protected floriculture clusters and cold-chain infrastructure.",
+  "midh scheme reference": "Mission for Integrated Development of Horticulture (MIDH) • Cite MIDH's 50% subsidy for protected polyhouse cultivation and cold-chain units to substantiate government policy support.",
+  "financial outlays or targets": "Floriculture Fiscal & Export Telemetry • Substantiate with India's Rs 717+ Cr APEDA floriculture export baseline (0.6% global share) and MIDH's Rs 2,000+ Cr horticulture allocation.",
+  "global trade data baseline": "Global Floriculture Trade Share • Despite having the 2nd largest area under floriculture globally, India accounts for only ~0.6% (Rs 717 Cr) of the $105B global floriculture export market.",
+  "apeda": "Agricultural and Processed Food Products Export Development Authority • Statutory body under Ministry of Commerce spearheading Agri-Export Zones (AEZs) and cold-chain corridors at airports.",
+  "krishi udan": "Krishi Udan 2.0 • Civil Aviation scheme waiving landing/parking charges at 58 airports to speed up air-freight export of perishable cut-flowers and horticulture produce.",
+  "ashok dalwai committee": "Committee on Doubling Farmers' Income (2017) • Recommended shifting from cereal monoculture to high-value horticulture/floriculture (3–5x net returns/ha) with plough-to-port cold chains.",
+  "heat dome": "Atmospheric Heat Dome • A synoptic high-pressure ridge in the upper atmosphere that acts like a lid, forcing warm air to sink (subsidence), compress, and trap extreme surface heat.",
+  "heat dome high-pressure synoptic mechanism": "Synoptic Heat Dome Mechanism • Upper-tropospheric anticyclonic high-pressure ridge that traps outgoing thermal radiation and compresses sinking air parcels, driving extreme urban heatwaves.",
+  "urban heat island": "Urban Heat Island (UHI) Effect • Microclimatic warming (+3°C to +6°C over surrounding rural areas) caused by high thermal-mass concrete/asphalt surfaces, anthropogenic waste heat, and loss of evapotranspiration.",
+  "el niño": "El Niño–Southern Oscillation (ENSO) • Anomalous warming of central/eastern tropical Pacific surface waters that weakens Indian monsoon winds and triggers prolonged pre-monsoon anti-cyclonic heatwaves.",
+  "imd meteorological threshold": "IMD Heatwave Criterion • Declared when maximum temperature reaches ≥40°C in plains (≥30°C in hills) with a departure of +4.5°C to +6.4°C above normal.",
+  "loss of urban blue-green cover": "Urban Blue-Green Infrastructure Loss • Depletion of urban wetlands, lakes, and tree canopy that otherwise provide natural evaporative cooling and microclimatic buffering.",
+  "article 13": "Article 13 (Ultra Vires Doctrine) • Declares that any pre-constitutional or post-constitutional statutory law inconsistent with or derogating from Part III (Fundamental Rights) shall be void to the extent of inconsistency.",
+  "article 32": "Article 32 (Constitutional Remedies) • Empowered by Dr. B.R. Ambedkar as the 'heart and soul of the Constitution', granting the Supreme Court original writ jurisdiction to enforce Fundamental Rights.",
+  "article 226": "Article 226 (High Court Writ Jurisdiction) • Empowers High Courts to issue writs for enforcing both Fundamental Rights and ordinary legal rights across state legislative/executive actions.",
+  "basic structure": "Basic Structure Doctrine • Propounded in Kesavananda Bharati (1973); holds that Parliament's constituent power under Article 368 cannot alter or destroy the foundational pillars of the Constitution.",
+  "kesavananda bharati": "Kesavananda Bharati v. State of Kerala (1973) • 13-Judge Bench landmark ruling establishing the Basic Structure Doctrine and designating Judicial Review as an unamendable constitutional feature.",
+  "i.r. coelho": "I.R. Coelho v. State of Tamil Nadu (2007) • 9-Judge Bench ruling holding that laws placed in the 9th Schedule after April 24, 1973 are open to Judicial Review if they violate Fundamental Rights or Basic Structure.",
+  "maneka gandhi": "Maneka Gandhi v. Union of India (1978) • Imported substantive 'Due Process of Law' into Article 21, uniting Articles 14, 19, and 21 ('Golden Triangle') against arbitrary legislative or executive action.",
+  "shreya singhal": "Shreya Singhal v. Union of India (2015) • Struck down Section 66A of the IT Act, 2000 as unconstitutional for violating freedom of speech and expression under Article 19(1)(a).",
+  "anrf": "Anusandhan National Research Foundation (ANRF Act 2023) • Statutory apex body mobilising Rs 50,000 Cr (70% private/philanthropic target) to bridge India's sovereign R&D and deep-tech commercialization gap."
+};
+
+const NON_GLOSSARY_UI_LABELS = new Set([
+  "add", "missing", "good", "fix", "note", "gap", "strength", "weakness", "action",
+  "intro", "introduction", "body", "conclusion", "way forward", "context", "deduction",
+  "penalty", "marks", "great visuals", "sub-part enrichment", "pro polish", "what works",
+  "structural gap", "good opening", "good policy", "good structure", "sharp sunrise sector definition",
+  "high-value diversification", "examiner audit", "demand fulfilled", "partially fulfilled",
+  "great heat dome diagram & causes", "next micro-upgrade (+0.5m)", "upfront definition"
+]);
+
 function findGlossaryMatch(word) {
-  if (!state.glossaryMap || !word) return null;
-  const cleanWord = word.replace(/[*_#`]/g, '').trim().toLowerCase();
-  if (!cleanWord) return null;
-  if (state.glossaryMap[cleanWord]) {
-    return { term: word.trim(), meaning: state.glossaryMap[cleanWord] };
+  if (!word) return null;
+  const cleanWord = word.replace(/[*_#`]/g, '').replace(/[:.]+$/, '').trim().toLowerCase();
+  if (!cleanWord || cleanWord.length < 3) return null;
+
+  // Never attach glossary popups to generic instructional labels or rubric prefixes
+  if (
+    NON_GLOSSARY_UI_LABELS.has(cleanWord) ||
+    cleanWord.startsWith("to score") ||
+    cleanWord.startsWith("great ") ||
+    cleanWord.startsWith("good ") ||
+    cleanWord.startsWith("missing") ||
+    cleanWord.startsWith("sub-part") ||
+    cleanWord.startsWith("part ") ||
+    cleanWord.startsWith("page ") ||
+    cleanWord.startsWith("draft ") ||
+    cleanWord.startsWith("next micro")
+  ) {
+    return null;
   }
-  for (const [k, v] of Object.entries(state.glossaryMap)) {
-    if (k.length > 3 && (cleanWord.includes(k) || k.includes(cleanWord))) {
-      return { term: k, meaning: v };
+
+  const combinedMap = Object.assign({}, BUILTIN_UPSC_GLOSSARY, state.glossaryMap || {});
+  if (combinedMap[cleanWord]) {
+    return { term: word.replace(/[:.]+$/, '').trim(), meaning: combinedMap[cleanWord] };
+  }
+
+  // Only perform whole-word boundary matching for substantial domain terms (>= 5 chars)
+  if (cleanWord.length >= 5) {
+    for (const [k, v] of Object.entries(combinedMap)) {
+      if (!k || k.length < 4 || NON_GLOSSARY_UI_LABELS.has(k)) continue;
+      const escapedK = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedClean = cleanWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const kInClean = new RegExp(`\\b${escapedK}\\b`, 'i').test(cleanWord);
+      const cleanInK = cleanWord.length >= 6 && new RegExp(`\\b${escapedClean}\\b`, 'i').test(k);
+      if (kInClean || cleanInK) {
+        return { term: word.replace(/[:.]+$/, '').trim(), meaning: v };
+      }
     }
   }
   return null;
@@ -3911,11 +4015,21 @@ function findGlossaryMatch(word) {
 function formatHighlightedText(text) {
   if (!text) return "";
   let s = String(text);
+
+  // If a remark uses an action prefix like "**Add**: MIDH scheme reference.", auto-bold the target concept so the concept gets the glossary tooltip instead of "Add"
+  s = s.replace(/\*\*(Add|Missing|Pro Polish|Sub-Part Enrichment|To Score[^*]*)\*\*\s*:\s*([^.\n<]+)(\.?)/gi, (full, prefix, phrase, dot) => {
+    const cleanPhrase = phrase.trim();
+    if (!cleanPhrase.includes("**") && findGlossaryMatch(cleanPhrase)) {
+      return `**${prefix}**: **${cleanPhrase}**${dot}`;
+    }
+    return full;
+  });
+
   // Highlight markdown bold **word** with prominent high-contrast chip and instant inline jargon tooltip if in glossary
   s = s.replace(/\*\*(.*?)\*\*/g, (match, p1) => {
     const gMatch = findGlossaryMatch(p1);
     if (gMatch) {
-      return `<span class="jargon-inline-badge highlight-text-chip font-bold px-1.5 py-0.5 rounded cursor-help" tabindex="0" title="Click or hover to decode meaning">${p1}<span class="glossary-star">*</span><span class="jargon-bubble"><strong>${escapeHtml(gMatch.term)}</strong>: ${escapeHtml(gMatch.meaning)}</span></span>`;
+      return `<span class="jargon-inline-badge highlight-text-chip font-bold px-1.5 py-0.5 rounded cursor-help" tabindex="0">${p1}<span class="glossary-star">*</span><span class="jargon-bubble"><strong>${escapeHtml(gMatch.term)}</strong>: ${escapeHtml(gMatch.meaning)}</span></span>`;
     }
     return `<span class="highlight-text-chip font-bold px-1.5 py-0.5 rounded">${p1}</span>`;
   });
@@ -9455,20 +9569,16 @@ function setupUserAndModalListeners() {
       const targetTimeTag = document.getElementById("targetTimeTag");
       if (targetTimeTag) targetTimeTag.textContent = `Target: ${(daw.marks >= 15 ? 9.0 : 7.0)} Mins`;
       
-      // Render clickable Editorial Grounding link
+      // Render clickable Editorial Grounding link (parent container already renders '📰 Editorial Grounding:')
       if (dawContextText) {
-        const headline = daw.source_headline || daw.context || "Infrastructure & Disaster Resilience in Fragile Zones";
-        const srcName = daw.source_name || "The Hindu (National)";
-        const srcUrl = daw.source_url || "https://www.thehindu.com";
+        const headline = daw.source_headline || daw.context || "UPSC Mains Current Affairs Editorial";
+        const srcName = daw.source_name || "The Hindu (Editorial)";
+        const srcUrl = daw.source_url || "https://www.thehindu.com/opinion/editorial/";
         dawContextText.innerHTML = `
-          <i data-lucide="newspaper" class="w-4 h-4 text-amber-500 shrink-0 mt-0.5"></i>
-          <div class="min-w-0 flex-1">
-            <span class="font-semibold text-slate-700 dark:text-slate-300 text-xs">Editorial Grounding:</span>
-            <a href="${srcUrl}" target="_blank" rel="noopener noreferrer" class="text-amber-600 dark:text-amber-400 hover:text-amber-500 hover:underline inline-flex items-center gap-1 font-semibold text-xs transition-colors ml-1">
-              <span>${escapeHtml(srcName)} • ${escapeHtml(headline)}</span>
-              <i data-lucide="external-link" class="w-3 h-3 inline-block shrink-0"></i>
-            </a>
-          </div>
+          <a href="${srcUrl}" target="_blank" rel="noopener noreferrer" class="text-amber-600 dark:text-amber-400 hover:text-amber-500 hover:underline inline-flex items-center gap-1 font-semibold text-xs transition-colors">
+            <span>${escapeHtml(srcName)} • ${escapeHtml(headline)}</span>
+            <i data-lucide="external-link" class="w-3 h-3 inline-block shrink-0"></i>
+          </a>
         `;
       }
 

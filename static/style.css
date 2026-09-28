@@ -1043,25 +1043,58 @@ html.dark .margin-card-link {
   left: 0;
   transform: none;
   width: max-content;
-  max-width: 220px;
+  max-width: min(240px, 80vw);
   padding: 8px 10px;
   background-color: #0b1324;
-  border: 1px solid rgba(245, 158, 11, 0.5);
+  border: 1px solid rgba(245, 158, 11, 0.65);
   border-radius: 10px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
-  color: #e2e8f0;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.85);
+  color: #f8fafc;
   font-size: 11px;
   font-family: sans-serif;
   font-weight: normal;
-  line-height: 1.35;
+  line-height: 1.4;
   white-space: normal;
   word-break: break-word;
   overflow-wrap: break-word;
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
-  z-index: 100;
+  transition: opacity 0.18s ease, visibility 0.18s ease;
+  z-index: 9999;
+}
+
+/* Inside Margin Cards: Anchor tooltip across full card width so it NEVER clips on the right edge */
+.margin-badge-card:hover,
+.margin-badge-card:focus-within {
+  z-index: 999 !important;
+}
+
+.margin-badge-card .jargon-inline-badge {
+  position: static !important;
+}
+
+.margin-badge-card .jargon-bubble {
+  position: absolute !important;
+  left: 4px !important;
+  right: 4px !important;
+  width: auto !important;
+  max-width: calc(100% - 8px) !important;
+  bottom: calc(100% + 5px) !important;
+  top: auto !important;
+  transform: none !important;
+  z-index: 9999 !important;
+}
+
+.margin-badge-card:first-child .jargon-bubble {
+  bottom: auto !important;
+  top: calc(100% + 5px) !important;
+}
+
+.margin-badge-card:first-child .jargon-bubble::after {
+  top: auto !important;
+  bottom: 100% !important;
+  border-color: transparent transparent #0b1324 transparent !important;
 }
 
 .jargon-bubble::after {

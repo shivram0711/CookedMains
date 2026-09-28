@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css?v=3.8">
+  <link rel="stylesheet" href="/static/style.css?v=3.9">
   <!-- Google Identity Services for 1-Click Native Browser Google Account Chooser -->
   <script src="https://accounts.google.com/gsi/client"></script>
 
@@ -2722,22 +2722,22 @@
 
   <!-- Mobile Bottom Navigation Bar (< 768px) -->
   <nav id="mobileBottomNav" class="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-4 py-2 flex items-center justify-around shadow-2xl">
-    <button id="mbNavEvaluate" class="flex flex-col items-center gap-0.5 text-amber-600 dark:text-amber-400 transition">
+    <button type="button" id="mbNavEvaluate" class="flex flex-col items-center gap-0.5 text-amber-600 dark:text-amber-400 transition cursor-pointer">
       <i data-lucide="pen-tool" class="w-4 h-4"></i>
       <span class="text-[10px] font-bold">Evaluate</span>
     </button>
-    <button id="mbNavDaily" class="flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-400 hover:text-amber-500 transition">
+    <button type="button" id="mbNavDaily" class="flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-400 hover:text-amber-500 transition cursor-pointer">
       <i data-lucide="target" class="w-4 h-4"></i>
       <span class="text-[10px] font-medium">Daily Target</span>
     </button>
-    <button id="mbNavLocker" class="flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-400 hover:text-amber-500 transition relative">
+    <button type="button" id="mbNavLocker" onclick="if(window.openMobileLocker){window.openMobileLocker();}" class="flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-400 hover:text-amber-500 transition relative cursor-pointer">
       <i data-lucide="folder-clock" class="w-4 h-4"></i>
       <span class="text-[10px] font-medium">My Locker</span>
       <span id="mbLockerBadge" class="absolute -top-1 right-2 px-1 rounded-full bg-amber-500 text-slate-950 text-[9px] font-bold">0</span>
     </button>
-    <button id="mbNavRubrics" class="flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-400 hover:text-amber-500 transition">
-      <i data-lucide="book-open" class="w-4 h-4"></i>
-      <span class="text-[10px] font-medium">Model Rubrics</span>
+    <button type="button" id="mbNavTracker" onclick="if(window.openMobileTracker){window.openMobileTracker();}" class="flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-400 hover:text-amber-500 transition cursor-pointer">
+      <i data-lucide="trending-up" class="w-4 h-4"></i>
+      <span class="text-[10px] font-medium">Marks Tracker</span>
     </button>
   </nav>
 
@@ -3312,7 +3312,7 @@
 
   </div>
 
-  <script src="/static/app.js?v=6.9"></script>
+  <script src="/static/app.js?v=7.0"></script>
   <script>
     if (window.lucide) {
       try { lucide.createIcons(); } catch(e) {}
