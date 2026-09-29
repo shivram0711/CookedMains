@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cooked Mains — Founder Admin Suite</title>
+  <title>Cooked Mains — Founder &amp; Owner Command Center</title>
   <!-- Local Offline-First Tailwind CSS -->
   <link rel="stylesheet" href="/static/tailwind.min.css">
-  <!-- Optional CDN Tailwind (as fallback) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     try {
@@ -24,7 +23,6 @@
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
-    /* Critical Fallback CSS — Guarantees flawless visual design even if CDNs fail */
     .hidden { display: none !important; }
     *, ::before, ::after { box-sizing: border-box; }
     html, body {
@@ -34,10 +32,9 @@
       color: #f1f5f9 !important;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
-    .font-mono { font-family: 'JetBrains Mono', monospace, monospace; }
-    
-    /* Overlay Modal */
-    #adminLoginModal {
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    #adminLoginModal, #copyInspectorModal {
       position: fixed;
       inset: 0;
       z-index: 9999;
@@ -48,77 +45,45 @@
       justify-content: center;
       padding: 1rem;
     }
-    #adminLoginModal.hidden {
+    #adminLoginModal.hidden, #copyInspectorModal.hidden {
       display: none !important;
     }
-
-    /* Form & Input Enhancements */
-    input[type="text"], input[type="password"], input[type="search"] {
-      background-color: #020617;
-      border: 1px solid #1e293b;
-      color: #f8fafc;
-      border-radius: 0.75rem;
-      padding: 0.625rem 1rem;
-      font-size: 0.875rem;
-      outline: none;
-      transition: border-color 0.15s ease;
-    }
-    input:focus {
-      border-color: #f59e0b !important;
-    }
-
-    /* Cards & Containers */
-    .bg-slate-950 { background-color: #020617 !important; }
-    .bg-slate-900 { background-color: #0f172a !important; }
-    .bg-slate-900\/80 { background-color: rgba(15, 23, 42, 0.85) !important; }
-    .bg-slate-900\/90 { background-color: rgba(15, 23, 42, 0.9) !important; }
-    .border-slate-800 { border-color: #1e293b !important; }
-    .border-slate-800\/80 { border-color: rgba(30, 41, 59, 0.8) !important; }
-    .border-slate-700 { border-color: #334155 !important; }
-
-    /* Text & Accents */
-    .text-white { color: #ffffff !important; }
-    .text-amber-500 { color: #f59e0b !important; }
-    .text-amber-400 { color: #fbbf24 !important; }
-    .text-slate-400 { color: #94a3b8 !important; }
-    .text-slate-300 { color: #cbd5e1 !important; }
-    .text-slate-200 { color: #e2e8f0 !important; }
-    .text-slate-100 { color: #f1f5f9 !important; }
-
-    /* Badges & Buttons */
-    .bg-amber-500 { background-color: #f59e0b !important; color: #020617 !important; }
-    .bg-amber-500:hover { background-color: #fbbf24 !important; }
     button { cursor: pointer; }
-    svg { vertical-align: middle; }
   </style>
-
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
 
-  <!-- Top Admin Navigation Bar -->
-  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-xl">
+  <!-- Top Founder Command Center Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 sm:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3 shadow-xl">
     <div class="flex items-center space-x-3">
-      <div class="h-12 w-auto flex items-center justify-center shrink-0">
+      <div class="h-11 w-auto flex items-center justify-center shrink-0">
         <img src="/static/brand_logo_dark.png" alt="Cooked Mains" class="h-full w-auto object-contain shrink-0">
       </div>
-
       <div>
         <div class="flex items-center space-x-2">
           <h1 class="text-base font-extrabold text-white tracking-tight">Cooked <span class="text-amber-500">Mains</span></h1>
-          <span class="text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30">Founder Suite</span>
+          <span class="text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/30">Owner Command Center</span>
         </div>
-        <p class="text-[11px] text-slate-400">Accountability &amp; Aspirant Revenue Command Center • Let Me Cook</p>
+        <p class="text-[11px] text-slate-400" id="headerServerTime">Live Aspirant Presence, Credit Usage, Activity Stream &amp; Answer Copy Inspector</p>
       </div>
     </div>
 
-    <div class="flex items-center space-x-3">
+    <div class="flex items-center space-x-2.5">
+      <button id="autoRefreshToggleBtn" onclick="toggleAutoRefresh()" class="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-xs font-bold border border-emerald-500/30 transition flex items-center space-x-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" id="autoRefreshDot"></span>
+        <span id="autoRefreshLabel">Live Sync: ON (15s)</span>
+      </button>
+      <button onclick="loadAllAdminData()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition flex items-center space-x-1.5">
+        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+        <span>Refresh Now</span>
+      </button>
       <a href="/" target="_blank" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 transition flex items-center space-x-1.5">
         <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-        <span>Live Site</span>
+        <span class="hidden sm:inline">Open Live Site</span>
       </a>
-      <button onclick="adminLogout()" class="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold border border-rose-500/30 transition flex items-center space-x-1.5 cursor-pointer">
+      <button onclick="adminLogout()" class="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold border border-rose-500/30 transition flex items-center space-x-1.5">
         <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
-        <span>Lock Portal</span>
+        <span class="hidden sm:inline">Lock</span>
       </button>
     </div>
   </header>
@@ -128,23 +93,23 @@
     <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-5">
       <div class="text-center space-y-2">
         <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto shadow-inner">
-          <i data-lucide="lock" class="w-6 h-6"></i>
+          <i data-lucide="shield-check" class="w-6 h-6"></i>
         </div>
-        <h2 class="text-lg font-extrabold text-white">Private Admin Access</h2>
-        <p class="text-xs text-slate-400">Enter your master PIN or password to manage aspirants, UPI payments, and feedback.</p>
+        <h2 class="text-lg font-extrabold text-white">Owner Command Center Access</h2>
+        <p class="text-xs text-slate-400">Enter your Master Admin Password to monitor live aspirants, individual credit usage, evaluations, and feedbacks.</p>
       </div>
 
       <form onsubmit="handleAdminLogin(event)" class="space-y-4">
         <div>
           <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Master PIN / Password</label>
           <input type="password" id="adminPinInput" placeholder="••••••••••••" autofocus required
-            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 font-mono">
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 font-mono">
         </div>
         <p id="loginError" class="text-xs text-rose-400 hidden"></p>
         <button type="submit" id="loginSubmitBtn"
-          class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-bold text-xs shadow-lg transition flex items-center justify-center space-x-1.5 cursor-pointer">
+          class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-bold text-xs shadow-lg transition flex items-center justify-center space-x-1.5">
           <i data-lucide="key" class="w-4 h-4"></i>
-          <span>Unlock Dashboard</span>
+          <span>Unlock Command Center</span>
         </button>
       </form>
       <div class="text-center">
@@ -153,148 +118,210 @@
     </div>
   </div>
 
-  <!-- Main Admin Container -->
+  <!-- Main Command Center Container -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 space-y-6">
 
-    <!-- KPI Metric Cards Strip -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-3.5">
-      <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1 shadow-sm">
-        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Registered Aspirants</span>
+    <!-- 6-Card Live KPI Metric Strip -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+      <!-- 1. Online Now -->
+      <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-1 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold text-emerald-300 uppercase tracking-wider">Online Right Now</span>
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+        </div>
+        <div class="text-2xl font-extrabold text-emerald-300 font-mono" id="statOnlineNow">0</div>
+        <p class="text-[10px] text-emerald-400/90" id="statActiveTodaySub">0 active today (24h)</p>
+      </div>
+
+      <!-- 2. Total Registered Aspirants -->
+      <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1 shadow-sm">
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Registered Aspirants</span>
         <div class="text-2xl font-extrabold text-white font-mono" id="statAspirants">0</div>
-        <p class="text-[10px] text-slate-500">Total accounts</p>
+        <p class="text-[10px] text-slate-500">Total signed-up accounts</p>
       </div>
-      <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1 shadow-sm">
-        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Copies Evaluated</span>
-        <div class="text-2xl font-extrabold text-amber-400 font-mono" id="statEvaluations">0</div>
-        <p class="text-[10px] text-slate-500">Single &amp; Rewrite scripts</p>
-      </div>
+
+      <!-- 3. Evaluations Today -->
       <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1 shadow-sm">
-        <span class="text-[10.5px] font-bold text-amber-300 uppercase tracking-wider flex items-center justify-between">
-          <span>Pending Orders</span>
-          <span id="statPendingBadge" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-        </span>
-        <div class="text-2xl font-extrabold text-amber-300 font-mono" id="statPending">0</div>
-        <p class="text-[10px] text-amber-400/80">Require UPI verification</p>
+        <span class="text-[10px] font-bold text-amber-300 uppercase tracking-wider">Evaluated Today</span>
+        <div class="text-2xl font-extrabold text-amber-400 font-mono" id="statEvalsToday">0</div>
+        <p class="text-[10px] text-amber-300/80">Credits used today</p>
       </div>
-      <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1 shadow-sm">
-        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Approved Revenue</span>
-        <div class="text-2xl font-extrabold text-emerald-400 font-mono" id="statRevenue">₹0</div>
-        <p class="text-[10px] text-slate-500">Collected to your UPI ID</p>
+
+      <!-- 4. All-Time Copies Evaluated -->
+      <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1 shadow-sm">
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Copies Checked</span>
+        <div class="text-2xl font-extrabold text-sky-400 font-mono" id="statEvaluations">0</div>
+        <p class="text-[10px] text-slate-500">All-time scripts graded</p>
       </div>
-      <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1 shadow-sm col-span-2 md:col-span-1">
-        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Satisfaction Rating</span>
+
+      <!-- 5. Active Gemini Model -->
+      <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1 shadow-sm">
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active AI Engine</span>
+        <div class="text-xs font-extrabold text-emerald-400 font-mono truncate pt-1" id="statGeminiModel">gemini-3.6-flash</div>
+        <p class="text-[10px] text-slate-500" id="statRouterHealth">Self-Healing Router Active</p>
+      </div>
+
+      <!-- 6. Satisfaction Rating & Feedback -->
+      <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1 shadow-sm">
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aspirant Rating</span>
         <div class="text-2xl font-extrabold text-amber-400 font-mono flex items-center space-x-1">
           <span id="statRating">5.0</span>
           <span class="text-xs text-amber-400">★</span>
         </div>
-        <p class="text-[10px] text-slate-500" id="statFeedbackCount">0 ratings received</p>
+        <p class="text-[10px] text-slate-500" id="statFeedbackCount">0 feedbacks received</p>
       </div>
     </div>
 
-    <!-- Tab Navigation Navigation -->
-    <div class="flex items-center space-x-2 border-b border-slate-800 pb-2 overflow-x-auto no-scrollbar">
-      <button onclick="switchTab('transactions')" id="tabBtn_transactions" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-amber-500 text-slate-950 cursor-pointer">
-        <i data-lucide="receipt" class="w-4 h-4"></i>
-        <span>UPI Subscriptions &amp; Orders</span>
-        <span id="txCountBadge" class="px-1.5 py-0.2 text-[9px] font-mono font-bold rounded-full bg-slate-950 text-amber-300">0</span>
+    <!-- Navigation Tabs -->
+    <div class="flex items-center space-x-2 border-b border-slate-800 pb-2.5 overflow-x-auto">
+      <button onclick="switchTab('live')" id="tabBtn_live" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-amber-500 text-slate-950">
+        <i data-lucide="activity" class="w-4 h-4"></i>
+        <span>1. Live Radar &amp; Recent Activity</span>
       </button>
-      <button onclick="switchTab('aspirants')" id="tabBtn_aspirants" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white cursor-pointer">
+      <button onclick="switchTab('aspirants')" id="tabBtn_aspirants" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white">
         <i data-lucide="users" class="w-4 h-4"></i>
-        <span>Aspirants Database</span>
+        <span>2. Aspirants &amp; Credit Usage</span>
       </button>
-      <button onclick="switchTab('feedback')" id="tabBtn_feedback" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white cursor-pointer">
+      <button onclick="switchTab('evaluations')" id="tabBtn_evaluations" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white">
+        <i data-lucide="file-check-2" class="w-4 h-4"></i>
+        <span>3. Uploaded Answer Copies Inspector</span>
+      </button>
+      <button onclick="switchTab('feedback')" id="tabBtn_feedback" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white">
         <i data-lucide="message-square" class="w-4 h-4"></i>
-        <span>Feedback &amp; Bug Reports</span>
+        <span>4. Feedback &amp; Bug Reports</span>
       </button>
-      <button onclick="switchTab('settings')" id="tabBtn_settings" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white cursor-pointer">
+      <button onclick="switchTab('settings')" id="tabBtn_settings" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white">
         <i data-lucide="settings" class="w-4 h-4"></i>
-        <span>Settings &amp; UPI ID</span>
+        <span>5. Security &amp; Settings</span>
       </button>
     </div>
 
-    <!-- TAB 1: UPI ORDERS & APPROVALS -->
-    <div id="tabContent_transactions" class="space-y-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="text-sm font-bold text-white">Pending &amp; Completed UPI Transactions</h2>
-          <p class="text-xs text-slate-400">Match the 12-digit UTR against your SBI PhonePe / GPay notification and click Approve.</p>
+    <!-- ================================================================= -->
+    <!-- TAB 1: LIVE RADAR (WHO IS ONLINE NOW) & CHRONOLOGICAL ACTIVITY    -->
+    <!-- ================================================================= -->
+    <div id="tabContent_live" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Left Column (5 Cols): Who is Online Right Now -->
+      <div class="lg:col-span-5 bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <h2 class="text-sm font-extrabold text-white">Who Is Online Right Now</h2>
+          </div>
+          <span class="text-[11px] font-mono text-emerald-400 font-bold" id="onlineListBadge">0 Active Sessions</span>
         </div>
-        <button onclick="loadAdminTransactions()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition cursor-pointer">
-          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-          <span>Refresh Orders</span>
-        </button>
+        <div id="onlineUsersContainer" class="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
+          <div class="p-6 text-center text-xs text-slate-500">Checking live browser heartbeats...</div>
+        </div>
       </div>
 
-      <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60">
-        <table class="w-full text-left text-xs">
-          <thead class="bg-slate-800/60 text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-800">
-            <tr>
-              <th class="p-3.5">Order ID &amp; Date</th>
-              <th class="p-3.5">Aspirant Details</th>
-              <th class="p-3.5">Plan Chosen</th>
-              <th class="p-3.5">Amount</th>
-              <th class="p-3.5">12-Digit UTR / Ref</th>
-              <th class="p-3.5">Status</th>
-              <th class="p-3.5 text-right">One-Click Action</th>
-            </tr>
-          </thead>
-          <tbody id="transactionsTableBody" class="divide-y divide-slate-800/60 font-sans">
-            <tr>
-              <td colspan="7" class="p-8 text-center text-slate-500">Loading transactions...</td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- Right Column (7 Cols): Real-Time Platform Activity Feed -->
+      <div class="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div>
+            <h2 class="text-sm font-extrabold text-white">Recent Platform Activity Stream</h2>
+            <p class="text-[11px] text-slate-400">Live log of logins, answer sheet evaluations, intake guards, and feedbacks</p>
+          </div>
+          <button onclick="loadAdminActivity()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold text-slate-300">
+            Refresh Feed
+          </button>
+        </div>
+        <div id="activityStreamContainer" class="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
+          <div class="p-6 text-center text-xs text-slate-500">Loading recent activities...</div>
+        </div>
       </div>
     </div>
 
-    <!-- TAB 2: ASPIRANTS DATABASE -->
+    <!-- ================================================================= -->
+    <!-- TAB 2: ASPIRANTS DATABASE & INDIVIDUAL CREDIT USAGE AUDIT         -->
+    <!-- ================================================================= -->
     <div id="tabContent_aspirants" class="hidden space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 class="text-sm font-bold text-white">Registered UPSC Aspirants Database</h2>
-          <p class="text-xs text-slate-400">Manage quotas, inspect answer counts, or manually gift test packs.</p>
+          <h2 class="text-sm font-bold text-white">Registered UPSC Aspirants &amp; Individual Credit Usage</h2>
+          <p class="text-xs text-slate-400">See who is online, how many daily credits each user has consumed today (out of 15), total copies evaluated, and inspect their scripts.</p>
         </div>
         <div class="flex items-center space-x-2">
           <input type="text" id="aspirantSearchInput" oninput="debounceAspirantSearch()" placeholder="Search by name or email..."
-            class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 w-56">
-          <button onclick="loadAspirants()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition cursor-pointer">
+            class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 w-64">
+          <button onclick="loadAspirants()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Refresh</span>
           </button>
         </div>
       </div>
 
-      <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60">
+      <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/70 shadow-xl">
         <table class="w-full text-left text-xs">
-          <thead class="bg-slate-800/60 text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-800">
+          <thead class="bg-slate-800/80 text-slate-300 font-bold uppercase text-[10px] tracking-wider border-b border-slate-800">
             <tr>
-              <th class="p-3.5">Cadet ID / User</th>
+              <th class="p-3.5">Live Status &amp; Last Seen</th>
+              <th class="p-3.5">Aspirant Name &amp; Email</th>
               <th class="p-3.5">Target Year &amp; Optional</th>
-              <th class="p-3.5">Active Tier</th>
-              <th class="p-3.5">Remaining Checks</th>
-              <th class="p-3.5">Rewrites Left</th>
-              <th class="p-3.5">Evaluations Run</th>
-              <th class="p-3.5 text-right">Quick Management</th>
+              <th class="p-3.5">Today's Credits Used (Out of 15)</th>
+              <th class="p-3.5">Total Copies &amp; Avg Score</th>
+              <th class="p-3.5 text-right">Owner Actions</th>
             </tr>
           </thead>
-          <tbody id="aspirantsTableBody" class="divide-y divide-slate-800/60">
+          <tbody id="aspirantsTableBody" class="divide-y divide-slate-800/70">
             <tr>
-              <td colspan="7" class="p-8 text-center text-slate-500">Loading aspirants...</td>
+              <td colspan="6" class="p-8 text-center text-slate-500">Loading aspirants...</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- TAB 3: FEEDBACK & BUG REPORTS -->
+    <!-- ================================================================= -->
+    <!-- TAB 3: ALL UPLOADED ANSWER COPIES & ONE-CLICK INSPECTOR           -->
+    <!-- ================================================================= -->
+    <div id="tabContent_evaluations" class="hidden space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-sm font-bold text-white">All Evaluated Answer Copies Across Accounts</h2>
+          <p class="text-xs text-slate-400">Click <strong>"Inspect Copy &amp; Evaluation"</strong> on any row to view the aspirant's handwritten pages, margin remarks, and score breakdown.</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <input type="text" id="evalEmailFilterInput" oninput="debounceEvalFilter()" placeholder="Filter by user email..."
+            class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 w-64">
+          <button onclick="clearEvalFilter()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">
+            Show All
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/70 shadow-xl">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-800/80 text-slate-300 font-bold uppercase text-[10px] tracking-wider border-b border-slate-800">
+            <tr>
+              <th class="p-3.5">Date &amp; Time (IST)</th>
+              <th class="p-3.5">Aspirant</th>
+              <th class="p-3.5">Paper &amp; Marks</th>
+              <th class="p-3.5">Question Evaluated</th>
+              <th class="p-3.5">Score Awarded</th>
+              <th class="p-3.5 text-right">Inspect Script</th>
+            </tr>
+          </thead>
+          <tbody id="evaluationsTableBody" class="divide-y divide-slate-800/70">
+            <tr>
+              <td colspan="6" class="p-8 text-center text-slate-500">Loading evaluated answer copies...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 4: ASPIRANT FEEDBACK, RATINGS & BUG REPORTS INBOX             -->
+    <!-- ================================================================= -->
     <div id="tabContent_feedback" class="hidden space-y-4">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-sm font-bold text-white">Aspirant Feedback &amp; Bug Reports</h2>
-          <p class="text-xs text-slate-400">Direct feedback sent by users via the "My Account" portal.</p>
+          <h2 class="text-sm font-bold text-white">Aspirant Feedback, Ratings &amp; Bug Reports</h2>
+          <p class="text-xs text-slate-400">Direct feedback submitted by aspirants using the top header "Feedback" button.</p>
         </div>
-        <button onclick="loadAdminFeedbacks()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition cursor-pointer">
+        <button onclick="loadAdminFeedbacks()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition">
           <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-          <span>Refresh</span>
+          <span>Refresh Inbox</span>
         </button>
       </div>
 
@@ -303,80 +330,124 @@
       </div>
     </div>
 
-    <!-- TAB 4: SYSTEM SETTINGS -->
-    <div id="tabContent_settings" class="hidden space-y-4">
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-5 max-w-xl">
-        <div>
-          <h2 class="text-sm font-bold text-white">Payment &amp; UPI Configuration</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Change the UPI ID where all aspirant payments are routed.</p>
-        </div>
-
-        <form onsubmit="saveUpiSetting(event)" class="space-y-4">
-          <div>
-            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Your Active UPI ID</label>
-            <input type="text" id="adminUpiInput" value="9661228832-2@ybl" required
-              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-amber-500">
-            <p class="text-[11px] text-slate-500 mt-1">Aspirants will see this UPI ID and QR code on the payment checkout page.</p>
-          </div>
-          <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition flex items-center space-x-1.5 cursor-pointer">
-            <i data-lucide="save" class="w-3.5 h-3.5"></i>
-            <span>Update UPI ID</span>
-          </button>
-        </form>
-
-        <div class="pt-4 border-t border-slate-800 space-y-2">
-          <h3 class="text-xs font-bold text-slate-300">Bank Associated</h3>
-          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center space-x-3 text-xs">
-            <div class="w-8 h-8 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold">
-              SBI
-            </div>
-            <div>
-              <p class="font-bold text-white">State Bank of India</p>
-              <p class="text-[11px] text-slate-400 font-mono">Linked to PhonePe QR Code</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <!-- ================================================================= -->
+    <!-- TAB 5: SECURITY & SYSTEM SETTINGS                                 -->
+    <!-- ================================================================= -->
+    <div id="tabContent_settings" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Admin Password Change Card -->
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-5 max-w-xl">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-5">
         <div>
           <h2 class="text-sm font-bold text-white flex items-center space-x-2">
             <i data-lucide="lock" class="w-4 h-4 text-amber-500"></i>
-            <span>Security &amp; Admin Password</span>
+            <span>Security &amp; Owner Master Password</span>
           </h2>
-          <p class="text-xs text-slate-400 mt-0.5">Change the master password used to log in to this Admin Panel.</p>
+          <p class="text-xs text-slate-400 mt-0.5">Change the master password used to unlock this `/admin` Command Center.</p>
         </div>
 
         <form onsubmit="changeAdminPassword(event)" class="space-y-4">
           <div>
             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Current Password</label>
             <input type="password" id="currentPinInput" placeholder="Enter current admin password" required
-              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-amber-500">
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white font-mono">
           </div>
           <div>
             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">New Password</label>
             <input type="password" id="newPinInput" placeholder="Minimum 4 characters" minlength="4" required
-              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-amber-500">
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white font-mono">
           </div>
           <div>
             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Confirm New Password</label>
             <input type="password" id="confirmPinInput" placeholder="Re-enter new password" minlength="4" required
-              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-amber-500">
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white font-mono">
           </div>
 
           <div id="passwordChangeMsg" class="hidden text-xs py-2 px-3 rounded-lg"></div>
 
-          <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition flex items-center space-x-1.5 cursor-pointer">
+          <button type="submit" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition flex items-center space-x-1.5">
             <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
-            <span>Update Admin Password</span>
+            <span>Update Master Password</span>
           </button>
         </form>
       </div>
+
+      <!-- AI Engine & Self-Healing Router Status Card -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <div>
+          <h2 class="text-sm font-bold text-white flex items-center space-x-2">
+            <i data-lucide="cpu" class="w-4 h-4 text-emerald-400"></i>
+            <span>Self-Healing Gemini AI Engine Status</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Real-time view of active vs. auto-blacklisted Gemini models.</p>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Primary Verified Working Model:</span>
+            <span class="font-mono font-bold text-emerald-400" id="settingsActiveModel">gemini-3.6-flash</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Supabase Cloud Sync:</span>
+            <span class="font-mono font-bold text-sky-400" id="settingsSupabaseStatus">Connected</span>
+          </div>
+          <div class="pt-2 border-t border-slate-800">
+            <span class="text-slate-400 block mb-1">Auto-Blacklisted Deprecated Models (Never Called):</span>
+            <p class="font-mono text-[11px] text-rose-400 break-words" id="settingsBlacklistedModels">gemini-1.5-flash, gemini-2.0-flash, gemini-2.5-flash</p>
+          </div>
+        </div>
+      </div>
     </div>
 
-
   </main>
+
+  <!-- ================================================================= -->
+  <!-- 👁️ FULL ANSWER COPY & EVALUATION INSPECTOR MODAL                  -->
+  <!-- ================================================================= -->
+  <div id="copyInspectorModal" class="hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-6xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-6 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span id="inspectPaperBadge" class="px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold font-mono">GS3 • 15M</span>
+            <span id="inspectUserBadge" class="text-xs font-mono text-slate-300">user@gmail.com</span>
+            <span id="inspectDateBadge" class="text-[11px] font-mono text-slate-500"></span>
+          </div>
+          <h3 id="inspectQuestionTitle" class="text-sm font-bold text-white mt-1 font-serif">Question text...</h3>
+        </div>
+        <div class="flex items-center space-x-3 shrink-0">
+          <div class="px-4 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-right">
+            <span class="text-[10px] uppercase font-bold text-amber-300 block">Awarded Score</span>
+            <span id="inspectScoreValue" class="text-lg font-extrabold font-mono text-amber-400">7.5 / 15</span>
+          </div>
+          <button onclick="closeCopyInspector()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left: Uploaded Handwritten Answer Sheet Pages -->
+        <div class="lg:col-span-6 space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-amber-400">Uploaded Handwritten Answer Pages</h4>
+          <div id="inspectPagesContainer" class="space-y-4"></div>
+        </div>
+
+        <!-- Right: AI Evaluation Summary, Margin Remarks & Model Answer -->
+        <div class="lg:col-span-6 space-y-4">
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-400">Executive Summary &amp; Diagnostic</h4>
+            <p id="inspectExecSummary" class="text-xs text-slate-200 leading-relaxed"></p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-amber-400">Page-by-Page Margin Remarks Given</h4>
+            <div id="inspectAnnotationsList" class="space-y-2 text-xs"></div>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-sky-400">Strengths &amp; Critical Gaps</h4>
+            <div id="inspectStrengthsWeaknesses" class="space-y-2 text-xs"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="/static/admin.js"></script>
 </body>

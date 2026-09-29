@@ -80,7 +80,10 @@ from storage import (
     upload_file_to_supabase, insert_supabase_evaluation, get_db,
     get_deterministic_user_id, _format_supabase_eval_row,
     compute_visual_handwriting_signature, find_canonical_evaluation_for_script,
-    restore_evaluations_to_vault
+    restore_evaluations_to_vault,
+    record_user_heartbeat, log_platform_activity,
+    get_admin_evaluations_feed, get_admin_activity_stream,
+    reset_user_daily_quota_admin, delete_feedback_admin
 )
 import copy
 from news_ingestion import ingest_all_feeds, get_top_editorial_articles
@@ -1007,6 +1010,13 @@ async def api_submit_feedback(request: Request):
     if not message:
         raise HTTPException(status_code=400, detail="Feedback message cannot be empty.")
     result = save_feedback(user_email, user_name, category, rating, message, screenshot_data)
+    log_platform_activity(
+        user_email=user_email or "guest@cookedmains.in",
+        user_name=user_name or (user_email.split("@")[0].title() if user_email else "Aspirant"),
+        action_type="feedback_submitted",
+        title=f"Submitted {rating}★ Feedback ({category})",
+        detail=message[:120]
+    )
     return {"status": "success", "message": "Feedback received. Thank you for helping us improve Cooked Mains!"}
 
 @app.post("/api/admin/factory-reset")
@@ -1246,15 +1256,67 @@ async def api_admin_login(request: Request):
         return {"status": "authenticated", "token": token, "role": "admin"}
     raise HTTPException(status_code=401, detail="Invalid Admin Master PIN / Password.")
 
+@app.post("/api/presence/heartbeat")
+async def api_presence_heartbeat(request: Request):
+    """Receives 30s live presence heartbeats from aspirant browser tabs."""
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+    return record_user_heartbeat(
+        email=data.get("email"),
+        name=data.get("name"),
+        current_view=data.get("current_view") or "Browsing Platform",
+        session_id=data.get("session_id")
+    )
+
 @app.get("/api/admin/stats")
 async def api_admin_stats():
     """Returns overview platform analytics for the admin dashboard."""
     return get_admin_dashboard_stats()
 
+@app.get("/api/admin/activity")
+async def api_admin_activity(limit: int = 60):
+    """Returns real-time chronological activity stream across the platform."""
+    return get_admin_activity_stream(limit=limit)
+
+@app.get("/api/admin/evaluations")
+async def api_admin_evaluations(email: Optional[str] = None, limit: int = 50):
+    """Returns recent evaluations across all aspirants (or filtered to a specific email)."""
+    return get_admin_evaluations_feed(email_filter=email, limit=limit)
+
+@app.get("/api/admin/evaluation/{eval_id}")
+async def api_admin_get_evaluation(eval_id: str):
+    """Returns the full evaluation dossier + handwritten pages for owner inspection."""
+    rec = get_evaluation_by_id(eval_id)
+    if not rec:
+        raise HTTPException(status_code=404, detail="Evaluation copy not found.")
+    return rec
+
 @app.get("/api/admin/aspirants")
 async def api_admin_aspirants(search: Optional[str] = None):
-    """Returns list of registered aspirants."""
+    """Returns list of registered aspirants with live status and daily credit usage."""
     return get_all_aspirants_admin(search)
+
+@app.post("/api/admin/aspirant/reset-daily")
+async def api_admin_reset_daily(request: Request):
+    """Resets an aspirant's daily credit quota and restores 15 evaluations."""
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+    email = (data.get("email") or "").strip().lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required.")
+    user = reset_user_daily_quota_admin(email)
+    log_platform_activity(
+        user_email=email,
+        user_name=email.split("@")[0].title(),
+        action_type="admin_action",
+        title=f"Admin reset daily quota for {email}",
+        detail="Restored 15 daily evaluation credits"
+    )
+    return {"status": "success", "user": user}
 
 @app.post("/api/admin/aspirant/credits")
 async def api_admin_update_credits(request: Request):
@@ -1313,6 +1375,12 @@ async def api_admin_reject_tx(request: Request):
 async def api_admin_feedbacks():
     """Returns candidate feedback and bug reports."""
     return get_all_feedbacks_admin()
+
+@app.delete("/api/admin/feedback/{feedback_id}")
+async def api_admin_delete_feedback(feedback_id: str):
+    """Deletes / resolves a feedback entry."""
+    delete_feedback_admin(feedback_id)
+    return {"status": "success"}
 
 @app.get("/api/admin/settings")
 async def api_admin_get_settings():
@@ -2081,6 +2149,14 @@ async def evaluate_answer(
                 file_url=public_file_url
             )
             user_info = get_user(user_email)
+            log_platform_activity(
+                user_email=user_email,
+                user_name=(user_info.get("name") if user_info else None) or user_email.split("@")[0].title(),
+                action_type="copy_evaluated",
+                title=f"Evaluated {final_paper} ({final_max_marks}M) — Scored {overall_score}/{final_max_marks}",
+                detail=f"Q: {(final_question or '')[:85]}",
+                eval_id=eval_id or ""
+            )
         elif public_file_url:
             try:
                 insert_supabase_evaluation(

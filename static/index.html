@@ -66,6 +66,12 @@
           <span id="themeToggleLabel" class="text-[11px] font-medium hidden md:inline text-slate-700 dark:text-slate-300">Light</span>
         </button>
 
+        <!-- 2b. Quick Feedback & Bug Report Button -->
+        <button id="navFeedbackBtn" onclick="window.openAccountModal('feedback')" title="Send Feedback or Report an Issue" class="flex items-center space-x-1 sm:space-x-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-semibold rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 transition shadow-sm shrink-0 cursor-pointer">
+          <i data-lucide="message-square" class="w-3.5 h-3.5 text-amber-500 shrink-0"></i>
+          <span class="text-[11px] font-bold hidden sm:inline">Feedback</span>
+        </button>
+
         <!-- 3. My Account Button (Shown when logged in) -->
         <button id="myAccountBtn" onclick="window.openAccountModal('profile')" class="hidden bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 sm:gap-2 shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm transition cursor-pointer" title="My Account Portal (Profile, Answer Locker, Tracker, Feedback)">
           <div class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs font-bold font-mono" id="navAvatarInitials">

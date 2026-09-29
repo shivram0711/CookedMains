@@ -2423,8 +2423,110 @@ def reject_transaction(tx_id: str, admin_notes: Optional[str] = None) -> Dict[st
     return dict(row)
 
 # =====================================================================
-# 🛡️ ADMIN DASHBOARD AGGREGATIONS & MANAGEMENT
+# 🛡️ ADMIN DASHBOARD AGGREGATIONS, LIVE PRESENCE & ACTIVITY STREAM
 # =====================================================================
+
+_LIVE_PRESENCE_MAP: Dict[str, Dict[str, Any]] = {}
+
+
+def _ensure_admin_telemetry_tables() -> None:
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS activity_logs (
+                id TEXT PRIMARY KEY,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                user_email TEXT,
+                user_name TEXT,
+                action_type TEXT,
+                title TEXT,
+                detail TEXT,
+                eval_id TEXT
+            )
+        """)
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Telemetry table init notice: {e}")
+
+
+_ensure_admin_telemetry_tables()
+
+
+def record_user_heartbeat(
+    email: Optional[str] = None,
+    name: Optional[str] = None,
+    current_view: str = "Home / Intake Deck",
+    session_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """Records a 30-second live heartbeat from an active browser tab."""
+    now_ts = time.time()
+    ist_now = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
+    clean_email = (email or "").strip().lower()
+    key = clean_email if clean_email else f"guest_{(session_id or 'anon')[:16]}"
+    display_name = (name or "").strip() or (clean_email.split("@")[0].title() if clean_email else "Guest Aspirant")
+
+    prev = _LIVE_PRESENCE_MAP.get(key)
+    is_new_session = prev is None or (now_ts - float(prev.get("last_seen_ts", 0))) > 600
+
+    _LIVE_PRESENCE_MAP[key] = {
+        "key": key,
+        "email": clean_email or "Guest (Unauthenticated)",
+        "name": display_name,
+        "is_authenticated": bool(clean_email),
+        "current_view": current_view or "Browsing Platform",
+        "last_seen_ts": now_ts,
+        "last_seen_ist": ist_now,
+    }
+
+    if clean_email and is_new_session:
+        log_platform_activity(
+            user_email=clean_email,
+            user_name=display_name,
+            action_type="session_active",
+            title=f"{display_name} ({clean_email}) is online",
+            detail=f"Active on screen: {current_view}"
+        )
+
+    return {"status": "ok", "online_count": len([v for v in _LIVE_PRESENCE_MAP.values() if (now_ts - v["last_seen_ts"]) <= 150])}
+
+
+def log_platform_activity(
+    user_email: str,
+    user_name: str,
+    action_type: str,
+    title: str,
+    detail: str = "",
+    eval_id: str = ""
+) -> None:
+    """Logs an important user action (login, evaluation, mismatch block, feedback) for the Owner Activity Feed."""
+    try:
+        ist_now = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
+        clean_email = (user_email or "guest@cookedmains.in").strip().lower()
+        clean_name = (user_name or clean_email.split("@")[0].title()).strip()
+        # Also refresh live presence timestamp
+        _LIVE_PRESENCE_MAP[clean_email] = {
+            "key": clean_email,
+            "email": clean_email,
+            "name": clean_name,
+            "is_authenticated": True,
+            "current_view": title[:60],
+            "last_seen_ts": time.time(),
+            "last_seen_ist": ist_now,
+        }
+        conn = get_db()
+        cursor = conn.cursor()
+        act_id = f"act_{uuid.uuid4().hex[:12]}"
+        cursor.execute("""
+            INSERT INTO activity_logs (id, created_at, user_email, user_name, action_type, title, detail, eval_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (act_id, ist_now, clean_email, clean_name, action_type, title, detail, eval_id or ""))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Activity log notice: {e}")
+
 
 def get_admin_dashboard_stats() -> Dict[str, Any]:
     conn = get_db()
@@ -2447,36 +2549,211 @@ def get_admin_dashboard_stats() -> Dict[str, Any]:
     total_feedbacks = fb["c"]
     avg_rating = round(fb["a"], 1)
 
+    ist_today_prefix = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
+    cursor.execute("SELECT COUNT(*) as c FROM evaluations WHERE created_at LIKE ?", (f"{ist_today_prefix}%",))
+    evals_today = cursor.fetchone()["c"]
+
+    cursor.execute("SELECT COUNT(DISTINCT user_email) as c FROM evaluations WHERE created_at LIKE ?", (f"{ist_today_prefix}%",))
+    eval_users_today = cursor.fetchone()["c"]
+
     conn.close()
+
+    now_ts = time.time()
+    online_users = []
+    active_today_emails = set()
+    for k, pres in list(_LIVE_PRESENCE_MAP.items()):
+        sec_ago = int(max(0, now_ts - float(pres.get("last_seen_ts", 0))))
+        if str(pres.get("last_seen_ist", "")).startswith(ist_today_prefix):
+            active_today_emails.add(pres.get("email") or k)
+        if sec_ago <= 150:
+            online_users.append({
+                "email": pres.get("email"),
+                "name": pres.get("name"),
+                "is_authenticated": pres.get("is_authenticated", False),
+                "current_view": pres.get("current_view", "Active"),
+                "seconds_ago": sec_ago,
+                "last_seen_ist": pres.get("last_seen_ist")
+            })
+    online_users.sort(key=lambda x: x["seconds_ago"])
+
+    active_model = "gemini-3.6-flash"
+    blacklisted_models = []
+    try:
+        import evaluator_engine as ee
+        if getattr(ee, "_LAST_WORKING_GEMINI_MODEL", None):
+            active_model = ee._LAST_WORKING_GEMINI_MODEL
+        blacklisted_models = sorted(list(getattr(ee, "_INACTIVE_GEMINI_MODELS", [])))
+    except Exception:
+        pass
+
     return {
+        "online_now_count": len(online_users),
+        "online_users": online_users,
+        "active_today_count": max(len(active_today_emails), eval_users_today),
+        "evaluations_today_count": evals_today,
         "total_aspirants": total_aspirants,
         "total_evaluations": total_evals,
         "pending_orders": pending_orders,
         "total_revenue": total_revenue,
         "total_feedbacks": total_feedbacks,
-        "average_rating": avg_rating
+        "average_rating": avg_rating,
+        "active_gemini_model": active_model,
+        "blacklisted_models_count": len(blacklisted_models),
+        "blacklisted_models": blacklisted_models,
+        "supabase_connected": bool(supabase is not None),
+        "server_time_ist": (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%d %b %Y, %I:%M:%S %p IST")
     }
+
 
 def get_all_aspirants_admin(search: Optional[str] = None) -> List[Dict[str, Any]]:
     conn = get_db()
     cursor = conn.cursor()
+    ist_today_prefix = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
     
     query = """
-        SELECT u.*, COUNT(e.id) as evaluations_count 
+        SELECT 
+            u.*,
+            COUNT(e.id) as evaluations_count,
+            SUM(CASE WHEN e.created_at LIKE ? THEN 1 ELSE 0 END) as used_today_count,
+            ROUND(AVG(e.percentage), 1) as avg_percentage,
+            MAX(e.created_at) as last_eval_at
         FROM users u 
-        LEFT JOIN evaluations e ON u.email = e.user_email
+        LEFT JOIN evaluations e ON LOWER(u.email) = LOWER(e.user_email)
     """
-    params = []
+    params: List[Any] = [f"{ist_today_prefix}%"]
     if search and search.strip():
         term = f"%{search.strip().lower()}%"
         query += " WHERE LOWER(u.name) LIKE ? OR LOWER(u.email) LIKE ? OR LOWER(u.id) LIKE ?"
         params.extend([term, term, term])
         
-    query += " GROUP BY u.id ORDER BY u.created_at DESC"
+    query += " GROUP BY u.id ORDER BY COALESCE(MAX(e.created_at), u.created_at) DESC"
     cursor.execute(query, params)
     rows = cursor.fetchall()
     conn.close()
+
+    now_ts = time.time()
+    result_list = []
+    for r in rows:
+        d = dict(r)
+        em = (d.get("email") or "").strip().lower()
+        pres = _LIVE_PRESENCE_MAP.get(em)
+        sec_ago = int(now_ts - float(pres["last_seen_ts"])) if pres else 999999
+        d["is_online"] = sec_ago <= 150
+        d["current_view"] = pres.get("current_view", "Offline") if d["is_online"] else "Offline"
+        d["last_seen_display"] = "🟢 Online Now" if d["is_online"] else (
+            pres.get("last_seen_ist") if pres else (d.get("last_eval_at") or d.get("created_at") or "Never")
+        )
+        used_today = int(d.get("used_today_count") or 0)
+        d["daily_used_today"] = used_today
+        d["daily_limit"] = 15
+        d["daily_remaining_today"] = max(0, 15 - used_today)
+        d["avg_percentage"] = float(d.get("avg_percentage") or 0.0)
+        result_list.append(d)
+
+    # Sort online users to the very top, then most recently active
+    result_list.sort(key=lambda x: (1 if x.get("is_online") else 0, str(x.get("last_seen_display") or "")), reverse=True)
+    return result_list
+
+
+def get_admin_evaluations_feed(email_filter: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
+    """Returns recent evaluations across all aspirants (or filtered by email) for the Owner Inspector."""
+    conn = get_db()
+    cursor = conn.cursor()
+    sql = """
+        SELECT 
+            e.id, e.user_email, u.name as user_name, e.created_at, e.paper,
+            e.max_marks, e.question, e.overall_score, e.percentage, e.is_rewrite
+        FROM evaluations e
+        LEFT JOIN users u ON LOWER(e.user_email) = LOWER(u.email)
+    """
+    params: List[Any] = []
+    if email_filter and email_filter.strip():
+        sql += " WHERE LOWER(e.user_email) LIKE ?"
+        params.append(f"%{email_filter.strip().lower()}%")
+    sql += " ORDER BY e.created_at DESC LIMIT ?"
+    params.append(int(limit))
+    cursor.execute(sql, params)
+    rows = cursor.fetchall()
+    conn.close()
     return [dict(r) for r in rows]
+
+
+def get_admin_activity_stream(limit: int = 60) -> List[Dict[str, Any]]:
+    """Returns a chronological live activity stream combining activity_logs, evaluations, logins, and feedbacks."""
+    conn = get_db()
+    cursor = conn.cursor()
+    events: List[Dict[str, Any]] = []
+
+    try:
+        cursor.execute("SELECT * FROM activity_logs ORDER BY created_at DESC LIMIT ?", (limit,))
+        for r in cursor.fetchall():
+            events.append({
+                "id": r["id"],
+                "created_at": r["created_at"],
+                "user_email": r["user_email"],
+                "user_name": r["user_name"],
+                "action_type": r["action_type"],
+                "title": r["title"],
+                "detail": r["detail"],
+                "eval_id": r["eval_id"]
+            })
+    except Exception:
+        pass
+
+    # Backfill with recent evaluations if not already logged
+    logged_eval_ids = {e.get("eval_id") for e in events if e.get("eval_id")}
+    cursor.execute("""
+        SELECT e.id, e.user_email, COALESCE(u.name, e.user_email) as user_name, e.created_at,
+               e.paper, e.max_marks, e.question, e.overall_score
+        FROM evaluations e
+        LEFT JOIN users u ON LOWER(e.user_email) = LOWER(u.email)
+        ORDER BY e.created_at DESC LIMIT 35
+    """)
+    for er in cursor.fetchall():
+        if er["id"] not in logged_eval_ids:
+            q_short = (er["question"] or "Answer Sheet")[:85]
+            events.append({
+                "id": f"ev_{er['id']}",
+                "created_at": er["created_at"],
+                "user_email": er["user_email"],
+                "user_name": er["user_name"],
+                "action_type": "copy_evaluated",
+                "title": f"Evaluated {er['paper']} ({er['max_marks']}M) — Scored {er['overall_score']}/{er['max_marks']}",
+                "detail": q_short,
+                "eval_id": er["id"]
+            })
+
+    # Backfill with recent feedbacks
+    cursor.execute("SELECT * FROM feedback ORDER BY created_at DESC LIMIT 15")
+    for fr in cursor.fetchall():
+        events.append({
+            "id": f"fb_{fr['id']}",
+            "created_at": fr["created_at"],
+            "user_email": fr["user_email"],
+            "user_name": fr["user_name"],
+            "action_type": "feedback_submitted",
+            "title": f"Submitted {fr['rating']}★ Feedback ({fr['category']})",
+            "detail": (fr["message"] or "")[:120],
+            "eval_id": ""
+        })
+
+    conn.close()
+    events.sort(key=lambda x: str(x.get("created_at") or ""), reverse=True)
+    return events[:limit]
+
+
+def reset_user_daily_quota_admin(email: str) -> Dict[str, Any]:
+    """Resets an aspirant's daily quota and sets free_credits to at least 15."""
+    clean_email = (email or "").strip().lower()
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET free_credits = MAX(15, free_credits + 15) WHERE LOWER(email) = ?", (clean_email,))
+    conn.commit()
+    cursor.execute("SELECT * FROM users WHERE LOWER(email) = ?", (clean_email,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else {}
+
 
 def update_user_credits_admin(email: str, delta_credits: int, delta_rewrites: int = 0, is_pro: Optional[int] = None, plan_tier: Optional[str] = None) -> Dict[str, Any]:
     conn = get_db()
@@ -2508,6 +2785,7 @@ def update_user_credits_admin(email: str, delta_credits: int, delta_rewrites: in
             pass
     return res_u
 
+
 def get_all_feedbacks_admin() -> List[Dict[str, Any]]:
     conn = get_db()
     cursor = conn.cursor()
@@ -2516,6 +2794,16 @@ def get_all_feedbacks_admin() -> List[Dict[str, Any]]:
     conn.close()
     return [dict(r) for r in rows]
 
+
+def delete_feedback_admin(feedback_id: str) -> bool:
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM feedback WHERE id = ?", (str(feedback_id),))
+    conn.commit()
+    conn.close()
+    return True
+
+
 def get_admin_setting(key: str, default: str = "") -> str:
     conn = get_db()
     cursor = conn.cursor()
@@ -2523,6 +2811,7 @@ def get_admin_setting(key: str, default: str = "") -> str:
     row = cursor.fetchone()
     conn.close()
     return row["value"] if row else default
+
 
 def set_admin_setting(key: str, value: str) -> None:
     conn = get_db()

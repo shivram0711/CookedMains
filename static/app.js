@@ -11543,5 +11543,57 @@ window.confirmLogoutAspirant = function() {
   }
 };
 
+// =====================================================================
+// 🟢 LIVE OWNER COMMAND CENTER PRESENCE HEARTBEAT (Every 30 Seconds)
+// =====================================================================
+(function initLivePresenceHeartbeat() {
+  let sessionId = sessionStorage.getItem("cookedmains_tab_sid");
+  if (!sessionId) {
+    sessionId = "sid_" + Math.random().toString(36).slice(2, 11) + "_" + Date.now().toString(36);
+    sessionStorage.setItem("cookedmains_tab_sid", sessionId);
+  }
+
+  function detectCurrentScreenView() {
+    const studio = document.getElementById("evaluationStudio");
+    if (studio && !studio.classList.contains("hidden") && studio.style.display !== "none") {
+      const activePaneRewrite = document.getElementById("tabPaneRewrite");
+      if (activePaneRewrite && !activePaneRewrite.classList.contains("hidden")) {
+        return "Reading Topper Model Answer";
+      }
+      const activePaneMulti = document.getElementById("tabPaneMultipliers");
+      if (activePaneMulti && !activePaneMulti.classList.contains("hidden")) {
+        return "Viewing Deep Evaluation";
+      }
+      return "Viewing Evaluation Studio";
+    }
+    const intake = document.getElementById("intakeDeck");
+    if (intake && !intake.classList.contains("hidden") && intake.style.display !== "none") {
+      return `Intake Deck (${state.paper || 'GS'} • ${state.marks || 15}M)`;
+    }
+    return "Landing Page";
+  }
+
+  window.sendPresenceHeartbeat = async function(customView) {
+    try {
+      const u = state.user || JSON.parse(localStorage.getItem("mainsmentor_user") || "null");
+      await fetch("/api/presence/heartbeat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: u?.email || "",
+          name: u?.name || "",
+          current_view: customView || detectCurrentScreenView(),
+          session_id: sessionId
+        })
+      });
+    } catch (e) {
+      // Silent background telemetry
+    }
+  };
+
+  setTimeout(() => window.sendPresenceHeartbeat(), 1200);
+  setInterval(() => window.sendPresenceHeartbeat(), 30000);
+})();
+
 
 
