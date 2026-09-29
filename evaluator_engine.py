@@ -1508,23 +1508,6 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                 if pg == 1:
                     intro_ann_p1 = next((a for a in pg_anns if "intro" in str(a.get("tag", "")).lower() or "premise" in str(a.get("tag", "")).lower()), None)
                     body_ann_p1 = next((a for a in pg_anns if a is not intro_ann_p1), None)
-                    if intro_ann_p1:
-                        i_rem = str(intro_ann_p1.get("remark", ""))
-                        # If Intro annotation accidentally mentions a Body diagram/schematic/flowchart (e.g. Heat Dome Diagram), move it to Page 1 Body!
-                        if re.search(r'(?i)(diagram|schematic|flowchart|heat\s*dome|high-pressure\s*synoptic|urban\s*heat\s*island|causes\s*of)', i_rem):
-                            lines_i = [ln.strip() for ln in i_rem.split("\n") if ln.strip()]
-                            diag_lines = [ln for ln in lines_i if re.search(r'(?i)(diagram|schematic|flowchart|heat\s*dome|high-pressure\s*synoptic|urban\s*heat\s*island|causes\s*of)', ln)]
-                            non_diag_lines = [ln for ln in lines_i if ln not in diag_lines]
-                            trans_head = str(data.get("transcribed_text") or "").strip()[:220]
-                            intro_hook_line = "✓ **Contemporary Context Hook**: Good opening establishing recent real-world context for the question."
-                            if "2025" in trans_head or "delhi" in trans_head.lower() or "lucknow" in trans_head.lower():
-                                intro_hook_line = "✓ **Contemporary Urban Hook**: Good opening citing the **Summer 2025 heatwave spell** across North Indian urban centres (**New Delhi, Lucknow, Jaipur, Patna**)."
-                            missing_line = non_diag_lines[0] if non_diag_lines else "✎ **Missing (+0.5M)**: Add the core technical/statutory definition in Sentence 1 to make the introduction complete."
-                            intro_ann_p1["remark"] = f"{intro_hook_line}\n{_fmt_bullet(missing_line, '✎')}"
-                            if body_ann_p1 and diag_lines:
-                                b_existing = str(body_ann_p1.get("remark", ""))
-                                if not re.search(r'(?i)heat\s*dome', b_existing):
-                                    body_ann_p1["remark"] = f"{_fmt_bullet(diag_lines[0], '✓')}\n{b_existing}"
                     has_intro = intro_ann_p1 is not None
                     has_body = body_ann_p1 is not None
                     expanded_anns.extend(pg_anns)
@@ -2256,22 +2239,10 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
     q_str = str(data.get("detected_question") or data.get("question") or "")
     p_str = str(data.get("detected_paper") or data.get("paper") or "GS2")
 
-    # Calibrate Intro Score & Strip Body Diagram Praise from intro_audit
+    # Calibrate Intro Score based on actual intro_audit missing elements
     i_audit = data.get("intro_audit") if isinstance(data.get("intro_audit"), dict) else {}
-    i_crit = str(i_audit.get("current_critique") or "")
-    if re.search(r'(?i)(diagram|schematic|flowchart|heat\s*dome|high-pressure\s*synoptic|urban\s*heat\s*island)', i_crit):
-        i_audit["current_critique"] = (
-            "✓ **Good Contemporary Urban Hook**: You opened effectively with the **Summer 2025 heatwave spell** across North Indian cities (**New Delhi, Lucknow, Jaipur, Patna**). "
-            "To make your introduction 100% complete (+0.5M), add the **IMD meteorological definition** ($\\ge 40^\\circ\\text{C}$ in plains or $+4.5^\\circ\\text{C}$ departure from normal)."
-        )
-        i_audit["model_intro_rewrite"] = (
-            "Recently, in the **summer of 2025**, North Indian urban centres like **New Delhi, Lucknow, Jaipur, and Patna** experienced severe **heatwaves**—"
-            "defined by the **IMD** as maximum temperatures reaching **≥40°C in plains** (or **≥4.5°C departure from normal**)—highlighting escalating urban thermal risk."
-        )
-        data["intro_audit"] = i_audit
-
     i_missing = i_audit.get("missing_elements") if isinstance(i_audit.get("missing_elements"), list) else []
-    has_intro_gap = bool(i_missing) or bool(re.search(r'(?i)(missing|lack|omit|add\s+the\s+imd|without\s+defining)', str(i_audit.get("current_critique") or "")))
+    has_intro_gap = bool(i_missing) or bool(re.search(r'(?i)(missing|lack|omit|without\s+defining)', str(i_audit.get("current_critique") or "")))
     rubric_i = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
     i_max = float(rubric_i.get("intro_max", 2.0) or 2.0)
     i_score = float(rubric_i.get("intro_score", 1.5) or 1.5)
@@ -2315,7 +2286,7 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
             rubric_d["core_demand_score"] = round(float(rubric_d.get("core_demand_score", 2.0) or 2.0) + delta_c, 2)
             data["rubric_scores"] = rubric_d
         c_audit["current_critique"] = (
-            "✗ **Too General (+0.5M Only)**: Your closing line (*'need for holistic development on part of government and society'*) "
+            "✗ **Too General (+0.5M Only)**: Your closing line "
             "has no topic keywords and can fit any answer. Mention 1–2 topic-specific keywords and the core institutional/committee anchor to get full marks."
         )
         c_audit["model_conclusion_rewrite"] = domain_conc
@@ -2327,34 +2298,14 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                 ann["marks_awarded"] = f"+0.5 / {c_max:.1f}"
                 ann["type"] = "warning"
                 ann["remark"] = (
-                    "✗ **Too General (No Topic Keywords)**: You ended with **'Thus, there is a need for holistic development on part of government and society'**, "
-                    "which has no topic keywords and can fit any question (fetches only +0.5 mark).\n"
+                    "✗ **Too General (No Topic Keywords)**: Your closing line has no topic keywords and can fit any question (fetches only +0.5 mark).\n"
                     f"✎ **How to Score Full Marks Here**: {domain_conc}"
-                )
-
-    # Check if student wrote 'Limitations' / 'Challenges' without a 'Way Forward' section
-    has_limitations_written = any(k in positive_corpus for k in ["limitation", "judicial overreach", "roger mathew", "personal bias"])
-    has_way_forward_written = any(k in positive_corpus for k in ["way forward", "way ahead", "steps needed", "measures to", "reforms needed"])
-    if has_limitations_written and not has_way_forward_written:
-        for ann in anns_list:
-            tag_low = str(ann.get("tag") or "").lower()
-            if "way forward" in tag_low or "way ahead" in tag_low:
-                ann["tag"] = "Body: Limitations of Judicial Review" if "judicial" in positive_corpus else "Body: Limitations & Analysis"
-                ann["remark"] = (
-                    "✓ **Good Diagram & Points on Limitations**: Clearly presented **Limitations of Judicial Review** (judicial overreach, judge bias) & **Separation of Power**.\n"
-                    "✗ **Missing Way Forward**: You moved directly from **Limitations** to the Conclusion—add 2 short **Way Forward** points before concluding."
                 )
 
     if data.get("executive_summary"):
         data["executive_summary"] = simplify_and_decontradict(data["executive_summary"], is_gap=False)
 
-    # 8. Cross-Section Deduplication (TOPPER PLUG-IN vs Missing Keywords Cards) & Statement -> Keyword Compression
-    q_only_low = str(data.get("detected_question") or "").lower()
-    is_startup_deep_tech = (
-        "startup" in q_only_low and
-        any(k in q_only_low for k in ["deep-tech", "deep tech", "inadequate focus"]) and
-        any(h in positive_corpus for h in ["260", "standup india", "vaibhav", "zomato"])
-    )
+    is_startup_deep_tech = False
 
     if is_startup_deep_tech:
         data["keyword_toolkit_title"] = "High-Yield Keyword Upgrades & Unwritten GS-3 Value-Adds"

@@ -1810,22 +1810,9 @@ def find_canonical_evaluation_for_script(
     max_marks: Optional[int] = None
 ) -> Optional[Dict[str, Any]]:
     """
-    Traces identical or similar handwriting / written content across ALL accounts in SQLite & Supabase:
-    1. Exact binary file_hash match -> returns canonical evaluation immediately.
-    2. Perceptual visual handwriting dHash match (>= 85% bit similarity) -> returns canonical evaluation immediately.
-    3. Post-OCR Handwritten Content & Keyword overlap (>= 68% similarity on same question) -> locks to canonical evaluation.
+    Disabled: Every uploaded answer sheet must be freshly evaluated on its own handwriting and question.
     """
-    candidates = _collect_all_recent_canonical_evaluations(limit=120)
-    if not candidates:
-        return None
-
-    clean_hash = (file_hash or "").strip()
-    # 1. Exact binary file_hash match across any account
-    if clean_hash:
-        for cand in candidates:
-            if cand["file_hash"] and cand["file_hash"] == clean_hash:
-                if not max_marks or int(cand["max_marks"]) == int(max_marks):
-                    return cand["evaluation"]
+    return None
 
     # 2. Perceptual Visual Handwriting dHash match (>= 85% bit similarity across pages)
     if visual_hashes and len(visual_hashes) > 0:
