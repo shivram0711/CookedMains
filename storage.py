@@ -1407,10 +1407,17 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
             d["evaluation"] = json.loads(d["evaluation_json"]) if d.get("evaluation_json") else {}
         except Exception:
             d["evaluation"] = {}
-        try:
-            d["pages"] = json.loads(d["pages_json"]) if d.get("pages_json") else []
-        except Exception:
-            d["pages"] = []
+        if isinstance(d["evaluation"], dict):
+            d["evaluation"].pop("page_previews", None)
+            d["evaluation"].pop("pages", None)
+            d["evaluation"].pop("page_images", None)
+            if isinstance(d["evaluation"].get("rewritten_evaluation"), dict):
+                d["evaluation"]["rewritten_evaluation"].pop("page_previews", None)
+                d["evaluation"]["rewritten_evaluation"].pop("previous_evaluation", None)
+            if isinstance(d["evaluation"].get("previous_evaluation"), dict):
+                d["evaluation"]["previous_evaluation"].pop("page_previews", None)
+                d["evaluation"]["previous_evaluation"].pop("rewritten_evaluation", None)
+        d["pages"] = []
         authentic_ts = _resolve_authentic_created_at(
             eval_id=str(d.get("id") or ""),
             evaluation_dict=d["evaluation"],

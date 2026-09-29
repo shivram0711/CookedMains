@@ -2395,8 +2395,23 @@ window.saveEvaluationToBrowserVault = async function(email, rawRecord) {
   const isRewrite = Boolean(rawRecord.is_rewrite || evalObj.is_rewrite || existingLocalRec?.is_rewrite);
 
   if (hasBeenRewritten) evalObj.has_been_rewritten = true;
-  if (rewrittenEval) evalObj.rewritten_evaluation = rewrittenEval;
-  if (previousEval) evalObj.previous_evaluation = previousEval;
+  const stripHeavyAndCircular = (ev) => {
+    if (!ev || typeof ev !== "object") return null;
+    const copy = Object.assign({}, ev);
+    delete copy.page_previews;
+    delete copy.pages;
+    delete copy.page_images;
+    delete copy.previous_evaluation;
+    delete copy.rewritten_evaluation;
+    return copy;
+  };
+
+  const cleanEvalObj = stripHeavyAndCircular(evalObj) || {};
+  const cleanRewrittenEval = stripHeavyAndCircular(rewrittenEval);
+  const cleanPreviousEval = stripHeavyAndCircular(previousEval);
+
+  const slimPages = (pages || []).slice(0, 3).map(p => (typeof p === "string" && p.length < 250000) ? p : "").filter(Boolean);
+  const slimRewritePages = (rewrittenPages || []).slice(0, 3).map(p => (typeof p === "string" && p.length < 250000) ? p : "").filter(Boolean);
 
   const vaultRecord = {
     id: id,
@@ -2404,30 +2419,30 @@ window.saveEvaluationToBrowserVault = async function(email, rawRecord) {
     user_email: cleanEmail,
     created_at: authenticCreatedAt,
     _meta_created_at: authenticCreatedAt,
-    paper: rawRecord.paper || evalObj.detected_paper || state.paper || "GS2",
+    paper: rawRecord.paper || cleanEvalObj.detected_paper || "GS2",
     max_marks: maxMarks,
-    question: rawRecord.question || rawRecord.detected_question || evalObj.detected_question || state.question || "UPSC Mains Answer",
+    question: rawRecord.question || cleanEvalObj.detected_question || "UPSC Mains Question",
     overall_score: overallScore,
     total_score: overallScore,
     percentage: pct,
-    thumbnail: rawRecord.thumbnail || (pages.length > 0 ? pages[0] : ""),
-    pages: pages,
-    page_images: pages,
-    evaluation: evalObj,
-    evaluation_data: evalObj,
+    thumbnail: (rawRecord.thumbnail && rawRecord.thumbnail.length < 180000) ? rawRecord.thumbnail : (slimPages[0] || ""),
+    pages: slimPages,
+    page_images: slimPages,
+    evaluation: cleanEvalObj,
+    evaluation_data: cleanEvalObj,
     is_rewrite: isRewrite ? 1 : 0,
     has_been_rewritten: hasBeenRewritten ? 1 : 0,
-    baseline_eval_id: rawRecord.baseline_eval_id || evalObj.baseline_eval_id || existingLocalRec?.baseline_eval_id || null,
-    rewrite_eval_id: rawRecord.rewrite_eval_id || evalObj.rewrite_eval_id || existingLocalRec?.rewrite_eval_id || null,
-    baseline_score: rawRecord.baseline_score ?? evalObj.baseline_score ?? existingLocalRec?.baseline_score ?? (previousEval ? Number(previousEval.overall_score || 0) : overallScore),
-    rewrite_score: rawRecord.rewrite_score ?? evalObj.rewrite_score ?? existingLocalRec?.rewrite_score ?? (rewrittenEval ? Number(rewrittenEval.overall_score || 0) : null),
-    rewritten_evaluation: rewrittenEval,
-    rewritten_pages: rewrittenPages,
-    previous_evaluation: previousEval,
-    previous_pages: previousPages
+    baseline_eval_id: rawRecord.baseline_eval_id || cleanEvalObj.baseline_eval_id || existingLocalRec?.baseline_eval_id || null,
+    rewrite_eval_id: rawRecord.rewrite_eval_id || cleanEvalObj.rewrite_eval_id || existingLocalRec?.rewrite_eval_id || null,
+    baseline_score: rawRecord.baseline_score ?? cleanEvalObj.baseline_score ?? existingLocalRec?.baseline_score ?? (cleanPreviousEval ? Number(cleanPreviousEval.overall_score || 0) : overallScore),
+    rewrite_score: rawRecord.rewrite_score ?? cleanEvalObj.rewrite_score ?? existingLocalRec?.rewrite_score ?? (cleanRewrittenEval ? Number(cleanRewrittenEval.overall_score || 0) : null),
+    rewritten_evaluation: cleanRewrittenEval,
+    rewritten_pages: slimRewritePages,
+    previous_evaluation: cleanPreviousEval,
+    previous_pages: []
   };
 
-  // 1. Save full record with high-res pages in IndexedDB
+  // 1. Save record in IndexedDB
   try {
     const db = await _openBrowserVaultDB();
     if (db) {
@@ -2440,59 +2455,45 @@ window.saveEvaluationToBrowserVault = async function(email, rawRecord) {
     }
   } catch (e) {}
 
-  // 2. Save metadata + evaluation JSON in localStorage (strip oversized base64 if needed to stay well within 5MB quota)
+  // 2. Save lightweight metadata + evaluation JSON (zero base64 pages) in localStorage
   try {
     const lsKey = `cookedmains_vault_${cleanEmail}`;
     const existingRaw = localStorage.getItem(lsKey);
     let list = existingRaw ? JSON.parse(existingRaw) : [];
     if (!Array.isArray(list)) list = [];
-    const slimPages = (pages || []).slice(0, 4).map(p => (typeof p === "string" && p.length < 180000) ? p : "");
-    const slimRewritePages = (rewrittenPages || []).slice(0, 4).map(p => (typeof p === "string" && p.length < 180000) ? p : "");
     const slimRecord = {
       ...vaultRecord,
-      pages: slimPages.filter(Boolean),
-      page_images: slimPages.filter(Boolean),
-      rewritten_pages: slimRewritePages.filter(Boolean),
+      pages: [],
+      page_images: [],
+      rewritten_pages: [],
       previous_pages: [],
-      thumbnail: (vaultRecord.thumbnail && vaultRecord.thumbnail.length < 180000) ? vaultRecord.thumbnail : ""
+      thumbnail: ""
     };
-    list = [slimRecord, ...list.filter(item => item && item.id !== id)].slice(0, 25);
+    list = [slimRecord, ...list.filter(item => item && item.id !== id)].slice(0, 15);
     localStorage.setItem(lsKey, JSON.stringify(list));
   } catch (e) {}
 };
 
-// Deterministic Question-Specific Conclusion Sanitizer:
-// Eliminates repetitive "Viksit Bharat @2047" / "by 2047" clichés across existing & future evaluations.
-window.sanitizeRepetitiveConclusionCliches = function(evalObj, questionText, paperName) {
-  if (!evalObj || typeof evalObj !== "object") return evalObj;
+// Deterministic Question-Specific Conclusion Sanitizer (with strict recursion depth guard)
+window.sanitizeRepetitiveConclusionCliches = function(evalObj, questionText, paperName, _depth = 0) {
+  if (!evalObj || typeof evalObj !== "object" || _depth > 1) return evalObj;
   const qStr = String(questionText || evalObj.detected_question || evalObj.question || "").toLowerCase();
   const pStr = String(paperName || evalObj.detected_paper || evalObj.paper || "GS2").toUpperCase();
   const conc = evalObj.conclusion_audit || {};
   const existingConc = String(conc.model_conclusion_rewrite || "").toLowerCase();
-  const combinedLow = `${qStr} ${existingConc}`;
 
   let domainConc = "";
-  if (combinedLow.includes("floriculture") || (combinedLow.includes("farm income") && combinedLow.includes("export"))) {
-    domainConc = "Operationalizing **APEDA's cold-chain corridors**, **MIDH protected-cultivation clusters**, and **phyto-sanitary certification** will realize the **Ashok Dalwai Committee's** vision—turning Indian floriculture into a high-margin **plough-to-port income multiplier** for smallholder farmers.";
-  } else if (combinedLow.includes("plfs") || combinedLow.includes("periodic labour force")) {
-    domainConc = "Integrating **PLFS high-frequency CWS/US labour telemetry** with **e-Shram** and **National Career Service (NCS)** databases will align India's workforce metrics with **ILO decent-work standards (SDG-8)**—shifting policy focus from headline employment counts to **formal wage quality and productive female workforce participation**.";
-  } else if (combinedLow.includes("deep-tech") || combinedLow.includes("deep tech") || combinedLow.includes("startup")) {
-    domainConc = "Operationalizing the **Rs 1 Lakh Crore ANRF R&D Fund** alongside **patient risk capital** and **GFR Rule 173 domestic procurement** will bridge the **'Valley of Death' (TRL 4–9)**—transforming Indian startups from service-delivery platforms into **globally competitive sovereign IP creators**.";
-  } else if (combinedLow.includes("supremacy of the constitution") || combinedLow.includes("judicial review") || combinedLow.includes("njac")) {
-    domainConc = "Harmonizing **Article 13** judicial review with **Article 50** separation of powers ensures that **Constitutional Supremacy** thrives through **mutual institutional comity** and **constitutional morality**, preserving what **Granville Austin** termed the Constitution's 'seamless web' of checks and balances.";
-  } else if (combinedLow.includes("criminal") && (combinedLow.includes("politic") || combinedLow.includes("rpa"))) {
-    domainConc = "Fast-tracking special MP/MLA courts alongside statutory **inner-party democracy (Law Commission 255th Report)** and **state funding reforms (Indrajit Gupta Committee)** is essential to cleanse the legislature and uphold the **purity of the ballot under Article 324**.";
-  } else if (pStr.includes("GS2") || pStr.includes("POLITY")) {
+  if (pStr.includes("GS2") || pStr.includes("POLITY")) {
     domainConc = "Harmonizing **constitutional morality** with **institutional accountability (2nd ARC)** ensures that democratic governance delivers both **substantive justice** and **cooperative federalism**.";
   } else if (pStr.includes("GS4") || pStr.includes("ETHICS")) {
     domainConc = "Anchoring public administration in **Nishkama Karma**, **2nd ARC 'Ethics in Governance' norms**, and **Gandhian Antyodaya** transforms civil servants from mere rule-enforcers into **compassionate trustees of public welfare**.";
   } else if (pStr.includes("GS1")) {
-    domainConc = "Synthesizing **community-led resilience**, **spatial equity**, and **composite cultural preservation** ensures sustainable social transformation rooted in constitutional fraternity.";
+    domainConc = "Synthesizing **community-led resilience**, **spatial equity**, and **sustainable resource management** ensures balanced regional development.";
   } else {
-    domainConc = "Integrating **evidence-based institutional reforms**, **last-mile capacity building**, and **outcome-linked fiscal governance** will translate policy intent into durable, equitable structural transformation.";
+    domainConc = "Integrating **evidence-based institutional reforms**, **last-mile capacity building**, and **outcome-linked fiscal governance** will translate policy intent into durable structural transformation.";
   }
 
-  if (!conc.model_conclusion_rewrite || /viksit\s*bharat|@\s*2047|by\s*2047/i.test(String(conc.model_conclusion_rewrite))) {
+  if (!conc.model_conclusion_rewrite || /viksit\s*bharat|@\s*2047|by\s*2047/i.test(existingConc)) {
     conc.model_conclusion_rewrite = domainConc;
     evalObj.conclusion_audit = conc;
   }
@@ -2503,46 +2504,37 @@ window.sanitizeRepetitiveConclusionCliches = function(evalObj, questionText, pap
       .replace(/for \*\*Viksit Bharat @2047\*\*/gi, "through concrete institutional reform");
     evalObj.conclusion_audit = conc;
   }
-  if (Array.isArray(evalObj.subpart_marks_breakdown)) {
-    evalObj.subpart_marks_breakdown.forEach(sp => {
-      if (sp && sp.step_up_lever && /viksit\s*bharat|@\s*2047|by\s*2047/i.test(String(sp.step_up_lever))) {
-        sp.step_up_lever = domainConc;
-      }
-    });
-  }
-  if (Array.isArray(evalObj.visual_annotations)) {
-    evalObj.visual_annotations.forEach(ann => {
-      if (ann && ann.remark && /viksit\s*bharat|@\s*2047|by\s*2047/i.test(String(ann.remark))) {
-        ann.remark = String(ann.remark)
-          .replace(/under \*\*Viksit Bharat @2047\*\*/gi, "with topic-specific institutional anchors")
-          .replace(/for \*\*Viksit Bharat @2047\*\*/gi, "through institutional and policy reform")
-          .replace(/by \*\*2047\*\*/gi, "under ILO decent-work standards (SDG-8)");
-      }
-    });
-  }
-  if (evalObj.previous_evaluation && typeof evalObj.previous_evaluation === "object") {
-    window.sanitizeRepetitiveConclusionCliches(evalObj.previous_evaluation, questionText, paperName);
-  }
-  if (evalObj.rewritten_evaluation && typeof evalObj.rewritten_evaluation === "object") {
-    window.sanitizeRepetitiveConclusionCliches(evalObj.rewritten_evaluation, questionText, paperName);
+  if (_depth === 0) {
+    if (evalObj.previous_evaluation && typeof evalObj.previous_evaluation === "object" && evalObj.previous_evaluation !== evalObj) {
+      window.sanitizeRepetitiveConclusionCliches(evalObj.previous_evaluation, questionText, paperName, 1);
+    }
+    if (evalObj.rewritten_evaluation && typeof evalObj.rewritten_evaluation === "object" && evalObj.rewritten_evaluation !== evalObj) {
+      window.sanitizeRepetitiveConclusionCliches(evalObj.rewritten_evaluation, questionText, paperName, 1);
+    }
   }
   return evalObj;
 };
 
-// Self-Healing & Bidirectional Linker for Rewritten Copies (Restores Floriculture Draft 2 & Links All Rewrites)
+// Safe Non-Circular Linker for Rewritten Copies
 window.healAndLinkRewriteRecords = function(records) {
-  if (!Array.isArray(records)) return records;
+  if (!Array.isArray(records)) return [];
 
-  // 1. Sanitize repetitive conclusions across all records
   records.forEach(rec => {
     if (!rec) return;
     const ev = rec.evaluation || rec.evaluation_data;
     if (ev) {
-      window.sanitizeRepetitiveConclusionCliches(ev, rec.question, rec.paper);
+      // Break any pre-existing circular links before sanitizing
+      if (ev.rewritten_evaluation && ev.rewritten_evaluation.previous_evaluation) {
+        delete ev.rewritten_evaluation.previous_evaluation;
+      }
+      if (ev.previous_evaluation && ev.previous_evaluation.rewritten_evaluation) {
+        delete ev.previous_evaluation.rewritten_evaluation;
+      }
+      window.sanitizeRepetitiveConclusionCliches(ev, rec.question, rec.paper, 0);
     }
   });
 
-  // 2. Link any explicit rewrite records with their matching baseline record
+  // Link any explicit rewrite records with their matching baseline record WITHOUT creating circular object references
   const rewrites = records.filter(r => r && (r.is_rewrite || r.evaluation?.is_rewrite));
   rewrites.forEach(rw => {
     const baseMatch = records.find(b => b && b.id !== rw.id && !b.is_rewrite && (
@@ -2552,149 +2544,30 @@ window.healAndLinkRewriteRecords = function(records) {
     if (baseMatch) {
       const baseEval = baseMatch.evaluation || baseMatch.evaluation_data || {};
       const rwEval = rw.evaluation || rw.evaluation_data || {};
+      const safeRwSnap = Object.assign({}, rwEval);
+      delete safeRwSnap.previous_evaluation;
+      delete safeRwSnap.rewritten_evaluation;
+      delete safeRwSnap.page_previews;
+
+      const safeBaseSnap = Object.assign({}, baseEval);
+      delete safeBaseSnap.previous_evaluation;
+      delete safeBaseSnap.rewritten_evaluation;
+      delete safeBaseSnap.page_previews;
+
       baseMatch.has_been_rewritten = 1;
       baseMatch.rewrite_eval_id = rw.id;
       baseMatch.baseline_score = Number(baseMatch.overall_score ?? baseEval.overall_score ?? 5.5);
       baseMatch.rewrite_score = Number(rw.overall_score ?? rwEval.overall_score ?? 8.5);
-      baseMatch.rewritten_evaluation = rwEval;
-      baseMatch.rewritten_pages = rw.pages || rw.page_images || [];
-      baseEval.has_been_rewritten = true;
-      baseEval.rewrite_eval_id = rw.id;
-      baseEval.rewritten_evaluation = rwEval;
+      baseMatch.rewritten_evaluation = safeRwSnap;
 
       rw.has_been_rewritten = 1;
       rw.baseline_eval_id = baseMatch.id;
       rw.baseline_score = baseMatch.baseline_score;
       rw.rewrite_score = baseMatch.rewrite_score;
-      rw.previous_evaluation = baseEval;
-      rw.previous_pages = baseMatch.pages || baseMatch.page_images || [];
-      rwEval.is_rewrite = true;
-      rwEval.has_been_rewritten = true;
-      rwEval.previous_evaluation = baseEval;
+      rw.previous_evaluation = safeBaseSnap;
     }
   });
 
-  // 3. Automatically restore the Floriculture Re-Evaluated Copy (Draft 1: 5.5/15 -> Draft 2: 8.5/15, +3.0M)
-  // if the user's Floriculture baseline record lost its modal-submitted rewrite during server container redeploy
-  records.forEach(rec => {
-    if (!rec) return;
-    const qLow = String(rec.question || rec.evaluation?.detected_question || "").toLowerCase();
-    if (qLow.includes("floriculture") && (qLow.includes("farm income") || qLow.includes("export"))) {
-      const baseEval = rec.evaluation || rec.evaluation_data || {};
-      const baseScore = Number(baseEval.overall_score ?? rec.overall_score ?? 5.5);
-      const existingRewrite = rec.rewritten_evaluation || baseEval.rewritten_evaluation;
-      if (!existingRewrite || Number(existingRewrite.overall_score || 0) <= baseScore) {
-        const draft1Clone = JSON.parse(JSON.stringify(baseEval));
-        draft1Clone.is_rewrite = false;
-        draft1Clone.overall_score = baseScore > 6.5 ? 5.5 : baseScore;
-
-        const draft2Eval = JSON.parse(JSON.stringify(baseEval));
-        draft2Eval.is_rewrite = true;
-        draft2Eval.has_been_rewritten = true;
-        draft2Eval.overall_score = 8.5;
-        draft2Eval.max_marks = 15;
-        draft2Eval.score_band = "Topper Tier (Top 5%)";
-        draft2Eval.examiner_persona_summary = "Re-Evaluated Draft 2 (+3.0M Recovery): Strong structural upgrade incorporating APEDA export telemetry, MIDH protected-cultivation clusters, cold-chain infrastructure, and Ashok Dalwai Committee income-diversification synthesis.";
-        draft2Eval.rubric_scores = {
-          intro_score: 1.8,
-          intro_max: 2.25,
-          core_demand_score: 4.5,
-          core_demand_max: 7.5,
-          value_add_score: 1.0,
-          value_add_max: 2.25,
-          presentation_score: 0.6,
-          presentation_max: 1.5,
-          conclusion_score: 0.6,
-          conclusion_max: 1.5
-        };
-        draft2Eval.intro_audit = {
-          ...(draft2Eval.intro_audit || {}),
-          current_critique: "✓ **Upgraded Data-Anchored Opening (Draft 2)**: Defined floriculture as a high-value commercial horticulture sunrise sector and anchored with **APEDA export growth (Rs 717+ Cr)** and **National Horticulture Mission (MIDH)**.",
-          model_intro_rewrite: "Floriculture—the commercial cultivation of cut flowers, loose flowers, and value-added essential oils—is a sunrise horticulture sub-sector in India (2nd largest area globally after China), generating **3–5x higher returns per hectare** than cereal crops and driving **Rs 717+ Cr in APEDA-led agri-exports**."
-        };
-        draft2Eval.body_audit = {
-          ...(draft2Eval.body_audit || {}),
-          strengths: [
-            "✓ **Farm Income Enhancement (Sub-Part 1)**: Clearly structured high crop-value density (3-5x over paddy/wheat), year-round cash flow under polyhouse/greenhouse cultivation (**MIDH**), and women SHG employment in cut-flower grading & dry-flower value addition.",
-            "✓ **Agri-Export & Value-Chain Boost (Sub-Part 2)**: Incorporated **APEDA Agri-Export Zones (AEZs)** in Hosur, Pune & Nashik, **70% dry-flower share**, and high-margin essential oils/nutraceutical extraction.",
-            "✓ **Supply-Chain Bottlenecks & Way Forward**: Addressed **perishability (30-40% post-harvest loss)**, **Krishi Udan 2.0 air-freight corridors**, and **EU/Japan phyto-sanitary compliance**."
-          ],
-          critical_gaps: [
-            "**Next Micro-Upgrade (+0.5M)**: Cite **CSIR-Floriculture Mission** for indigenous bulbous germ-plasm to reduce royalty outflow to Dutch breeders."
-          ]
-        };
-        draft2Eval.conclusion_audit = {
-          current_critique: "✓ **Strong Institutional Synthesis (Draft 2)**: Connected protected cultivation and cold-chain corridors to the **Ashok Dalwai Committee** income-doubling framework.",
-          model_conclusion_rewrite: "Operationalizing **APEDA's cold-chain corridors**, **MIDH protected-cultivation clusters**, and **phyto-sanitary certification** will realize the **Ashok Dalwai Committee's** vision—turning Indian floriculture into a high-margin **plough-to-port income multiplier** for smallholder farmers."
-        };
-        draft2Eval.visual_annotations = [
-          {
-            page: 1,
-            approx_y_percent: 22,
-            start_y_percent: 8,
-            end_y_percent: 35,
-            tag: "Intro (Draft 2 Upgrade)",
-            type: "tick",
-            marks_awarded: "+1.8 / 2.25",
-            remark: "✓ **Sharp Sunrise Sector Definition**: Defined commercial floriculture (cut/loose flowers, dry flowers) and cited India's global area rank & **APEDA export baseline**.\n✎ **Pro Polish**: Add **CSIR-Floriculture Mission** in 3 words."
-          },
-          {
-            page: 1,
-            approx_y_percent: 65,
-            start_y_percent: 38,
-            end_y_percent: 90,
-            tag: "Body: Enhancing Farm Income",
-            type: "tick",
-            marks_awarded: "+2.5 / 4.0",
-            remark: "✓ **High-Value Diversification**: Strong points on **3–5x net returns/ha**, off-season protected polyhouse cultivation (**MIDH**), and rural women SHG employment in garlands & dry flowers."
-          },
-          {
-            page: 2,
-            approx_y_percent: 28,
-            start_y_percent: 8,
-            end_y_percent: 48,
-            tag: "Body: Boosting Agri Exports",
-            type: "tick",
-            marks_awarded: "+2.0 / 3.5",
-            remark: "✓ **APEDA Export Clusters & Value Addition**: Credited **Hosur/Nashik/Pune floriculture hubs**, **70% dry-flower export basket**, and **Krishi Udan 2.0** air-cargo linkage."
-          },
-          {
-            page: 2,
-            approx_y_percent: 65,
-            start_y_percent: 50,
-            end_y_percent: 76,
-            tag: "Body: Cold-Chain & Way Forward",
-            type: "tick",
-            marks_awarded: "+1.6 / 3.75",
-            remark: "✓ **Addressing Post-Harvest Losses**: Good inclusion of **reefer cold-chain logistics**, **Dutch auction centres**, and **phyto-sanitary certification** for EU/Middle-East markets."
-          },
-          {
-            page: 2,
-            approx_y_percent: 85,
-            start_y_percent: 78,
-            end_y_percent: 93,
-            tag: "Conclusion (Draft 2)",
-            type: "tick",
-            marks_awarded: "+0.6 / 1.5",
-            remark: "✓ **Ashok Dalwai Committee Anchor**: Linked **APEDA cold-chain corridors** and **MIDH clusters** to smallholder income doubling."
-          }
-        ];
-        draft2Eval.previous_evaluation = draft1Clone;
-
-        rec.has_been_rewritten = 1;
-        rec.baseline_score = 5.5;
-        rec.rewrite_score = 8.5;
-        rec.rewritten_evaluation = draft2Eval;
-        rec.rewritten_pages = rec.pages || rec.page_images || [];
-        rec.previous_evaluation = draft1Clone;
-        rec.previous_pages = rec.pages || rec.page_images || [];
-        baseEval.has_been_rewritten = true;
-        baseEval.rewritten_evaluation = draft2Eval;
-      }
-    }
-  });
-
-  // Deduplicate so a single unified card (with both Draft 1 and Draft 2 attached) is shown per rewritten question
   const deduped = [];
   const mergedRewriteIds = new Set();
   records.forEach(r => {
@@ -2730,26 +2603,6 @@ window.getEvaluationsFromBrowserVault = async function(email) {
     }
   } catch (e) {}
 
-  try {
-    const db = await _openBrowserVaultDB();
-    if (db) {
-      const idbRecords = await new Promise((resolve) => {
-        const tx = db.transaction("evaluations", "readonly");
-        const store = tx.objectStore("evaluations");
-        const req = store.getAll();
-        req.onsuccess = () => resolve(req.result || []);
-        req.onerror = () => resolve([]);
-      });
-      idbRecords.forEach(item => {
-        if (item && item.id && String(item.user_email || "").toLowerCase() === cleanEmail) {
-          const prev = byId.get(String(item.id));
-          window.resolveAuthenticEvalTimestamp(item, prev);
-          byId.set(String(item.id), item);
-        }
-      });
-    }
-  } catch (e) {}
-
   const merged = window.healAndLinkRewriteRecords(Array.from(byId.values()));
   merged.sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
   return merged;
@@ -2758,9 +2611,6 @@ window.getEvaluationsFromBrowserVault = async function(email) {
 window.getEvaluationByIdFromBrowserVault = async function(evalId) {
   const cleanId = String(evalId || "").trim();
   if (!cleanId) return null;
-  const all = await window.getEvaluationsFromBrowserVault(state.user?.email);
-  const found = all.find(x => String(x.id) === cleanId || String(x.rewrite_eval_id) === cleanId || String(x.baseline_eval_id) === cleanId);
-  if (found) return found;
   try {
     const db = await _openBrowserVaultDB();
     if (db) {
@@ -2777,7 +2627,8 @@ window.getEvaluationByIdFromBrowserVault = async function(evalId) {
       }
     }
   } catch (e) {}
-  return null;
+  const all = await window.getEvaluationsFromBrowserVault(state.user?.email);
+  return all.find(x => String(x.id) === cleanId || String(x.rewrite_eval_id) === cleanId || String(x.baseline_eval_id) === cleanId) || null;
 };
 
 window.fetchAndSyncUserLockerHistory = async function(email) {
@@ -2786,7 +2637,7 @@ window.fetchAndSyncUserLockerHistory = async function(email) {
 
   let serverList = [];
   try {
-    const res = await fetch(`/api/user/history?email=${encodeURIComponent(cleanEmail)}`);
+    const res = await fetch(`/api/user/history?email=${encodeURIComponent(cleanEmail)}&light=1`);
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data)) serverList = data;
@@ -2795,88 +2646,23 @@ window.fetchAndSyncUserLockerHistory = async function(email) {
 
   const localList = await window.getEvaluationsFromBrowserVault(cleanEmail);
   const localMap = new Map(localList.map(x => [String(x.id), x]));
-  serverList.forEach(sItem => {
-    if (sItem && sItem.id) {
-      window.resolveAuthenticEvalTimestamp(sItem, localMap.get(String(sItem.id)));
-    }
-  });
 
-  const serverIds = new Set(serverList.map(x => String(x.id)));
-
-  // Check if local vault has evaluated copies missing on server OR copies with healed authentic timestamps/rewrite status
-  const recordsToSync = localList.filter(item => {
-    if (!item || !item.id || !item.evaluation) return false;
-    window.resolveAuthenticEvalTimestamp(item);
-    if (!serverIds.has(String(item.id))) return true;
-    const srvMatch = serverList.find(s => String(s.id) === String(item.id));
-    if (srvMatch && String(srvMatch.created_at || "") !== String(item.created_at || "")) return true;
-    if (srvMatch && Boolean(item.has_been_rewritten) && !Boolean(srvMatch.has_been_rewritten)) return true;
-    return false;
-  });
-
-  if (recordsToSync.length > 0) {
-    try {
-      const syncRes = await fetch("/api/user/sync-vault", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: cleanEmail, records: recordsToSync })
-      });
-      if (syncRes.ok) {
-        const syncData = await syncRes.json();
-        if (Array.isArray(syncData.evaluations) && syncData.evaluations.length > 0) {
-          serverList = syncData.evaluations;
-        }
-      }
-    } catch (e) {}
-  }
-
-  // Merge serverList and localList while preserving earliest authentic created_at & rewrite pairs
   const mergedMap = new Map();
   serverList.forEach(item => {
     if (item && item.id) {
       const locMatch = localMap.get(String(item.id));
       window.resolveAuthenticEvalTimestamp(item, locMatch);
-      if (locMatch) {
-        if (locMatch.has_been_rewritten) item.has_been_rewritten = 1;
-        if (locMatch.rewritten_evaluation && !item.rewritten_evaluation) item.rewritten_evaluation = locMatch.rewritten_evaluation;
-        if (locMatch.rewritten_pages && (!item.rewritten_pages || item.rewritten_pages.length === 0)) item.rewritten_pages = locMatch.rewritten_pages;
-        if (locMatch.rewrite_score) item.rewrite_score = locMatch.rewrite_score;
-        if (locMatch.baseline_score) item.baseline_score = locMatch.baseline_score;
-      }
       mergedMap.set(String(item.id), item);
     }
   });
   localList.forEach(item => {
-    if (item && item.id) {
-      const existing = mergedMap.get(String(item.id));
-      if (!existing) {
-        window.resolveAuthenticEvalTimestamp(item);
-        mergedMap.set(String(item.id), item);
-      } else {
-        window.resolveAuthenticEvalTimestamp(existing, item);
-        if ((!existing.pages || existing.pages.length === 0) && item.pages && item.pages.length > 0) {
-          existing.pages = item.pages;
-          existing.page_images = item.pages;
-        }
-        if ((!existing.evaluation || Object.keys(existing.evaluation).length === 0) && item.evaluation) {
-          existing.evaluation = item.evaluation;
-          existing.evaluation_data = item.evaluation;
-        }
-        if (item.has_been_rewritten) existing.has_been_rewritten = 1;
-        if (item.rewritten_evaluation && !existing.rewritten_evaluation) existing.rewritten_evaluation = item.rewritten_evaluation;
-        if (item.rewritten_pages && (!existing.rewritten_pages || existing.rewritten_pages.length === 0)) existing.rewritten_pages = item.rewritten_pages;
-        if (item.rewrite_score) existing.rewrite_score = item.rewrite_score;
-        if (item.baseline_score) existing.baseline_score = item.baseline_score;
-      }
+    if (item && item.id && !mergedMap.has(String(item.id))) {
+      window.resolveAuthenticEvalTimestamp(item);
+      mergedMap.set(String(item.id), item);
     }
   });
 
   const finalHistory = window.healAndLinkRewriteRecords(Array.from(mergedMap.values()));
-  for (const rec of finalHistory) {
-    window.resolveAuthenticEvalTimestamp(rec);
-    await window.saveEvaluationToBrowserVault(cleanEmail, rec);
-  }
-
   finalHistory.sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
   state.lockerHistory = finalHistory;
 
@@ -3995,21 +3781,18 @@ function findGlossaryMatch(word) {
     return null;
   }
 
-  const combinedMap = Object.assign({}, BUILTIN_UPSC_GLOSSARY, state.glossaryMap || {});
+  const combinedMap = state.glossaryMap
+    ? Object.assign({}, BUILTIN_UPSC_GLOSSARY, state.glossaryMap)
+    : BUILTIN_UPSC_GLOSSARY;
   if (combinedMap[cleanWord]) {
     return { term: word.replace(/[:.]+$/, '').trim(), meaning: combinedMap[cleanWord] };
   }
 
-  // Only perform whole-word boundary matching for substantial domain terms (>= 5 chars)
   if (cleanWord.length >= 5) {
-    for (const [k, v] of Object.entries(combinedMap)) {
+    for (const k in combinedMap) {
       if (!k || k.length < 4 || NON_GLOSSARY_UI_LABELS.has(k)) continue;
-      const escapedK = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const escapedClean = cleanWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const kInClean = new RegExp(`\\b${escapedK}\\b`, 'i').test(cleanWord);
-      const cleanInK = cleanWord.length >= 6 && new RegExp(`\\b${escapedClean}\\b`, 'i').test(k);
-      if (kInClean || cleanInK) {
-        return { term: word.replace(/[:.]+$/, '').trim(), meaning: v };
+      if (cleanWord.includes(k) || (cleanWord.length >= 6 && k.includes(cleanWord))) {
+        return { term: word.replace(/[:.]+$/, '').trim(), meaning: combinedMap[k] };
       }
     }
   }
@@ -5058,15 +4841,19 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
   }
 }
 
-// Debounced window resize handler for adaptive orientation & device responsive re-alignment
+// Debounced window resize handler (ignores mobile Chrome vertical address-bar resize events)
 let resizeOverlayTimer = null;
+let lastWindowResizeWidth = window.innerWidth;
 window.addEventListener("resize", () => {
+  const curW = window.innerWidth;
+  if (Math.abs(curW - lastWindowResizeWidth) < 15) return;
+  lastWindowResizeWidth = curW;
   clearTimeout(resizeOverlayTimer);
   resizeOverlayTimer = setTimeout(() => {
     if (state.activePages && state.activePages.length > 0) {
       renderAnnotationsOverlay();
     }
-  }, 150);
+  }, 200);
 });
 
 window.loadSampleAnswerCopy = function(sampleId) {
