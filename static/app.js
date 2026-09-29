@@ -3822,6 +3822,12 @@ function formatHighlightedText(text) {
   if (!text) return "";
   let s = String(text);
 
+  // Balance any unclosed ** from truncated strings so raw ** never leaks into UI
+  const doubleStarCount = (s.match(/\*\*/g) || []).length;
+  if (doubleStarCount % 2 === 1) {
+    s = s.replace(/\*\*([^*]*)$/, "**$1**");
+  }
+
   // If a remark uses an action prefix like "**Add**: MIDH scheme reference.", auto-bold the target concept so the concept gets the glossary tooltip instead of "Add"
   s = s.replace(/\*\*(Add|Missing|Pro Polish|Sub-Part Enrichment|To Score[^*]*)\*\*\s*:\s*([^.\n<]+)(\.?)/gi, (full, prefix, phrase, dot) => {
     const cleanPhrase = phrase.trim();
@@ -3833,7 +3839,7 @@ function formatHighlightedText(text) {
 
   // Render evaluative heading prefixes (e.g. "**Good Premise**:" or "**Factual Check**:") as clean bold text rather than giant orange highlight boxes
   s = s.replace(/\*\*([^*]+)\*\*(\s*:)/g, (match, p1, colonPart) => {
-    if (isInstructionalPrefixLabel(p1)) {
+    if (isInstructionalPrefixLabel(p1) || p1.trim().length > 34) {
       return `<strong class="font-bold text-slate-900 dark:text-slate-100">${p1}</strong>${colonPart}`;
     }
     const gMatch = findGlossaryMatch(p1);
@@ -3852,12 +3858,134 @@ function formatHighlightedText(text) {
     if (gMatch) {
       return `<span class="jargon-inline-badge highlight-text-chip font-bold px-1.5 py-0.5 rounded cursor-help" tabindex="0">${p1}<span class="glossary-star">*</span><span class="jargon-bubble"><strong>${escapeHtml(gMatch.term)}</strong>: ${escapeHtml(gMatch.meaning)}</span></span>`;
     }
+    if (p1.trim().length > 34) {
+      return `<strong class="font-bold text-amber-900 dark:text-amber-300">${p1}</strong>`;
+    }
     return `<span class="highlight-text-chip font-bold px-1.5 py-0.5 rounded">${p1}</span>`;
   });
+
+  // Format single-asterisk italics (*Paik*, *Ga-mati*, *Satra*) cleanly without touching HTML tags
+  s = s.replace(/(^|[^*<>])\*([A-Za-z0-9][^*<>]{1,40})\*(?=[,.;:)\s]|$)/g, '$1<em class="italic font-serif">$2</em>');
+  // Strip any leftover orphan **
+  s = s.replace(/\*\*/g, "");
   // Format linebreaks
   s = s.replace(/\n/g, '<br>');
   return s;
 }
+
+// Global Body-Level Viewport-Clamped Tooltip Portal Controller (Prevents ANY cutting/clipping on right, left, top, or inside overflow:hidden containers)
+(function initGlobalHoverTooltipPortal() {
+  let portalEl = null;
+  let activeTriggerEl = null;
+
+  function ensurePortalElement() {
+    if (portalEl && document.body.contains(portalEl)) return portalEl;
+    portalEl = document.getElementById("globalHoverTooltipPortal");
+    if (!portalEl && document.body) {
+      portalEl = document.createElement("div");
+      portalEl.id = "globalHoverTooltipPortal";
+      portalEl.setAttribute("role", "tooltip");
+      document.body.appendChild(portalEl);
+    }
+    return portalEl;
+  }
+
+  function showPortalForTrigger(triggerEl) {
+    if (!triggerEl) return;
+    const bubbleEl = triggerEl.querySelector(".jargon-bubble, .inline-kw-tooltip");
+    if (!bubbleEl || !bubbleEl.innerHTML.trim()) return;
+
+    const portal = ensurePortalElement();
+    if (!portal) return;
+
+    activeTriggerEl = triggerEl;
+    portal.innerHTML = bubbleEl.innerHTML;
+
+    const isInsideMargin = Boolean(triggerEl.closest("#examinerMarginTrack, .margin-badge-card, .examiner-margin-card"));
+    const vw = window.innerWidth || document.documentElement.clientWidth || 1024;
+    const vh = window.innerHeight || document.documentElement.clientHeight || 768;
+
+    const maxAllowedWidth = isInsideMargin
+      ? Math.min(244, vw - 20)
+      : Math.min(295, vw - 24);
+    portal.style.maxWidth = `${maxAllowedWidth}px`;
+    portal.style.minWidth = `${Math.min(190, maxAllowedWidth)}px`;
+
+    // Temporarily place off-screen to measure exact rendered width & height
+    portal.style.left = "0px";
+    portal.style.top = "0px";
+    portal.classList.add("visible");
+
+    const triggerRect = triggerEl.getBoundingClientRect();
+    const portalRect = portal.getBoundingClientRect();
+    const pWidth = portalRect.width || maxAllowedWidth;
+    const pHeight = portalRect.height || 80;
+
+    // Determine horizontal clamping bounds (both viewport and containing card/column so it never overflows right edge!)
+    let minLeft = 12;
+    let maxLeft = vw - pWidth - 12;
+
+    const boundingContainer = triggerEl.closest("#examinerMarginTrack, #bodyAuditBox, #introAuditBox, #conclusionAuditBox, #rightEvaluationStudioCard");
+    if (boundingContainer) {
+      const cRect = boundingContainer.getBoundingClientRect();
+      if (cRect.width >= pWidth + 12) {
+        minLeft = Math.max(10, cRect.left + 6);
+        maxLeft = Math.min(vw - pWidth - 10, cRect.right - pWidth - 6);
+      } else {
+        // If container is slightly narrower (e.g., narrow mobile margin), align right edge with container right edge - 4px
+        maxLeft = Math.min(vw - pWidth - 8, cRect.right - pWidth - 4);
+        minLeft = Math.max(8, Math.min(cRect.left + 4, maxLeft));
+      }
+    }
+
+    const triggerCenterX = triggerRect.left + (triggerRect.width / 2);
+    let finalLeft = triggerCenterX - (pWidth / 2);
+    finalLeft = Math.max(minLeft, Math.min(maxLeft, finalLeft));
+
+    // Vertical placement: prefer above (8px gap), flip below if near top of viewport (< 14px)
+    let placement = "top";
+    let finalTop = triggerRect.top - pHeight - 8;
+    if (finalTop < 14) {
+      placement = "bottom";
+      finalTop = Math.min(vh - pHeight - 10, triggerRect.bottom + 8);
+    }
+
+    const arrowOffset = Math.max(14, Math.min(pWidth - 14, triggerCenterX - finalLeft));
+    portal.setAttribute("data-placement", placement);
+    portal.style.setProperty("--portal-arrow-left", `${arrowOffset.toFixed(1)}px`);
+    portal.style.left = `${Math.round(finalLeft)}px`;
+    portal.style.top = `${Math.round(finalTop)}px`;
+  }
+
+  function hidePortal() {
+    activeTriggerEl = null;
+    if (portalEl) {
+      portalEl.classList.remove("visible");
+    }
+  }
+
+  document.addEventListener("mouseover", (e) => {
+    const trigger = e.target && e.target.closest ? e.target.closest(".jargon-inline-badge, .inline-kw-target") : null;
+    if (trigger) {
+      showPortalForTrigger(trigger);
+    } else if (activeTriggerEl) {
+      hidePortal();
+    }
+  }, { passive: true });
+
+  document.addEventListener("focusin", (e) => {
+    const trigger = e.target && e.target.closest ? e.target.closest(".jargon-inline-badge, .inline-kw-target") : null;
+    if (trigger) showPortalForTrigger(trigger);
+  }, { passive: true });
+
+  document.addEventListener("focusout", () => {
+    hidePortal();
+  }, { passive: true });
+
+  window.addEventListener("scroll", () => {
+    if (activeTriggerEl) showPortalForTrigger(activeTriggerEl);
+  }, { passive: true, capture: true });
+})();
 
 // Render Red-Pen Teacher Annotations into Dedicated Margin Track (Zero Overlap on Answer Text)
 // Render Examiner Margin Annotations (Matching Image 5: Crisp, Structured, Zero-Overlap)
@@ -3887,18 +4015,29 @@ function renderAnnotationsOverlay() {
   if (marginContainer) marginContainer.innerHTML = "";
   if (guideLayer) guideLayer.innerHTML = "";
 
-  // Helper to format clean crisp bullet points from raw text (compact 2-3 bullets max so card ALWAYS fits inside curly brace & answer sheet)
+  // Helper to format clean crisp bullet points from raw text (compact 2-3 bullets max, NEVER cutting mid-word or leaving unclosed **)
   function conciseEvaluatorBullet(rawLine) {
     let s = String(rawLine || "").trim();
     if (!s) return "";
     // Remove verbose parenthetical textbook explanations > 32 chars unless they contain point numbers
     s = s.replace(/\s*\((?!Point|Legacy|e\.g\.)[^)]{32,}\)/gi, "");
-    if (s.length <= 145) return s;
+    if (s.length <= 165) return s;
     const firstSentence = s.split(/(?<=[.?!])\s+/)[0];
-    if (firstSentence && firstSentence.length >= 35 && firstSentence.length <= 150) {
+    if (firstSentence && firstSentence.length >= 35 && firstSentence.length <= 170) {
       return firstSentence;
     }
-    return s.slice(0, 140).replace(/[,;:\s]+$/, "") + ".";
+    // Truncate strictly at a word boundary before 160 chars
+    let cut = s.slice(0, 160);
+    const lastSpace = cut.lastIndexOf(" ");
+    if (lastSpace > 90) {
+      cut = cut.slice(0, lastSpace);
+    }
+    cut = cut.replace(/[,;:\s]+$/, "");
+    // Close any unclosed ** markdown bold tag before adding period
+    if (((cut.match(/\*\*/g) || []).length) % 2 === 1) {
+      cut += "**";
+    }
+    return cut + ".";
   }
 
   function parseBullets(text, limit = 2) {
