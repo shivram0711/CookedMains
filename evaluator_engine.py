@@ -1331,10 +1331,10 @@ Generate strictly valid JSON matching this schema:
     }}
   ],
   "intro_audit": {{
-    "current_critique": "Brief 1-line critique with **highlighted advice** (flags circular intros that merely echo prompt).",
+    "current_critique": "Substantive 1-2 sentence evaluation explaining specifically what the candidate wrote in the introduction, verifying factual/chronological accuracy, and stating why marks were awarded or deducted (NEVER write a 1-word or 3-word fragment).",
     "is_circular_intro": false,
-    "missing_elements": ["**Key Concept / Scholar**", "**Baseline Context / Data**"],
-    "model_intro_rewrite": "Crisp 20-word model opening."
+    "missing_elements": ["**Key Concept / Scholar / Historical Anchor**", "**Baseline Context / Data**"], // Leave empty [] if intro_score equals intro_max (perfect introduction)
+    "model_intro_rewrite": "Crisp 25-word model opening (leave empty string '' if candidate's introduction is already full marks)."
   }},
   "body_audit": {{
     "strengths": ["**Key Empirical / Theoretical Point**: Addressed core demand with evidence", "**Structured Question-Echoing Headings**: Clean sub-part division"],
@@ -1385,11 +1385,11 @@ Generate strictly valid JSON matching this schema:
   }},
   "recommended_diagram_visual": "+-------------------------------------------------+\\n|                    POLITICS                     |\\n|  +-----------------+     +-------------------+  |\\n|  |     SCIENCE     |     |        ART        |  |\\n|  | - Behavioralism | <-> | - Statecraft      |  |\\n|  | - Empirical Data|     | - Normative Values|  |\\n|  | - Systems Theory|     | - Art of Possible |  |\\n|  +-----------------+     +-------------------+  |\\n+-------------------------------------------------+",
   "conclusion_audit": {{
-    "current_critique": "Brief 1-line critique of candidate ending.",
+    "current_critique": "Substantive 1-2 line evaluation of candidate's concluding paragraph.",
     "aligns_with_national_goals": true,
     "model_conclusion_rewrite": "Forward-looking, balanced synthesis conclusion connecting to national vision."
   }},
-  "transcribed_text": "Readable transcription of candidate's actual written text.",
+  "transcribed_text": "Readable transcription of candidate's actual written text, separated clearly by [Page 1], [Page 2], [Page 3] markers.",
   "full_model_answer": "Complete topper model answer with the ASCII diagram embedded directly in the body.",
   "jargon_buster": [
     {{
@@ -1428,10 +1428,11 @@ Generate strictly valid JSON matching this schema:
     }}
   }},
   "visual_annotations": [
-    // CRITICAL FOR CURLY BRACE PRECISION:
-    // 1. Provide exact "start_y_percent" and "end_y_percent" (0-100) tracing ONLY the student's actual HANDWRITTEN lines for that section on that page.
-    // 2. On Page 1, "start_y_percent" for Intro MUST start BELOW the printed coaching header (e.g. VAJIRAM & RAVI / VISION IAS) and BELOW the printed Question statement (typically around 24%-27%, NEVER at 12%-18% on top of the printed question!).
-    // 3. On the final page, "end_y_percent" for Conclusion MUST end right at the last handwritten line of the student's conclusion (e.g. 68%-72% if there is a printed 'Students should not write anything inside the box / Introduction / Body / Conclusion / Marks' evaluation box below, or 40%-55% if the answer is incomplete, or 95% if the student wrote all the way to the bottom edge). NEVER wrap empty paper or printed evaluation boxes!
+    // CRITICAL RULES FOR HUMAN UPSC EXAMINER MARGIN EVALUATION & CURLY BRACE PRECISION:
+    // 1. Exact Vertical Boundaries: Provide exact "start_y_percent" and "end_y_percent" (0-100) tracing ONLY the student's actual HANDWRITTEN lines for that section on that page.
+    // 2. Intro Substantive Feedback (1-2 Full Sentences): In the "Intro" annotation remark, ALWAYS write 1-2 complete explanatory sentences detailing what the student wrote in the opening (including any date/factual correction) and what specific context/hook was missed. NEVER write 2-word fragments like "Missing: Historical significance hook". If the student's intro is perfect (full marks), write ONLY positive appreciation and DO NOT output any "Missing" bullet or alternative rewrite!
+    // 3. Strictly Page-Independent & Point-Aligned Body Remarks: Evaluate each page (Page 1, Page 2, Page 3) and each vertical zone (upper half vs lower half) STRICTLY on the handwritten points written right there on that page/zone! NEVER cite an example from Page 2 inside Page 1's or Page 3's margin card, and NEVER copy-paste the same remark across pages.
+    // 4. Natural Non-Robotic Examiner Layout: Do NOT stick to a rigid "1 ✓ + 1 ✎" template on every card! If the student wrote 3-5 points in that zone, write 2 to 4 crisp bullets evaluating those exact points (✓ crediting strong points/examples written there, ✗ correcting any factual/attribution error in those points, and ✎ adding relevant value-additions). If the student wrote very little in a zone, provide 2-3 crisp value-addition points (✎) directly relevant to that sub-heading.
     {{
       "page": 1,
       "approx_y_percent": 32,
@@ -1440,17 +1441,17 @@ Generate strictly valid JSON matching this schema:
       "tag": "Intro",
       "type": "tick",
       "marks_awarded": "+{sample_intro_aw:.1f} / {intro_d:.1f}",
-      "remark": "✓ **Good Premise**: Defined core concept clearly.\\n✗ **Missing**: Contextual hook."
+      "remark": "✓ **Good Chronological Premise**: Clearly situated the core theme and historical timeline in the opening paragraph.\\n✎ **Opening Enrichment**: Anchor the first sentence with the foundational institutional or historical catalyst to immediately establish the core thesis."
     }},
     {{
       "page": 1,
       "approx_y_percent": 64,
       "start_y_percent": 41,
       "end_y_percent": 89,
-      "tag": "Body",
+      "tag": "Body: Primary Sub-Heading (Points 1-4)",
       "type": "warning",
       "marks_awarded": "+{sample_body_aw:.1f} / {body_d:.1f}",
-      "remark": "✓ **Thinkers cited**: Addressed foundational perspectives.\\n✗ **Omission**: Missed **key counter-dimension**."
+      "remark": "✓ **Strong Point Coverage (Points 1-3)**: Addressed key structural and historical arguments with relevant examples.\\n✗ **Analytical Nuance (Point 1)**: Frame cross-regional linkages in terms of **cultural synthesis** rather than separation.\\n✎ **Value Addition**: Substantiate with **specific institutional mechanisms** and primary historical records."
     }},
     {{
       "page": 2,
@@ -1460,7 +1461,7 @@ Generate strictly valid JSON matching this schema:
       "tag": "Conclusion",
       "type": "suggestion",
       "marks_awarded": "+{sample_conc_aw:.1f} / {conc_d:.1f}",
-      "remark": "✓ **Balanced Stand**: Concluded with balanced synthesis.\\n✗ **Add**: Forward-looking perspective."
+      "remark": "✓ **Balanced Stand**: Concluded with a coherent synthesis tying back to the core demand of the question.\\n✎ **Forward Anchor**: Connect the closing line to contemporary constitutional or policy significance."
     }}
   ]
 }}
@@ -1471,40 +1472,131 @@ Return strictly a single valid JSON object starting with {{ and ending with }}. 
 def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: str, paper: str) -> Dict[str, Any]:
     """
     Enforces 100% mathematical consistency (denominators sum to max_marks, numerators sum to overall_score).
-    Embeds the diagram inside the model answer and eliminates cross-subject hallucinations.
+    Embeds the diagram inside the model answer and eliminates cross-subject hallucinations and cross-page margin duplication.
     """
     overall_score = float(data.get("overall_score", 4.0 if max_marks == 10 else 6.5))
     data["overall_score"] = round(overall_score, 1)
     data["max_marks"] = max_marks
 
-    # 1. Per-Page Visual Annotations Completeness & Mathematical Normalization
+    # 1. Per-Page Visual Annotations Completeness, Substantive Intro & Zero-Duplication Page-Independent Margin Remarks
     annotations = data.get("visual_annotations", [])
     if annotations:
+        intro_audit_obj = data.get("intro_audit") if isinstance(data.get("intro_audit"), dict) else {}
         body_audit_obj = data.get("body_audit") if isinstance(data.get("body_audit"), dict) else {}
         b_strengths = [str(s).strip() for s in (body_audit_obj.get("strengths") or []) if s]
         b_gaps = [str(g).strip() for g in (body_audit_obj.get("critical_gaps") or []) if g]
         b_missing = [str(m).strip() for m in (body_audit_obj.get("missing_dimensions") or []) if m]
         conc_audit_obj = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
+        pbp_list = data.get("point_by_point_audit") if isinstance(data.get("point_by_point_audit"), list) else []
+        rubric_obj = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
 
         def _fmt_bullet(text_line: str, prefix: str) -> str:
             clean = str(text_line or "").strip()
             if not clean:
                 return ""
-            if clean[0] in ("✓", "✔", "✎", "✗", "×", "✘"):
+            if clean[0] in ("✓", "✔", "✎", "✗", "×", "✘", "★", "⭐"):
                 return clean
             return f"{prefix} {clean}"
 
-        def _synth_body_remark(slot_idx: int) -> str:
-            s_val = b_strengths[slot_idx] if slot_idx < len(b_strengths) else (b_strengths[0] if b_strengths else "**Core Demand Addressed**: Covered relevant sub-dimensions of the question.")
-            g_list = b_gaps + b_missing
-            g_val = g_list[slot_idx] if slot_idx < len(g_list) else (g_list[0] if g_list else "**Substantiation**: Back arguments with specific empirical data, reports, or policy schemes.")
-            return f"{_fmt_bullet(s_val, '✓')}\n{_fmt_bullet(g_val, '✎')}"
+        # Track every bullet used across the answer sheet so Page 2 and Page 3 NEVER copy Page 1 or each other
+        used_margin_bullets = set()
+
+        def _norm_sig(line_str: str) -> str:
+            return re.sub(r'[^a-z0-9]+', '', str(line_str or "").lower())[:42]
+
+        def _add_unique_bullet(target_list: list, candidate_line: str, prefix: str) -> bool:
+            formatted = _fmt_bullet(candidate_line, prefix)
+            sig = _norm_sig(formatted)
+            if not sig or sig in used_margin_bullets:
+                return False
+            used_margin_bullets.add(sig)
+            target_list.append(formatted)
+            return True
+
+        def _build_page_zone_remark(pg_num: int, slot_idx: int) -> str:
+            bullets = []
+            # 1. First pull page-matched point_by_point_audit verdicts for this exact page (pg_num)
+            pg_pbps = [p for p in pbp_list if isinstance(p, dict) and int(p.get("page", 0) or 0) == pg_num]
+            for p_item in pg_pbps:
+                title_s = str(p_item.get("title") or "").strip()
+                verdict_s = str(p_item.get("examiner_verdict") or "").strip()
+                is_pos = bool(p_item.get("is_positive", True))
+                if verdict_s:
+                    line_txt = f"**{title_s}**: {verdict_s}" if (title_s and title_s.lower() not in verdict_s.lower()) else verdict_s
+                    _add_unique_bullet(bullets, line_txt, "✓" if is_pos else "✎")
+                    if len(bullets) >= 2:
+                        break
+
+            # 2. Supplement with unused strengths/gaps/missing dimensions indexed by slot_idx
+            if slot_idx < len(b_strengths):
+                _add_unique_bullet(bullets, b_strengths[slot_idx], "✓")
+            for s_cand in b_strengths:
+                if len(bullets) >= 2:
+                    break
+                _add_unique_bullet(bullets, s_cand, "✓")
+
+            g_pool = b_gaps + b_missing
+            if slot_idx < len(g_pool):
+                _add_unique_bullet(bullets, g_pool[slot_idx], "✎")
+            for g_cand in g_pool:
+                if len(bullets) >= 3:
+                    break
+                _add_unique_bullet(bullets, g_cand, "✎")
+
+            if not bullets:
+                bullets.append(f"✓ **Page {pg_num} Analysis**: Addressed relevant points for this sub-section.")
+                bullets.append("✎ **Value Addition**: Substantiate points with domain-specific examples, data, or institutional mechanisms.")
+            return "\n".join(bullets[:4])
+
+        # Ensure Intro annotation has 1-2 full sentences of substantive feedback (and zero Missing line if full marks)
+        intro_sc = float(rubric_obj.get("intro_score", 1.0) or 1.0)
+        intro_mx = float(rubric_obj.get("intro_max", 1.5 if max_marks == 10 else 2.0) or (1.5 if max_marks == 10 else 2.0))
+        is_intro_perfect = (intro_sc >= intro_mx - 0.1) and not (intro_audit_obj.get("missing_elements"))
+        for ann in annotations:
+            if "intro" in str(ann.get("tag", "")).lower() or "premise" in str(ann.get("tag", "")).lower():
+                raw_i_rem = str(ann.get("remark", "")).strip()
+                i_lines = [ln.strip() for ln in raw_i_rem.split("\n") if ln.strip()]
+                crit_str = str(intro_audit_obj.get("current_critique") or "").strip()
+                miss_list = [str(m).strip() for m in (intro_audit_obj.get("missing_elements") or []) if m]
+                if is_intro_perfect:
+                    pos_ln = crit_str if len(crit_str) >= 45 else (i_lines[0] if i_lines else "✓ **Strong Opening Premise**: Clear, accurate, and context-rich introduction addressing the core demand of the question.")
+                    ann["remark"] = _fmt_bullet(pos_ln, "✓")
+                else:
+                    # Check if any line in raw_i_rem is a telegraphic 2-4 word stub (< 52 chars)
+                    has_short_stub = (len(i_lines) < 2) or any(len(re.sub(r'\*\*.*?\*\*\s*:?\s*', '', ln).strip()) < 38 for ln in i_lines)
+                    if has_short_stub:
+                        p1_txt = crit_str if len(crit_str) >= 40 else (i_lines[0] if i_lines else "✓ **Opening Context**: Addressed the foundational timeline and theme of the prompt.")
+                        if miss_list:
+                            clean_miss = ", ".join(miss_list[:2])
+                            p2_txt = f"✎ **Missing in Introduction**: Explain and anchor {clean_miss} in 1–2 lines to establish the historical/institutional significance upfront."
+                        else:
+                            p2_txt = "✎ **Opening Enrichment**: Expand the introduction by 1–2 lines connecting the baseline definition to the core analytical demand of the question."
+                        ann["remark"] = f"{_fmt_bullet(p1_txt, '✓')}\n{_fmt_bullet(p2_txt, '✎')}"
+                for ln in str(ann.get("remark", "")).split("\n"):
+                    if ln.strip():
+                        used_margin_bullets.add(_norm_sig(ln))
 
         max_pg = max([int(a.get("page", 1) or 1) for a in annotations], default=1)
         if max_pg >= 2:
             expanded_anns = []
             for pg in range(1, max_pg + 1):
                 pg_anns = [a for a in annotations if (int(a.get("page", 1) or 1) == pg)]
+                # Deduplicate any existing body annotation remarks on pg >= 2 that accidentally copied Page 1 or Page 2
+                for existing_ann in pg_anns:
+                    t_low = str(existing_ann.get("tag", "")).lower()
+                    if "intro" not in t_low and "concl" not in t_low:
+                        raw_b_lines = [ln.strip() for ln in str(existing_ann.get("remark", "")).split("\n") if ln.strip()]
+                        unique_b_lines = []
+                        for r_ln in raw_b_lines:
+                            sig = _norm_sig(r_ln)
+                            if sig and sig not in used_margin_bullets:
+                                used_margin_bullets.add(sig)
+                                unique_b_lines.append(r_ln)
+                        if unique_b_lines:
+                            existing_ann["remark"] = "\n".join(unique_b_lines)
+                        else:
+                            existing_ann["remark"] = _build_page_zone_remark(pg, pg)
+
                 if pg == 1:
                     intro_ann_p1 = next((a for a in pg_anns if "intro" in str(a.get("tag", "")).lower() or "premise" in str(a.get("tag", "")).lower()), None)
                     body_ann_p1 = next((a for a in pg_anns if a is not intro_ann_p1), None)
@@ -1520,7 +1612,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                             "tag": "Body: Core Demand",
                             "type": "tick",
                             "marks_awarded": "+1.5 / 3.5",
-                            "remark": _synth_body_remark(0)
+                            "remark": _build_page_zone_remark(1, 0)
                         })
                 elif pg < max_pg:
                     expanded_anns.extend(pg_anns)
@@ -1533,11 +1625,10 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                             "tag": "Body: Depth & Substantiation",
                             "type": "suggestion",
                             "marks_awarded": "+1.5 / 3.0",
-                            "remark": _synth_body_remark(1)
+                            "remark": _build_page_zone_remark(pg, 1)
                         })
                 else:
-                    # Final page: move ANY Body-related lines (e.g. policy breakdown, mitigation/preparedness/response, NDMA guidelines/HAPs, diagrams)
-                    # out of Conclusion annotation and merge them into the Final Page Body annotation!
+                    # Final page: move ANY Body-related lines out of Conclusion annotation and merge them into the Final Page Body annotation!
                     conc_ann = next((a for a in pg_anns if "concl" in str(a.get("tag", "")).lower() or "synthesis" in str(a.get("tag", "")).lower()), None)
                     body_ann = next((a for a in pg_anns if a is not conc_ann), None)
                     if conc_ann:
@@ -1582,7 +1673,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                             "tag": "Body: Key Dimensions",
                             "type": "tick",
                             "marks_awarded": "+1.5 / 2.5",
-                            "remark": _synth_body_remark(1)
+                            "remark": _build_page_zone_remark(pg, 2)
                         })
                         expanded_anns.append(conc_ann)
                     else:

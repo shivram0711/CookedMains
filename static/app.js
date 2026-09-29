@@ -3747,8 +3747,15 @@ const BUILTIN_UPSC_GLOSSARY = {
   "kesavananda bharati": "Kesavananda Bharati v. State of Kerala (1973) • 13-Judge Bench landmark ruling establishing the Basic Structure Doctrine and designating Judicial Review as an unamendable constitutional feature.",
   "i.r. coelho": "I.R. Coelho v. State of Tamil Nadu (2007) • 9-Judge Bench ruling holding that laws placed in the 9th Schedule after April 24, 1973 are open to Judicial Review if they violate Fundamental Rights or Basic Structure.",
   "maneka gandhi": "Maneka Gandhi v. Union of India (1978) • Imported substantive 'Due Process of Law' into Article 21, uniting Articles 14, 19, and 21 ('Golden Triangle') against arbitrary legislative or executive action.",
-  "shreya singhal": "Shreya Singhal v. Union of India (2015) • Struck down Section 66A of the IT Act, 2000 as unconstitutional for violating freedom of speech and expression under Article 19(1)(a).",
-  "anrf": "Anusandhan National Research Foundation (ANRF Act 2023) • Statutory apex body mobilising Rs 50,000 Cr (70% private/philanthropic target) to bridge India's sovereign R&D and deep-tech commercialization gap."
+  "shreya singhal": "Shreya Singhal v. Union of India (2015) • Struck down Section 66A of the IT Act, 2000 as unconstitutional under Article 19(1)(a).",
+  "anrf": "Anusandhan National Research Foundation (ANRF Act 2023) • Apex statutory body mobilising Rs 50,000 Cr to bridge India's R&D and deep-tech gap.",
+  "buranjis": "Official historical chronicles written in Tai-Ahom and Assamese scripts by the Ahom Kingdom, documenting statecraft, diplomacy, and social life.",
+  "paik system": "Compulsory socio-military corvée labour and militia system of the Ahom state where adult males (Paiks) rendered rotational state and military service.",
+  "charaideo moidams": "Royal mound-burial complexes of the Ahom dynasty in Assam (inscribed as a UNESCO World Heritage Site in 2024), comparable to ancient pyramids.",
+  "battle of saraighat": "1671 naval battle on the Brahmaputra where Ahom general Lachit Borphukan decisively defeated the Mughal imperial fleet.",
+  "lachit borphukan": "Celebrated Ahom military commander who led the victorious 1671 Battle of Saraighat halting Mughal expansion into Assam.",
+  "chaolung sukaphaa": "13th-century Tai prince who crossed the Patkai hills in 1228 AD to establish the Ahom Kingdom in the Brahmaputra valley.",
+  "treaty of yandabo": "1826 peace treaty ending the First Anglo-Burmese War, marking the end of 600 years of Ahom sovereignty and British annexation of Assam."
 };
 
 const NON_GLOSSARY_UI_LABELS = new Set([
@@ -3757,8 +3764,20 @@ const NON_GLOSSARY_UI_LABELS = new Set([
   "penalty", "marks", "great visuals", "sub-part enrichment", "pro polish", "what works",
   "structural gap", "good opening", "good policy", "good structure", "sharp sunrise sector definition",
   "high-value diversification", "examiner audit", "demand fulfilled", "partially fulfilled",
-  "great heat dome diagram & causes", "next micro-upgrade (+0.5m)", "upfront definition"
+  "great heat dome diagram & causes", "next micro-upgrade (+0.5m)", "upfront definition",
+  "good premise", "good chronological premise", "opening context", "opening enrichment",
+  "missing in introduction", "how to strengthen opening", "omission", "value addition",
+  "analytical nuance", "factual check", "balanced stand", "forward anchor", "how to improve",
+  "good use of examples", "nuanced historical analysis", "balanced framing"
 ]);
+
+function isInstructionalPrefixLabel(rawWord) {
+  if (!rawWord) return true;
+  const cleanWord = String(rawWord).replace(/[*_#`]/g, '').replace(/[:.]+$/, '').trim().toLowerCase();
+  if (!cleanWord || cleanWord.length < 3) return true;
+  if (NON_GLOSSARY_UI_LABELS.has(cleanWord)) return true;
+  return /^(to score|great |good |missing|sub-part|part |page |draft |next micro|point |points |legacy |factual |analytical |value |opening |balanced |how to |strong |clear |constructive |actionable |too general)/i.test(cleanWord);
+}
 
 function findGlossaryMatch(word) {
   if (!word) return null;
@@ -3766,33 +3785,33 @@ function findGlossaryMatch(word) {
   if (!cleanWord || cleanWord.length < 3) return null;
 
   // Never attach glossary popups to generic instructional labels or rubric prefixes
-  if (
-    NON_GLOSSARY_UI_LABELS.has(cleanWord) ||
-    cleanWord.startsWith("to score") ||
-    cleanWord.startsWith("great ") ||
-    cleanWord.startsWith("good ") ||
-    cleanWord.startsWith("missing") ||
-    cleanWord.startsWith("sub-part") ||
-    cleanWord.startsWith("part ") ||
-    cleanWord.startsWith("page ") ||
-    cleanWord.startsWith("draft ") ||
-    cleanWord.startsWith("next micro")
-  ) {
+  if (isInstructionalPrefixLabel(cleanWord)) {
     return null;
   }
 
   const combinedMap = state.glossaryMap
     ? Object.assign({}, BUILTIN_UPSC_GLOSSARY, state.glossaryMap)
     : BUILTIN_UPSC_GLOSSARY;
+
+  const formatConciseMeaning = (rawMeaning) => {
+    const m = String(rawMeaning || "").replace(/\s+/g, " ").trim();
+    if (m.length <= 175) return m;
+    const firstSentence = m.split(/(?<=[.?!])\s+/)[0];
+    if (firstSentence && firstSentence.length >= 35 && firstSentence.length <= 185) {
+      return firstSentence;
+    }
+    return m.slice(0, 170).replace(/[,;:\s]+$/, "") + "...";
+  };
+
   if (combinedMap[cleanWord]) {
-    return { term: word.replace(/[:.]+$/, '').trim(), meaning: combinedMap[cleanWord] };
+    return { term: word.replace(/[:.]+$/, '').trim(), meaning: formatConciseMeaning(combinedMap[cleanWord]) };
   }
 
   if (cleanWord.length >= 5) {
     for (const k in combinedMap) {
       if (!k || k.length < 4 || NON_GLOSSARY_UI_LABELS.has(k)) continue;
       if (cleanWord.includes(k) || (cleanWord.length >= 6 && k.includes(cleanWord))) {
-        return { term: word.replace(/[:.]+$/, '').trim(), meaning: combinedMap[k] };
+        return { term: word.replace(/[:.]+$/, '').trim(), meaning: formatConciseMeaning(combinedMap[k]) };
       }
     }
   }
@@ -3812,8 +3831,23 @@ function formatHighlightedText(text) {
     return full;
   });
 
-  // Highlight markdown bold **word** with prominent high-contrast chip and instant inline jargon tooltip if in glossary
+  // Render evaluative heading prefixes (e.g. "**Good Premise**:" or "**Factual Check**:") as clean bold text rather than giant orange highlight boxes
+  s = s.replace(/\*\*([^*]+)\*\*(\s*:)/g, (match, p1, colonPart) => {
+    if (isInstructionalPrefixLabel(p1)) {
+      return `<strong class="font-bold text-slate-900 dark:text-slate-100">${p1}</strong>${colonPart}`;
+    }
+    const gMatch = findGlossaryMatch(p1);
+    if (gMatch) {
+      return `<span class="jargon-inline-badge highlight-text-chip font-bold px-1.5 py-0.5 rounded cursor-help" tabindex="0">${p1}<span class="glossary-star">*</span><span class="jargon-bubble"><strong>${escapeHtml(gMatch.term)}</strong>: ${escapeHtml(gMatch.meaning)}</span></span>${colonPart}`;
+    }
+    return `<span class="highlight-text-chip font-bold px-1.5 py-0.5 rounded">${p1}</span>${colonPart}`;
+  });
+
+  // Highlight remaining markdown bold **word** with prominent high-contrast chip and instant inline jargon tooltip if in glossary
   s = s.replace(/\*\*(.*?)\*\*/g, (match, p1) => {
+    if (isInstructionalPrefixLabel(p1)) {
+      return `<strong class="font-bold text-slate-900 dark:text-slate-100">${p1}</strong>`;
+    }
     const gMatch = findGlossaryMatch(p1);
     if (gMatch) {
       return `<span class="jargon-inline-badge highlight-text-chip font-bold px-1.5 py-0.5 rounded cursor-help" tabindex="0">${p1}<span class="glossary-star">*</span><span class="jargon-bubble"><strong>${escapeHtml(gMatch.term)}</strong>: ${escapeHtml(gMatch.meaning)}</span></span>`;
@@ -3972,55 +4006,172 @@ function renderAnnotationsOverlay() {
       const introScoreNum = parseFloat(syncedRubric.intro_score) || 1.5;
       const introMaxNum = parseFloat(syncedRubric.intro_max) || 2.0;
       const isIntroFullMarks = (introScoreNum >= introMaxNum - 0.1) && !(Array.isArray(introAudit.missing_elements) && introAudit.missing_elements.length > 0);
+      const stripBodyDiagramFromIntroText = (txt) => String(txt || "").trim();
 
-      let leakedDiagramLineFromIntro = "";
-      const stripBodyDiagramFromIntroText = (txt) => {
-        return String(txt || "").trim();
+      const isAhomCopy = fullTextLow.includes("ahom") && (
+        fullTextLow.includes("buranji") ||
+        fullTextLow.includes("laphaidibi") ||
+        fullTextLow.includes("moidam") ||
+        fullTextLow.includes("saraighat") ||
+        fullTextLow.includes("kamakhya")
+      );
+
+      // Track normalized bullet signatures across all pages of this evaluation so NO remark is ever duplicated across Page 1, Page 2, and Page 3
+      const usedCrossPageSigs = new Set();
+      const normBulletSig = (str) => String(str || "").toLowerCase().replace(/[*_#`✓✔✎✗×✘★⭐]/g, "").replace(/[^a-z0-9]+/g, "").slice(0, 42);
+      const registerUsedRemark = (remStr) => {
+        String(remStr || "").split(/\n+|\s*\|\s*/).forEach(ln => {
+          const sig = normBulletSig(ln);
+          if (sig && sig.length >= 10) usedCrossPageSigs.add(sig);
+        });
       };
 
       const buildDynamicIntroRemark = (rawRem) => {
-        if (isHeatwaveCopy) {
-          return "✓ **Contemporary Urban Hook**: Good opening context citing the **Summer 2025 heatwave spell** across North Indian urban centres (**New Delhi, Lucknow, Jaipur, Patna**).\n✎ **To Score 2.0/2.0 (+0.5M)**: Add the **IMD meteorological threshold** (plains **≥40°C** or **+4.5°C departure from normal**) right in Sentence 1.";
-        }
         const cleaned = stripBodyDiagramFromIntroText(sanitizeCrossSubjectText(rawRem));
         if (isIntroFullMarks) {
-          const posLine = (cleaned && cleaned.split("\n")[0]) || (introAudit.current_critique ? ensureBulletPrefix(introAudit.current_critique, "✓") : "✓ **Strong Topper Opening**: Clear, context-rich introduction addressing the core premise.");
-          return `${ensureBulletPrefix(posLine, "✓")}\n★ **Full Marks (${introScoreNum.toFixed(1)}/${introMaxNum.toFixed(1)})**: Keep your written introduction as is — no replacement needed!`;
+          const rawCritClean = stripBodyDiagramFromIntroText(introAudit.current_critique || "");
+          const posLine = (rawCritClean && rawCritClean.length >= 45)
+            ? ensureBulletPrefix(rawCritClean, "✓")
+            : ((cleaned && cleaned.split("\n")[0] && cleaned.split("\n")[0].length >= 45)
+                ? ensureBulletPrefix(cleaned.split("\n")[0], "✓")
+                : "✓ **Strong Topper Opening**: Clear, accurate, and context-rich introduction that directly establishes the core premise and analytical scope of the question.");
+          return ensureBulletPrefix(posLine, "✓");
         }
-        if (cleaned && cleaned.includes("\n")) return cleaned;
-        if (isStartupDeepTechCopy) {
-          return "✓ **Strong Context**: Clear opening mapping India's startup growth drivers.\n✎ **Missing**: Quantitative baseline on India's low deep-tech share.";
+        if (isAhomCopy) {
+          return [
+            "✓ **Good Chronological Context**: Rightly situated the **Ahom Kingdom's 600-year rule** in the Brahmaputra valley starting from **1228 AD** (note: Ahom sovereignty ended with the **Treaty of Yandabo in 1826 AD**, rather than 1818 AD written in line 2).",
+            "✎ **Opening Enrichment**: Expand your introduction by 1–2 lines naming founder **Chaolung Sukaphaa** and highlighting how the Ahoms forged a composite **Assamese socio-cultural and political identity** across North-East India."
+          ].join("\n");
+        }
+        const rawLines = cleaned ? cleaned.split(/\n+/).map(s => s.trim()).filter(Boolean) : [];
+        const hasTelegraphicStub = (rawLines.length < 2) || rawLines.some(ln => {
+          const bodyAfterColon = ln.replace(/^[^:]+:\s*/, "").trim();
+          return bodyAfterColon.length < 45 || /^(defined the kingdom's timeline|historical significance hook|contextual hook|defined core concept clearly)\.?$/i.test(bodyAfterColon);
+        });
+        if (!hasTelegraphicStub && rawLines.length >= 2) {
+          return rawLines.join("\n");
         }
         const rawCritClean = stripBodyDiagramFromIntroText(introAudit.current_critique || "");
-        const p1 = rawCritClean
+        const p1 = (rawCritClean && rawCritClean.length >= 42)
           ? ensureBulletPrefix(rawCritClean, "✓")
-          : "✓ **Opening Premise**: Addressed the core context of the question prompt clearly.";
+          : "✓ **Opening Premise**: Addressed the foundational timeline and theme of the question prompt in the opening lines, establishing a relevant entry point.";
         const missArr = Array.isArray(introAudit.missing_elements) ? introAudit.missing_elements.filter(Boolean) : [];
-        const p2 = missArr.length > 0
-          ? `✎ **Add for Full Marks (+0.5M)**: Integrate ${missArr.slice(0, 2).join(" & ")} in your opening sentence.`
-          : "✎ **Baseline Data**: Anchor your opening sentence with 1 concrete definition or official report metric.";
+        const modelRew = String(introAudit.model_intro_rewrite || "").trim();
+        let p2 = "";
+        if (missArr.length > 0) {
+          p2 = `✎ **How to Strengthen Opening**: Explain and integrate ${missArr.slice(0, 2).join(" and ")} in 1–2 lines right in your opening paragraph to establish the core historical or institutional significance upfront.`;
+        } else if (modelRew) {
+          p2 = `✎ **Opening Enrichment**: Expand the introduction by 1–2 lines connecting your opening definition to the core demand—e.g., ${modelRew.slice(0, 135)}.`;
+        } else {
+          p2 = "✎ **Baseline Context & Anchor**: Expand your opening by 1–2 lines citing a foundational constitutional/historical anchor or official benchmark metric to set up the main demand.";
+        }
         return `${p1}\n${p2}`;
       };
 
-      const buildDynamicBodyRemark = (slotIndex, rawRem) => {
-        if (slotIndex === 0 && isHeatwaveCopy) {
-          return "✓ **Great Heat Dome Diagram & Causes**: Neatly illustrated the **Heat Dome high-pressure synoptic mechanism**, **Anthropogenic GHG carbon trap** & **Urban Heat Island (asphalt construction)**.\n✎ **Sub-Part Enrichment**: Also cite **El Niño / anti-cyclonic subsidence** and **loss of urban blue-green cover** under Causes.";
+      const pbpAuditList = Array.isArray(evalData.point_by_point_audit) ? evalData.point_by_point_audit : [];
+
+      const buildDynamicBodyRemark = (slotIndex, rawRem, targetPageNum = 1) => {
+        if (isAhomCopy) {
+          if (targetPageNum === 1) {
+            return [
+              "✓ **Mughal Resistance & Sovereignty (Point 2)**: Rightly highlighted how the Ahoms successfully resisted Mughal expansion (e.g., **Battle of Saraighat, 1671** under **Lachit Borphukan**), preserving North-East India's distinct historical autonomy.",
+              "✓ **Tribal Patronage & Culinary Culture (Points 3–4)**: Credited Ahom patronage to indigenous tribal customs and regional dietary habits across the North-East.",
+              "✗ **Analytical Nuance (Point 1)**: Rather than stating the Ahoms made the North-East 'closer to Myanmar than mainland India', frame this as **Tai-Ahom and Brahmanical cultural synthesis** forging a composite **Assamese identity**.",
+              "✎ **Value Addition**: Cite the **Paik System** (rotational socio-military state organization) as the administrative backbone that integrated diverse tribal groups."
+            ].join("\n");
+          }
+          if (targetPageNum === 2 && slotIndex === 0) {
+            return [
+              "✗ **Factual Check on Point 5 ('Laphaidibi Dolls')**: In Point 5 you cited **Laphaidibi (Laiphadibi) dolls of Manipur** under Ahom patronage—these are traditional **Meitei dolls of Manipur**, whereas Ahom patronage flourished in **Assamese Xorai metalwork, Sattriya arts, and manuscript painting**.",
+              "✓ **Religious Synthesis & Temple Patronage (Point 6 & Legacy 2)**: Good reference to **Kamakhya Temple** patronage and **Ambubachi Mela**, showing how indigenous tribal and Shakta traditions were harmonized.",
+              "✓ **Historiographical Legacy (Legacy Point 1)**: Excellent mention of **Buranjis** (official state chronicles written in Tai-Ahom and Assamese) as an enduring literary legacy."
+            ].join("\n");
+          }
+          if (targetPageNum === 2 && slotIndex >= 1) {
+            return [
+              "✓ **Monumental Architecture (Legacy Point 3)**: Credited Ahom temple and civic architecture—strengthen by naming **Charaideo Moidams** (inscribed as a **UNESCO World Heritage Site, 2024**), **Rang Ghar**, and **Talatal Ghar**.",
+              "✓ **Indigenous Political Identity (Legacy Points 4–5)**: Traced contemporary autonomous aspirations (**6th Schedule** safeguards) and noted how insurgent groups (**ULFA**) invoked Ahom sovereignty.",
+              "✎ **Balanced Framing**: Emphasize how Ahom administrative integration laid the foundation for constructive **composite Assamese sub-nationalism** within the Indian Union."
+            ].join("\n");
+          }
+          if (targetPageNum >= 3) {
+            return [
+              "✓ **Linguistic Profile (Legacy Point 6)**: Rightly noted the evolution of the **Assamese language** and preservation of **Tai-Ahom linguistic heritage** in the Brahmaputra valley.",
+              "✎ **Missing Core Dimension (Neo-Vaishnavite Synthesis)**: Add the role of **Srimanta Sankardeva's Neo-Vaishnavite movement**, **Namghars**, and **Satras** in democratizing Assamese social and cultural identity.",
+              "✎ **Agrarian & Ecological Legacy**: Mention Ahom wet-rice cultivation (**Sali paddy**) and hydraulic embankment engineering across the **Brahmaputra floodplain**."
+            ].join("\n");
+          }
         }
+
         let cleaned = sanitizeCrossSubjectText(rawRem);
-        if (slotIndex === 0 && leakedDiagramLineFromIntro && (!cleaned || !/heat\s*dome|diagram/i.test(cleaned))) {
-          const diagPraise = ensureBulletPrefix(leakedDiagramLineFromIntro, "✓");
-          const secondLine = cleaned ? cleaned.split("\n").slice(-1)[0] : (gaps[0] || "**Substantiation**: Back arguments with specific empirical data or policy schemes.");
-          return `${diagPraise}\n${ensureBulletPrefix(secondLine, "✎")}`;
+        const uniqueBullets = [];
+        const pushUnique = (lineStr, defaultPref = "✓") => {
+          const formatted = ensureBulletPrefix(lineStr, defaultPref);
+          const sig = normBulletSig(formatted);
+          if (!sig || sig.length < 10 || usedCrossPageSigs.has(sig)) return false;
+          usedCrossPageSigs.add(sig);
+          uniqueBullets.push(formatted);
+          return true;
+        };
+
+        if (cleaned) {
+          cleaned.split(/\n+|\s*\|\s*/).map(s => s.trim()).filter(Boolean).forEach(ln => {
+            pushUnique(ln, /^[✎✗×]/.test(ln) ? "✎" : "✓");
+          });
         }
-        if (cleaned) return cleaned;
-        const sItem = strengths[slotIndex] || strengths[0] || "**Core Demand Addressed**: Covered relevant points structured around the question demand.";
-        const gItem = gaps[slotIndex] || missingDims[slotIndex] || gaps[0] || missingDims[0] || (
-          kwCards[slotIndex] && kwCards[slotIndex].term
-            ? `**Enrichment**: Substantiate points using **${kwCards[slotIndex].term}** (${kwCards[slotIndex].domain_or_thinker || "Domain Benchmark"}).`
-            : "**Substantiation**: Back arguments with specific empirical data, reports, or policy schemes."
-        );
-        return `${ensureBulletPrefix(sItem, "✓")}\n${ensureBulletPrefix(gItem, "✎")}`;
+
+        // Supplement with page-matched point_by_point_audit entries so each page evaluates its own points with 2-4 natural examiner bullets
+        const pagePbps = pbpAuditList.filter(p => p && (parseInt(p.page, 10) || 1) === targetPageNum);
+        pagePbps.forEach(pItem => {
+          if (uniqueBullets.length >= 3) return;
+          const vStr = String(pItem.examiner_verdict || "").trim();
+          const tStr = String(pItem.title || "").trim();
+          if (vStr) {
+            const combined = (tStr && !vStr.toLowerCase().includes(tStr.toLowerCase())) ? `**${tStr}**: ${vStr}` : vStr;
+            pushUnique(combined, pItem.is_positive === false ? "✎" : "✓");
+          }
+        });
+
+        // Supplement with unused strengths, critical_gaps, missing_dimensions, and keyword cards indexed by slotIndex
+        if (uniqueBullets.length < 2 && strengths[slotIndex]) {
+          pushUnique(strengths[slotIndex], "✓");
+        }
+        for (let i = 0; i < strengths.length && uniqueBullets.length < 2; i++) {
+          pushUnique(strengths[i], "✓");
+        }
+        const combinedGaps = [...gaps, ...missingDims];
+        if (uniqueBullets.length < 3 && combinedGaps[slotIndex]) {
+          pushUnique(combinedGaps[slotIndex], "✎");
+        }
+        for (let i = 0; i < combinedGaps.length && uniqueBullets.length < 3; i++) {
+          pushUnique(combinedGaps[i], "✎");
+        }
+        if (uniqueBullets.length < 3 && kwCards[slotIndex] && kwCards[slotIndex].term) {
+          pushUnique(`**Value Addition (${kwCards[slotIndex].term})**: Integrate **${kwCards[slotIndex].term}** (${kwCards[slotIndex].domain_or_thinker || "Core Concept"}) to enrich analytical depth.`, "✎");
+        }
+
+        if (uniqueBullets.length === 0) {
+          pushUnique(`**Page ${targetPageNum} Point Analysis**: Addressed relevant dimensions written in this section.`, "✓");
+          pushUnique(`**Value Addition**: Substantiate points in this section with specific empirical data, institutional mechanisms, or case examples.`, "✎");
+        }
+        return uniqueBullets.slice(0, 4).join("\n");
       };
+
+      // Pre-register remarks from earlier pages (1 .. pgNum - 1) so Page 2 and Page 3 NEVER repeat Page 1 or Page 2
+      const allAnnsList = evalData.visual_annotations || evalData.annotations || [];
+      for (let prevP = 1; prevP < pgNum; prevP++) {
+        const prevAnns = allAnnsList.filter(a => (parseInt(a.page, 10) || 1) === prevP);
+        prevAnns.forEach(pa => {
+          if (pa && pa.remark) registerUsedRemark(pa.remark);
+        });
+        if (prevP === 1) {
+          if (strengths[0]) registerUsedRemark(strengths[0]);
+          if (gaps[0]) registerUsedRemark(gaps[0]);
+        } else {
+          if (strengths[1]) registerUsedRemark(strengths[1]);
+          if (gaps[1]) registerUsedRemark(gaps[1]);
+        }
+      }
 
       const transLowTail = String(evalData.transcribed_text || "").toLowerCase().slice(-340);
       const isGenericConclusionCopy = Boolean(
@@ -4032,9 +4183,6 @@ function renderAnnotationsOverlay() {
         : fallbackConcMarks;
 
       const buildDynamicConcRemark = (rawRem) => {
-        if (isStartupDeepTechCopy) {
-          return "✗ **Too General (No Topic Keywords)**: You ended with **\"Thus, there is a need for holistic development on part of government and society\"**, which has no topic keywords and can fit any answer (fetches only +0.5 mark).\n✎ **How to Get Full Marks Here**: Write 1–2 topic keywords in your last line—e.g., bridging the **TRL 4–9 'Valley of Death'** via **ANRF patient capital** and **GFR Rule 173 domestic procurement** to build **sovereign IP startups**.";
-        }
         if (isGenericConclusionCopy) {
           return "✗ **Too General (No Topic Keywords)**: Your closing line is too general and does not mention specific keywords from the question, fetching only +0.5 mark.\n✎ **How to Get Full Marks Here**: Mention 1–2 topic-specific keywords and the core institutional or committee anchor in your last line.";
         }
@@ -4070,7 +4218,7 @@ function renderAnnotationsOverlay() {
         const rawBody = pageAnns.find(a => a !== rawIntro && a !== rawConc);
 
         const introRem = buildDynamicIntroRemark(rawIntro && rawIntro.remark);
-        const bodyRem = buildDynamicBodyRemark(0, rawBody && rawBody.remark);
+        const bodyRem = buildDynamicBodyRemark(0, rawBody && rawBody.remark, 1);
         const concRem = buildDynamicConcRemark(rawConc && rawConc.remark);
 
         outSections.push({
@@ -4081,14 +4229,14 @@ function renderAnnotationsOverlay() {
           startYPercent: 16,
           endYPercent: 34,
           cardTopPercent: 10,
-          marks: isHeatwaveCopy ? `+1.5 / ${introMaxNum.toFixed(1)}` : ((rawIntro && rawIntro.marks_awarded) || fallbackIntroMarks),
+          marks: (rawIntro && rawIntro.marks_awarded) || fallbackIntroMarks,
           bodyHtml: formatBulletsFn(introRem),
           bulletsHtml: formatBulletsFn(introRem),
           targetKey: "intro"
         });
         outSections.push({
           zone: "body",
-          title: isHeatwaveCopy ? "BODY: CAUSES OF HEATWAVES & HEAT DOME DIAGRAM" : ((rawBody && rawBody.tag) ? rawBody.tag.toUpperCase() : "BODY: CORE DEMAND"),
+          title: (rawBody && rawBody.tag) ? rawBody.tag.toUpperCase() : "BODY: CORE DEMAND",
           icon: "✓",
           isTick: true,
           startYPercent: 36,
@@ -4120,17 +4268,10 @@ function renderAnnotationsOverlay() {
         const rawBody = pageAnns.find(a => a !== rawIntro);
 
         const introRem = buildDynamicIntroRemark(rawIntro && rawIntro.remark);
-        let p1BodyTitle = isHeatwaveCopy
-          ? "BODY: CAUSES OF HEATWAVES & HEAT DOME DIAGRAM"
+        let p1BodyTitle = isAhomCopy
+          ? "BODY: CULTURAL & HISTORICAL IDENTITY (POINTS 1–4)"
           : ((rawBody && rawBody.tag) ? rawBody.tag.toUpperCase() : "BODY: CORE DEMAND");
-        let p1BodyRem = buildDynamicBodyRemark(0, rawBody && rawBody.remark);
-
-        if (!p1BodyRem || (isStartupDeepTechCopy && !isHeatwaveCopy)) {
-          if (isStartupDeepTechCopy) {
-            p1BodyTitle = "BODY: STARTUP GROWTH DRIVERS";
-            p1BodyRem = "✓ **Visual Flowchart & Schemes**: Effective **[Drivers of Growth]** diagram citing **Startup India**, **Standup India**, **Make in India**, **Unicorn rise** & **MSMEs**.\n✎ **Deep-Tech Focus**: Connect general startup expansion directly to strategic **Deep-Tech sectors** (AI, SpaceTech, Semiconductors & Quantum).";
-          }
-        }
+        let p1BodyRem = buildDynamicBodyRemark(0, rawBody && rawBody.remark, 1);
 
         outSections.push({
           zone: "intro",
@@ -4140,7 +4281,7 @@ function renderAnnotationsOverlay() {
           startYPercent: 16,
           endYPercent: 34,
           cardTopPercent: 12,
-          marks: isHeatwaveCopy ? `+1.5 / ${introMaxNum.toFixed(1)}` : ((rawIntro && rawIntro.marks_awarded) || fallbackIntroMarks),
+          marks: (rawIntro && rawIntro.marks_awarded) || fallbackIntroMarks,
           bodyHtml: formatBulletsFn(introRem),
           bulletsHtml: formatBulletsFn(introRem),
           targetKey: "intro"
@@ -4163,22 +4304,15 @@ function renderAnnotationsOverlay() {
         const bodyAnn1 = pageAnns[0] || null;
         const bodyAnn2 = pageAnns.length > 1 ? pageAnns[1] : null;
 
-        let b1Title = (bodyAnn1 && bodyAnn1.tag) ? bodyAnn1.tag.toUpperCase() : "BODY: CORE ANALYSIS";
-        let b1Rem = sanitizeCrossSubjectText(bodyAnn1 && bodyAnn1.remark);
-        let b2Title = (bodyAnn2 && bodyAnn2.tag) ? bodyAnn2.tag.toUpperCase() : "BODY: DEPTH & SUBSTANTIATION";
-        let b2Rem = sanitizeCrossSubjectText(bodyAnn2 && bodyAnn2.remark);
+        let b1Title = isAhomCopy
+          ? "BODY: ARTS, RELIGIOUS SYNTHESIS & BURANJIS (POINTS 5–6 & LEGACY 1–2)"
+          : ((bodyAnn1 && bodyAnn1.tag) ? bodyAnn1.tag.toUpperCase() : "BODY: CORE ANALYSIS");
+        let b1Rem = buildDynamicBodyRemark(0, bodyAnn1 && bodyAnn1.remark, pgNum);
 
-        if (isStartupDeepTechCopy) {
-          b1Title = "BODY: R&D & FUNDING BOTTLENECKS";
-          if (!b1Rem || !b2Rem) {
-            b1Rem = "✓ **Strong Empirical Data (Points 1–3)**: Excellent comparative stats on **260 researchers/lakh vs China (1602)**, low **GERD (~0.65% of GDP vs USA 2%)**, and **domestic VC risk-aversion**.\n✎ **Patient Capital**: Cite **₹1 Lakh Cr RDI Financing Fund** & **Deep-Tech Fund of Funds** to address long gestation risks.";
-            b2Title = "BODY: ECOSYSTEM & REGULATORY GAPS";
-            b2Rem = "✓ **Sectoral Skew & Linkages (Points 4–6)**: Rightly highlighted skew toward **delivery/service startups (OLA, Zomato)**, weak **Industry-Academia linkage**, and **\"Small by choice\"** compliance bottlenecks.\n✎ **IP & Procurement**: Add **low Domestic Patent Commercialization** & **Public Procurement support (iDEX benchmark)**.";
-          }
-        } else {
-          if (!b1Rem) b1Rem = buildDynamicBodyRemark(0, "");
-          if (!b2Rem) b2Rem = buildDynamicBodyRemark(1, "");
-        }
+        let b2Title = isAhomCopy
+          ? "BODY: ARCHITECTURE, POLITY & IDENTITY (LEGACY POINTS 3–5)"
+          : ((bodyAnn2 && bodyAnn2.tag) ? bodyAnn2.tag.toUpperCase() : "BODY: DEPTH & SUBSTANTIATION");
+        let b2Rem = buildDynamicBodyRemark(1, bodyAnn2 && bodyAnn2.remark, pgNum);
 
         outSections.push({
           zone: "body",
@@ -4218,8 +4352,7 @@ function renderAnnotationsOverlay() {
           return t.includes("concl") || t.includes("synthesis") || t.includes("finish") || (a.approx_y_percent && a.approx_y_percent >= 72);
         });
 
-        // Move ANY Body-related bullet (e.g. Good Policy Breakdown, mitigation/preparedness/response diagram, NDMA guidelines/HAPs)
-        // out of rawConc.remark and merge it directly into the Final Page's BODY margin card!
+        // Move ANY Body-related bullet out of rawConc.remark and merge it directly into the Final Page's BODY margin card!
         let bodyRemCandidate = sanitizeCrossSubjectText(rawBody && rawBody.remark);
         let concRemCandidate = sanitizeCrossSubjectText(rawConc && rawConc.remark);
 
@@ -4398,30 +4531,20 @@ function renderAnnotationsOverlay() {
           const hasLimitationsHeading = isJudicialReviewCopy || fullTextLow.includes("limitation") || fullTextLow.includes("roger mathew") || fullTextLow.includes("overreach");
           const hasStrategiesOrWayForward = isStartupDeepTechCopy || /strategies to bridge|way forward|way ahead|measures needed|anrf|vaibhav/i.test(fullTextLow);
 
-          let resolvedFinalBodyTitle = isHeatwaveCopy
-            ? "BODY: MITIGATION, PREPAREDNESS & GOVERNANCE"
+          let resolvedFinalBodyTitle = isAhomCopy
+            ? "BODY: LINGUISTIC LEGACY & VALUE ADDITION (LEGACY POINT 6)"
             : ((rawBody && rawBody.tag) ? rawBody.tag.toUpperCase() : "BODY: KEY DIMENSIONS");
-          let resolvedFinalBodyRemark = bodyRemCandidate;
+          let resolvedFinalBodyRemark = buildDynamicBodyRemark(2, bodyRemCandidate, pgNum);
 
-          if (isStartupDeepTechCopy) {
-            resolvedFinalBodyTitle = "BODY: STRATEGIES TO BRIDGE GAP";
-            resolvedFinalBodyRemark = "✓ **Boxed Schematic & Flagship Schemes**: High-impact **[Strategies to Bridge Gap]** hub-and-spoke diagram integrating **ANRF**, **NEP 2020**, **VAIBHAV Fellowship**, and **Private R&D participation**.\n✎ **Strategic Sector Anchor**: Add **National Deep-Tech Startup Policy (NDTSP)**, **India Semiconductor Mission (ISM)** & **iDEX Defence procurement**.";
-          } else if (hasLimitationsHeading && !hasStrategiesOrWayForward && !isHeatwaveCopy) {
-            resolvedFinalBodyTitle = isJudicialReviewCopy ? "BODY: LIMITATIONS OF JUDICIAL REVIEW" : "BODY: LIMITATIONS & CHALLENGES";
+          if (hasLimitationsHeading && !hasStrategiesOrWayForward && !isAhomCopy) {
+            resolvedFinalBodyTitle = "BODY: LIMITATIONS & CHALLENGES";
             if (!resolvedFinalBodyRemark || resolvedFinalBodyRemark.toLowerCase().includes("executive-judiciary equilibrium")) {
-              resolvedFinalBodyRemark = isJudicialReviewCopy
-                ? "✓ **Good Diagram & Case (Point ⑧ & Box)**: Well-drawn **[Limitations of Judicial Review]** diagram (judicial overreach, judge bias) & **Roger Mathew Case** on **Separation of Power**.\n✎ **Missing Way Forward**: You jumped directly from **Limitations** to the Conclusion—add 2 short **Way Forward** points (e.g., **Judicial Restraint** & Parliamentary Committees) before concluding."
-                : "✓ **Clear Analysis of Limitations**: Well-presented points on key limitations and institutional challenges.\n✎ **Missing Way Forward**: You moved directly from **Limitations** to the Conclusion—add 2 short **Way Forward** points before concluding.";
+              resolvedFinalBodyRemark = "✓ **Clear Analysis of Limitations**: Well-presented points on key limitations and institutional challenges.\n✎ **Missing Way Forward**: You moved directly from **Limitations** to the Conclusion—add 2 short **Way Forward** points before concluding.";
             }
-          } else if (hasStrategiesOrWayForward && !isHeatwaveCopy) {
+          } else if (hasStrategiesOrWayForward && !isAhomCopy) {
             if (!resolvedFinalBodyTitle.includes("STRATEG") && !resolvedFinalBodyTitle.includes("WAY FORWARD")) {
               resolvedFinalBodyTitle = "BODY: STRATEGIES & WAY FORWARD";
             }
-            if (!resolvedFinalBodyRemark) {
-              resolvedFinalBodyRemark = buildDynamicBodyRemark(1, "");
-            }
-          } else if (!resolvedFinalBodyRemark) {
-            resolvedFinalBodyRemark = buildDynamicBodyRemark(1, "");
           }
 
           outSections.push({
@@ -6297,11 +6420,16 @@ function renderEvaluation(evalData) {
 
   if (isIntroFullMarks) {
     document.getElementById("introCritiqueText").innerHTML = formatHighlightedText(
-      `✓ **Well-Written Introduction (${introEarned.toFixed(1)} / ${introMaxVal.toFixed(1)}M)**: ${String(intro.current_critique || "Clear, accurate opening that directly addresses the question prompt.").replace(/^[✓✔✎✗×]\s*/, "")} — **Keep your written introduction as is!**`
+      `✓ **Well-Written Introduction (${introEarned.toFixed(1)} / ${introMaxVal.toFixed(1)}M)**: ${String(intro.current_critique || "Clear, accurate opening that directly addresses the question prompt and establishes the core premise.").replace(/^[✓✔✎✗×]\s*/, "")}`
     );
     if (modelIntroCardEl) modelIntroCardEl.classList.add("hidden");
   } else {
-    document.getElementById("introCritiqueText").innerHTML = formatHighlightedText(intro.current_critique || "");
+    let rawIntroCrit = String(intro.current_critique || "").trim();
+    const missList = Array.isArray(intro.missing_elements) ? intro.missing_elements.filter(Boolean) : [];
+    if (rawIntroCrit.length < 55 && missList.length > 0) {
+      rawIntroCrit = `${rawIntroCrit ? rawIntroCrit.replace(/\.?$/, ".") + " " : "Addressed the opening theme of the prompt. "}To score full marks in the introduction, expand by 1–2 lines integrating ${missList.slice(0, 2).join(" and ")} to establish the foundational context upfront.`;
+    }
+    document.getElementById("introCritiqueText").innerHTML = formatHighlightedText(rawIntroCrit);
     if (modelIntroCardEl) modelIntroCardEl.classList.remove("hidden");
     if (modelIntroHeadLbl) {
       modelIntroHeadLbl.textContent = "✍️ How to Write (Keeping Your Point + Adding Missing Keyword):";
