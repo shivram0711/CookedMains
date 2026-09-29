@@ -1820,12 +1820,22 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
     q_lower = resolved_q.lower()
     detected_paper = data.get("detected_paper") or paper or ""
     p_upper = (detected_paper or "").upper()
+    is_history_culture = any(k in q_lower for k in [
+        "ahom", "buranji", "paik", "saraighat", "lachit", "sankardev", "satra", "moidam", "charaideo",
+        "mughal", "chola", "vijayanagara", "maurya", "ashoka", "gupta", "harappa", "indus valley", "vedic",
+        "buddhis", "jainis", "bhakti", "sufi", "sultanate", "maratha", "pallava", "chalukya", "rashtrakuta",
+        "temple", "architecture", "rock-cut", "colonial", "freedom struggle", "national movement", "gandhi",
+        "nehru", "tagore", "british rule", "1857", "peasant movement", "renaissance", "dynasty", "kingdom",
+        "empire", "heritage", "cultural", "historical identity", "classical dance", "painting"
+    ])
     if not data.get("keyword_toolkit_title"):
-        if "GS4" in p_upper or any(k in q_lower for k in ["ethic", "moral", "integrity", "attitude", "conduct"]):
+        if is_history_culture:
+            data["keyword_toolkit_title"] = "Essential Historical Sources, Institutions & Cultural Landmarks (Missing Keywords)"
+        elif "GS4" in p_upper or any(k in q_lower for k in ["ethic", "moral", "integrity", "attitude", "conduct"]):
             data["keyword_toolkit_title"] = "Essential Thinkers, Philosophies & Ethical Frameworks (Missing Keywords)"
         elif "OPTIONAL-PSIR" in p_upper or any(k in q_lower for k in ["plato", "aristotle", "machiavelli", "hobbes", "locke", "rawls"]):
             data["keyword_toolkit_title"] = "Essential Thinkers & Doctrinal Concepts (Missing Keywords)"
-        elif "GS1" in p_upper or any(k in q_lower for k in ["geomorph", "volcano", "earthquake", "cyclone", "plate tectonic", "climate", "monsoon", "ocean"]):
+        elif any(k in q_lower for k in ["geomorph", "volcano", "earthquake", "cyclone", "plate tectonic", "climate", "monsoon", "ocean"]):
             data["keyword_toolkit_title"] = "Core Scientific Concepts & Technical Vocabulary (Missing Keywords)"
         elif "GS2" in p_upper or any(k in q_lower for k in ["constitution", "parliament", "judiciary", "article", "governance", "separation of powers"]):
             data["keyword_toolkit_title"] = "Constitutional Articles, Doctrines & Judgments (Missing Keywords)"
@@ -1852,14 +1862,35 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
 
     # Normalize Actionable Value-Addition Checklist (Where to Write & How to Write)
     va_raw = data.get("value_add_checklist") or {}
-    is_geo = ("GS1" in p_upper or any(k in q_lower for k in ["volcano", "geomorph", "earthquake", "cyclone", "plate tectonic", "climate", "soil"]))
+    is_geo = (not is_history_culture and any(k in q_lower for k in ["volcano", "geomorph", "earthquake", "cyclone", "plate tectonic", "climate", "soil", "ocean", "monsoon"]))
     is_polity = ("GS2" in p_upper or any(k in q_lower for k in ["constitution", "article", "judiciary", "parliament", "governor"]))
     is_econ = ("GS3" in p_upper or any(k in q_lower for k in ["economy", "gdp", "agriculture", "farmer", "inflation", "industry"]))
     is_ethics = ("GS4" in p_upper or any(k in q_lower for k in ["ethic", "moral", "integrity", "attitude", "civil servant"]))
 
-    def_cat1_title = "Global Frameworks, Conventions & Policies" if is_geo else ("Constitutional Articles & Amendments" if is_polity else ("Flagship Government Schemes & Missions" if is_econ else ("Philosophical Doctrines & Constitutional Morality" if is_ethics else "Policy Frameworks & Core Standards")))
-    def_cat2_title = "Scientific Theories & Geomorphic Models" if is_geo else ("Landmark Supreme Court Verdicts & Doctrines" if is_polity else ("Economic Survey & Committee Recommendations" if is_econ else ("2nd ARC Recommendations & Civil Service Codes" if is_ethics else "Doctrines & Expert Committees")))
-    def_cat3_title = "Empirical Data, Case Studies & Real-World Flashpoints"
+    if is_history_culture:
+        def_cat1_title = "Primary Historical Sources, Chronicles & Institutions"
+        def_cat2_title = "Cultural Movements, Literature & Architectural Landmarks"
+        def_cat3_title = "Decisive Historical Turning Points & Legacy"
+    elif is_geo:
+        def_cat1_title = "Global Frameworks, Conventions & Spatial Policies"
+        def_cat2_title = "Scientific Theories & Geomorphic Models"
+        def_cat3_title = "Empirical Data, Case Studies & Regional Flashpoints"
+    elif is_polity:
+        def_cat1_title = "Constitutional Articles & Statutory Amendments"
+        def_cat2_title = "Landmark Supreme Court Verdicts & Doctrines"
+        def_cat3_title = "Empirical Data, Committee Reports & Institutional Case Studies"
+    elif is_econ:
+        def_cat1_title = "Flagship Government Schemes & Policy Missions"
+        def_cat2_title = "Economic Survey & Committee Recommendations"
+        def_cat3_title = "Empirical Data, Case Studies & Sectoral Metrics"
+    elif is_ethics:
+        def_cat1_title = "Philosophical Doctrines & Moral Thinkers"
+        def_cat2_title = "2nd ARC Recommendations & Civil Service Values"
+        def_cat3_title = "Applied Governance Case Studies & Real-World Exemplars"
+    else:
+        def_cat1_title = "Core Frameworks & Domain Standards"
+        def_cat2_title = "Theoretical Models & Expert Recommendations"
+        def_cat3_title = "Empirical Data, Case Studies & Real-World Examples"
     def_cat4_title = "Recommended Exam-Hall Micro-Diagram / Map"
 
     def normalize_items_list(items, default_where, default_how_prefix):
