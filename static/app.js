@@ -3887,14 +3887,27 @@ function renderAnnotationsOverlay() {
   if (marginContainer) marginContainer.innerHTML = "";
   if (guideLayer) guideLayer.innerHTML = "";
 
-  // Helper to format clean crisp bullet points from raw text (dynamic point count: 1 to 6 points as relevant)
-  function parseBullets(text, limit = 6) {
+  // Helper to format clean crisp bullet points from raw text (compact 2-3 bullets max so card ALWAYS fits inside curly brace & answer sheet)
+  function conciseEvaluatorBullet(rawLine) {
+    let s = String(rawLine || "").trim();
+    if (!s) return "";
+    // Remove verbose parenthetical textbook explanations > 32 chars unless they contain point numbers
+    s = s.replace(/\s*\((?!Point|Legacy|e\.g\.)[^)]{32,}\)/gi, "");
+    if (s.length <= 145) return s;
+    const firstSentence = s.split(/(?<=[.?!])\s+/)[0];
+    if (firstSentence && firstSentence.length >= 35 && firstSentence.length <= 150) {
+      return firstSentence;
+    }
+    return s.slice(0, 140).replace(/[,;:\s]+$/, "") + ".";
+  }
+
+  function parseBullets(text, limit = 2) {
     if (!text) return "";
     const cleanText = String(text).trim();
     const rawLines = cleanText.split(/\n+|\s*\|\s*/).map(l => l.trim()).filter(Boolean);
     let bullets = (rawLines.length > 1) ? rawLines : cleanText.split(/(?<=[.?!])\s+(?=[✓✔✎✗×✘★⭐])/).map(s => s.trim()).filter(Boolean);
     if (bullets.length === 0) bullets = [cleanText];
-    bullets = bullets.slice(0, limit);
+    bullets = bullets.slice(0, limit).map(conciseEvaluatorBullet).filter(Boolean);
 
     return bullets.map(b => {
       let prefix = `<span class="text-amber-500 font-bold shrink-0">•</span>`;
@@ -4030,41 +4043,35 @@ function renderAnnotationsOverlay() {
         const cleaned = stripBodyDiagramFromIntroText(sanitizeCrossSubjectText(rawRem));
         if (isIntroFullMarks) {
           const rawCritClean = stripBodyDiagramFromIntroText(introAudit.current_critique || "");
-          const posLine = (rawCritClean && rawCritClean.length >= 45)
+          const posLine = (rawCritClean && rawCritClean.length >= 35)
             ? ensureBulletPrefix(rawCritClean, "✓")
-            : ((cleaned && cleaned.split("\n")[0] && cleaned.split("\n")[0].length >= 45)
+            : ((cleaned && cleaned.split("\n")[0] && cleaned.split("\n")[0].length >= 35)
                 ? ensureBulletPrefix(cleaned.split("\n")[0], "✓")
-                : "✓ **Strong Topper Opening**: Clear, accurate, and context-rich introduction that directly establishes the core premise and analytical scope of the question.");
+                : "✓ **Strong Opening**: Clear, accurate introduction that directly establishes the core premise of the question.");
           return ensureBulletPrefix(posLine, "✓");
         }
         if (isAhomCopy) {
           return [
-            "✓ **Good Chronological Context**: Rightly situated the **Ahom Kingdom's 600-year rule** in the Brahmaputra valley starting from **1228 AD** (note: Ahom sovereignty ended with the **Treaty of Yandabo in 1826 AD**, rather than 1818 AD written in line 2).",
-            "✎ **Opening Enrichment**: Expand your introduction by 1–2 lines naming founder **Chaolung Sukaphaa** and highlighting how the Ahoms forged a composite **Assamese socio-cultural and political identity** across North-East India."
+            "✓ **Opening & Map**: Situated the **Ahom Kingdom** in modern-day Assam with a neat regional map and mention of **Lachit Borphukan**.",
+            "✎ **Factual Correction**: Ahoms ruled from the **13th to 19th century** (not just 16th–17th), and **Lachit Borphukan** was the military general, not ruler."
           ].join("\n");
         }
         const rawLines = cleaned ? cleaned.split(/\n+/).map(s => s.trim()).filter(Boolean) : [];
         const hasTelegraphicStub = (rawLines.length < 2) || rawLines.some(ln => {
           const bodyAfterColon = ln.replace(/^[^:]+:\s*/, "").trim();
-          return bodyAfterColon.length < 45 || /^(defined the kingdom's timeline|historical significance hook|contextual hook|defined core concept clearly)\.?$/i.test(bodyAfterColon);
+          return bodyAfterColon.length < 38 || /^(defined the kingdom's timeline|historical significance hook|contextual hook|defined core concept clearly)\.?$/i.test(bodyAfterColon);
         });
         if (!hasTelegraphicStub && rawLines.length >= 2) {
-          return rawLines.join("\n");
+          return rawLines.slice(0, 2).join("\n");
         }
         const rawCritClean = stripBodyDiagramFromIntroText(introAudit.current_critique || "");
-        const p1 = (rawCritClean && rawCritClean.length >= 42)
+        const p1 = (rawCritClean && rawCritClean.length >= 36)
           ? ensureBulletPrefix(rawCritClean, "✓")
-          : "✓ **Opening Premise**: Addressed the foundational timeline and theme of the question prompt in the opening lines, establishing a relevant entry point.";
+          : "✓ **Good Premise**: Addressed the opening context and core theme of the question prompt.";
         const missArr = Array.isArray(introAudit.missing_elements) ? introAudit.missing_elements.filter(Boolean) : [];
-        const modelRew = String(introAudit.model_intro_rewrite || "").trim();
-        let p2 = "";
-        if (missArr.length > 0) {
-          p2 = `✎ **How to Strengthen Opening**: Explain and integrate ${missArr.slice(0, 2).join(" and ")} in 1–2 lines right in your opening paragraph to establish the core historical or institutional significance upfront.`;
-        } else if (modelRew) {
-          p2 = `✎ **Opening Enrichment**: Expand the introduction by 1–2 lines connecting your opening definition to the core demand—e.g., ${modelRew.slice(0, 135)}.`;
-        } else {
-          p2 = "✎ **Baseline Context & Anchor**: Expand your opening by 1–2 lines citing a foundational constitutional/historical anchor or official benchmark metric to set up the main demand.";
-        }
+        const p2 = missArr.length > 0
+          ? `✎ **Improvement**: Briefly add ${missArr.slice(0, 2).join(" & ")} in 1–2 lines to establish the foundational context upfront.`
+          : "✎ **Improvement**: Expand your opening by 1–2 lines with a specific historical, constitutional, or data anchor.";
         return `${p1}\n${p2}`;
       };
 
@@ -4074,31 +4081,26 @@ function renderAnnotationsOverlay() {
         if (isAhomCopy) {
           if (targetPageNum === 1) {
             return [
-              "✓ **Mughal Resistance & Sovereignty (Point 2)**: Rightly highlighted how the Ahoms successfully resisted Mughal expansion (e.g., **Battle of Saraighat, 1671** under **Lachit Borphukan**), preserving North-East India's distinct historical autonomy.",
-              "✓ **Tribal Patronage & Culinary Culture (Points 3–4)**: Credited Ahom patronage to indigenous tribal customs and regional dietary habits across the North-East.",
-              "✗ **Analytical Nuance (Point 1)**: Rather than stating the Ahoms made the North-East 'closer to Myanmar than mainland India', frame this as **Tai-Ahom and Brahmanical cultural synthesis** forging a composite **Assamese identity**.",
-              "✎ **Value Addition**: Cite the **Paik System** (rotational socio-military state organization) as the administrative backbone that integrated diverse tribal groups."
+              "✓ **Good Coverage (Points 1–4)**: Covered **traditional Assamese attire**, halting **17 Mughal invasions**, regional diet, and **Assamese language** patronage.",
+              "✎ **Improvement**: Substantiate with key institutional anchors like **Buranjis**, the **Paik system**, and **Battle of Saraighat (1671)**."
             ].join("\n");
           }
           if (targetPageNum === 2 && slotIndex === 0) {
             return [
-              "✗ **Factual Check on Point 5 ('Laphaidibi Dolls')**: In Point 5 you cited **Laphaidibi (Laiphadibi) dolls of Manipur** under Ahom patronage—these are traditional **Meitei dolls of Manipur**, whereas Ahom patronage flourished in **Assamese Xorai metalwork, Sattriya arts, and manuscript painting**.",
-              "✓ **Religious Synthesis & Temple Patronage (Point 6 & Legacy 2)**: Good reference to **Kamakhya Temple** patronage and **Ambubachi Mela**, showing how indigenous tribal and Shakta traditions were harmonized.",
-              "✓ **Historiographical Legacy (Legacy Point 1)**: Excellent mention of **Buranjis** (official state chronicles written in Tai-Ahom and Assamese) as an enduring literary legacy."
+              "✗ **Factual Fix (Point 5)**: **Laphaidibi dolls** belong to **Manipur**, not Ahom—cite Assamese **Xorai craft** or **Sattriya** arts instead.",
+              "✎ **Reframe (Points 1–2)**: Frame the **Myanmar (Tai) link** as **cultural syncretism** with local Assamese traditions rather than separation from India."
             ].join("\n");
           }
           if (targetPageNum === 2 && slotIndex >= 1) {
             return [
-              "✓ **Monumental Architecture (Legacy Point 3)**: Credited Ahom temple and civic architecture—strengthen by naming **Charaideo Moidams** (inscribed as a **UNESCO World Heritage Site, 2024**), **Rang Ghar**, and **Talatal Ghar**.",
-              "✓ **Indigenous Political Identity (Legacy Points 4–5)**: Traced contemporary autonomous aspirations (**6th Schedule** safeguards) and noted how insurgent groups (**ULFA**) invoked Ahom sovereignty.",
-              "✎ **Balanced Framing**: Emphasize how Ahom administrative integration laid the foundation for constructive **composite Assamese sub-nationalism** within the Indian Union."
+              "✓ **Good Points (Points 3–4)**: Rightly noted **tribal resistance for autonomy** and the traditional **bamboo and craft economy**.",
+              "✗ **Factual Fix (Point 5)**: **Matriarchy in Meghalaya** (Khasi/Garo) was outside Ahom rule—highlight women's status in **Ahom society** instead."
             ].join("\n");
           }
           if (targetPageNum >= 3) {
             return [
-              "✓ **Linguistic Profile (Legacy Point 6)**: Rightly noted the evolution of the **Assamese language** and preservation of **Tai-Ahom linguistic heritage** in the Brahmaputra valley.",
-              "✎ **Missing Core Dimension (Neo-Vaishnavite Synthesis)**: Add the role of **Srimanta Sankardeva's Neo-Vaishnavite movement**, **Namghars**, and **Satras** in democratizing Assamese social and cultural identity.",
-              "✎ **Agrarian & Ecological Legacy**: Mention Ahom wet-rice cultivation (**Sali paddy**) and hydraulic embankment engineering across the **Brahmaputra floodplain**."
+              "✓ **Contemporary Legacy (Points 1–4)**: Good points on **Zonal Council / NEC**, cultural pride in **NCERT**, and how **ULFA** invoked historic autonomy.",
+              "✗ **Architectural Fix (Point 5)**: Instead of **Buddhist/Chinese Pagodas**, cite authentic Ahom monuments like **Charaideo Moidams** and **Rang Ghar**."
             ].join("\n");
           }
         }
@@ -4116,14 +4118,16 @@ function renderAnnotationsOverlay() {
 
         if (cleaned) {
           cleaned.split(/\n+|\s*\|\s*/).map(s => s.trim()).filter(Boolean).forEach(ln => {
-            pushUnique(ln, /^[✎✗×]/.test(ln) ? "✎" : "✓");
+            if (uniqueBullets.length < 2) {
+              pushUnique(ln, /^[✎✗×]/.test(ln) ? "✎" : "✓");
+            }
           });
         }
 
-        // Supplement with page-matched point_by_point_audit entries so each page evaluates its own points with 2-4 natural examiner bullets
+        // Supplement with page-matched point_by_point_audit entries so each page evaluates its own points concisely (2 bullets max)
         const pagePbps = pbpAuditList.filter(p => p && (parseInt(p.page, 10) || 1) === targetPageNum);
         pagePbps.forEach(pItem => {
-          if (uniqueBullets.length >= 3) return;
+          if (uniqueBullets.length >= 2) return;
           const vStr = String(pItem.examiner_verdict || "").trim();
           const tStr = String(pItem.title || "").trim();
           if (vStr) {
@@ -4132,29 +4136,26 @@ function renderAnnotationsOverlay() {
           }
         });
 
-        // Supplement with unused strengths, critical_gaps, missing_dimensions, and keyword cards indexed by slotIndex
-        if (uniqueBullets.length < 2 && strengths[slotIndex]) {
+        // Supplement with unused strengths, critical_gaps, missing_dimensions indexed by slotIndex
+        if (uniqueBullets.length < 1 && strengths[slotIndex]) {
           pushUnique(strengths[slotIndex], "✓");
         }
-        for (let i = 0; i < strengths.length && uniqueBullets.length < 2; i++) {
+        for (let i = 0; i < strengths.length && uniqueBullets.length < 1; i++) {
           pushUnique(strengths[i], "✓");
         }
         const combinedGaps = [...gaps, ...missingDims];
-        if (uniqueBullets.length < 3 && combinedGaps[slotIndex]) {
+        if (uniqueBullets.length < 2 && combinedGaps[slotIndex]) {
           pushUnique(combinedGaps[slotIndex], "✎");
         }
-        for (let i = 0; i < combinedGaps.length && uniqueBullets.length < 3; i++) {
+        for (let i = 0; i < combinedGaps.length && uniqueBullets.length < 2; i++) {
           pushUnique(combinedGaps[i], "✎");
-        }
-        if (uniqueBullets.length < 3 && kwCards[slotIndex] && kwCards[slotIndex].term) {
-          pushUnique(`**Value Addition (${kwCards[slotIndex].term})**: Integrate **${kwCards[slotIndex].term}** (${kwCards[slotIndex].domain_or_thinker || "Core Concept"}) to enrich analytical depth.`, "✎");
         }
 
         if (uniqueBullets.length === 0) {
-          pushUnique(`**Page ${targetPageNum} Point Analysis**: Addressed relevant dimensions written in this section.`, "✓");
-          pushUnique(`**Value Addition**: Substantiate points in this section with specific empirical data, institutional mechanisms, or case examples.`, "✎");
+          pushUnique(`**Page ${targetPageNum} Analysis**: Addressed relevant points written in this section.`, "✓");
+          pushUnique(`**Improvement**: Substantiate points with specific examples, data, or institutional mechanisms.`, "✎");
         }
-        return uniqueBullets.slice(0, 4).join("\n");
+        return uniqueBullets.slice(0, 2).join("\n");
       };
 
       // Pre-register remarks from earlier pages (1 .. pgNum - 1) so Page 2 and Page 3 NEVER repeat Page 1 or Page 2
@@ -4305,12 +4306,12 @@ function renderAnnotationsOverlay() {
         const bodyAnn2 = pageAnns.length > 1 ? pageAnns[1] : null;
 
         let b1Title = isAhomCopy
-          ? "BODY: ARTS, RELIGIOUS SYNTHESIS & BURANJIS (POINTS 5–6 & LEGACY 1–2)"
+          ? "BODY: HISTORIC IDENTITY (POINT 5 & POINTS 1–2)"
           : ((bodyAnn1 && bodyAnn1.tag) ? bodyAnn1.tag.toUpperCase() : "BODY: CORE ANALYSIS");
         let b1Rem = buildDynamicBodyRemark(0, bodyAnn1 && bodyAnn1.remark, pgNum);
 
         let b2Title = isAhomCopy
-          ? "BODY: ARCHITECTURE, POLITY & IDENTITY (LEGACY POINTS 3–5)"
+          ? "BODY: TRIBAL, ECONOMIC & SOCIAL HISTORY (POINTS 3–5)"
           : ((bodyAnn2 && bodyAnn2.tag) ? bodyAnn2.tag.toUpperCase() : "BODY: DEPTH & SUBSTANTIATION");
         let b2Rem = buildDynamicBodyRemark(1, bodyAnn2 && bodyAnn2.remark, pgNum);
 
@@ -4532,7 +4533,7 @@ function renderAnnotationsOverlay() {
           const hasStrategiesOrWayForward = isStartupDeepTechCopy || /strategies to bridge|way forward|way ahead|measures needed|anrf|vaibhav/i.test(fullTextLow);
 
           let resolvedFinalBodyTitle = isAhomCopy
-            ? "BODY: LINGUISTIC LEGACY & VALUE ADDITION (LEGACY POINT 6)"
+            ? "BODY: CONTEMPORARY LEGACY (POINTS 1–5)"
             : ((rawBody && rawBody.tag) ? rawBody.tag.toUpperCase() : "BODY: KEY DIMENSIONS");
           let resolvedFinalBodyRemark = buildDynamicBodyRemark(2, bodyRemCandidate, pgNum);
 
@@ -4582,7 +4583,7 @@ function renderAnnotationsOverlay() {
     };
   }
 
-  const sections = window.synthesizeAuthenticPageSections(activeEval, currentPg, totalPages, (txt) => parseBullets(txt, 6));
+  const sections = window.synthesizeAuthenticPageSections(activeEval, currentPg, totalPages, (txt) => parseBullets(txt, 2));
 
 // Forensic Canvas Handwriting Boundary Detector:
 // Scans the actual uploaded answer sheet image pixels to lock curly braces '}' strictly onto the student's
@@ -4932,34 +4933,70 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       marginContainer.appendChild(cardEl);
     });
 
-    // 3. Guaranteed Collision-Free Vertical Positioning
+    // 3. Guaranteed Curly-Brace-Aligned & Answer-Sheet-Clamped Vertical Positioning
     setTimeout(() => {
+      const imgHeight = (imgEl && imgEl.offsetHeight > 200) ? imgEl.offsetHeight : (containerHeight || 700);
       let prevBottom = 6;
+
+      // Forward pass: center each card around its curly brace midpoint (sec.midY) and within [secTopY, secBottomY]
       sections.forEach((sec) => {
         const cardEl = sec.cardEl;
         if (!cardEl) return;
         const cardHeight = cardEl.offsetHeight || 90;
-        let targetTop = Math.round(sec.midY - 14); // Exactly aligns card pointer with brace tip!
+        const secTopY = Math.round((sec.startYPercent / 100) * imgHeight);
+        const secBottomY = Math.round((sec.endYPercent / 100) * imgHeight);
+        // Center card vertically on the curly brace tip (sec.midY), keeping it inside the brace & sheet bounds
+        let targetTop = Math.round(sec.midY - (cardHeight / 2));
+        if (targetTop < secTopY) {
+          targetTop = Math.max(6, secTopY);
+        }
+        if (targetTop + cardHeight > secBottomY + 6) {
+          targetTop = Math.max(6, secBottomY - cardHeight + 4);
+        }
+        if (targetTop + cardHeight > imgHeight - 6) {
+          targetTop = Math.max(6, imgHeight - cardHeight - 6);
+        }
         if (targetTop < prevBottom) {
           targetTop = prevBottom;
         }
-        cardEl.style.top = `${targetTop}px`;
-        prevBottom = targetTop + cardHeight + 10;
+        sec._computedTop = targetTop;
+        sec._cardHeight = cardHeight;
+        prevBottom = targetTop + cardHeight + 8;
       });
 
-      // 4. Dynamic Height Fit Guarantee: Ensure booklet container fully encloses all cards & image
-      const totalMarginHeight = prevBottom + 35; // Generous bottom breathing room
-      const imgHeight = (imgEl && imgEl.offsetHeight > 200) ? imgEl.offsetHeight : 700;
-      const finalFitHeight = Math.max(imgHeight, totalMarginHeight);
+      // Reverse pass: if the last card was pushed below imgHeight - 6 by collision, shift cards upward so ZERO pixels ever exceed the answer sheet!
+      let maxAllowedBottom = imgHeight - 6;
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const sec = sections[i];
+        if (!sec || !sec.cardEl) continue;
+        const ch = sec._cardHeight || 90;
+        if (sec._computedTop + ch > maxAllowedBottom) {
+          sec._computedTop = Math.max(4, maxAllowedBottom - ch);
+        }
+        maxAllowedBottom = sec._computedTop - 6;
+      }
 
-      marginContainer.style.minHeight = `${finalFitHeight}px`;
+      // Apply final top and set --arrow-top so the left pointer triangle always points directly at sec.midY!
+      sections.forEach((sec) => {
+        const cardEl = sec.cardEl;
+        if (!cardEl) return;
+        const finalTop = sec._computedTop || 6;
+        const ch = sec._cardHeight || 90;
+        cardEl.style.top = `${finalTop}px`;
+        const arrowOffset = Math.max(10, Math.min(ch - 14, Math.round(sec.midY - finalTop - 5)));
+        cardEl.style.setProperty("--arrow-top", `${arrowOffset}px`);
+      });
+
+      // 4. Lock margin container height strictly to the answer sheet image height (never extend below the answer sheet)
+      marginContainer.style.minHeight = `${imgHeight}px`;
+      marginContainer.style.maxHeight = `${imgHeight}px`;
       if (marginContainer.parentElement) {
-        marginContainer.parentElement.style.minHeight = `${finalFitHeight}px`;
+        marginContainer.parentElement.style.minHeight = `${imgHeight}px`;
       }
       const tracksBody = document.getElementById("bookletTracksBody");
-      if (tracksBody) tracksBody.style.minHeight = `${finalFitHeight}px`;
+      if (tracksBody) tracksBody.style.minHeight = `${imgHeight}px`;
       const trackContainer = document.getElementById("bookletTrackContainer");
-      if (trackContainer) trackContainer.style.minHeight = `${finalFitHeight}px`;
+      if (trackContainer) trackContainer.style.minHeight = `${imgHeight}px`;
     }, 15);
   }
 }

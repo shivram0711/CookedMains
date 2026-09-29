@@ -878,7 +878,7 @@ html.dark #examinerMarginTrack {
   content: "";
   position: absolute;
   left: -6px;
-  top: 14px;
+  top: var(--arrow-top, 14px) !important;
   width: 0;
   height: 0;
   border-top: 5px solid transparent;
