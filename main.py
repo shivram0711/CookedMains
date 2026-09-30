@@ -127,14 +127,21 @@ def _execute_supabase_activity_ping() -> Dict[str, Any]:
 
     # 3. Always send a direct HTTP request to the project REST & Auth endpoints (uivzorhuqsdiaarlmbhv)
     try:
+        import urllib.error
         target_base = (supabase_url or "https://uivzorhuqsdiaarlmbhv.supabase.co").rstrip("/")
         headers = {"User-Agent": "CookedMains-SupabaseKeepAlive/1.0"}
         if supabase_key:
             headers["apikey"] = supabase_key
             headers["Authorization"] = f"Bearer {supabase_key}"
-        req = urllib.request.Request(f"{target_base}/rest/v1/", headers=headers)
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            result["rest_pinged"] = (resp.status < 500)
+        for path in ("/rest/v1/", "/auth/v1/health"):
+            try:
+                req = urllib.request.Request(f"{target_base}{path}", headers=headers)
+                with urllib.request.urlopen(req, timeout=8) as resp:
+                    if resp.status < 500:
+                        result["rest_pinged"] = True
+            except urllib.error.HTTPError as he:
+                if he.code < 500:
+                    result["rest_pinged"] = True
     except Exception:
         pass
     return result
