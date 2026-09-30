@@ -3822,12 +3822,6 @@ function formatHighlightedText(text) {
   if (!text) return "";
   let s = String(text);
 
-  // Balance any unclosed ** from truncated strings so raw ** never leaks into UI
-  const doubleStarCount = (s.match(/\*\*/g) || []).length;
-  if (doubleStarCount % 2 === 1) {
-    s = s.replace(/\*\*([^*]*)$/, "**$1**");
-  }
-
   // If a remark uses an action prefix like "**Add**: MIDH scheme reference.", auto-bold the target concept so the concept gets the glossary tooltip instead of "Add"
   s = s.replace(/\*\*(Add|Missing|Pro Polish|Sub-Part Enrichment|To Score[^*]*)\*\*\s*:\s*([^.\n<]+)(\.?)/gi, (full, prefix, phrase, dot) => {
     const cleanPhrase = phrase.trim();
@@ -3839,7 +3833,7 @@ function formatHighlightedText(text) {
 
   // Render evaluative heading prefixes (e.g. "**Good Premise**:" or "**Factual Check**:") as clean bold text rather than giant orange highlight boxes
   s = s.replace(/\*\*([^*]+)\*\*(\s*:)/g, (match, p1, colonPart) => {
-    if (isInstructionalPrefixLabel(p1) || p1.trim().length > 34) {
+    if (isInstructionalPrefixLabel(p1)) {
       return `<strong class="font-bold text-slate-900 dark:text-slate-100">${p1}</strong>${colonPart}`;
     }
     const gMatch = findGlossaryMatch(p1);
@@ -3858,133 +3852,113 @@ function formatHighlightedText(text) {
     if (gMatch) {
       return `<span class="jargon-inline-badge highlight-text-chip font-bold px-1.5 py-0.5 rounded cursor-help" tabindex="0">${p1}<span class="glossary-star">*</span><span class="jargon-bubble"><strong>${escapeHtml(gMatch.term)}</strong>: ${escapeHtml(gMatch.meaning)}</span></span>`;
     }
-    if (p1.trim().length > 34) {
-      return `<strong class="font-bold text-amber-900 dark:text-amber-300">${p1}</strong>`;
-    }
     return `<span class="highlight-text-chip font-bold px-1.5 py-0.5 rounded">${p1}</span>`;
   });
-
-  // Format single-asterisk italics (*Paik*, *Ga-mati*, *Satra*) cleanly without touching HTML tags
-  s = s.replace(/(^|[^*<>])\*([A-Za-z0-9][^*<>]{1,40})\*(?=[,.;:)\s]|$)/g, '$1<em class="italic font-serif">$2</em>');
-  // Strip any leftover orphan **
-  s = s.replace(/\*\*/g, "");
   // Format linebreaks
   s = s.replace(/\n/g, '<br>');
   return s;
 }
 
-// Global Body-Level Viewport-Clamped Tooltip Portal Controller (Prevents ANY cutting/clipping on right, left, top, or inside overflow:hidden containers)
-(function initGlobalHoverTooltipPortal() {
-  let portalEl = null;
-  let activeTriggerEl = null;
+// Universal Viewport-Clamped Floating Tooltip Manager (#globalJargonPortal on document.body)
+// Guarantees that hover (*) glossary tooltips NEVER get clipped by overflow:hidden cards, margin columns, or screen edges
+(function initGlobalJargonPortal() {
+  if (typeof window === "undefined" || window.__globalJargonPortalInitialized) return;
+  window.__globalJargonPortalInitialized = true;
 
-  function ensurePortalElement() {
+  let portalEl = null;
+  let activeTarget = null;
+
+  function ensurePortal() {
     if (portalEl && document.body.contains(portalEl)) return portalEl;
-    portalEl = document.getElementById("globalHoverTooltipPortal");
+    portalEl = document.getElementById("globalJargonPortal");
     if (!portalEl && document.body) {
       portalEl = document.createElement("div");
-      portalEl.id = "globalHoverTooltipPortal";
+      portalEl.id = "globalJargonPortal";
       portalEl.setAttribute("role", "tooltip");
       document.body.appendChild(portalEl);
     }
     return portalEl;
   }
 
-  function showPortalForTrigger(triggerEl) {
-    if (!triggerEl) return;
-    const bubbleEl = triggerEl.querySelector(".jargon-bubble, .inline-kw-tooltip");
+  function showPortalForTarget(badgeEl) {
+    if (!badgeEl) return;
+    const bubbleEl = badgeEl.querySelector(".jargon-bubble, .inline-kw-tooltip");
     if (!bubbleEl || !bubbleEl.innerHTML.trim()) return;
 
-    const portal = ensurePortalElement();
+    const portal = ensurePortal();
     if (!portal) return;
 
-    activeTriggerEl = triggerEl;
+    activeTarget = badgeEl;
     portal.innerHTML = bubbleEl.innerHTML;
+    portal.style.opacity = "1";
+    portal.style.visibility = "visible";
 
-    const isInsideMargin = Boolean(triggerEl.closest("#examinerMarginTrack, .margin-badge-card, .examiner-margin-card"));
-    const vw = window.innerWidth || document.documentElement.clientWidth || 1024;
-    const vh = window.innerHeight || document.documentElement.clientHeight || 768;
+    // Measure badge and portal rectangles
+    const bRect = badgeEl.getBoundingClientRect();
+    const pRect = portal.getBoundingClientRect();
+    const vw = window.innerWidth || document.documentElement.clientWidth || 360;
+    const vh = window.innerHeight || document.documentElement.clientHeight || 640;
 
-    const maxAllowedWidth = isInsideMargin
-      ? Math.min(244, vw - 20)
-      : Math.min(295, vw - 24);
-    portal.style.maxWidth = `${maxAllowedWidth}px`;
-    portal.style.minWidth = `${Math.min(190, maxAllowedWidth)}px`;
+    // Center horizontally on badge, then clamp strictly within viewport AND within parent card if in right column
+    let left = Math.round(bRect.left + (bRect.width / 2) - (pRect.width / 2));
+    const rightCol = badgeEl.closest("#forensicAuditCard, #rightEvaluationStudioCard");
+    if (rightCol) {
+      const cRect = rightCol.getBoundingClientRect();
+      const maxRight = Math.min(vw - 12, cRect.right - 10);
+      const minLeft = Math.max(12, cRect.left + 10);
+      if (left + pRect.width > maxRight) left = Math.max(minLeft, maxRight - pRect.width);
+      if (left < minLeft) left = minLeft;
+    }
+    left = Math.max(12, Math.min(left, vw - pRect.width - 12));
 
-    // Temporarily place off-screen to measure exact rendered width & height
-    portal.style.left = "0px";
-    portal.style.top = "0px";
-    portal.classList.add("visible");
-
-    const triggerRect = triggerEl.getBoundingClientRect();
-    const portalRect = portal.getBoundingClientRect();
-    const pWidth = portalRect.width || maxAllowedWidth;
-    const pHeight = portalRect.height || 80;
-
-    // Determine horizontal clamping bounds (both viewport and containing card/column so it never overflows right edge!)
-    let minLeft = 12;
-    let maxLeft = vw - pWidth - 12;
-
-    const boundingContainer = triggerEl.closest("#examinerMarginTrack, #bodyAuditBox, #introAuditBox, #conclusionAuditBox, #rightEvaluationStudioCard");
-    if (boundingContainer) {
-      const cRect = boundingContainer.getBoundingClientRect();
-      if (cRect.width >= pWidth + 12) {
-        minLeft = Math.max(10, cRect.left + 6);
-        maxLeft = Math.min(vw - pWidth - 10, cRect.right - pWidth - 6);
-      } else {
-        // If container is slightly narrower (e.g., narrow mobile margin), align right edge with container right edge - 4px
-        maxLeft = Math.min(vw - pWidth - 8, cRect.right - pWidth - 4);
-        minLeft = Math.max(8, Math.min(cRect.left + 4, maxLeft));
-      }
+    // Place above badge by default; flip below if too close to top edge
+    let top = Math.round(bRect.top - pRect.height - 8);
+    if (top < 12) {
+      top = Math.min(vh - pRect.height - 12, Math.round(bRect.bottom + 8));
     }
 
-    const triggerCenterX = triggerRect.left + (triggerRect.width / 2);
-    let finalLeft = triggerCenterX - (pWidth / 2);
-    finalLeft = Math.max(minLeft, Math.min(maxLeft, finalLeft));
-
-    // Vertical placement: prefer above (8px gap), flip below if near top of viewport (< 14px)
-    let placement = "top";
-    let finalTop = triggerRect.top - pHeight - 8;
-    if (finalTop < 14) {
-      placement = "bottom";
-      finalTop = Math.min(vh - pHeight - 10, triggerRect.bottom + 8);
-    }
-
-    const arrowOffset = Math.max(14, Math.min(pWidth - 14, triggerCenterX - finalLeft));
-    portal.setAttribute("data-placement", placement);
-    portal.style.setProperty("--portal-arrow-left", `${arrowOffset.toFixed(1)}px`);
-    portal.style.left = `${Math.round(finalLeft)}px`;
-    portal.style.top = `${Math.round(finalTop)}px`;
+    portal.style.left = `${left}px`;
+    portal.style.top = `${top}px`;
   }
 
   function hidePortal() {
-    activeTriggerEl = null;
+    activeTarget = null;
     if (portalEl) {
-      portalEl.classList.remove("visible");
+      portalEl.style.opacity = "0";
+      portalEl.style.visibility = "hidden";
     }
   }
 
   document.addEventListener("mouseover", (e) => {
-    const trigger = e.target && e.target.closest ? e.target.closest(".jargon-inline-badge, .inline-kw-target") : null;
-    if (trigger) {
-      showPortalForTrigger(trigger);
-    } else if (activeTriggerEl) {
+    const badge = e.target && e.target.closest ? e.target.closest(".jargon-inline-badge, .inline-kw-target") : null;
+    if (badge) {
+      showPortalForTarget(badge);
+    } else if (activeTarget) {
       hidePortal();
     }
   }, { passive: true });
 
   document.addEventListener("focusin", (e) => {
-    const trigger = e.target && e.target.closest ? e.target.closest(".jargon-inline-badge, .inline-kw-target") : null;
-    if (trigger) showPortalForTrigger(trigger);
+    const badge = e.target && e.target.closest ? e.target.closest(".jargon-inline-badge, .inline-kw-target") : null;
+    if (badge) showPortalForTarget(badge);
   }, { passive: true });
 
   document.addEventListener("focusout", () => {
     hidePortal();
   }, { passive: true });
 
+  document.addEventListener("click", (e) => {
+    const badge = e.target && e.target.closest ? e.target.closest(".jargon-inline-badge, .inline-kw-target") : null;
+    if (badge) {
+      showPortalForTarget(badge);
+    } else if (activeTarget) {
+      hidePortal();
+    }
+  }, { passive: true });
+
   window.addEventListener("scroll", () => {
-    if (activeTriggerEl) showPortalForTrigger(activeTriggerEl);
-  }, { passive: true, capture: true });
+    if (activeTarget) hidePortal();
+  }, { capture: true, passive: true });
 })();
 
 // Render Red-Pen Teacher Annotations into Dedicated Margin Track (Zero Overlap on Answer Text)
@@ -4015,29 +3989,18 @@ function renderAnnotationsOverlay() {
   if (marginContainer) marginContainer.innerHTML = "";
   if (guideLayer) guideLayer.innerHTML = "";
 
-  // Helper to format clean crisp bullet points from raw text (compact 2-3 bullets max, NEVER cutting mid-word or leaving unclosed **)
+  // Helper to format clean crisp bullet points from raw text (compact 2-3 bullets max so card ALWAYS fits inside curly brace & answer sheet)
   function conciseEvaluatorBullet(rawLine) {
     let s = String(rawLine || "").trim();
     if (!s) return "";
     // Remove verbose parenthetical textbook explanations > 32 chars unless they contain point numbers
     s = s.replace(/\s*\((?!Point|Legacy|e\.g\.)[^)]{32,}\)/gi, "");
-    if (s.length <= 165) return s;
+    if (s.length <= 145) return s;
     const firstSentence = s.split(/(?<=[.?!])\s+/)[0];
-    if (firstSentence && firstSentence.length >= 35 && firstSentence.length <= 170) {
+    if (firstSentence && firstSentence.length >= 35 && firstSentence.length <= 150) {
       return firstSentence;
     }
-    // Truncate strictly at a word boundary before 160 chars
-    let cut = s.slice(0, 160);
-    const lastSpace = cut.lastIndexOf(" ");
-    if (lastSpace > 90) {
-      cut = cut.slice(0, lastSpace);
-    }
-    cut = cut.replace(/[,;:\s]+$/, "");
-    // Close any unclosed ** markdown bold tag before adding period
-    if (((cut.match(/\*\*/g) || []).length) % 2 === 1) {
-      cut += "**";
-    }
-    return cut + ".";
+    return s.slice(0, 140).replace(/[,;:\s]+$/, "") + ".";
   }
 
   function parseBullets(text, limit = 2) {
@@ -4748,9 +4711,9 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
     sections[0].startYPercent = 8; sections[0].endYPercent = 49;
     sections[1].startYPercent = 51; sections[1].endYPercent = 89;
   } else if (sections.length === 2) {
-    // Final page with 2 sections: Body / Way Forward (7%..73%) + Conclusion (75%..91% last paragraph)
-    sections[0].startYPercent = 7; sections[0].endYPercent = 73;
-    sections[1].startYPercent = 75; sections[1].endYPercent = 91;
+    // Final page with 2 sections: Body / Way Forward (7%..62%) + Conclusion (63.5%..76% conservative default before pixel scan)
+    sections[0].startYPercent = 7; sections[0].endYPercent = 62;
+    sections[1].startYPercent = 63.5; sections[1].endYPercent = 76;
   }
 
   // Honor explicit AI-calibrated start_y_percent / end_y_percent when within realistic handwritten bounds
@@ -4765,14 +4728,13 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       if (matchingAnn) {
         const sY = parseFloat(matchingAnn.start_y_percent);
         const eY = parseFloat(matchingAnn.end_y_percent);
-        if (!isNaN(sY) && !isNaN(eY) && eY - sY >= 8 && sY >= 5 && eY <= 96) {
+        if (!isNaN(sY) && !isNaN(eY) && eY - sY >= 8 && sY >= 5 && eY <= 94) {
           if (currentPg === 1 && sec.zone === "intro") {
             sec.startYPercent = Math.max(22, Math.min(34, sY));
             sec.endYPercent = Math.max(sec.startYPercent + 10, Math.min(48, eY));
           } else if (currentPg === totalPages && (sec.zone === "conclusion" || sec.zone === "concl")) {
-            // Never let Conclusion start at 40% and swallow Way Forward! Conclusion is the bottom paragraph (>= 68%)
-            sec.startYPercent = Math.max(68, Math.min(82, sY));
-            sec.endYPercent = Math.max(sec.startYPercent + 10, Math.min(94, eY));
+            sec.startYPercent = Math.max(52, Math.min(76, sY));
+            sec.endYPercent = Math.max(sec.startYPercent + 10, Math.min(86, eY));
           } else {
             sec.startYPercent = sY;
             sec.endYPercent = eY;
@@ -4799,13 +4761,17 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
     const leftStroke = new Float32Array(100);
     const rightStroke = new Float32Array(100);
     const totalStroke = new Float32Array(100);
+    const rowTransitions = new Float32Array(100);
 
-    const xLeftStart = Math.floor(W * 0.18);
-    const xMidSplit = Math.floor(W * 0.37);
-    const xRightEnd = Math.floor(W * 0.74);
+    // Scan strictly inside the core writing column [19% .. 64% of width]:
+    // - Excludes left vertical margin line & bullet numbers (x < 17%)
+    // - Excludes right vertical margin line & bottom-right pre-printed 'Feedback / Marks' tables (x > 66%)
+    const xLeftStart = Math.floor(W * 0.19);
+    const xMidSplit = Math.floor(W * 0.41);
+    const xRightEnd = Math.floor(W * 0.64);
     const bandWidth = xRightEnd - xLeftStart;
 
-    for (let y = 0; y < H; y++) {
+    for (let y = 3; y < H - 3; y++) {
       const p = Math.min(99, Math.floor((y / H) * 100));
       // Check if row y is a continuous horizontal table/header border line
       let horizDarkRun = 0;
@@ -4814,41 +4780,73 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
         const lum = (imgData[idx] + imgData[idx + 1] + imgData[idx + 2]) / 3;
         if (lum < 185) horizDarkRun++;
       }
-      if (horizDarkRun > bandWidth * 0.42) {
-        // Skip straight horizontal border rules so table boxes never count as handwriting
+      if (horizDarkRun > bandWidth * 0.40) {
         continue;
       }
+
+      let prevWasInk = false;
+      let transitionsOnRow = 0;
+      let rowLeftInk = 0;
+      let rowRightInk = 0;
 
       for (let x = xLeftStart; x < xRightEnd; x++) {
         const idx = (y * W + x) * 4;
         const r = imgData[idx], g = imgData[idx + 1], b = imgData[idx + 2];
         const lum = (r + g + b) / 3;
 
-        // Local horizontal background luminance (normalizes out peach/orange Vajiram watermarks & shadows)
+        // 1. Reject warm red/orange/peach coaching watermarks (ForumIAS, Vajiram, Insights, Drishti)
+        if (r - b > 18 && r > 125) {
+          prevWasInk = false;
+          continue;
+        }
+
+        // 2. Local horizontal background luminance
         const idxL = (y * W + Math.max(0, x - 6)) * 4;
         const idxR = (y * W + Math.min(W - 1, x + 6)) * 4;
         const bgL = (imgData[idxL] + imgData[idxL + 1] + imgData[idxL + 2]) / 3;
         const bgR = (imgData[idxR] + imgData[idxR + 1] + imgData[idxR + 2]) / 3;
         const localBg = Math.max(bgL, bgR);
 
-        const isInkStroke = (localBg - lum >= 24 && lum < 205) || (b - r >= 10 && lum < 210);
+        // 3. Local vertical contrast (rejects continuous vertical margin/grid lines where lumUp == lum == lumDown)
+        const idxUp = ((y - 3) * W + x) * 4;
+        const idxDn = ((y + 3) * W + x) * 4;
+        const lumUp = (imgData[idxUp] + imgData[idxUp + 1] + imgData[idxUp + 2]) / 3;
+        const lumDn = (imgData[idxDn] + imgData[idxDn + 1] + imgData[idxDn + 2]) / 3;
+        const vertDiff = Math.max(Math.abs(lum - lumUp), Math.abs(lum - lumDn));
+
+        const isInkStroke = (
+          vertDiff >= 18 &&
+          ((localBg - lum >= 24 && lum < 198) || (b - r >= 12 && lum < 205))
+        );
+
         if (isInkStroke) {
+          if (!prevWasInk) transitionsOnRow++;
+          prevWasInk = true;
           if (x < xMidSplit) {
-            leftStroke[p] += 1;
+            rowLeftInk += 1;
           } else {
-            rightStroke[p] += 1;
+            rowRightInk += 1;
           }
-          totalStroke[p] += 1;
+        } else {
+          prevWasInk = false;
         }
+      }
+
+      // Only count row y as genuine handwriting if ink strokes oscillate across letters (transitions >= 3)
+      if (transitionsOnRow >= 3 && (rowLeftInk + rowRightInk) >= 4) {
+        leftStroke[p] += rowLeftInk;
+        rightStroke[p] += rowRightInk;
+        totalStroke[p] += (rowLeftInk + rowRightInk);
+        rowTransitions[p] += transitionsOnRow;
       }
     }
 
     // Determine exact top of student handwriting (handwritingTopY)
-    let handwritingTopY = currentPg === 1 ? 25.0 : 6.0;
+    let handwritingTopY = currentPg === 1 ? 24.5 : 6.5;
     if (currentPg === 1) {
-      let bestGapP = 24;
+      let bestGapP = 23;
       let minGapVal = Infinity;
-      for (let p = 22; p <= 30; p++) {
+      for (let p = 21; p <= 29; p++) {
         const v = totalStroke[p] + 0.5 * (totalStroke[p - 1] || 0);
         if (v < minGapVal) {
           minGapVal = v;
@@ -4857,15 +4855,15 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       }
       let foundTop = bestGapP + 1;
       for (let p = bestGapP; p <= 36; p++) {
-        if (totalStroke[p] >= 5 || rightStroke[p] >= 3) {
+        if (totalStroke[p] >= 5 || rowTransitions[p] >= 4) {
           foundTop = p;
           break;
         }
       }
-      handwritingTopY = Math.max(23.5, Math.min(33.0, foundTop));
+      handwritingTopY = Math.max(22.0, Math.min(33.0, foundTop));
     } else {
       for (let p = 5; p <= 35; p++) {
-        if (rightStroke[p] >= 3 || totalStroke[p] >= 6) {
+        if (totalStroke[p] >= 5 || rowTransitions[p] >= 4) {
           handwritingTopY = Math.max(5.5, p - 0.5);
           break;
         }
@@ -4873,33 +4871,32 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
     }
 
     // Determine exact bottom of student handwriting (handwritingBottomY)
-    let boxRightActiveCount = 0;
-    for (let p = 74; p <= 91; p++) {
-      if (rightStroke[p] >= 3.0 || totalStroke[p] >= 7.5) boxRightActiveCount++;
-    }
-    const maxScanBottomP = (boxRightActiveCount <= 2) ? 70 : 94;
-
-    let handwritingBottomY = currentPg === 1 ? 89.5 : 90.5;
-    for (let p = maxScanBottomP; p >= handwritingTopY + 14; p--) {
-      let activeRowsInWindow = 0;
-      for (let k = Math.max(0, p - 4); k <= p; k++) {
-        if (rightStroke[k] >= 2.5 || (totalStroke[k] >= 6.0 && rightStroke[k] >= 1.5)) {
-          activeRowsInWindow++;
+    // Scan upward from p = 91 to find the lowest row with genuine multi-letter handwritten ink in the left/center writing zone!
+    let handwritingBottomY = currentPg === 1 ? 88.0 : 76.0;
+    for (let p = 91; p >= Math.round(handwritingTopY + 12); p--) {
+      // Check a 4-row window [p-3 .. p] for genuine handwritten words (leftStroke >= 2 ensures writing starts in the left/center column)
+      let writtenRowsInWindow = 0;
+      for (let k = Math.max(0, p - 3); k <= p; k++) {
+        if (totalStroke[k] >= 5.0 && leftStroke[k] >= 2.0 && rowTransitions[k] >= 3) {
+          writtenRowsInWindow++;
         }
       }
-      if (activeRowsInWindow >= 3) {
-        handwritingBottomY = Math.min(94.0, p + 0.5);
+      if (writtenRowsInWindow >= 2 || (totalStroke[p] >= 8.0 && leftStroke[p] >= 3.0 && rowTransitions[p] >= 4)) {
+        handwritingBottomY = Math.min(92.0, p + 1.0);
         break;
       }
     }
 
-    const span = Math.max(18, handwritingBottomY - handwritingTopY);
+    sections._detectedTopY = handwritingTopY;
+    sections._detectedBottomY = handwritingBottomY;
+
+    const span = Math.max(16, handwritingBottomY - handwritingTopY);
 
     // Helper to find the cleanest inter-paragraph whitespace valley in [minP, maxP]
     const findValley = (minP, maxP, idealP) => {
-      const lo = Math.max(Math.round(handwritingTopY + 6), Math.round(minP));
-      const hi = Math.min(Math.round(handwritingBottomY - 6), Math.round(maxP));
-      if (lo >= hi) return idealP;
+      const lo = Math.max(Math.round(handwritingTopY + 5), Math.round(minP));
+      const hi = Math.min(Math.round(handwritingBottomY - 5), Math.round(maxP));
+      if (lo >= hi) return Math.min(handwritingBottomY - 5, Math.max(handwritingTopY + 5, idealP));
       let bestP = Math.round(idealP);
       let bestScore = Infinity;
       for (let p = lo; p <= hi; p++) {
@@ -4917,11 +4914,11 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
     if (sections.length === 3 && currentPg === totalPages && totalPages > 1) {
       // Multi-page Final Page with 3 sections: Body: Challenges + Body: Way Forward + Conclusion
       const wfStart = findValley(handwritingTopY + span * 0.32, handwritingTopY + span * 0.46, handwritingTopY + span * 0.38);
-      const concStart = findValley(handwritingTopY + span * 0.72, handwritingTopY + span * 0.86, handwritingTopY + span * 0.79);
+      const concStart = findValley(handwritingTopY + span * 0.70, handwritingTopY + span * 0.84, handwritingTopY + span * 0.77);
       sections[0].startYPercent = handwritingTopY;
-      sections[0].endYPercent = wfStart - 1.5;
+      sections[0].endYPercent = wfStart - 1.2;
       sections[1].startYPercent = wfStart;
-      sections[1].endYPercent = concStart - 1.5;
+      sections[1].endYPercent = concStart - 1.2;
       sections[2].startYPercent = concStart;
       sections[2].endYPercent = handwritingBottomY;
     } else if (sections.length === 3) {
@@ -4930,30 +4927,30 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       const s2 = findValley(handwritingTopY + span * 0.66, handwritingTopY + span * 0.84, handwritingTopY + span * 0.75);
       sections[0].startYPercent = handwritingTopY;
       sections[0].endYPercent = s1;
-      sections[1].startYPercent = s1 + 1.5;
-      sections[1].endYPercent = s2 - 1.5;
+      sections[1].startYPercent = s1 + 1.2;
+      sections[1].endYPercent = s2 - 1.2;
       sections[2].startYPercent = s2;
       sections[2].endYPercent = handwritingBottomY;
     } else if (sections.length === 2 && currentPg === 1) {
       // Multi-page Page 1: Intro + Body
       const introEnd = findValley(
-        handwritingTopY + Math.max(11, span * 0.18),
+        handwritingTopY + Math.max(10, span * 0.18),
         handwritingTopY + Math.min(22, span * 0.32),
         handwritingTopY + span * 0.23
       );
       sections[0].startYPercent = handwritingTopY;
       sections[0].endYPercent = introEnd;
-      sections[1].startYPercent = introEnd + 1.5;
+      sections[1].startYPercent = introEnd + 1.2;
       sections[1].endYPercent = handwritingBottomY;
     } else if (sections.length === 2 && currentPg === totalPages) {
-      // Final page: Body (including Way Forward) spans top 76%..80% of handwriting; Conclusion is ONLY the final paragraph!
+      // Final page: Body spans top 75%..80% of actual handwriting; Conclusion embraces ONLY the final handwritten paragraph down to handwritingBottomY!
       const concStart = findValley(
-        handwritingTopY + span * 0.72,
-        handwritingTopY + span * 0.85,
-        handwritingTopY + span * 0.78
+        handwritingTopY + span * 0.70,
+        handwritingTopY + span * 0.84,
+        handwritingTopY + span * 0.77
       );
       sections[0].startYPercent = handwritingTopY;
-      sections[0].endYPercent = concStart - 1.5;
+      sections[0].endYPercent = concStart - 1.2;
       sections[1].startYPercent = concStart;
       sections[1].endYPercent = handwritingBottomY;
     } else if (sections.length === 2) {
@@ -4964,7 +4961,7 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
         handwritingTopY + span * 0.50
       );
       sections[0].startYPercent = handwritingTopY;
-      sections[0].endYPercent = midSplit - 1.5;
+      sections[0].endYPercent = midSplit - 1.2;
       sections[1].startYPercent = midSplit;
       sections[1].endYPercent = handwritingBottomY;
     }
@@ -4980,6 +4977,16 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
 
   if (marginContainer) {
     const imgEl = document.getElementById("activePageImage");
+    // If image is still decoding (e.g. user just switched to Page 2 or Page 3), automatically re-run as soon as it loads!
+    if (imgEl && (!imgEl.complete || !imgEl.naturalWidth)) {
+      if (!imgEl.__marginBoundLoadListener) {
+        imgEl.__marginBoundLoadListener = true;
+        imgEl.addEventListener("load", () => {
+          imgEl.__marginBoundLoadListener = false;
+          renderAnnotationsOverlay();
+        }, { once: true });
+      }
+    }
     applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, rawAnns);
     const containerHeight = (imgEl && imgEl.clientHeight > 200) ? imgEl.clientHeight : (marginContainer.clientHeight || 750);
 
@@ -5072,9 +5079,11 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       marginContainer.appendChild(cardEl);
     });
 
-    // 3. Guaranteed Curly-Brace-Aligned & Answer-Sheet-Clamped Vertical Positioning
+    // 3. Guaranteed Curly-Brace-Aligned & Written-Zone-Clamped Vertical Positioning
     setTimeout(() => {
       const imgHeight = (imgEl && imgEl.offsetHeight > 200) ? imgEl.offsetHeight : (containerHeight || 700);
+      const detectedBottomPct = sections._detectedBottomY || sections[sections.length - 1]?.endYPercent || 85;
+      const writtenBottomPx = Math.round((detectedBottomPct / 100) * imgHeight);
       let prevBottom = 6;
 
       // Forward pass: center each card around its curly brace midpoint (sec.midY) and within [secTopY, secBottomY]
@@ -5084,7 +5093,7 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
         const cardHeight = cardEl.offsetHeight || 90;
         const secTopY = Math.round((sec.startYPercent / 100) * imgHeight);
         const secBottomY = Math.round((sec.endYPercent / 100) * imgHeight);
-        // Center card vertically on the curly brace tip (sec.midY), keeping it inside the brace & sheet bounds
+        // Center card vertically on the curly brace tip (sec.midY), keeping it inside the brace & written zone
         let targetTop = Math.round(sec.midY - (cardHeight / 2));
         if (targetTop < secTopY) {
           targetTop = Math.max(6, secTopY);
@@ -5100,11 +5109,15 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
         }
         sec._computedTop = targetTop;
         sec._cardHeight = cardHeight;
-        prevBottom = targetTop + cardHeight + 8;
+        prevBottom = targetTop + cardHeight + 6;
       });
 
-      // Reverse pass: if the last card was pushed below imgHeight - 6 by collision, shift cards upward so ZERO pixels ever exceed the answer sheet!
-      let maxAllowedBottom = imgHeight - 6;
+      // Reverse pass: clamp cards to the written zone (writtenBottomPx + 14) so cards NEVER drift into blank unwritten bottom paper!
+      const totalCardsStackHeight = sections.reduce((acc, s) => acc + (s._cardHeight || 90) + 6, 6);
+      let maxAllowedBottom = Math.min(
+        imgHeight - 6,
+        Math.max(totalCardsStackHeight, writtenBottomPx + 14)
+      );
       for (let i = sections.length - 1; i >= 0; i--) {
         const sec = sections[i];
         if (!sec || !sec.cardEl) continue;
@@ -7512,19 +7525,19 @@ function renderBatch1ExaminerMastery(evalData) {
     const pageMatch = String(r.loc || "").match(/Page\s*(\d+)/i);
     const targetPage = r.page || (pageMatch ? parseInt(pageMatch[1], 10) : 1);
     return `
-      <div class="w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-2 min-w-0">
-        <div class="w-full flex items-center justify-between gap-2">
-          <button type="button" onclick="window.jumpToAnswerSheetPage(${targetPage})" title="Click to view Page ${targetPage} on Answer Sheet" class="text-[10.5px] font-bold uppercase px-2.5 py-0.5 rounded bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 transition cursor-pointer shrink-0 whitespace-nowrap">
+      <div class="w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-2 min-w-0 overflow-hidden">
+        <div class="w-full flex flex-wrap items-center justify-between gap-1.5 min-w-0">
+          <button type="button" onclick="window.jumpToAnswerSheetPage(${targetPage})" title="Click to view Page ${targetPage} on Answer Sheet" class="text-[10px] sm:text-[10.5px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 transition cursor-pointer max-w-full whitespace-normal break-words text-left leading-snug">
             ${escapeHtml(r.loc)} ↗
           </button>
-          <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-md border ${badgeStyle} shrink-0 whitespace-nowrap">
+          <span class="text-[10.5px] sm:text-[11px] font-extrabold px-2 py-0.5 rounded-md border ${badgeStyle} shrink-0 whitespace-nowrap">
             ${escapeHtml(r.badge)}
           </span>
         </div>
-        <div class="w-full text-xs font-extrabold text-slate-900 dark:text-slate-100 leading-snug">
+        <div class="w-full text-xs font-extrabold text-slate-900 dark:text-slate-100 leading-snug break-words">
           ${escapeHtml(r.pointTitle)}
         </div>
-        <p class="w-full text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+        <p class="w-full text-xs text-slate-700 dark:text-slate-300 leading-relaxed break-words">
           ${formatHighlightedText(r.detail)}
         </p>
       </div>
