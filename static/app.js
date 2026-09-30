@@ -3993,6 +3993,8 @@ function renderAnnotationsOverlay() {
   function conciseEvaluatorBullet(rawLine) {
     let s = String(rawLine || "").trim();
     if (!s) return "";
+    // Auto-heal any leading title missing its opening ** before **: (e.g. "✓ Good Table Structure**: ..." -> "✓ **Good Table Structure**: ...")
+    s = s.replace(/^([✓✔✎✗×✘★⭐]\s*)?([A-Za-z0-9][^:*\n]{1,42})\*\*:/, "$1**$2**:");
     // Remove verbose parenthetical textbook explanations > 42 chars unless they contain point numbers or examples
     s = s.replace(/\s*\((?!Point|Legacy|e\.g\.|Love|Zone|Himalaya|1967|2015|2016)[^)]{42,}\)/gi, "");
     if (s.length <= 225) return s;
@@ -4173,12 +4175,19 @@ function renderAnnotationsOverlay() {
         "which", "while", "within", "without", "would", "write", "written"
       ]);
 
+      const stripOnlyLeadingIcons = (str) => {
+        return String(str || "")
+          .trim()
+          .replace(/^[✓✔✎✗×✘★⭐•\-\s]+/, "")
+          .trim();
+      };
+
       const stripTitleAndIconPrefix = (str) => {
         return String(str || "")
           .trim()
-          .replace(/^[✓✔✎✗×✘★⭐•\-*\s]+/, "")
-          .replace(/^(?:\*\*\[?[^\]:]{2,45}\]?:\*\*|\[[^\]]{2,45}\]:|\*\*[^*:]{2,40}:\*\*)\s*/i, "")
-          .replace(/^[✓✔✎✗×✘★⭐•\-*\s]+/, "")
+          .replace(/^[✓✔✎✗×✘★⭐•\-\s]+/, "")
+          .replace(/^(?:\*\*\[?[^\]:*]{2,45}\]?\*\*:\s*|\*\*\[?[^\]:*]{2,45}\]?:\*\*|\ \[[^\]]{2,45}\]:)\s*/i, "")
+          .replace(/^[✓✔✎✗×✘★⭐•\-\s]+/, "")
           .trim();
       };
 
@@ -4351,15 +4360,11 @@ function renderAnnotationsOverlay() {
         let cleaned = sanitizeCrossSubjectText(rawRem);
         const uniqueBullets = [];
         const pushUnique = (lineStr, defaultPref = "✓") => {
+          const cleanWithTitle = stripOnlyLeadingIcons(lineStr);
           const cleanCore = stripTitleAndIconPrefix(lineStr);
           if (!cleanCore || cleanCore.length < 18) return false;
-          // Reject telegraphic 2-3 word fragments like "Good spatial identification." or "Practical measures."
-          const firstClause = cleanCore.split(/[.?!]/)[0].trim();
-          const finalLine = (firstClause.length < 28 && cleanCore.length > firstClause.length + 10)
-            ? cleanCore
-            : cleanCore;
-          if (isSemanticallyDuplicateBullet(finalLine)) return false;
-          const formatted = ensureBulletPrefix(finalLine, defaultPref);
+          if (isSemanticallyDuplicateBullet(cleanCore)) return false;
+          const formatted = ensureBulletPrefix(cleanWithTitle, defaultPref);
           registerUsedRemark(formatted);
           uniqueBullets.push(formatted);
           return true;
@@ -4918,8 +4923,8 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       sections[0].startYPercent = 60.5; sections[0].endYPercent = 77.0;
       sections[1].startYPercent = 78.5; sections[1].endYPercent = 89.5;
     } else {
-      sections[0].startYPercent = 25; sections[0].endYPercent = 39.5;
-      sections[1].startYPercent = 41.5; sections[1].endYPercent = 89;
+      sections[0].startYPercent = 28.5; sections[0].endYPercent = 44.5;
+      sections[1].startYPercent = 46.5; sections[1].endYPercent = 89.5;
     }
   } else if (currentPg < totalPages && sections.length === 2) {
     sections[0].startYPercent = 16; sections[0].endYPercent = 56;
@@ -4950,14 +4955,13 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
         const eY = parseFloat(matchingAnn.end_y_percent);
         if (!isNaN(sY) && !isNaN(eY) && eY - sY >= 8 && sY >= 15 && eY <= 90) {
           if (currentPg === 1 && sec.zone === "intro") {
-            // If AI explicitly detected that Intro starts below a map/diagram (sY >= 52), honor it!
-            if (sY >= 52) {
-              sec.startYPercent = Math.max(54, Math.min(68, sY));
-              sec.endYPercent = Math.max(sec.startYPercent + 10, Math.min(82, eY));
-            } else {
-              sec.startYPercent = Math.max(22, Math.min(34, sY));
-              sec.endYPercent = Math.max(sec.startYPercent + 10, Math.min(48, eY));
-            }
+            // Normal Page 1 (no pre-printed map): Intro is ALWAYS right below the bilingual question header (27.5%..45.5%), NEVER in the middle of the page!
+            sec.startYPercent = Math.max(27.5, Math.min(32.0, sY));
+            sec.endYPercent = Math.max(sec.startYPercent + 12, Math.min(46.0, eY));
+          } else if (currentPg === 1 && sec.zone === "body") {
+            const introBottom = (sections[0] && sections[0].endYPercent) ? sections[0].endYPercent : 44.5;
+            sec.startYPercent = Math.max(introBottom + 1.5, Math.min(50.0, sY));
+            sec.endYPercent = Math.max(85.0, Math.min(89.5, eY));
           } else if (currentPg === totalPages && (sec.zone === "conclusion" || sec.zone === "concl")) {
             sec.startYPercent = Math.max(52, Math.min(79, sY));
             sec.endYPercent = Math.max(sec.startYPercent + 10, Math.min(89.5, eY));
@@ -5007,7 +5011,7 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
         const lum = (imgData[idx] + imgData[idx + 1] + imgData[idx + 2]) / 3;
         if (lum < 185) horizDarkRun++;
       }
-      if (horizDarkRun > bandWidth * 0.36) {
+      if (horizDarkRun > bandWidth * 0.88) {
         horizBorderRow[p] = 1;
         continue;
       }
@@ -5069,20 +5073,11 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       }
     }
 
-    // Detect if Page 1 has a pre-printed Map / Box in y = 24%..59% (either via hasMapAboveOnPage1 flag or a horizontal map-box bottom border in p = 54..63)
-    let hasMidPageBoxBorderOnP1 = false;
-    if (currentPg === 1) {
-      for (let p = 54; p <= 63; p++) {
-        if (horizBorderRow[p] === 1) {
-          hasMidPageBoxBorderOnP1 = true;
-          break;
-        }
-      }
-    }
-    const isMapPage1Layout = currentPg === 1 && (hasMapAboveOnPage1 || hasMidPageBoxBorderOnP1);
+    // Pre-printed Map on Page 1 ONLY when the question explicitly states 'map given below' / 'in the given map' (never from false-positive mid-page ink/watermark density!)
+    const isMapPage1Layout = Boolean(currentPg === 1 && hasMapAboveOnPage1);
 
-    // Determine exact top of student handwriting (handwritingTopY) — strictly below coaching headers (p >= 16 on Page 2+, p >= 23 on Page 1)
-    let handwritingTopY = currentPg === 1 ? 24.5 : 16.5;
+    // Determine exact top of student handwriting (handwritingTopY) — strictly below bilingual English+Hindi question header (p >= 27.5 on Page 1, p >= 16 on Page 2+)
+    let handwritingTopY = currentPg === 1 ? 28.0 : 16.5;
     if (isMapPage1Layout) {
       // Find first row of continuous handwritten prose below the printed map (in p = 57..66)
       let foundBelowMap = 60.5;
@@ -5094,9 +5089,10 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       }
       handwritingTopY = foundBelowMap;
     } else if (currentPg === 1) {
-      let bestGapP = 23;
+      // Find the horizontal gap between the bottom of the bilingual question header (p = 25..30) and the first line of student handwriting (p = 27.5..32)
+      let bestGapP = 27;
       let minGapVal = Infinity;
-      for (let p = 21; p <= 29; p++) {
+      for (let p = 25; p <= 30; p++) {
         const v = totalStroke[p] + 0.5 * (totalStroke[p - 1] || 0);
         if (v < minGapVal) {
           minGapVal = v;
@@ -5104,13 +5100,13 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
         }
       }
       let foundTop = bestGapP + 1;
-      for (let p = bestGapP; p <= 36; p++) {
+      for (let p = Math.max(27, bestGapP); p <= 35; p++) {
         if (totalStroke[p] >= 5 || rowTransitions[p] >= 4) {
           foundTop = p;
           break;
         }
       }
-      handwritingTopY = Math.max(22.0, Math.min(33.0, foundTop));
+      handwritingTopY = Math.max(27.5, Math.min(32.5, foundTop));
     } else {
       for (let p = 16; p <= 36; p++) {
         if (totalStroke[p] >= 5 || rowTransitions[p] >= 4) {
@@ -5121,7 +5117,7 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
     }
 
     // Determine exact bottom of student handwriting (handwritingBottomY) — clamped <= 90.0% so braces never exceed answer sheet bottom
-    let handwritingBottomY = currentPg === 1 ? 89.0 : 88.0;
+    let handwritingBottomY = currentPg === 1 ? 89.5 : 88.5;
     for (let p = 89; p >= Math.round(handwritingTopY + 12); p--) {
       let writtenRowsInWindow = 0;
       for (let k = Math.max(0, p - 3); k <= p; k++) {
@@ -5202,15 +5198,15 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
         sections[1].startYPercent = introEndBelowMap + 1.5;
         sections[1].endYPercent = Math.min(90.0, Math.max(88.5, handwritingBottomY));
       } else {
-        // Standard Multi-page Page 1: Intro + Body
+        // Standard Multi-page Page 1: Intro (28.5%..44.5%) + Body (46.0%..89.5%)
         const introEnd = findValley(
-          handwritingTopY + Math.max(10, span * 0.18),
-          handwritingTopY + Math.min(22, span * 0.32),
-          handwritingTopY + span * 0.23
+          handwritingTopY + Math.max(12, span * 0.21),
+          handwritingTopY + Math.min(24, span * 0.34),
+          handwritingTopY + span * 0.26
         );
         sections[0].startYPercent = handwritingTopY;
         sections[0].endYPercent = introEnd;
-        sections[1].startYPercent = introEnd + 1.2;
+        sections[1].startYPercent = introEnd + 1.5;
         sections[1].endYPercent = handwritingBottomY;
       }
     } else if (sections.length === 2 && currentPg === totalPages) {
