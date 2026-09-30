@@ -850,11 +850,11 @@ html.dark #examinerMarginTrack {
   margin: 0 !important;
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 9px;
-  padding: 6px 7px;
+  border-radius: 10px;
+  padding: 7px 9px;
   font-size: 10px;
   color: #0f172a;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   cursor: pointer;
   box-sizing: border-box !important;
   word-break: break-word !important;
@@ -868,7 +868,7 @@ html.dark #examinerMarginTrack {
   .margin-badge-card {
     left: 6px !important;
     right: 6px !important;
-    padding: 7px 8px;
+    padding: 8px 10px;
     font-size: 10.5px;
     border-radius: 10px;
   }
@@ -967,26 +967,30 @@ html.dark .margin-badge-card::before {
   border-left: 3.5px solid #64748b;
 }
 
+/* Margin Card Styles (Light Mode) */
 .margin-card-marks {
-  background: #fef3c7;
-  color: #92400e;
-  border: 1px solid #fde68a;
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FCD34D;
+  font-weight: 700;
 }
 
 .margin-card-body {
-  color: #1e293b;
+  color: #334155;
+  line-height: 1.55 !important;
 }
 
 .margin-card-link {
-  color: #d97706;
+  color: #D97706;
+  font-weight: 700;
 }
 
-/* Dark mode margin card styles */
+/* Margin Card Styles (Dark Mode) */
 html.dark .margin-badge-card {
-  background: rgba(15, 23, 42, 0.95) !important;
-  border: 1.5px solid #334155 !important;
-  color: #f1f5f9 !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  background: #0F172A !important;
+  border: 1px solid #334155 !important;
+  color: #F8FAFC !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5) !important;
   position: absolute !important;
 }
 
@@ -1007,17 +1011,102 @@ html.dark .margin-badge-card.type-star {
 }
 
 html.dark .margin-card-marks {
-  background: rgba(120, 53, 15, 0.5) !important;
-  color: #fde68a !important;
-  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+  background: rgba(146, 64, 14, 0.35) !important;
+  color: #FDE68A !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+  font-weight: 700 !important;
 }
 
 html.dark .margin-card-body {
-  color: #e2e8f0 !important;
+  color: #CBD5E1 !important;
+  line-height: 1.55 !important;
 }
 
 html.dark .margin-card-link {
-  color: #fbbf24 !important;
+  color: #FBBF24 !important;
+  font-weight: 700 !important;
+}
+
+/* =========================================================
+   CLEAN MARGIN CARD HIGHLIGHTS (AIRY, SUBTLE & MULTI-COLOR)
+   ========================================================= */
+.margin-badge-card .highlight-text-chip,
+.margin-badge-card .highlight-chip {
+  padding: 0.5px 3.5px !important;
+  border-radius: 3.5px !important;
+  font-size: 0.94em !important;
+  font-weight: 600 !important;
+  line-height: inherit !important;
+  letter-spacing: -0.01em;
+  display: inline !important;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Margin Chips: Light Mode */
+html:not(.dark) .margin-badge-card .highlight-text-chip,
+html:not(.dark) .margin-badge-card .highlight-text-chip.chip-amber {
+  background-color: #FEF3C7 !important;
+  color: #92400E !important;
+  border: 1px solid #FCD34D !important;
+}
+html:not(.dark) .margin-badge-card .highlight-text-chip.chip-sky {
+  background-color: #F0F9FF !important;
+  color: #0369A1 !important;
+  border: 1px solid #BAE6FD !important;
+}
+html:not(.dark) .margin-badge-card .highlight-text-chip.chip-emerald {
+  background-color: #ECFDF5 !important;
+  color: #047857 !important;
+  border: 1px solid #A7F3D0 !important;
+}
+html:not(.dark) .margin-badge-card .highlight-text-chip.chip-indigo {
+  background-color: #EEF2FF !important;
+  color: #4338CA !important;
+  border: 1px solid #C7D2FE !important;
+}
+
+/* Margin Chips: Dark Mode */
+html.dark .margin-badge-card .highlight-text-chip,
+html.dark .margin-badge-card .highlight-text-chip.chip-amber {
+  background-color: rgba(245, 158, 11, 0.18) !important;
+  color: #FDE68A !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+}
+html.dark .margin-badge-card .highlight-text-chip.chip-sky {
+  background-color: rgba(14, 165, 233, 0.18) !important;
+  color: #7DD3FC !important;
+  border: 1px solid rgba(14, 165, 233, 0.4) !important;
+}
+html.dark .margin-badge-card .highlight-text-chip.chip-emerald {
+  background-color: rgba(16, 185, 129, 0.18) !important;
+  color: #6EE7B7 !important;
+  border: 1px solid rgba(16, 185, 129, 0.4) !important;
+}
+html.dark .margin-badge-card .highlight-text-chip.chip-indigo {
+  background-color: rgba(99, 102, 241, 0.18) !important;
+  color: #A5B4FC !important;
+  border: 1px solid rgba(99, 102, 241, 0.4) !important;
+}
+
+/* Margin Card Bullet Titles */
+.margin-badge-card .bullet-title {
+  display: inline !important;
+  font-weight: 700 !important;
+}
+html:not(.dark) .margin-badge-card .bullet-title {
+  color: #0F172A !important;
+}
+html.dark .margin-badge-card .bullet-title {
+  color: #F8FAFC !important;
+}
+
+/* Jargon Tooltips inside Margin Cards */
+html:not(.dark) .margin-badge-card .jargon-inline-badge {
+  border-bottom: 1.5px dotted #6366F1 !important;
+}
+html.dark .margin-badge-card .jargon-inline-badge {
+  border-bottom: 1.5px dotted #818CF8 !important;
 }
 
 /* Instant Inline Jargon Tooltip */
@@ -2097,22 +2186,26 @@ html:not(.dark) #examinerMarginTrack {
 html:not(.dark) .margin-badge-card {
   background: #FFFFFF !important;
   border: 1px solid #E2E8F0 !important;
+  border-radius: 10px !important;
   color: #0F172A !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05) !important;
 }
 
 html:not(.dark) .margin-card-marks {
   background: #FEF3C7 !important;
   color: #92400E !important;
-  border: 1px solid #FDE68A !important;
+  border: 1px solid #FCD34D !important;
+  font-weight: 700 !important;
 }
 
 html:not(.dark) .margin-card-body {
   color: #1E293B !important;
+  line-height: 1.55 !important;
 }
 
 html:not(.dark) .margin-card-link {
   color: #D97706 !important;
+  font-weight: 700 !important;
 }
 
 /* Forensic Audit Card & Accordion Light-Mode Overrides (Eliminates Pitch-Black Boxes in Light Mode) */

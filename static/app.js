@@ -4069,19 +4069,19 @@ function renderAnnotationsOverlay() {
       let prefix = `<span class="text-amber-500 font-bold shrink-0">•</span>`;
       let cleanB = b;
       if (cleanB.startsWith("✓") || cleanB.startsWith("✔")) {
-        prefix = `<span class="text-emerald-600 dark:text-emerald-400 font-bold shrink-0">✓</span>`;
+        prefix = `<span class="text-emerald-600 dark:text-emerald-400 font-bold shrink-0 mt-0.5">✓</span>`;
         cleanB = cleanB.replace(/^[✓✔]\s*/, "");
       } else if (cleanB.startsWith("★") || cleanB.startsWith("⭐")) {
-        prefix = `<span class="text-emerald-600 dark:text-emerald-400 font-bold shrink-0">★</span>`;
+        prefix = `<span class="text-emerald-600 dark:text-emerald-400 font-bold shrink-0 mt-0.5">★</span>`;
         cleanB = cleanB.replace(/^[★⭐]\s*/, "");
       } else if (cleanB.startsWith("✎") || cleanB.startsWith("✗") || cleanB.startsWith("×")) {
-        prefix = `<span class="text-amber-600 dark:text-amber-400 font-bold shrink-0">✎</span>`;
+        prefix = `<span class="text-amber-600 dark:text-amber-400 font-bold shrink-0 mt-0.5">✎</span>`;
         cleanB = cleanB.replace(/^[✎✗×]\s*/, "");
       }
       return `
-        <div class="flex items-start space-x-1.5 text-slate-800 dark:text-slate-200 leading-snug break-words">
+        <div class="flex items-start space-x-1.5 text-slate-700 dark:text-slate-300 leading-relaxed break-words">
           ${prefix}
-          <div class="flex-1 break-words">${formatHighlightedText(cleanB)}</div>
+          <div class="flex-1 break-words leading-relaxed">${formatHighlightedText(cleanB)}</div>
         </div>
       `;
     }).join("");
@@ -4295,8 +4295,8 @@ function renderAnnotationsOverlay() {
       const buildDynamicIntroRemark = (rawRem) => {
         if (isEarthquakeMapCopy) {
           return [
-            "✓ **Clear Definition & World Map Plotting**: Defined earthquakes via **plate-tectonic tremors** and marked `x` crosses along the **Circum-Pacific & Alpine-Himalayan belts** on the printed map.",
-            "✎ **Intro & Map Labeling Upgrade**: Define **Hypocentre (Focus)**, **Epicentre**, and **H.F. Reid's Elastic Rebound Theory** in the intro, and **label the marked belts + India's Zone V** on the map."
+            "✓ **Clear Definition & World Map Plotting**: Defined earthquakes via **plate-tectonic tremors** and marked `x` crosses along the **Circum-Pacific** & **Alpine-Himalayan** belts on the printed map.",
+            "✎ **Intro & Map Upgrade**: Cite **H.F. Reid's Elastic Rebound Theory**, define **Hypocentre (Focus)** and **Epicentre**, and label marked belts alongside India's **Zone V** on the map."
           ].join("\n");
         }
         const cleaned = stripBodyDiagramFromIntroText(sanitizeCrossSubjectText(rawRem));
@@ -4352,26 +4352,26 @@ function renderAnnotationsOverlay() {
         if (isEarthquakeMapCopy) {
           if (targetPageNum === 1) {
             return [
-              "✓ **Structured Sub-Heading**: Initiated **Mechanism & Occurrence** at the bottom of Page 1 anchored in **Plate Tectonics Theory**.",
-              "✎ **Broaden Causative Genesis**: Alongside tectonic plate motions, classify **Volcanic**, **Fault-Slip**, and **Reservoir-Induced (e.g., Koyna, 1967)** seismicity."
+              "✓ **Structured Sub-Heading**: Initiated **Mechanism & Occurrence** at the bottom of Page 1 anchored in **Plate Tectonics**.",
+              "✎ **Broaden Causative Genesis**: Classify volcanic, fault-slip, and **Reservoir-Induced Seismicity** (e.g. Koyna Dam) alongside tectonic motions."
             ].join("\n");
           }
           if (targetPageNum === 2 && slotIndex === 0) {
             return [
-              "✓ **Plate Friction & Boundary Sketches**: Clearly explained lithospheric movement over the asthenosphere with neat **Convergent & Transform Boundary** block diagrams.",
-              "✎ **Add Divergent & Subduction Zone**: Include a **Divergent Boundary** sketch and cite **H.F. Reid's Elastic Rebound Theory** & the **Wadati–Benioff zone**."
+              "✓ **Plate Friction & Boundary Sketches**: Clearly explained lithospheric friction with neat **Convergent Boundary** and **Transform Boundary** block diagrams.",
+              "✎ **Add Subduction Zone**: Include a subduction sketch and cite **H.F. Reid's Elastic Rebound Theory** alongside the **Wadati–Benioff zone**."
             ].join("\n");
           }
           if (targetPageNum === 2 && slotIndex >= 1) {
             return [
-              "✓ **Focus–Epicentre & Multi-Hazard Link**: Accurately distinguished **Focus** (origin) vs **Epicentre** and linked tremors to **Tsunamis, chemical leaks, and infrastructure damage**.",
-              "✗ **Wave Terminology Fix**: Replace *\"tertiary waves\"* with **Surface Waves (Love & Rayleigh waves)** and add **Soil Liquefaction** in alluvial plains."
+              "✓ **Focus vs. Epicentre Distinction**: Accurately distinguished the sub-surface **Focus** from the surface **Epicentre** where primary waves arrive.",
+              "✗ **Wave Terminology Fix**: Replace *\"tertiary waves\"* with **Surface Waves** (**Love & Rayleigh waves**) and cite **Soil Liquefaction** in alluvial plains."
             ].join("\n");
           }
           if (targetPageNum >= 3) {
             return [
-              "✓ **Structured 3-Part Vulnerability Tree (Points ①–③)**: Effectively mapped **① Fold belts (Himalayas, Andes, Rockies)** to landslides, **② Oceanic coasts** to **Tsunamis & nuclear facilities**, and **③ Global power/digital grid failure**.",
-              "✎ **Missing Indian Seismic Zonation Data**: Substantiate regional vulnerability with **BIS Seismic Zoning (Zones II–V)** noting **~59% of India's landmass** is earthquake-prone (**Zone V: Himalayas, Kutch, North-East**)."
+              "✓ **Structured Vulnerability Tree**: Mapped ① **Fold Belts** (Himalayas, Andes) to landslides, ② **Oceanic Coasts** to tsunami inundation, and ③ **Critical Grids** to power disruption.",
+              "✎ **Missing Indian Seismic Zonation**: Substantiate vulnerability with **India's BIS Seismic Zonation** (**IS 1893: Zones II–V**) and high-risk **Zone V** (Himalayas, Kutch)."
             ].join("\n");
           }
         }
@@ -4501,8 +4501,8 @@ function renderAnnotationsOverlay() {
       const buildDynamicConcRemark = (rawRem) => {
         if (isEarthquakeMapCopy) {
           return [
-            "✓ **Actionable Mitigation Closing**: Concluded with concrete engineering & monitoring remedies—**seismic retrofitting, geological evidencing, early warning systems, and seismography**.",
-            "✎ **Institutional & Global Anchor**: Anchor these measures in **NDMA Earthquake Guidelines**, **National Building Code (NBC 2016)** compliance, and the **Sendai Framework (2015–2030)**."
+            "✓ **Actionable Mitigation Closing**: Concluded with concrete engineering remedies including **seismic retrofitting**, early warning systems, and **seismography**.",
+            "✎ **Institutional & Global Anchor**: Anchor measures in **NDMA Guidelines**, **National Building Code (NBC 2016)**, and the **Sendai Framework (2015–2030)**."
           ].join("\n");
         }
         if (isGenericConclusionCopy) {
@@ -5379,7 +5379,7 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
             ${escapeHtml(sec.marks)}
           </div>
         </div>
-        <div class="margin-card-body text-[10px] sm:text-[10.5px] font-sans leading-snug space-y-1 break-words">
+        <div class="margin-card-body text-[10px] sm:text-[10.5px] font-sans leading-relaxed space-y-2 break-words">
           ${sec.bodyHtml}
         </div>
         <div class="pt-1 border-t border-slate-200/80 dark:border-slate-800/80 mt-1">
