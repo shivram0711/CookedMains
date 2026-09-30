@@ -45,8 +45,12 @@ from google import genai
 from google.genai import types
 from supabase import create_client, Client
 
-supabase_url = os.environ.get("SUPABASE_URL")
-supabase_key = os.environ.get("SUPABASE_KEY")
+supabase_url = os.environ.get("SUPABASE_URL", "").strip() or "https://uivzorhuqsdiaarlmbhv.supabase.co"
+supabase_key = (
+    os.environ.get("SUPABASE_KEY", "").strip()
+    or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    or os.environ.get("SUPABASE_ANON_KEY", "").strip()
+)
 supabase: Optional[Client] = None
 if supabase_url and supabase_key:
     try:
@@ -101,11 +105,52 @@ app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__
 # Cache sample datasets
 SAMPLE_DATASETS = get_sample_datasets()
 
+_last_supabase_ping_ts: float = 0.0
+
+def _execute_supabase_activity_ping() -> Dict[str, Any]:
+    """Executes real database & REST API queries against Supabase (uivzorhuqsdiaarlmbhv) so Supabase never pauses the project for 7-day inactivity."""
+    global _last_supabase_ping_ts
+    _last_supabase_ping_ts = time.time()
+    result = {"db_queried": False, "rest_pinged": False, "project_url": supabase_url}
+    try:
+        if supabase is not None:
+            # 1. Execute a real PostgreSQL SELECT query via PostgREST
+            supabase.table("evaluations").select("id").limit(1).execute()
+            result["db_queried"] = True
+            # 2. Also touch Supabase Storage bucket list to register multi-service activity
+            try:
+                supabase.storage.list_buckets()
+            except Exception:
+                pass
+    except Exception as e:
+        result["db_error"] = str(e)
+
+    # 3. Always send a direct HTTP request to the project REST & Auth endpoints (uivzorhuqsdiaarlmbhv)
+    try:
+        target_base = (supabase_url or "https://uivzorhuqsdiaarlmbhv.supabase.co").rstrip("/")
+        headers = {"User-Agent": "CookedMains-SupabaseKeepAlive/1.0"}
+        if supabase_key:
+            headers["apikey"] = supabase_key
+            headers["Authorization"] = f"Bearer {supabase_key}"
+        req = urllib.request.Request(f"{target_base}/rest/v1/", headers=headers)
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            result["rest_pinged"] = (resp.status < 500)
+    except Exception:
+        pass
+    return result
+
 async def _self_keep_alive_loop():
-    """Background task that pings the external Render URL every 10 minutes to prevent free-tier spin-down."""
-    await asyncio.sleep(30)
+    """Background task that pings Render and executes a real Supabase database query every 10 minutes to prevent Render spin-down and Supabase 7-day inactivity pause."""
+    # Run an immediate Supabase activity query 5 seconds after startup
+    await asyncio.sleep(5)
+    try:
+        await asyncio.to_thread(_execute_supabase_activity_ping)
+    except Exception:
+        pass
+
     while True:
         try:
+            # 1. Ping external Render URL to keep web worker awake
             ext_url = os.environ.get("RENDER_EXTERNAL_URL") or os.environ.get("APP_URL")
             if ext_url:
                 ping_url = ext_url.rstrip("/") + "/healthz"
@@ -114,6 +159,9 @@ async def _self_keep_alive_loop():
                     with urllib.request.urlopen(req, timeout=10) as resp:
                         return resp.status
                 await asyncio.to_thread(_ping)
+
+            # 2. Execute real Supabase database query so Supabase never marks project inactive
+            await asyncio.to_thread(_execute_supabase_activity_ping)
         except Exception:
             pass
         await asyncio.sleep(600)  # Every 10 minutes
@@ -126,13 +174,23 @@ async def _startup_keep_alive():
 @app.get("/ping")
 @app.get("/api/health")
 async def health_check():
-    """24/7 Health Check & UptimeRobot Heartbeat Endpoint."""
+    """24/7 Health Check, UptimeRobot & Supabase Keep-Alive Heartbeat Endpoint."""
+    # If more than 25 minutes have elapsed since the last Supabase database query, trigger one in the background
+    if time.time() - _last_supabase_ping_ts > 1500:
+        asyncio.create_task(asyncio.to_thread(_execute_supabase_activity_ping))
     return {
         "status": "healthy",
         "service": "Cooked Mains AI",
         "supabase_connected": bool(supabase is not None),
+        "last_supabase_activity_seconds_ago": round(time.time() - _last_supabase_ping_ts, 1) if _last_supabase_ping_ts > 0 else None,
         "gemini_key_configured": bool(os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"))
     }
+
+@app.get("/api/supabase-keepalive")
+async def trigger_supabase_keepalive():
+    """On-demand endpoint to immediately wake/ping Supabase database & storage."""
+    res = await asyncio.to_thread(_execute_supabase_activity_ping)
+    return {"status": "ok", "supabase_keepalive": res}
 
 @app.get("/")
 @app.get("/index.html")

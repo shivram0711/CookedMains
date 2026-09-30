@@ -21,8 +21,12 @@ except ImportError:
 # Supabase Client Initialization
 from supabase import create_client, Client
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip() or "https://uivzorhuqsdiaarlmbhv.supabase.co"
+SUPABASE_KEY = (
+    os.environ.get("SUPABASE_KEY", "").strip()
+    or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    or os.environ.get("SUPABASE_ANON_KEY", "").strip()
+)
 
 supabase: Optional[Client] = None
 if SUPABASE_URL and SUPABASE_KEY:
