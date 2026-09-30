@@ -1225,37 +1225,45 @@ Generate strictly valid JSON matching this schema:
   }},
   "keyword_toolkit_title": "Core Scientific Concepts & Technical Vocabulary (Missing Keywords)", // DYNAMIC title tailored to question's paper and domain: e.g. "Core Scientific Concepts & Technical Vocabulary" for Geo/Env/S&T; "Constitutional Articles, Doctrines & Judgments" for Polity/Law; "Economic Concepts, Policy Frameworks & Metrics" for Economy; "Essential Thinkers, Philosophies & Ethical Frameworks" for Ethics/Optional; "Historical Sources, Eras & Historiographical Concepts" for History. NEVER output "Thinker" for physical geography, science, or general questions!
   "missing_keywords_cards": [
+    // CRITICAL MANDATE FOR missing_keywords_cards (APPLIES TO EVERY QUESTION):
+    // 1. DISTINCT BADGES: Each of the 4 cards MUST have a DIFFERENT, specific 2–3 word "domain_or_thinker" badge (e.g. "Subduction Seismology", "Global DRR Standard", "Hazard Zonation", "Geomorphic Hazard" OR "Constitutional Article", "Supreme Court Verdict", "Committee Benchmark", "Empirical Metric"). NEVER repeat the same badge across cards!
+    // 2. EXACT ANSWER-SHEET LOCATION ("where_to_use"): Specify the EXACT Page Number and the candidate's ACTUAL handwritten sub-heading or bullet point where this keyword plugs in (e.g., "Page 2 • Inside your '[Candidate's Exact Sub-Heading]' bullet #2"). NEVER write vague lines like "Use in Body section"!
+    // 3. 1-LINE SPACE-SAVING USAGE ("how_to_use_one_line"): Provide a ready-to-copy <14-word inline phrase showing how the candidate can weave this keyword into their existing sentence in ONE SINGLE LINE without wasting extra page space!
     {{
       "number": 1,
-      "term": "Eudaimonia",
-      "thinker": "Aristotle",
-      "domain_or_thinker": "Aristotle", // CONCISE 1-3 word thinker, doctrine, or framework name (e.g. 'Aristotle', '2nd ARC', 'NITI Aayog'). Keep concise under 25 chars!
-      "definition": "Central concept in Aristotle's virtue ethics representing teleological human flourishing or living well, which is the ultimate goal of virtuous statecraft.",
-      "where_to_use": "Use in Body section to counter modern consumerism and civic moral decay."
+      "term": "Exact Missing Domain Keyword / Article / Theory #1",
+      "thinker": "Specific Sub-Domain Badge #1",
+      "domain_or_thinker": "Specific Sub-Domain Badge #1",
+      "definition": "Concise 1-sentence explanation of why this keyword elevates analytical depth for this exact question.",
+      "where_to_use": "Page 1 • Inside your '[Exact Sub-Heading / Bullet Written on Page 1]' point",
+      "how_to_use_one_line": "\"...inline 10-12 word phrase weaving **Keyword #1** into the existing bullet without using an extra line.\""
     }},
     {{
       "number": 2,
-      "term": "Philosopher King & Tripartite Soul",
-      "thinker": "Plato",
-      "domain_or_thinker": "Plato",
-      "definition": "The rule of reason over appetite and courage, embodying wisdom and justice as the prerequisite for an uncorrupted polity.",
-      "where_to_use": "Use in Introduction/Body to ground Plato's architectonic conception of justice."
+      "term": "Exact Missing Domain Keyword / Precedent / Model #2",
+      "thinker": "Specific Sub-Domain Badge #2",
+      "domain_or_thinker": "Specific Sub-Domain Badge #2",
+      "definition": "Concise 1-sentence explanation of how this concept/precedent substantiates the second demand.",
+      "where_to_use": "Page 2 • Under your '[Exact Sub-Heading / Diagram Written on Page 2]' section",
+      "how_to_use_one_line": "\"...inline 10-12 word phrase weaving **Keyword #2** into the existing point in one line.\""
     }},
     {{
       "number": 3,
-      "term": "Distributive Justice (Proportionate Equality)",
-      "thinker": "Aristotle",
-      "domain_or_thinker": "Aristotle",
-      "definition": "Allocation of honors, wealth, and offices in proportion to merit and moral contribution, rather than absolute arithmetic equality.",
-      "where_to_use": "Use in contemporary application to inform debates on affirmative action and wealth redistribution."
+      "term": "Exact Missing Empirical Metric / Zonation / Statutory Anchor #3",
+      "thinker": "Specific Sub-Domain Badge #3",
+      "domain_or_thinker": "Specific Sub-Domain Badge #3",
+      "definition": "Concise 1-sentence quantitative or statutory benchmark proving the scale/mechanism.",
+      "where_to_use": "Page 2–3 • Alongside your '[Exact Impact / Vulnerability Bullet Written]' point",
+      "how_to_use_one_line": "\"...inline 10-12 word phrase citing **Keyword #3** inside the existing sentence.\""
     }},
     {{
       "number": 4,
-      "term": "Communitarianism & Alasdair MacIntyre",
-      "thinker": "Modern Political Thought",
-      "domain_or_thinker": "Modern Political Thought",
-      "definition": "Revival of Aristotelian teleology and virtue ethics in 'After Virtue', arguing that justice is grounded in shared community traditions rather than atomized liberal individualism.",
-      "where_to_use": "Use in Modern Contribution section to connect classical Greek philosophy to contemporary theory."
+      "term": "Exact Missing Committee / Global Framework / Reform Anchor #4",
+      "thinker": "Specific Sub-Domain Badge #4",
+      "domain_or_thinker": "Specific Sub-Domain Badge #4",
+      "definition": "Concise 1-sentence institutional or policy standard anchoring the reform/mitigation dimension.",
+      "where_to_use": "Final Page • Attach to the end of your closing '[Exact Closing / Mitigation Line Written]'",
+      "how_to_use_one_line": "\"...inline 10-12 word phrase attaching **Keyword #4** to the closing sentence.\""
     }}
   ],
   "micro_hygiene": {{
@@ -1464,11 +1472,11 @@ Generate strictly valid JSON matching this schema:
     }}
   }},
   "visual_annotations": [
-    // CRITICAL RULES FOR HUMAN UPSC EXAMINER MARGIN EVALUATION & CURLY BRACE PRECISION:
-    // 1. Exact Vertical Boundaries: Provide exact "start_y_percent" and "end_y_percent" (0-100) tracing ONLY the student's actual HANDWRITTEN lines for that section on that page.
-    // 2. Intro Substantive Feedback (1-2 Full Sentences): In the "Intro" annotation remark, ALWAYS write 1-2 complete explanatory sentences detailing what the student wrote in the opening (including any date/factual correction) and what specific context/hook was missed. NEVER write 2-word fragments like "Missing: Historical significance hook". If the student's intro is perfect (full marks), write ONLY positive appreciation and DO NOT output any "Missing" bullet or alternative rewrite!
-    // 3. Strictly Page-Independent & Point-Aligned Body Remarks: Evaluate each page (Page 1, Page 2, Page 3) and each vertical zone (upper half vs lower half) STRICTLY on the handwritten points written right there on that page/zone! NEVER cite an example from Page 2 inside Page 1's or Page 3's margin card, and NEVER copy-paste the same remark across pages.
-    // 4. Natural Non-Robotic Examiner Layout: Do NOT stick to a rigid "1 ✓ + 1 ✎" template on every card! If the student wrote 3-5 points in that zone, write 2 to 4 crisp bullets evaluating those exact points (✓ crediting strong points/examples written there, ✗ correcting any factual/attribution error in those points, and ✎ adding relevant value-additions). If the student wrote very little in a zone, provide 2-3 crisp value-addition points (✎) directly relevant to that sub-heading.
+    // CRITICAL RULES FOR HUMAN UPSC EXAMINER MARGIN EVALUATION & CURLY BRACE PRECISION (APPLIES TO ALL QUESTIONS):
+    // 1. Exact Vertical Boundaries & Margin Clamping: Provide exact "start_y_percent" (>= 16, strictly below top coaching headers) and "end_y_percent" (<= 89.5, strictly above bottom page borders) tracing ONLY the student's actual HANDWRITTEN lines and diagrams for that section on that page.
+    // 2. Diagram & Block-Sketch Enclosure Rule: Whenever a candidate draws a diagram, flowchart, map, or block sketch in the upper or middle portion of a page (e.g., y = 20%..62%), the upper section's "end_y_percent" MUST extend down to ~62.5% so the upper curly brace '}' physically wraps the diagram AND evaluates the diagram inside that upper card! The lower section ("start_y_percent": 65, "end_y_percent": 89.5) must then evaluate ONLY the handwritten points written below the diagram. NEVER evaluate a diagram in an upper card whose curly brace stops at 40% above the diagram!
+    // 3. Intro Substantive Feedback (1-2 Full Sentences): In the "Intro" annotation remark, ALWAYS write 1-2 complete explanatory sentences detailing what the student wrote in the opening (including any map marking or date/factual verification) and what specific context/hook was missed.
+    // 4. Strictly Page-Independent & Point-Aligned Body Remarks: Evaluate each page (Page 1, Page 2, Page 3) and each vertical zone (upper half vs lower half) STRICTLY on the handwritten points and sketches physically present right there in that zone! NEVER cite an example or diagram from another zone or page.
     {{
       "page": 1,
       "approx_y_percent": 32,
@@ -1880,21 +1888,54 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
         else:
             data["keyword_toolkit_title"] = "High-Yield Domain Concepts & Keywords (Missing Keywords)"
 
-    # Normalize missing_keywords_cards
+    # Normalize missing_keywords_cards with distinct badges, exact Page & Sub-Heading placement, and 1-line space-saving usage
     if "missing_keywords_cards" not in data or not isinstance(data.get("missing_keywords_cards"), list) or len(data["missing_keywords_cards"]) == 0:
         data["missing_keywords_cards"] = [
-            {"number": 1, "term": "Core Concept I", "domain_or_thinker": "Foundational Concept", "definition": "Key domain principle directly answering prompt.", "where_to_use": "Deploy in introduction to ground argument."},
-            {"number": 2, "term": "Core Concept II", "domain_or_thinker": "Contemporary Framework", "definition": "High-yield concept establishing analytical depth.", "where_to_use": "Use in body dimension to establish analytical depth."},
-            {"number": 3, "term": "Counter-Perspective", "domain_or_thinker": "Critical Dimension", "definition": "Opposing or nuanced factor required for balance.", "where_to_use": "Introduce dialectic nuance in evaluation."},
-            {"number": 4, "term": "Applied Framework", "domain_or_thinker": "Policy / Empirical Benchmark", "definition": "Standard benchmark connecting to national vision.", "where_to_use": "Anchor conclusion to practical statecraft."}
+            {"number": 1, "term": "Core Statutory / Theoretical Anchor", "domain_or_thinker": "Foundational Anchor", "definition": "Key domain principle directly establishing the opening thesis.", "where_to_use": "Page 1 • Plug inline inside your opening Body sub-heading", "how_to_use_one_line": "\"Add as a 4-word bracket inside your first bullet to ground the core thesis.\""},
+            {"number": 2, "term": "Empirical / Official Index Metric", "domain_or_thinker": "Empirical Benchmark", "definition": "Official survey or report statistic proving the scale of the issue.", "where_to_use": "Page 1–2 • Pair inline with your primary cause/impact point", "how_to_use_one_line": "\"Weave inline into your impact bullet to substantiate scale in one line.\""},
+            {"number": 3, "term": "Judicial / Scientific / Historical Precedent", "domain_or_thinker": "Core Precedent", "definition": "Landmark precedent, mechanism, or spatial zonation required for analytical depth.", "where_to_use": "Page 2 • Under your secondary analysis / diagram section", "how_to_use_one_line": "\"Cite inline beside your existing example without taking an extra line.\""},
+            {"number": 4, "term": "Committee / Global Framework Standard", "domain_or_thinker": "Reform Standard", "definition": "Authoritative institutional or international framework anchoring the solution.", "where_to_use": "Final Page • Attach to the end of your closing mitigation/reform sentence", "how_to_use_one_line": "\"...attach to the end of your closing line to anchor institutional reform.\""}
         ]
     else:
-        for card in data["missing_keywords_cards"]:
-            if "domain_or_thinker" not in card or not card["domain_or_thinker"]:
-                card["domain_or_thinker"] = card.get("thinker") or "Domain Concept"
-            dot = str(card["domain_or_thinker"]).strip()
-            if len(dot) > 35:
-                card["domain_or_thinker"] = dot[:32] + "..."
+        used_badges = set()
+        fallback_badges = [
+            "Core Concept & Mechanism",
+            "Empirical & Zonation Benchmark",
+            "Institutional / Legal Anchor",
+            "Global / Committee Standard"
+        ]
+        pbp_list = data.get("point_by_point_audit") if isinstance(data.get("point_by_point_audit"), list) else []
+        for idx_c, card in enumerate(data["missing_keywords_cards"]):
+            if not isinstance(card, dict):
+                continue
+            raw_dot = str(card.get("domain_or_thinker") or card.get("thinker") or "").strip()
+            if not raw_dot or raw_dot.lower() in used_badges or raw_dot.lower() in ("domain concept", "geomorphic & scientific concept", "historical & cultural anchor"):
+                raw_dot = fallback_badges[idx_c % len(fallback_badges)]
+            if len(raw_dot) > 35:
+                raw_dot = raw_dot[:32] + "..."
+            used_badges.add(raw_dot.lower())
+            card["domain_or_thinker"] = raw_dot
+
+            raw_where = str(card.get("where_to_use") or "").strip()
+            if not raw_where or len(raw_where) < 18 or "use in body section" in raw_where.lower() or "integrate into the relevant" in raw_where.lower():
+                if idx_c < len(pbp_list) and isinstance(pbp_list[idx_c], dict) and pbp_list[idx_c].get("title"):
+                    pg_n = pbp_list[idx_c].get("page", idx_c + 1)
+                    short_t = str(pbp_list[idx_c].get("title", "")).split(":")[0].strip()[:44]
+                    card["where_to_use"] = f"Page {pg_n} • Inside your '{short_t}' sub-heading"
+                else:
+                    slot_wheres = [
+                        "Page 1 • Attach inline inside your opening Body sub-heading",
+                        "Page 1–2 • Under your primary mechanism / diagram section",
+                        "Page 2 • Alongside your sectoral / regional impact bullet",
+                        "Final Page • Attach to the end of your closing mitigation/reform line"
+                    ]
+                    card["where_to_use"] = slot_wheres[idx_c % len(slot_wheres)]
+
+            if not card.get("how_to_use_one_line"):
+                term_str = str(card.get("term") or "Keyword").strip()
+                def_clause = str(card.get("definition") or "").split(".")[0].strip()
+                short_words = " ".join(def_clause.split()[:9]).rstrip(",;:")
+                card["how_to_use_one_line"] = f"\"Add inline as: '...via **{term_str}** ({short_words.lower()}).'\""
 
     # Normalize Actionable Value-Addition Checklist (Where to Write & How to Write)
     va_raw = data.get("value_add_checklist") or {}
