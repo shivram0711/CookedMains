@@ -1587,69 +1587,124 @@ html:not(.dark) #dropzone:hover {
 }
 
 /* =========================================================
-   HIGH CONTRAST HIGHLIGHTS (CRITICAL FOR FEEDBACK READABILITY)
+   CLEAN, AIRY EDITORIAL HIGHLIGHTS & MULTI-COLOR PALETTE
    ========================================================= */
 
 /* Screen Display Highlights */
 @media screen {
-  /* Light Mode: Rich Warm Amber-Brown on Soft Gold background with Crisp Border */
-  html:not(.dark) .highlight-chip,
-  html:not(.dark) .highlight-text-chip,
-  html:not(.dark) span.bg-amber-400\/20,
-  html:not(.dark) span.bg-amber-500\/20,
-  html:not(.dark) mark {
-    background-color: #FEF3C7 !important;
-    color: #78350F !important; /* Deep dark rich amber-brown */
-    border: 1.5px solid #F59E0B !important;
-    font-weight: 700 !important;
-    padding: 1px 6px !important;
-    border-radius: 4px !important;
-    display: inline !important;
-    box-decoration-break: clone;
-    -webkit-box-decoration-break: clone;
-    line-height: 1.4 !important;
-  }
-
-  html:not(.dark) .jargon-inline-badge {
-    background-color: #FEF3C7 !important;
-    color: #78350F !important;
-    border-bottom: 2px solid #D97706 !important;
-    font-weight: 700 !important;
-    display: inline !important;
-    position: relative !important;
-  }
-
-  html:not(.dark) .jargon-inline-badge:hover,
-  html:not(.dark) .jargon-inline-badge:focus {
-    background-color: #FDE68A !important;
-    color: #92400E !important;
-  }
-
-  html:not(.dark) .jargon-bubble {
-    background-color: #FFFFFF !important;
-    border: 1.5px solid #D97706 !important;
-    color: #0F172A !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12) !important;
-  }
-
-  html:not(.dark) .jargon-bubble::after {
-    border-color: #D97706 transparent transparent transparent !important;
-  }
-
-  /* Dark Mode: Glowing Warm Gold text on Translucent Amber background */
-  html.dark .highlight-chip,
-  html.dark .highlight-text-chip,
-  html.dark span.bg-amber-400\/20,
-  html.dark span.bg-amber-500\/20 {
-    background-color: rgba(245, 158, 11, 0.22) !important;
-    color: #FDE68A !important;
-    border: 1px solid rgba(245, 158, 11, 0.5) !important;
-    font-weight: 700 !important;
+  /* Base chip styling: preserves natural line-height, zero line collisions, light hairline border */
+  .highlight-chip,
+  .highlight-text-chip,
+  mark {
+    font-weight: 600 !important;
     padding: 1px 5px !important;
     border-radius: 4px !important;
     display: inline !important;
     box-decoration-break: clone;
     -webkit-box-decoration-break: clone;
+    line-height: inherit !important;
+    font-size: 0.92em !important;
+    letter-spacing: -0.01em;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+  }
+
+  /* 1. Amber / Honey (Default & Actionable Levers / Hazards) */
+  html:not(.dark) .highlight-chip,
+  html:not(.dark) .highlight-text-chip,
+  html:not(.dark) .highlight-text-chip.chip-amber,
+  html:not(.dark) span.bg-amber-400\/20,
+  html:not(.dark) span.bg-amber-500\/20,
+  html:not(.dark) mark {
+    background-color: #FEF3C7 !important;
+    color: #92400E !important;
+    border: 1px solid #FCD34D !important;
+  }
+  html.dark .highlight-chip,
+  html.dark .highlight-text-chip,
+  html.dark .highlight-text-chip.chip-amber,
+  html.dark span.bg-amber-400\/20,
+  html.dark span.bg-amber-500\/20 {
+    background-color: rgba(245, 158, 11, 0.18) !important;
+    color: #FDE68A !important;
+    border: 1px solid rgba(245, 158, 11, 0.35) !important;
+  }
+
+  /* 2. Sky / Cerulean (Geographic Belts, Seismological Waves & Spatial Phenomena) */
+  html:not(.dark) .highlight-text-chip.chip-sky {
+    background-color: #F0F9FF !important;
+    color: #0369A1 !important;
+    border: 1px solid #BAE6FD !important;
+  }
+  html.dark .highlight-text-chip.chip-sky {
+    background-color: rgba(14, 165, 233, 0.18) !important;
+    color: #7DD3FC !important;
+    border: 1px solid rgba(14, 165, 233, 0.35) !important;
+  }
+
+  /* 3. Emerald / Mint (Positives, Structural Accuracies & Verified Sketches) */
+  html:not(.dark) .highlight-text-chip.chip-emerald {
+    background-color: #ECFDF5 !important;
+    color: #047857 !important;
+    border: 1px solid #A7F3D0 !important;
+  }
+  html.dark .highlight-text-chip.chip-emerald {
+    background-color: rgba(16, 185, 129, 0.18) !important;
+    color: #6EE7B7 !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+  }
+
+  /* 4. Indigo / Violet (Statutory Codes, BIS Standards, Theorists & Formal Frameworks) */
+  html:not(.dark) .highlight-text-chip.chip-indigo {
+    background-color: #EEF2FF !important;
+    color: #4338CA !important;
+    border: 1px solid #C7D2FE !important;
+  }
+  html.dark .highlight-text-chip.chip-indigo {
+    background-color: rgba(99, 102, 241, 0.18) !important;
+    color: #A5B4FC !important;
+    border: 1px solid rgba(99, 102, 241, 0.35) !important;
+  }
+
+  /* Jargon tooltips / badges */
+  html:not(.dark) .jargon-inline-badge {
+    border-bottom: 1.5px dotted #6366F1 !important;
+    position: relative !important;
+  }
+  html.dark .jargon-inline-badge {
+    border-bottom: 1.5px dotted #818CF8 !important;
+    position: relative !important;
+  }
+
+  html:not(.dark) .jargon-inline-badge:hover,
+  html:not(.dark) .jargon-inline-badge:focus {
+    filter: brightness(0.97);
+  }
+  html.dark .jargon-inline-badge:hover,
+  html.dark .jargon-inline-badge:focus {
+    filter: brightness(1.15);
+  }
+
+  html:not(.dark) .jargon-bubble {
+    background-color: #FFFFFF !important;
+    border: 1px solid #CBD5E1 !important;
+    color: #0F172A !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  html:not(.dark) .jargon-bubble::after {
+    border-color: #CBD5E1 transparent transparent transparent !important;
+  }
+
+  /* Bullet title styling: clean, authoritative, non-boxed bold text */
+  .bullet-title {
+    color: #0F172A !important;
+    font-weight: 700 !important;
+    display: inline !important;
+  }
+  html.dark .bullet-title {
+    color: #F8FAFC !important;
+    font-weight: 700 !important;
+    display: inline !important;
   }
 }
 
@@ -3557,14 +3612,37 @@ html:not(.dark) #caDiagramTip {
   .highlight-chip,
   .highlight-text-chip {
     background-color: #FEF3C7 !important;
-    color: #78350F !important;
-    border: 1px solid #F59E0B !important;
-    font-weight: 700 !important;
-    padding: 0.5px 4px !important;
+    color: #92400E !important;
+    border: 1px solid #FCD34D !important;
+    font-weight: 600 !important;
+    padding: 0.5px 3.5px !important;
     border-radius: 3px !important;
     display: inline !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  .highlight-text-chip.chip-sky {
+    background-color: #F0F9FF !important;
+    color: #0369A1 !important;
+    border: 1px solid #BAE6FD !important;
+  }
+
+  .highlight-text-chip.chip-emerald {
+    background-color: #ECFDF5 !important;
+    color: #047857 !important;
+    border: 1px solid #A7F3D0 !important;
+  }
+
+  .highlight-text-chip.chip-indigo {
+    background-color: #EEF2FF !important;
+    color: #4338CA !important;
+    border: 1px solid #C7D2FE !important;
+  }
+
+  .bullet-title {
+    color: #0F172A !important;
+    font-weight: 700 !important;
   }
 
   .print-chip-amber {

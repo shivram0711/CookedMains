@@ -3779,6 +3779,57 @@ function isInstructionalPrefixLabel(rawWord) {
   return /^(to score|great |good |missing|sub-part|part |page |draft |next micro|point |points |legacy |factual |analytical |value |opening |balanced |how to |strong |clear |constructive |actionable |too general)/i.test(cleanWord);
 }
 
+function isNonKeywordPhrase(rawWord) {
+  if (!rawWord) return true;
+  const clean = String(rawWord).replace(/[*_#`"']/g, '').trim();
+  const lower = clean.toLowerCase();
+
+  // 1. Standard instructional prefix labels
+  if (isInstructionalPrefixLabel(lower)) return true;
+
+  // 2. Action verbs instructing the aspirant to perform a writing action (e.g. "write text labels", "add Benioff Zone")
+  if (/^(write|add|include|label|mention|explain|cite|incorporate|ensure|replace|expand|provide|pair|connect|highlight|note|use|differentiate|elaborate|enrich|state|summarize|integrate)\b/i.test(lower)) {
+    return true;
+  }
+
+  // 3. Bullet numbering or page indicators (e.g. "①", "page 1", "step 2")
+  if (/^[①②③④⑤⑥⑦⑧⑨⑩\d]+[\s.)-]/i.test(clean) || /^page\s+\d/i.test(lower)) {
+    return true;
+  }
+
+  // 4. Overly long clauses, descriptions with arrows or clause connectors
+  if (clean.length > 36) return true;
+  const words = clean.split(/\s+/).filter(Boolean);
+  if (words.length > 4 && !/(reid|theory|framework|guideline|commission|act|code)/i.test(lower)) return true;
+  if (words.length > 5) return true;
+  if (/(\s->\s|-->|---|—|–|;|\bwhich\b|\bthat\b|\breach\b|\bcausing\b|\bthreaten\b)/i.test(clean)) return true;
+
+  return false;
+}
+
+function getSemanticHighlightClass(rawTerm) {
+  if (!rawTerm) return "chip-amber";
+  const t = String(rawTerm).toLowerCase();
+
+  // 1. Geographic, Seismological Wave Dynamics, Spatial Zones & Plates
+  if (/ring of fire|pacific|circum|himalay|atlantic|boundary|plate|tectonic|lithospher|asthenospher|subduction|benioff|wadati|fault|seismic|wave|surface wave|love|rayleigh|body wave|primary wave|secondary wave|p wave|s wave|zone v|zone iv|zone iii|zone ii|epicentre|hypocentre|focus|crust|magma|geograph/i.test(t)) {
+    return "chip-sky";
+  }
+
+  // 2. Formal Frameworks, Statutory Standards, BIS/NBC Codes, Constitutional & Theorists
+  if (/sendai|ndma|sdg|reid|elastic rebound|nbc|bis|is 1893|article|constitution|supreme court|judgment|statut|framework|guideline|committee|commission|act\b|code\b|treaty|protocol|governance/i.test(t)) {
+    return "chip-indigo";
+  }
+
+  // 3. Positives, Structural Accuracies & Verified Sketches
+  if (/accurate|convergent|transform|credit|strength|effective|correct|merit|sound|optimal/i.test(t)) {
+    return "chip-emerald";
+  }
+
+  // 4. Default / Actionable Levers, Hazards & Cascading Gaps
+  return "chip-amber";
+}
+
 function findGlossaryMatch(word) {
   if (!word) return null;
   const cleanWord = word.replace(/[*_#`]/g, '').replace(/[:.]+$/, '').trim().toLowerCase();
@@ -3831,28 +3882,22 @@ function formatHighlightedText(text) {
     return full;
   });
 
-  // Render evaluative heading prefixes (e.g. "**Good Premise**:" or "**Factual Check**:") as clean bold text rather than giant orange highlight boxes
+  // Bullet title prefixes before colons are structural titles/headings: render as clean, elegant bold typography, NEVER enclosed in highlighter chips!
   s = s.replace(/\*\*([^*]+)\*\*(\s*:)/g, (match, p1, colonPart) => {
-    if (isInstructionalPrefixLabel(p1)) {
-      return `<strong class="font-bold text-slate-900 dark:text-slate-100">${p1}</strong>${colonPart}`;
-    }
-    const gMatch = findGlossaryMatch(p1);
-    if (gMatch) {
-      return `<span class="jargon-inline-badge highlight-text-chip font-bold px-1.5 py-0.5 rounded cursor-help" tabindex="0">${p1}<span class="glossary-star">*</span><span class="jargon-bubble"><strong>${escapeHtml(gMatch.term)}</strong>: ${escapeHtml(gMatch.meaning)}</span></span>${colonPart}`;
-    }
-    return `<span class="highlight-text-chip font-bold px-1.5 py-0.5 rounded">${p1}</span>${colonPart}`;
+    return `<strong class="bullet-title font-bold text-slate-900 dark:text-slate-100">${p1}</strong>${colonPart}`;
   });
 
-  // Highlight remaining markdown bold **word** with prominent high-contrast chip and instant inline jargon tooltip if in glossary
+  // Highlight remaining markdown bold **word**: Highlight genuine keywords with multi-color chips; render long phrases or action directives as clean bold text
   s = s.replace(/\*\*(.*?)\*\*/g, (match, p1) => {
-    if (isInstructionalPrefixLabel(p1)) {
-      return `<strong class="font-bold text-slate-900 dark:text-slate-100">${p1}</strong>`;
+    if (isNonKeywordPhrase(p1)) {
+      return `<strong class="font-semibold text-slate-900 dark:text-slate-100">${p1}</strong>`;
     }
+    const colorClass = getSemanticHighlightClass(p1);
     const gMatch = findGlossaryMatch(p1);
     if (gMatch) {
-      return `<span class="jargon-inline-badge highlight-text-chip font-bold px-1.5 py-0.5 rounded cursor-help" tabindex="0">${p1}<span class="glossary-star">*</span><span class="jargon-bubble"><strong>${escapeHtml(gMatch.term)}</strong>: ${escapeHtml(gMatch.meaning)}</span></span>`;
+      return `<span class="jargon-inline-badge highlight-text-chip ${colorClass} font-semibold px-1.5 py-0.5 rounded cursor-help" tabindex="0">${p1}<span class="glossary-star">*</span><span class="jargon-bubble"><strong>${escapeHtml(gMatch.term)}</strong>: ${escapeHtml(gMatch.meaning)}</span></span>`;
     }
-    return `<span class="highlight-text-chip font-bold px-1.5 py-0.5 rounded">${p1}</span>`;
+    return `<span class="highlight-text-chip ${colorClass} font-semibold px-1.5 py-0.5 rounded">${p1}</span>`;
   });
   // Format linebreaks
   s = s.replace(/\n/g, '<br>');
@@ -6236,16 +6281,16 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
     evalData.intro_audit.missing_elements = ["**Elastic Rebound Theory (H.F. Reid)**", "**Map Belt Labels & India's Zone V**"];
     evalData.intro_audit.model_intro_rewrite = "An **earthquake** is the sudden release of accumulated elastic strain energy along lithospheric faults (**H.F. Reid's Elastic Rebound Theory**), radiating from the sub-surface **Hypocentre (Focus)** to the **Epicentre** as seismic waves—concentrated along the **Circum-Pacific (Ring of Fire)** and **Alpine-Himalayan (including India's Seismic Zone V)** belts.";
 
-    bodyAudit.overall_assessment = "Your Body section is logically structured across **Mechanism & Occurrence** (Page 1 bottom to Page 2) and **Vulnerability from Earthquakes & Related Disasters** (Page 2 bottom to Page 3), featuring neat **Convergent & Transform Boundary block diagrams**, an accurate **Focus vs. Epicentre** distinction, and a **3-tier regional vulnerability tree (① Fold Mountains, ② Oceanic Coasts/Nuclear Facilities, ③ Global Power & Digital Grids)**. However, you termed surface waves as *'tertiary waves'* (instead of **Love & Rayleigh Surface Waves**), left the `x` markings on the Page 1 World Map **unlabeled**, and omitted **India's BIS Seismic Zonation (Zones II–V covering ~59% landmass)** and **Soil Liquefaction**.";
+    bodyAudit.overall_assessment = "Your Body section is logically structured across **Mechanism & Occurrence** (Page 1 bottom to Page 2) and **Vulnerability from Earthquakes & Related Disasters** (Page 2 bottom to Page 3), featuring neat **Convergent Boundary** and **Transform Boundary** block diagrams, an accurate **Focus vs. Epicentre** distinction, and a 3-tier regional vulnerability tree. However, you termed surface waves as *'tertiary waves'* (instead of **Love & Rayleigh Surface Waves**), left the `x` markings on the Page 1 World Map unlabeled, and omitted **India's BIS Seismic Zonation** (**IS 1893: Zones II–V**, ~59% landmass vulnerable) and **Soil Liquefaction**.";
     bodyAudit.strengths = [
       "**Visual Plate-Tectonic Mechanism & Boundary Block Diagrams (Page 1–2)**: Accurately explained lithospheric movement over the asthenosphere and frictional energy release between plates, supported by hand-drawn **Convergent Boundary** (`-> <-`) and **Transform Boundary** sketches.",
-      "**Accurate Focus vs. Epicentre Distinction (Page 2)**: Precisely defined the sub-surface origin point as the **'Focus' (Hypocentre)** and the nearest surface point where **Primary (P) waves reach first** as the **'Epicentre'**.",
-      "**Structured 3-Part Regional & Multi-Hazard Vulnerability Tree (Page 3)**: Effectively categorized vulnerability into **① Earthquakes in Young Fold Belts (Pacific, Himalayas, Rockies, Andes -> infrastructure & hilly landslides)**, **② Tsunamis along Pacific/Indian/Atlantic Coasts (coastal flooding & nuclear facility damage like Fukushima)**, and **③ Global Critical Infrastructure Failure (power grids & digital connectivity)**."
+      "**Accurate Focus vs. Epicentre Distinction (Page 2)**: Precisely defined the sub-surface origin point as the **'Focus' (Hypocentre)** and the nearest surface point where **Primary (P) waves** reach first as the **'Epicentre'**.",
+      "**Structured 3-Part Regional & Multi-Hazard Vulnerability Tree (Page 3)**: Effectively categorized vulnerability into ① **Young Fold Belts** (Pacific, Himalayas, Rockies, Andes causing infrastructure loss & landslides), ② **Coastal Tsunami Inundation** (Pacific/Indian/Atlantic coasts; nuclear safety risks like Fukushima), and ③ **Critical Infrastructure Breakdown** (power grids & telecommunications disruption)."
     ];
     bodyAudit.critical_gaps = [
-      "**Correct Seismic Wave Classification ('Tertiary Waves' -> Surface Waves) & Add Benioff Zone (Page 2)**: You wrote that seismic waves are *'primary, secondary and tertiary'*—replace *'tertiary'* with **Surface Waves (Love & Rayleigh waves, which cause maximum surface destruction)** alongside **Body Waves (P & S waves)**, and cite **Wadati–Benioff subduction zones**.",
-      "**Label the Pre-Printed World Map & Integrate India's BIS Seismic Zonation (Page 1 & Page 3)**: While you marked `x x x` along major belts on the Page 1 map, you did not **write text labels** beside them or cite **India's BIS Seismic Zoning (IS 1893: Zones II–V, ~59% landmass vulnerable)**—specifically **Zone V (Himalayan arc, Kashmir, Uttarakhand, Rann of Kutch, North-East)**.",
-      "**Add Geomorphic & Urban Vulnerability Dimensions (Soil Liquefaction & Reservoir-Induced Seismicity)**: Enrich your cascading disasters section (Page 2 bottom & Page 3) with **Soil Liquefaction** in high-water-table alluvial plains (Indo-Gangetic plains/Delhi-NCR) and **Anthropogenic / Reservoir-Induced Seismicity (e.g., Koyna Dam, 1967)**."
+      "**Correct Seismic Wave Classification ('Tertiary Waves' -> Surface Waves) & Add Benioff Zone (Page 2)**: You wrote that seismic waves are *'primary, secondary and tertiary'*—replace *'tertiary'* with **Surface Waves** (**Love & Rayleigh waves**; causing severe ground rupture) alongside **Body Waves** (**P & S waves**), and cite **Wadati–Benioff subduction zones**.",
+      "**Label the Pre-Printed World Map & Integrate India's BIS Seismic Zonation (Page 1 & Page 3)**: While you marked `x x x` along major belts on the Page 1 map, you did not write text labels beside them or cite **India's BIS Seismic Zonation** (**IS 1893: Zones II–V**, ~59% landmass vulnerable)—specifically **Zone V** (Himalayan arc, Kashmir, Uttarakhand, Rann of Kutch, North-East).",
+      "**Add Geomorphic & Urban Vulnerability Dimensions (Soil Liquefaction & Reservoir-Induced Seismicity)**: Enrich your cascading disasters section (Page 2 bottom & Page 3) with **Soil Liquefaction** in high-water-table alluvial plains (Indo-Gangetic plains/Delhi-NCR) and **Reservoir-Induced Seismicity** (e.g., Koyna Dam, 1967)."
     ];
     bodyAudit.missing_dimensions = [
       "**Elastic Rebound Theory (H.F. Reid) & Wadati–Benioff Subduction Zone**: How tectonic stress accumulates along locked fault planes until rock fracture rebounds, and deep-focus seismicity (`300–700 km`) along subducting oceanic slabs.",
@@ -6255,7 +6300,7 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
     evalData.body_audit = bodyAudit;
 
     if (!evalData.conclusion_audit || typeof evalData.conclusion_audit !== "object") evalData.conclusion_audit = {};
-    evalData.conclusion_audit.current_critique = "✓ **Actionable Engineering & Monitoring Conclusion (+1.5 / 2.0M)**: Your closing paragraph on Page 3 (*\"Proper measures like seismic retrofitting, geological evidencing, early warning systems, seismography are essential to protect the lives & infrastructure\"*) provides concrete disaster-mitigation engineering measures rather than a vague ending.<br>✎ **To Score Full 2.0 / 2.0M**: Pair your technical measures (**seismic retrofitting & early warning systems**) with **NDMA Earthquake Management Guidelines**, **National Building Code (NBC 2016) compliance**, and **Sendai Framework Priority 3 & 4 (Build Back Better)**.";
+    evalData.conclusion_audit.current_critique = "✓ **Actionable Engineering & Monitoring Conclusion (+1.5 / 2.0M)**: Your closing paragraph on Page 3 (*\"Proper measures like seismic retrofitting, geological evidencing, early warning systems, seismography are essential to protect the lives & infrastructure\"*) provides concrete disaster-mitigation engineering measures rather than a vague ending.<br>✎ **To Score Full 2.0 / 2.0M**: Pair your technical measures (**seismic retrofitting & early warning systems**) with **NDMA Guidelines**, **National Building Code (NBC 2016)**, and **Sendai Framework (2015–2030)**.";
     evalData.conclusion_audit.model_conclusion_rewrite = "Coupling **seismic microzonation, early warning seismography, and mandatory seismic retrofitting** under the **National Building Code (NBC 2016)** and **NDMA Guidelines**—aligned with the **Sendai Framework (2015–2030)**—is essential to transform high-exposure seismic zones from disaster vulnerability to structural resilience.";
 
     evalData.point_by_point_audit = [
@@ -7240,8 +7285,8 @@ function renderEvaluation(evalData) {
   (body.strengths || []).forEach(s => {
     registerInDeepEval(s);
     const li = document.createElement("li");
-    li.className = "flex items-start space-x-1.5";
-    li.innerHTML = `<span class="text-emerald-400 font-bold">✓</span><span>${formatHighlightedText(s)}</span>`;
+    li.className = "flex items-start space-x-2";
+    li.innerHTML = `<span class="text-emerald-500 dark:text-emerald-400 font-bold shrink-0 mt-0.5">✓</span><span class="leading-relaxed flex-1">${formatHighlightedText(s)}</span>`;
     strengthsEl.appendChild(li);
   });
 
@@ -7250,8 +7295,8 @@ function renderEvaluation(evalData) {
   (body.critical_gaps || []).forEach(g => {
     registerInDeepEval(g);
     const li = document.createElement("li");
-    li.className = "flex items-start space-x-1.5";
-    li.innerHTML = `<span class="text-amber-400 font-bold">✎</span><span>${formatHighlightedText(g)}</span>`;
+    li.className = "flex items-start space-x-2";
+    li.innerHTML = `<span class="text-amber-500 dark:text-amber-400 font-bold shrink-0 mt-0.5">✎</span><span class="leading-relaxed flex-1">${formatHighlightedText(g)}</span>`;
     gapsEl.appendChild(li);
   });
 
@@ -7262,6 +7307,7 @@ function renderEvaluation(evalData) {
   dimsToRender.forEach(d => {
     registerInDeepEval(d);
     const li = document.createElement("li");
+    li.className = "leading-relaxed";
     li.innerHTML = formatHighlightedText(d);
     missingDimEl.appendChild(li);
   });
