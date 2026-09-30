@@ -952,12 +952,16 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       * 1. Introduction (STRICTLY 2 LINES / 20-25 WORDS MAXIMUM):
         Crisp, punchy opening: 1-line technical/conceptual definition + 1-line empirical data anchor or baseline context.
         CRITICAL EXAM-HALL REALISM: NEVER write discursive, rambling 4-line paragraphs! Candidates have only 7 min (10M) or 10 min (15M) and examiners scan in ~12 seconds. An introduction exceeding 25 words wastes critical space and slows down the evaluator.
-      * 2. Core Body Sub-parts (adhering strictly to Marks Blueprint):
-        - FOR 10-MARKERS: Exactly 2 sub-parts. 3 to 4 numbered points per sub-part (total 6-8 points).
-        - FOR 15-MARKERS: Exactly 3 sub-parts. 3 to 4 numbered points per sub-part (total 9-12 points). Sub-part 3 MUST be a constructive "Way Forward / Policy Roadmap".
-        - FOR 20-MARKERS: Exactly 3 to 4 sub-parts. 4 to 5 numbered points per sub-part (total 12-16 points). Final sub-part MUST be systemic structural solutions.
+      * 2. Core Body Sub-parts (adhering strictly to Question Demand & Marks Blueprint):
+        - FOR 10-MARKERS: 2 sub-parts aligned to the question demands (3 to 4 numbered points per sub-part). If a Way Forward is included at the bottom of a tight 10-marker, keep it to a crisp 2-3 line paragraph or 2 short bullets so space is not wasted.
+        - FOR 15-MARKERS: 2 to 3 sub-parts aligned strictly to the explicit demands of the prompt (total 9-12 points).
+          * RATIONAL WAY-FORWARD RULE ("Don't write Way Forward in every question"):
+            1. If the question is History, Art & Culture, or pure Physical Geography mechanism (e.g. Ahom Kingdom, Temple Architecture, Plate Tectonics): DO NOT include or demand a "Way Forward" section!
+            2. If Part B of the question ALREADY asks for "steps taken by the government", "measures to control", or "framework to be adopted" (e.g. "Highlight the steps taken by the government to address the fall in private investments"): That sub-part IS the forward-looking section! DO NOT add a separate redundant "Way Forward" heading after it.
+            3. ONLY include/recommend a dedicated "Way Forward" sub-part when the question focuses on governance/economic/social/security challenges, limitations, or bottlenecks without already having a "Measures/Steps" sub-part.
+        - FOR 20-MARKERS: 3 to 4 sub-parts (12-16 points total) matched to the question's analytical dimensions.
         - Every bullet MUST follow Point-First Assertion (Bold key takeaway -> 1-line causal reasoning -> specific real-world example/data).
-      * 3. [EXAM-HALL SCHEMATIC]: Exactly ONE clean, compact 4-line micro-diagram (e.g. 2x2 matrix, Hub-and-Spoke, Triangle, or 3-box linear flow) that can be hand-drawn in 30 seconds.
+      * 3. [EXAM-HALL SCHEMATIC]: Include a compact 4-line micro-diagram or map ONLY where it is self-explanatory and adds spatial/process clarity (never draw decorative cartoons).
       * 4. Conclusion (strictly 2-3 lines / 20-25 words): Forward-looking, positive synthesis citing 1 concrete scheme/committee or constitutional ideal.
       * Total word count MUST NOT exceed {150 if max_marks == 10 else 250 if max_marks == 15 else 300} words!
 
@@ -1005,20 +1009,18 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
 12. MARKS-CALIBRATED STRUCTURAL ARCHITECTURE (10M vs 15M vs 20M BLUEPRINT):
     Enforce the 80-10-10 Rule (Body carries ~80% weightage; Intro and Conclusion carry ~10% each).
     - FOR 10-MARKERS (150 words / 2 pages / ~7 min):
-      * Sub-part count: Exactly 2 sub-parts in the body.
+      * Sub-part count: 2 sub-parts in the body aligned to the question demands.
       * Point budget: 3 to 4 points per sub-part (6 to 8 points total across the body).
       * Intro: 2-3 lines (crisp definition, data baseline, or recent context).
       * Conclusion: 2-3 lines (forward-looking policy or vision).
-      * 1 small boxed micro-diagram/schematic (<30 seconds execution).
     - FOR 15-MARKERS (250 words / 3 pages / ~9-11 min):
-      * Sub-part count: Exactly 3 distinct sub-parts in the body.
+      * Sub-part count: 2 to 3 distinct sub-parts in the body matched to the question prompt.
       * Point budget: 3 to 4 points per sub-part (9 to 12 points total across the body).
       * Balanced distribution: Equal point counts across sub-parts (penalize answers that write 8 points for one sub-part and only 2 for another).
-      * MANDATORY "NO DEAD-END" RULE: The 3rd sub-part MUST NOT end on challenges, obstacles, or criticisms! It must provide a constructive "Way Forward", actionable policy roadmap, or institutional solutions before the conclusion.
+      * CONDITIONAL WAY-FORWARD RULE: Do NOT force a "Way Forward" in every question! If the question is History/Culture/Pure Physical Geography, OR if Part B of the prompt ALREADY asks for "Steps taken / Measures / Framework", do NOT demand a separate "Way Forward" heading (and if the student wrote a redundant Way Forward after a Steps/Measures section, advise: "Don't write a separate Way Forward in every question—merge these into your Measures/Steps section"). Only expect a dedicated Way Forward when a governance/economy/social/security question ends on challenges or limitations without a solution sub-part.
     - FOR 20-MARKERS (250-300 words / 4 pages / ~14-15 min):
       * Sub-part count: 3 to 4 distinct sub-parts.
       * Point budget: 4 to 5 points per sub-part (12 to 16 points total across the body).
-      * Final sub-part must be systemic structural reforms / Way Forward.
 
 13. DEMAND PARSING & QUESTION-ECHOING SUB-HEADINGS (ATISH MATHUR + TOPPER SYNTHESIS):
     - "Demand drives structure, not rigid templates".
@@ -1171,6 +1173,29 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
     - **C. Zero Intra-Card or Cross-Card Repetition & Ban on Lazy 3-Word Stubs**:
       * NEVER repeat the same keyword, phrase, or suggestion (e.g., `Liquefaction`, `Good spatial identification`, `Practical measures`, `Sendai Framework`, `Excellent use of diagrams`) across multiple `visual_annotations` cards or between `visual_annotations` and `point_by_point_audit`! Each margin card and audit item must evaluate a 100% unique set of points.
       * NEVER write lazy, telegraphic stubs like `"✓ Good spatial identification."`, `"✓ Practical measures."`, or `"✓ Balanced conclusion. ✎ Connect to sustainable development goals."` Every bullet must be a complete, specific examiner sentence quoting the candidate's written concepts (and catching subtle conceptual errors such as writing *"tertiary waves"* instead of **Surface Waves [Love & Rayleigh]**).
+
+25. CONDITIONAL HUMAN-EXAMINER DIAGNOSTIC INTELLIGENCE (APPLY STRICTLY CASE-BY-CASE — NEVER ROBOTICALLY):
+    - Evaluate each uploaded answer copy individually on its own merits. Apply the following red-pen human-examiner checks **ONLY IF AND WHERE** that specific pattern actually appears in the candidate's handwriting (NEVER apply them as a fixed template when the candidate's answer does not have that flaw):
+      * **A. Indirect / Background-Heavy Opening vs. Direct Core-Keyword Opening**:
+        - **IF** the question asks about a specific technology, institution, or policy (e.g., *Smart Agriculture*, *FATF*, *GIS & Remote Sensing*, *Atmanirbhar Bharat*) AND the candidate spends the opening lines/paragraph on broad background (*"Agriculture is 16% of GDP"*, *"What is Money Laundering"*, *"58% of India is disaster-prone"*) before defining the core topic:
+          -> Explicitly advise in `intro_audit` and the Page 1 `Intro` margin card: `"✗ **Indirect Opening**: Don't spend lines on general background—simply start directly with **[Exact Core Topic of Question]** (e.g. define it via [2-3 key elements])."`
+        - **IF** the candidate ALREADY started directly with the core concept/definition in Sentence 1: Praise the direct opening (`"✓ **Brief & Direct Introduction**"`) and DO NOT give unnecessary opening-redirection advice!
+      * **B. Unasked / Space-Wasting Body Section Detector**:
+        - **IF** the candidate writes an entire sub-heading or flowchart that the question did NOT ask for (e.g., writing 5 points on *"General Issues in Farm Productivity"* when the 10-mark prompt only asked *"How Smart Agriculture can be a game-changer"*, or writing *"Need for Cybersecurity"* when asked to *"Identify key vulnerabilities"*):
+          -> Flag that specific sub-heading in `body_audit.critical_gaps` and that page's margin card: `"✗ **Not Asked / Space Wasted**: You were asked about **[Actual Demand]**, not **[Unasked Sub-heading Written]**—skip this section to save space for **[Actual Demand]**."`
+        - **IF** all sub-headings written by the candidate directly answer the prompt's sub-parts: NEVER invent false "irrelevant section" criticism.
+      * **C. Category-Mismatched Schemes & Duplicate Arguments Check**:
+        - **IF** the candidate cites a scheme/example that belongs to a different category than the heading (e.g., citing *Sukanya Samriddhi / Man Dhan* social pension schemes under *Steps to revive Private Corporate Investment*, or citing *Laiphadibi dolls of Manipur* under *Ahom Kingdom*):
+          -> Point out why it doesn't fit (`"✗ **Category Fix**: [Written Scheme] is a social protection scheme, not a private investment reform"`) and give **2–3 exact replacement points** (`"✎ **Write Specific Points Instead**: -> Ease of Doing Business, -> FDI Relaxation, -> Corporate Tax Cut"`).
+        - **IF** two numbered points written by the candidate repeat the same idea in different words (e.g., Point 2 *"Better marketing of pulses"* and Point 3 *"Increase procurement of pulses"*):
+          -> Flag them together (`"✎ **Same Argument (Points X & Y)**: Merge these two overlapping points and add a distinct point such as **[Specific Alternative]**"`).
+      * **D. Decorative Doodles vs. Self-Explanatory Diagrams & Sub-Heading Grouping**:
+        - **IF** the candidate draws a purely decorative doodle/icon (e.g., a cartoon of the Earth and a Satellite beaming rays) that conveys no technical data: Flag it (`"✗ **Not Relevant**: Skip decorative sketch and write direct applications"`).
+        - **IF** the candidate draws a genuinely informative diagram/flowchart/map: Praise it as a `"✓ **Self-Explanatory Flowchart/Map**"` (and ONLY if a freehand map lacks a border, add `"✎ Draw a neat box around the map"`).
+        - **IF** the candidate writes 5–6 valid points as a loose ungrouped list where a clean 3-part classification exists (e.g., 6 loose points on Disaster Management or 5G): Appreciate the valid points first (`"✓ **Sufficient & Relevant Points**"`) and suggest a cleaner grouping (`"✎ **Group Under Sub-Headings**: e.g. Mitigation / During Disaster / Post-Disaster"`).
+      * **E. Un-Sourced Hard Statistics & Poetic Essay Statements in GS**:
+        - **IF** the candidate writes a specific percentage/statistic without naming the report/body (e.g., *"43% MPs have criminal cases"* without **ADR**): Add a concise reminder (`"✎ **Mention Data Source**: Cite **ADR Report** beside the 43% figure"`).
+        - **IF** the candidate writes a poetic metaphor as a standalone GS bullet point (e.g., *"Rising sea raises all the boats"* in a GS-3 Economy answer): Advise (`"✎ **Tone Tip**: Reserve poetic statements for the Essay paper; state the direct economic mechanism here"`).
 
 Generate strictly valid JSON matching this schema:
 {{
