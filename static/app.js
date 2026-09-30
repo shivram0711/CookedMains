@@ -4373,7 +4373,8 @@ function renderAnnotationsOverlay() {
             .filter(Boolean);
           inlineParts.forEach(ln => {
             if (uniqueBullets.length < 2) {
-              pushUnique(ln, /^[✎✗×]/.test(ln) ? "✎" : "✓");
+              const pref = /^[✗×✘]/.test(ln) ? "✗" : /^[✎]/.test(ln) ? "✎" : "✓";
+              pushUnique(ln, pref);
             }
           });
         }
@@ -6301,18 +6302,51 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
     ];
   }
 
-  // UNIVERSAL ANTI-BROAD / ANTI-LAZY AUDIT UPGRADER (Guarantees every question gets specific, student-traced Intro, Body & Conclusion evaluation)
+  // UNIVERSAL ANTI-BROAD / ANTI-LAZY & VISION-IAS RED-PEN DIAGNOSTIC UPGRADER (Applies to every new question!)
   if (!isEarthquakeQuestion && !isAhomQuestion) {
     if (!evalData.intro_audit || typeof evalData.intro_audit !== "object") evalData.intro_audit = {};
     const rawICrit = String(evalData.intro_audit.current_critique || "").trim();
+    const openingLines = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20).slice(0, 2).join(" ");
+
+    // VisionIAS Red-Pen Check 1: Detect Indirect / Background-Heavy Opening vs. Direct Core-Keyword Opening
+    const hasIndirectBgOpening = /\b(?:contributes?\s+\d+(?:\.\d+)?\s*%\s+to\s+gdp|india\s+is\s+a\s+developing|since\s+time\s+immemorial|in\s+today'?s\s+world)\b/i.test(openingLines);
+
     if (rawICrit.length < 85 || /defines the phenomenon well|good introduction|clear introduction/i.test(rawICrit)) {
-      const openingLines = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20).slice(0, 2).join(" ");
       const missList = Array.isArray(evalData.intro_audit.missing_elements) ? evalData.intro_audit.missing_elements.filter(Boolean) : [];
       const firstKw = (Array.isArray(evalData.missing_keywords_cards) && evalData.missing_keywords_cards[0] && evalData.missing_keywords_cards[0].term)
         ? `**${evalData.missing_keywords_cards[0].term}**`
         : "a foundational theoretical/statutory anchor";
       const quoteSnippet = openingLines ? ` (*"${openingLines.slice(0, 95)}..."*)` : "";
-      evalData.intro_audit.current_critique = `✓ **Opening Premise Evaluated**: Your introduction establishes the baseline theme of the question${quoteSnippet}.<br>✎ **How to Score Full Intro Marks**: Expand your opening by 1–2 lines integrating ${missList.length > 0 ? missList.slice(0, 2).join(" and ") : firstKw} along with a concrete baseline statistic or mechanism.`;
+      if (hasIndirectBgOpening) {
+        evalData.intro_audit.current_critique = `✗ **Indirect Opening (Red-Pen Teacher Check)**: Your opening lines${quoteSnippet} start with general background—don't spend lines on background; start directly by defining the core keyword of the question and anchoring ${missList.length > 0 ? missList.slice(0, 2).join(" & ") : firstKw}.`;
+      } else {
+        evalData.intro_audit.current_critique = `✓ **Opening Premise Evaluated**: Your introduction establishes the baseline theme of the question${quoteSnippet}.<br>✎ **How to Score Full Intro Marks**: Expand your opening by 1–2 lines integrating ${missList.length > 0 ? missList.slice(0, 2).join(" and ") : firstKw} along with a concrete baseline statistic or mechanism.`;
+      }
+    } else if (hasIndirectBgOpening && !/indirect opening|background/i.test(rawICrit)) {
+      evalData.intro_audit.current_critique = `✗ **Indirect Opening Tip**: Start directly with the core concept of the question rather than general background.<br>` + rawICrit;
+    }
+
+    // VisionIAS Red-Pen Check 2: Detect Unsourced Hard Statistics in Candidate's Handwriting
+    const rawTranscriptClean = String(evalData.transcribed_text || "");
+    const pctRegex = /\b(\d{1,2}(?:\.\d+)?\s*%)/g;
+    let pctMatch;
+    let unsourcedPctFound = null;
+    while ((pctMatch = pctRegex.exec(rawTranscriptClean)) !== null) {
+      const windowStart = Math.max(0, pctMatch.index - 65);
+      const windowEnd = Math.min(rawTranscriptClean.length, pctMatch.index + 65);
+      const surrounding = rawTranscriptClean.slice(windowStart, windowEnd).toLowerCase();
+      const hasSource = /\b(?:niti|nso|survey|rbi|adr|ncrb|ipcc|imd|bis|undp|ilo|who|world\s+bank|imf|census|nfhs|plfs|ndma|report|ministry|commission|index|data)\b/i.test(surrounding);
+      if (!hasSource) {
+        unsourcedPctFound = pctMatch[1].trim();
+        break;
+      }
+    }
+    if (unsourcedPctFound) {
+      if (!evalData.micro_hygiene || typeof evalData.micro_hygiene !== "object") evalData.micro_hygiene = {};
+      const curPres = String(evalData.micro_hygiene.presentation_and_word_count || "");
+      if (!curPres.toLowerCase().includes("mention data source")) {
+        evalData.micro_hygiene.presentation_and_word_count = `${curPres ? curPres.replace(/\.?$/, ". ") : ""}✎ **Mention Data Source (Red-Pen Tip)**: Cite the official report/authority in brackets beside your **${unsourcedPctFound}** figure.`;
+      }
     }
 
     if (!evalData.conclusion_audit || typeof evalData.conclusion_audit !== "object") evalData.conclusion_audit = {};
