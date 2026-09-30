@@ -1161,6 +1161,17 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       * **Section 3 (`body_audit`, `missing_keywords_cards`, `value_add_checklist`, `current_affairs_value_add`)**: Every recommended keyword, committee report, judgment, or scheme MUST belong 100% to the sub-topic of the question (e.g., APEDA/MIDH/Dalwai Committee for Horticulture; NSO/CWS-US/SCES/ILO for PLFS; ANRF/TRL-9/NDTSP/GFR-173 for Deep-Tech; Art 13/50/Kesavananda/NJAC for Judicial Review). Never reuse the same default schemes, committees, or case laws across unrelated questions.
       * **Section 4 (`conclusion_audit` & `full_model_answer` closing)**: Every conclusion MUST synthesize the specific institutional, constitutional, or policy mechanism of THAT question—never end every answer with a mechanical `"Viksit Bharat @2047"` or `"by 2047"` catchphrase.
 
+24. PRE-PRINTED MAP / DIAGRAM BOX TRACING, STRICT PAGE-SPECIFIC ALIGNMENT & ZERO REPETITION (NON-NEGOTIABLE):
+    - **A. Pre-Printed Map / Diagram Box on Page 1**:
+      * When Page 1 of the booklet contains a **pre-printed Map or Box** below the question header (e.g., *"With the help of map given below..."* occupying `y = 24%–60%`), the candidate's handwritten `Intro` starts **BELOW the map** (typically `start_y_percent: 60, end_y_percent: 77`), and the start of the `Body` is at the bottom of Page 1 (`start_y_percent: 78, end_y_percent: 90`).
+      * NEVER set `Intro` `start_y_percent` to `25–40%` over a pre-printed map or question header! Always set `start_y_percent` and `end_y_percent` strictly around the candidate's actual handwritten Introduction paragraph below the map, while evaluating any markings (`x` crosses, shading, or missing belt labels) made on the map inside the `Intro` remark and `intro_audit`.
+    - **B. Strict Page-Specific Content Alignment (Zero Cross-Page Misattribution)**:
+      * NEVER praise or critique a diagram or point on Page 1 if the candidate actually drew/wrote it on Page 2 or Page 3 (e.g., if `Convergent Boundary` and `Transform Boundary` block diagrams are drawn on Page 2, evaluate them in Page 2's margin card—NEVER in Page 1's margin card!).
+      * On every page, match the margin card `tag` and `remark` strictly to the exact sub-headings, numbered trees (`①`, `②`, `③`), and diagrams physically present inside that page's `start_y_percent`..`end_y_percent` band.
+    - **C. Zero Intra-Card or Cross-Card Repetition & Ban on Lazy 3-Word Stubs**:
+      * NEVER repeat the same keyword, phrase, or suggestion (e.g., `Liquefaction`, `Good spatial identification`, `Practical measures`, `Sendai Framework`, `Excellent use of diagrams`) across multiple `visual_annotations` cards or between `visual_annotations` and `point_by_point_audit`! Each margin card and audit item must evaluate a 100% unique set of points.
+      * NEVER write lazy, telegraphic stubs like `"✓ Good spatial identification."`, `"✓ Practical measures."`, or `"✓ Balanced conclusion. ✎ Connect to sustainable development goals."` Every bullet must be a complete, specific examiner sentence quoting the candidate's written concepts (and catching subtle conceptual errors such as writing *"tertiary waves"* instead of **Surface Waves [Love & Rayleigh]**).
+
 Generate strictly valid JSON matching this schema:
 {{
   "detected_question": "Exact question read from booklet header or provided by user",
