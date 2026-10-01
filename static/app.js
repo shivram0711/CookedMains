@@ -4093,27 +4093,27 @@ function renderAnnotationsOverlay() {
   // Synchronize Rubric Breakdown & Margin Annotations so scores and denominators never conflict
   syncRubricAndMarginScores(activeEval);
 
-  if (typeof window.synthesizeAuthenticPageSections !== "function") {
-    window.synthesizeAuthenticPageSections = function(evalObj, pgNum, totPgs, formatBulletsFn) {
-      const evalData = evalObj || {};
-      const pageAnns = (evalData.visual_annotations || evalData.annotations || []).filter(a => (parseInt(a.page, 10) || 1) === pgNum);
-      const syncedRubric = evalData.rubric_scores || {};
-      const mmVal = parseInt(evalData.max_marks || syncedRubric.total_max || 10, 10);
-      const defIntroMax = mmVal === 10 ? 1.5 : (mmVal === 15 ? 2.0 : 2.5);
-      const defConcMax = mmVal === 10 ? 1.5 : (mmVal === 15 ? 2.0 : 2.5);
-      const defCoreMax = mmVal === 10 ? 4.5 : (mmVal === 15 ? 7.0 : 9.5);
-      const defValMax = mmVal === 10 ? 1.5 : (mmVal === 15 ? 2.5 : 3.5);
-      const defPresMax = mmVal === 10 ? 1.0 : (mmVal === 15 ? 1.5 : 2.0);
-      const defBodyMax = defCoreMax + defValMax + defPresMax;
+  window.synthesizeAuthenticPageSections = function(evalObj, pgNum, totPgs, formatBulletsFn) {
+    const evalData = evalObj || {};
+    const pageAnns = (evalData.visual_annotations || evalData.annotations || []).filter(a => (parseInt(a.page, 10) || 1) === pgNum);
+    const syncedRubric = evalData.rubric_scores || {};
+    const mmVal = parseInt(evalData.max_marks || syncedRubric.total_max || 10, 10);
+    const defIntroMax = mmVal === 10 ? 1.5 : (mmVal === 15 ? 2.0 : 2.5);
+    const defConcMax = mmVal === 10 ? 1.5 : (mmVal === 15 ? 2.0 : 2.5);
+    const defCoreMax = mmVal === 10 ? 4.5 : (mmVal === 15 ? 7.0 : 9.5);
+    const defValMax = mmVal === 10 ? 1.5 : (mmVal === 15 ? 2.5 : 3.5);
+    const defPresMax = mmVal === 10 ? 1.0 : (mmVal === 15 ? 1.5 : 2.0);
+    const defBodyMax = defCoreMax + defValMax + defPresMax;
 
-      const introMaxNum = parseFloat(syncedRubric.intro_max) || defIntroMax;
-      const concMaxNum = parseFloat(syncedRubric.conclusion_max) || defConcMax;
-      const coreMaxNum = parseFloat(syncedRubric.core_demand_max) || defCoreMax;
-      const valMaxNum = parseFloat(syncedRubric.value_add_max) || defValMax;
-      const presMaxNum = parseFloat(syncedRubric.presentation_max) || defPresMax;
-      const bodyMaxNum = (parseFloat(syncedRubric.core_demand_max) && parseFloat(syncedRubric.value_add_max) && parseFloat(syncedRubric.presentation_max))
-        ? (parseFloat(syncedRubric.core_demand_max) + parseFloat(syncedRubric.value_add_max) + parseFloat(syncedRubric.presentation_max))
-        : defBodyMax;
+    const introMaxNum = parseFloat(syncedRubric.intro_max) || defIntroMax;
+    const concMaxNum = parseFloat(syncedRubric.conclusion_max) || defConcMax;
+    const coreMaxNum = parseFloat(syncedRubric.core_demand_max) || defCoreMax;
+    const valMaxNum = parseFloat(syncedRubric.value_add_max) || defValMax;
+    const presMaxNum = parseFloat(syncedRubric.presentation_max) || defPresMax;
+    const bodyMaxNum = (parseFloat(syncedRubric.core_demand_max) && parseFloat(syncedRubric.value_add_max) && parseFloat(syncedRubric.presentation_max))
+      ? (parseFloat(syncedRubric.core_demand_max) + parseFloat(syncedRubric.value_add_max) + parseFloat(syncedRubric.presentation_max))
+      : defBodyMax;
+    const totalBodyMax = bodyMaxNum;
 
       const fallbackIntroMarks = `+${(parseFloat(syncedRubric.intro_score) || (mmVal === 10 ? 1.0 : 1.5)).toFixed(1)} / ${introMaxNum.toFixed(1)}`;
       const fallbackConcMarks = `+${(parseFloat(syncedRubric.conclusion_score) || (mmVal === 10 ? 0.5 : 1.0)).toFixed(1)} / ${concMaxNum.toFixed(1)}`;
@@ -5004,7 +5004,7 @@ function renderAnnotationsOverlay() {
           const resolvedFinalBodyTitle = bodyTagTitle.includes("BODY") ? bodyTagTitle : `BODY: ${bodyTagTitle}`;
           const resolvedFinalBodyRemark = buildDynamicBodyRemark(1, bodyRemCandidate, pgNum);
 
-          const detectedBottom = (sections && sections._detectedBottomY) || (rawBody && rawBody.end_y_percent) || 42.0;
+          const detectedBottom = (rawBody && rawBody.end_y_percent) || 42.0;
           const bodyEndY = Math.min(Math.max(detectedBottom, 30.0), 55.0);
           const concStartY = bodyEndY + 2.0;
           const concEndY = Math.min(concStartY + 24.0, 78.0);
@@ -5015,7 +5015,7 @@ function renderAnnotationsOverlay() {
             title: resolvedFinalBodyTitle,
             icon: "✓",
             isTick: true,
-            startYPercent: (sections && sections._detectedTopY) || 16.0,
+            startYPercent: (rawBody && rawBody.start_y_percent) || 16.0,
             endYPercent: bodyEndY,
             cardTopPercent: 12,
             lockCustomBounds: true,
@@ -5221,7 +5221,6 @@ function renderAnnotationsOverlay() {
 
       return outSections;
     };
-  }
 
   const sections = window.synthesizeAuthenticPageSections(activeEval, currentPg, totalPages, (txt) => parseBullets(txt, 2));
 
