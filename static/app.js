@@ -4557,9 +4557,28 @@ function renderAnnotationsOverlay() {
               "✎ **60-Second Recovery Strategy**: In the initial phase of answer writing, practice reserving the last 60 seconds for a 2-line closing linking ADP to **Sabka Saath, Sabka Vikas** and **SDG Localization**."
             ].join("\n");
           }
+          // Dynamically leverage evaluator_engine's domain-specific conclusion rewrite if available
+          const engineConc = (concAudit && concAudit.model_conclusion_rewrite) ? String(concAudit.model_conclusion_rewrite).trim() : "";
+          let recoveryStrategy = "";
+          if (engineConc && engineConc.length > 20) {
+            const trimmedSynthesis = engineConc.replace(/\*\*/g, "").slice(0, 160).replace(/\.?$/, ".");
+            recoveryStrategy = `In the initial phase of answer writing, practice reserving the last 60 seconds for a 2-line closing linking to: **${trimmedSynthesis}**`;
+          } else {
+            const detectedP = String(evalData.detected_paper || state.paper || "").toUpperCase();
+            const qT = String(evalData.detected_question || state.question || "").toLowerCase();
+            if (detectedP.includes("GS1") || /history|art|culture|heritage|geography|monsoon|earthquake/i.test(qT)) {
+              recoveryStrategy = "In the initial phase of answer writing, practice reserving the last 60 seconds for a 2-line closing linking to historical/epigraphical continuity or the NDMA / Sendai Framework for disaster resilience.";
+            } else if (detectedP.includes("GS2") || /polity|governance|constitution|article|judiciar|federal|schemes|treaty|bilateral|international/i.test(qT)) {
+              recoveryStrategy = "In the initial phase of answer writing, practice reserving the last 60 seconds for a 2-line closing linking to Constitutional Morality, Supreme Court doctrine, or diplomatic/bilateral vision.";
+            } else if (detectedP.includes("GS4") || /ethics|moral|integrity|civil service|probity|nolan/i.test(qT)) {
+              recoveryStrategy = "In the initial phase of answer writing, practice reserving the last 60 seconds for a 2-line closing linking ethical dilemmas to Constitutional Values, Nolan Principles of Public Life, and public trust.";
+            } else {
+              recoveryStrategy = "In the initial phase of answer writing, practice reserving the last 60 seconds for a 2-line closing linking the core issue to national policy goals and sustainable execution.";
+            }
+          }
           return [
-            `✗ **Incomplete Answer / Missing Conclusion**: The conclusion was not attempted, forfeiting +0.0 / ${concMaxNum.toFixed(1)} marks.`,
-            "✎ **60-Second Emergency Wrap-Up**: Always reserve the final 60 seconds to write a balanced 2-line visionary synthesis connecting to constitutional values or SDGs to avoid losing structure marks."
+            `✗ **Conclusion Not Attempted (0.0 Marks)**: The answer stopped without a closing synthesis paragraph, forfeiting +0.0 / ${concMaxNum.toFixed(1)} marks.`,
+            `✎ **60-Second Recovery Strategy**: ${recoveryStrategy}`
           ].join("\n");
         }
         if (isEarthquakeMapCopy) {
@@ -4846,15 +4865,26 @@ function renderAnnotationsOverlay() {
 
         const finalConcRemark = buildDynamicConcRemark(concRemCandidate);
 
-        if (isAspirationalDistrictsCopy && isCandidateIncompleteCopy) {
+        if (isCandidateIncompleteCopy) {
+          const bodyTagTitle = isAspirationalDistrictsCopy
+            ? "INCLUSIVE GROWTH & WAY FORWARD"
+            : ((rawBody && rawBody.tag) ? String(rawBody.tag).replace(/^body:\s*/i, "").trim().toUpperCase() : "KEY DIMENSIONS & MEASURES");
+          const resolvedFinalBodyTitle = bodyTagTitle.includes("BODY") ? bodyTagTitle : `BODY: ${bodyTagTitle}`;
           const resolvedFinalBodyRemark = buildDynamicBodyRemark(1, bodyRemCandidate, pgNum);
+
+          const detectedBottom = (sections && sections._detectedBottomY) || (rawBody && rawBody.end_y_percent) || 42.0;
+          const bodyEndY = Math.min(Math.max(detectedBottom, 30.0), 55.0);
+          const concStartY = bodyEndY + 2.0;
+          const concEndY = Math.min(concStartY + 24.0, 78.0);
+          const concCardTop = Math.min(concStartY + 4.0, 65.0);
+
           outSections.push({
             zone: "body",
-            title: "BODY: INCLUSIVE GROWTH & WAY FORWARD",
+            title: resolvedFinalBodyTitle,
             icon: "✓",
             isTick: true,
-            startYPercent: 18.0,
-            endYPercent: 42.0,
+            startYPercent: (sections && sections._detectedTopY) || 16.0,
+            endYPercent: bodyEndY,
             cardTopPercent: 12,
             lockCustomBounds: true,
             marks: `+${(totalBodyScore / 2).toFixed(1)} / ${(bodyMaxNum / 2).toFixed(1)}`,
@@ -4867,9 +4897,9 @@ function renderAnnotationsOverlay() {
             title: "CONCLUSION (NOT ATTEMPTED)",
             icon: "✗",
             isTick: false,
-            startYPercent: 44.0,
-            endYPercent: 66.0,
-            cardTopPercent: 50,
+            startYPercent: concStartY,
+            endYPercent: concEndY,
+            cardTopPercent: concCardTop,
             lockCustomBounds: true,
             noBrace: true,
             isUnwritten: true,
@@ -6681,11 +6711,21 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
     }
 
     if (!evalData.conclusion_audit || typeof evalData.conclusion_audit !== "object") evalData.conclusion_audit = {};
-    const rawCCrit = String(evalData.conclusion_audit.current_critique || "").trim();
-    if (rawCCrit.length < 85 || /balanced conclusion|connect to sustainable development goals/i.test(rawCCrit)) {
-      const closingLines = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20).slice(-1)[0] || "";
-      const quoteClosing = closingLines ? ` (*"${closingLines.slice(0, 95)}..."*)` : "";
-      evalData.conclusion_audit.current_critique = `✓ **Concluding Synthesis Evaluated**: Your closing paragraph summarizes your stance on the topic${quoteClosing}.<br>✎ **How to Score Full Conclusion Marks**: Anchor your final lines in a specific institutional framework, national guideline, or statutory benchmark rather than a broad generalization.`;
+    const isIncomp = Boolean(evalData.is_incomplete_answer || evalData.is_candidate_incomplete_answer || evalData.conclusion_audit.is_unwritten || evalData.conclusion_audit.score === 0);
+    if (isIncomp) {
+      evalData.conclusion_audit.score = 0.0;
+      evalData.conclusion_audit.is_unwritten = true;
+      if (!evalData.conclusion_audit.current_critique || !evalData.conclusion_audit.current_critique.includes("Conclusion Not Attempted")) {
+        const cRewr = evalData.conclusion_audit.model_conclusion_rewrite || "a visionary 2-line synthesis connecting to statutory/institutional anchors";
+        evalData.conclusion_audit.current_critique = `✗ **Conclusion Not Attempted (Incomplete Answer)**: Your answer ended without writing a concluding synthesis paragraph (+0.0 marks awarded).<br>✎ **60-Second Recovery Strategy**: In the initial phase of answer writing, practice reserving the last 60 seconds to write a 2-line synthesis: ${cRewr}`;
+      }
+    } else {
+      const rawCCrit = String(evalData.conclusion_audit.current_critique || "").trim();
+      if (rawCCrit.length < 85 || /balanced conclusion|connect to sustainable development goals/i.test(rawCCrit)) {
+        const closingLines = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20).slice(-1)[0] || "";
+        const quoteClosing = closingLines ? ` (*"${closingLines.slice(0, 95)}..."*)` : "";
+        evalData.conclusion_audit.current_critique = `✓ **Concluding Synthesis Evaluated**: Your closing paragraph summarizes your stance on the topic${quoteClosing}.<br>✎ **How to Score Full Conclusion Marks**: Anchor your final lines in a specific institutional framework, national guideline, or statutory benchmark rather than a broad generalization.`;
+      }
     }
   }
 

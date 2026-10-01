@@ -74,6 +74,30 @@ DIRECTIVES = {
     "comment": {
         "meaning": "Express personal perspective based on logic, constitutional principles, and facts.",
         "ideal_balance": "Reasoned arguments taking a clear, substantiated stand."
+    },
+    "substantiate": {
+        "meaning": "Back every core argument with empirical evidence, statutory provisions, landmark judgments, committee reports, or concrete case studies; penalize unbacked assertions.",
+        "ideal_balance": "40% core thesis arguments, 50% concrete empirical/institutional substantiation, 10% balanced forward vision."
+    },
+    "do you agree": {
+        "meaning": "Take an explicit reasoned stance in the opening, substantiate with solid arguments, acknowledge counter-perspectives and operational challenges, and conclude with a nuanced synthesis.",
+        "ideal_balance": "15% upfront stance & context, 50% arguments in favor, 25% counter-perspectives & ground challenges, 10% constructive synthesis."
+    },
+    "illustrate": {
+        "meaning": "Clarify and prove the concept using concrete real-world examples, diagrams, sketch maps, and case studies.",
+        "ideal_balance": "65% explanatory mechanism with diagrams/maps, 25% real-world case studies, 10% forward-looking conclusion."
+    },
+    "assess": {
+        "meaning": "Measure performance or outcomes against stated policy goals, benchmark criteria, or constitutional standards, concluding with a clear qualitative or quantitative verdict.",
+        "ideal_balance": "30% criteria & achievements, 45% limitations & implementation gaps, 25% verdict & reform roadmap."
+    },
+    "compare and contrast": {
+        "meaning": "Systematic juxtaposition highlighting both similarities (convergence) and differences (divergence), ideally using a structured comparison framework or table.",
+        "ideal_balance": "20% foundational concepts, 60% structured comparative analysis (tabular/thematic), 20% contextual relevance & conclusion."
+    },
+    "distinguish": {
+        "meaning": "Clearly differentiate concepts based on definitions, operational mechanisms, legal/institutional status, and practical implications.",
+        "ideal_balance": "25% definitions, 60% tabular/thematic differentiation criteria, 15% contemporary relevance."
     }
 }
 
@@ -185,7 +209,9 @@ PAPER_TAXONOMIES = {
 
 def detect_directive(question_text: str) -> Dict[str, str]:
     text_lower = (question_text or "").lower()
-    for directive, info in DIRECTIVES.items():
+    # Sort by key length descending so multi-word directives take precedence (e.g. "do you agree" before "agree", "critically examine" before "examine")
+    sorted_directives = sorted(DIRECTIVES.items(), key=lambda x: len(x[0]), reverse=True)
+    for directive, info in sorted_directives:
         if re.search(r'\b' + re.escape(directive) + r'\b', text_lower):
             return {"directive": directive.title(), "details": info["meaning"], "ideal_balance": info["ideal_balance"]}
     return {
@@ -2340,6 +2366,36 @@ def _build_domain_specific_conclusion(question_text: str, paper_name: str, exist
             "Fast-tracking special MP/MLA courts alongside statutory **inner-party democracy (Law Commission 255th Report)** and **state funding reforms (Indrajit Gupta Committee)** "
             "is essential to cleanse the legislature and uphold the **purity of the ballot under Article 324**."
         )
+    if "GS1" in p_up and any(k in q_low for k in ["earthquake", "cyclone", "volcano", "plate", "climate", "monsoon", "disaster", "hazard", "urban heat", "landslide", "tsunami"]):
+        return (
+            "Integrating **seismic microzonation**, **NDMA early warning guidelines**, and **climate-resilient infrastructure** "
+            "under the **Sendai Framework (2015–2030)** ensures that hazard-prone regions transition from disaster vulnerability to structural resilience."
+        )
+    if "GS1" in p_up and any(k in q_low for k in ["history", "art", "culture", "ahom", "chola", "maurya", "temple", "heritage", "movement"]):
+        return (
+            "Synthesizing **epigraphical and archival evidence** with **living cultural continuity** ensures that India's "
+            "rich civilizational heritage continues to nurture national identity and constitutional fraternity."
+        )
+    if "GS3" in p_up and any(k in q_low for k in ["economy", "gdp", "fiscal", "inflation", "manufacturing", "semiconductor", "msme", "trade", "investment", "tax"]):
+        return (
+            "Aligning **structural fiscal consolidation** with **targeted capex multiplier investments** and **domestic supply-chain formalization** "
+            "will drive sustainable, high-productivity economic growth toward the vision of an inclusive **Viksit Bharat**."
+        )
+    if "GS3" in p_up and any(k in q_low for k in ["biodiversity", "environment", "pollution", "forest", "wildlife", "cop", "renewable", "emission", "climate change"]):
+        return (
+            "Synthesizing **Panchamrit decarbonization targets**, **Mission LiFE behavioural nudges**, and **statutory environmental audits** "
+            "will harmonize national industrial aspirations with ecological sustainability and intergenerational equity."
+        )
+    if "GS3" in p_up and any(k in q_low for k in ["security", "border", "cyber", "terrorism", "extremism", "money laundering", "police"]):
+        return (
+            "Coupling **multi-agency intelligence telemetry (MAC/NATGRID)** with **community-oriented policing** and **state-of-the-art cyber defense grids** "
+            "is vital to safeguard national sovereignty against hybrid, multi-domain asymmetric threats."
+        )
+    if "GS2" in p_up and any(k in q_low for k in ["bilateral", "foreign", "international", "unsc", "quad", "brics", "diplomacy", "treaty", "indo-pacific"]):
+        return (
+            "Balancing **principled strategic autonomy** with **rule-based multilateralism** reinforces India's role as a "
+            "**Vishwa-Bandhu** and a stabilizing anchor in a multipolar global order."
+        )
     if "GS2" in p_up or "POLITY" in p_up:
         return (
             "Harmonizing **constitutional morality** with **institutional accountability (2nd ARC)** ensures that democratic governance delivers "
@@ -2347,8 +2403,8 @@ def _build_domain_specific_conclusion(question_text: str, paper_name: str, exist
         )
     if "GS4" in p_up or "ETHICS" in p_up:
         return (
-            "Anchoring public administration in **Nishkama Karma**, **2nd ARC 'Ethics in Governance' norms**, and **Gandhian Antyodaya** "
-            "transforms civil servants from mere rule-enforcers into **compassionate trustees of public welfare**."
+            "Anchoring administrative choices in **Constitutional Morality**, the **Nolan Committee principles (Selflessness, Integrity, Objectivity)**, and **Gandhian Antyodaya** "
+            "empowers public servants to resolve complex ethical dilemmas with compassion and unyielding probity."
         )
     if "GS1" in p_up:
         return (
@@ -2472,14 +2528,30 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
         c_audit["model_conclusion_rewrite"] = domain_conc
         data["conclusion_audit"] = c_audit
 
-    # Incomplete Answer & Generic Conclusion Audit:
+    # Incomplete Answer & Generic Conclusion Audit across all UPSC subjects:
     trans_low = str(data.get("transcribed_text") or "").lower()
-    tail_text = trans_low[-320:] if len(trans_low) > 320 else trans_low
-    is_incomplete_conc = any(p in tail_text for p in [
-        "plugging loopholes",
-        "plugging loophole",
-        "replicating the same in aspirational block"
-    ]) or (("way forward" in tail_text or "way ahead" in tail_text) and len(tail_text.split()) < 35 and not any(k in tail_text for k in ["thus", "hence", "therefore", "in conclusion", "to conclude", "overall", "consequently"]))
+    tail_text = trans_low[-340:] if len(trans_low) > 340 else trans_low
+    rubric_d = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
+    def_c_max = 1.5 if mm_eval == 10 else 2.0
+    c_max = float(rubric_d.get("conclusion_max", def_c_max) or def_c_max)
+
+    is_incomplete_conc = (
+        bool(data.get("is_incomplete_answer")) or
+        bool(data.get("is_candidate_incomplete_answer")) or
+        (float(rubric_d.get("conclusion_score", 1.0) or 1.0) == 0.0) or
+        ("unwritten" in str(c_audit.get("current_critique") or "").lower()) or
+        ("not attempted" in str(c_audit.get("current_critique") or "").lower()) or
+        any(p in tail_text for p in [
+            "plugging loopholes", "plugging loophole", "replicating the same in aspirational block"
+        ]) or (
+            any(w in tail_text for w in ["way forward", "way ahead", "measures needed", "challenges:", "points:", "remedies:"]) and
+            len(tail_text.split()) < 40 and
+            not any(k in tail_text for k in ["thus", "hence", "therefore", "in conclusion", "to conclude", "overall", "consequently", "vision"])
+        ) or (
+            re.search(r'(?i)(?:\bpoint\s*\d+|\b\d+\.|\b[ivx]+\)|\b-\s*)[^.\n]{1,60}\s*$', tail_text) is not None and
+            not any(k in tail_text for k in ["thus", "hence", "therefore", "in conclusion", "to conclude", "overall"])
+        )
+    )
 
     is_generic_conc = (not is_incomplete_conc) and any(p in tail_text for p in [
         "holistic development on part of government and society",
@@ -2490,14 +2562,13 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
     ])
 
     if is_incomplete_conc:
-        rubric_d = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
-        def_c_max = 1.5 if mm_eval == 10 else 2.0
-        c_max = float(rubric_d.get("conclusion_max", def_c_max) or def_c_max)
         rubric_d["conclusion_score"] = 0.0
         data["rubric_scores"] = rubric_d
         data["is_incomplete_answer"] = True
+        c_audit["score"] = 0.0
+        c_audit["is_unwritten"] = True
         c_audit["current_critique"] = (
-            f"✗ **Conclusion Not Attempted (Incomplete Answer)**: Your answer stopped abruptly on Page 2 after the *Way Forward* points without writing a concluding summary paragraph (forfeits +{c_max:.1f}M).\n"
+            f"✗ **Conclusion Not Attempted (Incomplete Answer)**: Your answer ended without writing a concluding synthesis paragraph (forfeits +{c_max:.1f}M).\n"
             f"✎ **How to Conclude in 60 Seconds**: In a {mm_eval}-marker, reserve 60 seconds to write a 2-line synthesis: {domain_conc}"
         )
         c_audit["model_conclusion_rewrite"] = domain_conc
