@@ -1399,6 +1399,92 @@
             </div>
 
             <!-- =======================================================================
+                 0. SPECIAL CASE STUDY AUDIT: DECISION MAKING, CHARACTER & BEST OPTIONS
+                 (Rendered dynamically whenever a GS-4 Case Study is evaluated)
+                 ======================================================================= -->
+            <div id="caseStudyAuditBox" class="hidden rounded-xl border border-indigo-500/40 bg-gradient-to-br from-indigo-950/30 via-slate-900/80 to-slate-950/90 overflow-hidden shadow-md mb-4 p-4 space-y-4">
+              <div class="flex items-center justify-between pb-3 border-b border-indigo-500/20">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-300">
+                    ⚖️ UPSC Ethics Case Study: Decision Making &amp; Character Audit
+                  </h3>
+                </div>
+                <span id="caseStudyRoleBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  Protagonist: Administrator
+                </span>
+              </div>
+
+              <!-- Core Dilemma Hook -->
+              <div class="p-3 rounded-lg bg-indigo-950/40 border border-indigo-500/20 text-xs">
+                <span class="text-[10px] font-bold uppercase text-indigo-400 block mb-0.5">Core Ethical Conflict:</span>
+                <p id="caseStudyConflictText" class="text-slate-200 font-medium leading-relaxed"></p>
+              </div>
+
+              <!-- Aspirant's Character & Intent Assessment -->
+              <div class="p-3 rounded-lg bg-slate-900/80 border border-slate-800 text-xs space-y-1">
+                <div class="flex items-center space-x-1.5 text-emerald-400 font-bold text-[11px] uppercase">
+                  <i data-lucide="heart-handshake" class="w-3.5 h-3.5"></i>
+                  <span>Aspirant's Character &amp; Intent (UPSC Mentor Verdict)</span>
+                </div>
+                <p id="caseStudyCharacterText" class="text-slate-300 leading-relaxed italic"></p>
+              </div>
+
+              <!-- UPSC Mark-Reduction Risk Alert (Shown only if decision has fatal flaw) -->
+              <div id="caseStudyRiskAlert" class="hidden p-3 rounded-lg bg-rose-950/30 border border-rose-500/30 text-xs space-y-1">
+                <div class="flex items-center space-x-1.5 text-rose-400 font-bold text-[11px] uppercase">
+                  <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+                  <span>UPSC Decision-Making Risk (Why Marks Get Deducted)</span>
+                </div>
+                <p id="caseStudyRiskText" class="text-rose-200/90 leading-relaxed"></p>
+              </div>
+
+              <!-- Best Alternative Course of Action (3-Phase SOP) -->
+              <div class="p-3 rounded-lg bg-amber-950/20 border border-amber-500/30 text-xs space-y-2">
+                <div class="flex items-center justify-between text-amber-400 font-bold text-[11px] uppercase">
+                  <span class="flex items-center space-x-1.5">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                    <span id="caseStudySopTitle">Gold Standard Decision: 3-Phase Administrative SOP</span>
+                  </span>
+                  <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">Topper Framework</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2 pt-1 text-[11px]">
+                  <div class="p-2 rounded bg-slate-900/60 border border-amber-500/20 space-y-1">
+                    <span class="text-amber-300 font-bold block">1. Immediate Phase (0–24h)</span>
+                    <p id="caseStudyPhase1" class="text-slate-300 leading-snug"></p>
+                  </div>
+                  <div class="p-2 rounded bg-slate-900/60 border border-amber-500/20 space-y-1">
+                    <span class="text-amber-300 font-bold block">2. Procedural Phase (24–72h)</span>
+                    <p id="caseStudyPhase2" class="text-slate-300 leading-snug"></p>
+                  </div>
+                  <div class="p-2 rounded bg-slate-900/60 border border-amber-500/20 space-y-1">
+                    <span class="text-amber-300 font-bold block">3. Systemic Phase (Long-term)</span>
+                    <p id="caseStudyPhase3" class="text-slate-300 leading-snug"></p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Options Matrix Table -->
+              <div id="caseStudyMatrixContainer" class="text-xs space-y-1.5">
+                <span class="text-[10px] font-bold uppercase text-slate-400 block">Comparative Options &amp; Scoring Matrix:</span>
+                <div class="overflow-x-auto rounded-lg border border-slate-800">
+                  <table class="w-full text-left text-[11px] text-slate-300 border-collapse">
+                    <thead class="bg-slate-900 text-slate-400 text-[10px] uppercase border-b border-slate-800">
+                      <tr>
+                        <th class="p-2">Course of Action / Option</th>
+                        <th class="p-2">Merits</th>
+                        <th class="p-2">Demerits</th>
+                        <th class="p-2">UPSC Scoring Feasibility</th>
+                      </tr>
+                    </thead>
+                    <tbody id="caseStudyOptionsTbody" class="divide-y divide-slate-800 bg-slate-950/40">
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- =======================================================================
                  1. INTRODUCTION AUDIT, VALUE ADDITION & MODEL OPENING
                  ======================================================================= -->
             <div id="introAuditBox" class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 overflow-hidden shadow-xs">

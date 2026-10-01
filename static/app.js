@@ -4671,7 +4671,72 @@ function renderAnnotationsOverlay() {
           targetKey: "conclusion"
         });
       } else if (pgNum === 1) {
-        if (isAspirationalDistrictsCopy) {
+        // Check if Page 1 is a Case Study printed prompt page (no student handwriting)
+        const isCasePromptP1 = (
+          pageAnns.length === 1 && (pageAnns[0].type === "info" || /prompt|scenario|printed/i.test(pageAnns[0].tag || ""))
+        ) || (
+          totPgs >= 4 && (!pageAnns.length || pageAnns.every(a => a.type === "info" || !a.marks_awarded))
+        );
+
+        if (isCasePromptP1) {
+          const promptRem = (pageAnns[0] && pageAnns[0].remark) || "📄 **Printed Case Study Prompt**: This page contains the pre-printed scenario text and sub-questions. Candidate handwriting starts on Page 2.";
+          outSections.push({
+            zone: "prompt",
+            title: "CASE STUDY SCENARIO (PRINTED PROMPT)",
+            icon: "📄",
+            isTick: false,
+            startYPercent: 16.0,
+            endYPercent: 88.0,
+            cardTopPercent: 16.0,
+            lockCustomBounds: true,
+            noBrace: true,
+            isUnwritten: false,
+            isPrompt: true,
+            marks: "",
+            bodyHtml: formatBulletsFn(promptRem),
+            bulletsHtml: formatBulletsFn(promptRem),
+            targetKey: "prompt"
+          });
+        } else if (pageAnns.some(a => a.type === "info" || /prompt/i.test(a.tag || "")) && pageAnns.some(a => a.type !== "info" && a.marks_awarded)) {
+          // Page 1 contains both printed prompt at the top and student handwriting at the bottom (e.g. Vajiram Q.7)
+          const promptAnn = pageAnns.find(a => a.type === "info" || /prompt/i.test(a.tag || ""));
+          const studentAnn = pageAnns.find(a => a !== promptAnn);
+
+          outSections.push({
+            zone: "prompt",
+            title: "CASE STUDY SCENARIO (PRINTED PROMPT)",
+            icon: "📄",
+            isTick: false,
+            startYPercent: (promptAnn && promptAnn.start_y_percent) || 16.0,
+            endYPercent: (promptAnn && promptAnn.end_y_percent) || 60.0,
+            cardTopPercent: 16.0,
+            lockCustomBounds: true,
+            noBrace: true,
+            isUnwritten: false,
+            isPrompt: true,
+            marks: "",
+            bodyHtml: formatBulletsFn((promptAnn && promptAnn.remark) || "📄 **Printed Scenario Prompt**: Contains pre-printed case facts and sub-questions."),
+            bulletsHtml: formatBulletsFn((promptAnn && promptAnn.remark) || "📄 **Printed Scenario Prompt**: Contains pre-printed case facts and sub-questions."),
+            targetKey: "prompt"
+          });
+
+          const isStudentIntro = /intro|premise/i.test(studentAnn.tag || "");
+          const studentTitle = String(studentAnn.tag || (isStudentIntro ? "INTRO: CORE ETHICAL CONFLICT" : "BODY: CORE DEMAND")).toUpperCase();
+          outSections.push({
+            zone: isStudentIntro ? "intro" : "body",
+            title: (studentTitle.startsWith("SUB-QUESTION") || studentTitle.startsWith("INTRO") || studentTitle.startsWith("BODY")) ? studentTitle : `BODY: ${studentTitle}`,
+            icon: "✓",
+            isTick: true,
+            startYPercent: (studentAnn && studentAnn.start_y_percent) || 62.0,
+            endYPercent: (studentAnn && studentAnn.end_y_percent) || 92.0,
+            cardTopPercent: (studentAnn && studentAnn.start_y_percent) || 62.0,
+            lockCustomBounds: true,
+            marks: studentAnn.marks_awarded || fallbackIntroMarks,
+            bodyHtml: formatBulletsFn(studentAnn.remark),
+            bulletsHtml: formatBulletsFn(studentAnn.remark),
+            targetKey: isStudentIntro ? "intro" : "body"
+          });
+        } else if (isAspirationalDistrictsCopy) {
           const introRem = buildDynamicIntroRemark("");
           const p1BodyRem = buildDynamicBodyRemark(0, "", 1);
           outSections.push({
@@ -4703,103 +4768,127 @@ function renderAnnotationsOverlay() {
             targetKey: "body"
           });
         } else {
-        const rawIntro = pageAnns.find(a => {
-          const t = String(a.tag || "").toLowerCase();
-          return t.includes("intro") || t.includes("premise") || t.includes("definition") || (a.approx_y_percent && a.approx_y_percent <= 36);
-        });
-        const rawBody = pageAnns.find(a => a !== rawIntro);
+          const rawIntro = pageAnns.find(a => {
+            const t = String(a.tag || "").toLowerCase();
+            return t.includes("intro") || t.includes("premise") || t.includes("definition") || (a.approx_y_percent && a.approx_y_percent <= 36);
+          });
+          const rawBody = pageAnns.find(a => a !== rawIntro);
 
-        const introRem = buildDynamicIntroRemark(rawIntro && rawIntro.remark);
-        let p1BodyTitle = isEarthquakeMapCopy
-          ? "BODY: MECHANISM & OCCURRENCE (OPENING)"
-          : isAhomCopy
-            ? "BODY: CULTURAL & HISTORICAL IDENTITY (POINTS 1–4)"
-            : ((rawBody && rawBody.tag) ? rawBody.tag.toUpperCase() : "BODY: CORE DEMAND");
-        let p1BodyRem = buildDynamicBodyRemark(0, rawBody && rawBody.remark, 1);
+          const introRem = buildDynamicIntroRemark(rawIntro && rawIntro.remark);
+          let p1BodyTitle = isEarthquakeMapCopy
+            ? "BODY: MECHANISM & OCCURRENCE (OPENING)"
+            : isAhomCopy
+              ? "BODY: CULTURAL & HISTORICAL IDENTITY (POINTS 1–4)"
+              : ((rawBody && rawBody.tag) ? rawBody.tag.toUpperCase() : "BODY: CORE DEMAND");
+          let p1BodyRem = buildDynamicBodyRemark(0, rawBody && rawBody.remark, 1);
 
-        const p1IntroStart = hasPrePrintedMapOnPage1 ? 60.5 : 16;
-        const p1IntroEnd = hasPrePrintedMapOnPage1 ? 77.0 : 34;
-        const p1IntroCardTop = hasPrePrintedMapOnPage1 ? 46 : 12;
-        const p1BodyStart = hasPrePrintedMapOnPage1 ? 78.5 : 36;
-        const p1BodyEnd = hasPrePrintedMapOnPage1 ? 89.5 : 94;
-        const p1BodyCardTop = hasPrePrintedMapOnPage1 ? 76 : 44;
+          const p1IntroStart = hasPrePrintedMapOnPage1 ? 60.5 : 16;
+          const p1IntroEnd = hasPrePrintedMapOnPage1 ? 77.0 : 34;
+          const p1IntroCardTop = hasPrePrintedMapOnPage1 ? 46 : 12;
+          const p1BodyStart = hasPrePrintedMapOnPage1 ? 78.5 : 36;
+          const p1BodyEnd = hasPrePrintedMapOnPage1 ? 89.5 : 94;
+          const p1BodyCardTop = hasPrePrintedMapOnPage1 ? 76 : 44;
 
-        outSections.push({
-          zone: "intro",
-          title: hasPrePrintedMapOnPage1 ? "INTRO & MAP" : "INTRO",
-          icon: "✓",
-          isTick: true,
-          startYPercent: p1IntroStart,
-          endYPercent: p1IntroEnd,
-          cardTopPercent: p1IntroCardTop,
-          hasPrePrintedMapAbove: hasPrePrintedMapOnPage1,
-          marks: (rawIntro && rawIntro.marks_awarded) || fallbackIntroMarks,
-          bodyHtml: formatBulletsFn(introRem),
-          bulletsHtml: formatBulletsFn(introRem),
-          targetKey: "intro"
-        });
-        outSections.push({
-          zone: "body",
-          title: p1BodyTitle.includes("BODY") ? p1BodyTitle : `BODY: ${p1BodyTitle}`,
-          icon: "✓",
-          isTick: true,
-          startYPercent: p1BodyStart,
-          endYPercent: p1BodyEnd,
-          cardTopPercent: p1BodyCardTop,
-          hasPrePrintedMapAbove: hasPrePrintedMapOnPage1,
-          marks: (rawBody && rawBody.marks_awarded) || `+${(totalBodyScore / 2).toFixed(1)} / ${(totalBodyMax / 2).toFixed(1)}`,
-          bodyHtml: formatBulletsFn(p1BodyRem),
-          bulletsHtml: formatBulletsFn(p1BodyRem),
-          targetKey: "body"
-        });
+          outSections.push({
+            zone: "intro",
+            title: hasPrePrintedMapOnPage1 ? "INTRO & MAP" : "INTRO",
+            icon: "✓",
+            isTick: true,
+            startYPercent: p1IntroStart,
+            endYPercent: p1IntroEnd,
+            cardTopPercent: p1IntroCardTop,
+            hasPrePrintedMapAbove: hasPrePrintedMapOnPage1,
+            marks: (rawIntro && rawIntro.marks_awarded) || fallbackIntroMarks,
+            bodyHtml: formatBulletsFn(introRem),
+            bulletsHtml: formatBulletsFn(introRem),
+            targetKey: "intro"
+          });
+          outSections.push({
+            zone: "body",
+            title: p1BodyTitle.includes("BODY") ? p1BodyTitle : `BODY: ${p1BodyTitle}`,
+            icon: "✓",
+            isTick: true,
+            startYPercent: p1BodyStart,
+            endYPercent: p1BodyEnd,
+            cardTopPercent: p1BodyCardTop,
+            hasPrePrintedMapAbove: hasPrePrintedMapOnPage1,
+            marks: (rawBody && rawBody.marks_awarded) || `+${(totalBodyScore / 2).toFixed(1)} / ${(totalBodyMax / 2).toFixed(1)}`,
+            bodyHtml: formatBulletsFn(p1BodyRem),
+            bulletsHtml: formatBulletsFn(p1BodyRem),
+            targetKey: "body"
+          });
         }
       } else if (pgNum < totPgs) {
-        // INTERMEDIATE PAGES (e.g. Page 2 of 3)
-        const bodyAnn1 = pageAnns[0] || null;
-        const bodyAnn2 = pageAnns.length > 1 ? pageAnns[1] : null;
+        // INTERMEDIATE PAGES (e.g. Page 2, 3, 4 of 5)
+        if (pageAnns.length === 1) {
+          const singleAnn = pageAnns[0];
+          const isIntroTag = /intro|premise|dilemma.*opening|stakeholder/i.test(singleAnn.tag || "");
+          const rawTagUpper = String(singleAnn.tag || (isIntroTag ? "INTRO: ETHICAL TENSION & STAKEHOLDERS" : "BODY: CORE DEMAND")).toUpperCase();
+          const cleanTitle = (rawTagUpper.startsWith("SUB-QUESTION") || rawTagUpper.startsWith("INTRO") || rawTagUpper.startsWith("BODY"))
+            ? rawTagUpper
+            : (isIntroTag ? rawTagUpper : `BODY: ${rawTagUpper}`);
 
-        let b1Title = isEarthquakeMapCopy
-          ? "BODY: PLATE TECTONICS & BOUNDARY DIAGRAMS"
-          : isAhomCopy
-            ? "BODY: HISTORIC IDENTITY (POINT 5 & POINTS 1–2)"
-            : ((bodyAnn1 && bodyAnn1.tag) ? bodyAnn1.tag.toUpperCase() : "BODY: CORE ANALYSIS");
-        let b1Rem = buildDynamicBodyRemark(0, bodyAnn1 && bodyAnn1.remark, pgNum);
+          outSections.push({
+            zone: isIntroTag ? "intro" : "body",
+            title: cleanTitle,
+            icon: singleAnn.type === "warning" ? "✗" : "✓",
+            isTick: singleAnn.type !== "warning",
+            startYPercent: singleAnn.start_y_percent || 16,
+            endYPercent: singleAnn.end_y_percent || 89,
+            cardTopPercent: singleAnn.start_y_percent || 16,
+            marks: singleAnn.marks_awarded || `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`,
+            bodyHtml: formatBulletsFn(singleAnn.remark),
+            bulletsHtml: formatBulletsFn(singleAnn.remark),
+            targetKey: isIntroTag ? "intro" : "body"
+          });
+        } else {
+          const bodyAnn1 = pageAnns[0] || null;
+          const bodyAnn2 = pageAnns.length > 1 ? pageAnns[1] : null;
+          const isAnn1Intro = /intro|premise|stakeholder/i.test(bodyAnn1 && bodyAnn1.tag || "");
 
-        let b2Title = isEarthquakeMapCopy
-          ? "BODY: SEISMIC WAVES, FOCUS–EPICENTRE & DISASTERS"
-          : isAhomCopy
-            ? "BODY: TRIBAL, ECONOMIC & SOCIAL HISTORY (POINTS 3–5)"
-            : ((bodyAnn2 && bodyAnn2.tag) ? bodyAnn2.tag.toUpperCase() : "BODY: DEPTH & SUBSTANTIATION");
-        let b2Rem = buildDynamicBodyRemark(1, bodyAnn2 && bodyAnn2.remark, pgNum);
+          let b1Title = isEarthquakeMapCopy
+            ? "BODY: PLATE TECTONICS & BOUNDARY DIAGRAMS"
+            : isAhomCopy
+              ? "BODY: HISTORIC IDENTITY (POINT 5 & POINTS 1–2)"
+              : ((bodyAnn1 && bodyAnn1.tag) ? bodyAnn1.tag.toUpperCase() : (isAnn1Intro ? "INTRO: ETHICAL TENSION & STAKEHOLDERS" : "BODY: CORE ANALYSIS"));
+          let b1Rem = isAnn1Intro ? buildDynamicIntroRemark(bodyAnn1 && bodyAnn1.remark) : buildDynamicBodyRemark(0, bodyAnn1 && bodyAnn1.remark, pgNum);
 
-        outSections.push({
-          zone: "body",
-          title: b1Title.includes("BODY") ? b1Title : `BODY: ${b1Title}`,
-          icon: "✓",
-          isTick: true,
-          startYPercent: isEarthquakeMapCopy ? 18 : 16,
-          endYPercent: isEarthquakeMapCopy ? 62.5 : 54,
-          cardTopPercent: 18,
-          lockCustomBounds: Boolean(isEarthquakeMapCopy),
-          marks: (bodyAnn1 && bodyAnn1.marks_awarded) || `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`,
-          bodyHtml: formatBulletsFn(b1Rem),
-          bulletsHtml: formatBulletsFn(b1Rem),
-          targetKey: "body"
-        });
-        outSections.push({
-          zone: "body",
-          title: b2Title.includes("BODY") ? b2Title : `BODY: ${b2Title}`,
-          icon: "✓",
-          isTick: true,
-          startYPercent: isEarthquakeMapCopy ? 65 : 56,
-          endYPercent: isEarthquakeMapCopy ? 89.5 : 89,
-          cardTopPercent: isEarthquakeMapCopy ? 65 : 56,
-          lockCustomBounds: Boolean(isEarthquakeMapCopy),
-          marks: (bodyAnn2 && bodyAnn2.marks_awarded) || `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`,
-          bodyHtml: formatBulletsFn(b2Rem),
-          bulletsHtml: formatBulletsFn(b2Rem),
-          targetKey: "body"
-        });
+          let b2Title = isEarthquakeMapCopy
+            ? "BODY: SEISMIC WAVES, FOCUS–EPICENTRE & DISASTERS"
+            : isAhomCopy
+              ? "BODY: TRIBAL, ECONOMIC & SOCIAL HISTORY (POINTS 3–5)"
+              : ((bodyAnn2 && bodyAnn2.tag) ? bodyAnn2.tag.toUpperCase() : "BODY: DEPTH & SUBSTANTIATION");
+          let b2Rem = buildDynamicBodyRemark(1, bodyAnn2 && bodyAnn2.remark, pgNum);
+
+          outSections.push({
+            zone: isAnn1Intro ? "intro" : "body",
+            title: (b1Title.startsWith("SUB-QUESTION") || b1Title.startsWith("INTRO") || b1Title.startsWith("BODY")) ? b1Title : `BODY: ${b1Title}`,
+            icon: (bodyAnn1 && bodyAnn1.type === "warning") ? "✗" : "✓",
+            isTick: !(bodyAnn1 && bodyAnn1.type === "warning"),
+            startYPercent: (bodyAnn1 && bodyAnn1.start_y_percent) || (isEarthquakeMapCopy ? 18 : 16),
+            endYPercent: (bodyAnn1 && bodyAnn1.end_y_percent) || (isEarthquakeMapCopy ? 62.5 : 54),
+            cardTopPercent: (bodyAnn1 && bodyAnn1.start_y_percent) || 18,
+            lockCustomBounds: Boolean(bodyAnn1 && bodyAnn1.start_y_percent) || Boolean(isEarthquakeMapCopy),
+            marks: (bodyAnn1 && bodyAnn1.marks_awarded) || (isAnn1Intro ? fallbackIntroMarks : `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`),
+            bodyHtml: formatBulletsFn(b1Rem),
+            bulletsHtml: formatBulletsFn(b1Rem),
+            targetKey: isAnn1Intro ? "intro" : "body"
+          });
+          outSections.push({
+            zone: "body",
+            title: (b2Title.startsWith("SUB-QUESTION") || b2Title.startsWith("INTRO") || b2Title.startsWith("BODY")) ? b2Title : `BODY: ${b2Title}`,
+            icon: (bodyAnn2 && bodyAnn2.type === "warning") ? "✗" : "✓",
+            isTick: !(bodyAnn2 && bodyAnn2.type === "warning"),
+            startYPercent: (bodyAnn2 && bodyAnn2.start_y_percent) || (isEarthquakeMapCopy ? 65 : 56),
+            endYPercent: (bodyAnn2 && bodyAnn2.end_y_percent) || (isEarthquakeMapCopy ? 89.5 : 89),
+            cardTopPercent: (bodyAnn2 && bodyAnn2.start_y_percent) || (isEarthquakeMapCopy ? 65 : 56),
+            lockCustomBounds: Boolean(bodyAnn2 && bodyAnn2.start_y_percent) || Boolean(isEarthquakeMapCopy),
+            marks: (bodyAnn2 && bodyAnn2.marks_awarded) || `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`,
+            bodyHtml: formatBulletsFn(b2Rem),
+            bulletsHtml: formatBulletsFn(b2Rem),
+            targetKey: "body"
+          });
+        }
       } else {
         // FINAL PAGE (e.g. Page 2 of 2 or Page 3 of 3)
         let rawBodyAnns = pageAnns.filter(a => {
@@ -7512,6 +7601,103 @@ function renderEvaluation(evalData) {
       gridEl.appendChild(card);
     });
   };
+
+  // Special Section: Case Study Decision Making, Character Audit & Best Alternative Options
+  const renderCaseStudyAudit = (data) => {
+    const csBox = document.getElementById("caseStudyAuditBox");
+    if (!csBox) return;
+
+    const cs = data.case_study_audit || {};
+    const isCs = Boolean(data.is_case_study || cs.is_case_study || (data.detected_paper === "GS4" && parseInt(data.max_marks || 10, 10) >= 15));
+
+    if (!isCs || !cs.protagonist_role) {
+      csBox.classList.add("hidden");
+      return;
+    }
+
+    csBox.classList.remove("hidden");
+
+    // 1. Role Badge & Core Conflict
+    const roleBadge = document.getElementById("caseStudyRoleBadge");
+    if (roleBadge) roleBadge.textContent = `Protagonist: ${cs.protagonist_role || "Administrator"}`;
+
+    const conflictEl = document.getElementById("caseStudyConflictText");
+    if (conflictEl) conflictEl.innerHTML = formatHighlightedText(cs.core_ethical_conflict || "Professional Duty & Rule of Law vs. External Pushback");
+
+    // 2. Aspirant's Character & Intent Assessment
+    const decEval = cs.candidate_decision_evaluation || {};
+    const charEl = document.getElementById("caseStudyCharacterText");
+    if (charEl) {
+      const intentTxt = decEval.character_and_intent_assessment || "The candidate demonstrates commendable moral empathy, clear recognition of ethical dilemmas, and genuine intent to uphold public service values.";
+      const chosenTxt = decEval.chosen_course_of_action ? `<br><span class="text-[10.5px] font-mono text-slate-400 not-italic block mt-1"><strong>Candidate's Course of Action:</strong> "${decEval.chosen_course_of_action}"</span>` : "";
+      charEl.innerHTML = formatHighlightedText(`"${intentTxt}"${chosenTxt}`);
+    }
+
+    // 3. Mark-Reduction Risk Alert
+    const riskAlert = document.getElementById("caseStudyRiskAlert");
+    const riskText = document.getElementById("caseStudyRiskText");
+    if (riskAlert && riskText) {
+      if (decEval.is_mark_reducing_decision && decEval.mark_reduction_risk_reason) {
+        riskAlert.classList.remove("hidden");
+        riskText.innerHTML = formatHighlightedText(decEval.mark_reduction_risk_reason);
+      } else {
+        riskAlert.classList.add("hidden");
+      }
+    }
+
+    // 4. Best Alternative Course of Action (3-Phase SOP)
+    const bestAlt = cs.best_alternative_course_of_action || {};
+    const sopTitle = document.getElementById("caseStudySopTitle");
+    if (sopTitle) sopTitle.textContent = bestAlt.strategy_title || "Gold Standard Decision: 3-Phase Administrative SOP";
+
+    const p1 = document.getElementById("caseStudyPhase1");
+    if (p1) p1.innerHTML = formatHighlightedText(bestAlt.phase_1_immediate || "Phase 1: Immediate relief & safety");
+
+    const p2 = document.getElementById("caseStudyPhase2");
+    if (p2) p2.innerHTML = formatHighlightedText(bestAlt.phase_2_procedural || "Phase 2: Administrative due process & legal action");
+
+    const p3 = document.getElementById("caseStudyPhase3");
+    if (p3) p3.innerHTML = formatHighlightedText(bestAlt.phase_3_systemic || "Phase 3: Long-term systemic reform");
+
+    // 5. Options Matrix Table
+    const tbody = document.getElementById("caseStudyOptionsTbody");
+    const matrixArr = Array.isArray(cs.options_matrix) ? cs.options_matrix : [];
+    if (tbody) {
+      tbody.innerHTML = "";
+      matrixArr.forEach(opt => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-900/60 transition";
+
+        let pillClass = "bg-slate-800 text-slate-300 border-slate-700";
+        const feasLow = String(opt.upsc_feasibility || "").toLowerCase();
+        if (feasLow.includes("highest") || feasLow.includes("recommended")) {
+          pillClass = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
+        } else if (feasLow.includes("unacceptable") || feasLow.includes("penalty")) {
+          pillClass = "bg-rose-500/20 text-rose-300 border-rose-500/30";
+        } else if (feasLow.includes("sub-optimal") || feasLow.includes("risky") || feasLow.includes("flawed")) {
+          pillClass = "bg-amber-500/20 text-amber-300 border-amber-500/30";
+        }
+
+        tr.innerHTML = `
+          <td class="p-2.5 font-medium text-slate-200">${formatHighlightedText(opt.option || "")}</td>
+          <td class="p-2.5 text-emerald-400/90 leading-relaxed">${formatHighlightedText(opt.merit || "")}</td>
+          <td class="p-2.5 text-rose-400/90 leading-relaxed">${formatHighlightedText(opt.demerit || "")}</td>
+          <td class="p-2.5">
+            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${pillClass}">
+              ${escapeHtml(opt.upsc_feasibility || "Evaluated")}
+            </span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
+      window.lucide.createIcons();
+    }
+  };
+
+  renderCaseStudyAudit(evalData);
 
   // Section 1: Intro Audit & How to Write (Simple, Clean & Compact — Zero Bloated Sub-Cards)
   const intro = evalData.intro_audit || {};

@@ -898,7 +898,17 @@ Every UPSC Mains paper and micro-subject has its own distinct soul, technical le
   * Environment, Security & Disaster Management DNA: Evaluate for global conventions (UNFCCC COP, Panchamrit Net Zero 2070, Mission LiFE, Kunming-Montreal 30x30, Sendai Framework 4 Priorities), NDMA guidelines, Gadgil/Kasturirangan reports, and internal security doctrines (NATGRID, MAC, Hybrid/Cyber Warfare, SAMADHAN, CIBMS, Vibrant Villages).
 - IF GS-4 (ETHICS, INTEGRITY & APTITUDE - SECTION A & SECTION B CASE STUDIES):
   * Section A (Ethical Theory, Attitude, EI & Probity) DNA: Enforce the KEE Model (Keyword -> Ethical Explanation -> Real Administrative/Societal Example), Indian + Western Philosophical Synthesis (Nishkam Karma, Antyodaya, Madhyam Marg, Kantian Categorical Imperative, Mill's Utilitarianism, Rawls' Veil of Ignorance, Virtue Ethics), CAB Model of Attitude, Daniel Goleman's Emotional Intelligence, and 2nd ARC 4th Report (Ethics in Governance).
-  * Section B (Case Studies) DNA: Evaluate for Stakeholder Matrix, Ethical & Constitutional Dilemmas, **2-column Merits vs. Demerits evaluation with explicit Demerit Mitigation**, and a 3-phased Course of Action (Immediate De-escalation -> Due Process Inquiry -> Long-Term Systemic Safeguards).
+  * Section B (Case Studies - 20-Markers, 4-5 Pages) DNA:
+    - MULTI-PART QUESTION TRACING: Case studies are divided into explicit sub-parts: (a) Options / Stakeholders / Root Causes, (b) Critical Evaluation (Merits vs Demerits), (c) Most Appropriate Course of Action / Decision Making, (d) Institutional Prevention.
+      In "visual_annotations", annotate each page with the candidate's exact sub-question:
+      e.g., "Intro: Ethical Dilemma & Stakeholders", "Sub-Question (a): Options Available", "Sub-Question (b): Critical Evaluation of Options", "Sub-Question (c): Course of Action & Decision Justification", "Conclusion: Constitutional Morality & Safeguards".
+    - CHARACTER & INTENT EVALUATION (ASPIRANT EMPATHY): Evaluate the candidate's decision making constructively without creating stress or underconfidence. Recognize good moral intention, empathy, and courage first.
+    - UPSC MARK-REDUCTION RISK WARNING: If the candidate chose a sub-optimal action that would lose marks in real UPSC (e.g. buck-passing by requesting transfer, moral muteness/passivity, leaving legal action to an abused minor/victim, accepting kickbacks out of financial distress, or unprocedural vigilantism):
+      Explicitly explain WHY real UPSC examiners penalize this decision in "case_study_audit.candidate_decision_evaluation.mark_reduction_risk_reason".
+    - BEST ALTERNATIVE OPTION (3-PHASE ADMINISTRATIVE SOP): Supply the Topper 3-Phase SOP in "case_study_audit.best_alternative_course_of_action":
+      Phase 1 (Immediate 0–24h): Emergency relief, victim safety, evidence security, preliminary legal FIR.
+      Phase 2 (Administrative 24–72h): Worksite stop-work, formal inquiry, written escalation to senior authorities (DM/Commissioner), official security requisition.
+      Phase 3 (Systemic Long-Term): Institutional reforms, direct DBT wage disbursal, anonymous grievance helplines, contractor debarment/blacklisting.
 
 CRITICAL MANDATES (NON-NEGOTIABLE):
 0. FORENSIC DISTINCTION: TYPESET PRINTED QUESTION / CASE STUDY VS. CANDIDATE'S HANDWRITING:
@@ -916,6 +926,7 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
      * In a case study where the prompt covers Page 1 and the top of Page 2, and the candidate's handwriting begins on Page 2 (e.g. "This case highlight the conflict of using social media usage for personal interest vs usage for public interest..."):
        THIS FIRST HANDWRITTEN PARAGRAPH ON PAGE 2 IS THE CANDIDATE'S INTRODUCTION (NOT BODY)!
      * Place the "Intro" annotation on Page 2 where the handwriting begins!
+     * If candidate handwriting begins at the bottom of Page 1 (e.g. y = 62%..92%), place the Intro annotation on Page 1 at y = 62%..92% while keeping the upper prompt area informational!
      * The candidate's "Body" begins after the intro where sub-questions (a), (b), (c) are answered.
      * The candidate's "Conclusion" is on the final page of their handwritten answer.
    - FULL QUESTION EXTRACTION ('detected_question'):
@@ -1459,6 +1470,43 @@ Generate strictly valid JSON matching this schema:
     "aligns_with_national_goals": true,
     "model_conclusion_rewrite": "Forward-looking, balanced synthesis conclusion connecting to national vision."
   }},
+  "case_study_audit": {{
+    "is_case_study": true, // MANDATORY: set true if this is an ethical case study / scenario dilemma (GS-4 Section B or administrative scenario)
+    "protagonist_role": "Assigned administrative role or protagonist designation (e.g. 'Labor Enforcement Officer (LEO)' or 'Head, Air Quality Compliance Division')",
+    "core_ethical_conflict": "1-line synthesis of fundamental dilemma (e.g. 'Duty & Rule of Law vs. Political Pressure & Physical Threat')",
+    "candidate_decision_evaluation": {{
+      "chosen_course_of_action": "Concise summary of the candidate's chosen decision in their script",
+      "character_and_intent_assessment": "Empathetic, encouraging evaluation of candidate's character, moral compass, and underlying intent",
+      "is_mark_reducing_decision": false, // Set to true if decision involves administrative abdication (e.g. leaving legal action to an abused minor), buck-passing, passive acquiescence, or reckless vigilantism
+      "mark_reduction_risk_reason": "Clear explanation of WHY this specific decision loses marks in UPSC Mains without causing stress to the candidate. Empty string '' if choice is sound."
+    }},
+    "best_alternative_course_of_action": {{
+      "strategy_title": "Topper 3-Phase Administrative Standard Operating Procedure (SOP)",
+      "phase_1_immediate": "Phase 1 (Immediate 0–24h): Emergency relief, victim protection, preliminary medical examination, evidence collection, and ex-officio FIR.",
+      "phase_2_procedural": "Phase 2 (Administrative 24–72h): Formal inquiry, multi-stakeholder conciliation, stop-work/impound notices, written escalation to senior authorities (DM/Commissioner), official security request.",
+      "phase_3_systemic": "Phase 3 (Long-term Systemic): Institutional reforms, direct DBT wage disbursal, anonymous grievance helplines, contractor debarment/blacklisting."
+    }},
+    "options_matrix": [
+      {{
+        "option": "Option 1: Complete Inaction / Resignation / Transfer",
+        "merit": "Short-term personal safety",
+        "demerit": "Moral muteness, administrative abdication, perpetuates systemic injustice",
+        "upsc_feasibility": "Unacceptable (Heavy Penalty)"
+      }},
+      {{
+        "option": "Option 2: Extreme Unprocedural Confrontation",
+        "merit": "Immediate deterrent impact",
+        "demerit": "Lacks institutional procedural validity, risks personal isolation",
+        "upsc_feasibility": "Sub-optimal"
+      }},
+      {{
+        "option": "Option 3: 3-Phased Procedural Prudence & Fortitude",
+        "merit": "Upholds Rule of Law, protects victim, ensures institutional integrity and personal safety",
+        "demerit": "Requires high emotional intelligence and resilience under political pressure",
+        "upsc_feasibility": "Highest Scoring (Recommended Topper Approach)"
+      }}
+    ]
+  }},
   "transcribed_text": "Readable transcription of candidate's actual written text, separated clearly by [Page 1], [Page 2], [Page 3] markers.",
   "full_model_answer": "Complete topper model answer with the ASCII diagram embedded directly in the body.",
   "jargon_buster": [
@@ -1668,12 +1716,16 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                             existing_ann["remark"] = _build_page_zone_remark(pg, pg)
 
                 if pg == 1:
+                    is_p1_prompt = any(
+                        (a.get("type") == "info" or "prompt" in str(a.get("tag", "")).lower() or "case study" in str(a.get("tag", "")).lower())
+                        for a in pg_anns
+                    )
                     intro_ann_p1 = next((a for a in pg_anns if "intro" in str(a.get("tag", "")).lower() or "premise" in str(a.get("tag", "")).lower()), None)
-                    body_ann_p1 = next((a for a in pg_anns if a is not intro_ann_p1), None)
+                    body_ann_p1 = next((a for a in pg_anns if a is not intro_ann_p1 and a.get("type") != "info"), None)
                     has_intro = intro_ann_p1 is not None
                     has_body = body_ann_p1 is not None
                     expanded_anns.extend(pg_anns)
-                    if has_intro and not has_body:
+                    if not is_p1_prompt and has_intro and not has_body:
                         expanded_anns.append({
                             "page": 1,
                             "approx_y_percent": 65,
@@ -1786,6 +1838,10 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
             new_dens = [1.5, 3.5, 3.5, 1.5] if max_marks == 10 else ([2.0, 5.5, 5.5, 2.0] if max_marks == 15 else [2.5, 7.5, 7.5, 2.5])
         elif n_sec == 5:
             new_dens = [1.5, 2.5, 2.5, 2.0, 1.5] if max_marks == 10 else ([2.0, 4.0, 4.0, 3.0, 2.0] if max_marks == 15 else [2.5, 5.0, 5.0, 5.0, 2.5])
+        elif n_sec == 6:
+            new_dens = [1.5, 2.0, 2.0, 1.5, 1.5, 1.5] if max_marks == 10 else ([2.0, 3.0, 3.0, 3.0, 2.0, 2.0] if max_marks == 15 else [2.5, 4.0, 4.0, 4.0, 3.0, 2.5])
+        elif n_sec == 7:
+            new_dens = [1.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5] if max_marks == 10 else ([2.0, 2.5, 2.5, 2.5, 2.0, 2.0, 1.5] if max_marks == 15 else [2.0, 3.5, 3.5, 3.5, 3.0, 2.5, 2.0])
         elif parsed and abs(total_den - max_marks) > 0.01 and total_den > 0:
             scale_d = max_marks / total_den
             new_dens = []
@@ -1822,6 +1878,10 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
         # Ensure Conclusion is strictly reserved for the final page (never duplicate on intermediate pages)
         # And eliminate contradictory 'Lacks Structure' remarks when candidate used Case Laws, Chronology, or Boxed Headings
         max_ann_page = max([a.get("page", 1) for a in annotations], default=1)
+        p1_has_graded_intro = any(
+            (int(a.get("page", 1) or 1) == 1) and ("intro" in str(a.get("tag", "")).lower() or "premise" in str(a.get("tag", "")).lower()) and bool(a.get("marks_awarded"))
+            for a in annotations
+        )
         for ann in annotations:
             ann_page = ann.get("page", 1)
             t_str = str(ann.get("tag", "")).strip()
@@ -1829,7 +1889,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                 if "conclusion" in t_str.lower() or "synthesis" in t_str.lower():
                     ann["tag"] = "Body: Way Forward"
             if ann_page > 1:
-                if "intro" in t_str.lower() or "definition" in t_str.lower():
+                # Do NOT convert intro on page > 1 if page 1 had no student intro (e.g. Case Study Prompt on Page 1)
+                if p1_has_graded_intro and ("intro" in t_str.lower() or "definition" in t_str.lower()):
                     ann["tag"] = "Body: Core Analysis"
             rem_text = str(ann.get("remark", ""))
             if "lacks structure" in rem_text.lower():
@@ -2848,6 +2909,242 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                 card["definition"] = f"✓ You already wrote this data/concept in your answer! Instead of writing a long descriptive statement, write the exact UPSC keyword **{raw_term}** in its place to save words and fetch instant marks. ({raw_def_clean})"
                 card["where_to_use"] = f"Replace your descriptive sentence with the exact keyword '{acr_m.group(1) if acr_m else raw_term}'."
             card["number"] = idx + 1
+
+    # Enrich GS-4 Case Study evaluation (decision making, character audit, and best alternative options)
+    _enrich_case_study_audit(data)
+
+
+def _enrich_case_study_audit(data: Dict[str, Any]) -> None:
+    """
+    Enriches GS-4 Ethics Case Studies (Section B) evaluation:
+    1. Identifies the administrative role, protagonist, and core ethical dilemma.
+    2. Evaluates the candidate's character, moral compass, and intent with empathy (no stress).
+    3. Detects if the chosen action has fatal vulnerabilities (buck-passing, administrative abdication
+       like leaving legal action to a minor, accepting bribes, unprocedural vigilantism) that would reduce marks in real UPSC.
+    4. Supplies the Gold Standard Topper 3-Phase SOP (Immediate -> Procedural -> Systemic).
+    5. Builds a structured comparative options matrix with merits, demerits, and UPSC feasibility.
+    """
+    if not isinstance(data, dict):
+        return
+
+    q_text = str(data.get("detected_question") or "").lower()
+    p_text = str(data.get("detected_paper") or "").upper()
+    t_text = str(data.get("transcribed_text") or "").lower()
+    mm_eval = int(data.get("max_marks", 20) or 20)
+    
+    is_cs = (
+        bool(data.get("is_case_study")) or
+        ("GS4" in p_text and mm_eval >= 15) or
+        ("ETHIC" in p_text and mm_eval >= 15) or
+        ("case study" in q_text or "case study" in t_text) or
+        ("options available" in q_text or "options available" in t_text) or
+        ("ethical dilemma" in q_text or "ethical dilemma" in t_text) or
+        ("courses of action" in q_text or "courses of action" in t_text) or
+        ("if you were in" in q_text or "what would you have done" in q_text) or
+        ("under the given conditions" in q_text)
+    )
+    
+    if not is_cs:
+        return
+
+    data["is_case_study"] = True
+    cs_obj = data.get("case_study_audit") if isinstance(data.get("case_study_audit"), dict) else {}
+
+    # 1. Detect Protagonist Role
+    if not cs_obj.get("protagonist_role"):
+        if "labor enforcement officer" in q_text or "leo" in q_text or "saraswathi" in q_text:
+            cs_obj["protagonist_role"] = "Labor Enforcement Officer (LEO)"
+        elif "air quality" in q_text or "pollution control" in q_text or "delhi-ncr" in q_text:
+            cs_obj["protagonist_role"] = "Head, Air Quality Compliance Division (Delhi-NCR)"
+        elif "additional director" in q_text or "health department" in q_text or "drinking water" in q_text:
+            cs_obj["protagonist_role"] = "Additional Director, Public Health Department"
+        elif "ramesh" in q_text or "pwbd" in q_text or "forged" in q_text:
+            cs_obj["protagonist_role"] = "MNC Employee & Conscientious Citizen"
+        elif "district collector" in q_text or "dm" in q_text:
+            cs_obj["protagonist_role"] = "District Magistrate / Collector"
+        elif "sp" in q_text or "superintendent of police" in q_text:
+            cs_obj["protagonist_role"] = "Superintendent of Police (SP)"
+        else:
+            cs_obj["protagonist_role"] = "Public Administrator / Decision Maker"
+
+    # 2. Core Ethical Conflict
+    if not cs_obj.get("core_ethical_conflict"):
+        if "air quality" in q_text or "pollution control" in q_text:
+            cs_obj["core_ethical_conflict"] = "Environmental Protection (Article 21 & SC Directives) vs. Industrial Employment & Migrant Livelihoods"
+        elif "saraswathi" in q_text or "labor" in q_text or "shanti" in q_text:
+            cs_obj["core_ethical_conflict"] = "Statutory Duty to Enforce Child/Labor Rights vs. Personal Safety & Political Pressure"
+        elif "ramesh" in q_text or "pwbd" in q_text:
+            cs_obj["core_ethical_conflict"] = "Personal Friendship & Family Medical Distress vs. Constitutional Probity (Article 324) & Rule of Law"
+        elif "additional director" in q_text or "contractor" in q_text:
+            cs_obj["core_ethical_conflict"] = "Career Promotion vs. Zero Tolerance for Corruption (Whistleblowing & Public Health Delivery)"
+        else:
+            cs_obj["core_ethical_conflict"] = "Constitutional Duty & Public Trust vs. Personal Interest & External Political Pressure"
+
+    # 3. Candidate Decision Evaluation & Mark-Reduction Risk Detection
+    dec_eval = cs_obj.get("candidate_decision_evaluation") if isinstance(cs_obj.get("candidate_decision_evaluation"), dict) else {}
+    
+    is_risk = False
+    risk_reason = ""
+    
+    # Case: Leaving legal action to victim minor (e.g. Saraswathi / Shanti)
+    if ("saraswathi" in q_text or "shanti" in q_text or "labor" in q_text) and any(p in t_text for p in [
+        "leave it on them", "leave it to them", "leave it to victim", "leave to victim", "leave it on victim", "make the victims aware about their rights - leave it"
+    ]):
+        is_risk = True
+        risk_reason = (
+            "**Administrative Abdication Risk (UPSC Mark Deduction Alert)**: Leaving legal action to an illiterate, traumatized, 17-year-old minor "
+            "against a politically connected contractor violates an officer's statutory duties under the **Child & Adolescent Labour (Prohibition) Act 1986**, "
+            "**POCSO**, and **SC/ST (PoA) Act**. In real UPSC Mains, examiners heavily penalize this because a Labor Enforcement Officer "
+            "is legally bound to lodge an **ex-officio FIR** and provide state-backed protection rather than shifting the burden onto the victim."
+        )
+    
+    # Case: Buck-passing by requesting transfer
+    elif any(p in t_text for p in ["requesting for a transfer", "request transfer", "transfer to ensure", "ask for transfer"]):
+        is_risk = True
+        risk_reason = (
+            "**Buck-Passing / Lack of Fortitude Risk**: Seeking a transfer when threatened is viewed as moral retreat and avoidance of duty. "
+            "UPSC expects an administrator to demonstrate **Fortitude (Nolan Principle)**, seek official police protection, and utilize institutional escalation rather than vacating the post."
+        )
+
+    # Case: Accepting bribe or gift in distress
+    elif any(p in t_text for p in ["accept the financial help", "accept flat", "accept help & flat", "accept bribe", "will not confront ramesh"]):
+        is_risk = True
+        risk_reason = (
+            "**Severe Integrity Breach**: Accepting financial assistance or silence-for-perks violates the **Prevention of Corruption Act** and foundational civil service ethics. "
+            "Personal hardship (even mother's illness) cannot justify being an accomplice in constitutional fraud."
+        )
+
+    if is_risk:
+        dec_eval["is_mark_reducing_decision"] = True
+        dec_eval["mark_reduction_risk_reason"] = risk_reason
+
+    if not dec_eval.get("character_and_intent_assessment"):
+        dec_eval["character_and_intent_assessment"] = (
+            "The candidate demonstrates commendable moral empathy, clear recognition of ethical dilemmas, and genuine intent "
+            "to uphold public service values. There is strong alignment with constitutional principles (Articles 14, 21, and 23)."
+        )
+
+    if not dec_eval.get("chosen_course_of_action"):
+        closing_lines = [ln.strip() for ln in t_text.split("\n") if len(ln.strip()) > 25 and any(w in ln.lower() for w in ["choose", "would", "action", "step", "first", "third", "report"])]
+        dec_eval["chosen_course_of_action"] = closing_lines[-1] if closing_lines else "Structured course of action balancing immediate and institutional measures."
+
+    cs_obj["candidate_decision_evaluation"] = dec_eval
+
+    # 4. Best Alternative Course of Action (The Gold Standard 3-Phase SOP)
+    best_alt = cs_obj.get("best_alternative_course_of_action") if isinstance(cs_obj.get("best_alternative_course_of_action"), dict) else {}
+    if not best_alt.get("phase_1_immediate"):
+        if "saraswathi" in q_text or "shanti" in q_text:
+            best_alt["strategy_title"] = "Topper 3-Phase Administrative Standard Operating Procedure (SOP)"
+            best_alt["phase_1_immediate"] = "Immediate Phase (0–24h): Provide emergency hospital care to Shanti; requisition Mahila Police protection for victim and self; lodge an ex-officio FIR under IPC Sections 324/326, Child Labour Act 1986, and SC/ST (PoA) Act."
+            best_alt["phase_2_procedural"] = "Procedural Phase (24–72h): Issue an immediate stop-work notice; impound site muster rolls; submit a comprehensive confidential report to the District Magistrate & Labour Commissioner; apprise the State Commission for Women."
+            best_alt["phase_3_systemic"] = "Systemic Phase (Long-term): Enforce mandatory DBT wage disbursement for all contract labourers; establish a 24x7 anonymous grievance helpline for female workers; initiate blacklisting proceedings against the errant contractor."
+        elif "air quality" in q_text or "pollution control" in q_text:
+            best_alt["strategy_title"] = "Topper 3-Phase Regulatory & Conciliation SOP"
+            best_alt["phase_1_immediate"] = "Immediate Phase (0–24h): Strictly enforce Graded Response Action Plan (GRAP-IV) closures on heavy non-compliant polluters; submit a formal complaint to the Police Commissioner regarding anonymous threats to secure official security."
+            best_alt["phase_2_procedural"] = "Procedural Phase (24–72h): Convene a joint conciliation forum with Industry Associations, Trade Unions, and CPCB; offer a conditional 45-day transition window for non-critical units to install dual-fuel kits and wet scrubbers under technical guidance."
+            best_alt["phase_3_systemic"] = "Systemic Phase (Long-term): Deploy cluster-based Common Effluent/Emission Treatment Plants (CETP) subsidized through the Clean Air Mission; link factory emission sensors directly to the CAQM public monitoring portal."
+        elif "ramesh" in q_text or "pwbd" in q_text:
+            best_alt["strategy_title"] = "Topper 3-Phase Whistleblowing & Integrity SOP"
+            best_alt["phase_1_immediate"] = "Immediate Phase (0–24h): Firmly refuse Ramesh's bribe offer in writing/recorded interaction; preserve all documentary evidence (fake PwBD certificate copies, medical records, forged address proofs) in secure custody."
+            best_alt["phase_2_procedural"] = "Procedural Phase (24–72h): File a formal, verified complaint with the Secretary, UPSC and the Central Vigilance Commission (CVC) under the Whistle Blowers Protection Act 2014; seek state healthcare support (PM-JAY/Ayushman Bharat) for mother's treatment."
+            best_alt["phase_3_systemic"] = "Systemic Phase (Long-term): Champion mandatory UDID portal API verification and independent AI-driven document scrutiny during UPSC certificate verification to prevent reservation fraud at entry."
+        else:
+            best_alt["strategy_title"] = "Topper 3-Phase Administrative Standard Operating Procedure (SOP)"
+            best_alt["phase_1_immediate"] = "Immediate Phase (0–24h): De-escalate the conflict, safeguard vulnerable parties, secure physical/documentary evidence, and report threats to law enforcement."
+            best_alt["phase_2_procedural"] = "Procedural Phase (24–72h): Conduct a fair, documented inquiry following due process and natural justice; submit a formal report to senior administrative authorities."
+            best_alt["phase_3_systemic"] = "Systemic Phase (Long-term): Institutionalize transparency through digital audits, public citizen charters, and institutional safeguards against future recurrence."
+
+    cs_obj["best_alternative_course_of_action"] = best_alt
+
+    # 5. Options Matrix
+    if not cs_obj.get("options_matrix") or len(cs_obj.get("options_matrix")) < 3:
+        if "saraswathi" in q_text or "shanti" in q_text:
+            cs_obj["options_matrix"] = [
+                {
+                    "option": "Option 1: Complete Inaction / Yielding to Political Threats",
+                    "merit": "Guarantees personal safety and career stability in the short run.",
+                    "demerit": "Moral muteness, grave violation of constitutional oath, perpetuates child abuse and modern slavery.",
+                    "upsc_feasibility": "Unacceptable (Severe Penalty)"
+                },
+                {
+                    "option": "Option 2: Individual Confrontation without Institutional Backing",
+                    "merit": "Immediate moral satisfaction and strong message.",
+                    "demerit": "High personal vulnerability, lack of procedural protection, easily overturned by political clout.",
+                    "upsc_feasibility": "Sub-optimal / Risky"
+                },
+                {
+                    "option": "Option 3: 3-Phased Procedural Prudence with Police & Statutory Escalation (Recommended)",
+                    "merit": "Upholds Rule of Law, protects the victim with statutory force, secures personal safety via official channels.",
+                    "demerit": "Requires high fortitude, patience, and navigating administrative and political headwinds.",
+                    "upsc_feasibility": "Highest Scoring (Topper Approach)"
+                }
+            ]
+        elif "air quality" in q_text or "pollution control" in q_text:
+            cs_obj["options_matrix"] = [
+                {
+                    "option": "Option 1: Immediate Blind Closure of All Units without Transition",
+                    "merit": "Strict compliance with SC orders and immediate air quality improvement.",
+                    "demerit": "Severe economic distress, mass unemployment of migrant workers, intense social unrest.",
+                    "upsc_feasibility": "Sub-optimal (Lacks Empathy)"
+                },
+                {
+                    "option": "Option 2: Complete Withdrawal of Notices / Requesting Transfer",
+                    "merit": "Avoids political conflict, protects short-term worker wages, secures personal safety.",
+                    "demerit": "Contempt of Supreme Court, severe public health crisis, administrative cowardice.",
+                    "upsc_feasibility": "Unacceptable (Severe Penalty)"
+                },
+                {
+                    "option": "Option 3: Graded Action with Conciliation Forum & Technical Transition (Recommended)",
+                    "merit": "Harmonizes Article 21 (Clean Air) with Article 19(1)(g) / 21 (Livelihood); secures long-term compliance.",
+                    "demerit": "Demands intensive administrative coordination and multi-stakeholder negotiation.",
+                    "upsc_feasibility": "Highest Scoring (Topper Approach)"
+                }
+            ]
+        elif "ramesh" in q_text or "pwbd" in q_text:
+            cs_obj["options_matrix"] = [
+                {
+                    "option": "Option 1: Accept the Bribe / Flat to Pay Hospital Bills",
+                    "merit": "Immediate relief for family's precarious financial and medical distress.",
+                    "demerit": "Complete moral collapse, criminal complicity under PC Act, destroys recruitment sanctity.",
+                    "upsc_feasibility": "Unacceptable (Severe Penalty)"
+                },
+                {
+                    "option": "Option 2: Moral Blackmail / Threatening Ramesh Independently",
+                    "merit": "Avoids taking money, exerts moral pressure on friend to confess.",
+                    "demerit": "Extortionate posture, lacks procedural validity, vulnerable to counter-charges.",
+                    "upsc_feasibility": "Sub-optimal / Flawed"
+                },
+                {
+                    "option": "Option 3: Formal Whistleblowing to UPSC/CVC with Verified Evidence (Recommended)",
+                    "merit": "Vindicates constitutional morality (Article 324), protects deserving candidates, upholds truth.",
+                    "demerit": "Personal emotional distress of reporting a friend; requires seeking alternate public healthcare schemes.",
+                    "upsc_feasibility": "Highest Scoring (Topper Approach)"
+                }
+            ]
+        else:
+            cs_obj["options_matrix"] = [
+                {
+                    "option": "Option 1: Complete Inaction / Passive Acquiescence",
+                    "merit": "Avoids friction and temporary conflict.",
+                    "demerit": "Erosion of public trust, complicity in wrongdoing, moral muteness.",
+                    "upsc_feasibility": "Unacceptable (Severe Penalty)"
+                },
+                {
+                    "option": "Option 2: Unprocedural Vigilante Action",
+                    "merit": "Immediate decisive intervention.",
+                    "demerit": "Violates natural justice, vulnerable to legal challenge, creates institutional instability.",
+                    "upsc_feasibility": "Sub-optimal"
+                },
+                {
+                    "option": "Option 3: Balanced 3-Phased Administrative SOP (Recommended)",
+                    "merit": "Follows due process, protects the vulnerable, secures institutional accountability.",
+                    "demerit": "Demands emotional intelligence, resilience, and thorough procedural documentation.",
+                    "upsc_feasibility": "Highest Scoring (Topper Approach)"
+                }
+            ]
+
+    data["case_study_audit"] = cs_obj
+
 
 def parse_llm_json_response(raw_text: str) -> Dict[str, Any]:
     """
