@@ -4635,15 +4635,17 @@ function renderAnnotationsOverlay() {
 
         if (uniqueBullets.length === 0) {
           if (discipline === "HISTORY_CULTURE") {
-            pushUnique(`**Historical & Cultural Traditions**: Outlined distinct regional and institutional contributions with relevant examples.`, "✓");
-            pushUnique(`**Philosophical Depth**: Substantiate arguments with specific philosophical texts, acharyas, and syncretic linkages.`, "✎");
+            uniqueBullets.push(`✓ **Historical & Cultural Traditions**: Outlined distinct regional and institutional contributions with relevant examples.`);
+            uniqueBullets.push(`✎ **Philosophical Depth**: Substantiate arguments with specific philosophical texts, acharyas, and syncretic linkages.`);
           } else if (discipline === "PHYSICAL_GEOGRAPHY") {
-            pushUnique(`**Spatial & Thermal Mechanisms**: Mapped key geographical factors driving physical variation across Earth's surface.`, "✓");
-            pushUnique(`**Scientific Precision**: Frame land-sea thermal contrasts in terms of specific heat capacity and albedo dynamics.`, "✎");
+            uniqueBullets.push(`✓ **Spatial & Thermal Mechanisms**: Mapped key geographical factors driving physical variation across Earth's surface.`);
+            uniqueBullets.push(`✎ **Scientific Precision**: Frame land-sea thermal contrasts in terms of specific heat capacity and albedo dynamics.`);
           } else {
-            pushUnique(`**Page ${targetPageNum} Arguments**: Covered relevant analytical points in this section.`, "✓");
-            pushUnique(`**Value Addition**: Substantiate points with specific case studies, official data, or statutory frameworks.`, "✎");
+            uniqueBullets.push(`✓ **Page ${targetPageNum} Arguments**: Covered relevant analytical points and structured dimensions in this section.`);
+            uniqueBullets.push(`✎ **Value Addition**: Substantiate points with specific case studies, official data, or statutory frameworks.`);
           }
+        } else if (uniqueBullets.length === 1) {
+          uniqueBullets.push(`✎ **Value Addition**: Substantiate arguments with specific case studies, empirical data, or statutory frameworks.`);
         }
         return uniqueBullets.slice(0, 2).join("\n");
       };
@@ -5055,19 +5057,57 @@ function renderAnnotationsOverlay() {
             ? rawTagUpper
             : (isIntroTag ? rawTagUpper : `BODY: ${rawTagUpper}`);
 
-          outSections.push({
-            zone: isIntroTag ? "intro" : "body",
-            title: cleanTitle,
-            icon: singleAnn.type === "warning" ? "✗" : "✓",
-            isTick: singleAnn.type !== "warning",
-            startYPercent: singleAnn.start_y_percent || 16,
-            endYPercent: singleAnn.end_y_percent || 89,
-            cardTopPercent: singleAnn.start_y_percent || 16,
-            marks: singleAnn.marks_awarded || `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`,
-            bodyHtml: formatBulletsFn(singleAnn.remark),
-            bulletsHtml: formatBulletsFn(singleAnn.remark),
-            targetKey: isIntroTag ? "intro" : "body"
-          });
+          const compSplit = cleanTitle.replace(/^BODY:\s*/i, "").split(/\s*(?:&|\band\b|\/)\s*/i);
+          if (compSplit.length >= 2 && !isIntroTag) {
+            const t1 = `BODY: ${compSplit[0].trim()}`;
+            const t2 = `BODY: ${compSplit[1].trim()}`;
+            let b1Rem = buildDynamicBodyRemark(0, singleAnn.remark, pgNum);
+            let b2Rem = buildDynamicBodyRemark(1, "", pgNum);
+            outSections.push({
+              zone: "body",
+              title: t1,
+              icon: "✓",
+              isTick: true,
+              startYPercent: singleAnn.start_y_percent || 14.0,
+              endYPercent: 50.0,
+              cardTopPercent: singleAnn.start_y_percent || 14.0,
+              marks: `+${(totalBodyScore / 4).toFixed(1)} / ${(totalBodyMax / 4).toFixed(1)}`,
+              bodyHtml: formatBulletsFn(b1Rem),
+              bulletsHtml: formatBulletsFn(b1Rem),
+              targetKey: "body"
+            });
+            outSections.push({
+              zone: "body",
+              title: t2,
+              icon: "✓",
+              isTick: true,
+              startYPercent: 52.0,
+              endYPercent: singleAnn.end_y_percent || 88.0,
+              cardTopPercent: 52.0,
+              marks: `+${(totalBodyScore / 4).toFixed(1)} / ${(totalBodyMax / 4).toFixed(1)}`,
+              bodyHtml: formatBulletsFn(b2Rem),
+              bulletsHtml: formatBulletsFn(b2Rem),
+              targetKey: "body"
+            });
+          } else {
+            let sRem = isIntroTag ? buildDynamicIntroRemark(singleAnn.remark) : buildDynamicBodyRemark(0, singleAnn.remark, pgNum);
+            if (!sRem || !sRem.trim()) {
+              sRem = buildDynamicBodyRemark(0, "", pgNum);
+            }
+            outSections.push({
+              zone: isIntroTag ? "intro" : "body",
+              title: cleanTitle,
+              icon: singleAnn.type === "warning" ? "✗" : "✓",
+              isTick: singleAnn.type !== "warning",
+              startYPercent: singleAnn.start_y_percent || 16,
+              endYPercent: singleAnn.end_y_percent || 89,
+              cardTopPercent: singleAnn.start_y_percent || 16,
+              marks: singleAnn.marks_awarded || `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`,
+              bodyHtml: formatBulletsFn(sRem),
+              bulletsHtml: formatBulletsFn(sRem),
+              targetKey: isIntroTag ? "intro" : "body"
+            });
+          }
         } else {
           const bodyAnn1 = pageAnns[0] || null;
           const bodyAnn2 = pageAnns.length > 1 ? pageAnns[1] : null;
@@ -6129,6 +6169,18 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       const cardEl = document.createElement("div");
       cardEl.className = `margin-badge-card ${sec.isTick ? 'type-tick' : 'type-warning'} select-none`;
       const titleColor = sec.isTick ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400";
+      let renderedBody = String(sec.bodyHtml || "").trim();
+      if (!renderedBody) {
+        let fbRemark = "";
+        if (sec.zone === "intro") {
+          fbRemark = "✓ **Introductory Premise**: Clearly established core premise and contextual baseline.\n✎ **Value Addition**: Anchor opening definition directly with 1 concrete framework or benchmark.";
+        } else if (sec.zone === "conclusion") {
+          fbRemark = "✓ **Balanced Concluding Stand**: Summarized candidate's forward-looking perspective.\n✎ **Policy Depth**: Anchor conclusion in institutional roadmap and statutory targets.";
+        } else {
+          fbRemark = "✓ **Structured Core Analysis**: Outlined relevant analytical dimensions and arguments.\n✎ **Substantiation & Depth**: Support arguments with official schemes, data, or statutory benchmarks.";
+        }
+        renderedBody = parseBullets(fbRemark, 2);
+      }
 
       cardEl.innerHTML = `
         <div class="flex items-start justify-between gap-1.5 mb-1.5">
@@ -6141,7 +6193,7 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
           </div>
         </div>
         <div class="margin-card-body text-[10px] sm:text-[10.5px] font-sans leading-relaxed space-y-2 break-words">
-          ${sec.bodyHtml}
+          ${renderedBody}
         </div>
         <div class="pt-1 border-t border-slate-200/80 dark:border-slate-800/80 mt-1">
           <a href="javascript:void(0)" onclick="window.viewFullEvaluationSection('${sec.targetKey}')" class="margin-card-link text-[8.5px] sm:text-[9px] font-bold flex items-center space-x-1 hover:underline">
@@ -6160,79 +6212,87 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       marginContainer.appendChild(cardEl);
     });
 
-    // 3. Guaranteed Curly-Brace-Aligned & Written-Zone-Clamped Vertical Positioning
+    // 3. Guaranteed Curly-Brace-Aligned & ZERO-OVERLAP Vertical Positioning
     setTimeout(() => {
       const imgHeight = (imgEl && imgEl.offsetHeight > 200) ? imgEl.offsetHeight : (containerHeight || 700);
-      // Re-draw SVG curly braces using the exact rendered imgEl.offsetHeight so braces NEVER exceed the bottom of the answer sheet!
       renderCurlyBracesToExactHeight(imgHeight);
-      const detectedBottomPct = Math.min(89.0, sections._detectedBottomY || sections[sections.length - 1]?.endYPercent || 80);
-      const writtenBottomPx = Math.round((detectedBottomPct / 100) * imgHeight);
-      let prevBottom = 4;
 
-      // Forward pass: center each card around its curly brace midpoint (sec.midY) and within [secTopY, secBottomY]
+      const N = sections.length;
+      if (N === 0) return;
+
+      const GAP = 10; // minimum vertical spacing between consecutive cards
+
+      // Step A: Read actual rendered card heights
       sections.forEach((sec) => {
         const cardEl = sec.cardEl;
         if (!cardEl) return;
-        const cardHeight = cardEl.offsetHeight || 90;
-        const secTopY = Math.round((Math.max(4.0, sec.startYPercent) / 100) * imgHeight);
-        const secBottomY = Math.round((Math.min(89.5, sec.endYPercent) / 100) * imgHeight);
-        // Center card vertically on the curly brace tip (sec.midY), keeping it inside the brace & written zone
-        let targetTop = Math.round(sec.midY - (cardHeight / 2));
-        if (targetTop < secTopY) {
-          targetTop = Math.max(4, secTopY);
-        }
-        if (targetTop + cardHeight > secBottomY + 6) {
-          targetTop = Math.max(4, secBottomY - cardHeight + 4);
-        }
-        if (targetTop + cardHeight > imgHeight - 6) {
-          targetTop = Math.max(4, imgHeight - cardHeight - 6);
-        }
-        if (targetTop < prevBottom) {
-          targetTop = prevBottom;
-        }
-        sec._computedTop = targetTop;
-        sec._cardHeight = cardHeight;
-        prevBottom = targetTop + cardHeight + 6;
+        sec._cardHeight = Math.max(65, cardEl.offsetHeight || 95);
+        // Desired vertical center is sec.midY (the exact tip of its curly brace)
+        sec._desiredTop = Math.round(sec.midY - (sec._cardHeight / 2));
       });
 
-      // Reverse pass: clamp cards to the written zone (writtenBottomPx + 14) so cards NEVER drift into blank unwritten bottom paper!
-      const totalCardsStackHeight = sections.reduce((acc, s) => acc + (s._cardHeight || 90) + 6, 6);
-      let maxAllowedBottom = Math.min(
-        imgHeight - 6,
-        Math.max(totalCardsStackHeight, writtenBottomPx + 14)
-      );
-      for (let i = sections.length - 1; i >= 0; i--) {
+      // Step B: Forward pass — center each card on its curly brace tip while strictly preventing overlap with earlier cards
+      let minAllowedTop = 6;
+      for (let i = 0; i < N; i++) {
         const sec = sections[i];
         if (!sec || !sec.cardEl) continue;
-        const ch = sec._cardHeight || 90;
-        if (sec._computedTop + ch > maxAllowedBottom) {
-          sec._computedTop = Math.max(4, maxAllowedBottom - ch);
-        }
-        maxAllowedBottom = sec._computedTop - 6;
+        let t = Math.max(minAllowedTop, sec._desiredTop);
+        sec._computedTop = t;
+        minAllowedTop = t + sec._cardHeight + GAP;
       }
 
-      // Apply final top and set --arrow-top so the left pointer triangle always points directly at sec.midY!
+      // Step C: Upward shift pass — if bottom-most card extends past imgHeight - 8, nudge cards upward where space is available
+      const lastCard = sections[N - 1];
+      if (lastCard && lastCard.cardEl) {
+        let maxAllowedBottom = imgHeight - 8;
+        for (let i = N - 1; i >= 0; i--) {
+          const sec = sections[i];
+          if (!sec || !sec.cardEl) continue;
+          if (sec._computedTop + sec._cardHeight > maxAllowedBottom) {
+            sec._computedTop = maxAllowedBottom - sec._cardHeight;
+          }
+          maxAllowedBottom = sec._computedTop - GAP;
+        }
+      }
+
+      // Step D: ABSOLUTE NON-OVERLAP ENFORCEMENT (Forward pass from top)
+      // Guarantees with mathematical certainty that Card[i] NEVER overlaps Card[i-1]
+      let strictTopCeiling = 6;
+      for (let i = 0; i < N; i++) {
+        const sec = sections[i];
+        if (!sec || !sec.cardEl) continue;
+        sec._computedTop = Math.max(strictTopCeiling, sec._computedTop);
+        strictTopCeiling = sec._computedTop + sec._cardHeight + GAP;
+      }
+
+      // Step E: Apply final top coordinates and align curly brace arrow pointers
       sections.forEach((sec) => {
         const cardEl = sec.cardEl;
         if (!cardEl) return;
         const finalTop = sec._computedTop || 6;
-        const ch = sec._cardHeight || 90;
+        const ch = sec._cardHeight || 95;
         cardEl.style.top = `${finalTop}px`;
-        const arrowOffset = Math.max(10, Math.min(ch - 14, Math.round(sec.midY - finalTop - 5)));
+        // Arrow points directly at sec.midY (curly brace tip)
+        const arrowOffset = Math.max(12, Math.min(ch - 16, Math.round(sec.midY - finalTop - 5)));
         cardEl.style.setProperty("--arrow-top", `${arrowOffset}px`);
       });
 
-      // 4. Lock margin container height strictly to the answer sheet image height (never extend below the answer sheet)
-      marginContainer.style.minHeight = `${imgHeight}px`;
-      marginContainer.style.maxHeight = `${imgHeight}px`;
+      // Step F: Ensure margin container accommodates all cards smoothly (never truncate or force cards together)
+      const lastSec = sections[N - 1];
+      const requiredStackHeight = (lastSec && lastSec._computedTop)
+        ? Math.max(imgHeight, lastSec._computedTop + lastSec._cardHeight + 16)
+        : imgHeight;
+
+      marginContainer.style.minHeight = `${requiredStackHeight}px`;
+      marginContainer.style.maxHeight = "none";
       if (marginContainer.parentElement) {
-        marginContainer.parentElement.style.minHeight = `${imgHeight}px`;
+        marginContainer.parentElement.style.minHeight = `${requiredStackHeight}px`;
       }
       const tracksBody = document.getElementById("bookletTracksBody");
-      if (tracksBody) tracksBody.style.minHeight = `${imgHeight}px`;
+      if (tracksBody) tracksBody.style.minHeight = `${requiredStackHeight}px`;
       const trackContainer = document.getElementById("bookletTrackContainer");
-      if (trackContainer) trackContainer.style.minHeight = `${imgHeight}px`;
-    }, 15);
+      if (trackContainer) trackContainer.style.minHeight = `${requiredStackHeight}px`;
+    }, 25);
   }
 }
 
