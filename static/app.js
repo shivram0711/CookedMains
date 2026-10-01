@@ -4158,10 +4158,17 @@ function renderAnnotationsOverlay() {
       const isJudicialReviewCopy = false;
       const isPolityCopy = /(?:article\s+\d+|constitutional|parliament|supreme court|fundamental right|governor|federalism|74th amendment|243w)/i.test(String(evalData.detected_question || "").toLowerCase());
 
-      // Strip any accidental cross-subject Polity fallback strings if current script is NOT Polity
+      const isMetaPlaceholderText = (str) => {
+        return /(?:direct assessment quoting|specific technical concept|foundational doctrine missing|specific missing institutional|empirical data point, or case study needed|specific assessment of the candidate|concrete institutional, constitutional|discipline-specific forward vision|accurate conceptual opening|opening upgrade:\s*specific|substantive upgrade:\s*specific|argument & point audit:\s*specific|page \d+ points evaluated:\s*specific|closing stance evaluated:\s*direct)/i.test(String(str || ""));
+      };
+
+      // Strip any accidental cross-subject Polity fallback strings or prompt meta-placeholders
       const sanitizeCrossSubjectText = (txt) => {
         if (!txt) return "";
         const s = String(txt).trim();
+        if (isMetaPlaceholderText(s)) {
+          return "";
+        }
         if (!isPolityCopy) {
           if (/maneka gandhi|njac ruling|navtej johar|shreya singhal|constitutional morality|article 13|74th amendment|article 243w|bda,\s*bwssb|self-responsible parliament/i.test(s)) {
             return "";
@@ -4361,6 +4368,7 @@ function renderAnnotationsOverlay() {
           ? cleaned.split(/\n+|\s*\|\s*|(?<=[.?!])\s+(?=[✓✔✎✗×✘★⭐])/).map(s => s.trim()).filter(Boolean)
           : [];
         const hasTelegraphicStub = (rawLines.length < 2) || rawLines.some(ln => {
+          if (isMetaPlaceholderText(ln)) return true;
           const bodyAfterColon = ln.replace(/^[^:]+:\s*/, "").trim();
           const hasTimelineLeak = (!hasTimelineInCandidate && /chronological|timeline/i.test(ln));
           const hasPromptBoilerplate = /good chronological premise|clearly situated the core theme and historical timeline|anchor the first sentence with the foundational institutional or historical catalyst/i.test(ln);
@@ -4372,11 +4380,11 @@ function renderAnnotationsOverlay() {
           return res;
         }
         const rawCritClean = stripBodyDiagramFromIntroText(introAudit.current_critique || "");
-        const firstStudentLine = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20)[0] || "";
-        const p1 = (rawCritClean && rawCritClean.length >= 42 && !/defines the phenomenon well|good chronological premise|historical timeline/i.test(rawCritClean))
+        const firstStudentLine = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20 && !s.startsWith("#") && !/^(?:Q\.?|\d+[\.\)])\s*/i.test(s))[0] || "";
+        const p1 = (rawCritClean && rawCritClean.length >= 42 && !isMetaPlaceholderText(rawCritClean) && !/defines the phenomenon well|good chronological premise|historical timeline/i.test(rawCritClean))
           ? ensureBulletPrefix(rawCritClean.split(/<br\s*\/?>|\n|✎/i)[0], "✓")
           : (firstStudentLine
-              ? `✓ **Relevant Opening Definition**: Opened directly with *"${firstStudentLine.slice(0, 75)}..."* establishing the baseline premise.`
+              ? `✓ **Opening Premise Evaluated**: Opened directly with *"${firstStudentLine.slice(0, 80)}..."* establishing the baseline context.`
               : "✓ **Good Opening Premise**: Addressed the foundational definition and opening context of the question.");
         const missArr = Array.isArray(introAudit.missing_elements) ? introAudit.missing_elements.filter(Boolean) : [];
         const kwAnchor = (kwCards[0] && kwCards[0].term) ? `**${kwCards[0].term}**` : "";
@@ -4386,7 +4394,17 @@ function renderAnnotationsOverlay() {
         } else if (discipline === "HISTORY_CULTURE") {
           p2 = "✎ **Conceptual Anchor**: Ground the first sentence in foundational philosophical doctrines or primary cultural texts to immediately elevate the answer.";
         } else if (discipline === "PHILOSOPHY_ETHICS") {
-          p2 = "✎ **Ethical Hook**: Ground the opening sentence in foundational ethical principles (e.g. Constitutional Morality, Nolan Principles) to establish analytical depth.";
+          if (/vivekananda/i.test(fullTextLow)) {
+            p2 = "✎ **Philosophical Depth**: Connect Swami Vivekananda's Seva Bhav to Practical Vedanta and Ramakrishna Mission's ideal of *'Atmano Mokshartham Jagat Hitaya Cha'* (for one's own salvation and the welfare of the world).";
+          } else if (/gandhi|sarvodaya|trusteeship|talisman/i.test(fullTextLow)) {
+            p2 = "✎ **Ethical Anchoring**: Link the opening directly to Gandhian Sarvodaya, Trusteeship, or the Talisman of serving the last person (Antyodaya).";
+          } else if (/kant|categorical\s*imperative|deontolog/i.test(fullTextLow)) {
+            p2 = "✎ **Philosophical Anchoring**: Anchor the opening in Kantian Deontology and treating humanity always as an end, never merely as a means.";
+          } else if (/aristotle|virtue|eudaimonia/i.test(fullTextLow)) {
+            p2 = "✎ **Virtue Ethics**: Ground the opening in Aristotelian Virtue Ethics and the cultivation of moral character towards Eudaimonia.";
+          } else {
+            p2 = "✎ **Ethical Anchoring**: Ground the opening definition in foundational ethical doctrines (e.g. Deontology vs Consequentialism, virtue ethics, or public trust) to establish analytical depth.";
+          }
         } else if (missArr.length > 0) {
           p2 = `✎ **Intro Value-Addition**: Anchor your opening with ${missArr.slice(0, 2).join(" & ")}${kwAnchor && !missArr.join(" ").includes(kwCards[0].term) ? ` and ${kwAnchor}` : ""} in 1–2 lines.`;
         } else if (kwAnchor) {
@@ -4477,6 +4495,7 @@ function renderAnnotationsOverlay() {
         const uniqueBullets = [];
         const pushUnique = (lineStr, defaultPref = "✓") => {
           if (isConclusionOrSynthesisLine(lineStr)) return false;
+          if (isMetaPlaceholderText(lineStr)) return false;
           const cleanWithTitle = stripOnlyLeadingIcons(lineStr);
           const cleanCore = stripTitleAndIconPrefix(lineStr);
           if (!cleanCore || cleanCore.length < 18) return false;
@@ -4494,7 +4513,7 @@ function renderAnnotationsOverlay() {
             .map(s => s.trim())
             .filter(Boolean);
           inlineParts.forEach(ln => {
-            if (isConclusionOrSynthesisLine(ln)) return;
+            if (isConclusionOrSynthesisLine(ln) || isMetaPlaceholderText(ln)) return;
             // Filter out old leaked prompt boilerplate
             if (/strong point coverage|analytical nuance \(point 1\): frame cross-regional linkages in terms of cultural synthesis rather than separation|addressed key structural and historical arguments with relevant examples|addressed key structural arguments with relevant examples/i.test(ln)) {
               return;
@@ -4513,6 +4532,7 @@ function renderAnnotationsOverlay() {
           const vStr = stripTitleAndIconPrefix(pItem.examiner_verdict || "");
           const tStr = String(pItem.title || "").replace(/[\[\]*]/g, "").trim();
           if (isConclusionOrSynthesisLine(tStr) || isConclusionOrSynthesisLine(vStr)) return;
+          if (isMetaPlaceholderText(tStr) || isMetaPlaceholderText(vStr)) return;
           if (vStr && vStr.length >= 22) {
             const combined = (tStr && !vStr.toLowerCase().includes(tStr.toLowerCase().slice(0, 12)))
               ? `**${tStr}**: ${vStr}`
@@ -4522,19 +4542,19 @@ function renderAnnotationsOverlay() {
         });
 
         // Supplement with unused strengths, critical_gaps, missing_dimensions indexed by slotIndex
-        if (uniqueBullets.length < 1 && strengths[slotIndex] && !isConclusionOrSynthesisLine(strengths[slotIndex])) {
+        if (uniqueBullets.length < 1 && strengths[slotIndex] && !isConclusionOrSynthesisLine(strengths[slotIndex]) && !isMetaPlaceholderText(strengths[slotIndex])) {
           pushUnique(strengths[slotIndex], "✓");
         }
         for (let i = 0; i < strengths.length && uniqueBullets.length < 1; i++) {
-          if (isConclusionOrSynthesisLine(strengths[i])) continue;
+          if (isConclusionOrSynthesisLine(strengths[i]) || isMetaPlaceholderText(strengths[i])) continue;
           pushUnique(strengths[i], "✓");
         }
         const combinedGaps = [...gaps, ...missingDims];
-        if (uniqueBullets.length < 2 && combinedGaps[slotIndex] && !isConclusionOrSynthesisLine(combinedGaps[slotIndex])) {
+        if (uniqueBullets.length < 2 && combinedGaps[slotIndex] && !isConclusionOrSynthesisLine(combinedGaps[slotIndex]) && !isMetaPlaceholderText(combinedGaps[slotIndex])) {
           pushUnique(combinedGaps[slotIndex], "✎");
         }
         for (let i = 0; i < combinedGaps.length && uniqueBullets.length < 2; i++) {
-          if (isConclusionOrSynthesisLine(combinedGaps[i])) continue;
+          if (isConclusionOrSynthesisLine(combinedGaps[i]) || isMetaPlaceholderText(combinedGaps[i])) continue;
           pushUnique(combinedGaps[i], "✎");
         }
 
@@ -4634,12 +4654,12 @@ function renderAnnotationsOverlay() {
             .replace(/Constructive Synthesis/gi, "Good Closing Line")
             .replace(/National Goal Target/gi, "How to Improve")
             .replace(/Forward Vision/gi, "How to Improve");
-          const isLazyConcStub = cleaned.length < 72 || /balanced conclusion.*connect to sustainable development goals|good conclusion.*way forward|balanced stand|forward anchor|concluded with a coherent synthesis tying back to the core demand|connect the closing line to contemporary constitutional or policy significance|connect the closing line to contemporary climate policy significance/i.test(cleaned);
+          const isLazyConcStub = cleaned.length < 72 || isMetaPlaceholderText(cleaned) || /balanced conclusion.*connect to sustainable development goals|good conclusion.*way forward|balanced stand|forward anchor|concluded with a coherent synthesis tying back to the core demand|connect the closing line to contemporary constitutional or policy significance|connect the closing line to contemporary climate policy significance/i.test(cleaned);
           if (!isLazyConcStub) {
             return cleaned;
           }
         }
-        const lastStudentLines = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20).slice(-1)[0] || "";
+        const lastStudentLines = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20 && !s.startsWith("#")).slice(-1)[0] || "";
         let c1 = "";
         if (lastStudentLines) {
           c1 = `✓ **Relevant Closing Synthesis**: Concluded with *"${lastStudentLines.slice(0, 75)}..."* tying together the core theme.`;
@@ -4657,7 +4677,11 @@ function renderAnnotationsOverlay() {
         } else if (discipline === "PHYSICAL_GEOGRAPHY") {
           c2 = "✎ **Thermodynamic & Policy Anchor**: Anchor the closing line in global thermodynamic heat equilibrium and climate adaptation frameworks (e.g. IPCC WG-I / Heat Action Plans).";
         } else if (discipline === "PHILOSOPHY_ETHICS") {
-          c2 = "✎ **Public Trust Anchor**: Ground the closing line in transformative constitutionalism and the civil servant's role as a moral trustee of the public good.";
+          if (/vivekananda/i.test(fullTextLow)) {
+            c2 = "✎ **Philosophical Synthesis**: Anchor the closing in Swami Vivekananda's message of youth empowerment, moral strength, and selfless service to humanity.";
+          } else {
+            c2 = "✎ **Public Trust Anchor**: Ground the closing line in transformative constitutionalism and the civil servant's role as a moral trustee of the public good.";
+          }
         } else if (concAudit.model_conclusion_rewrite) {
           c2 = `✎ **How to Elevate**: ${String(concAudit.model_conclusion_rewrite).slice(0, 140)}`;
         } else {

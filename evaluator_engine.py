@@ -1547,6 +1547,7 @@ Generate strictly valid JSON matching this schema:
   }},
   "visual_annotations": [
     // CRITICAL RULES FOR HUMAN UPSC EXAMINER MARGIN EVALUATION & ZERO-BOILERPLATE MANDATE:
+    // 0. ABSOLUTE BAN ON PROMPT PLACEHOLDERS: NEVER EVER copy or output instruction strings like "Direct assessment quoting candidate's actual handwritten opening words", "Specific technical concept, baseline metric, or foundational doctrine missing", "Substantive Upgrade: Specific missing institutional mechanism", or "Specific assessment of candidate's points". Every remark MUST be a 100% real evaluator assessment quoting the candidate's actual handwritten words, headings, diagrams, and arguments!
     // 1. ZERO STOCK BOILERPLATE: NEVER use stock phrases like "Good Chronological Premise", "Clearly situated the core theme and historical timeline", "Strong Point Coverage", "Balanced Stand", or "Forward Anchor". Margin remarks MUST directly quote and evaluate the candidate's actual handwritten phrases from that specific zone!
     // 2. NO TIMELINE HALLUCINATIONS: NEVER mention "timeline", "dates", or "chronology" unless the candidate literally wrote chronological dates, dynasties, or historical periods in their handwriting. If they defined a physical process (like insolation) or conceptual theme, evaluate the definition directly!
     // 3. ZERO CONCLUSION FEEDBACK IN BODY: A Body annotation MUST evaluate ONLY the candidate's actual handwritten sub-headings, numbered points (1, 2, 3, 4...), diagrams, and arguments. NEVER write "Synthesis", "Balanced conclusion", "Closing stance", or conclusion recommendations inside a Body annotation! Conclusion feedback belongs strictly in the Conclusion annotation.
@@ -1565,7 +1566,7 @@ Generate strictly valid JSON matching this schema:
       "tag": "Intro",
       "type": "tick",
       "marks_awarded": "+{sample_intro_aw:.1f} / {intro_d:.1f}",
-      "remark": "✓ **Accurate Conceptual Opening**: Direct assessment quoting candidate's actual handwritten opening words and evaluating how accurately they define or introduce the topic.\\n✎ **Opening Upgrade**: Specific technical concept, baseline metric, or foundational doctrine missing from candidate's opening."
+      "remark": "✓ **Opening Premise Evaluated**: Directly engaged the core thinker or baseline definition quoting candidate's actual handwritten words.\\n✎ **Conceptual Anchoring**: Ground the opening definition in the primary philosophical doctrine, thinker, or baseline framework to establish analytical depth upfront."
     }},
     {{
       "page": 1,
@@ -1575,7 +1576,7 @@ Generate strictly valid JSON matching this schema:
       "tag": "Body: Candidate's Exact Sub-Heading",
       "type": "tick",
       "marks_awarded": "+{sample_body_aw:.1f} / {body_d:.1f}",
-      "remark": "✓ **Argument & Point Audit**: Specific assessment of the candidate's actual handwritten arguments or diagram in this block.\\n✎ **Substantive Upgrade**: Specific missing institutional mechanism, empirical data point, or case study needed here."
+      "remark": "✓ **Substantive Arguments Evaluated**: Evaluated candidate's handwritten points with clear thematic categorization.\\n✎ **Substantive Upgrade**: Deepen Point 2 with 1 concrete case study, institutional benchmark, or empirical example."
     }},
     {{
       "page": 2,
@@ -1585,7 +1586,7 @@ Generate strictly valid JSON matching this schema:
       "tag": "Body: Candidate's Page 2 Sub-Heading",
       "type": "tick",
       "marks_awarded": "+{sample_body_aw:.1f} / {body_d:.1f}",
-      "remark": "✓ **Page 2 Points Evaluated**: Specific assessment of candidate's points (e.g. Points 1–4) and evidence written on Page 2.\\n✎ **Missing Substantive Nuance**: Concrete institutional, constitutional, or empirical gap in their argument."
+      "remark": "✓ **Point-Wise Depth Evaluated**: Clear analysis across candidate's points addressing the second core directive.\\n✎ **Actionable Nuance**: Address the practical trade-offs or operational constraints in the implementation mechanism."
     }},
     {{
       "page": 2,
@@ -1595,7 +1596,7 @@ Generate strictly valid JSON matching this schema:
       "tag": "Conclusion",
       "type": "suggestion",
       "marks_awarded": "+{sample_conc_aw:.1f} / {conc_d:.1f}",
-      "remark": "✓ **Closing Stance Evaluated**: Direct assessment of candidate's actual final concluding sentence.\\n✎ **Forward-Looking Anchor**: Discipline-specific forward vision tailored strictly to this subject (e.g. Sendai DRR for Geography, Civilizational continuity for Culture, Constitutional Morality for Polity, Moral stewardship for Ethics)."
+      "remark": "✓ **Closing Stance Evaluated**: Direct assessment of candidate's actual final concluding sentence.\\n✎ **Forward-Looking Vision**: Subject-disciplined closing vision (e.g. Sendai DRR for Geography, Civilizational continuity for Culture, Constitutional Morality for Polity, Moral stewardship / Seva Bhav for Ethics)."
     }}
   ]
 }}
@@ -1626,11 +1627,12 @@ def detect_question_discipline(question_str: str, paper_str: str) -> str:
         return "HISTORY_CULTURE"
 
     # 2. Ethics / GS-4 / Moral Philosophy
-    if "GS4" in p_up or any(k in q_low for k in [
+    if any(m in p_up for m in ["GS4", "GS-4", "GS 4", "ETHIC"]) or any(k in q_low for k in [
         "socrates", "plato", "aristotle", "kant", "categorical imperative", "rawls", "utilitarian",
         "deontolog", "virtue ethics", "moral philosophy", "ethical dilemma", "conscience", "probity",
         "emotional intelligence", "attitude", "aptitude", "quotation", "moral thinker", "nolan",
-        "integrity", "compassion", "code of ethics", "code of conduct", "civil service value"
+        "integrity", "compassion", "code of ethics", "code of conduct", "civil service value",
+        "vivekananda", "seva", "convey to you in the present context", "great thinkers"
     ]):
         return "PHILOSOPHY_ETHICS"
 
@@ -1646,7 +1648,7 @@ def detect_question_discipline(question_str: str, paper_str: str) -> str:
         return "PHYSICAL_GEOGRAPHY"
 
     # 4. Polity & Governance (GS-2)
-    if "GS2" in p_up or any(k in q_low for k in [
+    if any(m in p_up for m in ["GS2", "GS-2", "GS 2", "POLITY"]) or any(k in q_low for k in [
         "constitution", "parliament", "judiciary", "supreme court", "article ", "governor", "federalism",
         "basic structure", "fundamental right", "judicial review", "electoral", "civil service",
         "statutory body", "tribunal", "ordinance", "local government", "panchayat"
@@ -1654,7 +1656,7 @@ def detect_question_discipline(question_str: str, paper_str: str) -> str:
         return "POLITY_GOVERNANCE"
 
     # 5. Economy (GS-3)
-    if "GS3" in p_up or any(k in q_low for k in [
+    if any(m in p_up for m in ["GS3", "GS-3", "GS 3", "ECON"]) or any(k in q_low for k in [
         "economy", "gdp", "agriculture", "farmer", "inflation", "industry", "fiscal", "monetary",
         "trade", "export", "infrastructure", "banking", "npa", "budget", "poverty", "unemployment"
     ]):
@@ -1749,6 +1751,23 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
             elif is_polity:
                 clean = re.sub(r'(?i)forward anchor:\s*connect the closing line to contemporary [^\n.]*', 'Constitutional Reform: Anchor the closing line in 2nd ARC recommendations or Supreme Court constitutional benchmarks.', clean)
 
+        # Eliminate ANY prompt meta-placeholder text or prompt echo
+        if re.search(r'(?i)(?:direct assessment quoting|'
+                     r'specific technical concept|'
+                     r'foundational doctrine missing|'
+                     r'specific missing institutional|'
+                     r'empirical data point, or case study needed|'
+                     r'specific assessment of the candidate|'
+                     r'concrete institutional, constitutional|'
+                     r'discipline-specific forward vision|'
+                     r'accurate conceptual opening|'
+                     r'opening upgrade:\s*specific|'
+                     r'substantive upgrade:\s*specific|'
+                     r'argument & point audit:\s*specific|'
+                     r'page \d+ points evaluated:\s*specific|'
+                     r'closing stance evaluated:\s*direct)', clean):
+            return ""
+
         return clean
 
     annotations = data.get("visual_annotations", [])
@@ -1761,6 +1780,22 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
         conc_audit_obj = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
         pbp_list = data.get("point_by_point_audit") if isinstance(data.get("point_by_point_audit"), list) else []
         rubric_obj = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
+
+        def _has_meta_placeholder(txt: str) -> bool:
+            return bool(re.search(r'(?i)(?:direct assessment quoting|'
+                                  r'specific technical concept|'
+                                  r'foundational doctrine missing|'
+                                  r'specific missing institutional|'
+                                  r'empirical data point, or case study needed|'
+                                  r'specific assessment of the candidate|'
+                                  r'concrete institutional, constitutional|'
+                                  r'discipline-specific forward vision|'
+                                  r'accurate conceptual opening|'
+                                  r'opening upgrade:\s*specific|'
+                                  r'substantive upgrade:\s*specific|'
+                                  r'argument & point audit:\s*specific|'
+                                  r'page \d+ points evaluated:\s*specific|'
+                                  r'closing stance evaluated:\s*direct)', str(txt or "")))
 
         def _fmt_bullet(text_line: str, prefix: str) -> str:
             clean = str(text_line or "").strip()
@@ -1777,6 +1812,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
             return re.sub(r'[^a-z0-9]+', '', str(line_str or "").lower())[:42]
 
         def _add_unique_bullet(target_list: list, candidate_line: str, prefix: str) -> bool:
+            if _has_meta_placeholder(candidate_line):
+                return False
             formatted = _fmt_bullet(candidate_line, prefix)
             sig = _norm_sig(formatted)
             if not sig or sig in used_margin_bullets:
@@ -1786,7 +1823,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
             return True
 
         def _is_conc_bullet(txt: str) -> bool:
-            return bool(re.search(r'(?i)\b(conclusion|concl|synthesis|closing\s*stance|closing\s*line|closing\s*view|forward-looking|stronger\s*finish|topper\s*finish|balanced\s*conclusion)\b', str(txt or "")))
+            return bool(re.search(r'(?i)\b(conclusion|concl|synthesis|synthesiz|closing\s*stance|closing\s*line|closing\s*view|closing\s*thought|forward-looking|stronger\s*finish|topper\s*finish|balanced\s*conclusion|way\s*forward\s*&\s*synthesis)\b', str(txt or "")))
 
         def _build_page_zone_remark(pg_num: int, slot_idx: int) -> str:
             bullets = []
@@ -1796,7 +1833,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                 title_s = str(p_item.get("title") or "").strip()
                 verdict_s = str(p_item.get("examiner_verdict") or "").strip()
                 is_pos = bool(p_item.get("is_positive", True))
-                if _is_conc_bullet(title_s) or _is_conc_bullet(verdict_s):
+                if _is_conc_bullet(title_s) or _is_conc_bullet(verdict_s) or _has_meta_placeholder(title_s) or _has_meta_placeholder(verdict_s):
                     continue
                 if verdict_s:
                     line_txt = f"**{title_s}**: {verdict_s}" if (title_s and title_s.lower() not in verdict_s.lower()) else verdict_s
@@ -1805,22 +1842,22 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                         break
 
             # 2. Supplement with unused strengths/gaps/missing dimensions indexed by slot_idx
-            if slot_idx < len(b_strengths) and not _is_conc_bullet(b_strengths[slot_idx]):
+            if slot_idx < len(b_strengths) and not _is_conc_bullet(b_strengths[slot_idx]) and not _has_meta_placeholder(b_strengths[slot_idx]):
                 _add_unique_bullet(bullets, b_strengths[slot_idx], "✓")
             for s_cand in b_strengths:
                 if len(bullets) >= 2:
                     break
-                if _is_conc_bullet(s_cand):
+                if _is_conc_bullet(s_cand) or _has_meta_placeholder(s_cand):
                     continue
                 _add_unique_bullet(bullets, s_cand, "✓")
 
             g_pool = b_gaps + b_missing
-            if slot_idx < len(g_pool) and not _is_conc_bullet(g_pool[slot_idx]):
+            if slot_idx < len(g_pool) and not _is_conc_bullet(g_pool[slot_idx]) and not _has_meta_placeholder(g_pool[slot_idx]):
                 _add_unique_bullet(bullets, g_pool[slot_idx], "✎")
             for g_cand in g_pool:
                 if len(bullets) >= 3:
                     break
-                if _is_conc_bullet(g_cand):
+                if _is_conc_bullet(g_cand) or _has_meta_placeholder(g_cand):
                     continue
                 _add_unique_bullet(bullets, g_cand, "✎")
 
@@ -1839,6 +1876,15 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                     bullets.append("✎ **Value Addition**: Substantiate points with domain-specific examples, data, or statutory benchmarks.")
             return "\n".join(bullets[:4])
 
+        # Extract student's first non-header sentence from transcribed_text
+        first_student_sentence = ""
+        trans_raw = str(data.get("transcribed_text") or "").replace("[Page 1]", "").replace("[Page 2]", "").replace("[Page 3]", "")
+        for line in trans_raw.splitlines():
+            l_str = line.strip()
+            if len(l_str) >= 20 and not l_str.startswith("#") and not re.match(r'^(?:Q\.?|\d+[\.\)])\s*', l_str):
+                first_student_sentence = l_str
+                break
+
         # Ensure Intro annotation has 1-2 full sentences of substantive feedback (and zero Missing line if full marks)
         intro_sc = float(rubric_obj.get("intro_score", 1.0) or 1.0)
         intro_mx = float(rubric_obj.get("intro_max", 1.5 if max_marks == 10 else 2.0) or (1.5 if max_marks == 10 else 2.0))
@@ -1850,26 +1896,56 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                 i_lines = [ln.strip() for ln in raw_i_rem.split("\n") if ln.strip()]
                 crit_str = str(intro_audit_obj.get("current_critique") or "").strip()
                 miss_list = [str(m).strip() for m in (intro_audit_obj.get("missing_elements") or []) if m]
-                if is_intro_perfect:
-                    pos_ln = crit_str if len(crit_str) >= 45 else (i_lines[0] if i_lines else "✓ **Strong Opening Premise**: Clear, accurate, and context-rich introduction addressing the core demand of the question.")
+                if is_intro_perfect and not _has_meta_placeholder(crit_str):
+                    pos_ln = crit_str if len(crit_str) >= 45 else (i_lines[0] if i_lines else (
+                        f"✓ **Strong Opening Premise**: Opened directly with *\"{first_student_sentence[:80]}...\"* accurately establishing the baseline context." if first_student_sentence else "✓ **Strong Opening Premise**: Clear, accurate, and context-rich introduction addressing the core demand of the question."
+                    ))
                     ann["remark"] = _fmt_bullet(pos_ln, "✓")
                 else:
-                    # Check if any line in raw_i_rem is a telegraphic 2-4 word stub (< 52 chars)
+                    # Check if any line in raw_i_rem is a telegraphic 2-4 word stub (< 52 chars) or meta-placeholder
                     has_short_stub = (len(i_lines) < 2) or any(len(re.sub(r'\*\*.*?\*\*\s*:?\s*', '', ln).strip()) < 38 for ln in i_lines)
-                    if has_short_stub:
-                        p1_txt = crit_str if len(crit_str) >= 40 else (i_lines[0] if i_lines else "✓ **Opening Context**: Addressed the foundational definition and core theme of the prompt.")
-                        if is_geo:
+                    if has_short_stub or not raw_i_rem or _has_meta_placeholder(raw_i_rem):
+                        p1_txt = crit_str if (len(crit_str) >= 40 and not _has_meta_placeholder(crit_str)) else (
+                            f"✓ **Opening Premise Evaluated**: Opened directly with *\"{first_student_sentence[:80]}...\"* directly addressing the core directive."
+                            if first_student_sentence else "✓ **Opening Context**: Addressed the foundational definition and core theme of the prompt."
+                        )
+                        if is_ethics:
+                            q_or_t = (question + " " + trans_raw).lower()
+                            if "vivekananda" in q_or_t:
+                                p2_txt = "✎ **Philosophical Depth**: Connect Swami Vivekananda's Seva Bhav to Practical Vedanta and Ramakrishna Mission's ideal of 'Atmano Mokshartham Jagat Hitaya Cha' (for one's own salvation and the welfare of the world)."
+                            elif "gandhi" in q_or_t:
+                                p2_txt = "✎ **Ethical Anchoring**: Link the opening directly to Gandhian Sarvodaya, Trusteeship, or the Talisman of serving the last person (Antyodaya)."
+                            elif "kant" in q_or_t:
+                                p2_txt = "✎ **Philosophical Anchoring**: Anchor the opening in Kantian Deontology and treating humanity always as an end, never merely as a means."
+                            elif "aristotle" in q_or_t:
+                                p2_txt = "✎ **Virtue Ethics**: Ground the opening in Aristotelian Virtue Ethics and the cultivation of moral character towards Eudaimonia."
+                            else:
+                                p2_txt = "✎ **Ethical Anchoring**: Ground the opening definition in foundational ethical doctrines (e.g. Deontology vs Consequentialism, virtue ethics, or public trust) to establish analytical depth."
+                        elif is_geo:
                             p2_txt = "✎ **Insolation / Process Hook**: Anchor the opening definition directly with the primary driving mechanism (e.g. differential solar insolation and Earth's axial tilt) to establish analytical depth upfront."
                         elif is_history_culture:
                             p2_txt = "✎ **Conceptual Anchor**: Ground the first sentence in foundational philosophical doctrines or primary cultural texts to immediately elevate the answer."
-                        elif is_ethics:
-                            p2_txt = "✎ **Ethical Hook**: Ground the opening sentence in foundational ethical principles (e.g. Constitutional Morality, Nolan Principles) to establish analytical depth."
                         elif miss_list:
                             clean_miss = ", ".join(miss_list[:2])
                             p2_txt = f"✎ **Missing in Introduction**: Explain and anchor {clean_miss} in 1–2 lines to establish the core significance upfront."
                         else:
                             p2_txt = "✎ **Opening Enrichment**: Expand the introduction by 1–2 lines connecting the baseline definition to the core analytical demand of the question."
                         ann["remark"] = f"{_fmt_bullet(p1_txt, '✓')}\n{_fmt_bullet(p2_txt, '✎')}"
+                for ln in str(ann.get("remark", "")).split("\n"):
+                    if ln.strip():
+                        used_margin_bullets.add(_norm_sig(ln))
+            elif "concl" not in str(ann.get("tag", "")).lower() and "synthesis" not in str(ann.get("tag", "")).lower():
+                if not ann.get("remark") or _has_meta_placeholder(str(ann.get("remark", ""))):
+                    ann["remark"] = _build_page_zone_remark(int(ann.get("page", 1) or 1), 0)
+            elif "concl" in str(ann.get("tag", "")).lower() or "synthesis" in str(ann.get("tag", "")).lower():
+                if not ann.get("remark") or _has_meta_placeholder(str(ann.get("remark", ""))):
+                    c_crit = str(conc_audit_obj.get("current_critique") or "")
+                    c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "")
+                    if _has_meta_placeholder(c_crit) or len(c_crit) < 30:
+                        c_crit = "✓ **Closing Stance Evaluated**: Summarized candidate's final concluding paragraph on the core theme."
+                    if _has_meta_placeholder(c_rew) or len(c_rew) < 30:
+                        c_rew = "Anchor the closing sentence in 1 forward-looking institutional benchmark or discipline-specific reform."
+                    ann["remark"] = f"{_fmt_bullet(c_crit, '✓')}\n{_fmt_bullet(c_rew, '✎')}"
                 for ln in str(ann.get("remark", "")).split("\n"):
                     if ln.strip():
                         used_margin_bullets.add(_norm_sig(ln))
