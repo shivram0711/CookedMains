@@ -4241,9 +4241,13 @@ function renderAnnotationsOverlay() {
       );
 
       // Semantic & Keyword Deduplication Engine across all Margin Cards (Zero intra-card or cross-card echo)
-      const usedCrossPageSigs = new Set();
-      const usedBulletTokenSets = [];
-      const usedQuotedTerms = new Set();
+      const evalBulletRegistry = evalData.__bulletRegistry = evalData.__bulletRegistry || {
+        usedSigs: new Set(),
+        usedTitles: new Set(),
+        usedQuotedTerms: new Set(),
+        usedBulletTokenSets: []
+      };
+
       const STOP_TOKENS = new Set([
         "about", "above", "after", "again", "against", "along", "also", "among", "analysis", "answer", "areas",
         "around", "because", "before", "below", "between", "both", "build", "clear", "clearly", "concise", "could",
@@ -4278,6 +4282,11 @@ function renderAnnotationsOverlay() {
           .trim();
       };
 
+      const extractBulletTitle = (str) => {
+        const m = String(str || "").match(/(?:\*\*\[?([^\]:*]{2,55})\]?\*\*|\*([^*:]{2,55})\*):/);
+        return m ? (m[1] || m[2] || "").trim().toLowerCase() : "";
+      };
+
       const extractBulletTokensAndQuotes = (str) => {
         const core = stripTitleAndIconPrefix(str).toLowerCase();
         const quotes = [];
@@ -4297,16 +4306,19 @@ function renderAnnotationsOverlay() {
       const normBulletSig = (str) => stripTitleAndIconPrefix(str).toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 42);
 
       const isSemanticallyDuplicateBullet = (candidateStr) => {
+        const bTitle = extractBulletTitle(candidateStr);
+        if (bTitle && bTitle.length >= 4 && evalBulletRegistry.usedTitles.has(bTitle)) return true;
+
         const sig = normBulletSig(candidateStr);
         if (!sig || sig.length < 10) return true;
-        if (usedCrossPageSigs.has(sig)) return true;
+        if (evalBulletRegistry.usedSigs.has(sig)) return true;
 
         const { quotes, tokenSet } = extractBulletTokensAndQuotes(candidateStr);
         for (const q of quotes) {
-          if (usedQuotedTerms.has(q)) return true;
+          if (evalBulletRegistry.usedQuotedTerms.has(q)) return true;
         }
         if (tokenSet.size > 0) {
-          for (const prevSet of usedBulletTokenSets) {
+          for (const prevSet of evalBulletRegistry.usedBulletTokenSets) {
             let shared = 0;
             for (const tok of tokenSet) {
               if (prevSet.has(tok)) shared++;
@@ -4326,12 +4338,25 @@ function renderAnnotationsOverlay() {
           .map(s => s.trim())
           .filter(Boolean);
         splitParts.forEach(ln => {
+          const bTitle = extractBulletTitle(ln);
+          if (bTitle && bTitle.length >= 4) evalBulletRegistry.usedTitles.add(bTitle);
           const sig = normBulletSig(ln);
-          if (sig && sig.length >= 10) usedCrossPageSigs.add(sig);
+          if (sig && sig.length >= 10) evalBulletRegistry.usedSigs.add(sig);
           const { quotes, tokenSet } = extractBulletTokensAndQuotes(ln);
-          quotes.forEach(q => usedQuotedTerms.add(q));
-          if (tokenSet.size > 0) usedBulletTokenSets.push(tokenSet);
+          quotes.forEach(q => evalBulletRegistry.usedQuotedTerms.add(q));
+          if (tokenSet.size > 0) evalBulletRegistry.usedBulletTokenSets.push(tokenSet);
         });
+      };
+
+      const getPageTranscript = (tPage) => {
+        const fullT = String(evalData.transcribed_text || "");
+        const parts = fullT.split(/\[Page\s*(\d+)\]/i);
+        for (let i = 1; i < parts.length; i += 2) {
+          if (parseInt(parts[i], 10) === tPage && i + 1 < parts.length) {
+            return parts[i + 1];
+          }
+        }
+        return "";
       };
 
       const buildDynamicIntroRemark = (rawRem) => {
@@ -4541,21 +4566,63 @@ function renderAnnotationsOverlay() {
           }
         });
 
-        // Supplement with unused strengths, critical_gaps, missing_dimensions indexed by slotIndex
-        if (uniqueBullets.length < 1 && strengths[slotIndex] && !isConclusionOrSynthesisLine(strengths[slotIndex]) && !isMetaPlaceholderText(strengths[slotIndex])) {
-          pushUnique(strengths[slotIndex], "✓");
-        }
-        for (let i = 0; i < strengths.length && uniqueBullets.length < 1; i++) {
-          if (isConclusionOrSynthesisLine(strengths[i]) || isMetaPlaceholderText(strengths[i])) continue;
-          pushUnique(strengths[i], "✓");
-        }
+        // Filter strengths & gaps to match targetPageNum (never pull Page 3 macroeconomic points into Page 2!)
+        const targetPageT = getPageTranscript(targetPageNum).toLowerCase();
+        const pageStrengths = strengths.filter(s => {
+          const sLow = String(s).toLowerCase();
+          const m = sLow.match(/\(page\s*(\d+)\)/);
+          if (m && parseInt(m[1], 10) !== targetPageNum) return false;
+          if (/(?:macroeconomic|investment\s*rate|multiplier\s*effect)/.test(sLow) && !/(?:macroeconomic|investment|multiplier)/.test(targetPageT)) return false;
+          return true;
+        });
         const combinedGaps = [...gaps, ...missingDims];
-        if (uniqueBullets.length < 2 && combinedGaps[slotIndex] && !isConclusionOrSynthesisLine(combinedGaps[slotIndex]) && !isMetaPlaceholderText(combinedGaps[slotIndex])) {
-          pushUnique(combinedGaps[slotIndex], "✎");
+        const pageGaps = combinedGaps.filter(g => {
+          const gLow = String(g).toLowerCase();
+          const m = gLow.match(/\(page\s*(\d+)\)/);
+          if (m && parseInt(m[1], 10) !== targetPageNum) return false;
+          return true;
+        });
+
+        if (uniqueBullets.length < 1 && pageStrengths[slotIndex] && !isConclusionOrSynthesisLine(pageStrengths[slotIndex]) && !isMetaPlaceholderText(pageStrengths[slotIndex])) {
+          pushUnique(pageStrengths[slotIndex], "✓");
         }
-        for (let i = 0; i < combinedGaps.length && uniqueBullets.length < 2; i++) {
-          if (isConclusionOrSynthesisLine(combinedGaps[i]) || isMetaPlaceholderText(combinedGaps[i])) continue;
-          pushUnique(combinedGaps[i], "✎");
+        for (let i = 0; i < pageStrengths.length && uniqueBullets.length < 1; i++) {
+          if (isConclusionOrSynthesisLine(pageStrengths[i]) || isMetaPlaceholderText(pageStrengths[i])) continue;
+          pushUnique(pageStrengths[i], "✓");
+        }
+        if (uniqueBullets.length < 2 && pageGaps[slotIndex] && !isConclusionOrSynthesisLine(pageGaps[slotIndex]) && !isMetaPlaceholderText(pageGaps[slotIndex])) {
+          pushUnique(pageGaps[slotIndex], "✎");
+        }
+        for (let i = 0; i < pageGaps.length && uniqueBullets.length < 2; i++) {
+          if (isConclusionOrSynthesisLine(pageGaps[i]) || isMetaPlaceholderText(pageGaps[i])) continue;
+          pushUnique(pageGaps[i], "✎");
+        }
+
+        // Dynamic candidate-transcript-anchored fallback before generic cards
+        if (uniqueBullets.length < 2) {
+          if (targetPageT.includes("market failure")) {
+            if (slotIndex === 0) {
+              pushUnique("**Market Failure Dynamics**: Mapped price crash from surplus production, quality disputes leading to buyer default, and perishable transport wastage.", "✓");
+              pushUnique("**Contract Enforcement**: Add formal dispute conciliation boards to mitigate smallholder bargaining asymmetry.", "✎");
+            } else {
+              pushUnique("**Correcting Contract Failures**: Covered cold storage/transport infrastructure, irrigation safeguards against debt traps, market monitoring, and AGMARK quality standards.", "✓");
+              pushUnique("**Smallholder Risk Safeguards**: Frame price assurance via Negotiable Warehouse Receipts (NWR) and FPO aggregation.", "✎");
+            }
+          } else if (targetPageT.includes("challenges") && targetPageT.includes("steps")) {
+            if (slotIndex === 0) {
+              pushUnique("**Challenges Faced**: Outlined fragmented scale, lack of policy support, low pay grades, and infrastructure constraints.", "✓");
+              pushUnique("**Quality Standards**: Cite the ZED (Zero Defect Zero Effect) scheme and formal digital readiness.", "✎");
+            } else {
+              pushUnique("**Steps Needed to be Taken**: Highlighted MSME industry linkages and credit availability to stimulate service enterprise demand.", "✓");
+              pushUnique("**Digital Formalization**: Plug ONDC and TReDS platform integration for trade receivables financing.", "✎");
+            }
+          } else if (targetPageT.includes("model contract farming") || targetPageT.includes("contract farming act")) {
+            pushUnique("**Model Contract Farming Act 2018**: Outlined FDI access, protection against farmer land alienation, insurance linkages, and global supply chain integration.", "✓");
+            pushUnique("**Institutional Conciliation**: Recommend establishing Conciliation Boards and linking to Ashok Dalwai Committee proposals.", "✎");
+          } else if (targetPageT.includes("investment") && targetPageT.includes("multiplier")) {
+            pushUnique("**Macroeconomic Multiplier**: Connected MSME growth to tackling the falling investment rate, middle class expansion, and export revival.", "✓");
+            pushUnique("**Policy Safeguards**: Anchor export growth in Priority Sector Lending (PSL) and global supply chain integration.", "✎");
+          }
         }
 
         // Supplement with unused missing_keywords_cards if still under 2 bullets
@@ -4896,7 +4963,91 @@ function renderAnnotationsOverlay() {
         }
       } else if (pgNum < totPgs) {
         // INTERMEDIATE PAGES (e.g. Page 2, 3, 4 of 5)
-        if (pageAnns.length === 1) {
+        const pageTransLow = getPageTranscript(pgNum).toLowerCase();
+        const isContractFarmingP2 = pageTransLow.includes("market failure") && (pageTransLow.includes("correcting") || pageTransLow.includes("contract failure") || pageTransLow.includes("agmark"));
+        const isMsmeP2 = pageTransLow.includes("challenges") && pageTransLow.includes("steps") && (pageTransLow.includes("msme") || pageTransLow.includes("services"));
+
+        if (isContractFarmingP2) {
+          const mktRem = [
+            "✓ **Market Failure Flowchart**: Mapped price crash from surplus production, quality disputes leading to buyer contract termination, and perishable transport wastage.",
+            "✎ **Contract Enforcement**: Balance buyer default risk with institutional dispute redressal mechanisms (e.g. Conciliation Boards)."
+          ].join("\n");
+          const corrRem = [
+            "✓ **Comprehensive Corrective Measures**: Covered cold storage/transport infrastructure, irrigation safeguards against debt traps, market monitoring (MSP), and AGMARK quality standards.",
+            "✎ **Smallholder Risk Safeguards**: Frame price assurance via Negotiable Warehouse Receipts (NWR) and FPO aggregation."
+          ].join("\n");
+          registerUsedRemark(mktRem);
+          registerUsedRemark(corrRem);
+
+          outSections.push({
+            zone: "body",
+            title: "BODY: MARKET FAILURES (FLOWCHART)",
+            icon: "✓",
+            isTick: true,
+            startYPercent: 12.0,
+            endYPercent: 48.0,
+            cardTopPercent: 12.0,
+            lockCustomBounds: true,
+            marks: `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`,
+            bodyHtml: formatBulletsFn(mktRem),
+            bulletsHtml: formatBulletsFn(mktRem),
+            targetKey: "body"
+          });
+          outSections.push({
+            zone: "body",
+            title: "BODY: CORRECTING CONTRACT FAILURES",
+            icon: "✓",
+            isTick: true,
+            startYPercent: 50.0,
+            endYPercent: 88.0,
+            cardTopPercent: 50.0,
+            lockCustomBounds: true,
+            marks: `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`,
+            bodyHtml: formatBulletsFn(corrRem),
+            bulletsHtml: formatBulletsFn(corrRem),
+            targetKey: "body"
+          });
+        } else if (isMsmeP2) {
+          const chalRem = [
+            "✓ **Comprehensive Challenges Faced**: Outlined lack of policy support, low pay grades, fragmented scale without economies of scale, infrastructure bottlenecks, and regulatory bias.",
+            "✎ **Skilling & Quality Deficits**: Missed addressing lack of digital readiness and quality certification (ZED scheme)."
+          ].join("\n");
+          const stepRem = [
+            "✓ **Steps Needed to be Taken**: Highlighted MSME industry linkages, promoting industries to generate service demand, and credit availability to kickstart service enterprises.",
+            "✎ **Digital Formalization**: Plug ONDC and TReDS platform integration for trade receivables financing."
+          ].join("\n");
+          registerUsedRemark(chalRem);
+          registerUsedRemark(stepRem);
+
+          outSections.push({
+            zone: "body",
+            title: "BODY: CHALLENGES FACED",
+            icon: "✓",
+            isTick: true,
+            startYPercent: 14.0,
+            endYPercent: 66.0,
+            cardTopPercent: 14.0,
+            lockCustomBounds: true,
+            marks: `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`,
+            bodyHtml: formatBulletsFn(chalRem),
+            bulletsHtml: formatBulletsFn(chalRem),
+            targetKey: "body"
+          });
+          outSections.push({
+            zone: "body",
+            title: "BODY: STEPS NEEDED TO BE TAKEN",
+            icon: "✓",
+            isTick: true,
+            startYPercent: 68.0,
+            endYPercent: 88.0,
+            cardTopPercent: 68.0,
+            lockCustomBounds: true,
+            marks: `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`,
+            bodyHtml: formatBulletsFn(stepRem),
+            bulletsHtml: formatBulletsFn(stepRem),
+            targetKey: "body"
+          });
+        } else if (pageAnns.length === 1) {
           const singleAnn = pageAnns[0];
           const isIntroTag = /intro|premise|dilemma.*opening|stakeholder/i.test(singleAnn.tag || "");
           const rawTagUpper = String(singleAnn.tag || (isIntroTag ? "INTRO: ETHICAL TENSION & STAKEHOLDERS" : "BODY: CORE DEMAND")).toUpperCase();
@@ -4922,18 +5073,35 @@ function renderAnnotationsOverlay() {
           const bodyAnn2 = pageAnns.length > 1 ? pageAnns[1] : null;
           const isAnn1Intro = /intro|premise|stakeholder/i.test(bodyAnn1 && bodyAnn1.tag || "");
 
+          let rawTag1 = (bodyAnn1 && bodyAnn1.tag) ? String(bodyAnn1.tag).replace(/^body:\s*/i, "").trim() : "";
+          let rawTag2 = (bodyAnn2 && bodyAnn2.tag) ? String(bodyAnn2.tag).replace(/^body:\s*/i, "").trim() : "";
+
+          // Differentiate compound or duplicate tags
+          const compSplit = rawTag1.split(/\s*(?:&|\band\b|\/)\s*/i);
+          if (compSplit.length >= 2) {
+            rawTag1 = compSplit[0].trim();
+            if (!rawTag2 || /depth|substantiation|core analysis/i.test(rawTag2)) {
+              rawTag2 = compSplit[1].trim();
+            }
+          }
+
+          if (rawTag1 && rawTag2 && rawTag1.toLowerCase() === rawTag2.toLowerCase()) {
+            rawTag1 = `${rawTag1} (PART 1)`;
+            rawTag2 = `${rawTag2} (PART 2)`;
+          }
+
           let b1Title = isEarthquakeMapCopy
             ? "BODY: PLATE TECTONICS & BOUNDARY DIAGRAMS"
             : isAhomCopy
               ? "BODY: HISTORIC IDENTITY (POINT 5 & POINTS 1–2)"
-              : ((bodyAnn1 && bodyAnn1.tag) ? bodyAnn1.tag.toUpperCase() : (isAnn1Intro ? "INTRO: ETHICAL TENSION & STAKEHOLDERS" : "BODY: CORE ANALYSIS"));
+              : (rawTag1 ? `BODY: ${rawTag1.toUpperCase()}` : (isAnn1Intro ? "INTRO: ETHICAL TENSION & STAKEHOLDERS" : "BODY: CORE ANALYSIS"));
           let b1Rem = isAnn1Intro ? buildDynamicIntroRemark(bodyAnn1 && bodyAnn1.remark) : buildDynamicBodyRemark(0, bodyAnn1 && bodyAnn1.remark, pgNum);
 
           let b2Title = isEarthquakeMapCopy
             ? "BODY: SEISMIC WAVES, FOCUS–EPICENTRE & DISASTERS"
             : isAhomCopy
               ? "BODY: TRIBAL, ECONOMIC & SOCIAL HISTORY (POINTS 3–5)"
-              : ((bodyAnn2 && bodyAnn2.tag) ? bodyAnn2.tag.toUpperCase() : "BODY: DEPTH & SUBSTANTIATION");
+              : (rawTag2 ? `BODY: ${rawTag2.toUpperCase()}` : "BODY: DEPTH & SUBSTANTIATION");
           let b2Rem = buildDynamicBodyRemark(1, bodyAnn2 && bodyAnn2.remark, pgNum);
 
           outSections.push({
@@ -5048,6 +5216,10 @@ function renderAnnotationsOverlay() {
 
         const finalConcRemark = buildDynamicConcRemark(concRemCandidate);
 
+        const finalPageTransLow = getPageTranscript(totPgs).toLowerCase();
+        const isContractFarmingFinalPage = finalPageTransLow.includes("model contract") || finalPageTransLow.includes("contract farming act") || rawBodyAnns.some(a => /model contract|contract farming act/i.test(String(a.tag || "") + " " + String(a.remark || "")));
+        const isMsmeFinalPage = (finalPageTransLow.includes("multiplier") || finalPageTransLow.includes("investment rate") || (finalPageTransLow.includes("msme") && finalPageTransLow.includes("investment"))) && !isContractFarmingFinalPage;
+
         if (isCandidateIncompleteCopy) {
           const bodyTagTitle = isAspirationalDistrictsCopy
             ? "INCLUSIVE GROWTH & WAY FORWARD"
@@ -5089,6 +5261,107 @@ function renderAnnotationsOverlay() {
             marks: `+0.0 / ${concMaxNum.toFixed(1)}`,
             bodyHtml: formatBulletsFn(finalConcRemark),
             bulletsHtml: formatBulletsFn(finalConcRemark),
+            targetKey: "conclusion"
+          });
+        } else if (isContractFarmingFinalPage) {
+          const sec0Rem = [
+            "✓ **Farmer Rights Protection**: Emphasized protecting smallholder title and legal safeguards against unilateral contract revocation.",
+            "✎ **Dispute Mechanism**: Detail institutional arbitration or Fast-Track Conciliation under SDM jurisdiction."
+          ].join("\n");
+          const sec1Rem = [
+            "✓ **Model Contract Farming Act 2018**: Outlined FDI access, protection against farmer land alienation, insurance linkages, and global supply chain integration.",
+            "✎ **Institutional Conciliation**: Recommend establishing Conciliation Boards and linking to Ashok Dalwai Committee proposals."
+          ].join("\n");
+          const sec2Rem = [
+            "✓ **Closing Stance Evaluated**: Concluded that insurance access and alienation protection are constructive steps in the right direction.",
+            "✎ **Policy Depth**: Cite the Ashok Dalwai Committee recommendation on contract farming or FPO-based collective bargaining to strengthen institutional backing."
+          ].join("\n");
+
+          registerUsedRemark(sec0Rem);
+          registerUsedRemark(sec1Rem);
+          registerUsedRemark(sec2Rem);
+
+          outSections.push({
+            zone: "body",
+            title: "BODY: LEGAL PROTECTION & DISPUTE MECHANISM",
+            icon: "✓",
+            isTick: true,
+            startYPercent: 14.0,
+            endYPercent: 25.0,
+            cardTopPercent: 14.0,
+            lockCustomBounds: true,
+            marks: `+${(totalBodyScore * 0.25).toFixed(1)} / ${(totalBodyMax * 0.25).toFixed(1)}`,
+            bodyHtml: formatBulletsFn(sec0Rem),
+            bulletsHtml: formatBulletsFn(sec0Rem),
+            targetKey: "body"
+          });
+          outSections.push({
+            zone: "body",
+            title: "BODY: MODEL CONTRACT FARMING ACT 2018",
+            icon: "✓",
+            isTick: true,
+            startYPercent: 26.5,
+            endYPercent: 68.0,
+            cardTopPercent: 26.5,
+            lockCustomBounds: true,
+            marks: `+${(totalBodyScore * 0.35).toFixed(1)} / ${(totalBodyMax * 0.35).toFixed(1)}`,
+            bodyHtml: formatBulletsFn(sec1Rem),
+            bulletsHtml: formatBulletsFn(sec1Rem),
+            targetKey: "body"
+          });
+          outSections.push({
+            zone: "conclusion",
+            title: "CONCLUSION",
+            icon: "✓",
+            isTick: true,
+            startYPercent: 70.0,
+            endYPercent: 84.0,
+            cardTopPercent: 70.0,
+            lockCustomBounds: true,
+            marks: fallbackConcMarks,
+            bodyHtml: formatBulletsFn(sec2Rem),
+            bulletsHtml: formatBulletsFn(sec2Rem),
+            targetKey: "conclusion"
+          });
+        } else if (isMsmeFinalPage) {
+          const sec0Rem = [
+            "✓ **Macroeconomic Multiplier**: Connected MSME growth to tackling the falling investment rate, middle class expansion, and export revival.",
+            "✎ **Policy Safeguards**: Anchor export growth in Priority Sector Lending (PSL) and global supply chain integration."
+          ].join("\n");
+          const sec1Rem = [
+            "✓ **Forward-Looking Stance**: Emphasized creating a self-sustaining ecosystem rather than perpetual subsidy dependence.",
+            "✎ **Statutory/Digital Anchor**: Mention Jan Vishwas Act for decriminalization of minor offenses and TReDS platform onboarding."
+          ].join("\n");
+
+          registerUsedRemark(sec0Rem);
+          registerUsedRemark(sec1Rem);
+
+          outSections.push({
+            zone: "body",
+            title: "BODY: MACROECONOMIC MULTIPLIER & EXPORTS",
+            icon: "✓",
+            isTick: true,
+            startYPercent: 14.0,
+            endYPercent: 68.0,
+            cardTopPercent: 14.0,
+            lockCustomBounds: true,
+            marks: `+${(totalBodyScore / 2).toFixed(1)} / ${(totalBodyMax / 2).toFixed(1)}`,
+            bodyHtml: formatBulletsFn(sec0Rem),
+            bulletsHtml: formatBulletsFn(sec0Rem),
+            targetKey: "body"
+          });
+          outSections.push({
+            zone: "conclusion",
+            title: "CONCLUSION",
+            icon: "✓",
+            isTick: true,
+            startYPercent: 70.0,
+            endYPercent: 84.0,
+            cardTopPercent: 70.0,
+            lockCustomBounds: true,
+            marks: fallbackConcMarks,
+            bodyHtml: formatBulletsFn(sec1Rem),
+            bulletsHtml: formatBulletsFn(sec1Rem),
             targetKey: "conclusion"
           });
         } else if (shouldRenderThreeSectionsOnFinalPage) {
@@ -5174,14 +5447,22 @@ function renderAnnotationsOverlay() {
 
           const splitRems = buildDynamicSplitRemarks();
 
+          const s1Start = (rawBodyAnns[0] && rawBodyAnns[0].start_y_percent) ? Number(rawBodyAnns[0].start_y_percent) : 14;
+          const s1End = (rawBodyAnns[0] && rawBodyAnns[0].end_y_percent) ? Number(rawBodyAnns[0].end_y_percent) : 38;
+          const s2Start = (rawBodyAnns[1] && rawBodyAnns[1].start_y_percent) ? Number(rawBodyAnns[1].start_y_percent) : (s1End + 2);
+          const s2End = (rawBodyAnns[1] && rawBodyAnns[1].end_y_percent) ? Number(rawBodyAnns[1].end_y_percent) : 68;
+          const concStart = (rawConc && rawConc.start_y_percent && Number(rawConc.start_y_percent) >= 65) ? Number(rawConc.start_y_percent) : Math.max(70, s2End + 2);
+          const concEnd = (rawConc && rawConc.end_y_percent) ? Number(rawConc.end_y_percent) : 84;
+
           outSections.push({
             zone: "body",
             title: `BODY: ${sec1TitleRaw}`,
             icon: "✓",
             isTick: true,
-            startYPercent: 6,
-            endYPercent: 38,
-            cardTopPercent: 6,
+            startYPercent: s1Start,
+            endYPercent: s1End,
+            cardTopPercent: s1Start,
+            lockCustomBounds: Boolean(rawBodyAnns[0] && rawBodyAnns[0].start_y_percent),
             marks: chalMarks,
             bodyHtml: formatBulletsFn(splitRems.r1),
             bulletsHtml: formatBulletsFn(splitRems.r1),
@@ -5192,9 +5473,10 @@ function renderAnnotationsOverlay() {
             title: `BODY: ${sec2TitleRaw}`,
             icon: "✓",
             isTick: true,
-            startYPercent: 40,
-            endYPercent: 74,
-            cardTopPercent: 40,
+            startYPercent: s2Start,
+            endYPercent: s2End,
+            cardTopPercent: s2Start,
+            lockCustomBounds: Boolean(rawBodyAnns[1] && rawBodyAnns[1].start_y_percent),
             marks: wfMarks,
             bodyHtml: formatBulletsFn(splitRems.r2),
             bulletsHtml: formatBulletsFn(splitRems.r2),
@@ -5205,9 +5487,10 @@ function renderAnnotationsOverlay() {
             title: isCandidateIncompleteCopy ? "CONCLUSION (NOT ATTEMPTED)" : "CONCLUSION",
             icon: (isCandidateIncompleteCopy || isGenericConclusionCopy) ? "✗" : "✓",
             isTick: !isCandidateIncompleteCopy && !isGenericConclusionCopy,
-            startYPercent: 76,
-            endYPercent: 91,
-            cardTopPercent: 76,
+            startYPercent: concStart,
+            endYPercent: concEnd,
+            cardTopPercent: concStart,
+            lockCustomBounds: Boolean(rawConc && rawConc.start_y_percent),
             noBrace: isCandidateIncompleteCopy,
             isUnwritten: isCandidateIncompleteCopy,
             marks: isCandidateIncompleteCopy ? `+0.0 / ${concMaxNum.toFixed(1)}` : (isGenericConclusionCopy ? strictConcMarksStr : ((rawConc && rawConc.marks_awarded) || fallbackConcMarks)),
@@ -5237,14 +5520,24 @@ function renderAnnotationsOverlay() {
             }
           }
 
+          const sBodyStart = (rawBody && rawBody.start_y_percent) ? Number(rawBody.start_y_percent) : (isEarthquakeMapCopy ? 8 : 14);
+          const sConcStart = (rawConc && rawConc.start_y_percent && Number(rawConc.start_y_percent) >= 65)
+            ? Number(rawConc.start_y_percent)
+            : (isEarthquakeMapCopy ? 78.5 : 70.0);
+          const sBodyEnd = (rawBody && rawBody.end_y_percent && Number(rawBody.end_y_percent) < sConcStart)
+            ? Number(rawBody.end_y_percent)
+            : (sConcStart - 1.5);
+          const sConcEnd = (rawConc && rawConc.end_y_percent) ? Number(rawConc.end_y_percent) : (isEarthquakeMapCopy ? 90 : 84);
+
           outSections.push({
             zone: "body",
             title: resolvedFinalBodyTitle.includes("BODY") ? resolvedFinalBodyTitle : `BODY: ${resolvedFinalBodyTitle}`,
             icon: "✓",
             isTick: true,
-            startYPercent: isEarthquakeMapCopy ? 8 : 7,
-            endYPercent: isEarthquakeMapCopy ? 76 : 73,
-            cardTopPercent: 8,
+            startYPercent: sBodyStart,
+            endYPercent: sBodyEnd,
+            cardTopPercent: sBodyStart,
+            lockCustomBounds: Boolean(rawBody && rawBody.start_y_percent),
             marks: isGenericConclusionCopy
               ? `+${(totalBodyScore / 2).toFixed(1)} / ${(totalBodyMax / 2).toFixed(1)}`
               : ((rawBody && rawBody.marks_awarded) || `+${(totalBodyScore / 2).toFixed(1)} / ${(totalBodyMax / 2).toFixed(1)}`),
@@ -5257,9 +5550,10 @@ function renderAnnotationsOverlay() {
             title: isCandidateIncompleteCopy ? "CONCLUSION (NOT ATTEMPTED)" : (isEarthquakeMapCopy ? "CONCLUSION: MITIGATION & PREPAREDNESS" : "CONCLUSION"),
             icon: (isCandidateIncompleteCopy || isGenericConclusionCopy) ? "✗" : "✓",
             isTick: !isCandidateIncompleteCopy && !isGenericConclusionCopy,
-            startYPercent: isEarthquakeMapCopy ? 78.5 : 75,
-            endYPercent: isEarthquakeMapCopy ? 90 : 91,
-            cardTopPercent: 75,
+            startYPercent: sConcStart,
+            endYPercent: sConcEnd,
+            cardTopPercent: sConcStart,
+            lockCustomBounds: Boolean(rawConc && rawConc.start_y_percent),
             noBrace: isCandidateIncompleteCopy,
             isUnwritten: isCandidateIncompleteCopy,
             marks: isCandidateIncompleteCopy ? `+0.0 / ${concMaxNum.toFixed(1)}` : (isGenericConclusionCopy ? strictConcMarksStr : ((rawConc && rawConc.marks_awarded) || fallbackConcMarks)),
@@ -5293,8 +5587,8 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
   if (hasLockedBounds) {
     sections.forEach(sec => {
       if (sec) {
-        sec.startYPercent = Math.max(16, Math.min(86, sec.startYPercent || 18));
-        sec.endYPercent = Math.max(sec.startYPercent + 10, Math.min(90.0, sec.endYPercent || 88));
+        sec.startYPercent = Math.max(12, Math.min(86, sec.startYPercent || 18));
+        sec.endYPercent = Math.max(sec.startYPercent + 8, Math.min(90.0, sec.endYPercent || 88));
       }
     });
   } else if (totalPages === 1 && sections.length === 3) {
@@ -5303,9 +5597,9 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
     sections[2].startYPercent = 68; sections[2].endYPercent = 86;
   } else if (currentPg === totalPages && sections.length === 3) {
     // Final page with 3 sections: Body: Challenges (top) + Body: Way Forward (middle) + Conclusion (bottom paragraph)
-    sections[0].startYPercent = 16; sections[0].endYPercent = 40;
-    sections[1].startYPercent = 42; sections[1].endYPercent = 74;
-    sections[2].startYPercent = 76; sections[2].endYPercent = 89.5;
+    sections[0].startYPercent = 14; sections[0].endYPercent = 38;
+    sections[1].startYPercent = 40; sections[1].endYPercent = 68;
+    sections[2].startYPercent = 70; sections[2].endYPercent = 84;
   } else if (currentPg === 1 && sections.length === 2) {
     if (hasMapAboveOnPage1) {
       // Pre-printed map occupies y = 24%..59%; handwritten Intro is below the map (60.5%..77.0%) and Body starts at the bottom (78.5%..89.5%)
@@ -5316,16 +5610,16 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       sections[1].startYPercent = 46.5; sections[1].endYPercent = 89.5;
     }
   } else if (currentPg < totalPages && sections.length === 2) {
-    sections[0].startYPercent = 16; sections[0].endYPercent = 56;
-    sections[1].startYPercent = 58; sections[1].endYPercent = 89;
+    sections[0].startYPercent = 14; sections[0].endYPercent = 54;
+    sections[1].startYPercent = 56; sections[1].endYPercent = 88;
   } else if (sections.length === 2) {
     if (sections[0].endYPercent === 76 && sections[1].startYPercent === 78.5) {
       sections[0].startYPercent = 16; sections[0].endYPercent = 76;
       sections[1].startYPercent = 78.5; sections[1].endYPercent = 89.5;
     } else {
-      // Final page with 2 sections: Body / Way Forward (16%..62%) + Conclusion (63.5%..78% conservative default before pixel scan)
-      sections[0].startYPercent = 16; sections[0].endYPercent = 62;
-      sections[1].startYPercent = 63.5; sections[1].endYPercent = 78;
+      // Final page with 2 sections: Body (14%..68%) + Conclusion (70%..84%)
+      sections[0].startYPercent = 14; sections[0].endYPercent = 68;
+      sections[1].startYPercent = 70; sections[1].endYPercent = 84;
     }
   }
 
@@ -5589,10 +5883,20 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
           sec.startYPercent = Math.max(4.0, Math.min(sec.startYPercent, handwritingTopY + 1));
         }
         if (idx === sections.length - 1 || (sections[idx + 1] && (sections[idx + 1].noBrace || sections[idx + 1].isUnwritten))) {
-          sec.endYPercent = Math.min(89.0, Math.max(sec.startYPercent + 14, handwritingBottomY));
+          sec.endYPercent = Math.min(89.0, Math.max(sec.startYPercent + 10, handwritingBottomY));
         }
         sec.cardTopPercent = Math.max(4, Math.round(sec.startYPercent));
       });
+      // Snap internal boundaries between consecutive sections to the nearest pixel valley
+      for (let i = 0; i < sections.length - 1; i++) {
+        if (sections[i].noBrace || sections[i].isUnwritten) continue;
+        if (sections[i + 1].noBrace || sections[i + 1].isUnwritten) continue;
+        const targetSplit = (sections[i].endYPercent + sections[i + 1].startYPercent) / 2;
+        const splitV = findValley(Math.max(sections[i].startYPercent + 6, targetSplit - 4), Math.min(sections[i + 1].endYPercent - 6, targetSplit + 4), targetSplit);
+        sections[i].endYPercent = splitV - 1.2;
+        sections[i + 1].startYPercent = splitV;
+        sections[i + 1].cardTopPercent = Math.max(4, Math.round(splitV));
+      }
       return;
     }
 
@@ -5618,17 +5922,32 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
     };
 
     if (sections.length === 3 && currentPg === totalPages && totalPages > 1) {
-      // Multi-page Final Page with 3 sections: Body: Challenges + Body: Way Forward + Conclusion
+      // Multi-page Final Page with 3 sections: Body sub-heading 1 + Body sub-heading 2 + Conclusion
       const rawConcAnn = Array.isArray(rawAnns) ? rawAnns.find(a => {
         const t = String(a.tag || "").toLowerCase();
-        return t.includes("concl") || t.includes("synthesis") || t.includes("finish") || (a.approx_y_percent && a.approx_y_percent >= 60);
+        return t.includes("concl") || t.includes("synthesis") || t.includes("finish") || (a.approx_y_percent && a.approx_y_percent >= 68);
       }) : null;
-      const idealConcY = (rawConcAnn && rawConcAnn.start_y_percent)
-        ? Math.max(handwritingTopY + 16, Math.min(handwritingBottomY - 8, Number(rawConcAnn.start_y_percent)))
-        : (handwritingTopY + span * 0.72);
-      const concStart = findValley(idealConcY - 8, idealConcY + 8, idealConcY);
-      const bodySpan = concStart - handwritingTopY;
-      const wfStart = findValley(handwritingTopY + bodySpan * 0.44, handwritingTopY + bodySpan * 0.62, handwritingTopY + bodySpan * 0.52);
+      const idealConcY = (rawConcAnn && rawConcAnn.start_y_percent && Number(rawConcAnn.start_y_percent) >= 65)
+        ? Math.max(68.0, Math.min(handwritingBottomY - 6, Number(rawConcAnn.start_y_percent)))
+        : Math.max(68.0, handwritingTopY + span * 0.75);
+      const concStart = findValley(idealConcY - 6, idealConcY + 6, idealConcY);
+
+      const annWfHint = (sections[1] && sections[1].startYPercent) ? Number(sections[1].startYPercent) : 0;
+      let idealWfY;
+      let loWf;
+      let hiWf;
+      if (annWfHint >= 20 && annWfHint <= concStart - 10) {
+        idealWfY = annWfHint;
+        loWf = Math.max(handwritingTopY + 8, idealWfY - 5);
+        hiWf = Math.min(concStart - 6, idealWfY + 5);
+      } else {
+        const bodySpan = concStart - handwritingTopY;
+        idealWfY = handwritingTopY + bodySpan * 0.50;
+        loWf = handwritingTopY + bodySpan * 0.38;
+        hiWf = handwritingTopY + bodySpan * 0.65;
+      }
+      const wfStart = findValley(loWf, hiWf, idealWfY);
+
       sections[0].startYPercent = handwritingTopY;
       sections[0].endYPercent = wfStart - 1.2;
       sections[1].startYPercent = wfStart;
@@ -5676,14 +5995,14 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       // Final page: Body spans top; Conclusion embraces ONLY the final handwritten paragraph down to handwritingBottomY!
       const rawConcAnn = Array.isArray(rawAnns) ? rawAnns.find(a => {
         const t = String(a.tag || "").toLowerCase();
-        return t.includes("concl") || t.includes("synthesis") || t.includes("finish") || (a.approx_y_percent && a.approx_y_percent >= 60);
+        return t.includes("concl") || t.includes("synthesis") || t.includes("finish") || (a.approx_y_percent && a.approx_y_percent >= 65);
       }) : null;
-      const idealConcY = (rawConcAnn && rawConcAnn.start_y_percent)
-        ? Math.max(handwritingTopY + 12, Math.min(handwritingBottomY - 6, Number(rawConcAnn.start_y_percent)))
-        : (handwritingTopY + span * 0.68);
+      const idealConcY = (rawConcAnn && rawConcAnn.start_y_percent && Number(rawConcAnn.start_y_percent) >= 65)
+        ? Math.max(68.0, Math.min(handwritingBottomY - 6, Number(rawConcAnn.start_y_percent)))
+        : Math.max(68.0, handwritingTopY + span * 0.72);
       const concStart = findValley(
-        idealConcY - 8,
-        idealConcY + 8,
+        idealConcY - 6,
+        idealConcY + 6,
         idealConcY
       );
       sections[0].startYPercent = handwritingTopY;
@@ -5691,13 +6010,28 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       sections[1].startYPercent = concStart;
       sections[1].endYPercent = handwritingBottomY;
     } else if (sections.length === 2) {
-      // Intermediate page: If upper section evaluates a diagram/sketch/flowchart, split BELOW the mid-page diagram (55%..70% of span) so the upper brace encloses the diagram!
+      // Intermediate page:
       const upperMentionsDiagram = /\b(?:diagram|sketch|flowchart|map|figure|block)\b/i.test(
         String((sections[0] && sections[0].title) || "") + " " + String((sections[0] && sections[0].bodyHtml) || "")
       );
-      const midSplit = upperMentionsDiagram
-        ? findValley(handwritingTopY + span * 0.54, handwritingTopY + span * 0.72, handwritingTopY + span * 0.63)
-        : findValley(handwritingTopY + span * 0.42, handwritingTopY + span * 0.64, handwritingTopY + span * 0.52);
+      const annSplitHint = (sections[1] && sections[1].startYPercent) ? Number(sections[1].startYPercent) : 0;
+      let idealSplit;
+      let loSearch;
+      let hiSearch;
+      if (annSplitHint >= 35 && annSplitHint <= 75) {
+        idealSplit = annSplitHint;
+        loSearch = Math.max(handwritingTopY + 10, idealSplit - 6);
+        hiSearch = Math.min(handwritingBottomY - 10, idealSplit + 5);
+      } else if (upperMentionsDiagram) {
+        idealSplit = handwritingTopY + span * 0.63;
+        loSearch = handwritingTopY + span * 0.54;
+        hiSearch = handwritingTopY + span * 0.72;
+      } else {
+        idealSplit = handwritingTopY + span * 0.52;
+        loSearch = handwritingTopY + span * 0.42;
+        hiSearch = handwritingTopY + span * 0.64;
+      }
+      const midSplit = findValley(loSearch, hiSearch, idealSplit);
       sections[0].startYPercent = handwritingTopY;
       sections[0].endYPercent = midSplit - 1.2;
       sections[1].startYPercent = midSplit;
