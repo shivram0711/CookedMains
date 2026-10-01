@@ -1295,10 +1295,10 @@ Generate strictly valid JSON matching this schema:
     }},
     {{
       "number": 4,
-      "term": "Exact Missing Committee / Global Framework / Reform Anchor #4",
-      "thinker": "Specific Sub-Domain Badge #4",
-      "domain_or_thinker": "Specific Sub-Domain Badge #4",
-      "definition": "Concise 1-sentence institutional or policy standard anchoring the reform/mitigation dimension.",
+      "term": "Exact Missing Standard / Milestone / Framework #4",
+      "thinker": "Discipline-Specific Badge #4 (e.g. 'Living Heritage Milestone' for History, 'Global DRR Standard' for Geography, 'Constitutional Reform' for Polity)",
+      "domain_or_thinker": "Discipline-Specific Badge #4",
+      "definition": "Concise 1-sentence explanation. NEVER force modern administrative policy/committee onto ancient history, culture, or physical geography!",
       "where_to_use": "Final Page • Attach to the end of your closing '[Exact Closing / Mitigation Line Written]'",
       "how_to_use_one_line": "\"...inline 10-12 word phrase attaching **Keyword #4** to the closing sentence.\""
     }}
@@ -1546,46 +1546,106 @@ Generate strictly valid JSON matching this schema:
     }}
   }},
   "visual_annotations": [
-    // CRITICAL RULES FOR HUMAN UPSC EXAMINER MARGIN EVALUATION & CURLY BRACE PRECISION (APPLIES TO ALL QUESTIONS):
-    // 1. Exact Vertical Boundaries & Margin Clamping: Provide exact "start_y_percent" (>= 16, strictly below top coaching headers) and "end_y_percent" (<= 89.5, strictly above bottom page borders) tracing ONLY the student's actual HANDWRITTEN lines and diagrams for that section on that page.
-    // 2. Diagram & Block-Sketch Enclosure Rule: Whenever a candidate draws a diagram, flowchart, map, or block sketch in the upper or middle portion of a page (e.g., y = 20%..62%), the upper section's "end_y_percent" MUST extend down to ~62.5% so the upper curly brace physically wraps the diagram AND evaluates the diagram inside that upper card! The lower section ("start_y_percent": 65, "end_y_percent": 89.5) must then evaluate ONLY the handwritten points written below the diagram. NEVER evaluate a diagram in an upper card whose curly brace stops at 40% above the diagram!
-    // 3. Intro Substantive Feedback (1-2 Full Sentences): In the "Intro" annotation remark, ALWAYS write 1-2 complete explanatory sentences detailing what the student wrote in the opening (including any map marking or date/factual verification) and what specific context/hook was missed.
-    // 4. Strictly Page-Independent & Point-Aligned Body Remarks: Evaluate each page (Page 1, Page 2, Page 3) and each vertical zone (upper half vs lower half) STRICTLY on the handwritten points and sketches physically present right there in that zone! NEVER cite an example or diagram from another zone or page.
+    // CRITICAL RULES FOR HUMAN UPSC EXAMINER MARGIN EVALUATION & ZERO-BOILERPLATE MANDATE:
+    // 1. ZERO STOCK BOILERPLATE: NEVER use stock phrases like "Good Chronological Premise", "Clearly situated the core theme and historical timeline", "Strong Point Coverage", "Balanced Stand", or "Forward Anchor". Margin remarks MUST directly quote and evaluate the candidate's actual handwritten phrases from that specific zone!
+    // 2. NO TIMELINE HALLUCINATIONS: NEVER mention "timeline", "dates", or "chronology" unless the candidate literally wrote chronological dates, dynasties, or historical periods in their handwriting. If they defined a physical process (like insolation) or conceptual theme, evaluate the definition directly!
+    // 3. Exact Vertical Boundaries & Margin Clamping: Provide exact "start_y_percent" (>= 16, strictly below top coaching headers) and "end_y_percent" (<= 89.5, strictly above bottom page borders) tracing ONLY the student's actual HANDWRITTEN lines and diagrams for that section on that page.
+    // 4. Diagram Enclosure Rule: Whenever a candidate draws a diagram/flowchart/sketch, the section's "end_y_percent" MUST wrap the diagram so it is evaluated right there in that margin card!
+    // 5. Subject-Disciplined Conclusion: In Conclusion, NEVER prescribe "contemporary constitutional or policy significance" for Geography, History, or Ethics! Connect Geography conclusions to IPCC/NDMA/Sendai or planetary equilibrium; History/Culture to living heritage or civilizational continuity; Ethics to moral integrity/Nolan principles; Polity to constitutional morality/2nd ARC.
     {{
       "page": 1,
-      "approx_y_percent": 32,
-      "start_y_percent": 25,
-      "end_y_percent": 39,
+      "approx_y_percent": 30,
+      "start_y_percent": 22,
+      "end_y_percent": 38,
       "tag": "Intro",
       "type": "tick",
       "marks_awarded": "+{sample_intro_aw:.1f} / {intro_d:.1f}",
-      "remark": "✓ **Good Chronological Premise**: Clearly situated the core theme and historical timeline in the opening paragraph.\\n✎ **Opening Enrichment**: Anchor the first sentence with the foundational institutional or historical catalyst to immediately establish the core thesis."
+      "remark": "✓ **Accurate Conceptual Opening**: Direct assessment quoting candidate's actual handwritten opening words and evaluating how accurately they define or introduce the topic.\\n✎ **Opening Upgrade**: Specific technical concept, baseline metric, or foundational doctrine missing from candidate's opening."
     }},
     {{
       "page": 1,
-      "approx_y_percent": 64,
-      "start_y_percent": 41,
+      "approx_y_percent": 65,
+      "start_y_percent": 40,
       "end_y_percent": 89,
-      "tag": "Body: Primary Sub-Heading (Points 1-4)",
-      "type": "warning",
+      "tag": "Body: Candidate's Exact Sub-Heading",
+      "type": "tick",
       "marks_awarded": "+{sample_body_aw:.1f} / {body_d:.1f}",
-      "remark": "✓ **Strong Point Coverage (Points 1-3)**: Addressed key structural and historical arguments with relevant examples.\\n✗ **Analytical Nuance (Point 1)**: Frame cross-regional linkages in terms of **cultural synthesis** rather than separation.\\n✎ **Value Addition**: Substantiate with **specific institutional mechanisms** and primary historical records."
+      "remark": "✓ **Argument & Point Audit**: Specific assessment of the candidate's actual handwritten arguments or diagram in this block.\\n✎ **Substantive Upgrade**: Specific missing institutional mechanism, empirical data point, or case study needed here."
     }},
     {{
       "page": 2,
-      "approx_y_percent": 56,
-      "start_y_percent": 42,
-      "end_y_percent": 69,
+      "approx_y_percent": 75,
+      "start_y_percent": 68,
+      "end_y_percent": 89,
       "tag": "Conclusion",
       "type": "suggestion",
       "marks_awarded": "+{sample_conc_aw:.1f} / {conc_d:.1f}",
-      "remark": "✓ **Balanced Stand**: Concluded with a coherent synthesis tying back to the core demand of the question.\\n✎ **Forward Anchor**: Connect the closing line to contemporary constitutional or policy significance."
+      "remark": "✓ **Closing Stance Evaluated**: Direct assessment of candidate's actual final concluding sentence.\\n✎ **Forward-Looking Anchor**: Discipline-specific forward vision tailored strictly to this subject (e.g. Sendai DRR for Geography, Civilizational continuity for Culture, Constitutional Morality for Polity, Moral stewardship for Ethics)."
     }}
   ]
 }}
 
 Return strictly a single valid JSON object starting with {{ and ending with }}. Do NOT append any markdown formatting, notes, or commentary outside of the JSON.
 """
+
+def detect_question_discipline(question_str: str, paper_str: str) -> str:
+    """
+    Accurately classifies question into subject disciplines:
+    HISTORY_CULTURE, PHYSICAL_GEOGRAPHY, PHILOSOPHY_ETHICS, POLITY_GOVERNANCE, ECONOMY_DEVELOPMENT, GENERAL
+    """
+    q_low = str(question_str or "").lower()
+    p_up = str(paper_str or "").upper()
+
+    # 1. History & Art/Culture (including Indian philosophy, architecture, literature, dynasties)
+    if any(k in q_low for k in [
+        "ahom", "buranji", "paik", "saraighat", "lachit", "sankardev", "satra", "moidam", "charaideo",
+        "mughal", "chola", "vijayanagara", "maurya", "ashoka", "gupta", "harappa", "indus valley", "vedic",
+        "buddhis", "jainis", "bhakti", "sufi", "sultanate", "maratha", "pallava", "chalukya", "rashtrakuta",
+        "temple", "architecture", "rock-cut", "cave architecture", "stupa", "numismatic", "epigraph",
+        "inscription", "colonial", "freedom struggle", "national movement", "gandhi", "nehru", "tagore",
+        "subhas", "bhagat singh", "british rule", "1857", "peasant movement", "tribal uprising", "renaissance",
+        "dynasty", "kingdom", "empire", "heritage", "cultural", "historical", "classical dance", "painting",
+        "philosoph", "thought", "advaita", "dvaita", "vedanta", "upanishad", "samagam", "sangam",
+        "tradition", "civilizational", "ancient", "medieval", "sculpture", "craft", "literature"
+    ]):
+        return "HISTORY_CULTURE"
+
+    # 2. Ethics / GS-4 / Moral Philosophy
+    if "GS4" in p_up or any(k in q_low for k in [
+        "socrates", "plato", "aristotle", "kant", "categorical imperative", "rawls", "utilitarian",
+        "deontolog", "virtue ethics", "moral philosophy", "ethical dilemma", "conscience", "probity",
+        "emotional intelligence", "attitude", "aptitude", "quotation", "moral thinker", "nolan",
+        "integrity", "compassion", "code of ethics", "code of conduct", "civil service value"
+    ]):
+        return "PHILOSOPHY_ETHICS"
+
+    # 3. Physical Geography (including geomorphology, climatology, oceanography)
+    if any(k in q_low for k in [
+        "volcano", "geomorph", "earthquake", "cyclone", "plate tectonic", "climate", "soil", "ocean",
+        "monsoon", "temperature", "insolation", "heat budget", "atmosphere", "isotherm", "pressure belt",
+        "planetary wind", "landmass", "land-sea", "continentality", "weather", "drainage", "river",
+        "glacier", "topography", "rainfall", "precipitation", "coriolis", "lapse rate", "albedo",
+        "tsunami", "karst", "air mass", "frontogenesis", "jet stream", "coral reef", "continental drift",
+        "seafloor spreading", "el nino", "la nina", "inversion of temperature"
+    ]):
+        return "PHYSICAL_GEOGRAPHY"
+
+    # 4. Polity & Governance (GS-2)
+    if "GS2" in p_up or any(k in q_low for k in [
+        "constitution", "parliament", "judiciary", "supreme court", "article ", "governor", "federalism",
+        "basic structure", "fundamental right", "judicial review", "electoral", "civil service",
+        "statutory body", "tribunal", "ordinance", "local government", "panchayat"
+    ]):
+        return "POLITY_GOVERNANCE"
+
+    # 5. Economy (GS-3)
+    if "GS3" in p_up or any(k in q_low for k in [
+        "economy", "gdp", "agriculture", "farmer", "inflation", "industry", "fiscal", "monetary",
+        "trade", "export", "infrastructure", "banking", "npa", "budget", "poverty", "unemployment"
+    ]):
+        return "ECONOMY_DEVELOPMENT"
+
+    return "GENERAL"
 
 def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: str, paper: str) -> Dict[str, Any]:
     """
@@ -1597,6 +1657,85 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
     data["max_marks"] = max_marks
 
     # 1. Per-Page Visual Annotations Completeness, Substantive Intro & Zero-Duplication Page-Independent Margin Remarks
+    resolved_q = data.get("detected_question") or question or ""
+    detected_p = data.get("detected_paper") or paper or ""
+    q_lower = resolved_q.lower()
+    p_upper = (detected_p or "").upper()
+    discipline = detect_question_discipline(resolved_q, detected_p)
+    is_history_culture = (discipline == "HISTORY_CULTURE")
+    is_geo = (discipline == "PHYSICAL_GEOGRAPHY")
+    is_ethics = (discipline == "PHILOSOPHY_ETHICS")
+    is_polity = (discipline == "POLITY_GOVERNANCE")
+    is_econ = (discipline == "ECONOMY_DEVELOPMENT")
+
+    trans_corpus = str(data.get("transcribed_text") or "").lower()
+    has_dates_in_transcript = bool(re.search(r'\b(?:\d{3,4}(?:s|\s*(?:ad|bc|bce|ce))?|\d{1,2}(?:th|st|nd|rd)\s*century)\b', trans_corpus))
+
+    def _sanitize_annotation_remark(rem_text: str, tag_str: str) -> str:
+        if not rem_text:
+            return rem_text
+        t_low = tag_str.lower()
+        clean = rem_text
+
+        # 1. Eliminate false timeline / chronological premise hallucinations
+        if ("chronological" in clean.lower() or "timeline" in clean.lower()) and not has_dates_in_transcript:
+            clean = re.sub(r'(?i)good chronological premise', 'Clear Conceptual Premise', clean)
+            clean = re.sub(r'(?i)clearly situated the core theme and historical timeline in the opening paragraph\.?', 'Accurately situated the core thematic definition and context in the opening.', clean)
+            clean = re.sub(r'(?i)historical timeline', 'thematic premise', clean)
+            clean = re.sub(r'(?i)timeline', 'core theme', clean)
+
+        # 2. Eliminate leaked "foundational institutional or historical catalyst" opening boilerplate
+        if "foundational institutional or historical catalyst" in clean.lower():
+            if is_geo:
+                clean = re.sub(r'(?i)anchor the first sentence with the foundational institutional or historical catalyst to immediately establish the core thesis\.?', 'Anchor the opening definition directly with the primary driving mechanism (e.g. differential solar insolation and Earth\'s axial tilt) to establish analytical depth upfront.', clean)
+            elif is_history_culture:
+                clean = re.sub(r'(?i)anchor the first sentence with the foundational institutional or historical catalyst to immediately establish the core thesis\.?', 'Ground the opening sentence in foundational philosophical doctrines or primary cultural texts to immediately elevate the answer.', clean)
+            elif is_ethics:
+                clean = re.sub(r'(?i)anchor the first sentence with the foundational institutional or historical catalyst to immediately establish the core thesis\.?', 'Ground the opening sentence in foundational ethical principles (e.g. Constitutional Morality, Nolan Principles) to establish analytical depth.', clean)
+            else:
+                clean = re.sub(r'(?i)anchor the first sentence with the foundational institutional or historical catalyst to immediately establish the core thesis\.?', 'Enrich the first sentence with the primary domain-specific principle or statutory benchmark to immediately establish the core thesis.', clean)
+
+        # 3. Eliminate leaked "Strong Point Coverage" body boilerplate
+        if "strong point coverage" in clean.lower():
+            if is_history_culture:
+                clean = re.sub(r'(?i)strong point coverage(\s*\([^)]*\))?:\s*addressed key structural and historical arguments with relevant examples\.?', 'Good Dimensional Coverage: Outlined distinct regional and institutional contributions with relevant historical examples.', clean)
+            elif is_geo:
+                clean = re.sub(r'(?i)strong point coverage(\s*\([^)]*\))?:\s*addressed key structural arguments with relevant examples\.?', 'Effective Factor Categorization: Systematically mapped key geographical mechanisms driving spatial variation.', clean)
+            else:
+                clean = re.sub(r'(?i)strong point coverage(\s*\([^)]*\))?:\s*addressed key structural arguments with relevant examples\.?', 'Substantive Argument Framing: Directly addressed the core directive with structured point-wise dimensions.', clean)
+
+        # 4. Eliminate leaked "cultural synthesis rather than separation" analytical nuance boilerplate
+        if "frame cross-regional linkages in terms of cultural synthesis rather than separation" in clean.lower():
+            if not is_history_culture:
+                clean = re.sub(r'(?i)[^\n]*frame cross-regional linkages in terms of cultural synthesis rather than separation[^\n]*\n?', '', clean).strip()
+            else:
+                clean = re.sub(r'(?i)analytical nuance \(point 1\):\s*frame cross-regional linkages in terms of cultural synthesis rather than separation', 'Philosophical Nuance: Highlight the mutual syncretism (e.g. Advaita Vedanta and Bhakti interweaving) connecting Northern and Southern traditions', clean)
+
+        # 5. Eliminate leaked "Balanced Stand" & "Forward Anchor" conclusion boilerplate
+        if "balanced stand" in clean.lower():
+            if is_history_culture:
+                clean = re.sub(r'(?i)balanced stand:\s*concluded with a coherent synthesis tying back to the core demand(\s*of the question)?\.?', 'Living Cultural Continuity: Concluded by tying historical/philosophical evolution to enduring civilizational synthesis and national heritage.', clean)
+            elif is_geo:
+                clean = re.sub(r'(?i)balanced stand:\s*concluded with a coherent synthesis tying back to the core demand(\s*of the question)?\.?', 'Planetary Equilibrium: Concluded by summarizing the dynamic balance between planetary insolation and local anthropogenic factors.', clean)
+            elif is_ethics:
+                clean = re.sub(r'(?i)balanced stand:\s*concluded with a coherent synthesis tying back to the core demand(\s*of the question)?\.?', 'Ethical Stewardship: Concluded by harmonizing professional duty with moral integrity and constitutional values.', clean)
+            else:
+                clean = re.sub(r'(?i)balanced stand:\s*concluded with a coherent synthesis tying back to the core demand(\s*of the question)?\.?', 'Balanced Synthesis: Concluded with a coherent summary linking core arguments to forward-looking outcomes.', clean)
+
+        if "forward anchor" in clean.lower():
+            if is_history_culture:
+                clean = re.sub(r'(?i)forward anchor:\s*connect the closing line to contemporary constitutional or policy significance\.?', 'Civilizational Linkage: Anchor the closing line in the living continuity of regional philosophical traditions (e.g. Adi Shankara\'s Advaita Vedanta monastic integration across India\'s four corners or Kashi-Tamil Sangamam).', clean)
+                clean = re.sub(r'(?i)forward anchor:\s*connect the closing line to contemporary [^\n.]*', 'Civilizational Linkage: Anchor the closing line in living heritage continuity and cultural integration.', clean)
+            elif is_geo:
+                clean = re.sub(r'(?i)forward anchor:\s*connect the closing line to contemporary (?:constitutional or policy|climate policy) significance\.?', 'Thermodynamic & Policy Anchor: Anchor the closing line in global thermodynamic heat equilibrium and climate adaptation frameworks (e.g. IPCC WG-I / Heat Action Plans).', clean)
+                clean = re.sub(r'(?i)forward anchor:\s*connect the closing line to contemporary [^\n.]*', 'Global Framework: Anchor the closing line in global thermodynamic equilibrium and spatial disaster resilience.', clean)
+            elif is_ethics:
+                clean = re.sub(r'(?i)forward anchor:\s*connect the closing line to contemporary [^\n.]*', 'Public Trust Anchor: Ground the closing line in transformative constitutionalism and the civil servant\'s role as a moral trustee of the public good.', clean)
+            elif is_polity:
+                clean = re.sub(r'(?i)forward anchor:\s*connect the closing line to contemporary [^\n.]*', 'Constitutional Reform: Anchor the closing line in 2nd ARC recommendations or Supreme Court constitutional benchmarks.', clean)
+
+        return clean
+
     annotations = data.get("visual_annotations", [])
     if annotations:
         intro_audit_obj = data.get("intro_audit") if isinstance(data.get("intro_audit"), dict) else {}
@@ -1662,8 +1801,18 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                 _add_unique_bullet(bullets, g_cand, "✎")
 
             if not bullets:
-                bullets.append(f"✓ **Page {pg_num} Analysis**: Addressed relevant points for this sub-section.")
-                bullets.append("✎ **Value Addition**: Substantiate points with domain-specific examples, data, or institutional mechanisms.")
+                if is_history_culture:
+                    bullets.append(f"✓ **Page {pg_num} Dimensional Scope**: Addressed key regional, philosophical, and historical traditions.")
+                    bullets.append("✎ **Philosophical Depth**: Substantiate with specific texts, acharyas, and syncretic linkages.")
+                elif is_geo:
+                    bullets.append(f"✓ **Page {pg_num} Factor Analysis**: Mapped key spatial, thermal, and atmospheric mechanisms.")
+                    bullets.append("✎ **Scientific Nuance**: Substantiate with thermodynamic models, specific heat dynamics, or global indices.")
+                elif is_ethics:
+                    bullets.append(f"✓ **Page {pg_num} Ethical Analysis**: Addressed stakeholder dilemmas and core values.")
+                    bullets.append("✎ **Ethical Framework**: Ground points in Nolan principles, 2nd ARC, or constitutional values.")
+                else:
+                    bullets.append(f"✓ **Page {pg_num} Analysis**: Addressed relevant points and institutional mechanisms.")
+                    bullets.append("✎ **Value Addition**: Substantiate points with domain-specific examples, data, or statutory benchmarks.")
             return "\n".join(bullets[:4])
 
         # Ensure Intro annotation has 1-2 full sentences of substantive feedback (and zero Missing line if full marks)
@@ -1671,6 +1820,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
         intro_mx = float(rubric_obj.get("intro_max", 1.5 if max_marks == 10 else 2.0) or (1.5 if max_marks == 10 else 2.0))
         is_intro_perfect = (intro_sc >= intro_mx - 0.1) and not (intro_audit_obj.get("missing_elements"))
         for ann in annotations:
+            ann["remark"] = _sanitize_annotation_remark(str(ann.get("remark", "")), str(ann.get("tag", "")))
             if "intro" in str(ann.get("tag", "")).lower() or "premise" in str(ann.get("tag", "")).lower():
                 raw_i_rem = str(ann.get("remark", "")).strip()
                 i_lines = [ln.strip() for ln in raw_i_rem.split("\n") if ln.strip()]
@@ -1683,10 +1833,16 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                     # Check if any line in raw_i_rem is a telegraphic 2-4 word stub (< 52 chars)
                     has_short_stub = (len(i_lines) < 2) or any(len(re.sub(r'\*\*.*?\*\*\s*:?\s*', '', ln).strip()) < 38 for ln in i_lines)
                     if has_short_stub:
-                        p1_txt = crit_str if len(crit_str) >= 40 else (i_lines[0] if i_lines else "✓ **Opening Context**: Addressed the foundational timeline and theme of the prompt.")
-                        if miss_list:
+                        p1_txt = crit_str if len(crit_str) >= 40 else (i_lines[0] if i_lines else "✓ **Opening Context**: Addressed the foundational definition and core theme of the prompt.")
+                        if is_geo:
+                            p2_txt = "✎ **Insolation / Process Hook**: Anchor the opening definition directly with the primary driving mechanism (e.g. differential solar insolation and Earth's axial tilt) to establish analytical depth upfront."
+                        elif is_history_culture:
+                            p2_txt = "✎ **Conceptual Anchor**: Ground the first sentence in foundational philosophical doctrines or primary cultural texts to immediately elevate the answer."
+                        elif is_ethics:
+                            p2_txt = "✎ **Ethical Hook**: Ground the opening sentence in foundational ethical principles (e.g. Constitutional Morality, Nolan Principles) to establish analytical depth."
+                        elif miss_list:
                             clean_miss = ", ".join(miss_list[:2])
-                            p2_txt = f"✎ **Missing in Introduction**: Explain and anchor {clean_miss} in 1–2 lines to establish the historical/institutional significance upfront."
+                            p2_txt = f"✎ **Missing in Introduction**: Explain and anchor {clean_miss} in 1–2 lines to establish the core significance upfront."
                         else:
                             p2_txt = "✎ **Opening Enrichment**: Expand the introduction by 1–2 lines connecting the baseline definition to the core analytical demand of the question."
                         ann["remark"] = f"{_fmt_bullet(p1_txt, '✓')}\n{_fmt_bullet(p2_txt, '✎')}"
@@ -1947,30 +2103,18 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
         }
 
     # Dynamic Toolkit Title
-    resolved_q = data.get("detected_question") or question or ""
-    q_lower = resolved_q.lower()
-    detected_paper = data.get("detected_paper") or paper or ""
-    p_upper = (detected_paper or "").upper()
-    is_history_culture = any(k in q_lower for k in [
-        "ahom", "buranji", "paik", "saraighat", "lachit", "sankardev", "satra", "moidam", "charaideo",
-        "mughal", "chola", "vijayanagara", "maurya", "ashoka", "gupta", "harappa", "indus valley", "vedic",
-        "buddhis", "jainis", "bhakti", "sufi", "sultanate", "maratha", "pallava", "chalukya", "rashtrakuta",
-        "temple", "architecture", "rock-cut", "colonial", "freedom struggle", "national movement", "gandhi",
-        "nehru", "tagore", "british rule", "1857", "peasant movement", "renaissance", "dynasty", "kingdom",
-        "empire", "heritage", "cultural", "historical identity", "classical dance", "painting"
-    ])
     if not data.get("keyword_toolkit_title"):
         if is_history_culture:
             data["keyword_toolkit_title"] = "Essential Historical Sources, Institutions & Cultural Landmarks (Missing Keywords)"
-        elif "GS4" in p_upper or any(k in q_lower for k in ["ethic", "moral", "integrity", "attitude", "conduct"]):
+        elif is_ethics:
             data["keyword_toolkit_title"] = "Essential Thinkers, Philosophies & Ethical Frameworks (Missing Keywords)"
         elif "OPTIONAL-PSIR" in p_upper or any(k in q_lower for k in ["plato", "aristotle", "machiavelli", "hobbes", "locke", "rawls"]):
             data["keyword_toolkit_title"] = "Essential Thinkers & Doctrinal Concepts (Missing Keywords)"
-        elif any(k in q_lower for k in ["geomorph", "volcano", "earthquake", "cyclone", "plate tectonic", "climate", "monsoon", "ocean"]):
+        elif is_geo:
             data["keyword_toolkit_title"] = "Core Scientific Concepts & Technical Vocabulary (Missing Keywords)"
-        elif "GS2" in p_upper or any(k in q_lower for k in ["constitution", "parliament", "judiciary", "article", "governance", "separation of powers"]):
+        elif is_polity:
             data["keyword_toolkit_title"] = "Constitutional Articles, Doctrines & Judgments (Missing Keywords)"
-        elif "GS3" in p_upper or any(k in q_lower for k in ["economy", "gdp", "agriculture", "inflation", "renewable", "semiconductor"]):
+        elif is_econ:
             data["keyword_toolkit_title"] = "Economic Concepts, Policy Frameworks & Metrics (Missing Keywords)"
         else:
             data["keyword_toolkit_title"] = "High-Yield Domain Concepts & Keywords (Missing Keywords)"
@@ -1985,19 +2129,56 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
         ]
     else:
         used_badges = set()
-        fallback_badges = [
-            "Core Concept & Mechanism",
-            "Empirical & Zonation Benchmark",
-            "Institutional / Legal Anchor",
-            "Global / Committee Standard"
-        ]
+        if is_history_culture:
+            fallback_badges = [
+                "Historiographical Doctrine",
+                "Textual & Epigraphical Source",
+                "Cultural & Philosophical Tradition",
+                "Archaeological & Living Heritage"
+            ]
+        elif is_geo:
+            fallback_badges = [
+                "Climatological & Spatial Mechanism",
+                "Thermal & Atmospheric Dynamic",
+                "Geomorphic Model & Process",
+                "Global Convention & DRR Standard"
+            ]
+        elif is_ethics:
+            fallback_badges = [
+                "Deontological / Moral Doctrine",
+                "Virtue Ethics & Character Anchor",
+                "Public Probity Framework",
+                "Applied Administrative Ethics"
+            ]
+        elif is_polity:
+            fallback_badges = [
+                "Constitutional Article / Provision",
+                "Landmark Judicial Doctrine",
+                "Statutory & Institutional Anchor",
+                "Administrative Committee Reform"
+            ]
+        else:
+            fallback_badges = [
+                "Core Concept & Mechanism",
+                "Empirical & Sectoral Metric",
+                "Institutional Framework",
+                "Policy & Governance Benchmark"
+            ]
         pbp_list = data.get("point_by_point_audit") if isinstance(data.get("point_by_point_audit"), list) else []
         for idx_c, card in enumerate(data["missing_keywords_cards"]):
             if not isinstance(card, dict):
                 continue
+            term_c = str(card.get("term") or "").lower()
             raw_dot = str(card.get("domain_or_thinker") or card.get("thinker") or "").strip()
             if not raw_dot or raw_dot.lower() in used_badges or raw_dot.lower() in ("domain concept", "geomorphic & scientific concept", "historical & cultural anchor"):
                 raw_dot = fallback_badges[idx_c % len(fallback_badges)]
+            
+            # Prevent cross-subject tagging on cultural/philosophical and geography terms
+            if (is_history_culture or "cultural" in term_c or "philosophy" in term_c or "advaita" in term_c or "bhakti" in term_c or "synthesis" in term_c) and ("committee" in raw_dot.lower() or "policy" in raw_dot.lower()):
+                raw_dot = "Cultural & Philosophical Tradition"
+            elif (is_geo or "temperature" in term_c or "insolation" in term_c) and ("committee" in raw_dot.lower() or "policy" in raw_dot.lower() or "constitutional" in raw_dot.lower()):
+                raw_dot = "Climatological & Spatial Mechanism"
+
             if len(raw_dot) > 35:
                 raw_dot = raw_dot[:32] + "..."
             used_badges.add(raw_dot.lower())
@@ -2026,10 +2207,6 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
 
     # Normalize Actionable Value-Addition Checklist (Where to Write & How to Write)
     va_raw = data.get("value_add_checklist") or {}
-    is_geo = (not is_history_culture and any(k in q_lower for k in ["volcano", "geomorph", "earthquake", "cyclone", "plate tectonic", "climate", "soil", "ocean", "monsoon"]))
-    is_polity = ("GS2" in p_upper or any(k in q_lower for k in ["constitution", "article", "judiciary", "parliament", "governor"]))
-    is_econ = ("GS3" in p_upper or any(k in q_lower for k in ["economy", "gdp", "agriculture", "farmer", "inflation", "industry"]))
-    is_ethics = ("GS4" in p_upper or any(k in q_lower for k in ["ethic", "moral", "integrity", "attitude", "civil servant"]))
 
     if is_history_culture:
         def_cat1_title = "Primary Historical Sources, Chronicles & Institutions"
@@ -2493,12 +2670,8 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
     strengths_list = body_audit.get("strengths") if isinstance(body_audit.get("strengths"), list) else []
     anns_list = data.get("visual_annotations") if isinstance(data.get("visual_annotations"), list) else []
 
-    # Build corpus of what the student ACTUALLY wrote or was already credited for
-    positive_corpus = " ".join([
-        str(data.get("transcribed_text") or ""),
-        " ".join(str(s) for s in strengths_list),
-        " ".join(str(a.get("remark") or "") for a in anns_list if "✓" in str(a.get("remark") or ""))
-    ]).lower()
+    # Build corpus of what the student ACTUALLY wrote on their sheet (transcribed_text)
+    positive_corpus = str(data.get("transcribed_text") or "").lower()
 
     tracked_landmarks = [
         "njac", "maneka gandhi", "navtej johar", "shreya singhal", "kesavananda",

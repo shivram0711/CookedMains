@@ -4352,12 +4352,15 @@ function renderAnnotationsOverlay() {
             "✎ **Factual Correction**: Ahoms ruled from the **13th to 19th century** (not just 16th–17th), and **Lachit Borphukan** was the military general, not ruler."
           ].join("\n");
         }
+        const hasTimelineInCandidate = /\b(?:\d{3,4}(?:s|\s*(?:ad|bc|bce|ce))?|\d{1,2}(?:th|st|nd|rd)\s*century)\b/i.test(String(evalData.transcribed_text || ""));
         const rawLines = cleaned
           ? cleaned.split(/\n+|\s*\|\s*|(?<=[.?!])\s+(?=[✓✔✎✗×✘★⭐])/).map(s => s.trim()).filter(Boolean)
           : [];
         const hasTelegraphicStub = (rawLines.length < 2) || rawLines.some(ln => {
           const bodyAfterColon = ln.replace(/^[^:]+:\s*/, "").trim();
-          return bodyAfterColon.length < 42 || /^(?:defined the kingdom's timeline|historical significance hook|contextual hook|defined core concept clearly|the introduction is clear and defines the phenomenon well|expand the introduction by 1[–-]2 lines connecting the baseline definition.*)\.?$/i.test(bodyAfterColon);
+          const hasTimelineLeak = (!hasTimelineInCandidate && /chronological|timeline/i.test(ln));
+          const hasPromptBoilerplate = /good chronological premise|clearly situated the core theme and historical timeline|anchor the first sentence with the foundational institutional or historical catalyst/i.test(ln);
+          return hasTimelineLeak || hasPromptBoilerplate || bodyAfterColon.length < 42 || /^(?:defined the kingdom's timeline|historical significance hook|contextual hook|defined core concept clearly|the introduction is clear and defines the phenomenon well|expand the introduction by 1[–-]2 lines connecting the baseline definition.*)\.?$/i.test(bodyAfterColon);
         });
         if (!hasTelegraphicStub && rawLines.length >= 2) {
           const res = rawLines.slice(0, 2).join("\n");
@@ -4366,18 +4369,27 @@ function renderAnnotationsOverlay() {
         }
         const rawCritClean = stripBodyDiagramFromIntroText(introAudit.current_critique || "");
         const firstStudentLine = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20)[0] || "";
-        const p1 = (rawCritClean && rawCritClean.length >= 42 && !/defines the phenomenon well/i.test(rawCritClean))
+        const p1 = (rawCritClean && rawCritClean.length >= 42 && !/defines the phenomenon well|good chronological premise|historical timeline/i.test(rawCritClean))
           ? ensureBulletPrefix(rawCritClean.split(/<br\s*\/?>|\n|✎/i)[0], "✓")
           : (firstStudentLine
               ? `✓ **Relevant Opening Definition**: Opened directly with *"${firstStudentLine.slice(0, 75)}..."* establishing the baseline premise.`
               : "✓ **Good Opening Premise**: Addressed the foundational definition and opening context of the question.");
         const missArr = Array.isArray(introAudit.missing_elements) ? introAudit.missing_elements.filter(Boolean) : [];
         const kwAnchor = (kwCards[0] && kwCards[0].term) ? `**${kwCards[0].term}**` : "";
-        const p2 = missArr.length > 0
-          ? `✎ **Intro Value-Addition**: Anchor your opening with ${missArr.slice(0, 2).join(" & ")}${kwAnchor && !missArr.join(" ").includes(kwCards[0].term) ? ` and ${kwAnchor}` : ""} in 1–2 lines.`
-          : (kwAnchor
-              ? `✎ **Intro Value-Addition**: Strengthen your opening sentence by citing ${kwAnchor} and 1 concrete empirical/theoretical benchmark.`
-              : "✎ **Intro Value-Addition**: Anchor your opening 2 lines with the core theoretical mechanism or official baseline statistic.");
+        let p2 = "";
+        if (discipline === "PHYSICAL_GEOGRAPHY") {
+          p2 = "✎ **Insolation / Process Hook**: Anchor the opening definition directly with the primary driving mechanism (e.g. differential solar insolation and Earth's axial tilt) to establish analytical depth upfront.";
+        } else if (discipline === "HISTORY_CULTURE") {
+          p2 = "✎ **Conceptual Anchor**: Ground the first sentence in foundational philosophical doctrines or primary cultural texts to immediately elevate the answer.";
+        } else if (discipline === "PHILOSOPHY_ETHICS") {
+          p2 = "✎ **Ethical Hook**: Ground the opening sentence in foundational ethical principles (e.g. Constitutional Morality, Nolan Principles) to establish analytical depth.";
+        } else if (missArr.length > 0) {
+          p2 = `✎ **Intro Value-Addition**: Anchor your opening with ${missArr.slice(0, 2).join(" & ")}${kwAnchor && !missArr.join(" ").includes(kwCards[0].term) ? ` and ${kwAnchor}` : ""} in 1–2 lines.`;
+        } else if (kwAnchor) {
+          p2 = `✎ **Intro Value-Addition**: Strengthen your opening sentence by citing ${kwAnchor} and 1 concrete empirical/theoretical benchmark.`;
+        } else {
+          p2 = "✎ **Intro Value-Addition**: Anchor your opening 2 lines with the core theoretical mechanism or baseline definition.";
+        }
         const finalIntroRem = `${p1}\n${p2}`;
         registerUsedRemark(finalIntroRem);
         return finalIntroRem;
@@ -4473,6 +4485,10 @@ function renderAnnotationsOverlay() {
             .map(s => s.trim())
             .filter(Boolean);
           inlineParts.forEach(ln => {
+            // Filter out old leaked prompt boilerplate
+            if (/strong point coverage|analytical nuance \(point 1\): frame cross-regional linkages in terms of cultural synthesis rather than separation|addressed key structural and historical arguments with relevant examples|addressed key structural arguments with relevant examples/i.test(ln)) {
+              return;
+            }
             if (uniqueBullets.length < 2) {
               const pref = /^[✗×✘]/.test(ln) ? "✗" : /^[✎]/.test(ln) ? "✎" : "✓";
               pushUnique(ln, pref);
@@ -4518,8 +4534,16 @@ function renderAnnotationsOverlay() {
         }
 
         if (uniqueBullets.length === 0) {
-          pushUnique(`**Page ${targetPageNum} Arguments**: Covered relevant analytical points in this section.`, "✓");
-          pushUnique(`**Value Addition**: Substantiate points with specific case studies, official data, or statutory frameworks.`, "✎");
+          if (discipline === "HISTORY_CULTURE") {
+            pushUnique(`**Historical & Cultural Traditions**: Outlined distinct regional and institutional contributions with relevant examples.`, "✓");
+            pushUnique(`**Philosophical Depth**: Substantiate arguments with specific philosophical texts, acharyas, and syncretic linkages.`, "✎");
+          } else if (discipline === "PHYSICAL_GEOGRAPHY") {
+            pushUnique(`**Spatial & Thermal Mechanisms**: Mapped key geographical factors driving physical variation across Earth's surface.`, "✓");
+            pushUnique(`**Scientific Precision**: Frame land-sea thermal contrasts in terms of specific heat capacity and albedo dynamics.`, "✎");
+          } else {
+            pushUnique(`**Page ${targetPageNum} Arguments**: Covered relevant analytical points in this section.`, "✓");
+            pushUnique(`**Value Addition**: Substantiate points with specific case studies, official data, or statutory frameworks.`, "✎");
+          }
         }
         return uniqueBullets.slice(0, 2).join("\n");
       };
@@ -4597,20 +4621,35 @@ function renderAnnotationsOverlay() {
             .replace(/Constructive Synthesis/gi, "Good Closing Line")
             .replace(/National Goal Target/gi, "How to Improve")
             .replace(/Forward Vision/gi, "How to Improve");
-          const isLazyConcStub = cleaned.length < 72 || /balanced conclusion.*connect to sustainable development goals|good conclusion.*way forward/i.test(cleaned);
+          const isLazyConcStub = cleaned.length < 72 || /balanced conclusion.*connect to sustainable development goals|good conclusion.*way forward|balanced stand|forward anchor|concluded with a coherent synthesis tying back to the core demand|connect the closing line to contemporary constitutional or policy significance|connect the closing line to contemporary climate policy significance/i.test(cleaned);
           if (!isLazyConcStub) {
             return cleaned;
           }
         }
         const lastStudentLines = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20).slice(-1)[0] || "";
-        const c1 = (concAudit.current_critique && String(concAudit.current_critique).length >= 42 && !/balanced conclusion/i.test(String(concAudit.current_critique)))
-          ? ensureBulletPrefix(String(concAudit.current_critique).split(/<br\s*\/?>|\n|✎/i)[0].replace(/Visionary Synthesis|Constructive Synthesis/gi, "Good Closing Line"), "✓")
-          : (lastStudentLines
-              ? `✓ **Relevant Closing Synthesis**: Concluded with *"${lastStudentLines.slice(0, 75)}..."* tying together the core theme.`
-              : "✓ **Good Closing Line**: Clear concluding stand tying together the main demand of the question.");
-        const c2 = concAudit.model_conclusion_rewrite
-          ? `✎ **How to Elevate**: ${String(concAudit.model_conclusion_rewrite).slice(0, 140)}`
-          : "✎ **How to Elevate**: Anchor your closing line in 1–2 specific topic keywords and the core institutional or statutory framework.";
+        let c1 = "";
+        if (lastStudentLines) {
+          c1 = `✓ **Relevant Closing Synthesis**: Concluded with *"${lastStudentLines.slice(0, 75)}..."* tying together the core theme.`;
+        } else if (discipline === "HISTORY_CULTURE") {
+          c1 = "✓ **Living Cultural Continuity**: Concluded by tying historical/philosophical evolution to enduring civilizational synthesis and national heritage.";
+        } else if (discipline === "PHYSICAL_GEOGRAPHY") {
+          c1 = "✓ **Planetary Equilibrium**: Concluded by summarizing the dynamic balance between planetary insolation and local anthropogenic factors.";
+        } else {
+          c1 = "✓ **Good Closing Line**: Clear concluding stand tying together the main demand of the question.";
+        }
+
+        let c2 = "";
+        if (discipline === "HISTORY_CULTURE") {
+          c2 = "✎ **Civilizational Synthesis**: Anchor the closing line in the living continuity of regional philosophical traditions (e.g. Adi Shankara's Advaita Vedanta monastic integration across India's four corners or Kashi-Tamil Sangamam).";
+        } else if (discipline === "PHYSICAL_GEOGRAPHY") {
+          c2 = "✎ **Thermodynamic & Policy Anchor**: Anchor the closing line in global thermodynamic heat equilibrium and climate adaptation frameworks (e.g. IPCC WG-I / Heat Action Plans).";
+        } else if (discipline === "PHILOSOPHY_ETHICS") {
+          c2 = "✎ **Public Trust Anchor**: Ground the closing line in transformative constitutionalism and the civil servant's role as a moral trustee of the public good.";
+        } else if (concAudit.model_conclusion_rewrite) {
+          c2 = `✎ **How to Elevate**: ${String(concAudit.model_conclusion_rewrite).slice(0, 140)}`;
+        } else {
+          c2 = "✎ **How to Elevate**: Anchor your closing line in 1–2 specific topic keywords and the core institutional or statutory framework.";
+        }
         return `${c1}\n${c2}`;
       };
 
@@ -6414,13 +6453,13 @@ window.classifyQuestionDiscipline = function(questionText, paper) {
   const q = String(questionText || "").toLowerCase();
   const p = String(paper || "").toUpperCase();
 
-  const isHistoryCulture = /\b(?:ahom|buranji|paik|saraighat|lachit|sankardev|satra|moidam|charaideo|mughal|chola|vijayanagara|maurya|ashoka|gupta|harappa|indus valley|vedic|buddhis|jainis|bhakti|sufi|sultanate|maratha|pallava|chalukya|rashtrakuta|temple architecture|rock-cut|cave architecture|stupa|numismatic|epigraph|inscription|colonial|freedom struggle|national movement|gandhi|nehru|tagore|subhas|bhagat singh|british rule|revolt of 1857|peasant movement|tribal uprising|renaissance|dynasty|kingdom|empire|cultural and historical identity|art and culture|classical dance|painting|unesco heritage)\b/i.test(q);
+  const isHistoryCulture = /\b(?:ahom|buranji|paik|saraighat|lachit|sankardev|satra|moidam|charaideo|mughal|chola|vijayanagara|maurya|ashoka|gupta|harappa|indus valley|vedic|buddhis|jainis|bhakti|sufi|sultanate|maratha|pallava|chalukya|rashtrakuta|temple|architecture|rock-cut|cave architecture|stupa|numismatic|epigraph|inscription|colonial|freedom struggle|national movement|gandhi|nehru|tagore|subhas|bhagat singh|british rule|revolt of 1857|peasant movement|tribal uprising|renaissance|dynasty|kingdom|empire|cultural|historical|art and culture|classical dance|painting|unesco heritage|philosoph|advaita|dvaita|vedanta|upanishad|samagam|sangam|tradition|civilizational?|sramanic|monument|sculpture|literature)\b/i.test(q);
   if (isHistoryCulture) return "HISTORY_CULTURE";
 
-  const isPhilosophyEthics = (p.includes("GS4") || /\b(?:socrates|plato|aristotle|kant|categorical imperative|rawls|utilitarian|deontolog|virtue ethics|moral philosophy|ethical dilemma|conscience|probity|emotional intelligence|attitude|aptitude|quotations?|moral thinker)\b/i.test(q));
+  const isPhilosophyEthics = (p.includes("GS4") || /\b(?:socrates|plato|aristotle|kant|categorical imperative|rawls|utilitarian|deontolog|virtue ethics|moral philosophy|ethical dilemma|conscience|probity|emotional intelligence|attitude|aptitude|quotations?|moral thinker|nolan|integrity|compassion|code of ethics|code of conduct|civil service values?)\b/i.test(q));
   if (isPhilosophyEthics) return "PHILOSOPHY_ETHICS";
 
-  const isPhysicalGeo = /\b(?:volcano|geomorph|earthquake|plate tectonic|tsunami|glacier|karst|monsoon mechanism|ocean current|salinity|air mass|frontogenesis|jet stream|coral reef|continental drift|seafloor spreading)\b/i.test(q);
+  const isPhysicalGeo = /\b(?:volcano|geomorph|earthquake|plate tectonic|tsunami|glacier|karst|monsoon|ocean current|salinity|air mass|frontogenesis|jet stream|coral reef|continental drift|seafloor spreading|temperature|insolation|heat budget|atmosphere|isotherm|pressure belt|planetary winds?|land-sea|continentality|lapse rate|coriolis|albedo|drainage|river system|topography|rainfall|precipitation|inversion of temp)\b/i.test(q);
   if (isPhysicalGeo) return "PHYSICAL_GEOGRAPHY";
 
   return "POLICY_GOVERNANCE_ECONOMY";
@@ -6867,18 +6906,31 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
       if (tLow.includes("charaideo") || tLow.includes("moidam")) return "2024 UNESCO World Heritage";
       if (/\barticle\s+\d+/i.test(tLow)) return "Constitutional Mandate";
       if (/\bv\.\s+|\bcase\b|\bjudgment\b/i.test(tLow)) return "Supreme Court Precedent";
-      if (/\bcommittee\b|\bcommission\b|\barc\b/i.test(tLow)) return "Committee Benchmark";
+
+      // Subject-specific keyword matching:
+      if (/\b(?:cultural synthesis|syncretism|advaita|dvaita|vishishtadvaita|vedanta|bhakti|alvar|nayanar|agamic|sramana|upanishad|sangam|dharma|darshana|samkhya|nyaya|mimamsa|charvaka)\b/i.test(tLow)) {
+        return "Philosophical & Cultural Synthesis";
+      }
+      if (/\b(?:insolation|albedo|continentality|lapse rate|coriolis|temperature inversion|specific heat|urban heat island|hadley cell|ferrel cell|jet stream)\b/i.test(tLow)) {
+        return "Climatological & Spatial Mechanism";
+      }
+
+      if (/\bcommittee\b|\bcommission\b|\barc\b/i.test(tLow) && discipline !== "HISTORY_CULTURE" && discipline !== "PHYSICAL_GEOGRAPHY") return "Committee Benchmark";
       if (/\bindex\b|\breport\b|\bsurvey\b|\bdata\b|%/i.test(tLow)) return "Empirical Metric";
 
-      // If currentTag is specific (and NOT a repeated generic label or false 'Written'), keep it
+      // If currentTag is specific (and NOT a repeated generic label or cross-subject mismatch), keep it
       if (cTag && !/written|deepen application|keyword upgrade|geomorphic & scientific concept|historical & cultural anchor|high-yield domain anchor/i.test(cTag)) {
-        return cTag;
+        if ((discipline === "HISTORY_CULTURE" || discipline === "PHYSICAL_GEOGRAPHY") && /committee|policy reform|constitutional|statutory/i.test(cTag)) {
+          // Reject cross-subject label and fall through to discipline pool!
+        } else {
+          return cTag;
+        }
       }
       const fallbackBadgesByDiscipline = {
-        PHYSICAL_GEOGRAPHY: ["Tectonic & Process Mechanics", "Spatial Zonation Benchmark", "Geomorphic Hazard Concept", "Global Mitigation Standard"],
-        HISTORY_CULTURE: ["Primary Historical Chronicle", "Statecraft & Administrative Anchor", "Syncretic Cultural Institution", "UNESCO & Monumental Heritage"],
+        PHYSICAL_GEOGRAPHY: ["Climatological / Thermal Mechanism", "Spatial Heat Budget & Radiation", "Geomorphic & Dynamic Process", "Global Climate / DRR Standard"],
+        HISTORY_CULTURE: ["Primary Historical Chronicle", "Philosophical Doctrine & Darshana", "Syncretic Cultural Movement", "UNESCO & Living Heritage"],
         PHILOSOPHY_ETHICS: ["Deontological / Moral Principle", "Virtue & Character Anchor", "Public Probity Framework", "Applied Governance Standard"],
-        POLICY_GOVERNANCE_ECONOMY: ["Constitutional / Statutory Anchor", "Empirical & Index Benchmark", "Institutional Mechanism", "Committee / Policy Reform"]
+        POLICY_GOVERNANCE_ECONOMY: ["Constitutional / Statutory Anchor", "Empirical & Index Benchmark", "Institutional Mechanism", "Policy Reform Framework"]
       };
       const pool = fallbackBadgesByDiscipline[discipline] || fallbackBadgesByDiscipline.POLICY_GOVERNANCE_ECONOMY;
       return pool[idx % pool.length];
@@ -7028,12 +7080,25 @@ function renderEvaluation(evalData) {
 
   // 0. Build Glossary Map for Instant Inline Jargon Decoding across remarks and model answer
   state.glossaryMap = {};
+  const evalDiscipline = window.classifyQuestionDiscipline
+    ? window.classifyQuestionDiscipline(evalData.detected_question || state.question || evalData.question, evalData.detected_paper || state.paper || evalData.paper)
+    : "POLICY_GOVERNANCE_ECONOMY";
+
   if (evalData.missing_keywords_cards && Array.isArray(evalData.missing_keywords_cards)) {
     evalData.missing_keywords_cards.forEach(c => {
       if (c && c.term) {
         const key = c.term.replace(/[*_#`]/g, '').trim().toLowerCase();
-        const tag = c.domain_or_thinker || c.thinker || '';
+        let tag = c.domain_or_thinker || c.thinker || '';
         const def = c.definition || c.exam_application || '';
+
+        // Prevent cross-subject tagging on cultural/philosophical and geography terms
+        if ((evalDiscipline === "HISTORY_CULTURE" || key.includes("cultural") || key.includes("philosophy") || key.includes("advaita") || key.includes("synthesis")) && /committee|policy/i.test(tag)) {
+          tag = "Philosophical & Cultural Synthesis";
+        }
+        if ((evalDiscipline === "PHYSICAL_GEOGRAPHY" || key.includes("temperature") || key.includes("insolation")) && /committee|policy|statutory/i.test(tag)) {
+          tag = "Climatological & Spatial Mechanism";
+        }
+
         state.glossaryMap[key] = tag ? `${tag} • ${def}` : def;
       }
     });
