@@ -4150,6 +4150,10 @@ function renderAnnotationsOverlay() {
         return false;
       };
 
+      const discipline = window.classifyQuestionDiscipline
+        ? window.classifyQuestionDiscipline(evalData.detected_question || state.question || evalData.question, evalData.detected_paper || state.paper || evalData.paper)
+        : "POLICY_GOVERNANCE_ECONOMY";
+
       const isStartupDeepTechCopy = false;
       const isJudicialReviewCopy = false;
       const isPolityCopy = /(?:article\s+\d+|constitutional|parliament|supreme court|fundamental right|governor|federalism|74th amendment|243w)/i.test(String(evalData.detected_question || "").toLowerCase());
