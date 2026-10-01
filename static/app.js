@@ -4098,11 +4098,27 @@ function renderAnnotationsOverlay() {
       const evalData = evalObj || {};
       const pageAnns = (evalData.visual_annotations || evalData.annotations || []).filter(a => (parseInt(a.page, 10) || 1) === pgNum);
       const syncedRubric = evalData.rubric_scores || {};
-      const fallbackIntroMarks = `+${(parseFloat(syncedRubric.intro_score) || 1.0).toFixed(1)} / ${(parseFloat(syncedRubric.intro_max) || 2.0).toFixed(1)}`;
-      const fallbackConcMarks = `+${(parseFloat(syncedRubric.conclusion_score) || 1.0).toFixed(1)} / ${(parseFloat(syncedRubric.conclusion_max) || 2.0).toFixed(1)}`;
+      const mmVal = parseInt(evalData.max_marks || syncedRubric.total_max || 10, 10);
+      const defIntroMax = mmVal === 10 ? 1.5 : (mmVal === 15 ? 2.0 : 2.5);
+      const defConcMax = mmVal === 10 ? 1.5 : (mmVal === 15 ? 2.0 : 2.5);
+      const defCoreMax = mmVal === 10 ? 4.5 : (mmVal === 15 ? 7.0 : 9.5);
+      const defValMax = mmVal === 10 ? 1.5 : (mmVal === 15 ? 2.5 : 3.5);
+      const defPresMax = mmVal === 10 ? 1.0 : (mmVal === 15 ? 1.5 : 2.0);
+      const defBodyMax = defCoreMax + defValMax + defPresMax;
+
+      const introMaxNum = parseFloat(syncedRubric.intro_max) || defIntroMax;
+      const concMaxNum = parseFloat(syncedRubric.conclusion_max) || defConcMax;
+      const coreMaxNum = parseFloat(syncedRubric.core_demand_max) || defCoreMax;
+      const valMaxNum = parseFloat(syncedRubric.value_add_max) || defValMax;
+      const presMaxNum = parseFloat(syncedRubric.presentation_max) || defPresMax;
+      const bodyMaxNum = (parseFloat(syncedRubric.core_demand_max) && parseFloat(syncedRubric.value_add_max) && parseFloat(syncedRubric.presentation_max))
+        ? (parseFloat(syncedRubric.core_demand_max) + parseFloat(syncedRubric.value_add_max) + parseFloat(syncedRubric.presentation_max))
+        : defBodyMax;
+
+      const fallbackIntroMarks = `+${(parseFloat(syncedRubric.intro_score) || (mmVal === 10 ? 1.0 : 1.5)).toFixed(1)} / ${introMaxNum.toFixed(1)}`;
+      const fallbackConcMarks = `+${(parseFloat(syncedRubric.conclusion_score) || (mmVal === 10 ? 0.5 : 1.0)).toFixed(1)} / ${concMaxNum.toFixed(1)}`;
       const totalBodyScore = (parseFloat(syncedRubric.core_demand_score) || 0) + (parseFloat(syncedRubric.value_add_score) || 0) + (parseFloat(syncedRubric.presentation_score) || 0);
-      const totalBodyMax = (parseFloat(syncedRubric.core_demand_max) || 7.0) + (parseFloat(syncedRubric.value_add_max) || 2.5) + (parseFloat(syncedRubric.presentation_max) || 1.5);
-      const fallbackBodyMarks = `+${totalBodyScore.toFixed(1)} / ${totalBodyMax.toFixed(1)}`;
+      const fallbackBodyMarks = `+${totalBodyScore.toFixed(1)} / ${bodyMaxNum.toFixed(1)}`;
 
       const fullTextLow = [
         String(evalData.transcribed_text || ""),
@@ -4172,8 +4188,7 @@ function renderAnnotationsOverlay() {
       };
 
       const isHeatwaveCopy = false;
-      const introScoreNum = parseFloat(syncedRubric.intro_score) || 1.5;
-      const introMaxNum = parseFloat(syncedRubric.intro_max) || 2.0;
+      const introScoreNum = parseFloat(syncedRubric.intro_score) || (mmVal === 10 ? 1.0 : 1.5);
       const isIntroFullMarks = (introScoreNum >= introMaxNum - 0.1) && !(Array.isArray(introAudit.missing_elements) && introAudit.missing_elements.length > 0);
       const stripBodyDiagramFromIntroText = (txt) => String(txt || "").trim();
 
@@ -6053,8 +6068,8 @@ function syncRubricAndMarginScores(evalData) {
       evalData.conclusion_audit = {};
     }
     evalData.conclusion_audit.current_critique = isStartupDeepTechScoreCopy
-      ? "✗ **Too General (+0.5 / 2.0M)**: You ended with *\"Thus, there is a need for holistic development on part of government and society\"*, which has no topic keywords and can fit any answer. Mention **deep-tech product nation** & **Viksit Bharat @2047** to score full marks."
-      : "✗ **Too General (+0.5M Only)**: Your closing line is too general and does not include specific topic keywords. Mention 1–2 topic keywords and **Viksit Bharat @2047** to score full marks.";
+      ? `✗ **Too General (+0.5 / ${rConcMax.toFixed(1)}M)**: You ended with *\"Thus, there is a need for holistic development on part of government and society\"*, which has no topic keywords and can fit any answer. Mention **deep-tech product nation** & **Viksit Bharat @2047** to score full marks.`
+      : `✗ **Too General (+0.5 / ${rConcMax.toFixed(1)}M)**: Your closing line is too general and does not include specific topic keywords. Mention 1–2 topic keywords and the core institutional/committee anchor to score full marks.`;
   } else if (isNaN(concAw) || (concAw === 0 && !isNaN(rawRubricConc) && rawRubricConc > 0)) {
     concAw = !isNaN(rawRubricConc) ? rawRubricConc : Math.round((overallScore * (rConcMax / maxMarks)) * 2) / 2;
   }
@@ -6277,7 +6292,7 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
   if (isEarthquakeQuestion) {
     evalData.keyword_toolkit_title = "Core Seismological Concepts, Zonation & Disaster Frameworks (Missing Keywords)";
     if (!evalData.intro_audit || typeof evalData.intro_audit !== "object") evalData.intro_audit = {};
-    evalData.intro_audit.current_critique = "✓ **Clear Tectonic Definition & World Map Marking (+1.5 / 2.0M)**: Below the pre-printed World Map (where you marked `x x x` crosses along the **Circum-Pacific Ring of Fire**, **Alpine-Himalayan belt**, and **Mid-Atlantic Ridge**), you accurately defined earthquakes as shaking and tremors produced by **plate tectonics beneath the Earth's surface** that threaten human lives and physical infrastructure.<br>✎ **To Score Full 2.0 / 2.0M**: (1) Explicitly **label the marked seismic belts** on the printed map (*Circum-Pacific Belt ~68% global quakes*, *Alpine-Himalayan Belt ~21%*, and *India's Seismic Zone V*), and (2) include **H.F. Reid's Elastic Rebound Theory** and **Hypocentre (Focus) vs. Epicentre** right in your opening lines.";
+    evalData.intro_audit.current_critique = "✓ **Clear Tectonic Definition & World Map Marking (+1.0 / 1.5M)**: Below the pre-printed World Map (where you marked `x x x` crosses along the **Circum-Pacific Ring of Fire**, **Alpine-Himalayan belt**, and **Mid-Atlantic Ridge**), you accurately defined earthquakes as shaking and tremors produced by **plate tectonics beneath the Earth's surface** that threaten human lives and physical infrastructure.<br>✎ **To Score Full 1.5 / 1.5M**: (1) Explicitly **label the marked seismic belts** on the printed map (*Circum-Pacific Belt ~68% global quakes*, *Alpine-Himalayan Belt ~21%*, and *India's Seismic Zone V*), and (2) include **H.F. Reid's Elastic Rebound Theory** and **Hypocentre (Focus) vs. Epicentre** right in your opening lines.";
     evalData.intro_audit.missing_elements = ["**Elastic Rebound Theory (H.F. Reid)**", "**Map Belt Labels & India's Zone V**"];
     evalData.intro_audit.model_intro_rewrite = "An **earthquake** is the sudden release of accumulated elastic strain energy along lithospheric faults (**H.F. Reid's Elastic Rebound Theory**), radiating from the sub-surface **Hypocentre (Focus)** to the **Epicentre** as seismic waves—concentrated along the **Circum-Pacific (Ring of Fire)** and **Alpine-Himalayan (including India's Seismic Zone V)** belts.";
 
@@ -6300,7 +6315,7 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
     evalData.body_audit = bodyAudit;
 
     if (!evalData.conclusion_audit || typeof evalData.conclusion_audit !== "object") evalData.conclusion_audit = {};
-    evalData.conclusion_audit.current_critique = "✓ **Actionable Engineering & Monitoring Conclusion (+1.5 / 2.0M)**: Your closing paragraph on Page 3 (*\"Proper measures like seismic retrofitting, geological evidencing, early warning systems, seismography are essential to protect the lives & infrastructure\"*) provides concrete disaster-mitigation engineering measures rather than a vague ending.<br>✎ **To Score Full 2.0 / 2.0M**: Pair your technical measures (**seismic retrofitting & early warning systems**) with **NDMA Guidelines**, **National Building Code (NBC 2016)**, and **Sendai Framework (2015–2030)**.";
+    evalData.conclusion_audit.current_critique = "✓ **Actionable Engineering & Monitoring Conclusion (+1.0 / 1.5M)**: Your closing paragraph on Page 3 (*\"Proper measures like seismic retrofitting, geological evidencing, early warning systems, seismography are essential to protect the lives & infrastructure\"*) provides concrete disaster-mitigation engineering measures rather than a vague ending.<br>✎ **To Score Full 1.5 / 1.5M**: Pair your technical measures (**seismic retrofitting & early warning systems**) with **NDMA Guidelines**, **National Building Code (NBC 2016)**, and **Sendai Framework (2015–2030)**.";
     evalData.conclusion_audit.model_conclusion_rewrite = "Coupling **seismic microzonation, early warning seismography, and mandatory seismic retrofitting** under the **National Building Code (NBC 2016)** and **NDMA Guidelines**—aligned with the **Sendai Framework (2015–2030)**—is essential to transform high-exposure seismic zones from disaster vulnerability to structural resilience.";
 
     evalData.point_by_point_audit = [
@@ -6310,7 +6325,7 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
         title: "World Map Seismic Belt Markings ('x x x') & Tectonic Definition (Below Map)",
         what_you_wrote: "Marked 'x x x' along Circum-Pacific, Alpine-Himalayan & Mid-Atlantic belts on the printed map + wrote: \"Earthquake refers to the phenomena of shaking and tremors produced due to plate tectonics present beneath the earth's surface. It poses threat to human lives and physical infrastructure.\"",
         examiner_verdict: "Good spatial plotting on the given world map and clear tectonic definition below the map. Always write text labels ('Ring of Fire ~68%', 'Alpine-Himalayan Belt', 'India Zone V') beside your 'x' marks on the map and cite **Elastic Rebound Theory** in the intro.",
-        credit_badge: "✓ +1.50M Credit",
+        credit_badge: "✓ +1.00M Credit",
         is_positive: true
       },
       {
@@ -6319,7 +6334,7 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
         title: "Lithosphere–Asthenosphere Friction, Convergent/Transform Sketches & Focus vs. Epicentre",
         what_you_wrote: "Drew boxed [Convergent Boundary] & [Transform Boundary] block diagrams; defined 'focus' (origin beneath surface) and 'epicentre' (nearest surface point where primary waves reach first); wrote that waves are 'primary, secondary and tertiary in nature'.",
         examiner_verdict: "Your Focus vs. Epicentre distinction and boundary block sketches are spot-on! However, correct 'tertiary waves' to **Surface Waves (Love & Rayleigh waves)** and cite the **Wadati–Benioff subduction zone**.",
-        credit_badge: "✓ +2.50M Credit",
+        credit_badge: "✓ +2.00M Credit",
         is_positive: true
       },
       {
@@ -6328,7 +6343,7 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
         title: "Vulnerability from Earthquakes & Related Disasters (① Earthquakes, ② Tsunami, ③ Critical Infrastructure)",
         what_you_wrote: "① Earthquakes (Pacific, Himalayas, Rockies, Andes -> Buildings, Human lives, Landslides); ② Tsunami (Coastal Pacific, Indian, Atlantic -> Flooding, Nuclear facilities); ③ Critical infrastructure failure (Power grid, Digital connections).",
         examiner_verdict: "Well-structured 3-dimensional breakdown linking regional fold mountains and oceanic coasts to secondary disasters (especially nuclear facilities & digital/power grids). Add **India's BIS Zone V/IV data (~59% landmass)** and **Soil Liquefaction** for +1.0M extra.",
-        credit_badge: "✓ +2.50M Credit",
+        credit_badge: "✓ +2.00M Credit",
         is_positive: true
       },
       {
@@ -6337,7 +6352,7 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
         title: "Mitigation & Preparedness Closure (Seismic Retrofitting, Early Warning & Seismography)",
         what_you_wrote: "Proper measures like seismic retrofitting, geological evidencing, early warning systems, seismography are essential to protect the lives & infrastructure.",
         examiner_verdict: "Strong technical engineering terms in the closing paragraph. Anchor these four measures in **NDMA Earthquake Guidelines**, **National Building Code (NBC 2016)**, and the **Sendai Framework (2015–2030)**.",
-        credit_badge: "✓ +1.50M Credit",
+        credit_badge: "✓ +1.00M Credit",
         is_positive: true
       }
     ];
@@ -7544,12 +7559,12 @@ function renderEvaluation(evalData) {
 
   // Analytical Scorecard Progress Bars
   const r = evalData.rubric_scores || {};
-  const mm = evalData.max_marks || 10;
-  const introMax = r.intro_max || (mm * 0.15);
-  const coreMax = r.core_demand_max || (mm * 0.50);
-  const valueMax = r.value_add_max || (mm * 0.15);
-  const presMax = r.presentation_max || (mm * 0.10);
-  const concMax = r.conclusion_max || (mm * 0.10);
+  const mm = parseFloat(evalData.max_marks) || 10;
+  const introMax = r.intro_max || (mm === 10 ? 1.5 : (mm * 0.15));
+  const coreMax = r.core_demand_max || (mm === 10 ? 4.5 : (mm * 0.45));
+  const valueMax = r.value_add_max || (mm === 10 ? 1.5 : (mm * 0.15));
+  const presMax = r.presentation_max || (mm === 10 ? 1.0 : (mm * 0.10));
+  const concMax = r.conclusion_max || (mm === 10 ? 1.5 : (mm * 0.15));
 
   function updateBar(barId, textId, score, maxScore) {
     const b = document.getElementById(barId);
@@ -8230,11 +8245,11 @@ function renderPrintRadarSvg(rubrics, maxMarks) {
   const mm = parseFloat(maxMarks) || 10;
   const r = rubrics || {};
 
-  const introMax = r.intro_max !== undefined ? r.intro_max : (mm * 0.15);
-  const coreMax = r.core_demand_max !== undefined ? r.core_demand_max : (mm * 0.45);
-  const valueMax = r.value_add_max !== undefined ? r.value_add_max : (mm * 0.15);
-  const presMax = r.presentation_max !== undefined ? r.presentation_max : (mm * 0.10);
-  const conclMax = r.conclusion_max !== undefined ? r.conclusion_max : (mm * 0.10);
+  const introMax = r.intro_max !== undefined ? r.intro_max : (mm === 10 ? 1.5 : (mm * 0.15));
+  const coreMax = r.core_demand_max !== undefined ? r.core_demand_max : (mm === 10 ? 4.5 : (mm * 0.45));
+  const valueMax = r.value_add_max !== undefined ? r.value_add_max : (mm === 10 ? 1.5 : (mm * 0.15));
+  const presMax = r.presentation_max !== undefined ? r.presentation_max : (mm === 10 ? 1.0 : (mm * 0.10));
+  const conclMax = r.conclusion_max !== undefined ? r.conclusion_max : (mm === 10 ? 1.5 : (mm * 0.15));
 
   const introScore = r.intro_score !== undefined ? r.intro_score : (introMax * 0.5);
   const coreScore = r.core_demand_score !== undefined ? r.core_demand_score : (coreMax * 0.45);
@@ -8244,11 +8259,11 @@ function renderPrintRadarSvg(rubrics, maxMarks) {
 
   // Normalized percentages (clamped 0.1 to 1.0)
   const candidatePcts = [
-    Math.min(1.0, Math.max(0.1, introScore / (introMax || 2.0))),
+    Math.min(1.0, Math.max(0.1, introScore / (introMax || (mm === 10 ? 1.5 : 2.0)))),
     Math.min(1.0, Math.max(0.1, coreScore / (coreMax || 4.5))),
     Math.min(1.0, Math.max(0.1, valueScore / (valueMax || 1.5))),
     Math.min(1.0, Math.max(0.1, presScore / (presMax || 1.0))),
-    Math.min(1.0, Math.max(0.1, conclScore / (conclMax || 1.0)))
+    Math.min(1.0, Math.max(0.1, conclScore / (conclMax || (mm === 10 ? 1.5 : 2.0))))
   ];
 
   // Topper benchmark normalized percentages
@@ -8392,11 +8407,11 @@ function populatePrintDossier(evalData) {
   // 3. Analytical Rubric Diagram (Vector SVG) & Horizontal Progress Bars (Image 2 Replica)
   const rubrics = evalData.rubric_scores || {};
   const mm = parseFloat(maxMarks) || 10;
-  const introMax = (rubrics.intro_max !== undefined ? rubrics.intro_max : (mm * 0.15));
-  const coreMax = (rubrics.core_demand_max !== undefined ? rubrics.core_demand_max : (mm * 0.45));
-  const depthMax = (rubrics.presentation_max !== undefined ? rubrics.presentation_max : (mm * 0.10));
-  const valueMax = (rubrics.value_add_max !== undefined ? rubrics.value_add_max : (mm * 0.15));
-  const conclMax = (rubrics.conclusion_max !== undefined ? rubrics.conclusion_max : (mm * 0.10));
+  const introMax = (rubrics.intro_max !== undefined ? rubrics.intro_max : (mm === 10 ? 1.5 : (mm * 0.15)));
+  const coreMax = (rubrics.core_demand_max !== undefined ? rubrics.core_demand_max : (mm === 10 ? 4.5 : (mm * 0.45)));
+  const depthMax = (rubrics.presentation_max !== undefined ? rubrics.presentation_max : (mm === 10 ? 1.0 : (mm * 0.10)));
+  const valueMax = (rubrics.value_add_max !== undefined ? rubrics.value_add_max : (mm === 10 ? 1.5 : (mm * 0.15)));
+  const conclMax = (rubrics.conclusion_max !== undefined ? rubrics.conclusion_max : (mm === 10 ? 1.5 : (mm * 0.15)));
 
   const introScore = (rubrics.intro_score !== undefined ? rubrics.intro_score : (introMax * 0.5));
   const coreScore = (rubrics.core_demand_score !== undefined ? rubrics.core_demand_score : (coreMax * 0.45));

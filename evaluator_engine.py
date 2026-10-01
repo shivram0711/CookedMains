@@ -1134,9 +1134,9 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       * E. STRICT CONCLUSION SCORING & EASY-TO-UNDERSTAND LANGUAGE (ZERO JARGON LIKE 'VISIONARY SYNTHESIS'):
         - Read the candidate's actual final concluding sentence(s) at the bottom of the last page.
         - If the candidate wrote a simple, generic 1-line closing sentence without topic-specific keywords, schemes, or metrics (e.g., *"Thus, there is a need for holistic development on part of government and society"*, *"Hence, government should take steps for inclusive growth"*, or *"This is the need of the hour"*):
-          1. Award **ONLY `0.5` out of `2.0` (or `0.5 / 1.5` for 10M)** in `rubric_scores.conclusion_score` and in the `Conclusion` margin card (`"+0.5 / 2.0"`). NEVER award `1.5 / 2.0` to a generic conclusion that lacks keywords!
+          1. Award **ONLY `0.5` out of `1.5` for 10M (or `0.5 / 2.0` for 15M)** in `rubric_scores.conclusion_score` and in the `Conclusion` margin card (`"+0.5 / 1.5"` for 10M or `"+0.5 / 2.0"` for 15M). NEVER award full marks to a generic conclusion that lacks keywords!
           2. Quote the candidate's actual generic words in `conclusion_audit.current_critique` and the `Conclusion` margin card:
-             `"✗ **Too General (No Keywords)**: You wrote 'Thus, there is a need for holistic development on part of government and society', which has no topic keywords and can fit any answer (only +0.5/2.0 mark).\n✎ **How to Get Full Marks Here**: Mention 1–2 topic-specific keywords and the core institutional/committee anchor in your last line (NEVER use a generic 'Viksit Bharat @2047' slogan)."`
+             `"✗ **Too General (No Keywords)**: You wrote 'Thus, there is a need for holistic development on part of government and society', which has no topic keywords and can fit any answer (only +0.5 mark).\n✎ **How to Get Full Marks Here**: Mention 1–2 topic-specific keywords and the core institutional/committee anchor in your last line (NEVER use a generic 'Viksit Bharat @2047' slogan)."`
         - NEVER use heavy, confusing AI phrases like `"Visionary Synthesis"`, `"Constructive Synthesis"`, `"Empirical Substantiation"`, `"Contextual Premise"`, or `"Lexical"`. Always write every card heading and remark in simple, clear English (`"Too General (No Keywords)"`, `"Good Closing Line"`, `"How to Get Full Marks Here"`).
 
 22. DYNAMIC DIAGRAM RELEVANCE & EXAM-HALL SPACE UTILISATION AUDIT (CRITICAL):
@@ -2443,10 +2443,12 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
     i_missing = i_audit.get("missing_elements") if isinstance(i_audit.get("missing_elements"), list) else []
     has_intro_gap = bool(i_missing) or bool(re.search(r'(?i)(missing|lack|omit|without\s+defining)', str(i_audit.get("current_critique") or "")))
     rubric_i = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
-    i_max = float(rubric_i.get("intro_max", 2.0) or 2.0)
-    i_score = float(rubric_i.get("intro_score", 1.5) or 1.5)
+    mm_eval = int(data.get("max_marks") or rubric_i.get("total_max") or 10)
+    def_i_max = 1.5 if mm_eval == 10 else 2.0
+    i_max = float(rubric_i.get("intro_max", def_i_max) or def_i_max)
+    i_score = float(rubric_i.get("intro_score", 1.0 if mm_eval == 10 else 1.5) or (1.0 if mm_eval == 10 else 1.5))
     if has_intro_gap and i_score >= i_max - 0.1:
-        # Never award 2.0/2.0 (100% full marks) to an Introduction that is missing a core definition/threshold!
+        # Never award full marks to an Introduction that is missing a core definition/threshold!
         new_i_score = max(0.5, round(i_max - 0.5, 1))
         diff_i = round(i_score - new_i_score, 2)
         rubric_i["intro_score"] = new_i_score
@@ -2493,7 +2495,8 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
         for ann in anns_list:
             t_low = str(ann.get("tag") or "").lower()
             if "concl" in t_low or "synthesis" in t_low or "finish" in t_low:
-                c_max = float(rubric_d.get("conclusion_max", 2.0) or 2.0)
+                def_c_max = 1.5 if mm_eval == 10 else 2.0
+                c_max = float(rubric_d.get("conclusion_max", def_c_max) or def_c_max)
                 ann["marks_awarded"] = f"+0.5 / {c_max:.1f}"
                 ann["type"] = "warning"
                 ann["remark"] = (
