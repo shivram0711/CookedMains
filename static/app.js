@@ -4469,9 +4469,14 @@ function renderAnnotationsOverlay() {
           }
         }
 
+        const isConclusionOrSynthesisLine = (str) => {
+          return /\b(?:conclusion|concl|synthesis|closing\s*stance|closing\s*line|closing\s*view|forward-looking|stronger\s*finish|topper\s*finish|balanced\s*conclusion)\b/i.test(String(str || ""));
+        };
+
         let cleaned = sanitizeCrossSubjectText(rawRem);
         const uniqueBullets = [];
         const pushUnique = (lineStr, defaultPref = "✓") => {
+          if (isConclusionOrSynthesisLine(lineStr)) return false;
           const cleanWithTitle = stripOnlyLeadingIcons(lineStr);
           const cleanCore = stripTitleAndIconPrefix(lineStr);
           if (!cleanCore || cleanCore.length < 18) return false;
@@ -4489,6 +4494,7 @@ function renderAnnotationsOverlay() {
             .map(s => s.trim())
             .filter(Boolean);
           inlineParts.forEach(ln => {
+            if (isConclusionOrSynthesisLine(ln)) return;
             // Filter out old leaked prompt boilerplate
             if (/strong point coverage|analytical nuance \(point 1\): frame cross-regional linkages in terms of cultural synthesis rather than separation|addressed key structural and historical arguments with relevant examples|addressed key structural arguments with relevant examples/i.test(ln)) {
               return;
@@ -4506,6 +4512,7 @@ function renderAnnotationsOverlay() {
           if (uniqueBullets.length >= 2) return;
           const vStr = stripTitleAndIconPrefix(pItem.examiner_verdict || "");
           const tStr = String(pItem.title || "").replace(/[\[\]*]/g, "").trim();
+          if (isConclusionOrSynthesisLine(tStr) || isConclusionOrSynthesisLine(vStr)) return;
           if (vStr && vStr.length >= 22) {
             const combined = (tStr && !vStr.toLowerCase().includes(tStr.toLowerCase().slice(0, 12)))
               ? `**${tStr}**: ${vStr}`
@@ -4515,17 +4522,19 @@ function renderAnnotationsOverlay() {
         });
 
         // Supplement with unused strengths, critical_gaps, missing_dimensions indexed by slotIndex
-        if (uniqueBullets.length < 1 && strengths[slotIndex]) {
+        if (uniqueBullets.length < 1 && strengths[slotIndex] && !isConclusionOrSynthesisLine(strengths[slotIndex])) {
           pushUnique(strengths[slotIndex], "✓");
         }
         for (let i = 0; i < strengths.length && uniqueBullets.length < 1; i++) {
+          if (isConclusionOrSynthesisLine(strengths[i])) continue;
           pushUnique(strengths[i], "✓");
         }
         const combinedGaps = [...gaps, ...missingDims];
-        if (uniqueBullets.length < 2 && combinedGaps[slotIndex]) {
+        if (uniqueBullets.length < 2 && combinedGaps[slotIndex] && !isConclusionOrSynthesisLine(combinedGaps[slotIndex])) {
           pushUnique(combinedGaps[slotIndex], "✎");
         }
         for (let i = 0; i < combinedGaps.length && uniqueBullets.length < 2; i++) {
+          if (isConclusionOrSynthesisLine(combinedGaps[i])) continue;
           pushUnique(combinedGaps[i], "✎");
         }
 
@@ -4972,6 +4981,24 @@ function renderAnnotationsOverlay() {
           }
         }
 
+        // Strictly strip ANY Conclusion/Synthesis lines out of bodyRemCandidate!
+        if (bodyRemCandidate) {
+          const rawBLines = String(bodyRemCandidate).split(/\n+|\s*\|\s*/).map(s => s.trim()).filter(Boolean);
+          const cleanBLines = [];
+          const leakedConcFromB = [];
+          rawBLines.forEach(bl => {
+            if (/\b(?:conclusion|concl|synthesis|closing\s*stance|closing\s*line|closing\s*view|forward-looking|stronger\s*finish|topper\s*finish|balanced\s*conclusion)\b/i.test(bl)) {
+              leakedConcFromB.push(bl);
+            } else {
+              cleanBLines.push(bl);
+            }
+          });
+          bodyRemCandidate = cleanBLines.join("\n");
+          if (!concRemCandidate && leakedConcFromB.length > 0) {
+            concRemCandidate = leakedConcFromB.join("\n");
+          }
+        }
+
         if (isHeatwaveCopy) {
           bodyRemCandidate = [
             "✓ **Structured Sub-Headings**: Logical division between causes, effects, and policy measures.",
@@ -5349,7 +5376,7 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
         const lum = (imgData[idx] + imgData[idx + 1] + imgData[idx + 2]) / 3;
         if (lum < 185) horizDarkRun++;
       }
-      if (horizDarkRun > bandWidth * 0.88) {
+      if (horizDarkRun > bandWidth * 0.70) {
         horizBorderRow[p] = 1;
         continue;
       }
@@ -5414,8 +5441,17 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
     // Pre-printed Map on Page 1 ONLY when the question explicitly states 'map given below' / 'in the given map' (never from false-positive mid-page ink/watermark density!)
     const isMapPage1Layout = Boolean(currentPg === 1 && hasMapAboveOnPage1);
 
-    // Determine exact top of student handwriting (handwritingTopY) — strictly below bilingual English+Hindi question header (p >= 27.5 on Page 1, p >= 16 on Page 2+)
-    let handwritingTopY = currentPg === 1 ? 28.0 : 16.5;
+    // Detect top horizontal border line of any pre-printed coaching evaluation/marks rubric box near bottom (p in [72..88])
+    let bottomTableBorderP = 0;
+    for (let p = 72; p <= 88; p++) {
+      if (horizBorderRow[p] === 1) {
+        bottomTableBorderP = p;
+        break;
+      }
+    }
+
+    // Determine exact top of student handwriting (handwritingTopY) — strictly below bilingual English+Hindi question header on Page 1; allows starting at p >= 4.0 on Page 2+ to capture boxed headings/sub-headings!
+    let handwritingTopY = currentPg === 1 ? 28.0 : 8.0;
     if (isMapPage1Layout) {
       // Find first row of continuous handwritten prose below the printed map (in p = 57..66)
       let foundBelowMap = 60.5;
@@ -5446,52 +5482,77 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       }
       handwritingTopY = Math.max(22.0, Math.min(32.5, foundTop));
     } else {
-      for (let p = 16; p <= 36; p++) {
-        if (totalStroke[p] >= 5 || rowTransitions[p] >= 4) {
-          handwritingTopY = Math.max(16.0, p - 0.5);
+      // Page 2+: Scan from p = 4 to 36 so boxed headings and top sub-headings are enclosed by the brace!
+      let foundTop = 8.0;
+      for (let p = 4; p <= 36; p++) {
+        if (totalStroke[p] >= 4 || rowTransitions[p] >= 3 || horizBorderRow[p] === 1) {
+          foundTop = Math.max(4.0, p - 0.5);
+          break;
+        }
+      }
+      handwritingTopY = foundTop;
+    }
+
+    // Determine exact bottom of student handwriting (handwritingBottomY)
+    // CRITICAL: Must NEVER extend into printed coaching rubric boxes or "Students should not write anything inside the box" warning lines!
+    let maxScanBottom = 89;
+    if (bottomTableBorderP > 0) {
+      maxScanBottom = Math.min(88, bottomTableBorderP - 2);
+    }
+
+    let handwritingBottomY = currentPg === 1 ? 89.0 : 80.0;
+    let lastGenuineHandwrittenRow = 0;
+    let consecutiveBlankAfterWriting = 0;
+    let writingEncountered = false;
+
+    for (let p = Math.round(handwritingTopY); p <= maxScanBottom; p++) {
+      const isGenuineHandwriting = (
+        (totalStroke[p] >= 5.0 && leftStroke[p] >= 2.0 && rowTransitions[p] >= 3) ||
+        (p >= 70 && totalStroke[p] >= 8.0 && leftStroke[p] >= 2.0 && rightStroke[p] >= 2.0)
+      );
+
+      if (isGenuineHandwriting) {
+        lastGenuineHandwrittenRow = p;
+        writingEncountered = true;
+        consecutiveBlankAfterWriting = 0;
+      } else if (writingEncountered) {
+        consecutiveBlankAfterWriting++;
+        // If 3 or more consecutive blank rows occur near the bottom (p >= 72), candidate handwriting has ended!
+        if (consecutiveBlankAfterWriting >= 3 && p >= 72 && lastGenuineHandwrittenRow >= 55) {
+          break;
+        }
+        // If incomplete answer stopped early (e.g. y <= 65) with 8+ blank rows
+        if (consecutiveBlankAfterWriting >= 8 && lastGenuineHandwrittenRow <= 65) {
           break;
         }
       }
     }
 
-    // Determine exact bottom of student handwriting (handwritingBottomY) — clamped <= 90.0% so braces never exceed answer sheet bottom
-    let handwritingBottomY = currentPg === 1 ? 89.5 : 88.5;
-    for (let p = 89; p >= Math.round(handwritingTopY + 12); p--) {
-      let writtenRowsInWindow = 0;
-      for (let k = Math.max(0, p - 3); k <= p; k++) {
-        if (totalStroke[k] >= 5.0 && leftStroke[k] >= 2.0 && rowTransitions[k] >= 3) {
-          writtenRowsInWindow++;
+    if (lastGenuineHandwrittenRow > 0) {
+      handwritingBottomY = Math.min(maxScanBottom + 0.5, lastGenuineHandwrittenRow + 1.2);
+    } else {
+      // Fallback backwards scan if downward scan didn't register
+      for (let p = maxScanBottom; p >= Math.round(handwritingTopY + 12); p--) {
+        let writtenRowsInWindow = 0;
+        for (let k = Math.max(0, p - 3); k <= p; k++) {
+          if (totalStroke[k] >= 5.0 && leftStroke[k] >= 2.0 && rowTransitions[k] >= 3) {
+            writtenRowsInWindow++;
+          }
         }
-      }
-      if (writtenRowsInWindow >= 2 || (totalStroke[p] >= 8.0 && leftStroke[p] >= 3.0 && rowTransitions[p] >= 4)) {
-        handwritingBottomY = Math.min(90.0, p + 1.0);
-        break;
+        if (writtenRowsInWindow >= 2 || (totalStroke[p] >= 8.0 && leftStroke[p] >= 3.0 && rowTransitions[p] >= 4)) {
+          handwritingBottomY = Math.min(maxScanBottom + 0.5, p + 1.0);
+          break;
+        }
       }
     }
 
-    // Early Stop Detection for Incomplete Answers:
-    // If on the final page handwriting stops early (e.g. y ~ 42%), followed by a blank white gap (>= 12% without handwriting),
-    // clamp handwritingBottomY to the actual last line written and avoid latching onto bottom coaching evaluation boxes/tables!
-    if (currentPg === totalPages) {
-      let lastHandwrittenRow = 0;
-      let consecutiveBlankRows = 0;
-      let seenHandwriting = false;
-      for (let p = Math.round(handwritingTopY); p <= 88; p++) {
-        const isRowWritten = (totalStroke[p] >= 5.0 && leftStroke[p] >= 2.0 && rowTransitions[p] >= 3);
-        if (isRowWritten) {
-          seenHandwriting = true;
-          lastHandwrittenRow = p;
-          consecutiveBlankRows = 0;
-        } else if (seenHandwriting) {
-          consecutiveBlankRows++;
-          if (consecutiveBlankRows >= 12 && lastHandwrittenRow <= 65) {
-            // Student stopped writing early! Clamp handwritingBottomY right here:
-            handwritingBottomY = Math.min(handwritingBottomY, lastHandwrittenRow + 1.5);
-            break;
-          }
-        }
-      }
+    // Strict safety clamp:
+    // If coaching table border was detected at p >= 72, handwritingBottomY MUST NEVER exceed (bottomTableBorderP - 2.0)!
+    if (bottomTableBorderP >= 72) {
+      handwritingBottomY = Math.min(handwritingBottomY, bottomTableBorderP - 2.0);
     }
+    // And on any page, ensure handwritingBottomY does not exceed 88.5
+    handwritingBottomY = Math.min(handwritingBottomY, currentPg === 1 ? 89.5 : 88.0);
 
     sections._detectedTopY = handwritingTopY;
     sections._detectedBottomY = handwritingBottomY;
@@ -5501,12 +5562,12 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       sections.forEach((sec, idx) => {
         if (sec.noBrace || sec.isUnwritten) return;
         if (idx === 0) {
-          sec.startYPercent = Math.max(16.0, Math.min(sec.startYPercent, handwritingTopY + 2));
+          sec.startYPercent = Math.max(4.0, Math.min(sec.startYPercent, handwritingTopY + 1));
         }
         if (idx === sections.length - 1 || (sections[idx + 1] && (sections[idx + 1].noBrace || sections[idx + 1].isUnwritten))) {
-          sec.endYPercent = Math.min(90.0, Math.max(sec.startYPercent + 14, handwritingBottomY));
+          sec.endYPercent = Math.min(89.0, Math.max(sec.startYPercent + 14, handwritingBottomY));
         }
-        sec.cardTopPercent = Math.max(6, Math.round(sec.startYPercent));
+        sec.cardTopPercent = Math.max(4, Math.round(sec.startYPercent));
       });
       return;
     }
@@ -5534,8 +5595,16 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
 
     if (sections.length === 3 && currentPg === totalPages && totalPages > 1) {
       // Multi-page Final Page with 3 sections: Body: Challenges + Body: Way Forward + Conclusion
-      const wfStart = findValley(handwritingTopY + span * 0.32, handwritingTopY + span * 0.46, handwritingTopY + span * 0.38);
-      const concStart = findValley(handwritingTopY + span * 0.70, handwritingTopY + span * 0.84, handwritingTopY + span * 0.77);
+      const rawConcAnn = Array.isArray(rawAnns) ? rawAnns.find(a => {
+        const t = String(a.tag || "").toLowerCase();
+        return t.includes("concl") || t.includes("synthesis") || t.includes("finish") || (a.approx_y_percent && a.approx_y_percent >= 60);
+      }) : null;
+      const idealConcY = (rawConcAnn && rawConcAnn.start_y_percent)
+        ? Math.max(handwritingTopY + 16, Math.min(handwritingBottomY - 8, Number(rawConcAnn.start_y_percent)))
+        : (handwritingTopY + span * 0.72);
+      const concStart = findValley(idealConcY - 8, idealConcY + 8, idealConcY);
+      const bodySpan = concStart - handwritingTopY;
+      const wfStart = findValley(handwritingTopY + bodySpan * 0.44, handwritingTopY + bodySpan * 0.62, handwritingTopY + bodySpan * 0.52);
       sections[0].startYPercent = handwritingTopY;
       sections[0].endYPercent = wfStart - 1.2;
       sections[1].startYPercent = wfStart;
@@ -5545,7 +5614,14 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
     } else if (sections.length === 3) {
       // Single-page copy: Intro + Body + Conclusion
       const s1 = findValley(handwritingTopY + span * 0.18, handwritingTopY + span * 0.32, handwritingTopY + span * 0.24);
-      const s2 = findValley(handwritingTopY + span * 0.66, handwritingTopY + span * 0.84, handwritingTopY + span * 0.75);
+      const rawConcAnn = Array.isArray(rawAnns) ? rawAnns.find(a => {
+        const t = String(a.tag || "").toLowerCase();
+        return t.includes("concl") || t.includes("synthesis") || (a.approx_y_percent && a.approx_y_percent >= 65);
+      }) : null;
+      const idealConcY = (rawConcAnn && rawConcAnn.start_y_percent)
+        ? Math.max(s1 + 10, Math.min(handwritingBottomY - 8, Number(rawConcAnn.start_y_percent)))
+        : (handwritingTopY + span * 0.75);
+      const s2 = findValley(idealConcY - 8, idealConcY + 8, idealConcY);
       sections[0].startYPercent = handwritingTopY;
       sections[0].endYPercent = s1;
       sections[1].startYPercent = s1 + 1.2;
@@ -5573,11 +5649,18 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
         sections[1].endYPercent = handwritingBottomY;
       }
     } else if (sections.length === 2 && currentPg === totalPages) {
-      // Final page: Body spans top 75%..80% of actual handwriting; Conclusion embraces ONLY the final handwritten paragraph down to handwritingBottomY!
+      // Final page: Body spans top; Conclusion embraces ONLY the final handwritten paragraph down to handwritingBottomY!
+      const rawConcAnn = Array.isArray(rawAnns) ? rawAnns.find(a => {
+        const t = String(a.tag || "").toLowerCase();
+        return t.includes("concl") || t.includes("synthesis") || t.includes("finish") || (a.approx_y_percent && a.approx_y_percent >= 60);
+      }) : null;
+      const idealConcY = (rawConcAnn && rawConcAnn.start_y_percent)
+        ? Math.max(handwritingTopY + 12, Math.min(handwritingBottomY - 6, Number(rawConcAnn.start_y_percent)))
+        : (handwritingTopY + span * 0.68);
       const concStart = findValley(
-        handwritingTopY + span * 0.70,
-        handwritingTopY + span * 0.84,
-        handwritingTopY + span * 0.77
+        idealConcY - 8,
+        idealConcY + 8,
+        idealConcY
       );
       sections[0].startYPercent = handwritingTopY;
       sections[0].endYPercent = concStart - 1.2;
@@ -5627,10 +5710,10 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       guideLayer.innerHTML = "";
       const safeH = Math.max(260, exactImgH || 650);
       sections.forEach(sec => {
-        const clampedStartPct = Math.max(15.5, Math.min(86.0, sec.startYPercent || 18));
-        const clampedEndPct = Math.max(clampedStartPct + 8.0, Math.min(90.0, sec.endYPercent || 88));
-        const topY = Math.max(16, Math.round((clampedStartPct / 100) * safeH));
-        const bottomY = Math.min(safeH - 14, Math.round((clampedEndPct / 100) * safeH));
+        const clampedStartPct = Math.max(4.0, Math.min(86.0, sec.startYPercent || 6.0));
+        const clampedEndPct = Math.max(clampedStartPct + 8.0, Math.min(89.5, sec.endYPercent || 80.0));
+        const topY = Math.max(4, Math.round((clampedStartPct / 100) * safeH));
+        const bottomY = Math.min(safeH - 6, Math.round((clampedEndPct / 100) * safeH));
         const braceHeight = Math.max(26, bottomY - topY);
         const halfH = braceHeight / 2;
         sec.midY = topY + halfH;
@@ -5724,27 +5807,27 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       const imgHeight = (imgEl && imgEl.offsetHeight > 200) ? imgEl.offsetHeight : (containerHeight || 700);
       // Re-draw SVG curly braces using the exact rendered imgEl.offsetHeight so braces NEVER exceed the bottom of the answer sheet!
       renderCurlyBracesToExactHeight(imgHeight);
-      const detectedBottomPct = Math.min(90.0, sections._detectedBottomY || sections[sections.length - 1]?.endYPercent || 85);
+      const detectedBottomPct = Math.min(89.0, sections._detectedBottomY || sections[sections.length - 1]?.endYPercent || 80);
       const writtenBottomPx = Math.round((detectedBottomPct / 100) * imgHeight);
-      let prevBottom = 6;
+      let prevBottom = 4;
 
       // Forward pass: center each card around its curly brace midpoint (sec.midY) and within [secTopY, secBottomY]
       sections.forEach((sec) => {
         const cardEl = sec.cardEl;
         if (!cardEl) return;
         const cardHeight = cardEl.offsetHeight || 90;
-        const secTopY = Math.round((Math.max(15.5, sec.startYPercent) / 100) * imgHeight);
-        const secBottomY = Math.round((Math.min(90.0, sec.endYPercent) / 100) * imgHeight);
+        const secTopY = Math.round((Math.max(4.0, sec.startYPercent) / 100) * imgHeight);
+        const secBottomY = Math.round((Math.min(89.5, sec.endYPercent) / 100) * imgHeight);
         // Center card vertically on the curly brace tip (sec.midY), keeping it inside the brace & written zone
         let targetTop = Math.round(sec.midY - (cardHeight / 2));
         if (targetTop < secTopY) {
-          targetTop = Math.max(6, secTopY);
+          targetTop = Math.max(4, secTopY);
         }
         if (targetTop + cardHeight > secBottomY + 6) {
-          targetTop = Math.max(6, secBottomY - cardHeight + 4);
+          targetTop = Math.max(4, secBottomY - cardHeight + 4);
         }
         if (targetTop + cardHeight > imgHeight - 6) {
-          targetTop = Math.max(6, imgHeight - cardHeight - 6);
+          targetTop = Math.max(4, imgHeight - cardHeight - 6);
         }
         if (targetTop < prevBottom) {
           targetTop = prevBottom;

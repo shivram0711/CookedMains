@@ -1549,13 +1549,18 @@ Generate strictly valid JSON matching this schema:
     // CRITICAL RULES FOR HUMAN UPSC EXAMINER MARGIN EVALUATION & ZERO-BOILERPLATE MANDATE:
     // 1. ZERO STOCK BOILERPLATE: NEVER use stock phrases like "Good Chronological Premise", "Clearly situated the core theme and historical timeline", "Strong Point Coverage", "Balanced Stand", or "Forward Anchor". Margin remarks MUST directly quote and evaluate the candidate's actual handwritten phrases from that specific zone!
     // 2. NO TIMELINE HALLUCINATIONS: NEVER mention "timeline", "dates", or "chronology" unless the candidate literally wrote chronological dates, dynasties, or historical periods in their handwriting. If they defined a physical process (like insolation) or conceptual theme, evaluate the definition directly!
-    // 3. Exact Vertical Boundaries & Margin Clamping: Provide exact "start_y_percent" (>= 16, strictly below top coaching headers) and "end_y_percent" (<= 89.5, strictly above bottom page borders) tracing ONLY the student's actual HANDWRITTEN lines and diagrams for that section on that page.
-    // 4. Diagram Enclosure Rule: Whenever a candidate draws a diagram/flowchart/sketch, the section's "end_y_percent" MUST wrap the diagram so it is evaluated right there in that margin card!
-    // 5. Subject-Disciplined Conclusion: In Conclusion, NEVER prescribe "contemporary constitutional or policy significance" for Geography, History, or Ethics! Connect Geography conclusions to IPCC/NDMA/Sendai or planetary equilibrium; History/Culture to living heritage or civilizational continuity; Ethics to moral integrity/Nolan principles; Polity to constitutional morality/2nd ARC.
+    // 3. ZERO CONCLUSION FEEDBACK IN BODY: A Body annotation MUST evaluate ONLY the candidate's actual handwritten sub-headings, numbered points (1, 2, 3, 4...), diagrams, and arguments. NEVER write "Synthesis", "Balanced conclusion", "Closing stance", or conclusion recommendations inside a Body annotation! Conclusion feedback belongs strictly in the Conclusion annotation.
+    // 4. Exact Vertical Boundaries & Stop Before Bottom Tables:
+    //    - start_y_percent: Starts where candidate handwriting starts (e.g. 6%–12% if they wrote a heading at the top of Page 2; 24%–30% on Page 1 below printed questions).
+    //    - Body end_y_percent: Stops right above the final conclusion paragraph so Body and Conclusion NEVER overlap.
+    //    - Conclusion start_y_percent: Starts exactly where the concluding paragraph begins (e.g. "Thus...", "Therefore...", "In conclusion...").
+    //    - CRITICAL BOTTOM STOP: If the page has a printed coaching rubric table, marks box, or "Students should not write anything inside the box" at the bottom (usually y >= 80%), Conclusion end_y_percent MUST STOP ABOVE THIS PRINTED BOX (typically 76%–80%)! NEVER include printed coaching boxes in end_y_percent!
+    // 5. Diagram Enclosure Rule: Whenever a candidate draws a diagram/flowchart/sketch, the section's "end_y_percent" MUST wrap the diagram so it is evaluated right there in that margin card!
+    // 6. Subject-Disciplined Conclusion: In Conclusion, NEVER prescribe "contemporary constitutional or policy significance" for Geography, History, or Ethics! Connect Geography conclusions to IPCC/NDMA/Sendai or planetary equilibrium; History/Culture to living heritage or civilizational continuity; Ethics to moral integrity/Nolan principles; Polity to constitutional morality/2nd ARC.
     {{
       "page": 1,
       "approx_y_percent": 30,
-      "start_y_percent": 22,
+      "start_y_percent": 24,
       "end_y_percent": 38,
       "tag": "Intro",
       "type": "tick",
@@ -1566,7 +1571,7 @@ Generate strictly valid JSON matching this schema:
       "page": 1,
       "approx_y_percent": 65,
       "start_y_percent": 40,
-      "end_y_percent": 89,
+      "end_y_percent": 88,
       "tag": "Body: Candidate's Exact Sub-Heading",
       "type": "tick",
       "marks_awarded": "+{sample_body_aw:.1f} / {body_d:.1f}",
@@ -1574,9 +1579,19 @@ Generate strictly valid JSON matching this schema:
     }},
     {{
       "page": 2,
-      "approx_y_percent": 75,
-      "start_y_percent": 68,
-      "end_y_percent": 89,
+      "approx_y_percent": 35,
+      "start_y_percent": 8,
+      "end_y_percent": 60,
+      "tag": "Body: Candidate's Page 2 Sub-Heading",
+      "type": "tick",
+      "marks_awarded": "+{sample_body_aw:.1f} / {body_d:.1f}",
+      "remark": "✓ **Page 2 Points Evaluated**: Specific assessment of candidate's points (e.g. Points 1–4) and evidence written on Page 2.\\n✎ **Missing Substantive Nuance**: Concrete institutional, constitutional, or empirical gap in their argument."
+    }},
+    {{
+      "page": 2,
+      "approx_y_percent": 72,
+      "start_y_percent": 62,
+      "end_y_percent": 79,
       "tag": "Conclusion",
       "type": "suggestion",
       "marks_awarded": "+{sample_conc_aw:.1f} / {conc_d:.1f}",
@@ -1770,6 +1785,9 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
             target_list.append(formatted)
             return True
 
+        def _is_conc_bullet(txt: str) -> bool:
+            return bool(re.search(r'(?i)\b(conclusion|concl|synthesis|closing\s*stance|closing\s*line|closing\s*view|forward-looking|stronger\s*finish|topper\s*finish|balanced\s*conclusion)\b', str(txt or "")))
+
         def _build_page_zone_remark(pg_num: int, slot_idx: int) -> str:
             bullets = []
             # 1. First pull page-matched point_by_point_audit verdicts for this exact page (pg_num)
@@ -1778,6 +1796,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                 title_s = str(p_item.get("title") or "").strip()
                 verdict_s = str(p_item.get("examiner_verdict") or "").strip()
                 is_pos = bool(p_item.get("is_positive", True))
+                if _is_conc_bullet(title_s) or _is_conc_bullet(verdict_s):
+                    continue
                 if verdict_s:
                     line_txt = f"**{title_s}**: {verdict_s}" if (title_s and title_s.lower() not in verdict_s.lower()) else verdict_s
                     _add_unique_bullet(bullets, line_txt, "✓" if is_pos else "✎")
@@ -1785,19 +1805,23 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                         break
 
             # 2. Supplement with unused strengths/gaps/missing dimensions indexed by slot_idx
-            if slot_idx < len(b_strengths):
+            if slot_idx < len(b_strengths) and not _is_conc_bullet(b_strengths[slot_idx]):
                 _add_unique_bullet(bullets, b_strengths[slot_idx], "✓")
             for s_cand in b_strengths:
                 if len(bullets) >= 2:
                     break
+                if _is_conc_bullet(s_cand):
+                    continue
                 _add_unique_bullet(bullets, s_cand, "✓")
 
             g_pool = b_gaps + b_missing
-            if slot_idx < len(g_pool):
+            if slot_idx < len(g_pool) and not _is_conc_bullet(g_pool[slot_idx]):
                 _add_unique_bullet(bullets, g_pool[slot_idx], "✎")
             for g_cand in g_pool:
                 if len(bullets) >= 3:
                     break
+                if _is_conc_bullet(g_cand):
+                    continue
                 _add_unique_bullet(bullets, g_cand, "✎")
 
             if not bullets:
@@ -1929,25 +1953,39 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                                 for bl in leaked_body_lines:
                                     if not any(bl[:20].lower() in ex.lower() for ex in b_existing):
                                         b_existing.append(_fmt_bullet(bl, '✓' if ('good' in bl.lower() or 'structured' in bl.lower()) else '✎'))
-                                body_ann["remark"] = "\n".join(b_existing)
+                                body_ann["remark"] = "\n".join([ln for ln in b_existing if not _is_conc_bullet(ln)])
                             else:
                                 body_ann = {
                                     "page": pg,
                                     "approx_y_percent": 35,
-                                    "start_y_percent": 10,
-                                    "end_y_percent": 62,
+                                    "start_y_percent": 8,
+                                    "end_y_percent": 60,
                                     "tag": "Body: Key Dimensions",
                                     "type": "tick",
                                     "marks_awarded": "+1.5 / 2.5",
                                     "remark": "\n".join(leaked_body_lines)
                                 }
                                 pg_anns.insert(0, body_ann)
+
+                    if conc_ann:
+                        conc_ann_end = float(conc_ann.get("end_y_percent", 79) or 79)
+                        if conc_ann_end > 80.0:
+                            conc_ann["end_y_percent"] = 79.5
+                        conc_s_y = float(conc_ann.get("start_y_percent", 62) or 62)
+                        if body_ann:
+                            b_clean = [ln for ln in re.split(r'\n+|\s*\|\s*', str(body_ann.get("remark", ""))) if ln.strip() and not _is_conc_bullet(ln)]
+                            body_ann["remark"] = "\n".join(b_clean) if b_clean else _build_page_zone_remark(pg, 2)
+                            b_end = float(body_ann.get("end_y_percent", 60) or 60)
+                            if b_end >= conc_s_y:
+                                body_ann["end_y_percent"] = max(20.0, conc_s_y - 1.5)
+
                     if conc_ann and not body_ann:
+                        conc_s_y = float(conc_ann.get("start_y_percent", 62) or 62)
                         expanded_anns.append({
                             "page": pg,
                             "approx_y_percent": 35,
-                            "start_y_percent": 10,
-                            "end_y_percent": 62,
+                            "start_y_percent": 8,
+                            "end_y_percent": max(20.0, conc_s_y - 1.5),
                             "tag": "Body: Key Dimensions",
                             "type": "tick",
                             "marks_awarded": "+1.5 / 2.5",
