@@ -4337,6 +4337,233 @@ function formatHighlightedText(text) {
   }, { capture: true, passive: true });
 })();
 
+// Global helper: Extract authentic handwritten lines from transcribed text for given page
+window.getPageTranscript = function(evalData, tPage) {
+  const fullT = String((evalData && evalData.transcribed_text) || (typeof state !== "undefined" && state.currentEvaluation && state.currentEvaluation.transcribed_text) || "");
+  const parts = fullT.split(/\[Page\s*(\d+)\]/i);
+  for (let i = 1; i < parts.length; i += 2) {
+    if (parseInt(parts[i], 10) === tPage && i + 1 < parts.length) {
+      return parts[i + 1].trim();
+    }
+  }
+  return fullT.trim();
+};
+
+// Global helper: Detect meta-prompt placeholders or evaluator comments that should NEVER appear as candidate quotes or advice
+window.isMetaPlaceholderText = function(str) {
+  return /(?:direct assessment quoting|specific technical concept|foundational doctrine missing|specific missing institutional|empirical data point|specific assessment of the candidate|concrete institutional|discipline-specific|accurate conceptual opening|opening upgrade|substantive upgrade|argument & point audit|page \d+ points evaluated|closing stance evaluated|opening premise evaluated|substantive arguments analyzed|core dimensional scope|directly engaged the core directive|evaluated candidate's specific points|detailed analysis across candidate's points|point \[[a-z0-9]+\]|\[point \d+|substantiate point|bridge the gap in point|add [^;*]+\*[^;*]+ as a keyword|^add .* as a keyword)/i.test(String(str || ""));
+};
+
+// Single Canonical Source of Truth for Sub-Part Step-Marking Ceilings & Allocations across the Entire Website
+window.getCanonicalStepMarkingScheme = function(evalData) {
+  if (!evalData) evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
+  if (typeof syncRubricAndMarginScores === "function") syncRubricAndMarginScores(evalData);
+
+  const rubric = evalData.rubric_scores || {};
+  const maxMarks = parseFloat(evalData.max_marks || (typeof state !== "undefined" && state.marks) || 15.0);
+  const overallScore = parseFloat(evalData.overall_score || 0.0);
+
+  // Default UPSC Marks ceilings
+  const defIntroMax = maxMarks === 10 ? 1.5 : (maxMarks === 15 ? 2.0 : 2.5);
+  const defConcMax = maxMarks === 10 ? 1.5 : (maxMarks === 15 ? 2.0 : 2.5);
+  const introMax = parseFloat(rubric.intro_max) || defIntroMax;
+  const concMax = parseFloat(rubric.conclusion_max) || defConcMax;
+
+  let introScore = parseFloat(rubric.intro_score);
+  if (isNaN(introScore)) introScore = maxMarks === 10 ? 1.0 : 1.5;
+  introScore = Math.min(introMax, Math.max(0.0, Math.round(introScore * 2) / 2));
+
+  let concScore = parseFloat(rubric.conclusion_score);
+  if (isNaN(concScore)) concScore = maxMarks === 10 ? 0.5 : 1.0;
+  const isIncomplete = Boolean(
+    evalData.is_incomplete_answer ||
+    evalData.is_candidate_incomplete_answer ||
+    (evalData.conclusion_audit && (evalData.conclusion_audit.score === 0 || evalData.conclusion_audit.is_unwritten))
+  );
+  if (isIncomplete) concScore = 0.0;
+  concScore = Math.min(concMax, Math.max(0.0, Math.round(concScore * 2) / 2));
+
+  // Body totals strictly guarantee sum of parts == maxMarks and sum of scores == overallScore
+  const bodyTotalMax = Math.max(2.0, Math.round((maxMarks - introMax - concMax) * 2) / 2);
+  const bodyTotalScore = Math.max(0.0, Math.round((overallScore - introScore - concScore) * 2) / 2);
+
+  const totalPages = parseInt(evalData.total_pages || (evalData.images && evalData.images.length) || (typeof state !== "undefined" && state.totalPages) || (state.activePages && state.activePages.length) || 3, 10);
+
+  const bAudit = evalData.body_audit || {};
+  const sArr = Array.isArray(bAudit.strengths) ? bAudit.strengths.map(s => String(s || "").replace(/^[✓✔✎✗×]\s*/, "").trim()).filter(Boolean) : [];
+  const gArr = Array.isArray(bAudit.critical_gaps) ? bAudit.critical_gaps.map(g => String(g || "").replace(/^[✓✔✎✗×]\s*/, "").trim()).filter(Boolean) : [];
+
+  const rawAiSteps = Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : [];
+  const aiBodySteps = rawAiSteps.filter((st, idx) => {
+    if (!st || typeof st !== "object") return false;
+    const lbl = String(st.step_label || "").toLowerCase();
+    if (idx === 0 || lbl.includes("intro") || lbl.includes("concl")) return false;
+    const sh = String(st.sub_heading || "").trim();
+    if (!sh || sh.length > 80) return false;
+    return true;
+  });
+
+  const bodyAnns = (Array.isArray(evalData.visual_annotations) ? evalData.visual_annotations : []).filter(a => {
+    const t = String(a && a.tag || "").toLowerCase();
+    return t && !t.includes("intro") && !t.includes("concl") && !t.includes("synthesis") && !window.isMetaPlaceholderText(t);
+  });
+
+  // Determine number of body subparts:
+  // For 1-page copy: 1 subpart
+  // For 2-page copy: 2 subparts (Part A on Page 1, Part B on Page 2)
+  // For 3-page copy: 3 subparts (Part A on Page 1, Part B on Page 2, Part C on Page 3)
+  let numBodyParts = totalPages <= 1 ? 1 : (totalPages === 2 ? 2 : 3);
+  if (aiBodySteps.length >= 2 && totalPages <= 2) {
+    numBodyParts = Math.min(aiBodySteps.length, 3);
+  }
+
+  let weights = [];
+  if (numBodyParts === 1) {
+    weights = [1.0];
+  } else if (numBodyParts === 2) {
+    weights = [0.5, 0.5];
+  } else {
+    weights = [0.36, 0.36, 0.28];
+  }
+
+  const maxArr = [];
+  const scoreArr = [];
+  let maxRem = bodyTotalMax;
+  let scoreRem = bodyTotalScore;
+
+  for (let i = 0; i < numBodyParts; i++) {
+    if (i === numBodyParts - 1) {
+      maxArr.push(Math.max(0.5, Math.round(maxRem * 2) / 2));
+      scoreArr.push(Math.max(0.0, Math.min(maxArr[i], Math.round(scoreRem * 2) / 2)));
+    } else {
+      const m = Math.max(1.0, Math.round((bodyTotalMax * weights[i]) * 2) / 2);
+      const s = Math.min(m, Math.max(0.0, Math.round((bodyTotalScore * weights[i]) * 2) / 2));
+      maxArr.push(m);
+      scoreArr.push(s);
+      maxRem = Math.max(0.5, maxRem - m);
+      scoreRem = Math.max(0.0, scoreRem - s);
+    }
+  }
+
+  // Guard against rounding discrepancy
+  const sumScores = scoreArr.reduce((a, b) => a + b, 0);
+  const diff = Math.round((bodyTotalScore - sumScores) * 2) / 2;
+  if (diff !== 0 && scoreArr.length > 0) {
+    for (let i = 0; i < scoreArr.length; i++) {
+      if (scoreArr[i] + diff >= 0 && scoreArr[i] + diff <= maxArr[i]) {
+        scoreArr[i] += diff;
+        break;
+      }
+    }
+  }
+
+  const bodyParts = [];
+  for (let i = 0; i < numBodyParts; i++) {
+    const partLetter = String.fromCharCode(65 + i);
+    let title = "";
+    let statement = "";
+    let note = "";
+
+    if (aiBodySteps[i]) {
+      title = String(aiBodySteps[i].step_label || aiBodySteps[i].sub_heading || "").replace(/^(?:part\s*[a-z]\s*[-—:]\s*|\d+\.\s*)/i, "").trim();
+      statement = String(aiBodySteps[i].sub_heading || "");
+      note = String(aiBodySteps[i].quoted_written || "");
+    } else if (bodyAnns[i] && bodyAnns[i].tag) {
+      title = String(bodyAnns[i].tag).replace(/^(?:body:\s*|part\s*[a-z]\s*[-—:]\s*|\d+\.\s*)/i, "").trim();
+    } else if (sArr[i]) {
+      const parts = sArr[i].split(":");
+      title = parts[0].replace(/\*\*/g, "").trim();
+      if (parts.length > 1) note = parts.slice(1).join(":").trim();
+    }
+
+    if (window.isMetaPlaceholderText(title) || /point\s*\[[a-z0-9]+\]/i.test(title)) title = "";
+    if (window.isMetaPlaceholderText(statement) || /point\s*\[[a-z0-9]+\]/i.test(statement)) statement = "";
+    if (window.isMetaPlaceholderText(note) || /point\s*\[[a-z0-9]+\]/i.test(note)) note = "";
+
+    if (!title || title.length < 5) {
+      const qL = String(evalData.detected_question || (typeof state !== "undefined" && state.question) || "").toLowerCase();
+      const isPolity = /(?:article\s+\d+|constitutional|parliament|supreme court|fundamental right|governor|federalism)/i.test(qL);
+      if (isPolity) {
+        if (i === 0) title = "Constitutional Mandate & Core Premise";
+        else if (i === 1) title = "Analytical Dynamics & Substantive Arguments";
+        else title = "Institutional Bottlenecks & Strategic Reforms";
+      } else {
+        if (i === 0) title = "Core Demand & Foundational Mechanism";
+        else if (i === 1) title = "Multidimensional Impact & Sectoral Analysis";
+        else title = "Structural Bottlenecks & Actionable Reforms";
+      }
+    }
+
+    const pctVal = maxArr[i] > 0 ? (scoreArr[i] / maxArr[i]) : 0.5;
+    const statusTag = pctVal >= 0.55 ? "✓ Demand Fulfilled" : "⚠️ Partially Fulfilled";
+    if (!statement) {
+      statement = `What the Question Demands: Comprehensive analysis of ${title.toLowerCase()} supported with empirical metrics and institutional frameworks.`;
+    }
+    if (!note) {
+      const validStrength = sArr.find(s => !window.isMetaPlaceholderText(s) && !/point\s*\[[a-z0-9]+\]/i.test(s));
+      if (validStrength) {
+        note = validStrength;
+      } else {
+        const assignedP = numBodyParts === 1 ? 1 : (numBodyParts === 2 ? (i === 0 ? 1 : 2) : (i + 1));
+        const pageTxt = window.getPageTranscript ? window.getPageTranscript(evalData, assignedP) : "";
+        const pageSentences = pageTxt.split(/(?<=[.?!])\s+/).filter(s => s.length > 25 && !window.isMetaPlaceholderText(s));
+        if (pageSentences.length > 0) {
+          note = `Addressed this dimension analyzing: "${pageSentences[0].slice(0, 85).trim()}..." with structured points.`;
+        } else {
+          note = `Addressed key analytical dimensions of ${title.toLowerCase()} with structured arguments.`;
+        }
+      }
+    }
+
+    const assignedPage = numBodyParts === 1 ? 1 : (numBodyParts === 2 ? (i === 0 ? 1 : 2) : (i + 1));
+
+    bodyParts.push({
+      partIndex: i,
+      partLetter,
+      page: assignedPage,
+      title,
+      shortTitle: title.length > 38 ? title.slice(0, 35) + "..." : title,
+      heading: `${i + 2}. Part ${partLetter} — ${title}`,
+      tag: `BODY: PART ${partLetter} — ${title.toUpperCase()}`,
+      statement,
+      score: scoreArr[i],
+      max: maxArr[i],
+      marksStr: `+${scoreArr[i].toFixed(1)} / ${maxArr[i].toFixed(1)}`,
+      note: `**${statusTag} (+${scoreArr[i].toFixed(1)}M)**: ${note.replace(/^[✓✔✎✗×]\s*/, "")}`
+    });
+  }
+
+  const concNumber = bodyParts.length + 2;
+  const concTag = isIncomplete ? "CONCLUSION (NOT ATTEMPTED)" : "CONCLUSION: CLOSING SYNTHESIS";
+
+  return {
+    maxMarks,
+    overallScore,
+    bodyTotalScore,
+    bodyTotalMax,
+    intro: {
+      heading: "1. Introduction (Context & Baseline Definition)",
+      tag: "INTRO: DEFINITION & SCOPE",
+      shortTitle: "DEFINITION & SCOPE",
+      score: introScore,
+      max: introMax,
+      marksStr: `+${introScore.toFixed(1)} / ${introMax.toFixed(1)}`,
+      statement: "What the Question Demands: A precise 2-line conceptual/statutory definition or contemporary empirical hook establishing the premise."
+    },
+    bodyParts,
+    conclusion: {
+      heading: `${concNumber}. Conclusion (Closing Synthesis & Institutional Anchor)`,
+      tag: concTag,
+      shortTitle: isIncomplete ? "NOT ATTEMPTED" : "CLOSING SYNTHESIS",
+      score: concScore,
+      max: concMax,
+      marksStr: `+${concScore.toFixed(1)} / ${concMax.toFixed(1)}`,
+      statement: "What the Question Demands: A crisp 2-line synthesis tying the core argument to a constitutional principle, statutory reform, or committee benchmark.",
+      page: totalPages
+    }
+  };
+};
+
 // Render Red-Pen Teacher Annotations into Dedicated Margin Track (Zero Overlap on Answer Text)
 // Render Examiner Margin Annotations (Matching Image 5: Crisp, Structured, Zero-Overlap)
 function renderAnnotationsOverlay() {
@@ -4438,233 +4665,6 @@ function renderAnnotationsOverlay() {
 
   // Synchronize Rubric Breakdown & Margin Annotations so scores and denominators never conflict
   syncRubricAndMarginScores(activeEval);
-
-  // Global helper: Extract authentic handwritten lines from transcribed text for given page
-  window.getPageTranscript = function(evalData, tPage) {
-    const fullT = String((evalData && evalData.transcribed_text) || (typeof state !== "undefined" && state.currentEvaluation && state.currentEvaluation.transcribed_text) || "");
-    const parts = fullT.split(/\[Page\s*(\d+)\]/i);
-    for (let i = 1; i < parts.length; i += 2) {
-      if (parseInt(parts[i], 10) === tPage && i + 1 < parts.length) {
-        return parts[i + 1].trim();
-      }
-    }
-    return fullT.trim();
-  };
-
-  // Global helper: Detect meta-prompt placeholders or evaluator comments that should NEVER appear as candidate quotes or advice
-  window.isMetaPlaceholderText = function(str) {
-    return /(?:direct assessment quoting|specific technical concept|foundational doctrine missing|specific missing institutional|empirical data point|specific assessment of the candidate|concrete institutional|discipline-specific|accurate conceptual opening|opening upgrade|substantive upgrade|argument & point audit|page \d+ points evaluated|closing stance evaluated|opening premise evaluated|substantive arguments analyzed|core dimensional scope|directly engaged the core directive|evaluated candidate's specific points|detailed analysis across candidate's points|point \[[a-z0-9]+\]|\[point \d+|substantiate point|bridge the gap in point|add [^;*]+\*[^;*]+ as a keyword|^add .* as a keyword)/i.test(String(str || ""));
-  };
-
-  // Single Canonical Source of Truth for Sub-Part Step-Marking Ceilings & Allocations across the Entire Website
-  window.getCanonicalStepMarkingScheme = function(evalData) {
-    if (!evalData) evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
-    if (typeof syncRubricAndMarginScores === "function") syncRubricAndMarginScores(evalData);
-
-    const rubric = evalData.rubric_scores || {};
-    const maxMarks = parseFloat(evalData.max_marks || (typeof state !== "undefined" && state.marks) || 15.0);
-    const overallScore = parseFloat(evalData.overall_score || 0.0);
-
-    // Default UPSC Marks ceilings
-    const defIntroMax = maxMarks === 10 ? 1.5 : (maxMarks === 15 ? 2.0 : 2.5);
-    const defConcMax = maxMarks === 10 ? 1.5 : (maxMarks === 15 ? 2.0 : 2.5);
-    const introMax = parseFloat(rubric.intro_max) || defIntroMax;
-    const concMax = parseFloat(rubric.conclusion_max) || defConcMax;
-
-    let introScore = parseFloat(rubric.intro_score);
-    if (isNaN(introScore)) introScore = maxMarks === 10 ? 1.0 : 1.5;
-    introScore = Math.min(introMax, Math.max(0.0, Math.round(introScore * 2) / 2));
-
-    let concScore = parseFloat(rubric.conclusion_score);
-    if (isNaN(concScore)) concScore = maxMarks === 10 ? 0.5 : 1.0;
-    const isIncomplete = Boolean(
-      evalData.is_incomplete_answer ||
-      evalData.is_candidate_incomplete_answer ||
-      (evalData.conclusion_audit && (evalData.conclusion_audit.score === 0 || evalData.conclusion_audit.is_unwritten))
-    );
-    if (isIncomplete) concScore = 0.0;
-    concScore = Math.min(concMax, Math.max(0.0, Math.round(concScore * 2) / 2));
-
-    // Body totals strictly guarantee sum of parts == maxMarks and sum of scores == overallScore
-    const bodyTotalMax = Math.max(2.0, Math.round((maxMarks - introMax - concMax) * 2) / 2);
-    const bodyTotalScore = Math.max(0.0, Math.round((overallScore - introScore - concScore) * 2) / 2);
-
-    const totalPages = parseInt(evalData.total_pages || (evalData.images && evalData.images.length) || (typeof state !== "undefined" && state.totalPages) || 3, 10);
-
-    const bAudit = evalData.body_audit || {};
-    const sArr = Array.isArray(bAudit.strengths) ? bAudit.strengths.map(s => String(s || "").replace(/^[✓✔✎✗×]\s*/, "").trim()).filter(Boolean) : [];
-    const gArr = Array.isArray(bAudit.critical_gaps) ? bAudit.critical_gaps.map(g => String(g || "").replace(/^[✓✔✎✗×]\s*/, "").trim()).filter(Boolean) : [];
-
-    const rawAiSteps = Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : [];
-    const aiBodySteps = rawAiSteps.filter((st, idx) => {
-      if (!st || typeof st !== "object") return false;
-      const lbl = String(st.step_label || "").toLowerCase();
-      if (idx === 0 || lbl.includes("intro") || lbl.includes("concl")) return false;
-      const sh = String(st.sub_heading || "").trim();
-      if (!sh || sh.length > 80) return false;
-      return true;
-    });
-
-    const bodyAnns = (Array.isArray(evalData.visual_annotations) ? evalData.visual_annotations : []).filter(a => {
-      const t = String(a && a.tag || "").toLowerCase();
-      return t && !t.includes("intro") && !t.includes("concl") && !t.includes("synthesis") && !window.isMetaPlaceholderText(t);
-    });
-
-    // Determine number of body subparts:
-    // For 1-page copy: 1 subpart
-    // For 2-page copy: 2 subparts (Part A on Page 1, Part B on Page 2)
-    // For 3-page copy: 3 subparts (Part A on Page 1, Part B on Page 2, Part C on Page 3)
-    let numBodyParts = totalPages <= 1 ? 1 : (totalPages === 2 ? 2 : 3);
-    if (aiBodySteps.length >= 2 && totalPages <= 2) {
-      numBodyParts = Math.min(aiBodySteps.length, 3);
-    }
-
-    let weights = [];
-    if (numBodyParts === 1) {
-      weights = [1.0];
-    } else if (numBodyParts === 2) {
-      weights = [0.5, 0.5];
-    } else {
-      weights = [0.36, 0.36, 0.28];
-    }
-
-    const maxArr = [];
-    const scoreArr = [];
-    let maxRem = bodyTotalMax;
-    let scoreRem = bodyTotalScore;
-
-    for (let i = 0; i < numBodyParts; i++) {
-      if (i === numBodyParts - 1) {
-        maxArr.push(Math.max(0.5, Math.round(maxRem * 2) / 2));
-        scoreArr.push(Math.max(0.0, Math.min(maxArr[i], Math.round(scoreRem * 2) / 2)));
-      } else {
-        const m = Math.max(1.0, Math.round((bodyTotalMax * weights[i]) * 2) / 2);
-        const s = Math.min(m, Math.max(0.0, Math.round((bodyTotalScore * weights[i]) * 2) / 2));
-        maxArr.push(m);
-        scoreArr.push(s);
-        maxRem = Math.max(0.5, maxRem - m);
-        scoreRem = Math.max(0.0, scoreRem - s);
-      }
-    }
-
-    // Guard against rounding discrepancy
-    const sumScores = scoreArr.reduce((a, b) => a + b, 0);
-    const diff = Math.round((bodyTotalScore - sumScores) * 2) / 2;
-    if (diff !== 0 && scoreArr.length > 0) {
-      for (let i = 0; i < scoreArr.length; i++) {
-        if (scoreArr[i] + diff >= 0 && scoreArr[i] + diff <= maxArr[i]) {
-          scoreArr[i] += diff;
-          break;
-        }
-      }
-    }
-
-    const bodyParts = [];
-    for (let i = 0; i < numBodyParts; i++) {
-      const partLetter = String.fromCharCode(65 + i);
-      let title = "";
-      let statement = "";
-      let note = "";
-
-      if (aiBodySteps[i]) {
-        title = String(aiBodySteps[i].step_label || aiBodySteps[i].sub_heading || "").replace(/^(?:part\s*[a-z]\s*[-—:]\s*|\d+\.\s*)/i, "").trim();
-        statement = String(aiBodySteps[i].sub_heading || "");
-        note = String(aiBodySteps[i].quoted_written || "");
-      } else if (bodyAnns[i] && bodyAnns[i].tag) {
-        title = String(bodyAnns[i].tag).replace(/^(?:body:\s*|part\s*[a-z]\s*[-—:]\s*|\d+\.\s*)/i, "").trim();
-      } else if (sArr[i]) {
-        const parts = sArr[i].split(":");
-        title = parts[0].replace(/\*\*/g, "").trim();
-        if (parts.length > 1) note = parts.slice(1).join(":").trim();
-      }
-
-      if (window.isMetaPlaceholderText(title) || /point\s*\[[a-z0-9]+\]/i.test(title)) title = "";
-      if (window.isMetaPlaceholderText(statement) || /point\s*\[[a-z0-9]+\]/i.test(statement)) statement = "";
-      if (window.isMetaPlaceholderText(note) || /point\s*\[[a-z0-9]+\]/i.test(note)) note = "";
-
-      if (!title || title.length < 5) {
-        const qL = String(evalData.detected_question || (typeof state !== "undefined" && state.question) || "").toLowerCase();
-        const isPolity = /(?:article\s+\d+|constitutional|parliament|supreme court|fundamental right|governor|federalism)/i.test(qL);
-        if (isPolity) {
-          if (i === 0) title = "Constitutional Mandate & Core Premise";
-          else if (i === 1) title = "Analytical Dynamics & Substantive Arguments";
-          else title = "Institutional Bottlenecks & Strategic Reforms";
-        } else {
-          if (i === 0) title = "Core Demand & Foundational Mechanism";
-          else if (i === 1) title = "Multidimensional Impact & Sectoral Analysis";
-          else title = "Structural Bottlenecks & Actionable Reforms";
-        }
-      }
-
-      const pctVal = maxArr[i] > 0 ? (scoreArr[i] / maxArr[i]) : 0.5;
-      const statusTag = pctVal >= 0.55 ? "✓ Demand Fulfilled" : "⚠️ Partially Fulfilled";
-      if (!statement) {
-        statement = `What the Question Demands: Comprehensive analysis of ${title.toLowerCase()} supported with empirical metrics and institutional frameworks.`;
-      }
-      if (!note) {
-        const validStrength = sArr.find(s => !window.isMetaPlaceholderText(s) && !/point\s*\[[a-z0-9]+\]/i.test(s));
-        if (validStrength) {
-          note = validStrength;
-        } else {
-          const assignedP = numBodyParts === 1 ? 1 : (numBodyParts === 2 ? (i === 0 ? 1 : 2) : (i + 1));
-          const pageTxt = window.getPageTranscript ? window.getPageTranscript(evalData, assignedP) : "";
-          const pageSentences = pageTxt.split(/(?<=[.?!])\s+/).filter(s => s.length > 25 && !window.isMetaPlaceholderText(s));
-          if (pageSentences.length > 0) {
-            note = `Addressed this dimension analyzing: "${pageSentences[0].slice(0, 85).trim()}..." with structured points.`;
-          } else {
-            note = `Addressed key analytical dimensions of ${title.toLowerCase()} with structured arguments.`;
-          }
-        }
-      }
-
-      const assignedPage = numBodyParts === 1 ? 1 : (numBodyParts === 2 ? (i === 0 ? 1 : 2) : (i + 1));
-
-      bodyParts.push({
-        partIndex: i,
-        partLetter,
-        page: assignedPage,
-        title,
-        shortTitle: title.length > 38 ? title.slice(0, 35) + "..." : title,
-        heading: `${i + 2}. Part ${partLetter} — ${title}`,
-        tag: `BODY: PART ${partLetter} — ${title.toUpperCase()}`,
-        statement,
-        score: scoreArr[i],
-        max: maxArr[i],
-        marksStr: `+${scoreArr[i].toFixed(1)} / ${maxArr[i].toFixed(1)}`,
-        note: `**${statusTag} (+${scoreArr[i].toFixed(1)}M)**: ${note.replace(/^[✓✔✎✗×]\s*/, "")}`
-      });
-    }
-
-    const concNumber = bodyParts.length + 2;
-    const concTag = isIncomplete ? "CONCLUSION (NOT ATTEMPTED)" : "CONCLUSION: CLOSING SYNTHESIS";
-
-    return {
-      maxMarks,
-      overallScore,
-      bodyTotalScore,
-      bodyTotalMax,
-      intro: {
-        heading: "1. Introduction (Context & Baseline Definition)",
-        tag: "INTRO: DEFINITION & SCOPE",
-        shortTitle: "DEFINITION & SCOPE",
-        score: introScore,
-        max: introMax,
-        marksStr: `+${introScore.toFixed(1)} / ${introMax.toFixed(1)}`,
-        statement: "What the Question Demands: A precise 2-line conceptual/statutory definition or contemporary empirical hook establishing the premise."
-      },
-      bodyParts,
-      conclusion: {
-        heading: `${concNumber}. Conclusion (Closing Synthesis & Institutional Anchor)`,
-        tag: concTag,
-        shortTitle: isIncomplete ? "NOT ATTEMPTED" : "CLOSING SYNTHESIS",
-        score: concScore,
-        max: concMax,
-        marksStr: `+${concScore.toFixed(1)} / ${concMax.toFixed(1)}`,
-        statement: "What the Question Demands: A crisp 2-line synthesis tying the core argument to a constitutional principle, statutory reform, or committee benchmark.",
-        page: totalPages
-      }
-    };
-  };
 
   window.synthesizeAuthenticPageSections = function(evalObj, pgNum, totPgs, formatBulletsFn) {
     const evalData = evalObj || {};
@@ -9653,14 +9653,24 @@ function renderBatch1ExaminerMastery(evalData) {
   if (!stepListEl || !pointListEl || !memoryBoxEl) return;
 
   syncRubricAndMarginScores(evalData);
-  const scheme = window.getCanonicalStepMarkingScheme(evalData);
+  const scheme = (typeof window.getCanonicalStepMarkingScheme === "function")
+    ? window.getCanonicalStepMarkingScheme(evalData)
+    : {
+        overallScore: parseFloat(evalData.overall_score || 0),
+        maxMarks: parseFloat(evalData.max_marks || (typeof state !== "undefined" && state.marks) || 15),
+        bodyTotalScore: 0,
+        bodyTotalMax: 10,
+        intro: { score: 1.0, max: 2.0, heading: "1. Introduction (Context & Baseline Definition)", statement: "", marksStr: "+1.0 / 2.0" },
+        bodyParts: [],
+        conclusion: { score: 0.5, max: 2.0, heading: "Conclusion (Closing Synthesis & Institutional Anchor)", statement: "", marksStr: "+0.5 / 2.0" }
+      };
   const overallScore = scheme.overallScore;
   const maxMarks = scheme.maxMarks;
 
-  const introScore = scheme.intro.score;
-  const introMax = scheme.intro.max;
-  const concScore = scheme.conclusion.score;
-  const concMax = scheme.conclusion.max;
+  const introScore = (scheme.intro && scheme.intro.score) || 1.0;
+  const introMax = (scheme.intro && scheme.intro.max) || 2.0;
+  const concScore = (scheme.conclusion && scheme.conclusion.score) || 0.5;
+  const concMax = (scheme.conclusion && scheme.conclusion.max) || 2.0;
   const bodyTotalScore = scheme.bodyTotalScore;
   const bodyTotalMax = scheme.bodyTotalMax;
 
