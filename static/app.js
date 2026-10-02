@@ -2953,6 +2953,7 @@ marksBtns.forEach(btn => {
     state.marks = parseInt(btn.getAttribute("data-marks"), 10);
     const step2Badge = document.getElementById("step2Badge");
     if (step2Badge) step2Badge.textContent = `✓ ${state.marks} Marks`;
+    if (typeof window.updateStagedStatusAndGuidance === "function") window.updateStagedStatusAndGuidance();
     updateStepProgression();
   });
 });
@@ -2988,6 +2989,7 @@ window.setPaperAndMarks = function(paperVal, marksVal) {
     }
     const step2Badge = document.getElementById("step2Badge");
     if (step2Badge) step2Badge.textContent = `✓ ${state.marks} Marks`;
+    if (typeof window.updateStagedStatusAndGuidance === "function") window.updateStagedStatusAndGuidance();
   }
 
   if (typeof updateStepProgression === "function") {
@@ -3288,13 +3290,61 @@ async function compressImageIfNeeded(file) {
   }
 }
 
+// Dynamic UPSC Multi-Page Staged Status & Guidance Updater
+window.updateStagedStatusAndGuidance = function() {
+  const stagedPageCount = document.getElementById("stagedPageCount");
+  const stagedMultiPageNotice = document.getElementById("stagedMultiPageNotice");
+  const stagedMultiPageHeader = document.getElementById("stagedMultiPageHeader");
+  const stagedMultiPageSub = document.getElementById("stagedMultiPageSub");
+  const btnStagedAddCameraText = document.getElementById("btnStagedAddCameraText");
+
+  const totalCount = (state.activePages && state.activePages.length) || (state.uploadedFiles && state.uploadedFiles.length) || 0;
+  if (totalCount === 0) return;
+
+  const marks = Number(state.marks) || 10;
+  let targetPages = 2;
+  if (marks === 15) targetPages = 3;
+  else if (marks === 20) targetPages = 3;
+  else if (state.selectedPaperTab === "Essay") targetPages = 6;
+
+  // Staged Page Count Header
+  if (stagedPageCount) {
+    if (totalCount < targetPages) {
+      stagedPageCount.innerHTML = `<span class="text-amber-600 dark:text-amber-400 font-bold">✓ ${totalCount} Page${totalCount > 1 ? 's' : ''} Staged</span> · <span class="text-amber-700/90 dark:text-amber-300/90 font-medium">Add Page ${totalCount + 1} for ${marks}M QCAB</span>`;
+    } else {
+      stagedPageCount.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 font-bold">✓ ${totalCount} of ${targetPages} Pages Staged</span> · <span class="text-emerald-600 dark:text-emerald-400 font-medium">Complete QCAB Booklet Ready</span>`;
+    }
+  }
+
+  // UPSC Multi-Page Guidance Notice
+  if (stagedMultiPageNotice && stagedMultiPageHeader && stagedMultiPageSub) {
+    if (totalCount < targetPages) {
+      stagedMultiPageNotice.className = "text-[11px] p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-slate-800 dark:text-slate-200 flex items-start gap-2";
+      stagedMultiPageHeader.className = "font-bold text-amber-700 dark:text-amber-400";
+      stagedMultiPageHeader.textContent = `UPSC ${marks}-Mark QCAB Guidance (${totalCount} of ${targetPages} Pages)`;
+      stagedMultiPageSub.textContent = `A standard UPSC ${marks}-mark answer requires ${targetPages} pages. Tap "+ Capture Page ${totalCount + 1}" below to photograph subsequent pages before evaluating.`;
+    } else {
+      stagedMultiPageNotice.className = "text-[11px] p-2.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-slate-800 dark:text-slate-200 flex items-start gap-2";
+      stagedMultiPageHeader.className = "font-bold text-emerald-700 dark:text-emerald-400";
+      stagedMultiPageHeader.textContent = `Full ${marks}-Mark Answer Booklet Staged (${totalCount} Pages)`;
+      stagedMultiPageSub.textContent = `All pages captured. You can add more pages if needed, reorder/delete pages in the strip below, or tap Evaluate Answer Copy.`;
+    }
+  }
+
+  // Dynamic Camera button label
+  if (btnStagedAddCameraText) {
+    btnStagedAddCameraText.textContent = `+ Capture Page ${totalCount + 1} (Camera)`;
+  }
+
+  if (window.lucide) lucide.createIcons();
+};
+
 // Answersheet Locking Controller: locks dropzone and question inputs once staged
 window.setAnswersheetLockedState = function setAnswersheetLockedState(isLocked, fileName = "", pageCount = 1) {
   state.isControlsLocked = isLocked;
   const dropzoneDefaultContent = document.getElementById("dropzoneDefaultContent");
   const stagedAnswersheetCard = document.getElementById("stagedAnswersheetCard");
   const stagedFileName = document.getElementById("stagedFileName");
-  const stagedPageCount = document.getElementById("stagedPageCount");
   const questionLockedBanner = document.getElementById("questionLockedBanner");
   const customQuestionInput = document.getElementById("customQuestionInput");
   const qModeBtns = document.querySelectorAll(".qmode-btn");
@@ -3305,18 +3355,19 @@ window.setAnswersheetLockedState = function setAnswersheetLockedState(isLocked, 
     if (dropzoneDefaultContent) dropzoneDefaultContent.classList.add("hidden");
     if (stagedAnswersheetCard) stagedAnswersheetCard.classList.remove("hidden");
     if (stagedFileName) stagedFileName.textContent = fileName || "answer_copy.pdf";
-    if (stagedPageCount) stagedPageCount.textContent = `✓ ${pageCount} Page${pageCount > 1 ? 's' : ''} Staged • Inputs Locked for Evaluation`;
     if (questionLockedBanner) questionLockedBanner.classList.remove("hidden");
     if (dropzone) {
       dropzone.classList.remove("cursor-pointer");
       dropzone.classList.add("cursor-default");
     }
 
-    // Disable question selection & inputs until Cancel is clicked
+    // Disable question selection & inputs until Clear All is clicked
     qModeBtns.forEach(btn => btn.classList.add("opacity-50", "pointer-events-none"));
     mBtns.forEach(btn => btn.classList.add("opacity-50", "pointer-events-none"));
     pTabs.forEach(tab => tab.classList.add("opacity-50", "pointer-events-none"));
     if (customQuestionInput) customQuestionInput.disabled = true;
+
+    window.updateStagedStatusAndGuidance();
   } else {
     if (dropzoneDefaultContent) dropzoneDefaultContent.classList.remove("hidden");
     if (stagedAnswersheetCard) stagedAnswersheetCard.classList.add("hidden");
@@ -3335,9 +3386,88 @@ window.setAnswersheetLockedState = function setAnswersheetLockedState(isLocked, 
     if (customQuestionInput) customQuestionInput.disabled = false;
   }
   if (window.lucide) lucide.createIcons();
-}
+};
 
-// User-triggered Cancel Upload
+// Add More Pages Controller: triggers camera, gallery, or document picker
+window.addMorePages = function(source = 'camera') {
+  if (source === 'camera') {
+    if (cameraFileInput) {
+      cameraFileInput.value = "";
+      cameraFileInput.click();
+    }
+  } else if (source === 'gallery') {
+    if (galleryFileInput) {
+      galleryFileInput.value = "";
+      galleryFileInput.click();
+    }
+  } else if (source === 'pdf' || source === 'file') {
+    if (fileInput) {
+      fileInput.value = "";
+      fileInput.click();
+    }
+  }
+};
+
+// Delete single page from staged booklet
+window.deleteSinglePage = async function(index, e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  if (!state.activePages || index < 0 || index >= state.activePages.length) return;
+
+  if (state.activePages.length <= 1) {
+    window.cancelUploadedAnswersheet();
+    return;
+  }
+
+  state.activePages.splice(index, 1);
+  if (state.uploadedFiles && state.uploadedFiles.length > index) {
+    state.uploadedFiles.splice(index, 1);
+  }
+
+  if (state.currentPageIndex >= state.activePages.length) {
+    state.currentPageIndex = Math.max(0, state.activePages.length - 1);
+  }
+
+  updateViewer();
+  renderPreviewStrip();
+  window.updateStagedStatusAndGuidance();
+
+  if (typeof window.showAppToast === 'function') {
+    window.showAppToast(`Page ${index + 1} removed. ${state.activePages.length} pages remaining.`);
+  }
+};
+
+// Reorder pages in staged booklet
+window.reorderPage = function(index, dir, e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  const newIndex = index + dir;
+  if (!state.activePages || newIndex < 0 || newIndex >= state.activePages.length) return;
+
+  const tempPage = state.activePages[index];
+  state.activePages[index] = state.activePages[newIndex];
+  state.activePages[newIndex] = tempPage;
+
+  if (state.uploadedFiles && state.uploadedFiles.length === state.activePages.length) {
+    const tempFile = state.uploadedFiles[index];
+    state.uploadedFiles[index] = state.uploadedFiles[newIndex];
+    state.uploadedFiles[newIndex] = tempFile;
+  }
+
+  state.currentPageIndex = newIndex;
+  updateViewer();
+  renderPreviewStrip();
+
+  if (typeof window.showAppToast === 'function') {
+    window.showAppToast(`Moved to Page ${newIndex + 1}.`);
+  }
+};
+
+// User-triggered Clear / Cancel Upload
 window.cancelUploadedAnswersheet = function() {
   state.uploadedFiles = [];
   state.activePages = [];
@@ -3356,7 +3486,7 @@ window.cancelUploadedAnswersheet = function() {
   updateViewer();
 
   if (typeof window.showAppToast === 'function') {
-    window.showAppToast("Answersheet removed. Upload & question unlocked.");
+    window.showAppToast("Answer booklet cleared. Ready for new upload.");
   }
 };
 
@@ -3364,7 +3494,6 @@ window.cancelUploadedAnswersheet = function() {
 if (btnUploadPdf && pdfFileInput) {
   btnUploadPdf.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (state.uploadedFiles && state.uploadedFiles.length > 0) return;
     pdfFileInput.value = "";
     pdfFileInput.click();
   });
@@ -3374,7 +3503,6 @@ if (btnUploadPdf && pdfFileInput) {
 if (btnUploadGallery && galleryFileInput) {
   btnUploadGallery.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (state.uploadedFiles && state.uploadedFiles.length > 0) return;
     galleryFileInput.value = "";
     galleryFileInput.click();
   });
@@ -3384,7 +3512,6 @@ if (btnUploadGallery && galleryFileInput) {
 if (btnUploadCamera && cameraFileInput) {
   btnUploadCamera.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (state.uploadedFiles && state.uploadedFiles.length > 0) return;
     cameraFileInput.value = "";
     cameraFileInput.click();
   });
@@ -3394,7 +3521,8 @@ if (btnUploadCamera && cameraFileInput) {
 if (pdfFileInput) {
   pdfFileInput.addEventListener("change", () => {
     if (pdfFileInput.files && pdfFileInput.files.length > 0) {
-      handleFiles(pdfFileInput.files);
+      const isAppend = Boolean(state.uploadedFiles && state.uploadedFiles.length > 0);
+      handleFiles(pdfFileInput.files, isAppend);
     }
   });
 }
@@ -3402,7 +3530,8 @@ if (pdfFileInput) {
 if (galleryFileInput) {
   galleryFileInput.addEventListener("change", () => {
     if (galleryFileInput.files && galleryFileInput.files.length > 0) {
-      handleFiles(galleryFileInput.files);
+      const isAppend = Boolean(state.uploadedFiles && state.uploadedFiles.length > 0);
+      handleFiles(galleryFileInput.files, isAppend);
     }
   });
 }
@@ -3410,7 +3539,8 @@ if (galleryFileInput) {
 if (cameraFileInput) {
   cameraFileInput.addEventListener("change", () => {
     if (cameraFileInput.files && cameraFileInput.files.length > 0) {
-      handleFiles(cameraFileInput.files);
+      const isAppend = Boolean(state.uploadedFiles && state.uploadedFiles.length > 0);
+      handleFiles(cameraFileInput.files, isAppend);
     }
   });
 }
@@ -3422,7 +3552,8 @@ if (fileInput) {
   });
   fileInput.addEventListener("change", () => {
     if (fileInput.files && fileInput.files.length > 0) {
-      handleFiles(fileInput.files);
+      const isAppend = Boolean(state.uploadedFiles && state.uploadedFiles.length > 0);
+      handleFiles(fileInput.files, isAppend);
     }
   });
 }
@@ -3464,38 +3595,58 @@ if (dropzone) {
   });
 }
 
-async function handleFiles(files) {
+async function handleFiles(files, isAppend = false) {
   if (!files || files.length === 0) return;
   state.activeSampleId = null; // User is uploading their own
   
   // Show immediate loading status
-  previewStrip.innerHTML = `
-    <div class="col-span-3 py-3 px-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center space-x-2 text-amber-300 text-xs font-semibold animate-pulse">
-      <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-amber-400"></i>
-      <span>Optimizing &amp; rendering pages...</span>
-    </div>
-  `;
-  previewStrip.classList.remove("hidden");
-  if (window.lucide) lucide.createIcons();
+  if (!isAppend || !state.activePages || state.activePages.length === 0) {
+    previewStrip.innerHTML = `
+      <div class="col-span-3 sm:col-span-4 py-3 px-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center space-x-2 text-amber-300 text-xs font-semibold animate-pulse">
+        <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-amber-400"></i>
+        <span>Optimizing &amp; rendering answer pages...</span>
+      </div>
+    `;
+    previewStrip.classList.remove("hidden");
+    if (window.lucide) lucide.createIcons();
+  } else {
+    // Show a loading tile at the end of preview strip
+    const existingLoading = document.getElementById("previewStripLoadingTile");
+    if (existingLoading) existingLoading.remove();
+    const loadingThumb = document.createElement("div");
+    loadingThumb.id = "previewStripLoadingTile";
+    loadingThumb.className = "relative rounded-xl border border-amber-500/40 bg-amber-500/10 aspect-[3/4] flex flex-col items-center justify-center p-2 text-center animate-pulse";
+    loadingThumb.innerHTML = `
+      <i data-lucide="loader-2" class="w-5 h-5 animate-spin text-amber-400 mb-1"></i>
+      <span class="text-[9px] font-bold text-amber-300">Adding page...</span>
+    `;
+    previewStrip.appendChild(loadingThumb);
+    if (window.lucide) lucide.createIcons();
+  }
 
   // Compress images in parallel before saving & uploading
   const rawList = Array.from(files);
   const processedList = await Promise.all(rawList.map(f => compressImageIfNeeded(f)));
 
-  state.uploadedFiles = processedList;
-  state.activePages = [];
-  state.currentPageIndex = 0;
-  state.currentEvaluation = null;
-  if (annotationsLayer) annotationsLayer.innerHTML = "";
+  if (isAppend && state.uploadedFiles && state.uploadedFiles.length > 0) {
+    state.uploadedFiles = state.uploadedFiles.concat(processedList);
+  } else {
+    state.uploadedFiles = processedList;
+    state.activePages = [];
+    state.currentPageIndex = 0;
+    state.currentEvaluation = null;
+    if (annotationsLayer) annotationsLayer.innerHTML = "";
+  }
 
   const firstFile = state.uploadedFiles[0];
   const sizeMB = (firstFile.size / (1024 * 1024)).toFixed(2);
-  const extra = state.uploadedFiles.length > 1 ? ` (+${state.uploadedFiles.length - 1} more)` : "";
-  const displayFileName = `${firstFile.name} (${sizeMB} MB)${extra}`;
+  const totalCount = state.uploadedFiles.length;
+  const extra = totalCount > 1 ? ` (+${totalCount - 1} more page${totalCount > 2 ? 's' : ''})` : "";
+  const displayFileName = `${firstFile.name}${extra}`;
 
   // Instant server-side rendering for PDFs & image optimization
   const fd = new FormData();
-  for (const f of state.uploadedFiles) {
+  for (const f of processedList) {
     fd.append("files", f);
   }
 
@@ -3508,8 +3659,13 @@ async function handleFiles(files) {
     if (res.ok) {
       const data = await res.json();
       if (data.pages && data.pages.length > 0) {
-        state.activePages = data.pages;
-        state.currentPageIndex = 0;
+        if (isAppend && state.activePages && state.activePages.length > 0) {
+          state.activePages = state.activePages.concat(data.pages);
+          state.currentPageIndex = state.activePages.length - 1; // switch viewer to newest added page
+        } else {
+          state.activePages = data.pages;
+          state.currentPageIndex = 0;
+        }
         updateViewer();
         renderPreviewStrip();
         serverRendered = true;
@@ -3520,11 +3676,15 @@ async function handleFiles(files) {
   }
 
   if (!serverRendered) {
-    fallbackClientFileRead(state.uploadedFiles);
+    await fallbackClientFileRead(processedList, isAppend);
   }
 
   // Lock dropzone and question section now that copy is staged
-  setAnswersheetLockedState(true, displayFileName, state.uploadedFiles.length);
+  setAnswersheetLockedState(true, displayFileName, state.activePages.length || state.uploadedFiles.length);
+
+  if (isAppend && typeof window.showAppToast === "function") {
+    window.showAppToast(`✓ Page ${state.activePages.length} added! Total: ${state.activePages.length} pages staged.`);
+  }
 }
 
 function renderPreviewStrip() {
@@ -3535,32 +3695,70 @@ function renderPreviewStrip() {
   }
   previewStrip.classList.remove("hidden");
 
+  const totalPages = state.activePages.length;
+
   state.activePages.forEach((dataUrl, index) => {
     const thumb = document.createElement("div");
     const isActive = index === state.currentPageIndex;
-    thumb.className = `relative rounded-lg overflow-hidden border ${isActive ? 'border-amber-400 ring-2 ring-amber-400/40' : 'border-slate-700'} bg-slate-950 aspect-[3/4] cursor-pointer hover:border-amber-400 transition`;
+    thumb.className = `relative rounded-xl overflow-hidden border-2 ${isActive ? 'border-amber-400 shadow-md ring-2 ring-amber-400/40' : 'border-slate-300 dark:border-slate-700 hover:border-amber-400'} bg-slate-950 aspect-[3/4] cursor-pointer transition select-none group`;
+    
     thumb.innerHTML = `
       <img src="${dataUrl}" class="w-full h-full object-cover">
-      <span class="absolute bottom-1 right-1 text-[9px] bg-slate-900/90 px-1.5 py-0.5 rounded text-white font-medium">p.${index + 1}</span>
+      
+      <!-- Page Tag Badge -->
+      <span class="absolute top-1.5 left-1.5 text-[9.5px] font-bold bg-slate-900/90 text-amber-300 px-1.5 py-0.5 rounded shadow">
+        p.${index + 1}
+      </span>
+
+      <!-- Delete Page Button (x) -->
+      <button type="button" onclick="window.deleteSinglePage(${index}, event)" class="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-red-600/90 hover:bg-red-500 text-white flex items-center justify-center text-xs font-bold shadow-md transition active:scale-90 cursor-pointer" title="Delete Page ${index + 1}">
+        &times;
+      </button>
+
+      <!-- Bottom Reorder Navigation Controls -->
+      <div class="absolute bottom-1 inset-x-1 flex items-center justify-between pointer-events-none px-0.5">
+        ${index > 0 ? `<button type="button" onclick="window.reorderPage(${index}, -1, event)" class="pointer-events-auto px-1.5 py-0.5 rounded bg-slate-900/90 hover:bg-amber-600 text-white text-[9.5px] font-bold shadow transition cursor-pointer" title="Move Page Earlier">&#8592;</button>` : `<span></span>`}
+        <span class="text-[8.5px] text-white/90 font-mono font-bold bg-slate-900/80 px-1 py-0.5 rounded">${index + 1}/${totalPages}</span>
+        ${index < totalPages - 1 ? `<button type="button" onclick="window.reorderPage(${index}, 1, event)" class="pointer-events-auto px-1.5 py-0.5 rounded bg-slate-900/90 hover:bg-amber-600 text-white text-[9.5px] font-bold shadow transition cursor-pointer" title="Move Page Later">&#8594;</button>` : `<span></span>`}
+      </div>
     `;
-    thumb.onclick = () => {
+
+    thumb.onclick = (e) => {
+      if (e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
       state.currentPageIndex = index;
       updateViewer();
       renderPreviewStrip();
     };
+
     previewStrip.appendChild(thumb);
   });
+
+  // Add interactive "+ Add Page" card tile at the end of the preview strip
+  const addTile = document.createElement("div");
+  addTile.className = "relative rounded-xl border-2 border-dashed border-amber-500/50 hover:border-amber-400 bg-amber-500/5 hover:bg-amber-500/10 dark:bg-amber-500/10 dark:hover:bg-amber-500/15 aspect-[3/4] flex flex-col items-center justify-center p-2 text-center transition cursor-pointer group shadow-xs select-none";
+  addTile.title = `Photograph Page ${totalPages + 1} using Camera`;
+  addTile.onclick = () => window.addMorePages('camera');
+  addTile.innerHTML = `
+    <div class="w-8 h-8 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-1 group-hover:scale-110 transition">
+      <i data-lucide="camera" class="w-4 h-4"></i>
+    </div>
+    <span class="text-[10px] sm:text-[11px] font-extrabold text-amber-600 dark:text-amber-400 leading-tight">+ Add Page ${totalPages + 1}</span>
+    <span class="text-[8.5px] text-slate-500 dark:text-slate-400 mt-0.5">Camera / Tap</span>
+  `;
+  previewStrip.appendChild(addTile);
+
+  if (window.lucide) lucide.createIcons();
 }
 
-function fallbackClientFileRead(files) {
-  previewStrip.innerHTML = "";
-  let loadedCount = 0;
-  const imageFiles = files.filter(f => f.type.startsWith("image/"));
+async function fallbackClientFileRead(files, isAppend = false) {
+  const loadingTile = document.getElementById("previewStripLoadingTile");
+  if (loadingTile) loadingTile.remove();
 
+  const imageFiles = files.filter(f => !f.type || f.type.startsWith("image/"));
   if (imageFiles.length === 0) {
     files.forEach((file) => {
       const thumb = document.createElement("div");
-      thumb.className = "flex flex-col items-center justify-center p-2 rounded-lg border border-slate-700 bg-slate-950 aspect-[3/4]";
+      thumb.className = "flex flex-col items-center justify-center p-2 rounded-xl border border-slate-700 bg-slate-950 aspect-[3/4]";
       thumb.innerHTML = `
         <i data-lucide="file-text" class="w-6 h-6 text-amber-400 mb-1"></i>
         <span class="text-[10px] text-slate-300 text-center truncate max-w-full">${file.name}</span>
@@ -3571,21 +3769,26 @@ function fallbackClientFileRead(files) {
     return;
   }
 
-  imageFiles.forEach((file) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      state.activePages.push(e.target.result);
-      loadedCount++;
-      if (state.activePages.length === 1) {
-        state.currentPageIndex = 0;
-        updateViewer();
-      }
-      if (loadedCount === imageFiles.length) {
-        renderPreviewStrip();
-      }
-    };
-    reader.readAsDataURL(file);
-  });
+  for (const file of imageFiles) {
+    const dataUrl = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+    if (dataUrl) {
+      state.activePages.push(dataUrl);
+    }
+  }
+
+  if (!isAppend) {
+    state.currentPageIndex = 0;
+  } else {
+    state.currentPageIndex = Math.max(0, state.activePages.length - 1);
+  }
+
+  updateViewer();
+  renderPreviewStrip();
 }
 
 // Viewer Page Navigation
