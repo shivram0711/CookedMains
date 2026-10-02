@@ -917,6 +917,18 @@ html.dark .gutter-pin-danger {
   transition: top 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
 }
 
+.pulse-glow {
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.55) !important;
+}
+
+.eval-card {
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.eval-card:hover {
+  transform: translateY(-1.5px);
+}
+
 #bookletTrackContainer,
 #bookletTracksBody {
   min-height: 100% !important;

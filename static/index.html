@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css?v=20261002_v5">
+  <link rel="stylesheet" href="/static/style.css?v=20261002_v6">
   <!-- Google Identity Services for 1-Click Native Browser Google Account Chooser -->
   <script src="https://accounts.google.com/gsi/client"></script>
 
@@ -1074,6 +1074,24 @@
 
           </div>
           <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center">Interactive candidate copy view. Hover or tap any point pin in the gutter to illuminate handwriting and inspect line-by-line marks.</p>
+        </div>
+
+        <!-- PC & Tablet: Examiner Line-by-Line Audit Section in the blank area below answersheet -->
+        <div id="desktopExaminerAuditContainer" class="hidden lg:flex flex-col bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm dark:shadow-xl space-y-3 transition-colors">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+              <div>
+                <span class="text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400">Examiner Line-by-Line Audit</span>
+                <h4 id="desktopAuditHeader" class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Evaluated Points for Page 1</h4>
+              </div>
+            </div>
+            <span id="desktopAuditScorePill" class="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20 whitespace-nowrap">Page 1: 4.5 / 7.0</span>
+          </div>
+
+          <div id="desktopAuditCardsContainer" class="space-y-3 max-h-[620px] overflow-y-auto custom-scrollbar pr-1">
+            <!-- Dynamically populated by JS based on current page points -->
+          </div>
         </div>
         </div>
 
@@ -3455,7 +3473,7 @@
 
   </div>
 
-  <script src="/static/app.js?v=20261002_v5"></script>
+  <script src="/static/app.js?v=20261002_v6"></script>
   <script>
     if (window.lucide) {
       try { lucide.createIcons(); } catch(e) {}
