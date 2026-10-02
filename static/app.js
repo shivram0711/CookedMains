@@ -9947,10 +9947,7 @@ function renderBatch1ExaminerMastery(evalData) {
   let habitFixedHtml = "";
   let nextHabitHtml = "";
 
-  if (isStartupDeepTech) {
-    habitFixedHtml = `**Way Forward & Diagram Habit Mastered (+1.5M Gain)**: In your earlier GS-2 Judicial Review copy, you ended on *[Limitations]* without a *Way Forward*. In this GS-3 copy, you proactively drew a 6-point **[Strategies to Bridge Gap]** schematic citing **ANRF**, **NEP 2020**, and **VAIBHAV** before concluding!`;
-    nextHabitHtml = `**Opening Baseline Data Rule**: Your boxed flowcharts on Page 1 & Page 3 are already topper-standard. For your next attempt, always include **1 hard number in Sentence #1 of your Introduction** (e.g., *"Deep-tech accounts for <12% of India's 1.1+ lakh DPIIT startups"*).`;
-  } else if (totalCopiesInLocker > 1) {
+  if (totalCopiesInLocker > 1) {
     habitFixedHtml = `**Consistent Visual Structure**: Across your **${totalCopiesInLocker} evaluated copies**, you consistently use **boxed sub-headings and numbered points**, which helps the UPSC examiner scan your core arguments in under 15 seconds.`;
     nextHabitHtml = `**Next Habit for +1.5M Jump**: Ensure every sub-demand of the question receives **equal point density (4–5 points each)** and never end a 15-marker without a dedicated 3-point **Way Forward** before the Conclusion.`;
   } else {
