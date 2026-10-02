@@ -4439,8 +4439,236 @@ function renderAnnotationsOverlay() {
   // Synchronize Rubric Breakdown & Margin Annotations so scores and denominators never conflict
   syncRubricAndMarginScores(activeEval);
 
+  // Global helper: Extract authentic handwritten lines from transcribed text for given page
+  window.getPageTranscript = function(evalData, tPage) {
+    const fullT = String((evalData && evalData.transcribed_text) || (typeof state !== "undefined" && state.currentEvaluation && state.currentEvaluation.transcribed_text) || "");
+    const parts = fullT.split(/\[Page\s*(\d+)\]/i);
+    for (let i = 1; i < parts.length; i += 2) {
+      if (parseInt(parts[i], 10) === tPage && i + 1 < parts.length) {
+        return parts[i + 1].trim();
+      }
+    }
+    return fullT.trim();
+  };
+
+  // Global helper: Detect meta-prompt placeholders or evaluator comments that should NEVER appear as candidate quotes or advice
+  window.isMetaPlaceholderText = function(str) {
+    return /(?:direct assessment quoting|specific technical concept|foundational doctrine missing|specific missing institutional|empirical data point|specific assessment of the candidate|concrete institutional|discipline-specific|accurate conceptual opening|opening upgrade|substantive upgrade|argument & point audit|page \d+ points evaluated|closing stance evaluated|opening premise evaluated|substantive arguments analyzed|core dimensional scope|directly engaged the core directive|evaluated candidate's specific points|detailed analysis across candidate's points|point \[[a-z0-9]+\]|\[point \d+|substantiate point|bridge the gap in point|add [^;*]+\*[^;*]+ as a keyword|^add .* as a keyword)/i.test(String(str || ""));
+  };
+
+  // Single Canonical Source of Truth for Sub-Part Step-Marking Ceilings & Allocations across the Entire Website
+  window.getCanonicalStepMarkingScheme = function(evalData) {
+    if (!evalData) evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
+    if (typeof syncRubricAndMarginScores === "function") syncRubricAndMarginScores(evalData);
+
+    const rubric = evalData.rubric_scores || {};
+    const maxMarks = parseFloat(evalData.max_marks || (typeof state !== "undefined" && state.marks) || 15.0);
+    const overallScore = parseFloat(evalData.overall_score || 0.0);
+
+    // Default UPSC Marks ceilings
+    const defIntroMax = maxMarks === 10 ? 1.5 : (maxMarks === 15 ? 2.0 : 2.5);
+    const defConcMax = maxMarks === 10 ? 1.5 : (maxMarks === 15 ? 2.0 : 2.5);
+    const introMax = parseFloat(rubric.intro_max) || defIntroMax;
+    const concMax = parseFloat(rubric.conclusion_max) || defConcMax;
+
+    let introScore = parseFloat(rubric.intro_score);
+    if (isNaN(introScore)) introScore = maxMarks === 10 ? 1.0 : 1.5;
+    introScore = Math.min(introMax, Math.max(0.0, Math.round(introScore * 2) / 2));
+
+    let concScore = parseFloat(rubric.conclusion_score);
+    if (isNaN(concScore)) concScore = maxMarks === 10 ? 0.5 : 1.0;
+    const isIncomplete = Boolean(
+      evalData.is_incomplete_answer ||
+      evalData.is_candidate_incomplete_answer ||
+      (evalData.conclusion_audit && (evalData.conclusion_audit.score === 0 || evalData.conclusion_audit.is_unwritten))
+    );
+    if (isIncomplete) concScore = 0.0;
+    concScore = Math.min(concMax, Math.max(0.0, Math.round(concScore * 2) / 2));
+
+    // Body totals strictly guarantee sum of parts == maxMarks and sum of scores == overallScore
+    const bodyTotalMax = Math.max(2.0, Math.round((maxMarks - introMax - concMax) * 2) / 2);
+    const bodyTotalScore = Math.max(0.0, Math.round((overallScore - introScore - concScore) * 2) / 2);
+
+    const totalPages = parseInt(evalData.total_pages || (evalData.images && evalData.images.length) || (typeof state !== "undefined" && state.totalPages) || 3, 10);
+
+    const bAudit = evalData.body_audit || {};
+    const sArr = Array.isArray(bAudit.strengths) ? bAudit.strengths.map(s => String(s || "").replace(/^[✓✔✎✗×]\s*/, "").trim()).filter(Boolean) : [];
+    const gArr = Array.isArray(bAudit.critical_gaps) ? bAudit.critical_gaps.map(g => String(g || "").replace(/^[✓✔✎✗×]\s*/, "").trim()).filter(Boolean) : [];
+
+    const rawAiSteps = Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : [];
+    const aiBodySteps = rawAiSteps.filter((st, idx) => {
+      if (!st || typeof st !== "object") return false;
+      const lbl = String(st.step_label || "").toLowerCase();
+      if (idx === 0 || lbl.includes("intro") || lbl.includes("concl")) return false;
+      const sh = String(st.sub_heading || "").trim();
+      if (!sh || sh.length > 80) return false;
+      return true;
+    });
+
+    const bodyAnns = (Array.isArray(evalData.visual_annotations) ? evalData.visual_annotations : []).filter(a => {
+      const t = String(a && a.tag || "").toLowerCase();
+      return t && !t.includes("intro") && !t.includes("concl") && !t.includes("synthesis") && !window.isMetaPlaceholderText(t);
+    });
+
+    // Determine number of body subparts:
+    // For 1-page copy: 1 subpart
+    // For 2-page copy: 2 subparts (Part A on Page 1, Part B on Page 2)
+    // For 3-page copy: 3 subparts (Part A on Page 1, Part B on Page 2, Part C on Page 3)
+    let numBodyParts = totalPages <= 1 ? 1 : (totalPages === 2 ? 2 : 3);
+    if (aiBodySteps.length >= 2 && totalPages <= 2) {
+      numBodyParts = Math.min(aiBodySteps.length, 3);
+    }
+
+    let weights = [];
+    if (numBodyParts === 1) {
+      weights = [1.0];
+    } else if (numBodyParts === 2) {
+      weights = [0.5, 0.5];
+    } else {
+      weights = [0.36, 0.36, 0.28];
+    }
+
+    const maxArr = [];
+    const scoreArr = [];
+    let maxRem = bodyTotalMax;
+    let scoreRem = bodyTotalScore;
+
+    for (let i = 0; i < numBodyParts; i++) {
+      if (i === numBodyParts - 1) {
+        maxArr.push(Math.max(0.5, Math.round(maxRem * 2) / 2));
+        scoreArr.push(Math.max(0.0, Math.min(maxArr[i], Math.round(scoreRem * 2) / 2)));
+      } else {
+        const m = Math.max(1.0, Math.round((bodyTotalMax * weights[i]) * 2) / 2);
+        const s = Math.min(m, Math.max(0.0, Math.round((bodyTotalScore * weights[i]) * 2) / 2));
+        maxArr.push(m);
+        scoreArr.push(s);
+        maxRem = Math.max(0.5, maxRem - m);
+        scoreRem = Math.max(0.0, scoreRem - s);
+      }
+    }
+
+    // Guard against rounding discrepancy
+    const sumScores = scoreArr.reduce((a, b) => a + b, 0);
+    const diff = Math.round((bodyTotalScore - sumScores) * 2) / 2;
+    if (diff !== 0 && scoreArr.length > 0) {
+      for (let i = 0; i < scoreArr.length; i++) {
+        if (scoreArr[i] + diff >= 0 && scoreArr[i] + diff <= maxArr[i]) {
+          scoreArr[i] += diff;
+          break;
+        }
+      }
+    }
+
+    const bodyParts = [];
+    for (let i = 0; i < numBodyParts; i++) {
+      const partLetter = String.fromCharCode(65 + i);
+      let title = "";
+      let statement = "";
+      let note = "";
+
+      if (aiBodySteps[i]) {
+        title = String(aiBodySteps[i].step_label || aiBodySteps[i].sub_heading || "").replace(/^(?:part\s*[a-z]\s*[-—:]\s*|\d+\.\s*)/i, "").trim();
+        statement = String(aiBodySteps[i].sub_heading || "");
+        note = String(aiBodySteps[i].quoted_written || "");
+      } else if (bodyAnns[i] && bodyAnns[i].tag) {
+        title = String(bodyAnns[i].tag).replace(/^(?:body:\s*|part\s*[a-z]\s*[-—:]\s*|\d+\.\s*)/i, "").trim();
+      } else if (sArr[i]) {
+        const parts = sArr[i].split(":");
+        title = parts[0].replace(/\*\*/g, "").trim();
+        if (parts.length > 1) note = parts.slice(1).join(":").trim();
+      }
+
+      if (window.isMetaPlaceholderText(title) || /point\s*\[[a-z0-9]+\]/i.test(title)) title = "";
+      if (window.isMetaPlaceholderText(statement) || /point\s*\[[a-z0-9]+\]/i.test(statement)) statement = "";
+      if (window.isMetaPlaceholderText(note) || /point\s*\[[a-z0-9]+\]/i.test(note)) note = "";
+
+      if (!title || title.length < 5) {
+        const qL = String(evalData.detected_question || (typeof state !== "undefined" && state.question) || "").toLowerCase();
+        const isPolity = /(?:article\s+\d+|constitutional|parliament|supreme court|fundamental right|governor|federalism)/i.test(qL);
+        if (isPolity) {
+          if (i === 0) title = "Constitutional Mandate & Core Premise";
+          else if (i === 1) title = "Analytical Dynamics & Substantive Arguments";
+          else title = "Institutional Bottlenecks & Strategic Reforms";
+        } else {
+          if (i === 0) title = "Core Demand & Foundational Mechanism";
+          else if (i === 1) title = "Multidimensional Impact & Sectoral Analysis";
+          else title = "Structural Bottlenecks & Actionable Reforms";
+        }
+      }
+
+      const pctVal = maxArr[i] > 0 ? (scoreArr[i] / maxArr[i]) : 0.5;
+      const statusTag = pctVal >= 0.55 ? "✓ Demand Fulfilled" : "⚠️ Partially Fulfilled";
+      if (!statement) {
+        statement = `What the Question Demands: Comprehensive analysis of ${title.toLowerCase()} supported with empirical metrics and institutional frameworks.`;
+      }
+      if (!note) {
+        const validStrength = sArr.find(s => !window.isMetaPlaceholderText(s) && !/point\s*\[[a-z0-9]+\]/i.test(s));
+        if (validStrength) {
+          note = validStrength;
+        } else {
+          const assignedP = numBodyParts === 1 ? 1 : (numBodyParts === 2 ? (i === 0 ? 1 : 2) : (i + 1));
+          const pageTxt = window.getPageTranscript ? window.getPageTranscript(evalData, assignedP) : "";
+          const pageSentences = pageTxt.split(/(?<=[.?!])\s+/).filter(s => s.length > 25 && !window.isMetaPlaceholderText(s));
+          if (pageSentences.length > 0) {
+            note = `Addressed this dimension analyzing: "${pageSentences[0].slice(0, 85).trim()}..." with structured points.`;
+          } else {
+            note = `Addressed key analytical dimensions of ${title.toLowerCase()} with structured arguments.`;
+          }
+        }
+      }
+
+      const assignedPage = numBodyParts === 1 ? 1 : (numBodyParts === 2 ? (i === 0 ? 1 : 2) : (i + 1));
+
+      bodyParts.push({
+        partIndex: i,
+        partLetter,
+        page: assignedPage,
+        title,
+        shortTitle: title.length > 38 ? title.slice(0, 35) + "..." : title,
+        heading: `${i + 2}. Part ${partLetter} — ${title}`,
+        tag: `BODY: PART ${partLetter} — ${title.toUpperCase()}`,
+        statement,
+        score: scoreArr[i],
+        max: maxArr[i],
+        marksStr: `+${scoreArr[i].toFixed(1)} / ${maxArr[i].toFixed(1)}`,
+        note: `**${statusTag} (+${scoreArr[i].toFixed(1)}M)**: ${note.replace(/^[✓✔✎✗×]\s*/, "")}`
+      });
+    }
+
+    const concNumber = bodyParts.length + 2;
+    const concTag = isIncomplete ? "CONCLUSION (NOT ATTEMPTED)" : "CONCLUSION: CLOSING SYNTHESIS";
+
+    return {
+      maxMarks,
+      overallScore,
+      bodyTotalScore,
+      bodyTotalMax,
+      intro: {
+        heading: "1. Introduction (Context & Baseline Definition)",
+        tag: "INTRO: DEFINITION & SCOPE",
+        shortTitle: "DEFINITION & SCOPE",
+        score: introScore,
+        max: introMax,
+        marksStr: `+${introScore.toFixed(1)} / ${introMax.toFixed(1)}`,
+        statement: "What the Question Demands: A precise 2-line conceptual/statutory definition or contemporary empirical hook establishing the premise."
+      },
+      bodyParts,
+      conclusion: {
+        heading: `${concNumber}. Conclusion (Closing Synthesis & Institutional Anchor)`,
+        tag: concTag,
+        shortTitle: isIncomplete ? "NOT ATTEMPTED" : "CLOSING SYNTHESIS",
+        score: concScore,
+        max: concMax,
+        marksStr: `+${concScore.toFixed(1)} / ${concMax.toFixed(1)}`,
+        statement: "What the Question Demands: A crisp 2-line synthesis tying the core argument to a constitutional principle, statutory reform, or committee benchmark.",
+        page: totalPages
+      }
+    };
+  };
+
   window.synthesizeAuthenticPageSections = function(evalObj, pgNum, totPgs, formatBulletsFn) {
     const evalData = evalObj || {};
+    const scheme = window.getCanonicalStepMarkingScheme(evalData);
     const pageAnns = (evalData.visual_annotations || evalData.annotations || []).filter(a => (parseInt(a.page, 10) || 1) === pgNum);
     const syncedRubric = evalData.rubric_scores || {};
     const mmVal = parseInt(evalData.max_marks || syncedRubric.total_max || 10, 10);
@@ -4570,23 +4798,8 @@ function renderAnnotationsOverlay() {
         String(evalData.detected_question || state.question || "")
       );
 
-      const isAspirationalDistrictsCopy = (
-        fullTextLow.includes("aspirational district") ||
-        fullTextLow.includes("aspirational block") ||
-        fullTextLow.includes("template for good governance") ||
-        fullTextLow.includes("moud for bridging") ||
-        (evalData.detected_question && /aspirational\s+district/i.test(evalData.detected_question)) ||
-        (state.question && /aspirational\s+district/i.test(state.question))
-      );
-
-      const isFederalismCopy = (
-        (fullTextLow.includes("elastic") && fullTextLow.includes("inelastic")) ||
-        fullTextLow.includes("fiscal federalism") ||
-        fullTextLow.includes("vijay kelkar") ||
-        fullTextLow.includes("kelkar") ||
-        (evalData.detected_question && /elastic.*inelastic|fiscal.*federalism/i.test(evalData.detected_question)) ||
-        (state.question && /elastic.*inelastic|fiscal.*federalism/i.test(state.question))
-      );
+      const isAspirationalDistrictsCopy = false;
+      const isFederalismCopy = false;
 
       const isCandidateIncompleteCopy = Boolean(
         evalData.is_incomplete_answer ||
@@ -5321,39 +5534,39 @@ function renderAnnotationsOverlay() {
 
         outSections.push({
           zone: "intro",
-          title: "INTRO",
+          title: scheme.intro.tag,
           icon: "✓",
           isTick: true,
           startYPercent: 16,
           endYPercent: 34,
           cardTopPercent: 10,
-          marks: (rawIntro && rawIntro.marks_awarded) || fallbackIntroMarks,
+          marks: scheme.intro.marksStr,
           bodyHtml: formatBulletsFn(introRem),
           bulletsHtml: formatBulletsFn(introRem),
           targetKey: "intro"
         });
         outSections.push({
           zone: "body",
-          title: (rawBody && rawBody.tag) ? rawBody.tag.toUpperCase() : "BODY: CORE DEMAND",
+          title: scheme.bodyParts[0].tag,
           icon: "✓",
           isTick: true,
           startYPercent: 36,
           endYPercent: 76,
           cardTopPercent: 36,
-          marks: (rawBody && rawBody.marks_awarded) || fallbackBodyMarks,
+          marks: scheme.bodyParts[0].marksStr,
           bodyHtml: formatBulletsFn(bodyRem),
           bulletsHtml: formatBulletsFn(bodyRem),
           targetKey: "body"
         });
         outSections.push({
           zone: "conclusion",
-          title: "CONCLUSION",
-          icon: isGenericConclusionCopy ? "✗" : "✓",
-          isTick: !isGenericConclusionCopy,
+          title: scheme.conclusion.tag,
+          icon: isCandidateIncompleteCopy ? "✗" : "✓",
+          isTick: !isCandidateIncompleteCopy,
           startYPercent: 78,
           endYPercent: 95,
           cardTopPercent: 74,
-          marks: isGenericConclusionCopy ? strictConcMarksStr : ((rawConc && rawConc.marks_awarded) || fallbackConcMarks),
+          marks: scheme.conclusion.marksStr,
           bodyHtml: formatBulletsFn(concRem),
           bulletsHtml: formatBulletsFn(concRem),
           targetKey: "conclusion"
@@ -5479,240 +5692,100 @@ function renderAnnotationsOverlay() {
 
           outSections.push({
             zone: "intro",
-            title: hasPrePrintedMapOnPage1 ? "INTRO & MAP" : "INTRO",
+            title: hasPrePrintedMapOnPage1 ? "INTRO & MAP" : scheme.intro.tag,
             icon: "✓",
             isTick: true,
             startYPercent: p1IntroStart,
             endYPercent: p1IntroEnd,
             cardTopPercent: p1IntroCardTop,
             hasPrePrintedMapAbove: hasPrePrintedMapOnPage1,
-            marks: (rawIntro && rawIntro.marks_awarded) || fallbackIntroMarks,
+            marks: scheme.intro.marksStr,
             bodyHtml: formatBulletsFn(introRem),
             bulletsHtml: formatBulletsFn(introRem),
             targetKey: "intro"
           });
           outSections.push({
             zone: "body",
-            title: p1BodyTitle.includes("BODY") ? p1BodyTitle : `BODY: ${p1BodyTitle}`,
+            title: p1BodyTitle.includes("BODY") ? p1BodyTitle : scheme.bodyParts[0].tag,
             icon: "✓",
             isTick: true,
             startYPercent: p1BodyStart,
             endYPercent: p1BodyEnd,
             cardTopPercent: p1BodyCardTop,
             hasPrePrintedMapAbove: hasPrePrintedMapOnPage1,
-            marks: (rawBody && rawBody.marks_awarded) || `+${(totalBodyScore / 2).toFixed(1)} / ${(totalBodyMax / 2).toFixed(1)}`,
+            marks: scheme.bodyParts[0].marksStr,
             bodyHtml: formatBulletsFn(p1BodyRem),
             bulletsHtml: formatBulletsFn(p1BodyRem),
             targetKey: "body"
           });
         }
       } else if (pgNum < totPgs) {
-        // INTERMEDIATE PAGES (e.g. Page 2, 3, 4 of 5)
-        const pageTransLow = getPageTranscript(pgNum).toLowerCase();
-        const isContractFarmingP2 = pageTransLow.includes("market failure") && (pageTransLow.includes("correcting") || pageTransLow.includes("contract failure") || pageTransLow.includes("agmark"));
-        const isMsmeP2 = pageTransLow.includes("challenges") && pageTransLow.includes("steps") && (pageTransLow.includes("msme") || pageTransLow.includes("services"));
+        // INTERMEDIATE PAGES (e.g. Page 2 of 3) — Strictly allocate from scheme.bodyParts and NEVER render a conclusion card!
+        const partIdx = Math.min(scheme.bodyParts.length - 1, Math.max(0, pgNum - 1));
+        const bodyPart = scheme.bodyParts[partIdx];
 
-        if (isContractFarmingP2) {
-          const mktRem = [
-            "✓ **Market Failure Flowchart**: Mapped price crash from surplus production, quality disputes leading to buyer contract termination, and perishable transport wastage.",
-            "✎ **Contract Enforcement**: Balance buyer default risk with institutional dispute redressal mechanisms (e.g. Conciliation Boards)."
-          ].join("\n");
-          const corrRem = [
-            "✓ **Comprehensive Corrective Measures**: Covered cold storage/transport infrastructure, irrigation safeguards against debt traps, market monitoring (MSP), and AGMARK quality standards.",
-            "✎ **Smallholder Risk Safeguards**: Frame price assurance via Negotiable Warehouse Receipts (NWR) and FPO aggregation."
-          ].join("\n");
-          registerUsedRemark(mktRem);
-          registerUsedRemark(corrRem);
+        // Filter out any annotation tagged as Conclusion (Conclusion belongs ONLY on the final page!)
+        const nonConcAnns = pageAnns.filter(a => {
+          const t = String(a.tag || "").toLowerCase();
+          return !t.includes("concl") && !t.includes("synthesis") && !t.includes("finish");
+        });
+
+        if (nonConcAnns.length >= 2) {
+          const s1 = Math.round((bodyPart.score * 0.5) * 2) / 2;
+          const s2 = Math.max(0, Math.round((bodyPart.score - s1) * 2) / 2);
+          const m1 = Math.round((bodyPart.max * 0.5) * 2) / 2;
+          const m2 = Math.max(0.5, Math.round((bodyPart.max - m1) * 2) / 2);
+
+          let t1 = String(nonConcAnns[0].tag || "CORE ANALYSIS").replace(/^body:\s*/i, "").trim().toUpperCase();
+          let t2 = String(nonConcAnns[1].tag || "SUBSTANTIATION").replace(/^body:\s*/i, "").trim().toUpperCase();
+          if (window.isMetaPlaceholderText(t1)) t1 = `${bodyPart.shortTitle.toUpperCase()} (PART 1)`;
+          if (window.isMetaPlaceholderText(t2)) t2 = `${bodyPart.shortTitle.toUpperCase()} (PART 2)`;
 
           outSections.push({
             zone: "body",
-            title: "BODY: MARKET FAILURES (FLOWCHART)",
-            icon: "✓",
-            isTick: true,
-            startYPercent: 12.0,
-            endYPercent: 48.0,
-            cardTopPercent: 12.0,
-            lockCustomBounds: true,
-            marks: `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`,
-            bodyHtml: formatBulletsFn(mktRem),
-            bulletsHtml: formatBulletsFn(mktRem),
+            title: `BODY: ${t1}`,
+            icon: nonConcAnns[0].type === "warning" ? "✗" : "✓",
+            isTick: nonConcAnns[0].type !== "warning",
+            startYPercent: nonConcAnns[0].start_y_percent || 16,
+            endYPercent: nonConcAnns[0].end_y_percent || 52,
+            cardTopPercent: nonConcAnns[0].start_y_percent || 16,
+            marks: `+${s1.toFixed(1)} / ${m1.toFixed(1)}`,
+            bodyHtml: formatBulletsFn(buildDynamicBodyRemark(0, nonConcAnns[0].remark, pgNum)),
+            bulletsHtml: formatBulletsFn(buildDynamicBodyRemark(0, nonConcAnns[0].remark, pgNum)),
             targetKey: "body"
           });
           outSections.push({
             zone: "body",
-            title: "BODY: CORRECTING CONTRACT FAILURES",
-            icon: "✓",
-            isTick: true,
-            startYPercent: 50.0,
-            endYPercent: 88.0,
-            cardTopPercent: 50.0,
-            lockCustomBounds: true,
-            marks: `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`,
-            bodyHtml: formatBulletsFn(corrRem),
-            bulletsHtml: formatBulletsFn(corrRem),
+            title: `BODY: ${t2}`,
+            icon: nonConcAnns[1].type === "warning" ? "✗" : "✓",
+            isTick: nonConcAnns[1].type !== "warning",
+            startYPercent: nonConcAnns[1].start_y_percent || 54,
+            endYPercent: nonConcAnns[1].end_y_percent || 89,
+            cardTopPercent: nonConcAnns[1].start_y_percent || 54,
+            marks: `+${s2.toFixed(1)} / ${m2.toFixed(1)}`,
+            bodyHtml: formatBulletsFn(buildDynamicBodyRemark(1, nonConcAnns[1].remark, pgNum)),
+            bulletsHtml: formatBulletsFn(buildDynamicBodyRemark(1, nonConcAnns[1].remark, pgNum)),
             targetKey: "body"
           });
-        } else if (isMsmeP2) {
-          const chalRem = [
-            "✓ **Comprehensive Challenges Faced**: Outlined lack of policy support, low pay grades, fragmented scale without economies of scale, infrastructure bottlenecks, and regulatory bias.",
-            "✎ **Skilling & Quality Deficits**: Missed addressing lack of digital readiness and quality certification (ZED scheme)."
-          ].join("\n");
-          const stepRem = [
-            "✓ **Steps Needed to be Taken**: Highlighted MSME industry linkages, promoting industries to generate service demand, and credit availability to kickstart service enterprises.",
-            "✎ **Digital Formalization**: Plug ONDC and TReDS platform integration for trade receivables financing."
-          ].join("\n");
-          registerUsedRemark(chalRem);
-          registerUsedRemark(stepRem);
-
-          outSections.push({
-            zone: "body",
-            title: "BODY: CHALLENGES FACED",
-            icon: "✓",
-            isTick: true,
-            startYPercent: 14.0,
-            endYPercent: 66.0,
-            cardTopPercent: 14.0,
-            lockCustomBounds: true,
-            marks: `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`,
-            bodyHtml: formatBulletsFn(chalRem),
-            bulletsHtml: formatBulletsFn(chalRem),
-            targetKey: "body"
-          });
-          outSections.push({
-            zone: "body",
-            title: "BODY: STEPS NEEDED TO BE TAKEN",
-            icon: "✓",
-            isTick: true,
-            startYPercent: 68.0,
-            endYPercent: 88.0,
-            cardTopPercent: 68.0,
-            lockCustomBounds: true,
-            marks: `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`,
-            bodyHtml: formatBulletsFn(stepRem),
-            bulletsHtml: formatBulletsFn(stepRem),
-            targetKey: "body"
-          });
-        } else if (pageAnns.length === 1) {
-          const singleAnn = pageAnns[0];
-          const isIntroTag = /intro|premise|dilemma.*opening|stakeholder/i.test(singleAnn.tag || "");
-          const rawTagUpper = String(singleAnn.tag || (isIntroTag ? "INTRO: ETHICAL TENSION & STAKEHOLDERS" : "BODY: CORE DEMAND")).toUpperCase();
-          const cleanTitle = (rawTagUpper.startsWith("SUB-QUESTION") || rawTagUpper.startsWith("INTRO") || rawTagUpper.startsWith("BODY"))
-            ? rawTagUpper
-            : (isIntroTag ? rawTagUpper : `BODY: ${rawTagUpper}`);
-
-          const compSplit = cleanTitle.replace(/^BODY:\s*/i, "").split(/\s*(?:&|\band\b|\/)\s*/i);
-          if (compSplit.length >= 2 && !isIntroTag) {
-            const t1 = `BODY: ${compSplit[0].trim()}`;
-            const t2 = `BODY: ${compSplit[1].trim()}`;
-            let b1Rem = buildDynamicBodyRemark(0, singleAnn.remark, pgNum);
-            let b2Rem = buildDynamicBodyRemark(1, "", pgNum);
-            outSections.push({
-              zone: "body",
-              title: t1,
-              icon: "✓",
-              isTick: true,
-              startYPercent: singleAnn.start_y_percent || 14.0,
-              endYPercent: 50.0,
-              cardTopPercent: singleAnn.start_y_percent || 14.0,
-              marks: `+${(totalBodyScore / 4).toFixed(1)} / ${(totalBodyMax / 4).toFixed(1)}`,
-              bodyHtml: formatBulletsFn(b1Rem),
-              bulletsHtml: formatBulletsFn(b1Rem),
-              targetKey: "body"
-            });
-            outSections.push({
-              zone: "body",
-              title: t2,
-              icon: "✓",
-              isTick: true,
-              startYPercent: 52.0,
-              endYPercent: singleAnn.end_y_percent || 88.0,
-              cardTopPercent: 52.0,
-              marks: `+${(totalBodyScore / 4).toFixed(1)} / ${(totalBodyMax / 4).toFixed(1)}`,
-              bodyHtml: formatBulletsFn(b2Rem),
-              bulletsHtml: formatBulletsFn(b2Rem),
-              targetKey: "body"
-            });
-          } else {
-            let sRem = isIntroTag ? buildDynamicIntroRemark(singleAnn.remark) : buildDynamicBodyRemark(0, singleAnn.remark, pgNum);
-            if (!sRem || !sRem.trim()) {
-              sRem = buildDynamicBodyRemark(0, "", pgNum);
-            }
-            outSections.push({
-              zone: isIntroTag ? "intro" : "body",
-              title: cleanTitle,
-              icon: singleAnn.type === "warning" ? "✗" : "✓",
-              isTick: singleAnn.type !== "warning",
-              startYPercent: singleAnn.start_y_percent || 16,
-              endYPercent: singleAnn.end_y_percent || 89,
-              cardTopPercent: singleAnn.start_y_percent || 16,
-              marks: singleAnn.marks_awarded || `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`,
-              bodyHtml: formatBulletsFn(sRem),
-              bulletsHtml: formatBulletsFn(sRem),
-              targetKey: isIntroTag ? "intro" : "body"
-            });
-          }
         } else {
-          const bodyAnn1 = pageAnns[0] || null;
-          const bodyAnn2 = pageAnns.length > 1 ? pageAnns[1] : null;
-          const isAnn1Intro = /intro|premise|stakeholder/i.test(bodyAnn1 && bodyAnn1.tag || "");
-
-          let rawTag1 = (bodyAnn1 && bodyAnn1.tag) ? String(bodyAnn1.tag).replace(/^body:\s*/i, "").trim() : "";
-          let rawTag2 = (bodyAnn2 && bodyAnn2.tag) ? String(bodyAnn2.tag).replace(/^body:\s*/i, "").trim() : "";
-
-          // Differentiate compound or duplicate tags
-          const compSplit = rawTag1.split(/\s*(?:&|\band\b|\/)\s*/i);
-          if (compSplit.length >= 2) {
-            rawTag1 = compSplit[0].trim();
-            if (!rawTag2 || /depth|substantiation|core analysis/i.test(rawTag2)) {
-              rawTag2 = compSplit[1].trim();
-            }
+          const singleAnn = nonConcAnns[0] || pageAnns[0] || null;
+          let cleanTitle = bodyPart.tag;
+          if (singleAnn && singleAnn.tag && !window.isMetaPlaceholderText(singleAnn.tag) && !/concl|synthesis/i.test(singleAnn.tag)) {
+            const rawT = String(singleAnn.tag).replace(/^body:\s*/i, "").trim().toUpperCase();
+            cleanTitle = rawT.startsWith("BODY") ? rawT : `BODY: ${rawT}`;
           }
 
-          if (rawTag1 && rawTag2 && rawTag1.toLowerCase() === rawTag2.toLowerCase()) {
-            rawTag1 = `${rawTag1} (PART 1)`;
-            rawTag2 = `${rawTag2} (PART 2)`;
-          }
-
-          let b1Title = isEarthquakeMapCopy
-            ? "BODY: PLATE TECTONICS & BOUNDARY DIAGRAMS"
-            : isAhomCopy
-              ? "BODY: HISTORIC IDENTITY (POINT 5 & POINTS 1–2)"
-              : (rawTag1 ? `BODY: ${rawTag1.toUpperCase()}` : (isAnn1Intro ? "INTRO: ETHICAL TENSION & STAKEHOLDERS" : "BODY: CORE ANALYSIS"));
-          let b1Rem = isAnn1Intro ? buildDynamicIntroRemark(bodyAnn1 && bodyAnn1.remark) : buildDynamicBodyRemark(0, bodyAnn1 && bodyAnn1.remark, pgNum);
-
-          let b2Title = isEarthquakeMapCopy
-            ? "BODY: SEISMIC WAVES, FOCUS–EPICENTRE & DISASTERS"
-            : isAhomCopy
-              ? "BODY: TRIBAL, ECONOMIC & SOCIAL HISTORY (POINTS 3–5)"
-              : (rawTag2 ? `BODY: ${rawTag2.toUpperCase()}` : "BODY: DEPTH & SUBSTANTIATION");
-          let b2Rem = buildDynamicBodyRemark(1, bodyAnn2 && bodyAnn2.remark, pgNum);
-
-          outSections.push({
-            zone: isAnn1Intro ? "intro" : "body",
-            title: (b1Title.startsWith("SUB-QUESTION") || b1Title.startsWith("INTRO") || b1Title.startsWith("BODY")) ? b1Title : `BODY: ${b1Title}`,
-            icon: (bodyAnn1 && bodyAnn1.type === "warning") ? "✗" : "✓",
-            isTick: !(bodyAnn1 && bodyAnn1.type === "warning"),
-            startYPercent: (bodyAnn1 && bodyAnn1.start_y_percent) || (isEarthquakeMapCopy ? 18 : 16),
-            endYPercent: (bodyAnn1 && bodyAnn1.end_y_percent) || (isEarthquakeMapCopy ? 62.5 : 54),
-            cardTopPercent: (bodyAnn1 && bodyAnn1.start_y_percent) || 18,
-            lockCustomBounds: Boolean(bodyAnn1 && bodyAnn1.start_y_percent) || Boolean(isEarthquakeMapCopy),
-            marks: (bodyAnn1 && bodyAnn1.marks_awarded) || (isAnn1Intro ? fallbackIntroMarks : `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`),
-            bodyHtml: formatBulletsFn(b1Rem),
-            bulletsHtml: formatBulletsFn(b1Rem),
-            targetKey: isAnn1Intro ? "intro" : "body"
-          });
           outSections.push({
             zone: "body",
-            title: (b2Title.startsWith("SUB-QUESTION") || b2Title.startsWith("INTRO") || b2Title.startsWith("BODY")) ? b2Title : `BODY: ${b2Title}`,
-            icon: (bodyAnn2 && bodyAnn2.type === "warning") ? "✗" : "✓",
-            isTick: !(bodyAnn2 && bodyAnn2.type === "warning"),
-            startYPercent: (bodyAnn2 && bodyAnn2.start_y_percent) || (isEarthquakeMapCopy ? 65 : 56),
-            endYPercent: (bodyAnn2 && bodyAnn2.end_y_percent) || (isEarthquakeMapCopy ? 89.5 : 89),
-            cardTopPercent: (bodyAnn2 && bodyAnn2.start_y_percent) || (isEarthquakeMapCopy ? 65 : 56),
-            lockCustomBounds: Boolean(bodyAnn2 && bodyAnn2.start_y_percent) || Boolean(isEarthquakeMapCopy),
-            marks: (bodyAnn2 && bodyAnn2.marks_awarded) || `+${(totalBodyScore / 3).toFixed(1)} / ${(totalBodyMax / 3).toFixed(1)}`,
-            bodyHtml: formatBulletsFn(b2Rem),
-            bulletsHtml: formatBulletsFn(b2Rem),
+            title: cleanTitle,
+            icon: (singleAnn && singleAnn.type === "warning") ? "✗" : "✓",
+            isTick: !(singleAnn && singleAnn.type === "warning"),
+            startYPercent: (singleAnn && singleAnn.start_y_percent) || 16,
+            endYPercent: (singleAnn && singleAnn.end_y_percent) || 89,
+            cardTopPercent: (singleAnn && singleAnn.start_y_percent) || 16,
+            marks: bodyPart.marksStr,
+            bodyHtml: formatBulletsFn(buildDynamicBodyRemark(0, singleAnn && singleAnn.remark, pgNum)),
+            bulletsHtml: formatBulletsFn(buildDynamicBodyRemark(0, singleAnn && singleAnn.remark, pgNum)),
             targetKey: "body"
           });
         }
@@ -5799,10 +5872,12 @@ function renderAnnotationsOverlay() {
 
         const finalConcRemark = buildDynamicConcRemark(concRemCandidate);
 
+        const finalBodyPart = scheme.bodyParts[scheme.bodyParts.length - 1] || scheme.bodyParts[0];
+
         if (isCandidateIncompleteCopy) {
-          const bodyTagTitle = isAspirationalDistrictsCopy
-            ? "INCLUSIVE GROWTH & WAY FORWARD"
-            : ((rawBody && rawBody.tag) ? String(rawBody.tag).replace(/^body:\s*/i, "").trim().toUpperCase() : "KEY DIMENSIONS & MEASURES");
+          const bodyTagTitle = (rawBody && rawBody.tag && !window.isMetaPlaceholderText(rawBody.tag))
+            ? String(rawBody.tag).replace(/^body:\s*/i, "").trim().toUpperCase()
+            : finalBodyPart.shortTitle.toUpperCase();
           const resolvedFinalBodyTitle = bodyTagTitle.includes("BODY") ? bodyTagTitle : `BODY: ${bodyTagTitle}`;
           const resolvedFinalBodyRemark = buildDynamicBodyRemark(1, bodyRemCandidate, pgNum);
 
@@ -5821,7 +5896,7 @@ function renderAnnotationsOverlay() {
             endYPercent: bodyEndY,
             cardTopPercent: 12,
             lockCustomBounds: true,
-            marks: `+${(totalBodyScore / 2).toFixed(1)} / ${(bodyMaxNum / 2).toFixed(1)}`,
+            marks: finalBodyPart.marksStr,
             bodyHtml: formatBulletsFn(resolvedFinalBodyRemark),
             bulletsHtml: formatBulletsFn(resolvedFinalBodyRemark),
             targetKey: "body"
@@ -5837,7 +5912,7 @@ function renderAnnotationsOverlay() {
             lockCustomBounds: true,
             noBrace: true,
             isUnwritten: true,
-            marks: `+0.0 / ${concMaxNum.toFixed(1)}`,
+            marks: scheme.conclusion.marksStr,
             bodyHtml: formatBulletsFn(finalConcRemark),
             bulletsHtml: formatBulletsFn(finalConcRemark),
             targetKey: "conclusion"
@@ -5851,8 +5926,12 @@ function renderAnnotationsOverlay() {
             ? String(rawBodyAnns[1].tag || "WAY FORWARD").replace(/^body:\s*/i, "").trim().toUpperCase()
             : (combinedTagParts[1].toUpperCase().startsWith("WA") ? "WAY FORWARD" : combinedTagParts[1].toUpperCase());
 
-          const chalMarks = `+${(totalBodyScore * 0.25).toFixed(1)} / ${(totalBodyMax * 0.25).toFixed(1)}`;
-          const wfMarks = `+${(totalBodyScore * 0.25).toFixed(1)} / ${(totalBodyMax * 0.25).toFixed(1)}`;
+          const s1 = Math.round((finalBodyPart.score * 0.5) * 2) / 2;
+          const s2 = Math.max(0, Math.round((finalBodyPart.score - s1) * 2) / 2);
+          const m1 = Math.round((finalBodyPart.max * 0.5) * 2) / 2;
+          const m2 = Math.max(0.5, Math.round((finalBodyPart.max - m1) * 2) / 2);
+          const chalMarks = `+${s1.toFixed(1)} / ${m1.toFixed(1)}`;
+          const wfMarks = `+${s2.toFixed(1)} / ${m2.toFixed(1)}`;
 
           // Dynamically separate remarks using the candidate's actual transcribed_text before vs after 'Way Forward'
           const buildDynamicSplitRemarks = () => {
@@ -5869,13 +5948,10 @@ function renderAnnotationsOverlay() {
             let combinedRem = String(bodyRemCandidate || "");
             let wfExtractedItems = [];
 
-            // If the combined remark listed a Way Forward item (like 'cold-chain logistics') alongside Challenges items,
-            // dynamically separate items that appear in the Way Forward half of transcribed_text!
             if (wfMatch && wfMatch.index !== undefined) {
               const beforeWfText = transRaw.slice(0, wfMatch.index).toLowerCase();
               const afterWfText = transRaw.slice(wfMatch.index).toLowerCase();
 
-              // Clean any phrase from combinedRem that belongs to afterWfText (e.g. cold-chain logistics / diversification / skilling)
               combinedRem = combinedRem.replace(/,?\s*(?:and\s+)?([^,.;\n]+(?:cold-chain|diversification|skilling|preservation|infrastructure)[^,.;\n]*)/gi, (fullM, itemGrp) => {
                 const itemLow = itemGrp.trim().toLowerCase();
                 if (!beforeWfText.includes("cold-chain") && (afterWfText.includes("cold-chain") || itemLow.includes("cold-chain"))) {
@@ -5884,10 +5960,8 @@ function renderAnnotationsOverlay() {
                 }
                 return fullM;
               });
-              // Fix grammar if a trailing comma remained before the last item
               combinedRem = combinedRem.replace(/,\s*([^,]+)\.\s*$/m, " and $1.");
             } else {
-              // Even if transcribed_text is brief, move explicit solution/way-forward terms out of the Challenges remark
               combinedRem = combinedRem.replace(/,?\s*(?:and\s+)?([^,.;\n]*(?:cold-chain\s+logistics|crop\s+diversification|farmer\s+skilling)[^,.;\n]*)/gi, (fullM, itemGrp) => {
                 if (itemGrp && itemGrp.trim()) wfExtractedItems.push(itemGrp.trim());
                 return "";
@@ -5897,7 +5971,6 @@ function renderAnnotationsOverlay() {
 
             const r1Final = combinedRem.trim() || buildDynamicBodyRemark(0, "");
 
-            // Build Section 2 (Way Forward) remark dynamically from extracted Way Forward points + body_audit strengths/gaps
             const bAudit = evalData.body_audit || {};
             const sList = Array.isArray(bAudit.strengths) ? bAudit.strengths : [];
             const gList = Array.isArray(bAudit.critical_gaps) ? bAudit.critical_gaps : [];
@@ -5962,7 +6035,7 @@ function renderAnnotationsOverlay() {
           });
           outSections.push({
             zone: "conclusion",
-            title: isCandidateIncompleteCopy ? "CONCLUSION (NOT ATTEMPTED)" : "CONCLUSION",
+            title: isCandidateIncompleteCopy ? "CONCLUSION (NOT ATTEMPTED)" : scheme.conclusion.tag,
             icon: (isCandidateIncompleteCopy || isGenericConclusionCopy) ? "✗" : "✓",
             isTick: !isCandidateIncompleteCopy && !isGenericConclusionCopy,
             startYPercent: concStart,
@@ -5971,32 +6044,18 @@ function renderAnnotationsOverlay() {
             lockCustomBounds: Boolean(rawConc && rawConc.start_y_percent),
             noBrace: isCandidateIncompleteCopy,
             isUnwritten: isCandidateIncompleteCopy,
-            marks: isCandidateIncompleteCopy ? `+0.0 / ${concMaxNum.toFixed(1)}` : (isGenericConclusionCopy ? strictConcMarksStr : ((rawConc && rawConc.marks_awarded) || fallbackConcMarks)),
+            marks: scheme.conclusion.marksStr,
             bodyHtml: formatBulletsFn(finalConcRemark),
             bulletsHtml: formatBulletsFn(finalConcRemark),
             targetKey: "conclusion"
           });
         } else {
-          const hasLimitationsHeading = isJudicialReviewCopy || fullTextLow.includes("limitation") || fullTextLow.includes("roger mathew") || fullTextLow.includes("overreach");
-          const hasStrategiesOrWayForward = isStartupDeepTechCopy || /strategies to bridge|way forward|way ahead|measures needed|anrf|vaibhav/i.test(fullTextLow);
-
           let resolvedFinalBodyTitle = isEarthquakeMapCopy
             ? "BODY: REGIONAL VULNERABILITY & DISASTERS (POINTS ①–③)"
             : isAhomCopy
               ? "BODY: CONTEMPORARY LEGACY (POINTS 1–5)"
-              : ((rawBody && rawBody.tag) ? rawBody.tag.toUpperCase() : "BODY: KEY DIMENSIONS");
+              : ((rawBody && rawBody.tag && !window.isMetaPlaceholderText(rawBody.tag)) ? String(rawBody.tag).replace(/^body:\s*/i, "").trim().toUpperCase() : finalBodyPart.shortTitle.toUpperCase());
           let resolvedFinalBodyRemark = buildDynamicBodyRemark(2, bodyRemCandidate, pgNum);
-
-          if (hasLimitationsHeading && !hasStrategiesOrWayForward && !isAhomCopy && !isEarthquakeMapCopy) {
-            resolvedFinalBodyTitle = "BODY: LIMITATIONS & CHALLENGES";
-            if (!resolvedFinalBodyRemark || resolvedFinalBodyRemark.toLowerCase().includes("executive-judiciary equilibrium")) {
-              resolvedFinalBodyRemark = "✓ **Clear Analysis of Limitations**: Well-presented points on key limitations and institutional challenges.\n✎ **Missing Way Forward**: You moved directly from **Limitations** to the Conclusion—add 2 short **Way Forward** points before concluding.";
-            }
-          } else if (hasStrategiesOrWayForward && !isAhomCopy && !isEarthquakeMapCopy) {
-            if (!resolvedFinalBodyTitle.includes("STRATEG") && !resolvedFinalBodyTitle.includes("WAY FORWARD")) {
-              resolvedFinalBodyTitle = "BODY: STRATEGIES & WAY FORWARD";
-            }
-          }
 
           const sBodyStart = (rawBody && rawBody.start_y_percent) ? Number(rawBody.start_y_percent) : (isEarthquakeMapCopy ? 8 : 14);
           const sConcStart = (rawConc && rawConc.start_y_percent && Number(rawConc.start_y_percent) >= 65)
@@ -6016,16 +6075,14 @@ function renderAnnotationsOverlay() {
             endYPercent: sBodyEnd,
             cardTopPercent: sBodyStart,
             lockCustomBounds: Boolean(rawBody && rawBody.start_y_percent),
-            marks: isGenericConclusionCopy
-              ? `+${(totalBodyScore / 2).toFixed(1)} / ${(totalBodyMax / 2).toFixed(1)}`
-              : ((rawBody && rawBody.marks_awarded) || `+${(totalBodyScore / 2).toFixed(1)} / ${(totalBodyMax / 2).toFixed(1)}`),
+            marks: finalBodyPart.marksStr,
             bodyHtml: formatBulletsFn(resolvedFinalBodyRemark),
             bulletsHtml: formatBulletsFn(resolvedFinalBodyRemark),
             targetKey: "body"
           });
           outSections.push({
             zone: "conclusion",
-            title: isCandidateIncompleteCopy ? "CONCLUSION (NOT ATTEMPTED)" : (isEarthquakeMapCopy ? "CONCLUSION: MITIGATION & PREPAREDNESS" : "CONCLUSION"),
+            title: isCandidateIncompleteCopy ? "CONCLUSION (NOT ATTEMPTED)" : (isEarthquakeMapCopy ? "CONCLUSION: MITIGATION & PREPAREDNESS" : scheme.conclusion.tag),
             icon: (isCandidateIncompleteCopy || isGenericConclusionCopy) ? "✗" : "✓",
             isTick: !isCandidateIncompleteCopy && !isGenericConclusionCopy,
             startYPercent: sConcStart,
@@ -6034,7 +6091,7 @@ function renderAnnotationsOverlay() {
             lockCustomBounds: Boolean(rawConc && rawConc.start_y_percent),
             noBrace: isCandidateIncompleteCopy,
             isUnwritten: isCandidateIncompleteCopy,
-            marks: isCandidateIncompleteCopy ? `+0.0 / ${concMaxNum.toFixed(1)}` : (isGenericConclusionCopy ? strictConcMarksStr : ((rawConc && rawConc.marks_awarded) || fallbackConcMarks)),
+            marks: scheme.conclusion.marksStr,
             bodyHtml: formatBulletsFn(finalConcRemark),
             bulletsHtml: formatBulletsFn(finalConcRemark),
             targetKey: "conclusion"
@@ -6657,77 +6714,144 @@ function getCardQuoteAndElevate(sec) {
   let quote = sec.quote || "";
   let advise = sec.advise || sec.elevation || "";
 
-  if (!quote || !advise) {
+  const evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
+  const pNum = parseInt(sec.page, 10) || (typeof state !== "undefined" && state.currentPageIndex !== undefined ? state.currentPageIndex + 1 : 1);
+  const isCandidateIncomplete = Boolean(
+    evalData.is_incomplete_answer ||
+    evalData.is_candidate_incomplete_answer ||
+    (sec.zone === "conclusion" && sec.isUnwritten) ||
+    (evalData.conclusion_audit && (evalData.conclusion_audit.score === 0 || evalData.conclusion_audit.is_unwritten))
+  );
+
+  // Helper to test if a text string is an evaluator meta-comment rather than candidate handwriting
+  const isMetaText = (str) => {
+    return window.isMetaPlaceholderText ? window.isMetaPlaceholderText(str) : /(?:opening premise evaluated|substantive arguments analyzed|core dimensional scope|closing stance evaluated|directly engaged the core directive|evaluated candidate's specific points|detailed analysis across candidate's points|point \[[a-z0-9]+\]|\[point \d+|add .* as a keyword|substantive upgrade|page \d+ points evaluated|foundational doctrine missing|concrete institutional|discipline-specific|clear closing line|living cultural continuity|planetary equilibrium|clear concluding stand|actionable way forward|constructive way forward|comprehensive challenges faced|steps needed to be taken|^add [^*]+\*[^*]+)/i.test(String(str || ""));
+  };
+
+  // If quote or advise was not set, try to extract from sourceHtml
+  if (!quote || !advise || isMetaText(quote)) {
     const sourceHtml = sec.bodyHtml || sec.bulletsHtml || "";
     if (sourceHtml) {
       const temp = document.createElement("div");
       temp.innerHTML = sourceHtml;
-
       const items = temp.querySelectorAll(".flex");
       items.forEach(item => {
         const text = item.textContent.replace(/\s+/g, " ").trim();
-        if ((text.startsWith("✓") || text.startsWith("✔") || text.startsWith("★")) && !quote) {
-          quote = text.replace(/^[✓✔★⭐]\s*/, "");
+        // Look for embedded quotation inside the tick line: *"..."* or "..."
+        const qMatch = text.match(/["“']([^"”']{15,160})["”']|\*["“']?([^"*”']{15,160})["”']?\*/);
+        if ((text.startsWith("✓") || text.startsWith("✔") || text.startsWith("★")) && (!quote || isMetaText(quote))) {
+          if (qMatch && !isMetaText(qMatch[1] || qMatch[2])) {
+            quote = (qMatch[1] || qMatch[2]).trim();
+          } else if (!isMetaText(text.replace(/^[✓✔★⭐]\s*/, ""))) {
+            quote = text.replace(/^[✓✔★⭐]\s*/, "");
+          }
         } else if ((text.startsWith("✎") || text.startsWith("✗") || text.startsWith("×")) && !advise) {
           advise = text.replace(/^[✎✗×✘]\s*/, "");
         }
       });
-
-      if (!quote && items.length > 0) {
-        quote = items[0].textContent.replace(/\s+/g, " ").trim().replace(/^[✓✔★⭐✎✗×✘•]\s*/, "");
-      }
-      if (!advise && items.length > 1) {
-        advise = items[1].textContent.replace(/\s+/g, " ").trim().replace(/^[✓✔★⭐✎✗×✘•]\s*/, "");
-      }
     }
   }
 
-  // Extract embedded candidate words if quote contains an evaluator wrapper
-  const embeddedMatch = quote.match(/["“']([^"”']{16,})["”']|\*([^*]{16,})\*/);
-  if (embeddedMatch) {
+  // If quote still contains embedded quotes, extract just the quoted text
+  const embeddedMatch = String(quote || "").match(/["“']([^"”']{15,160})["”']|\*["“']?([^"*”']{15,160})["”']?\*/);
+  if (embeddedMatch && !isMetaText(embeddedMatch[1] || embeddedMatch[2])) {
     quote = (embeddedMatch[1] || embeddedMatch[2]).trim();
   }
 
-  // If quote is generic boilerplate or missing, pull candidate's actual handwritten line from transcribed text
-  const isGenericQuote = !quote || /covered relevant analytical points|addressed analytical dimensions|page \d+ arguments|^arguments:?$/i.test(quote);
-  if (isGenericQuote) {
-    const pNum = sec.page || (state.currentPageIndex + 1);
-    const transT = String(state.currentEvaluation?.transcribed_text || "");
-    const pageParts = transT.split(/\[Page\s*(\d+)\]/i);
-    let pageText = "";
-    for (let i = 1; i < pageParts.length; i += 2) {
-      if (parseInt(pageParts[i], 10) === pNum && i + 1 < pageParts.length) {
-        pageText = pageParts[i + 1];
-        break;
+  // If quote is meta-text, placeholder, or empty, extract REAL candidate handwritten words from transcribed text!
+  if (!quote || isMetaText(quote) || quote.length < 12) {
+    if (sec.zone === "conclusion" && isCandidateIncomplete) {
+      quote = "Answer ends without an explicit closing synthesis paragraph.";
+    } else {
+      const pageT = (typeof window.getPageTranscript === "function")
+        ? window.getPageTranscript(evalData, pNum)
+        : "";
+      const qLow = String(evalData.detected_question || (typeof state !== "undefined" && state.question) || "").toLowerCase();
+      const candLines = pageT
+        .split(/\n+/)
+        .map(l => l.trim())
+        .filter(l => {
+          if (l.length < 18) return false;
+          if (l.startsWith("#") || /^\[page/i.test(l) || /^page\s*\d+/i.test(l)) return false;
+          if (/^(?:Q\.?|\d+[\.\)])\s*/i.test(l)) return false;
+          if (qLow && qLow.includes(l.toLowerCase().slice(0, 25))) return false;
+          return true;
+        });
+
+      if (candLines.length > 0) {
+        if (sec.zone === "intro") {
+          quote = candLines[0].slice(0, 115).trim();
+        } else if (sec.zone === "conclusion") {
+          quote = candLines[candLines.length - 1].slice(0, 115).trim();
+        } else {
+          // Body lines
+          const cardIdx = sec.cardIndex || 0;
+          const lineIdx = Math.min(candLines.length - 1, Math.max(0, (sec.zone === "intro" ? 0 : (pNum === 1 ? cardIdx + 1 : cardIdx))));
+          quote = candLines[lineIdx].slice(0, 115).trim();
+        }
+      } else {
+        quote = sec.summary || (sec.zone === "intro" ? "Addressed introductory premise and conceptual context." : (sec.zone === "conclusion" ? "Synthesized closing stance on the core directive." : "Structured arguments addressing core analytical dimensions."));
       }
     }
-    if (!pageText) pageText = transT;
-    const candLines = pageText.split(/\n+/).map(l => l.trim()).filter(l => l.length >= 20 && !l.startsWith("#") && !/^(?:Q\.?|\d+[\.\)])\s*/i.test(l));
-    if (candLines.length > 0) {
-      const idx = (sec.cardIndex || 0) % candLines.length;
-      quote = candLines[idx].slice(0, 110);
-    } else {
-      quote = sec.summary || sec.rawText || "Addressed primary analytical dimensions for this section.";
-    }
   }
 
-  // Clean quote quotation marks so template wrapping is clean
-  quote = quote.replace(/^["“'\s]+|["”'\s]+$/g, "").trim();
+  // Clean quote wrapper quotes
+  quote = String(quote || "").replace(/^["“'\s]+|["”'\s]+$/g, "").trim();
 
   // Strip leading bold title or prefix from advise
-  advise = advise.replace(/^\*\*[^*]+\*\*:\s*/, "").replace(/^(?:Value Addition|Elevate|Improvement|Actionable Upgrade|Suggestion):\s*/i, "").trim();
+  advise = String(advise || "")
+    .replace(/^\*\*[^*]+\*\*:\s*/, "")
+    .replace(/^(?:Value Addition|Elevate|Improvement|Actionable Upgrade|Suggestion):\s*/i, "")
+    .trim();
 
-  // If advise is generic boilerplate, pull specific gap from body_audit
-  const isGenericAdvise = !advise || /substantiate points with specific case studies|anchor arguments with 1 statutory commission/i.test(advise);
-  if (isGenericAdvise) {
-    const gaps = state.currentEvaluation?.body_audit?.critical_gaps || [];
-    if (Array.isArray(gaps) && gaps.length > 0) {
-      const g = gaps.find(item => item && !/generic|covered/i.test(String(item)));
-      if (g) advise = String(g).replace(/^[✓✔✎✗×✘•]\s*/, "").replace(/^\*\*[^*]+\*\*:\s*/, "").trim();
-    }
+  // Clean corrupted keyword pattern like: Add Term*Term: definition... as a keyword
+  if (/add\s+([^*]+)\*([^:]+:\s*)?([^.]+\.)?\s*(?:as a keyword)?/i.test(advise)) {
+    advise = advise.replace(/add\s+([^*]+)\*([^:]+:\s*)?([^.]+\.)?\s*(?:as a keyword)?/i, (m, term, dTitle, def) => {
+      const cleanTerm = term.trim();
+      const cleanDef = (def || "").trim();
+      return `Integrate technical keyword '${cleanTerm}'${cleanDef ? ` (${cleanDef.toLowerCase()})` : ""} to elevate precision.`;
+    });
   }
-  if (!advise) {
-    advise = "Substantiate arguments with landmark committee recommendations, statutory benchmarks, or empirical telemetry.";
+
+  // Scrub Point [X], Point [Y], [Point 1 / Point 2 topics] from advise
+  advise = advise
+    .replace(/Point\s*\[[X-Z0-9]+\]/gi, "this argument")
+    .replace(/\[Point\s*\d+\s*\/\s*Point\s*\d+\s*topics\]/gi, "the core directive")
+    .replace(/Substantiate Point\s*\[[X-Z0-9]+\]/gi, "Substantiate arguments")
+    .replace(/Bridge the gap in Point\s*\[[X-Z0-9]+\]/gi, "Bridge analytical gaps");
+
+  // If advise is generic boilerplate or meta text, replace with specific gap from body_audit or missing_keywords_cards
+  if (!advise || advise.length < 20 || isMetaText(advise) || /substantiate points with specific case studies|anchor arguments with 1 statutory commission/i.test(advise)) {
+    const gaps = (evalData.body_audit && evalData.body_audit.critical_gaps) || [];
+    const kwList = evalData.missing_keywords_cards || [];
+    const cardIdx = sec.cardIndex || 0;
+
+    if (sec.zone === "intro") {
+      const introMiss = (evalData.intro_audit && evalData.intro_audit.missing_elements) || [];
+      if (introMiss.length > 0) {
+        advise = `Anchor opening definition with ${introMiss.slice(0, 2).join(" and ")} to establish immediate depth.`;
+      } else if (kwList[0] && kwList[0].term) {
+        advise = `Strengthen the opening definition by citing **${kwList[0].term}** and primary constitutional/statutory baseline.`;
+      } else {
+        advise = "Anchor opening in the primary constitutional article, statutory enactment year, or authoritative benchmark.";
+      }
+    } else if (sec.zone === "conclusion") {
+      if (isCandidateIncomplete) {
+        advise = "In the final 60 seconds, practice writing a 2-line closing linking the core issue to national policy goals and sustainable execution.";
+      } else {
+        advise = "Anchor closing recommendation in an actionable institutional benchmark (e.g. 2nd ARC, Inter-State Council Art 263, or Constitutional Morality).";
+      }
+    } else {
+      // Body section
+      if (gaps[cardIdx]) {
+        advise = String(gaps[cardIdx]).replace(/^[✓✔✎✗×✘•]\s*/, "").replace(/^\*\*[^*]+\*\*:\s*/, "").trim();
+      } else if (kwList[cardIdx % kwList.length] && kwList[cardIdx % kwList.length].term) {
+        const kw = kwList[cardIdx % kwList.length];
+        advise = `Integrate **${kw.term}** (${String(kw.definition || "").slice(0, 75).trim()}) to sharpen technical scoring.`;
+      } else {
+        advise = "Substantiate arguments with concrete committee recommendations, statutory mechanisms, or empirical metrics.";
+      }
+    }
   }
 
   return { quote, advise };
@@ -9529,16 +9653,16 @@ function renderBatch1ExaminerMastery(evalData) {
   if (!stepListEl || !pointListEl || !memoryBoxEl) return;
 
   syncRubricAndMarginScores(evalData);
-  const rubric = evalData.rubric_scores || {};
-  const overallScore = parseFloat(evalData.overall_score) || 0.0;
-  const maxMarks = parseFloat(evalData.max_marks || state.marks) || 15.0;
+  const scheme = window.getCanonicalStepMarkingScheme(evalData);
+  const overallScore = scheme.overallScore;
+  const maxMarks = scheme.maxMarks;
 
-  const introScore = parseFloat(rubric.intro_score) || 1.0;
-  const introMax = parseFloat(rubric.intro_max) || (maxMarks === 10 ? 1.5 : maxMarks === 15 ? 2.0 : 2.5);
-  const concScore = parseFloat(rubric.conclusion_score) || 0.5;
-  const concMax = parseFloat(rubric.conclusion_max) || (maxMarks === 10 ? 1.5 : maxMarks === 15 ? 2.0 : 2.5);
-  const bodyTotalScore = Math.max(0, Math.round((overallScore - introScore - concScore) * 2) / 2);
-  const bodyTotalMax = Math.max(2.0, Math.round((maxMarks - introMax - concMax) * 2) / 2);
+  const introScore = scheme.intro.score;
+  const introMax = scheme.intro.max;
+  const concScore = scheme.conclusion.score;
+  const concMax = scheme.conclusion.max;
+  const bodyTotalScore = scheme.bodyTotalScore;
+  const bodyTotalMax = scheme.bodyTotalMax;
 
   if (totalBadgeEl) {
     totalBadgeEl.textContent = `Step-Marked Total: +${overallScore.toFixed(1)} / ${maxMarks.toFixed(1)}M`;
@@ -9548,235 +9672,8 @@ function renderBatch1ExaminerMastery(evalData) {
   const qLow = qText.toLowerCase();
   const transAndQLow = (String(evalData.transcribed_text || "") + " " + qLow).toLowerCase();
 
-  const isStartupDeepTech = false;
-  const isJudicialReview = false;
   const isHeatwave = false;
-  const isFloriculture = false;
-
-  // Helper to allocate bodyTotalScore and bodyTotalMax across N sub-parts in exact 0.5M steps
-  const allocateBodyScores = (weightsArr) => {
-    const n = weightsArr.length;
-    const maxArr = [];
-    const scoreArr = [];
-    let maxRem = bodyTotalMax;
-    let scoreRem = bodyTotalScore;
-    for (let i = 0; i < n; i++) {
-      if (i === n - 1) {
-        maxArr.push(Math.max(0.5, Math.round(maxRem * 2) / 2));
-        scoreArr.push(Math.max(0.0, Math.min(maxArr[i], Math.round(scoreRem * 2) / 2)));
-      } else {
-        const m = Math.max(1.0, Math.round((bodyTotalMax * weightsArr[i]) * 2) / 2);
-        const s = Math.min(m, Math.max(0.0, Math.round((bodyTotalScore * weightsArr[i]) * 2) / 2));
-        maxArr.push(m);
-        scoreArr.push(s);
-        maxRem = Math.max(0.5, maxRem - m);
-        scoreRem = Math.max(0.0, scoreRem - s);
-      }
-    }
-    return { maxArr, scoreArr };
-  };
-
-  const bAudit = evalData.body_audit || {};
-  const sArr = Array.isArray(bAudit.strengths) ? bAudit.strengths.map(s => String(s || "").replace(/^[✓✔✎✗×]\s*/, "").trim()).filter(Boolean) : [];
-  const gArr = Array.isArray(bAudit.critical_gaps) ? bAudit.critical_gaps.map(g => String(g || "").replace(/^[✓✔✎✗×]\s*/, "").trim()).filter(Boolean) : [];
-
-  let bodySubParts = [];
-
-  if (isJudicialReview) {
-    const { maxArr, scoreArr } = allocateBodyScores([0.36, 0.36, 0.28]);
-    bodySubParts = [
-      {
-        heading: "2. Part A — Constitutional Mandate of Supremacy & Conformity of Laws",
-        statement: "What the Question Demands: Explaining how Articles 13(1)–(2), 32, 226 & 246 mandate that all ordinary statutes conform to Fundamental Rights and constitutional supremacy (Doctrine of Ultra Vires & Basic Structure).",
-        score: scoreArr[0],
-        max: maxArr[0],
-        note: `**✓ Demand Fulfilled (+${scoreArr[0].toFixed(1)}M)**: Rightly anchored **Article 13**, **Kesavananda Bharati (Basic Structure)**, and blended **Constitutional Supremacy** with **Parliamentary Sovereignty**.`
-      },
-      {
-        heading: "3. Part B — Judicial Review as the Enforcement Mechanism in India",
-        statement: "What the Question Demands: Demonstrating how the Supreme Court & High Courts operationalize judicial review over legislative and executive actions (Procedural & Substantive Due Process).",
-        score: scoreArr[1],
-        max: maxArr[1],
-        note: `**✓ Demand Fulfilled (+${scoreArr[1].toFixed(1)}M)**: Strong case-law integration citing **Maneka Gandhi**, **Navtej Singh Johar**, **Shreya Singhal (Sec 66A)** & **99th Amendment (NJAC)** rulings.`
-      },
-      {
-        heading: "4. Part C — Institutional Limitations, Restraint & Separation of Powers",
-        statement: "What the Question Demands: Critical evaluation of limits on judicial review (Article 50 Separation of Powers, Ninth Schedule / I.R. Coelho, Judicial Overreach vs Restraint).",
-        score: scoreArr[2],
-        max: maxArr[2],
-        note: `**⚠️ Partially Fulfilled (+${scoreArr[2].toFixed(1)}M)**: Good **[Limitations of Judicial Review]** diagram & **Roger Mathew** case; **${Math.max(0, maxArr[2] - scoreArr[2]).toFixed(1)}M** deducted as **I.R. Coelho (9th Schedule)** and 2 short **Way Forward** points were omitted.`
-      }
-    ];
-  } else if (isHeatwave) {
-    bodySubParts = [
-      {
-        heading: "2. Part A — Meteorological & Urban Microclimate Causes of Heatwaves",
-        statement: "What the Question Demands: Synoptic atmospheric triggers (Heat Dome, anti-cyclonic subsidence, El Niño) and urban heat multipliers (Urban Heat Island, concretisation, loss of blue-green cover).",
-        score: 2.5,
-        max: 4.0,
-        note: "**✓ Demand Fulfilled (+2.5M)**: Neat **[Heat Dome Effect]** high-pressure synoptic diagram, anthropogenic GHG trapping, and **Urban Heat Island (asphalt & vehicular emissions)** points."
-      },
-      {
-        heading: "3. Part B — Multidimensional Effects on Urban Centres & Economy",
-        statement: "What the Question Demands: Physiological mortality (wet-bulb stress), informal outdoor labour productivity loss, urban power/water grid peaking, and food inflation.",
-        score: 2.0,
-        max: 3.5,
-        note: "**⚠️ Partially Fulfilled (+2.0M)**: Covered physiological mortality, crop failure & urban power stress; **1.5M** deducted for lacking quantitative **ILO / Lancet labour-hour loss metrics**."
-      },
-      {
-        heading: "4. Part C — Urban Heat Mitigation, Preparedness & Governance Measures",
-        statement: "What the Question Demands: Institutional and spatial cooling frameworks (NDMA Heat Action Plans, cool roofs, Nagar Vans, early warning systems & urban sponge design).",
-        score: 1.5,
-        max: 3.5,
-        note: "**⚠️ Partially Fulfilled (+1.5M)**: Good **[Mitigation • Preparedness • Response]** diagram (biophilic design, Nagar Vans, digital governance); **2.0M** deducted for omitting **NDMA Guidelines & Heat Action Plans (HAPs)**."
-      }
-    ];
-  } else if (isStartupDeepTech) {
-    const { maxArr, scoreArr } = allocateBodyScores([0.27, 0.41, 0.32]);
-    bodySubParts = [
-      {
-        heading: "2. Part A — Drivers of India's Startup Ecosystem Expansion",
-        statement: "What the Question Demands: Establishing the foundational growth drivers of India's startup ecosystem (Startup India, DPIIT recognition, digital public infrastructure & unicorn base).",
-        score: scoreArr[0],
-        max: maxArr[0],
-        note: `**✓ Demand Fulfilled (+${scoreArr[0].toFixed(1)}M)**: Neat **[Drivers of Growth of Startups]** diagram mapping **Startup India, Standup India, Make in India, Unicorns & MSMEs**.`
-      },
-      {
-        heading: "3. Part B — Structural Factors for Inadequate Focus on Deep-Tech",
-        statement: "What the Question Demands: Analyzing why Indian startups lag in deep-tech (low GERD ~0.65% of GDP, low researcher density, domestic VC risk-aversion & consumer-service skew).",
-        score: scoreArr[1],
-        max: maxArr[1],
-        note: `**✓ Demand Fulfilled (+${scoreArr[1].toFixed(1)}M)**: 6 structured points (Points ①–⑥) backed by **GERD (~0.65% vs USA 2%)** and **researcher density (260/lakh vs China 1602)** data.`
-      },
-      {
-        heading: "4. Part C — Institutional & Policy Strategies to Bridge the Deep-Tech Gap",
-        statement: "What the Question Demands: Concrete roadmap across patient R&D capital, industry-academia commercialization (TRL 4–9), and sovereign procurement.",
-        score: scoreArr[2],
-        max: maxArr[2],
-        note: `**⚠️ Partially Fulfilled (+${scoreArr[2].toFixed(1)}M)**: Boxed 6-spoke **[Strategies to Bridge Gap]** diagram citing **ANRF, NEP 2020 & VAIBHAV**; **${Math.max(0, maxArr[2] - scoreArr[2]).toFixed(1)}M** held back for omitting **NDTSP & iDEX procurement**.`
-      }
-    ];
-  } else if (isFloriculture) {
-    const { maxArr, scoreArr } = allocateBodyScores([0.36, 0.36, 0.28]);
-    bodySubParts = [
-      {
-        heading: "2. Part A — Potential in Enhancing Smallholder Farm Income",
-        statement: "What the Question Demands: High crop-value density (3–5x returns/ha over cereals), year-round cash flow under protected polyhouse cultivation (MIDH), and rural women SHG employment.",
-        score: scoreArr[0],
-        max: maxArr[0],
-        note: `**✓ Demand Fulfilled (+${scoreArr[0].toFixed(1)}M)**: ${sArr[0] || "Covered income diversification, off-season polyhouse cultivation, and employment generation."}`
-      },
-      {
-        heading: "3. Part B — Potential in Boosting Agricultural Exports & Value Addition",
-        statement: "What the Question Demands: Export competitiveness in cut flowers, dry flowers (70% basket) & essential oils via APEDA Agri-Export Zones (AEZs).",
-        score: scoreArr[1],
-        max: maxArr[1],
-        note: `**✓ Demand Fulfilled (+${scoreArr[1].toFixed(1)}M)**: ${sArr[1] || "Addressed floriculture export hubs, dry-flower share, and value-added extraction."}`
-      },
-      {
-        heading: "4. Part C — Supply-Chain Bottlenecks & Institutional Way Forward",
-        statement: "What the Question Demands: Overcoming 30–40% post-harvest perishability, reefer cold-chain gaps, Krishi Udan 2.0 air-freight, and phyto-sanitary standards.",
-        score: scoreArr[2],
-        max: maxArr[2],
-        note: `**⚠️ Partially Fulfilled (+${scoreArr[2].toFixed(1)}M)**: ${sArr[2] || gArr[0] || "Addressed cold-chain and post-harvest constraints; scope to add CSIR-Floriculture Mission."}`
-      }
-    ];
-  } else {
-    // Check if AI generated valid analytical sub_part_step_marking items (excluding Intro & Conclusion)
-    const rawAiSteps = Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : [];
-    const aiBodySteps = rawAiSteps.filter((st, idx) => {
-      if (!st || typeof st !== "object") return false;
-      const lbl = String(st.step_label || "").toLowerCase();
-      if (idx === 0 || lbl.includes("intro") || lbl.includes("concl")) return false;
-      const sh = String(st.sub_heading || "").trim();
-      // Reject if sub_heading is just a verbatim substring of the raw question prompt
-      if (!sh || (sh.length > 25 && qLow.includes(sh.toLowerCase().slice(0, 28)))) return false;
-      return true;
-    });
-
-    if (aiBodySteps.length >= 2) {
-      const weights = aiBodySteps.map(() => 1 / aiBodySteps.length);
-      const { maxArr, scoreArr } = allocateBodyScores(weights);
-      bodySubParts = aiBodySteps.map((st, i) => {
-        const partLetter = String.fromCharCode(65 + i);
-        const rawHead = String(st.step_label || `Part ${partLetter}`).replace(/^\d+\.\s*/, "");
-        const pctVal = maxArr[i] > 0 ? (scoreArr[i] / maxArr[i]) : 0.5;
-        const statusTag = pctVal >= 0.55 ? "✓ Demand Fulfilled" : "⚠️ Partially Fulfilled";
-        const cleanNote = String(st.quoted_written || sArr[i] || "Addressed key points with structured arguments.")
-          .replace(/^[✓✔✎✗×]\s*/, "");
-        return {
-          heading: `${i + 2}. ${rawHead.includes("Part") ? rawHead : `Part ${partLetter} — ${rawHead}`}`,
-          statement: `What the Question Demands: ${String(st.sub_heading || "Core analytical evaluation and multidimensional substantiation.")}`,
-          score: scoreArr[i],
-          max: maxArr[i],
-          note: `**${statusTag} (+${scoreArr[i].toFixed(1)}M)**: ${cleanNote}`
-        };
-      });
-    } else {
-      // Dynamically deconstruct ANY question into 2 or 3 genuine analytical Examiner Demands (never copying raw prompt text!)
-      const hasThreeDemands = Boolean(
-        (qLow.includes("cause") && qLow.includes("effect") && (qLow.includes("measure") || qLow.includes("mitigat") || qLow.includes("suggest") || sArr.length >= 3)) ||
-        (qLow.includes("factor") && (qLow.includes("impact") || qLow.includes("challenge")) && (qLow.includes("way forward") || qLow.includes("strateg") || qLow.includes("reform"))) ||
-        sArr.length >= 3
-      );
-
-      // Derive authentic analytical demand headings from visual_annotations Body tags & question themes
-      const bodyAnnsForTags = (Array.isArray(evalData.visual_annotations) ? evalData.visual_annotations : []).filter(a => {
-        const t = String(a && a.tag || "").toLowerCase();
-        return t && !t.includes("intro") && !t.includes("concl");
-      });
-
-      if (hasThreeDemands) {
-        const { maxArr, scoreArr } = allocateBodyScores([0.36, 0.36, 0.28]);
-        const t1 = (bodyAnnsForTags[0] && bodyAnnsForTags[0].tag) ? String(bodyAnnsForTags[0].tag).replace(/^body:\s*/i, "") : "Primary Drivers, Constitutional/Policy Basis & Core Premise";
-        const t2 = (bodyAnnsForTags[1] && bodyAnnsForTags[1].tag) ? String(bodyAnnsForTags[1].tag).replace(/^body:\s*/i, "") : "Multidimensional Impacts, Enforcement & Sectoral Analysis";
-        const t3 = (bodyAnnsForTags[2] && bodyAnnsForTags[2].tag) ? String(bodyAnnsForTags[2].tag).replace(/^body:\s*/i, "") : "Structural Bottlenecks, Limitations & Way Forward";
-        bodySubParts = [
-          {
-            heading: `2. Part A — ${t1}`,
-            statement: "What the Question Demands: Analytical breakdown of the primary causal factors, constitutional/statutory mandate, and foundational concepts demanded by the first part of the prompt.",
-            score: scoreArr[0],
-            max: maxArr[0],
-            note: `**✓ Demand Fulfilled (+${scoreArr[0].toFixed(1)}M)**: ${sArr[0] || "Addressed the primary analytical demand with structured arguments."}`
-          },
-          {
-            heading: `3. Part B — ${t2}`,
-            statement: "What the Question Demands: Substantiating the secondary dimension of the prompt with empirical data, judicial precedents, or sectoral mechanisms.",
-            score: scoreArr[1],
-            max: maxArr[1],
-            note: `**✓ Demand Fulfilled (+${scoreArr[1].toFixed(1)}M)**: ${sArr[1] || "Covered key functional dimensions with relevant examples."}`
-          },
-          {
-            heading: `4. Part C — ${t3}`,
-            statement: "What the Question Demands: Evaluating institutional limitations, operational challenges, and concrete policy/committee reforms.",
-            score: scoreArr[2],
-            max: maxArr[2],
-            note: `**⚠️ Partially Fulfilled (+${scoreArr[2].toFixed(1)}M)**: ${sArr[2] || gArr[0] || "Addressed structural challenges; scope to deepen institutional reform anchors."}`
-          }
-        ];
-      } else {
-        const { maxArr, scoreArr } = allocateBodyScores([0.55, 0.45]);
-        const t1 = (bodyAnnsForTags[0] && bodyAnnsForTags[0].tag) ? String(bodyAnnsForTags[0].tag).replace(/^body:\s*/i, "") : "Core Analytical Premise & Primary Mechanism";
-        const t2 = (bodyAnnsForTags[1] && bodyAnnsForTags[1].tag) ? String(bodyAnnsForTags[1].tag).replace(/^body:\s*/i, "") : "Critical Evaluation, Limitations & Reform Roadmap";
-        bodySubParts = [
-          {
-            heading: `2. Part A — ${t1}`,
-            statement: "What the Question Demands: Explaining the core conceptual thesis, statutory/constitutional provisions, and primary drivers required by the question.",
-            score: scoreArr[0],
-            max: maxArr[0],
-            note: `**✓ Demand Fulfilled (+${scoreArr[0].toFixed(1)}M)**: ${sArr[0] || "Addressed the core demand with structured points and examples."}`
-          },
-          {
-            heading: `3. Part B — ${t2}`,
-            statement: "What the Question Demands: Critical appraisal of institutional challenges, limitations, and forward-looking policy solutions.",
-            score: scoreArr[1],
-            max: maxArr[1],
-            note: `**⚠️ Partially Fulfilled (+${scoreArr[1].toFixed(1)}M)**: ${sArr[1] || gArr[0] || "Covered secondary dimensions; scope to enrich with committee/empirical anchors."}`
-          }
-        ];
-      }
-    }
-  }
+  const bodySubParts = scheme.bodyParts;
 
   // Build strictly factual 1-line Marks-Allocation notes for Tab 1 Intro & Conclusion (Zero repetition of Tab 2 Deep Evaluation coaching)
   const isEarthquakeStepCopy = /\bearthquake\b/i.test(qLow) && (/\b(?:mechanism|vulnerability|map\s+given\s+below)\b/i.test(qLow) || transAndQLow.includes("asthenosphere") || transAndQLow.includes("aesthenosphere") || transAndQLow.includes("seismic retrofitting"));
@@ -9834,27 +9731,27 @@ function renderBatch1ExaminerMastery(evalData) {
   const concNumber = bodySubParts.length + 2;
   const stepItems = [
     {
-      heading: "1. Introduction (Context & Baseline Definition)",
-      statement: "What the Question Demands: A precise 2-line conceptual/statutory definition or contemporary empirical hook establishing the premise.",
-      score: introScore,
-      max: introMax,
+      heading: scheme.intro.heading,
+      statement: scheme.intro.statement,
+      score: scheme.intro.score,
+      max: scheme.intro.max,
       note: buildPureMarksAllocationNote(
         evalData.intro_audit && evalData.intro_audit.current_critique,
-        introScore,
-        introMax,
+        scheme.intro.score,
+        scheme.intro.max,
         true
       )
     },
     ...bodySubParts,
     {
-      heading: `${concNumber}. Conclusion (Closing Synthesis & Institutional Anchor)`,
-      statement: "What the Question Demands: A crisp 2-line synthesis tying the core argument to a constitutional principle, statutory reform, or committee benchmark.",
-      score: concScore,
-      max: concMax,
+      heading: scheme.conclusion.heading,
+      statement: scheme.conclusion.statement,
+      score: scheme.conclusion.score,
+      max: scheme.conclusion.max,
       note: buildPureMarksAllocationNote(
         evalData.conclusion_audit && evalData.conclusion_audit.current_critique,
-        concScore,
-        concMax,
+        scheme.conclusion.score,
+        scheme.conclusion.max,
         false
       )
     }
@@ -9893,85 +9790,100 @@ function renderBatch1ExaminerMastery(evalData) {
 
   // 2. Point-by-Point Handwritten Audit (Zero Overlap, Full Readability)
   let pointRows = [];
-  if (isStartupDeepTech) {
-    pointRows = [
-      {
-        loc: "Page 1 • Boxed Diagram",
-        pointTitle: "[Drivers of Growth of Startups] (Startup India, Standup India, Make in India, Unicorns & MSMEs)",
-        badge: "✓ +1.5M • Visual Hook",
-        isPositive: true,
-        detail: "Neat hub-and-spoke diagram immediately catches the examiner's eye and establishes India's startup growth context."
-      },
-      {
-        loc: "Page 2 • Points ① & ②",
-        pointTitle: "Low R&D Investment & Researcher Density (260 researchers/lakh vs China 1602; GERD ~0.65% of GDP vs USA 2%)",
-        badge: "✓ +2.0M • Topper Data",
-        isPositive: true,
-        detail: "Your strongest points on the sheet—pairing exact comparative global figures directly proves why deep-tech lags."
-      },
-      {
-        loc: "Page 2 • Points ③ & ④",
-        pointTitle: "Risk-Aversion of Domestic Venture Capital & Skew Toward Service Startups (OLA, Zomato delivery examples)",
-        badge: "✓ +1.5M • Concrete Examples",
-        isPositive: true,
-        detail: "Effective contrast between quick-return consumer delivery apps and long-gestation strategic deep-tech."
-      },
-      {
-        loc: "Page 2 • Points ⑤ & ⑥",
-        pointTitle: "Weak Industry-Academia Linkage & \"Small by Choice\" / Compliance Burden",
-        badge: "✎ +0.5M • Scope to Upgrade",
-        isPositive: false,
-        detail: "Point ⑥ ('Small by choice') applies more to traditional MSMEs than deep-tech—replace with **Low Domestic Patent Commercialization** & **Lack of Assured Public Procurement (iDEX model)** to gain +0.5M."
-      },
-      {
-        loc: "Page 3 • Boxed Flowchart",
-        pointTitle: "[Strategies to Bridge Gap] (ANRF, NEP 2020, VAIBHAV Fellowship, Industry-Academia & Private R&D)",
-        badge: "✓ +2.0M • Examiner Magnet",
-        isPositive: true,
-        detail: "Directly answers Part B with current 2024–26 flagship schemes (**ANRF** & **VAIBHAV**). Add **₹1 Lakh Cr RDI Fund** & **India Semiconductor Mission (ISM)** for a 10/10 finish."
+  if (Array.isArray(evalData.point_by_point_audit) && evalData.point_by_point_audit.length >= 2) {
+    pointRows = evalData.point_by_point_audit.map((p, idx) => {
+      const pNum = parseInt(p.page, 10) || Math.min(idx + 1, (state.activePages && state.activePages.length) || 2);
+      let pointTitle = String(p.title || `Handwritten Argument #${idx + 1}`).replace(/\*\*/g, "").trim();
+      if (!pointTitle || window.isMetaPlaceholderText(pointTitle) || /point\s*\[[a-z0-9]+\]/i.test(pointTitle)) {
+        pointTitle = `Page ${pNum} Argument #${idx + 1}`;
       }
-    ];
-  } else if (Array.isArray(evalData.point_by_point_audit) && evalData.point_by_point_audit.length >= 3) {
-    pointRows = evalData.point_by_point_audit.map((p, idx) => ({
-      page: parseInt(p.page, 10) || Math.min(idx + 1, (state.activePages && state.activePages.length) || 2),
-      loc: String(p.badge || `Page ${p.page || idx + 1} • Point #${idx + 1}`),
-      pointTitle: String(p.title || `Handwritten Argument #${idx + 1}`).replace(/\*\*/g, ""),
-      badge: String(p.credit_badge || (p.is_positive !== false ? "✓ +1.25M Credit" : "✎ +0.75M Scope")),
-      isPositive: p.is_positive !== false,
-      detail: p.what_you_wrote
-        ? `**What You Wrote**: "${String(p.what_you_wrote).replace(/^["']|["']$/g, "")}" — ${String(p.examiner_verdict || "")}`
-        : String(p.examiner_verdict || "")
-    }));
+      let whatYouWrote = String(p.what_you_wrote || "").replace(/^["']|["']$/g, "").trim();
+      if (!whatYouWrote || window.isMetaPlaceholderText(whatYouWrote) || /point\s*\[[a-z0-9]+\]/i.test(whatYouWrote)) {
+        const pageText = window.getPageTranscript ? window.getPageTranscript(evalData, pNum) : "";
+        const sents = pageText.split(/(?<=[.?!])\s+/).filter(s => s.length > 25 && !window.isMetaPlaceholderText(s));
+        whatYouWrote = sents[idx % Math.max(1, sents.length)] || "Addressed substantive question dimensions with structured handwriting.";
+      }
+      let verdict = String(p.examiner_verdict || "").trim();
+      if (/add\s+([^*]+)\*([^:]+:\s*)?([^.]+\.)?\s*(?:as a keyword)?/i.test(verdict)) {
+        verdict = verdict.replace(/add\s+([^*]+)\*([^:]+:\s*)?([^.]+\.)?\s*(?:as a keyword)?/i, (m, term, dTitle, def) => {
+          return `Integrate technical keyword '${term.trim()}'${def ? ` (${def.trim().toLowerCase()})` : ""} to elevate precision.`;
+        });
+      }
+      verdict = verdict.replace(/Point\s*\[[X-Z0-9]+\]/gi, "this argument")
+                       .replace(/\[Point\s*\d+\s*\/\s*Point\s*\d+\s*topics\]/gi, "the core directive");
+
+      return {
+        page: pNum,
+        loc: String(p.badge || `Page ${pNum} • Point #${idx + 1}`),
+        pointTitle,
+        badge: String(p.credit_badge || (p.is_positive !== false ? "✓ Credit Earned" : "✎ Scope to Upgrade")),
+        isPositive: p.is_positive !== false,
+        detail: `**What You Wrote**: "${whatYouWrote}" — ${verdict}`
+      };
+    });
   } else {
     const bAudit = evalData.body_audit || {};
-    const sList = Array.isArray(bAudit.strengths) ? bAudit.strengths : [];
-    const gList = Array.isArray(bAudit.critical_gaps) ? bAudit.critical_gaps : [];
+    const sList = (Array.isArray(bAudit.strengths) ? bAudit.strengths : []).filter(s => !window.isMetaPlaceholderText(s));
+    const gList = (Array.isArray(bAudit.critical_gaps) ? bAudit.critical_gaps : []).filter(g => !window.isMetaPlaceholderText(g));
 
     sList.slice(0, 3).forEach((sText, idx) => {
       const cleanS = String(sText).replace(/^[✓✔✎✗×]\s*/, "");
       const pgNum = Math.min(idx + 1, (state.activePages && state.activePages.length) || 2);
+      const titleCandidate = cleanS.split(":")[0].replace(/\*\*/g, "").trim();
+      const pointTitle = (!window.isMetaPlaceholderText(titleCandidate) && titleCandidate.length > 3)
+        ? titleCandidate
+        : `Page ${pgNum} Verified Strength #${idx + 1}`;
       pointRows.push({
         page: pgNum,
         loc: `Page ${pgNum} • Verified Strength #${idx + 1}`,
-        pointTitle: cleanS.split(":")[0].replace(/\*\*/g, "") || `Handwritten Argument #${idx + 1}`,
-        badge: `✓ +${(bodyTotalScore / Math.max(2, sList.length)).toFixed(1)}M • Fetched Marks`,
+        pointTitle,
+        badge: `✓ Fetched Marks`,
         isPositive: true,
         detail: cleanS
       });
     });
 
     gList.slice(0, 2).forEach((gText, idx) => {
-      const cleanG = String(gText).replace(/^[✓✔✎✗×]\s*/, "");
+      let cleanG = String(gText).replace(/^[✓✔✎✗×]\s*/, "");
+      if (/add\s+([^*]+)\*([^:]+:\s*)?([^.]+\.)?\s*(?:as a keyword)?/i.test(cleanG)) {
+        cleanG = cleanG.replace(/add\s+([^*]+)\*([^:]+:\s*)?([^.]+\.)?\s*(?:as a keyword)?/i, (m, term, dTitle, def) => {
+          return `Integrate technical keyword '${term.trim()}'${def ? ` (${def.trim().toLowerCase()})` : ""} to elevate precision.`;
+        });
+      }
+      cleanG = cleanG.replace(/Point\s*\[[X-Z0-9]+\]/gi, "this argument")
+                    .replace(/\[Point\s*\d+\s*\/\s*Point\s*\d+\s*topics\]/gi, "the core directive");
       const pgNum = Math.min(idx + 2, (state.activePages && state.activePages.length) || 2);
+      const titleCandidate = cleanG.split(":")[0].replace(/\*\*/g, "").trim();
+      const pointTitle = (!window.isMetaPlaceholderText(titleCandidate) && titleCandidate.length > 3)
+        ? titleCandidate
+        : `Page ${pgNum} High-Yield Upgrade #${idx + 1}`;
       pointRows.push({
         page: pgNum,
         loc: `Page ${pgNum} • Upgrade Lever #${idx + 1}`,
-        pointTitle: cleanG.split(":")[0].replace(/\*\*/g, "") || `High-Yield Point Upgrade #${idx + 1}`,
-        badge: "✎ +1.0M Recoverable",
+        pointTitle,
+        badge: "✎ Actionable Upgrade",
         isPositive: false,
         detail: cleanG
       });
     });
+  }
+
+  if (pointRows.length === 0) {
+    const totalPgs = (state.activePages && state.activePages.length) || 1;
+    for (let p = 1; p <= totalPgs; p++) {
+      const pText = window.getPageTranscript ? window.getPageTranscript(evalData, p) : "";
+      const sents = pText.split(/(?<=[.?!])\s+/).filter(s => s.length > 25 && !window.isMetaPlaceholderText(s));
+      if (sents.length > 0) {
+        pointRows.push({
+          page: p,
+          loc: `Page ${p} • Key Handwritten Point`,
+          pointTitle: `Page ${p} Core Analysis`,
+          badge: "✓ Evaluated Point",
+          isPositive: true,
+          detail: `**What You Wrote**: "${sents[0].slice(0, 110).trim()}..." — Evaluated candidate's handwritten point with relevant UPSC GS benchmarks.`
+        });
+      }
+    }
   }
 
   window.jumpToAnswerSheetPage = function(pageNumber) {

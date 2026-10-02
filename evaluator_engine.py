@@ -1609,6 +1609,15 @@ Generate strictly valid JSON matching this schema:
     //    - If a page has 2 distinct sections/sub-headings (e.g. Page 2 has continuation of points at top, and a boxed heading "Challenges Faced" with a diagram in the middle), generate 2 separate visual_annotations with their exact sub-headings as tags and accurate start_y_percent / end_y_percent!
     // 4. SUBJECT-DISCIPLINED CONCLUSION:
     //    - In Conclusion, evaluate the candidate's actual closing recommendation. Connect Geography to IPCC/NDMA/Sendai or planetary balance; History/Culture to living cultural continuity; Ethics to Nolan principles or constitutional morality; Polity to 2nd ARC or constitutional accountability.
+    // 5. PRECISE & CONCISE EXAMINER FEEDBACK (NEVER USE META-PLACEHOLDERS!):
+    //    - NEVER write generic placeholders like "Point [X]", "Point [Y]", "[Point 1 / Point 2 topics]", or "Directly engaged the core directive by quoting...".
+    //    - Quote candidate's ACTUAL handwritten words in quotation marks *"..."* in the first sentence.
+    //    - Follow with 1 concise, specific upgrade citing the exact missing constitutional article, landmark case law, official committee recommendation, or empirical metric.
+    // 6. SYNCHRONIZED MARKS CEILING:
+    //    - The marks awarded on each visual annotation MUST strictly equal its sub-part allocation from sub_part_step_marking!
+    //    - For Page 1 Intro: "+{sample_intro_aw:.1f} / {intro_d:.1f}"
+    //    - For Body Sub-Parts: allocate the body ceiling across distinct sub-parts so the sum of all body annotations equals the body ceiling!
+    //    - For Conclusion: "+{sample_conc_aw:.1f} / {conc_d:.1f}". Conclusion MUST ONLY be on the FINAL page!
     {{
       "page": 1,
       "approx_y_percent": 32,
@@ -1617,27 +1626,27 @@ Generate strictly valid JSON matching this schema:
       "tag": "Intro: Core Premise & Definition",
       "type": "tick",
       "marks_awarded": "+{sample_intro_aw:.1f} / {intro_d:.1f}",
-      "remark": "✓ **Opening Premise Evaluated**: Directly engaged the core directive by quoting candidate's opening definition/premise and framing the foundational context.\\n✎ **Conceptual Anchoring**: Ground the opening in the primary constitutional article, statutory enactment year, or authoritative benchmark to elevate depth upfront."
+      "remark": "✓ **Foundational Definition**: Opened with *\"Article 280 specifies the Finance Commission as the quasi-judicial body for financial devolution\"*, setting clear context.\\n✎ **Contextual Upgrade**: Mention the contemporary 15th FC award period (2021–26) under N.K. Singh to anchor current relevance."
     }},
     {{
       "page": 1,
       "approx_y_percent": 68,
       "start_y_percent": 46,
       "end_y_percent": 88,
-      "tag": "Body: Candidate's Exact Page 1 Sub-Heading",
+      "tag": "Body: Part A — Constitutional Mandate",
       "type": "tick",
-      "marks_awarded": "+{sample_body_aw:.1f} / {body_d:.1f}",
-      "remark": "✓ **Substantive Arguments Analyzed**: Evaluated candidate's specific points on [Point 1 / Point 2 topics], highlighting clear thematic categorization and analytical clarity.\\n✎ **Empirical & Institutional Depth**: Substantiate Point [X] with a concrete official committee recommendation, statutory mechanism, or empirical metric."
+      "marks_awarded": "+{round(sample_body_aw * 0.40, 1):.1f} / {round(body_d * 0.40, 1):.1f}",
+      "remark": "✓ **Divisible Pool Devolution**: Accurately explained the vertical share formula with 41% net proceeds to states (1% retained for J&K/Ladakh).\\n✎ **Empirical Depth**: Detail horizontal devolution criteria weights (Income Distance 45%, Population 15%, Demographic Performance 12.5%, Forest 10%)."
     }},
     {{
       "page": 2,
       "approx_y_percent": 40,
       "start_y_percent": 8,
       "end_y_percent": 68,
-      "tag": "Body: Candidate's Exact Page 2 Sub-Heading",
+      "tag": "Body: Part B — ToR & Fiscal Federalism",
       "type": "tick",
-      "marks_awarded": "+{sample_body_aw:.1f} / {body_d:.1f}",
-      "remark": "✓ **Core Dimensional Scope**: Detailed analysis across candidate's points addressing the second core directive, with good structure and specific arguments.\\n✎ **Actionable Reform / Value-Add**: Bridge the gap in Point [Y] by citing specific operational safeguards, international best practices, or 2nd ARC recommendations."
+      "marks_awarded": "+{round(sample_body_aw * 0.35, 1):.1f} / {round(body_d * 0.35, 1):.1f}",
+      "remark": "✓ **Federal Balance**: Highlighted southern states' concerns regarding 2011 census substitution over 1971 population baseline.\\n✎ **Institutional Depth**: Cite Article 275 grants-in-aid and performance-based incentives for power sector and local bodies."
     }},
     {{
       "page": 2,
@@ -1647,7 +1656,7 @@ Generate strictly valid JSON matching this schema:
       "tag": "Conclusion",
       "type": "suggestion",
       "marks_awarded": "+{sample_conc_aw:.1f} / {conc_d:.1f}",
-      "remark": "✓ **Closing Stance Evaluated**: Assessed candidate's final concluding sentence on [closing theme], tying together the central thesis of the answer.\\n✎ **How to Elevate**: Anchor the closing recommendation in an actionable forward-looking vision or institutional benchmark (e.g. 2nd ARC, Sendai framework, or Constitutional Morality)."
+      "remark": "✓ **Closing Synthesis**: Concluded with *\"FC must act as a collaborative federal platform balancing equity and efficiency\"*, synthesizing well.\\n✎ **Way Forward**: Anchor with institutionalization of Inter-State Council (Art 263) and a permanent Fiscal Council for fiscal sustainability."
     }}
   ]
 }}
@@ -1846,7 +1855,16 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                                   r'substantive upgrade:\s*specific|'
                                   r'argument & point audit:\s*specific|'
                                   r'page \d+ points evaluated:\s*specific|'
-                                  r'closing stance evaluated:\s*direct)', str(txt or "")))
+                                  r'closing stance evaluated:\s*direct|'
+                                  r'opening premise evaluated|'
+                                  r'substantive arguments analyzed|'
+                                  r'core dimensional scope|'
+                                  r'directly engaged the core directive|'
+                                  r'evaluated candidate\'s specific points|'
+                                  r'detailed analysis across candidate\'s points|'
+                                  r'point \[[a-z0-9]+\]|'
+                                  r'substantiate point|'
+                                  r'bridge the gap in point)', str(txt or "")))
 
         def _fmt_bullet(text_line: str, prefix: str) -> str:
             clean = str(text_line or "").strip()
