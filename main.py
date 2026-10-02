@@ -253,31 +253,71 @@ async def get_samples():
     return result
 
 @app.post("/api/render-preview")
-async def render_preview(files: List[UploadFile] = File(...)):
+async def render_preview(request: Request, files: List[UploadFile] = File(default=[])):
     """Fast endpoint to render uploaded PDF/images into viewer previews immediately on selection."""
+    upload_list = list(files)
+    if not upload_list:
+        try:
+            form = await request.form()
+            for key in ["files", "file", "files[]", "pdf", "image"]:
+                cand = form.getlist(key)
+                if cand:
+                    for item in cand:
+                        if isinstance(item, UploadFile):
+                            upload_list.append(item)
+            if not upload_list:
+                for k, v in form.items():
+                    if isinstance(v, UploadFile):
+                        upload_list.append(v)
+        except Exception as e:
+            print("Preview form parse error:", e)
+
     previews = []
-    for file in files:
-        content = await file.read()
-        filename = (file.filename or "").lower()
-        if filename.endswith(".pdf"):
-            try:
-                import pypdfium2 as pdfium
-                pdf = pdfium.PdfDocument(content)
-                for page in pdf:
-                    pil_img = page.render(scale=1.5).to_pil().convert("RGB")
-                    buf = io.BytesIO()
-                    pil_img.save(buf, format="JPEG", quality=80)
-                    b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-                    previews.append(f"data:image/jpeg;base64,{b64}")
-            except Exception as e:
-                print("PDF preview notice:", e)
-        else:
-            try:
-                b64 = base64.b64encode(content).decode("utf-8")
-                mime = "image/png" if filename.endswith(".png") else "image/jpeg"
-                previews.append(f"data:{mime};base64,{b64}")
-            except Exception as e:
-                print("Image preview error:", e)
+    for file in upload_list:
+        try:
+            content = await file.read()
+            if not content:
+                continue
+            filename = (file.filename or "").lower()
+            content_type = (file.content_type or "").lower()
+            is_pdf = filename.endswith(".pdf") or "pdf" in content_type or content[:4] == b"%PDF"
+
+            if is_pdf:
+                try:
+                    import pypdfium2 as pdfium
+                    pdf = pdfium.PdfDocument(content)
+                    for page in pdf:
+                        pil_img = page.render(scale=1.2).to_pil().convert("RGB")
+                        if HAS_PIL and Image:
+                            pil_img.thumbnail((1400, 1400))
+                        buf = io.BytesIO()
+                        pil_img.save(buf, format="JPEG", quality=75, optimize=True)
+                        b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+                        previews.append(f"data:image/jpeg;base64,{b64}")
+                except Exception as e:
+                    print("PDF preview notice:", e)
+            else:
+                try:
+                    if HAS_PIL and Image:
+                        try:
+                            im = Image.open(io.BytesIO(content)).convert("RGB")
+                            im.thumbnail((1400, 1400))
+                            buf = io.BytesIO()
+                            im.save(buf, format="JPEG", quality=75, optimize=True)
+                            b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+                            previews.append(f"data:image/jpeg;base64,{b64}")
+                        except Exception:
+                            b64 = base64.b64encode(content).decode("utf-8")
+                            mime = "image/png" if filename.endswith(".png") or "png" in content_type else "image/jpeg"
+                            previews.append(f"data:{mime};base64,{b64}")
+                    else:
+                        b64 = base64.b64encode(content).decode("utf-8")
+                        mime = "image/png" if filename.endswith(".png") or "png" in content_type else "image/jpeg"
+                        previews.append(f"data:{mime};base64,{b64}")
+                except Exception as e:
+                    print("Image preview error:", e)
+        except Exception as e:
+            print("Preview file read error:", e)
     return {"pages": previews, "num_pages": len(previews)}
 
 @app.get("/api/taxonomies")

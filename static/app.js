@@ -1056,13 +1056,22 @@ window.handleRewriteFiles = async function(files) {
   if (!rendered) {
     const pages = [];
     for (const f of state.uploadedFiles) {
-      if (f.type.startsWith("image/")) {
+      const filename = (f.name || "").toLowerCase();
+      const isPdf = (f.type && f.type === "application/pdf") || filename.endsWith(".pdf");
+      if (isPdf) {
+        if (typeof window.renderPdfFileToDataUrls === "function") {
+          const pdfPages = await window.renderPdfFileToDataUrls(f);
+          if (pdfPages && pdfPages.length > 0) {
+            pages.push(...pdfPages);
+          }
+        }
+      } else if (f.type && f.type.startsWith("image/")) {
         const url = await new Promise(resolve => {
           const r = new FileReader();
           r.onload = e => resolve(e.target.result);
           r.readAsDataURL(f);
         });
-        pages.push(url);
+        if (url) pages.push(url);
       }
     }
     if (pages.length > 0) {
@@ -3290,6 +3299,44 @@ async function compressImageIfNeeded(file) {
   }
 }
 
+// Robust In-Browser PDF Page Renderer (via PDF.js) for instant zero-latency page preview extraction
+window.renderPdfFileToDataUrls = async function renderPdfFileToDataUrls(file) {
+  if (!file) return [];
+  if (!window.pdfjsLib) {
+    console.warn("PDF.js library is not available in window; cannot render PDF client-side.");
+    return [];
+  }
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const loadingTask = window.pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdfDoc = await loadingTask.promise;
+    const pages = [];
+    const numPages = pdfDoc.numPages;
+    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+      const page = await pdfDoc.getPage(pageNum);
+      const unscaledViewport = page.getViewport({ scale: 1.0 });
+      const targetScale = Math.min(2.0, Math.max(1.0, 1300 / (unscaledViewport.width || 800)));
+      const viewport = page.getViewport({ scale: targetScale });
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.floor(viewport.width);
+      canvas.height = Math.floor(viewport.height);
+      const ctx = canvas.getContext("2d", { alpha: false });
+      await page.render({
+        canvasContext: ctx,
+        viewport: viewport
+      }).promise;
+      pages.push(canvas.toDataURL("image/jpeg", 0.82));
+      if (typeof page.cleanup === "function") {
+        try { page.cleanup(); } catch (e) {}
+      }
+    }
+    return pages;
+  } catch (err) {
+    console.error("Client PDF rendering notice:", err);
+    return [];
+  }
+};
+
 // Dynamic UPSC Multi-Page Staged Status & Guidance Updater
 window.updateStagedStatusAndGuidance = function() {
   const stagedPageCount = document.getElementById("stagedPageCount");
@@ -3610,7 +3657,7 @@ async function handleFiles(files, isAppend = false) {
   // Show immediate loading status
   if (!isAppend || !state.activePages || state.activePages.length === 0) {
     previewStrip.innerHTML = `
-      <div class="col-span-3 sm:col-span-4 py-3 px-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center space-x-2 text-amber-300 text-xs font-semibold animate-pulse">
+      <div id="previewStripLoadingBanner" class="col-span-3 sm:col-span-4 py-3 px-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center space-x-2 text-amber-300 text-xs font-semibold animate-pulse">
         <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-amber-400"></i>
         <span>Optimizing &amp; rendering answer pages...</span>
       </div>
@@ -3665,10 +3712,14 @@ async function handleFiles(files, isAppend = false) {
 
   let serverRendered = false;
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
     const res = await fetch("/api/render-preview", {
       method: "POST",
-      body: fd
+      body: fd,
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
     if (res.ok) {
       const data = await res.json();
       if (data.pages && data.pages.length > 0) {
@@ -3685,7 +3736,7 @@ async function handleFiles(files, isAppend = false) {
       }
     }
   } catch (err) {
-    console.warn("Backend render-preview error, falling back to local FileReader:", err);
+    console.warn("Backend render-preview error or timeout, falling back to local client renderer:", err);
   }
 
   if (!serverRendered) {
@@ -3769,42 +3820,63 @@ function renderPreviewStrip() {
 async function fallbackClientFileRead(files, isAppend = false) {
   const loadingTile = document.getElementById("previewStripLoadingTile");
   if (loadingTile) loadingTile.remove();
+  const loadingBanner = document.getElementById("previewStripLoadingBanner");
+  if (loadingBanner) loadingBanner.remove();
 
-  const imageFiles = files.filter(f => !f.type || f.type.startsWith("image/"));
-  if (imageFiles.length === 0) {
-    files.forEach((file) => {
-      const thumb = document.createElement("div");
-      thumb.className = "flex flex-col items-center justify-center p-2 rounded-xl border border-slate-700 bg-slate-950 aspect-[3/4]";
-      thumb.innerHTML = `
-        <i data-lucide="file-text" class="w-6 h-6 text-amber-400 mb-1"></i>
-        <span class="text-[10px] text-slate-300 text-center truncate max-w-full">${file.name}</span>
-      `;
-      previewStrip.appendChild(thumb);
-    });
-    if (window.lucide) lucide.createIcons();
-    return;
+  if (!isAppend) {
+    previewStrip.innerHTML = "";
   }
 
-  for (const file of imageFiles) {
-    const dataUrl = await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(file);
-    });
-    if (dataUrl) {
-      state.activePages.push(dataUrl);
+  const newPages = [];
+  for (const file of files) {
+    const filename = (file.name || "").toLowerCase();
+    const isPdf = (file.type && file.type === "application/pdf") || filename.endsWith(".pdf");
+    if (isPdf) {
+      let pdfPages = [];
+      if (typeof window.renderPdfFileToDataUrls === "function") {
+        pdfPages = await window.renderPdfFileToDataUrls(file);
+      }
+      if (pdfPages && pdfPages.length > 0) {
+        newPages.push(...pdfPages);
+      } else {
+        const thumb = document.createElement("div");
+        thumb.className = "flex flex-col items-center justify-center p-2 rounded-xl border border-amber-500/40 bg-slate-900 aspect-[3/4] text-center";
+        thumb.innerHTML = `
+          <i data-lucide="file-text" class="w-7 h-7 text-amber-400 mb-1"></i>
+          <span class="text-[10px] text-slate-200 truncate max-w-full font-semibold px-1">${file.name}</span>
+          <span class="text-[9px] text-amber-400/90 mt-1 font-mono">${(file.size / 1024).toFixed(1)} KB</span>
+          <span class="text-[8.5px] text-emerald-400 mt-1 font-semibold">Staged for Eval</span>
+        `;
+        previewStrip.appendChild(thumb);
+      }
+    } else {
+      const dataUrl = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      });
+      if (dataUrl) {
+        newPages.push(dataUrl);
+      }
     }
   }
 
-  if (!isAppend) {
-    state.currentPageIndex = 0;
+  if (newPages.length > 0) {
+    if (isAppend && state.activePages && state.activePages.length > 0) {
+      state.activePages = state.activePages.concat(newPages);
+      state.currentPageIndex = state.activePages.length - 1;
+    } else {
+      state.activePages = newPages;
+      state.currentPageIndex = 0;
+    }
+    updateViewer();
+    renderPreviewStrip();
   } else {
-    state.currentPageIndex = Math.max(0, state.activePages.length - 1);
+    updateViewer();
   }
 
-  updateViewer();
-  renderPreviewStrip();
+  if (window.lucide) lucide.createIcons();
 }
 
 // Viewer Page Navigation
@@ -4524,12 +4596,16 @@ function renderAnnotationsOverlay() {
       );
 
       // Semantic & Keyword Deduplication Engine across all Margin Cards (Zero intra-card or cross-card echo)
-      const evalBulletRegistry = evalData.__bulletRegistry = evalData.__bulletRegistry || {
+      // Fresh Set instances per render pass; never persist onto evalData across JSON serialization
+      const evalBulletRegistry = {
         usedSigs: new Set(),
         usedTitles: new Set(),
         usedQuotedTerms: new Set(),
         usedBulletTokenSets: []
       };
+      if (evalData && evalData.__bulletRegistry) {
+        try { delete evalData.__bulletRegistry; } catch (e) {}
+      }
 
       const STOP_TOKENS = new Set([
         "about", "above", "after", "again", "against", "along", "also", "among", "analysis", "answer", "areas",
@@ -4589,6 +4665,19 @@ function renderAnnotationsOverlay() {
       const normBulletSig = (str) => stripTitleAndIconPrefix(str).toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 90);
 
       const isSemanticallyDuplicateBullet = (candidateStr) => {
+        if (!evalBulletRegistry.usedTitles || typeof evalBulletRegistry.usedTitles.has !== "function") {
+          evalBulletRegistry.usedTitles = new Set();
+        }
+        if (!evalBulletRegistry.usedSigs || typeof evalBulletRegistry.usedSigs.has !== "function") {
+          evalBulletRegistry.usedSigs = new Set();
+        }
+        if (!evalBulletRegistry.usedQuotedTerms || typeof evalBulletRegistry.usedQuotedTerms.has !== "function") {
+          evalBulletRegistry.usedQuotedTerms = new Set();
+        }
+        if (!Array.isArray(evalBulletRegistry.usedBulletTokenSets)) {
+          evalBulletRegistry.usedBulletTokenSets = [];
+        }
+
         const bTitle = extractBulletTitle(candidateStr);
         if (bTitle && bTitle.length >= 6 && evalBulletRegistry.usedTitles.has(bTitle.toLowerCase())) return true;
 
@@ -4600,8 +4689,9 @@ function renderAnnotationsOverlay() {
         for (const q of quotes) {
           if (q.length >= 25 && evalBulletRegistry.usedQuotedTerms.has(q)) return true;
         }
-        if (tokenSet.size > 0) {
+        if (tokenSet && tokenSet.size > 0) {
           for (const prevSet of evalBulletRegistry.usedBulletTokenSets) {
+            if (!prevSet || typeof prevSet.has !== "function") continue;
             let shared = 0;
             for (const tok of tokenSet) {
               if (prevSet.has(tok)) shared++;
@@ -4616,18 +4706,31 @@ function renderAnnotationsOverlay() {
       };
 
       const registerUsedRemark = (remStr) => {
+        if (!evalBulletRegistry.usedTitles || typeof evalBulletRegistry.usedTitles.add !== "function") {
+          evalBulletRegistry.usedTitles = new Set();
+        }
+        if (!evalBulletRegistry.usedSigs || typeof evalBulletRegistry.usedSigs.add !== "function") {
+          evalBulletRegistry.usedSigs = new Set();
+        }
+        if (!evalBulletRegistry.usedQuotedTerms || typeof evalBulletRegistry.usedQuotedTerms.add !== "function") {
+          evalBulletRegistry.usedQuotedTerms = new Set();
+        }
+        if (!Array.isArray(evalBulletRegistry.usedBulletTokenSets)) {
+          evalBulletRegistry.usedBulletTokenSets = [];
+        }
+
         const splitParts = String(remStr || "")
           .split(/\n+|\s*\|\s*|(?<=[.?!])\s+(?=[✓✔✎✗×✘★⭐])/)
           .map(s => s.trim())
           .filter(Boolean);
         splitParts.forEach(ln => {
           const bTitle = extractBulletTitle(ln);
-          if (bTitle && bTitle.length >= 4) evalBulletRegistry.usedTitles.add(bTitle);
+          if (bTitle && bTitle.length >= 4) evalBulletRegistry.usedTitles.add(bTitle.toLowerCase());
           const sig = normBulletSig(ln);
           if (sig && sig.length >= 10) evalBulletRegistry.usedSigs.add(sig);
           const { quotes, tokenSet } = extractBulletTokensAndQuotes(ln);
           quotes.forEach(q => evalBulletRegistry.usedQuotedTerms.add(q));
-          if (tokenSet.size > 0) evalBulletRegistry.usedBulletTokenSets.push(tokenSet);
+          if (tokenSet && tokenSet.size > 0) evalBulletRegistry.usedBulletTokenSets.push(tokenSet);
         });
       };
 
@@ -13073,6 +13176,9 @@ window.viewSavedCopy = async function(evalId, openComparisonTab = false) {
       draft2Eval.has_been_rewritten = true;
       draft2Eval.previous_evaluation = draft1Eval;
 
+      if (draft1Eval && draft1Eval.__bulletRegistry) delete draft1Eval.__bulletRegistry;
+      if (draft2Eval && draft2Eval.__bulletRegistry) delete draft2Eval.__bulletRegistry;
+
       const origPages = (record.previous_pages && record.previous_pages.length > 0) ? record.previous_pages : pages;
       const rwPages = (record.rewritten_pages && record.rewritten_pages.length > 0) ? record.rewritten_pages : pages;
 
@@ -13090,6 +13196,7 @@ window.viewSavedCopy = async function(evalId, openComparisonTab = false) {
       updateViewer();
     } else if (rawEvalData) {
       const cleanEval = JSON.parse(JSON.stringify(rawEvalData));
+      if (cleanEval && cleanEval.__bulletRegistry) delete cleanEval.__bulletRegistry;
       cleanEval.eval_id = record.id;
       cleanEval.max_marks = record.max_marks || cleanEval.max_marks;
       cleanEval.paper = record.paper || cleanEval.paper;
