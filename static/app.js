@@ -4375,12 +4375,45 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
 
   let concScore = parseFloat(rubric.conclusion_score);
   if (isNaN(concScore)) concScore = maxMarks === 10 ? 0.5 : 1.0;
-  const isIncomplete = Boolean(
-    evalData.is_incomplete_answer ||
-    evalData.is_candidate_incomplete_answer ||
-    (evalData.conclusion_audit && (evalData.conclusion_audit.score === 0 || evalData.conclusion_audit.is_unwritten))
+
+  const rawAiSteps = Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : [];
+  const aiConcStep = rawAiSteps.find(st => st && /concl|synthesis/i.test(String(st.step_label || st.sub_heading || "")));
+  const aiConcAw = aiConcStep ? parseFloat(aiConcStep.awarded) : NaN;
+  const cAudit = evalData.conclusion_audit || {};
+  const cAuditScore = parseFloat(cAudit.score);
+  const cCritiqueStr = String(cAudit.current_critique || "");
+
+  const fullTrans = String(evalData.transcribed_text || "").toLowerCase();
+  const tailTrans = fullTrans.slice(-400);
+  const hasCandConcKeywords = /\b(?:thus|hence|therefore|in\s+conclusion|to\s+conclude|conclude|concluded|overall|consequently|imperative|essential|vital|crucial|going\s+forward|way\s+forward|realis[ei]|promot[ei]|ensur[ei]|sustainable|inclusive|industrial\s*revolution|viksit\s*bharat|amrit\s*kaal)\b/i.test(tailTrans);
+  const hasCandConcCritique = /(?:concluded\s+with|closing\s+(?:statement|sentence|line|stance)|relevant\s+statement|industrial\s*revolution|imperative)/i.test(cCritiqueStr + " " + (aiConcStep ? String(aiConcStep.quoted_written || "") : ""));
+
+  const hasGenuineConclusion = (
+    (!isNaN(aiConcAw) && aiConcAw > 0) ||
+    (!isNaN(cAuditScore) && cAuditScore > 0) ||
+    (!isNaN(concScore) && concScore > 0) ||
+    hasCandConcCritique ||
+    hasCandConcKeywords
   );
-  if (isIncomplete) concScore = 0.0;
+
+  let isIncomplete = false;
+  if (hasGenuineConclusion) {
+    isIncomplete = false;
+    evalData.is_incomplete_answer = false;
+    evalData.is_candidate_incomplete_answer = false;
+    if (cAudit.is_unwritten) cAudit.is_unwritten = false;
+    if (!isNaN(aiConcAw) && aiConcAw > 0) concScore = aiConcAw;
+    else if (!isNaN(cAuditScore) && cAuditScore > 0) concScore = cAuditScore;
+    else if (isNaN(concScore) || concScore === 0) concScore = 0.5;
+  } else {
+    isIncomplete = Boolean(
+      evalData.is_incomplete_answer ||
+      evalData.is_candidate_incomplete_answer ||
+      cAudit.is_unwritten ||
+      cAudit.score === 0
+    );
+    if (isIncomplete) concScore = 0.0;
+  }
   concScore = Math.min(concMax, Math.max(0.0, Math.round(concScore * 2) / 2));
 
   // Body totals strictly guarantee sum of parts == maxMarks and sum of scores == overallScore
@@ -4392,8 +4425,6 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
   const bAudit = evalData.body_audit || {};
   const sArr = Array.isArray(bAudit.strengths) ? bAudit.strengths.map(s => String(s || "").replace(/^[✓✔✎✗×]\s*/, "").trim()).filter(Boolean) : [];
   const gArr = Array.isArray(bAudit.critical_gaps) ? bAudit.critical_gaps.map(g => String(g || "").replace(/^[✓✔✎✗×]\s*/, "").trim()).filter(Boolean) : [];
-
-  const rawAiSteps = Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : [];
   const aiBodySteps = rawAiSteps.filter((st, idx) => {
     if (!st || typeof st !== "object") return false;
     const lbl = String(st.step_label || "").toLowerCase();
@@ -4801,7 +4832,7 @@ function renderAnnotationsOverlay() {
       const isAspirationalDistrictsCopy = false;
       const isFederalismCopy = false;
 
-      const isCandidateIncompleteCopy = Boolean(
+      const isCandidateIncompleteCopy = (scheme.conclusion && scheme.conclusion.score === 0) && Boolean(
         evalData.is_incomplete_answer ||
         evalData.is_candidate_incomplete_answer ||
         (concAudit && (concAudit.score === 0 || concAudit.is_unwritten || /not attempted|unwritten|unaddressed|incomplete answer|missing conclusion/i.test(String(concAudit.current_critique || "")))) ||
@@ -5332,6 +5363,14 @@ function renderAnnotationsOverlay() {
         }
         if (isGenericConclusionCopy) {
           return "✗ **Too General (No Topic Keywords)**: Your closing line is too general and does not mention specific keywords from the question, fetching only +0.5 mark.\n✎ **How to Get Full Marks Here**: Mention 1–2 topic-specific keywords and the core institutional or committee anchor in your last line.";
+        }
+        if (concAudit && concAudit.current_critique && !/not attempted|unwritten|unaddressed|stopped abruptly/i.test(concAudit.current_critique)) {
+          const rawCrit = String(concAudit.current_critique).replace(/^[✗✓✔✎\s*]+/, "").trim();
+          const firstCritLine = rawCrit.split(/<br\s*\/?>|\n|✎/i)[0].trim();
+          const secondCritLine = rawCrit.includes("✎")
+            ? rawCrit.split("✎")[1].trim()
+            : (concAudit.model_conclusion_rewrite ? `Anchor with: ${String(concAudit.model_conclusion_rewrite).slice(0, 140)}` : "");
+          return `✓ **Closing Synthesis Evaluated**: ${firstCritLine}\n✎ **How to Elevate**: ${secondCritLine || "Anchor the closing sentence in 1–2 specific topic keywords and statutory frameworks."}`;
         }
         let cleaned = sanitizeCrossSubjectText(rawRem);
         if (cleaned) {
@@ -6717,10 +6756,8 @@ function getCardQuoteAndElevate(sec) {
   const evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
   const pNum = parseInt(sec.page, 10) || (typeof state !== "undefined" && state.currentPageIndex !== undefined ? state.currentPageIndex + 1 : 1);
   const isCandidateIncomplete = Boolean(
-    evalData.is_incomplete_answer ||
-    evalData.is_candidate_incomplete_answer ||
-    (sec.zone === "conclusion" && sec.isUnwritten) ||
-    (evalData.conclusion_audit && (evalData.conclusion_audit.score === 0 || evalData.conclusion_audit.is_unwritten))
+    (sec.zone === "conclusion" && sec.isUnwritten && (!sec.marks || sec.marks.includes("0.0"))) ||
+    (sec.zone === "conclusion" && (!sec.marks || sec.marks.includes("0.0")) && evalData.is_incomplete_answer && (!evalData.conclusion_audit || evalData.conclusion_audit.score === 0))
   );
 
   // Helper to test if a text string is an evaluator meta-comment rather than candidate handwriting
@@ -7627,6 +7664,16 @@ function syncRubricAndMarginScores(evalData) {
 
   let concAw = concAnn ? parseAwarded(concAnn.marks_awarded) : NaN;
   const rawRubricConc = parseFloat(rubric.conclusion_score);
+  const stepConc = (Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : []).find(st => /concl|synthesis/i.test(String(st.step_label || st.sub_heading || "")));
+  const stepConcAw = stepConc ? parseFloat(stepConc.awarded) : NaN;
+
+  if (!isNaN(stepConcAw) && stepConcAw > 0 && (isNaN(concAw) || concAw === 0)) {
+    concAw = stepConcAw;
+  }
+  if (!isNaN(rawRubricConc) && rawRubricConc > 0 && (isNaN(concAw) || concAw === 0)) {
+    concAw = rawRubricConc;
+  }
+
   if (isGenericConcScoreCopy) {
     // A simple 1-line generic conclusion without topic keywords strictly gets +0.5 / 2.0 (or +0.5 / 1.5)
     concAw = 0.5;
@@ -7636,7 +7683,7 @@ function syncRubricAndMarginScores(evalData) {
     evalData.conclusion_audit.current_critique = isStartupDeepTechScoreCopy
       ? `✗ **Too General (+0.5 / ${rConcMax.toFixed(1)}M)**: You ended with *\"Thus, there is a need for holistic development on part of government and society\"*, which has no topic keywords and can fit any answer. Mention **deep-tech product nation** & **Viksit Bharat @2047** to score full marks.`
       : `✗ **Too General (+0.5 / ${rConcMax.toFixed(1)}M)**: Your closing line is too general and does not include specific topic keywords. Mention 1–2 topic keywords and the core institutional/committee anchor to score full marks.`;
-  } else if (isNaN(concAw) || (concAw === 0 && !isNaN(rawRubricConc) && rawRubricConc > 0)) {
+  } else if (isNaN(concAw)) {
     concAw = !isNaN(rawRubricConc) ? rawRubricConc : Math.round((overallScore * (rConcMax / maxMarks)) * 2) / 2;
   }
   concAw = Math.min(rConcMax, Math.max(0.0, Math.round(concAw * 2) / 2));
@@ -7650,6 +7697,17 @@ function syncRubricAndMarginScores(evalData) {
 
   rubric.intro_score = introAw;
   rubric.conclusion_score = concAw;
+
+  // Strict 100% synchronization: update visual annotation tags and marks to match rubric scores
+  if (concAnn) {
+    concAnn.marks_awarded = `+${concAw.toFixed(1)} / ${rConcMax.toFixed(1)}`;
+    if (concAw > 0 && concAnn.tag && /not attempted|unwritten/i.test(concAnn.tag)) {
+      concAnn.tag = "Conclusion: Closing Synthesis";
+    }
+  }
+  if (introAnn) {
+    introAnn.marks_awarded = `+${introAw.toFixed(1)} / ${rIntroMax.toFixed(1)}`;
+  }
 
   // Remaining marks strictly belong to Body (Core Demand + Value Addition + Presentation)
   const bodyTargetAw = Math.max(0.0, Math.round((overallScore - introAw - concAw) * 2) / 2);
@@ -8280,7 +8338,13 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
     }
 
     if (!evalData.conclusion_audit || typeof evalData.conclusion_audit !== "object") evalData.conclusion_audit = {};
-    const isIncomp = Boolean(evalData.is_incomplete_answer || evalData.is_candidate_incomplete_answer || evalData.conclusion_audit.is_unwritten || evalData.conclusion_audit.score === 0);
+    const hasGenConc = (
+      (evalData.rubric_scores && evalData.rubric_scores.conclusion_score > 0) ||
+      (Array.isArray(evalData.sub_part_step_marking) && evalData.sub_part_step_marking.some(s => /concl/i.test(s.step_label || "") && s.awarded > 0)) ||
+      (evalData.conclusion_audit && evalData.conclusion_audit.score > 0) ||
+      /\b(?:thus|hence|therefore|in\s+conclusion|imperative|essential|vital|realis[ei]|promot[ei]|ensur[ei]|industrial\s*revolution)\b/i.test(String(evalData.transcribed_text || "").slice(-350))
+    );
+    const isIncomp = !hasGenConc && Boolean(evalData.is_incomplete_answer || evalData.is_candidate_incomplete_answer || evalData.conclusion_audit.is_unwritten || evalData.conclusion_audit.score === 0);
     if (isIncomp) {
       evalData.conclusion_audit.score = 0.0;
       evalData.conclusion_audit.is_unwritten = true;
@@ -9667,10 +9731,10 @@ function renderBatch1ExaminerMastery(evalData) {
   const overallScore = scheme.overallScore;
   const maxMarks = scheme.maxMarks;
 
-  const introScore = (scheme.intro && scheme.intro.score) || 1.0;
-  const introMax = (scheme.intro && scheme.intro.max) || 2.0;
-  const concScore = (scheme.conclusion && scheme.conclusion.score) || 0.5;
-  const concMax = (scheme.conclusion && scheme.conclusion.max) || 2.0;
+  const introScore = typeof (scheme.intro && scheme.intro.score) === "number" ? scheme.intro.score : 1.0;
+  const introMax = typeof (scheme.intro && scheme.intro.max) === "number" ? scheme.intro.max : 2.0;
+  const concScore = typeof (scheme.conclusion && scheme.conclusion.score) === "number" ? scheme.conclusion.score : 0.5;
+  const concMax = typeof (scheme.conclusion && scheme.conclusion.max) === "number" ? scheme.conclusion.max : 2.0;
   const bodyTotalScore = scheme.bodyTotalScore;
   const bodyTotalMax = scheme.bodyTotalMax;
 

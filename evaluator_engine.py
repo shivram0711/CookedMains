@@ -3189,26 +3189,71 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
 
     # Incomplete Answer & Generic Conclusion Audit across all UPSC subjects:
     trans_low = str(data.get("transcribed_text") or "").lower()
-    tail_text = trans_low[-340:] if len(trans_low) > 340 else trans_low
+    tail_text = trans_low[-400:] if len(trans_low) > 400 else trans_low
     rubric_d = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
     def_c_max = 1.5 if mm_eval == 10 else 2.0
     c_max = float(rubric_d.get("conclusion_max", def_c_max) or def_c_max)
 
+    # 1. Inspect existing evaluation signals (Gemini multimodal, sub_part_step_marking, visual annotations, conclusion_audit)
+    sub_steps = data.get("sub_part_step_marking") or []
+    gemini_step_conc_aw = 0.0
+    gemini_step_conc_text = ""
+    for st in sub_steps:
+        lbl = str(st.get("step_label") or "").lower()
+        sh = str(st.get("sub_heading") or "").lower()
+        if "concl" in lbl or "synthesis" in lbl or "concl" in sh or "synthesis" in sh:
+            try:
+                gemini_step_conc_aw = max(gemini_step_conc_aw, float(st.get("awarded", 0.0) or 0.0))
+            except Exception:
+                pass
+            gemini_step_conc_text += " " + str(st.get("quoted_written") or "")
+
+    c_audit_score = float(c_audit.get("score", 0.0) or 0.0)
+    rubric_c_score = float(rubric_d.get("conclusion_score", 0.0) or 0.0)
+    conc_crit_str = str(c_audit.get("current_critique") or "")
+
+    ann_conc_aw = 0.0
+    for ann in anns_list:
+        t_low = str(ann.get("tag") or "").lower()
+        if "concl" in t_low or "synthesis" in t_low:
+            aw_m = re.search(r'\+?(\d+(?:\.\d+)?)', str(ann.get("marks_awarded") or ""))
+            if aw_m:
+                ann_conc_aw = max(ann_conc_aw, float(aw_m.group(1)))
+
+    gemini_has_evaluated_conc = (
+        (gemini_step_conc_aw > 0.0) or
+        (c_audit_score > 0.0) or
+        (rubric_c_score > 0.0) or
+        (ann_conc_aw > 0.0) or
+        bool(re.search(r'(?i)(?:concluded\s+with|closing\s+(?:statement|sentence|line|stance)|relevant\s+statement|industrial\s*revolution|imperative)', gemini_step_conc_text + " " + conc_crit_str))
+    )
+
+    # 2. Check candidate transcript tail for authentic UPSC concluding signals:
+    has_concluding_keywords = bool(re.search(
+        r'(?i)\b(?:thus|hence|therefore|in\s+conclusion|to\s+conclude|conclude|concluded|concluding|overall|consequently|'
+        r'ultimately|in\s+fine|to\s+sum\s+up|in\s+sum|in\s+summary|summing\s+up|'
+        r'imperative|essential|vital|crucial|pivotal|indispensable|need\s+of\s+the\s+hour|'
+        r'going\s+forward|way\s+ahead|way\s+forward|moving\s+forward|ahead|'
+        r'roadmap|vision|long\s*term|stepping\s*stone|pave\s+the\s+way|catalyst|'
+        r'realis[ei]|foster(?:ing)?|promot(?:e|ing|ion)|ensur(?:e|ing)|secur(?:e|ing)|accelerat(?:e|ing)|'
+        r'sustainable|inclusive|synerg(?:y|ies|istic)|holistic|comprehensive|grassroots|'
+        r'industrial\s*revolution|industry\s*4\.0|viksit\s*bharat|amrit\s*kaal|sabka\s*saath|sdg)\b',
+        tail_text
+    ))
+
+    tail_lines = [l.strip() for l in tail_text.split('\n') if len(l.strip()) >= 20]
+    last_line = tail_lines[-1] if tail_lines else ""
+    is_last_line_narrative = bool(last_line and not re.match(r'^(?:[-*•–—]|point\s*\d+|\b\d+[\.\)])', last_line) and len(last_line.split()) >= 5)
+
     is_incomplete_conc = (
-        bool(data.get("is_incomplete_answer")) or
-        bool(data.get("is_candidate_incomplete_answer")) or
-        (float(rubric_d.get("conclusion_score", 1.0) or 1.0) == 0.0) or
-        ("unwritten" in str(c_audit.get("current_critique") or "").lower()) or
-        ("not attempted" in str(c_audit.get("current_critique") or "").lower()) or
-        any(p in tail_text for p in [
-            "plugging loopholes", "plugging loophole", "replicating the same in aspirational block"
-        ]) or (
-            any(w in tail_text for w in ["way forward", "way ahead", "measures needed", "challenges:", "points:", "remedies:"]) and
-            len(tail_text.split()) < 40 and
-            not any(k in tail_text for k in ["thus", "hence", "therefore", "in conclusion", "to conclude", "overall", "consequently", "vision"])
-        ) or (
-            re.search(r'(?i)(?:\bpoint\s*\d+|\b\d+\.|\b[ivx]+\)|\b-\s*)[^.\n]{1,60}\s*$', tail_text) is not None and
-            not any(k in tail_text for k in ["thus", "hence", "therefore", "in conclusion", "to conclude", "overall"])
+        not gemini_has_evaluated_conc and
+        not has_concluding_keywords and
+        not is_last_line_narrative and
+        (
+            bool(data.get("is_incomplete_answer")) or
+            bool(data.get("is_candidate_incomplete_answer")) or
+            bool(c_audit.get("is_unwritten")) or
+            bool(re.search(r'(?i)\b(?:not\s+attempted|unwritten|stopped\s+abruptly|left\s+blank)\b', conc_crit_str))
         )
     )
 
@@ -3242,31 +3287,70 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                     f"✗ **Conclusion Not Attempted (Incomplete Answer)**: Answer stopped after the Way Forward points without a closing synthesis (forfeits +{c_max:.1f}M).\n"
                     f"✎ **60-Second Closing Formula**: In a {mm_eval}-marker, reserve 60 seconds to write a 2-line closing linking to the core policy framework: {domain_conc}"
                 )
-    elif is_generic_conc:
-        rubric_d = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
-        old_conc = float(rubric_d.get("conclusion_score", 0.5) or 0.5)
-        if old_conc > 0.5:
-            delta_c = round(old_conc - 0.5, 2)
-            rubric_d["conclusion_score"] = 0.5
-            rubric_d["core_demand_score"] = round(float(rubric_d.get("core_demand_score", 2.0) or 2.0) + delta_c, 2)
-            data["rubric_scores"] = rubric_d
-        c_audit["current_critique"] = (
-            "✗ **Too General (+0.5M Only)**: Your closing line "
-            "has no topic keywords and can fit any answer. Mention 1–2 topic-specific keywords and the core institutional/committee anchor to get full marks."
+    else:
+        # Authentic Conclusion Detected!
+        data["is_incomplete_answer"] = False
+        data["is_candidate_incomplete_answer"] = False
+        c_audit["is_unwritten"] = False
+
+        # Determine authentic conclusion marks (matching Section 1 sub_part_step_marking!)
+        assigned_conc = max(
+            0.5,
+            gemini_step_conc_aw,
+            rubric_c_score,
+            c_audit_score,
+            ann_conc_aw
         )
+        if is_generic_conc and assigned_conc > 0.5:
+            assigned_conc = 0.5
+
+        assigned_conc = min(c_max, max(0.5, round(assigned_conc * 2) / 2))
+        rubric_d["conclusion_score"] = assigned_conc
+        c_audit["score"] = assigned_conc
         c_audit["model_conclusion_rewrite"] = domain_conc
+
+        # Preserve Gemini's insightful conclusion critique if present, or construct a precise feedback note inspired by Image 4
+        if not c_audit.get("current_critique") or re.search(r'(?i)\b(?:not\s+attempted|unwritten)\b', str(c_audit.get("current_critique") or "")):
+            if gemini_step_conc_text and not re.search(r'(?i)\b(?:not\s+attempted|unwritten)\b', gemini_step_conc_text):
+                c_audit["current_critique"] = gemini_step_conc_text.strip()
+            elif is_last_line_narrative and last_line:
+                c_audit["current_critique"] = (
+                    f"✓ **Closing Synthesis Evaluated**: Concluded with relevant statement (*\"{last_line[:85]}...\"*), but it remained somewhat broad.\n"
+                    f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {domain_conc}"
+                )
+            else:
+                c_audit["current_critique"] = (
+                    f"✓ **Closing Synthesis Evaluated**: Concluded with a relevant synthesis statement, but it remained somewhat broad.\n"
+                    f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {domain_conc}"
+                )
         data["conclusion_audit"] = c_audit
+        data["rubric_scores"] = rubric_d
+
+        # Synchronize visual annotations for conclusion
         for ann in anns_list:
             t_low = str(ann.get("tag") or "").lower()
             if "concl" in t_low or "synthesis" in t_low or "finish" in t_low:
-                def_c_max = 1.5 if mm_eval == 10 else 2.0
-                c_max = float(rubric_d.get("conclusion_max", def_c_max) or def_c_max)
-                ann["marks_awarded"] = f"+0.5 / {c_max:.1f}"
-                ann["type"] = "warning"
+                ann["marks_awarded"] = f"+{assigned_conc:.1f} / {c_max:.1f}"
+                ann["type"] = "success" if assigned_conc >= c_max - 0.1 else "warning"
+                if "not attempted" in t_low:
+                    ann["tag"] = "Conclusion: Closing Synthesis"
+                crit_clean = str(c_audit.get("current_critique") or "").splitlines()[0]
                 ann["remark"] = (
-                    "✗ **Too General (No Topic Keywords)**: Your closing line has no topic keywords and can fit any question (fetches only +0.5 mark).\n"
-                    f"✎ **How to Score Full Marks Here**: {domain_conc}"
+                    f"✓ **Closing Synthesis Evaluated**: {crit_clean}\n"
+                    f"✎ **To Score Full Marks**: {domain_conc}"
                 )
+
+        # Synchronize sub_part_step_marking Step 4
+        for st in sub_steps:
+            lbl = str(st.get("step_label") or "").lower()
+            sh = str(st.get("sub_heading") or "").lower()
+            if "concl" in lbl or "synthesis" in lbl or "concl" in sh or "synthesis" in sh:
+                st["awarded"] = assigned_conc
+                st["max"] = c_max
+                st["quoted_written"] = c_audit.get("current_critique") or st.get("quoted_written")
+                st["step_up_lever"] = domain_conc
+        data["sub_part_step_marking"] = sub_steps
+
 
     if data.get("executive_summary"):
         data["executive_summary"] = simplify_and_decontradict(data["executive_summary"], is_gap=False)
