@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css?v=20261002_v4">
+  <link rel="stylesheet" href="/static/style.css?v=20261002_v5">
   <!-- Google Identity Services for 1-Click Native Browser Google Account Chooser -->
   <script src="https://accounts.google.com/gsi/client"></script>
 
@@ -1020,12 +1020,24 @@
                       <p class="text-[11px] text-slate-400">Upload handwritten pages (PDF/JPG) from the intake panel.</p>
                     </div>
                     
-                    <!-- Clean Answer Sheet Wrapper: tightly wraps image -->
-                    <div class="relative w-full h-auto hidden" id="pageImageWrapper">
-                      <img id="activePageImage" src="" alt="Answer Sheet Preview" class="w-full h-auto block shadow-sm">
-                      
-                      <!-- Connector Guides Overlay Layer: Hidden per user request -->
-                      <div id="annotationsGuideLayer" class="absolute inset-0 pointer-events-none hidden" style="display: none !important;"></div>
+                    <!-- Clean Answer Sheet Wrapper: tightly wraps image + slim Smart Gutter Ribbon -->
+                    <div class="relative w-full h-auto hidden flex items-stretch" id="pageImageWrapper">
+                      <div class="relative flex-1 min-w-0" id="pageImageSubWrapper">
+                        <img id="activePageImage" src="" alt="Answer Sheet Preview" class="w-full h-auto block shadow-sm">
+                        
+                        <!-- Connector Guides Overlay Layer: Hidden per user request -->
+                        <div id="annotationsGuideLayer" class="absolute inset-0 pointer-events-none hidden" style="display: none !important;"></div>
+
+                        <!-- Horizontal Laser Focus Beam (Illuminates exact handwriting line) -->
+                        <div id="gutterLaserBeam" class="absolute left-0 right-0 h-14 bg-amber-500/15 border-y border-amber-400/50 pointer-events-none transition-all duration-300 opacity-0 flex items-center justify-end pr-2 z-20">
+                          <span id="gutterLaserLabel" class="text-[9.5px] font-bold font-mono px-2 py-0.5 rounded bg-amber-500 text-black shadow-md">FOCUSED POINT</span>
+                        </div>
+                      </div>
+
+                      <!-- Smart Gutter Ribbon (Slim 36px wide on desktop/tablet, strictly alongside paper without touching writing) -->
+                      <div id="smartGutterRibbon" class="w-9 sm:w-11 bg-slate-900/95 border-l border-slate-800 flex flex-col items-center py-3 shrink-0 select-none relative z-10">
+                        <!-- Dynamic Gutter Score Pins Rendered by renderAnnotationsOverlay() -->
+                      </div>
                     </div>
                     
                     <!-- Legacy overlay layer for backward compatibility -->
@@ -1043,8 +1055,25 @@
 
             </div>
 
+            <!-- Mobile Thumb-Card Drawer (Visible on screens < 1024px when evaluation loaded) -->
+            <div id="mobileDrawerBar" class="hidden lg:hidden mt-2 bg-slate-900/95 border border-slate-800 rounded-xl p-3 z-30 backdrop-blur-md shadow-2xl">
+              <div class="flex items-center justify-between text-xs mb-1.5">
+                <span id="mobileDrawerPillLabel" class="font-bold text-white flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span id="mobileDrawerCounter">Point 1 of 4</span>
+                </span>
+                <div class="flex items-center gap-1">
+                  <button id="mobileDrawerPrevBtn" type="button" onclick="window.prevMobileGutterPoint()" class="p-1 px-2.5 rounded bg-slate-800 text-slate-300 hover:text-white text-[11px] font-bold cursor-pointer">&larr; Prev</button>
+                  <button id="mobileDrawerNextBtn" type="button" onclick="window.nextMobileGutterPoint()" class="p-1 px-2.5 rounded bg-amber-500 text-black font-bold hover:bg-amber-400 text-[11px] cursor-pointer">Next &rarr;</button>
+                </div>
+              </div>
+              <div id="mobileDrawerContent" class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
           </div>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center">Clean candidate answer copy view. Line-by-line evaluation, rubrics &amp; marks are detailed in the audit panel on the right.</p>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center">Interactive candidate copy view. Hover or tap any point pin in the gutter to illuminate handwriting and inspect line-by-line marks.</p>
         </div>
         </div>
 
@@ -3426,7 +3455,7 @@
 
   </div>
 
-  <script src="/static/app.js?v=20261002_v4"></script>
+  <script src="/static/app.js?v=20261002_v5"></script>
   <script>
     if (window.lucide) {
       try { lucide.createIcons(); } catch(e) {}

@@ -4230,10 +4230,15 @@ function formatHighlightedText(text) {
 function renderAnnotationsOverlay() {
   const marginContainer = document.getElementById("marginAnnotationsContainer");
   const guideLayer = document.getElementById("annotationsGuideLayer");
+  const gutterRibbon = document.getElementById("smartGutterRibbon");
+  const laserBeam = document.getElementById("gutterLaserBeam");
+  const mobileDrawer = document.getElementById("mobileDrawerBar");
 
   if (marginContainer) marginContainer.innerHTML = "";
   if (guideLayer) guideLayer.innerHTML = "";
-  return; // Side margin evaluation and curly braces disabled per user request
+  if (gutterRibbon) gutterRibbon.innerHTML = "";
+  if (laserBeam) laserBeam.style.opacity = "0";
+  if (mobileDrawer) mobileDrawer.classList.add("hidden");
 
   const currentPg = (state.currentPageIndex || 0) + 1;
   const totalPages = (state.activePages && state.activePages.length) ? state.activePages.length : 1;
@@ -4247,6 +4252,9 @@ function renderAnnotationsOverlay() {
     if (marginContainer) {
       marginContainer.innerHTML = '<div class="text-[10px] text-slate-400 italic text-center py-8 px-2">Evaluation remarks will appear in this margin</div>';
     }
+    if (gutterRibbon) gutterRibbon.innerHTML = "";
+    if (laserBeam) laserBeam.style.opacity = "0";
+    if (mobileDrawer) mobileDrawer.classList.add("hidden");
     return;
   }
 
@@ -6307,214 +6315,222 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
   }
 }
 
-  if (marginContainer) {
-    const imgEl = document.getElementById("activePageImage");
-    // If image is still decoding (e.g. user just switched to Page 2 or Page 3), automatically re-run as soon as it loads!
-    if (imgEl && (!imgEl.complete || !imgEl.naturalWidth)) {
-      if (!imgEl.__marginBoundLoadListener) {
-        imgEl.__marginBoundLoadListener = true;
-        imgEl.addEventListener("load", () => {
-          imgEl.__marginBoundLoadListener = false;
-          renderAnnotationsOverlay();
-        }, { once: true });
-      }
+  const imgEl = document.getElementById("activePageImage");
+  // If image is still decoding (e.g. user just switched to Page 2 or Page 3), automatically re-run as soon as it loads!
+  if (imgEl && (!imgEl.complete || !imgEl.naturalWidth)) {
+    if (!imgEl.__marginBoundLoadListener) {
+      imgEl.__marginBoundLoadListener = true;
+      imgEl.addEventListener("load", () => {
+        imgEl.__marginBoundLoadListener = false;
+        renderAnnotationsOverlay();
+      }, { once: true });
     }
-    applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, rawAnns);
-    const containerHeight = (imgEl && imgEl.clientHeight > 200) ? imgEl.clientHeight : (marginContainer.clientHeight || 700);
+  }
 
-    // Helper to render/re-render SVG '}' Curly Braces strictly clamped to exact rendered Answer Sheet image height
-    const renderCurlyBracesToExactHeight = (exactImgH) => {
-      if (!guideLayer) return;
-      guideLayer.innerHTML = "";
-      const safeH = Math.max(260, exactImgH || 650);
-      sections.forEach(sec => {
-        const clampedStartPct = Math.max(4.0, Math.min(86.0, sec.startYPercent || 6.0));
-        const clampedEndPct = Math.max(clampedStartPct + 8.0, Math.min(89.5, sec.endYPercent || 80.0));
-        const topY = Math.max(4, Math.round((clampedStartPct / 100) * safeH));
-        const bottomY = Math.min(safeH - 6, Math.round((clampedEndPct / 100) * safeH));
-        const braceHeight = Math.max(26, bottomY - topY);
-        const halfH = braceHeight / 2;
-        sec.midY = topY + halfH;
+  applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, rawAnns);
 
-        if (sec.noBrace || sec.isUnwritten) return;
+  // Clear legacy containers (hidden per user specification)
+  if (guideLayer) guideLayer.innerHTML = "";
+  if (marginContainer) marginContainer.innerHTML = "";
 
-        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.setAttribute("class", "section-curly-brace");
-        svg.setAttribute("viewBox", `0 0 24 ${braceHeight}`);
-        svg.style.position = "absolute";
-        svg.style.right = "0px";
-        svg.style.top = `${topY}px`;
-        svg.style.width = "22px";
-        svg.style.height = `${braceHeight}px`;
-        svg.style.overflow = "visible";
-        svg.style.pointerEvents = "none";
-        svg.style.zIndex = "25";
+  // Render Smart Gutter Ribbon & Synchronized Focus System
+  if (gutterRibbon && sections && sections.length > 0) {
+    gutterRibbon.innerHTML = `
+      <div class="text-[7.5px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest my-1 select-none text-center">PTS</div>
+    `;
 
-        const r = Math.min(8, Math.max(3, braceHeight / 10));
-        const xLeft = 3;
-        const xStem = 10;
-        const xTip = 20;
+    // Store active sections globally for focus interaction and mobile drawer
+    window._activeGutterSections = sections;
+    window._currentMobileGutterIndex = 0;
 
-        const pathD = `M ${xLeft} 0 Q ${xStem} 0, ${xStem} ${r} L ${xStem} ${halfH - r} Q ${xStem} ${halfH}, ${xTip} ${halfH} Q ${xStem} ${halfH}, ${xStem} ${halfH + r} L ${xStem} ${braceHeight - r} Q ${xStem} ${braceHeight}, ${xLeft} ${braceHeight}`;
+    const N = sections.length;
+    sections.forEach((sec, idx) => {
+      const clampedStart = Math.max(5.0, Math.min(88.0, sec.startYPercent || (10.0 + idx * (80.0 / Math.max(1, N)))));
+      const clampedEnd = Math.max(clampedStart + 8.0, Math.min(94.0, sec.endYPercent || (clampedStart + 18.0)));
+      sec._yPct = Math.round((clampedStart + clampedEnd) / 2);
 
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", pathD);
-        path.setAttribute("fill", "none");
-        path.setAttribute("stroke", sec.isTick ? "#10B981" : "#D97706");
-        path.setAttribute("stroke-width", "2.4");
-        path.setAttribute("stroke-linecap", "round");
-        path.setAttribute("stroke-linejoin", "round");
-        svg.appendChild(path);
-
-        // Horizontal connecting pointer to margin track
-        const bridge = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        bridge.setAttribute("x1", `${xTip}`);
-        bridge.setAttribute("y1", `${halfH}`);
-        bridge.setAttribute("x2", `${xTip + 8}`);
-        bridge.setAttribute("y2", `${halfH}`);
-        bridge.setAttribute("stroke", sec.isTick ? "#10B981" : "#D97706");
-        bridge.setAttribute("stroke-width", "2.4");
-        bridge.setAttribute("stroke-linecap", "round");
-        svg.appendChild(bridge);
-
-        guideLayer.appendChild(svg);
-      });
-    };
-
-    // 1. Initial curly brace render
-    renderCurlyBracesToExactHeight(containerHeight);
-
-    // 2. Render Cards alongside each section's '}' tip (Full Statement Heading, Zero Truncation)
-    sections.forEach((sec) => {
-      const cardEl = document.createElement("div");
-      cardEl.className = `margin-badge-card ${sec.isTick ? 'type-tick' : 'type-warning'} select-none`;
-      const titleColor = sec.isTick ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400";
-      let renderedBody = String(sec.bodyHtml || "").trim();
-      if (!renderedBody) {
-        let fbRemark = "";
-        if (sec.zone === "intro") {
-          fbRemark = "✓ **Introductory Premise**: Clearly established core premise and contextual baseline.\n✎ **Value Addition**: Anchor opening definition directly with 1 concrete framework or benchmark.";
-        } else if (sec.zone === "conclusion") {
-          fbRemark = "✓ **Balanced Concluding Stand**: Summarized candidate's forward-looking perspective.\n✎ **Policy Depth**: Anchor conclusion in institutional roadmap and statutory targets.";
-        } else {
-          fbRemark = "✓ **Structured Core Analysis**: Outlined relevant analytical dimensions and arguments.\n✎ **Substantiation & Depth**: Support arguments with official schemes, data, or statutory benchmarks.";
-        }
-        renderedBody = parseBullets(fbRemark, 2);
+      // Determine score label to display in the pin (e.g. "+1.5", "+1", "+0.5", "0.0")
+      let pinText = sec.icon || "✓";
+      const mMatch = String(sec.marks || "").match(/\+?(\d+(?:\.\d+)?)/);
+      if (mMatch) {
+        const val = parseFloat(mMatch[1]);
+        pinText = val === 0 ? "0.0" : ("+" + (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)));
       }
 
-      cardEl.innerHTML = `
-        <div class="flex items-start justify-between gap-1.5 mb-1.5">
-          <div class="flex items-start space-x-1 ${titleColor} font-bold text-[10px] sm:text-[10.5px] tracking-wide min-w-0 flex-1">
-            <span class="text-[11px] sm:text-xs font-black shrink-0 leading-tight">${sec.icon}</span>
-            <span class="uppercase font-extrabold leading-tight break-words whitespace-normal">${escapeHtml(sec.title)}</span>
-          </div>
-          <div class="margin-card-marks font-mono font-bold text-[9px] sm:text-[9.5px] px-1.5 py-0.5 rounded shrink-0 shadow-2xs whitespace-nowrap">
-            ${escapeHtml(sec.marks)}
-          </div>
-        </div>
-        <div class="margin-card-body text-[10px] sm:text-[10.5px] font-sans leading-relaxed space-y-2 break-words">
-          ${renderedBody}
-        </div>
-        <div class="pt-1 border-t border-slate-200/80 dark:border-slate-800/80 mt-1">
-          <a href="javascript:void(0)" onclick="window.viewFullEvaluationSection('${sec.targetKey}')" class="margin-card-link text-[8.5px] sm:text-[9px] font-bold flex items-center space-x-1 hover:underline">
-            <span class="break-words whitespace-normal">View Full Evaluation in Right Section →</span>
-          </a>
-        </div>
+      // Pin color scheme based on evaluator rubric score
+      let pinClass = "gutter-pin-success";
+      let scoreColor = "text-emerald-400";
+      if (!sec.isTick || sec.icon === "✎" || (sec.marks && sec.marks.includes("0.0"))) {
+        if (sec.marks && sec.marks.includes("0.0")) {
+          pinClass = "gutter-pin-danger";
+          scoreColor = "text-rose-400";
+        } else {
+          pinClass = "gutter-pin-warning";
+          scoreColor = "text-amber-400";
+        }
+      }
+
+      // Wrapper container positioned at exact vertical percentage along handwriting line
+      const pinWrapper = document.createElement("div");
+      pinWrapper.className = "gutter-pin-wrapper group absolute w-full flex justify-center";
+      pinWrapper.style.top = `${sec._yPct}%`;
+      pinWrapper.style.transform = "translateY(-50%)";
+
+      // Circular micro-pin
+      const pinBtn = document.createElement("button");
+      pinBtn.type = "button";
+      pinBtn.id = `gutterPin_${idx}`;
+      pinBtn.className = `gutter-pin ${pinClass}`;
+      pinBtn.setAttribute("data-pin-idx", idx);
+      pinBtn.title = `${sec.title} (Awarded: ${sec.marks})`;
+      pinBtn.innerHTML = `<span class="font-mono text-[9px] font-black">${pinText}</span>`;
+
+      // Non-intrusive floating tooltip showing exact marks and section title on hover
+      const tooltip = document.createElement("div");
+      tooltip.className = "gutter-pin-tooltip pointer-events-none absolute right-full mr-2 top-1/2 -translate-y-1/2 bg-slate-900/95 dark:bg-slate-950 text-white text-[10px] font-sans px-2.5 py-1 rounded-lg border border-slate-700 shadow-2xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-30 flex items-center gap-1.5";
+      tooltip.innerHTML = `
+        <span class="font-bold font-mono ${scoreColor}">${escapeHtml(sec.marks)}</span>
+        <span class="text-slate-400">&bull;</span>
+        <span class="font-semibold text-slate-200">${escapeHtml(sec.title)}</span>
       `;
 
-      cardEl.addEventListener("click", (e) => {
-        if (e.target.tagName.toLowerCase() !== "a" && !e.target.closest("a")) {
+      pinWrapper.appendChild(pinBtn);
+      pinWrapper.appendChild(tooltip);
+      gutterRibbon.appendChild(pinWrapper);
+
+      // Event listeners for synchronized focus beam
+      pinBtn.addEventListener("mouseenter", () => {
+        window.focusGutterPointOnPage(idx, sec._yPct, sec.marks, sec, false);
+      });
+
+      pinBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.focusGutterPointOnPage(idx, sec._yPct, sec.marks, sec, true);
+        window.renderMobileDrawerPoint(idx);
+        if (window.innerWidth >= 1024) {
           window.viewFullEvaluationSection(sec.targetKey);
         }
       });
-
-      sec.cardEl = cardEl;
-      marginContainer.appendChild(cardEl);
     });
 
-    // 3. Guaranteed Curly-Brace-Aligned & ZERO-OVERLAP Vertical Positioning
-    setTimeout(() => {
-      const imgHeight = (imgEl && imgEl.offsetHeight > 200) ? imgEl.offsetHeight : (containerHeight || 700);
-      renderCurlyBracesToExactHeight(imgHeight);
-
-      const N = sections.length;
-      if (N === 0) return;
-
-      const GAP = 10; // minimum vertical spacing between consecutive cards
-
-      // Step A: Read actual rendered card heights
-      sections.forEach((sec) => {
-        const cardEl = sec.cardEl;
-        if (!cardEl) return;
-        sec._cardHeight = Math.max(65, cardEl.offsetHeight || 95);
-        // Desired vertical center is sec.midY (the exact tip of its curly brace)
-        sec._desiredTop = Math.round(sec.midY - (sec._cardHeight / 2));
-      });
-
-      // Step B: Forward pass — center each card on its curly brace tip while strictly preventing overlap with earlier cards
-      let minAllowedTop = 6;
-      for (let i = 0; i < N; i++) {
-        const sec = sections[i];
-        if (!sec || !sec.cardEl) continue;
-        let t = Math.max(minAllowedTop, sec._desiredTop);
-        sec._computedTop = t;
-        minAllowedTop = t + sec._cardHeight + GAP;
-      }
-
-      // Step C: Upward shift pass — if bottom-most card extends past imgHeight - 8, nudge cards upward where space is available
-      const lastCard = sections[N - 1];
-      if (lastCard && lastCard.cardEl) {
-        let maxAllowedBottom = imgHeight - 8;
-        for (let i = N - 1; i >= 0; i--) {
-          const sec = sections[i];
-          if (!sec || !sec.cardEl) continue;
-          if (sec._computedTop + sec._cardHeight > maxAllowedBottom) {
-            sec._computedTop = maxAllowedBottom - sec._cardHeight;
-          }
-          maxAllowedBottom = sec._computedTop - GAP;
+    // Handle mouse leaving the image area (fades laser beam if not pinned)
+    const subWrapper = document.getElementById("pageImageSubWrapper");
+    if (subWrapper && !subWrapper.__gutterLeaveListener) {
+      subWrapper.__gutterLeaveListener = true;
+      subWrapper.addEventListener("mouseleave", () => {
+        if (!window._pinnedGutterPoint && window._pinnedGutterPoint !== 0) {
+          const beam = document.getElementById("gutterLaserBeam");
+          if (beam) beam.style.opacity = "0";
+          document.querySelectorAll(".gutter-pin").forEach(p => p.classList.remove("active"));
         }
-      }
-
-      // Step D: ABSOLUTE NON-OVERLAP ENFORCEMENT (Forward pass from top)
-      // Guarantees with mathematical certainty that Card[i] NEVER overlaps Card[i-1]
-      let strictTopCeiling = 6;
-      for (let i = 0; i < N; i++) {
-        const sec = sections[i];
-        if (!sec || !sec.cardEl) continue;
-        sec._computedTop = Math.max(strictTopCeiling, sec._computedTop);
-        strictTopCeiling = sec._computedTop + sec._cardHeight + GAP;
-      }
-
-      // Step E: Apply final top coordinates and align curly brace arrow pointers
-      sections.forEach((sec) => {
-        const cardEl = sec.cardEl;
-        if (!cardEl) return;
-        const finalTop = sec._computedTop || 6;
-        const ch = sec._cardHeight || 95;
-        cardEl.style.top = `${finalTop}px`;
-        // Arrow points directly at sec.midY (curly brace tip)
-        const arrowOffset = Math.max(12, Math.min(ch - 16, Math.round(sec.midY - finalTop - 5)));
-        cardEl.style.setProperty("--arrow-top", `${arrowOffset}px`);
       });
+    }
 
-      // Step F: Ensure margin container accommodates all cards smoothly (never truncate or force cards together)
-      const lastSec = sections[N - 1];
-      const requiredStackHeight = (lastSec && lastSec._computedTop)
-        ? Math.max(imgHeight, lastSec._computedTop + lastSec._cardHeight + 16)
-        : imgHeight;
-
-      marginContainer.style.minHeight = `${requiredStackHeight}px`;
-      marginContainer.style.maxHeight = "none";
-      if (marginContainer.parentElement) {
-        marginContainer.parentElement.style.minHeight = `${requiredStackHeight}px`;
-      }
-      const tracksBody = document.getElementById("bookletTracksBody");
-      if (tracksBody) tracksBody.style.minHeight = `${requiredStackHeight}px`;
-      const trackContainer = document.getElementById("bookletTrackContainer");
-      if (trackContainer) trackContainer.style.minHeight = `${requiredStackHeight}px`;
-    }, 25);
+    // Populate mobile thumb-card drawer
+    if (mobileDrawer) {
+      mobileDrawer.classList.remove("hidden");
+      window.renderMobileDrawerPoint(0);
+    }
+  } else {
+    if (gutterRibbon) gutterRibbon.innerHTML = "";
+    if (laserBeam) laserBeam.style.opacity = "0";
+    if (mobileDrawer) mobileDrawer.classList.add("hidden");
   }
 }
+
+// Global helper: Focus specific point on paper with laser beam and synchronized label
+window.focusGutterPointOnPage = function(index, yPercent, marksStr, sec, isPinned = false) {
+  const beam = document.getElementById("gutterLaserBeam");
+  const lbl = document.getElementById("gutterLaserLabel");
+
+  if (isPinned) {
+    window._pinnedGutterPoint = index;
+  }
+
+  if (beam) {
+    beam.style.top = `${yPercent}%`;
+    beam.style.transform = "translateY(-50%)";
+    beam.style.opacity = "1";
+  }
+
+  if (lbl && sec) {
+    lbl.innerHTML = `<span class="opacity-90 font-sans mr-1">${escapeHtml(sec.title)}</span> &bull; <span class="underline font-black font-mono">Awarded: ${escapeHtml(marksStr)}</span>`;
+  }
+
+  document.querySelectorAll(".gutter-pin").forEach((pin, pIdx) => {
+    if (pIdx === index) {
+      pin.classList.add("active");
+    } else {
+      pin.classList.remove("active");
+    }
+  });
+};
+
+// Global helper: Render point inside mobile thumb-card drawer (< 1024px)
+window.renderMobileDrawerPoint = function(index) {
+  const sections = window._activeGutterSections || [];
+  if (!sections.length) return;
+  const safeIdx = Math.max(0, Math.min(sections.length - 1, index));
+  window._currentMobileGutterIndex = safeIdx;
+  const sec = sections[safeIdx];
+  const drawer = document.getElementById("mobileDrawerBar");
+  const counter = document.getElementById("mobileDrawerCounter");
+  const content = document.getElementById("mobileDrawerContent");
+  if (!drawer || !content) return;
+
+  drawer.classList.remove("hidden");
+  if (counter) {
+    counter.textContent = `Point ${safeIdx + 1} of ${sections.length}`;
+  }
+
+  const isGreen = sec.isTick;
+  const badgeColor = isGreen ? "text-emerald-400" : "text-amber-400";
+  const badgeBg = isGreen
+    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+    : "bg-amber-500/20 text-amber-300 border border-amber-500/40";
+
+  let renderedBody = String(sec.bodyHtml || "").trim();
+  if (!renderedBody) {
+    renderedBody = `<p class="text-slate-300 text-xs">${escapeHtml(sec.title)}</p>`;
+  }
+
+  content.innerHTML = `
+    <div class="flex items-start justify-between gap-2 mb-1.5">
+      <div class="font-bold text-white text-xs flex items-center gap-1.5">
+        <span class="${badgeColor}">${sec.icon || '✓'}</span>
+        <span class="break-words">${escapeHtml(sec.title)}</span>
+      </div>
+      <span class="font-mono font-bold text-[10px] px-2 py-0.5 rounded ${badgeBg} shrink-0 whitespace-nowrap">
+        ${escapeHtml(sec.marks)}
+      </span>
+    </div>
+    <div class="text-[11px] text-slate-300 leading-relaxed mb-2 space-y-1">
+      ${renderedBody}
+    </div>
+    <div class="pt-1.5 border-t border-slate-800 flex items-center justify-between text-[10.5px]">
+      <button type="button" onclick="window.viewFullEvaluationSection('${sec.targetKey}')" class="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 cursor-pointer">
+        <span>View Full Analysis in Right Panel &rarr;</span>
+      </button>
+      <span class="text-slate-400 text-[10px] font-mono">Page ${(state.currentPageIndex || 0) + 1}</span>
+    </div>
+  `;
+
+  window.focusGutterPointOnPage(safeIdx, sec._yPct, sec.marks, sec, true);
+};
+
+window.nextMobileGutterPoint = function() {
+  const sections = window._activeGutterSections || [];
+  if (!sections.length) return;
+  const nextIdx = ((window._currentMobileGutterIndex || 0) + 1) % sections.length;
+  window.renderMobileDrawerPoint(nextIdx);
+};
+
+window.prevMobileGutterPoint = function() {
+  const sections = window._activeGutterSections || [];
+  if (!sections.length) return;
+  const prevIdx = ((window._currentMobileGutterIndex || 0) - 1 + sections.length) % sections.length;
+  window.renderMobileDrawerPoint(prevIdx);
+};
 
 // Debounced window resize handler (ignores mobile Chrome vertical address-bar resize events)
 let resizeOverlayTimer = null;
