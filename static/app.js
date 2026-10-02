@@ -4233,6 +4233,7 @@ function renderAnnotationsOverlay() {
 
   if (marginContainer) marginContainer.innerHTML = "";
   if (guideLayer) guideLayer.innerHTML = "";
+  return; // Side margin evaluation and curly braces disabled per user request
 
   const currentPg = (state.currentPageIndex || 0) + 1;
   const totalPages = (state.activePages && state.activePages.length) ? state.activePages.length : 1;
@@ -11238,18 +11239,10 @@ function populatePrintAnnotatedCopies(evalData, pages, targetContainer) {
       ${headerHtml}
 
       <div class="print-copy-body">
-        <div class="print-copy-img-wrap">
+        <div class="print-copy-img-wrap" style="width: 100%; flex: 1 1 100%; border-right: none;">
           <div class="print-page-canvas">
             <img src="${dataUrl}" class="print-copy-img" alt="Answer Page ${pageNum}">
-            ${bracesHtml}
           </div>
-        </div>
-        <div class="print-copy-margin">
-          <div class="print-margin-title-bar">
-            <span>Examiner Margin (Page ${pageNum})</span>
-            <span style="font-size: 7.5pt; color: #64748B; font-weight: 600;">OFFICIAL AUDIT</span>
-          </div>
-          ${cardsHtml}
         </div>
       </div>
 

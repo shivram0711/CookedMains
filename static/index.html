@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css?v=20260930_v25">
+  <link rel="stylesheet" href="/static/style.css?v=20261002_v4">
   <!-- Google Identity Services for 1-Click Native Browser Google Account Chooser -->
   <script src="https://accounts.google.com/gsi/client"></script>
 
@@ -995,55 +995,46 @@
                 <button id="nextPageBtn" class="p-0.5 sm:p-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-xs disabled:opacity-30 disabled:pointer-events-none transition" title="Next Page"><i data-lucide="chevron-right" class="w-3 h-3 sm:w-3.5 sm:h-3.5"></i></button>
               </div>
 
-              <div class="flex items-center space-x-1 sm:space-x-1.5 shrink-0">
-                <!-- Mobile Focus Margin Quick Toggle Button (Instant Slide on Phone/Tablet) -->
-                <button id="mobileFocusMarginBtn" type="button" onclick="window.toggleMobileMarginScroll()" class="lg:hidden flex items-center space-x-1 px-2 py-1 rounded-md text-[9.5px] font-bold bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/40 transition shrink-0 cursor-pointer" title="Slide between Copy and Examiner Margin">
-                  <span id="mobileFocusMarginLabel">Margin &rarr;</span>
+              <div class="hidden" style="display: none !important;">
+                <!-- Mobile Focus Margin Quick Toggle Button (Hidden) -->
+                <button id="mobileFocusMarginBtn" type="button" class="hidden" style="display: none !important;">
+                  <span id="mobileFocusMarginLabel"></span>
                 </button>
-
-                <div class="hidden sm:flex items-center space-x-1 text-amber-700 dark:text-amber-400 font-bold uppercase tracking-wider text-[9.5px] sm:text-[10px] shrink-0 pl-1 border-l border-slate-300 dark:border-slate-700">
-                  <i data-lucide="pen-tool" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-600 dark:text-amber-400 shrink-0"></i>
-                  <span class="hidden md:inline">MARGIN</span>
-                  <span class="text-[8.5px] sm:text-[9px] text-slate-500 dark:text-slate-400 font-mono font-normal">M-1</span>
-                </div>
               </div>
             </div>
 
             <!-- Single Scrollable Canvas Area (Horizontal scroll on phone/tablet, perfectly isolates desktop) -->
-            <div id="bookletScrollArea" class="w-full flex-1 studio-scroll-extended min-h-[380px] overflow-y-auto overflow-x-auto lg:overflow-x-hidden bg-stone-950 p-2 relative select-none">
+            <div id="bookletScrollArea" class="w-full flex-1 studio-scroll-extended min-h-[380px] overflow-y-auto overflow-x-hidden bg-stone-950 p-2 relative select-none">
               
-              <!-- Dual-Track Answer Booklet: Sheet on Left, Margin on Right (1:1 Vertical Match) -->
+              <!-- Clean Answer Booklet: Full-Width Candidate Copy -->
               <div class="rounded-xl overflow-hidden border border-slate-800 bg-stone-900 shadow-xl relative w-full flex flex-col h-full min-h-full" id="bookletTrackContainer">
 
-                <!-- Dual Tracks Body: Answer Script on Left + Evaluator Margin on Right -->
+                <!-- Main Track Body: Full Width Clean Candidate Script -->
                 <div class="flex flex-row items-stretch w-full relative min-h-full flex-1" id="bookletTracksBody">
                   
                   <!-- 1. Main Answer Script Track (100% Clear Student Handwriting) -->
-                  <div class="relative flex-1 min-w-[260px] sm:min-w-[280px] bg-stone-900 overflow-hidden" id="sheetMainCanvas">
+                  <div class="relative w-full flex-1 min-w-0 bg-stone-900 overflow-hidden" id="sheetMainCanvas">
                     <div id="viewerEmptyPrompt" class="text-center py-16 px-4 text-slate-500 space-y-2 m-auto flex flex-col items-center justify-center min-h-[380px]">
                       <i data-lucide="file-text" class="w-10 h-10 mx-auto text-slate-400 mb-2"></i>
                       <p class="text-xs text-slate-300 font-medium">No answer copy loaded yet</p>
                       <p class="text-[11px] text-slate-400">Upload handwritten pages (PDF/JPG) from the intake panel.</p>
                     </div>
                     
-                    <!-- Clean Answer Sheet Wrapper: tightly wraps image so annotations align 1:1 with handwriting -->
+                    <!-- Clean Answer Sheet Wrapper: tightly wraps image -->
                     <div class="relative w-full h-auto hidden" id="pageImageWrapper">
                       <img id="activePageImage" src="" alt="Answer Sheet Preview" class="w-full h-auto block shadow-sm">
                       
-                      <!-- Connector Guides Overlay Layer: 100% Aligned to Image Height -->
-                      <div id="annotationsGuideLayer" class="absolute inset-0 pointer-events-none"></div>
+                      <!-- Connector Guides Overlay Layer: Hidden per user request -->
+                      <div id="annotationsGuideLayer" class="absolute inset-0 pointer-events-none hidden" style="display: none !important;"></div>
                     </div>
                     
                     <!-- Legacy overlay layer for backward compatibility -->
                     <div id="annotationsLayer" class="hidden"></div>
                   </div>
 
-                  <!-- 2. Dedicated Examiner Evaluation Margin Track (Zero scrollbar, flexible proportional width) -->
-                  <div class="w-56 sm:w-60 md:w-64 min-w-[200px] max-w-[260px] border-l-2 border-amber-500/40 bg-slate-50/90 dark:bg-slate-950/95 flex flex-col shrink-0 text-xs select-none relative" id="examinerMarginTrack">
-                    <!-- Evaluation marks & remarks pinned in this margin, perfectly tracking the image rows -->
-                    <div id="marginAnnotationsContainer" class="relative w-full h-full min-h-[380px] box-border">
-                      <div class="text-[10px] text-slate-500 italic text-center py-8 px-2">Evaluation remarks will appear in this margin</div>
-                    </div>
+                  <!-- 2. Examiner Margin Track (Hidden per user request: candidate copy expands full width) -->
+                  <div class="hidden" id="examinerMarginTrack" style="display: none !important;">
+                    <div id="marginAnnotationsContainer" class="hidden" style="display: none !important;"></div>
                   </div>
 
                 </div>
@@ -1053,7 +1044,7 @@
             </div>
 
           </div>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center">Marks are awarded in the dedicated UPSC examiner margin to keep candidate writing clear.</p>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center">Clean candidate answer copy view. Line-by-line evaluation, rubrics &amp; marks are detailed in the audit panel on the right.</p>
         </div>
         </div>
 
@@ -3435,7 +3426,7 @@
 
   </div>
 
-  <script src="/static/app.js?v=20261002_v3"></script>
+  <script src="/static/app.js?v=20261002_v4"></script>
   <script>
     if (window.lucide) {
       try { lucide.createIcons(); } catch(e) {}

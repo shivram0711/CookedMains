@@ -811,27 +811,31 @@ html.dark .keyword-action span {
   color: #F1F5F9;
 }
 
-/* UPSC Dedicated Examiner Evaluation Margin Track (Zero Overlap, Paragraph-Aligned) */
-#examinerMarginTrack {
-  background: #FAF8F5;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  overflow: visible !important; /* Single scrollbar on bookletScrollArea, NEVER duplicate scrollbars! */
-}
-
-html.dark #examinerMarginTrack {
-  background: linear-gradient(180deg, #090d16 0%, #0c121e 100%) !important;
-}
-
-#marginAnnotationsContainer {
-  position: relative !important;
-  width: 100% !important;
-  min-height: 100% !important;
-  height: auto !important;
+/* UPSC Dedicated Examiner Evaluation Margin Track & Curly Braces - Hidden per user request */
+#examinerMarginTrack,
+#marginAnnotationsContainer,
+#annotationsGuideLayer,
+.section-curly-brace,
+.print-curly-brace-svg,
+.print-copy-margin,
+#mobileFocusMarginBtn {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  max-width: 0 !important;
+  max-height: 0 !important;
   padding: 0 !important;
-  box-sizing: border-box !important;
-  overflow: visible !important;
+  margin: 0 !important;
+  border: none !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+}
+
+#sheetMainCanvas {
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: 1 1 100% !important;
 }
 
 #bookletTrackContainer,
@@ -3521,10 +3525,10 @@ html:not(.dark) #caDiagramTip {
   }
 
   .print-copy-img-wrap {
-    width: 70% !important;
-    flex: 0 0 70% !important;
+    width: 100% !important;
+    flex: 1 1 100% !important;
     position: relative !important;
-    border-right: 2px solid #D97706 !important;
+    border-right: none !important;
     border-radius: 0 !important;
     background: #FFFFFF !important;
   }
@@ -4106,25 +4110,21 @@ html, body {
 
   #bookletTrackContainer,
   #bookletTracksBody {
-    width: 560px !important;
-    min-width: 560px !important;
-    max-width: 560px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
     box-sizing: border-box !important;
   }
 
   #sheetMainCanvas {
-    width: 310px !important;
-    min-width: 310px !important;
-    max-width: 310px !important;
-    flex: none !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
   }
 
   #examinerMarginTrack {
-    width: 250px !important;
-    min-width: 250px !important;
-    max-width: 250px !important;
-    flex: none !important;
-    display: flex !important;
+    display: none !important;
   }
 }
 

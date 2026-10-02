@@ -1557,58 +1557,65 @@ Generate strictly valid JSON matching this schema:
   }},
   "visual_annotations": [
     // CRITICAL RULES FOR HUMAN UPSC EXAMINER MARGIN EVALUATION & ZERO-BOILERPLATE MANDATE:
-    // 0. ABSOLUTE BAN ON PROMPT PLACEHOLDERS: NEVER EVER copy or output instruction strings like "Direct assessment quoting candidate's actual handwritten opening words", "Specific technical concept, baseline metric, or foundational doctrine missing", "Substantive Upgrade: Specific missing institutional mechanism", or "Specific assessment of candidate's points". Every remark MUST be a 100% real evaluator assessment quoting the candidate's actual handwritten words, headings, diagrams, and arguments!
-    // 1. ZERO STOCK BOILERPLATE: NEVER use stock phrases like "Good Chronological Premise", "Clearly situated the core theme and historical timeline", "Strong Point Coverage", "Balanced Stand", or "Forward Anchor". Margin remarks MUST directly quote and evaluate the candidate's actual handwritten phrases from that specific zone!
-    // 2. NO TIMELINE HALLUCINATIONS: NEVER mention "timeline", "dates", or "chronology" unless the candidate literally wrote chronological dates, dynasties, or historical periods in their handwriting. If they defined a physical process (like insolation) or conceptual theme, evaluate the definition directly!
-    // 3. ZERO CONCLUSION FEEDBACK IN BODY: A Body annotation MUST evaluate ONLY the candidate's actual handwritten sub-headings, numbered points (1, 2, 3, 4...), diagrams, and arguments. NEVER write "Synthesis", "Balanced conclusion", "Closing stance", or conclusion recommendations inside a Body annotation! Conclusion feedback belongs strictly in the Conclusion annotation.
-    // 4. STATUTORY ACTS & POLICIES ARE ALWAYS BODY: Any legislative act (e.g. Model Contract Farming Act 2018, Disaster Management Act 2005), policy, scheme, or sub-heading with numbered points is ALWAYS a Body annotation (e.g. "Body: Model Contract Farming Act 2018"). Conclusion is strictly the final closing prose paragraph starting at y >= 68%–72%! NEVER wrap a statutory act or bullet points inside the Conclusion annotation!
-    // 5. INTERMEDIATE PAGES MUST HAVE 2 DISTINCT ANNOTATIONS: On intermediate pages, upper and lower sub-headings must be separate annotations with distinct tags (e.g. "Body: Market Failure (Flowchart)" for upper half, "Body: Correcting Contract Failures" for lower half). ZERO duplicate tags (NEVER repeat "Comprehensive Corrective Measures" across cards).
-    // 6. Exact Vertical Boundaries & Stop Before Bottom Tables:
-    //    - start_y_percent: Starts where candidate handwriting starts (e.g. 6%–12% if they wrote a heading at the top of Page 2; 24%–30% on Page 1 below printed questions).
-    //    - Body end_y_percent: Stops right above the final conclusion paragraph so Body and Conclusion NEVER overlap.
-    //    - Conclusion start_y_percent: Starts exactly where the concluding paragraph begins (typically 70%–74%, NEVER < 68%).
-    //    - CRITICAL BOTTOM STOP: If the page has a printed coaching rubric table, marks box, or "Students should not write anything inside the box" at the bottom (usually y >= 80%), Conclusion end_y_percent MUST STOP ABOVE THIS PRINTED BOX (typically 76%–80%)! NEVER include printed coaching boxes in end_y_percent!
-    // 7. Diagram Enclosure Rule: Whenever a candidate draws a diagram/flowchart/sketch, the section's "end_y_percent" MUST wrap the diagram so it is evaluated right there in that margin card!
-    // 8. Subject-Disciplined Conclusion: In Conclusion, NEVER prescribe "contemporary constitutional or policy significance" for Geography, History, or Ethics! Connect Geography conclusions to IPCC/NDMA/Sendai or planetary equilibrium; History/Culture to living heritage or civilizational continuity; Ethics to moral integrity/Nolan principles; Polity to constitutional morality/2nd ARC.
+    // 0. ABSOLUTE ZERO-BOILERPLATE MANDATE: Every margin remark MUST evaluate the candidate's ACTUAL handwritten content on that specific page!
+    //    NEVER EVER output generic boilerplate or stock phrases like:
+    //    - "Covered relevant analytical points and structured dimensions in this section"
+    //    - "Substantive arguments evaluated: Evaluated candidate's handwritten points with clear thematic categorization"
+    //    - "Page 1 Arguments" / "Page 2 Arguments"
+    //    - "Value Addition: Substantiate points with specific case studies, official data, or statutory frameworks"
+    //    - "Good Chronological Premise", "Clearly situated the core theme and historical timeline", "Balanced Stand", or "Forward Anchor"
+    //    Instead, quote the candidate's actual written sub-heading, analyze their actual arguments (Point 1, Point 2, Point 3, diagrams, data points), and provide concrete UPSC examiner feedback!
+    // 1. DYNAMIC BRACE TRACING & BOUNDARIES (NO FIXED RATIOS):
+    //    - Candidates write anywhere on the page! You MUST measure the actual physical vertical position (0% = page top, 100% = page bottom) of each section:
+    //    - start_y_percent: Exact percentage where candidate handwriting for this section begins (e.g. 24% on Page 1 below question header; 6% on Page 2 if starting at top).
+    //    - end_y_percent: Exact percentage where candidate handwriting for this section ends.
+    // 2. CRITICAL CONCLUSION BOTTOM STOP (NEVER EXTEND INTO PRINTED BOX):
+    //    - The Conclusion section on the final page MUST tightly encompass ONLY the candidate's actual handwritten concluding sentences (typically spanning ~6%–8% of the page height, e.g. start_y_percent: 68, end_y_percent: 74).
+    //    - UPSC QCAB and mock test booklets (Vajiram, ForumIAS, Vision, Insights, Drishti, etc.) have a pre-printed table, marks rubric, or "Students should not write anything inside the box" in the bottom 20%–25% (usually y >= 75%–80%).
+    //    - Conclusion end_y_percent MUST STOP ABOVE THIS PRINTED BOX (typically 74%–76%)! NEVER include the printed box or blank bottom margin in end_y_percent!
+    // 3. SEPARATE SUB-HEADINGS ON A PAGE:
+    //    - If a page has 2 distinct sections/sub-headings (e.g. Page 2 has continuation of points at top, and a boxed heading "Challenges Faced" with a diagram in the middle), generate 2 separate visual_annotations with their exact sub-headings as tags and accurate start_y_percent / end_y_percent!
+    // 4. SUBJECT-DISCIPLINED CONCLUSION:
+    //    - In Conclusion, evaluate the candidate's actual closing recommendation. Connect Geography to IPCC/NDMA/Sendai or planetary balance; History/Culture to living cultural continuity; Ethics to Nolan principles or constitutional morality; Polity to 2nd ARC or constitutional accountability.
     {{
       "page": 1,
-      "approx_y_percent": 30,
+      "approx_y_percent": 32,
       "start_y_percent": 24,
-      "end_y_percent": 38,
-      "tag": "Intro",
+      "end_y_percent": 44,
+      "tag": "Intro: Core Premise & Definition",
       "type": "tick",
       "marks_awarded": "+{sample_intro_aw:.1f} / {intro_d:.1f}",
-      "remark": "✓ **Opening Premise Evaluated**: Directly engaged the core thinker or baseline definition quoting candidate's actual handwritten words.\\n✎ **Conceptual Anchoring**: Ground the opening definition in the primary philosophical doctrine, thinker, or baseline framework to establish analytical depth upfront."
+      "remark": "✓ **Opening Premise Evaluated**: Directly engaged the core directive by quoting candidate's opening definition/premise and framing the foundational context.\\n✎ **Conceptual Anchoring**: Ground the opening in the primary constitutional article, statutory enactment year, or authoritative benchmark to elevate depth upfront."
     }},
     {{
       "page": 1,
-      "approx_y_percent": 65,
-      "start_y_percent": 40,
+      "approx_y_percent": 68,
+      "start_y_percent": 46,
       "end_y_percent": 88,
-      "tag": "Body: Candidate's Exact Sub-Heading",
+      "tag": "Body: Candidate's Exact Page 1 Sub-Heading",
       "type": "tick",
       "marks_awarded": "+{sample_body_aw:.1f} / {body_d:.1f}",
-      "remark": "✓ **Substantive Arguments Evaluated**: Evaluated candidate's handwritten points with clear thematic categorization.\\n✎ **Substantive Upgrade**: Deepen Point 2 with 1 concrete case study, institutional benchmark, or empirical example."
+      "remark": "✓ **Substantive Arguments Analyzed**: Evaluated candidate's specific points on [Point 1 / Point 2 topics], highlighting clear thematic categorization and analytical clarity.\\n✎ **Empirical & Institutional Depth**: Substantiate Point [X] with a concrete official committee recommendation, statutory mechanism, or empirical metric."
     }},
     {{
       "page": 2,
-      "approx_y_percent": 35,
+      "approx_y_percent": 40,
       "start_y_percent": 8,
       "end_y_percent": 68,
-      "tag": "Body: Candidate's Page 2 Sub-Heading",
+      "tag": "Body: Candidate's Exact Page 2 Sub-Heading",
       "type": "tick",
       "marks_awarded": "+{sample_body_aw:.1f} / {body_d:.1f}",
-      "remark": "✓ **Point-Wise Depth Evaluated**: Clear analysis across candidate's points addressing the second core directive.\\n✎ **Actionable Nuance**: Address the practical trade-offs or operational constraints in the implementation mechanism."
+      "remark": "✓ **Core Dimensional Scope**: Detailed analysis across candidate's points addressing the second core directive, with good structure and specific arguments.\\n✎ **Actionable Reform / Value-Add**: Bridge the gap in Point [Y] by citing specific operational safeguards, international best practices, or 2nd ARC recommendations."
     }},
     {{
       "page": 2,
-      "approx_y_percent": 78,
-      "start_y_percent": 70,
-      "end_y_percent": 84,
+      "approx_y_percent": 72,
+      "start_y_percent": 69,
+      "end_y_percent": 75,
       "tag": "Conclusion",
       "type": "suggestion",
       "marks_awarded": "+{sample_conc_aw:.1f} / {conc_d:.1f}",
-      "remark": "✓ **Closing Stance Evaluated**: Direct assessment of candidate's actual final concluding sentence.\\n✎ **Forward-Looking Vision**: Subject-disciplined closing vision (e.g. Sendai DRR for Geography, Civilizational continuity for Culture, Constitutional Morality for Polity, Moral stewardship / Seva Bhav for Ethics)."
+      "remark": "✓ **Closing Stance Evaluated**: Assessed candidate's final concluding sentence on [closing theme], tying together the central thesis of the answer.\\n✎ **How to Elevate**: Anchor the closing recommendation in an actionable forward-looking vision or institutional benchmark (e.g. 2nd ARC, Sendai framework, or Constitutional Morality)."
     }}
   ]
 }}
@@ -1933,19 +1940,42 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                     _add_unique_bullet(bullets, "**Macroeconomic Multiplier**: Connected MSME growth to tackling the falling investment rate, middle class expansion, and export revival.", "✓")
                     _add_unique_bullet(bullets, "**Policy Safeguards**: Anchor export growth in Priority Sector Lending (PSL) and global supply chain integration.", "✎")
 
-            if not bullets:
-                if is_history_culture:
-                    bullets.append(f"✓ **Page {pg_num} Dimensional Scope**: Addressed key regional, philosophical, and historical traditions.")
-                    bullets.append("✎ **Philosophical Depth**: Substantiate with specific texts, acharyas, and syncretic linkages.")
+            # 4. Pull from sub_part_step_marking or candidate's transcribed lines if still under 2 bullets
+            sub_steps = data.get("sub_part_step_marking") or []
+            if len(bullets) < 2 and isinstance(sub_steps, list) and sub_steps:
+                step_idx = min(len(sub_steps) - 1, max(1, pg_num))
+                step_obj = sub_steps[step_idx] if isinstance(sub_steps[step_idx], dict) else {}
+                q_w = str(step_obj.get("quoted_written") or "").strip()
+                s_u = str(step_obj.get("step_up_lever") or "").strip()
+                if q_w and len(q_w) >= 20 and not _has_meta_placeholder(q_w):
+                    _add_unique_bullet(bullets, f"**Core Argument Evaluated**: {q_w}", "✓")
+                if len(bullets) < 2 and s_u and len(s_u) >= 20 and not _has_meta_placeholder(s_u):
+                    _add_unique_bullet(bullets, f"**Value Addition**: {s_u}", "✎")
+
+            # 5. Extract candidate's actual written sentences from page transcript
+            if len(bullets) < 2 and pg_trans:
+                cand_lines = [
+                    l.strip() for l in pg_trans.splitlines()
+                    if len(l.strip()) >= 25 and not l.strip().startswith("#") and not re.match(r'^(?:Q\.?|\d+[\.\)])\s*', l.strip())
+                ]
+                if cand_lines:
+                    snippet = cand_lines[slot_idx % len(cand_lines)][:85]
+                    _add_unique_bullet(bullets, f"**Arguments Analyzed**: Evaluated analysis on *\"{snippet}...\"* addressing core directive dimensions.", "✓")
+
+            if len(bullets) < 2:
+                if is_polity:
+                    _add_unique_bullet(bullets, "**Institutional Value Addition**: Substantiate with specific recommendations from 2nd ARC, Law Commission reports, or Supreme Court constitutional benchmarks.", "✎")
+                elif is_econ:
+                    _add_unique_bullet(bullets, "**Empirical Depth**: Substantiate points with official economic telemetry, NITI Aayog indices, or statutory compliance frameworks.", "✎")
+                elif is_history_culture:
+                    _add_unique_bullet(bullets, "**Historical Depth**: Substantiate arguments with specific epigraphical records, primary cultural treatises, or regional landmarks.", "✎")
                 elif is_geo:
-                    bullets.append(f"✓ **Page {pg_num} Factor Analysis**: Mapped key spatial, thermal, and atmospheric mechanisms.")
-                    bullets.append("✎ **Scientific Nuance**: Substantiate with thermodynamic models, specific heat dynamics, or global indices.")
+                    _add_unique_bullet(bullets, "**Scientific Nuance**: Frame points in terms of thermodynamic driving forces, NDMA guidelines, or Sendai Framework indicators.", "✎")
                 elif is_ethics:
-                    bullets.append(f"✓ **Page {pg_num} Ethical Analysis**: Addressed stakeholder dilemmas and core values.")
-                    bullets.append("✎ **Ethical Framework**: Ground points in Nolan principles, 2nd ARC, or constitutional values.")
+                    _add_unique_bullet(bullets, "**Ethical Depth**: Ground arguments in Nolan Principles of Public Life, 2nd ARC (Ethics in Governance), or constitutional values.", "✎")
                 else:
-                    bullets.append(f"✓ **Page {pg_num} Analysis**: Addressed relevant points and institutional mechanisms.")
-                    bullets.append("✎ **Value Addition**: Substantiate points with domain-specific examples, data, or statutory benchmarks.")
+                    _add_unique_bullet(bullets, "**Domain Substantiation**: Support arguments with official committee recommendations, statutory frameworks, or empirical telemetry.", "✎")
+
             return "\n".join(bullets[:4])
 
         # Extract student's first non-header sentence from transcribed_text
@@ -2256,10 +2286,14 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                                     }
                                     pg_anns.insert(0, body_ann_new)
 
-                            if float(conc_ann.get("start_y_percent", 70) or 70) < 68.0:
-                                conc_ann["start_y_percent"] = 70.0
-                            if float(conc_ann.get("end_y_percent", 84) or 84) > 85.0:
-                                conc_ann["end_y_percent"] = 84.0
+                            raw_conc_start = float(conc_ann.get("start_y_percent", 69.0) or 69.0)
+                            if raw_conc_start < 65.0:
+                                conc_ann["start_y_percent"] = 68.0
+                            else:
+                                conc_ann["start_y_percent"] = raw_conc_start
+                            # Conclusion must stop before pre-printed examiner table / footer box (typically y >= 75%-80%)
+                            raw_conc_end = float(conc_ann.get("end_y_percent", conc_ann["start_y_percent"] + 6.0) or (conc_ann["start_y_percent"] + 6.0))
+                            conc_ann["end_y_percent"] = min(76.0, max(conc_ann["start_y_percent"] + 4.0, raw_conc_end))
                             if body_anns:
                                 for b in body_anns:
                                     if float(b.get("end_y_percent", 68) or 68) >= float(conc_ann.get("start_y_percent", 70) or 70):
