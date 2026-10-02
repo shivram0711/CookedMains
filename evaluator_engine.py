@@ -1135,9 +1135,27 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       * Before generating `body_audit.critical_gaps` (Mentor's Upgrade Levers), `body_audit.missing_dimensions`, `intro_audit.missing_elements`, `visual_annotations`, or `missing_keywords_cards`, cross-check every single word against `transcribed_text` and `body_audit.strengths`!
       * STRICT BAN: If the aspirant already wrote a case law, statute, article, or concept in their answer (for example, if they wrote `Striking of NJAC Act by court` on Page 1), NEVER write `"without citing NJAC judgment"`, `"missed NJAC"`, or `"(e.g., NJAC judgment debate)"` under critical gaps or missing dimensions! Saying an aspirant missed something they clearly wrote on the sheet destroys trust.
       * Instead, **appreciate** the right point they wrote (`"You rightly used the **NJAC Act** to explain judicial independence"`) and guide them on the next distinct angle they can add (`"To gain +1M more, add 2 short points on **Judicial Restraint** so courts respect Parliament's policy role"`).
-    - B. APPRECIATE RIGHT POINTS & DO NOT OVERLOAD THE ASPIRANT:
-      * When the aspirant has written valid points that meet the demand of the question, praise those exact points clearly in `body_audit.strengths` and `visual_annotations`.
-      * Keep `body_audit.critical_gaps` (Mentor's Upgrade Levers) to **at most 2 clear, practical points** that are genuinely absent from their answer. Never overload or confuse the aspirant with repetitive advice.
+    - B. DEEP EVALUATION BODY AUDIT — IN-DEPTH STRUCTURED POINTS (ZERO PARAGRAPHS, MULTI-PAGE COVERAGE):
+      * The Body section carries 60%–70% of total answer marks. The Deep Evaluation Tab's `body_audit` MUST provide extensive depth and granular coverage across every single sub-heading, diagram, and physical page of the candidate's answer copy!
+      * `body_audit.overall_assessment`: A comprehensive 1-to-2-sentence structural synthesis summarizing the candidate's body organization, sub-headings, diagrams, and key concepts across all pages with `**keyword**` highlighting.
+      * `body_audit.strengths` (WHAT FETCHED MARKS IN BODY):
+        - STRICT PROHIBITION: NEVER write as long, condensed narrative paragraphs!
+        - MUST output **4 to 6 distinct, structured bullet points** (minimum 4 for 10M, 5-6 for 15M/20M).
+        - Every single bullet point MUST have a bold title with page reference:
+          `**[Core Concept / Diagram / Sub-Heading Title] (Page X)**: In-depth candidate point analysis with specific terminology and facts highlighted.`
+        - Granular Coverage across all pages:
+          1. Primary demand & opening framework/diagram on Page 1 / Page 1-2.
+          2. Analytical distinctions, formulas, or conceptual models on Page 1-2.
+          3. Multi-dimensional categorization / regional / stakeholder breakdown on Page 2 / Page 3.
+          4. Practical applications, empirical data, institutional frameworks, or forward-looking policy dimensions on Page 2 / Page 3.
+        - Wrap technical keywords, statutes, and metrics in `**keyword**` so semantic chips render!
+      * `body_audit.critical_gaps` (BODY UPGRADE LEVERS):
+        - STRICT PROHIBITION: NEVER write as long paragraphs!
+        - MUST output **3 to 4 distinct, structured upgrade points**:
+          `**[Clear Actionable Title] (Page X)**: In-depth guidance explaining what was generic or incomplete with exact domain-specific terminology, data, or frameworks to add.`
+      * `body_audit.missing_dimensions`:
+        - MUST output **3 to 4 analytical dimensions**:
+          `**[Dimension Title]**: Clear, concrete explanation of the unexplored institutional, statutory, spatial, empirical, or ethical angle.`
     - C. USE SIMPLE, CLEAR, EASY-TO-UNDERSTAND ENGLISH (ZERO HEAVY JARGON):
       * Write every evaluation remark in plain, natural English that any aspirant can understand in 3 seconds.
       * STRICTLY AVOID dense, robotic phrases such as `"Addressed limitations superficially without citing institutional friction"`, `"underweighting separation of powers constraints"`, `"epistemic tautology"`, `"dichotomy"`, `"substantiation"`.
@@ -1428,9 +1446,23 @@ Generate strictly valid JSON matching this schema:
     "model_intro_rewrite": "Crisp 25-word model opening (leave empty string '' if candidate's introduction is already full marks)."
   }},
   "body_audit": {{
-    "strengths": ["**Key Empirical / Theoretical Point**: Addressed core demand with evidence", "**Structured Question-Echoing Headings**: Clean sub-part division"],
-    "critical_gaps": ["**Structural Sub-part Balance**: Expected {2 if max_marks == 10 else 3} balanced sub-parts with 3-4 points each", "**No Dead-End Check**: Flagged if 15M/20M ended on challenges without a constructive Way Forward sub-part", "**Anti-Shringar Audit**: Superficial name-dropping vs functional Point->Example substantiation"],
-    "missing_dimensions": ["**Implicit Systemic Context**: Deeper policy or constitutional root", "**Operational Dimension / Stage**: Supply-chain stage or stakeholder perspective"]
+    "overall_assessment": "Comprehensive 1-2 sentence examiner synthesis citing key sub-headings and concepts written across pages (e.g., 'Your Body section is logically structured across **[Sub-Heading 1]** (Page 1) and **[Sub-Heading 2]** (Pages 2-3), featuring neat diagrams... However, ...')",
+    "strengths": [
+      "**[Core Dimension 1 / Diagram] (Page 1)**: In-depth candidate point analysis with specific concepts highlighted",
+      "**[Core Dimension 2 / Analytical Distinction] (Page 1-2)**: In-depth candidate point analysis with specific concepts highlighted",
+      "**[Core Dimension 3 / Regional Breakdown] (Page 2-3)**: In-depth candidate point analysis with specific concepts highlighted",
+      "**[Core Dimension 4 / Policy & Empirical Measures] (Page 3)**: In-depth candidate point analysis with specific concepts highlighted"
+    ],
+    "critical_gaps": [
+      "**[Actionable Upgrade 1] (Page 1-2)**: In-depth explanation of what was generic or incomplete with exact terminology/data to add",
+      "**[Actionable Upgrade 2] (Page 2)**: In-depth explanation of what was generic or incomplete with exact terminology/data to add",
+      "**[Actionable Upgrade 3] (Page 3)**: In-depth explanation of what was generic or incomplete with exact terminology/data to add"
+    ],
+    "missing_dimensions": [
+      "**[Institutional / Statutory Dimension]**: Concrete explanation of missed perspective",
+      "**[Empirical / Spatial Dimension]**: Concrete explanation of missed perspective",
+      "**[Socio-Economic / Multi-Stakeholder Dimension]**: Concrete explanation of missed perspective"
+    ]
   }},
   "value_add_checklist": {{
     "category_1": {{
@@ -3063,14 +3095,108 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                 s = re.sub(re.escape(old_p), new_p, s, flags=re.IGNORECASE)
         return s
 
+    # 1. Process and enrich body_audit.strengths into 4 to 6 distinct, structured bullet points (zero paragraphs)
+    raw_strengths = body_audit.get("strengths") if isinstance(body_audit.get("strengths"), list) else []
+    unpacked_strengths = []
+    for item in raw_strengths:
+        if not item:
+            continue
+        s_item = str(item).strip()
+        lines = [l.strip() for l in re.split(r'\n+|(?<=[.?!])\s+(?=[✓✔•★⭐\d+\.|\([a-z]\)])', s_item) if l.strip()]
+        if len(lines) > 1:
+            unpacked_strengths.extend(lines)
+        else:
+            unpacked_strengths.append(s_item)
+
+    formatted_strengths = []
+    for idx, s_pt in enumerate(unpacked_strengths):
+        clean = re.sub(r'^[✓✔•★⭐\s\-]+', '', s_pt).strip()
+        clean = re.sub(r'^([A-Za-z0-9][^:*\n]{1,60})\*\*:', r'**\1**:', clean)
+        if not clean.startswith("**"):
+            if ":" in clean and clean.index(":") <= 65:
+                parts = clean.split(":", 1)
+                clean = f"**{parts[0].strip()}**: {parts[1].strip()}"
+            else:
+                words = clean.split()
+                t_words = " ".join(words[:min(5, len(words))])
+                r_words = " ".join(words[min(5, len(words)):])
+                clean = f"**{t_words}**: {r_words}"
+        if not re.search(r'\(Page\s*[\d–-]+\)', clean, re.IGNORECASE):
+            tgt_pg = "Page 1" if idx == 0 else ("Page 1–2" if idx == 1 else ("Page 2" if idx == 2 else "Page 2–3"))
+            clean = re.sub(r'^(\*\*[^*]+)(\*\*)', rf'\1 ({tgt_pg})\2', clean)
+        formatted_strengths.append(clean)
+
+    # Supplement if fewer than 4 structured points
+    pbp_list = data.get("point_by_point_audit") if isinstance(data.get("point_by_point_audit"), list) else []
+    if len(formatted_strengths) < 4:
+        for pbp in pbp_list:
+            if len(formatted_strengths) >= 5:
+                break
+            if isinstance(pbp, dict) and pbp.get("is_positive") and pbp.get("title") and not re.search(r'conclusion|unwritten', str(pbp.get("title")), re.I):
+                t_clean = re.sub(r'[*_#`]', '', str(pbp.get("title"))).strip()
+                if not any(t_clean.lower()[:15] in fs.lower() for fs in formatted_strengths):
+                    pg_num = pbp.get("page", 2)
+                    what = f"{pbp.get('what_you_wrote')}. " if pbp.get("what_you_wrote") else ""
+                    verd = str(pbp.get("examiner_verdict") or "Substantiated demand with structured points.")
+                    formatted_strengths.append(f"**{t_clean} (Page {pg_num})**: {what}{verd}")
+
+    if formatted_strengths:
+        body_audit["strengths"] = formatted_strengths[:6]
+
+    # 2. Process and enrich body_audit.critical_gaps into 3 to 4 distinct structured points
     if isinstance(body_audit.get("critical_gaps"), list):
         cleaned_gaps = [simplify_and_decontradict(g, is_gap=True) for g in body_audit["critical_gaps"]]
-        # Keep concise (max 2 high-impact, non-repetitive points)
-        deduped_gaps = []
+        unpacked_gaps = []
         for g in cleaned_gaps:
-            if g and g not in deduped_gaps:
-                deduped_gaps.append(g)
-        body_audit["critical_gaps"] = deduped_gaps[:2]
+            if not g:
+                continue
+            lines = [l.strip() for l in re.split(r'\n+|(?<=[.?!])\s+(?=[✎✗×•\d+\.|\([a-z]\)])', str(g)) if l.strip()]
+            if len(lines) > 1:
+                unpacked_gaps.extend(lines)
+            else:
+                unpacked_gaps.append(str(g).strip())
+
+        formatted_gaps = []
+        for idx, g_pt in enumerate(unpacked_gaps):
+            clean = re.sub(r'^[✎✗×•\s\-]+', '', g_pt).strip()
+            clean = re.sub(r'^([A-Za-z0-9][^:*\n]{1,60})\*\*:', r'**\1**:', clean)
+            if not clean.startswith("**"):
+                if ":" in clean and clean.index(":") <= 65:
+                    parts = clean.split(":", 1)
+                    clean = f"**{parts[0].strip()}**: {parts[1].strip()}"
+                else:
+                    words = clean.split()
+                    t_words = " ".join(words[:min(5, len(words))])
+                    r_words = " ".join(words[min(5, len(words)):])
+                    clean = f"**{t_words}**: {r_words}"
+            if not re.search(r'\(Page\s*[\d–-]+\)', clean, re.IGNORECASE):
+                tgt_pg = "Page 1–2" if idx == 0 else ("Page 2" if idx == 1 else "Page 3")
+                clean = re.sub(r'^(\*\*[^*]+)(\*\*)', rf'\1 ({tgt_pg})\2', clean)
+            if clean and clean not in formatted_gaps:
+                formatted_gaps.append(clean)
+
+        if len(formatted_gaps) < 3:
+            for pbp in pbp_list:
+                if len(formatted_gaps) >= 4:
+                    break
+                if isinstance(pbp, dict) and not pbp.get("is_positive") and pbp.get("title") and not re.search(r'conclusion|unwritten', str(pbp.get("title")), re.I):
+                    t_clean = re.sub(r'[*_#`]', '', str(pbp.get("title"))).strip()
+                    if not any(t_clean.lower()[:15] in fg.lower() for fg in formatted_gaps):
+                        pg_num = pbp.get("page", 2)
+                        verd = str(pbp.get("examiner_verdict") or "Deepen analysis with official institutional data and statutory anchors.")
+                        formatted_gaps.append(f"**{t_clean} (Page {pg_num})**: {verd}")
+
+        body_audit["critical_gaps"] = formatted_gaps[:4]
+        data["body_audit"] = body_audit
+
+    # 3. Overall Body Assessment synthesis
+    if not body_audit.get("overall_assessment") or len(str(body_audit.get("overall_assessment"))) < 40:
+        rubric_eval = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
+        b_earned = float(rubric_eval.get("core_demand_score", 3.0) or 3.0) + float(rubric_eval.get("value_add_score", 1.0) or 1.0)
+        b_max = float(rubric_eval.get("core_demand_max", 4.5) or 4.5) + float(rubric_eval.get("value_add_max", 1.5) or 1.5)
+        top_str = formatted_strengths[0].split(":")[0].replace("**", "") if formatted_strengths else "structured sub-headings addressing primary demand"
+        top_gap = formatted_gaps[0].split(":")[0].replace("**", "") if 'formatted_gaps' in locals() and formatted_gaps else "deeper domain-specific conceptual and empirical anchors"
+        body_audit["overall_assessment"] = f"Your Body section scored **{b_earned:.1f} / {b_max:.1f}M** by demonstrating **{top_str}**. To unlock the next **+1.5 to +2.5M** band, focus on **{top_gap}** and substantiate with official statutory benchmarks."
         data["body_audit"] = body_audit
 
     q_str = str(data.get("detected_question") or data.get("question") or "")

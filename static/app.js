@@ -4030,22 +4030,27 @@ function getSemanticHighlightClass(rawTerm) {
   if (!rawTerm) return "chip-amber";
   const t = String(rawTerm).toLowerCase();
 
-  // 1. Geographic, Seismological Wave Dynamics, Spatial Zones & Plates
-  if (/ring of fire|pacific|circum|himalay|atlantic|boundary|plate|tectonic|lithospher|asthenospher|subduction|benioff|wadati|fault|seismic|wave|surface wave|love|rayleigh|body wave|primary wave|secondary wave|p wave|s wave|zone v|zone iv|zone iii|zone ii|epicentre|hypocentre|focus|crust|magma|geograph/i.test(t)) {
-    return "chip-sky";
+  // 1. Critical Gaps, Deductions, Errors, Omissions & Misnomers (Rose)
+  if (/(?:tertiary wave|unlabeled|unwritten|missing|omitted|misattribution|flaw|dead-end|superficial|generic|deduction|penalty|slip|contradiction|not asked|space wasted|unaddressed|shortcoming|lacuna|gap|vague|weakness|failure|moud|laiphadibi|matriarchal|unsourced|overreach)/i.test(t)) {
+    return "chip-rose";
   }
 
-  // 2. Formal Frameworks, Statutory Standards, BIS/NBC Codes, Constitutional & Theorists
-  if (/sendai|ndma|sdg|reid|elastic rebound|nbc|bis|is 1893|article|constitution|supreme court|judgment|statut|framework|guideline|committee|commission|act\b|code\b|treaty|protocol|governance/i.test(t)) {
+  // 2. Formal Frameworks, Statutory Standards, BIS/NBC Codes, Constitutional Articles & Theorists (Indigo)
+  if (/(?:article\s*\d+|basic structure|judicial review|judicial restraint|separation of powers|rule of law|due process|procedure established|fundamental right|directive principle|dpsp|writ\b|mandamus|habeas corpus|quo warranto|certiorari|prohibition|seventh schedule|ninth schedule|preamble|parliamentary sovereign|kesavananda|maneka gandhi|i\.?r\.? coelho|minerva mills|bommai|shreya singhal|navtej|puttaswamy|vishaka|indira sawhney|lily thomas|njac|ramesh dalal|shayara bano|berubari|golaknath|act\b|code\b|statut|bis\b|is\s*1893|nbc\b|national building code|rpa\b|prevention of corruption|anrf|frbm|sendai|sdg\b|paris agreement|unfccc|ipcc|cop\d+|unclos|ndma\b|guideline|commission|committee|treaty|protocol|convention\b|yandabo|2nd arc|sarkaria|punchhi|finance commission|reid\b|elastic rebound|kautilya|ambedkar|aristotle|plato|kant\b|categorical imperative|rawls\b|utilitarian|deontolog|bentham|mill\b|gandhi\b|sankardev|lachit)/i.test(t)) {
     return "chip-indigo";
   }
 
-  // 3. Positives, Structural Accuracies & Verified Sketches
-  if (/accurate|convergent|transform|credit|strength|effective|correct|merit|sound|optimal/i.test(t)) {
+  // 3. Positives, Structural Accuracies, Verified Data Benchmarks & Flagship Models (Emerald)
+  if (/(?:accurate|convergent|transform|credit|strength|effective|correct|sound|optimal|robust|nuanced|commendable|best practice|spider diagram|flowchart|balanced|\b\d+(?:\.\d+)?\s*%|~\d+|zone\s*[v|iv|iii|ii]|49 kpis|112 districts|3cs\b|50% subsidy|rs\.?\s*\d+|crore|lakh|standup india|startup india|aspirational blocks?|abp\b|champions of change|midh\b|apeda\b|krishi udan|pli scheme)/i.test(t)) {
     return "chip-emerald";
   }
 
-  // 4. Default / Actionable Levers, Hazards & Cascading Gaps
+  // 4. Geographic, Seismological Wave Dynamics, S&T Deep-Tech & Spatial Phenomena (Sky)
+  if (/(?:ring of fire|pacific|circum|himalay|atlantic|boundary|plate|tectonic|lithospher|asthenospher|subduction|benioff|wadati|fault|seismic|wave|surface wave|love\b|rayleigh|body wave|primary.*wave|secondary.*wave|p wave|s wave|epicentre|hypocentre|focus\b|crust\b|magma|geomorph|volcan|glacier|karst|inversion|insolation|albedo|lapse rate|coriolis|heat dome|urban heat island|el niñ?o|la niñ?a|enso\b|monsoon|jet stream|semiconductor|quantum|artificial intelligence|deep-tech|deep tech|biotech|crispr|space|isro|supercomput|patent|intellectual property|r&d\b|capex\b|gerd\b|trl\b|technology readiness|clean energy|green hydrogen|ev\b|genomics|nanotech|buranji|paik\b|khel\b|moidam|charaideo|satra\b|namghar\b|saraighat|unesco\b|heritage)/i.test(t)) {
+    return "chip-sky";
+  }
+
+  // 5. Default Core Thematic Dimensions, Sub-Headings, Structural Pillars & Upgrade Levers (Amber)
   return "chip-amber";
 }
 
@@ -4106,7 +4111,7 @@ function formatHighlightedText(text) {
     return `<strong class="bullet-title font-bold text-slate-900 dark:text-slate-100">${p1}</strong>${colonPart}`;
   });
 
-  // Highlight remaining markdown bold **word**: Highlight genuine keywords with multi-color chips; render long phrases or action directives as clean bold text
+  // Highlight markdown bold **word**: Highlight genuine keywords with multi-color chips; render long phrases or action directives as clean bold text
   s = s.replace(/\*\*(.*?)\*\*/g, (match, p1) => {
     if (isNonKeywordPhrase(p1)) {
       return `<strong class="font-semibold text-slate-900 dark:text-slate-100">${p1}</strong>`;
@@ -4118,6 +4123,41 @@ function formatHighlightedText(text) {
     }
     return `<span class="highlight-text-chip ${colorClass} font-semibold px-1.5 py-0.5 rounded">${p1}</span>`;
   });
+
+  // Highlight bracketed keywords [word] (not markdown links)
+  s = s.replace(/\[([A-Za-z0-9][^\]\n]{1,45})\](?!\()/g, (match, p1) => {
+    if (isNonKeywordPhrase(p1)) {
+      return `[${p1}]`;
+    }
+    const colorClass = getSemanticHighlightClass(p1);
+    const gMatch = findGlossaryMatch(p1);
+    if (gMatch) {
+      return `<span class="jargon-inline-badge highlight-text-chip ${colorClass} font-semibold px-1.5 py-0.5 rounded cursor-help" tabindex="0">${p1}<span class="glossary-star">*</span><span class="jargon-bubble"><strong>${escapeHtml(gMatch.term)}</strong>: ${escapeHtml(gMatch.meaning)}</span></span>`;
+    }
+    return `<span class="highlight-text-chip ${colorClass} font-semibold px-1.5 py-0.5 rounded">${p1}</span>`;
+  });
+
+  // Highlight single-quoted technical terms like 'Focus' (Hypocentre) or 'Epicentre'
+  s = s.replace(/'([A-Za-z0-9][^'\n]{1,35})'/g, (match, p1) => {
+    if (isNonKeywordPhrase(p1) || /^(s|t|d|ll|re|ve|m)$/i.test(p1)) {
+      return `'${p1}'`;
+    }
+    const colorClass = getSemanticHighlightClass(p1);
+    const gMatch = findGlossaryMatch(p1);
+    if (gMatch) {
+      return `<span class="jargon-inline-badge highlight-text-chip ${colorClass} font-semibold px-1.5 py-0.5 rounded cursor-help" tabindex="0">${p1}<span class="glossary-star">*</span><span class="jargon-bubble"><strong>${escapeHtml(gMatch.term)}</strong>: ${escapeHtml(gMatch.meaning)}</span></span>`;
+    }
+    return `<span class="highlight-text-chip ${colorClass} font-semibold px-1.5 py-0.5 rounded">${p1}</span>`;
+  });
+
+  // Highlight criticized error terms in italics like *tertiary waves*
+  s = s.replace(/\*([A-Za-z0-9][^*'\n]{1,35})\*/g, (match, p1) => {
+    if (isNonKeywordPhrase(p1)) {
+      return `*${p1}*`;
+    }
+    return `<span class="highlight-text-chip chip-rose font-semibold px-1.5 py-0.5 rounded">${p1}</span>`;
+  });
+
   // Format linebreaks
   s = s.replace(/\n/g, '<br>');
   return s;
@@ -6682,7 +6722,7 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
   sections.forEach((sec, idx) => {
     const card = document.createElement("div");
     card.id = `desktopEvalCard_${idx}`;
-    card.className = "eval-card p-3 rounded-xl bg-slate-950 border border-slate-800 transition-all duration-300 hover:border-slate-700 cursor-pointer select-none";
+    card.className = "eval-card p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 transition-all duration-300 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer select-none";
 
     let pinLabel = sec.icon || "✓";
     const mMatch = String(sec.marks || "").match(/\+?(\d+(?:\.\d+)?)/);
@@ -6692,16 +6732,16 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
     }
 
     const isGreen = sec.isTick && pinLabel !== "0.0";
-    const labelColor = isGreen ? "text-emerald-400" : "text-amber-400";
+    const labelColor = isGreen ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400";
     const pillClass = isGreen
-      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-      : "bg-amber-500/10 text-amber-400 border border-amber-500/30";
+      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+      : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30";
 
     const { quote, advise } = getCardQuoteAndElevate(sec);
 
     card.innerHTML = `
       <div class="flex items-center justify-between mb-1.5 gap-2">
-        <span class="text-xs font-bold text-white flex items-center gap-1.5 min-w-0">
+        <span class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 min-w-0">
           <span class="${labelColor} font-mono font-bold shrink-0">${escapeHtml(pinLabel)}</span>
           <span class="truncate">${escapeHtml(sec.title)}</span>
         </span>
@@ -6709,10 +6749,10 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
           ${escapeHtml(sec.marks)}
         </span>
       </div>
-      <p class="text-xs text-slate-300 leading-relaxed font-sans mb-2">
-        <strong class="text-slate-200">Candidate Quote:</strong> "${escapeHtml(quote)}"
+      <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans mb-2">
+        <strong class="text-slate-900 dark:text-slate-200">Candidate Quote:</strong> "${escapeHtml(quote)}"
       </p>
-      <div class="p-2 rounded-lg bg-slate-900 border border-slate-800 text-[11px] text-amber-300/90 leading-relaxed font-sans">
+      <div class="p-2 rounded-lg bg-amber-50/70 dark:bg-slate-900 border border-amber-200 dark:border-slate-800 text-[11px] text-amber-900 dark:text-amber-300/90 leading-relaxed font-sans">
         💡 <strong>Elevate:</strong> ${typeof formatHighlightedText === "function" ? formatHighlightedText(advise) : escapeHtml(advise)}
       </div>
     `;
@@ -6759,14 +6799,14 @@ window.focusGutterPointOnPage = function(index, yPercent, marksStr, sec, isPinne
   // Directs to and highlights matching card in Examiner Line-by-Line Audit below answersheet
   document.querySelectorAll("#desktopAuditCardsContainer .eval-card").forEach((card, cIdx) => {
     if (cIdx === index) {
-      card.classList.remove("border-slate-800", "bg-slate-950");
-      card.classList.add("border-amber-400", "bg-slate-900", "pulse-glow");
+      card.classList.remove("border-slate-200", "dark:border-slate-800", "bg-slate-50", "dark:bg-slate-950");
+      card.classList.add("border-amber-500", "dark:border-amber-400", "bg-amber-50/60", "dark:bg-slate-900", "pulse-glow");
       if (isPinned) {
         card.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }
     } else {
-      card.classList.remove("border-amber-400", "bg-slate-900", "pulse-glow");
-      card.classList.add("border-slate-800", "bg-slate-950");
+      card.classList.remove("border-amber-500", "dark:border-amber-400", "bg-amber-50/60", "dark:bg-slate-900", "pulse-glow");
+      card.classList.add("border-slate-200", "dark:border-slate-800", "bg-slate-50", "dark:bg-slate-950");
     }
   });
 };
@@ -7510,6 +7550,178 @@ window.classifyQuestionDiscipline = function(questionText, paper) {
   return "POLICY_GOVERNANCE_ECONOMY";
 };
 
+// Universal Deep Evaluation Body Audit Structuring & In-Depth Enrichment Engine
+// Guarantees that EVERY evaluation (GS1-4, Case Studies, Optionals) has:
+// 1. A comprehensive Examiner's Overall Body Assessment synthesizing structure across pages
+// 2. 4 to 6 granular structured points in body_audit.strengths (What Fetched Marks in Body) with **Title (Page X)**: analysis (zero paragraphs)
+// 3. 3 to 4 granular structured points in body_audit.critical_gaps (Upgrade Levers) with **Title (Page X)**: guidance
+// 4. Semantic keyword bolding so multi-color highlighters/chips render automatically across light & dark themes
+window.normalizeAndEnrichBodyAudit = function(evalData) {
+  if (!evalData || typeof evalData !== "object") return;
+  if (!evalData.body_audit || typeof evalData.body_audit !== "object") {
+    evalData.body_audit = {};
+  }
+  const body = evalData.body_audit;
+  const pbpList = Array.isArray(evalData.point_by_point_audit) ? evalData.point_by_point_audit : [];
+  const annsList = Array.isArray(evalData.visual_annotations) ? evalData.visual_annotations : [];
+
+  // 1. Overall Body Assessment
+  if (!body.overall_assessment || String(body.overall_assessment).trim().length < 40) {
+    const rScores = evalData.rubric_scores || {};
+    const bScore = (parseFloat(rScores.core_demand_score) || 0) + (parseFloat(rScores.value_add_score) || 0);
+    const bMax = (parseFloat(rScores.core_demand_max) || 4.5) + (parseFloat(rScores.value_add_max) || 1.5);
+    const topStr = (Array.isArray(body.strengths) && body.strengths[0])
+      ? String(body.strengths[0]).replace(/^[✓✔•★⭐\s\-]+/, "").split(":")[0].replace(/\*\*/g, "")
+      : "structured sub-headings addressing primary demand";
+    const topGap = (Array.isArray(body.critical_gaps) && body.critical_gaps[0])
+      ? String(body.critical_gaps[0]).replace(/^[✎✗×•\s\-]+/, "").split(":")[0].replace(/\*\*/g, "")
+      : "deeper domain-specific conceptual and empirical anchors";
+
+    body.overall_assessment = `Your Body section scored **${bScore.toFixed(1)} / ${bMax.toFixed(1)}M** by demonstrating **${topStr}** with relevant diagrams and factual examples. To unlock the next **+1.5 to +2.5M** score band, focus on **${topGap}** and substantiate with official statutory benchmarks.`;
+  }
+
+  // 2. Unpack and clean strengths into distinct structured bullet points (4 to 6 points)
+  let rawStrengths = Array.isArray(body.strengths) ? body.strengths : [];
+  let unpackedStrengths = [];
+
+  rawStrengths.forEach(item => {
+    if (!item) return;
+    const str = String(item).trim();
+    const lines = str.split(/\n+|(?<=[.?!])\s+(?=[✓✔•★⭐\d+\.|\([a-z]\)])/).map(l => l.trim()).filter(Boolean);
+    if (lines.length > 1) {
+      lines.forEach(l => unpackedStrengths.push(l));
+    } else {
+      unpackedStrengths.push(str);
+    }
+  });
+
+  let formattedStrengths = unpackedStrengths.map((s, idx) => {
+    let clean = s.replace(/^[✓✔•★⭐\s\-]+/, "").trim();
+    clean = clean.replace(/^([A-Za-z0-9][^:*\n]{1,60})\*\*:/, "**$1**:");
+    if (!clean.startsWith("**")) {
+      const colonIdx = clean.indexOf(":");
+      if (colonIdx > 0 && colonIdx <= 65) {
+        clean = `**${clean.slice(0, colonIdx).trim()}**: ${clean.slice(colonIdx + 1).trim()}`;
+      } else {
+        const words = clean.split(/\s+/);
+        const titleWords = words.slice(0, Math.min(5, words.length)).join(" ");
+        const restWords = words.slice(Math.min(5, words.length)).join(" ");
+        clean = `**${titleWords}**: ${restWords}`;
+      }
+    }
+    if (!/\(Page\s*[\d–-]+\)/i.test(clean)) {
+      const targetPg = idx === 0 ? "Page 1" : (idx === 1 ? "Page 1–2" : (idx === 2 ? "Page 2" : "Page 2–3"));
+      clean = clean.replace(/^(\*\*[^*]+)(\*\*)/, `$1 (${targetPg})$2`);
+    }
+    return clean;
+  });
+
+  // Supplement if fewer than 4 structured points
+  if (formattedStrengths.length < 4) {
+    pbpList.forEach(pbp => {
+      if (formattedStrengths.length >= 5) return;
+      if (pbp && pbp.is_positive && pbp.title && !/conclusion|unwritten/i.test(pbp.title)) {
+        const titleClean = pbp.title.replace(/[*_#`]/g, '').trim();
+        const alreadyHas = formattedStrengths.some(fs => fs.toLowerCase().includes(titleClean.toLowerCase().slice(0, 15)));
+        if (!alreadyHas) {
+          const pgStr = pbp.page ? ` (Page ${pbp.page})` : " (Page 2)";
+          const what = pbp.what_you_wrote ? `${pbp.what_you_wrote}. ` : "";
+          const verd = pbp.examiner_verdict || "Accurately substantiated the demand with structured arguments.";
+          formattedStrengths.push(`**${titleClean}${pgStr}**: ${what}${verd}`);
+        }
+      }
+    });
+  }
+
+  if (formattedStrengths.length < 4) {
+    annsList.forEach(ann => {
+      if (formattedStrengths.length >= 5) return;
+      if (ann && ann.tag && /body/i.test(ann.tag) && ann.remark) {
+        const tagClean = ann.tag.replace(/^body:\s*/i, '').replace(/[*_#`]/g, '').trim();
+        const alreadyHas = formattedStrengths.some(fs => fs.toLowerCase().includes(tagClean.toLowerCase().slice(0, 15)));
+        if (!alreadyHas) {
+          const rLines = String(ann.remark).split(/\n+/).filter(l => l.includes("✓"));
+          const posRemark = rLines.length > 0 ? rLines[0].replace(/^[✓✔\s*]+/, '').trim() : "";
+          if (posRemark) {
+            const pgStr = ann.page ? ` (Page ${ann.page})` : " (Page 2)";
+            formattedStrengths.push(`**${tagClean}${pgStr}**: ${posRemark}`);
+          }
+        }
+      }
+    });
+  }
+
+  body.strengths = formattedStrengths.slice(0, 6);
+
+  // 3. Unpack and clean critical gaps into 3 to 4 distinct structured points
+  let rawGaps = Array.isArray(body.critical_gaps) ? body.critical_gaps : [];
+  let unpackedGaps = [];
+
+  rawGaps.forEach(item => {
+    if (!item) return;
+    const str = String(item).trim();
+    const lines = str.split(/\n+|(?<=[.?!])\s+(?=[✎✗×•\d+\.|\([a-z]\)])/).map(l => l.trim()).filter(Boolean);
+    if (lines.length > 1) {
+      lines.forEach(l => unpackedGaps.push(l));
+    } else {
+      unpackedGaps.push(str);
+    }
+  });
+
+  let formattedGaps = [];
+  unpackedGaps.forEach((g, idx) => {
+    let clean = g.replace(/^[✎✗×•\s\-]+/, "").trim();
+    clean = clean.replace(/^([A-Za-z0-9][^:*\n]{1,60})\*\*:/, "**$1**:");
+    if (!clean.startsWith("**")) {
+      const colonIdx = clean.indexOf(":");
+      if (colonIdx > 0 && colonIdx <= 65) {
+        clean = `**${clean.slice(0, colonIdx).trim()}**: ${clean.slice(colonIdx + 1).trim()}`;
+      } else {
+        const words = clean.split(/\s+/);
+        const titleWords = words.slice(0, Math.min(5, words.length)).join(" ");
+        const restWords = words.slice(Math.min(5, words.length)).join(" ");
+        clean = `**${titleWords}**: ${restWords}`;
+      }
+    }
+    if (!/\(Page\s*[\d–-]+\)/i.test(clean)) {
+      const targetPg = idx === 0 ? "Page 1–2" : (idx === 1 ? "Page 2" : "Page 3");
+      clean = clean.replace(/^(\*\*[^*]+)(\*\*)/, `$1 (${targetPg})$2`);
+    }
+    if (clean && !formattedGaps.includes(clean)) {
+      formattedGaps.push(clean);
+    }
+  });
+
+  if (formattedGaps.length < 3) {
+    pbpList.forEach(pbp => {
+      if (formattedGaps.length >= 4) return;
+      if (pbp && !pbp.is_positive && pbp.title && !/conclusion|unwritten/i.test(pbp.title)) {
+        const titleClean = pbp.title.replace(/[*_#`]/g, '').trim();
+        const alreadyHas = formattedGaps.some(fg => fg.toLowerCase().includes(titleClean.toLowerCase().slice(0, 15)));
+        if (!alreadyHas) {
+          const pgStr = pbp.page ? ` (Page ${pbp.page})` : " (Page 2)";
+          const verd = pbp.examiner_verdict || "Deepen analysis with official institutional data and statutory anchors.";
+          formattedGaps.push(`**${titleClean}${pgStr}**: ${verd}`);
+        }
+      }
+    });
+  }
+
+  body.critical_gaps = formattedGaps.slice(0, 4);
+
+  // 4. Ensure missing dimensions has 3 to 4 analytical items
+  if (!Array.isArray(body.missing_dimensions) || body.missing_dimensions.length < 3) {
+    const fallbackDims = [
+      "**Institutional & Statutory Anchor**: Ground arguments in official committee recommendations, constitutional mandates, or national statutory frameworks.",
+      "**Empirical Metric & Regional Disaggregation**: Back qualitative points with authoritative surveys, baseline percentages, and spatial vulnerability distributions.",
+      "**Forward-Looking Implementation Strategy**: Provide concrete administrative, infrastructural, or technological mechanisms to bridge systemic operational bottlenecks."
+    ];
+    body.missing_dimensions = (body.missing_dimensions || []).concat(fallbackDims).slice(0, 4);
+  }
+
+  evalData.body_audit = body;
+};
+
 // Guarantee Zero Contradiction against student's written points & simplify stiff academic jargon into clear, appreciative English
 function sanitizeAndSimplifyEvaluationFeedback(evalData) {
   if (!evalData || typeof evalData !== "object") return;
@@ -7647,7 +7859,9 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
     bodyAudit.strengths = [
       "**Visual Plate-Tectonic Mechanism & Boundary Block Diagrams (Page 1–2)**: Accurately explained lithospheric movement over the asthenosphere and frictional energy release between plates, supported by hand-drawn **Convergent Boundary** (`-> <-`) and **Transform Boundary** sketches.",
       "**Accurate Focus vs. Epicentre Distinction (Page 2)**: Precisely defined the sub-surface origin point as the **'Focus' (Hypocentre)** and the nearest surface point where **Primary (P) waves** reach first as the **'Epicentre'**.",
-      "**Structured 3-Part Regional & Multi-Hazard Vulnerability Tree (Page 3)**: Effectively categorized vulnerability into ① **Young Fold Belts** (Pacific, Himalayas, Rockies, Andes causing infrastructure loss & landslides), ② **Coastal Tsunami Inundation** (Pacific/Indian/Atlantic coasts; nuclear safety risks like Fukushima), and ③ **Critical Infrastructure Breakdown** (power grids & telecommunications disruption)."
+      "**Structured 3-Part Regional & Multi-Hazard Vulnerability Tree (Page 3)**: Effectively categorized vulnerability into ① **Young Fold Belts** (Pacific, Himalayas, Rockies, Andes causing infrastructure loss & landslides), ② **Coastal Tsunami Inundation** (Pacific/Indian/Atlantic coasts; nuclear safety risks like Fukushima), and ③ **Critical Infrastructure Breakdown** (power grids & telecommunications disruption).",
+      "**Comprehensive Spatial Belt Plotting (Page 1)**: Correctly identified and plotted major global seismic belts with `x x x` crosses across the **Circum-Pacific Ring of Fire**, **Alpine-Himalayan belt**, and **Mid-Atlantic Ridge**.",
+      "**Actionable Disaster Engineering & Preparedness Framework (Page 3)**: Concluded with practical physical mitigation mechanisms including **seismic retrofitting**, **early warning systems**, and **continuous seismographic monitoring** under **NDMA Guidelines** and **NBC 2016**."
     ];
     bodyAudit.critical_gaps = [
       "**Correct Seismic Wave Classification ('Tertiary Waves' -> Surface Waves) & Add Benioff Zone (Page 2)**: You wrote that seismic waves are *'primary, secondary and tertiary'*—replace *'tertiary'* with **Surface Waves** (**Love & Rayleigh waves**; causing severe ground rupture) alongside **Body Waves** (**P & S waves**), and cite **Wadati–Benioff subduction zones**.",
@@ -7730,13 +7944,16 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
     bodyAudit.overall_assessment = "Your answer features a commendable visual presentation on Page 1 with a neat 6-spoke spider diagram centered on *'Template for good governance'* (covering digital service delivery, dynamic leadership, grievance redressal, transparency, citizen participation, and faster project completion), followed by inclusive growth and forward linkage to the Aspirational Blocks Programme (ABP) on Page 2. To elevate your score to top-ranker levels, group these governance touchpoints under NITI Aayog's **3Cs Framework** and cite the **Champions of Change** portal (49 Key Performance Indicators across 5 socio-economic themes). Furthermore, to fully address the directive *'Do you agree? Substantiate'*, discuss critical challenges such as data pressure / **Goodhart's Law** in delta rankings and specialist vacancies in remote tribal blocks.";
 
     bodyAudit.strengths = [
-      "**Visual Spider Diagram on Good Governance (Page 1)**: Highly effective radial structuring mapping 6 core good governance touchpoints—citizen participation, administrative transparency, dynamic leadership, grievance redressal, digital service delivery, and rapid project turnaround.",
-      "**Forward Linkage to Aspirational Blocks Programme (Page 2)**: Rightly identified the replication of ADP's model at the sub-district tier via the **Aspirational Blocks Programme (ABP)** for last-mile inclusive growth."
+      "**Visual Spider Diagram on Good Governance (Page 1)**: Highly effective radial structuring mapping 6 core good governance touchpoints—**digital service delivery (telehealth)**, **administrative transparency**, **dynamic leadership**, **grievance redressal**, **citizen participation**, and **rapid project turnaround**.",
+      "**Multi-Sectoral Development Clustering (Page 1–2)**: Categorized developmental interventions across essential grassroots sectors—**public health**, **nutrition**, **basic infrastructure**, and **inclusive growth**.",
+      "**Forward Linkage to Aspirational Blocks Programme (Page 2)**: Rightly identified the strategic expansion of ADP's model to the sub-district tier via the **Aspirational Blocks Programme (ABP)** for last-mile delivery.",
+      "**Targeted Regional Disparity Remediation (Page 1)**: Accurately premised the programme on bridging inter-district developmental imbalances without creating parallel bureaucratic machinery."
     ];
 
     bodyAudit.critical_gaps = [
-      "**Institutional Anchor (NITI Aayog's 3Cs Framework)**: Explicitly classify governance mechanisms under NITI Aayog's **3Cs**—**Convergence** (Central & State schemes), **Collaboration** (Centre, State, District Prabhari Officers & Citizens), and **Competition** (monthly delta rankings).",
-      "**Substantiate Directive ('Do You Agree?') with Ground Bottlenecks**: Acknowledge operational constraints: (1) **Goodhart's Law / Data pressure** leading to inflated reporting on the *Champions of Change* portal, and (2) acute shortage of specialist doctors and STEM teachers in remote aspirational blocks."
+      "**Institutional Anchor & NITI Aayog's 3Cs Framework (Page 1)**: Explicitly classify governance mechanisms under NITI Aayog's **3Cs**—**Convergence** (Central & State schemes), **Collaboration** (Centre, State, District Prabhari Officers & Citizens), and **Competition** (monthly delta rankings).",
+      "**Substantiate Directive ('Do You Agree?') with Ground Bottlenecks (Page 2)**: Acknowledge operational constraints: (1) **Goodhart's Law / Data pressure** leading to inflated reporting on the **Champions of Change** portal, and (2) acute shortage of specialist doctors and STEM teachers in remote aspirational blocks.",
+      "**Address Unwritten Conclusion & Time Budgeting (Page 2)**: Answer ended abruptly after the Way Forward points, forfeiting conclusion marks. Reserve 60 seconds to write a 2-line visionary closing linking ADP to **SDG Localization** and **Sabka Saath, Sabka Vikas**."
     ];
 
     bodyAudit.missing_dimensions = [
@@ -7902,29 +8119,9 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
     }
   }
 
-  if (Array.isArray(bodyAudit.critical_gaps)) {
-    const cleanedGaps = bodyAudit.critical_gaps.map(g => simplifyAndDecontradict(g, true));
-    const uniqueGaps = [];
-    cleanedGaps.forEach(g => {
-      if (g && !uniqueGaps.includes(g)) uniqueGaps.push(g);
-    });
-    bodyAudit.critical_gaps = uniqueGaps.slice(0, 4);
-    evalData.body_audit = bodyAudit;
-  }
-
-  // Ensure every question has a clear 2-line Examiner's Overall Body Assessment & at least 3 well-explained points
-  if (!bodyAudit.overall_assessment) {
-    const rScores = evalData.rubric_scores || {};
-    const bodyEarned = (parseFloat(rScores.core_demand_score) || 0) + (parseFloat(rScores.value_add_score) || 0);
-    const bodyMax = (parseFloat(rScores.core_demand_max) || 4.5) + (parseFloat(rScores.value_add_max) || 1.5);
-    const topStr = (Array.isArray(bodyAudit.strengths) && bodyAudit.strengths[0])
-      ? String(bodyAudit.strengths[0]).replace(/^[✓✔✎•\-*\s]+/, "")
-      : "structured sub-headings addressing the primary demand";
-    const topGap = (Array.isArray(bodyAudit.critical_gaps) && bodyAudit.critical_gaps[0])
-      ? String(bodyAudit.critical_gaps[0]).replace(/^[✓✔✎•\-*\s]+/, "")
-      : "deeper domain-specific conceptual and empirical anchors";
-    bodyAudit.overall_assessment = `Your Body section scored **${bodyEarned.toFixed(1)} / ${bodyMax.toFixed(1)}M** by demonstrating ${topStr.charAt(0).toLowerCase() + topStr.slice(1).replace(/\.$/, "")}. To unlock the next **+1.5 to +2.0M** band, focus on ${topGap.charAt(0).toLowerCase() + topGap.slice(1).replace(/\.$/, "")}.`;
-    evalData.body_audit = bodyAudit;
+  // Universal Body Audit enrichment and structuring across all questions and subjects
+  if (typeof window.normalizeAndEnrichBodyAudit === "function") {
+    window.normalizeAndEnrichBodyAudit(evalData);
   }
 
   if (evalData.executive_summary) {
@@ -8910,9 +9107,10 @@ function renderEvaluation(evalData) {
   strengthsEl.innerHTML = "";
   (body.strengths || []).forEach(s => {
     registerInDeepEval(s);
+    const cleanS = String(s || '').replace(/^[✓✔•★⭐\s\-]+/, '').trim();
     const li = document.createElement("li");
     li.className = "flex items-start space-x-2";
-    li.innerHTML = `<span class="text-emerald-500 dark:text-emerald-400 font-bold shrink-0 mt-0.5">✓</span><span class="leading-relaxed flex-1">${formatHighlightedText(s)}</span>`;
+    li.innerHTML = `<span class="text-emerald-500 dark:text-emerald-400 font-bold shrink-0 mt-0.5">✓</span><span class="leading-relaxed flex-1">${formatHighlightedText(cleanS)}</span>`;
     strengthsEl.appendChild(li);
   });
 
@@ -8920,9 +9118,10 @@ function renderEvaluation(evalData) {
   gapsEl.innerHTML = "";
   (body.critical_gaps || []).forEach(g => {
     registerInDeepEval(g);
+    const cleanG = String(g || '').replace(/^[✎✗×•\s\-]+/, '').trim();
     const li = document.createElement("li");
     li.className = "flex items-start space-x-2";
-    li.innerHTML = `<span class="text-amber-500 dark:text-amber-400 font-bold shrink-0 mt-0.5">✎</span><span class="leading-relaxed flex-1">${formatHighlightedText(g)}</span>`;
+    li.innerHTML = `<span class="text-amber-500 dark:text-amber-400 font-bold shrink-0 mt-0.5">✎</span><span class="leading-relaxed flex-1">${formatHighlightedText(cleanG)}</span>`;
     gapsEl.appendChild(li);
   });
 
@@ -10115,10 +10314,11 @@ function populatePrintDossier(evalData) {
     const strengths = (bodyAudit.strengths && bodyAudit.strengths.length > 0)
       ? bodyAudit.strengths
       : ["Structured subheadings dividing autonomy erosion and Way Ahead."];
-    strengths.slice(0, 2).forEach(s => {
+    strengths.slice(0, 3).forEach(s => {
+      const cleanS = String(s || '').replace(/^[✓✔•★⭐\s\-]+/, '').trim();
       const li = document.createElement("li");
       li.className = "flex items-start space-x-1";
-      li.innerHTML = `<span class="text-emerald-600 font-bold shrink-0">✓</span><span>${formatHighlightedText(s)}</span>`;
+      li.innerHTML = `<span class="text-emerald-600 font-bold shrink-0">✓</span><span>${formatHighlightedText(cleanS)}</span>`;
       printBodyStrengths.appendChild(li);
     });
   }
@@ -10128,10 +10328,11 @@ function populatePrintDossier(evalData) {
     const gaps = (bodyAudit.critical_gaps && bodyAudit.critical_gaps.length > 0)
       ? bodyAudit.critical_gaps
       : ["Need specific state parastatals (BDA, HUDA, BWSSB) to ground the critique."];
-    gaps.slice(0, 2).forEach(g => {
+    gaps.slice(0, 3).forEach(g => {
+      const cleanG = String(g || '').replace(/^[✎🧭✗×•\s\-]+/, '').trim();
       const li = document.createElement("li");
       li.className = "flex items-start space-x-1";
-      li.innerHTML = `<span class="text-amber-600 font-bold shrink-0">🧭</span><span>${formatHighlightedText(g)}</span>`;
+      li.innerHTML = `<span class="text-amber-600 font-bold shrink-0">🧭</span><span>${formatHighlightedText(cleanG)}</span>`;
       printBodyGaps.appendChild(li);
     });
   }

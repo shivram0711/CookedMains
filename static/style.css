@@ -1160,6 +1160,11 @@ html:not(.dark) .margin-badge-card .highlight-text-chip.chip-indigo {
   color: #4338CA !important;
   border: 1px solid #C7D2FE !important;
 }
+html:not(.dark) .margin-badge-card .highlight-text-chip.chip-rose {
+  background-color: #FFF1F2 !important;
+  color: #BE123C !important;
+  border: 1px solid #FECDD3 !important;
+}
 
 /* Margin Chips: Dark Mode */
 html.dark .margin-badge-card .highlight-text-chip,
@@ -1182,6 +1187,11 @@ html.dark .margin-badge-card .highlight-text-chip.chip-indigo {
   background-color: rgba(99, 102, 241, 0.18) !important;
   color: #A5B4FC !important;
   border: 1px solid rgba(99, 102, 241, 0.4) !important;
+}
+html.dark .margin-badge-card .highlight-text-chip.chip-rose {
+  background-color: rgba(244, 63, 94, 0.18) !important;
+  color: #FDA4AF !important;
+  border: 1px solid rgba(244, 63, 94, 0.4) !important;
 }
 
 /* Margin Card Bullet Titles */
@@ -1781,18 +1791,20 @@ html:not(.dark) #dropzone:hover {
   .highlight-text-chip,
   mark {
     font-weight: 600 !important;
-    padding: 1px 5px !important;
-    border-radius: 4px !important;
-    display: inline !important;
+    padding: 1.5px 6px !important;
+    border-radius: 4.5px !important;
+    display: inline-block !important;
+    vertical-align: baseline !important;
     box-decoration-break: clone;
     -webkit-box-decoration-break: clone;
-    line-height: inherit !important;
+    line-height: 1.35 !important;
     font-size: 0.92em !important;
     letter-spacing: -0.01em;
-    transition: background-color 0.15s ease, border-color 0.15s ease;
+    margin: 1px 1.5px !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }
 
-  /* 1. Amber / Honey (Default & Actionable Levers / Hazards) */
+  /* 1. Amber / Honey (Default & Thematic Dimensions / Hazards) */
   html:not(.dark) .highlight-chip,
   html:not(.dark) .highlight-text-chip,
   html:not(.dark) .highlight-text-chip.chip-amber,
@@ -1810,10 +1822,10 @@ html:not(.dark) #dropzone:hover {
   html.dark span.bg-amber-500\/20 {
     background-color: rgba(245, 158, 11, 0.18) !important;
     color: #FDE68A !important;
-    border: 1px solid rgba(245, 158, 11, 0.35) !important;
+    border: 1px solid rgba(245, 158, 11, 0.4) !important;
   }
 
-  /* 2. Sky / Cerulean (Geographic Belts, Seismological Waves & Spatial Phenomena) */
+  /* 2. Sky / Cerulean (Geographic Belts, Seismological Waves, S&T Deep-Tech & Spatial Phenomena) */
   html:not(.dark) .highlight-text-chip.chip-sky {
     background-color: #F0F9FF !important;
     color: #0369A1 !important;
@@ -1822,10 +1834,10 @@ html:not(.dark) #dropzone:hover {
   html.dark .highlight-text-chip.chip-sky {
     background-color: rgba(14, 165, 233, 0.18) !important;
     color: #7DD3FC !important;
-    border: 1px solid rgba(14, 165, 233, 0.35) !important;
+    border: 1px solid rgba(14, 165, 233, 0.4) !important;
   }
 
-  /* 3. Emerald / Mint (Positives, Structural Accuracies & Verified Sketches) */
+  /* 3. Emerald / Mint (Positives, Structural Accuracies, Data Benchmarks & Verified Models) */
   html:not(.dark) .highlight-text-chip.chip-emerald {
     background-color: #ECFDF5 !important;
     color: #047857 !important;
@@ -1834,10 +1846,10 @@ html:not(.dark) #dropzone:hover {
   html.dark .highlight-text-chip.chip-emerald {
     background-color: rgba(16, 185, 129, 0.18) !important;
     color: #6EE7B7 !important;
-    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
   }
 
-  /* 4. Indigo / Violet (Statutory Codes, BIS Standards, Theorists & Formal Frameworks) */
+  /* 4. Indigo / Violet (Statutory Codes, Constitutional Articles, SC Judgments, Treaties & Theorists) */
   html:not(.dark) .highlight-text-chip.chip-indigo {
     background-color: #EEF2FF !important;
     color: #4338CA !important;
@@ -1846,7 +1858,19 @@ html:not(.dark) #dropzone:hover {
   html.dark .highlight-text-chip.chip-indigo {
     background-color: rgba(99, 102, 241, 0.18) !important;
     color: #A5B4FC !important;
-    border: 1px solid rgba(99, 102, 241, 0.35) !important;
+    border: 1px solid rgba(99, 102, 241, 0.4) !important;
+  }
+
+  /* 5. Rose / Crimson (Critical Gaps, Penalties, Misnomers, Unsubstantiated Claims & Errors) */
+  html:not(.dark) .highlight-text-chip.chip-rose {
+    background-color: #FFF1F2 !important;
+    color: #BE123C !important;
+    border: 1px solid #FECDD3 !important;
+  }
+  html.dark .highlight-text-chip.chip-rose {
+    background-color: rgba(244, 63, 94, 0.18) !important;
+    color: #FDA4AF !important;
+    border: 1px solid rgba(244, 63, 94, 0.4) !important;
   }
 
   /* Jargon tooltips / badges */
