@@ -574,11 +574,11 @@
             <div id="dropzone" 
                  class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-amber-500 dark:hover:border-amber-400 rounded-2xl p-5 sm:p-6 text-center transition-all cursor-pointer bg-slate-50/60 dark:bg-slate-950/40 group relative">
               
-              <!-- Hidden Native File Inputs -->
-              <input type="file" id="fileInput" name="files" accept="application/pdf,image/*,.pdf,.png,.jpg,.jpeg" multiple class="hidden">
-              <input type="file" id="pdfFileInput" accept="application/pdf,.pdf" class="hidden">
-              <input type="file" id="galleryFileInput" accept="image/jpeg,image/png,image/webp,image/*" multiple class="hidden">
-              <input type="file" id="cameraFileInput" accept="image/*" capture="environment" class="hidden">
+              <!-- Native Invisible File Inputs (Positioned Offscreen for Universal Native Label Activation) -->
+              <input type="file" id="fileInput" name="files" accept="application/pdf,image/*,.pdf,.png,.jpg,.jpeg" multiple style="position:fixed;top:-1000px;left:-1000px;opacity:0;pointer-events:none;width:1px;height:1px;">
+              <input type="file" id="pdfFileInput" accept="application/pdf,.pdf" style="position:fixed;top:-1000px;left:-1000px;opacity:0;pointer-events:none;width:1px;height:1px;">
+              <input type="file" id="galleryFileInput" accept="image/jpeg,image/png,image/webp,image/*" multiple style="position:fixed;top:-1000px;left:-1000px;opacity:0;pointer-events:none;width:1px;height:1px;">
+              <input type="file" id="cameraFileInput" accept="image/*" capture="environment" style="position:fixed;top:-1000px;left:-1000px;opacity:0;pointer-events:none;width:1px;height:1px;">
 
               <!-- Default Upload Content (Hidden when answersheet is staged) -->
               <div id="dropzoneDefaultContent" class="space-y-3">
@@ -599,20 +599,20 @@
                   </div>
                 </div>
 
-                <!-- Dedicated One-Tap 3-Option Upload Buttons: Files, Gallery, Camera -->
+                <!-- Dedicated One-Tap 3-Option Upload Labels: Files, Gallery, Camera -->
                 <div id="uploadButtonsGroup" class="grid grid-cols-3 gap-2 pt-2 max-w-md mx-auto" onclick="event.stopPropagation()">
-                  <button type="button" id="btnUploadPdf" class="py-2.5 px-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-slate-950 font-bold text-[11px] sm:text-xs flex flex-col sm:flex-row items-center justify-center gap-1 sm:space-x-1.5 transition shadow-sm cursor-pointer" title="Choose PDF or document">
+                  <label for="pdfFileInput" id="btnUploadPdf" class="py-2.5 px-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-slate-950 font-bold text-[11px] sm:text-xs flex flex-col sm:flex-row items-center justify-center gap-1 sm:space-x-1.5 transition shadow-sm cursor-pointer select-none" title="Choose PDF or document">
                     <i data-lucide="file-text" class="w-4 h-4 text-slate-950 shrink-0"></i>
                     <span>Files / PDF</span>
-                  </button>
-                  <button type="button" id="btnUploadGallery" class="py-2.5 px-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold text-[11px] sm:text-xs flex flex-col sm:flex-row items-center justify-center gap-1 sm:space-x-1.5 transition shadow-sm active:scale-[0.98] cursor-pointer" title="Upload from photo gallery">
+                  </label>
+                  <label for="galleryFileInput" id="btnUploadGallery" class="py-2.5 px-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold text-[11px] sm:text-xs flex flex-col sm:flex-row items-center justify-center gap-1 sm:space-x-1.5 transition shadow-sm active:scale-[0.98] cursor-pointer select-none" title="Upload from photo gallery">
                     <i data-lucide="image" class="w-4 h-4 text-amber-500 shrink-0"></i>
                     <span>Gallery</span>
-                  </button>
-                  <button type="button" id="btnUploadCamera" class="py-2.5 px-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold text-[11px] sm:text-xs flex flex-col sm:flex-row items-center justify-center gap-1 sm:space-x-1.5 transition shadow-sm active:scale-[0.98] cursor-pointer" title="Take live photo using camera">
+                  </label>
+                  <label for="cameraFileInput" id="btnUploadCamera" class="py-2.5 px-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold text-[11px] sm:text-xs flex flex-col sm:flex-row items-center justify-center gap-1 sm:space-x-1.5 transition shadow-sm active:scale-[0.98] cursor-pointer select-none" title="Take live photo using camera">
                     <i data-lucide="camera" class="w-4 h-4 text-indigo-500 shrink-0"></i>
                     <span>Camera</span>
-                  </button>
+                  </label>
                 </div>
               </div>
 
@@ -643,16 +643,16 @@
                   </div>
                 </div>
 
-                <!-- Dedicated Multi-Page Action Toolbar inside Staged Card -->
+                <!-- Dedicated Multi-Page Action Toolbar inside Staged Card using Native Labels -->
                 <div class="grid grid-cols-2 gap-2 pt-0.5" id="stagedAddButtonsGroup">
-                  <button type="button" id="btnStagedAddCamera" onclick="window.addMorePages('camera')" class="py-2.5 px-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 active:scale-[0.98] text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer">
+                  <label for="cameraFileInput" id="btnStagedAddCamera" class="py-2.5 px-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 active:scale-[0.98] text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer select-none">
                     <i data-lucide="camera" class="w-4 h-4 text-slate-950 shrink-0"></i>
                     <span id="btnStagedAddCameraText">+ Capture Next Page (Camera)</span>
-                  </button>
-                  <button type="button" id="btnStagedAddGallery" onclick="window.addMorePages('gallery')" class="py-2.5 px-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition active:scale-[0.98] cursor-pointer">
+                  </label>
+                  <label for="galleryFileInput" id="btnStagedAddGallery" class="py-2.5 px-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition active:scale-[0.98] cursor-pointer select-none">
                     <i data-lucide="image" class="w-4 h-4 text-amber-500 shrink-0"></i>
                     <span>+ Add from Gallery</span>
-                  </button>
+                  </label>
                 </div>
 
                 <div class="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 bg-white/60 dark:bg-slate-900/60 p-2 rounded-lg border border-slate-200 dark:border-slate-800">
@@ -3435,7 +3435,7 @@
 
   </div>
 
-  <script src="/static/app.js?v=20260930_v25"></script>
+  <script src="/static/app.js?v=20261002_v3"></script>
   <script>
     if (window.lucide) {
       try { lucide.createIcons(); } catch(e) {}

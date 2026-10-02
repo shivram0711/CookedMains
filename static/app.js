@@ -3489,31 +3489,39 @@ window.cancelUploadedAnswersheet = function() {
     window.showAppToast("Answer booklet cleared. Ready for new upload.");
   }
 };
-
-// 1. Files / PDF button
+// Native label click helpers to ensure inputs are cleared before picker opens
 if (btnUploadPdf && pdfFileInput) {
-  btnUploadPdf.addEventListener("click", (e) => {
-    e.stopPropagation();
+  btnUploadPdf.addEventListener("click", () => {
     pdfFileInput.value = "";
-    pdfFileInput.click();
   });
 }
 
-// 2. Gallery button (Photos without camera capture)
+// 2. Gallery button / label
 if (btnUploadGallery && galleryFileInput) {
-  btnUploadGallery.addEventListener("click", (e) => {
-    e.stopPropagation();
+  btnUploadGallery.addEventListener("click", () => {
     galleryFileInput.value = "";
-    galleryFileInput.click();
   });
 }
 
-// 3. Camera button (Live camera capture)
+// 3. Camera button / label
 if (btnUploadCamera && cameraFileInput) {
-  btnUploadCamera.addEventListener("click", (e) => {
-    e.stopPropagation();
+  btnUploadCamera.addEventListener("click", () => {
     cameraFileInput.value = "";
-    cameraFileInput.click();
+  });
+}
+
+// Staged multi-page labels
+const btnStagedAddCamera = document.getElementById("btnStagedAddCamera");
+if (btnStagedAddCamera && cameraFileInput) {
+  btnStagedAddCamera.addEventListener("click", () => {
+    cameraFileInput.value = "";
+  });
+}
+
+const btnStagedAddGallery = document.getElementById("btnStagedAddGallery");
+if (btnStagedAddGallery && galleryFileInput) {
+  btnStagedAddGallery.addEventListener("click", () => {
+    galleryFileInput.value = "";
   });
 }
 
@@ -3626,6 +3634,11 @@ async function handleFiles(files, isAppend = false) {
 
   // Compress images in parallel before saving & uploading
   const rawList = Array.from(files);
+  // Clear input values immediately so subsequent camera captures always trigger change event
+  if (cameraFileInput) cameraFileInput.value = "";
+  if (galleryFileInput) galleryFileInput.value = "";
+  if (fileInput) fileInput.value = "";
+  if (pdfFileInput) pdfFileInput.value = "";
   const processedList = await Promise.all(rawList.map(f => compressImageIfNeeded(f)));
 
   if (isAppend && state.uploadedFiles && state.uploadedFiles.length > 0) {
@@ -3733,11 +3746,14 @@ function renderPreviewStrip() {
     previewStrip.appendChild(thumb);
   });
 
-  // Add interactive "+ Add Page" card tile at the end of the preview strip
-  const addTile = document.createElement("div");
+  // Add interactive "+ Add Page" card tile at the end of the preview strip (Native label)
+  const addTile = document.createElement("label");
+  addTile.setAttribute("for", "cameraFileInput");
   addTile.className = "relative rounded-xl border-2 border-dashed border-amber-500/50 hover:border-amber-400 bg-amber-500/5 hover:bg-amber-500/10 dark:bg-amber-500/10 dark:hover:bg-amber-500/15 aspect-[3/4] flex flex-col items-center justify-center p-2 text-center transition cursor-pointer group shadow-xs select-none";
   addTile.title = `Photograph Page ${totalPages + 1} using Camera`;
-  addTile.onclick = () => window.addMorePages('camera');
+  addTile.addEventListener("click", () => {
+    if (cameraFileInput) cameraFileInput.value = "";
+  });
   addTile.innerHTML = `
     <div class="w-8 h-8 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-1 group-hover:scale-110 transition">
       <i data-lucide="camera" class="w-4 h-4"></i>

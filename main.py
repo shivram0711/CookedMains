@@ -202,7 +202,14 @@ async def trigger_supabase_keepalive():
 @app.get("/")
 @app.get("/index.html")
 async def root():
-    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "index.html"))
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "static", "index.html"),
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    )
 
 @app.get("/demo-workbench")
 @app.get("/demo-workbench.html")
