@@ -4586,11 +4586,11 @@ function renderAnnotationsOverlay() {
         return { core, quotes, tokenSet: new Set(words) };
       };
 
-      const normBulletSig = (str) => stripTitleAndIconPrefix(str).toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 42);
+      const normBulletSig = (str) => stripTitleAndIconPrefix(str).toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 90);
 
       const isSemanticallyDuplicateBullet = (candidateStr) => {
         const bTitle = extractBulletTitle(candidateStr);
-        if (bTitle && bTitle.length >= 4 && evalBulletRegistry.usedTitles.has(bTitle)) return true;
+        if (bTitle && bTitle.length >= 6 && evalBulletRegistry.usedTitles.has(bTitle.toLowerCase())) return true;
 
         const sig = normBulletSig(candidateStr);
         if (!sig || sig.length < 10) return true;
@@ -4598,7 +4598,7 @@ function renderAnnotationsOverlay() {
 
         const { quotes, tokenSet } = extractBulletTokensAndQuotes(candidateStr);
         for (const q of quotes) {
-          if (evalBulletRegistry.usedQuotedTerms.has(q)) return true;
+          if (q.length >= 25 && evalBulletRegistry.usedQuotedTerms.has(q)) return true;
         }
         if (tokenSet.size > 0) {
           for (const prevSet of evalBulletRegistry.usedBulletTokenSets) {
@@ -4607,7 +4607,7 @@ function renderAnnotationsOverlay() {
               if (prevSet.has(tok)) shared++;
             }
             const minSz = Math.min(tokenSet.size, prevSet.size);
-            if (shared >= 2 || (minSz >= 2 && shared / minSz >= 0.45)) {
+            if (minSz >= 8 && shared / minSz >= 0.85) {
               return true;
             }
           }
@@ -4728,7 +4728,11 @@ function renderAnnotationsOverlay() {
       const pbpAuditList = Array.isArray(evalData.point_by_point_audit) ? evalData.point_by_point_audit : [];
 
       const buildDynamicBodyRemark = (slotIndex, rawRem, targetPageNum = 1) => {
-        if (isAspirationalDistrictsCopy) {
+        const isStaticSampleMode = Boolean(
+          (evalData.is_sample_copy || evalData.is_exact_sample_copy || (state.activeSampleId && state.uploadedFiles && state.uploadedFiles.length === 0)) &&
+          (!rawRem || String(rawRem).trim().length < 25)
+        );
+        if (isStaticSampleMode && isAspirationalDistrictsCopy) {
           if (targetPageNum === 1) {
             return [
               "✓ **Neat Visual Presentation**: Excellent spider diagram capturing core pillars—citizen participation, transparency, dynamic leadership & digital delivery.",
@@ -4742,7 +4746,7 @@ function renderAnnotationsOverlay() {
             ].join("\n");
           }
         }
-        if (isEarthquakeMapCopy) {
+        if (isStaticSampleMode && isEarthquakeMapCopy) {
           if (targetPageNum === 1) {
             return [
               "✓ **Structured Sub-Heading**: Initiated **Mechanism & Occurrence** at the bottom of Page 1 anchored in **Plate Tectonics**.",
@@ -4768,7 +4772,7 @@ function renderAnnotationsOverlay() {
             ].join("\n");
           }
         }
-        if (isAhomCopy) {
+        if (isStaticSampleMode && isAhomCopy) {
           if (targetPageNum === 1) {
             return [
               "✓ **Good Coverage (Points 1–4)**: Covered **traditional Assamese attire**, halting **17 Mughal invasions**, regional diet, and **Assamese language** patronage.",
@@ -4881,30 +4885,33 @@ function renderAnnotationsOverlay() {
           pushUnique(pageGaps[i], "✎");
         }
 
-        // Dynamic candidate-transcript-anchored fallback before generic cards
+        // Dynamic candidate-transcript-anchored precision points if still under 2 bullets
         if (uniqueBullets.length < 2) {
-          if (targetPageT.includes("market failure")) {
-            if (slotIndex === 0) {
-              pushUnique("**Market Failure Dynamics**: Mapped price crash from surplus production, quality disputes leading to buyer default, and perishable transport wastage.", "✓");
-              pushUnique("**Contract Enforcement**: Add formal dispute conciliation boards to mitigate smallholder bargaining asymmetry.", "✎");
-            } else {
-              pushUnique("**Correcting Contract Failures**: Covered cold storage/transport infrastructure, irrigation safeguards against debt traps, market monitoring, and AGMARK quality standards.", "✓");
-              pushUnique("**Smallholder Risk Safeguards**: Frame price assurance via Negotiable Warehouse Receipts (NWR) and FPO aggregation.", "✎");
+          const pageRawT = getPageTranscript(targetPageNum);
+          if (pageRawT) {
+            const candLines = pageRawT
+              .split(/\n+/)
+              .map(l => l.trim())
+              .filter(l => l.length >= 22 && !l.startsWith("#") && !/^(?:Q\.?|\d+[\.\)])\s*/i.test(l));
+            if (candLines.length > 0) {
+              const snippet = candLines[slotIndex % candLines.length].slice(0, 95);
+              pushUnique(`**Candidate Analysis**: Analyzed handwritten argument *"${snippet}..."* addressing core directive dimensions.`, "✓");
             }
-          } else if (targetPageT.includes("challenges") && targetPageT.includes("steps")) {
-            if (slotIndex === 0) {
-              pushUnique("**Challenges Faced**: Outlined fragmented scale, lack of policy support, low pay grades, and infrastructure constraints.", "✓");
-              pushUnique("**Quality Standards**: Cite the ZED (Zero Defect Zero Effect) scheme and formal digital readiness.", "✎");
-            } else {
-              pushUnique("**Steps Needed to be Taken**: Highlighted MSME industry linkages and credit availability to stimulate service enterprise demand.", "✓");
-              pushUnique("**Digital Formalization**: Plug ONDC and TReDS platform integration for trade receivables financing.", "✎");
-            }
-          } else if (targetPageT.includes("model contract farming") || targetPageT.includes("contract farming act")) {
-            pushUnique("**Model Contract Farming Act 2018**: Outlined FDI access, protection against farmer land alienation, insurance linkages, and global supply chain integration.", "✓");
-            pushUnique("**Institutional Conciliation**: Recommend establishing Conciliation Boards and linking to Ashok Dalwai Committee proposals.", "✎");
-          } else if (targetPageT.includes("investment") && targetPageT.includes("multiplier")) {
-            pushUnique("**Macroeconomic Multiplier**: Connected MSME growth to tackling the falling investment rate, middle class expansion, and export revival.", "✓");
-            pushUnique("**Policy Safeguards**: Anchor export growth in Priority Sector Lending (PSL) and global supply chain integration.", "✎");
+          }
+        }
+
+        // Pull from sub_part_step_marking if still under 2 bullets
+        const subSteps = Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : [];
+        if (uniqueBullets.length < 2 && subSteps.length > 0) {
+          const sIdx = Math.min(subSteps.length - 1, Math.max(0, slotIndex === 0 ? targetPageNum - 1 : targetPageNum));
+          const stepObj = subSteps[sIdx] || {};
+          const qW = String(stepObj.quoted_written || "").trim();
+          const sU = String(stepObj.step_up_lever || "").trim();
+          if (uniqueBullets.length < 1 && qW && qW.length >= 20 && !isMetaPlaceholderText(qW)) {
+            pushUnique(`**Core Argument**: ${qW}`, "✓");
+          }
+          if (uniqueBullets.length < 2 && sU && sU.length >= 20 && !isMetaPlaceholderText(sU)) {
+            pushUnique(`**Value Addition**: ${sU}`, "✎");
           }
         }
 
@@ -4916,19 +4923,30 @@ function renderAnnotationsOverlay() {
           }
         }
 
-        if (uniqueBullets.length === 0) {
-          if (discipline === "HISTORY_CULTURE") {
-            uniqueBullets.push(`✓ **Historical & Cultural Traditions**: Outlined distinct regional and institutional contributions with relevant examples.`);
-            uniqueBullets.push(`✎ **Philosophical Depth**: Substantiate arguments with specific philosophical texts, acharyas, and syncretic linkages.`);
-          } else if (discipline === "PHYSICAL_GEOGRAPHY") {
-            uniqueBullets.push(`✓ **Spatial & Thermal Mechanisms**: Mapped key geographical factors driving physical variation across Earth's surface.`);
-            uniqueBullets.push(`✎ **Scientific Precision**: Frame land-sea thermal contrasts in terms of specific heat capacity and albedo dynamics.`);
+        // Final dynamic discipline-tailored elevation if still under 2 bullets (NEVER static boilerplate!)
+        if (uniqueBullets.length < 1) {
+          const pageRawT = getPageTranscript(targetPageNum);
+          const firstLine = pageRawT ? pageRawT.split(/\n+/).map(l => l.trim()).find(l => l.length >= 20 && !l.startsWith("#") && !/^(?:Q\.?|\d+[\.\)])\s*/i.test(l)) : "";
+          if (firstLine) {
+            uniqueBullets.push(`✓ **Analyzed Argument**: Evaluated handwritten point *"${firstLine.slice(0, 90)}..."* addressing core analytical dimensions.`);
           } else {
-            uniqueBullets.push(`✓ **Page ${targetPageNum} Arguments**: Covered relevant analytical points and structured dimensions in this section.`);
-            uniqueBullets.push(`✎ **Value Addition**: Substantiate points with specific case studies, official data, or statutory frameworks.`);
+            uniqueBullets.push(`✓ **Core Dimension Evaluated**: Structured analytical points addressing key sub-parts of the directive.`);
           }
-        } else if (uniqueBullets.length === 1) {
-          uniqueBullets.push(`✎ **Value Addition**: Substantiate arguments with specific case studies, empirical data, or statutory frameworks.`);
+        }
+        if (uniqueBullets.length < 2) {
+          if (discipline === "HISTORY_CULTURE") {
+            uniqueBullets.push(`✎ **Historical Depth**: Substantiate arguments with specific epigraphical records, contemporary literary treatises, or regional landmarks.`);
+          } else if (discipline === "PHYSICAL_GEOGRAPHY") {
+            uniqueBullets.push(`✎ **Physical Precision**: Frame land-sea thermal contrasts in terms of thermodynamic driving forces and specific heat capacity.`);
+          } else if (discipline === "POLITY_GOVERNANCE") {
+            uniqueBullets.push(`✎ **Institutional Depth**: Ground analysis in 2nd ARC recommendations, Law Commission reports, or landmark Supreme Court rulings.`);
+          } else if (discipline === "ECONOMY") {
+            uniqueBullets.push(`✎ **Empirical Rigor**: Support points with official data telemetry, Economic Survey / Budget references, or NITI Aayog policy frameworks.`);
+          } else if (discipline === "PHILOSOPHY_ETHICS") {
+            uniqueBullets.push(`✎ **Ethical Anchoring**: Ground arguments in Nolan Principles of Public Life, 2nd ARC (Ethics in Governance), or constitutional values.`);
+          } else {
+            uniqueBullets.push(`✎ **Actionable Elevation**: Substantiate points with specific statutory frameworks, committee recommendations, or official empirical benchmarks.`);
+          }
         }
         return uniqueBullets.slice(0, 2).join("\n");
       };
@@ -5678,10 +5696,6 @@ function renderAnnotationsOverlay() {
 
         const finalConcRemark = buildDynamicConcRemark(concRemCandidate);
 
-        const finalPageTransLow = getPageTranscript(totPgs).toLowerCase();
-        const isContractFarmingFinalPage = finalPageTransLow.includes("model contract") || finalPageTransLow.includes("contract farming act") || rawBodyAnns.some(a => /model contract|contract farming act/i.test(String(a.tag || "") + " " + String(a.remark || "")));
-        const isMsmeFinalPage = (finalPageTransLow.includes("multiplier") || finalPageTransLow.includes("investment rate") || (finalPageTransLow.includes("msme") && finalPageTransLow.includes("investment"))) && !isContractFarmingFinalPage;
-
         if (isCandidateIncompleteCopy) {
           const bodyTagTitle = isAspirationalDistrictsCopy
             ? "INCLUSIVE GROWTH & WAY FORWARD"
@@ -5723,107 +5737,6 @@ function renderAnnotationsOverlay() {
             marks: `+0.0 / ${concMaxNum.toFixed(1)}`,
             bodyHtml: formatBulletsFn(finalConcRemark),
             bulletsHtml: formatBulletsFn(finalConcRemark),
-            targetKey: "conclusion"
-          });
-        } else if (isContractFarmingFinalPage) {
-          const sec0Rem = [
-            "✓ **Farmer Rights Protection**: Emphasized protecting smallholder title and legal safeguards against unilateral contract revocation.",
-            "✎ **Dispute Mechanism**: Detail institutional arbitration or Fast-Track Conciliation under SDM jurisdiction."
-          ].join("\n");
-          const sec1Rem = [
-            "✓ **Model Contract Farming Act 2018**: Outlined FDI access, protection against farmer land alienation, insurance linkages, and global supply chain integration.",
-            "✎ **Institutional Conciliation**: Recommend establishing Conciliation Boards and linking to Ashok Dalwai Committee proposals."
-          ].join("\n");
-          const sec2Rem = [
-            "✓ **Closing Stance Evaluated**: Concluded that insurance access and alienation protection are constructive steps in the right direction.",
-            "✎ **Policy Depth**: Cite the Ashok Dalwai Committee recommendation on contract farming or FPO-based collective bargaining to strengthen institutional backing."
-          ].join("\n");
-
-          registerUsedRemark(sec0Rem);
-          registerUsedRemark(sec1Rem);
-          registerUsedRemark(sec2Rem);
-
-          outSections.push({
-            zone: "body",
-            title: "BODY: LEGAL PROTECTION & DISPUTE MECHANISM",
-            icon: "✓",
-            isTick: true,
-            startYPercent: 14.0,
-            endYPercent: 25.0,
-            cardTopPercent: 14.0,
-            lockCustomBounds: true,
-            marks: `+${(totalBodyScore * 0.25).toFixed(1)} / ${(totalBodyMax * 0.25).toFixed(1)}`,
-            bodyHtml: formatBulletsFn(sec0Rem),
-            bulletsHtml: formatBulletsFn(sec0Rem),
-            targetKey: "body"
-          });
-          outSections.push({
-            zone: "body",
-            title: "BODY: MODEL CONTRACT FARMING ACT 2018",
-            icon: "✓",
-            isTick: true,
-            startYPercent: 26.5,
-            endYPercent: 68.0,
-            cardTopPercent: 26.5,
-            lockCustomBounds: true,
-            marks: `+${(totalBodyScore * 0.35).toFixed(1)} / ${(totalBodyMax * 0.35).toFixed(1)}`,
-            bodyHtml: formatBulletsFn(sec1Rem),
-            bulletsHtml: formatBulletsFn(sec1Rem),
-            targetKey: "body"
-          });
-          outSections.push({
-            zone: "conclusion",
-            title: "CONCLUSION",
-            icon: "✓",
-            isTick: true,
-            startYPercent: 70.0,
-            endYPercent: 84.0,
-            cardTopPercent: 70.0,
-            lockCustomBounds: true,
-            marks: fallbackConcMarks,
-            bodyHtml: formatBulletsFn(sec2Rem),
-            bulletsHtml: formatBulletsFn(sec2Rem),
-            targetKey: "conclusion"
-          });
-        } else if (isMsmeFinalPage) {
-          const sec0Rem = [
-            "✓ **Macroeconomic Multiplier**: Connected MSME growth to tackling the falling investment rate, middle class expansion, and export revival.",
-            "✎ **Policy Safeguards**: Anchor export growth in Priority Sector Lending (PSL) and global supply chain integration."
-          ].join("\n");
-          const sec1Rem = [
-            "✓ **Forward-Looking Stance**: Emphasized creating a self-sustaining ecosystem rather than perpetual subsidy dependence.",
-            "✎ **Statutory/Digital Anchor**: Mention Jan Vishwas Act for decriminalization of minor offenses and TReDS platform onboarding."
-          ].join("\n");
-
-          registerUsedRemark(sec0Rem);
-          registerUsedRemark(sec1Rem);
-
-          outSections.push({
-            zone: "body",
-            title: "BODY: MACROECONOMIC MULTIPLIER & EXPORTS",
-            icon: "✓",
-            isTick: true,
-            startYPercent: 14.0,
-            endYPercent: 68.0,
-            cardTopPercent: 14.0,
-            lockCustomBounds: true,
-            marks: `+${(totalBodyScore / 2).toFixed(1)} / ${(totalBodyMax / 2).toFixed(1)}`,
-            bodyHtml: formatBulletsFn(sec0Rem),
-            bulletsHtml: formatBulletsFn(sec0Rem),
-            targetKey: "body"
-          });
-          outSections.push({
-            zone: "conclusion",
-            title: "CONCLUSION",
-            icon: "✓",
-            isTick: true,
-            startYPercent: 70.0,
-            endYPercent: 84.0,
-            cardTopPercent: 70.0,
-            lockCustomBounds: true,
-            marks: fallbackConcMarks,
-            bodyHtml: formatBulletsFn(sec1Rem),
-            bulletsHtml: formatBulletsFn(sec1Rem),
             targetKey: "conclusion"
           });
         } else if (shouldRenderThreeSectionsOnFinalPage) {
@@ -6641,38 +6554,77 @@ function getCardQuoteAndElevate(sec) {
   let quote = sec.quote || "";
   let advise = sec.advise || sec.elevation || "";
 
-  if (quote && advise) {
-    return { quote, advise };
-  }
+  if (!quote || !advise) {
+    const sourceHtml = sec.bodyHtml || sec.bulletsHtml || "";
+    if (sourceHtml) {
+      const temp = document.createElement("div");
+      temp.innerHTML = sourceHtml;
 
-  const sourceHtml = sec.bodyHtml || sec.bulletsHtml || "";
-  if (sourceHtml) {
-    const temp = document.createElement("div");
-    temp.innerHTML = sourceHtml;
+      const items = temp.querySelectorAll(".flex");
+      items.forEach(item => {
+        const text = item.textContent.replace(/\s+/g, " ").trim();
+        if ((text.startsWith("✓") || text.startsWith("✔") || text.startsWith("★")) && !quote) {
+          quote = text.replace(/^[✓✔★⭐]\s*/, "");
+        } else if ((text.startsWith("✎") || text.startsWith("✗") || text.startsWith("×")) && !advise) {
+          advise = text.replace(/^[✎✗×✘]\s*/, "");
+        }
+      });
 
-    const items = temp.querySelectorAll(".flex");
-    items.forEach(item => {
-      const text = item.textContent.replace(/\s+/g, " ").trim();
-      if ((text.startsWith("✓") || text.startsWith("✔") || text.startsWith("★")) && !quote) {
-        quote = text.replace(/^[✓✔★⭐]\s*/, "");
-      } else if ((text.startsWith("✎") || text.startsWith("✗") || text.startsWith("×")) && !advise) {
-        advise = text.replace(/^[✎✗×✘]\s*/, "");
+      if (!quote && items.length > 0) {
+        quote = items[0].textContent.replace(/\s+/g, " ").trim().replace(/^[✓✔★⭐✎✗×✘•]\s*/, "");
       }
-    });
-
-    if (!quote && items.length > 0) {
-      quote = items[0].textContent.replace(/\s+/g, " ").trim().replace(/^[✓✔★⭐✎✗×✘•]\s*/, "");
-    }
-    if (!advise && items.length > 1) {
-      advise = items[1].textContent.replace(/\s+/g, " ").trim().replace(/^[✓✔★⭐✎✗×✘•]\s*/, "");
+      if (!advise && items.length > 1) {
+        advise = items[1].textContent.replace(/\s+/g, " ").trim().replace(/^[✓✔★⭐✎✗×✘•]\s*/, "");
+      }
     }
   }
 
-  if (!quote) {
-    quote = sec.summary || sec.rawText || "Accurately addressed analytical dimensions and key arguments for this section.";
+  // Extract embedded candidate words if quote contains an evaluator wrapper
+  const embeddedMatch = quote.match(/["“']([^"”']{16,})["”']|\*([^*]{16,})\*/);
+  if (embeddedMatch) {
+    quote = (embeddedMatch[1] || embeddedMatch[2]).trim();
+  }
+
+  // If quote is generic boilerplate or missing, pull candidate's actual handwritten line from transcribed text
+  const isGenericQuote = !quote || /covered relevant analytical points|addressed analytical dimensions|page \d+ arguments|^arguments:?$/i.test(quote);
+  if (isGenericQuote) {
+    const pNum = sec.page || (state.currentPageIndex + 1);
+    const transT = String(state.currentEvaluation?.transcribed_text || "");
+    const pageParts = transT.split(/\[Page\s*(\d+)\]/i);
+    let pageText = "";
+    for (let i = 1; i < pageParts.length; i += 2) {
+      if (parseInt(pageParts[i], 10) === pNum && i + 1 < pageParts.length) {
+        pageText = pageParts[i + 1];
+        break;
+      }
+    }
+    if (!pageText) pageText = transT;
+    const candLines = pageText.split(/\n+/).map(l => l.trim()).filter(l => l.length >= 20 && !l.startsWith("#") && !/^(?:Q\.?|\d+[\.\)])\s*/i.test(l));
+    if (candLines.length > 0) {
+      const idx = (sec.cardIndex || 0) % candLines.length;
+      quote = candLines[idx].slice(0, 110);
+    } else {
+      quote = sec.summary || sec.rawText || "Addressed primary analytical dimensions for this section.";
+    }
+  }
+
+  // Clean quote quotation marks so template wrapping is clean
+  quote = quote.replace(/^["“'\s]+|["”'\s]+$/g, "").trim();
+
+  // Strip leading bold title or prefix from advise
+  advise = advise.replace(/^\*\*[^*]+\*\*:\s*/, "").replace(/^(?:Value Addition|Elevate|Improvement|Actionable Upgrade|Suggestion):\s*/i, "").trim();
+
+  // If advise is generic boilerplate, pull specific gap from body_audit
+  const isGenericAdvise = !advise || /substantiate points with specific case studies|anchor arguments with 1 statutory commission/i.test(advise);
+  if (isGenericAdvise) {
+    const gaps = state.currentEvaluation?.body_audit?.critical_gaps || [];
+    if (Array.isArray(gaps) && gaps.length > 0) {
+      const g = gaps.find(item => item && !/generic|covered/i.test(String(item)));
+      if (g) advise = String(g).replace(/^[✓✔✎✗×✘•]\s*/, "").replace(/^\*\*[^*]+\*\*:\s*/, "").trim();
+    }
   }
   if (!advise) {
-    advise = "Anchor arguments with 1 statutory commission report, official benchmark, or landmark committee recommendation.";
+    advise = "Substantiate arguments with landmark committee recommendations, statutory benchmarks, or empirical telemetry.";
   }
 
   return { quote, advise };

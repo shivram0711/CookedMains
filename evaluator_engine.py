@@ -1876,7 +1876,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
             return ""
 
         def _norm_sig(line_str: str) -> str:
-            return re.sub(r'[^a-z0-9]+', '', str(line_str or "").lower())[:42]
+            clean = re.sub(r'^\s*[✓✔✎✗×✘★⭐]\s*(?:\*\*[^*]+\*\*:?\s*)?', '', str(line_str or "")).strip()
+            return re.sub(r'[^a-z0-9]+', '', clean.lower())[:90]
 
         def _add_unique_bullet(target_list: list, candidate_line: str, prefix: str) -> bool:
             if _has_meta_placeholder(candidate_line):
@@ -1899,10 +1900,13 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
 
         def _build_page_zone_remark(pg_num: int, slot_idx: int) -> str:
             bullets = []
-            pg_trans = _get_page_transcript(pg_num).lower()
+            raw_pg_trans = _get_page_transcript(pg_num)
+            pg_trans = raw_pg_trans.lower()
 
             # 1. First pull page-matched point_by_point_audit verdicts for this exact page (pg_num)
             pg_pbps = [p for p in pbp_list if isinstance(p, dict) and int(p.get("page", 0) or 0) == pg_num]
+            if not pg_pbps and pbp_list:
+                pg_pbps = [p for p in pbp_list if isinstance(p, dict) and int(p.get("page", 0) or 0) in [0, pg_num]]
             for p_item in pg_pbps:
                 title_s = str(p_item.get("title") or "").strip()
                 verdict_s = str(p_item.get("examiner_verdict") or "").strip()
@@ -1915,14 +1919,34 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                     if len(bullets) >= 2:
                         break
 
-            # 2. Supplement with page-matched strengths (never pull Page 3 macroeconomic points into Page 2!)
+            # 2. Extract candidate's actual written sentences from page transcript (precision evaluation!)
+            if len(bullets) < 2 and raw_pg_trans:
+                cand_lines = [
+                    l.strip() for l in raw_pg_trans.splitlines()
+                    if len(l.strip()) >= 22 and not l.strip().startswith("#") and not re.match(r'^(?:Q\.?|\d+[\.\)])\s*', l.strip())
+                ]
+                if cand_lines:
+                    snippet = cand_lines[slot_idx % len(cand_lines)][:90]
+                    _add_unique_bullet(bullets, f"**Arguments Analyzed**: Evaluated analysis on *\"{snippet}...\"* addressing core directive dimensions.", "✓")
+
+            # 3. Pull from sub_part_step_marking
+            sub_steps = data.get("sub_part_step_marking") or []
+            if len(bullets) < 2 and isinstance(sub_steps, list) and sub_steps:
+                step_idx = min(len(sub_steps) - 1, max(0, slot_idx if pg_num == 1 else (pg_num - 1 + slot_idx)))
+                step_obj = sub_steps[step_idx] if isinstance(sub_steps[step_idx], dict) else {}
+                q_w = str(step_obj.get("quoted_written") or "").strip()
+                s_u = str(step_obj.get("step_up_lever") or "").strip()
+                if len(bullets) < 2 and q_w and len(q_w) >= 20 and not _has_meta_placeholder(q_w):
+                    _add_unique_bullet(bullets, f"**Core Argument Evaluated**: {q_w}", "✓")
+                if len(bullets) < 2 and s_u and len(s_u) >= 20 and not _has_meta_placeholder(s_u):
+                    _add_unique_bullet(bullets, f"**Value Addition**: {s_u}", "✎")
+
+            # 4. Supplement with page-matched strengths & gaps
             filtered_strengths = []
             for s in b_strengths:
                 s_low = s.lower()
                 m_pg = re.search(r'\(page\s*(\d+)\)', s_low)
                 if m_pg and int(m_pg.group(1)) != pg_num:
-                    continue
-                if any(w in s_low for w in ["macroeconomic", "investment rate", "multiplier effect"]) and not any(w in pg_trans for w in ["macroeconomic", "investment", "multiplier"]):
                     continue
                 filtered_strengths.append(s)
 
@@ -1949,51 +1973,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                     continue
                 _add_unique_bullet(bullets, g_cand, "✎")
 
-            # 3. Dynamic candidate-transcript-anchored remarks if still under 2 bullets
-            if len(bullets) < 2:
-                if "market failure" in pg_trans:
-                    if slot_idx == 0:
-                        _add_unique_bullet(bullets, "**Market Failure Dynamics**: Structured price collapse from surplus production, quality disputes leading to buyer default, and perishable transport wastage.", "✓")
-                        _add_unique_bullet(bullets, "**Contract Enforcement**: Add formal dispute conciliation boards to mitigate smallholder bargaining asymmetry.", "✎")
-                    else:
-                        _add_unique_bullet(bullets, "**Correcting Contract Failures**: Covered cold storage/transport infrastructure, irrigation safeguards against debt traps, market monitoring, and AGMARK quality standards.", "✓")
-                        _add_unique_bullet(bullets, "**Smallholder Risk Safeguards**: Frame price assurance via Negotiable Warehouse Receipts (NWR) and FPO aggregation.", "✎")
-                elif "challenges" in pg_trans and "steps" in pg_trans:
-                    if slot_idx == 0:
-                        _add_unique_bullet(bullets, "**Challenges Faced**: Outlined fragmented scale, lack of policy support, low pay grades, and infrastructure constraints.", "✓")
-                        _add_unique_bullet(bullets, "**Quality Standards**: Cite the ZED (Zero Defect Zero Effect) scheme and formal digital readiness.", "✎")
-                    else:
-                        _add_unique_bullet(bullets, "**Steps Needed to be Taken**: Highlighted MSME industry linkages and credit availability to stimulate service enterprise demand.", "✓")
-                        _add_unique_bullet(bullets, "**Digital Formalization**: Plug ONDC and TReDS platform integration for trade receivables financing.", "✎")
-                elif "model contract farming" in pg_trans or "contract farming act" in pg_trans:
-                    _add_unique_bullet(bullets, "**Model Contract Farming Act 2018**: Outlined FDI access, protection against farmer land alienation, insurance linkages, and global supply chain integration.", "✓")
-                    _add_unique_bullet(bullets, "**Institutional Conciliation**: Recommend establishing Conciliation Boards and linking to Ashok Dalwai Committee proposals.", "✎")
-                elif any(w in pg_trans for w in ["investment", "multiplier", "middle class", "exports"]):
-                    _add_unique_bullet(bullets, "**Macroeconomic Multiplier**: Connected MSME growth to tackling the falling investment rate, middle class expansion, and export revival.", "✓")
-                    _add_unique_bullet(bullets, "**Policy Safeguards**: Anchor export growth in Priority Sector Lending (PSL) and global supply chain integration.", "✎")
-
-            # 4. Pull from sub_part_step_marking or candidate's transcribed lines if still under 2 bullets
-            sub_steps = data.get("sub_part_step_marking") or []
-            if len(bullets) < 2 and isinstance(sub_steps, list) and sub_steps:
-                step_idx = min(len(sub_steps) - 1, max(1, pg_num))
-                step_obj = sub_steps[step_idx] if isinstance(sub_steps[step_idx], dict) else {}
-                q_w = str(step_obj.get("quoted_written") or "").strip()
-                s_u = str(step_obj.get("step_up_lever") or "").strip()
-                if q_w and len(q_w) >= 20 and not _has_meta_placeholder(q_w):
-                    _add_unique_bullet(bullets, f"**Core Argument Evaluated**: {q_w}", "✓")
-                if len(bullets) < 2 and s_u and len(s_u) >= 20 and not _has_meta_placeholder(s_u):
-                    _add_unique_bullet(bullets, f"**Value Addition**: {s_u}", "✎")
-
-            # 5. Extract candidate's actual written sentences from page transcript
-            if len(bullets) < 2 and pg_trans:
-                cand_lines = [
-                    l.strip() for l in pg_trans.splitlines()
-                    if len(l.strip()) >= 25 and not l.strip().startswith("#") and not re.match(r'^(?:Q\.?|\d+[\.\)])\s*', l.strip())
-                ]
-                if cand_lines:
-                    snippet = cand_lines[slot_idx % len(cand_lines)][:85]
-                    _add_unique_bullet(bullets, f"**Arguments Analyzed**: Evaluated analysis on *\"{snippet}...\"* addressing core directive dimensions.", "✓")
-
+            # 5. Dynamic subject-anchored upgrade lever if still under 2 bullets
             if len(bullets) < 2:
                 if is_polity:
                     _add_unique_bullet(bullets, "**Institutional Value Addition**: Substantiate with specific recommendations from 2nd ARC, Law Commission reports, or Supreme Court constitutional benchmarks.", "✎")
@@ -2134,16 +2114,16 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                         if len(comp_match) == 2:
                             t1_clean = re.sub(r'(?i)^body:\s*', '', comp_match[0]).strip()
                             t2_clean = re.sub(r'(?i)^body:\s*', '', comp_match[1]).strip()
-                            is_mkt = "market" in t1_clean.lower() or "market" in pg_trans
                             pg_anns[0]["tag"] = f"Body: {t1_clean}"
                             pg_anns[0]["start_y_percent"] = 12.0
-                            pg_anns[0]["end_y_percent"] = 48.0 if is_mkt else 66.0
-                            pg_anns[0]["remark"] = _build_page_zone_remark(pg, 0)
+                            pg_anns[0]["end_y_percent"] = 48.0
+                            if not pg_anns[0].get("remark") or len(str(pg_anns[0].get("remark")).strip()) < 25 or _has_meta_placeholder(str(pg_anns[0].get("remark"))):
+                                pg_anns[0]["remark"] = _build_page_zone_remark(pg, 0)
 
                             ann2 = {
                                 "page": pg,
                                 "approx_y_percent": 72,
-                                "start_y_percent": 50.0 if is_mkt else 68.0,
+                                "start_y_percent": 50.0,
                                 "end_y_percent": 88.0,
                                 "tag": f"Body: {t2_clean}",
                                 "type": "tick",
@@ -2151,73 +2131,27 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                                 "remark": _build_page_zone_remark(pg, 1)
                             }
                             pg_anns.append(ann2)
-                        elif "market failure" in pg_trans and "correcting" in pg_trans:
-                            pg_anns[0]["tag"] = "Body: Market Failure (Flowchart)"
-                            pg_anns[0]["start_y_percent"] = 12.0
-                            pg_anns[0]["end_y_percent"] = 48.0
-                            pg_anns[0]["remark"] = _build_page_zone_remark(pg, 0)
-
-                            ann2 = {
-                                "page": pg,
-                                "approx_y_percent": 72,
-                                "start_y_percent": 50.0,
-                                "end_y_percent": 88.0,
-                                "tag": "Body: Correcting Contract Failures",
-                                "type": "tick",
-                                "marks_awarded": "+1.5 / 3.0",
-                                "remark": _build_page_zone_remark(pg, 1)
-                            }
-                            pg_anns.append(ann2)
-                        elif "challenges" in pg_trans and "steps" in pg_trans:
-                            pg_anns[0]["tag"] = "Body: Challenges Faced"
-                            pg_anns[0]["start_y_percent"] = 12.0
-                            pg_anns[0]["end_y_percent"] = 66.0
-                            pg_anns[0]["remark"] = _build_page_zone_remark(pg, 0)
-
-                            ann2 = {
-                                "page": pg,
-                                "approx_y_percent": 76,
-                                "start_y_percent": 68.0,
-                                "end_y_percent": 88.0,
-                                "tag": "Body: Steps Needed to be Taken",
-                                "type": "tick",
-                                "marks_awarded": "+1.5 / 3.0",
-                                "remark": _build_page_zone_remark(pg, 1)
-                            }
-                            pg_anns.append(ann2)
                         else:
-                            pg_anns.append({
+                            ann2 = {
                                 "page": pg,
                                 "approx_y_percent": 72,
-                                "start_y_percent": 52,
-                                "end_y_percent": 90,
+                                "start_y_percent": max(50.0, float(pg_anns[0].get("end_y_percent", 50.0) or 50.0)),
+                                "end_y_percent": 88.0,
                                 "tag": "Body: Depth & Substantiation",
                                 "type": "suggestion",
                                 "marks_awarded": "+1.5 / 3.0",
                                 "remark": _build_page_zone_remark(pg, 1)
-                            })
+                            }
+                            pg_anns.append(ann2)
                     elif len(pg_anns) >= 2:
                         t1 = str(pg_anns[0].get("tag", "")).strip().lower()
                         t2 = str(pg_anns[1].get("tag", "")).strip().lower()
-                        if t1 == t2 or ("corrective" in t1 and "corrective" in t2) or ("market" in t1 and "market" in t2):
-                            if "market failure" in pg_trans:
-                                pg_anns[0]["tag"] = "Body: Market Failure (Flowchart)"
-                                pg_anns[0]["start_y_percent"] = 12.0
-                                pg_anns[0]["end_y_percent"] = 48.0
-                                pg_anns[0]["remark"] = _build_page_zone_remark(pg, 0)
-                                pg_anns[1]["tag"] = "Body: Correcting Contract Failures"
-                                pg_anns[1]["start_y_percent"] = 50.0
-                                pg_anns[1]["end_y_percent"] = 88.0
-                                pg_anns[1]["remark"] = _build_page_zone_remark(pg, 1)
-                            elif "challenges" in pg_trans:
-                                pg_anns[0]["tag"] = "Body: Challenges Faced"
-                                pg_anns[0]["start_y_percent"] = 12.0
-                                pg_anns[0]["end_y_percent"] = 66.0
-                                pg_anns[0]["remark"] = _build_page_zone_remark(pg, 0)
-                                pg_anns[1]["tag"] = "Body: Steps Needed to be Taken"
-                                pg_anns[1]["start_y_percent"] = 68.0
-                                pg_anns[1]["end_y_percent"] = 88.0
-                                pg_anns[1]["remark"] = _build_page_zone_remark(pg, 1)
+                        if t1 == t2:
+                            pg_anns[0]["tag"] = f"{pg_anns[0]['tag']} (Part 1)"
+                            pg_anns[1]["tag"] = f"{pg_anns[1]['tag']} (Part 2)"
+                        for idx_p, p_ann in enumerate(pg_anns[:2]):
+                            if not p_ann.get("remark") or len(str(p_ann.get("remark")).strip()) < 25 or _has_meta_placeholder(str(p_ann.get("remark"))):
+                                p_ann["remark"] = _build_page_zone_remark(pg, idx_p)
                     expanded_anns.extend(pg_anns)
                 else:
                     pg_trans = _get_page_transcript(pg).lower()
@@ -2226,15 +2160,13 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
 
                     # Detect if candidate wrote a statutory act or way forward sub-heading on the final page
                     has_statutory_subheading = (
-                        "model contract farming" in pg_trans or
-                        "model act" in pg_trans or
-                        bool(re.search(r'\b(?:model\s+contract\s+farming\s+act|disaster\s+management\s+act|\bact\s+\d{4}\b|strategies\s+to|way\s+forward)\b', pg_trans)) or
-                        (conc_ann and bool(re.search(r'(?i)(model\s*contract|statutory|legislative|\bact\b|fdi\b|land\s*protection|insurance\s*scheme)', str(conc_ann.get("tag", "")) + " " + str(conc_ann.get("remark", "")))))
+                        bool(re.search(r'\b(?:way\s+forward|way\s+ahead|measures\s+needed|solutions|strategies\s+to|\bact\s+\d{4}\b)\b', pg_trans)) or
+                        (conc_ann and bool(re.search(r'(?i)(statutory|legislative|\bact\b|reforms|way\s*forward)', str(conc_ann.get("tag", "")) + " " + str(conc_ann.get("remark", "")))))
                     )
 
                     if conc_ann and (has_statutory_subheading or float(conc_ann.get("start_y_percent", 62) or 62) < 60.0):
                         conc_s_y = float(conc_ann.get("start_y_percent", 26) or 26)
-                        statutory_tag = "Body: Model Contract Farming Act 2018" if ("contract" in pg_trans or "contract" in str(conc_ann.get("remark", "")).lower()) else "Body: Statutory Reforms & Way Forward"
+                        statutory_tag = "Body: Way Forward & Reforms"
 
                         statutory_body_ann = {
                             "page": pg,
@@ -2244,9 +2176,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                             "tag": statutory_tag,
                             "type": "tick",
                             "marks_awarded": "+1.5 / 3.0",
-                            "remark": _build_page_zone_remark(pg, 1) if "model contract farming" in pg_trans else (
-                                conc_ann.get("remark") if not _is_conc_bullet(conc_ann.get("remark", "")) else _build_page_zone_remark(pg, 1)
-                            )
+                            "remark": conc_ann.get("remark") if (conc_ann.get("remark") and not _is_conc_bullet(conc_ann.get("remark", "")) and len(str(conc_ann.get("remark"))).strip() >= 25) else _build_page_zone_remark(pg, 1)
                         }
 
                         # Extract closing prose line from pg_trans (e.g. "It can be seen that...")
@@ -2257,15 +2187,14 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                                 closing_line = ln_c
                                 break
 
-                        real_conc_rem = ""
-                        if "contract" in pg_trans:
-                            real_conc_rem = "✓ **Closing Stance Evaluated**: Concluded that insurance access and alienation protection are constructive steps in the right direction.\n✎ **Policy Depth**: Cite the Ashok Dalwai Committee recommendation on contract farming or FPO-based collective bargaining to strengthen institutional backing."
-                        elif closing_line:
-                            real_conc_rem = f"✓ **Closing Stance Evaluated**: Concluded with *\"{closing_line[:75]}...\"* tying together the core theme.\n✎ **How to Elevate**: Anchor closing line in 1 concrete institutional framework and statutory target."
+                        c_crit = str(conc_audit_obj.get("current_critique") or "")
+                        c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "")
+                        if closing_line:
+                            real_conc_rem = f"✓ **Closing Stance Evaluated**: Concluded with *\"{closing_line[:80]}...\"* tying together the core directive.\n✎ **Topper Finish**: {c_rew[:140] if len(c_rew) >= 25 else 'Anchor closing line in 1 concrete institutional benchmark and forward-looking reform.'}"
+                        elif c_crit and len(c_crit) >= 30 and not _has_meta_placeholder(c_crit):
+                            real_conc_rem = f"{_fmt_bullet(c_crit, '✓')}\n✎ **Topper Finish**: {c_rew[:140] if len(c_rew) >= 25 else 'Anchor closing line in 1 concrete institutional benchmark.'}"
                         else:
-                            c_crit = str(conc_audit_obj.get("current_critique") or "✓ **Closing Stance Evaluated**: Summarized candidate's concluding stand on the core directive.")
-                            c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "Anchor closing line in 1 concrete institutional framework.")
-                            real_conc_rem = f"{_fmt_bullet(c_crit, '✓')}\n✎ **Topper Finish**: {c_rew[:140]}"
+                            real_conc_rem = "✓ **Closing Stance Evaluated**: Summarized candidate's concluding stand on the core directive.\n✎ **Topper Finish**: Anchor closing line in 1 concrete institutional benchmark and statutory target."
 
                         real_conc_ann = {
                             "page": pg,
