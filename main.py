@@ -190,7 +190,8 @@ async def health_check():
         "service": "Cooked Mains AI",
         "supabase_connected": bool(supabase is not None),
         "last_supabase_activity_seconds_ago": round(time.time() - _last_supabase_ping_ts, 1) if _last_supabase_ping_ts > 0 else None,
-        "gemini_key_configured": bool(os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"))
+        "gemini_key_configured": bool(os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")),
+        "active_gemini_keys_count": len(get_active_gemini_keys())
     }
 
 @app.get("/api/supabase-keepalive")
