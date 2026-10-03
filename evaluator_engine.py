@@ -1333,7 +1333,7 @@ Generate strictly valid JSON matching this schema:
       "domain_or_thinker": "Discipline-Specific Badge #4",
       "definition": "Concise 1-sentence explanation. NEVER force modern administrative policy/committee onto ancient history, culture, or physical geography!",
       "where_to_use": "Final Page • Attach to the end of your closing '[Exact Closing / Mitigation Line Written]'",
-      "how_to_use_one_line": "\"Recommend via **Keyword #4**: '...institutionalizing statutory checks to insulate democratic institutions from partisan bias.'\""
+      "how_to_use_one_line": "\"Recommend via **Keyword #4**: Institutionalize statutory checks to insulate democratic institutions from partisan bias.\""
     }}
   ],
   "micro_hygiene": {{
@@ -1448,7 +1448,7 @@ Generate strictly valid JSON matching this schema:
     "current_critique": "Substantive 1-2 sentence evaluation explaining specifically what the candidate wrote in the introduction, verifying factual/chronological accuracy, and stating why marks were awarded or deducted (NEVER write a 1-word or 3-word fragment).",
     "is_circular_intro": false,
     "missing_elements": ["**Key Concept / Scholar / Historical Anchor**", "**Baseline Context / Data**"], // Leave empty [] if intro_score equals intro_max (perfect introduction)
-    "model_intro_rewrite": "Crisp 25-word model opening (leave empty string '' if candidate's introduction is already full marks)."
+    "model_intro_rewrite": "Crisp, complete 25-35 word exam-hall model opening defining the core subject with bold keywords, constitutional articles, or statutory frameworks. MUST be fully written; NEVER leave empty or return an empty string."
   }},
   "body_audit": {{
     "overall_assessment": "Comprehensive 1-2 sentence examiner synthesis citing key sub-headings and concepts written across pages (e.g., 'Your Body section is logically structured across **[Sub-Heading 1]** (Page 1) and **[Sub-Heading 2]** (Pages 2-3), featuring neat diagrams... However, ...')",
@@ -1515,7 +1515,7 @@ Generate strictly valid JSON matching this schema:
   "conclusion_audit": {{
     "current_critique": "Substantive 1-2 line evaluation of candidate's concluding paragraph.",
     "aligns_with_national_goals": true,
-    "model_conclusion_rewrite": "Forward-looking, balanced synthesis conclusion connecting to national vision."
+    "model_conclusion_rewrite": "Forward-looking, balanced 25-35 word synthesis conclusion connecting to national vision, constitutional morality, or committee benchmarks. MUST be fully written; NEVER leave empty."
   }},
   "case_study_audit": {{
     "is_case_study": true, // MANDATORY: set true if this is an ethical case study / scenario dilemma (GS-4 Section B or administrative scenario)
@@ -1746,6 +1746,176 @@ def detect_question_discipline(question_str: str, paper_str: str) -> str:
 
     return "GENERAL"
 
+
+def _clean_quote_snippet(text: str, max_chars: int = 140) -> str:
+    """Extract a complete, grammatically sound quote from candidate text without cutting words in half or ending with dangling ellipsis."""
+    if not text:
+        return ""
+    clean = " ".join(str(text).split()).strip().strip('"\'*')
+    clean = re.sub(r'^\s*[-•*✓✔✎✗×]\s*', '', clean)
+    clean = re.sub(r'\s*\.{2,}\s*$', '', clean).strip()
+    if not clean:
+        return ""
+    if len(clean) <= max_chars:
+        clean = re.sub(r'[,;:\s\-–—]+$', '', clean)
+        clean = re.sub(r'\b(?:and|or|in|the|of|with|to|for|like|at|on|by|a|an|i)\s*$', '', clean, flags=re.I).strip()
+        return clean
+
+    # Look for natural sentence or clause boundary before max_chars
+    boundary_match = re.search(r'([.?!;])\s+', clean[:max_chars + 15])
+    if boundary_match and boundary_match.start() >= 35:
+        return clean[:boundary_match.start()].strip()
+
+    # Otherwise cut at last whitespace boundary before max_chars
+    trimmed = clean[:max_chars]
+    last_space = trimmed.rfind(" ")
+    if last_space > 35:
+        trimmed = trimmed[:last_space].strip()
+
+    trimmed = re.sub(r'[,;:\s\-–—]+$', '', trimmed)
+    trimmed = re.sub(r'\b(?:and|or|in|the|of|with|to|for|like|at|on|by|a|an|i)\s*$', '', trimmed, flags=re.I).strip()
+    return trimmed
+
+
+def _clean_concepts_string(text: str, max_chars: int = 160) -> str:
+    """Extract and format candidate handwritten concepts/milestones cleanly without truncation or dangling ellipsis."""
+    if not text:
+        return ""
+    clean = " ".join(str(text).split()).strip().strip('"\'*()')
+    clean = re.sub(r'^\s*[-•*✓✔✎✗×]\s*', '', clean)
+    clean = re.sub(r'\s*\.{2,}\s*$', '', clean).strip()
+    if not clean:
+        return ""
+
+    # Check for list items separated by comma, semicolon, or bullets
+    items = [it.strip().strip('"\'*()') for it in re.split(r'[,;]\s*', clean) if it.strip()]
+    if len(items) > 1:
+        kept = []
+        cur_len = 0
+        for it in items:
+            it_clean = re.sub(r'^\s*[-•*✓✔✎✗×]\s*', '', it).strip()
+            it_clean = re.sub(r'\b(?:and|or)\b\s*', '', it_clean, flags=re.I).strip()
+            if not it_clean:
+                continue
+            if cur_len + len(it_clean) + 4 > max_chars and kept:
+                break
+            kept.append(it_clean)
+            cur_len += len(it_clean) + 2
+        if len(kept) == 1:
+            return kept[0]
+        elif len(kept) == 2:
+            return f"{kept[0]} and {kept[1]}"
+        elif len(kept) > 2:
+            return f"{', '.join(kept[:-1])}, and {kept[-1]}"
+
+    return _clean_quote_snippet(clean, max_chars)
+
+
+def _build_domain_specific_intro(question_text: str, paper_name: str, existing_text: str = "", missing_elements: list = None) -> str:
+    """Construct a high-yield, 25-35 word topper model introduction tailored to the question's core subject, articles, and benchmarks."""
+    q_low = f"{question_text} {existing_text}".lower()
+    p_up = str(paper_name or "").upper()
+
+    if "aspirational" in q_low or ("good governance" in q_low and "district" in q_low):
+        return (
+            "Launched in 2018 by **NITI Aayog** across 112 underdeveloped districts, the **Aspirational Districts Programme (ADP)** operationalizes the **3Cs strategy** "
+            "(**Convergence** of schemes, **Collaboration** of administrative machinery, and **Competition** via delta rankings) to transform grassroots governance."
+        )
+    if "education" in q_low and ("charter" in q_low or "macaulay" in q_low or "wood" in q_low or "british" in q_low or "colonial" in q_low):
+        return (
+            "The evolution of modern education in colonial India, initiated through the **Charter Act of 1813** (£1 lakh annual grant), shifted under "
+            "**Macaulay's Minute (1835)** and **Wood's Despatch (1854 - Magna Carta)** from indigenous vernacular learning to state-directed administrative instruction."
+        )
+    if "floriculture" in q_low or ("agri" in q_low and "export" in q_low):
+        return (
+            "**Floriculture in India** is an emerging high-value commercial horticulture sector supported by diverse agro-climatic zones, **MIDH assistance**, "
+            "and **APEDA export corridors** to maximize smallholder farm incomes and agricultural diversification."
+        )
+    if "plfs" in q_low or "periodic labour force" in q_low:
+        return (
+            "The **Periodic Labour Force Survey (PLFS)**, launched by the **National Statistical Office (NSO)** in 2017, serves as India's official high-frequency labour telemetry framework, "
+            "benchmarking the **Worker-Population Ratio (WPR)** and female labour force dynamics."
+        )
+    if "deep-tech" in q_low or "deep tech" in q_low or "startup" in q_low:
+        return (
+            "**Deep-tech startups** leverage breakthrough scientific discoveries and high-TRL engineering to solve complex systemic challenges, distinguished from consumer platforms "
+            "by prolonged R&D cycles, intellectual property intensity, and the need for patient risk capital."
+        )
+    if "supremacy of the constitution" in q_low or "judicial review" in q_low or "njac" in q_low:
+        return (
+            "**Judicial review**, an inviolable facet of the Constitution's **Basic Structure (Article 13 & 32/226)**, guarantees **Constitutional Supremacy** "
+            "by subjecting all legislative enactments and executive actions to judicial scrutiny against fundamental constitutional benchmarks."
+        )
+    if "criminal" in q_low and ("politic" in q_low or "rpa" in q_low):
+        return (
+            "The criminalisation of politics undermines the democratic social contract and institutional sanctity, necessitating statutory disqualification reforms under the "
+            "**Representation of the People Act, 1951** and the enforcement of the **ADR v. Union of India (2002)** disclosure regime."
+        )
+    if "election" in q_low and ("commission" in q_low or "appointment" in q_low or "cec" in q_low or "324" in q_low):
+        return (
+            "**Article 324** vests the superintendence, direction, and control of elections in the **Election Commission of India (ECI)**, whose institutional autonomy and procedural impartiality "
+            "form the bedrock of free and fair democratic elections in India."
+        )
+    if any(k in q_low for k in ["heatwave", "heat wave", "heat dome", "urban heat"]):
+        return (
+            "A **heatwave** is a prolonged period of abnormally high surface temperatures declared by the **IMD** when departures exceed 4.5°C over climatological normals, "
+            "driven by anti-cyclonic atmospheric blocking, thermodynamic insolation, and localized urban heat island effects."
+        )
+    if any(k in q_low for k in ["volcano", "volcanism", "magma", "plate tectonics"]):
+        return (
+            "**Volcanism** refers to the eruption of molten magma, pyroclastic materials, and gases from Earth's interior onto the crust, acting as a "
+            "**planetary heat engine** that drives lithospheric recycling, atmospheric degassing, and fertile **Regur basaltic soil** formation."
+        )
+    if any(k in q_low for k in ["earthquake", "seismic", "fault", "focus"]):
+        return (
+            "An **earthquake** is the sudden release of accumulated strain energy along tectonic faults or subduction zones, propagating as elastic body and surface waves "
+            "governed by **H.F. Reid's Elastic Rebound Theory** across vulnerable seismic terrains."
+        )
+    if "ahom" in q_low or "buranji" in q_low or "saraighat" in q_low:
+        return (
+            "The **Ahom Kingdom (1228–1826)** established enduring political and cultural sovereignty in the Brahmaputra valley, sustained by the unique **Paik mobilization system**, "
+            "indigenous chronicles (**Buranjis**), and syncretic socio-administrative institutions."
+        )
+    if "GS1" in p_up and any(k in q_low for k in ["history", "culture", "art", "temple", "movement", "heritage"]):
+        return (
+            "India's historical evolution and cultural architecture reflect an enduring civilizational synthesis, shaped through dynamic socio-political institutions, "
+            "epigraphical traditions, and regional vernacular patronage."
+        )
+    if "GS1" in p_up and any(k in q_low for k in ["cyclone", "disaster", "monsoon", "landslide", "tsunami", "hazard"]):
+        return (
+            "Natural disasters in the Indian subcontinent arise from the complex interplay of tropical meteorological dynamics, fragile geomorphology, and "
+            "socio-spatial vulnerability, necessitating an integrated paradigm under the **Sendai Framework (2015–2030)**."
+        )
+    if "GS2" in p_up or "POLITY" in p_up:
+        return (
+            "Constitutional governance in India balances the separation of powers with institutional checks and balances, operationalizing **Constitutional Morality** "
+            "to secure fundamental rights and cooperative federalism."
+        )
+    if "GS3" in p_up and any(k in q_low for k in ["economy", "fiscal", "tax", "gdp", "growth", "finance", "debt"]):
+        return (
+            "Sustaining India's macroeconomic trajectory requires harmonizing structural fiscal prudence with targeted capex expansion, formalizing employment, and "
+            "strengthening productive capital formation across key growth sectors."
+        )
+    if "GS3" in p_up and any(k in q_low for k in ["climate", "environment", "biodiversity", "renewable", "pollution"]):
+        return (
+            "Achieving India's **Panchamrit climate targets** requires balancing ecological conservation with industrial modernization, operationalizing "
+            "statutory environmental standards and circular resource efficiency."
+        )
+    if "GS4" in p_up or "ETHICS" in p_up:
+        return (
+            "Public administration ethics anchors administrative discretion in **Constitutional Morality** and the **Nolan Committee Principles**, ensuring that public servants "
+            "exercise institutional authority with unyielding integrity, objectivity, and empathy for the most vulnerable."
+        )
+
+    clean_q = re.sub(r'^(?:discuss|examine|critically\s+examine|analyze|evaluate|elucidate|comment\s+on|explain|what\s+is|what\s+are)\s+', '', question_text, flags=re.I).strip()
+    words = clean_q.split()
+    core_topic = " ".join(words[:6]).rstrip(",;:") if words else "the core policy directive"
+    return (
+        f"Addressing **{core_topic}** requires an integrated approach that anchors foundational statutory principles alongside empirical benchmarks, "
+        f"ensuring transparent institutional accountability and outcome-oriented governance."
+    )
+
+
 def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: str, paper: str) -> Dict[str, Any]:
     """
     Enforces 100% mathematical consistency (denominators sum to max_marks, numerators sum to overall_score).
@@ -1966,8 +2136,9 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                     if len(l.strip()) >= 22 and not l.strip().startswith("#") and not re.match(r'^(?:Q\.?|\d+[\.\)])\s*', l.strip())
                 ]
                 if cand_lines:
-                    snippet = cand_lines[slot_idx % len(cand_lines)][:90]
-                    _add_unique_bullet(bullets, f"**Arguments Analyzed**: Evaluated analysis on *\"{snippet}...\"* addressing core directive dimensions.", "✓")
+                    clean_snip = _clean_quote_snippet(cand_lines[slot_idx % len(cand_lines)], 120)
+                    if clean_snip:
+                        _add_unique_bullet(bullets, f"**Arguments Analyzed**: Evaluated analysis on *\"{clean_snip}\"* addressing core directive dimensions.", "✓")
 
             # 3. Pull from sub_part_step_marking
             sub_steps = data.get("sub_part_step_marking") or []
@@ -2051,17 +2222,19 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                 crit_str = str(intro_audit_obj.get("current_critique") or "").strip()
                 miss_list = [str(m).strip() for m in (intro_audit_obj.get("missing_elements") or []) if m]
                 if is_intro_perfect and not _has_meta_placeholder(crit_str):
+                    clean_first = _clean_quote_snippet(first_student_sentence, 120) if first_student_sentence else ""
                     pos_ln = crit_str if len(crit_str) >= 45 else (i_lines[0] if i_lines else (
-                        f"✓ **Strong Opening Premise**: Opened directly with *\"{first_student_sentence[:80]}...\"* accurately establishing the baseline context." if first_student_sentence else "✓ **Strong Opening Premise**: Clear, accurate, and context-rich introduction addressing the core demand of the question."
+                        f"✓ **Strong Opening Premise**: Opened directly with *\"{clean_first}\"* accurately establishing the baseline context." if clean_first else "✓ **Strong Opening Premise**: Clear, accurate, and context-rich introduction addressing the core demand of the question."
                     ))
                     ann["remark"] = _fmt_bullet(pos_ln, "✓")
                 else:
                     # Check if any line in raw_i_rem is a telegraphic 2-4 word stub (< 52 chars) or meta-placeholder
                     has_short_stub = (len(i_lines) < 2) or any(len(re.sub(r'\*\*.*?\*\*\s*:?\s*', '', ln).strip()) < 38 for ln in i_lines)
                     if has_short_stub or not raw_i_rem or _has_meta_placeholder(raw_i_rem):
+                        clean_first = _clean_quote_snippet(first_student_sentence, 120) if first_student_sentence else ""
                         p1_txt = crit_str if (len(crit_str) >= 40 and not _has_meta_placeholder(crit_str)) else (
-                            f"✓ **Opening Premise Evaluated**: Opened directly with *\"{first_student_sentence[:80]}...\"* directly addressing the core directive."
-                            if first_student_sentence else "✓ **Opening Context**: Addressed the foundational definition and core theme of the prompt."
+                            f"✓ **Opening Premise Evaluated**: Opened directly with *\"{clean_first}\"* directly addressing the core directive."
+                            if clean_first else "✓ **Opening Context**: Addressed the foundational definition and core theme of the prompt."
                         )
                         if is_ethics:
                             q_or_t = (question + " " + trans_raw).lower()
@@ -2228,13 +2401,14 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                                 break
 
                         c_crit = str(conc_audit_obj.get("current_critique") or "")
-                        c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "")
-                        if closing_line:
-                            real_conc_rem = f"✓ **Closing Stance Evaluated**: Concluded with *\"{closing_line[:80]}...\"* tying together the core directive.\n✎ **Topper Finish**: {c_rew[:140] if len(c_rew) >= 25 else 'Anchor closing line in 1 concrete institutional benchmark and forward-looking reform.'}"
+                        clean_close = _clean_quote_snippet(closing_line, 120)
+                        clean_topper = c_rew.strip() if len(c_rew.strip()) >= 25 else 'Anchor closing line in 1 concrete institutional benchmark and forward-looking reform.'
+                        if clean_close:
+                            real_conc_rem = f"✓ **Closing Stance Evaluated**: Concluded with *\"{clean_close}\"* tying together the core directive.\n✎ **Topper Finish**: {clean_topper}"
                         elif c_crit and len(c_crit) >= 30 and not _has_meta_placeholder(c_crit):
-                            real_conc_rem = f"{_fmt_bullet(c_crit, '✓')}\n✎ **Topper Finish**: {c_rew[:140] if len(c_rew) >= 25 else 'Anchor closing line in 1 concrete institutional benchmark.'}"
+                            real_conc_rem = f"{_fmt_bullet(c_crit, '✓')}\n✎ **Topper Finish**: {clean_topper}"
                         else:
-                            real_conc_rem = "✓ **Closing Stance Evaluated**: Summarized candidate's concluding stand on the core directive.\n✎ **Topper Finish**: Anchor closing line in 1 concrete institutional benchmark and statutory target."
+                            real_conc_rem = f"✓ **Closing Stance Evaluated**: Summarized candidate's concluding stand on the core directive.\n✎ **Topper Finish**: {clean_topper}"
 
                         real_conc_ann = {
                             "page": pg,
@@ -2523,8 +2697,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
             elif (is_geo or "temperature" in term_c or "insolation" in term_c) and ("committee" in raw_dot.lower() or "policy" in raw_dot.lower() or "constitutional" in raw_dot.lower()):
                 raw_dot = "Climatological & Spatial Mechanism"
 
-            if len(raw_dot) > 35:
-                raw_dot = raw_dot[:32] + "..."
+            if len(raw_dot) > 36:
+                raw_dot = re.sub(r'\s+\S*$', '', raw_dot[:36]).strip()
             used_badges.add(raw_dot.lower())
             card["domain_or_thinker"] = raw_dot
 
@@ -2558,27 +2732,27 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
             
             if is_broken:
                 if "baranwal" in term_l:
-                    card["how_to_use_one_line"] = f"\"Cite **{term_str}**: '...mandating a balanced multi-party selection committee (PM, CJI, LoP) to safeguard institutional neutrality.'\""
+                    card["how_to_use_one_line"] = f"\"Cite **{term_str}** to mandate a balanced multi-party selection committee (PM, CJI, LoP) to safeguard institutional neutrality.\""
                 elif "324" in term_l or "article" in term_l:
-                    card["how_to_use_one_line"] = f"\"Anchor under **{term_str}**: '...vesting independent superintendence, direction, and control of elections in an autonomous constitutional body.'\""
+                    card["how_to_use_one_line"] = f"\"Anchor under **{term_str}** to vest independent superintendence, direction, and control of elections in an autonomous constitutional body.\""
                 elif "goswami" in term_l:
-                    card["how_to_use_one_line"] = f"\"Recommend via **{term_str}**: '...institutionalizing a consultative multi-party selection collegium for electoral integrity.'\""
+                    card["how_to_use_one_line"] = f"\"Recommend via **{term_str}** to institutionalize a consultative multi-party selection collegium for electoral integrity.\""
                 elif "255" in term_l or "law commission" in term_l:
-                    card["how_to_use_one_line"] = f"\"Cite **{term_str}**: '...advocating equal constitutional removal safeguards and a 3-member collegium for all Election Commissioners.'\""
+                    card["how_to_use_one_line"] = f"\"Cite **{term_str}** to advocate equal constitutional removal safeguards and a 3-member collegium for all Election Commissioners.\""
                 elif "arc" in term_l:
-                    card["how_to_use_one_line"] = f"\"Substantiate via **{term_str}**: '...recommending a broad collegium (PM, CJI, Speaker, LoP, Law Minister) to insulate watchdog bodies.'\""
+                    card["how_to_use_one_line"] = f"\"Substantiate via **{term_str}** to recommend a broad collegium (PM, CJI, Speaker, LoP, Law Minister) to insulate watchdog bodies.\""
                 elif "tarkunde" in term_l:
-                    card["how_to_use_one_line"] = f"\"Cite **{term_str}**: '...first recommending a selection panel of PM, CJI, and LoP to insulate election machinery.'\""
+                    card["how_to_use_one_line"] = f"\"Cite **{term_str}** to mandate an independent selection panel of PM, CJI, and LoP to insulate election machinery.\""
                 elif "thakur" in term_l:
-                    card["how_to_use_one_line"] = f"\"Cite **{term_str}**: '...challenging the exclusion of the CJI from the selection panel as violative of democratic autonomy.'\""
+                    card["how_to_use_one_line"] = f"\"Cite **{term_str}** to challenge the exclusion of the CJI from the selection panel as violative of democratic autonomy.\""
                 elif "sendai" in term_l:
-                    card["how_to_use_one_line"] = f"\"Apply **{term_str}**: '...operationalizing Build Back Better in disaster risk mitigation and resilient infrastructure.'\""
+                    card["how_to_use_one_line"] = f"\"Apply **{term_str}** to operationalize Build Back Better in disaster risk mitigation and resilient infrastructure.\""
                 elif "benioff" in term_l:
-                    card["how_to_use_one_line"] = f"\"Anchor in **{term_str}**: '...where deep plate subduction releases high-magnitude seismic strain.'\""
+                    card["how_to_use_one_line"] = f"\"Anchor in **{term_str}** to explain where deep plate subduction releases high-magnitude seismic strain.\""
                 elif "buranji" in term_l:
-                    card["how_to_use_one_line"] = f"\"Anchor in **{term_str}**: '...drawing on official state chronicles that recorded Assam's administrative history.'\""
+                    card["how_to_use_one_line"] = f"\"Anchor in **{term_str}** to draw on official royal chronicles that documented Assam's administrative history.\""
                 elif "paik" in term_l:
-                    card["how_to_use_one_line"] = f"\"Cite **{term_str}**: '...mobilizing rotational agrarian labor and standing defense without monetary debt.'\""
+                    card["how_to_use_one_line"] = f"\"Cite **{term_str}** to illustrate how rotational agrarian labor and defense were mobilized without monetary debt.\""
                 else:
                     def_clause = str(card.get("definition") or "").split(".")[0].strip()
                     clean_def = re.sub(r'^(?:✓\s*[^:]*:\s*|.*?significance:\s*)', '', def_clause).strip()
@@ -2586,7 +2760,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                     if len(words) > 14:
                         clean_def = " ".join(words[:14])
                     clean_def = re.sub(r'\b(?:of|in|to|for|with|by|from|comprising|under|and|the|a|an)\s*$', '', clean_def, flags=re.I).strip().rstrip(",;:")
-                    card["how_to_use_one_line"] = f"\"Add inline as: '...operationalizing **{term_str}** ({clean_def.lower()}) to strengthen systemic accountability.'\""
+                    card["how_to_use_one_line"] = f"\"Integrate **{term_str}** ({clean_def.lower()}) inline to strengthen systemic accountability and answer depth.\""
 
     # Normalize Actionable Value-Addition Checklist (Where to Write & How to Write)
     va_raw = data.get("value_add_checklist") or {}
@@ -3232,8 +3406,9 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                 if matched_pbp:
                     what_w = str(matched_pbp.get("what_you_wrote") or "").strip()
                     verd_w = str(matched_pbp.get("examiner_verdict") or "").strip()
-                    if what_w and what_w.lower() not in body_part.lower():
-                        clean = f"{header_part} You clearly articulated this on your sheet ('{what_w[:85]}...'). {body_part} This demonstrated clear conceptual grounding and secured core demand marks."
+                    clean_cand_pts = _clean_concepts_string(what_w)
+                    if clean_cand_pts and clean_cand_pts.lower() not in body_part.lower():
+                        clean = f"{header_part} You clearly articulated this on your sheet by citing **{clean_cand_pts}**. {body_part} This demonstrated clear conceptual grounding and secured core demand marks."
                     elif verd_w and verd_w.lower() not in body_part.lower():
                         clean = f"{header_part} {body_part} {verd_w}"
                     else:
@@ -3346,6 +3521,13 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
         for ann in anns_list:
             if "intro" in str(ann.get("tag") or "").lower() or "premise" in str(ann.get("tag") or "").lower():
                 ann["marks_awarded"] = f"+{new_i_score:.1f} / {i_max:.1f}"
+
+    # Ensure model_intro_rewrite is never empty or generic across all subjects
+    raw_model_intro = str(i_audit.get("model_intro_rewrite") or "").strip()
+    if not raw_model_intro or len(raw_model_intro) < 25 or _has_meta_placeholder(raw_model_intro) or raw_model_intro in ('""', "''"):
+        domain_intro = _build_domain_specific_intro(q_str, p_str, raw_model_intro, i_missing)
+        i_audit["model_intro_rewrite"] = domain_intro
+        data["intro_audit"] = i_audit
 
     c_audit = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
     domain_conc = _build_domain_specific_conclusion(q_str, p_str, str(c_audit.get("model_conclusion_rewrite") or ""))
@@ -3483,8 +3665,9 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
             if gemini_step_conc_text and not re.search(r'(?i)\b(?:not\s+attempted|unwritten)\b', gemini_step_conc_text):
                 c_audit["current_critique"] = gemini_step_conc_text.strip()
             elif is_last_line_narrative and last_line:
+                clean_last = _clean_quote_snippet(last_line, 120)
                 c_audit["current_critique"] = (
-                    f"✓ **Closing Synthesis Evaluated**: Concluded with relevant statement (*\"{last_line[:85]}...\"*), but it remained somewhat broad.\n"
+                    f"✓ **Closing Synthesis Evaluated**: Concluded with relevant statement (*\"{clean_last}\"*), but it remained somewhat broad.\n"
                     f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {domain_conc}"
                 )
             else:
@@ -3755,28 +3938,28 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                     "domain_or_thinker": "Electoral Reforms Committee",
                     "definition": "Landmark electoral reforms committee recommending an independent consultative selection collegium for CEC and ECs to preserve public credibility.",
                     "where_to_use": "Page 2 • Under your 'Reforms / Way Forward' section",
-                    "how_to_use_one_line": "\"Recommend via **Dinesh Goswami Committee (1990)**: '...institutionalizing a consultative multi-party selection collegium for electoral integrity.'\""
+                    "how_to_use_one_line": "\"Recommend via **Dinesh Goswami Committee (1990)** to institutionalize a consultative multi-party selection collegium for electoral integrity.\""
                 },
                 {
                     "term": "Law Commission 255th Report (2015)",
                     "domain_or_thinker": "Law Commission Benchmark",
                     "definition": "Proposed an equal 3-member collegium (PM, CJI, LoP) and constitutional removal parity for all Election Commissioners under Art. 324(5).",
                     "where_to_use": "Page 2 • Under 'Challenges to Autonomy / Executive Dominance' bullet",
-                    "how_to_use_one_line": "\"Cite **Law Commission 255th Report (2015)**: '...advocating equal constitutional removal safeguards and a 3-member collegium for all Election Commissioners.'\""
+                    "how_to_use_one_line": "\"Cite **Law Commission 255th Report (2015)** to advocate equal constitutional removal safeguards and a 3-member collegium for all Election Commissioners.\""
                 },
                 {
                     "term": "2nd ARC 4th Report (Ethics in Governance)",
                     "domain_or_thinker": "Administrative Reforms Benchmark",
                     "definition": "Recommended an insulated appointment collegium (PM, Speaker, CJI, LoP, Law Minister) to eliminate executive dominance in watchdog institutions.",
                     "where_to_use": "Page 2–3 • Beside your closing recommendations point",
-                    "how_to_use_one_line": "\"Substantiate via **2nd ARC 4th Report**: '...recommending a broad collegium (PM, CJI, Speaker, LoP, Law Minister) to insulate watchdog bodies.'\""
+                    "how_to_use_one_line": "\"Substantiate via **2nd ARC 4th Report** to recommend a broad collegium (PM, CJI, Speaker, LoP, Law Minister) to insulate watchdog bodies.\""
                 },
                 {
                     "term": "Tarkunde Committee (1975)",
                     "domain_or_thinker": "Historical Reform Precedent",
                     "definition": "Pioneered the proposal for a non-partisan collegium (PM, CJI, and LoP) to safeguard the Election Commission's constitutional autonomy.",
                     "where_to_use": "Page 1–2 • Under 'Evolution of Appointment Mechanism' bullet",
-                    "how_to_use_one_line": "\"Cite **Tarkunde Committee (1975)**: '...first recommending a selection panel of PM, CJI, and LoP to insulate election machinery.'\""
+                    "how_to_use_one_line": "\"Cite **Tarkunde Committee (1975)** to mandate an independent selection panel of PM, CJI, and LoP to insulate election machinery.\""
                 }
             ]
         elif discipline == "ECONOMY_DEVELOPMENT":
@@ -3786,14 +3969,14 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                     "domain_or_thinker": "Fiscal Architecture",
                     "definition": "Targeting a general government debt-to-GDP ratio of 60% with counter-cyclical escape clauses for macroeconomic stabilization.",
                     "where_to_use": "Page 2 • Under your fiscal policy / investment sub-heading",
-                    "how_to_use_one_line": "\"Anchor under **FRBM Review Committee (N.K. Singh)**: '...targeting debt-to-GDP of 60% with counter-cyclical fiscal flexibility.'\""
+                    "how_to_use_one_line": "\"Anchor under **FRBM Review Committee (N.K. Singh)** to target general government debt-to-GDP of 60% with counter-cyclical fiscal flexibility.\""
                 },
                 {
                     "term": "K.V. Kamath Committee (2020)",
                     "domain_or_thinker": "Banking & Debt Resolution",
                     "definition": "Established 5 specific financial threshold ratios (Total Debt/EBITDA, DSCR, Current Ratio) for systemic corporate debt restructuring.",
                     "where_to_use": "Page 2 • Under banking stress / NPAs bullet",
-                    "how_to_use_one_line": "\"Cite **K.V. Kamath Committee**: '...applying 5 key financial ratios to restructure stressed sectoral debt portfolios.'\""
+                    "how_to_use_one_line": "\"Cite **K.V. Kamath Committee** to apply 5 key financial ratios to restructure stressed sectoral debt portfolios.\""
                 }
             ]
         elif discipline == "GEOGRAPHY_DISASTER":
@@ -3803,14 +3986,14 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                     "domain_or_thinker": "Subduction Seismology",
                     "definition": "Seismic zone tracing subducting lithospheric slab interfaces, triggering deep-focus earthquakes (300-700 km).",
                     "where_to_use": "Page 1–2 • Under your subduction / plate tectonics mechanism",
-                    "how_to_use_one_line": "\"Anchor in **Wadati–Benioff Zone**: '...where deep plate subduction releases high-magnitude seismic strain.'\""
+                    "how_to_use_one_line": "\"Anchor in **Wadati–Benioff Zone** to explain where deep plate subduction releases high-magnitude seismic strain.\""
                 },
                 {
                     "term": "Sendai Framework for DRR (Priority 4)",
                     "domain_or_thinker": "Global DRR Standard",
                     "definition": "Global standard operationalizing 'Build Back Better' in hazard recovery, spatial planning, and resilient reconstruction.",
                     "where_to_use": "Page 2 • Under your disaster mitigation sub-heading",
-                    "how_to_use_one_line": "\"Apply **Sendai Framework (Priority 4)**: '...operationalizing Build Back Better in hazard mitigation and resilient infrastructure.'\""
+                    "how_to_use_one_line": "\"Apply **Sendai Framework (Priority 4)** to operationalize Build Back Better in hazard mitigation and resilient infrastructure.\""
                 }
             ]
         elif discipline == "HISTORY_CULTURE":
@@ -3820,14 +4003,14 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                     "domain_or_thinker": "Primary Historiographical Source",
                     "definition": "Official royal chronicles in Tai and Assamese documenting statecraft, administrative structures, and foreign relations.",
                     "where_to_use": "Page 1 • Beside your historical sources / administration opening",
-                    "how_to_use_one_line": "\"Anchor in **Buranjis**: '...drawing on official state chronicles that recorded Assam's administrative history.'\""
+                    "how_to_use_one_line": "\"Anchor in **Buranjis** to draw on official royal chronicles that documented Assam's administrative history.\""
                 },
                 {
                     "term": "Paik & Khel System",
                     "domain_or_thinker": "Agrarian-Military Structure",
                     "definition": "Rotational military-agrarian mobilization system that sustained standing territorial defense without monetary debt.",
                     "where_to_use": "Page 2 • Under your administrative organization section",
-                    "how_to_use_one_line": "\"Cite **Paik & Khel System**: '...mobilizing rotational agrarian labor and defense without monetary debt.'\""
+                    "how_to_use_one_line": "\"Cite **Paik & Khel System** to illustrate how rotational agrarian labor and defense were mobilized without monetary debt.\""
                 }
             ]
         else:
@@ -3837,14 +4020,14 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                     "domain_or_thinker": "Administrative Reforms",
                     "definition": "Official reform benchmark outlining codes of ethics and institutional safeguards to insulate watchdog bodies from executive overreach.",
                     "where_to_use": "Page 2 • Under your core governance challenge section",
-                    "how_to_use_one_line": "\"Substantiate via **2nd ARC 4th Report**: '...recommending independent collegium structures to preserve institutional autonomy.'\""
+                    "how_to_use_one_line": "\"Substantiate via **2nd ARC 4th Report** to recommend independent collegium structures to preserve institutional autonomy.\""
                 },
                 {
                     "term": "Law Commission 255th Report (2015)",
                     "domain_or_thinker": "Statutory Commission Benchmark",
                     "definition": "Comprehensive commission recommendations addressing institutional autonomy, regulatory independence, and constitutional checks and balances.",
                     "where_to_use": "Page 2 • Beside your institutional reform point",
-                    "how_to_use_one_line": "\"Anchor in **Law Commission 255th Report**: '...reinforcing statutory insulation to safeguard procedural neutrality.'\""
+                    "how_to_use_one_line": "\"Anchor in **Law Commission 255th Report** to reinforce statutory insulation and procedural neutrality.\""
                 }
             ]
 

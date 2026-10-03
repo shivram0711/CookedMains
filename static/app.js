@@ -5241,8 +5241,10 @@ function renderAnnotationsOverlay() {
               .map(l => l.trim())
               .filter(l => l.length >= 22 && !l.startsWith("#") && !/^(?:Q\.?|\d+[\.\)])\s*/i.test(l));
             if (candLines.length > 0) {
-              const snippet = candLines[slotIndex % candLines.length].slice(0, 95);
-              pushUnique(`**Candidate Analysis**: Analyzed handwritten argument *"${snippet}..."* addressing core directive dimensions.`, "✓");
+              const cleanSnip = cleanCandidateQuote(candLines[slotIndex % candLines.length], 120);
+              if (cleanSnip) {
+                pushUnique(`**Candidate Analysis**: Analyzed handwritten argument *"${cleanSnip}"* addressing core directive dimensions.`, "✓");
+              }
             }
           }
         }
@@ -5387,7 +5389,8 @@ function renderAnnotationsOverlay() {
         const lastStudentLines = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20 && !s.startsWith("#")).slice(-1)[0] || "";
         let c1 = "";
         if (lastStudentLines) {
-          c1 = `✓ **Relevant Closing Synthesis**: Concluded with *"${lastStudentLines.slice(0, 75)}..."* tying together the core theme.`;
+          const cleanLast = cleanCandidateQuote(lastStudentLines, 120);
+          c1 = `✓ **Relevant Closing Synthesis**: Concluded with *"${cleanLast}"* tying together the core theme.`;
         } else if (discipline === "HISTORY_CULTURE") {
           c1 = "✓ **Living Cultural Continuity**: Concluded by tying historical/philosophical evolution to enduring civilizational synthesis and national heritage.";
         } else if (discipline === "PHYSICAL_GEOGRAPHY") {
@@ -6748,6 +6751,164 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
   }
 }
 
+// Universal helper: Clean candidate handwriting quotes without cutting words in half or leaving dangling ellipsis
+function cleanCandidateQuote(rawStr, maxChars = 140) {
+  if (!rawStr) return "";
+  let s = String(rawStr)
+    .replace(/^["“'\s*✓✔✎✗×✘★⭐]+|["”'\s*]+$/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/\s*\.{2,}\s*$/g, "")
+    .trim();
+  if (!s) return "";
+
+  // If already <= maxChars, clean trailing punctuation and dangling prepositions/conjunctions
+  if (s.length <= maxChars) {
+    s = s.replace(/[,;:\s\-–—]+$/, "");
+    s = s.replace(/\b(?:and|or|in|the|of|with|to|for|like|at|on|by|a|an|i)\s*$/i, "").trim();
+    return s;
+  }
+
+  // Look for natural sentence or clause boundary before maxChars
+  const sentMatch = s.slice(0, maxChars + 15).match(/([.?!;])\s+/);
+  if (sentMatch && sentMatch.index >= 35) {
+    return s.slice(0, sentMatch.index).trim();
+  }
+
+  // Otherwise cut at last space before maxChars
+  let cut = s.slice(0, maxChars);
+  const lastSpace = cut.lastIndexOf(" ");
+  if (lastSpace > 35) {
+    cut = cut.slice(0, lastSpace);
+  }
+  cut = cut.replace(/[,;:\s\-–—]+$/, "");
+  cut = cut.replace(/\b(?:and|or|in|the|of|with|to|for|like|at|on|by|a|an|i)\s*$/i, "").trim();
+  return cut;
+}
+window.cleanCandidateQuote = cleanCandidateQuote;
+
+// Universal helper: Format candidate handwritten concepts/milestones cleanly without truncation or dangling ellipsis
+function cleanConceptsString(rawStr, maxChars = 160) {
+  if (!rawStr) return "";
+  let clean = String(rawStr)
+    .replace(/^["“'\s*✓✔✎✗×✘★⭐()]+|["”'\s*()]+$/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/\s*\.{2,}\s*$/g, "")
+    .trim();
+  if (!clean) return "";
+
+  const items = clean.split(/[,;]\s*/).map(it => it.replace(/^[-•*✓✔✎✗×]\s*/, "").replace(/\b(?:and|or)\b\s*/gi, "").trim()).filter(Boolean);
+  if (items.length > 1) {
+    const kept = [];
+    let curLen = 0;
+    for (const it of items) {
+      if (curLen + it.length + 4 > maxChars && kept.length > 0) break;
+      kept.push(it);
+      curLen += it.length + 2;
+    }
+    if (kept.length === 1) return kept[0];
+    if (kept.length === 2) return `${kept[0]} and ${kept[1]}`;
+    if (kept.length > 2) return `${kept.slice(0, -1).join(", ")}, and ${kept[kept.length - 1]}`;
+  }
+
+  return cleanCandidateQuote(clean, maxChars);
+}
+window.cleanConceptsString = cleanConceptsString;
+
+// Universal helper: Build domain-specific model intro rewrite when backend intro is missing or empty
+function buildDomainModelIntro(evalData) {
+  const qStr = String(evalData?.detected_question || (typeof state !== "undefined" && state.question) || evalData?.question || "");
+  const pStr = String(evalData?.detected_paper || (typeof state !== "undefined" && state.paper) || evalData?.paper || "GS2").toUpperCase();
+  const qLow = qStr.toLowerCase();
+
+  if (qLow.includes("aspirational") || (qLow.includes("good governance") && qLow.includes("district"))) {
+    return "Launched in 2018 by **NITI Aayog** across 112 underdeveloped districts, the **Aspirational Districts Programme (ADP)** operationalizes the **3Cs strategy** (**Convergence**, **Collaboration**, and **Competition** via delta rankings) to transform grassroots governance.";
+  }
+  if (qLow.includes("education") && (qLow.includes("charter") || qLow.includes("macaulay") || qLow.includes("wood") || qLow.includes("british") || qLow.includes("colonial"))) {
+    return "The evolution of modern education in colonial India, initiated through the **Charter Act of 1813** (£1 lakh annual grant), shifted under **Macaulay's Minute (1835)** and **Wood's Despatch (1854 - Magna Carta)** from indigenous vernacular learning to state-directed administrative instruction.";
+  }
+  if (qLow.includes("floriculture") || (qLow.includes("agri") && qLow.includes("export"))) {
+    return "**Floriculture in India** is an emerging high-value commercial horticulture sector supported by diverse agro-climatic zones, **MIDH assistance**, and **APEDA export corridors** to maximize smallholder farm incomes.";
+  }
+  if (qLow.includes("plfs") || qLow.includes("periodic labour")) {
+    return "The **Periodic Labour Force Survey (PLFS)**, launched by the **National Statistical Office (NSO)** in 2017, serves as India's official high-frequency labour telemetry framework, benchmarking the **Worker-Population Ratio (WPR)** and female labour force dynamics.";
+  }
+  if (qLow.includes("deep-tech") || qLow.includes("deep tech") || qLow.includes("startup")) {
+    return "**Deep-tech startups** leverage breakthrough scientific discoveries and high-TRL engineering to solve complex systemic challenges, distinguished from consumer platforms by prolonged R&D cycles and patient risk capital.";
+  }
+  if (qLow.includes("supremacy of the constitution") || qLow.includes("judicial review") || qLow.includes("njac")) {
+    return "**Judicial review**, an inviolable facet of the Constitution's **Basic Structure (Article 13 & 32/226)**, guarantees **Constitutional Supremacy** by subjecting all legislative enactments and executive actions to judicial scrutiny against fundamental constitutional benchmarks.";
+  }
+  if (qLow.includes("criminal") && (qLow.includes("politic") || qLow.includes("rpa"))) {
+    return "The criminalisation of politics undermines the democratic social contract, necessitating statutory disqualification reforms under the **Representation of the People Act, 1951** and the enforcement of the **ADR v. Union of India (2002)** disclosure regime.";
+  }
+  if (qLow.includes("election") && (qLow.includes("commission") || qLow.includes("appointment") || qLow.includes("cec") || qLow.includes("324"))) {
+    return "**Article 324** vests the superintendence, direction, and control of elections in the **Election Commission of India (ECI)**, whose institutional autonomy and procedural impartiality form the bedrock of free and fair democratic elections.";
+  }
+  if (/heatwave|heat\s*wave|heat\s*dome|urban\s*heat/i.test(qLow)) {
+    return "A **heatwave** is a prolonged period of abnormally high surface temperatures declared by the **IMD** when departures exceed 4.5°C over climatological normals, driven by anti-cyclonic atmospheric blocking, thermodynamic insolation, and localized urban heat island effects.";
+  }
+  if (/volcano|volcanism|magma/i.test(qLow)) {
+    return "**Volcanism** refers to the eruption of molten magma, pyroclastic materials, and gases from Earth's interior onto the crust, acting as a **planetary heat engine** that drives lithospheric recycling, atmospheric degassing, and fertile **Regur basaltic soil** formation.";
+  }
+  if (/earthquake|seismic|fault/i.test(qLow)) {
+    return "An **earthquake** is the sudden release of accumulated strain energy along tectonic faults or subduction zones, propagating as elastic body and surface waves governed by **H.F. Reid's Elastic Rebound Theory** across vulnerable seismic terrains.";
+  }
+  if (qLow.includes("ahom") || qLow.includes("buranji") || qLow.includes("saraighat")) {
+    return "The **Ahom Kingdom (1228–1826)** established enduring political and cultural sovereignty in the Brahmaputra valley, sustained by the unique **Paik mobilization system**, indigenous chronicles (**Buranjis**), and syncretic socio-administrative institutions.";
+  }
+  if (pStr.includes("GS1")) {
+    return "Understanding the spatial and socio-historical dimensions of this phenomenon requires analyzing foundational institutional forces, geomorphic dynamics, and structural transformations.";
+  }
+  if (pStr.includes("GS2") || pStr.includes("POLITY")) {
+    return "Constitutional governance in India balances the separation of powers with institutional checks and balances, operationalizing **Constitutional Morality** to secure fundamental rights and cooperative federalism.";
+  }
+  if (pStr.includes("GS3")) {
+    return "Sustaining India's macroeconomic trajectory requires harmonizing structural fiscal prudence with targeted capex expansion, formalizing employment, and strengthening productive capital formation.";
+  }
+  if (pStr.includes("GS4") || pStr.includes("ETHICS")) {
+    return "Public administration ethics anchors administrative discretion in **Constitutional Morality** and the **Nolan Committee Principles**, ensuring that public servants exercise authority with unyielding integrity, objectivity, and empathy.";
+  }
+
+  const cleanQ = qStr.replace(/^(?:discuss|examine|critically\s+examine|analyze|evaluate|elucidate|comment\s+on|explain|what\s+is|what\s+are)\s+/i, "").trim();
+  const words = cleanQ.split(/\s+/).slice(0, 6).join(" ").replace(/[,;:]+$/, "");
+  return `Addressing **${words || "the core directive"}** requires an integrated approach that anchors foundational statutory principles alongside empirical benchmarks, ensuring transparent institutional accountability and outcome-oriented governance.`;
+}
+window.buildDomainModelIntro = buildDomainModelIntro;
+
+function buildDomainModelConclusion(evalData) {
+  const qStr = String(evalData?.detected_question || (typeof state !== "undefined" && state.question) || evalData?.question || "");
+  const pStr = String(evalData?.detected_paper || (typeof state !== "undefined" && state.paper) || evalData?.paper || "GS2").toUpperCase();
+  const qLow = qStr.toLowerCase();
+
+  if (qLow.includes("aspirational") || (qLow.includes("good governance") && qLow.includes("district"))) {
+    return "By institutionalizing real-time data monitoring under the **Champions of Change portal** and scaling the **3Cs strategy** into the **Aspirational Blocks Programme (ABP)**, ADP provides a transformative cooperative federalism blueprint to eliminate regional developmental disparities.";
+  }
+  if (qLow.includes("floriculture") || (qLow.includes("agri") && qLow.includes("export"))) {
+    return "Operationalizing **APEDA's cold-chain corridors**, **MIDH protected-cultivation clusters**, and **phyto-sanitary certification** will realize the **Ashok Dalwai Committee's** vision—turning Indian floriculture into a high-margin **plough-to-port income multiplier** for smallholder farmers.";
+  }
+  if (qLow.includes("plfs") || qLow.includes("periodic labour")) {
+    return "Integrating **PLFS high-frequency labour telemetry** with **e-Shram** and **National Career Service (NCS)** databases will align India's workforce metrics with **ILO decent-work standards (SDG-8)**, prioritizing **formal wage quality and productive female workforce participation**.";
+  }
+  if (qLow.includes("deep-tech") || qLow.includes("deep tech") || qLow.includes("startup")) {
+    return "Operationalizing the **Rs 1 Lakh Crore ANRF R&D Fund** alongside **patient risk capital** and **GFR Rule 173 domestic procurement** will bridge the **'Valley of Death' (TRL 4–9)**, transforming Indian startups into globally competitive sovereign IP creators.";
+  }
+  if (pStr.includes("GS1") && /earthquake|cyclone|volcano|plate|climate|monsoon|disaster|hazard|heat/i.test(qLow)) {
+    return "Integrating **seismic microzonation**, **NDMA early warning guidelines**, and **climate-resilient infrastructure** under the **Sendai Framework (2015–2030)** ensures that hazard-prone regions transition from disaster vulnerability to structural resilience.";
+  }
+  if (pStr.includes("GS2") || pStr.includes("POLITY")) {
+    return "Harmonizing **constitutional morality** with **institutional accountability (2nd ARC)** ensures that democratic governance delivers both **substantive justice** and **cooperative federalism**.";
+  }
+  if (pStr.includes("GS3")) {
+    return "Aligning **structural fiscal consolidation** with **targeted capex multiplier investments** and **domestic supply-chain formalization** will drive sustainable, high-productivity economic growth toward an inclusive national vision.";
+  }
+  if (pStr.includes("GS4") || pStr.includes("ETHICS")) {
+    return "Anchoring administrative choices in **Constitutional Morality**, the **Nolan Committee principles (Selflessness, Integrity, Objectivity)**, and **Gandhian Antyodaya** empowers public servants to resolve complex ethical dilemmas with compassion and unyielding probity.";
+  }
+
+  return "Integrating **evidence-based institutional reforms**, **last-mile capacity building**, and **outcome-linked fiscal governance** will translate policy intent into durable, equitable structural transformation.";
+}
+window.buildDomainModelConclusion = buildDomainModelConclusion;
+
 // Helper: Extract clean candidate quote and actionable elevation advice for examiner cards
 function getCardQuoteAndElevate(sec) {
   let quote = sec.quote || "";
@@ -6817,14 +6978,14 @@ function getCardQuoteAndElevate(sec) {
 
       if (candLines.length > 0) {
         if (sec.zone === "intro") {
-          quote = candLines[0].slice(0, 115).trim();
+          quote = cleanCandidateQuote(candLines[0]);
         } else if (sec.zone === "conclusion") {
-          quote = candLines[candLines.length - 1].slice(0, 115).trim();
+          quote = cleanCandidateQuote(candLines[candLines.length - 1]);
         } else {
           // Body lines
           const cardIdx = sec.cardIndex || 0;
           const lineIdx = Math.min(candLines.length - 1, Math.max(0, (sec.zone === "intro" ? 0 : (pNum === 1 ? cardIdx + 1 : cardIdx))));
-          quote = candLines[lineIdx].slice(0, 115).trim();
+          quote = cleanCandidateQuote(candLines[lineIdx]);
         }
       } else {
         quote = sec.summary || (sec.zone === "intro" ? "Addressed introductory premise and conceptual context." : (sec.zone === "conclusion" ? "Synthesized closing stance on the core directive." : "Structured arguments addressing core analytical dimensions."));
@@ -6832,8 +6993,8 @@ function getCardQuoteAndElevate(sec) {
     }
   }
 
-  // Clean quote wrapper quotes
-  quote = String(quote || "").replace(/^["“'\s]+|["”'\s]+$/g, "").trim();
+  // Clean quote wrapper quotes and eliminate any trailing ellipsis or chopped words
+  quote = cleanCandidateQuote(quote, 140);
 
   // Strip leading bold title or prefix from advise
   advise = String(advise || "")
@@ -7571,8 +7732,9 @@ function syncRubricAndMarginScores(evalData) {
     if (evalData.intro_audit && typeof evalData.intro_audit === "object") {
       if (/summer\s*2025|new\s*delhi,\s*lucknow,\s*jaipur,\s*patna|imd\s*meteorological/i.test(String(evalData.intro_audit.current_critique || ""))) {
         const transHead = String(evalData.transcribed_text || "").split("\n").map(s => s.trim()).filter(Boolean).slice(0, 2).join(" ");
-        evalData.intro_audit.current_critique = transHead
-          ? `✓ **Relevant Opening Premise**: You opened with a clear definition/context directly addressing the question (*"${transHead.slice(0, 110)}..."*).<br>✎ **To Score Full Marks (+0.5M)**: Add 1 concrete mechanism, technical classification, or global spatial anchor right in Sentence 1.`
+        const cleanHead = cleanCandidateQuote(transHead, 130);
+        evalData.intro_audit.current_critique = cleanHead
+          ? `✓ **Relevant Opening Premise**: You opened with a clear definition/context directly addressing the question (*"${cleanHead}"*).<br>✎ **To Score Full Marks (+0.5M)**: Add 1 concrete mechanism, technical classification, or global spatial anchor right in Sentence 1.`
           : "✓ **Relevant Opening Premise**: Good introductory definition setting the context for the question.<br>✎ **To Score Full Marks (+0.5M)**: Anchor your opening sentence with 1 concrete mechanism or empirical benchmark.";
       }
       if (/summer\s*of\s*2025|new\s*delhi,\s*lucknow,\s*jaipur,\s*and\s*patna|heatwaves/i.test(String(evalData.intro_audit.model_intro_rewrite || ""))) {
@@ -7867,8 +8029,9 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
         if (matchedPbp) {
           const whatW = String(matchedPbp.what_you_wrote || "").trim();
           const verdW = String(matchedPbp.examiner_verdict || "").trim();
-          if (whatW && !bodyPart.toLowerCase().includes(whatW.slice(0, 20).toLowerCase())) {
-            clean = `${headerPart} You clearly articulated this on your sheet ('${whatW.slice(0, 85)}...'). ${bodyPart} This demonstrated clear conceptual grounding and secured core demand marks.`;
+          const cleanCandPts = cleanConceptsString(whatW);
+          if (cleanCandPts && !bodyPart.toLowerCase().includes(cleanCandPts.slice(0, 20).toLowerCase())) {
+            clean = `${headerPart} You clearly articulated this on your sheet by citing **${cleanCandPts}**. ${bodyPart} This demonstrated clear conceptual grounding and secured core demand marks.`;
           } else if (verdW && !bodyPart.toLowerCase().includes(verdW.slice(0, 20).toLowerCase())) {
             clean = `${headerPart} ${bodyPart} ${verdW}`;
           } else {
@@ -8334,7 +8497,8 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
       const firstKw = (Array.isArray(evalData.missing_keywords_cards) && evalData.missing_keywords_cards[0] && evalData.missing_keywords_cards[0].term)
         ? `**${evalData.missing_keywords_cards[0].term}**`
         : "a foundational theoretical/statutory anchor";
-      const quoteSnippet = openingLines ? ` (*"${openingLines.slice(0, 95)}..."*)` : "";
+      const cleanOpening = cleanCandidateQuote(openingLines, 120);
+      const quoteSnippet = cleanOpening ? ` (*"${cleanOpening}"*)` : "";
       if (hasIndirectBgOpening) {
         evalData.intro_audit.current_critique = `✗ **Indirect Opening (Red-Pen Teacher Check)**: Your opening lines${quoteSnippet} start with general background—don't spend lines on background; start directly by defining the core keyword of the question and anchoring ${missList.length > 0 ? missList.slice(0, 2).join(" & ") : firstKw}.`;
       } else {
@@ -8386,7 +8550,8 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
       const rawCCrit = String(evalData.conclusion_audit.current_critique || "").trim();
       if (rawCCrit.length < 85 || /balanced conclusion|connect to sustainable development goals/i.test(rawCCrit)) {
         const closingLines = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20).slice(-1)[0] || "";
-        const quoteClosing = closingLines ? ` (*"${closingLines.slice(0, 95)}..."*)` : "";
+        const cleanClosing = cleanCandidateQuote(closingLines, 120);
+        const quoteClosing = cleanClosing ? ` (*"${cleanClosing}"*)` : "";
         evalData.conclusion_audit.current_critique = `✓ **Concluding Synthesis Evaluated**: Your closing paragraph summarizes your stance on the topic${quoteClosing}.<br>✎ **How to Score Full Conclusion Marks**: Anchor your final lines in a specific institutional framework, national guideline, or statutory benchmark rather than a broad generalization.`;
       }
     }
@@ -8508,67 +8673,67 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
 
       // Domain-specific high-yield exam phrasing
       if (tLow.includes("baranwal")) {
-        return "\"Cite **Anoop Baranwal (2023)**: '...mandating a balanced multi-party selection committee (PM, CJI, LoP) to safeguard institutional neutrality.'\"";
+        return "\"Cite **Anoop Baranwal (2023)** to mandate a balanced multi-party selection committee (PM, CJI, LoP) to safeguard institutional neutrality.\"";
       }
       if (tLow.includes("324") || tLow.includes("article 324")) {
-        return "\"Anchor under **Article 324**: '...vesting independent superintendence, direction, and control of elections in an autonomous constitutional body.'\"";
+        return "\"Anchor under **Article 324** to vest independent superintendence, direction, and control of elections in an autonomous constitutional body.\"";
       }
       if (tLow.includes("goswami")) {
-        return "\"Recommend via **Dinesh Goswami Committee (1990)**: '...institutionalizing a consultative multi-party selection collegium for electoral integrity.'\"";
+        return "\"Recommend via **Dinesh Goswami Committee (1990)** to institutionalize a consultative multi-party selection collegium for electoral integrity.\"";
       }
       if (tLow.includes("255") || (tLow.includes("law commission") && tLow.includes("electoral"))) {
-        return "\"Cite **Law Commission 255th Report (2015)**: '...advocating equal constitutional removal safeguards and a 3-member collegium for all Election Commissioners.'\"";
+        return "\"Cite **Law Commission 255th Report (2015)** to advocate equal constitutional removal safeguards and a 3-member collegium for all Election Commissioners.\"";
       }
       if (tLow.includes("arc") || tLow.includes("ethics in governance")) {
-        return "\"Substantiate via **2nd ARC 4th Report**: '...recommending a broad collegium (PM, CJI, Speaker, LoP, Law Minister) to insulate watchdog bodies.'\"";
+        return "\"Substantiate via **2nd ARC 4th Report** to recommend a broad collegium (PM, CJI, Speaker, LoP, Law Minister) to insulate watchdog bodies.\"";
       }
       if (tLow.includes("tarkunde")) {
-        return "\"Cite **Tarkunde Committee (1975)**: '...first recommending a selection panel of PM, CJI, and LoP to insulate election machinery.'\"";
+        return "\"Cite **Tarkunde Committee (1975)** to mandate an independent selection panel of PM, CJI, and LoP to insulate election machinery.\"";
       }
       if (tLow.includes("thakur") || tLow.includes("jaya thakur")) {
-        return "\"Cite **Dr. Jaya Thakur (2024)**: '...challenging the exclusion of the CJI from the selection panel as violative of democratic autonomy.'\"";
+        return "\"Cite **Dr. Jaya Thakur (2024)** to challenge the exclusion of the CJI from the selection panel as violative of democratic autonomy.\"";
       }
       if (tLow.includes("frbm") || tLow.includes("n.k. singh") || tLow.includes("nk singh")) {
-        return "\"Anchor under **FRBM Review Committee (N.K. Singh)**: '...targeting general government debt-to-GDP of 60% with counter-cyclical fiscal flexibility.'\"";
+        return "\"Anchor under **FRBM Review Committee (N.K. Singh)** to target general government debt-to-GDP of 60% with counter-cyclical fiscal flexibility.\"";
       }
       if (tLow.includes("kamath")) {
-        return "\"Cite **K.V. Kamath Committee**: '...applying 5 key financial ratios to restructure stressed sectoral debt portfolios.'\"";
+        return "\"Cite **K.V. Kamath Committee** to apply 5 key financial ratios to restructure stressed sectoral debt portfolios.\"";
       }
       if (tLow.includes("plfs") || tLow.includes("periodic labour")) {
-        return "\"Cite **Periodic Labour Force Survey (NSO)**: '...benchmarking worker-population ratio and rising female labour force participation.'\"";
+        return "\"Cite **Periodic Labour Force Survey (NSO)** to benchmark the worker-population ratio and rising female labour force participation.\"";
       }
       if (tLow.includes("kunming") || tLow.includes("montreal")) {
-        return "\"Align with **Kunming-Montreal Global Biodiversity Framework**: '...operationalizing Target 3 (30x30 Protected Areas) for ecological conservation.'\"";
+        return "\"Align with **Kunming-Montreal Global Biodiversity Framework** to operationalize Target 3 (30x30 Protected Areas) for ecological conservation.\"";
       }
       if (tLow.includes("ipcc") || tLow.includes("ar6")) {
-        return "\"Substantiate via **IPCC AR6**: '...capping global warming at 1.5°C via deep decarbonization and resilient climate infrastructure.'\"";
+        return "\"Substantiate via **IPCC AR6** to advocate capping global warming at 1.5°C via deep decarbonization and resilient climate infrastructure.\"";
       }
       if (tLow.includes("nolan")) {
-        return "\"Anchor in **Nolan Committee Principles**: '...upholding objectivity, accountability, and integrity in public decision-making.'\"";
+        return "\"Anchor in **Nolan Committee Principles** to uphold objectivity, accountability, and integrity in public decision-making.\"";
       }
       if (tLow.includes("rawls")) {
-        return "\"Apply **John Rawls' Veil of Ignorance**: '...maximizing institutional protections for the most vulnerable citizens (Maximin rule).'\"";
+        return "\"Apply **John Rawls' Veil of Ignorance** to maximize institutional protections for the most vulnerable citizens (Maximin rule).\"";
       }
       if (tLow.includes("benioff")) {
         return "\"Subducting plate friction along the **Wadati–Benioff zone** triggers deep-focus (300–700 km) quakes.\"";
       }
       if (tLow.includes("sendai")) {
-        return "\"...are essential for **'Build Back Better' under Sendai Framework (Priority 3 & 4) & NBC 2016**.\"";
+        return "\"Apply **Sendai Framework (Priority 4)** alongside NBC 2016 to operationalize Build Back Better in disaster-resilient infrastructure.\"";
       }
       if (tLow.includes("microzonation") || tLow.includes("zone v") || tLow.includes("seismic zon")) {
         return "\"~59% of India lies in **BIS Seismic Zones II–V** (**Zone V**: Himalayas/Kutch), requiring **urban microzonation**.\"";
       }
       if (tLow.includes("liquefaction")) {
-        return "\"...Tsunamis, chemical leaks, and **soil liquefaction** (loss of soil strength in wet alluvial plains).\"";
+        return "\"Address secondary geomorphic hazards including Tsunamis, chemical leaks, and **soil liquefaction** in alluvial floodplains.\"";
       }
       if (tLow.includes("elastic rebound") || tLow.includes("reid")) {
-        return "\"...shaking from sudden fault-slip strain release (**H.F. Reid's Elastic Rebound Theory**).\"";
+        return "\"Explain fault-slip seismic shaking via **H.F. Reid's Elastic Rebound Theory** to substantiate mechanical crustal rupture.\"";
       }
       if (tLow.includes("buranji")) {
-        return "\"State chronicles (**Buranjis** in Tai & Assamese) anchored Assam's unique historical consciousness.\"";
+        return "\"Anchor in **Buranjis** to draw on official royal chronicles that documented Assam's administrative history.\"";
       }
       if (tLow.includes("paik")) {
-        return "\"Rotational military-agrarian service (**Paik & Khel system**) mobilized standing defense without cash debt.\"";
+        return "\"Cite **Paik & Khel System** to illustrate how rotational agrarian labor and defense were mobilized without monetary debt.\"";
       }
       if (tLow.includes("satra") || tLow.includes("sankardev")) {
         return "\"**Sankardeva's Neo-Vaishnavite Satras & Namghars** forged an egalitarian Assamese social fabric.\"";
@@ -8592,8 +8757,8 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
       }
       shortGist = shortGist.replace(/\b(?:of|in|to|for|with|by|from|comprising|under|and|the|a|an)\s*$/i, "").trim().replace(/[,:;]$/, "");
       return shortGist
-        ? `"Add inline as: '...operationalizing **${rawTerm}** (${shortGist.toLowerCase()}) to strengthen systemic accountability.'"`
-        : `"Add as a concise bracket inside your existing bullet: '(anchored in **${rawTerm}**).'"` ;
+        ? `"Integrate **${rawTerm}** (${shortGist.toLowerCase()}) inline to strengthen systemic accountability and analytical precision."`
+        : `"Incorporate **${rawTerm}** inline to substantiate this core dimension."`;
     };
 
     const qLow = String(evalData.detected_question || state.question || "").toLowerCase();
@@ -8604,28 +8769,28 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
         domain_or_thinker: "Electoral Reforms Committee",
         definition: "Landmark electoral reforms committee recommending an independent consultative selection collegium for CEC and ECs to preserve public credibility.",
         where_to_use: "Page 2 • Under your 'Reforms / Way Forward' section",
-        how_to_use_one_line: "\"Recommend via **Dinesh Goswami Committee (1990)**: '...institutionalizing a consultative multi-party selection collegium for electoral integrity.'\""
+        how_to_use_one_line: "\"Recommend via **Dinesh Goswami Committee (1990)** to institutionalize a consultative multi-party selection collegium for electoral integrity.\""
       },
       {
         term: "Law Commission 255th Report (2015)",
         domain_or_thinker: "Law Commission Benchmark",
         definition: "Proposed an equal 3-member collegium (PM, CJI, LoP) and constitutional removal parity for all Election Commissioners under Art. 324(5).",
         where_to_use: "Page 2 • Under 'Challenges to Autonomy / Executive Dominance' bullet",
-        how_to_use_one_line: "\"Cite **Law Commission 255th Report (2015)**: '...advocating equal constitutional removal safeguards and a 3-member collegium for all Election Commissioners.'\""
+        how_to_use_one_line: "\"Cite **Law Commission 255th Report (2015)** to advocate equal constitutional removal safeguards and a 3-member collegium for all Election Commissioners.\""
       },
       {
         term: "2nd ARC 4th Report (Ethics in Governance)",
         domain_or_thinker: "Administrative Reforms Benchmark",
         definition: "Recommended an insulated appointment collegium (PM, Speaker, CJI, LoP, Law Minister) to eliminate executive dominance in watchdog institutions.",
         where_to_use: "Page 2–3 • Beside your closing recommendations point",
-        how_to_use_one_line: "\"Substantiate via **2nd ARC 4th Report**: '...recommending a broad collegium (PM, CJI, Speaker, LoP, Law Minister) to insulate watchdog bodies.'\""
+        how_to_use_one_line: "\"Substantiate via **2nd ARC 4th Report** to recommend a broad collegium (PM, CJI, Speaker, LoP, Law Minister) to insulate watchdog bodies.\""
       },
       {
         term: "Tarkunde Committee (1975)",
         domain_or_thinker: "Historical Reform Precedent",
         definition: "Pioneered the proposal for a non-partisan collegium (PM, CJI, and LoP) to safeguard the Election Commission's constitutional autonomy.",
         where_to_use: "Page 1–2 • Under 'Evolution of Appointment Mechanism' bullet",
-        how_to_use_one_line: "\"Cite **Tarkunde Committee (1975)**: '...first recommending a selection panel of PM, CJI, and LoP to insulate election machinery.'\""
+        how_to_use_one_line: "\"Cite **Tarkunde Committee (1975)** to mandate an independent selection panel of PM, CJI, and LoP to insulate election machinery.\""
       }
     ] : [];
 
@@ -9434,7 +9599,11 @@ function renderEvaluation(evalData) {
     if (modelIntroHeadLbl) {
       modelIntroHeadLbl.textContent = "✍️ How to Write (Keeping Your Point + Adding Missing Keyword):";
     }
-    document.getElementById("modelIntroText").innerHTML = `"${formatHighlightedText(intro.model_intro_rewrite || '')}"`;
+    let modelIntro = String(intro.model_intro_rewrite || "").trim();
+    if (!modelIntro || modelIntro === '""' || modelIntro.length < 20) {
+      modelIntro = window.buildDomainModelIntro ? window.buildDomainModelIntro(evalData) : "Addressing the core directive requires an opening sentence defining key terms and statutory frameworks.";
+    }
+    document.getElementById("modelIntroText").innerHTML = `"${formatHighlightedText(modelIntro)}"`;
   }
 
   // Section 2: Body Audit (with strict cross-list deduplication inside Deep Evaluation)
@@ -9580,7 +9749,11 @@ function renderEvaluation(evalData) {
     if (modelConcHeadLbl) {
       modelConcHeadLbl.textContent = "✍️ How to Write:";
     }
-    document.getElementById("modelConclusionText").innerHTML = `"${formatHighlightedText(conc.model_conclusion_rewrite || '')}"`;
+    let modelConc = String(conc.model_conclusion_rewrite || "").trim();
+    if (!modelConc || modelConc === '""' || modelConc.length < 20) {
+      modelConc = window.buildDomainModelConclusion ? window.buildDomainModelConclusion(evalData) : "Integrating evidence-based institutional reforms and last-mile capacity building will translate policy intent into durable outcomes.";
+    }
+    document.getElementById("modelConclusionText").innerHTML = `"${formatHighlightedText(modelConc)}"`;
   }
 
   // Section 4: Candidate Deciphered Handwriting
@@ -10159,13 +10332,14 @@ function renderBatch1ExaminerMastery(evalData) {
       const pText = window.getPageTranscript ? window.getPageTranscript(evalData, p) : "";
       const sents = pText.split(/(?<=[.?!])\s+/).filter(s => s.length > 25 && !window.isMetaPlaceholderText(s));
       if (sents.length > 0) {
+        const cleanSent = cleanCandidateQuote(sents[0], 120);
         pointRows.push({
           page: p,
           loc: `Page ${p} • Key Handwritten Point`,
           pointTitle: `Page ${p} Core Analysis`,
           badge: "✓ Evaluated Point",
           isPositive: true,
-          detail: `**What You Wrote**: "${sents[0].slice(0, 110).trim()}..." — Evaluated candidate's handwritten point with relevant UPSC GS benchmarks.`
+          detail: `**What You Wrote**: "${cleanSent}" — Evaluated candidate's handwritten point with relevant UPSC GS benchmarks.`
         });
       }
     }
