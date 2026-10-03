@@ -222,6 +222,20 @@ async def demo_workbench():
 async def demo():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "demo.html"))
 
+@app.get("/robots.txt")
+async def robots_txt():
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "static", "robots.txt"),
+        media_type="text/plain"
+    )
+
+@app.get("/sitemap.xml")
+async def sitemap_xml():
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "static", "sitemap.xml"),
+        media_type="application/xml"
+    )
+
 
 @app.get("/api/config")
 async def get_config():
