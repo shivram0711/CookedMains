@@ -4624,7 +4624,11 @@ async def evaluate_with_gemini(
                     err_str = str(e)
                     record_gemini_model_outcome(model_name, False, err_str)
                     err_low = err_str.lower()
-                    if any(t in err_low for t in ["api_key_invalid", "api key not valid", "unauthenticated", "permission_denied", "access_token_type_unsupported"]):
+                    if any(t in err_low for t in [
+                        "api_key_invalid", "api key not valid", "unauthenticated",
+                        "permission_denied", "access_token_type_unsupported",
+                        "resource_exhausted", "quota", "429", "rate limit", "too many requests"
+                    ]):
                         failed_auth = True
                         break
                     continue
@@ -4633,7 +4637,7 @@ async def evaluate_with_gemini(
                 continue
 
             # If static/cached candidates failed, force a live model refresh from client.models.list()
-            for model_name in get_active_gemini_models(client, force_refresh=True):
+            for model_name in get_active_gemini_models(client, force_refresh=True)[:2]:
                 if model_name in candidate_models:
                     continue
                 try:
@@ -4762,11 +4766,12 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
 
 def create_fast_gemini_client(api_key: str) -> Any:
-    """Creates a genai.Client with 1-attempt HTTP retry options so dead/busy models fail-over in <150ms."""
+    """Creates a genai.Client with 1-attempt HTTP retry options and 25s timeout so dead/busy models fail-over in <150ms."""
     try:
         return genai.Client(
             api_key=api_key,
             http_options=types.HttpOptions(
+                timeout=25.0,
                 retry_options=types.HttpRetryOptions(attempts=1)
             )
         )

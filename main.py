@@ -1664,10 +1664,10 @@ async def evaluate_answer(
                         pdf = pdfium.PdfDocument(content)
                         for page in pdf:
                             pil_img = page.render(scale=1.4).to_pil().convert("RGB")
-                            if max(pil_img.size) > 1500:
-                                pil_img.thumbnail((1500, 1500))
+                            if max(pil_img.size) > 1200:
+                                pil_img.thumbnail((1200, 1200))
                             buf = io.BytesIO()
-                            pil_img.save(buf, format="JPEG", quality=82)
+                            pil_img.save(buf, format="JPEG", quality=76)
                             jpeg_bytes = buf.getvalue()
                             b64 = base64.b64encode(jpeg_bytes).decode("utf-8")
                             uploaded_page_previews.append(f"data:image/jpeg;base64,{b64}")
@@ -1687,10 +1687,10 @@ async def evaluate_answer(
                         except Exception:
                             pass
                         pil_img = pil_img.convert("RGB")
-                        if max(pil_img.size) > 1500:
-                            pil_img.thumbnail((1500, 1500))
+                        if max(pil_img.size) > 1200:
+                            pil_img.thumbnail((1200, 1200))
                         buf = io.BytesIO()
-                        pil_img.save(buf, format="JPEG", quality=82)
+                        pil_img.save(buf, format="JPEG", quality=76)
                         jpeg_bytes = buf.getvalue()
                         b64 = base64.b64encode(jpeg_bytes).decode("utf-8")
                         uploaded_page_previews.append(f"data:image/jpeg;base64,{b64}")
@@ -2005,8 +2005,8 @@ async def evaluate_answer(
                     except Exception:
                         continue
 
-                    failed_auth = False
-                    candidate_models = get_active_gemini_models(client)
+                    failed_key = False
+                    candidate_models = get_active_gemini_models(client)[:3]
                     for model_candidate in candidate_models:
                         try:
                             response = client.models.generate_content(
@@ -2026,36 +2026,15 @@ async def evaluate_answer(
                         except Exception as ge:
                             err_s = str(ge)
                             record_gemini_model_outcome(model_candidate, False, err_s)
-                            if any(t in err_s.lower() for t in ["api_key_invalid", "api key not valid", "unauthenticated", "permission_denied"]):
-                                failed_auth = True
+                            if any(t in err_s.lower() for t in [
+                                "api_key_invalid", "api key not valid", "unauthenticated",
+                                "permission_denied", "resource_exhausted", "quota", "429",
+                                "rate limit", "too many requests"
+                            ]):
+                                failed_key = True
                                 break
-                        if evaluation_result or failed_auth:
+                        if evaluation_result or failed_key:
                             break
-
-                    if evaluation_result:
-                        break
-
-                    # Dynamic model discovery refresh if standard aliases were rate-limited or updated
-                    if not failed_auth and not evaluation_result:
-                        for mod_name in get_active_gemini_models(client, force_refresh=True):
-                            if mod_name in candidate_models:
-                                continue
-                            try:
-                                response = client.models.generate_content(
-                                    model=mod_name,
-                                    contents=contents_payload,
-                                    config=gen_config
-                                )
-                                if response and response.text:
-                                    parsed_eval = parse_llm_json_response(response.text)
-                                    if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
-                                        record_gemini_model_outcome(mod_name, True)
-                                        if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
-                                            parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
-                                        evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
-                                        break
-                            except Exception as ge2:
-                                record_gemini_model_outcome(mod_name, False, str(ge2))
 
                     if evaluation_result:
                         break
