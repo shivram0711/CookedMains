@@ -893,8 +893,9 @@ async def api_auth_config(request: Request):
             supa_google_enabled = False
 
     origin = str(request.base_url).rstrip("/")
-    if "onrender.com" in origin and origin.startswith("http://"):
-        origin = origin.replace("http://", "https://", 1)
+    if request.headers.get("x-forwarded-proto") == "https" or "onrender.com" in origin or "cookedmains.com" in origin:
+        if origin.startswith("http://") and not ("127.0.0.1" in origin or "localhost" in origin):
+            origin = origin.replace("http://", "https://", 1)
     supa_oauth_url = (
         f"{supabase_url.rstrip('/')}/auth/v1/authorize?provider=google&redirect_to={origin}/"
         if (supabase_url and supa_google_enabled) else ""

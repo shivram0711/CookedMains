@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cooked Mains — Minimal Visual Single-Page Ads & Gen-Z Carousel Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-serif: 'Instrument Serif', Georgia, serif;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-hand: 'Caveat', cursive;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: #07090e;
+      color: #f8fafc;
+    }
+    .font-editorial { font-family: var(--font-serif); }
+    .font-mono-code { font-family: var(--font-mono); }
+    .font-handwriting { font-family: var(--font-hand); }
+
+    .grain-overlay {
+      background-image: radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 0);
+      background-size: 22px 22px;
+    }
+    .paper-lines {
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 27px,
+        rgba(148, 163, 184, 0.28) 28px
+      );
+    }
+    [contenteditable="true"]:focus {
+      outline: 2px dashed #f59e0b;
+      outline-offset: 4px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Studio Navigation -->
+  <header class="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/95 backdrop-blur-md px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-2.5">
+      <img src="/static/brand_logo_dark.png" onerror="this.style.display='none'" class="h-8 w-auto" alt="Logo" />
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-extrabold text-white tracking-tight text-sm">Cooked <span class="text-amber-500">Mains</span></span>
+          <span class="text-[9px] font-mono-code uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">Visual Ad Studio</span>
+        </div>
+        <p class="text-[10.5px] text-slate-400">Minimal text, visual-first single-page posters + 4 Gen-Z Carousels • 1-Click 1080×1350 PNG</p>
+      </div>
+    </div>
+
+    <!-- Deck Switcher Tabs -->
+    <div class="flex flex-wrap items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
+      <button onclick="switchDeck('minimal_singles')" id="tab-minimal_singles" class="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-amber-500 text-slate-950 transition cursor-pointer">
+        ⚡ Minimal Single-Page Ads (5)
+      </button>
+      <button onclick="switchDeck('concept1')" id="tab-concept1" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-300 hover:text-white transition cursor-pointer">
+        💀 Carousel 1: Delulu
+      </button>
+      <button onclick="switchDeck('concept2')" id="tab-concept2" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-300 hover:text-white transition cursor-pointer">
+        📱 Carousel 2: iPad Trap
+      </button>
+      <button onclick="switchDeck('concept3')" id="tab-concept3" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-300 hover:text-white transition cursor-pointer">
+        🧪 Carousel 3: Yapper vs Ranker
+      </button>
+      <button onclick="switchDeck('concept4')" id="tab-concept4" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-300 hover:text-white transition cursor-pointer">
+        ☕ Carousel 4: Chai Duel
+      </button>
+    </div>
+
+    <!-- Export Controls -->
+    <div class="flex items-center gap-2">
+      <button onclick="exportAllSlidesInActiveDeck()" id="exportAllBtn" class="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold px-3 py-2 rounded-xl text-xs shadow-lg shadow-emerald-500/15 transition active:scale-95 cursor-pointer">
+        <i data-lucide="files" class="w-3.5 h-3.5"></i>
+        <span>Download All 5 (HD)</span>
+      </button>
+      <button onclick="exportCurrentSlide()" id="exportOneBtn" class="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold px-3 py-2 rounded-xl text-xs shadow-lg shadow-amber-500/15 transition active:scale-95 cursor-pointer">
+        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+        <span>Download This Poster (HD)</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Sub-Navigation Selector Bar -->
+  <div id="slideSelectorBar" class="bg-slate-900/90 border-b border-slate-800 py-2.5 px-6 flex flex-wrap items-center justify-center gap-2"></div>
+
+  <!-- Main Canvas Viewport -->
+  <main class="flex-1 flex items-center justify-center p-6 sm:p-8 overflow-auto">
+    <div id="canvasMount" class="flex items-center justify-center"></div>
+  </main>
+
+  <script>
+    // =========================================================================
+    // 5 VISUAL-FIRST, MINIMAL-TEXT SINGLE-PAGE AD TEMPLATES (1-SECOND IMPACT)
+    // =========================================================================
+    function renderMinimalSingleAd(idx) {
+      // -----------------------------------------------------------------------
+      // SINGLE AD 1: THE X-RAY LASER SPLIT ("IN YOUR HEAD vs REAL EXAMINER")
+      // -----------------------------------------------------------------------
+      if (idx === 0) {
+        return `
+          <div id="exportTargetCard" class="relative w-[540px] h-[675px] rounded-[28px] overflow-hidden bg-[#07090F] text-white border border-zinc-800 shadow-2xl flex flex-col justify-between p-8 select-none">
+            <div class="pointer-events-none absolute inset-0 grain-overlay"></div>
+            <div class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[360px] h-[360px] bg-amber-500/10 blur-[100px] rounded-full"></div>
+
+            <!-- Minimal Top Brand Bar -->
+            <div class="relative z-10 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <img src="/static/brand_logo_dark.png" onerror="this.style.display='none'" class="h-7 w-auto" alt="Logo" />
+                <span class="text-xs font-extrabold tracking-tight">COOKED <span class="text-amber-400">MAINS</span></span>
+              </div>
+              <span class="font-mono-code text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 rounded-full font-bold" contenteditable="true">30-SEC HANDWRITTEN X-RAY</span>
+            </div>
+
+            <!-- 5-Word Giant Headline -->
+            <div class="relative z-10 text-center my-1">
+              <h1 class="font-editorial text-[54px] leading-[0.94] tracking-tight" contenteditable="true">
+                Stop Living In<br/><span class="italic text-amber-400">Mains Delulu.</span>
+              </h1>
+            </div>
+
+            <!-- THE VISUAL HERO: SPLIT X-RAY ANSWER SHEET (Minimal Text, Visual Story) -->
+            <div class="relative z-10 h-[390px] w-full rounded-2xl overflow-hidden border border-zinc-700/80 shadow-2xl grid grid-cols-2 relative">
+
+              <!-- Glowing Vertical Laser Divider -->
+              <div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[3px] bg-gradient-to-b from-amber-300 via-amber-500 to-rose-500 z-30 shadow-[0_0_18px_3px_rgba(245,158,11,0.85)]"></div>
+              <div class="absolute top-3 left-1/2 -translate-x-1/2 z-30 px-2.5 py-0.5 rounded-full bg-zinc-950 border border-amber-400 text-[8.5px] font-mono-code font-extrabold text-amber-300 uppercase tracking-widest shadow-lg">
+                VS
+              </div>
+
+              <!-- LEFT HALF: IN YOUR HEAD (6.5/10) -->
+              <div class="bg-[#FAF8F5] text-slate-900 p-4 flex flex-col justify-between paper-lines relative">
+                <div>
+                  <div class="inline-block px-2 py-0.5 rounded bg-emerald-600 text-white font-mono-code text-[9px] font-extrabold uppercase tracking-wide">
+                    😎 IN YOUR HEAD: 6.5/10
+                  </div>
+                  <div class="mt-4 space-y-3 font-handwriting text-[17px] text-blue-900 leading-tight">
+                    <p contenteditable="true">“Article 280 establishes the Finance Commission for cooperative fiscal federalism...”</p>
+                    <!-- Neat Hub & Spoke Visual Diagram -->
+                    <div class="my-3 p-2.5 rounded-xl border-2 border-blue-800/40 bg-blue-50/50 flex flex-col items-center justify-center gap-1">
+                      <span class="font-mono-code text-[8px] uppercase text-blue-900 font-bold border border-blue-800/40 px-2 py-0.5 rounded bg-white">Fiscal Federalism</span>
+                      <div class="flex gap-2 text-[8px] font-mono-code text-blue-800">
+                        <span>↙ Vertical</span>
+                        <span>•</span>
+                        <span>Horizontal ↘</span>
+                      </div>
+                    </div>
+                    <p contenteditable="true">“Way Forward: Cooperative &amp; competitive federalism for Viksit Bharat 2047.”</p>
+                  </div>
+                </div>
+                <div class="p-2 rounded-xl bg-emerald-100 border border-emerald-300 text-center">
+                  <span class="font-mono-code text-[10px] font-extrabold text-emerald-900" contenteditable="true">“Bro I cooked! LBSNAA confirmed.”</span>
+                </div>
+              </div>
+
+              <!-- RIGHT HALF: REAL EXAMINER X-RAY (2.5/10) -->
+              <div class="bg-[#F5EFE6] text-slate-900 p-4 flex flex-col justify-between paper-lines relative">
+                <div>
+                  <div class="inline-block px-2 py-0.5 rounded bg-rose-600 text-white font-mono-code text-[9px] font-extrabold uppercase tracking-wide">
+                    💀 EXAMINER AUDIT: 2.5/10
+                  </div>
+
+                  <div class="mt-4 space-y-3 relative">
+                    <!-- Red Slash 1 -->
+                    <div class="p-2 rounded-lg bg-rose-500/10 border-l-4 border-rose-600">
+                      <div class="font-handwriting text-rose-600 text-[19px] font-bold leading-none -rotate-2" contenteditable="true">
+                        ✕ Textbook Intro! (-1.0M)
+                      </div>
+                      <div class="font-mono-code text-[8.5px] text-rose-900 mt-0.5">Zero mention of 16th FC ToR</div>
+                    </div>
+
+                    <!-- Red Slash 2 -->
+                    <div class="p-2 rounded-lg bg-rose-500/10 border-l-4 border-rose-600">
+                      <div class="font-handwriting text-rose-600 text-[19px] font-bold leading-none rotate-1" contenteditable="true">
+                        ✕ Empty Flowchart! (0 Marks)
+                      </div>
+                      <div class="font-mono-code text-[8.5px] text-rose-900 mt-0.5">Where is Cesses 23% GTR data?!</div>
+                    </div>
+
+                    <!-- Giant Circled Red Stamp -->
+                    <div class="mt-3 flex items-center justify-center">
+                      <div class="w-24 h-24 rounded-full border-4 border-double border-rose-600 flex flex-col items-center justify-center -rotate-12 bg-rose-50/90 shadow-md">
+                        <span class="font-mono-code text-[8px] font-extrabold text-rose-700 uppercase">STRICT SCORE</span>
+                        <span class="font-handwriting text-3xl font-extrabold text-rose-600 leading-none">2.5/10</span>
+                        <span class="font-mono-code text-[7.5px] font-bold text-rose-800">COOKED</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="p-2 rounded-xl bg-rose-600 text-white text-center">
+                  <span class="font-mono-code text-[9.5px] font-extrabold" contenteditable="true">Fix in Rewrite Lab → 6.5/10</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Minimal Bottom CTA Pill -->
+            <div class="relative z-10 flex items-center justify-between bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3">
+              <span class="text-xs font-semibold text-zinc-200" contenteditable="true">Test 15 Handwritten Copies/Day <span class="text-emerald-400 font-bold">100% Free</span></span>
+              <span class="px-3.5 py-1.5 rounded-xl bg-amber-400 text-zinc-950 font-mono-code text-xs font-extrabold" contenteditable="true">cookedmains.com ↗</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // -----------------------------------------------------------------------
+      // SINGLE AD 2: THE 2:14 AM iPHONE LOCKSCREEN NOTIFICATION
+      // -----------------------------------------------------------------------
+      if (idx === 1) {
+        return `
+          <div id="exportTargetCard" class="relative w-[540px] h-[675px] rounded-[28px] overflow-hidden bg-gradient-to-b from-[#0B1120] via-[#090D16] to-[#05070B] text-white border border-slate-800 shadow-2xl flex flex-col justify-between p-8 select-none">
+            <div class="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 w-[380px] h-[260px] bg-indigo-500/15 blur-[95px] rounded-full"></div>
+            <div class="pointer-events-none absolute bottom-10 left-1/2 -translate-x-1/2 w-[350px] h-[200px] bg-amber-500/15 blur-[95px] rounded-full"></div>
+
+            <!-- Top Status Bar (iOS Aesthetic) -->
+            <div class="relative z-10 flex items-center justify-between text-xs font-mono-code text-slate-400">
+              <span>IND • ORN LIBRARY</span>
+              <div class="flex items-center gap-1.5">
+                <span>5G</span>
+                <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-bold">98%</span>
+              </div>
+            </div>
+
+            <!-- Giant iOS Lockscreen Clock -->
+            <div class="relative z-10 text-center my-1">
+              <div class="text-xs font-medium text-slate-400 tracking-wide" contenteditable="true">Monday, 28 September • Mains Prep</div>
+              <div class="font-sans text-[84px] font-extrabold tracking-tight leading-none text-white/95 mt-1" contenteditable="true">
+                02:14
+              </div>
+            </div>
+
+            <!-- 2 Contrast Lockscreen Notifications (The Entire Story in 2 Cards) -->
+            <div class="relative z-10 space-y-4 my-auto">
+
+              <!-- Notification 1: Coaching Ghosting -->
+              <div class="p-4 rounded-3xl bg-white/[0.06] backdrop-blur-xl border border-white/10 shadow-xl opacity-75">
+                <div class="flex items-center justify-between mb-1.5">
+                  <div class="flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-md bg-rose-500/30 flex items-center justify-center text-xs">🐢</span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-300">₹25,000 TEST SERIES</span>
+                  </div>
+                  <span class="text-[10.5px] font-mono-code text-rose-400 font-semibold">14 days ago</span>
+                </div>
+                <p class="text-xs text-slate-300 font-medium" contenteditable="true">
+                  Your GS-2 Test #1 copy is still pending evaluation. Expected return: Next Tuesday.
+                </p>
+              </div>
+
+              <!-- Notification 2: Cooked Mains Instant Audit -->
+              <div class="p-5 rounded-3xl bg-gradient-to-br from-amber-500/20 via-slate-900/95 to-slate-900 backdrop-blur-xl border-2 border-amber-400/60 shadow-[0_0_35px_rgba(245,158,11,0.2)] scale-[1.03]">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <img src="/static/brand_logo_dark.png" onerror="this.style.display='none'" class="h-5 w-auto" alt="Logo" />
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-amber-400">COOKED MAINS AI EXAMINER</span>
+                  </div>
+                  <span class="text-[10.5px] font-mono-code bg-emerald-500 text-slate-950 px-2 py-0.5 rounded-full font-extrabold">28s ago</span>
+                </div>
+                <div class="text-sm font-extrabold text-white" contenteditable="true">
+                  🔴 Handwritten Copy Audited: 3.5 / 10
+                </div>
+                <p class="text-xs text-slate-200 mt-1 leading-relaxed" contenteditable="true">
+                  You lost <span class="text-rose-400 font-bold">-2.0M in Part-B</span> (Missed SR Bommai &amp; Art. 356). Tap to view Red-Pen margin notes &amp; unlock <span class="text-emerald-400 font-bold">6.5/10 in Rewrite Lab.</span>
+                </p>
+              </div>
+
+            </div>
+
+            <!-- Minimal Punchline & CTA -->
+            <div class="relative z-10 text-center space-y-3 pt-2">
+              <h2 class="font-editorial text-3xl text-white" contenteditable="true">
+                Why Wait <span class="line-through text-slate-500">14 Days</span> When You Can Fix It At <span class="italic text-amber-400">2:15 AM?</span>
+              </h2>
+              <div class="w-full py-3 rounded-2xl bg-white text-slate-950 font-extrabold text-xs tracking-wide shadow-lg" contenteditable="true">
+                🔥 15 FREE EVALUATIONS/DAY → cookedmains.com
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // -----------------------------------------------------------------------
+      // SINGLE AD 3: THE TWO TICKETS (₹25,000 COACHING vs ₹0 COOKED MAINS VIP)
+      // -----------------------------------------------------------------------
+      if (idx === 2) {
+        return `
+          <div id="exportTargetCard" class="relative w-[540px] h-[675px] rounded-[28px] overflow-hidden bg-[#F7F3EB] text-[#141413] border border-stone-300 shadow-2xl flex flex-col justify-between p-8 select-none">
+            <div class="flex items-center justify-between border-b-2 border-[#141413] pb-2.5">
+              <span class="font-mono-code text-xs font-extrabold uppercase tracking-wider">UPSC MAINS BOARDING PASS</span>
+              <span class="font-mono-code text-[10px] px-2.5 py-0.5 rounded-full bg-[#141413] text-[#F7F3EB] font-bold">CHOOSE YOUR TICKET</span>
+            </div>
+
+            <!-- 4-Word Headline -->
+            <div class="text-center my-1">
+              <h1 class="font-editorial text-[52px] leading-[0.95]" contenteditable="true">
+                Fire Your <span class="italic text-rose-700">Slow</span> Test Series.
+              </h1>
+            </div>
+
+            <!-- Visual Ticket Stack -->
+            <div class="space-y-4 my-auto">
+
+              <!-- TICKET 1: OLD COACHING (FADED / STAMPED EXPIRED) -->
+              <div class="relative rounded-2xl bg-stone-200/90 border-2 border-dashed border-stone-400 p-5 opacity-80">
+                <div class="absolute right-4 top-4 px-2.5 py-1 rounded border-2 border-rose-700 text-rose-700 font-mono-code text-[10px] font-extrabold uppercase rotate-6">
+                  OUTDATED 💀
+                </div>
+                <div class="text-[10px] font-mono-code font-bold text-stone-500 uppercase">TICKET A • KAROL BAGH / ORN COACHING</div>
+                <div class="font-editorial text-4xl font-bold text-stone-800 mt-1" contenteditable="true">₹25,000 <span class="text-base font-mono-code font-normal text-stone-500">/ Series</span></div>
+                <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-stone-300 font-mono-code text-[10px]">
+                  <div><div class="text-stone-400">WAIT TIME</div><div class="font-bold text-rose-700 text-xs">14 DAYS</div></div>
+                  <div><div class="text-stone-400">REMARKS</div><div class="font-bold text-stone-700 text-xs">“Good / Elaborate”</div></div>
+                  <div><div class="text-stone-400">REWRITES</div><div class="font-bold text-rose-700 text-xs">0 ALLOWED</div></div>
+                </div>
+              </div>
+
+              <!-- TICKET 2: COOKED MAINS VIP GOLD PASS -->
+              <div class="relative rounded-2xl bg-[#111318] text-white border-2 border-amber-400 p-5 shadow-2xl scale-[1.02]">
+                <div class="absolute right-4 top-4 px-2.5 py-1 rounded bg-amber-400 text-slate-950 font-mono-code text-[10px] font-extrabold uppercase">
+                  RANKER PASS ⚡
+                </div>
+                <div class="text-[10px] font-mono-code font-bold text-amber-400 uppercase">TICKET B • COOKED MAINS AI EXAMINER</div>
+                <div class="font-editorial text-4xl font-bold text-white mt-1" contenteditable="true">₹0 <span class="text-base font-mono-code font-normal text-emerald-400">(15 Copies/Day Free)</span></div>
+                <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-800 font-mono-code text-[10px]">
+                  <div><div class="text-slate-400">WAIT TIME</div><div class="font-bold text-emerald-400 text-xs">30 SECONDS</div></div>
+                  <div><div class="text-slate-400">REMARKS</div><div class="font-bold text-amber-300 text-xs">Step-Marks + Red Pen</div></div>
+                  <div><div class="text-slate-400">REWRITES</div><div class="font-bold text-emerald-400 text-xs">5/Day Lab Jumps</div></div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="pt-3 border-t-2 border-[#141413] flex items-center justify-between">
+              <span class="font-editorial text-xl" contenteditable="true">Upload your handwritten photo now →</span>
+              <span class="px-4 py-2 rounded-xl bg-[#141413] text-amber-400 font-mono-code text-xs font-extrabold" contenteditable="true">cookedmains.com</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // -----------------------------------------------------------------------
+      // SINGLE AD 4: THE BRUTAL BAR CHART (310 HRS READING vs 0 AUDITED)
+      // -----------------------------------------------------------------------
+      if (idx === 3) {
+        return `
+          <div id="exportTargetCard" class="relative w-[540px] h-[675px] rounded-[28px] overflow-hidden bg-[#090D16] text-white border border-slate-800 shadow-2xl flex flex-col justify-between p-8 select-none">
+            <div class="pointer-events-none absolute inset-0 grain-overlay"></div>
+
+            <div class="relative z-10 flex items-center justify-between">
+              <span class="font-mono-code text-[10px] uppercase tracking-widest text-amber-400 px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/30 font-bold">
+                ASPIRANT SCREEN-TIME AUDIT
+              </span>
+              <span class="font-extrabold text-sm">Cooked <span class="text-amber-400">Mains</span></span>
+            </div>
+
+            <!-- Minimal Headline -->
+            <div class="relative z-10 my-1">
+              <h1 class="font-editorial text-[48px] leading-[0.96]" contenteditable="true">
+                Reading Makes You Feel Safe.<br/><span class="italic text-amber-400">Auditing Clears Mains.</span>
+              </h1>
+            </div>
+
+            <!-- Giant Visual Bar Chart -->
+            <div class="relative z-10 bg-slate-900/90 border border-slate-800 rounded-3xl p-6 space-y-5 my-auto">
+              <!-- Bar 1 -->
+              <div class="space-y-1.5">
+                <div class="flex justify-between text-xs font-mono-code">
+                  <span class="text-slate-300">🗞️ Reading The Hindu &amp; Making iPad Notes</span>
+                  <span class="text-sky-400 font-bold">310 HRS</span>
+                </div>
+                <div class="w-full bg-slate-800 h-5 rounded-xl overflow-hidden">
+                  <div class="bg-sky-500 h-full w-[92%] rounded-xl"></div>
+                </div>
+              </div>
+
+              <!-- Bar 2 -->
+              <div class="space-y-1.5">
+                <div class="flex justify-between text-xs font-mono-code">
+                  <span class="text-slate-300">🎥 Watching “Topper Strategy” Videos</span>
+                  <span class="text-purple-400 font-bold">120 HRS</span>
+                </div>
+                <div class="w-full bg-slate-800 h-5 rounded-xl overflow-hidden">
+                  <div class="bg-purple-500 h-full w-[55%] rounded-xl"></div>
+                </div>
+              </div>
+
+              <!-- Bar 3 (The Reality Punch) -->
+              <div class="space-y-1.5 pt-1">
+                <div class="flex justify-between text-xs font-mono-code">
+                  <span class="text-rose-400 font-extrabold">🔴 Handwritten Answers Strictly Audited</span>
+                  <span class="text-rose-400 font-extrabold">0 COPIES 💀</span>
+                </div>
+                <div class="w-full bg-rose-950/50 border border-rose-500/40 h-5 rounded-xl overflow-hidden flex items-center px-2">
+                  <div class="bg-rose-500 h-2.5 w-[3%] rounded-full animate-pulse"></div>
+                </div>
+              </div>
+
+              <!-- Fix Box -->
+              <div class="pt-3 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <div class="text-[10px] font-mono-code text-emerald-400 font-bold">BREAK THE STREAK IN 30 SECONDS</div>
+                  <div class="text-xs text-slate-200 mt-0.5">Pick 1 live question → Write on paper → Get Red-Pen Marks</div>
+                </div>
+                <span class="font-mono-code text-sm font-extrabold bg-emerald-500 text-slate-950 px-3 py-1 rounded-xl">3.5 → 6.5</span>
+              </div>
+            </div>
+
+            <div class="relative z-10 w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-extrabold text-xs flex items-center justify-between shadow-lg">
+              <span>AUDIT YOUR FIRST ANSWER FREE (15/DAY)</span>
+              <span class="font-mono-code">cookedmains.com ↗</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // -----------------------------------------------------------------------
+      // SINGLE AD 5: TWO STAMPS (CHATGPT 8.5 GLAZING vs COOKED MAINS 3.0 TRUTH)
+      // -----------------------------------------------------------------------
+      return `
+        <div id="exportTargetCard" class="relative w-[540px] h-[675px] rounded-[28px] overflow-hidden bg-[#0A0A0C] text-white border border-zinc-800 shadow-2xl flex flex-col justify-between p-8 select-none">
+          <div class="pointer-events-none absolute inset-0 grain-overlay"></div>
+
+          <div class="relative z-10 flex items-center justify-between">
+            <span class="px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-700 text-[10px] font-mono-code font-bold text-rose-400">SAME HANDWRITTEN GS-2 ANSWER</span>
+            <span class="font-extrabold text-sm">Cooked <span class="text-amber-400">Mains</span></span>
+          </div>
+
+          <div class="relative z-10 text-center my-1">
+            <h1 class="font-editorial text-[50px] leading-[0.95]" contenteditable="true">
+              Polite AI Will <span class="italic text-rose-400">Cost</span> Your Attempt.
+            </h1>
+          </div>
+
+          <!-- 2 Giant Side-by-Side Score Cards -->
+          <div class="relative z-10 grid grid-cols-2 gap-4 my-auto">
+
+            <!-- Left: Generic Chatbot -->
+            <div class="rounded-3xl bg-zinc-900/90 border border-zinc-800 p-5 flex flex-col justify-between text-center">
+              <div class="text-[10px] font-mono-code uppercase text-sky-400 font-bold">🤖 NORMAL CHATGPT</div>
+              <div class="my-4">
+                <div class="font-mono-code text-5xl font-extrabold text-sky-400" contenteditable="true">8.5<span class="text-xl text-zinc-500">/10</span></div>
+                <div class="mt-2 inline-block px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-300 text-[10px] font-mono-code font-bold">
+                  “GREAT EFFORT! 🌟”
+                </div>
+              </div>
+              <p class="text-xs text-zinc-400 italic" contenteditable="true">
+                Glazes your generic intro so you feel happy—and score 65 in real Mains.
+              </p>
+              <div class="mt-4 py-1.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 font-mono-code text-[10px] font-bold">
+                ✕ FAKE HOPIUM
+              </div>
+            </div>
+
+            <!-- Right: Cooked Mains -->
+            <div class="rounded-3xl bg-gradient-to-b from-amber-500/15 to-zinc-900 border-2 border-amber-400 p-5 flex flex-col justify-between text-center shadow-2xl">
+              <div class="text-[10px] font-mono-code uppercase text-amber-400 font-bold">🔥 COOKED MAINS</div>
+              <div class="my-4">
+                <div class="font-mono-code text-5xl font-extrabold text-rose-400" contenteditable="true">3.0<span class="text-xl text-zinc-500">/10</span></div>
+                <div class="mt-2 inline-block px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-mono-code font-bold">
+                  “MISSED ART. 280 💀”
+                </div>
+              </div>
+              <p class="text-xs text-zinc-200" contenteditable="true">
+                Audits every sub-part, roasts filler, &amp; forces a <span class="text-emerald-400 font-bold">6.5/10 Rewrite</span>.
+              </p>
+              <div class="mt-4 py-1.5 rounded-xl bg-emerald-500 text-zinc-950 font-mono-code text-[10px] font-extrabold">
+                ✓ SAVES YOUR ATTEMPT
+              </div>
+            </div>
+
+          </div>
+
+          <div class="relative z-10 flex items-center justify-between bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3">
+            <span class="text-xs text-zinc-300">Dare to see your real UPSC Bell-Curve score?</span>
+            <span class="px-3.5 py-1.5 rounded-xl bg-amber-400 text-zinc-950 font-mono-code text-xs font-extrabold" contenteditable="true">cookedmains.com →</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 4 GEN-Z CAROUSEL DECKS DATA
+    // =========================================================================
+    const DECKS = {
+      minimal_singles: {
+        name: "Minimal Visual Single-Page Ads",
+        labels: [
+          "1 • X-Ray Split (6.5 vs 2.5)",
+          "2 • 2:14 AM iPhone Lockscreen",
+          "3 • ₹25k vs ₹0 Boarding Pass",
+          "4 • 310 Hrs Reading vs 0 Audited",
+          "5 • ChatGPT 8.5 vs Examiner 3.0"
+        ]
+      },
+      concept1: {
+        name: "Carousel 1: Delulu vs Reality",
+        labels: ["01 • Delulu Hook", "02 • ChatGPT Glazing", "03 • ₹25k Ghosting", "04 • Rewrite Glow-Up", "05 • 30-Sec Dare"],
+        slides: [
+          {
+            theme: "dark-obsidian",
+            badge: "POV: 11:47 PM AT YOUR STUDY DESK",
+            slideNum: "01 / 05",
+            headline: `Me thinking I just wrote a <span class="italic text-emerald-400">Rank-1 Answer</span> vs. What the Examiner actually sees 💀`,
+            subtext: `Every aspirant lives in Mains Delulu until a ruthless examiner audits their actual handwritten sheet.`,
+            box1Title: "🧠 IN MY HEAD (MAIN CHARACTER ENERGY)",
+            box1Tag: "“Easy 6.5 / 10”",
+            box1Color: "emerald",
+            box1Body: `“Bro I underlined 14 words, drew a hub-and-spoke diagram, dropped Article 21 in the intro, and ended with ‘Vasudhaiva Kutumbakam’. LBSNAA packing starts tomorrow.”`,
+            box2Title: "🔴 COOKED MAINS EXAMINER AUDIT (30 SECS LATER)",
+            box2Tag: "2.5 / 10 (COOKED)",
+            box2Color: "rose",
+            box2Body: `“Bro wrote 1.5 pages of pure GS-1 history yapping when the directive was ‘Critically Examine Fiscal Devolution’. Zero 16th FC data. Diagram adds 0 value.”`,
+            footerLeft: "Stop living in Mains Delulu.",
+            footerRight: "SWIPE IF THIS HURT →"
+          },
+          {
+            theme: "dark-obsidian",
+            badge: "THE “AI GLAZING” TRAP",
+            slideNum: "02 / 05",
+            headline: `Normal ChatGPT <span class="italic text-sky-400">Glazes</span> You.<br/>Cooked Mains <span class="italic text-amber-400">Saves</span> Your Attempt.`,
+            subtext: `Generic AI chatbots are programmed to be polite. Polite doesn't clear the UPSC Mains cut-off.`,
+            box1Title: "🤖 GENERIC CHATBOT (FAKE HOPIUM)",
+            box1Tag: "Gives everyone 8/10 🌟",
+            box1Color: "sky",
+            box1Body: `“Wow, fantastic answer! Your structure is very comprehensive and well-articulated. Keep it up! Score: 8/10” → Actual UPSC Hall Score: 68 in GS-2.`,
+            box2Title: "🔥 COOKED MAINS (RUTHLESS BELL-CURVE ENGINE)",
+            box2Tag: "REAL UPSC STANDARD",
+            box2Color: "amber",
+            box2Body: `• Intro (0.5/2M): Wasted 4 lines defining democracy instead of citing Art. 356.\n• Body Part B (1.5/4M): Missed SR Bommai (1994) & Rameshwar Prasad case.\n• Fix to hit 6.5/10: Replace para 2 with Sarkaria Commission para 4.1.`,
+            footerLeft: "Wait till you see the Test Series scam...",
+            footerRight: "SWIPE →"
+          },
+          {
+            theme: "paper-archival",
+            badge: "ORN / KAROL BAGH RECEIPT AUDIT",
+            slideNum: "03 / 05",
+            headline: `You Paid <span class="italic text-rose-700">₹25,000</span> To Get Ghosted For 2 Weeks.`,
+            subtext: `By the time your coaching test series returns your copy, your brain has already forgotten the question.`,
+            box1Title: "🧾 TRADITIONAL TEST SERIES RECEIPT (₹25,000 + GST)",
+            box1Tag: "14-DAY DELAY",
+            box1Color: "rose",
+            box1Body: `Day 01: Wrote Test #1 with full motivation.\nDay 07: Status “Copy Under Evaluation...”\nDay 16: Returned with 3 lazy ticks: “Good attempt. Add more dimensions.”`,
+            box2Title: "⚡ COOKED MAINS SPEEDRUN (₹0 / FREE)",
+            box2Tag: "30 SECONDS",
+            box2Color: "emerald",
+            box2Body: `Snap a photo while the ink is still wet → Get line-by-line red-pen margin remarks + sub-part step marks in 30 seconds.`,
+            footerLeft: "How to actually jump from 3.5 to 6.5?",
+            footerRight: "SWIPE →"
+          },
+          {
+            theme: "dark-obsidian",
+            badge: "THE DOPAMINE LOOP • REWRITE LAB",
+            slideNum: "04 / 05",
+            headline: `Don’t Just Get Roasted.<br/>Use the <span class="italic text-emerald-400">Rewrite Lab</span> To Level Up.`,
+            subtext: `Cooked Mains locks your question, gives you the exact missing Supreme Court cases & data, and dares you to rewrite it:`,
+            box1Title: "🔴 ATTEMPT #1 (RAW HANDWRITTEN UPLOAD)",
+            box1Tag: "3.5 / 10",
+            box1Color: "rose",
+            box1Body: `Examiner flags weak generic intro, missing Part-B directive alignment, and zero committee citations.`,
+            box2Title: "🟢 ATTEMPT #2 (OCR-VERIFIED REWRITE GLOW-UP)",
+            box2Tag: "6.5 / 10 (+3.0 ↑)",
+            box2Color: "emerald",
+            box2Body: `You steal the Topper Blueprint, rewrite the answer on paper, and re-upload. OCR confirms you answered the same question and proves your +3.0 mark jump!`,
+            footerLeft: "Think your current answers can survive?",
+            footerRight: "FINAL SLIDE →"
+          },
+          {
+            theme: "cta-finale",
+            badge: "🎯 THE 30-SECOND DARE FOR ASPIRANTS",
+            slideNum: "05 / 05",
+            headline: `Take The Last Answer You Wrote. <span class="italic text-amber-400">Upload It Right Now.</span>`,
+            subtext: `If you score 5.5+/10 on your first try, you’re ready for Mains. If you get 3.0/10, thank God you found out today and not in the UPSC exam hall.`,
+            stat1: ["₹0 / Free", "No credit card or coaching trap"],
+            stat2: ["15 Copies", "Free daily handwritten audits"],
+            stat3: ["30 Secs", "Red-Pen + Model Blueprint"],
+            ctaText: "🔗 cookedmains.com (Link in Bio)",
+            footerNote: "📤 Send this to your study partner & compare scores"
+          }
+        ]
+      },
+      concept2: {
+        name: "Carousel 2: The iPad Notes Trap",
+        labels: ["01 • iPad Notes Hook", "02 • 1 AM Fear", "03 • Live Mains Forge", "04 • 30-Sec Red Pen", "05 • Tonight's 1 Answer"],
+        slides: [
+          {
+            theme: "paper-archival",
+            badge: "FAKE PRODUCTIVITY ALERT",
+            slideNum: "01 / 05",
+            headline: `Your iPad Notes Look Like <span class="italic text-emerald-700">AIR-1</span>.<br/>Your Answer Sheet Looks Like <span class="italic text-rose-700">AIR-45,000.</span>`,
+            subtext: `Color-coding PDFs in GoodNotes with 4 pastel highlighters feels great—until the 7-minute timer starts ticking.`,
+            box1Title: "🎨 AESTHETIC COLLECTOR BABU SYNDROME",
+            box1Tag: "0 ANSWERS WRITTEN",
+            box1Color: "rose",
+            box1Body: `• 3.5 Hours reading The Hindu & making 12 pages of notes.\n• 2 Hours watching “How to score 450+ in GS” strategy videos.\n• Actual handwritten answers practiced today: ZERO.`,
+            box2Title: "⚠️ THE BRUTAL UPSC TRUTH",
+            box2Tag: "WAKE UP CALL",
+            box2Color: "amber",
+            box2Body: `UPSC doesn’t ask for your iPad notes folder. If you can’t compress that editorial into 150 words on a margin-lined sheet in 7 minutes, you are cooked.`,
+            footerLeft: "Why do we secretly avoid writing?",
+            footerRight: "SWIPE →"
+          },
+          {
+            theme: "dark-obsidian",
+            badge: "THE 1:00 AM PSYCHOLOGY",
+            slideNum: "02 / 05",
+            headline: `Why You Secretly Avoid Writing Answers At Night.`,
+            subtext: `It’s not laziness. It’s the fear of writing into a black hole with zero feedback.`,
+            box1Title: "🕳️ THE “BLACK HOLE” DEMOTIVATION",
+            box1Tag: "WHY YOU QUIT",
+            box1Color: "rose",
+            box1Body: `When you finish writing an answer at 12:30 AM at your desk, nobody is awake to tell you if it’s a 2.5/10 or a 6.0/10. So your brain says: “Why bother writing at all?”`,
+            box2Title: "💡 THE INSTANT DOPAMINE SOLUTION",
+            box2Tag: "COOKED MAINS AI",
+            box2Color: "emerald",
+            box2Body: `Imagine having a strict retired UPSC Examiner sitting at your desk at 1 AM—who reads your handwriting in 30 seconds, circles every weak line in red ink, and hands you a 7/10 rewrite blueprint.`,
+            footerLeft: "And you don't even have to hunt for questions...",
+            footerRight: "SWIPE →"
+          },
+          {
+            theme: "dark-obsidian",
+            badge: "DAILY CURRENT AFFAIRS MAINS FORGE™",
+            slideNum: "03 / 05",
+            headline: `Just Read Today’s <span class="italic text-amber-400">The Hindu?</span> Test It In 60 Seconds.`,
+            subtext: `Stop hoarding current affairs magazines. Turn today’s news into real Mains muscle memory:`,
+            box1Title: "🗞️ STEP 1: LIVE DAILY NEWS-TO-MAINS ENGINE",
+            box1Tag: "GS-1 TO GS-4",
+            box1Color: "amber",
+            box1Body: `Cooked Mains automatically ingests today’s The Hindu & Indian Express editorials and generates official UPSC-directive Mains questions (10M / 15M).`,
+            box2Title: "✍️ STEP 2: WRITE ON PAPER & SNAP A PHOTO",
+            box2Tag: "NO TYPING NEEDED",
+            box2Color: "emerald",
+            box2Body: `Write on your normal UPSC margin notebook, snap a phone photo or upload a PDF, and let the examiner cook.`,
+            footerLeft: "What happens 30 seconds after upload?",
+            footerRight: "SWIPE →"
+          },
+          {
+            theme: "dark-obsidian",
+            badge: "LINE-BY-LINE HANDWRITING OCR",
+            slideNum: "04 / 05",
+            headline: `Red-Pen Margin Notes On Your <span class="italic text-rose-400">Actual Handwriting.</span>`,
+            subtext: `No vague paragraphs. Every section of your handwritten page gets dissected:`,
+            box1Title: "🔍 SECTION & SUB-PART AUDIT",
+            box1Tag: "INTRO • BODY • CONCL",
+            box1Color: "amber",
+            box1Body: `• Intro Audit: Did you define the keyword or cite constitutional backing?\n• Body Step-Marks: Did you hit every sub-part of the question?\n• Conclusion: Concrete Way Forward.`,
+            box2Title: "📈 + TOPPER VALUE-ADD INJECTION",
+            box2Tag: "COPY-READY",
+            box2Color: "emerald",
+            box2Body: `Instantly gives you the exact Supreme Court cases, ARC/NITI Aayog reports, and data points you forgot to mention while writing.`,
+            footerLeft: "Ready to break the zero-answer streak tonight?",
+            footerRight: "FINAL SLIDE →"
+          },
+          {
+            theme: "cta-finale",
+            badge: "🌙 THE 1-ANSWER BEFORE SLEEP PACT",
+            slideNum: "05 / 05",
+            headline: `Write <span class="italic text-amber-400">Just 1 Answer</span> Tonight Before You Close Your Books.`,
+            subtext: `Close GoodNotes. Pick 1 live question on Cooked Mains, write for 7 minutes, and get your 30-second Examiner Audit free.`,
+            stat1: ["15 / Day", "Free Handwritten Evaluations"],
+            stat2: ["Live News", "Daily Hindu & IE Questions"],
+            stat3: ["₹0 Cost", "Built for Serious Aspirants"],
+            ctaText: "🔗 cookedmains.com (Link in Bio)",
+            footerNote: "📌 Bookmark this for tonight's 11 PM study session"
+          }
+        ]
+      },
+      concept3: {
+        name: "Carousel 3: 3.0 Yapper vs 6.5 Ranker",
+        labels: ["01 • Copy A vs B", "02 • First 25 Words", "03 • Hidden Step-Marks", "04 • 12-Min Evolution", "05 • Test Your Copy"],
+        slides: [
+          {
+            theme: "dark-obsidian",
+            badge: "ANATOMY OF A TOPPER COPY",
+            slideNum: "01 / 05",
+            headline: `Same Question. Same Knowledge.<br/>Why Did Copy A Get <span class="text-rose-400">3.0/10</span> &amp; Copy B Get <span class="text-emerald-400">6.5/10?</span>`,
+            subtext: `We ran two aspirant copies on GS-II (Governor’s Discretion under Art. 163/200) through Cooked Mains:`,
+            box1Title: "❌ COPY A: THE “GS YAPPER” (SCORE: 3.0 / 10)",
+            box1Tag: "90% OF ASPIRANTS",
+            box1Color: "rose",
+            box1Body: `Wrote 2 full pages of emotional newspaper commentary about state-center tussles without citing a single Constitutional Article, Case Law, or Commission.`,
+            box2Title: "✅ COPY B: THE “STRUCTURED RANKER” (SCORE: 6.5 / 10)",
+            box2Tag: "TOP 1% STANDARD",
+            box2Color: "emerald",
+            box2Body: `Hit the exact directive in 25 words, split the body into 3 boxed sub-parts, cited Nabam Rebia (2016) & Punchhi Commission, and closed with a constitutional roadmap.`,
+            footerLeft: "Swipe to see the exact line-by-line breakdown",
+            footerRight: "SWIPE →"
+          },
+          {
+            theme: "paper-archival",
+            badge: "THE FIRST 25 WORDS RULE",
+            slideNum: "02 / 05",
+            headline: `Your Examiner Decides Your Marks Range In The <span class="italic text-rose-700">First 4 Lines.</span>`,
+            subtext: `Here is how Cooked Mains’ Section Audit grades two different Introductions on the exact same question:`,
+            box1Title: "🔴 YAPPER INTRO (EXAMINER SCORE: 0.5 / 2.0 MARKS)",
+            box1Tag: "SCHOOL-LEVEL INTRO",
+            box1Color: "rose",
+            box1Body: `“India is the world’s largest democracy and follows a federal system of governance where the Governor plays a very crucial link role...” (-1.5M: Pure filler)`,
+            box2Title: "🟢 RANKER INTRO (EXAMINER SCORE: 1.75 / 2.0 MARKS)",
+            box2Tag: "CONSTITUTIONAL HOOK",
+            box2Color: "emerald",
+            box2Body: `“While Articles 163 and 200 vest limited situational discretion in the Governor, indeterminate withholding of assent to State Bills has triggered judicial scrutiny over ‘pocket vetoes’.”`,
+            footerLeft: "Next: Where you lose 2.5 marks in the Body...",
+            footerRight: "SWIPE →"
+          },
+          {
+            theme: "dark-obsidian",
+            badge: "QUESTION SUB-PART STEP-MARKING™",
+            slideNum: "03 / 05",
+            headline: `Why You Lose <span class="italic text-rose-400">2.5 Marks</span> Even When You Know The Topic.`,
+            subtext: `Every 15-mark UPSC question has 3 hidden sub-directives. If you ignore Part C, your ceiling drops from 15 to 10 immediately.`,
+            box1Title: "📊 HOW COOKED MAINS SPLITS STEP-MARKS",
+            box1Tag: "15M = 4M + 6M + 5M",
+            box1Color: "amber",
+            box1Body: `• Sub-Part A (Constitutional Scope): 3.0 / 4.0 Marks\n• Sub-Part B (Recent Pocket Veto Friction): 4.5 / 6.0 Marks\n• Sub-Part C (Reform Roadmap): 0.5 / 5.0 Marks (Rushed in last 3 lines!)`,
+            box2Title: "🎯 THE STEP-MARKING REALIZATION",
+            box2Tag: "INSTANT FIX",
+            box2Color: "emerald",
+            box2Body: `Coaching evaluators just slap a random “4.5/15” at the end. Cooked Mains shows you the exact sub-part that bled marks.`,
+            footerLeft: "How fast can Copy A become Copy B?",
+            footerRight: "SWIPE →"
+          },
+          {
+            theme: "dark-obsidian",
+            badge: "THE 12-MINUTE TRANSFORMATION",
+            slideNum: "04 / 05",
+            headline: `How Copy A Turned Into Copy B In <span class="italic text-emerald-400">12 Minutes Flat.</span>`,
+            subtext: `Instead of moving on to a new question, the aspirant used Cooked Mains’ Rewrite Evolution Lab:`,
+            box1Title: "🛠️ STEP 1: APPLIED THE EXAMINER’S 3 RED-PEN FIXES",
+            box1Tag: "5 MINS",
+            box1Color: "amber",
+            box1Body: `Replaced the generic intro with Art. 200, added State of Punjab vs Principal Secretary (2023) citation, and gave 4 dedicated bullet points to Part C.`,
+            box2Title: "🚀 STEP 2: RE-UPLOADED TO REWRITE EVOLUTION LAB",
+            box2Tag: "SCORE: 3.0 → 6.5/10",
+            box2Color: "emerald",
+            box2Body: `OCR verified the same question, audited the newly added judicial citations, and confirmed a +3.5 mark leap.`,
+            footerLeft: "Are your answers Copy A or Copy B?",
+            footerRight: "FINAL SLIDE →"
+          },
+          {
+            theme: "cta-finale",
+            badge: "🧪 AUDIT YOUR WRITING STYLE TODAY",
+            slideNum: "05 / 05",
+            headline: `Find Out If You’re Writing Like A <span class="italic text-rose-400">Yapper</span> Or A <span class="italic text-emerald-400">Ranker.</span>`,
+            subtext: `Upload any handwritten GS or Essay answer photo right now. Get your full Sub-Part Step-Marking breakdown in 30 seconds.`,
+            stat1: ["Step-Marks", "Sub-part by sub-part audit"],
+            stat2: ["15 Free", "Daily handwritten copies"],
+            stat3: ["5 Rewrites", "Daily Evolution Lab jumps"],
+            ctaText: "🔗 cookedmains.com (Link in Bio)",
+            footerNote: "💾 Save this post as your GS Answer Structure Checklist"
+          }
+        ]
+      },
+      concept4: {
+        name: "Carousel 4: Study Partner Chai Duel",
+        labels: ["01 • Chai Duel Hook", "02 • 7-Min Rules", "03 • No Coaching Excuse", "04 • Loser Rewrites", "05 • Start The Duel"],
+        slides: [
+          {
+            theme: "dark-obsidian",
+            badge: "TAG YOUR UPSC STUDY PARTNER",
+            slideNum: "01 / 05",
+            headline: `Send This To Your Study Partner Without Context.<br/><span class="italic text-amber-400">Lowest Score Buys Chai ☕</span>`,
+            subtext: `Solo answer writing is boring. Turn tonight’s GS practice into a ruthless 7-minute head-to-head duel on Cooked Mains.`,
+            box1Title: "⚔️ THE ORN / LIBRARY CHAI GAUNTLET",
+            box1Tag: "1v1 MAINS DUEL",
+            box1Color: "amber",
+            box1Body: `Both of you write the exact same 10-marker question in 7 minutes. Both upload your handwritten photo to Cooked Mains at the same time.`,
+            box2Title: "💀 ZERO BIAS • STRICT UPSC BELL-CURVE",
+            box2Tag: "30-SEC VERDICT",
+            box2Color: "rose",
+            box2Body: `No waiting 2 weeks. In 30 seconds, the AI Examiner drops the exact marks (e.g. 5.5/10 vs 3.5/10) and exposes who actually cited Articles and who just yapped.`,
+            footerLeft: "Swipe for the official 7-Minute Duel Rules →",
+            footerRight: "SWIPE →"
+          },
+          {
+            theme: "paper-archival",
+            badge: "OFFICIAL DUEL PROTOCOL",
+            slideNum: "02 / 05",
+            headline: `How To Run The <span class="italic text-rose-700">7-Minute Mains Gauntlet</span> Tonight.`,
+            subtext: `Takes 10 minutes total. Builds more exam-hall pressure than a ₹25,000 test center:`,
+            box1Title: "⏱️ PHASE 1: GENERATE & WRITE (7 MINUTES)",
+            box1Tag: "SAME QUESTION",
+            box1Color: "rose",
+            box1Body: `1. Open Cooked Mains’ Live Current Affairs Forge.\n2. Pick 1 GS-II or GS-III 10-Marker from today’s The Hindu.\n3. Start a 7:00 timer. Pens down when the alarm rings.`,
+            box2Title: "📸 PHASE 2: SIMULTANEOUS UPLOAD (30 SECONDS)",
+            box2Tag: "INSTANT AUDIT",
+            box2Color: "emerald",
+            box2Body: `Both snap a photo of your handwritten sheets and hit Evaluate. Compare your Intro score, Body step-marks, and Red-Pen roast side-by-side.`,
+            footerLeft: "What if there's a tie or someone gets cooked?",
+            footerRight: "SWIPE →"
+          },
+          {
+            theme: "dark-obsidian",
+            badge: "NO MORE DELULU EXCUSES",
+            slideNum: "03 / 05",
+            headline: `“Bro My Handwriting Is Bad” Won’t Save You Here.`,
+            subtext: `Cooked Mains’ Vision OCR reads messy exam-speed cursive and audits pure analytical depth:`,
+            box1Title: "🛑 EXCUSE #1: “I WROTE MORE PAGES THAN YOU”",
+            box1Tag: "REJECTED",
+            box1Color: "rose",
+            box1Body: `Cooked Mains penalizes generic filler and rewards high-density keywords, Supreme Court judgments, and directive fidelity.`,
+            box2Title: "🏆 HOW THE WINNER IS CROWNED",
+            box2Tag: "STEP-MARKING PROOF",
+            box2Color: "emerald",
+            box2Body: `You can see the exact sub-part where your friend beat you (e.g., “Player 1 scored 2.5/3 in Way Forward by citing 2nd ARC Report; Player 2 scored 1.0/3”).`,
+            footerLeft: "And the loser has a mandatory penalty...",
+            footerRight: "SWIPE →"
+          },
+          {
+            theme: "dark-obsidian",
+            badge: "THE LOSER’S REDEMPTION ARC",
+            slideNum: "04 / 05",
+            headline: `Loser Buys Chai—AND Has To <span class="italic text-emerald-400">Beat The Winner’s Score</span> In Rewrite Lab.`,
+            subtext: `You don’t leave the table until both of you cross 6.0/10 on that question:`,
+            box1Title: "🔄 MANDATORY REWRITE EVOLUTION LAB",
+            box1Tag: "UNLOCK +3.0 MARKS",
+            box1Color: "amber",
+            box1Body: `The loser takes the Topper Value-Add suggestions from both copies, rewrites the flawed paragraphs on fresh paper, and re-uploads to the Rewrite Lab.`,
+            box2Title: "🧠 RESULT AFTER 30 DAYS OF CHAI DUELS",
+            box2Tag: "30 TOPPER ANSWERS",
+            box2Color: "emerald",
+            box2Body: `1 Duel/night = 30 ruthlessly audited, rewritten, rank-1 standard answers in your pocket every single month—for ₹0.`,
+            footerLeft: "Who are you challenging tonight?",
+            footerRight: "FINAL SLIDE →"
+          },
+          {
+            theme: "cta-finale",
+            badge: "☕ SHARE THIS IN YOUR TELEGRAM / STUDY GROUP",
+            slideNum: "05 / 05",
+            headline: `Drop This In Your Study Group &amp; <span class="italic text-amber-400">Start Tonight’s 9 PM Duel.</span>`,
+            subtext: `Both of you get 15 Free Handwritten Evaluations + 5 Free Rewrites every single day on Cooked Mains.`,
+            stat1: ["1v1 Ready", "Live Daily Hindu/IE Questions"],
+            stat2: ["30 Secs", "Instant Unbiased Referee"],
+            stat3: ["100% Free", "15 Copies/Day Per Aspirant"],
+            ctaText: "🔗 cookedmains.com (Link in Bio)",
+            footerNote: "✈️ Share to your study partner right now — no backing out!"
+          }
+        ]
+      }
+    };
+
+    let activeDeckKey = 'minimal_singles';
+    let activeSlideIdx = 0;
+
+    function renderSlideHTML(slide) {
+      if (slide.theme === 'cta-finale') {
+        return `
+          <div id="exportTargetCard" class="relative w-[540px] h-[675px] rounded-[28px] overflow-hidden bg-[#0A0A0C] text-white border border-zinc-800 shadow-2xl flex flex-col justify-between p-8 select-none">
+            <div class="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[450px] h-[250px] bg-amber-500/20 blur-[95px] rounded-full"></div>
+            <div class="pointer-events-none absolute inset-0 grain-overlay"></div>
+            <div class="relative z-10 flex items-center justify-between">
+              <div class="flex items-center gap-2"><img src="/static/brand_logo_dark.png" onerror="this.style.display='none'" class="h-8 w-auto" alt="Logo" /><span class="text-sm font-extrabold">COOKED <span class="text-amber-400">MAINS</span></span></div>
+              <span class="font-mono-code text-[10px] text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10">${slide.slideNum}</span>
+            </div>
+            <div class="relative z-10 text-center space-y-3.5 my-auto">
+              <div class="inline-block px-3.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono-code text-[10.5px] font-bold" contenteditable="true">${slide.badge}</div>
+              <h2 class="font-editorial text-[46px] leading-[0.98]" contenteditable="true">${slide.headline}</h2>
+              <p class="text-xs text-zinc-300 max-w-[430px] mx-auto leading-relaxed" contenteditable="true">${slide.subtext}</p>
+              <div class="grid grid-cols-3 gap-2.5 pt-2 text-left">
+                <div class="p-3 rounded-2xl bg-zinc-900 border border-zinc-800"><div class="font-mono-code text-base font-extrabold text-amber-400" contenteditable="true">${slide.stat1[0]}</div><div class="text-[10px] text-zinc-400 mt-0.5" contenteditable="true">${slide.stat1[1]}</div></div>
+                <div class="p-3 rounded-2xl bg-zinc-900 border border-zinc-800"><div class="font-mono-code text-base font-extrabold text-emerald-400" contenteditable="true">${slide.stat2[0]}</div><div class="text-[10px] text-zinc-400 mt-0.5" contenteditable="true">${slide.stat2[1]}</div></div>
+                <div class="p-3 rounded-2xl bg-zinc-900 border border-zinc-800"><div class="font-mono-code text-base font-extrabold text-sky-400" contenteditable="true">${slide.stat3[0]}</div><div class="text-[10px] text-zinc-400 mt-0.5" contenteditable="true">${slide.stat3[1]}</div></div>
+              </div>
+              <div class="pt-3"><div class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 text-zinc-950 font-extrabold text-sm tracking-tight shadow-xl" contenteditable="true">${slide.ctaText}</div></div>
+            </div>
+            <div class="relative z-10 pt-3 border-t border-zinc-800 flex items-center justify-between text-[10.5px] text-zinc-400">
+              <span contenteditable="true">${slide.footerNote}</span>
+              <span class="font-mono-code text-amber-400 font-bold">LET ME COOK</span>
+            </div>
+          </div>
+        `;
+      }
+
+      if (slide.theme === 'paper-archival') {
+        return `
+          <div id="exportTargetCard" class="relative w-[540px] h-[675px] rounded-[28px] overflow-hidden bg-[#F7F3EB] text-[#141413] border border-stone-300 shadow-2xl flex flex-col justify-between p-8 select-none">
+            <div class="flex items-center justify-between border-b-2 border-[#141413] pb-3">
+              <div class="flex items-center gap-2"><img src="/static/brand_logo_light.png" onerror="this.style.display='none'" class="h-6 w-auto" alt="Logo" /><span class="font-mono-code text-[11px] font-extrabold uppercase tracking-wider" contenteditable="true">${slide.badge}</span></div>
+              <span class="font-mono-code text-[10px] px-2.5 py-0.5 rounded-full bg-[#141413] text-[#F7F3EB] font-bold">${slide.slideNum}</span>
+            </div>
+            <div class="my-1"><h2 class="font-editorial text-[44px] leading-[0.98] tracking-tight" contenteditable="true">${slide.headline}</h2><p class="text-xs text-stone-600 mt-2 leading-relaxed" contenteditable="true">${slide.subtext}</p></div>
+            <div class="space-y-3 my-1">
+              <div class="p-4 rounded-2xl bg-white border-2 border-[#141413] shadow-sm"><div class="flex items-center justify-between mb-1.5"><span class="font-mono-code text-[10px] font-extrabold text-rose-700" contenteditable="true">${slide.box1Title}</span><span class="font-mono-code text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800" contenteditable="true">${slide.box1Tag}</span></div><p class="text-xs text-stone-800 whitespace-pre-line leading-relaxed" contenteditable="true">${slide.box1Body}</p></div>
+              <div class="p-4 rounded-2xl bg-[#141413] text-[#F7F3EB] border-2 border-[#141413] shadow-lg"><div class="flex items-center justify-between mb-1.5"><span class="font-mono-code text-[10px] font-extrabold text-amber-400" contenteditable="true">${slide.box2Title}</span><span class="font-mono-code text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300" contenteditable="true">${slide.box2Tag}</span></div><p class="text-xs text-stone-200 whitespace-pre-line leading-relaxed" contenteditable="true">${slide.box2Body}</p></div>
+            </div>
+            <div class="pt-3 border-t-2 border-[#141413] flex items-center justify-between"><span class="font-mono-code text-[11px] text-stone-600" contenteditable="true">${slide.footerLeft}</span><span class="font-mono-code text-xs font-extrabold text-rose-700" contenteditable="true">${slide.footerRight}</span></div>
+          </div>
+        `;
+      }
+
+      const colorMap = {
+        emerald: "border-emerald-500/40 bg-emerald-950/20 text-emerald-400",
+        rose: "border-rose-500/45 bg-rose-950/25 text-rose-400",
+        amber: "border-amber-500/40 bg-amber-950/20 text-amber-400",
+        sky: "border-sky-500/40 bg-sky-950/20 text-sky-400"
+      };
+      const c1 = colorMap[slide.box1Color] || colorMap.amber;
+      const c2 = colorMap[slide.box2Color] || colorMap.emerald;
+
+      return `
+        <div id="exportTargetCard" class="relative w-[540px] h-[675px] rounded-[28px] overflow-hidden bg-[#0A0A0C] text-white border border-zinc-800 shadow-2xl flex flex-col justify-between p-8 select-none">
+          <div class="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[420px] h-[220px] bg-amber-500/15 blur-[95px] rounded-full"></div>
+          <div class="pointer-events-none absolute inset-0 grain-overlay"></div>
+          <div class="relative z-10 flex items-center justify-between"><span class="px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-700 text-[10px] font-mono-code font-bold text-amber-400" contenteditable="true">${slide.badge}</span><span class="font-mono-code text-[10px] text-zinc-400 px-2.5 py-0.5 rounded-full border border-zinc-800">${slide.slideNum}</span></div>
+          <div class="relative z-10 my-1"><h1 class="font-editorial text-[44px] leading-[0.98] tracking-tight text-white" contenteditable="true">${slide.headline}</h1><p class="text-xs text-zinc-400 mt-2 leading-relaxed" contenteditable="true">${slide.subtext}</p></div>
+          <div class="relative z-10 space-y-3 my-1">
+            <div class="p-4 rounded-2xl border ${c1}"><div class="flex items-center justify-between mb-1.5"><span class="text-[10px] font-mono-code uppercase font-bold" contenteditable="true">${slide.box1Title}</span><span class="text-[10px] font-mono-code px-2 py-0.5 rounded bg-zinc-900/90 text-white font-bold" contenteditable="true">${slide.box1Tag}</span></div><p class="text-xs text-zinc-200 whitespace-pre-line leading-relaxed" contenteditable="true">${slide.box1Body}</p></div>
+            <div class="p-4 rounded-2xl border ${c2}"><div class="flex items-center justify-between mb-1.5"><span class="text-[10px] font-mono-code uppercase font-bold" contenteditable="true">${slide.box2Title}</span><span class="text-[10px] font-mono-code px-2 py-0.5 rounded bg-zinc-900/90 text-white font-extrabold" contenteditable="true">${slide.box2Tag}</span></div><p class="text-xs text-zinc-100 whitespace-pre-line leading-relaxed" contenteditable="true">${slide.box2Body}</p></div>
+          </div>
+          <div class="relative z-10 pt-3 border-t border-zinc-800 flex items-center justify-between"><span class="text-[11px] text-zinc-400 font-mono-code" contenteditable="true">${slide.footerLeft}</span><span class="font-mono-code text-xs font-extrabold text-amber-400" contenteditable="true">${slide.footerRight}</span></div>
+        </div>
+      `;
+    }
+
+    function switchDeck(deckKey) {
+      activeDeckKey = deckKey;
+      activeSlideIdx = 0;
+
+      ['minimal_singles', 'concept1', 'concept2', 'concept3', 'concept4'].forEach(k => {
+        const btn = document.getElementById('tab-' + k);
+        if (!btn) return;
+        if (k === deckKey) {
+          btn.className = 'px-3 py-1.5 rounded-lg text-[11px] font-bold bg-amber-500 text-slate-950 transition cursor-pointer';
+        } else {
+          btn.className = 'px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-300 hover:text-white transition cursor-pointer';
+        }
+      });
+
+      renderSubBarAndCanvas();
+    }
+
+    function selectSlide(idx) {
+      activeSlideIdx = idx;
+      renderSubBarAndCanvas();
+    }
+
+    function renderSubBarAndCanvas() {
+      const bar = document.getElementById('slideSelectorBar');
+      const mount = document.getElementById('canvasMount');
+      const deck = DECKS[activeDeckKey];
+
+      bar.innerHTML = `<span class="text-[11px] font-mono-code uppercase text-amber-400 font-bold mr-2">${deck.name}:</span>` +
+        deck.labels.map((l, idx) => `
+          <button onclick="selectSlide(${idx})" class="px-3 py-1 rounded-lg text-xs font-mono-code font-bold cursor-pointer ${idx === activeSlideIdx ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-300 hover:text-white'}">${l}</button>
+        `).join('');
+
+      if (activeDeckKey === 'minimal_singles') {
+        mount.innerHTML = renderMinimalSingleAd(activeSlideIdx);
+      } else {
+        mount.innerHTML = renderSlideHTML(deck.slides[activeSlideIdx]);
+      }
+    }
+
+    async function exportCurrentSlide() {
+      const btn = document.getElementById('exportOneBtn');
+      const prev = btn.innerHTML;
+      btn.innerHTML = '<span>Rendering PNG...</span>';
+      btn.disabled = true;
+      try {
+        const target = document.getElementById('exportTargetCard');
+        const canvas = await html2canvas(target, { scale: 2.5, useCORS: true, backgroundColor: null });
+        const link = document.createElement('a');
+        link.download = `CookedMains_${activeDeckKey}_0${activeSlideIdx + 1}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (e) {
+        alert('Export error: ' + e.message);
+      } finally {
+        btn.innerHTML = prev;
+        btn.disabled = false;
+        lucide.createIcons();
+      }
+    }
+
+    async function exportAllSlidesInActiveDeck() {
+      const btn = document.getElementById('exportAllBtn');
+      const prev = btn.innerHTML;
+      btn.disabled = true;
+      const savedIdx = activeSlideIdx;
+
+      try {
+        for (let i = 0; i < 5; i++) {
+          btn.innerHTML = `<span>Exporting ${i + 1}/5...</span>`;
+          selectSlide(i);
+          await new Promise(r => setTimeout(r, 180));
+          const target = document.getElementById('exportTargetCard');
+          const canvas = await html2canvas(target, { scale: 2.5, useCORS: true, backgroundColor: null });
+          const link = document.createElement('a');
+          link.download = `CookedMains_${activeDeckKey}_0${i + 1}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+          await new Promise(r => setTimeout(r, 250));
+        }
+      } catch (e) {
+        alert('Batch export error: ' + e.message);
+      } finally {
+        selectSlide(savedIdx);
+        btn.innerHTML = prev;
+        btn.disabled = false;
+        lucide.createIcons();
+      }
+    }
+
+    lucide.createIcons();
+    switchDeck('minimal_singles');
+  </script>
+</body>
+</html>
