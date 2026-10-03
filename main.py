@@ -236,6 +236,13 @@ async def sitemap_xml():
         media_type="application/xml"
     )
 
+@app.get("/favicon.ico")
+async def favicon():
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "static", "favicon.ico"),
+        media_type="image/x-icon"
+    )
+
 
 @app.get("/api/config")
 async def get_config():
