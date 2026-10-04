@@ -4954,19 +4954,6 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
     if _LAST_WORKING_GEMINI_MODEL and _LAST_WORKING_GEMINI_MODEL not in _INACTIVE_GEMINI_MODELS:
         ordered.append(_LAST_WORKING_GEMINI_MODEL)
 
-    static_priority = [
-        "gemini-3.8-flash",
-        "gemini-3-flash-preview",
-        "gemini-3.6-flash",
-        "gemini-flash-lite-latest",
-        "gemini-3.1-flash-lite",
-        "gemini-3.5-flash",
-        "gemini-flash-latest",
-    ]
-    for m in static_priority:
-        if m not in _INACTIVE_GEMINI_MODELS and m not in ordered:
-            ordered.append(m)
-
     now_ts = time.time()
     if client is not None and (force_refresh or not _DISCOVERED_GEMINI_MODELS_CACHE or (now_ts - _DISCOVERED_GEMINI_MODELS_TS) > 1800):
         try:
@@ -4991,9 +4978,24 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
         except Exception:
             pass
 
+    # 2. Add dynamically discovered models first (newest Google releases get priority automatically)
     for dm in _DISCOVERED_GEMINI_MODELS_CACHE:
         if dm not in _INACTIVE_GEMINI_MODELS and dm not in ordered:
             ordered.append(dm)
+
+    # 3. Static priority list acts as fallback
+    static_priority = [
+        "gemini-3.8-flash",
+        "gemini-3-flash-preview",
+        "gemini-3.6-flash",
+        "gemini-flash-lite-latest",
+        "gemini-3.1-flash-lite",
+        "gemini-3.5-flash",
+        "gemini-flash-latest",
+    ]
+    for m in static_priority:
+        if m not in _INACTIVE_GEMINI_MODELS and m not in ordered:
+            ordered.append(m)
 
     return ordered
 
