@@ -1266,7 +1266,8 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       * **Section 1 (`subpart_marks_breakdown` & `executive_summary`)**: Never write generic praise like `"Good attempt with structured points"`. Always quote the exact sub-part demand of the question, the exact points/examples written on the candidate's sheet, and the exact marks awarded out of the sub-part maximum.
       * **Section 2 (`intro_audit`)**: Supply a `model_intro_rewrite` that opens with an authentic definition, constitutional article, statutory anchor, or official survey metric specific to THAT exact question (never a generic paraphrase of the prompt).
       * **Section 3 (`body_audit`, `missing_keywords_cards`, `value_add_checklist`, `current_affairs_value_add`)**: Every recommended keyword, committee report, judgment, or scheme MUST belong 100% to the sub-topic of the question (e.g., APEDA/MIDH/Dalwai Committee for Horticulture; NSO/CWS-US/SCES/ILO for PLFS; ANRF/TRL-9/NDTSP/GFR-173 for Deep-Tech; Art 13/50/Kesavananda/NJAC for Judicial Review). Never reuse the same default schemes, committees, or case laws across unrelated questions.
-      * **Section 4 (`conclusion_audit` & `full_model_answer` closing)**: Every conclusion MUST synthesize the specific institutional, constitutional, or policy mechanism of THAT question—never end every answer with a mechanical `"Viksit Bharat @2047"` or `"by 2047"` catchphrase.
+      * **Section 4 (`conclusion_audit` & `full_model_answer` closing)**: `conclusion_audit.model_conclusion_rewrite` MUST ALWAYS MATCH AND BE THE EXACT CONCLUSION OF YOUR `full_model_answer`! Ensure 100% thematic and structural alignment between this rewrite and the model answer's conclusion. Both MUST synthesize the specific institutional, constitutional, or policy mechanism of THAT question—never output generic boilerplate (such as repeating "Harmonizing constitutional morality with institutional accountability (2nd ARC)") and never end every answer with a mechanical `"Viksit Bharat @2047"` or `"by 2047"` catchphrase.
+      * **Keyword Definitions & Tooltips**: Every definition in `missing_keywords_cards` and `jargon_buster` MUST be a complete, grammatically closed sentence ending with a full stop. NEVER cut off mid-sentence or output incomplete fragments.
 
 24. PRE-PRINTED MAP / DIAGRAM BOX TRACING, STRICT PAGE-SPECIFIC ALIGNMENT & ZERO REPETITION (NON-NEGOTIABLE):
     - **A. Pre-Printed Map / Diagram Box on Page 1**:
@@ -1593,7 +1594,7 @@ Generate strictly valid JSON matching this schema:
   "conclusion_audit": {{
     "current_critique": "Substantive 1-2 line evaluation of candidate's concluding paragraph.",
     "aligns_with_national_goals": true,
-    "model_conclusion_rewrite": "Forward-looking, balanced 25-35 word synthesis conclusion connecting to national vision, constitutional morality, or committee benchmarks. MUST be fully written; NEVER leave empty."
+    "model_conclusion_rewrite": "MUST EXACTLY MATCH the concluding synthesis / Way Forward paragraph of your 'full_model_answer'! Ensure 100% thematic and structural alignment between this rewrite and the model answer's conclusion. NEVER output generic boilerplate (such as repeating 'Harmonizing constitutional morality with institutional accountability (2nd ARC)')."
   }},
   "case_study_audit": {{
     "is_case_study": true, // MANDATORY: set true if this is an ethical case study / scenario dilemma (GS-4 Section B or administrative scenario)
@@ -3460,9 +3461,49 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
 
 
 
+def extract_model_answer_conclusion(model_ans: str) -> str:
+    """Extracts the authentic concluding synthesis from the Topper Model Answer."""
+    if not model_ans or not isinstance(model_ans, str):
+        return ""
+    text = model_ans.strip()
+    text = re.sub(r'\[EXAM-HALL.*?\]', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'(?:^[┌├│└+|-].*\n?){3,}', '', text, flags=re.MULTILINE)
+    patterns = [
+        r'(?i)\*\*(?:Conclusion\s*(?:&|/|\+)?\s*Way\s*Forward|Way\s*Forward\s*(?:&|/|\+)?\s*Conclusion|Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead)\*\*[:\s]*([\s\S]+)$',
+        r'(?i)(?:^|\n)(?:Conclusion\s*(?:&|/|\+)?\s*Way\s*Forward|Way\s*Forward\s*(?:&|/|\+)?\s*Conclusion|Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead)[:\s]+([\s\S]+)$'
+    ]
+    for p in patterns:
+        m = re.search(p, text)
+        if m:
+            cand = m.group(1).strip()
+            sub_m = re.search(r'(?i)\*\*(?:Conclusion|Concluding\s*Synthesis)\*\*[:\s]*([\s\S]+)$', cand)
+            if sub_m:
+                cand = sub_m.group(1).strip()
+            cand_lines = [l.strip() for l in cand.split('\n') if l.strip() and not l.strip().startswith('+') and not l.strip().startswith('|') and not l.strip().startswith('[')]
+            if cand_lines:
+                joined = " ".join(cand_lines)
+                joined = re.sub(r'^(?:[-*•–—]|\d+[\.\)])\s*', '', joined).strip()
+                if len(joined) >= 20:
+                    return joined
+    blocks = [b.strip() for b in text.split('\n\n') if b.strip()]
+    for block in reversed(blocks):
+        if any(marker in block for marker in ["+---", "┌──", "|", "[EXAM-HALL"]):
+            continue
+        clean_b = re.sub(r'^(?:\*\*[^*]+\*\*[:\s]*|[-*•–—]\s*|\d+[\.\)]\s*)', '', block).strip()
+        clean_b = " ".join(clean_b.split())
+        if len(clean_b) >= 25 and len(clean_b.split()) >= 5:
+            return clean_b
+    return ""
+
+
 def _build_domain_specific_conclusion(question_text: str, paper_name: str, existing_text: str = "") -> str:
     q_low = f"{question_text} {existing_text}".lower()
     p_up = str(paper_name or "").upper()
+    if any(k in q_low for k in ["election", "eci", "cec", "commissioner", "324", "anoop baranwal", "appointment", "electoral"]):
+        return (
+            "Insulating the **Election Commission of India under Article 324** through an independent consultative collegium and "
+            "**removal parity under Article 324(5)** safeguards institutional credibility and democratic purity."
+        )
     if "aspirational" in q_low or ("good governance" in q_low and "district" in q_low):
         return (
             "By institutionalizing real-time data monitoring under the **Champions of Change portal** and scaling the **3Cs strategy** into the **Aspirational Blocks Programme (ABP)**, "
@@ -3525,8 +3566,8 @@ def _build_domain_specific_conclusion(question_text: str, paper_name: str, exist
         )
     if "GS2" in p_up or "POLITY" in p_up:
         return (
-            "Harmonizing **constitutional morality** with **institutional accountability (2nd ARC)** ensures that democratic governance delivers "
-            "both **substantive justice** and **cooperative federalism**."
+            "Synthesizing **Article 13** judicial review with **Article 50** separation of powers and **Constitutional Morality** "
+            "ensures institutional comity, substantive justice, and democratic accountability."
         )
     if "GS4" in p_up or "ETHICS" in p_up:
         return (
@@ -3781,13 +3822,22 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
         data["intro_audit"] = i_audit
 
     c_audit = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
+    topper_conc = extract_model_answer_conclusion(str(data.get("full_model_answer") or ""))
     domain_conc = _build_domain_specific_conclusion(q_str, p_str, str(c_audit.get("model_conclusion_rewrite") or ""))
 
-    # Sanitize repetitive Viksit Bharat @2047 / by 2047 endings from model_conclusion_rewrite
-    raw_model_conc = str(c_audit.get("model_conclusion_rewrite") or "")
-    if not raw_model_conc or re.search(r'(?i)(viksit\s*bharat|@\s*2047|by\s*2047)', raw_model_conc):
-        c_audit["model_conclusion_rewrite"] = domain_conc
-        data["conclusion_audit"] = c_audit
+    # Priority: Topper Model Answer conclusion > dynamic question conclusion > fallback
+    raw_model_conc = str(c_audit.get("model_conclusion_rewrite") or "").strip()
+    is_raw_stuck = bool(re.search(r'(?i)(viksit\s*bharat|@\s*2047|by\s*2047|Harmonizing.*?constitutional morality.*?2nd ARC)', raw_model_conc))
+
+    if topper_conc and len(topper_conc) >= 25:
+        effective_conc = topper_conc
+    elif raw_model_conc and not is_raw_stuck and len(raw_model_conc) >= 25:
+        effective_conc = raw_model_conc
+    else:
+        effective_conc = domain_conc
+
+    c_audit["model_conclusion_rewrite"] = effective_conc
+    data["conclusion_audit"] = c_audit
 
     # Incomplete Answer & Generic Conclusion Audit across all UPSC subjects:
     trans_low = str(data.get("transcribed_text") or "").lower()
@@ -3875,9 +3925,9 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
         c_audit["is_unwritten"] = True
         c_audit["current_critique"] = (
             f"✗ **Conclusion Not Attempted (Incomplete Answer)**: Your answer ended without writing a concluding synthesis paragraph (forfeits +{c_max:.1f}M).\n"
-            f"✎ **How to Conclude in 60 Seconds**: In a {mm_eval}-marker, reserve 60 seconds to write a 2-line synthesis: {domain_conc}"
+            f"✎ **How to Conclude in 60 Seconds**: In a {mm_eval}-marker, reserve 60 seconds to write a 2-line synthesis: {effective_conc}"
         )
-        c_audit["model_conclusion_rewrite"] = domain_conc
+        c_audit["model_conclusion_rewrite"] = effective_conc
         data["conclusion_audit"] = c_audit
         for ann in anns_list:
             t_low = str(ann.get("tag") or "").lower()
@@ -3887,7 +3937,7 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                 ann["tag"] = "Conclusion: Not Attempted"
                 ann["remark"] = (
                     f"✗ **Conclusion Not Attempted (Incomplete Answer)**: Answer stopped after the Way Forward points without a closing synthesis (forfeits +{c_max:.1f}M).\n"
-                    f"✎ **60-Second Closing Formula**: In a {mm_eval}-marker, reserve 60 seconds to write a 2-line closing linking to the core policy framework: {domain_conc}"
+                    f"✎ **60-Second Closing Formula**: In a {mm_eval}-marker, reserve 60 seconds to write a 2-line closing linking to the core policy framework: {effective_conc}"
                 )
     else:
         # Authentic Conclusion Detected!
@@ -3909,7 +3959,7 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
         assigned_conc = min(c_max, max(0.5, round(assigned_conc * 2) / 2))
         rubric_d["conclusion_score"] = assigned_conc
         c_audit["score"] = assigned_conc
-        c_audit["model_conclusion_rewrite"] = domain_conc
+        c_audit["model_conclusion_rewrite"] = effective_conc
 
         # Preserve Gemini's insightful conclusion critique if present, or construct a precise feedback note inspired by Image 4
         if not c_audit.get("current_critique") or re.search(r'(?i)\b(?:not\s+attempted|unwritten)\b', str(c_audit.get("current_critique") or "")):
@@ -3919,7 +3969,7 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                 clean_last = _clean_quote_snippet(last_line, 120)
                 c_audit["current_critique"] = (
                     f"✓ **Closing Synthesis Evaluated**: Concluded with relevant statement (*\"{clean_last}\"*), but it remained somewhat broad.\n"
-                    f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {domain_conc}"
+                    f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {effective_conc}"
                 )
             else:
                 c_audit["current_critique"] = (

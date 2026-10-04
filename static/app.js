@@ -4054,8 +4054,25 @@ const BUILTIN_UPSC_GLOSSARY = {
   "imd meteorological threshold": "IMD Heatwave Criterion • Declared when maximum temperature reaches ≥40°C in plains (≥30°C in hills) with a departure of +4.5°C to +6.4°C above normal.",
   "loss of urban blue-green cover": "Urban Blue-Green Infrastructure Loss • Depletion of urban wetlands, lakes, and tree canopy that otherwise provide natural evaporative cooling and microclimatic buffering.",
   "article 13": "Article 13 (Ultra Vires Doctrine) • Declares that any pre-constitutional or post-constitutional statutory law inconsistent with or derogating from Part III (Fundamental Rights) shall be void to the extent of inconsistency.",
+  "article 14": "Article 14 (Equality Before Law) • Prohibits arbitrary state action (E.P. Royappa doctrine) and guarantees equal protection of the laws within the territory of India.",
+  "article 19": "Article 19 (Fundamental Freedoms) • Guarantees six democratic freedoms including free speech, assembly, and movement, subject only to reasonable restrictions under Article 19(2).",
+  "article 21": "Article 21 (Protection of Life & Personal Liberty) • Core charter of human dignity expanded by Maneka Gandhi to encompass substantive due process, privacy, and livelihood.",
   "article 32": "Article 32 (Constitutional Remedies) • Empowered by Dr. B.R. Ambedkar as the 'heart and soul of the Constitution', granting the Supreme Court original writ jurisdiction to enforce Fundamental Rights.",
+  "article 50": "Article 50 (Separation of Powers) • Directive Principle directing the State to separate the judiciary from the executive in public services.",
+  "article 131": "Article 131 (Original Federal Jurisdiction) • Exclusive original jurisdiction of the Supreme Court in disputes between Centre and States or between States.",
+  "article 142": "Article 142 (Complete Justice Power) • Extraordinary power of the Supreme Court to pass decrees or orders necessary for doing complete justice in any cause.",
+  "article 143": "Article 143 (Advisory Jurisdiction) • Empowers the President of India to refer questions of public importance to the Supreme Court for its consultative opinion.",
   "article 226": "Article 226 (High Court Writ Jurisdiction) • Empowers High Courts to issue writs for enforcing both Fundamental Rights and ordinary legal rights across state legislative/executive actions.",
+  "article 239aa": "Article 239AA (Special Provisions for Delhi) • Creates representative governance for the NCT of Delhi with a Legislative Assembly and Council of Ministers (GNCTD rulings).",
+  "article 280": "Article 280 (Finance Commission) • Mandates a five-yearly quasi-judicial body to recommend vertical tax sharing and horizontal devolution among States.",
+  "article 312": "Article 312 (All India Services) • Authorizes Parliament to create new All India Services upon a two-thirds majority resolution in the Rajya Sabha.",
+  "article 324": "Article 324 (Superintendence of Elections) • Vests independent superintendence, direction, and control of elections in the Election Commission of India (ECI) to preserve democratic integrity.",
+  "article 324(5)": "Article 324(5) (Removal Safeguards) • Mandates that the Chief Election Commissioner shall not be removed from office except in like manner and on like grounds as a Supreme Court Judge.",
+  "article 326": "Article 326 (Universal Adult Suffrage) • Guarantees that elections to the House of the People and Legislative Assemblies shall be based on universal adult franchise without discrimination.",
+  "article 352": "Article 352 (National Emergency) • Empowers the President to proclaim National Emergency upon cabinet advice on grounds of war, external aggression, or armed rebellion.",
+  "article 356": "Article 356 (President's Rule) • Enables Union intervention upon breakdown of constitutional machinery in a State, conditioned by the S.R. Bommai (1994) doctrine.",
+  "article 360": "Article 360 (Financial Emergency) • Proclamation when the financial stability or credit of India or any part thereof is threatened.",
+  "article 368": "Article 368 (Constitutional Amendment) • Regulates Parliament's amending power, constrained by the unamendable Basic Structure Doctrine established in Kesavananda Bharati.",
   "basic structure": "Basic Structure Doctrine • Propounded in Kesavananda Bharati (1973); holds that Parliament's constituent power under Article 368 cannot alter or destroy the foundational pillars of the Constitution.",
   "kesavananda bharati": "Kesavananda Bharati v. State of Kerala (1973) • 13-Judge Bench landmark ruling establishing the Basic Structure Doctrine and designating Judicial Review as an unamendable constitutional feature.",
   "i.r. coelho": "I.R. Coelho v. State of Tamil Nadu (2007) • 9-Judge Bench ruling holding that laws placed in the 9th Schedule after April 24, 1973 are open to Judicial Review if they violate Fundamental Rights or Basic Structure.",
@@ -4148,6 +4165,35 @@ function getSemanticHighlightClass(rawTerm) {
   return "chip-amber";
 }
 
+function formatCompleteMeaning(rawMeaning, maxChars = 280) {
+  let m = String(rawMeaning || "").replace(/\s+/g, " ").trim();
+  if (!m) return "";
+  // If reasonably sized (under maxChars), return complete text with zero truncation
+  if (m.length <= maxChars) return m;
+
+  // Protect abbreviations, titles, and legal citations ending with dots from splitting prematurely
+  const protectedText = m.replace(/\b(Dr|Mr|Mrs|Ms|Prof|Hon|B\.R|e\.g|i\.e|etc|vs|v|Art|Sec|No|para|p)\./gi, '$1___DOT___');
+
+  // Split on genuine sentence boundaries
+  const sentences = protectedText.split(/(?<=[.?!])\s+/);
+  let accumulated = "";
+  for (const s of sentences) {
+    const restored = s.replace(/___DOT___/g, '.').trim();
+    if (!accumulated) {
+      accumulated = restored;
+    } else if ((accumulated + " " + restored).length <= maxChars) {
+      accumulated += " " + restored;
+    } else {
+      break;
+    }
+  }
+  accumulated = accumulated.trim();
+  if (accumulated && !/[.?!]$/.test(accumulated)) {
+    accumulated += ".";
+  }
+  return accumulated || m.replace(/___DOT___/g, '.');
+}
+
 function findGlossaryMatch(word) {
   if (!word) return null;
   const cleanWord = word.replace(/[*_#`]/g, '').replace(/[:.]+$/, '').trim().toLowerCase();
@@ -4162,25 +4208,34 @@ function findGlossaryMatch(word) {
     ? Object.assign({}, BUILTIN_UPSC_GLOSSARY, state.glossaryMap)
     : BUILTIN_UPSC_GLOSSARY;
 
-  const formatConciseMeaning = (rawMeaning) => {
-    const m = String(rawMeaning || "").replace(/\s+/g, " ").trim();
-    if (m.length <= 175) return m;
-    const firstSentence = m.split(/(?<=[.?!])\s+/)[0];
-    if (firstSentence && firstSentence.length >= 35 && firstSentence.length <= 185) {
-      return firstSentence;
-    }
-    return m.slice(0, 170).replace(/[,;:\s]+$/, "") + "...";
-  };
-
+  // 1. Direct exact key lookup
   if (combinedMap[cleanWord]) {
-    return { term: word.replace(/[:.]+$/, '').trim(), meaning: formatConciseMeaning(combinedMap[cleanWord]) };
+    return { term: word.replace(/[:.]+$/, '').trim(), meaning: formatCompleteMeaning(combinedMap[cleanWord]) };
   }
 
-  if (cleanWord.length >= 5) {
-    for (const k in combinedMap) {
-      if (!k || k.length < 4 || NON_GLOSSARY_UI_LABELS.has(k)) continue;
-      if (cleanWord.includes(k) || (cleanWord.length >= 6 && k.includes(cleanWord))) {
-        return { term: word.replace(/[:.]+$/, '').trim(), meaning: formatConciseMeaning(combinedMap[k]) };
+  const escapeReg = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  // 2. Strict word-boundary and number-aligned match (longest key first)
+  if (cleanWord.length >= 4) {
+    const sortedKeys = Object.keys(combinedMap)
+      .filter(k => k && k.length >= 4 && !NON_GLOSSARY_UI_LABELS.has(k))
+      .sort((a, b) => b.length - a.length);
+
+    const wordNums = cleanWord.match(/\d+/g) || [];
+
+    for (const k of sortedKeys) {
+      const keyNums = k.match(/\d+/g) || [];
+      // If either word or key contains numbers, their numbers MUST match exactly (e.g. Art 324 can NEVER match Art 32!)
+      if (wordNums.length > 0 || keyNums.length > 0) {
+        if (wordNums.join(",") !== keyNums.join(",")) {
+          continue;
+        }
+      }
+
+      // Word boundary matching only
+      const reg = new RegExp(`(^|\\b)${escapeReg(k)}(\\b|$)`, 'i');
+      if (reg.test(cleanWord) || (cleanWord.length >= 6 && new RegExp(`(^|\\b)${escapeReg(cleanWord)}(\\b|$)`, 'i').test(k))) {
+        return { term: word.replace(/[:.]+$/, '').trim(), meaning: formatCompleteMeaning(combinedMap[k]) };
       }
     }
   }
@@ -6897,11 +6952,62 @@ function buildDomainModelIntro(evalData) {
 }
 window.buildDomainModelIntro = buildDomainModelIntro;
 
+function extractConclusionFromModelAnswer(fullModelAnswer) {
+  if (!fullModelAnswer || typeof fullModelAnswer !== "string") return "";
+  let text = fullModelAnswer.trim();
+  text = text.replace(/\[EXAM-HALL.*?\]/gi, "");
+  text = text.replace(/(?:^[┌├│└+|-].*\n?){3,}/gm, "");
+
+  const patterns = [
+    /\*\*(?:Conclusion\s*(?:&|\/|\+)?\s*Way\s*Forward|Way\s*Forward\s*(?:&|\/|\+)?\s*Conclusion|Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead)\*\*[:\s]*([\s\S]+)$/i,
+    /(?:^|\n)(?:Conclusion\s*(?:&|\/|\+)?\s*Way\s*Forward|Way\s*Forward\s*(?:&|\/|\+)?\s*Conclusion|Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead)[:\s]+([\s\S]+)$/i
+  ];
+  for (const p of patterns) {
+    const m = text.match(p);
+    if (m && m[1]) {
+      let cand = m[1].trim();
+      const subM = cand.match(/\*\*(?:Conclusion|Concluding\s*Synthesis)\*\*[:\s]*([\s\S]+)$/i);
+      if (subM && subM[1]) cand = subM[1].trim();
+      const candLines = cand.split("\n")
+        .map(l => l.trim())
+        .filter(l => l && !l.startsWith("+") && !l.startsWith("|") && !l.startsWith("["));
+      if (candLines.length > 0) {
+        let joined = candLines.join(" ").replace(/^(?:[-*•–—]|\d+[\.\)])\s*/, "").trim();
+        if (joined.length >= 20) return joined;
+      }
+    }
+  }
+
+  const blocks = text.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
+  for (let i = blocks.length - 1; i >= 0; i--) {
+    const block = blocks[i];
+    if (block.includes("+---") || block.includes("┌──") || block.includes("|") || block.includes("[EXAM-HALL")) {
+      continue;
+    }
+    let clean = block.replace(/^(?:\*\*[^*]+\*\*[:\s]*|[-*•–—]\s*|\d+[\.\)]\s*)/, "").trim();
+    clean = clean.replace(/\s+/g, " ");
+    if (clean.length >= 25 && clean.split(" ").length >= 5) {
+      return clean;
+    }
+  }
+  return "";
+}
+window.extractConclusionFromModelAnswer = extractConclusionFromModelAnswer;
+
 function buildDomainModelConclusion(evalData) {
+  // 1. ALWAYS prioritize extracting the authentic conclusion from the Topper Model Answer!
+  if (evalData?.full_model_answer) {
+    const topperConcl = extractConclusionFromModelAnswer(evalData.full_model_answer);
+    if (topperConcl) return topperConcl;
+  }
+
   const qStr = String(evalData?.detected_question || (typeof state !== "undefined" && state.question) || evalData?.question || "");
   const pStr = String(evalData?.detected_paper || (typeof state !== "undefined" && state.paper) || evalData?.paper || "GS2").toUpperCase();
   const qLow = qStr.toLowerCase();
 
+  if (qLow.includes("election") || qLow.includes("eci") || qLow.includes("cec") || qLow.includes("324")) {
+    return "Insulating the **Election Commission of India under Article 324** through an independent consultative collegium and **removal parity under Article 324(5)** safeguards institutional credibility and democratic purity.";
+  }
   if (qLow.includes("aspirational") || (qLow.includes("good governance") && qLow.includes("district"))) {
     return "By institutionalizing real-time data monitoring under the **Champions of Change portal** and scaling the **3Cs strategy** into the **Aspirational Blocks Programme (ABP)**, ADP provides a transformative cooperative federalism blueprint to eliminate regional developmental disparities.";
   }
@@ -6918,7 +7024,7 @@ function buildDomainModelConclusion(evalData) {
     return "Integrating **seismic microzonation**, **NDMA early warning guidelines**, and **climate-resilient infrastructure** under the **Sendai Framework (2015–2030)** ensures that hazard-prone regions transition from disaster vulnerability to structural resilience.";
   }
   if (pStr.includes("GS2") || pStr.includes("POLITY")) {
-    return "Harmonizing **constitutional morality** with **institutional accountability (2nd ARC)** ensures that democratic governance delivers both **substantive justice** and **cooperative federalism**.";
+    return "Synthesizing **Article 13** judicial review with **Article 50** separation of powers and **Constitutional Morality** ensures institutional comity and democratic accountability.";
   }
   if (pStr.includes("GS3")) {
     return "Aligning **structural fiscal consolidation** with **targeted capex multiplier investments** and **domestic supply-chain formalization** will drive sustainable, high-productivity economic growth toward an inclusive national vision.";
@@ -9772,9 +9878,18 @@ function renderEvaluation(evalData) {
     document.getElementById("conclusionCritiqueText").innerHTML = formatHighlightedText(conc.current_critique || "");
     if (modelConcCardEl) modelConcCardEl.classList.remove("hidden");
     if (modelConcHeadLbl) {
-      modelConcHeadLbl.textContent = "✍️ How to Write:";
+      modelConcHeadLbl.textContent = "✍️ How to Write (Matched with Topper Model Answer):";
     }
-    let modelConc = String(conc.model_conclusion_rewrite || "").trim();
+
+    // Always synchronize with the actual conclusion of the Topper Model Answer!
+    let topperConc = window.extractConclusionFromModelAnswer ? window.extractConclusionFromModelAnswer(evalData.full_model_answer) : "";
+    let modelConc = topperConc;
+
+    // If full_model_answer extraction did not yield text, check conc.model_conclusion_rewrite (excluding stuck boilerplate)
+    const isStuckBoilerplate = /Harmonizing.*?constitutional morality.*?2nd ARC/i.test(conc.model_conclusion_rewrite || "");
+    if (!modelConc && conc.model_conclusion_rewrite && !isStuckBoilerplate && String(conc.model_conclusion_rewrite).trim().length >= 20) {
+      modelConc = String(conc.model_conclusion_rewrite).trim();
+    }
     if (!modelConc || modelConc === '""' || modelConc.length < 20) {
       modelConc = window.buildDomainModelConclusion ? window.buildDomainModelConclusion(evalData) : "Integrating evidence-based institutional reforms and last-mile capacity building will translate policy intent into durable outcomes.";
     }
@@ -10136,42 +10251,6 @@ function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
   const dirName = (evalData.directive_compliance && evalData.directive_compliance.directive) || sylMap.directive || "Discuss";
   if (dirRule) dirRule.textContent = `Directive: ${dirName}`;
 
-  // 2. Transparent Micro-Marking Step Arithmetic
-  const rubric = evalData.rubric_scores || {};
-  const microMath = evalData.micro_marking_arithmetic || {};
-
-  const defIntroMax = mm === 10 ? 1.5 : (mm === 15 ? 2.0 : 2.5);
-  const defCoreMax = mm === 10 ? 4.5 : (mm === 15 ? 7.0 : 9.5);
-  const defValMax = mm === 10 ? 1.5 : (mm === 15 ? 2.5 : 3.5);
-  const defPresMax = mm === 10 ? 1.0 : (mm === 15 ? 1.5 : 2.0);
-  const defConcMax = mm === 10 ? 1.5 : (mm === 15 ? 2.0 : 2.5);
-
-  const iAw = typeof microMath.intro_score === "number" ? microMath.intro_score : (parseFloat(rubric.intro_score) || 1.0);
-  const iMx = typeof microMath.intro_max === "number" ? microMath.intro_max : (parseFloat(rubric.intro_max) || defIntroMax);
-  const cAw = typeof microMath.core_demand_score === "number" ? microMath.core_demand_score : (parseFloat(rubric.core_demand_score) || 2.0);
-  const cMx = typeof microMath.core_demand_max === "number" ? microMath.core_demand_max : (parseFloat(rubric.core_demand_max) || defCoreMax);
-  const vAw = typeof microMath.value_add_score === "number" ? microMath.value_add_score : (parseFloat(rubric.value_add_score) || 0.5);
-  const vMx = typeof microMath.value_add_max === "number" ? microMath.value_add_max : (parseFloat(rubric.value_add_max) || defValMax);
-  const pAw = typeof microMath.presentation_score === "number" ? microMath.presentation_score : (parseFloat(rubric.presentation_score) || 0.5);
-  const pMx = typeof microMath.presentation_max === "number" ? microMath.presentation_max : (parseFloat(rubric.presentation_max) || defPresMax);
-  const coAw = typeof microMath.conclusion_score === "number" ? microMath.conclusion_score : (parseFloat(rubric.conclusion_score) || 0.5);
-  const coMx = typeof microMath.conclusion_max === "number" ? microMath.conclusion_max : (parseFloat(rubric.conclusion_max) || defConcMax);
-
-  const formulaEl = document.getElementById("microMarkingFormulaText");
-  if (formulaEl) {
-    formulaEl.innerHTML = `<span class="text-amber-400 font-bold">Intro</span> (${iAw.toFixed(1)}/${iMx.toFixed(1)}) + <span class="text-amber-400 font-bold">Core</span> (${cAw.toFixed(1)}/${cMx.toFixed(1)}) + <span class="text-amber-400 font-bold">Value-Add</span> (${vAw.toFixed(1)}/${vMx.toFixed(1)}) + <span class="text-emerald-400 font-bold">Presentation</span> (${pAw.toFixed(1)}/${pMx.toFixed(1)}) + <span class="text-amber-400 font-bold">Conclusion</span> (${coAw.toFixed(1)}/${coMx.toFixed(1)}) = <span class="text-amber-300 font-extrabold text-sm sm:text-base">${overall.toFixed(1)} / ${mm.toFixed(1)}</span>`;
-  }
-
-  const mIntro = document.getElementById("microIntroScore");
-  const mCore = document.getElementById("microCoreScore");
-  const mVal = document.getElementById("microValueScore");
-  const mPres = document.getElementById("microPresScore");
-  const mConc = document.getElementById("microConcScore");
-  if (mIntro) mIntro.textContent = `${iAw.toFixed(1)} / ${iMx.toFixed(1)}`;
-  if (mCore) mCore.textContent = `${cAw.toFixed(1)} / ${cMx.toFixed(1)}`;
-  if (mVal) mVal.textContent = `${vAw.toFixed(1)} / ${vMx.toFixed(1)}`;
-  if (mPres) mPres.textContent = `${pAw.toFixed(1)} / ${pMx.toFixed(1)}`;
-  if (mConc) mConc.textContent = `${coAw.toFixed(1)} / ${coMx.toFixed(1)}`;
 
   // 3. UPSC Exam-Hall Discipline & Time-Pressure Card
   const discData = evalData.upsc_exam_hall_discipline || {};
