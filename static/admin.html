@@ -229,6 +229,44 @@
           <div class="p-6 text-center text-xs text-slate-500">Loading recent activities...</div>
         </div>
       </div>
+
+      <!-- Full-Width Bottom Section (12 Cols): Aspirant Session & Visit History -->
+      <div class="lg:col-span-12 bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+              <h2 class="text-sm font-extrabold text-white">Aspirant Visit &amp; Login History</h2>
+              <span class="text-[10px] font-mono bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30 font-bold">Session Audit Trail</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">Chronological history of who visited, how much time they spent on the website, and what actions they took.</p>
+          </div>
+          <button onclick="loadAdminSessions()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Refresh History</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/60 shadow-inner">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-800/80 text-slate-300 font-bold uppercase text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="p-3.5">Status &amp; Time Spent</th>
+                <th class="p-3.5">Aspirant Details</th>
+                <th class="p-3.5">Visit Window (IST)</th>
+                <th class="p-3.5">Copies Evaluated</th>
+                <th class="p-3.5">What They Did (Action Timeline)</th>
+                <th class="p-3.5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="sessionHistoryTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+              <tr>
+                <td colspan="6" class="p-8 text-center text-slate-500">Loading visit history...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- ================================================================= -->
@@ -445,6 +483,32 @@
             <div id="inspectStrengthsWeaknesses" class="space-y-2 text-xs"></div>
           </div>
         </div>
+      </div>
+    </div>
+  <!-- Session Journey Detail Modal -->
+  <div id="sessionJourneyModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="space-y-0.5">
+          <h3 class="text-sm font-extrabold text-white flex items-center space-x-2">
+            <span>⏱️ Aspirant Session Journey</span>
+            <span id="journeyUserBadge" class="text-xs font-mono text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30"></span>
+          </h3>
+          <p id="journeyMetaSub" class="text-xs text-slate-400"></p>
+        </div>
+        <button onclick="closeSessionJourney()" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div id="journeyTimelineContainer" class="flex-1 overflow-y-auto space-y-2 pr-1 text-xs">
+        <!-- Action list injected here -->
+      </div>
+
+      <div class="pt-2 border-t border-slate-800 flex justify-end">
+        <button onclick="closeSessionJourney()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">
+          Close
+        </button>
       </div>
     </div>
   </div>

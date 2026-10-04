@@ -36,6 +36,7 @@ function startAutoRefresh() {
     if (adminToken && autoRefreshEnabled) {
       loadAdminStats();
       loadAdminActivity();
+      loadAdminSessions();
       loadAspirants();
     }
   }, 15000);
@@ -121,6 +122,7 @@ async function loadAllAdminData(force = false) {
   await Promise.all([
     loadAdminStats(force),
     loadAdminActivity(),
+    loadAdminSessions(),
     loadAspirants(),
     loadAdminEvaluations(),
     loadAdminFeedbacks()
@@ -255,6 +257,146 @@ async function loadAdminActivity() {
   } catch (e) {
     console.error("Activity load error:", e);
   }
+}
+
+let cachedSessions = [];
+
+async function loadAdminSessions() {
+  const tbody = document.getElementById("sessionHistoryTableBody");
+  if (!tbody) return;
+  try {
+    const res = await fetch("/api/admin/sessions?limit=50");
+    if (!res.ok) throw new Error("Could not load session history");
+    const sessions = await res.json();
+    cachedSessions = sessions || [];
+
+    if (!sessions || sessions.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">No session visit records found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = sessions.map((sess, sIdx) => {
+      const isOnline = Boolean(sess.is_online);
+      const email = sess.user_email || "Guest";
+      const name = sess.user_name || "Aspirant";
+      const durDisplay = sess.duration_display || "0s";
+      const evalsCount = Number(sess.evaluations_count || 0);
+      const actions = Array.isArray(sess.actions) ? sess.actions : [];
+
+      const previewActions = actions.slice(-3);
+      const actionsHtml = actions.length > 0
+        ? `
+          <div class="flex flex-wrap items-center gap-1.5 max-w-md">
+            ${previewActions.map(a => `
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10.5px] font-mono ${a.is_eval ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold' : 'bg-slate-800 text-slate-300 border border-slate-700'}">
+                <span class="text-slate-500 mr-1">${escapeHtml(a.time || '')}</span>
+                <span class="truncate max-w-[200px]">${escapeHtml(a.action || '')}</span>
+              </span>
+            `).join("")}
+            ${actions.length > 3 ? `
+              <button onclick="openSessionJourney(${sIdx})" class="text-[10px] text-amber-400 font-bold hover:underline cursor-pointer">
+                +${actions.length - 3} more steps
+              </button>
+            ` : ""}
+          </div>
+        `
+        : `<span class="text-slate-500 text-[11px] font-mono">${escapeHtml(sess.current_view || "Browsing")}</span>`;
+
+      return `
+        <tr class="hover:bg-slate-800/40 transition">
+          <td class="p-3.5 whitespace-nowrap">
+            <div class="flex items-center space-x-2">
+              ${isOnline ? `
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10.5px] font-bold">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                  <span>Online Now</span>
+                </span>
+              ` : `
+                <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-mono">
+                  ${escapeHtml(sess.status_display || "Session Ended")}
+                </span>
+              `}
+            </div>
+            <div class="mt-1 text-xs font-mono font-extrabold text-amber-300 flex items-center gap-1">
+              <span>⏱️ ${escapeHtml(durDisplay)}</span>
+            </div>
+          </td>
+
+          <td class="p-3.5">
+            <div class="font-bold text-white text-xs">${escapeHtml(name)}</div>
+            <div class="text-[11px] text-amber-400 font-mono select-all">${escapeHtml(email)}</div>
+            <div class="text-[10px] text-slate-500 font-mono">CSE ${escapeHtml(String(sess.target_year || "2026"))} • ${escapeHtml(sess.optional_subject || "General Studies")}</div>
+          </td>
+
+          <td class="p-3.5 font-mono text-[11px] whitespace-nowrap">
+            <div class="text-slate-300"><span class="text-slate-500">In:</span> ${escapeHtml(sess.started_at || "")}</div>
+            <div class="text-slate-400 text-[10px]"><span class="text-slate-500">Out:</span> ${escapeHtml(sess.last_active_at || "")}</div>
+          </td>
+
+          <td class="p-3.5 whitespace-nowrap">
+            <span class="px-2.5 py-1 rounded-lg font-mono font-bold text-xs ${evalsCount > 0 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">
+              📝 ${evalsCount} ${evalsCount === 1 ? 'Copy' : 'Copies'}
+            </span>
+          </td>
+
+          <td class="p-3.5">
+            ${actionsHtml}
+          </td>
+
+          <td class="p-3.5 text-right whitespace-nowrap space-x-1.5">
+            <button onclick="openSessionJourney(${sIdx})" class="px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 font-bold text-[11px] border border-amber-500/30 transition">
+              🔍 Journey (${actions.length})
+            </button>
+            ${email && email.includes('@') ? `
+              <button onclick="filterCopiesByEmail('${escapeHtml(email)}')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-[11px] border border-slate-700 transition">
+                📂 Copies
+              </button>
+            ` : ""}
+          </td>
+        </tr>
+      `;
+    }).join("");
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-rose-400">Error loading visit history: ${e.message}</td></tr>`;
+  }
+}
+
+function openSessionJourney(sIdx) {
+  const sess = cachedSessions[sIdx];
+  if (!sess) return;
+  const modal = document.getElementById("sessionJourneyModal");
+  if (!modal) return;
+
+  document.getElementById("journeyUserBadge").textContent = `${sess.user_name || "Aspirant"} (${sess.user_email || "Guest"})`;
+  document.getElementById("journeyMetaSub").textContent = `Session started: ${sess.started_at} • Total Time Spent: ${sess.duration_display} • ${sess.evaluations_count || 0} copies evaluated`;
+
+  const container = document.getElementById("journeyTimelineContainer");
+  const actions = Array.isArray(sess.actions) ? sess.actions : [];
+
+  if (actions.length === 0) {
+    container.innerHTML = `<div class="p-6 text-center text-slate-500">No detailed steps recorded for this session.</div>`;
+  } else {
+    container.innerHTML = actions.map((a, idx) => `
+      <div class="p-2.5 rounded-xl bg-slate-950 border ${a.is_eval ? 'border-emerald-500/40 bg-emerald-950/20' : 'border-slate-800'} flex items-start space-x-3">
+        <span class="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-mono flex items-center justify-center shrink-0 mt-0.5 font-bold">${idx + 1}</span>
+        <div class="space-y-0.5 min-w-0 flex-1">
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-bold ${a.is_eval ? 'text-emerald-300' : 'text-white'} text-xs">${escapeHtml(a.action || '')}</span>
+            <span class="text-[10px] font-mono text-slate-500 shrink-0">${escapeHtml(a.time || '')}</span>
+          </div>
+          ${a.detail ? `<p class="text-[11px] text-slate-400">${escapeHtml(a.detail)}</p>` : ""}
+        </div>
+      </div>
+    `).join("");
+  }
+
+  modal.classList.remove("hidden");
+  safeCreateIcons();
+}
+
+function closeSessionJourney() {
+  const modal = document.getElementById("sessionJourneyModal");
+  if (modal) modal.classList.add("hidden");
 }
 
 let searchTimer = null;

@@ -88,7 +88,8 @@ from storage import (
     record_user_heartbeat, log_platform_activity,
     get_admin_evaluations_feed, get_admin_activity_stream,
     reset_user_daily_quota_admin, delete_feedback_admin,
-    sync_supabase_to_sqlite, is_created_today_ist
+    sync_supabase_to_sqlite, is_created_today_ist,
+    get_admin_session_history
 )
 import copy
 from news_ingestion import ingest_all_feeds, get_top_editorial_articles
@@ -1433,6 +1434,11 @@ async def api_admin_stats(sync: Optional[int] = 0):
 async def api_admin_activity(limit: int = 60):
     """Returns real-time chronological activity stream across the platform."""
     return await asyncio.to_thread(get_admin_activity_stream, limit=limit)
+
+@app.get("/api/admin/sessions")
+async def api_admin_sessions(limit: int = 50):
+    """Returns chronological history of user sessions (who visited, what they did, session duration)."""
+    return await asyncio.to_thread(get_admin_session_history, limit=limit)
 
 @app.get("/api/admin/evaluations")
 async def api_admin_evaluations(email: Optional[str] = None, limit: int = 50):
