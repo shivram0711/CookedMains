@@ -4918,15 +4918,20 @@ async def evaluate_with_gemini(
             response_mime_type="application/json"
         )
 
+        sync_start = time.time()
         for current_key in keys_to_try:
+            if time.time() - sync_start > 65:
+                break
             try:
                 client = create_fast_gemini_client(current_key)
             except Exception:
                 continue
 
             failed_auth = False
-            candidate_models = get_active_gemini_models(client)
+            candidate_models = get_active_gemini_models(client)[:3]
             for model_name in candidate_models:
+                if time.time() - sync_start > 65:
+                    break
                 try:
                     response = client.models.generate_content(
                         model=model_name,
@@ -5005,6 +5010,8 @@ _INACTIVE_GEMINI_MODELS: set = {
     "gemini-3-pro-image",
     "gemini-3-pro-image-preview",
     "gemini-3.1-pro-preview-customtools",
+    "gemini-3.6-flash",
+    "gemini-3.1-flash-lite",
 }
 _DISCOVERED_GEMINI_MODELS_CACHE: List[str] = []
 _DISCOVERED_GEMINI_MODELS_TS: float = 0.0
@@ -5030,7 +5037,7 @@ def record_gemini_model_outcome(model_name: str, success: bool, error_str: str =
             _LAST_WORKING_GEMINI_MODEL = None
         _DISCOVERED_GEMINI_MODELS_TS = 0.0
     elif any(tok in err_low for tok in ["503", "unavailable", "high demand", "resource_exhausted", "quota", "429"]):
-        # Temporarily back off busy/congested model for 5 minutes so subsequent evaluations do not suffer a 10s timeout
+        # Temporarily back off busy/congested model for 5 minutes so subsequent evaluations do not suffer a timeout
         _BUSY_MODEL_COOLDOWNS[clean_name] = time.time() + 300
         if _LAST_WORKING_GEMINI_MODEL == clean_name:
             _LAST_WORKING_GEMINI_MODEL = None
@@ -5087,15 +5094,15 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
     ordered.extend(ready_discovered)
 
-    # 3. Static priority list acts as guaranteed fallback
+    # 3. Static priority list acts as guaranteed fallback, ordered by verified response latency
     static_priority = [
         "gemini-3-flash-preview",
-        "gemini-flash-lite-latest",
-        "gemini-3.6-flash",
-        "gemini-3.1-flash-lite",
         "gemini-3.5-flash",
-        "gemini-3.8-flash",
+        "gemini-flash-lite-latest",
         "gemini-flash-latest",
+        "gemini-3.1-flash-lite-preview",
+        "gemini-3.7-flash",
+        "gemini-3.8-flash",
     ]
     for m in static_priority:
         if m not in _INACTIVE_GEMINI_MODELS and m not in ordered:
@@ -5113,6 +5120,9 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
 
 def create_fast_gemini_client(api_key: str) -> Any:
-    """Creates a standard genai.Client with native SDK connection management for large multi-page copy uploads."""
-    return genai.Client(api_key=api_key)
+    """Creates a genai.Client with a strict 35-second network timeout to prevent Render 100-second 504 Gateway Timeouts."""
+    try:
+        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=35000))
+    except Exception:
+        return genai.Client(api_key=api_key)
 

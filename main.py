@@ -2069,16 +2069,21 @@ async def evaluate_answer(
                 )
 
                 contents_payload = (multimodal_parts + [evaluator_prompt_text]) if multimodal_parts else [evaluator_prompt_text]
+                eval_loop_start = time.time()
 
                 for current_key in keys_to_try:
+                    if time.time() - eval_loop_start > 70:
+                        break
                     try:
                         client = create_fast_gemini_client(current_key)
                     except Exception:
                         continue
 
                     failed_key = False
-                    candidate_models = get_active_gemini_models(client)
+                    candidate_models = get_active_gemini_models(client)[:3]
                     for model_candidate in candidate_models:
+                        if time.time() - eval_loop_start > 70:
+                            break
                         try:
                             response = client.models.generate_content(
                                 model=model_candidate,
