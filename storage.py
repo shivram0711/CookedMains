@@ -2526,6 +2526,8 @@ def log_platform_activity(
         print(f"Activity log notice: {e}")
 
 
+import threading
+_supabase_sync_lock = threading.Lock()
 _last_supabase_sync_ts: float = 0.0
 
 def is_created_today_ist(ts_str: Optional[str]) -> bool:
@@ -2562,7 +2564,7 @@ def is_created_today_ist(ts_str: Optional[str]) -> bool:
 def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
     """
     Synchronizes persistent user accounts, profiles, and evaluated answer sheets from Supabase
-    into local SQLite with automatic deduplication, debounce caching (45s), and zero data loss across Render redeploys.
+    into local SQLite with automatic deduplication, debounce caching (45s), non-blocking lock, and zero latency.
     """
     global _last_supabase_sync_ts
     now = time.time()
@@ -2572,27 +2574,31 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
     if supabase is None:
         return {"status": "skipped", "reason": "supabase_not_initialized"}
 
+    # Acquire lock non-blockingly; if another sync is running, return immediately without stalling workers
+    if not _supabase_sync_lock.acquire(blocking=False):
+        return {"status": "skipped", "reason": "sync_in_progress"}
+
     synced_users_count = 0
     synced_evals_count = 0
 
     try:
-        # 1. Fetch user accounts from Supabase (__USER_ACCOUNT_PROFILE__)
+        # 1. Fetch user accounts from Supabase (__USER_ACCOUNT_PROFILE__) - fast limit 300
         user_rows = []
         try:
             res_u = supabase.table("evaluations").select(
                 "id, user_id, evaluation_json, created_at"
-            ).eq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(5000).execute()
+            ).eq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(300).execute()
             if res_u and res_u.data:
                 user_rows = res_u.data
         except Exception as ue:
             print(f"Notice: Supabase fetch users for sync notice: {ue}")
 
-        # 2. Fetch answer evaluations from Supabase (question_title != '__USER_ACCOUNT_PROFILE__')
+        # 2. Fetch recent answer evaluations from Supabase - fast limit 80
         eval_rows = []
         try:
             res_e = supabase.table("evaluations").select(
                 "id, user_id, question_title, file_url, total_marks, evaluation_json, created_at"
-            ).neq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(5000).execute()
+            ).neq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(80).execute()
             if res_e and res_e.data:
                 eval_rows = res_e.data
         except Exception as ee:
@@ -2805,6 +2811,11 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
     except Exception as e:
         print(f"Notice: sync_supabase_to_sqlite error: {e}")
         return {"status": "error", "error": str(e)}
+    finally:
+        try:
+            _supabase_sync_lock.release()
+        except Exception:
+            pass
 
 
 def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
@@ -2900,11 +2911,6 @@ def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
 
 
 def get_all_aspirants_admin(search: Optional[str] = None) -> List[Dict[str, Any]]:
-    try:
-        sync_supabase_to_sqlite(force=False)
-    except Exception as se:
-        print(f"Admin aspirants Supabase sync notice: {se}")
-
     conn = get_db()
     cursor = conn.cursor()
     
@@ -2957,11 +2963,6 @@ def get_all_aspirants_admin(search: Optional[str] = None) -> List[Dict[str, Any]
 
 def get_admin_evaluations_feed(email_filter: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
     """Returns recent evaluations across all aspirants (or filtered by email) for the Owner Inspector."""
-    try:
-        sync_supabase_to_sqlite(force=False)
-    except Exception as se:
-        print(f"Admin evals feed Supabase sync notice: {se}")
-
     conn = get_db()
     cursor = conn.cursor()
     sql = """
