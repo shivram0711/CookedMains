@@ -1246,19 +1246,20 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
 
 22. DYNAMIC DIAGRAM RELEVANCE & EXAM-HALL SPACE UTILISATION AUDIT (CRITICAL):
     - In a real UPSC Mains exam (2 pages for 10M, 3 pages for 15M), drawing a large box diagram on EVERY question wastes precious vertical writing space and forces the student to cut 2–3 analytical points!
-    - You MUST evaluate whether a diagram is genuinely needed for THIS specific question and set `"diagram_recommendation"` accordingly:
-      1. If the candidate ALREADY drew a diagram/flowchart/schematic on their sheet:
-         - Set `"relevance_verdict": "ALREADY_DRAWN"`.
-         - Praise their existing diagram in `"space_utilization_advice"` and advise them NOT to draw a second diagram so they save page space for written arguments.
-      2. If the question is GS-1 Geography (maps, corridors, geomorphic processes) or GS-3 Supply Chain / Infrastructure / Environment / S&T Ecosystem, or a 15-Marker (3 pages) with a natural multi-stage process:
-         - Set `"relevance_verdict": "HIGH_ROI"`.
-         - Explain in `"space_utilization_advice"` why a 30-second map or 4-node value-chain flowchart saves ~35 words and fetches +0.5 to +1.0M.
-      3. If the question is a 10-Marker (only 2 pages) or a comparative/institutional question where a big box diagram would waste space:
-         - Set `"relevance_verdict": "COMPACT_2_LINE"`.
-         - Advise the student NOT to draw a tall box diagram; instead recommend a 2-line inline arrow chain (`A ──> B ──> C`) or a 2-column mini-comparison table that uses only 2 lines on the sheet.
-      4. If the question is a pure constitutional, legal, philosophical, or opinion 10-marker where any diagram would look forced:
-         - Set `"relevance_verdict": "NOT_NEEDED_SAVE_SPACE"`.
-         - Explicitly tell the student in `"space_utilization_advice"`: `"No diagram is needed for this question. Save your 2-page booklet space for 2 extra substantiated points with Constitutional Articles, Supreme Court Judgments, and boxed sub-headings."`
+    - ONLY recommend a diagram if this question genuinely and naturally benefits from a visual schematic!
+    - DO NOT recommend or draw random diagrams for every question!
+      * If the question is about Literature, Language, Art/Poetry, Sanskrit, Bhakti/Sufi movements, Philosophical doctrines, Ethical quotes, or general textual/analytical discussions where a diagram would be forced/contrived:
+        -> Set "relevance_verdict": "NOT_NEEDED_SAVE_SPACE" and set "recommended_diagram_visual": "".
+        -> Explicitly advise in "space_utilization_advice": "No diagram is needed for this question. Save your booklet space for substantiated arguments, literary/historical evidence, and boxed sub-headings."
+      * If the candidate ALREADY drew a diagram/flowchart/schematic on their sheet:
+        -> Set "relevance_verdict": "ALREADY_DRAWN" and set "recommended_diagram_visual": "".
+        -> Praise their existing diagram in "space_utilization_advice" and advise them NOT to draw a second diagram so they save page space for written arguments.
+      * If the question is GS-1 Physical Geography (plate tectonics, cyclone structure, ocean currents, drainage basins, geomorphic processes) or GS-3 Supply Chain / Logistics / Disaster Management cycle / Renewable Energy transition / S&T Architecture, or an institutional governance flowchart:
+        -> Set "relevance_verdict": "HIGH_ROI".
+        -> Provide a CRISP, CLEAN 3-STEP PROCESS FLOW or HUB SCHEMATIC (e.g., "[Input / Trigger] ──➔ [Processing / Institutional Agency] ──➔ [Measurable Outcome / Benchmark]") in "recommended_diagram_visual". NEVER produce confusing, broken multi-line ASCII mazes with diagonal slashes ('\', '/') or nested sub-boxes that scramble on small screens!
+      * If the question is a 10-Marker (only 2 pages) or a comparative/institutional question where a big box diagram would waste space:
+        -> Set "relevance_verdict": "COMPACT_2_LINE".
+        -> Recommend a 2-line inline arrow chain ("[Mandate] ──➔ [Mechanism] ──➔ [Outcome]") that takes only 2 lines on the sheet.
 
 23. SUBJECT-EXPERT DOMAIN PRECISION & ZERO-BOILERPLATE MANDATE ACROSS EVERY SECTION (NON-NEGOTIABLE):
     - Every aspirant must experience an evaluation that feels hand-checked by a senior UPSC Subject-Matter Expert (`GS-1 Historian/Geographer/Sociologist`, `GS-2 Constitutional Jurist/Diplomacy Scholar`, `GS-3 Economist/Agricultural Scientist/Technologist/Security Analyst`, `GS-4 Ethics & Public Administration Faculty`).
@@ -1590,7 +1591,7 @@ Generate strictly valid JSON matching this schema:
       ]
     }}
   }},
-  "recommended_diagram_visual": "+-------------------------------------------------+\\n|                    POLITICS                     |\\n|  +-----------------+     +-------------------+  |\\n|  |     SCIENCE     |     |        ART        |  |\\n|  | - Behavioralism | <-> | - Statecraft      |  |\\n|  | - Empirical Data|     | - Normative Values|  |\\n|  | - Systems Theory|     | - Art of Possible |  |\\n|  +-----------------+     +-------------------+  |\\n+-------------------------------------------------+",
+  "recommended_diagram_visual": "[Input / Trigger] ──➔ [Institutional Agency / Processing] ──➔ [Measurable Outcome / Benchmark]", // ONLY provide if the topic naturally benefits from a visual (Geography, S&T, Supply Chain, Governance); if literature, ethics quote, or abstract discussion, return empty string ""
   "conclusion_audit": {{
     "current_critique": "Substantive 1-2 line evaluation of candidate's concluding paragraph.",
     "aligns_with_national_goals": true,
@@ -2700,7 +2701,23 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
         model_ans = re.sub(r'(?:\*\*)?\[(?:INITIAL\s+)?VALUE-ADD(?:ITION)?\s+BOX\](?:\*\*)?', '**Snapshot: Core Dimensions at a Glance**', model_ans, flags=re.IGNORECASE)
         data["full_model_answer"] = model_ans.strip()
 
-    diagram = data.get("recommended_diagram_visual", "")
+    diagram = str(data.get("recommended_diagram_visual") or "").strip()
+    
+    # Check diagram relevance: do NOT inject random or forced diagrams for literature, abstract ethics, or textual analysis questions
+    q_all = f"{data.get('question_text', '')} {data.get('extracted_question', '')} {data.get('transcribed_text', '')}".lower()
+    is_non_diagram_topic = any(kw in q_all for kw in [
+        "sanskrit", "literature", "literary", "poetry", "drama", "poet", "playwright",
+        "bhakti", "sufi", "scripture", "philosoph", "moral quote", "ethics quote",
+        "do you agree", "comment on the statement", "critically evaluate the statement"
+    ])
+    diag_verdict = str((data.get("diagram_recommendation") or {}).get("relevance_verdict", "")).upper()
+    if diag_verdict == "NOT_NEEDED_SAVE_SPACE" or (is_non_diagram_topic and diag_verdict != "HIGH_ROI"):
+        data["recommended_diagram_visual"] = ""
+        diagram = ""
+        # Strip any accidental forced flowchart block from model_ans
+        model_ans = re.sub(r'\[EXAM-HALL SCHEMATIC[^\]]*\][\s\S]*?(?=\n\s*\n\s*[A-Za-z*#]|$)', '', model_ans, flags=re.IGNORECASE).strip()
+        data["full_model_answer"] = model_ans
+
     if diagram and ("+---" not in model_ans and "┌──" not in model_ans and "[EXAM-HALL" not in model_ans):
         # Insert diagram between intro and body
         intro_split = re.split(r'(\n(?:1\.|Body|Politics as))', model_ans, maxsplit=1)
@@ -3358,12 +3375,12 @@ def _normalize_exam_hall_discipline_and_micro_marking(data: Dict[str, Any], max_
         "directive_guidance": dir_info.get("ideal_balance", "Multi-dimensional coverage with clear intro, structured body, and way forward.")
     }
 
-    # 4. Strict Topper Model Answer Feasibility Header
+    # 4. Strict Topper Model Answer Cleaning (Fix for Image 1)
     model_ans = str(data.get("full_model_answer") or "").strip()
     if model_ans:
-        target_badge = f"⏱️ [EXAM-HALL 7-MINUTE TOPPER BLUEPRINT — ~{prescribed_limit} WORDS | QCAB FORMAT]"
-        if not model_ans.startswith("⏱️ [EXAM-HALL"):
-            data["full_model_answer"] = f"{target_badge}\n\n{model_ans}"
+        # Strip any accidental target badge or empty exam-hall tags so it never triggers broken flowchart boxes
+        model_ans = re.sub(r'^(?:⏱️?\s*)?\[EXAM-HALL.*?(?:BLUEPRINT|QCAB).*?\]\s*\n*', '', model_ans, flags=re.IGNORECASE).strip()
+        data["full_model_answer"] = model_ans
 
 
 def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> None:

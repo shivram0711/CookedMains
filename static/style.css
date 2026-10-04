@@ -4293,4 +4293,16 @@ html.dark .account-nav-btn.active {
   transform: scale(1.15);
 }
 
+/* Image 3 Fix: Examiner Line-by-Line Audit below answersheet: strictly hidden on mobile and tablet (< 1024px), visible only on Windows/Desktop (>= 1024px) */
+@media (max-width: 1023px) {
+  #desktopExaminerAuditContainer {
+    display: none !important;
+  }
+}
+@media (min-width: 1024px) {
+  #desktopExaminerAuditContainer:not(.hidden) {
+    display: flex !important;
+  }
+}
+
 

@@ -7192,6 +7192,12 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
 
   if (!container || !auditSection) return;
 
+  // Image 3 Fix: strictly hide on mobile and tablet screens (< 1024px)
+  if (window.innerWidth < 1024) {
+    auditSection.classList.add("hidden");
+    return;
+  }
+
   if (!sections || sections.length === 0) {
     auditSection.classList.add("hidden");
     return;
@@ -11573,23 +11579,22 @@ window.computeDiagramRelevanceProfile = function(evalData) {
     verdict = "ALREADY_DRAWN";
   }
 
-  // 2. Dynamic Question & Subject Demand Classification when verdict is missing or generic
+  // 2. Dynamic Question & Subject Demand Classification when verdict is missing or generic (Fix for Image 2)
   const highVisualKeywords = /geography|geomorph|climate|monsoon|cyclone|ocean|tectonic|volcan|glacier|river|drainage|mineral|corridor|supply chain|logistics|port|industrial|ecosystem|food chain|carbon|energy grid|circular economy|value chain|semiconductor|space|biotech|disaster|flood|earthquake|urbani[sz]ation|smart cit|border|indo-pacific|map|location|distribution/i;
-  const doctrinalOrSkipKeywords = /basic structure|preamble|constitutional morality|judicial review|article \d+|fundamental right|directive principle|parliamentary sovereignty|ethics|integrity|probity|aptitude|emotional intelligence|attitude|philosoph|kant|rawls|gandhi|categorical imperative|quote|opinion|comment critically on the statement|do you agree/i;
+  const nonVisualOrLiteratureKeywords = /sanskrit|literature|literary|poetry|drama|poet|playwright|bhakti|sufi|scripture|basic structure|preamble|constitutional morality|judicial review|article \d+|fundamental right|directive principle|parliamentary sovereignty|ethics|integrity|probity|aptitude|emotional intelligence|attitude|philosoph|kant|rawls|gandhi|categorical imperative|quote|opinion|comment critically on the statement|do you agree/i;
 
-  if (!["HIGH_ROI", "COMPACT_2_LINE", "NOT_NEEDED_SAVE_SPACE", "ALREADY_DRAWN"].includes(verdict)) {
+  // Never force a diagram on non-visual, literature, or philosophical topics
+  if (nonVisualOrLiteratureKeywords.test(qText) && !highVisualKeywords.test(qText)) {
+    verdict = "NOT_NEEDED_SAVE_SPACE";
+  } else if (!["HIGH_ROI", "COMPACT_2_LINE", "NOT_NEEDED_SAVE_SPACE", "ALREADY_DRAWN"].includes(verdict)) {
     if (alreadyDrawnInText) {
       verdict = "ALREADY_DRAWN";
-    } else if (highVisualKeywords.test(qText) || paper.includes("GS1")) {
+    } else if (highVisualKeywords.test(qText)) {
       verdict = "HIGH_ROI";
-    } else if (mm <= 10 && doctrinalOrSkipKeywords.test(qText)) {
-      verdict = "NOT_NEEDED_SAVE_SPACE";
     } else if (mm <= 10) {
-      verdict = "COMPACT_2_LINE";
-    } else if (doctrinalOrSkipKeywords.test(qText) && !highVisualKeywords.test(qText)) {
-      verdict = "COMPACT_2_LINE";
+      verdict = "NOT_NEEDED_SAVE_SPACE";
     } else {
-      verdict = "HIGH_ROI";
+      verdict = "COMPACT_2_LINE";
     }
   }
 
@@ -11722,9 +11727,13 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
   const diagProfile = window.computeDiagramRelevanceProfile(state.currentEvaluation);
   let processedText = fullText;
 
+  // Strip any accidental leading target badge or empty exam-hall tags (Fix for Image 1)
+  processedText = processedText.replace(/^(?:⏱️?\s*)?\[EXAM-HALL.*?(?:BLUEPRINT|QCAB).*?\]\s*\n*/gi, "");
+
   // If diagram is NOT_NEEDED_SAVE_SPACE, strip any forced multi-line ASCII boxes so the Model Answer saves space too
   if (diagProfile && diagProfile.verdict === "NOT_NEEDED_SAVE_SPACE") {
     processedText = processedText
+      .replace(/\[EXAM-HALL SCHEMATIC[^\]]*\][\s\S]*?(?=\n\s*\n\s*[A-Za-z*#]|$)/gi, "")
       .replace(/\[EXAM-HALL.*?\]:?\s*\n(?:[┌├│└+|-].*\n?)+/gi, "")
       .replace(/(?:^[┌├│└+].*\n?){3,}/gm, "");
   } else if (diagProfile && (diagProfile.verdict === "COMPACT_2_LINE" || diagProfile.verdict === "ALREADY_DRAWN")) {
@@ -11758,20 +11767,58 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     let b = block.trim();
     if (!b) return;
 
-    // 1. Exam-Hall Flowchart / ASCII Diagram or 2-Line Space-Saver Flow
-    if (b.includes("+---") || b.includes("┌──") || b.includes("|  ") || b.includes("[EXAM-HALL")) {
+    // 1. Exam-Hall Flowchart / Diagram or 2-Line Space-Saver Flow (Fix for Image 1 & 2)
+    const isFlowchartCandidate = (
+      (b.includes("+---") || b.includes("┌──") || b.includes("|  ") || b.includes("──> ") || b.includes("➔") || b.includes("[EXAM-HALL SCHEMATIC")) &&
+      !b.includes("BLUEPRINT") &&
+      !b.includes("QCAB")
+    );
+    if (isFlowchartCandidate) {
       const isCompact2Line = b.includes("2-LINE SPACE-SAVER") || (diagProfile && diagProfile.verdict === "COMPACT_2_LINE");
-      const cleanDiagram = b.replace(/\[EXAM-HALL.*?\]:?\s*/i, '');
+      const cleanDiagram = b.replace(/\[EXAM-HALL.*?\]:?\s*/i, '').trim();
+
+      // Guard: Never render empty/stub box or lone emoji (Fix for Image 1)
+      if (!cleanDiagram || cleanDiagram.length < 15 || cleanDiagram === "⏱️" || cleanDiagram === "⏱") {
+        return;
+      }
+
+      // Format clean, readable diagram representation (Fix for Image 2)
+      let diagramHtml = "";
+      if (cleanDiagram.includes("──>") || cleanDiagram.includes("➔") || cleanDiagram.includes("->")) {
+        const steps = cleanDiagram.split(/(?:──>|➔|->)/).map(s => s.replace(/[\[\]]/g, '').trim()).filter(Boolean);
+        if (steps.length >= 2) {
+          diagramHtml = `
+            <div class="py-2.5 px-1 flex flex-wrap items-center justify-center gap-2 text-xs">
+              ${steps.map((st, sIdx) => `
+                <div class="px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-200 font-sans font-semibold text-[11px] shadow-sm flex items-center gap-1.5">
+                  <span class="w-4 h-4 rounded-full bg-emerald-500/30 text-emerald-300 text-[9px] flex items-center justify-center shrink-0 font-bold">${sIdx + 1}</span>
+                  <span>${st}</span>
+                </div>
+                ${sIdx < steps.length - 1 ? '<i data-lucide="arrow-right" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>' : ''}
+              `).join('')}
+            </div>
+          `;
+        }
+      }
+      if (!diagramHtml) {
+        diagramHtml = `
+          <div class="my-1 p-2.5 rounded bg-slate-950 text-emerald-300 font-mono text-[11px] leading-snug whitespace-pre overflow-x-auto shadow-inner">
+${cleanDiagram}
+          </div>
+          <div class="text-[9px] text-slate-500 font-sans italic text-right mt-1 sm:hidden">← Scroll horizontally to view full schematic →</div>
+        `;
+      }
+
       html += `
-        <div class="my-3.5 p-3.5 rounded-xl bg-slate-900/95 border ${isCompact2Line ? 'border-cyan-500/40 text-cyan-300' : 'border-2 border-amber-500/40 text-emerald-300'} font-mono text-xs leading-relaxed whitespace-pre-wrap overflow-x-auto shadow-xl">
-          <div class="text-[10px] font-extrabold ${isCompact2Line ? 'text-cyan-400' : 'text-amber-400'} uppercase tracking-wider mb-1 flex items-center justify-between">
+        <div class="my-3.5 p-3.5 rounded-xl bg-slate-900/95 border ${isCompact2Line ? 'border-cyan-500/40 text-cyan-300' : 'border-2 border-amber-500/40 text-emerald-300'} font-sans text-xs leading-relaxed shadow-xl">
+          <div class="text-[10px] font-extrabold ${isCompact2Line ? 'text-cyan-400' : 'text-amber-400'} uppercase tracking-wider mb-2 flex items-center justify-between">
             <span class="flex items-center space-x-1.5">
               <i data-lucide="git-merge" class="w-3.5 h-3.5 ${isCompact2Line ? 'text-cyan-400' : 'text-amber-400'}"></i>
               <span>${isCompact2Line ? '2-Line Inline Flow (10M Space-Saver — Only 2 Lines on Sheet):' : 'Exam-Hall Flowchart (High-ROI Schematic):'}</span>
             </span>
             <span class="text-emerald-400 font-sans font-semibold text-[9px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">${isCompact2Line ? 'Takes 15 secs • 2 Lines' : 'Draw in 35 secs'}</span>
           </div>
-          ${cleanDiagram}
+          ${diagramHtml}
         </div>
       `;
       return;
