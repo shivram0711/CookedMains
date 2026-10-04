@@ -449,32 +449,48 @@ function startForensicProgress() {
   setPillState(p4, "", "○");
   setPillState(sp4, "", "○");
 
+  const dynamicStatusSteps = [
+    "Reading handwritten script and extracting booklet question...",
+    "Transcribing handwriting and verifying sub-part coverage...",
+    "Auditing question directives, core demands, and structural balance...",
+    "Evaluating constitutional articles, case laws, and diagrammatic value-adds...",
+    "Calibrating score bands against authentic UPSC bell-curve percentiles...",
+    "Finalizing page-by-page margin remarks and topper blueprint..."
+  ];
+  let statusStepIdx = 0;
+
   if (window.forensicProgressTimer) clearInterval(window.forensicProgressTimer);
   window.forensicProgressTimer = setInterval(() => {
-    if (progress < 98) {
-      const increment = progress < 35 ? 4.0 : progress < 65 ? 2.5 : progress < 88 ? 1.2 : 0.4;
-      progress = Math.min(98, progress + increment);
+    if (progress < 99) {
+      let increment = 0.5;
+      if (progress < 35) increment = 2.8;
+      else if (progress < 65) increment = 1.6;
+      else if (progress < 85) increment = 0.8;
+      else if (progress < 94) increment = 0.35;
+      else increment = 0.1; // Smooth micro-progress near completion so it NEVER freezes
+      
+      progress = Math.min(99, progress + increment);
       setProgressUI(progress);
 
       if (progress >= 25 && progress < 55) {
-        setStepText("Auditing question directives, core demands, and structural balance...");
         setPillState(p1, "done", "✓"); setPillState(sp1, "done", "✓");
         setPillState(p2, "active", "●"); setPillState(sp2, "active", "●");
       } else if (progress >= 55 && progress < 80) {
-        setStepText("Verifying constitutional articles, case laws, and diagrammatic value-adds...");
         setPillState(p2, "done", "✓"); setPillState(sp2, "done", "✓");
         setPillState(p3, "active", "●"); setPillState(sp3, "active", "●");
-      } else if (progress >= 80 && progress < 92) {
-        setStepText("Calibrating score bands, topper benchmark percentiles, and action plan...");
-        setPillState(p3, "done", "✓"); setPillState(sp3, "done", "✓");
-        setPillState(p4, "active", "●"); setPillState(sp4, "active", "●");
-      } else if (progress >= 92) {
-        setStepText("Synthesizing UPSC Bell-Curve percentile & compiling forensic marksheet...");
+      } else if (progress >= 80) {
         setPillState(p3, "done", "✓"); setPillState(sp3, "done", "✓");
         setPillState(p4, "active", "●"); setPillState(sp4, "active", "●");
       }
     }
-  }, 350);
+  }, 400);
+
+  if (window.forensicStatusTimer) clearInterval(window.forensicStatusTimer);
+  setStepText(dynamicStatusSteps[0]);
+  window.forensicStatusTimer = setInterval(() => {
+    statusStepIdx = (statusStepIdx + 1) % dynamicStatusSteps.length;
+    setStepText(dynamicStatusSteps[statusStepIdx]);
+  }, 4500);
 
   let tipIdx = 0;
   if (window.forensicTipTimer) clearInterval(window.forensicTipTimer);
@@ -497,6 +513,10 @@ function stopForensicProgress() {
   if (window.forensicProgressTimer) {
     clearInterval(window.forensicProgressTimer);
     window.forensicProgressTimer = null;
+  }
+  if (window.forensicStatusTimer) {
+    clearInterval(window.forensicStatusTimer);
+    window.forensicStatusTimer = null;
   }
   if (window.forensicTipTimer) {
     clearInterval(window.forensicTipTimer);

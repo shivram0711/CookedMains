@@ -4941,17 +4941,19 @@ _INACTIVE_GEMINI_MODELS: set = {
 }
 _DISCOVERED_GEMINI_MODELS_CACHE: List[str] = []
 _DISCOVERED_GEMINI_MODELS_TS: float = 0.0
+_BUSY_MODEL_COOLDOWNS: Dict[str, float] = {}
 
 
 def record_gemini_model_outcome(model_name: str, success: bool, error_str: str = "") -> None:
-    """Tracks live working models and permanently blacklists deprecated/404 models in memory."""
-    global _LAST_WORKING_GEMINI_MODEL, _DISCOVERED_GEMINI_MODELS_TS
+    """Tracks live working models and temporarily cools down congested models (503/429) to eliminate 10s wait times."""
+    global _LAST_WORKING_GEMINI_MODEL, _DISCOVERED_GEMINI_MODELS_TS, _BUSY_MODEL_COOLDOWNS
     clean_name = str(model_name or "").replace("models/", "").strip()
     if not clean_name:
         return
     if success:
         _LAST_WORKING_GEMINI_MODEL = clean_name
         _INACTIVE_GEMINI_MODELS.discard(clean_name)
+        _BUSY_MODEL_COOLDOWNS.pop(clean_name, None)
         return
 
     err_low = str(error_str or "").lower()
@@ -4959,20 +4961,25 @@ def record_gemini_model_outcome(model_name: str, success: bool, error_str: str =
         _INACTIVE_GEMINI_MODELS.add(clean_name)
         if _LAST_WORKING_GEMINI_MODEL == clean_name:
             _LAST_WORKING_GEMINI_MODEL = None
-        # Trigger fresh discovery from client.models.list() if needed
         _DISCOVERED_GEMINI_MODELS_TS = 0.0
+    elif any(tok in err_low for tok in ["503", "unavailable", "high demand", "resource_exhausted", "quota", "429"]):
+        # Temporarily back off busy/congested model for 5 minutes so subsequent evaluations do not suffer a 10s timeout
+        _BUSY_MODEL_COOLDOWNS[clean_name] = time.time() + 300
+        if _LAST_WORKING_GEMINI_MODEL == clean_name:
+            _LAST_WORKING_GEMINI_MODEL = None
 
 
 def get_active_gemini_models(client: Any = None, force_refresh: bool = False) -> List[str]:
-    """Returns an ordered list of active Gemini models, combining verified live cache,
-    evergreen rolling aliases, and dynamic API model discovery via client.models.list()."""
-    global _DISCOVERED_GEMINI_MODELS_CACHE, _DISCOVERED_GEMINI_MODELS_TS
+    """Returns an ordered list of active Gemini models, prioritizing high-speed responsive models and cooling down busy ones."""
+    global _DISCOVERED_GEMINI_MODELS_CACHE, _DISCOVERED_GEMINI_MODELS_TS, _BUSY_MODEL_COOLDOWNS
     ordered: List[str] = []
-
-    if _LAST_WORKING_GEMINI_MODEL and _LAST_WORKING_GEMINI_MODEL not in _INACTIVE_GEMINI_MODELS:
-        ordered.append(_LAST_WORKING_GEMINI_MODEL)
-
     now_ts = time.time()
+
+    # 1. Prioritize champion model if not in cooldown
+    if _LAST_WORKING_GEMINI_MODEL and _LAST_WORKING_GEMINI_MODEL not in _INACTIVE_GEMINI_MODELS:
+        if _BUSY_MODEL_COOLDOWNS.get(_LAST_WORKING_GEMINI_MODEL, 0) <= now_ts:
+            ordered.append(_LAST_WORKING_GEMINI_MODEL)
+
     if client is not None and (force_refresh or not _DISCOVERED_GEMINI_MODELS_CACHE or (now_ts - _DISCOVERED_GEMINI_MODELS_TS) > 1800):
         try:
             discovered_flash: List[str] = []
@@ -4996,24 +5003,44 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
         except Exception:
             pass
 
-    # 2. Add dynamically discovered models first (newest Google releases get priority automatically)
+    # 2. Add dynamically discovered models (prioritizing non-cooling-down models)
+    cooldown_models = []
+    ready_discovered = []
     for dm in _DISCOVERED_GEMINI_MODELS_CACHE:
         if dm not in _INACTIVE_GEMINI_MODELS and dm not in ordered:
-            ordered.append(dm)
+            if _BUSY_MODEL_COOLDOWNS.get(dm, 0) > now_ts:
+                cooldown_models.append(dm)
+            else:
+                ready_discovered.append(dm)
 
-    # 3. Static priority list acts as fallback
+    # Ensure gemini-3-flash-preview (fastest multimodal) is prioritized first among ready models
+    if "gemini-3-flash-preview" in ready_discovered:
+        ready_discovered.remove("gemini-3-flash-preview")
+        ready_discovered.insert(0, "gemini-3-flash-preview")
+
+    ordered.extend(ready_discovered)
+
+    # 3. Static priority list acts as guaranteed fallback
     static_priority = [
-        "gemini-3.8-flash",
         "gemini-3-flash-preview",
-        "gemini-3.6-flash",
         "gemini-flash-lite-latest",
+        "gemini-3.6-flash",
         "gemini-3.1-flash-lite",
         "gemini-3.5-flash",
+        "gemini-3.8-flash",
         "gemini-flash-latest",
     ]
     for m in static_priority:
         if m not in _INACTIVE_GEMINI_MODELS and m not in ordered:
-            ordered.append(m)
+            if _BUSY_MODEL_COOLDOWNS.get(m, 0) > now_ts:
+                cooldown_models.append(m)
+            else:
+                ordered.append(m)
+
+    # 4. Append cooling down models at the very end as last resort
+    for cm in cooldown_models:
+        if cm not in ordered and cm not in _INACTIVE_GEMINI_MODELS:
+            ordered.append(cm)
 
     return ordered
 

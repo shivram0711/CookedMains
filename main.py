@@ -1664,10 +1664,10 @@ async def evaluate_answer(
                         pdf = pdfium.PdfDocument(content)
                         for page in pdf:
                             pil_img = page.render(scale=1.4).to_pil().convert("RGB")
-                            if max(pil_img.size) > 1200:
-                                pil_img.thumbnail((1200, 1200))
+                            if max(pil_img.size) > 1024:
+                                pil_img.thumbnail((1024, 1024))
                             buf = io.BytesIO()
-                            pil_img.save(buf, format="JPEG", quality=76)
+                            pil_img.save(buf, format="JPEG", quality=70)
                             jpeg_bytes = buf.getvalue()
                             b64 = base64.b64encode(jpeg_bytes).decode("utf-8")
                             uploaded_page_previews.append(f"data:image/jpeg;base64,{b64}")
@@ -1687,10 +1687,10 @@ async def evaluate_answer(
                         except Exception:
                             pass
                         pil_img = pil_img.convert("RGB")
-                        if max(pil_img.size) > 1200:
-                            pil_img.thumbnail((1200, 1200))
+                        if max(pil_img.size) > 1024:
+                            pil_img.thumbnail((1024, 1024))
                         buf = io.BytesIO()
-                        pil_img.save(buf, format="JPEG", quality=76)
+                        pil_img.save(buf, format="JPEG", quality=70)
                         jpeg_bytes = buf.getvalue()
                         b64 = base64.b64encode(jpeg_bytes).decode("utf-8")
                         uploaded_page_previews.append(f"data:image/jpeg;base64,{b64}")
