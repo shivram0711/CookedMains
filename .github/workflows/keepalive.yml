@@ -1,0 +1,25 @@
+name: Cooked Mains Keep-Alive & Health Ping
+
+on:
+  schedule:
+    # Run every 10 minutes to prevent Render free-tier spin-down (15-min idle timeout)
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  ping-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping Health Endpoint
+        run: |
+          echo "Pinging https://cookedmains.com/health ..."
+          RESPONSE=$(curl -s -L --max-time 85 -w "\nHTTP_STATUS:%{http_code}\nTIME_TOTAL:%{time_total}s\n" https://cookedmains.com/health || true)
+          echo "$RESPONSE"
+          if echo "$RESPONSE" | grep -q "HTTP_STATUS:200"; then
+            echo "✅ Website is healthy and awake!"
+          else
+            echo "⚠️ Non-200 response or cold-start in progress. Retrying after 15 seconds..."
+            sleep 15
+            curl -s -f -L --max-time 60 https://cookedmains.com/health || true
+          fi

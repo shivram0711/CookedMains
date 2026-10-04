@@ -186,6 +186,8 @@ async def _self_keep_alive_loop():
 async def _startup_keep_alive():
     asyncio.create_task(_self_keep_alive_loop())
 
+@app.get("/health")
+@app.head("/health")
 @app.get("/healthz")
 @app.head("/healthz")
 @app.get("/ping")
