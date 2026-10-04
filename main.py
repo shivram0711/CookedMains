@@ -2080,7 +2080,7 @@ async def evaluate_answer(
                         continue
 
                     failed_key = False
-                    candidate_models = get_active_gemini_models(client)[:3]
+                    candidate_models = get_active_gemini_models(client)[:5]
                     for model_candidate in candidate_models:
                         if time.time() - eval_loop_start > 70:
                             break

@@ -4928,7 +4928,7 @@ async def evaluate_with_gemini(
                 continue
 
             failed_auth = False
-            candidate_models = get_active_gemini_models(client)[:3]
+            candidate_models = get_active_gemini_models(client)[:5]
             for model_name in candidate_models:
                 if time.time() - sync_start > 65:
                     break
@@ -5012,6 +5012,15 @@ _INACTIVE_GEMINI_MODELS: set = {
     "gemini-3.1-pro-preview-customtools",
     "gemini-3.6-flash",
     "gemini-3.1-flash-lite",
+    "gemini-omni-flash-preview",
+    "gemini-omni-1.1-flash",
+    "gemini-omni-flash",
+    "gemini-3.5-transcribe",
+    "antigravity-preview-05-2026",
+    "antigravity-preview-09-2026",
+    "antigravity-preview-latest",
+    "deep-research-max-preview-04-2026",
+    "deep-research-preview-04-2026",
 }
 _DISCOVERED_GEMINI_MODELS_CACHE: List[str] = []
 _DISCOVERED_GEMINI_MODELS_TS: float = 0.0
@@ -5066,7 +5075,8 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
                     continue
                 if any(bad in mod_name for bad in [
                     "1.5", "2.0", "2.5", "pro", "tts", "audio", "customtools", "image", "embedding",
-                    "er-2", "computer-use", "lyria", "gemma", "robotics", "research", "banana"
+                    "er-2", "computer-use", "lyria", "gemma", "robotics", "research", "banana", "omni",
+                    "transcribe", "antigravity", "preview-0", "preview-1", "preview-2"
                 ]):
                     continue
                 if "flash" in mod_name:
@@ -5087,22 +5097,25 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
             else:
                 ready_discovered.append(dm)
 
-    # Ensure gemini-3-flash-preview (fastest multimodal) is prioritized first among ready models
-    if "gemini-3-flash-preview" in ready_discovered:
+    # Ensure gemini-3.5-flash and gemini-3-flash-preview are prioritized first among ready models
+    if "gemini-3.5-flash" in ready_discovered:
+        ready_discovered.remove("gemini-3.5-flash")
+        ready_discovered.insert(0, "gemini-3.5-flash")
+    if "gemini-3-flash-preview" in ready_discovered and "gemini-3-flash-preview" not in ready_discovered[:1]:
         ready_discovered.remove("gemini-3-flash-preview")
-        ready_discovered.insert(0, "gemini-3-flash-preview")
+        ready_discovered.insert(1, "gemini-3-flash-preview")
 
     ordered.extend(ready_discovered)
 
     # 3. Static priority list acts as guaranteed fallback, ordered by verified response latency
     static_priority = [
-        "gemini-3-flash-preview",
         "gemini-3.5-flash",
+        "gemini-3-flash-preview",
+        "gemini-3.5-flash-lite",
         "gemini-flash-lite-latest",
         "gemini-flash-latest",
         "gemini-3.1-flash-lite-preview",
         "gemini-3.7-flash",
-        "gemini-3.8-flash",
     ]
     for m in static_priority:
         if m not in _INACTIVE_GEMINI_MODELS and m not in ordered:
