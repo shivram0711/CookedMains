@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # Cooked Mains AI — Production Dockerfile
 # Optimized for Render.com / Railway / Fly.io / Self-Hosted VPS
 # ==============================================================================
@@ -8,7 +8,7 @@ FROM python:3.11-slim
 # Prevent python from writing pyc files and enable unbuffered logging
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PORT=8000 \
+    PORT=10000 \
     DATA_DIR=/data
 
 # Install system dependencies if required for network and certificates
@@ -32,8 +32,9 @@ RUN mkdir -p /data
 # Copy platform source code
 COPY . .
 
-# Expose default port
+# Expose Render standard port and fallback port
+EXPOSE 10000
 EXPOSE 8000
 
-# Start production server
-CMD ["sh", "-c", "python -m uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]
+# Start production server with dynamic port binding (Render default: 10000)
+CMD ["sh", "-c", "python -m uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000} --workers 1"]

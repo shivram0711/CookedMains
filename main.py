@@ -178,8 +178,11 @@ async def _startup_keep_alive():
     asyncio.create_task(_self_keep_alive_loop())
 
 @app.get("/healthz")
+@app.head("/healthz")
 @app.get("/ping")
+@app.head("/ping")
 @app.get("/api/health")
+@app.head("/api/health")
 async def health_check():
     """24/7 Health Check, UptimeRobot & Supabase Keep-Alive Heartbeat Endpoint."""
     # If more than 25 minutes have elapsed since the last Supabase database query, trigger one in the background
@@ -2464,7 +2467,7 @@ async def list_user_test_series(email: str = "aspirant@upsc.gov.in"):
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", 10000))
     host = os.environ.get("HOST", "0.0.0.0")
     print(f"Starting Cooked Mains AI server on http://{host}:{port} ...")
     uvicorn.run("main:app", host=host, port=port, reload=False)
