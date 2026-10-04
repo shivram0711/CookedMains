@@ -4742,9 +4742,9 @@ def build_resilient_fallback_evaluation(
     and passes it through normalize_evaluation_data so the student's upload never crashes with an error dialog.
     """
     mm = int(max_marks or 10)
-    clean_q = (question or "UPSC Mains Analytical Question").strip()
-    if not clean_q or "extract question printed" in clean_q.lower():
-        clean_q = "Critically examine the institutional mechanisms, policy reforms, and socio-economic implications associated with this General Studies theme."
+    clean_q = (question or "").strip()
+    if not clean_q or "extract question printed" in clean_q.lower() or "upsc mains" in clean_q.lower():
+        clean_q = "General Studies Mains Question"
 
     is_rewrite_eval = isinstance(previous_evaluation, dict) and len(previous_evaluation) > 0
     prev_score = float(previous_evaluation.get("overall_score", round(mm * 0.42, 1))) if is_rewrite_eval else round(mm * 0.45, 1)
@@ -4859,8 +4859,7 @@ async def evaluate_with_gemini(
                     err_low = err_str.lower()
                     if any(t in err_low for t in [
                         "api_key_invalid", "api key not valid", "unauthenticated",
-                        "permission_denied", "access_token_type_unsupported",
-                        "resource_exhausted", "quota", "429", "rate limit", "too many requests"
+                        "permission_denied", "forbidden", "access_token_type_unsupported"
                     ]):
                         failed_auth = True
                         break
@@ -4870,7 +4869,7 @@ async def evaluate_with_gemini(
                 continue
 
             # If static/cached candidates failed, force a live model refresh from client.models.list()
-            for model_name in get_active_gemini_models(client, force_refresh=True)[:2]:
+            for model_name in get_active_gemini_models(client, force_refresh=True):
                 if model_name in candidate_models:
                     continue
                 try:
@@ -4915,6 +4914,12 @@ _INACTIVE_GEMINI_MODELS: set = {
     "gemini-2.5-flash",
     "gemini-2.5-flash-lite",
     "gemini-2.5-pro",
+    "gemini-pro-latest",
+    "gemini-3.1-pro-preview",
+    "gemini-2.5-flash-image",
+    "gemini-3-pro-image",
+    "gemini-3-pro-image-preview",
+    "gemini-3.1-pro-preview-customtools",
 }
 _DISCOVERED_GEMINI_MODELS_CACHE: List[str] = []
 _DISCOVERED_GEMINI_MODELS_TS: float = 0.0
@@ -4950,14 +4955,13 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
         ordered.append(_LAST_WORKING_GEMINI_MODEL)
 
     static_priority = [
-        "gemini-3.6-flash",
-        "gemini-3.1-flash-lite",
-        "gemini-flash-lite-latest",
-        "gemini-flash-latest",
         "gemini-3.8-flash",
-        "gemini-3.7-flash",
+        "gemini-3-flash-preview",
+        "gemini-3.6-flash",
+        "gemini-flash-lite-latest",
+        "gemini-3.1-flash-lite",
         "gemini-3.5-flash",
-        "gemini-3.5-flash-lite",
+        "gemini-flash-latest",
     ]
     for m in static_priority:
         if m not in _INACTIVE_GEMINI_MODELS and m not in ordered:
@@ -4967,7 +4971,6 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
     if client is not None and (force_refresh or not _DISCOVERED_GEMINI_MODELS_CACHE or (now_ts - _DISCOVERED_GEMINI_MODELS_TS) > 1800):
         try:
             discovered_flash: List[str] = []
-            discovered_pro: List[str] = []
             for m_obj in client.models.list():
                 actions = getattr(m_obj, "supported_actions", None) or []
                 if "generateContent" not in actions:
@@ -4976,17 +4979,14 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
                 if not mod_name or mod_name in _INACTIVE_GEMINI_MODELS:
                     continue
                 if any(bad in mod_name for bad in [
-                    "1.5", "2.0", "2.5", "tts", "audio", "customtools", "image", "embedding",
-                    "er-2", "computer-use", "lyria", "gemma", "robotics", "research"
+                    "1.5", "2.0", "2.5", "pro", "tts", "audio", "customtools", "image", "embedding",
+                    "er-2", "computer-use", "lyria", "gemma", "robotics", "research", "banana"
                 ]):
                     continue
                 if "flash" in mod_name:
                     discovered_flash.append(mod_name)
-                elif "pro" in mod_name:
-                    discovered_pro.append(mod_name)
             discovered_flash.sort(reverse=True)
-            discovered_pro.sort(reverse=True)
-            _DISCOVERED_GEMINI_MODELS_CACHE = discovered_flash + discovered_pro
+            _DISCOVERED_GEMINI_MODELS_CACHE = discovered_flash
             _DISCOVERED_GEMINI_MODELS_TS = now_ts
         except Exception:
             pass
@@ -4999,15 +4999,6 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
 
 def create_fast_gemini_client(api_key: str) -> Any:
-    """Creates a genai.Client with 1-attempt HTTP retry options and 25s timeout so dead/busy models fail-over in <150ms."""
-    try:
-        return genai.Client(
-            api_key=api_key,
-            http_options=types.HttpOptions(
-                timeout=25.0,
-                retry_options=types.HttpRetryOptions(attempts=1)
-            )
-        )
-    except Exception:
-        return genai.Client(api_key=api_key)
+    """Creates a standard genai.Client with native SDK connection management for large multi-page copy uploads."""
+    return genai.Client(api_key=api_key)
 

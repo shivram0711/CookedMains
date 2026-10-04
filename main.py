@@ -1970,7 +1970,18 @@ async def evaluate_answer(
             directive_info = detect_directive(question)
 
             if not keys_to_try:
-                evaluation_result = build_resilient_fallback_evaluation(question, detected_paper, max_marks, prev_eval_dict)
+                return JSONResponse(
+                    status_code=503,
+                    content={
+                        "status": "service_unavailable",
+                        "error_type": "evaluator_busy",
+                        "title": "Evaluator Server Notice",
+                        "message": "AI evaluation nodes are currently initializing. Please try again in 30 seconds.",
+                        "warning": "🛡️ Zero Credits Deducted: Your daily evaluation limit is 100% intact.",
+                        "action_hint": "Please click 'Evaluate Copy' in a moment.",
+                        "credits_deducted": 0
+                    }
+                )
             else:
                 current_affairs_context = await get_dynamic_grounded_context(question, detected_paper)
                 evaluator_prompt_text = build_evaluation_prompt(
@@ -2006,7 +2017,7 @@ async def evaluate_answer(
                         continue
 
                     failed_key = False
-                    candidate_models = get_active_gemini_models(client)[:3]
+                    candidate_models = get_active_gemini_models(client)
                     for model_candidate in candidate_models:
                         try:
                             response = client.models.generate_content(
@@ -2028,8 +2039,7 @@ async def evaluate_answer(
                             record_gemini_model_outcome(model_candidate, False, err_s)
                             if any(t in err_s.lower() for t in [
                                 "api_key_invalid", "api key not valid", "unauthenticated",
-                                "permission_denied", "resource_exhausted", "quota", "429",
-                                "rate limit", "too many requests"
+                                "permission_denied", "forbidden", "access_token_type_unsupported"
                             ]):
                                 failed_key = True
                                 break
@@ -2040,8 +2050,19 @@ async def evaluate_answer(
                         break
 
                 if not evaluation_result:
-                    print("[RESILIENCE ENGINE] All external Gemini endpoints temporarily busy -> activating deterministic UPSC evaluation synthesizer.")
-                    evaluation_result = build_resilient_fallback_evaluation(question, detected_paper, max_marks, prev_eval_dict)
+                    print("[EVALUATOR ENGINE] All external Gemini endpoints temporarily unavailable.")
+                    return JSONResponse(
+                        status_code=503,
+                        content={
+                            "status": "service_busy",
+                            "error_type": "evaluator_busy",
+                            "title": "Evaluator Servers Experiencing High Traffic",
+                            "message": "All AI vision evaluation nodes are temporarily occupied with heavy copy volume. Please click 'Evaluate Copy' again in a few moments.",
+                            "warning": "🛡️ Zero Credits Deducted: Your daily evaluation limit is 100% intact.",
+                            "action_hint": "Please try again in 30 seconds. Your uploaded pages are preserved.",
+                            "credits_deducted": 0
+                        }
+                    )
 
         # AI Vision Blank Sheet Verification Check
         is_ai_blank = bool(evaluation_result.get("is_blank_sheet")) or (

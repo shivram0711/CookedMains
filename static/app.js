@@ -1114,7 +1114,7 @@ window.parseEvaluationResponse = async function parseEvaluationResponse(response
   }
 
   if (!response.ok) {
-    if (data && (data.error_type === "wrong_answersheet" || data.error_type === "wrong_paper" || data.error_type === "wrong_marks" || data.error_type === "intake_mismatch" || data.error_type === "identical_copy" || data.error_type === "blank_sheet" || data.error_type === "rewrite_quota_exhausted" || data.error_type === "single_rewrite_limit")) {
+    if (data && (data.error_type === "wrong_answersheet" || data.error_type === "wrong_paper" || data.error_type === "wrong_marks" || data.error_type === "intake_mismatch" || data.error_type === "identical_copy" || data.error_type === "blank_sheet" || data.error_type === "rewrite_quota_exhausted" || data.error_type === "single_rewrite_limit" || data.error_type === "evaluator_busy")) {
       return { ok: false, guardModal: data };
     }
     let errorDetail = "";
@@ -1502,13 +1502,15 @@ window.showGuardModal = function(data) {
       subtitleEl.textContent = "Subject / Paper Mismatch";
     } else if (data.error_type === "intake_mismatch") {
       subtitleEl.textContent = "Subject & Marks Discrepancy Guard Active";
+    } else if (data.error_type === "evaluator_busy") {
+      subtitleEl.textContent = "AI Vision Traffic Surge — Zero Credits Deducted";
     } else {
       subtitleEl.textContent = "Rewrite Loophole Guard Active";
     }
   }
   if (msgEl) msgEl.textContent = data.message || "";
   
-  if (data.error_type === "blank_sheet") {
+  if (data.error_type === "blank_sheet" || data.error_type === "evaluator_busy") {
     if (compBox) compBox.classList.add("hidden");
   } else if (data.error_type === "intake_mismatch") {
     if (compBox) compBox.classList.remove("hidden");
