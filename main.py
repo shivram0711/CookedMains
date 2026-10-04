@@ -259,13 +259,22 @@ async def contact_us_page():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "contact-us.html"))
 
 @app.get("/robots.txt")
+@app.get("/robot.txt")
 async def robots_txt():
     return FileResponse(
         os.path.join(os.path.dirname(__file__), "static", "robots.txt"),
         media_type="text/plain"
     )
 
+@app.get("/sitemap-index.xml")
+async def sitemap_index_xml():
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "static", "sitemap-index.xml"),
+        media_type="application/xml"
+    )
+
 @app.get("/sitemap.xml")
+@app.get("/sitemap-0.xml")
 async def sitemap_xml():
     return FileResponse(
         os.path.join(os.path.dirname(__file__), "static", "sitemap.xml"),
