@@ -110,9 +110,16 @@ function switchTab(tabId) {
   });
 }
 
-async function loadAllAdminData() {
+async function loadAllAdminData(force = false) {
+  if (force) {
+    try {
+      await fetch("/api/admin/sync", { method: "POST" });
+    } catch (e) {
+      console.warn("Manual sync error:", e);
+    }
+  }
   await Promise.all([
-    loadAdminStats(),
+    loadAdminStats(force),
     loadAdminActivity(),
     loadAspirants(),
     loadAdminEvaluations(),
@@ -121,9 +128,9 @@ async function loadAllAdminData() {
   safeCreateIcons();
 }
 
-async function loadAdminStats() {
+async function loadAdminStats(forceSync = false) {
   try {
-    const res = await fetch("/api/admin/stats");
+    const res = await fetch(`/api/admin/stats?sync=${forceSync ? 1 : 0}`);
     if (!res.ok) return;
     const stats = await res.json();
 

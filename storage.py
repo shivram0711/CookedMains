@@ -2526,15 +2526,317 @@ def log_platform_activity(
         print(f"Activity log notice: {e}")
 
 
-def get_admin_dashboard_stats() -> Dict[str, Any]:
+_last_supabase_sync_ts: float = 0.0
+
+def is_created_today_ist(ts_str: Optional[str]) -> bool:
+    """Determines if a timestamp string falls on today in Indian Standard Time (IST, UTC+5:30)."""
+    if not ts_str:
+        return False
+    try:
+        clean_s = str(ts_str).strip()
+        if not clean_s:
+            return False
+        ist_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
+        ist_today_str = ist_now.strftime("%Y-%m-%d")
+
+        if "T" in clean_s or "Z" in clean_s or "+" in clean_s:
+            iso_s = clean_s.replace("Z", "+00:00")
+            dt = datetime.fromisoformat(iso_s)
+        elif len(clean_s) >= 19 and clean_s[10] == " ":
+            dt = datetime.strptime(clean_s[:19], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+        elif len(clean_s) >= 10:
+            return clean_s[:10] == ist_today_str
+        else:
+            return False
+
+        ist_tz = timezone(timedelta(hours=5, minutes=30))
+        if dt.tzinfo:
+            dt_ist = dt.astimezone(ist_tz)
+        else:
+            dt_ist = (dt + timedelta(hours=5, minutes=30)).replace(tzinfo=ist_tz)
+        return dt_ist.strftime("%Y-%m-%d") == ist_today_str
+    except Exception:
+        return False
+
+
+def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
+    """
+    Synchronizes persistent user accounts, profiles, and evaluated answer sheets from Supabase
+    into local SQLite with automatic deduplication, debounce caching (45s), and zero data loss across Render redeploys.
+    """
+    global _last_supabase_sync_ts
+    now = time.time()
+    if not force and (now - _last_supabase_sync_ts < 45.0):
+        return {"status": "skipped", "reason": "debounce_active", "age_seconds": round(now - _last_supabase_sync_ts, 1)}
+
+    if supabase is None:
+        return {"status": "skipped", "reason": "supabase_not_initialized"}
+
+    synced_users_count = 0
+    synced_evals_count = 0
+
+    try:
+        # 1. Fetch user accounts from Supabase (__USER_ACCOUNT_PROFILE__)
+        user_rows = []
+        try:
+            res_u = supabase.table("evaluations").select(
+                "id, user_id, evaluation_json, created_at"
+            ).eq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(5000).execute()
+            if res_u and res_u.data:
+                user_rows = res_u.data
+        except Exception as ue:
+            print(f"Notice: Supabase fetch users for sync notice: {ue}")
+
+        # 2. Fetch answer evaluations from Supabase (question_title != '__USER_ACCOUNT_PROFILE__')
+        eval_rows = []
+        try:
+            res_e = supabase.table("evaluations").select(
+                "id, user_id, question_title, file_url, total_marks, evaluation_json, created_at"
+            ).neq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(5000).execute()
+            if res_e and res_e.data:
+                eval_rows = res_e.data
+        except Exception as ee:
+            print(f"Notice: Supabase fetch evals for sync notice: {ee}")
+
+        # Map user_id <-> email
+        user_id_to_email: Dict[str, str] = {}
+        email_to_user_id: Dict[str, str] = {}
+        parsed_users: List[Dict[str, Any]] = []
+
+        for r in user_rows:
+            ev = r.get("evaluation_json") or {}
+            if isinstance(ev, str):
+                try:
+                    ev = json.loads(ev)
+                except Exception:
+                    ev = {}
+            if ev.get("_is_system_marker"):
+                continue
+
+            email = canonicalize_email(ev.get("email") or "")
+            if not email or "@" not in email:
+                continue
+
+            det_id = str(r.get("user_id") or ev.get("id") or get_deterministic_user_id(email))
+            user_id_to_email[det_id] = email
+            email_to_user_id[email] = det_id
+
+            name = (ev.get("name") or email.split("@")[0].title()).strip()
+            avatar = ev.get("avatar") or f"https://api.dicebear.com/7.x/bottts/svg?seed={email}"
+            free_credits = int(ev.get("free_credits") if ev.get("free_credits") is not None else 15)
+            free_rewrites = int(ev.get("free_rewrites") if ev.get("free_rewrites") is not None else 5)
+            is_pro = int(ev.get("is_pro") if ev.get("is_pro") is not None else 1)
+            target_year = str(ev.get("target_year") or "2026")
+            optional_subj = str(ev.get("optional_subject") or "PSIR")
+            pw_hash = ev.get("password_hash") or None
+            plan_tier = str(ev.get("plan_tier") or "free")
+            meta_device_id = str(ev.get("_meta_device_id") or "").strip()
+            created_at = str(r.get("created_at") or ev.get("created_at") or datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"))
+
+            parsed_users.append({
+                "id": det_id,
+                "email": email,
+                "name": name,
+                "avatar": avatar,
+                "free_credits": free_credits,
+                "is_pro": is_pro,
+                "free_rewrites": free_rewrites,
+                "target_year": target_year,
+                "optional_subject": optional_subj,
+                "password_hash": pw_hash,
+                "plan_tier": plan_tier,
+                "device_id": meta_device_id,
+                "created_at": created_at
+            })
+
+        parsed_evals: List[Dict[str, Any]] = []
+        for r in eval_rows:
+            q_title = str(r.get("question_title") or "").strip()
+            if q_title.startswith("__"):
+                continue
+            ev = r.get("evaluation_json") or {}
+            if isinstance(ev, str):
+                try:
+                    ev = json.loads(ev)
+                except Exception:
+                    ev = {}
+            if ev.get("_is_account_profile") or ev.get("_is_system_marker"):
+                continue
+
+            eval_id = str(r.get("id") or "")
+            if not eval_id:
+                continue
+
+            u_id = str(r.get("user_id") or "")
+            u_email = (ev.get("_meta_user_email") or user_id_to_email.get(u_id) or "").strip().lower()
+            if not u_email and u_id:
+                u_email = f"user_{u_id[:8]}@cookedmains.in"
+
+            if u_email and u_id and u_email not in email_to_user_id:
+                email_to_user_id[u_email] = u_id
+                user_id_to_email[u_id] = u_email
+                parsed_users.append({
+                    "id": u_id,
+                    "email": u_email,
+                    "name": u_email.split("@")[0].title(),
+                    "avatar": f"https://api.dicebear.com/7.x/bottts/svg?seed={u_email}",
+                    "free_credits": 15,
+                    "is_pro": 1,
+                    "free_rewrites": 5,
+                    "target_year": "2026",
+                    "optional_subject": "PSIR",
+                    "password_hash": None,
+                    "plan_tier": "free",
+                    "device_id": "",
+                    "created_at": str(r.get("created_at") or "")
+                })
+
+            paper = str(ev.get("_meta_paper") or ev.get("detected_paper") or "GS")
+            max_marks = int(r.get("total_marks") or ev.get("_meta_max_marks") or ev.get("max_marks") or 10)
+            score = float(ev.get("overall_score") or 0.0)
+            pct = round((score / max_marks) * 100, 1) if max_marks > 0 else 0.0
+            file_url = str(r.get("file_url") or "")
+            meta_pages = ev.get("_meta_pages") or ([file_url] if file_url else [])
+            thumbnail = str(ev.get("_meta_thumbnail") or (meta_pages[0] if meta_pages else file_url))
+            is_rewrite = int(ev.get("_meta_is_rewrite") or 0)
+            file_hash = str(ev.get("_meta_file_hash") or "")
+            baseline_eval_id = ev.get("_meta_baseline_eval_id")
+
+            authentic_ts = _resolve_authentic_created_at(
+                eval_id=eval_id,
+                evaluation_dict=ev,
+                forced_created_at=str(r.get("created_at") or ""),
+                question_text=q_title
+            )
+
+            parsed_evals.append({
+                "id": eval_id,
+                "user_id": u_id or (email_to_user_id.get(u_email) or get_deterministic_user_id(u_email)),
+                "user_email": u_email,
+                "created_at": authentic_ts,
+                "paper": paper,
+                "max_marks": max_marks,
+                "question": q_title or "UPSC Mains Answer Copy",
+                "overall_score": score,
+                "percentage": pct,
+                "evaluation_json": json.dumps(ev),
+                "pages_json": json.dumps(meta_pages),
+                "thumbnail": thumbnail,
+                "is_rewrite": is_rewrite,
+                "file_hash": file_hash,
+                "baseline_eval_id": baseline_eval_id,
+                "file_url": file_url
+            })
+
+        # 3. Batch apply to local SQLite DB
+        conn = get_db()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT id, email, free_credits, is_pro, free_rewrites FROM users")
+        existing_users_map = {row["email"].lower(): dict(row) for row in cursor.fetchall()}
+
+        for u in parsed_users:
+            em = u["email"].lower()
+            if em in existing_users_map:
+                cursor.execute("""
+                    UPDATE users SET
+                        id = ?,
+                        name = COALESCE(?, name),
+                        avatar = COALESCE(?, avatar),
+                        free_credits = MAX(free_credits, ?),
+                        is_pro = MAX(is_pro, ?),
+                        free_rewrites = MAX(free_rewrites, ?),
+                        target_year = COALESCE(?, target_year),
+                        optional_subject = COALESCE(?, optional_subject),
+                        password_hash = COALESCE(?, password_hash),
+                        plan_tier = COALESCE(?, plan_tier)
+                    WHERE LOWER(email) = ?
+                """, (
+                    u["id"], u["name"], u["avatar"], u["free_credits"], u["is_pro"],
+                    u["free_rewrites"], u["target_year"], u["optional_subject"],
+                    u["password_hash"], u["plan_tier"], em
+                ))
+            else:
+                cursor.execute("""
+                    INSERT OR REPLACE INTO users (
+                        id, email, name, avatar, free_credits, is_pro, free_rewrites,
+                        target_year, optional_subject, password_hash, plan_tier, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    u["id"], u["email"], u["name"], u["avatar"], u["free_credits"], u["is_pro"],
+                    u["free_rewrites"], u["target_year"], u["optional_subject"],
+                    u["password_hash"], u["plan_tier"], u["created_at"]
+                ))
+            if u.get("device_id") and len(u["device_id"]) >= 8:
+                try:
+                    cursor.execute(
+                        "INSERT OR IGNORE INTO device_bindings (device_id, bound_email) VALUES (?, ?)",
+                        (u["device_id"], em)
+                    )
+                except Exception:
+                    pass
+            synced_users_count += 1
+
+        for ev in parsed_evals:
+            cursor.execute("""
+                INSERT OR REPLACE INTO evaluations (
+                    id, user_id, user_email, created_at, paper, max_marks, question,
+                    overall_score, percentage, evaluation_json, pages_json, thumbnail,
+                    is_rewrite, file_hash, has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                ev["id"], ev["user_id"], ev["user_email"], ev["created_at"], ev["paper"],
+                ev["max_marks"], ev["question"], ev["overall_score"], ev["percentage"],
+                ev["evaluation_json"], ev["pages_json"], ev["thumbnail"], ev["is_rewrite"],
+                ev["file_hash"], 0, None, ev["baseline_eval_id"], ev["file_url"]
+            ))
+            synced_evals_count += 1
+
+        conn.commit()
+        conn.close()
+
+        _last_supabase_sync_ts = time.time()
+        return {
+            "status": "success",
+            "synced_users": synced_users_count,
+            "synced_evaluations": synced_evals_count,
+            "timestamp": _last_supabase_sync_ts
+        }
+    except Exception as e:
+        print(f"Notice: sync_supabase_to_sqlite error: {e}")
+        return {"status": "error", "error": str(e)}
+
+
+def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
+    try:
+        sync_supabase_to_sqlite(force=force_sync)
+    except Exception as se:
+        print(f"Admin stats Supabase sync notice: {se}")
+
     conn = get_db()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT COUNT(*) as c FROM users")
+    cursor.execute("SELECT COUNT(*) as c FROM users WHERE email NOT LIKE '__%'")
     total_aspirants = cursor.fetchone()["c"]
     
-    cursor.execute("SELECT COUNT(*) as c FROM evaluations")
-    total_evals = cursor.fetchone()["c"]
+    cursor.execute("""
+        SELECT created_at, user_email 
+        FROM evaluations 
+        WHERE question != '__USER_ACCOUNT_PROFILE__' AND question NOT LIKE '__SYSTEM_%'
+    """)
+    eval_rows = cursor.fetchall()
+    total_evals = len(eval_rows)
+
+    evals_today = 0
+    eval_users_today_set = set()
+    for er in eval_rows:
+        c_at = er["created_at"]
+        if is_created_today_ist(c_at):
+            evals_today += 1
+            u_em = (er["user_email"] or "").strip().lower()
+            if u_em:
+                eval_users_today_set.add(u_em)
+    eval_users_today = len(eval_users_today_set)
     
     cursor.execute("SELECT COUNT(*) as c FROM transactions WHERE status = 'pending'")
     pending_orders = cursor.fetchone()["c"]
@@ -2547,18 +2849,12 @@ def get_admin_dashboard_stats() -> Dict[str, Any]:
     total_feedbacks = fb["c"]
     avg_rating = round(fb["a"], 1)
 
-    ist_today_prefix = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
-    cursor.execute("SELECT COUNT(*) as c FROM evaluations WHERE created_at LIKE ?", (f"{ist_today_prefix}%",))
-    evals_today = cursor.fetchone()["c"]
-
-    cursor.execute("SELECT COUNT(DISTINCT user_email) as c FROM evaluations WHERE created_at LIKE ?", (f"{ist_today_prefix}%",))
-    eval_users_today = cursor.fetchone()["c"]
-
     conn.close()
 
+    ist_today_prefix = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
     now_ts = time.time()
     online_users = []
-    active_today_emails = set()
+    active_today_emails = set(eval_users_today_set)
     for k, pres in list(_LIVE_PRESENCE_MAP.items()):
         sec_ago = int(max(0, now_ts - float(pres.get("last_seen_ts", 0))))
         if str(pres.get("last_seen_ist", "")).startswith(ist_today_prefix):
@@ -2604,24 +2900,29 @@ def get_admin_dashboard_stats() -> Dict[str, Any]:
 
 
 def get_all_aspirants_admin(search: Optional[str] = None) -> List[Dict[str, Any]]:
+    try:
+        sync_supabase_to_sqlite(force=False)
+    except Exception as se:
+        print(f"Admin aspirants Supabase sync notice: {se}")
+
     conn = get_db()
     cursor = conn.cursor()
-    ist_today_prefix = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
     
     query = """
         SELECT 
             u.*,
             COUNT(e.id) as evaluations_count,
-            SUM(CASE WHEN e.created_at LIKE ? THEN 1 ELSE 0 END) as used_today_count,
             ROUND(AVG(e.percentage), 1) as avg_percentage,
             MAX(e.created_at) as last_eval_at
         FROM users u 
         LEFT JOIN evaluations e ON LOWER(u.email) = LOWER(e.user_email)
+            AND e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
+        WHERE u.email NOT LIKE '__%'
     """
-    params: List[Any] = [f"{ist_today_prefix}%"]
+    params: List[Any] = []
     if search and search.strip():
         term = f"%{search.strip().lower()}%"
-        query += " WHERE LOWER(u.name) LIKE ? OR LOWER(u.email) LIKE ? OR LOWER(u.id) LIKE ?"
+        query += " AND (LOWER(u.name) LIKE ? OR LOWER(u.email) LIKE ? OR LOWER(u.id) LIKE ?)"
         params.extend([term, term, term])
         
     query += " GROUP BY u.id ORDER BY COALESCE(MAX(e.created_at), u.created_at) DESC"
@@ -2641,10 +2942,11 @@ def get_all_aspirants_admin(search: Optional[str] = None) -> List[Dict[str, Any]
         d["last_seen_display"] = "🟢 Online Now" if d["is_online"] else (
             pres.get("last_seen_ist") if pres else (d.get("last_eval_at") or d.get("created_at") or "Never")
         )
-        used_today = int(d.get("used_today_count") or 0)
+        quota = get_user_daily_quota(em)
+        used_today = int(quota.get("daily_eval_used", 0))
         d["daily_used_today"] = used_today
         d["daily_limit"] = 15
-        d["daily_remaining_today"] = max(0, 15 - used_today)
+        d["daily_remaining_today"] = quota.get("daily_eval_remaining", max(0, 15 - used_today))
         d["avg_percentage"] = float(d.get("avg_percentage") or 0.0)
         result_list.append(d)
 
@@ -2655,18 +2957,24 @@ def get_all_aspirants_admin(search: Optional[str] = None) -> List[Dict[str, Any]
 
 def get_admin_evaluations_feed(email_filter: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
     """Returns recent evaluations across all aspirants (or filtered by email) for the Owner Inspector."""
+    try:
+        sync_supabase_to_sqlite(force=False)
+    except Exception as se:
+        print(f"Admin evals feed Supabase sync notice: {se}")
+
     conn = get_db()
     cursor = conn.cursor()
     sql = """
         SELECT 
-            e.id, e.user_email, u.name as user_name, e.created_at, e.paper,
+            e.id, e.user_email, COALESCE(u.name, e.user_email) as user_name, e.created_at, e.paper,
             e.max_marks, e.question, e.overall_score, e.percentage, e.is_rewrite
         FROM evaluations e
         LEFT JOIN users u ON LOWER(e.user_email) = LOWER(u.email)
+        WHERE e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
     """
     params: List[Any] = []
     if email_filter and email_filter.strip():
-        sql += " WHERE LOWER(e.user_email) LIKE ?"
+        sql += " AND LOWER(e.user_email) LIKE ?"
         params.append(f"%{email_filter.strip().lower()}%")
     sql += " ORDER BY e.created_at DESC LIMIT ?"
     params.append(int(limit))

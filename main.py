@@ -87,7 +87,8 @@ from storage import (
     restore_evaluations_to_vault,
     record_user_heartbeat, log_platform_activity,
     get_admin_evaluations_feed, get_admin_activity_stream,
-    reset_user_daily_quota_admin, delete_feedback_admin
+    reset_user_daily_quota_admin, delete_feedback_admin,
+    sync_supabase_to_sqlite, is_created_today_ist
 )
 import copy
 from news_ingestion import ingest_all_feeds, get_top_editorial_articles
@@ -148,12 +149,16 @@ def _execute_supabase_activity_ping() -> Dict[str, Any]:
 
 async def _self_keep_alive_loop():
     """Background task that pings Render and executes a real Supabase database query every 10 minutes to prevent Render spin-down and Supabase 7-day inactivity pause."""
-    # Run an immediate Supabase activity query 5 seconds after startup
+    # Run an immediate Supabase activity query & SQLite cloud hydration 5 seconds after startup
     await asyncio.sleep(5)
     try:
         await asyncio.to_thread(_execute_supabase_activity_ping)
     except Exception:
         pass
+    try:
+        await asyncio.to_thread(sync_supabase_to_sqlite, True)
+    except Exception as se:
+        print(f"Startup Supabase sync notice: {se}")
 
     while True:
         try:
@@ -169,6 +174,9 @@ async def _self_keep_alive_loop():
 
             # 2. Execute real Supabase database query so Supabase never marks project inactive
             await asyncio.to_thread(_execute_supabase_activity_ping)
+
+            # 3. Synchronize any fresh Supabase cloud records into local SQLite
+            await asyncio.to_thread(sync_supabase_to_sqlite, False)
         except Exception:
             pass
         await asyncio.sleep(600)  # Every 10 minutes
@@ -1408,25 +1416,33 @@ async def api_presence_heartbeat(request: Request):
         session_id=data.get("session_id")
     )
 
+@app.post("/api/admin/sync")
+@app.get("/api/admin/sync")
+async def api_admin_sync():
+    """Forces an immediate synchronization of persistent Supabase data into local SQLite."""
+    res = await asyncio.to_thread(sync_supabase_to_sqlite, True)
+    return {"status": "success", "sync_result": res}
+
 @app.get("/api/admin/stats")
-async def api_admin_stats():
+async def api_admin_stats(sync: Optional[int] = 0):
     """Returns overview platform analytics for the admin dashboard."""
-    return get_admin_dashboard_stats()
+    force_sync = bool(sync == 1)
+    return await asyncio.to_thread(get_admin_dashboard_stats, force_sync)
 
 @app.get("/api/admin/activity")
 async def api_admin_activity(limit: int = 60):
     """Returns real-time chronological activity stream across the platform."""
-    return get_admin_activity_stream(limit=limit)
+    return await asyncio.to_thread(get_admin_activity_stream, limit=limit)
 
 @app.get("/api/admin/evaluations")
 async def api_admin_evaluations(email: Optional[str] = None, limit: int = 50):
     """Returns recent evaluations across all aspirants (or filtered to a specific email)."""
-    return get_admin_evaluations_feed(email_filter=email, limit=limit)
+    return await asyncio.to_thread(get_admin_evaluations_feed, email, limit)
 
 @app.get("/api/admin/evaluation/{eval_id}")
 async def api_admin_get_evaluation(eval_id: str):
     """Returns the full evaluation dossier + handwritten pages for owner inspection."""
-    rec = get_evaluation_by_id(eval_id)
+    rec = await asyncio.to_thread(get_evaluation_by_id, eval_id)
     if not rec:
         raise HTTPException(status_code=404, detail="Evaluation copy not found.")
     return rec
@@ -1434,7 +1450,7 @@ async def api_admin_get_evaluation(eval_id: str):
 @app.get("/api/admin/aspirants")
 async def api_admin_aspirants(search: Optional[str] = None):
     """Returns list of registered aspirants with live status and daily credit usage."""
-    return get_all_aspirants_admin(search)
+    return await asyncio.to_thread(get_all_aspirants_admin, search)
 
 @app.post("/api/admin/aspirant/reset-daily")
 async def api_admin_reset_daily(request: Request):
