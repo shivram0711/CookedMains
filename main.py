@@ -234,6 +234,30 @@ async def demo_workbench():
 async def demo():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "demo.html"))
 
+@app.get("/about-us")
+@app.get("/about-us.html")
+@app.get("/about")
+async def about_us_page():
+    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "about-us.html"))
+
+@app.get("/privacy-policy")
+@app.get("/privacy-policy.html")
+@app.get("/privacy")
+async def privacy_policy_page():
+    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "privacy-policy.html"))
+
+@app.get("/terms-and-conditions")
+@app.get("/terms-and-conditions.html")
+@app.get("/terms")
+async def terms_page():
+    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "terms-and-conditions.html"))
+
+@app.get("/contact-us")
+@app.get("/contact-us.html")
+@app.get("/contact")
+async def contact_us_page():
+    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "contact-us.html"))
+
 @app.get("/robots.txt")
 async def robots_txt():
     return FileResponse(

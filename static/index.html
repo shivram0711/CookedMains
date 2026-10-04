@@ -168,6 +168,14 @@
         </a>
       </div>
 
+      <!-- Desktop Navigation Links to Trust & Resource Pages -->
+      <nav class="hidden lg:flex items-center space-x-5 text-xs font-semibold text-slate-600 dark:text-slate-300">
+        <a href="/about-us" class="hover:text-amber-500 transition">About Us</a>
+        <a href="/contact-us" class="hover:text-amber-500 transition">Contact</a>
+        <a href="#mainsAnswerWritingGuide" onclick="if(window.switchStudioState){window.switchStudioState('landing');} document.getElementById('mainsAnswerWritingGuide')?.scrollIntoView({behavior:'smooth'});" class="hover:text-amber-500 transition">Mains Guide</a>
+        <a href="/privacy-policy" class="hover:text-amber-500 transition">Privacy</a>
+        <a href="/terms-and-conditions" class="hover:text-amber-500 transition">Terms</a>
+      </nav>
 
       <div class="flex items-center space-x-1 sm:space-x-2 shrink-0 py-1">
         <!-- 1. 100% Free Access Badge -->
@@ -589,6 +597,94 @@
         </div>
 
       </article>
+
+      <!-- ================================================================= -->
+      <!-- 🛡️ TRANSPARENCY, COMMUNITY & TRUST HUB (Landing Page Quick Cards) -->
+      <!-- ================================================================= -->
+      <section id="trustAndLegalSection" class="w-full pt-4 pb-4 text-left space-y-6">
+        <div class="space-y-1.5">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold">
+            <i data-lucide="shield" class="w-3.5 h-3.5 text-amber-500"></i>
+            <span>Platform Transparency &amp; Community</span>
+          </div>
+          <h3 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 font-serif">
+            Built for Aspirants, Backed by Transparency
+          </h3>
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+            Dedicated resources, policies, and channels designed to keep your UPSC preparation secure, authentic, and supported.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Card 1: About Us -->
+          <a href="/about-us" class="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500/50 hover:shadow-md transition space-y-2.5 flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                <i data-lucide="info" class="w-4 h-4"></i>
+              </div>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-amber-500 transition-colors">About Us</h4>
+              <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                Learn about our mission to democratize UPSC answer evaluation with 15 free daily copies and instant multimodal AI.
+              </p>
+            </div>
+            <div class="flex items-center text-xs font-semibold text-amber-600 dark:text-amber-400 pt-2">
+              <span>Read Our Mission</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform"></i>
+            </div>
+          </a>
+
+          <!-- Card 2: Contact Us -->
+          <a href="/contact-us" class="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500/50 hover:shadow-md transition space-y-2.5 flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                <i data-lucide="mail" class="w-4 h-4"></i>
+              </div>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-amber-500 transition-colors">Contact Us</h4>
+              <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                Submit questions, feedback, or bug reports. Our team reviews every message and responds within 24 hours.
+              </p>
+            </div>
+            <div class="flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400 pt-2">
+              <span>Get in Touch</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform"></i>
+            </div>
+          </a>
+
+          <!-- Card 3: Privacy Policy -->
+          <a href="/privacy-policy" class="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500/50 hover:shadow-md transition space-y-2.5 flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="w-9 h-9 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                <i data-lucide="shield-check" class="w-4 h-4"></i>
+              </div>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-amber-500 transition-colors">Privacy Policy</h4>
+              <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                How we protect your answer copies, locker history, and account data with zero third-party commercial selling.
+              </p>
+            </div>
+            <div class="flex items-center text-xs font-semibold text-sky-600 dark:text-sky-400 pt-2">
+              <span>View Privacy Policy</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform"></i>
+            </div>
+          </a>
+
+          <!-- Card 4: Terms and Conditions -->
+          <a href="/terms-and-conditions" class="group p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500/50 hover:shadow-md transition space-y-2.5 flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+              </div>
+              <h4 class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-amber-500 transition-colors">Terms &amp; Conditions</h4>
+              <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                User guidelines, educational AI estimation disclaimers, and 15 free daily copies fair-use rules.
+              </p>
+            </div>
+            <div class="flex items-center text-xs font-semibold text-purple-600 dark:text-purple-400 pt-2">
+              <span>Read Terms</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform"></i>
+            </div>
+          </a>
+        </div>
+      </section>
 
     </section>
 
@@ -3357,19 +3453,50 @@
     </button>
   </nav>
 
-  <footer class="mt-12 border-t border-slate-800/60 py-8 text-center text-xs text-slate-500 space-y-4">
-    <div class="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs text-slate-400">
-      <a href="#mainsAnswerWritingGuide" onclick="if(window.switchStudioState){window.switchStudioState('landing');} document.getElementById('mainsAnswerWritingGuide')?.scrollIntoView({behavior:'smooth'});" class="hover:text-amber-400 transition font-medium">Mains Answer Writing Guide</a>
-      <span class="text-slate-700 hidden sm:inline">•</span>
-      <a href="#mainsRubricSection" onclick="if(window.switchStudioState){window.switchStudioState('landing');} document.getElementById('mainsRubricSection')?.scrollIntoView({behavior:'smooth'});" class="hover:text-amber-400 transition font-medium">6-Point Rubric Audit</a>
-      <span class="text-slate-700 hidden sm:inline">•</span>
-      <a href="#dailyRoutineSection" onclick="if(window.switchStudioState){window.switchStudioState('landing');} document.getElementById('dailyRoutineSection')?.scrollIntoView({behavior:'smooth'});" class="hover:text-amber-400 transition font-medium">Daily Practice Protocol</a>
-      <span class="text-slate-700 hidden sm:inline">•</span>
-      <a href="#faqSection" onclick="if(window.switchStudioState){window.switchStudioState('landing');} document.getElementById('faqSection')?.scrollIntoView({behavior:'smooth'});" class="hover:text-amber-400 transition font-medium">Mains Answer Writing FAQs</a>
+  <footer class="mt-12 border-t border-slate-200 dark:border-slate-800/80 py-10 text-center text-xs text-slate-500 space-y-5">
+    <!-- Academic Resources Strip -->
+    <div class="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs text-slate-600 dark:text-slate-400">
+      <a href="#mainsAnswerWritingGuide" onclick="if(window.switchStudioState){window.switchStudioState('landing');} document.getElementById('mainsAnswerWritingGuide')?.scrollIntoView({behavior:'smooth'});" class="hover:text-amber-500 transition font-medium">Mains Answer Writing Guide</a>
+      <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+      <a href="#mainsRubricSection" onclick="if(window.switchStudioState){window.switchStudioState('landing');} document.getElementById('mainsRubricSection')?.scrollIntoView({behavior:'smooth'});" class="hover:text-amber-500 transition font-medium">6-Point Rubric Audit</a>
+      <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+      <a href="#dailyRoutineSection" onclick="if(window.switchStudioState){window.switchStudioState('landing');} document.getElementById('dailyRoutineSection')?.scrollIntoView({behavior:'smooth'});" class="hover:text-amber-500 transition font-medium">Daily Practice Protocol</a>
+      <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+      <a href="#faqSection" onclick="if(window.switchStudioState){window.switchStudioState('landing');} document.getElementById('faqSection')?.scrollIntoView({behavior:'smooth'});" class="hover:text-amber-500 transition font-medium">Mains FAQs</a>
     </div>
-    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-slate-800/40">
+
+    <!-- Company, Legal & Trust Pages Strip -->
+    <div class="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs font-semibold text-slate-700 dark:text-slate-300">
+      <a href="/about-us" class="hover:text-amber-500 transition flex items-center gap-1.5">
+        <i data-lucide="info" class="w-3.5 h-3.5 text-amber-500"></i>
+        <span>About Us</span>
+      </a>
+      <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+      <a href="/contact-us" class="hover:text-amber-500 transition flex items-center gap-1.5">
+        <i data-lucide="mail" class="w-3.5 h-3.5 text-amber-500"></i>
+        <span>Contact Us</span>
+      </a>
+      <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+      <a href="/privacy-policy" class="hover:text-amber-500 transition flex items-center gap-1.5">
+        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-500"></i>
+        <span>Privacy Policy</span>
+      </a>
+      <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+      <a href="/terms-and-conditions" class="hover:text-amber-500 transition flex items-center gap-1.5">
+        <i data-lucide="file-text" class="w-3.5 h-3.5 text-amber-500"></i>
+        <span>Terms &amp; Conditions</span>
+      </a>
+      <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+      <a href="https://t.me/cookedmains" target="_blank" rel="noopener noreferrer" class="hover:text-sky-400 transition flex items-center gap-1.5 text-sky-600 dark:text-sky-400">
+        <i data-lucide="send" class="w-3.5 h-3.5"></i>
+        <span>Telegram Community</span>
+      </a>
+    </div>
+
+    <!-- Copyright & Integrity Notice -->
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 pt-3 border-t border-slate-200 dark:border-slate-800/40 text-[11px]">
       <p>© 2026 Cooked Mains — Empowering Self-Study UPSC Aspirants with 100% Free, Authentic Evaluation.</p>
-      <p class="text-slate-600">Strict UPSC Bell Curve • Multimodal Vision • Zero Hallucination Standard</p>
+      <p class="text-slate-500 dark:text-slate-400">Strict UPSC Bell Curve • Multimodal Vision • Zero Hallucination Standard</p>
     </div>
   </footer>
 
