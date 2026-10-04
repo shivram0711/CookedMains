@@ -9361,6 +9361,9 @@ function renderEvaluation(evalData) {
   directiveEvaluationText.innerHTML = formatHighlightedText(dir.evaluation || "Candidate addressed core demands.");
   directiveGapText.innerHTML = formatHighlightedText(dir.gap || "Ensure both dimensions are weighed equally.");
 
+  // UPSC Exam-Hall Discipline & Transparent Micro-Marking Arithmetic
+  renderUPSCExamHallDisciplineAndMicroMarking(evalData);
+
   // Render Radar Chart
   renderRadar(evalData.rubric_scores, evalData.max_marks);
 
@@ -10089,6 +10092,205 @@ function renderEvaluation(evalData) {
   // Update Red-Pen Annotations on the active copy
   renderAnnotationsOverlay();
   lucide.createIcons();
+}
+
+function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
+  if (!evalData) return;
+  const mm = parseFloat(evalData.max_marks || (typeof state !== "undefined" && state.marks) || 10);
+  const overall = parseFloat(evalData.overall_score || 0);
+
+  // 1. Syllabus & PYQ Badges
+  const sylMap = evalData.syllabus_mapping || {};
+  const sylTopic = document.getElementById("resultSyllabusTopic");
+  const pyqTrend = document.getElementById("resultPyqTrendText");
+  const dirRule = document.getElementById("resultDirectiveRuleText");
+
+  const topicText = sylMap.micro_topic || evalData.syllabus_subheading || (evalData.detected_paper_display || "UPSC General Studies");
+  if (sylTopic) sylTopic.textContent = topicText;
+
+  const trendText = sylMap.pyq_trend_frequency || (evalData.pyq_theme_frequency || "Core UPSC Mains Syllabus Theme");
+  if (pyqTrend) pyqTrend.textContent = trendText;
+
+  const dirName = (evalData.directive_compliance && evalData.directive_compliance.directive) || sylMap.directive || "Discuss";
+  if (dirRule) dirRule.textContent = `Directive: ${dirName}`;
+
+  // 2. Transparent Micro-Marking Step Arithmetic
+  const rubric = evalData.rubric_scores || {};
+  const microMath = evalData.micro_marking_arithmetic || {};
+
+  const defIntroMax = mm === 10 ? 1.5 : (mm === 15 ? 2.0 : 2.5);
+  const defCoreMax = mm === 10 ? 4.5 : (mm === 15 ? 7.0 : 9.5);
+  const defValMax = mm === 10 ? 1.5 : (mm === 15 ? 2.5 : 3.5);
+  const defPresMax = mm === 10 ? 1.0 : (mm === 15 ? 1.5 : 2.0);
+  const defConcMax = mm === 10 ? 1.5 : (mm === 15 ? 2.0 : 2.5);
+
+  const iAw = typeof microMath.intro_score === "number" ? microMath.intro_score : (parseFloat(rubric.intro_score) || 1.0);
+  const iMx = typeof microMath.intro_max === "number" ? microMath.intro_max : (parseFloat(rubric.intro_max) || defIntroMax);
+  const cAw = typeof microMath.core_demand_score === "number" ? microMath.core_demand_score : (parseFloat(rubric.core_demand_score) || 2.0);
+  const cMx = typeof microMath.core_demand_max === "number" ? microMath.core_demand_max : (parseFloat(rubric.core_demand_max) || defCoreMax);
+  const vAw = typeof microMath.value_add_score === "number" ? microMath.value_add_score : (parseFloat(rubric.value_add_score) || 0.5);
+  const vMx = typeof microMath.value_add_max === "number" ? microMath.value_add_max : (parseFloat(rubric.value_add_max) || defValMax);
+  const pAw = typeof microMath.presentation_score === "number" ? microMath.presentation_score : (parseFloat(rubric.presentation_score) || 0.5);
+  const pMx = typeof microMath.presentation_max === "number" ? microMath.presentation_max : (parseFloat(rubric.presentation_max) || defPresMax);
+  const coAw = typeof microMath.conclusion_score === "number" ? microMath.conclusion_score : (parseFloat(rubric.conclusion_score) || 0.5);
+  const coMx = typeof microMath.conclusion_max === "number" ? microMath.conclusion_max : (parseFloat(rubric.conclusion_max) || defConcMax);
+
+  const formulaEl = document.getElementById("microMarkingFormulaText");
+  if (formulaEl) {
+    formulaEl.innerHTML = `<span class="text-amber-400 font-bold">Intro</span> (${iAw.toFixed(1)}/${iMx.toFixed(1)}) + <span class="text-amber-400 font-bold">Core</span> (${cAw.toFixed(1)}/${cMx.toFixed(1)}) + <span class="text-amber-400 font-bold">Value-Add</span> (${vAw.toFixed(1)}/${vMx.toFixed(1)}) + <span class="text-emerald-400 font-bold">Presentation</span> (${pAw.toFixed(1)}/${pMx.toFixed(1)}) + <span class="text-amber-400 font-bold">Conclusion</span> (${coAw.toFixed(1)}/${coMx.toFixed(1)}) = <span class="text-amber-300 font-extrabold text-sm sm:text-base">${overall.toFixed(1)} / ${mm.toFixed(1)}</span>`;
+  }
+
+  const mIntro = document.getElementById("microIntroScore");
+  const mCore = document.getElementById("microCoreScore");
+  const mVal = document.getElementById("microValueScore");
+  const mPres = document.getElementById("microPresScore");
+  const mConc = document.getElementById("microConcScore");
+  if (mIntro) mIntro.textContent = `${iAw.toFixed(1)} / ${iMx.toFixed(1)}`;
+  if (mCore) mCore.textContent = `${cAw.toFixed(1)} / ${cMx.toFixed(1)}`;
+  if (mVal) mVal.textContent = `${vAw.toFixed(1)} / ${vMx.toFixed(1)}`;
+  if (mPres) mPres.textContent = `${pAw.toFixed(1)} / ${pMx.toFixed(1)}`;
+  if (mConc) mConc.textContent = `${coAw.toFixed(1)} / ${coMx.toFixed(1)}`;
+
+  // 3. UPSC Exam-Hall Discipline & Time-Pressure Card
+  const discData = evalData.upsc_exam_hall_discipline || {};
+  const prescribedLimit = discData.prescribed_word_limit || (mm === 10 ? 150 : (mm === 15 || mm === 20 ? 250 : 1000));
+  const allottedMins = discData.time_budget_allotted_mins || (mm === 10 ? 7.0 : (mm === 15 ? 11.0 : (mm === 20 ? 14.0 : 90.0)));
+
+  // Calculate word count from transcript if not present
+  let wordCount = discData.estimated_word_count;
+  if (!wordCount || wordCount < 10) {
+    const rawTr = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, " ");
+    const words = rawTr.trim().split(/\s+/).filter(w => w.length > 1 && !w.startsWith("#"));
+    wordCount = words.length > 15 ? words.length : (mm === 10 ? 145 : 240);
+  }
+
+  const estTime = discData.estimated_writing_time_mins || Math.round((wordCount / 22.0) * 10) / 10;
+  const timeDelta = Math.round((estTime - allottedMins) * 10) / 10;
+  const wordPct = Math.min(150, Math.round((wordCount / prescribedLimit) * 100));
+
+  // Time budget badge
+  const timeBudgetBadge = document.getElementById("examHallTimeBudgetBadge");
+  if (timeBudgetBadge) {
+    timeBudgetBadge.textContent = `${allottedMins.toFixed(0)}-Min Target (${prescribedLimit}w)`;
+  }
+
+  // Margin discipline badge
+  const marginBadge = document.getElementById("examHallMarginBadge");
+  if (marginBadge) {
+    const isMarginViolation = /intrusion|breach|bleed|violated/i.test(String(discData.margin_discipline || ""));
+    if (isMarginViolation) {
+      marginBadge.className = "text-[10px] font-bold px-2.5 py-1 rounded-lg bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 flex items-center space-x-1";
+      marginBadge.innerHTML = `<i data-lucide="alert-circle" class="w-3 h-3 text-rose-500"></i><span>Margin Intrusion Detected (-0.5M)</span>`;
+    } else {
+      marginBadge.className = "text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center space-x-1";
+      marginBadge.innerHTML = `<i data-lucide="check" class="w-3 h-3 text-emerald-500"></i><span>QCAB Margins Respected</span>`;
+    }
+  }
+
+  // Metric 1: Word Count
+  const wActual = document.getElementById("examHallWordActual");
+  const wLimit = document.getElementById("examHallWordLimit");
+  const wStatus = document.getElementById("examHallWordStatus");
+  const wBar = document.getElementById("examHallWordBar");
+  if (wActual) wActual.textContent = wordCount;
+  if (wLimit) wLimit.textContent = `/ ${prescribedLimit} words`;
+  if (wStatus) {
+    if (wordPct > 125) {
+      wStatus.textContent = `Over (+${wordPct - 100}%)`;
+      wStatus.className = "font-bold text-[9.5px] px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400";
+    } else if (wordPct < 75) {
+      wStatus.textContent = `Under (-${100 - wordPct}%)`;
+      wStatus.className = "font-bold text-[9.5px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400";
+    } else {
+      wStatus.textContent = "Optimal";
+      wStatus.className = "font-bold text-[9.5px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400";
+    }
+  }
+  if (wBar) {
+    const barW = Math.min(100, wordPct);
+    wBar.style.width = `${barW}%`;
+    wBar.className = wordPct > 125 ? "bg-rose-500 h-full rounded-full transition-all duration-500" : (wordPct < 75 ? "bg-amber-500 h-full rounded-full transition-all duration-500" : "bg-emerald-500 h-full rounded-full transition-all duration-500");
+  }
+
+  // Metric 2: Estimated Time
+  const tActual = document.getElementById("examHallTimeActual");
+  const tAllotted = document.getElementById("examHallTimeAllotted");
+  const tBar = document.getElementById("examHallTimeBar");
+  if (tActual) tActual.textContent = estTime.toFixed(1);
+  if (tAllotted) tAllotted.textContent = `/ ${allottedMins.toFixed(1)} mins`;
+  if (tBar) {
+    const timePct = Math.min(100, Math.round((estTime / allottedMins) * 100));
+    tBar.style.width = `${timePct}%`;
+    tBar.className = estTime > allottedMins + 1.5 ? "bg-rose-500 h-full rounded-full transition-all duration-500" : (estTime > allottedMins ? "bg-amber-500 h-full rounded-full transition-all duration-500" : "bg-emerald-500 h-full rounded-full transition-all duration-500");
+  }
+
+  // Metric 3: Layout & Space Density
+  const pBadge = document.getElementById("examHallPagesBadge");
+  const sDensity = document.getElementById("examHallSpaceDensity");
+  const totalPages = parseInt(evalData.total_pages || (evalData.images && evalData.images.length) || (state.activePages && state.activePages.length) || (mm === 10 ? 2 : 3), 10);
+  if (pBadge) pBadge.textContent = `${totalPages} Page${totalPages > 1 ? 's' : ''}`;
+  if (sDensity) {
+    if (wordPct >= 80 && wordPct <= 115) {
+      sDensity.textContent = "Balanced 85% Fill";
+    } else if (wordPct > 115) {
+      sDensity.textContent = "Crowded (>100% Fill)";
+    } else {
+      sDensity.textContent = "Thin (<70% Fill)";
+    }
+  }
+
+  // Metric 4: Pacing & Paper Completion Risk
+  const rPill = document.getElementById("examHallRiskPill");
+  const tDelta = document.getElementById("examHallTimeDelta");
+  if (rPill) {
+    if (timeDelta >= 2.0) {
+      rPill.textContent = "Severe Time Risk";
+      rPill.className = "text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400";
+    } else if (timeDelta > 0.5) {
+      rPill.textContent = "Time Deficit";
+      rPill.className = "text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400";
+    } else {
+      rPill.textContent = "Safe Pace";
+      rPill.className = "text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400";
+    }
+  }
+  if (tDelta) {
+    if (timeDelta > 0) {
+      tDelta.textContent = `-${timeDelta.toFixed(1)}m Deficit`;
+      tDelta.className = "font-bold text-rose-600 dark:text-rose-400";
+    } else {
+      tDelta.textContent = `+${Math.abs(timeDelta).toFixed(1)}m Surplus`;
+      tDelta.className = "font-bold text-emerald-600 dark:text-emerald-400";
+    }
+  }
+
+  // Time Penalty Diagnosis
+  const warnText = document.getElementById("examHallWarningText");
+  if (warnText) {
+    if (discData.time_penalty_warning) {
+      warnText.innerHTML = formatHighlightedText(discData.time_penalty_warning);
+    } else if (timeDelta >= 2.0) {
+      warnText.innerHTML = formatHighlightedText(
+        `Writing **~${wordCount} words** took **~${estTime} mins** against the strict **${allottedMins}-minute ceiling**. ` +
+        `This surplus **${timeDelta.toFixed(1)} minutes** is directly stolen from final questions (**Q19/Q20**), guaranteeing incomplete answers or lost 10–15 marks. ` +
+        `In UPSC Mains, completing all 20 questions in 140–150 words beats over-writing on early questions.`
+      );
+    } else if (wordPct < 75) {
+      warnText.innerHTML = formatHighlightedText(
+        `At **~${wordCount} words**, you left **~${100 - wordPct}%** of the prescribed QCAB space unfilled. ` +
+        `UPSC evaluators penalize thin content density. Aim for **${Math.round(prescribedLimit * 0.9)}–${prescribedLimit} words** using point-wise dimensions and a 30-second diagram.`
+      );
+    } else {
+      warnText.innerHTML = formatHighlightedText(
+        `**Pacing Calibrated**: ~${wordCount} words written in **~${estTime} mins** fits comfortably within the **${allottedMins}-minute target**, ` +
+        `leaving ample reserve to finish all 20 questions across the 3-hour exam.`
+      );
+    }
+  }
+
+  if (window.lucide && typeof window.lucide.createIcons === "function") {
+    try { window.lucide.createIcons(); } catch (e) {}
+  }
 }
 
 function renderBatch1ExaminerMastery(evalData) {
@@ -11403,12 +11605,12 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
       benchBadge.textContent = "6.0 / 10.0 (Top 1%)";
     } else if (mm === 15) {
       budgetBadge.textContent = "Target: ~250 Words";
-      timeBadge.textContent = "Time: 9 Mins";
+      timeBadge.textContent = "Time: 11 Mins";
       benchBadge.textContent = "9.5 / 15.0 (Top 1%)";
     } else if (mm === 20) {
-      budgetBadge.textContent = "Target: ~300 Words";
-      timeBadge.textContent = "Time: 11 Mins";
-      benchBadge.textContent = "13.5 / 20.0 (Top 1%)";
+      budgetBadge.textContent = "Target: ~250 Words";
+      timeBadge.textContent = "Time: 14 Mins";
+      benchBadge.textContent = "13.0 / 20.0 (Top 1%)";
     } else {
       budgetBadge.textContent = "Target: 1000–1200 Words";
       timeBadge.textContent = "Time: 90 Mins";
