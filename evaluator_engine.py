@@ -1301,6 +1301,20 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       * **E. Un-Sourced Hard Statistics & Poetic Essay Statements in GS**:
         - **IF** the candidate writes a specific percentage/statistic without naming the report/body (e.g., *"43% MPs have criminal cases"* without **ADR**): Add a concise reminder (`"✎ **Mention Data Source**: Cite **ADR Report** beside the 43% figure"`).
         - **IF** the candidate writes a poetic metaphor as a standalone GS bullet point (e.g., *"Rising sea raises all the boats"* in a GS-3 Economy answer): Advise (`"✎ **Tone Tip**: Reserve poetic statements for the Essay paper; state the direct economic mechanism here"`).
+      * **F. Incomplete / Under-Written Copy & Page-Quota Deficit (Aspirant Initial-Phase Benchmark)**:
+        - **APPLY THIS ONLY IF** the answer copy is under-written or incomplete (e.g., in a 15-Marker [3 pages expected] or 20-Marker [4 pages expected], the candidate writes on only 1 or 2 pages and leaves Page 3 almost entirely blank, writes only ~100–120 words instead of 250 words, has very few points per sub-part, or makes major conceptual confusions):
+          1. **Brutally Realistic Marks Allocation ("Marks as Deserved")**:
+             - Do NOT give unearned 6.0 or 7.0 marks merely because handwriting is clean!
+             - An incomplete 15-marker with Page 3 left blank, thin points, and core demand unfulfilled MUST receive a brutally realistic score of **2.5 to 3.5 out of 15.0** (or 1.5 to 2.5 / 10.0 for an incomplete 10M).
+             - Award zero or nominal marks (+0.0 or +0.5 / 2.0) on the nearly blank/unattempted final page.
+          2. **Positive Presentation Acknowledgment**:
+             - Acknowledge genuine visual presentation efforts: clean legible handwriting, clear uppercase sub-headings, boxed titles, and proactive attempts to draw a world map or diagram.
+          3. **Deep Evaluation Tabs as an Expansion Guide (How to Write More & Score High in Next Attempt)**:
+             - In `body_audit.critical_gaps`, `body_audit.missing_dimensions`, `missing_keywords_cards`, and `value_add_checklist`:
+               * Explicitly highlight the **Page & Word Deficit**: Point out that writing ~110 words and leaving Page 3 blank automatically caps marks at <25%.
+               * Provide the **exact substantive points** that SHOULD have been written to fill all 3 pages (e.g., for REEs: true definition of 17 REEs vs. battery metals Li/Ni/Co; China's Bayan Obo monopoly ~60% mining & ~90% refining vs. USA Mountain Pass & Australia Lynas; high-tech uses like NdFeB permanent magnets in EV motors & offshore wind, defense missile guidance & radars; environmental impact like radioactive Thorium/Uranium tailings in Monazite sand, toxic acid-leaching ponds, and heavy metal groundwater pollution).
+               * Show them exactly how to structure and expand these points across Page 1, Page 2, and Page 3 so they know how to write a full 3-page, 250-word answer in their next attempt.
+        - **IF the candidate's copy is fully written across all required pages**: Do NOT apply this under-written penalty; evaluate standard content depth normally.
 
 Generate strictly valid JSON matching this schema:
 {{
