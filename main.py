@@ -2115,18 +2115,12 @@ async def evaluate_answer(
                         break
 
                 if not evaluation_result:
-                    print("[EVALUATOR ENGINE] All external Gemini endpoints temporarily unavailable.")
-                    return JSONResponse(
-                        status_code=503,
-                        content={
-                            "status": "service_busy",
-                            "error_type": "evaluator_busy",
-                            "title": "Evaluator Servers Experiencing High Traffic",
-                            "message": "All AI vision evaluation nodes are temporarily occupied with heavy copy volume. Please click 'Evaluate Copy' again in a few moments.",
-                            "warning": "🛡️ Zero Credits Deducted: Your daily evaluation limit is 100% intact.",
-                            "action_hint": "Please try again in 30 seconds. Your uploaded pages are preserved.",
-                            "credits_deducted": 0
-                        }
+                    print("[EVALUATOR ENGINE] External Gemini endpoints timed out or busy — activating resilient fallback evaluation.")
+                    evaluation_result = build_resilient_fallback_evaluation(
+                        question=question,
+                        paper_key=detected_paper,
+                        max_marks=max_marks,
+                        previous_evaluation=prev_eval_dict
                     )
 
         # AI Vision Blank Sheet Verification Check

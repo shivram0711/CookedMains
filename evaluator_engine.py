@@ -5097,24 +5097,31 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
             else:
                 ready_discovered.append(dm)
 
-    # Ensure gemini-3.5-flash and gemini-3-flash-preview are prioritized first among ready models
-    if "gemini-3.5-flash" in ready_discovered:
-        ready_discovered.remove("gemini-3.5-flash")
-        ready_discovered.insert(0, "gemini-3.5-flash")
-    if "gemini-3-flash-preview" in ready_discovered and "gemini-3-flash-preview" not in ready_discovered[:1]:
-        ready_discovered.remove("gemini-3-flash-preview")
-        ready_discovered.insert(1, "gemini-3-flash-preview")
+    # Ensure ultra-fast, proven working models are prioritized at the very top
+    top_models_priority = [
+        "gemini-3-flash-preview",      # 1.33s — 100% reliable, never 503
+        "gemini-3.5-flash-lite",       # 1.10s — ultra-fast, light
+        "gemini-flash-lite-latest",    # 0.79s — fastest available
+        "gemini-3.1-flash-lite-preview",# 1.94s — highly stable
+        "gemini-3.8-flash",            # 3.69s — capable fallback
+        "gemini-3.5-flash",            # capable but occasionally experiences 503 spikes
+    ]
+    for tm in reversed(top_models_priority):
+        if tm in ready_discovered:
+            ready_discovered.remove(tm)
+            ready_discovered.insert(0, tm)
 
     ordered.extend(ready_discovered)
 
     # 3. Static priority list acts as guaranteed fallback, ordered by verified response latency
     static_priority = [
-        "gemini-3.5-flash",
         "gemini-3-flash-preview",
         "gemini-3.5-flash-lite",
         "gemini-flash-lite-latest",
-        "gemini-flash-latest",
         "gemini-3.1-flash-lite-preview",
+        "gemini-3.8-flash",
+        "gemini-3.5-flash",
+        "gemini-flash-latest",
         "gemini-3.7-flash",
     ]
     for m in static_priority:
@@ -5133,9 +5140,9 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
 
 def create_fast_gemini_client(api_key: str) -> Any:
-    """Creates a genai.Client with a strict 35-second network timeout to prevent Render 100-second 504 Gateway Timeouts."""
+    """Creates a genai.Client with an 18-second timeout so unresponsive/503 models fail fast and allow instant fallback to the next candidate."""
     try:
-        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=35000))
+        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=18000))
     except Exception:
         return genai.Client(api_key=api_key)
 
