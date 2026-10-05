@@ -4688,6 +4688,8 @@ def parse_llm_json_response(raw_text: str) -> Dict[str, Any]:
             data, _ = decoder.raw_decode(text, idx=start)
             if isinstance(data, dict) and len(data) > 0:
                 return data
+            if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+                return data[0]
         except Exception:
             pass
 
@@ -4703,6 +4705,8 @@ def parse_llm_json_response(raw_text: str) -> Dict[str, Any]:
                 data, _ = decoder.raw_decode(candidate, idx=c_start)
                 if isinstance(data, dict) and len(data) > 0:
                     return data
+                if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+                    return data[0]
             except Exception:
                 pass
 
@@ -4716,8 +4720,12 @@ def parse_llm_json_response(raw_text: str) -> Dict[str, Any]:
         try:
             decoder = json.JSONDecoder(strict=False)
             data, _ = decoder.raw_decode(sanitized)
-            if isinstance(data, dict):
+            if isinstance(data, dict) and len(data) > 0:
                 return data
+            if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+                return data[0]
+        except Exception:
+            pass
         except Exception:
             # Fallback: find the last '}' and try json.loads
             end = sanitized.rfind("}")
@@ -5140,9 +5148,9 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
 
 def create_fast_gemini_client(api_key: str) -> Any:
-    """Creates a genai.Client with an 18-second timeout so unresponsive/503 models fail fast and allow instant fallback to the next candidate."""
+    """Creates a genai.Client with a 50-second timeout so full 20,000-character handwritten vision evaluation completes reliably without premature cutoff."""
     try:
-        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=18000))
+        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=50000))
     except Exception:
         return genai.Client(api_key=api_key)
 
