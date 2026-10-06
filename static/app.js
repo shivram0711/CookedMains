@@ -4566,63 +4566,129 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
   }
 
   const bodyParts = [];
+  const usedNoteSignatures = new Set();
+  const qFullText = String(evalData.detected_question || (typeof state !== "undefined" && state.question) || "").trim();
+  const qL = qFullText.toLowerCase();
+
   for (let i = 0; i < numBodyParts; i++) {
     const partLetter = String.fromCharCode(65 + i);
     let title = "";
     let statement = "";
     let note = "";
 
+    // 1. Extract title, statement, note from AI sub-part step marking
     if (aiBodySteps[i]) {
       title = String(aiBodySteps[i].step_label || aiBodySteps[i].sub_heading || "").replace(/^(?:part\s*[a-z]\s*[-—:]\s*|\d+\.\s*)/i, "").trim();
-      statement = String(aiBodySteps[i].sub_heading || "");
+      const rawSh = String(aiBodySteps[i].sub_heading || "").trim();
+      if (rawSh && rawSh.length >= 10 && !window.isMetaPlaceholderText(rawSh)) {
+        statement = rawSh.startsWith("What the Question Demands:") ? rawSh : `What the Question Demands: ${rawSh}`;
+      }
       note = String(aiBodySteps[i].quoted_written || "");
     } else if (bodyAnns[i] && bodyAnns[i].tag) {
       title = String(bodyAnns[i].tag).replace(/^(?:body:\s*|part\s*[a-z]\s*[-—:]\s*|\d+\.\s*)/i, "").trim();
+      if (bodyAnns[i].remark && !window.isMetaPlaceholderText(bodyAnns[i].remark)) {
+        note = String(bodyAnns[i].remark).trim();
+      }
     } else if (sArr[i]) {
       const parts = sArr[i].split(":");
       title = parts[0].replace(/\*\*/g, "").trim();
       if (parts.length > 1) note = parts.slice(1).join(":").trim();
+      else note = sArr[i];
     }
 
+    // Filter out meta placeholders
     if (window.isMetaPlaceholderText(title) || /point\s*\[[a-z0-9]+\]/i.test(title)) title = "";
     if (window.isMetaPlaceholderText(statement) || /point\s*\[[a-z0-9]+\]/i.test(statement)) statement = "";
     if (window.isMetaPlaceholderText(note) || /point\s*\[[a-z0-9]+\]/i.test(note)) note = "";
 
-    if (!title || title.length < 5) {
-      const qL = String(evalData.detected_question || (typeof state !== "undefined" && state.question) || "").toLowerCase();
-      const isPolity = /(?:article\s+\d+|constitutional|parliament|supreme court|fundamental right|governor|federalism)/i.test(qL);
-      if (isPolity) {
-        if (i === 0) title = "Constitutional Mandate & Core Premise";
-        else if (i === 1) title = "Analytical Dynamics & Substantive Arguments";
-        else title = "Institutional Bottlenecks & Strategic Reforms";
+    // If title is a generic label like "Core Demand" or "Depth & Substantiation", upgrade it to a content-specific heading
+    if (!title || title.length < 5 || /^(?:core demand|depth & substantiation|body part|primary demand|secondary demand)$/i.test(title.trim())) {
+      const isPolity = /(?:article\s+\d+|constitutional|parliament|supreme court|fundamental right|governor|federalism|judiciary|executive)/i.test(qL);
+      const isEnvironment = /(?:environment|tourism|climate|ecology|pollution|biodiversity|himalayan|forest|wildlife|water)/i.test(qL);
+      const isEconomy = /(?:economy|economic|gdp|inflation|fiscal|trade|industry|manufacturing|agriculture|farmers|msme)/i.test(qL);
+
+      if (isEnvironment) {
+        if (i === 0) title = "Drivers & Core Surge Dynamics";
+        else if (i === 1) title = "Potential Environmental & Ecological Impacts";
+        else title = "Sustainable Policy Roadmap & Regulatory Safeguards";
+      } else if (isPolity) {
+        if (i === 0) title = "Constitutional Mandate & Foundational Doctrines";
+        else if (i === 1) title = "Institutional Dynamics & Judicial Benchmarks";
+        else title = "Structural Bottlenecks & Democratic Governance Reforms";
+      } else if (isEconomy) {
+        if (i === 0) title = "Macroeconomic Drivers & Sectoral Baseline";
+        else if (i === 1) title = "Structural Vulnerabilities & Supply-Chain Bottlenecks";
+        else title = "Policy Interventions & Sustainable Growth Reforms";
       } else {
-        if (i === 0) title = "Core Demand & Foundational Mechanism";
-        else if (i === 1) title = "Multidimensional Impact & Sectoral Analysis";
-        else title = "Structural Bottlenecks & Actionable Reforms";
+        if (i === 0) title = "Core Demand & Underlying Mechanisms";
+        else if (i === 1) title = "Multidimensional Impacts & Ground Challenges";
+        else title = "Actionable Interventions & Institutional Safeguards";
       }
     }
 
-    const pctVal = maxArr[i] > 0 ? (scoreArr[i] / maxArr[i]) : 0.5;
-    const statusTag = pctVal >= 0.55 ? "✓ Demand Fulfilled" : "⚠️ Partially Fulfilled";
+    // 2. Build completely UNIQUE, NON-FORMULAIC question demand statements for each part
     if (!statement) {
-      statement = `What the Question Demands: Comprehensive analysis of ${title.toLowerCase()} supported with empirical metrics and institutional frameworks.`;
-    }
-    if (!note) {
-      const validStrength = sArr.find(s => !window.isMetaPlaceholderText(s) && !/point\s*\[[a-z0-9]+\]/i.test(s));
-      if (validStrength) {
-        note = validStrength;
+      const cleanTitle = title.replace(/^(?:part\s*[a-z]\s*[-—:]\s*|\d+\.\s*)/i, "").trim();
+      if (i === 0) {
+        statement = `What the Question Demands: Analyze foundational drivers, institutional mechanisms, and core premise governing ${cleanTitle.toLowerCase()} with conceptual precision.`;
+      } else if (i === 1) {
+        statement = `What the Question Demands: Evaluate multi-sectoral repercussions, ground challenges, and vulnerability matrices relating to ${cleanTitle.toLowerCase()} with empirical evidence.`;
+      } else if (i === 2) {
+        statement = `What the Question Demands: Formulate concrete policy interventions, statutory safeguards, and an actionable roadmap to address bottlenecks in ${cleanTitle.toLowerCase()}.`;
       } else {
-        const assignedP = numBodyParts === 1 ? 1 : (numBodyParts === 2 ? (i === 0 ? 1 : 2) : (i + 1));
-        const pageTxt = window.getPageTranscript ? window.getPageTranscript(evalData, assignedP) : "";
-        const pageSentences = pageTxt.split(/(?<=[.?!])\s+/).filter(s => s.length > 25 && !window.isMetaPlaceholderText(s));
-        if (pageSentences.length > 0) {
-          note = `Addressed this dimension analyzing: "${pageSentences[0].slice(0, 85).trim()}..." with structured points.`;
-        } else {
-          note = `Addressed key analytical dimensions of ${title.toLowerCase()} with structured arguments.`;
+        statement = `What the Question Demands: Synthesize comparative benchmarks, institutional oversight, and best practices for holistic execution.`;
+      }
+    }
+
+    // 3. Ensure 100% UNIQUE, NON-REPEATING evaluation notes across Part A, B, C
+    const makeSig = (txt) => String(txt || "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 35);
+
+    if (!note || usedNoteSignatures.has(makeSig(note))) {
+      // Priority A: Check if bodyAnns has a distinct remark for this part
+      if (bodyAnns[i] && bodyAnns[i].remark && !window.isMetaPlaceholderText(bodyAnns[i].remark) && !usedNoteSignatures.has(makeSig(bodyAnns[i].remark))) {
+        note = bodyAnns[i].remark;
+      }
+      // Priority B: Check if sArr has an item at index i that hasn't been used
+      else if (sArr[i] && !window.isMetaPlaceholderText(sArr[i]) && !usedNoteSignatures.has(makeSig(sArr[i]))) {
+        note = sArr[i];
+      }
+      // Priority C: Check any unused item in sArr
+      else {
+        const unusedS = sArr.find(s => !window.isMetaPlaceholderText(s) && !/point\s*\[[a-z0-9]+\]/i.test(s) && !usedNoteSignatures.has(makeSig(s)));
+        if (unusedS) {
+          note = unusedS;
+        }
+        // Priority D: Check any unused gap in gArr
+        else {
+          const unusedG = gArr.find(g => !window.isMetaPlaceholderText(g) && !usedNoteSignatures.has(makeSig(g)));
+          if (unusedG) {
+            note = `Room for Value-Addition: ${unusedG}`;
+          }
+          // Priority E: Check page transcript for unique sentences
+          else {
+            const assignedP = numBodyParts === 1 ? 1 : (numBodyParts === 2 ? (i === 0 ? 1 : 2) : (i + 1));
+            const pageTxt = window.getPageTranscript ? window.getPageTranscript(evalData, assignedP) : "";
+            const pageSentences = pageTxt.split(/(?<=[.?!])\s+/).filter(s => s.length > 25 && !window.isMetaPlaceholderText(s) && !usedNoteSignatures.has(makeSig(s)));
+            if (pageSentences.length > 0) {
+              note = `Addressed this dimension analyzing: "${pageSentences[0].slice(0, 85).trim()}..." with structured points.`;
+            } else {
+              if (i === 0) {
+                note = `Systematically laid out the core conceptual drivers and baseline frameworks of ${title.toLowerCase()} on Page 1.`;
+              } else if (i === 1) {
+                note = `Examined primary real-world consequences and structural dimensions of ${title.toLowerCase()} with structured sub-points.`;
+              } else {
+                note = `Outlined actionable policy interventions and institutional solutions for ${title.toLowerCase()} to strengthen conclusion linkage.`;
+              }
+            }
+          }
         }
       }
     }
 
+    usedNoteSignatures.add(makeSig(note));
+
+    const pctVal = maxArr[i] > 0 ? (scoreArr[i] / maxArr[i]) : 0.5;
+    const statusTag = pctVal >= 0.55 ? "✓ Demand Fulfilled" : "⚠️ Partially Fulfilled";
     const assignedPage = numBodyParts === 1 ? 1 : (numBodyParts === 2 ? (i === 0 ? 1 : 2) : (i + 1));
 
     bodyParts.push({

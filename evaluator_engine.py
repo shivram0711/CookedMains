@@ -1443,7 +1443,11 @@ Generate strictly valid JSON matching this schema:
   // CRITICAL MANDATE FOR sub_part_step_marking:
   // 1. Deconstruct the question into its TRUE analytical demands as a real UPSC Subject Examiner—NEVER just split the question sentence by a period ('.') and copy-paste the prompt text!
   // 2. Dynamically include 2, 3, or 4 Body Sub-Parts (e.g. Part A, Part B, Part C) depending on how many distinct demands the question actually has (plus Intro at #1 and Conclusion at the end).
-  // 3. For each sub-part, 'sub_heading' MUST explain WHAT the question demands conceptually (e.g. 'Constitutional Basis of Supremacy & Conformity of Laws (Art. 13, 32, 246)' or 'Meteorological & Urban Microclimate Causes of Heatwaves'), and 'quoted_written' MUST state whether the candidate fulfilled that demand ('✓ Demand Met' / '⚠️ Partially Met' / '✗ Demand Missed') citing their exact written points and why marks were awarded or held back.
+  // 3. MANDATORY PART DIVERSITY & ZERO REPETITION:
+  //    - Every step (Part A, Part B, Part C) MUST evaluate a completely SEPARATE and UNIQUE demand of the question.
+  //    - NEVER repeat identical statements, boilerplate phrases, or the same handwritten observations across Part A, B, and C!
+  //    - 'sub_heading' MUST clearly formulate what that specific sub-part demands (e.g. Part A: 'Macro Drivers & Surge Dynamics', Part B: 'Ecological Fragility & Environmental Degradation', Part C: 'Sustainable Tourism Policy & Carrying Capacity Safeguards').
+  //    - 'quoted_written' MUST quote candidate's distinct handwritten points written for this specific sub-part only.
   "sub_part_step_marking": [
     {{
       "step_label": "1. Introduction (Context & Baseline Hook)",
@@ -3423,58 +3427,144 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
     conc_audit = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
 
     existing_steps = data.get("sub_part_step_marking")
-    if isinstance(existing_steps, list) and len(existing_steps) >= 4:
-        # Lock mathematical scores while preserving AI's authentic handwritten quotes
-        max_arr = [intro_max, part_a_max, part_b_max, conc_max]
-        aw_arr = [intro_aw, part_a_aw, part_b_aw, conc_aw]
-        default_labels = [
-            "1. INTRO & CONTEXT",
-            "2. CORE DEMAND — PART A",
-            "3. CORE DEMAND — PART B",
-            "4. CONCLUSION & SYNTHESIS"
-        ]
-        for idx in range(4):
+    if isinstance(existing_steps, list) and len(existing_steps) >= 3:
+        num_steps = len(existing_steps)
+        num_body = max(1, num_steps - 2)
+        total_body_max = max(1.0, round((max_marks - intro_max - conc_max) * 4) / 4)
+        total_body_aw = max(0.0, round((overall_score - intro_aw - conc_aw) * 4) / 4)
+
+        # Calculate individual body part ceilings and awards proportionally
+        body_max_list = []
+        body_aw_list = []
+        rem_m = total_body_max
+        rem_aw = total_body_aw
+        for b_idx in range(num_body):
+            if b_idx == num_body - 1:
+                body_max_list.append(max(0.5, round(rem_m * 4) / 4))
+                body_aw_list.append(max(0.0, min(body_max_list[-1], round(rem_aw * 4) / 4)))
+            else:
+                m_val = max(1.0, round((total_body_max / num_body) * 4) / 4)
+                aw_val = min(m_val, max(0.0, round((total_body_aw / num_body) * 4) / 4))
+                body_max_list.append(m_val)
+                body_aw_list.append(aw_val)
+                rem_m = max(0.5, rem_m - m_val)
+                rem_aw = max(0.0, rem_aw - aw_val)
+
+        assigned_steps = []
+        for idx in range(num_steps):
             item = existing_steps[idx] if isinstance(existing_steps[idx], dict) else {}
-            item["step_label"] = item.get("step_label") or default_labels[idx]
-            item["max"] = max_arr[idx]
-            item["awarded"] = aw_arr[idx]
-            existing_steps[idx] = item
-        data["sub_part_step_marking"] = existing_steps[:4]
+            if idx == 0:
+                item["step_label"] = item.get("step_label") or "1. INTRO & CONTEXT"
+                item["sub_heading"] = item.get("sub_heading") or "Opening Premise & Conceptual Anchor"
+                item["max"] = intro_max
+                item["awarded"] = intro_aw
+            elif idx == num_steps - 1:
+                item["step_label"] = item.get("step_label") or f"{num_steps}. CONCLUSION & SYNTHESIS"
+                item["sub_heading"] = item.get("sub_heading") or "Closing Vision & Institutional Forward Linkage"
+                item["max"] = conc_max
+                item["awarded"] = conc_aw
+            else:
+                body_idx = idx - 1
+                part_letter = chr(65 + body_idx)
+                item["step_label"] = item.get("step_label") or f"{idx + 1}. Part {part_letter} — Question Dimension {part_letter}"
+                raw_sh = str(item.get("sub_heading") or "")
+                if not raw_sh or "explain what" in raw_sh.lower():
+                    if body_idx == 0:
+                        item["sub_heading"] = "Core Analytical Demand & Structural Drivers"
+                    elif body_idx == 1:
+                        item["sub_heading"] = "Multidimensional Impacts & Ground Vulnerabilities"
+                    else:
+                        item["sub_heading"] = "Actionable Policy Interventions & Regulatory Safeguards"
+                item["max"] = body_max_list[body_idx] if body_idx < len(body_max_list) else 2.0
+                item["awarded"] = body_aw_list[body_idx] if body_idx < len(body_aw_list) else 1.0
+            assigned_steps.append(item)
+        data["sub_part_step_marking"] = assigned_steps
     else:
-        data["sub_part_step_marking"] = [
+        num_gen_body = 3 if (len(strengths) >= 3 or int(data.get("total_pages", 0) or 0) >= 3) else 2
+        total_body_max = max(1.0, round((max_marks - intro_max - conc_max) * 4) / 4)
+        total_body_aw = max(0.0, round((overall_score - intro_aw - conc_aw) * 4) / 4)
+
+        gen_steps = [
             {
                 "step_label": "1. INTRO & CONTEXT",
-                "sub_heading": "Opening Premise & Anchor",
+                "sub_heading": "Opening Premise & Conceptual Anchor",
                 "awarded": intro_aw,
                 "max": intro_max,
                 "quoted_written": str(intro_audit.get("current_critique") or "Opening context established on Page 1."),
                 "step_up_lever": str(intro_audit.get("model_intro_rewrite") or "Anchor line 1 with an official report, constitutional article, or index.")
-            },
-            {
-                "step_label": "2. CORE DEMAND — PART A",
-                "sub_heading": "Primary Question Dimension",
-                "awarded": part_a_aw,
-                "max": part_a_max,
-                "quoted_written": str(strengths[0] if len(strengths) > 0 else "Addressed primary sub-part with structured points."),
-                "step_up_lever": str(gaps[0] if len(gaps) > 0 else "Back every primary argument with 1 concrete statistic, committee, or case law.")
-            },
-            {
-                "step_label": "3. CORE DEMAND — PART B",
-                "sub_heading": "Secondary Dimension & Way Forward",
-                "awarded": part_b_aw,
-                "max": part_b_max,
-                "quoted_written": str(strengths[1] if len(strengths) > 1 else (strengths[0] if len(strengths) > 0 else "Covered secondary dimension and policy measures.")),
-                "step_up_lever": str(gaps[1] if len(gaps) > 1 else (gaps[0] if len(gaps) > 0 else "Include a 3-point actionable Way Forward before concluding."))
-            },
-            {
-                "step_label": "4. CONCLUSION & SYNTHESIS",
-                "sub_heading": "Closing Vision & Balance",
-                "awarded": conc_aw,
-                "max": conc_max,
-                "quoted_written": str(conc_audit.get("current_critique") or "Concluded with a balanced synthesis."),
-                "step_up_lever": str(conc_audit.get("model_conclusion_rewrite") or "Anchor the closing sentence in the core institutional mechanism, committee recommendation, or constitutional principle of the question.")
             }
         ]
+
+        if num_gen_body == 3:
+            part_a_m = round(total_body_max * 0.38 * 4) / 4
+            part_b_m = round(total_body_max * 0.38 * 4) / 4
+            part_c_m = max(0.5, round((total_body_max - part_a_m - part_b_m) * 4) / 4)
+
+            part_a_s = min(part_a_m, round(total_body_aw * 0.38 * 4) / 4)
+            part_b_s = min(part_b_m, round(total_body_aw * 0.38 * 4) / 4)
+            part_c_s = max(0.0, min(part_c_m, round((total_body_aw - part_a_s - part_b_s) * 4) / 4))
+
+            note_a = str(strengths[0]) if len(strengths) > 0 else "Systematically delineated foundational drivers on Page 1."
+            note_b = str(strengths[1]) if len(strengths) > 1 else "Evaluated multidimensional impacts and stakeholder vulnerabilities."
+            note_c = str(strengths[2]) if len(strengths) > 2 else (str(gaps[0]) if len(gaps) > 0 else "Formulated actionable policy interventions and institutional safeguards.")
+
+            gen_steps.extend([
+                {
+                    "step_label": "2. Part A — Core Drivers & Baseline",
+                    "sub_heading": "Foundational Mechanisms & Driving Factors",
+                    "awarded": part_a_s,
+                    "max": part_a_m,
+                    "quoted_written": note_a,
+                    "step_up_lever": str(gaps[0] if len(gaps) > 0 else "Back primary argument with 1 concrete statistic or benchmark.")
+                },
+                {
+                    "step_label": "3. Part B — Multidimensional Impacts",
+                    "sub_heading": "Sectoral & Ecological Vulnerabilities",
+                    "awarded": part_b_s,
+                    "max": part_b_m,
+                    "quoted_written": note_b,
+                    "step_up_lever": str(gaps[1] if len(gaps) > 1 else "Incorporate empirical case studies from recent reports.")
+                },
+                {
+                    "step_label": "4. Part C — Policy Roadmap & Safeguards",
+                    "sub_heading": "Mitigation Framework & Institutional Governance",
+                    "awarded": part_c_s,
+                    "max": part_c_m,
+                    "quoted_written": note_c,
+                    "step_up_lever": str(gaps[2] if len(gaps) > 2 else "Include an actionable 3-point reform matrix before concluding.")
+                }
+            ])
+        else:
+            note_a = str(strengths[0]) if len(strengths) > 0 else "Addressed primary sub-part with structured points on Page 1."
+            note_b = str(strengths[1]) if len(strengths) > 1 else "Covered secondary dimension, policy measures, and impact analysis."
+            gen_steps.extend([
+                {
+                    "step_label": "2. CORE DEMAND — PART A",
+                    "sub_heading": "Primary Question Dimension & Mechanisms",
+                    "awarded": part_a_aw,
+                    "max": part_a_max,
+                    "quoted_written": note_a,
+                    "step_up_lever": str(gaps[0] if len(gaps) > 0 else "Back primary argument with 1 concrete statistic or case law.")
+                },
+                {
+                    "step_label": "3. CORE DEMAND — PART B",
+                    "sub_heading": "Secondary Dimension & Mitigation Measures",
+                    "awarded": part_b_aw,
+                    "max": part_b_max,
+                    "quoted_written": note_b,
+                    "step_up_lever": str(gaps[1] if len(gaps) > 1 else "Include a 3-point actionable Way Forward before concluding.")
+                }
+            ])
+
+        gen_steps.append({
+            "step_label": f"{len(gen_steps) + 1}. CONCLUSION & SYNTHESIS",
+            "sub_heading": "Closing Vision & Institutional Forward Linkage",
+            "awarded": conc_aw,
+            "max": conc_max,
+            "quoted_written": str(conc_audit.get("current_critique") or "Concluded with a balanced synthesis."),
+            "step_up_lever": str(conc_audit.get("model_conclusion_rewrite") or "Anchor closing sentence in the core institutional mechanism or constitutional principle.")
+        })
+        data["sub_part_step_marking"] = gen_steps
 
 
 
