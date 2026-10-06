@@ -4305,4 +4305,80 @@ html.dark .account-nav-btn.active {
   }
 }
 
+/* ==========================================================================
+   🏛️ OXFORD IMPERIAL DESIGN SYSTEM & INTERACTIVE HERO STYLING
+   ========================================================================== */
+.font-teacher-pen {
+  font-family: 'Caveat', cursive, sans-serif !important;
+}
+
+.font-editorial-serif {
+  font-family: 'Newsreader', 'Lora', Georgia, serif !important;
+}
+
+.font-cinzel {
+  font-family: 'Cinzel', serif !important;
+}
+
+.qcab-paper {
+  background-color: #fcfbf7;
+  background-image: linear-gradient(#e9e4d9 1px, transparent 1px);
+  background-size: 100% 28px;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+html.dark .qcab-paper {
+  background-color: #0d1322;
+  background-image: linear-gradient(#182238 1px, transparent 1px);
+  background-size: 100% 28px;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.07);
+}
+
+.oxford-ambient-glow {
+  background: radial-gradient(circle at 50% -20%, rgba(245, 158, 11, 0.12) 0%, rgba(15, 23, 42, 0) 70%),
+              radial-gradient(circle at 10% 20%, rgba(30, 58, 138, 0.15) 0%, transparent 60%),
+              radial-gradient(circle at 90% 20%, rgba(180, 83, 9, 0.12) 0%, transparent 60%);
+}
+
+html.dark .oxford-ambient-glow {
+  background: radial-gradient(circle at 50% -20%, rgba(245, 158, 11, 0.18) 0%, rgba(2, 6, 23, 0) 70%),
+              radial-gradient(circle at 15% 15%, rgba(29, 78, 216, 0.22) 0%, transparent 55%),
+              radial-gradient(circle at 85% 25%, rgba(217, 119, 6, 0.16) 0%, transparent 55%);
+}
+
+.teacher-red-pen {
+  color: #dc2626 !important;
+}
+html.dark .teacher-red-pen {
+  color: #f87171 !important;
+}
+
+.teacher-stamp-badge {
+  border: 1.5px dashed #dc2626;
+  color: #dc2626;
+  background-color: rgba(239, 68, 68, 0.06);
+  transform: rotate(-2deg);
+}
+html.dark .teacher-stamp-badge {
+  border-color: #f87171;
+  color: #f87171;
+  background-color: rgba(239, 68, 68, 0.12);
+}
+
+.shimmer-gold-border {
+  position: relative;
+}
+.shimmer-gold-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.6), rgba(217, 119, 6, 0.2), rgba(245, 158, 11, 0.7));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
 
