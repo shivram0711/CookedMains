@@ -767,6 +767,13 @@ window.navigateToLandingSection = function(sectionId, e) {
     if (typeof e.preventDefault === "function") e.preventDefault();
     if (typeof e.stopPropagation === "function") e.stopPropagation();
   }
+
+  // If user is currently on an external or legal page (e.g., /about-us), redirect to home with hash
+  if (window.location.pathname !== "/" && !window.location.pathname.endsWith("index.html")) {
+    window.location.href = "/#" + sectionId;
+    return;
+  }
+
   // 1. Switch to landing view without auto-scrolling to top
   if (typeof window.switchStudioState === "function") {
     window.switchStudioState("landing", false);
@@ -787,24 +794,34 @@ window.navigateToLandingSection = function(sectionId, e) {
     try { lucide.createIcons(); } catch(err) {}
   }
 
-  // 3. Smooth scroll with sticky navbar offset
-  setTimeout(() => {
+  try {
+    history.replaceState(null, null, "#" + sectionId);
+  } catch(err) {}
+
+  // 3. Smooth scroll with scroll-mt offset
+  const performScroll = () => {
     const target = document.getElementById(sectionId);
     if (target) {
-      const navOffset = 90;
-      const targetTop = target.getBoundingClientRect().top + window.pageYOffset - navOffset;
-      window.scrollTo({
-        top: Math.max(0, targetTop),
-        behavior: "smooth"
-      });
-      // Flash a pulse outline to highlight the section to the user
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
       target.classList.add("ring-2", "ring-amber-500", "rounded-2xl", "transition-all", "duration-500");
       setTimeout(() => {
         target.classList.remove("ring-2", "ring-amber-500");
-      }, 2000);
+      }, 2500);
     }
-  }, 60);
+  };
+
+  performScroll();
+  setTimeout(performScroll, 120);
 };
+
+window.addEventListener("hashchange", () => {
+  if (window.location.hash) {
+    const raw = window.location.hash.replace(/^#/, "");
+    if (["mainsAnswerWritingGuide", "mainsRubricSection", "dailyRoutineSection", "faqSection"].includes(raw)) {
+      window.navigateToLandingSection(raw);
+    }
+  }
+});
 
 window.switchStudioTab = function(tabId, skipScrollToTop = false) {
   const tabBtns = document.querySelectorAll(".studio-tab-btn");
@@ -1861,10 +1878,21 @@ document.addEventListener("DOMContentLoaded", async () => {
                 warning: "Zero credits deducted this time. Submitting the exact same unrevised answers repeatedly will consume available evaluation credits."
               });
             }
-          }
         }, 300);
       }
     }, 200);
+  }
+
+  // Handle direct navigation via URL hash (e.g. #mainsAnswerWritingGuide)
+  if (window.location.hash) {
+    const initialHash = window.location.hash.replace(/^#/, "");
+    if (["mainsAnswerWritingGuide", "mainsRubricSection", "dailyRoutineSection", "faqSection"].includes(initialHash)) {
+      setTimeout(() => {
+        if (typeof window.navigateToLandingSection === "function") {
+          window.navigateToLandingSection(initialHash);
+        }
+      }, 350);
+    }
   }
 });
 
