@@ -1218,6 +1218,12 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
             * Annotation 2 = `"Body: [Lower Heading]"` (`start_y_percent: ~50..68, end_y_percent: ~88..90`). Evaluate ONLY the handwritten points inside that lower region (e.g. storage, irrigation, market monitoring [MSP], AGMARK standards).
             * NEVER combine them into one compound tag like `"Challenges Faced & Steps Needed"` or `"Market Failures & Corrections"`.
             * ZERO DUPLICATE TITLES: Annotation 1 and Annotation 2 on the same page MUST NEVER share the same tag or bullet title (e.g., NEVER repeat `"Comprehensive Corrective Measures"` across both cards!).
+            * ZERO TOPIC INVERSION OR MISATTRIBUTION ACROSS SECTIONS:
+              - If the candidate begins an intermediate page continuing an earlier sub-heading (e.g. Upper half continues Currency Exchange Rate vs PPP comparison, while Lower half introduces Trade Deficit & Oil Shocks):
+                * Annotation 1 MUST be tagged with the UPPER theme (e.g. "Body: Exchange Rate Dynamics & PPP") and its quoted points MUST strictly cite lines from that upper half!
+                * Annotation 2 MUST be tagged with the LOWER theme (e.g. "Body: Trade Deficit & Oil Import Shocks") and its quoted points MUST strictly cite lines from that lower half!
+                * NEVER SWAP THEM: NEVER assign an upper-half point (e.g. Currency ER of Rs 70/USD vs 45 USD basket) to the lower tag ("Oil Dynamics"), and NEVER assign a lower-half point (e.g. OPEC oil price shocks or US quantitative easing) to the upper tag!
+                * The quote and remark in every card MUST 100% semantically and spatially match that card's tag!
           - **Final Page (Page 2 of 2 or Page 3 of 3)**:
             * CRITICAL LAW: STATUTORY ACTS, POLICIES, SCHEMES, AND WAY FORWARD ARE ALWAYS BODY SECTIONS, NEVER CONCLUSION!
               Any legislative act (e.g. `Model Contract Farming Act 2018`, `Disaster Management Act 2005`), policy, scheme, or sub-heading with bullet points is ALWAYS part of the `Body` section (`Body: Model Contract Farming Act 2018` or `Body: Way Forward`), NEVER `Conclusion`!
@@ -1243,6 +1249,13 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
           2. Quote the candidate's actual generic words in `conclusion_audit.current_critique` and the `Conclusion` margin card:
              `"✗ **Too General (No Keywords)**: You wrote 'Thus, there is a need for holistic development on part of government and society', which has no topic keywords and can fit any answer (only +0.5 mark).\n✎ **How to Get Full Marks Here**: Mention 1–2 topic-specific keywords and the core institutional/committee anchor in your last line (NEVER use a generic 'Viksit Bharat @2047' slogan)."`
         - NEVER use heavy, confusing AI phrases like `"Visionary Synthesis"`, `"Constructive Synthesis"`, `"Empirical Substantiation"`, `"Contextual Premise"`, or `"Lexical"`. Always write every card heading and remark in simple, clear English (`"Too General (No Keywords)"`, `"Good Closing Line"`, `"How to Get Full Marks Here"`).
+      * F. THEMATIC INTEGRITY & STRICT QUOTE-TO-TAG PAIRING (ZERO INVERSION ACROSS SECTIONS):
+        - Every visual annotation card's `tag` must accurately reflect the specific sub-topic or section written in that physical region of the page.
+        - You must strictly verify that the candidate's quoted words in `remark` directly belong to the section named in `tag`.
+        - For example:
+          * If a section is about Exchange Rate / Currency / PPP, its card tag must be about Exchange Rate and its quote must cite the candidate's exchange rate points.
+          * If a section is about Trade Deficit / Surging Oil Prices / OPEC, its card tag must be about Trade Deficit / Oil Dynamics and its quote must cite the OPEC / oil import points.
+          * NEVER invert or cross-attribute points between sections! An Exchange Rate quote must NEVER appear under an Oil card, and an OPEC oil quote must NEVER appear under an Exchange Rate card!
 
 22. DYNAMIC DIAGRAM RELEVANCE & EXAM-HALL SPACE UTILISATION AUDIT (CRITICAL):
     - In a real UPSC Mains exam (2 pages for 10M, 3 pages for 15M), drawing a large box diagram on EVERY question wastes precious vertical writing space and forces the student to cut 2–3 analytical points!
@@ -1724,6 +1737,11 @@ Generate strictly valid JSON matching this schema:
     //    - For Page 1 Intro: "+{sample_intro_aw:.1f} / {intro_d:.1f}"
     //    - For Body Sub-Parts: allocate the body ceiling across distinct sub-parts so the sum of all body annotations equals the body ceiling!
     //    - For Conclusion: "+{sample_conc_aw:.1f} / {conc_d:.1f}". Conclusion MUST ONLY be on the FINAL page!
+    // 7. THEMATIC INTEGRITY (NEVER SWAP TAGS AND QUOTES ACROSS SECTIONS):
+    //    - The candidate's handwritten quote in every annotation card MUST 100% semantically match the tag of that card!
+    //    - If Annotation 1 is tagged with the upper theme, its quote MUST come from the upper region.
+    //    - If Annotation 2 is tagged with the lower theme, its quote MUST come from the lower region.
+    //    - NEVER invert or cross-attribute quotes between cards (e.g. placing an Exchange Rate quote into an Oil Dynamics card, or placing an OPEC oil quote into an Exchange Rate card)!
     {{
       "page": 1,
       "approx_y_percent": 32,
@@ -2218,15 +2236,26 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
         def _is_conc_bullet(txt: str) -> bool:
             return bool(re.search(r'(?i)\b(conclusion|concl|synthesis|synthesiz|closing\s*stance|closing\s*line|closing\s*view|closing\s*thought|forward-looking|stronger\s*finish|topper\s*finish|balanced\s*conclusion|way\s*forward\s*&\s*synthesis)\b', str(txt or "")))
 
-        def _build_page_zone_remark(pg_num: int, slot_idx: int) -> str:
+        def _build_page_zone_remark(pg_num: int, slot_idx: int, tag_hint: str = "", start_y: float = 0.0) -> str:
             bullets = []
             raw_pg_trans = _get_page_transcript(pg_num)
             pg_trans = raw_pg_trans.lower()
+
+            clean_tag = re.sub(r'(?i)^body:\s*', '', str(tag_hint or "")).strip()
+            tag_tokens = set(re.findall(r'[a-z]{3,}', clean_tag.lower())) - {'part', 'core', 'demand', 'key', 'analysis', 'substantiation', 'the', 'and', 'for', 'with', 'section'}
 
             # 1. First pull page-matched point_by_point_audit verdicts for this exact page (pg_num)
             pg_pbps = [p for p in pbp_list if isinstance(p, dict) and int(p.get("page", 0) or 0) == pg_num]
             if not pg_pbps and pbp_list:
                 pg_pbps = [p for p in pbp_list if isinstance(p, dict) and int(p.get("page", 0) or 0) in [0, pg_num]]
+
+            if tag_tokens and pg_pbps:
+                def _score_pbp(p_item):
+                    p_txt = (str(p_item.get("title", "")) + " " + str(p_item.get("examiner_verdict", ""))).lower()
+                    p_words = set(re.findall(r'[a-z]{3,}', p_txt))
+                    return len(tag_tokens & p_words)
+                pg_pbps = sorted(pg_pbps, key=_score_pbp, reverse=True)
+
             for p_item in pg_pbps:
                 title_s = str(p_item.get("title") or "").strip()
                 verdict_s = str(p_item.get("examiner_verdict") or "").strip()
@@ -2246,7 +2275,25 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                     if len(l.strip()) >= 22 and not l.strip().startswith("#") and not re.match(r'^(?:Q\.?|\d+[\.\)])\s*', l.strip())
                 ]
                 if cand_lines:
-                    clean_snip = _clean_quote_snippet(cand_lines[slot_idx % len(cand_lines)], 120)
+                    half_point = max(1, len(cand_lines) // 2)
+                    if slot_idx == 0 or (start_y > 0 and start_y < 48.0):
+                        pool = cand_lines[:half_point]
+                    else:
+                        pool = cand_lines[half_point:] if len(cand_lines) > 1 else cand_lines
+
+                    best_line = None
+                    if tag_tokens:
+                        best_score = -1
+                        for l_cand in pool:
+                            l_words = set(re.findall(r'[a-z]{3,}', l_cand.lower()))
+                            score = len(tag_tokens & l_words)
+                            if score > best_score:
+                                best_score = score
+                                best_line = l_cand
+                    if not best_line:
+                        best_line = pool[slot_idx % len(pool)]
+
+                    clean_snip = _clean_quote_snippet(best_line, 120)
                     if clean_snip:
                         _add_unique_bullet(bullets, f"**Arguments Analyzed**: Evaluated analysis on *\"{clean_snip}\"* addressing core directive dimensions.", "✓")
 
@@ -2271,6 +2318,12 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                     continue
                 filtered_strengths.append(s)
 
+            if tag_tokens and filtered_strengths:
+                def _score_s(s_str):
+                    s_words = set(re.findall(r'[a-z]{3,}', s_str.lower()))
+                    return len(tag_tokens & s_words)
+                filtered_strengths = sorted(filtered_strengths, key=_score_s, reverse=True)
+
             for s_cand in filtered_strengths:
                 if len(bullets) >= 2:
                     break
@@ -2286,6 +2339,12 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                 if m_pg and int(m_pg.group(1)) != pg_num:
                     continue
                 filtered_gaps.append(g)
+
+            if tag_tokens and filtered_gaps:
+                def _score_g(g_str):
+                    g_words = set(re.findall(r'[a-z]{3,}', g_str.lower()))
+                    return len(tag_tokens & g_words)
+                filtered_gaps = sorted(filtered_gaps, key=_score_g, reverse=True)
 
             for g_cand in filtered_gaps:
                 if len(bullets) >= 2:
@@ -2310,6 +2369,71 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                     _add_unique_bullet(bullets, "**Domain Substantiation**: Support arguments with official committee recommendations, statutory frameworks, or empirical telemetry.", "✎")
 
             return "\n".join(bullets[:4])
+
+        def _heal_cross_attributed_page_annotations(pg_anns: list):
+            """
+            Detects and fixes swapped/cross-attributed remarks and tags between cards on the same page.
+            Ensures that every margin card's quote and feedback strictly match the card's sub-topic.
+            """
+            if len(pg_anns) < 2:
+                return
+
+            pg_anns.sort(key=lambda a: float(a.get("start_y_percent", a.get("approx_y_percent", 0.0)) or 0.0))
+
+            for i in range(len(pg_anns) - 1):
+                ann0, ann1 = pg_anns[i], pg_anns[i + 1]
+                t0 = re.sub(r'(?i)^body:\s*', '', str(ann0.get("tag", ""))).strip().lower()
+                t1 = re.sub(r'(?i)^body:\s*', '', str(ann1.get("tag", ""))).strip().lower()
+                r0 = str(ann0.get("remark", "")).lower()
+                r1 = str(ann1.get("remark", "")).lower()
+
+                stop = {'the', 'and', 'for', 'with', 'part', 'core', 'demand', 'key', 'analysis', 'substantiation', 'intro', 'conclusion', 'section', 'points'}
+                tok0 = set(re.findall(r'[a-z]{3,}', t0)) - stop
+                tok1 = set(re.findall(r'[a-z]{3,}', t1)) - stop
+
+                if not tok0 or not tok1 or tok0 == tok1:
+                    continue
+
+                w0 = set(re.findall(r'[a-z]{3,}', r0))
+                w1 = set(re.findall(r'[a-z]{3,}', r1))
+
+                score_0_to_0 = len(tok0 & w0)
+                score_0_to_1 = len(tok1 & w0)
+                score_1_to_1 = len(tok1 & w1)
+                score_1_to_0 = len(tok0 & w1)
+
+                domain_clusters = [
+                    ({'oil', 'opec', 'petroleum', 'crude', 'energy', 'fuel'},
+                     {'exchange', 'rate', 'currency', 'usd', 'rupee', 'ppp', 'basket', 'forex', 'er', 'gdp'}),
+                    ({'trade', 'deficit', 'export', 'import', 'cad', 'merchandise'},
+                     {'exchange', 'rate', 'currency', 'appreciation', 'depreciation', 'valuation'}),
+                    ({'mitigation', 'prevention', 'preparedness', 'resilience', 'early', 'warning'},
+                     {'response', 'relief', 'rescue', 'rehabilitation', 'compensation'}),
+                    ({'fiscal', 'budget', 'tax', 'gst', 'capex', 'borrowing'},
+                     {'monetary', 'rbi', 'repo', 'interest', 'inflation', 'liquidity'}),
+                    ({'executive', 'bureaucracy', 'civil', 'services', 'governance'},
+                     {'judiciary', 'judicial', 'court', 'supreme', 'bench', 'collegium'})
+                ]
+
+                is_swapped = False
+                if score_0_to_1 > score_0_to_0 and score_1_to_0 > score_1_to_1:
+                    is_swapped = True
+                else:
+                    for c_a, c_b in domain_clusters:
+                        t0_a, t0_b = bool(tok0 & c_a), bool(tok0 & c_b)
+                        t1_a, t1_b = bool(tok1 & c_a), bool(tok1 & c_b)
+                        r0_a, r0_b = bool(w0 & c_a), bool(w0 & c_b)
+                        r1_a, r1_b = bool(w1 & c_a), bool(w1 & c_b)
+
+                        if (t0_b and t1_a) and (r0_a and not r0_b) and (r1_b and not r1_a):
+                            is_swapped = True
+                            break
+                        elif (t0_a and t1_b) and (r0_b and not r0_a) and (r1_a and not r1_b):
+                            is_swapped = True
+                            break
+
+                if is_swapped:
+                    ann0["remark"], ann1["remark"] = ann1["remark"], ann0["remark"]
 
         # Extract student's first non-header sentence from transcribed_text
         first_student_sentence = ""
@@ -2392,6 +2516,9 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
             expanded_anns = []
             for pg in range(1, max_pg + 1):
                 pg_anns = [a for a in annotations if (int(a.get("page", 1) or 1) == pg)]
+                # Ensure annotations are sorted strictly top-to-bottom physically
+                pg_anns.sort(key=lambda a: float(a.get("start_y_percent", a.get("approx_y_percent", 0.0)) or 0.0))
+
                 # Deduplicate any existing body annotation remarks on pg >= 2 that accidentally copied Page 1 or Page 2
                 for existing_ann in pg_anns:
                     t_low = str(existing_ann.get("tag", "")).lower()
@@ -2406,7 +2533,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                         if unique_b_lines:
                             existing_ann["remark"] = "\n".join(unique_b_lines)
                         else:
-                            existing_ann["remark"] = _build_page_zone_remark(pg, pg)
+                            existing_ann["remark"] = _build_page_zone_remark(pg, 0, str(existing_ann.get("tag", "")), float(existing_ann.get("start_y_percent", 0.0) or 0.0))
 
                 if pg == 1:
                     is_p1_prompt = any(
@@ -2427,7 +2554,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                             "tag": "Body: Core Demand",
                             "type": "tick",
                             "marks_awarded": "+1.5 / 3.5",
-                            "remark": _build_page_zone_remark(1, 0)
+                            "remark": _build_page_zone_remark(1, 0, "Body: Core Demand", 41.0)
                         })
                 elif pg < max_pg:
                     pg_trans = _get_page_transcript(pg).lower()
@@ -2441,7 +2568,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                             pg_anns[0]["start_y_percent"] = 12.0
                             pg_anns[0]["end_y_percent"] = 48.0
                             if not pg_anns[0].get("remark") or len(str(pg_anns[0].get("remark")).strip()) < 25 or _has_meta_placeholder(str(pg_anns[0].get("remark"))):
-                                pg_anns[0]["remark"] = _build_page_zone_remark(pg, 0)
+                                pg_anns[0]["remark"] = _build_page_zone_remark(pg, 0, pg_anns[0]["tag"], 12.0)
 
                             ann2 = {
                                 "page": pg,
@@ -2451,7 +2578,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                                 "tag": f"Body: {t2_clean}",
                                 "type": "tick",
                                 "marks_awarded": "+1.5 / 3.0",
-                                "remark": _build_page_zone_remark(pg, 1)
+                                "remark": _build_page_zone_remark(pg, 1, f"Body: {t2_clean}", 50.0)
                             }
                             pg_anns.append(ann2)
                         else:
@@ -2463,7 +2590,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                                 "tag": "Body: Depth & Substantiation",
                                 "type": "suggestion",
                                 "marks_awarded": "+1.5 / 3.0",
-                                "remark": _build_page_zone_remark(pg, 1)
+                                "remark": _build_page_zone_remark(pg, 1, "Body: Depth & Substantiation", 50.0)
                             }
                             pg_anns.append(ann2)
                     elif len(pg_anns) >= 2:
@@ -2474,7 +2601,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                             pg_anns[1]["tag"] = f"{pg_anns[1]['tag']} (Part 2)"
                         for idx_p, p_ann in enumerate(pg_anns[:2]):
                             if not p_ann.get("remark") or len(str(p_ann.get("remark")).strip()) < 25 or _has_meta_placeholder(str(p_ann.get("remark"))):
-                                p_ann["remark"] = _build_page_zone_remark(pg, idx_p)
+                                p_ann["remark"] = _build_page_zone_remark(pg, idx_p, str(p_ann.get("tag", "")), float(p_ann.get("start_y_percent", 0.0) or 0.0))
+                        _heal_cross_attributed_page_annotations(pg_anns)
                     expanded_anns.extend(pg_anns)
                 else:
                     pg_trans = _get_page_transcript(pg).lower()
@@ -2585,6 +2713,9 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                                         b["end_y_percent"] = float(conc_ann.get("start_y_percent", 70) or 70) - 1.5
                         expanded_anns.extend(pg_anns)
             annotations = expanded_anns
+            for pg_idx in range(1, max_pg + 1):
+                pg_subset = [a for a in annotations if int(a.get("page", 1) or 1) == pg_idx]
+                _heal_cross_attributed_page_annotations(pg_subset)
             data["visual_annotations"] = annotations
 
         total_awarded = 0.0

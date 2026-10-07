@@ -5217,7 +5217,7 @@ function renderAnnotationsOverlay() {
 
       const pbpAuditList = Array.isArray(evalData.point_by_point_audit) ? evalData.point_by_point_audit : [];
 
-      const buildDynamicBodyRemark = (slotIndex, rawRem, targetPageNum = 1) => {
+      const buildDynamicBodyRemark = (slotIndex, rawRem, targetPageNum = 1, tagHint = "") => {
         const isStaticSampleMode = Boolean(
           (evalData.is_sample_copy || evalData.is_exact_sample_copy || (state.activeSampleId && state.uploadedFiles && state.uploadedFiles.length === 0)) &&
           (!rawRem || String(rawRem).trim().length < 25)
@@ -5384,7 +5384,24 @@ function renderAnnotationsOverlay() {
               .map(l => l.trim())
               .filter(l => l.length >= 22 && !l.startsWith("#") && !/^(?:Q\.?|\d+[\.\)])\s*/i.test(l));
             if (candLines.length > 0) {
-              const cleanSnip = cleanCandidateQuote(candLines[slotIndex % candLines.length], 120);
+              const half = Math.max(1, Math.floor(candLines.length / 2));
+              const pool = (slotIndex === 0) ? candLines.slice(0, half) : (candLines.length > 1 ? candLines.slice(half) : candLines);
+              const targetPool = (pool && pool.length > 0) ? pool : candLines;
+              let bestLine = targetPool[0];
+              const tagTokens = String(tagHint || "").toLowerCase().replace(/[^a-z\s]/g, " ").split(/\s+/).filter(w => w.length >= 4 && !['body', 'part', 'core', 'demand', 'analysis', 'substantiation'].includes(w));
+              if (tagTokens.length > 0) {
+                let maxScore = -1;
+                targetPool.forEach(l => {
+                  const lLow = l.toLowerCase();
+                  let score = 0;
+                  tagTokens.forEach(t => { if (lLow.includes(t)) score++; });
+                  if (score > maxScore) {
+                    maxScore = score;
+                    bestLine = l;
+                  }
+                });
+              }
+              const cleanSnip = cleanCandidateQuote(bestLine, 120);
               if (cleanSnip) {
                 pushUnique(`**Candidate Analysis**: Analyzed handwritten argument *"${cleanSnip}"* addressing core directive dimensions.`, "✓");
               }
@@ -5915,6 +5932,44 @@ function renderAnnotationsOverlay() {
           return !t.includes("concl") && !t.includes("synthesis") && !t.includes("finish");
         });
 
+        // Ensure vertical sorting so upper section is index 0 and lower section is index 1
+        nonConcAnns.sort((a, b) => {
+          const yA = parseFloat(a.start_y_percent || a.approx_y_percent || 0);
+          const yB = parseFloat(b.start_y_percent || b.approx_y_percent || 0);
+          return yA - yB;
+        });
+
+        // Check for cross-attributed / swapped remarks across distinct thematic domains
+        if (nonConcAnns.length >= 2) {
+          const t0 = String(nonConcAnns[0].tag || "").toLowerCase();
+          const t1 = String(nonConcAnns[1].tag || "").toLowerCase();
+          const r0 = String(nonConcAnns[0].remark || "").toLowerCase();
+          const r1 = String(nonConcAnns[1].remark || "").toLowerCase();
+          const domainPairs = [
+            [/\b(?:oil|opec|petroleum|crude|energy|fuel)\b/i, /\b(?:exchange|rate|currency|usd|rupee|ppp|basket|forex|er|gdp)\b/i],
+            [/\b(?:trade\s*deficit|export|import|cad)\b/i, /\b(?:exchange|rate|currency|appreciation|depreciation)\b/i],
+            [/\b(?:fiscal|budget|tax|gst|capex)\b/i, /\b(?:monetary|rbi|repo|interest|inflation)\b/i],
+            [/\b(?:mitigation|preparedness|resilience)\b/i, /\b(?:response|relief|rescue|rehabilitation)\b/i]
+          ];
+          for (const [reA, reB] of domainPairs) {
+            const t0_A = reA.test(t0), t0_B = reB.test(t0);
+            const t1_A = reA.test(t1), t1_B = reB.test(t1);
+            const r0_A = reA.test(r0), r0_B = reB.test(r0);
+            const r1_A = reA.test(r1), r1_B = reB.test(r1);
+            if ((t0_B || !t0_A) && t1_A && r0_A && !r0_B && r1_B && !r1_A) {
+              const tmpR = nonConcAnns[0].remark;
+              nonConcAnns[0].remark = nonConcAnns[1].remark;
+              nonConcAnns[1].remark = tmpR;
+              break;
+            } else if (t0_A && (t1_B || !t1_A) && r0_B && !r0_A && r1_A && !r1_B) {
+              const tmpR = nonConcAnns[0].remark;
+              nonConcAnns[0].remark = nonConcAnns[1].remark;
+              nonConcAnns[1].remark = tmpR;
+              break;
+            }
+          }
+        }
+
         if (nonConcAnns.length >= 2) {
           const s1 = Math.round((bodyPart.score * 0.5) * 2) / 2;
           const s2 = Math.max(0, Math.round((bodyPart.score - s1) * 2) / 2);
@@ -5928,6 +5983,7 @@ function renderAnnotationsOverlay() {
 
           outSections.push({
             zone: "body",
+            cardIndex: 0,
             title: `BODY: ${t1}`,
             icon: nonConcAnns[0].type === "warning" ? "✗" : "✓",
             isTick: nonConcAnns[0].type !== "warning",
@@ -5935,12 +5991,13 @@ function renderAnnotationsOverlay() {
             endYPercent: nonConcAnns[0].end_y_percent || 52,
             cardTopPercent: nonConcAnns[0].start_y_percent || 16,
             marks: `+${s1.toFixed(1)} / ${m1.toFixed(1)}`,
-            bodyHtml: formatBulletsFn(buildDynamicBodyRemark(0, nonConcAnns[0].remark, pgNum)),
-            bulletsHtml: formatBulletsFn(buildDynamicBodyRemark(0, nonConcAnns[0].remark, pgNum)),
+            bodyHtml: formatBulletsFn(buildDynamicBodyRemark(0, nonConcAnns[0].remark, pgNum, nonConcAnns[0].tag)),
+            bulletsHtml: formatBulletsFn(buildDynamicBodyRemark(0, nonConcAnns[0].remark, pgNum, nonConcAnns[0].tag)),
             targetKey: "body"
           });
           outSections.push({
             zone: "body",
+            cardIndex: 1,
             title: `BODY: ${t2}`,
             icon: nonConcAnns[1].type === "warning" ? "✗" : "✓",
             isTick: nonConcAnns[1].type !== "warning",
@@ -5948,8 +6005,8 @@ function renderAnnotationsOverlay() {
             endYPercent: nonConcAnns[1].end_y_percent || 89,
             cardTopPercent: nonConcAnns[1].start_y_percent || 54,
             marks: `+${s2.toFixed(1)} / ${m2.toFixed(1)}`,
-            bodyHtml: formatBulletsFn(buildDynamicBodyRemark(1, nonConcAnns[1].remark, pgNum)),
-            bulletsHtml: formatBulletsFn(buildDynamicBodyRemark(1, nonConcAnns[1].remark, pgNum)),
+            bodyHtml: formatBulletsFn(buildDynamicBodyRemark(1, nonConcAnns[1].remark, pgNum, nonConcAnns[1].tag)),
+            bulletsHtml: formatBulletsFn(buildDynamicBodyRemark(1, nonConcAnns[1].remark, pgNum, nonConcAnns[1].tag)),
             targetKey: "body"
           });
         } else {
@@ -7135,7 +7192,10 @@ function getCardQuoteAndElevate(sec) {
           if (qMatch && !isMetaText(qMatch[1] || qMatch[2])) {
             quote = (qMatch[1] || qMatch[2]).trim();
           } else if (!isMetaText(text.replace(/^[✓✔★⭐]\s*/, ""))) {
-            quote = text.replace(/^[✓✔★⭐]\s*/, "");
+            const stripped = text.replace(/^[✓✔★⭐]\s*/, "").trim();
+            if (!/^\*\*[A-Z][^:]+\*\*:\s*(?:Clearly|Evaluated|Addressed|Substantiated|Analyzed|Demonstrated|Structured|Framed|Highlighted)/i.test(stripped)) {
+              quote = stripped;
+            }
           }
         } else if ((text.startsWith("✎") || text.startsWith("✗") || text.startsWith("×")) && !advise) {
           advise = text.replace(/^[✎✗×✘]\s*/, "");
@@ -7176,10 +7236,27 @@ function getCardQuoteAndElevate(sec) {
         } else if (sec.zone === "conclusion") {
           quote = cleanCandidateQuote(candLines[candLines.length - 1]);
         } else {
-          // Body lines
-          const cardIdx = sec.cardIndex || 0;
-          const lineIdx = Math.min(candLines.length - 1, Math.max(0, (sec.zone === "intro" ? 0 : (pNum === 1 ? cardIdx + 1 : cardIdx))));
-          quote = cleanCandidateQuote(candLines[lineIdx]);
+          // Body lines: spatially partition based on cardIndex / startYPercent
+          const cardIdx = (sec.cardIndex !== undefined) ? sec.cardIndex : (sec.startYPercent && sec.startYPercent >= 48 ? 1 : 0);
+          const half = Math.max(1, Math.floor(candLines.length / 2));
+          const pool = (cardIdx === 0) ? candLines.slice(0, half) : (candLines.length > 1 ? candLines.slice(half) : candLines);
+          const targetPool = (pool && pool.length > 0) ? pool : candLines;
+
+          let bestCand = targetPool[0];
+          const titleTokens = String(sec.title || "").toLowerCase().replace(/[^a-z\s]/g, " ").split(/\s+/).filter(w => w.length >= 4 && !['body', 'part', 'core', 'demand', 'analysis', 'substantiation'].includes(w));
+          if (titleTokens.length > 0) {
+            let maxOverlap = -1;
+            targetPool.forEach(l => {
+              const lLow = l.toLowerCase();
+              let overlap = 0;
+              titleTokens.forEach(tok => { if (lLow.includes(tok)) overlap++; });
+              if (overlap > maxOverlap) {
+                maxOverlap = overlap;
+                bestCand = l;
+              }
+            });
+          }
+          quote = cleanCandidateQuote(bestCand);
         }
       } else {
         quote = sec.summary || (sec.zone === "intro" ? "Addressed introductory premise and conceptual context." : (sec.zone === "conclusion" ? "Synthesized closing stance on the core directive." : "Structured arguments addressing core analytical dimensions."));
@@ -7296,7 +7373,51 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
 
   container.innerHTML = "";
 
-  sections.forEach((sec, idx) => {
+  const cardData = sections.map((sec, idx) => {
+    if (sec.cardIndex === undefined) sec.cardIndex = idx;
+    const { quote, advise } = getCardQuoteAndElevate(sec);
+    return { sec, quote, advise, idx };
+  });
+
+  // Cross-card validation: heal swapped quotes between cards on this page
+  if (cardData.length >= 2) {
+    for (let i = 0; i < cardData.length - 1; i++) {
+      const c0 = cardData[i];
+      const c1 = cardData[i + 1];
+      const t0 = String(c0.sec.title || "").toLowerCase();
+      const t1 = String(c1.sec.title || "").toLowerCase();
+      const q0 = String(c0.quote || "").toLowerCase();
+      const q1 = String(c1.quote || "").toLowerCase();
+
+      const domainPairs = [
+        [/\b(?:oil|opec|petroleum|crude|energy|fuel)\b/i, /\b(?:exchange|rate|currency|usd|rupee|ppp|basket|forex|er|gdp)\b/i],
+        [/\b(?:trade\s*deficit|export|import|cad)\b/i, /\b(?:exchange|rate|currency|appreciation|depreciation)\b/i],
+        [/\b(?:fiscal|budget|tax|gst|capex)\b/i, /\b(?:monetary|rbi|repo|interest|inflation)\b/i],
+        [/\b(?:mitigation|preparedness|resilience)\b/i, /\b(?:response|relief|rescue|rehabilitation)\b/i]
+      ];
+
+      for (const [reA, reB] of domainPairs) {
+        const t0_A = reA.test(t0), t0_B = reB.test(t0);
+        const t1_A = reA.test(t1), t1_B = reB.test(t1);
+        const q0_A = reA.test(q0), q0_B = reB.test(q0);
+        const q1_A = reA.test(q1), q1_B = reB.test(q1);
+
+        if ((t0_B || !t0_A) && t1_A && q0_A && !q0_B && q1_B && !q1_A) {
+          const tmpQ = c0.quote;
+          c0.quote = c1.quote;
+          c1.quote = tmpQ;
+          break;
+        } else if (t0_A && (t1_B || !t1_A) && q0_B && !q0_A && q1_A && !q1_B) {
+          const tmpQ = c0.quote;
+          c0.quote = c1.quote;
+          c1.quote = tmpQ;
+          break;
+        }
+      }
+    }
+  }
+
+  cardData.forEach(({ sec, quote, advise, idx }) => {
     const card = document.createElement("div");
     card.id = `desktopEvalCard_${idx}`;
     card.className = "eval-card p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 transition-all duration-300 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer select-none";
@@ -7313,8 +7434,6 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
     const pillClass = isGreen
       ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
       : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30";
-
-    const { quote, advise } = getCardQuoteAndElevate(sec);
 
     card.innerHTML = `
       <div class="flex items-center justify-between mb-1.5 gap-2">
