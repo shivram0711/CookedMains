@@ -196,7 +196,7 @@
       <nav class="hidden lg:flex items-center space-x-5 text-xs font-semibold text-slate-600 dark:text-slate-300">
         <a href="/about-us" class="hover:text-amber-500 transition">About Us</a>
         <a href="/contact-us" class="hover:text-amber-500 transition">Contact</a>
-        <a href="#mainsAnswerWritingGuide" onclick="if(window.switchStudioState){window.switchStudioState('landing');} document.getElementById('mainsAnswerWritingGuide')?.scrollIntoView({behavior:'smooth'});" class="hover:text-amber-500 transition">Mains Guide</a>
+        <a href="#mainsAnswerWritingGuide" onclick="window.navigateToLandingSection('mainsAnswerWritingGuide', event);" class="hover:text-amber-500 transition">Mains Guide</a>
         <a href="/privacy-policy" class="hover:text-amber-500 transition">Privacy</a>
         <a href="/terms-and-conditions" class="hover:text-amber-500 transition">Terms</a>
       </nav>
@@ -570,13 +570,13 @@
       <!-- upsc mains answer writing, upsc mains answer writing copy,                -->
       <!-- daily mains answer writing, mains answer writing upsc                     -->
       <!-- ================================================================= -->
-      <article id="mainsAnswerWritingGuide" class="w-full mt-6 pt-8 pb-12 border-t border-slate-200 dark:border-slate-800/80 text-left space-y-10">
+      <article id="mainsAnswerWritingGuide" class="w-full mt-6 pt-8 pb-12 border-t border-slate-200 dark:border-slate-800/80 text-left space-y-12">
         
         <!-- Section Header -->
         <div class="space-y-4 max-w-4xl">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-semibold">
             <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
-            <span>Authoritative UPSC Preparation Guide</span>
+            <span>Authoritative UPSC Preparation Guide • 2026 Masterclass</span>
           </div>
           <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white font-serif leading-tight">
             Mastering Mains Answer Writing: The Definitive Guide to UPSC CSE Practice, Copy Evaluation &amp; Scoring
@@ -587,144 +587,486 @@
           <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
             To bridge this crucial gap, Cooked Mains offers India's most advanced, 100% free AI-powered ecosystem designed exclusively for upsc mains answer writing practice. By combining state-of-the-art multimodal vision with authentic UPSC examiner rubrics, Cooked Mains empowers self-study aspirants across the country to practice daily, upload their handwritten copies, and receive instant, objective, line-by-line feedback.
           </p>
+
+          <!-- Quick Navigation Jump Pills -->
+          <div class="pt-2 flex flex-wrap items-center gap-2 text-xs">
+            <span class="text-slate-500 dark:text-slate-400 font-semibold mr-1">Quick Jump:</span>
+            <button type="button" onclick="window.navigateToLandingSection('mainsRubricSection', event);" class="px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 font-medium transition cursor-pointer flex items-center gap-1.5">
+              <i data-lucide="award" class="w-3.5 h-3.5"></i>
+              <span>6-Point Rubric Audit</span>
+            </button>
+            <button type="button" onclick="window.navigateToLandingSection('dailyRoutineSection', event);" class="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-medium transition cursor-pointer flex items-center gap-1.5">
+              <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+              <span>Daily Practice Protocol</span>
+            </button>
+            <button type="button" onclick="window.navigateToLandingSection('faqSection', event);" class="px-3 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-400 font-medium transition cursor-pointer flex items-center gap-1.5">
+              <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
+              <span>Mains FAQs</span>
+            </button>
+          </div>
         </div>
 
         <!-- Pillar 1: Anatomy of High-Scoring Answer -->
         <div class="space-y-6">
           <div class="space-y-2">
-            <h3 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 font-serif">
-              The Anatomy of a High-Scoring UPSC Mains Answer
+            <h3 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 font-serif flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center text-xs font-bold">1</span>
+              <span>The Anatomy of a High-Scoring UPSC Mains Answer</span>
             </h3>
             <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              Writing high-scoring answers in General Studies Papers (GS 1, GS 2, GS 3, GS 4) and the Essay paper requires a balance of substance, structure, and presentation. Evaluators examine hundreds of scripts daily; an answer that looks dense, unstructured, or generic receives average marks. To consistently score above the 50th percentile in mains answer writing upsc, every candidate must master three foundational pillars:
+              Writing high-scoring answers in General Studies Papers (GS 1, GS 2, GS 3, GS 4) and the Essay paper requires a balance of substance, structure, and presentation. Evaluators examine hundreds of scripts daily; an answer that looks dense, unstructured, or generic receives average marks. To consistently score above the 50th percentile in mains answer writing upsc, every candidate must master three foundational structural pillars:
             </p>
           </div>
 
+          <!-- 3-Tier Structural Architecture Cards -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <!-- Sub-card 1 -->
-            <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
-              <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
-                <i data-lucide="compass" class="w-4 h-4"></i>
+            <!-- Tier 1 -->
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-3 flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                    <i data-lucide="compass" class="w-4 h-4"></i>
+                  </div>
+                  <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">15-20% Words</span>
+                </div>
+                <h4 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">1. Contextual Introduction</h4>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Open with an immediate hook rather than generic preambles. High-scoring introductions deploy one of three proven formats:
+                </p>
+                <ul class="text-xs text-slate-600 dark:text-slate-400 space-y-1.5 list-disc list-inside">
+                  <li><strong class="text-slate-800 dark:text-slate-200">Constitutional Hook:</strong> Cite Articles (e.g., Art 21, 39A, 280), Landmark Judgments (Kesavananda, Puttaswamy).</li>
+                  <li><strong class="text-slate-800 dark:text-slate-200">Data &amp; Report Anchor:</strong> Quote official indices (NITI Aayog, NFHS-5, RBI, Economic Survey, IPCC AR6).</li>
+                  <li><strong class="text-slate-800 dark:text-slate-200">Precise Definitional Hook:</strong> Define technical terms concisely with institutional clarity.</li>
+                </ul>
               </div>
-              <h4 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">1. Deconstructing the Question Directive</h4>
-              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                A primary reason aspirants lose marks in upsc mains answer writing is failing to align their response with the specific directive. A question ending with "Discuss" requires exploring multiple viewpoints and nuances, whereas "Critically Analyze" demands assessing both merits and demerits before arriving at a balanced, evidence-backed synthesis. Directives such as "Elucidate", "Examine", "Comment", or "Evaluate" each have distinct expectations. In mains answer writing upsc, missing the directive triggers heavy penalties. Cooked Mains explicitly evaluates directive adherence, flagging off-topic digressions and ensuring every sub-part is methodically addressed.
+              <div class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/40 text-[11px] text-amber-800 dark:text-amber-300">
+                💡 <strong>Topper Tip:</strong> Restrict the introduction to 25–35 words in 10-markers and 35–45 words in 15-markers.
+              </div>
+            </div>
+
+            <!-- Tier 2 -->
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-3 flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                    <i data-lucide="layers" class="w-4 h-4"></i>
+                  </div>
+                  <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">70-75% Words</span>
+                </div>
+                <h4 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">2. Multidimensional Body</h4>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Break down your core thesis into structured, symmetrical subheadings addressing all explicit and implicit demands of the question:
+                </p>
+                <ul class="text-xs text-slate-600 dark:text-slate-400 space-y-1.5 list-disc list-inside">
+                  <li><strong class="text-slate-800 dark:text-slate-200">PESTLE Framework:</strong> Cover Political, Economic, Social, Technological, Legal, and Environmental dimensions.</li>
+                  <li><strong class="text-slate-800 dark:text-slate-200">Stakeholder Mapping:</strong> Delineate citizen, state, judicial, market, and marginalized community angles.</li>
+                  <li><strong class="text-slate-800 dark:text-slate-200">Bullet &amp; Underline Rhythm:</strong> Write crisp 1.5-line bullet points with bold keywords to facilitate rapid visual parsing.</li>
+                </ul>
+              </div>
+              <div class="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/40 text-[11px] text-emerald-800 dark:text-emerald-300">
+                🎯 <strong>Subheading Symmetry:</strong> Mirror the exact wording of the question's sub-parts in your section headings.
+              </div>
+            </div>
+
+            <!-- Tier 3 -->
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-3 flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <div class="w-9 h-9 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold">
+                    <i data-lucide="target" class="w-4 h-4"></i>
+                  </div>
+                  <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400">10-15% Words</span>
+                </div>
+                <h4 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">3. Futuristic Conclusion</h4>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Never conclude with mere repetition of arguments. A civil servant's conclusion must project administrative vision, balance, and constitutional optimism:
+                </p>
+                <ul class="text-xs text-slate-600 dark:text-slate-400 space-y-1.5 list-disc list-inside">
+                  <li><strong class="text-slate-800 dark:text-slate-200">The 3W Formula:</strong> Way Forward + World/National Frameworks (Viksit Bharat @ 2047, SDG 2030, Net-Zero 2070).</li>
+                  <li><strong class="text-slate-800 dark:text-slate-200">Committee Roadmaps:</strong> Cite Punchhi Commission, 2nd ARC, or parliamentary panel blueprints.</li>
+                  <li><strong class="text-slate-800 dark:text-slate-200">Constitutional Morality:</strong> Reaffirm fundamental rights, fraternity, and equitable inclusive growth.</li>
+                </ul>
+              </div>
+              <div class="p-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/20 border border-sky-200/60 dark:border-sky-800/40 text-[11px] text-sky-800 dark:text-sky-300">
+                🚀 <strong>Execution Rule:</strong> Always provide 2 actionable policy suggestions before the final visionary line.
+              </div>
+            </div>
+          </div>
+
+          <!-- Directive Decoder Matrix -->
+          <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4 shadow-xs">
+            <div class="space-y-1">
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-wider">
+                <i data-lucide="compass" class="w-3.5 h-3.5"></i>
+                <span>Examiner Directive Decoder</span>
+              </div>
+              <h4 class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 font-serif">
+                How to Deconstruct UPSC Question Directives Without Losing Marks
+              </h4>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                Misinterpreting the directive verb is the #1 reason candidates with solid knowledge end up scoring 3/10 instead of 6.5/10. Here is how examiners evaluate each key directive:
               </p>
             </div>
 
-            <!-- Sub-card 2 -->
-            <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
-              <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
-                <i data-lucide="layers" class="w-4 h-4"></i>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-2">
+              <!-- Discuss -->
+              <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-xs text-amber-600 dark:text-amber-400 font-mono">"DISCUSS"</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-300 font-semibold">360° Perspective</span>
+                </div>
+                <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">Explore all angles, pros and cons, context, and underlying causes. Conclude with a balanced summary.</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400"><strong class="text-slate-600 dark:text-slate-300">Common Pitfall:</strong> Writing a one-sided essay without counter-arguments.</p>
               </div>
-              <h4 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">2. The Three-Tier Structural Architecture</h4>
-              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Every topper-grade upsc mains answer writing copy follows a disciplined tri-partite flow:
-              </p>
-              <ul class="text-xs text-slate-600 dark:text-slate-400 space-y-1.5 list-disc list-inside">
-                <li><strong class="text-slate-800 dark:text-slate-200">Contextual Introduction:</strong> (15-20% of word limit) Define key terms, provide recent data, quote authoritative reports (NITI Aayog, Law Commission, RBI), or cite Constitutional articles (Articles 21, 39A, 280).</li>
-                <li><strong class="text-slate-800 dark:text-slate-200">Multidimensional Body:</strong> (70-75% of word limit) Break core analysis into thematic sub-headings using frameworks like PESTLE or stakeholder analysis. Use concise bullet points with underlined keywords.</li>
-                <li><strong class="text-slate-800 dark:text-slate-200">Forward-Looking Conclusion:</strong> (10-15% of word limit) Avoid redundant repetition. Conclude with a constructive summary echoing Vision 2047, SDGs, or constitutional morality.</li>
-              </ul>
-            </div>
 
-            <!-- Sub-card 3 -->
-            <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
-              <div class="w-9 h-9 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold">
+              <!-- Critically Analyze -->
+              <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-xs text-rose-600 dark:text-rose-400 font-mono">"CRITICALLY ANALYZE"</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-rose-500/15 text-rose-600 dark:text-rose-300 font-semibold">Deconstruct &amp; Judge</span>
+                </div>
+                <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">Break into components; assess strengths and fatal limitations with empirical data before giving a justified verdict.</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400"><strong class="text-slate-600 dark:text-slate-300">Common Pitfall:</strong> Pure criticism without recognizing progressive achievements.</p>
+              </div>
+
+              <!-- Elucidate -->
+              <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-xs text-sky-600 dark:text-sky-400 font-mono">"ELUCIDATE / CLARIFY"</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-sky-500/15 text-sky-600 dark:text-sky-300 font-semibold">Illustrate with Clarity</span>
+                </div>
+                <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">Make a complex idea crystal clear using facts, cause-and-effect reasoning, and contemporary Indian examples.</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400"><strong class="text-slate-600 dark:text-slate-300">Common Pitfall:</strong> Abstract theoretical philosophical rambling without concrete illustrations.</p>
+              </div>
+
+              <!-- Examine -->
+              <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-xs text-emerald-600 dark:text-emerald-400 font-mono">"EXAMINE / PROBE"</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 font-semibold">Forensic Inquiry</span>
+                </div>
+                <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">Investigate facts with forensic rigor; dissect institutional bottlenecks, implementation gaps, and root causes.</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400"><strong class="text-slate-600 dark:text-slate-300">Common Pitfall:</strong> Superficial narrative without institutional or statutory depth.</p>
+              </div>
+
+              <!-- Evaluate -->
+              <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-xs text-purple-600 dark:text-purple-400 font-mono">"EVALUATE / ASSESS"</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/15 text-purple-600 dark:text-purple-300 font-semibold">Measure Outcomes</span>
+                </div>
+                <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">Measure real-world outcomes against intended statutory or policy objectives using quantitative KPI benchmarks.</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400"><strong class="text-slate-600 dark:text-slate-300">Common Pitfall:</strong> Describing the scheme features instead of assessing its impact.</p>
+              </div>
+
+              <!-- Comment -->
+              <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-xs text-amber-600 dark:text-amber-400 font-mono">"COMMENT"</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-300 font-semibold">Informed Stance</span>
+                </div>
+                <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">State your informed viewpoint on the proposition, backing every stance with statutory provisions and administrative facts.</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400"><strong class="text-slate-600 dark:text-slate-300">Common Pitfall:</strong> Emotional or biased editorializing without policy grounding.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Value Addition through Visual Schematics -->
+          <div class="p-6 rounded-2xl bg-gradient-to-r from-amber-500/5 via-emerald-500/5 to-sky-500/5 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
                 <i data-lucide="pen-tool" class="w-4 h-4"></i>
               </div>
-              <h4 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">3. Value Addition through Visual Schematics</h4>
-              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Top scorers distinguish their answers through micro-diagrams, flowcharts, tables, and geopolitical maps. An answer on river interlinking is incomplete without a neat India sketch map; an ethics case study demands a clear stakeholder matrix. Cooked Mains recognizes hand-drawn diagrams and assesses whether your visual aids add analytical value during upsc mains answer writing practice.
-              </p>
+              <h4 class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 font-serif">
+                Visual Schematics &amp; Space Economy: The 1.5-Mark Advantage
+              </h4>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+              In a paper where 15,000 aspirants write similar textbook points, visual aids communicate mastery in seconds and relieve examiner fatigue. Integrating 1 to 2 micro-schematics per answer consistently yields an extra 1 to 1.5 marks:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-slate-100">
+                  <i data-lucide="compass" class="w-3.5 h-3.5 text-amber-500"></i>
+                  <span>India Micro-Maps</span>
+                </div>
+                <p class="text-[11px] text-slate-600 dark:text-slate-400">Essential for Geography (Monsoon winds, resource belts), Internal Security (Red Corridor, border chokepoints), and Infrastructure corridors.</p>
+              </div>
+              <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-slate-100">
+                  <i data-lucide="layers" class="w-3.5 h-3.5 text-emerald-500"></i>
+                  <span>Hub-and-Spoke Cycles</span>
+                </div>
+                <p class="text-[11px] text-slate-600 dark:text-slate-400">Perfect for multi-factor issues (Vicious cycle of poverty, climate vulnerability feedback loops, MSME bottlenecks).</p>
+              </div>
+              <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-slate-100">
+                  <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-sky-500"></i>
+                  <span>Comparative Matrices</span>
+                </div>
+                <p class="text-[11px] text-slate-600 dark:text-slate-400">Use 2-column or 3-column tables for Parliamentary vs Presidential systems, Direct vs Indirect taxes, or ethical options in Case Studies.</p>
+              </div>
+              <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-slate-100">
+                  <i data-lucide="shield-check" class="w-3.5 h-3.5 text-purple-500"></i>
+                  <span>QCAB Margin Discipline</span>
+                </div>
+                <p class="text-[11px] text-slate-600 dark:text-slate-400">Respect the 2.5cm ruled margins strictly. Writing across margins invites negative penalty marks and disrupts scanner readability.</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Pillar 2: How Cooked Mains Evaluates Answer Copies -->
-        <div id="mainsRubricSection" class="p-6 sm:p-8 rounded-3xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-6">
-          <div class="space-y-2 max-w-3xl">
-            <h3 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 font-serif">
+        <!-- Pillar 2: 6-Point Rubric Audit Section -->
+        <div id="mainsRubricSection" class="p-6 sm:p-8 rounded-3xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-8">
+          <div class="space-y-3 max-w-3xl">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-semibold">
+              <i data-lucide="award" class="w-3.5 h-3.5"></i>
+              <span>Official 6-Point UPSC Scoring Rubric</span>
+            </div>
+            <h3 class="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-slate-100 font-serif">
               How Cooked Mains Evaluates Your UPSC Mains Answer Writing Copy
             </h3>
             <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              Traditional coaching test series suffer from severe drawbacks: evaluation delays of 10 to 14 days, vague generic comments ("improve handwriting", "read more"), and exorbitant fee barriers running into tens of thousands of rupees. Cooked Mains revolutionizes this paradigm through an intelligent, zero-cost, instant evaluation pipeline:
+              Traditional coaching test series suffer from severe bottlenecks: 10-to-14-day evaluation backlogs, vague scribbles ("improve handwriting", "expand body"), and inflated coaching marks that create false complacency. Cooked Mains audits every handwritten page across an authentic 6-dimension rubric calibrated against real UPSC examiner patterns:
             </p>
           </div>
 
+          <!-- 6 Rubric Dimension Cards -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 space-y-2">
-              <span class="text-amber-500 font-bold text-xs font-mono">01. Multimodal Vision OCR</span>
+            <!-- Dim 1 -->
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 space-y-3 shadow-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-amber-500 font-bold text-xs font-mono">01. DIRECTIVE ADHERENCE</span>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400">20% Weight (2.0/10)</span>
+              </div>
+              <h5 class="text-sm font-bold text-slate-900 dark:text-slate-100">Core Query Alignment &amp; Demand Fulfillment</h5>
               <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Upload photos or scanned PDFs of your handwritten upsc mains answer writing copy. Our vision model transcribes cursive exam handwriting without errors, accurately reading margin notes, tables, and schematics.
+                Evaluates whether you hit the bullseye of the prompt without evasive preamble. Verifies that every implicit sub-part (e.g. causes, ramifications, institutional shortcomings) receives proportionate space and attention.
               </p>
+              <div class="pt-1 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
+                <span>Flags off-topic drift &amp; missed sub-questions</span>
+              </div>
             </div>
-            <div class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 space-y-2">
-              <span class="text-emerald-500 font-bold text-xs font-mono">02. Line-by-Line Margin Annotations</span>
+
+            <!-- Dim 2 -->
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 space-y-3 shadow-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-emerald-500 font-bold text-xs font-mono">02. STRUCTURAL FLOW</span>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">15% Weight (1.5/10)</span>
+              </div>
+              <h5 class="text-sm font-bold text-slate-900 dark:text-slate-100">Subheading Symmetry &amp; Progression</h5>
               <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Rather than providing just a final score summary, the engine places red-pen margin annotations directly on your copy—highlighting weak introductions, pointing out missing constitutional articles, and praising strong arguments.
+                Checks visual hierarchy: distinct demarcation of Intro, Body, and Conclusion. Measures smooth transitions between paragraphs and verifies that headings mirror question phrasing for effortless parsing.
               </p>
+              <div class="pt-1 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
+                <span>Checks balance between arguments &amp; counterpoints</span>
+              </div>
             </div>
-            <div class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 space-y-2">
-              <span class="text-sky-500 font-bold text-xs font-mono">03. 6-Point Evaluation Rubric</span>
+
+            <!-- Dim 3 -->
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 space-y-3 shadow-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-sky-500 font-bold text-xs font-mono">03. MULTIDIMENSIONALITY</span>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-sky-500/15 text-sky-600 dark:text-sky-400">25% Weight (2.5/10)</span>
+              </div>
+              <h5 class="text-sm font-bold text-slate-900 dark:text-slate-100">Analytical Breadth &amp; PESTLE Coverage</h5>
               <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Each answer sheet is audited across six official dimensions: Directive Adherence, Structural Flow, Analytical Depth, Evidence &amp; Case Studies, Presentation &amp; Visual Aids, and Word Count/Time Discipline.
+                Checks if your response transcends single-track thinking. Scans for constitutional, socio-economic, geopolitical, technological, and ethical dimensions rather than generic surface-level narratives.
               </p>
+              <div class="pt-1 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
+                <span>Verifies inclusion of multiple stakeholder perspectives</span>
+              </div>
             </div>
-            <div class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 space-y-2">
-              <span class="text-purple-500 font-bold text-xs font-mono">04. Percentile Calibration</span>
+
+            <!-- Dim 4 -->
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 space-y-3 shadow-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-purple-500 font-bold text-xs font-mono">04. FACTUAL RIGOR</span>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-purple-500/15 text-purple-600 dark:text-purple-400">20% Weight (2.0/10)</span>
+              </div>
+              <h5 class="text-sm font-bold text-slate-900 dark:text-slate-100">Committees, Reports &amp; Case Studies</h5>
               <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Marks are awarded on a realistic bell-curve benchmarked against actual UPSC scoring patterns (e.g., 4.5/10 for average, 6.5+/10 for exceptional answers), preventing inflated coaching marks that create false complacency.
+                Validates high-yield evidentiary substantiation: Sarkaria/Punchhi recommendations, Supreme Court precedents, NITI Aayog action agendas, Economic Survey data, and grassroots best-practice case studies.
               </p>
+              <div class="pt-1 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
+                <span>Distinguishes vague claims from verified evidence</span>
+              </div>
             </div>
-            <div class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 space-y-2">
-              <span class="text-rose-500 font-bold text-xs font-mono">05. Topper Blueprint &amp; Model Answers</span>
+
+            <!-- Dim 5 -->
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 space-y-3 shadow-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-rose-500 font-bold text-xs font-mono">05. VISUAL SCHEMATICS</span>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400">10% Weight (1.0/10)</span>
+              </div>
+              <h5 class="text-sm font-bold text-slate-900 dark:text-slate-100">Micro-Diagrams &amp; Presentation</h5>
               <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                For every evaluated question, access a high-yield model answer complete with model diagrams, authoritative quotes, and comparative analysis to understand exactly how a ranker would structure the same response.
+                Detects whether hand-drawn schematics, micro-maps, Venn diagrams, and tables add genuine analytical value or serve as empty space-fillers. Checks keyword underlines and legibility under exam conditions.
               </p>
+              <div class="pt-1 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
+                <span>Rewards concise visual economy over cluttered filler</span>
+              </div>
             </div>
-            <div class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 space-y-2">
-              <span class="text-amber-500 font-bold text-xs font-mono">06. 100% Free Daily Access</span>
+
+            <!-- Dim 6 -->
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 space-y-3 shadow-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-amber-500 font-bold text-xs font-mono">06. SPACE &amp; TIME CADENCE</span>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400">10% Weight (1.0/10)</span>
+              </div>
+              <h5 class="text-sm font-bold text-slate-900 dark:text-slate-100">Word Limit &amp; QCAB Discipline</h5>
               <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Every registered aspirant receives 15 free evaluations every single day. No hidden paywalls, no mandatory credit cards, and no subscription traps.
+                Monitors page space economy (staying within official UPSC ruled margins) and word limits (150 words for 10M, 250 words for 15M). Flags penalty risks for crossing margins or over-writing at the cost of remaining questions.
               </p>
+              <div class="pt-1 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
+                <span>Enforces strict 7-minute &amp; 10-minute completion pace</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comparative Benchmarking Card: Average vs Topper -->
+          <div class="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 space-y-4">
+            <h4 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 font-serif">
+              <i data-lucide="bar-chart-2" class="w-4 h-4 text-amber-500"></i>
+              <span>Comparative Benchmark: What Separates a 3.5/10 Copy from a 7.0/10 Topper Copy?</span>
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Average 3.5/10 -->
+              <div class="p-4 rounded-xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-rose-700 dark:text-rose-400">AVERAGE COPY (3.5 / 10 M)</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-rose-200/60 dark:bg-rose-900/50 text-rose-800 dark:text-rose-300 font-bold">Bottom 60%</span>
+                </div>
+                <ul class="text-xs text-rose-900 dark:text-rose-300 space-y-1.5 list-disc list-inside">
+                  <li>Generic 40-word introduction repeating question words without data or article citations.</li>
+                  <li>Dense, monolithic paragraphs without clear thematic subheadings.</li>
+                  <li>One-dimensional argument (focuses exclusively on political or economic aspects).</li>
+                  <li>Absence of official committees, Law Commission reports, or Supreme Court cases.</li>
+                  <li>Abrupt, platitudinous conclusion like "India must solve this problem quickly".</li>
+                </ul>
+              </div>
+
+              <!-- Topper 7.0/10 -->
+              <div class="p-4 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/40 space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-emerald-700 dark:text-emerald-400">TOPPER BENCHMARK (7.0 / 10 M)</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-200/60 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 font-bold">Top 2% Rankers</span>
+                </div>
+                <ul class="text-xs text-emerald-900 dark:text-emerald-300 space-y-1.5 list-disc list-inside">
+                  <li>Sharp 25-word introduction quoting NITI Aayog Index or relevant Constitutional Article.</li>
+                  <li>2 to 3 symmetric sub-headings directly matching the question's core directives.</li>
+                  <li>Multidimensional PESTLE bullets with underlined keywords for rapid visual scanning.</li>
+                  <li>Substantiated with 2 official committees (e.g., Gadgil, Kasturirangan) and 1 case study.</li>
+                  <li>Forward-looking conclusion linking to Viksit Bharat @ 2047 &amp; UN SDG 2030 targets.</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Pillar 3: Daily Routine Protocol -->
+        <!-- Pillar 3: Daily Routine Protocol Section -->
         <div id="dailyRoutineSection" class="space-y-6">
-          <div class="space-y-2 max-w-3xl">
-            <h3 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 font-serif">
-              Building a Disciplined Routine: The Power of Daily Mains Answer Writing
+          <div class="space-y-3 max-w-3xl">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
+              <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+              <span>90-Day Mains Muscle Memory</span>
+            </div>
+            <h3 class="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-slate-100 font-serif">
+              Building a Disciplined Routine: The Daily Mains Answer Writing Habit Loop
             </h3>
             <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-              Consistency is the cornerstone of UPSC preparation. Relying solely on weekend mock tests after completing the syllabus often results in panic and poor time management. Incorporating daily mains answer writing into your daily study schedule transforms answer drafting from an intimidating chore into an effortless motor habit. When you commit to daily mains answer writing, your cognitive retrieval speeds up, handwriting stabilizes, and time management becomes automatic.
+              Writing 20 questions in 3 hours under extreme exam pressure requires conditioned motor reflex and instant cognitive retrieval. Relying solely on weekend mock tests after finishing syllabus reading invariably leads to panic, incomplete papers, and poor handwriting. Following this structured 4-phase daily protocol transforms answer writing into an effortless, automatic discipline:
             </p>
           </div>
 
-          <!-- 4-Step Flow -->
+          <!-- 4-Phase Protocol Grid -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 shadow-xs">
-              <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 font-bold flex items-center justify-center text-xs">Step 1</div>
-              <h5 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">15-Minute Morning Drill</h5>
-              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Pick one daily editorial question from our curated Daily Target challenge (sourced from The Hindu, Indian Express, and PIB) covering GS 1, GS 2, GS 3, or GS 4 Ethics.</p>
+            <!-- Phase 1 -->
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3 shadow-xs flex flex-col justify-between">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 font-bold flex items-center justify-center text-xs">P-01</span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono">08:00 AM • 3 Mins</span>
+                </div>
+                <h5 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">Intake &amp; Deconstruction</h5>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Select 1 question from our Daily Target challenge (curated from The Hindu, Indian Express &amp; PIB). Spend 180 seconds dissecting the prompt: circle the directive verb, identify implicit sub-demands, and jot down 3 keywords in the margin.
+                </p>
+              </div>
+              <div class="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/20 text-[11px] text-amber-800 dark:text-amber-300 font-medium">
+                🎯 Rule: Do not consult notes; test active retrieval.
+              </div>
             </div>
-            <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 shadow-xs">
-              <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 font-bold flex items-center justify-center text-xs">Step 2</div>
-              <h5 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">Exam-Simulated Drafting</h5>
-              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Keep a timer set to 7 minutes for 10-marker questions (150 words) and 10 minutes for 15-marker questions (250 words). Write on standard UPSC ruled answer sheets without referring to notes.</p>
+
+            <!-- Phase 2 -->
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3 shadow-xs flex flex-col justify-between">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 font-bold flex items-center justify-center text-xs">P-02</span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono">08:05 AM • 7 Mins</span>
+                </div>
+                <h5 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">Strict Exam Simulation</h5>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Set a stopwatch to exactly 7 minutes for 10-markers (150 words) or 10 minutes for 15-markers (250 words). Draft your response on authentic UPSC-standard ruled QCAB sheets with 2.5cm margins. Stop writing the exact moment the timer expires.
+                </p>
+              </div>
+              <div class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 text-[11px] text-emerald-800 dark:text-emerald-300 font-medium">
+                ⏱️ Rule: Strictly closed-book; simulate UPSC exam stress.
+              </div>
             </div>
-            <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 shadow-xs">
-              <div class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-500 font-bold flex items-center justify-center text-xs">Step 3</div>
-              <h5 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">Instant AI Diagnosis</h5>
-              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Upload your handwritten answer copy directly to Cooked Mains. In under 30 seconds, receive your detailed diagnostic audit and red-pen margin annotations.</p>
+
+            <!-- Phase 3 -->
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3 shadow-xs flex flex-col justify-between">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-500 font-bold flex items-center justify-center text-xs">P-03</span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono">08:15 AM • 30 Secs</span>
+                </div>
+                <h5 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">Instant AI Diagnosis</h5>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Take a photo of your handwritten sheet or upload a scanned PDF to Cooked Mains. In under 30 seconds, receive your red-pen margin annotations, 6-point rubric scoring, and objective percentile standing against fellow aspirants.
+                </p>
+              </div>
+              <div class="p-2 rounded-lg bg-sky-50 dark:bg-sky-950/20 text-[11px] text-sky-800 dark:text-sky-300 font-medium">
+                ⚡ Rule: Zero delay feedback locks learning immediately.
+              </div>
             </div>
-            <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 shadow-xs">
-              <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-500 font-bold flex items-center justify-center text-xs">Step 4</div>
-              <h5 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">Iterative Refinement</h5>
-              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Read the Topper Model Answer, note missing dimensions, and rewrite difficult sections to solidify retention. This iterative loop makes upsc mains answer writing practice exponentially more effective.</p>
+
+            <!-- Phase 4 -->
+            <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3 shadow-xs flex flex-col justify-between">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-500 font-bold flex items-center justify-center text-xs">P-04</span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono">08:20 AM • 5 Mins</span>
+                </div>
+                <h5 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">Model Answer Delta &amp; Rewrite</h5>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Compare your answer side-by-side with our Topper Model Blueprint. Record missed dimensions, committee names, and statistics in your digital Error Notebook. Rewrite weak paragraphs using our free Instant Rewrite mode to solidify mastery.
+                </p>
+              </div>
+              <div class="p-2 rounded-lg bg-purple-50 dark:bg-purple-950/20 text-[11px] text-purple-800 dark:text-purple-300 font-medium">
+                🔁 Rule: Iterative rewrite creates permanent retention.
+              </div>
             </div>
+          </div>
+
+          <!-- Bottom CTA Banner -->
+          <div class="p-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+            <div class="space-y-1 text-center sm:text-left">
+              <h4 class="text-base sm:text-lg font-extrabold text-slate-950">Ready to start today's answer writing practice?</h4>
+              <p class="text-xs sm:text-sm text-slate-900/90 font-medium">Join thousands of aspirants practicing daily with instant line-by-line red-pen evaluation.</p>
+            </div>
+            <button type="button" onclick="if(window.switchStudioState){window.switchStudioState('intake');} window.scrollTo({top:0, behavior:'smooth'});" class="px-5 py-2.5 rounded-xl bg-slate-950 text-white font-bold text-xs sm:text-sm hover:bg-slate-900 transition shrink-0 cursor-pointer shadow-md flex items-center gap-2">
+              <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+              <span>Evaluate My Answer Copy Now</span>
+            </button>
           </div>
         </div>
 
@@ -3826,13 +4168,13 @@
   <footer class="mt-12 border-t border-slate-200 dark:border-slate-800/80 py-10 text-center text-xs text-slate-500 space-y-5">
     <!-- Academic Resources Strip -->
     <div class="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs text-slate-600 dark:text-slate-400">
-      <a href="#mainsAnswerWritingGuide" onclick="if(window.switchStudioState){window.switchStudioState('landing');} document.getElementById('mainsAnswerWritingGuide')?.scrollIntoView({behavior:'smooth'});" class="hover:text-amber-500 transition font-medium">Mains Answer Writing Guide</a>
+      <a href="#mainsAnswerWritingGuide" onclick="window.navigateToLandingSection('mainsAnswerWritingGuide', event);" class="hover:text-amber-500 transition font-medium">Mains Answer Writing Guide</a>
       <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
-      <a href="#mainsRubricSection" onclick="if(window.switchStudioState){window.switchStudioState('landing');} document.getElementById('mainsRubricSection')?.scrollIntoView({behavior:'smooth'});" class="hover:text-amber-500 transition font-medium">6-Point Rubric Audit</a>
+      <a href="#mainsRubricSection" onclick="window.navigateToLandingSection('mainsRubricSection', event);" class="hover:text-amber-500 transition font-medium">6-Point Rubric Audit</a>
       <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
-      <a href="#dailyRoutineSection" onclick="if(window.switchStudioState){window.switchStudioState('landing');} document.getElementById('dailyRoutineSection')?.scrollIntoView({behavior:'smooth'});" class="hover:text-amber-500 transition font-medium">Daily Practice Protocol</a>
+      <a href="#dailyRoutineSection" onclick="window.navigateToLandingSection('dailyRoutineSection', event);" class="hover:text-amber-500 transition font-medium">Daily Practice Protocol</a>
       <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
-      <a href="#faqSection" onclick="if(window.switchStudioState){window.switchStudioState('landing');} document.getElementById('faqSection')?.scrollIntoView({behavior:'smooth'});" class="hover:text-amber-500 transition font-medium">Mains FAQs</a>
+      <a href="#faqSection" onclick="window.navigateToLandingSection('faqSection', event);" class="hover:text-amber-500 transition font-medium">Mains FAQs</a>
     </div>
 
     <!-- Company, Legal & Trust Pages Strip -->

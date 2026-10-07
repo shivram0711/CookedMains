@@ -674,7 +674,7 @@ window.toggleMobileMarginScroll = function() {
   }
 };
 
-window.switchStudioState = function(mode) {
+window.switchStudioState = function(mode, shouldScroll = true) {
   const intakeDeck = document.getElementById("intakeDeck");
   const evaluationStudio = document.getElementById("evaluationStudio");
   const heroSection = document.getElementById("heroLandingSection");
@@ -702,7 +702,9 @@ window.switchStudioState = function(mode) {
     if (stickyFooter) stickyFooter.classList.add("hidden");
     if (typeof stop24hRewriteTimer === "function") stop24hRewriteTimer();
     if (window.lucide) lucide.createIcons();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (shouldScroll) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   } else if (mode === "studio") {
     state.activeStudioView = "studio";
     if (heroSection) {
@@ -758,6 +760,50 @@ window.switchStudioState = function(mode) {
 
 window.navigateToHome = function() {
   window.switchStudioState("landing");
+};
+
+window.navigateToLandingSection = function(sectionId, e) {
+  if (e) {
+    if (typeof e.preventDefault === "function") e.preventDefault();
+    if (typeof e.stopPropagation === "function") e.stopPropagation();
+  }
+  // 1. Switch to landing view without auto-scrolling to top
+  if (typeof window.switchStudioState === "function") {
+    window.switchStudioState("landing", false);
+  }
+  
+  // 2. Ensure parent containers are explicitly shown
+  const heroSection = document.getElementById("heroLandingSection");
+  if (heroSection) {
+    heroSection.style.display = "flex";
+    heroSection.classList.remove("hidden");
+  }
+  const firstPageSub = document.getElementById("firstPageSubscriptionSection");
+  if (firstPageSub) {
+    firstPageSub.style.display = "flex";
+    firstPageSub.classList.remove("hidden");
+  }
+  if (window.lucide) {
+    try { lucide.createIcons(); } catch(err) {}
+  }
+
+  // 3. Smooth scroll with sticky navbar offset
+  setTimeout(() => {
+    const target = document.getElementById(sectionId);
+    if (target) {
+      const navOffset = 90;
+      const targetTop = target.getBoundingClientRect().top + window.pageYOffset - navOffset;
+      window.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: "smooth"
+      });
+      // Flash a pulse outline to highlight the section to the user
+      target.classList.add("ring-2", "ring-amber-500", "rounded-2xl", "transition-all", "duration-500");
+      setTimeout(() => {
+        target.classList.remove("ring-2", "ring-amber-500");
+      }, 2000);
+    }
+  }, 60);
 };
 
 window.switchStudioTab = function(tabId, skipScrollToTop = false) {
