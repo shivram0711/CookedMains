@@ -34,7 +34,7 @@
     }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-    #adminLoginModal, #copyInspectorModal {
+    .modal-overlay {
       position: fixed;
       inset: 0;
       z-index: 9999;
@@ -45,7 +45,7 @@
       justify-content: center;
       padding: 1rem;
     }
-    #adminLoginModal.hidden, #copyInspectorModal.hidden {
+    .modal-overlay.hidden {
       display: none !important;
     }
     button { cursor: pointer; }
@@ -63,23 +63,27 @@
         <div class="flex items-center space-x-2">
           <h1 class="text-base font-extrabold text-white tracking-tight">Cooked <span class="text-amber-500">Mains</span></h1>
           <span class="text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/30">Owner Command Center</span>
+          <span class="hidden md:inline-flex items-center gap-1 text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30" title="Permanent Retention Vault: Zero data deletion guarantee">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span>Vault: Zero Purge</span>
+          </span>
         </div>
-        <p class="text-[11px] text-slate-400" id="headerServerTime">Live Aspirant Presence, Credit Usage, Activity Stream &amp; Answer Copy Inspector</p>
+        <p class="text-[11px] text-slate-400" id="headerServerTime">Live Aspirants Telemetry, Credit Tracker &amp; Evaluation Inspector</p>
       </div>
     </div>
 
-    <div class="flex items-center space-x-2.5">
+    <div class="flex items-center space-x-2 sm:space-x-2.5">
       <button id="autoRefreshToggleBtn" onclick="toggleAutoRefresh()" class="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-xs font-bold border border-emerald-500/30 transition flex items-center space-x-1.5">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" id="autoRefreshDot"></span>
         <span id="autoRefreshLabel">Live Sync: ON (15s)</span>
       </button>
-      <button onclick="loadAllAdminData(true)" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition flex items-center space-x-1.5">
+      <button onclick="loadAllAdminData(true)" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition flex items-center space-x-1.5" title="Force sync and refresh all records">
         <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-        <span>Refresh Now</span>
+        <span>Refresh</span>
       </button>
       <a href="/" target="_blank" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 transition flex items-center space-x-1.5">
         <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-        <span class="hidden sm:inline">Open Live Site</span>
+        <span class="hidden sm:inline">Live Site</span>
       </a>
       <button onclick="adminLogout()" class="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold border border-rose-500/30 transition flex items-center space-x-1.5">
         <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
@@ -89,7 +93,7 @@
   </header>
 
   <!-- Login Modal (Overlay when not authenticated) -->
-  <div id="adminLoginModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+  <div id="adminLoginModal" class="modal-overlay hidden">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-5">
       <div class="text-center space-y-2">
         <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto shadow-inner">
@@ -151,19 +155,22 @@
       <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1 shadow-sm">
         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Copies Checked</span>
         <div class="text-2xl font-extrabold text-sky-400 font-mono" id="statEvaluations">0</div>
-        <p class="text-[10px] text-slate-500">All-time scripts graded</p>
+        <p class="text-[10px] text-slate-500">Vaulted permanently</p>
       </div>
 
       <!-- 5. Active Gemini Model -->
       <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1 shadow-sm">
         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active AI Engine</span>
         <div class="text-xs font-extrabold text-emerald-400 font-mono truncate pt-1" id="statGeminiModel">gemini-3.6-flash</div>
-        <p class="text-[10px] text-slate-500" id="statRouterHealth">Self-Healing Router Active</p>
+        <p class="text-[10px] text-slate-500" id="statRouterHealth">Self-Healing Active</p>
       </div>
 
       <!-- 6. Satisfaction Rating & Feedback -->
       <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1 shadow-sm">
-        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aspirant Rating</span>
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aspirant Rating</span>
+          <span id="statUnresolvedBadge" class="hidden text-[9px] font-bold font-mono px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">0 new</span>
+        </div>
         <div class="text-2xl font-extrabold text-amber-400 font-mono flex items-center space-x-1">
           <span id="statRating">5.0</span>
           <span class="text-xs text-amber-400">★</span>
@@ -176,23 +183,27 @@
     <div class="flex items-center space-x-2 border-b border-slate-800 pb-2.5 overflow-x-auto">
       <button onclick="switchTab('live')" id="tabBtn_live" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-amber-500 text-slate-950">
         <i data-lucide="activity" class="w-4 h-4"></i>
-        <span>1. Live Radar &amp; Recent Activity</span>
+        <span>1. Live Radar &amp; Activity</span>
       </button>
       <button onclick="switchTab('aspirants')" id="tabBtn_aspirants" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white">
         <i data-lucide="users" class="w-4 h-4"></i>
-        <span>2. Aspirants &amp; Credit Usage</span>
+        <span>2. Aspirants &amp; Credits</span>
       </button>
       <button onclick="switchTab('evaluations')" id="tabBtn_evaluations" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white">
         <i data-lucide="file-check-2" class="w-4 h-4"></i>
-        <span>3. Uploaded Answer Copies Inspector</span>
+        <span>3. Answer Copies Inspector</span>
       </button>
       <button onclick="switchTab('feedback')" id="tabBtn_feedback" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white">
         <i data-lucide="message-square" class="w-4 h-4"></i>
         <span>4. Feedback &amp; Bug Reports</span>
       </button>
+      <button onclick="switchTab('orders')" id="tabBtn_orders" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white">
+        <i data-lucide="credit-card" class="w-4 h-4"></i>
+        <span>5. UPI Orders &amp; Plans</span>
+      </button>
       <button onclick="switchTab('settings')" id="tabBtn_settings" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white">
         <i data-lucide="settings" class="w-4 h-4"></i>
-        <span>5. Security &amp; Settings</span>
+        <span>6. Security &amp; Settings</span>
       </button>
     </div>
 
@@ -219,7 +230,7 @@
         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
           <div>
             <h2 class="text-sm font-extrabold text-white">Recent Platform Activity Stream</h2>
-            <p class="text-[11px] text-slate-400">Live log of logins, answer sheet evaluations, intake guards, and feedbacks</p>
+            <p class="text-[11px] text-slate-400">Live log of logins, answer sheet evaluations, and candidate feedbacks</p>
           </div>
           <button onclick="loadAdminActivity()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold text-slate-300">
             Refresh Feed
@@ -236,10 +247,10 @@
           <div>
             <div class="flex items-center space-x-2">
               <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-              <h2 class="text-sm font-extrabold text-white">Aspirant Visit &amp; Login History</h2>
+              <h2 class="text-sm font-extrabold text-white">Aspirant Visit &amp; Session History</h2>
               <span class="text-[10px] font-mono bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30 font-bold">Session Audit Trail</span>
             </div>
-            <p class="text-xs text-slate-400 mt-0.5">Chronological history of who visited, how much time they spent on the website, and what actions they took.</p>
+            <p class="text-xs text-slate-400 mt-0.5">Chronological record of every aspirant's visit, time spent, and evaluations executed.</p>
           </div>
           <button onclick="loadAdminSessions()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
@@ -276,11 +287,15 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 class="text-sm font-bold text-white">Registered UPSC Aspirants &amp; Individual Credit Usage</h2>
-          <p class="text-xs text-slate-400">See who is online, how many daily credits each user has consumed today (out of 15), total copies evaluated, and inspect their scripts.</p>
+          <p class="text-xs text-slate-400">Track all aspirants, daily quota usage (X/15), total evaluated scripts, and grant credits.</p>
         </div>
-        <div class="flex items-center space-x-2">
+        <div class="flex flex-wrap items-center gap-2">
           <input type="text" id="aspirantSearchInput" oninput="debounceAspirantSearch()" placeholder="Search by name or email..."
-            class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 w-64">
+            class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 w-56 sm:w-64">
+          <button onclick="exportAspirantsCSV()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition" title="Export Aspirants as CSV">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span>Export CSV</span>
+          </button>
           <button onclick="loadAspirants()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
             <span>Refresh</span>
@@ -295,9 +310,9 @@
               <th class="p-3.5">Live Status &amp; Last Seen</th>
               <th class="p-3.5">Aspirant Name &amp; Email</th>
               <th class="p-3.5">Target Year &amp; Optional</th>
-              <th class="p-3.5">Today's Credits Used (Out of 15)</th>
+              <th class="p-3.5">Today's Quota Used (Out of 15)</th>
               <th class="p-3.5">Total Copies &amp; Avg Score</th>
-              <th class="p-3.5 text-right">Owner Actions</th>
+              <th class="p-3.5 text-right">Actions</th>
             </tr>
           </thead>
           <tbody id="aspirantsTableBody" class="divide-y divide-slate-800/70">
@@ -316,11 +331,21 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 class="text-sm font-bold text-white">All Evaluated Answer Copies Across Accounts</h2>
-          <p class="text-xs text-slate-400">Click <strong>"Inspect Copy &amp; Evaluation"</strong> on any row to view the aspirant's handwritten pages, margin remarks, and score breakdown.</p>
+          <p class="text-xs text-slate-400">Click <strong>"Inspect Copy &amp; Evaluation"</strong> on any row to inspect candidate's handwriting, margin annotations, and score breakdown.</p>
         </div>
-        <div class="flex items-center space-x-2">
-          <input type="text" id="evalEmailFilterInput" oninput="debounceEvalFilter()" placeholder="Filter by user email..."
-            class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 w-64">
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Paper Filter -->
+          <select id="evalPaperFilter" onchange="loadAdminEvaluations()" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-amber-500">
+            <option value="all">All Papers</option>
+            <option value="GS1">GS-1</option>
+            <option value="GS2">GS-2</option>
+            <option value="GS3">GS-3</option>
+            <option value="GS4">GS-4</option>
+            <option value="Essay">Essay</option>
+            <option value="Optional">Optional</option>
+          </select>
+          <input type="text" id="evalEmailFilterInput" oninput="debounceEvalFilter()" placeholder="Filter by email or keyword..."
+            class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 w-56 sm:w-64">
           <button onclick="clearEvalFilter()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">
             Show All
           </button>
@@ -352,15 +377,23 @@
     <!-- TAB 4: ASPIRANT FEEDBACK, RATINGS & BUG REPORTS INBOX             -->
     <!-- ================================================================= -->
     <div id="tabContent_feedback" class="hidden space-y-4">
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 class="text-sm font-bold text-white">Aspirant Feedback, Ratings &amp; Bug Reports</h2>
-          <p class="text-xs text-slate-400">Direct feedback submitted by aspirants using the top header "Feedback" button.</p>
+          <p class="text-xs text-slate-400">Direct feedback and ratings submitted by aspirants across the platform. Zero deletion: records are permanently retained.</p>
         </div>
-        <button onclick="loadAdminFeedbacks()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition">
-          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-          <span>Refresh Inbox</span>
-        </button>
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Status Filter -->
+          <div class="inline-flex rounded-xl bg-slate-900 p-1 border border-slate-800">
+            <button onclick="setFeedbackFilter('all')" id="fbFilter_all" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 transition">All</button>
+            <button onclick="setFeedbackFilter('unresolved')" id="fbFilter_unresolved" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">New / Open</button>
+            <button onclick="setFeedbackFilter('resolved')" id="fbFilter_resolved" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">Resolved</button>
+          </div>
+          <button onclick="loadAdminFeedbacks()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="feedbacksContainer">
@@ -369,7 +402,52 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- TAB 5: SECURITY & SYSTEM SETTINGS                                 -->
+    <!-- TAB 5: UPI ORDERS & PLAN APPROVALS                                -->
+    <!-- ================================================================= -->
+    <div id="tabContent_orders" class="hidden space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-sm font-bold text-white">UPI Payment Orders &amp; Plan Upgrades</h2>
+          <p class="text-xs text-slate-400">Review 12-digit UPI UTRs submitted by candidates, and grant plan upgrades with 1-click.</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <select id="ordersStatusFilter" onchange="loadAdminTransactions()" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-amber-500">
+            <option value="all">All Orders</option>
+            <option value="pending">Pending Approval</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <button onclick="loadAdminTransactions()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Refresh</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/70 shadow-xl">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-800/80 text-slate-300 font-bold uppercase text-[10px] tracking-wider border-b border-slate-800">
+            <tr>
+              <th class="p-3.5">Date &amp; Time (IST)</th>
+              <th class="p-3.5">Aspirant Email</th>
+              <th class="p-3.5">Plan Selected</th>
+              <th class="p-3.5">Amount (₹)</th>
+              <th class="p-3.5">UPI UTR / Ref Number</th>
+              <th class="p-3.5">Status</th>
+              <th class="p-3.5 text-right">Owner Action</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTableBody" class="divide-y divide-slate-800/70">
+            <tr>
+              <td colspan="7" class="p-8 text-center text-slate-500">Loading UPI transactions...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 6: SECURITY & SYSTEM SETTINGS                                 -->
     <!-- ================================================================= -->
     <div id="tabContent_settings" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Admin Password Change Card -->
@@ -408,27 +486,59 @@
         </form>
       </div>
 
-      <!-- AI Engine & Self-Healing Router Status Card -->
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
-        <div>
-          <h2 class="text-sm font-bold text-white flex items-center space-x-2">
-            <i data-lucide="cpu" class="w-4 h-4 text-emerald-400"></i>
-            <span>Self-Healing Gemini AI Engine Status</span>
-          </h2>
-          <p class="text-xs text-slate-400 mt-0.5">Real-time view of active vs. auto-blacklisted Gemini models.</p>
+      <!-- UPI Payment Settings & Cloud Vault Card -->
+      <div class="space-y-6">
+        <!-- UPI ID Configuration Form -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center space-x-2">
+              <i data-lucide="qr-code" class="w-4 h-4 text-emerald-400"></i>
+              <span>UPI Payment ID Configuration</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">UPI ID shown on the payment modal for candidate subscriptions.</p>
+          </div>
+          <form onsubmit="updateAdminUpiId(event)" class="space-y-3">
+            <div>
+              <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Receiving UPI VPA</label>
+              <input type="text" id="settingsUpiIdInput" placeholder="e.g. 9661228832-2@ybl" required
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white font-mono">
+            </div>
+            <div id="upiChangeMsg" class="hidden text-xs py-2 px-3 rounded-lg"></div>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-xs border border-emerald-500/30 transition flex items-center space-x-1.5">
+              <i data-lucide="save" class="w-3.5 h-3.5"></i>
+              <span>Save UPI ID</span>
+            </button>
+          </form>
         </div>
-        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
-          <div class="flex items-center justify-between">
-            <span class="text-slate-400">Primary Verified Working Model:</span>
-            <span class="font-mono font-bold text-emerald-400" id="settingsActiveModel">gemini-3.6-flash</span>
+
+        <!-- AI Engine & Zero-Deletion Status Card -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center space-x-2">
+              <i data-lucide="cpu" class="w-4 h-4 text-sky-400"></i>
+              <span>Platform Health &amp; Retention Vault</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Live status of AI models and permanent data safety guarantees.</p>
           </div>
-          <div class="flex items-center justify-between">
-            <span class="text-slate-400">Supabase Cloud Sync:</span>
-            <span class="font-mono font-bold text-sky-400" id="settingsSupabaseStatus">Connected</span>
-          </div>
-          <div class="pt-2 border-t border-slate-800">
-            <span class="text-slate-400 block mb-1">Auto-Blacklisted Deprecated Models (Never Called):</span>
-            <p class="font-mono text-[11px] text-rose-400 break-words" id="settingsBlacklistedModels">gemini-1.5-flash, gemini-2.0-flash, gemini-2.5-flash</p>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">Active AI Model:</span>
+              <span class="font-mono font-bold text-emerald-400" id="settingsActiveModel">gemini-3.6-flash</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">Supabase Cloud Sync:</span>
+              <span class="font-mono font-bold text-sky-400" id="settingsSupabaseStatus">Connected</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400">Data Vault Policy:</span>
+              <span class="font-mono font-bold text-emerald-300">Permanent Retention (Zero Purge)</span>
+            </div>
+            <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+              <span class="text-slate-400">Force Cloud Sync:</span>
+              <button onclick="forceSyncCloud()" class="px-3 py-1 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 font-bold text-[11px] transition">
+                Sync Now
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -439,23 +549,23 @@
   <!-- ================================================================= -->
   <!-- 👁️ FULL ANSWER COPY & EVALUATION INSPECTOR MODAL                  -->
   <!-- ================================================================= -->
-  <div id="copyInspectorModal" class="hidden">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-6xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+  <div id="copyInspectorModal" class="modal-overlay hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-6xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
       <div class="px-6 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-4">
-        <div>
-          <div class="flex items-center space-x-2">
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
             <span id="inspectPaperBadge" class="px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold font-mono">GS3 • 15M</span>
-            <span id="inspectUserBadge" class="text-xs font-mono text-slate-300">user@gmail.com</span>
+            <span id="inspectUserBadge" class="text-xs font-mono text-slate-300 truncate">user@gmail.com</span>
             <span id="inspectDateBadge" class="text-[11px] font-mono text-slate-500"></span>
           </div>
-          <h3 id="inspectQuestionTitle" class="text-sm font-bold text-white mt-1 font-serif">Question text...</h3>
+          <h3 id="inspectQuestionTitle" class="text-sm font-bold text-white mt-1 font-serif line-clamp-1">Question text...</h3>
         </div>
         <div class="flex items-center space-x-3 shrink-0">
           <div class="px-4 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-right">
             <span class="text-[10px] uppercase font-bold text-amber-300 block">Awarded Score</span>
             <span id="inspectScoreValue" class="text-lg font-extrabold font-mono text-amber-400">7.5 / 15</span>
           </div>
-          <button onclick="closeCopyInspector()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300">
+          <button onclick="closeCopyInspector()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
@@ -464,7 +574,10 @@
       <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- Left: Uploaded Handwritten Answer Sheet Pages -->
         <div class="lg:col-span-6 space-y-3">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-amber-400">Uploaded Handwritten Answer Pages</h4>
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-amber-400">Candidate Handwritten Pages</h4>
+            <span class="text-[10px] text-slate-400 font-mono">Click page to zoom</span>
+          </div>
           <div id="inspectPagesContainer" class="space-y-4"></div>
         </div>
 
@@ -485,18 +598,20 @@
         </div>
       </div>
     </div>
+  </div>
+
   <!-- Session Journey Detail Modal -->
-  <div id="sessionJourneyModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div id="sessionJourneyModal" class="modal-overlay hidden">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div class="space-y-0.5">
+        <div class="space-y-0.5 min-w-0">
           <h3 class="text-sm font-extrabold text-white flex items-center space-x-2">
             <span>⏱️ Aspirant Session Journey</span>
-            <span id="journeyUserBadge" class="text-xs font-mono text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30"></span>
+            <span id="journeyUserBadge" class="text-xs font-mono text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30 truncate"></span>
           </h3>
           <p id="journeyMetaSub" class="text-xs text-slate-400"></p>
         </div>
-        <button onclick="closeSessionJourney()" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white">
+        <button onclick="closeSessionJourney()" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
@@ -510,6 +625,69 @@
           Close
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Credit Manager Modal -->
+  <div id="creditManagerModal" class="modal-overlay hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+            <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+            <span>Adjust Aspirant Credits &amp; Plan</span>
+          </h3>
+          <p id="creditManagerEmailLabel" class="text-xs font-mono text-amber-300 mt-0.5 truncate"></p>
+        </div>
+        <button onclick="closeCreditManager()" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1.5">Quick Add Credits</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="setCreditDelta(5)" class="p-2 rounded-xl bg-slate-800 hover:bg-amber-500/20 hover:text-amber-300 border border-slate-700 font-bold transition">+5 Copies</button>
+            <button onclick="setCreditDelta(10)" class="p-2 rounded-xl bg-slate-800 hover:bg-amber-500/20 hover:text-amber-300 border border-slate-700 font-bold transition">+10 Copies</button>
+            <button onclick="setCreditDelta(25)" class="p-2 rounded-xl bg-slate-800 hover:bg-amber-500/20 hover:text-amber-300 border border-slate-700 font-bold transition">+25 Copies</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Custom Additional Credits</label>
+          <input type="number" id="customCreditsInput" value="5" min="1" max="500" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-mono focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Plan Tier</label>
+          <select id="customPlanTierSelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-mono focus:outline-none focus:border-amber-500">
+            <option value="starter">Starter / Free Tier</option>
+            <option value="pro">Pro Member (15 Daily)</option>
+            <option value="unlimited">Unlimited Cadre (Unlimited)</option>
+          </select>
+        </div>
+
+        <div id="creditManagerMsg" class="hidden text-xs py-2 px-3 rounded-lg"></div>
+
+        <div class="flex justify-end space-x-2 pt-2 border-t border-slate-800">
+          <button onclick="closeCreditManager()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold">Cancel</button>
+          <button onclick="applyCreditAdjustment()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center space-x-1.5 shadow transition">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Apply Credits</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Zoom Lightbox Modal -->
+  <div id="imageZoomModal" class="modal-overlay hidden" onclick="closeImageZoom()">
+    <div class="relative max-w-5xl max-h-[90vh] p-2" onclick="event.stopPropagation()">
+      <button onclick="closeImageZoom()" class="absolute top-4 right-4 z-10 p-2 rounded-full bg-slate-900/90 text-white hover:bg-slate-800 border border-slate-700 shadow-xl">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <img id="imageZoomTarget" src="" alt="Zoom preview" class="max-w-full max-h-[85vh] object-contain rounded-xl border border-slate-700 shadow-2xl bg-slate-950">
     </div>
   </div>
 

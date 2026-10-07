@@ -85,87 +85,17 @@ def get_db():
 
 def perform_clean_slate_reset(force: bool = False) -> Dict[str, Any]:
     """
-    Performs a complete Clean-Slate Reset of all test accounts, evaluations, device bindings, and PDFs
-    across both SQLite and Supabase (evaluations table + answer-sheets bucket).
-    Uses a permanent marker ('__SYSTEM_CLEAN_SLATE_V1__') so automatic startup reset runs only ONCE.
+    PERMANENT DATA VAULT SAFEGUARD:
+    Clean-slate and bulk deletion are strictly disabled to ensure 100% preservation of
+    all aspirant accounts, handwritten evaluation records, device bindings, and logs.
     """
-    marker_title = "__SYSTEM_CLEAN_SLATE_V1__"
-    system_uid = "00000000-0000-0000-0000-000000000001"
-
-    # Check if clean slate V1 has already been executed in Supabase
-    if not force and supabase:
-        try:
-            chk = supabase.table("evaluations").select("id").eq("question_title", marker_title).limit(1).execute()
-            if chk and chk.data and len(chk.data) > 0:
-                return {"status": "already_clean", "message": "Clean slate V1 already applied."}
-        except Exception:
-            pass
-
-    deleted_evals = 0
-    deleted_files = 0
-
-    # 1. Wipe all rows from Supabase evaluations table & all files in answer-sheets bucket
-    if supabase:
-        try:
-            all_rows = supabase.table("evaluations").select("id").limit(1000).execute()
-            if all_rows and all_rows.data:
-                for r in all_rows.data:
-                    rid = r.get("id")
-                    if rid:
-                        supabase.table("evaluations").delete().eq("id", rid).execute()
-                        deleted_evals += 1
-        except Exception as e:
-            print(f"Supabase evaluations clean-slate notice: {e}")
-
-        try:
-            bucket = supabase.storage.from_("answer-sheets")
-            top_items = bucket.list() or []
-            paths_to_remove = []
-            for item in top_items:
-                item_name = item.get("name")
-                if not item_name:
-                    continue
-                if item.get("id") is None:
-                    sub_items = bucket.list(item_name) or []
-                    for sub in sub_items:
-                        if sub.get("name"):
-                            paths_to_remove.append(f"{item_name}/{sub['name']}")
-                else:
-                    paths_to_remove.append(item_name)
-            if paths_to_remove:
-                bucket.remove(paths_to_remove)
-                deleted_files = len(paths_to_remove)
-        except Exception as se:
-            print(f"Supabase storage clean-slate notice: {se}")
-
-        # Write permanent marker so startup only wipes once
-        try:
-            supabase.table("evaluations").insert({
-                "user_id": system_uid,
-                "question_title": marker_title,
-                "file_url": "",
-                "total_marks": 0,
-                "evaluation_json": {"_is_account_profile": True, "_is_system_marker": True, "version": "v1"}
-            }).execute()
-        except Exception:
-            pass
-
-    # 2. Wipe all local SQLite tables
-    conn = get_db()
-    cursor = conn.cursor()
-    for tbl in ("evaluations", "users", "device_bindings", "feedback"):
-        try:
-            cursor.execute(f"DELETE FROM {tbl}")
-        except Exception:
-            pass
-    conn.commit()
-    conn.close()
-
     return {
-        "status": "clean_slate_completed",
-        "deleted_supabase_rows": deleted_evals,
-        "deleted_storage_files": deleted_files
+        "status": "disabled",
+        "message": "Data retention is strictly enforced. Deletion of student records, evaluations, and history is permanently disabled to guarantee zero data loss.",
+        "deleted_supabase_rows": 0,
+        "deleted_storage_files": 0
     }
+
 
 def init_db():
     """Initializes SQLite tables for users, single evaluations, and full 20-question test series. Never wipes existing data."""
@@ -258,6 +188,14 @@ def _init_db_tables():
     """)
     try:
         cursor.execute("ALTER TABLE feedback ADD COLUMN screenshot_data TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE feedback ADD COLUMN is_resolved INTEGER DEFAULT 0")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE feedback ADD COLUMN admin_notes TEXT")
     except Exception:
         pass
 
@@ -3109,6 +3047,12 @@ def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
     total_feedbacks = fb["c"]
     avg_rating = round(fb["a"], 1)
 
+    cursor.execute("SELECT COUNT(*) as c FROM feedback WHERE COALESCE(is_resolved, 0) = 0")
+    unresolved_feedbacks = cursor.fetchone()["c"]
+
+    cursor.execute("SELECT COUNT(*) as c FROM feedback WHERE COALESCE(is_resolved, 0) = 1")
+    resolved_feedbacks = cursor.fetchone()["c"]
+
     conn.close()
 
     ist_today_prefix = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
@@ -3150,11 +3094,14 @@ def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
         "pending_orders": pending_orders,
         "total_revenue": total_revenue,
         "total_feedbacks": total_feedbacks,
+        "unresolved_feedbacks": unresolved_feedbacks,
+        "resolved_feedbacks": resolved_feedbacks,
         "average_rating": avg_rating,
         "active_gemini_model": active_model,
         "blacklisted_models_count": len(blacklisted_models),
         "blacklisted_models": blacklisted_models,
         "supabase_connected": bool(supabase is not None),
+        "data_vault_status": "Zero Data Loss (Permanent Vault Active)",
         "server_time_ist": (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%d %b %Y, %I:%M:%S %p IST")
     }
 
@@ -3210,8 +3157,13 @@ def get_all_aspirants_admin(search: Optional[str] = None) -> List[Dict[str, Any]
     return result_list
 
 
-def get_admin_evaluations_feed(email_filter: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
-    """Returns recent evaluations across all aspirants (or filtered by email) for the Owner Inspector."""
+def get_admin_evaluations_feed(
+    email_filter: Optional[str] = None,
+    paper_filter: Optional[str] = None,
+    search: Optional[str] = None,
+    limit: int = 60
+) -> List[Dict[str, Any]]:
+    """Returns recent evaluations across all aspirants (or filtered by email, paper, keyword) for the Owner Inspector."""
     conn = get_db()
     cursor = conn.cursor()
     sql = """
@@ -3226,6 +3178,13 @@ def get_admin_evaluations_feed(email_filter: Optional[str] = None, limit: int = 
     if email_filter and email_filter.strip():
         sql += " AND LOWER(e.user_email) LIKE ?"
         params.append(f"%{email_filter.strip().lower()}%")
+    if paper_filter and paper_filter.strip() and paper_filter.strip().lower() != 'all':
+        sql += " AND LOWER(e.paper) = ?"
+        params.append(paper_filter.strip().lower())
+    if search and search.strip():
+        term = f"%{search.strip().lower()}%"
+        sql += " AND (LOWER(e.question) LIKE ? OR LOWER(e.user_email) LIKE ? OR LOWER(COALESCE(u.name, '')) LIKE ?)"
+        params.extend([term, term, term])
     sql += " ORDER BY e.created_at DESC LIMIT ?"
     params.append(int(limit))
     cursor.execute(sql, params)
@@ -3342,22 +3301,34 @@ def update_user_credits_admin(email: str, delta_credits: int, delta_rewrites: in
     return res_u
 
 
-def get_all_feedbacks_admin() -> List[Dict[str, Any]]:
+def get_all_feedbacks_admin(status: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Returns candidate feedback and bug reports, with optional resolution status filtering."""
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM feedback ORDER BY created_at DESC")
+    if status == "unresolved":
+        cursor.execute("SELECT * FROM feedback WHERE COALESCE(is_resolved, 0) = 0 ORDER BY created_at DESC")
+    elif status == "resolved":
+        cursor.execute("SELECT * FROM feedback WHERE COALESCE(is_resolved, 0) = 1 ORDER BY created_at DESC")
+    else:
+        cursor.execute("SELECT * FROM feedback ORDER BY created_at DESC")
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
 
-def delete_feedback_admin(feedback_id: str) -> bool:
+def resolve_feedback_admin(feedback_id: str, resolved: bool = True) -> bool:
+    """Updates resolution status of a feedback item (data is preserved permanently)."""
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM feedback WHERE id = ?", (str(feedback_id),))
+    cursor.execute("UPDATE feedback SET is_resolved = ? WHERE id = ?", (1 if resolved else 0, str(feedback_id)))
     conn.commit()
     conn.close()
     return True
+
+
+def delete_feedback_admin(feedback_id: str) -> bool:
+    """Zero-Deletion Safe Handler: Resolves feedback rather than permanently deleting to preserve history."""
+    return resolve_feedback_admin(feedback_id, True)
 
 
 def get_admin_setting(key: str, default: str = "") -> str:

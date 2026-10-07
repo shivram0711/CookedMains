@@ -192,7 +192,7 @@
         </button>
 
         <!-- 2b. Quick Feedback & Bug Report Button -->
-        <button id="navFeedbackBtn" onclick="window.openAccountModal('feedback')" title="Send Feedback or Report an Issue" class="flex items-center space-x-1 sm:space-x-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-semibold rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 transition shadow-sm shrink-0 cursor-pointer">
+        <button id="navFeedbackBtn" onclick="window.openQuickFeedbackModal()" title="Send Feedback or Report an Issue" class="flex items-center space-x-1 sm:space-x-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-semibold rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 transition shadow-sm shrink-0 cursor-pointer">
           <i data-lucide="message-square" class="w-3.5 h-3.5 text-amber-500 shrink-0"></i>
           <span class="text-[11px] font-bold hidden sm:inline">Feedback</span>
         </button>
@@ -1806,6 +1806,33 @@
                 <span id="scoreBand4Range" class="text-emerald-400 font-bold block">5.5 - 6.5+</span>
                 <span id="scoreBand4Label" class="text-slate-400 font-medium">Topper (55%+)</span>
               </div>
+            </div>
+          </div>
+
+          <!-- Quick Inline Evaluation Feedback Prompt -->
+          <div id="inlineEvalFeedbackCard" class="p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                <i data-lucide="message-square-heart" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h5 class="text-xs font-bold text-slate-900 dark:text-white">Was this evaluation accurate &amp; helpful?</h5>
+                <p class="text-[11px] text-slate-600 dark:text-slate-400">Rate your score or report any mistake in checking</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+              <button onclick="window.openQuickFeedbackModal('Evaluation Quality', 5)" class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-amber-500 border border-slate-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1 shadow-2xs transition hover:scale-105 active:scale-95 cursor-pointer">
+                <span>★ 5</span>
+              </button>
+              <button onclick="window.openQuickFeedbackModal('Evaluation Quality', 4)" class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-amber-500 border border-slate-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1 shadow-2xs transition hover:scale-105 active:scale-95 cursor-pointer">
+                <span>★ 4</span>
+              </button>
+              <button onclick="window.openQuickFeedbackModal('Evaluation Quality', 3)" class="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 text-amber-500 border border-slate-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1 shadow-2xs transition hover:scale-105 active:scale-95 cursor-pointer">
+                <span>★ 3</span>
+              </button>
+              <button onclick="window.openQuickFeedbackModal('Evaluation Quality', 1)" class="px-2.5 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-xs font-bold flex items-center gap-1 transition cursor-pointer" title="Report mistake in checking">
+                <span>Report Issue</span>
+              </button>
             </div>
           </div>
 
@@ -4266,6 +4293,126 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- Floating Quick Feedback Button (Fixed at Bottom-Right) -->
+  <div id="floatingFeedbackWidget" class="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-40 no-print">
+    <button onclick="window.openQuickFeedbackModal()" 
+      class="group flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-slate-900/95 dark:bg-slate-900/95 text-amber-400 hover:text-amber-300 border border-amber-500/40 hover:border-amber-400 shadow-xl backdrop-blur-md transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer">
+      <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+      <i data-lucide="message-square-plus" class="w-4 h-4"></i>
+      <span class="text-xs font-bold font-sans">Give Feedback</span>
+    </button>
+  </div>
+
+  <!-- Standalone Quick Feedback & Issue Reporting Modal -->
+  <div id="quickFeedbackModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md items-center justify-center p-3 sm:p-4 animate-fade-in no-print" role="dialog" aria-modal="true">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+        <div class="space-y-0.5">
+          <div class="flex items-center space-x-2">
+            <span class="p-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
+              <i data-lucide="message-square-heart" class="w-4 h-4"></i>
+            </span>
+            <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Aspirant Feedback &amp; Suggestions</h3>
+          </div>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">Help us fine-tune UPSC evaluation accuracy, report glitches, or request features.</p>
+        </div>
+        <button onclick="window.closeQuickFeedbackModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Quick Context Info (e.g. if opened from an evaluation) -->
+      <div id="qfContextBanner" class="hidden p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-300">
+        <span class="font-bold">Evaluation Context:</span> <span id="qfContextText"></span>
+      </div>
+
+      <!-- Interactive Star Rating -->
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">How would you rate your experience?</label>
+        <div class="flex items-center space-x-1 sm:space-x-2" id="qfStarsContainer">
+          <button type="button" onclick="window.setQuickFeedbackRating(1)" class="qf-star-btn p-1.5 hover:scale-110 transition cursor-pointer"><i data-lucide="star" class="w-6 h-6 text-amber-400 fill-amber-400"></i></button>
+          <button type="button" onclick="window.setQuickFeedbackRating(2)" class="qf-star-btn p-1.5 hover:scale-110 transition cursor-pointer"><i data-lucide="star" class="w-6 h-6 text-amber-400 fill-amber-400"></i></button>
+          <button type="button" onclick="window.setQuickFeedbackRating(3)" class="qf-star-btn p-1.5 hover:scale-110 transition cursor-pointer"><i data-lucide="star" class="w-6 h-6 text-amber-400 fill-amber-400"></i></button>
+          <button type="button" onclick="window.setQuickFeedbackRating(4)" class="qf-star-btn p-1.5 hover:scale-110 transition cursor-pointer"><i data-lucide="star" class="w-6 h-6 text-amber-400 fill-amber-400"></i></button>
+          <button type="button" onclick="window.setQuickFeedbackRating(5)" class="qf-star-btn p-1.5 hover:scale-110 transition cursor-pointer"><i data-lucide="star" class="w-6 h-6 text-amber-400 fill-amber-400"></i></button>
+          <span id="qfRatingLabel" class="text-xs font-bold text-amber-500 ml-2">★★★★★ Outstanding!</span>
+        </div>
+      </div>
+
+      <!-- Category Pills -->
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Category</label>
+        <div class="flex flex-wrap gap-1.5" id="qfCategoryPills">
+          <button type="button" onclick="window.setQuickFeedbackCategory('Evaluation Quality')" class="qf-cat-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer">🎯 Evaluation Quality</button>
+          <button type="button" onclick="window.setQuickFeedbackCategory('Bug / Glitch')" class="qf-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">🐛 Bug / Glitch</button>
+          <button type="button" onclick="window.setQuickFeedbackCategory('Feature Request')" class="qf-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">💡 Feature Request</button>
+          <button type="button" onclick="window.setQuickFeedbackCategory('Praise / Review')" class="qf-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">💖 Praise</button>
+          <button type="button" onclick="window.setQuickFeedbackCategory('General Experience')" class="qf-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">⭐ General</button>
+        </div>
+      </div>
+
+      <!-- Quick Suggestion Tags (1-click to append to message) -->
+      <div class="space-y-1">
+        <span class="text-[10.5px] font-semibold text-slate-500 dark:text-slate-400">Quick suggestions (tap to add):</span>
+        <div class="flex flex-wrap gap-1.5">
+          <button type="button" onclick="window.appendQuickTag('Score was very accurate and rubric was clear.')" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-amber-500/20 text-[11px] text-slate-600 dark:text-slate-400 hover:text-amber-500 transition cursor-pointer">+ Accurate marks</button>
+          <button type="button" onclick="window.appendQuickTag('Margin feedback was very insightful.')" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-amber-500/20 text-[11px] text-slate-600 dark:text-slate-400 hover:text-amber-500 transition cursor-pointer">+ Great margin remarks</button>
+          <button type="button" onclick="window.appendQuickTag('Evaluation took longer than expected.')" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-amber-500/20 text-[11px] text-slate-600 dark:text-slate-400 hover:text-amber-500 transition cursor-pointer">+ Speed was slow</button>
+          <button type="button" onclick="window.appendQuickTag('Found a factual mistake in the checking.')" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-rose-500/20 text-[11px] text-slate-600 dark:text-slate-400 hover:text-rose-400 transition cursor-pointer">+ Mistake in checking</button>
+          <button type="button" onclick="window.appendQuickTag('Please add more support for Hindi medium answers.')" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-amber-500/20 text-[11px] text-slate-600 dark:text-slate-400 hover:text-amber-500 transition cursor-pointer">+ Hindi medium</button>
+        </div>
+      </div>
+
+      <!-- Feedback Textarea -->
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Your Message / Feedback *</label>
+        <textarea id="qfMessageInput" rows="3" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-amber-500 leading-relaxed" placeholder="Tell us what you liked, what went wrong, or what feature you need next..."></textarea>
+      </div>
+
+      <!-- Candidate Contact Info (Optional) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Your Email <span class="text-slate-400 font-normal">(Optional for reply)</span></label>
+          <input type="email" id="qfEmailInput" placeholder="aspirant@gmail.com" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-amber-500 font-mono">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Your Name <span class="text-slate-400 font-normal">(Optional)</span></label>
+          <input type="text" id="qfNameInput" placeholder="Aspirant" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-amber-500">
+        </div>
+      </div>
+
+      <!-- Screenshot Attachment -->
+      <div class="space-y-1.5">
+        <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400">Attach Screenshot <span class="text-slate-400 font-normal">(Optional)</span></label>
+        <div class="flex items-center gap-2">
+          <input type="file" id="qfFileInput" accept="image/*" class="hidden" onchange="window.handleQuickFeedbackFile(event)">
+          <button type="button" onclick="document.getElementById('qfFileInput').click()" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 border border-slate-300 dark:border-slate-700 transition cursor-pointer">
+            <i data-lucide="image" class="w-3.5 h-3.5 text-amber-500"></i>
+            <span>Upload Screenshot</span>
+          </button>
+          <span id="qfFileNameBadge" class="text-[11px] font-mono text-emerald-500 truncate hidden"></span>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-800">
+        <span class="text-[10px] text-slate-500">Our faculty &amp; engineering team reviews every submission.</span>
+        <div class="flex items-center space-x-2">
+          <button type="button" onclick="window.closeQuickFeedbackModal()" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+            Cancel
+          </button>
+          <button type="button" id="qfSubmitBtn" onclick="window.submitQuickFeedback()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md transition flex items-center space-x-1.5 cursor-pointer">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+            <span>Submit Feedback</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <script src="/static/app.js?v=20261004_v2"></script>

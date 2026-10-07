@@ -15157,5 +15157,196 @@ window.confirmLogoutAspirant = function() {
   setInterval(() => window.sendPresenceHeartbeat(), 30000);
 })();
 
+// =============================================================
+// STANDALONE QUICK FEEDBACK MODAL CONTROLLER
+// =============================================================
+let qfRating = 5;
+let qfCategory = "Evaluation Quality";
+let qfScreenshotBase64 = null;
+let qfContextData = null;
+
+window.openQuickFeedbackModal = function(initialCategory = "Evaluation Quality", initialRating = 5, contextInfo = null) {
+  const modal = document.getElementById("quickFeedbackModal");
+  if (!modal) return;
+
+  // Pre-fill user info if available
+  const user = state.user || JSON.parse(localStorage.getItem("mainsmentor_user") || "null");
+  const emailInp = document.getElementById("qfEmailInput");
+  const nameInp = document.getElementById("qfNameInput");
+  if (emailInp && user && user.email) emailInp.value = user.email;
+  if (nameInp && user && user.name) nameInp.value = user.name;
+
+  // Handle context (e.g. from current evaluation)
+  const ctxBanner = document.getElementById("qfContextBanner");
+  const ctxText = document.getElementById("qfContextText");
+  if (contextInfo) {
+    qfContextData = contextInfo;
+    if (ctxBanner && ctxText) {
+      ctxText.textContent = contextInfo;
+      ctxBanner.classList.remove("hidden");
+    }
+  } else if (state.currentEvaluation) {
+    const q = state.currentEvaluation.detected_question || state.question || "";
+    const p = state.currentEvaluation.detected_paper || state.paper || "GS";
+    qfContextData = `${p} • Question: "${q.slice(0, 70)}..."`;
+    if (ctxBanner && ctxText) {
+      ctxText.textContent = qfContextData;
+      ctxBanner.classList.remove("hidden");
+    }
+  } else {
+    qfContextData = null;
+    if (ctxBanner) ctxBanner.classList.add("hidden");
+  }
+
+  window.setQuickFeedbackRating(initialRating || 5);
+  window.setQuickFeedbackCategory(initialCategory || "Evaluation Quality");
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  if (window.lucide) {
+    try { lucide.createIcons(); } catch(e) {}
+  }
+};
+
+window.closeQuickFeedbackModal = function() {
+  const modal = document.getElementById("quickFeedbackModal");
+  if (modal) {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  }
+};
+
+window.setQuickFeedbackRating = function(rating) {
+  qfRating = rating;
+  const labels = {
+    1: "★ Needs Major Improvement",
+    2: "★★ Found Issues / Disappointing",
+    3: "★★★ Average / Okay",
+    4: "★★★★ Good & Helpful",
+    5: "★★★★★ Outstanding!"
+  };
+  const labelEl = document.getElementById("qfRatingLabel");
+  if (labelEl) labelEl.textContent = labels[rating] || `${rating} Stars`;
+
+  const btns = document.querySelectorAll("#qfStarsContainer .qf-star-btn");
+  btns.forEach((btn, idx) => {
+    const svg = btn.querySelector("svg, i");
+    if (svg) {
+      if (idx < rating) {
+        svg.setAttribute("class", "w-6 h-6 text-amber-400 fill-amber-400");
+      } else {
+        svg.setAttribute("class", "w-6 h-6 text-slate-300 dark:text-slate-600");
+      }
+    }
+  });
+};
+
+window.setQuickFeedbackCategory = function(cat) {
+  qfCategory = cat;
+  const pills = document.querySelectorAll("#qfCategoryPills .qf-cat-btn");
+  pills.forEach(btn => {
+    if (btn.textContent.includes(cat) || (cat === "Bug / Glitch" && btn.textContent.includes("Bug"))) {
+      btn.className = "qf-cat-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 transition cursor-pointer";
+    } else {
+      btn.className = "qf-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer";
+    }
+  });
+};
+
+window.appendQuickTag = function(tagText) {
+  const msgInput = document.getElementById("qfMessageInput");
+  if (!msgInput) return;
+  const current = msgInput.value.trim();
+  if (!current) {
+    msgInput.value = tagText;
+  } else if (!current.includes(tagText)) {
+    msgInput.value = `${current} ${tagText}`;
+  }
+  msgInput.focus();
+};
+
+window.handleQuickFeedbackFile = function(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    qfScreenshotBase64 = evt.target.result;
+    const badge = document.getElementById("qfFileNameBadge");
+    if (badge) {
+      badge.textContent = `✓ ${file.name.slice(0, 20)}`;
+      badge.classList.remove("hidden");
+    }
+  };
+  reader.readAsDataURL(file);
+};
+
+window.submitQuickFeedback = async function() {
+  const msgInp = document.getElementById("qfMessageInput");
+  const emailInp = document.getElementById("qfEmailInput");
+  const nameInp = document.getElementById("qfNameInput");
+  const submitBtn = document.getElementById("qfSubmitBtn");
+
+  const message = (msgInp ? msgInp.value : "").trim();
+  if (!message) {
+    alert("Please enter a short message describing your feedback or issue.");
+    if (msgInp) msgInp.focus();
+    return;
+  }
+
+  const user = state.user || JSON.parse(localStorage.getItem("mainsmentor_user") || "null");
+  const email = (emailInp ? emailInp.value.trim() : "") || user?.email || "anonymous@cookedmains.ai";
+  const name = (nameInp ? nameInp.value.trim() : "") || user?.name || "Aspirant";
+
+  let finalMessage = message;
+  if (qfContextData) {
+    finalMessage = `[Context: ${qfContextData}]\n${message}`;
+  }
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span> Submitting...`;
+  }
+
+  try {
+    const res = await fetch("/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: email,
+        name: name,
+        rating: qfRating || 5,
+        category: qfCategory || "General Experience",
+        message: finalMessage,
+        screenshot: qfScreenshotBase64
+      })
+    });
+
+    if (!res.ok) throw new Error("Could not submit feedback");
+
+    if (typeof window.showAppNotice === 'function') {
+      window.showAppNotice("Feedback Received!", "Thank you! Your feedback has been sent directly to the faculty and engineering team.");
+    } else {
+      alert("Thank you! Your feedback has been received.");
+    }
+
+    if (msgInp) msgInp.value = "";
+    qfScreenshotBase64 = null;
+    const badge = document.getElementById("qfFileNameBadge");
+    if (badge) badge.classList.add("hidden");
+
+    window.closeQuickFeedbackModal();
+  } catch (err) {
+    alert("Error submitting feedback: " + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `<i data-lucide="send" class="w-3.5 h-3.5"></i> <span>Submit Feedback</span>`;
+      if (window.lucide) {
+        try { lucide.createIcons(); } catch(e) {}
+      }
+    }
+  }
+};
+
 
 

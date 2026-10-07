@@ -1,8 +1,14 @@
 // Cooked Mains — Owner & Founder Command Center Client
+// Complete telemetry, aspirant tracking, evaluation inspector, feedback inbox, and payment approvals.
 
 let adminToken = localStorage.getItem("mainsmentor_admin_token");
 let autoRefreshEnabled = true;
 let autoRefreshInterval = null;
+let cachedSessions = [];
+let cachedAspirants = [];
+let cachedFeedbacks = [];
+let feedbackFilterStatus = "all";
+let activeCreditCadetEmail = null;
 
 function safeCreateIcons() {
   try {
@@ -93,14 +99,14 @@ function adminLogout() {
 }
 
 function switchTab(tabId) {
-  const tabs = ["live", "aspirants", "evaluations", "feedback", "settings"];
+  const tabs = ["live", "aspirants", "evaluations", "feedback", "orders", "settings"];
   tabs.forEach(t => {
     const content = document.getElementById(`tabContent_${t}`);
     const btn = document.getElementById(`tabBtn_${t}`);
     if (t === tabId) {
       if (content) content.classList.remove("hidden");
       if (btn) {
-        btn.className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-amber-500 text-slate-950 cursor-pointer";
+        btn.className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-amber-500 text-slate-950 cursor-pointer shadow-sm";
       }
     } else {
       if (content) content.classList.add("hidden");
@@ -109,6 +115,13 @@ function switchTab(tabId) {
       }
     }
   });
+
+  if (tabId === "orders") {
+    loadAdminTransactions();
+  } else if (tabId === "settings") {
+    loadAdminSettings();
+  }
+  safeCreateIcons();
 }
 
 async function loadAllAdminData(force = false) {
@@ -125,11 +138,27 @@ async function loadAllAdminData(force = false) {
     loadAdminSessions(),
     loadAspirants(),
     loadAdminEvaluations(),
-    loadAdminFeedbacks()
+    loadAdminFeedbacks(),
+    loadAdminTransactions(),
+    loadAdminSettings()
   ]);
   safeCreateIcons();
 }
 
+async function forceSyncCloud() {
+  try {
+    const res = await fetch("/api/admin/sync", { method: "POST" });
+    const data = await res.json();
+    alert("Supabase Cloud Sync completed successfully!");
+    loadAllAdminData();
+  } catch (err) {
+    alert("Sync error: " + err.message);
+  }
+}
+
+// -------------------------------------------------------------
+// TAB 1: LIVE RADAR & OVERVIEW STATS
+// -------------------------------------------------------------
 async function loadAdminStats(forceSync = false) {
   try {
     const res = await fetch(`/api/admin/stats?sync=${forceSync ? 1 : 0}`);
@@ -150,15 +179,23 @@ async function loadAdminStats(forceSync = false) {
     setTxt("statRating", stats.average_rating ?? "5.0");
     setTxt("statFeedbackCount", `${stats.total_feedbacks ?? 0} feedbacks received`);
 
+    const unresBadge = document.getElementById("statUnresolvedBadge");
+    if (unresBadge) {
+      const unresCount = Number(stats.unresolved_feedbacks ?? 0);
+      if (unresCount > 0) {
+        unresBadge.textContent = `${unresCount} new`;
+        unresBadge.classList.remove("hidden");
+      } else {
+        unresBadge.classList.add("hidden");
+      }
+    }
+
     if (stats.server_time_ist) {
       setTxt("headerServerTime", `Server Time: ${stats.server_time_ist} • Live Telemetry Active`);
     }
 
     setTxt("settingsActiveModel", stats.active_gemini_model || "gemini-3.6-flash");
-    setTxt("settingsSupabaseStatus", stats.supabase_connected ? "Connected (Cloud Sync Active)" : "Local SQLite Active");
-    if (Array.isArray(stats.blacklisted_models) && stats.blacklisted_models.length > 0) {
-      setTxt("settingsBlacklistedModels", stats.blacklisted_models.join(", "));
-    }
+    setTxt("settingsSupabaseStatus", stats.supabase_connected ? "Connected (Cloud Sync Active)" : "Local SQLite Vault Active");
 
     renderOnlineUsers(stats.online_users || []);
   } catch (e) {
@@ -176,7 +213,7 @@ function renderOnlineUsers(onlineList) {
     container.innerHTML = `
       <div class="p-8 rounded-xl bg-slate-950/70 border border-slate-800/80 text-center space-y-2">
         <div class="text-slate-400 text-xs font-semibold">No active browser tabs in the last 2.5 minutes</div>
-        <p class="text-[11px] text-slate-500">As soon as an aspirant opens the website or uploads an answer sheet, their live screen status appears here automatically.</p>
+        <p class="text-[11px] text-slate-500">As soon as an aspirant visits cookedmains.com or uploads an answer sheet, their live status appears here instantly.</p>
       </div>
     `;
     return;
@@ -185,7 +222,7 @@ function renderOnlineUsers(onlineList) {
   container.innerHTML = onlineList.map(u => {
     const secStr = u.seconds_ago <= 5 ? "Just now" : `${u.seconds_ago}s ago`;
     return `
-      <div class="p-3.5 rounded-xl bg-slate-950 border border-emerald-500/30 flex items-center justify-between gap-3">
+      <div class="p-3.5 rounded-xl bg-slate-950 border border-emerald-500/30 flex items-center justify-between gap-3 shadow-xs">
         <div class="space-y-0.5 min-w-0">
           <div class="flex items-center space-x-2">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0"></span>
@@ -193,10 +230,10 @@ function renderOnlineUsers(onlineList) {
             <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">${secStr}</span>
           </div>
           <div class="text-[11px] font-mono text-slate-400 truncate">${escapeHtml(u.email || "")}</div>
-          <div class="text-[11px] text-amber-300 font-semibold pt-0.5">📍 Screen: ${escapeHtml(u.current_view || "Browsing")}</div>
+          <div class="text-[11px] text-amber-300 font-semibold pt-0.5 truncate">📍 Screen: ${escapeHtml(u.current_view || "Browsing")}</div>
         </div>
         ${u.is_authenticated ? `
-          <button onclick="filterCopiesByEmail('${escapeHtml(u.email)}')" class="shrink-0 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-amber-300 border border-slate-700">
+          <button onclick="filterCopiesByEmail('${escapeHtml(u.email)}')" class="shrink-0 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-amber-300 border border-slate-700 transition">
             View Copies
           </button>
         ` : ""}
@@ -241,7 +278,7 @@ async function loadAdminActivity() {
           <div class="space-y-1 min-w-0">
             <div class="flex flex-wrap items-center gap-2">
               <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeColor}">${iconEmoji} ${escapeHtml(ev.title || "Activity")}</span>
-              <span class="text-[10.5px] font-mono text-slate-400">${escapeHtml(ev.user_email || "")}</span>
+              <span class="text-[10.5px] font-mono text-slate-400 truncate">${escapeHtml(ev.user_email || "")}</span>
               <span class="text-[10px] font-mono text-slate-500">${escapeHtml(ev.created_at || "")}</span>
             </div>
             ${ev.detail ? `<p class="text-xs text-slate-300 font-serif line-clamp-2">${escapeHtml(ev.detail)}</p>` : ""}
@@ -258,8 +295,6 @@ async function loadAdminActivity() {
     console.error("Activity load error:", e);
   }
 }
-
-let cachedSessions = [];
 
 async function loadAdminSessions() {
   const tbody = document.getElementById("sessionHistoryTableBody");
@@ -399,6 +434,9 @@ function closeSessionJourney() {
   if (modal) modal.classList.add("hidden");
 }
 
+// -------------------------------------------------------------
+// TAB 2: ASPIRANTS DATABASE & CREDIT USAGE
+// -------------------------------------------------------------
 let searchTimer = null;
 function debounceAspirantSearch() {
   clearTimeout(searchTimer);
@@ -417,6 +455,7 @@ async function loadAspirants() {
     const res = await fetch(`/api/admin/aspirants?search=${encodeURIComponent(query)}`);
     if (!res.ok) throw new Error("Could not fetch aspirants");
     const aspirants = await res.json();
+    cachedAspirants = aspirants || [];
 
     if (!aspirants || aspirants.length === 0) {
       tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500 font-sans">No registered aspirants found.</td></tr>`;
@@ -429,6 +468,7 @@ async function loadAspirants() {
       const pctUsed = Math.min(100, Math.round((usedToday / 15) * 100));
       const totalCopies = Number(asp.evaluations_count || 0);
       const avgPct = Number(asp.avg_percentage || 0).toFixed(1);
+      const isPro = asp.plan_tier === "pro" || asp.plan_tier === "unlimited" || asp.is_pro;
 
       return `
         <tr class="hover:bg-slate-800/40 transition">
@@ -438,13 +478,16 @@ async function loadAspirants() {
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                 <span>Online Now</span>
               </span>
-              <div class="text-[10px] text-amber-300 font-medium mt-1">${escapeHtml(asp.current_view || "")}</div>
+              <div class="text-[10px] text-amber-300 font-medium mt-1 truncate">${escapeHtml(asp.current_view || "")}</div>
             ` : `
               <span class="text-[11px] font-mono text-slate-400 block">${escapeHtml(asp.last_seen_display || "Offline")}</span>
             `}
           </td>
           <td class="p-3.5">
-            <div class="font-bold text-white text-xs">${escapeHtml(asp.name || "UPSC Aspirant")}</div>
+            <div class="flex items-center space-x-1.5">
+              <span class="font-bold text-white text-xs">${escapeHtml(asp.name || "UPSC Aspirant")}</span>
+              ${isPro ? `<span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] font-mono font-bold uppercase">PRO</span>` : ""}
+            </div>
             <div class="text-[11px] text-amber-400 font-mono select-all">${escapeHtml(asp.email)}</div>
             <div class="text-[10px] text-slate-500 font-mono">Joined: ${escapeHtml((asp.created_at || "").slice(0, 10))}</div>
           </td>
@@ -467,13 +510,13 @@ async function loadAspirants() {
           </td>
           <td class="p-3.5 text-right space-x-1.5 whitespace-nowrap">
             <button onclick="filterCopiesByEmail('${escapeHtml(asp.email)}')" class="px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 font-bold text-[11px] border border-amber-500/30 transition">
-              📂 View Copies (${totalCopies})
+              📂 Copies (${totalCopies})
             </button>
-            <button onclick="resetDailyQuota('${escapeHtml(asp.email)}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold transition" title="Reset today's quota & restore 15 evaluations">
+            <button onclick="resetDailyQuota('${escapeHtml(asp.email)}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold transition" title="Restore 15 daily evaluations">
               🔄 Reset 15 Quota
             </button>
-            <button onclick="adjustCredits('${escapeHtml(asp.email)}', 5, 0)" class="px-2.5 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 text-[11px] font-bold transition">
-              +5 Credits
+            <button onclick="openCreditManager('${escapeHtml(asp.email)}', '${escapeHtml(asp.plan_tier || 'starter')}')" class="px-2.5 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 text-[11px] font-bold transition">
+              ⚡ Credits
             </button>
           </td>
         </tr>
@@ -484,6 +527,119 @@ async function loadAspirants() {
   }
 }
 
+function exportAspirantsCSV() {
+  if (!cachedAspirants || cachedAspirants.length === 0) {
+    alert("No aspirants loaded to export.");
+    return;
+  }
+  const headers = ["Name", "Email", "Target Year", "Optional Subject", "Used Today", "Total Copies", "Avg Percentage", "Joined Date"];
+  const rows = cachedAspirants.map(a => [
+    `"${(a.name || '').replace(/"/g, '""')}"`,
+    `"${(a.email || '').replace(/"/g, '""')}"`,
+    `"${a.target_year || '2026'}"`,
+    `"${(a.optional_subject || 'General Studies').replace(/"/g, '""')}"`,
+    a.daily_used_today || 0,
+    a.evaluations_count || 0,
+    a.avg_percentage || 0,
+    `"${(a.created_at || '').slice(0, 10)}"`
+  ]);
+
+  const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `cooked_mains_aspirants_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+async function resetDailyQuota(email) {
+  try {
+    const res = await fetch("/api/admin/aspirant/reset-daily", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    if (!res.ok) throw new Error("Failed to reset quota");
+    alert(`✓ Daily quota of 15 evaluations restored for ${email}`);
+    loadAspirants();
+    loadAdminActivity();
+  } catch (e) {
+    alert(`Error: ${e.message}`);
+  }
+}
+
+function openCreditManager(email, planTier) {
+  activeCreditCadetEmail = email;
+  const modal = document.getElementById("creditManagerModal");
+  if (!modal) return;
+  document.getElementById("creditManagerEmailLabel").textContent = email;
+  document.getElementById("customCreditsInput").value = 5;
+  const planSelect = document.getElementById("customPlanTierSelect");
+  if (planSelect) planSelect.value = planTier || "starter";
+
+  const msg = document.getElementById("creditManagerMsg");
+  if (msg) msg.className = "hidden";
+
+  modal.classList.remove("hidden");
+  safeCreateIcons();
+}
+
+function closeCreditManager() {
+  const modal = document.getElementById("creditManagerModal");
+  if (modal) modal.classList.add("hidden");
+  activeCreditCadetEmail = null;
+}
+
+function setCreditDelta(val) {
+  const inp = document.getElementById("customCreditsInput");
+  if (inp) inp.value = val;
+}
+
+async function applyCreditAdjustment() {
+  if (!activeCreditCadetEmail) return;
+  const creditsInp = document.getElementById("customCreditsInput");
+  const planSelect = document.getElementById("customPlanTierSelect");
+  const msg = document.getElementById("creditManagerMsg");
+
+  const deltaCredits = parseInt(creditsInp.value, 10) || 0;
+  const planTier = planSelect ? planSelect.value : "starter";
+  const isPro = planTier === "pro" || planTier === "unlimited";
+
+  try {
+    const res = await fetch("/api/admin/aspirant/credits", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: activeCreditCadetEmail,
+        delta_credits: deltaCredits,
+        delta_rewrites: Math.max(1, Math.floor(deltaCredits / 2)),
+        is_pro: isPro ? 1 : 0,
+        plan_tier: planTier
+      })
+    });
+    if (!res.ok) throw new Error("Failed to update credits");
+    if (msg) {
+      msg.textContent = `✓ Successfully granted ${deltaCredits} credits & updated plan for ${activeCreditCadetEmail}!`;
+      msg.className = "block text-xs py-2 px-3 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-semibold";
+    }
+    setTimeout(() => {
+      closeCreditManager();
+      loadAspirants();
+      loadAdminStats();
+    }, 1200);
+  } catch (err) {
+    if (msg) {
+      msg.textContent = `Error: ${err.message}`;
+      msg.className = "block text-xs py-2 px-3 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-400";
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// TAB 3: ANSWER COPIES & EVALUATION INSPECTOR
+// -------------------------------------------------------------
 function filterCopiesByEmail(email) {
   switchTab("evaluations");
   const inp = document.getElementById("evalEmailFilterInput");
@@ -494,6 +650,8 @@ function filterCopiesByEmail(email) {
 function clearEvalFilter() {
   const inp = document.getElementById("evalEmailFilterInput");
   if (inp) inp.value = "";
+  const paperSel = document.getElementById("evalPaperFilter");
+  if (paperSel) paperSel.value = "all";
   loadAdminEvaluations();
 }
 
@@ -508,15 +666,22 @@ function debounceEvalFilter() {
 async function loadAdminEvaluations() {
   const tbody = document.getElementById("evaluationsTableBody");
   if (!tbody) return;
-  const emailFilter = (document.getElementById("evalEmailFilterInput")?.value || "").trim();
+  const filterVal = (document.getElementById("evalEmailFilterInput")?.value || "").trim();
+  const paperVal = (document.getElementById("evalPaperFilter")?.value || "all").trim();
 
   try {
-    const res = await fetch(`/api/admin/evaluations?email=${encodeURIComponent(emailFilter)}&limit=60`);
+    const queryParams = new URLSearchParams({
+      limit: "100"
+    });
+    if (filterVal) queryParams.set("search", filterVal);
+    if (paperVal && paperVal !== "all") queryParams.set("paper", paperVal);
+
+    const res = await fetch(`/api/admin/evaluations?${queryParams.toString()}`);
     if (!res.ok) throw new Error("Could not load evaluations");
     const evals = await res.json();
 
     if (!evals || evals.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">No evaluated answer copies found${emailFilter ? ` for ${escapeHtml(emailFilter)}` : ""}.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">No evaluated answer copies found.</td></tr>`;
       return;
     }
 
@@ -531,7 +696,7 @@ async function loadAdminEvaluations() {
           </td>
           <td class="p-3.5">
             <div class="font-bold text-white text-xs">${escapeHtml(ev.user_name || "Aspirant")}</div>
-            <div class="font-mono text-[11px] text-amber-400">${escapeHtml(ev.user_email || "")}</div>
+            <div class="font-mono text-[11px] text-amber-400 select-all">${escapeHtml(ev.user_email || "")}</div>
           </td>
           <td class="p-3.5 whitespace-nowrap">
             <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-amber-300 border border-slate-700 font-mono font-bold text-xs">
@@ -539,7 +704,7 @@ async function loadAdminEvaluations() {
             </span>
           </td>
           <td class="p-3.5 max-w-md">
-            <p class="text-xs text-slate-200 font-serif line-clamp-2">${escapeHtml(ev.question || "UPSC Mains Answer Copy")}</p>
+            <p class="text-xs text-slate-200 font-serif line-clamp-2" title="${escapeHtml(ev.question || '')}">${escapeHtml(ev.question || "UPSC Mains Answer Copy")}</p>
           </td>
           <td class="p-3.5 whitespace-nowrap">
             <span class="text-base font-extrabold text-emerald-400 font-mono">${score} / ${maxM}</span>
@@ -564,7 +729,7 @@ async function inspectCopy(evalId) {
   modal.classList.remove("hidden");
 
   document.getElementById("inspectQuestionTitle").textContent = "Loading answer sheet & evaluation...";
-  document.getElementById("inspectPagesContainer").innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">Loading uploaded handwritten pages...</div>`;
+  document.getElementById("inspectPagesContainer").innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">Loading candidate's handwritten pages...</div>`;
 
   try {
     const res = await fetch(`/api/admin/evaluation/${encodeURIComponent(evalId)}`);
@@ -582,11 +747,12 @@ async function inspectCopy(evalId) {
 
     const pagesHtml = pages.length > 0
       ? pages.map((p, idx) => `
-          <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950 space-y-1">
-            <div class="px-3 py-1.5 bg-slate-900 border-b border-slate-800 text-[11px] font-mono font-bold text-amber-300">
-              Page ${idx + 1} of ${pages.length}
+          <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950 space-y-1 group">
+            <div class="px-3 py-1.5 bg-slate-900 border-b border-slate-800 text-[11px] font-mono font-bold text-amber-300 flex items-center justify-between">
+              <span>Page ${idx + 1} of ${pages.length}</span>
+              <button onclick="openImageZoom('${p}')" class="text-[10px] text-amber-400 hover:underline cursor-pointer">🔍 Click to Enlarge</button>
             </div>
-            <img src="${p}" alt="Page ${idx + 1}" class="w-full h-auto object-contain">
+            <img src="${p}" alt="Page ${idx + 1}" onclick="openImageZoom('${p}')" class="w-full h-auto object-contain cursor-zoom-in group-hover:opacity-95 transition">
           </div>
         `).join("")
       : `<div class="p-6 rounded-xl bg-slate-950 border border-slate-800 text-slate-500 text-xs text-center">No page preview image stored for this record.</div>`;
@@ -621,38 +787,22 @@ function closeCopyInspector() {
   if (modal) modal.classList.add("hidden");
 }
 
-async function resetDailyQuota(email) {
-  try {
-    const res = await fetch("/api/admin/aspirant/reset-daily", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
-    });
-    if (!res.ok) throw new Error("Failed to reset quota");
-    loadAspirants();
-    loadAdminActivity();
-  } catch (e) {
-    alert(`Error: ${e.message}`);
-  }
-}
-
-async function adjustCredits(email, deltaCredits, deltaRewrites) {
-  try {
-    const res = await fetch("/api/admin/aspirant/credits", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        delta_credits: deltaCredits,
-        delta_rewrites: deltaRewrites
-      })
-    });
-    if (!res.ok) throw new Error("Failed to update credits");
-    loadAspirants();
-    loadAdminStats();
-  } catch (e) {
-    alert(`Error: ${e.message}`);
-  }
+// -------------------------------------------------------------
+// TAB 4: ASPIRANT FEEDBACK & RATINGS INBOX
+// -------------------------------------------------------------
+function setFeedbackFilter(filter) {
+  feedbackFilterStatus = filter;
+  ["all", "unresolved", "resolved"].forEach(f => {
+    const btn = document.getElementById(`fbFilter_${f}`);
+    if (btn) {
+      if (f === filter) {
+        btn.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 transition";
+      } else {
+        btn.className = "px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
+      }
+    }
+  });
+  renderFeedbacks();
 }
 
 async function loadAdminFeedbacks() {
@@ -663,58 +813,244 @@ async function loadAdminFeedbacks() {
     const res = await fetch("/api/admin/feedbacks");
     if (!res.ok) throw new Error("Could not load feedbacks");
     const list = await res.json();
-
-    if (!list || list.length === 0) {
-      container.innerHTML = `<div class="col-span-2 p-8 text-center text-slate-500 bg-slate-900/40 rounded-2xl border border-slate-800 font-sans">No aspirant feedbacks or bug reports submitted yet.</div>`;
-      return;
-    }
-
-    container.innerHTML = list.map(fb => {
-      const stars = "★".repeat(fb.rating || 5) + "☆".repeat(5 - (fb.rating || 5));
-      const hasShot = Boolean(fb.screenshot_data && fb.screenshot_data.startsWith("data:image"));
-      return `
-        <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3 shadow-sm">
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 uppercase tracking-wider">
-                ${escapeHtml(fb.category || "Feedback")}
-              </span>
-              <h4 class="font-bold text-white text-xs mt-1.5">${escapeHtml(fb.user_name || "UPSC Aspirant")} <span class="text-slate-400 font-mono font-normal">(${escapeHtml(fb.user_email || "Anonymous")})</span></h4>
-            </div>
-            <div class="text-right">
-              <span class="text-amber-400 font-mono text-sm tracking-widest block">${stars}</span>
-              <button onclick="deleteFeedback('${fb.id}')" class="text-[10px] text-rose-400 hover:underline mt-1">✓ Resolve / Delete</button>
-            </div>
-          </div>
-          <p class="text-xs text-slate-200 leading-relaxed bg-slate-950/80 p-3.5 rounded-xl border border-slate-800/90 font-sans">
-            "${escapeHtml(fb.message)}"
-          </p>
-          ${hasShot ? `
-            <div class="pt-1">
-              <span class="text-[10px] font-mono uppercase tracking-wider text-amber-400 block mb-1.5">📸 Attached Screenshot:</span>
-              <a href="${fb.screenshot_data}" target="_blank" title="Click to view full size">
-                <img src="${fb.screenshot_data}" alt="Screenshot" class="w-full max-h-56 object-contain rounded-xl border border-slate-700 bg-slate-950 p-1">
-              </a>
-            </div>
-          ` : ""}
-          <div class="text-[10px] text-slate-500 font-mono text-right">
-            Submitted: ${escapeHtml(fb.created_at || "")}
-          </div>
-        </div>
-      `;
-    }).join("");
+    cachedFeedbacks = list || [];
+    renderFeedbacks();
   } catch (e) {
     container.innerHTML = `<div class="col-span-2 p-8 text-center text-rose-400">Error loading feedbacks: ${e.message}</div>`;
   }
 }
 
-async function deleteFeedback(feedbackId) {
+function renderFeedbacks() {
+  const container = document.getElementById("feedbacksContainer");
+  if (!container) return;
+
+  let list = cachedFeedbacks || [];
+  if (feedbackFilterStatus === "unresolved") {
+    list = list.filter(f => !f.is_resolved);
+  } else if (feedbackFilterStatus === "resolved") {
+    list = list.filter(f => Boolean(f.is_resolved));
+  }
+
+  if (list.length === 0) {
+    container.innerHTML = `<div class="col-span-2 p-8 text-center text-slate-500 bg-slate-900/40 rounded-2xl border border-slate-800 font-sans">No feedbacks matching current filter.</div>`;
+    return;
+  }
+
+  container.innerHTML = list.map(fb => {
+    const stars = "★".repeat(fb.rating || 5) + "☆".repeat(5 - (fb.rating || 5));
+    const hasShot = Boolean(fb.screenshot_data && fb.screenshot_data.startsWith("data:image"));
+    const isResolved = Boolean(fb.is_resolved);
+
+    return `
+      <div class="p-5 rounded-2xl bg-slate-900/90 border ${isResolved ? 'border-slate-800/80 opacity-75' : 'border-slate-800 border-l-4 border-l-amber-500'} space-y-3 shadow-sm">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 uppercase tracking-wider">
+                ${escapeHtml(fb.category || "Feedback")}
+              </span>
+              ${isResolved ? `
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">✓ Resolved</span>
+              ` : `
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">Open</span>
+              `}
+            </div>
+            <h4 class="font-bold text-white text-xs mt-1.5">${escapeHtml(fb.user_name || "UPSC Aspirant")} <span class="text-slate-400 font-mono font-normal">(${escapeHtml(fb.user_email || "Anonymous")})</span></h4>
+          </div>
+          <div class="text-right">
+            <span class="text-amber-400 font-mono text-sm tracking-widest block">${stars}</span>
+            <div class="mt-1 space-x-2">
+              ${isResolved ? `
+                <button onclick="resolveFeedback('${fb.id}', false)" class="text-[10.5px] text-slate-400 hover:text-white font-semibold">↺ Reopen</button>
+              ` : `
+                <button onclick="resolveFeedback('${fb.id}', true)" class="text-[10.5px] text-emerald-400 hover:underline font-semibold">✓ Mark Resolved</button>
+              `}
+            </div>
+          </div>
+        </div>
+        <p class="text-xs text-slate-200 leading-relaxed bg-slate-950/80 p-3.5 rounded-xl border border-slate-800/90 font-sans select-text">
+          "${escapeHtml(fb.message)}"
+        </p>
+        ${hasShot ? `
+          <div class="pt-1">
+            <span class="text-[10px] font-mono uppercase tracking-wider text-amber-400 block mb-1.5">📸 Attached Screenshot:</span>
+            <img src="${fb.screenshot_data}" alt="Screenshot" onclick="openImageZoom('${fb.screenshot_data}')" class="w-full max-h-56 object-contain rounded-xl border border-slate-700 bg-slate-950 p-1 cursor-zoom-in hover:opacity-95 transition">
+          </div>
+        ` : ""}
+        <div class="flex items-center justify-between pt-1 text-[10.5px] font-mono text-slate-500">
+          <div>
+            ${fb.user_email && fb.user_email.includes('@') && !fb.user_email.includes('anonymous') ? `
+              <a href="mailto:${encodeURIComponent(fb.user_email)}?subject=Regarding%20your%20Cooked%20Mains%20feedback" class="text-amber-400 hover:underline font-sans">✉️ Reply via Email</a>
+            ` : ""}
+          </div>
+          <div>Submitted: ${escapeHtml(fb.created_at || "")}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+async function resolveFeedback(feedbackId, resolved) {
   try {
-    await fetch(`/api/admin/feedback/${encodeURIComponent(feedbackId)}`, { method: "DELETE" });
-    loadAdminFeedbacks();
+    const res = await fetch(`/api/admin/feedback/${encodeURIComponent(feedbackId)}/resolve`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ resolved: Boolean(resolved) })
+    });
+    if (!res.ok) throw new Error("Could not update feedback status");
+    // Update local cache
+    const item = cachedFeedbacks.find(f => String(f.id) === String(feedbackId));
+    if (item) item.is_resolved = resolved ? 1 : 0;
+    renderFeedbacks();
     loadAdminStats();
   } catch (e) {
-    alert("Could not delete feedback");
+    alert("Error updating feedback: " + e.message);
+  }
+}
+
+// -------------------------------------------------------------
+// TAB 5: UPI PAYMENT ORDERS & PLAN APPROVALS
+// -------------------------------------------------------------
+async function loadAdminTransactions() {
+  const tbody = document.getElementById("ordersTableBody");
+  if (!tbody) return;
+  const statusSel = document.getElementById("ordersStatusFilter");
+  const status = statusSel ? statusSel.value : "all";
+
+  try {
+    const res = await fetch(`/api/admin/transactions?status=${encodeURIComponent(status)}`);
+    if (!res.ok) throw new Error("Could not load transactions");
+    const txs = await res.json();
+
+    if (!txs || txs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500">No payment orders found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = txs.map(tx => {
+      const isPending = tx.status === "pending";
+      const isApproved = tx.status === "approved";
+      let statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">${escapeHtml(tx.status || 'unknown')}</span>`;
+      if (isPending) {
+        statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">⏳ Pending Approval</span>`;
+      } else if (isApproved) {
+        statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">✓ Approved &amp; Credited</span>`;
+      }
+
+      return `
+        <tr class="hover:bg-slate-800/40 transition">
+          <td class="p-3.5 font-mono text-[11px] text-slate-300 whitespace-nowrap">
+            ${escapeHtml(tx.created_at || "")}
+          </td>
+          <td class="p-3.5 font-mono text-xs text-white select-all">
+            ${escapeHtml(tx.user_email || "")}
+          </td>
+          <td class="p-3.5 font-bold text-amber-300 text-xs">
+            ${escapeHtml(tx.plan_tier || "Pro Tier")}
+          </td>
+          <td class="p-3.5 font-mono font-extrabold text-sm text-emerald-400">
+            ₹${Number(tx.amount || 0)}
+          </td>
+          <td class="p-3.5 font-mono text-xs text-sky-300 select-all font-bold">
+            ${escapeHtml(tx.utr_number || "—")}
+          </td>
+          <td class="p-3.5">
+            ${statusBadge}
+          </td>
+          <td class="p-3.5 text-right whitespace-nowrap space-x-1.5">
+            ${isPending ? `
+              <button onclick="approveTransaction('${escapeHtml(tx.id)}')" class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow transition">
+                ✓ Approve &amp; Credit
+              </button>
+              <button onclick="rejectTransaction('${escapeHtml(tx.id)}')" class="px-2.5 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500 text-rose-300 hover:text-white font-semibold text-xs border border-rose-500/30 transition">
+                ✕ Reject
+              </button>
+            ` : `
+              <span class="text-[11px] text-slate-500 font-mono">${escapeHtml(tx.admin_notes || "Processed")}</span>
+            `}
+          </td>
+        </tr>
+      `;
+    }).join("");
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-rose-400">Error loading orders: ${err.message}</td></tr>`;
+  }
+}
+
+async function approveTransaction(txId) {
+  if (!confirm("Are you sure you want to approve this UPI payment and credit the aspirant?")) return;
+  try {
+    const res = await fetch("/api/admin/transaction/approve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tx_id: txId, notes: "Approved by Founder via Command Center" })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Approval failed");
+    alert("✓ " + (data.message || "Order approved!"));
+    loadAdminTransactions();
+    loadAdminStats();
+    loadAspirants();
+  } catch (err) {
+    alert("Error: " + err.message);
+  }
+}
+
+async function rejectTransaction(txId) {
+  const reason = prompt("Enter rejection reason (optional):", "Invalid UTR / Payment not received");
+  if (reason === null) return;
+  try {
+    const res = await fetch("/api/admin/transaction/reject", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tx_id: txId, notes: reason })
+    });
+    if (!res.ok) throw new Error("Rejection failed");
+    alert("Order rejected.");
+    loadAdminTransactions();
+  } catch (err) {
+    alert("Error: " + err.message);
+  }
+}
+
+// -------------------------------------------------------------
+// TAB 6: SECURITY & SETTINGS
+// -------------------------------------------------------------
+async function loadAdminSettings() {
+  try {
+    const res = await fetch("/api/admin/settings");
+    if (!res.ok) return;
+    const data = await res.json();
+    const upiInp = document.getElementById("settingsUpiIdInput");
+    if (upiInp && data.admin_upi_id) upiInp.value = data.admin_upi_id;
+  } catch (e) {
+    console.warn("Could not load settings:", e);
+  }
+}
+
+async function updateAdminUpiId(e) {
+  if (e) e.preventDefault();
+  const upiInp = document.getElementById("settingsUpiIdInput");
+  const msgEl = document.getElementById("upiChangeMsg");
+  const upiId = (upiInp ? upiInp.value : "").trim();
+
+  try {
+    const res = await fetch("/api/admin/settings/upi", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ upi_id: upiId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Could not save UPI ID");
+    if (msgEl) {
+      msgEl.textContent = `✓ UPI ID updated to ${data.admin_upi_id}!`;
+      msgEl.className = "block text-xs py-2 px-3 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-semibold";
+    }
+  } catch (err) {
+    if (msgEl) {
+      msgEl.textContent = `Error: ${err.message}`;
+      msgEl.className = "block text-xs py-2 px-3 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-400";
+    }
   }
 }
 
@@ -763,6 +1099,23 @@ async function changeAdminPassword(e) {
       msgEl.className = "block text-xs py-2 px-3 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-400 font-medium";
     }
   }
+}
+
+// -------------------------------------------------------------
+// IMAGE LIGHTBOX ZOOM
+// -------------------------------------------------------------
+function openImageZoom(src) {
+  const modal = document.getElementById("imageZoomModal");
+  const img = document.getElementById("imageZoomTarget");
+  if (!modal || !img) return;
+  img.src = src;
+  modal.classList.remove("hidden");
+  safeCreateIcons();
+}
+
+function closeImageZoom() {
+  const modal = document.getElementById("imageZoomModal");
+  if (modal) modal.classList.add("hidden");
 }
 
 function escapeHtml(str) {

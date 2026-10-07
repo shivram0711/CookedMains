@@ -1203,9 +1203,11 @@ async def api_submit_feedback(request: Request):
 
 @app.post("/api/admin/factory-reset")
 async def api_admin_factory_reset():
-    """Clears all existing test accounts, evaluations, and PDFs for a 100% clean pilot launch."""
-    from storage import perform_clean_slate_reset
-    return perform_clean_slate_reset(force=True)
+    """Strictly disabled to protect data integrity and ensure zero deletion."""
+    return {
+        "status": "disabled",
+        "message": "Data retention is strictly enforced. Factory reset and data deletion are permanently disabled to preserve all student data and evaluations."
+    }
 
 @app.get("/locker")
 @app.get("/history")
@@ -1476,9 +1478,14 @@ async def api_admin_sessions(limit: int = 50):
     return await asyncio.to_thread(get_admin_session_history, limit=limit)
 
 @app.get("/api/admin/evaluations")
-async def api_admin_evaluations(email: Optional[str] = None, limit: int = 50):
-    """Returns recent evaluations across all aspirants (or filtered to a specific email)."""
-    return await asyncio.to_thread(get_admin_evaluations_feed, email, limit)
+async def api_admin_evaluations(
+    email: Optional[str] = None,
+    paper: Optional[str] = None,
+    search: Optional[str] = None,
+    limit: int = 100
+):
+    """Returns recent evaluations across all aspirants (or filtered by email, paper, search keyword)."""
+    return await asyncio.to_thread(get_admin_evaluations_feed, email, paper, search, limit)
 
 @app.get("/api/admin/evaluation/{eval_id}")
 async def api_admin_get_evaluation(eval_id: str):
@@ -1567,15 +1574,28 @@ async def api_admin_reject_tx(request: Request):
     return {"status": "success", "transaction": tx}
 
 @app.get("/api/admin/feedbacks")
-async def api_admin_feedbacks():
-    """Returns candidate feedback and bug reports."""
-    return get_all_feedbacks_admin()
+async def api_admin_feedbacks(status: Optional[str] = None):
+    """Returns candidate feedback and bug reports (supports status: all, unresolved, resolved)."""
+    return await asyncio.to_thread(get_all_feedbacks_admin, status)
+
+@app.post("/api/admin/feedback/{feedback_id}/resolve")
+async def api_admin_resolve_feedback(feedback_id: str, request: Request):
+    """Marks feedback as resolved or reopens it (data is preserved permanently)."""
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+    resolved = bool(data.get("resolved", True))
+    from storage import resolve_feedback_admin
+    await asyncio.to_thread(resolve_feedback_admin, feedback_id, resolved)
+    return {"status": "success", "is_resolved": 1 if resolved else 0}
 
 @app.delete("/api/admin/feedback/{feedback_id}")
 async def api_admin_delete_feedback(feedback_id: str):
-    """Deletes / resolves a feedback entry."""
-    delete_feedback_admin(feedback_id)
-    return {"status": "success"}
+    """Safely resolves feedback entry to guarantee permanent data retention."""
+    from storage import resolve_feedback_admin
+    await asyncio.to_thread(resolve_feedback_admin, feedback_id, True)
+    return {"status": "success", "message": "Feedback marked as resolved (safely archived, never purged)."}
 
 @app.get("/api/admin/settings")
 async def api_admin_get_settings():
