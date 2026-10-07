@@ -5161,11 +5161,11 @@ async def evaluate_with_gemini(
                 continue
 
             failed_auth = False
-            candidate_models = get_active_gemini_models(client)[:5]
             for model_name in candidate_models:
                 if time.time() - sync_start > 65:
                     break
                 try:
+                    start_model_ts = time.time()
                     response = client.models.generate_content(
                         model=model_name,
                         contents=[prompt] + processed_imgs,
@@ -5174,7 +5174,8 @@ async def evaluate_with_gemini(
                     if response and response.text:
                         parsed_dict = parse_llm_json_response(response.text)
                         if isinstance(parsed_dict, dict) and len(parsed_dict) > 0:
-                            record_gemini_model_outcome(model_name, True)
+                            call_dur = time.time() - start_model_ts
+                            record_gemini_model_outcome(model_name, True, latency=call_dur)
                             return parsed_dict
                 except Exception as e:
                     err_str = str(e)
@@ -5196,6 +5197,7 @@ async def evaluate_with_gemini(
                 if model_name in candidate_models:
                     continue
                 try:
+                    start_model_ts = time.time()
                     response = client.models.generate_content(
                         model=model_name,
                         contents=[prompt] + processed_imgs,
@@ -5204,7 +5206,8 @@ async def evaluate_with_gemini(
                     if response and response.text:
                         parsed_dict = parse_llm_json_response(response.text)
                         if isinstance(parsed_dict, dict) and len(parsed_dict) > 0:
-                            record_gemini_model_outcome(model_name, True)
+                            call_dur = time.time() - start_model_ts
+                            record_gemini_model_outcome(model_name, True, latency=call_dur)
                             return parsed_dict
                 except Exception as e2:
                     record_gemini_model_outcome(model_name, False, str(e2))
@@ -5226,7 +5229,7 @@ async def evaluate_with_gemini(
 
 
 # ==============================================================================
-# PERMANENT SELF-HEALING GEMINI MODEL ROUTER (Prevents "Model Inactive" Forever)
+# PERMANENT SELF-HEALING & ADAPTIVE GEMINI MODEL ROUTER
 # ==============================================================================
 _LAST_WORKING_GEMINI_MODEL: Optional[str] = "gemini-flash-lite-latest"
 _INACTIVE_GEMINI_MODELS: set = {
@@ -5257,44 +5260,204 @@ _INACTIVE_GEMINI_MODELS: set = {
 _DISCOVERED_GEMINI_MODELS_CACHE: List[str] = []
 _DISCOVERED_GEMINI_MODELS_TS: float = 0.0
 _BUSY_MODEL_COOLDOWNS: Dict[str, float] = {}
+_MODEL_LATENCIES: Dict[str, float] = {
+    "gemini-flash-lite-latest": 1.77,
+    "gemini-3.1-flash-lite": 9.20,
+    "gemini-3.1-flash-lite-preview": 12.00,
+    "gemini-3.5-flash-lite": 18.00,
+    "gemini-flash-latest": 14.00,
+    "gemini-3.7-flash": 22.00,
+    "gemini-3.8-flash": 25.00
+}
+_MODEL_SUCCESS_COUNTS: Dict[str, int] = {}
+_MODEL_FAILURE_COUNTS: Dict[str, int] = {}
 
 
-def record_gemini_model_outcome(model_name: str, success: bool, error_str: str = "") -> None:
-    """Tracks live working models and temporarily cools down congested models (503/429) to eliminate 10s wait times."""
-    global _LAST_WORKING_GEMINI_MODEL, _DISCOVERED_GEMINI_MODELS_TS, _BUSY_MODEL_COOLDOWNS
+def _get_health_cache_path() -> str:
+    """Returns absolute path to persistent model health cache file."""
+    try:
+        data_env = os.environ.get("DATA_DIR", "").strip()
+        if data_env and os.path.exists(data_env):
+            return os.path.join(data_env, "gemini_model_health.json")
+    except Exception:
+        pass
+    try:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(base_dir, "gemini_model_health.json")
+    except Exception:
+        return os.path.join(tempfile.gettempdir(), "gemini_model_health.json")
+
+
+def _load_model_health_state() -> None:
+    """Loads persistent model health, latencies, and cooldowns from disk."""
+    global _MODEL_LATENCIES, _MODEL_SUCCESS_COUNTS, _MODEL_FAILURE_COUNTS, _BUSY_MODEL_COOLDOWNS, _LAST_WORKING_GEMINI_MODEL, _INACTIVE_GEMINI_MODELS
+    try:
+        fpath = _get_health_cache_path()
+        if os.path.exists(fpath):
+            with open(fpath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                if "latencies" in data and isinstance(data["latencies"], dict):
+                    _MODEL_LATENCIES.update({k: float(v) for k, v in data["latencies"].items()})
+                if "success" in data and isinstance(data["success"], dict):
+                    _MODEL_SUCCESS_COUNTS.update(data["success"])
+                if "failure" in data and isinstance(data["failure"], dict):
+                    _MODEL_FAILURE_COUNTS.update(data["failure"])
+                if "cooldowns" in data and isinstance(data["cooldowns"], dict):
+                    now_ts = time.time()
+                    for k, exp in data["cooldowns"].items():
+                        if float(exp) > now_ts:
+                            _BUSY_MODEL_COOLDOWNS[k] = float(exp)
+                if data.get("last_working") and isinstance(data.get("last_working"), str):
+                    _LAST_WORKING_GEMINI_MODEL = data["last_working"]
+                if "inactive" in data and isinstance(data["inactive"], list):
+                    _INACTIVE_GEMINI_MODELS.update(data["inactive"])
+    except Exception as e:
+        print(f"[MODEL ROUTER] Notice: Could not load health cache: {e}")
+
+
+def _save_model_health_state() -> None:
+    """Atomically persists model health state to disk."""
+    try:
+        fpath = _get_health_cache_path()
+        now_ts = time.time()
+        active_cds = {k: round(v, 2) for k, v in _BUSY_MODEL_COOLDOWNS.items() if v > now_ts}
+        payload = {
+            "last_working": _LAST_WORKING_GEMINI_MODEL,
+            "latencies": _MODEL_LATENCIES,
+            "success": _MODEL_SUCCESS_COUNTS,
+            "failure": _MODEL_FAILURE_COUNTS,
+            "cooldowns": active_cds,
+            "inactive": list(_INACTIVE_GEMINI_MODELS)
+        }
+        temp_f = fpath + ".tmp"
+        with open(temp_f, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2)
+        os.replace(temp_f, fpath)
+    except Exception:
+        pass
+
+
+# Initialize state on import
+_load_model_health_state()
+
+
+def get_configured_primary_model() -> Optional[str]:
+    """Retrieves user/admin primary model from GEMINI_PRIMARY_MODEL environment variable if configured."""
+    val = (os.environ.get("GEMINI_PRIMARY_MODEL") or "").strip().replace("models/", "")
+    return val if val else None
+
+
+def get_configured_fallback_models() -> List[str]:
+    """Retrieves user/admin fallback models from GEMINI_FALLBACK_MODELS environment variable."""
+    raw = (os.environ.get("GEMINI_FALLBACK_MODELS") or "").strip()
+    if not raw:
+        return []
+    return [m.strip().replace("models/", "") for m in raw.split(",") if m.strip()]
+
+
+def reset_gemini_model_cooldowns() -> None:
+    """Manually clears all busy cooldowns and failure counters."""
+    global _BUSY_MODEL_COOLDOWNS, _MODEL_FAILURE_COUNTS
+    _BUSY_MODEL_COOLDOWNS.clear()
+    _MODEL_FAILURE_COUNTS.clear()
+    _save_model_health_state()
+    print("[MODEL ROUTER] All Gemini model cooldowns manually cleared.")
+
+
+def record_gemini_model_outcome(
+    model_name: str,
+    success: bool,
+    error_str: str = "",
+    latency: float = 0.0
+) -> None:
+    """Tracks live working models, dynamically measures latency, and triggers an immediate circuit breaker
+    on timeouts, 504, 503, or rate limits so future user requests NEVER freeze or hang."""
+    global _LAST_WORKING_GEMINI_MODEL, _DISCOVERED_GEMINI_MODELS_TS, _BUSY_MODEL_COOLDOWNS, _INACTIVE_GEMINI_MODELS
     clean_name = str(model_name or "").replace("models/", "").strip()
     if not clean_name:
         return
+
+    now_ts = time.time()
     if success:
-        _LAST_WORKING_GEMINI_MODEL = clean_name
-        _INACTIVE_GEMINI_MODELS.discard(clean_name)
+        _MODEL_SUCCESS_COUNTS[clean_name] = _MODEL_SUCCESS_COUNTS.get(clean_name, 0) + 1
         _BUSY_MODEL_COOLDOWNS.pop(clean_name, None)
+        _INACTIVE_GEMINI_MODELS.discard(clean_name)
+
+        # Rolling exponential average latency
+        if latency > 0:
+            if clean_name in _MODEL_LATENCIES:
+                _MODEL_LATENCIES[clean_name] = round((_MODEL_LATENCIES[clean_name] * 0.7) + (latency * 0.3), 2)
+            else:
+                _MODEL_LATENCIES[clean_name] = round(latency, 2)
+
+        # Only set as primary champion if reasonable response speed (<28s)
+        if latency <= 28.0 or clean_name not in _MODEL_LATENCIES:
+            _LAST_WORKING_GEMINI_MODEL = clean_name
+
+        _save_model_health_state()
         return
 
+    # Handle failures & errors
+    _MODEL_FAILURE_COUNTS[clean_name] = _MODEL_FAILURE_COUNTS.get(clean_name, 0) + 1
     err_low = str(error_str or "").lower()
-    if any(tok in err_low for tok in ["404", "not_found", "not found", "deprecated", "no longer available", "not supported for generatecontent", "is not found"]):
+
+    # 1. Permanently dead / 404 / deprecated models
+    if any(tok in err_low for tok in [
+        "404", "not_found", "not found", "deprecated", "no longer available",
+        "not supported for generatecontent", "is not found"
+    ]):
         _INACTIVE_GEMINI_MODELS.add(clean_name)
         if _LAST_WORKING_GEMINI_MODEL == clean_name:
             _LAST_WORKING_GEMINI_MODEL = None
         _DISCOVERED_GEMINI_MODELS_TS = 0.0
-    elif any(tok in err_low for tok in ["503", "unavailable", "high demand", "resource_exhausted", "quota", "429"]):
-        # Temporarily back off busy/congested model for 5 minutes so subsequent evaluations do not suffer a timeout
-        _BUSY_MODEL_COOLDOWNS[clean_name] = time.time() + 300
+        print(f"[MODEL ROUTER] Model '{clean_name}' marked permanently inactive (404/deprecated).")
+
+    # 2. Timeouts, Deadlines, 504, 503, 429, Connection Hangs (CIRCUIT BREAKER)
+    elif any(tok in err_low for tok in [
+        "timeout", "timed out", "time out", "deadline", "504", "503", "unavailable",
+        "high demand", "resource_exhausted", "quota", "429", "read operation timed out",
+        "connection timed out", "connection reset", "socket"
+    ]):
+        # Place on 15-minute cooldown (900s) so NO OTHER USER REQUEST freezes on this model
+        cooldown_seconds = 900
+        _BUSY_MODEL_COOLDOWNS[clean_name] = now_ts + cooldown_seconds
         if _LAST_WORKING_GEMINI_MODEL == clean_name:
             _LAST_WORKING_GEMINI_MODEL = None
+        # Heavily penalize recorded latency so it drops down priority after cooldown
+        _MODEL_LATENCIES[clean_name] = max(_MODEL_LATENCIES.get(clean_name, 20.0), 38.0)
+        print(f"[MODEL ROUTER] Circuit Breaker: Model '{clean_name}' cooled down for 15m. Reason: {error_str[:120]}")
+
+    _save_model_health_state()
 
 
 def get_active_gemini_models(client: Any = None, force_refresh: bool = False) -> List[str]:
-    """Returns an ordered list of active Gemini models, prioritizing high-speed responsive models and cooling down busy ones."""
+    """Returns an ordered list of active Gemini models, prioritizing user-configured models,
+    fastest verified responding models, and cooling down congested/timed-out models."""
     global _DISCOVERED_GEMINI_MODELS_CACHE, _DISCOVERED_GEMINI_MODELS_TS, _BUSY_MODEL_COOLDOWNS
-    ordered: List[str] = []
     now_ts = time.time()
+    ordered: List[str] = []
 
-    # 1. Prioritize champion model if not in cooldown
+    # 1. User/Admin configured primary model via environment variable (GEMINI_PRIMARY_MODEL)
+    primary_env = get_configured_primary_model()
+    if primary_env and primary_env not in _INACTIVE_GEMINI_MODELS:
+        if _BUSY_MODEL_COOLDOWNS.get(primary_env, 0) <= now_ts:
+            ordered.append(primary_env)
+
+    # 2. User configured fallback models via environment variable (GEMINI_FALLBACK_MODELS)
+    env_fallbacks = get_configured_fallback_models()
+    for ef in env_fallbacks:
+        if ef not in _INACTIVE_GEMINI_MODELS and ef not in ordered:
+            if _BUSY_MODEL_COOLDOWNS.get(ef, 0) <= now_ts:
+                ordered.append(ef)
+
+    # 3. Champion model (last verified working model)
     if _LAST_WORKING_GEMINI_MODEL and _LAST_WORKING_GEMINI_MODEL not in _INACTIVE_GEMINI_MODELS:
         if _BUSY_MODEL_COOLDOWNS.get(_LAST_WORKING_GEMINI_MODEL, 0) <= now_ts:
-            ordered.append(_LAST_WORKING_GEMINI_MODEL)
+            if _LAST_WORKING_GEMINI_MODEL not in ordered:
+                ordered.append(_LAST_WORKING_GEMINI_MODEL)
 
+    # 4. Dynamic discovery from client.models.list()
     if client is not None and (force_refresh or not _DISCOVERED_GEMINI_MODELS_CACHE or (now_ts - _DISCOVERED_GEMINI_MODELS_TS) > 1800):
         try:
             discovered_flash: List[str] = []
@@ -5319,35 +5482,8 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
         except Exception:
             pass
 
-    # 2. Add dynamically discovered models (prioritizing non-cooling-down models)
-    cooldown_models = []
-    ready_discovered = []
-    for dm in _DISCOVERED_GEMINI_MODELS_CACHE:
-        if dm not in _INACTIVE_GEMINI_MODELS and dm not in ordered:
-            if _BUSY_MODEL_COOLDOWNS.get(dm, 0) > now_ts:
-                cooldown_models.append(dm)
-            else:
-                ready_discovered.append(dm)
-
-    # Ensure ultra-fast, proven working models are prioritized at the very top
-    top_models_priority = [
-        "gemini-flash-lite-latest",     # 1.7s response, highly responsive, zero 503
-        "gemini-3.1-flash-lite",        # Proven fast & stable (9s)
-        "gemini-3.1-flash-lite-preview",# Responsive fallback
-        "gemini-3.5-flash-lite",        # Fast lite model
-        "gemini-flash-latest",          # Standard flash
-        "gemini-3.7-flash",             # Reliable fallback
-        "gemini-3.8-flash",             # Capable fallback
-    ]
-    for tm in reversed(top_models_priority):
-        if tm in ready_discovered:
-            ready_discovered.remove(tm)
-            ready_discovered.insert(0, tm)
-
-    ordered.extend(ready_discovered)
-
-    # 3. Static priority list acts as guaranteed fallback, ordered by verified response latency
-    static_priority = [
+    # 5. Guaranteed verified static candidates
+    static_pool = [
         "gemini-flash-lite-latest",
         "gemini-3.1-flash-lite",
         "gemini-3.1-flash-lite-preview",
@@ -5356,19 +5492,32 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
         "gemini-3.7-flash",
         "gemini-3.8-flash",
     ]
-    for m in static_priority:
-        if m not in _INACTIVE_GEMINI_MODELS and m not in ordered:
-            if _BUSY_MODEL_COOLDOWNS.get(m, 0) > now_ts:
-                cooldown_models.append(m)
-            else:
-                ordered.append(m)
 
-    # 4. Append cooling down models at the very end as last resort
-    for cm in cooldown_models:
-        if cm not in ordered and cm not in _INACTIVE_GEMINI_MODELS:
-            ordered.append(cm)
+    all_candidates: List[str] = []
+    for c in ordered + _DISCOVERED_GEMINI_MODELS_CACHE + static_pool:
+        if c not in _INACTIVE_GEMINI_MODELS and c not in all_candidates:
+            all_candidates.append(c)
 
-    return ordered
+    ready_models = []
+    cooling_models = []
+    for m in all_candidates:
+        if _BUSY_MODEL_COOLDOWNS.get(m, 0) > now_ts:
+            cooling_models.append(m)
+        else:
+            ready_models.append(m)
+
+    # Sort ready models by adaptive response latency (fastest first!)
+    ready_models.sort(key=lambda m: _MODEL_LATENCIES.get(m, 15.0))
+
+    # Priority pinned overrides
+    if primary_env and primary_env in ready_models:
+        ready_models.remove(primary_env)
+        ready_models.insert(0, primary_env)
+    elif _LAST_WORKING_GEMINI_MODEL and _LAST_WORKING_GEMINI_MODEL in ready_models:
+        ready_models.remove(_LAST_WORKING_GEMINI_MODEL)
+        ready_models.insert(0, _LAST_WORKING_GEMINI_MODEL)
+
+    return ready_models + cooling_models
 
 
 def create_fast_gemini_client(api_key: str) -> Any:

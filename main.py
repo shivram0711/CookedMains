@@ -214,6 +214,43 @@ async def trigger_supabase_keepalive():
     res = await asyncio.to_thread(_execute_supabase_activity_ping)
     return {"status": "ok", "supabase_keepalive": res}
 
+@app.api_route("/api/admin/model-health", methods=["GET", "POST"])
+async def get_gemini_models_health(action: Optional[str] = None):
+    """Admin diagnostic and control endpoint to inspect live Gemini model latencies, cooldowns, and reset if needed."""
+    from evaluator_engine import (
+        get_active_gemini_models,
+        reset_gemini_model_cooldowns,
+        _MODEL_LATENCIES,
+        _MODEL_SUCCESS_COUNTS,
+        _MODEL_FAILURE_COUNTS,
+        _BUSY_MODEL_COOLDOWNS,
+        _LAST_WORKING_GEMINI_MODEL,
+        _INACTIVE_GEMINI_MODELS
+    )
+    if action == "reset_cooldowns":
+        reset_gemini_model_cooldowns()
+        return {"status": "success", "message": "All model cooldowns have been cleared."}
+
+    now_ts = time.time()
+    active_priority = get_active_gemini_models()
+    cooldowns = {
+        m: f"{round(exp - now_ts)}s remaining"
+        for m, exp in _BUSY_MODEL_COOLDOWNS.items()
+        if exp > now_ts
+    }
+    return {
+        "status": "healthy",
+        "configured_primary_model": os.environ.get("GEMINI_PRIMARY_MODEL") or None,
+        "configured_fallbacks": os.environ.get("GEMINI_FALLBACK_MODELS") or None,
+        "last_working_model": _LAST_WORKING_GEMINI_MODEL,
+        "active_priority_order": active_priority,
+        "average_latencies_seconds": _MODEL_LATENCIES,
+        "success_counts": _MODEL_SUCCESS_COUNTS,
+        "failure_counts": _MODEL_FAILURE_COUNTS,
+        "active_cooldowns": cooldowns,
+        "inactive_blacklisted": list(_INACTIVE_GEMINI_MODELS)
+    }
+
 @app.api_route("/", methods=["GET", "HEAD"])
 @app.api_route("/index.html", methods=["GET", "HEAD"])
 async def root():
@@ -2122,6 +2159,7 @@ async def evaluate_answer(
                         if time.time() - eval_loop_start > 55:
                             break
                         try:
+                            start_call_ts = time.time()
                             response = client.models.generate_content(
                                 model=model_candidate,
                                 contents=contents_payload,
@@ -2131,7 +2169,8 @@ async def evaluate_answer(
                                 raw_text = response.text
                                 parsed_eval = parse_llm_json_response(raw_text)
                                 if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
-                                    record_gemini_model_outcome(model_candidate, True)
+                                    call_dur = time.time() - start_call_ts
+                                    record_gemini_model_outcome(model_candidate, True, latency=call_dur)
                                     if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
                                         parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
                                     evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
