@@ -1878,6 +1878,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 warning: "Zero credits deducted this time. Submitting the exact same unrevised answers repeatedly will consume available evaluation credits."
               });
             }
+          }
         }, 300);
       }
     }, 200);
