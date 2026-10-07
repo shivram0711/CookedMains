@@ -3228,12 +3228,16 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
 
     # 6. Ensure High-Precision Subject Taxonomy (Prior to Current Affairs & Audit Enrichment)
     det_q = (data.get("detected_question") or "").strip()
-    if det_q and det_q != "Extract question printed on booklet header" and len(det_q) > 10:
+    clean_input_q = (question or "").strip()
+    is_user_explicit_q = bool(clean_input_q and len(clean_input_q) > 12 and "extract question" not in clean_input_q.lower() and clean_input_q.lower() != "upsc mains question")
+    is_det_q_valid = bool(det_q and len(det_q) > 12 and "extract question" not in det_q.lower() and det_q.lower() != "upsc mains question")
+
+    if is_user_explicit_q:
+        final_question = clean_input_q
+    elif is_det_q_valid:
         final_question = det_q
-    elif question and question != "Extract question printed on booklet header" and len(question) > 10:
-        final_question = question
     else:
-        final_question = det_q or question or "UPSC Mains Question"
+        final_question = clean_input_q or det_q or "UPSC Mains Question"
     data["detected_question"] = final_question
 
     det_p = (data.get("detected_paper") or "").strip()
@@ -5057,7 +5061,7 @@ def build_resilient_fallback_evaluation(
     """
     mm = int(max_marks or 10)
     clean_q = (question or "").strip()
-    if not clean_q or "extract question printed" in clean_q.lower() or "upsc mains" in clean_q.lower():
+    if not clean_q or "extract question printed" in clean_q.lower() or clean_q.lower() in ("upsc mains question", "mains question", "question"):
         clean_q = "General Studies Mains Question"
 
     is_rewrite_eval = isinstance(previous_evaluation, dict) and len(previous_evaluation) > 0
@@ -5224,7 +5228,7 @@ async def evaluate_with_gemini(
 # ==============================================================================
 # PERMANENT SELF-HEALING GEMINI MODEL ROUTER (Prevents "Model Inactive" Forever)
 # ==============================================================================
-_LAST_WORKING_GEMINI_MODEL: Optional[str] = None
+_LAST_WORKING_GEMINI_MODEL: Optional[str] = "gemini-flash-lite-latest"
 _INACTIVE_GEMINI_MODELS: set = {
     "gemini-1.5-flash",
     "gemini-1.5-pro",
@@ -5240,7 +5244,6 @@ _INACTIVE_GEMINI_MODELS: set = {
     "gemini-3-pro-image-preview",
     "gemini-3.1-pro-preview-customtools",
     "gemini-3.6-flash",
-    "gemini-3.1-flash-lite",
     "gemini-omni-flash-preview",
     "gemini-omni-1.1-flash",
     "gemini-omni-flash",
@@ -5328,12 +5331,13 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
     # Ensure ultra-fast, proven working models are prioritized at the very top
     top_models_priority = [
-        "gemini-3-flash-preview",      # 1.33s — 100% reliable, never 503
-        "gemini-3.5-flash-lite",       # 1.10s — ultra-fast, light
-        "gemini-flash-lite-latest",    # 0.79s — fastest available
-        "gemini-3.1-flash-lite-preview",# 1.94s — highly stable
-        "gemini-3.8-flash",            # 3.69s — capable fallback
-        "gemini-3.5-flash",            # capable but occasionally experiences 503 spikes
+        "gemini-flash-lite-latest",     # 1.7s response, highly responsive, zero 503
+        "gemini-3.1-flash-lite",        # Proven fast & stable (9s)
+        "gemini-3.1-flash-lite-preview",# Responsive fallback
+        "gemini-3.5-flash-lite",        # Fast lite model
+        "gemini-flash-latest",          # Standard flash
+        "gemini-3.7-flash",             # Reliable fallback
+        "gemini-3.8-flash",             # Capable fallback
     ]
     for tm in reversed(top_models_priority):
         if tm in ready_discovered:
@@ -5344,14 +5348,13 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
     # 3. Static priority list acts as guaranteed fallback, ordered by verified response latency
     static_priority = [
-        "gemini-3-flash-preview",
-        "gemini-3.5-flash-lite",
         "gemini-flash-lite-latest",
+        "gemini-3.1-flash-lite",
         "gemini-3.1-flash-lite-preview",
-        "gemini-3.8-flash",
-        "gemini-3.5-flash",
+        "gemini-3.5-flash-lite",
         "gemini-flash-latest",
         "gemini-3.7-flash",
+        "gemini-3.8-flash",
     ]
     for m in static_priority:
         if m not in _INACTIVE_GEMINI_MODELS and m not in ordered:
@@ -5369,9 +5372,9 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
 
 def create_fast_gemini_client(api_key: str) -> Any:
-    """Creates a genai.Client with a 50-second timeout so full 20,000-character handwritten vision evaluation completes reliably without premature cutoff."""
+    """Creates a genai.Client with a 32-second timeout so full 20,000-character handwritten vision evaluation completes reliably without exceeding reverse-proxy limits."""
     try:
-        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=50000))
+        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=32000))
     except Exception:
         return genai.Client(api_key=api_key)
 
