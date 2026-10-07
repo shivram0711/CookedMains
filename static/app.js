@@ -3214,6 +3214,29 @@ function loadSample(sample) {
   window.switchStudioState("studio");
 }
 
+window.trySampleEvaluationDemo = async function() {
+  try {
+    if (!state.samples || state.samples.length === 0) {
+      const res = await fetch("/api/samples");
+      if (res.ok) {
+        state.samples = await res.json();
+      }
+    }
+    if (state.samples && state.samples.length > 0) {
+      loadSample(state.samples[0]);
+      window.scrollToEvaluation();
+      if (typeof window.showAppNotice === 'function') {
+        window.showAppNotice("Demo Evaluation Loaded!", "Loaded authentic handwritten UPSC answer copy with line-by-line examiner remarks & rubric marks.");
+      }
+    } else {
+      window.scrollToEvaluation();
+    }
+  } catch (err) {
+    console.warn("Could not load sample demo:", err);
+    window.scrollToEvaluation();
+  }
+};
+
 
 // File Upload, Client-side Compression & Drag-and-Drop Handling
 const pdfFileInput = document.getElementById("pdfFileInput");
