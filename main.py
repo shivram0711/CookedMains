@@ -1239,7 +1239,7 @@ async def api_user_history(email: Optional[str] = None, user_id: Optional[str] =
         SELECT id, created_at, paper, max_marks, question, overall_score, percentage, thumbnail, is_rewrite,
                has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
         FROM evaluations
-        WHERE question NOT LIKE '__%'
+        WHERE SUBSTR(question, 1, 2) != '__'
         ORDER BY created_at DESC
         LIMIT 50
     """)
@@ -1471,6 +1471,26 @@ async def api_admin_stats(sync: Optional[int] = 0):
 async def api_admin_activity(limit: int = 60):
     """Returns real-time chronological activity stream across the platform."""
     return await asyncio.to_thread(get_admin_activity_stream, limit=limit)
+
+@app.post("/api/admin/ping-telemetry")
+async def api_admin_ping_telemetry():
+    """Generates an immediate live test session heartbeat so the admin can verify radar and history functionality."""
+    res = await asyncio.to_thread(
+        record_user_heartbeat,
+        email="test_audit@upsc.in",
+        name="Test_audit",
+        current_view="Owner Radar Live Verification",
+        session_id=f"sess_audit_{int(time.time())}"
+    )
+    await asyncio.to_thread(
+        log_platform_activity,
+        user_email="test_audit@upsc.in",
+        user_name="Test_audit",
+        action_type="session_active",
+        title="Owner Radar Live Verification Ping",
+        detail="Command center telemetry ping executed — Heartbeat active"
+    )
+    return {"status": "success", "message": "Telemetry ping sent successfully!", "result": res}
 
 @app.get("/api/admin/sessions")
 async def api_admin_sessions(limit: int = 50):

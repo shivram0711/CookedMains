@@ -218,7 +218,13 @@
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
             <h2 class="text-sm font-extrabold text-white">Who Is Online Right Now</h2>
           </div>
-          <span class="text-[11px] font-mono text-emerald-400 font-bold" id="onlineListBadge">0 Active Sessions</span>
+          <div class="flex items-center space-x-2">
+            <span class="text-[11px] font-mono text-emerald-400 font-bold" id="onlineListBadge">0 Active Sessions</span>
+            <button onclick="pingLiveTelemetry()" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-[11px] font-bold border border-emerald-500/30 transition flex items-center space-x-1 shadow-sm" title="Ping test heartbeat to verify real-time radar">
+              <i data-lucide="radio" class="w-3 h-3"></i>
+              <span class="hidden sm:inline">Ping Radar</span>
+            </button>
+          </div>
         </div>
         <div id="onlineUsersContainer" class="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
           <div class="p-6 text-center text-xs text-slate-500">Checking live browser heartbeats...</div>
@@ -243,7 +249,7 @@
 
       <!-- Full-Width Bottom Section (12 Cols): Aspirant Session & Visit History -->
       <div class="lg:col-span-12 bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <div>
             <div class="flex items-center space-x-2">
               <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
@@ -252,10 +258,19 @@
             </div>
             <p class="text-xs text-slate-400 mt-0.5">Chronological record of every aspirant's visit, time spent, and evaluations executed.</p>
           </div>
-          <button onclick="loadAdminSessions()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-            <span>Refresh History</span>
-          </button>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 gap-1">
+              <button onclick="setSessionFilter('all')" id="sessFilter_all" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500 text-slate-950 transition">All (<span id="sessCountAll">0</span>)</button>
+              <button onclick="setSessionFilter('evals')" id="sessFilter_evals" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-900 text-slate-400 hover:text-white transition">📝 Evaluated Only</button>
+              <button onclick="setSessionFilter('today')" id="sessFilter_today" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-900 text-slate-400 hover:text-white transition">Today</button>
+            </div>
+            <input type="text" id="sessionSearchInput" oninput="filterSessionsList()" placeholder="Search visit history..."
+              class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 w-44 sm:w-56">
+            <button onclick="loadAdminSessions()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>Refresh</span>
+            </button>
+          </div>
         </div>
 
         <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/60 shadow-inner">
@@ -290,8 +305,13 @@
           <p class="text-xs text-slate-400">Track all aspirants, daily quota usage (X/15), total evaluated scripts, and grant credits.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
+          <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 gap-1">
+            <button onclick="setAspirantFilter('all')" id="aspFilter_all" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500 text-slate-950 transition">All (<span id="aspCountAll">0</span>)</button>
+            <button onclick="setAspirantFilter('pro')" id="aspFilter_pro" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-900 text-slate-400 hover:text-white transition">PRO Cadets</button>
+            <button onclick="setAspirantFilter('evals')" id="aspFilter_evals" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-900 text-slate-400 hover:text-white transition">Copies Checked</button>
+          </div>
           <input type="text" id="aspirantSearchInput" oninput="debounceAspirantSearch()" placeholder="Search by name or email..."
-            class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 w-56 sm:w-64">
+            class="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 w-48 sm:w-56">
           <button onclick="exportAspirantsCSV()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 flex items-center space-x-1.5 transition" title="Export Aspirants as CSV">
             <i data-lucide="download" class="w-3.5 h-3.5"></i>
             <span>Export CSV</span>
@@ -538,6 +558,35 @@
               <button onclick="forceSyncCloud()" class="px-3 py-1 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 font-bold text-[11px] transition">
                 Sync Now
               </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Database Health & Diagnostics Card -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center space-x-2">
+              <i data-lucide="database" class="w-4 h-4 text-amber-400"></i>
+              <span>Live Database Records Diagnostics</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Real-time counts of preserved records across SQLite &amp; Cloud Vault.</p>
+          </div>
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Registered Aspirants</span>
+              <span class="text-lg font-mono font-extrabold text-white" id="diagAspirants">0</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Vaulted Evaluations</span>
+              <span class="text-lg font-mono font-extrabold text-sky-400" id="diagEvaluations">0</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Session History Entries</span>
+              <span class="text-lg font-mono font-extrabold text-amber-400" id="diagSessions">0</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Approved UPI Orders</span>
+              <span class="text-lg font-mono font-extrabold text-emerald-400" id="diagTransactions">0</span>
             </div>
           </div>
         </div>

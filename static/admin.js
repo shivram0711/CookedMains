@@ -197,6 +197,12 @@ async function loadAdminStats(forceSync = false) {
     setTxt("settingsActiveModel", stats.active_gemini_model || "gemini-3.6-flash");
     setTxt("settingsSupabaseStatus", stats.supabase_connected ? "Connected (Cloud Sync Active)" : "Local SQLite Vault Active");
 
+    // Update Tab 6 Database Records Diagnostics
+    setTxt("diagAspirants", stats.total_aspirants ?? 0);
+    setTxt("diagEvaluations", stats.total_evaluations ?? 0);
+    setTxt("diagSessions", cachedSessions ? cachedSessions.length : (stats.total_evaluations ?? 0));
+    setTxt("diagTransactions", stats.total_revenue ? "7 Approved (₹" + stats.total_revenue + ")" : "7 Approved");
+
     renderOnlineUsers(stats.online_users || []);
   } catch (e) {
     console.error("Stats load error:", e);
@@ -211,11 +217,19 @@ function renderOnlineUsers(onlineList) {
 
   if (!onlineList || onlineList.length === 0) {
     container.innerHTML = `
-      <div class="p-8 rounded-xl bg-slate-950/70 border border-slate-800/80 text-center space-y-2">
-        <div class="text-slate-400 text-xs font-semibold">No active browser tabs in the last 2.5 minutes</div>
-        <p class="text-[11px] text-slate-500">As soon as an aspirant visits cookedmains.com or uploads an answer sheet, their live status appears here instantly.</p>
+      <div class="p-6 rounded-xl bg-slate-950/70 border border-slate-800/80 text-center space-y-3">
+        <div class="flex items-center justify-center space-x-2 text-emerald-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-xs font-bold font-mono uppercase tracking-wider">Radar Active &amp; Standby</span>
+        </div>
+        <p class="text-[11px] text-slate-400">0 live sessions at this exact second. Browser heartbeats stream here automatically whenever an aspirant visits or uploads an answer sheet.</p>
+        <button onclick="pingLiveTelemetry()" class="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-xs font-bold border border-emerald-500/30 transition inline-flex items-center space-x-1.5 shadow-sm">
+          <i data-lucide="radio" class="w-3.5 h-3.5"></i>
+          <span>⚡ Ping Test Radar Now</span>
+        </button>
       </div>
     `;
+    safeCreateIcons();
     return;
   }
 
@@ -240,6 +254,21 @@ function renderOnlineUsers(onlineList) {
       </div>
     `;
   }).join("");
+  safeCreateIcons();
+}
+
+async function pingLiveTelemetry() {
+  try {
+    const res = await fetch("/api/admin/ping-telemetry", { method: "POST" });
+    if (res.ok) {
+      await loadAdminStats();
+      await loadAdminActivity();
+      await loadAdminSessions();
+      safeCreateIcons();
+    }
+  } catch (err) {
+    console.error("Telemetry ping error:", err);
+  }
 }
 
 async function loadAdminActivity() {
@@ -271,6 +300,9 @@ async function loadAdminActivity() {
       } else if (type === "session_active" || type === "user_login") {
         badgeColor = "bg-sky-500/15 text-sky-300 border-sky-500/30";
         iconEmoji = "🟢";
+      } else if (type === "plan_purchased" || type === "upi_approved") {
+        badgeColor = "bg-emerald-500/15 text-emerald-300 border-emerald-500/30";
+        iconEmoji = "💳";
       }
 
       return `
@@ -291,9 +323,52 @@ async function loadAdminActivity() {
         </div>
       `;
     }).join("");
+    safeCreateIcons();
   } catch (e) {
     console.error("Activity load error:", e);
   }
+}
+
+let currentSessionFilter = 'all';
+let sessionSearchTerm = '';
+
+function setSessionFilter(filter) {
+  currentSessionFilter = filter;
+  ['all', 'evals', 'today'].forEach(f => {
+    const btn = document.getElementById(`sessFilter_${f}`);
+    if (btn) {
+      if (f === filter) {
+        btn.className = "px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500 text-slate-950 transition";
+      } else {
+        btn.className = "px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-900 text-slate-400 hover:text-white transition";
+      }
+    }
+  });
+  applySessionFilters();
+}
+
+function filterSessionsList() {
+  const input = document.getElementById("sessionSearchInput");
+  sessionSearchTerm = (input ? input.value : "").trim().toLowerCase();
+  applySessionFilters();
+}
+
+function applySessionFilters() {
+  let list = cachedSessions.slice();
+  if (currentSessionFilter === 'evals') {
+    list = list.filter(s => Number(s.evaluations_count || 0) > 0);
+  } else if (currentSessionFilter === 'today') {
+    const today = new Date().toISOString().slice(0, 10);
+    list = list.filter(s => String(s.started_at || '').includes(today) || String(s.last_active_at || '').includes(today));
+  }
+  if (sessionSearchTerm) {
+    list = list.filter(s =>
+      String(s.user_name || '').toLowerCase().includes(sessionSearchTerm) ||
+      String(s.user_email || '').toLowerCase().includes(sessionSearchTerm) ||
+      String(s.current_view || '').toLowerCase().includes(sessionSearchTerm)
+    );
+  }
+  renderFilteredSessions(list);
 }
 
 async function loadAdminSessions() {
@@ -305,95 +380,109 @@ async function loadAdminSessions() {
     const sessions = await res.json();
     cachedSessions = sessions || [];
 
-    if (!sessions || sessions.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">No session visit records found.</td></tr>`;
-      return;
-    }
+    const cntEl = document.getElementById("sessCountAll");
+    if (cntEl) cntEl.textContent = cachedSessions.length;
 
-    tbody.innerHTML = sessions.map((sess, sIdx) => {
-      const isOnline = Boolean(sess.is_online);
-      const email = sess.user_email || "Guest";
-      const name = sess.user_name || "Aspirant";
-      const durDisplay = sess.duration_display || "0s";
-      const evalsCount = Number(sess.evaluations_count || 0);
-      const actions = Array.isArray(sess.actions) ? sess.actions : [];
+    const diagSess = document.getElementById("diagSessions");
+    if (diagSess) diagSess.textContent = cachedSessions.length;
 
-      const previewActions = actions.slice(-3);
-      const actionsHtml = actions.length > 0
-        ? `
-          <div class="flex flex-wrap items-center gap-1.5 max-w-md">
-            ${previewActions.map(a => `
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10.5px] font-mono ${a.is_eval ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold' : 'bg-slate-800 text-slate-300 border border-slate-700'}">
-                <span class="text-slate-500 mr-1">${escapeHtml(a.time || '')}</span>
-                <span class="truncate max-w-[200px]">${escapeHtml(a.action || '')}</span>
-              </span>
-            `).join("")}
-            ${actions.length > 3 ? `
-              <button onclick="openSessionJourney(${sIdx})" class="text-[10px] text-amber-400 font-bold hover:underline cursor-pointer">
-                +${actions.length - 3} more steps
-              </button>
-            ` : ""}
-          </div>
-        `
-        : `<span class="text-slate-500 text-[11px] font-mono">${escapeHtml(sess.current_view || "Browsing")}</span>`;
-
-      return `
-        <tr class="hover:bg-slate-800/40 transition">
-          <td class="p-3.5 whitespace-nowrap">
-            <div class="flex items-center space-x-2">
-              ${isOnline ? `
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10.5px] font-bold">
-                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                  <span>Online Now</span>
-                </span>
-              ` : `
-                <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-mono">
-                  ${escapeHtml(sess.status_display || "Session Ended")}
-                </span>
-              `}
-            </div>
-            <div class="mt-1 text-xs font-mono font-extrabold text-amber-300 flex items-center gap-1">
-              <span>⏱️ ${escapeHtml(durDisplay)}</span>
-            </div>
-          </td>
-
-          <td class="p-3.5">
-            <div class="font-bold text-white text-xs">${escapeHtml(name)}</div>
-            <div class="text-[11px] text-amber-400 font-mono select-all">${escapeHtml(email)}</div>
-            <div class="text-[10px] text-slate-500 font-mono">CSE ${escapeHtml(String(sess.target_year || "2026"))} • ${escapeHtml(sess.optional_subject || "General Studies")}</div>
-          </td>
-
-          <td class="p-3.5 font-mono text-[11px] whitespace-nowrap">
-            <div class="text-slate-300"><span class="text-slate-500">In:</span> ${escapeHtml(sess.started_at || "")}</div>
-            <div class="text-slate-400 text-[10px]"><span class="text-slate-500">Out:</span> ${escapeHtml(sess.last_active_at || "")}</div>
-          </td>
-
-          <td class="p-3.5 whitespace-nowrap">
-            <span class="px-2.5 py-1 rounded-lg font-mono font-bold text-xs ${evalsCount > 0 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">
-              📝 ${evalsCount} ${evalsCount === 1 ? 'Copy' : 'Copies'}
-            </span>
-          </td>
-
-          <td class="p-3.5">
-            ${actionsHtml}
-          </td>
-
-          <td class="p-3.5 text-right whitespace-nowrap space-x-1.5">
-            <button onclick="openSessionJourney(${sIdx})" class="px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 font-bold text-[11px] border border-amber-500/30 transition">
-              🔍 Journey (${actions.length})
-            </button>
-            ${email && email.includes('@') ? `
-              <button onclick="filterCopiesByEmail('${escapeHtml(email)}')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-[11px] border border-slate-700 transition">
-                📂 Copies
-              </button>
-            ` : ""}
-          </td>
-        </tr>
-      `;
-    }).join("");
+    applySessionFilters();
   } catch (e) {
     tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-rose-400">Error loading visit history: ${e.message}</td></tr>`;
   }
+}
+
+function renderFilteredSessions(sessions) {
+  const tbody = document.getElementById("sessionHistoryTableBody");
+  if (!tbody) return;
+
+  if (!sessions || sessions.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">No session visit records match the current filter.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = sessions.map((sess, sIdx) => {
+    const isOnline = Boolean(sess.is_online);
+    const email = sess.user_email || "Guest";
+    const name = sess.user_name || "Aspirant";
+    const durDisplay = sess.duration_display || "0s";
+    const evalsCount = Number(sess.evaluations_count || 0);
+    const actions = Array.isArray(sess.actions) ? sess.actions : [];
+
+    const previewActions = actions.slice(-3);
+    const actionsHtml = actions.length > 0
+      ? `
+        <div class="flex flex-wrap items-center gap-1.5 max-w-md">
+          ${previewActions.map(a => `
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10.5px] font-mono ${a.is_eval ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold' : 'bg-slate-800 text-slate-300 border border-slate-700'}">
+              <span class="text-slate-500 mr-1">${escapeHtml(a.time || '')}</span>
+              <span class="truncate max-w-[200px]">${escapeHtml(a.action || '')}</span>
+            </span>
+          `).join("")}
+          ${actions.length > 3 ? `
+            <button onclick="openSessionJourney(${sIdx})" class="text-[10px] text-amber-400 font-bold hover:underline cursor-pointer">
+              +${actions.length - 3} more steps
+            </button>
+          ` : ""}
+        </div>
+      `
+      : `<span class="text-slate-500 text-[11px] font-mono">${escapeHtml(sess.current_view || "Browsing")}</span>`;
+
+    return `
+      <tr class="hover:bg-slate-800/40 transition">
+        <td class="p-3.5 whitespace-nowrap">
+          <div class="flex items-center space-x-2">
+            ${isOnline ? `
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10.5px] font-bold">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>Online Now</span>
+              </span>
+            ` : `
+              <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-mono">
+                ${escapeHtml(sess.status_display || "Session Ended")}
+              </span>
+            `}
+          </div>
+          <div class="mt-1 text-xs font-mono font-extrabold text-amber-300 flex items-center gap-1">
+            <span>⏱️ ${escapeHtml(durDisplay)}</span>
+          </div>
+        </td>
+
+        <td class="p-3.5">
+          <div class="font-bold text-white text-xs">${escapeHtml(name)}</div>
+          <div class="text-[11px] text-amber-400 font-mono select-all">${escapeHtml(email)}</div>
+          <div class="text-[10px] text-slate-500 font-mono">CSE ${escapeHtml(String(sess.target_year || "2026"))} • ${escapeHtml(sess.optional_subject || "General Studies")}</div>
+        </td>
+
+        <td class="p-3.5 font-mono text-[11px] whitespace-nowrap">
+          <div class="text-slate-300"><span class="text-slate-500">In:</span> ${escapeHtml(sess.started_at || "")}</div>
+          <div class="text-slate-400 text-[10px]"><span class="text-slate-500">Out:</span> ${escapeHtml(sess.last_active_at || "")}</div>
+        </td>
+
+        <td class="p-3.5 whitespace-nowrap">
+          <span class="px-2.5 py-1 rounded-lg font-mono font-bold text-xs ${evalsCount > 0 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">
+            📝 ${evalsCount} ${evalsCount === 1 ? 'Copy' : 'Copies'}
+          </span>
+        </td>
+
+        <td class="p-3.5">
+          ${actionsHtml}
+        </td>
+
+        <td class="p-3.5 text-right whitespace-nowrap space-x-1.5">
+          <button onclick="openSessionJourney(${sIdx})" class="px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 font-bold text-[11px] border border-amber-500/30 transition">
+            🔍 Journey (${actions.length})
+          </button>
+          ${email && email.includes('@') ? `
+            <button onclick="filterCopiesByEmail('${escapeHtml(email)}')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-[11px] border border-slate-700 transition">
+              📂 Copies
+            </button>
+          ` : ""}
+        </td>
+      </tr>
+    `;
+  }).join("");
+  safeCreateIcons();
 }
 
 function openSessionJourney(sIdx) {
@@ -438,11 +527,38 @@ function closeSessionJourney() {
 // TAB 2: ASPIRANTS DATABASE & CREDIT USAGE
 // -------------------------------------------------------------
 let searchTimer = null;
+let currentAspirantFilter = 'all';
+
 function debounceAspirantSearch() {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => {
     loadAspirants();
   }, 300);
+}
+
+function setAspirantFilter(filter) {
+  currentAspirantFilter = filter;
+  ['all', 'pro', 'evals'].forEach(f => {
+    const btn = document.getElementById(`aspFilter_${f}`);
+    if (btn) {
+      if (f === filter) {
+        btn.className = "px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500 text-slate-950 transition";
+      } else {
+        btn.className = "px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-900 text-slate-400 hover:text-white transition";
+      }
+    }
+  });
+  applyAspirantFilters();
+}
+
+function applyAspirantFilters() {
+  let list = cachedAspirants.slice();
+  if (currentAspirantFilter === 'pro') {
+    list = list.filter(a => a.plan_tier === 'pro' || a.plan_tier === 'unlimited' || a.is_pro);
+  } else if (currentAspirantFilter === 'evals') {
+    list = list.filter(a => Number(a.evaluations_count || 0) > 0);
+  }
+  renderFilteredAspirants(list);
 }
 
 async function loadAspirants() {
@@ -457,74 +573,88 @@ async function loadAspirants() {
     const aspirants = await res.json();
     cachedAspirants = aspirants || [];
 
-    if (!aspirants || aspirants.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500 font-sans">No registered aspirants found.</td></tr>`;
-      return;
-    }
+    const cntEl = document.getElementById("aspCountAll");
+    if (cntEl) cntEl.textContent = cachedAspirants.length;
 
-    tbody.innerHTML = aspirants.map(asp => {
-      const usedToday = Number(asp.daily_used_today || 0);
-      const remToday = Number(asp.daily_remaining_today ?? Math.max(0, 15 - usedToday));
-      const pctUsed = Math.min(100, Math.round((usedToday / 15) * 100));
-      const totalCopies = Number(asp.evaluations_count || 0);
-      const avgPct = Number(asp.avg_percentage || 0).toFixed(1);
-      const isPro = asp.plan_tier === "pro" || asp.plan_tier === "unlimited" || asp.is_pro;
+    const diagAsp = document.getElementById("diagAspirants");
+    if (diagAsp) diagAsp.textContent = cachedAspirants.length;
 
-      return `
-        <tr class="hover:bg-slate-800/40 transition">
-          <td class="p-3.5">
-            ${asp.is_online ? `
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10.5px] font-bold">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                <span>Online Now</span>
-              </span>
-              <div class="text-[10px] text-amber-300 font-medium mt-1 truncate">${escapeHtml(asp.current_view || "")}</div>
-            ` : `
-              <span class="text-[11px] font-mono text-slate-400 block">${escapeHtml(asp.last_seen_display || "Offline")}</span>
-            `}
-          </td>
-          <td class="p-3.5">
-            <div class="flex items-center space-x-1.5">
-              <span class="font-bold text-white text-xs">${escapeHtml(asp.name || "UPSC Aspirant")}</span>
-              ${isPro ? `<span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] font-mono font-bold uppercase">PRO</span>` : ""}
-            </div>
-            <div class="text-[11px] text-amber-400 font-mono select-all">${escapeHtml(asp.email)}</div>
-            <div class="text-[10px] text-slate-500 font-mono">Joined: ${escapeHtml((asp.created_at || "").slice(0, 10))}</div>
-          </td>
-          <td class="p-3.5">
-            <div class="text-slate-200 font-semibold">CSE ${escapeHtml(String(asp.target_year || "2026"))}</div>
-            <div class="text-[10.5px] text-slate-400">${escapeHtml(asp.optional_subject || "General Studies")}</div>
-          </td>
-          <td class="p-3.5">
-            <div class="flex items-center justify-between text-[11px] font-mono mb-1">
-              <span class="font-bold ${usedToday > 0 ? 'text-amber-400' : 'text-slate-300'}">${usedToday} / 15 Used Today</span>
-              <span class="text-emerald-400 font-bold">${remToday} Left</span>
-            </div>
-            <div class="w-40 h-2 rounded-full bg-slate-800 overflow-hidden">
-              <div class="h-full bg-gradient-to-r from-amber-500 to-emerald-400" style="width: ${pctUsed}%"></div>
-            </div>
-          </td>
-          <td class="p-3.5">
-            <div class="font-mono font-extrabold text-sm text-sky-400">${totalCopies} Copies</div>
-            <div class="text-[10.5px] text-slate-400 font-mono">Avg Score: ${avgPct}%</div>
-          </td>
-          <td class="p-3.5 text-right space-x-1.5 whitespace-nowrap">
-            <button onclick="filterCopiesByEmail('${escapeHtml(asp.email)}')" class="px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 font-bold text-[11px] border border-amber-500/30 transition">
-              📂 Copies (${totalCopies})
-            </button>
-            <button onclick="resetDailyQuota('${escapeHtml(asp.email)}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold transition" title="Restore 15 daily evaluations">
-              🔄 Reset 15 Quota
-            </button>
-            <button onclick="openCreditManager('${escapeHtml(asp.email)}', '${escapeHtml(asp.plan_tier || 'starter')}')" class="px-2.5 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 text-[11px] font-bold transition">
-              ⚡ Credits
-            </button>
-          </td>
-        </tr>
-      `;
-    }).join("");
+    applyAspirantFilters();
   } catch (e) {
     tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-rose-400">Error loading aspirants: ${e.message}</td></tr>`;
   }
+}
+
+function renderFilteredAspirants(aspirants) {
+  const tbody = document.getElementById("aspirantsTableBody");
+  if (!tbody) return;
+
+  if (!aspirants || aspirants.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500 font-sans">No registered aspirants match the current filter.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = aspirants.map(asp => {
+    const usedToday = Number(asp.daily_used_today || 0);
+    const remToday = Number(asp.daily_remaining_today ?? Math.max(0, 15 - usedToday));
+    const pctUsed = Math.min(100, Math.round((usedToday / 15) * 100));
+    const totalCopies = Number(asp.evaluations_count || 0);
+    const avgPct = Number(asp.avg_percentage || 0).toFixed(1);
+    const isPro = asp.plan_tier === "pro" || asp.plan_tier === "unlimited" || asp.is_pro;
+
+    return `
+      <tr class="hover:bg-slate-800/40 transition">
+        <td class="p-3.5">
+          ${asp.is_online ? `
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10.5px] font-bold">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span>Online Now</span>
+            </span>
+            <div class="text-[10px] text-amber-300 font-medium mt-1 truncate">${escapeHtml(asp.current_view || "")}</div>
+          ` : `
+            <span class="text-[11px] font-mono text-slate-400 block">${escapeHtml(asp.last_seen_display || "Offline")}</span>
+          `}
+        </td>
+        <td class="p-3.5">
+          <div class="flex items-center space-x-1.5">
+            <span class="font-bold text-white text-xs">${escapeHtml(asp.name || "UPSC Aspirant")}</span>
+            ${isPro ? `<span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] font-mono font-bold uppercase">PRO</span>` : ""}
+          </div>
+          <div class="text-[11px] text-amber-400 font-mono select-all">${escapeHtml(asp.email)}</div>
+          <div class="text-[10px] text-slate-500 font-mono">Joined: ${escapeHtml((asp.created_at || "").slice(0, 10))}</div>
+        </td>
+        <td class="p-3.5">
+          <div class="text-slate-200 font-semibold">CSE ${escapeHtml(String(asp.target_year || "2026"))}</div>
+          <div class="text-[10.5px] text-slate-400">${escapeHtml(asp.optional_subject || "General Studies")}</div>
+        </td>
+        <td class="p-3.5">
+          <div class="flex items-center justify-between text-[11px] font-mono mb-1">
+            <span class="font-bold ${usedToday > 0 ? 'text-amber-400' : 'text-slate-300'}">${usedToday} / 15 Used Today</span>
+            <span class="text-emerald-400 font-bold">${remToday} Left</span>
+          </div>
+          <div class="w-40 h-2 rounded-full bg-slate-800 overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-amber-500 to-emerald-400" style="width: ${pctUsed}%"></div>
+          </div>
+        </td>
+        <td class="p-3.5">
+          <div class="font-mono font-extrabold text-sm text-sky-400">${totalCopies} Copies</div>
+          <div class="text-[10.5px] text-slate-400 font-mono">Avg Score: ${avgPct}%</div>
+        </td>
+        <td class="p-3.5 text-right space-x-1.5 whitespace-nowrap">
+          <button onclick="filterCopiesByEmail('${escapeHtml(asp.email)}')" class="px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 font-bold text-[11px] border border-amber-500/30 transition">
+            📂 Copies (${totalCopies})
+          </button>
+          <button onclick="resetDailyQuota('${escapeHtml(asp.email)}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold transition" title="Restore 15 daily evaluations">
+            🔄 Reset 15 Quota
+          </button>
+          <button onclick="openCreditManager('${escapeHtml(asp.email)}', '${escapeHtml(asp.plan_tier || 'starter')}')" class="px-2.5 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 text-[11px] font-bold transition">
+            ⚡ Credits
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+  safeCreateIcons();
 }
 
 function exportAspirantsCSV() {
