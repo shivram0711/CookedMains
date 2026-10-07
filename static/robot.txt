@@ -1,12 +1,39 @@
-# Robots.txt for Cooked Mains (cookedmains.com)
-# Configured according to Astro documentation & best practices
+# Robots.txt for Cooked Mains (https://cookedmains.com)
+# Configured for comprehensive search engine indexing, AI discovery & zero-leak privacy
 
 User-agent: *
 Allow: /
+Allow: /demo
+Allow: /demo-workbench
+Allow: /about-us
+Allow: /contact-us
+Allow: /privacy-policy
+Allow: /terms-and-conditions
+Allow: /locker
+
+# Disallow private founder command center & sensitive internal system APIs
+Disallow: /admin
+Disallow: /admin.html
 Disallow: /api/admin/
 Disallow: /api/cron/
+Disallow: /api/supabase-keepalive
+Disallow: /api/user/
+Disallow: /api/auth/
 
-# Sitemaps (Astro Sitemap Index & Standard)
+# Dedicated Search Engine & AI Bot directives
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+# Sitemaps
 Sitemap: https://cookedmains.com/sitemap-index.xml
 Sitemap: https://cookedmains.com/sitemap.xml
 Sitemap: https://cookedmains.com/sitemap-0.xml
