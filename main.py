@@ -214,8 +214,8 @@ async def trigger_supabase_keepalive():
     res = await asyncio.to_thread(_execute_supabase_activity_ping)
     return {"status": "ok", "supabase_keepalive": res}
 
-@app.get("/")
-@app.get("/index.html")
+@app.api_route("/", methods=["GET", "HEAD"])
+@app.api_route("/index.html", methods=["GET", "HEAD"])
 async def root():
     return FileResponse(
         os.path.join(os.path.dirname(__file__), "static", "index.html"),
@@ -226,64 +226,67 @@ async def root():
         }
     )
 
-@app.get("/demo-workbench")
-@app.get("/demo-workbench.html")
+@app.api_route("/demo-workbench", methods=["GET", "HEAD"])
+@app.api_route("/demo-workbench.html", methods=["GET", "HEAD"])
 async def demo_workbench():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "demo-workbench.html"))
 
-@app.get("/demo")
-@app.get("/demo.html")
+@app.api_route("/demo", methods=["GET", "HEAD"])
+@app.api_route("/demo.html", methods=["GET", "HEAD"])
 async def demo():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "demo.html"))
 
-@app.get("/about-us")
-@app.get("/about-us.html")
-@app.get("/about")
+@app.api_route("/about-us", methods=["GET", "HEAD"])
+@app.api_route("/about-us.html", methods=["GET", "HEAD"])
+@app.api_route("/about", methods=["GET", "HEAD"])
 async def about_us_page():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "about-us.html"))
 
-@app.get("/privacy-policy")
-@app.get("/privacy-policy.html")
-@app.get("/privacy")
+@app.api_route("/privacy-policy", methods=["GET", "HEAD"])
+@app.api_route("/privacy-policy.html", methods=["GET", "HEAD"])
+@app.api_route("/privacy", methods=["GET", "HEAD"])
 async def privacy_policy_page():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "privacy-policy.html"))
 
-@app.get("/terms-and-conditions")
-@app.get("/terms-and-conditions.html")
-@app.get("/terms")
+@app.api_route("/terms-and-conditions", methods=["GET", "HEAD"])
+@app.api_route("/terms-and-conditions.html", methods=["GET", "HEAD"])
+@app.api_route("/terms", methods=["GET", "HEAD"])
 async def terms_page():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "terms-and-conditions.html"))
 
-@app.get("/contact-us")
-@app.get("/contact-us.html")
-@app.get("/contact")
+@app.api_route("/contact-us", methods=["GET", "HEAD"])
+@app.api_route("/contact-us.html", methods=["GET", "HEAD"])
+@app.api_route("/contact", methods=["GET", "HEAD"])
 async def contact_us_page():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "contact-us.html"))
 
-@app.get("/robots.txt")
-@app.get("/robot.txt")
+@app.api_route("/robots.txt", methods=["GET", "HEAD"])
+@app.api_route("/robot.txt", methods=["GET", "HEAD"])
 async def robots_txt():
     return FileResponse(
         os.path.join(os.path.dirname(__file__), "static", "robots.txt"),
-        media_type="text/plain"
+        media_type="text/plain; charset=utf-8",
+        headers={"Cache-Control": "public, max-age=3600"}
     )
 
-@app.get("/sitemap-index.xml")
+@app.api_route("/sitemap-index.xml", methods=["GET", "HEAD"])
 async def sitemap_index_xml():
     return FileResponse(
         os.path.join(os.path.dirname(__file__), "static", "sitemap-index.xml"),
-        media_type="application/xml"
+        media_type="application/xml; charset=utf-8",
+        headers={"Cache-Control": "public, max-age=3600"}
     )
 
-@app.get("/sitemap.xml")
-@app.get("/sitemap-0.xml")
+@app.api_route("/sitemap.xml", methods=["GET", "HEAD"])
+@app.api_route("/sitemap-0.xml", methods=["GET", "HEAD"])
 async def sitemap_xml():
     return FileResponse(
         os.path.join(os.path.dirname(__file__), "static", "sitemap.xml"),
-        media_type="application/xml"
+        media_type="application/xml; charset=utf-8",
+        headers={"Cache-Control": "public, max-age=3600"}
     )
 
-@app.get("/favicon.ico")
+@app.api_route("/favicon.ico", methods=["GET", "HEAD"])
 async def favicon():
     return FileResponse(
         os.path.join(os.path.dirname(__file__), "static", "favicon.ico"),
