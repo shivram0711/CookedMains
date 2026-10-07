@@ -124,9 +124,25 @@ function switchTab(tabId) {
   safeCreateIcons();
 }
 
+async function clearDummyDataAdmin() {
+  if (!confirm("Are you sure you want to permanently clear all dummy, demo, and autofilled test accounts? Real student accounts and genuine evaluation copies will NEVER be deleted.")) return;
+  try {
+    const res = await fetch("/api/admin/clear-dummy-data", { method: "POST" });
+    if (res.ok) {
+      alert("✅ All dummy and test accounts have been permanently purged from the database.");
+      await loadAllAdminData(true);
+    } else {
+      throw new Error("Server responded with error");
+    }
+  } catch (err) {
+    alert("Purge notice: " + err.message);
+  }
+}
+
 async function loadAllAdminData(force = false) {
   if (force) {
     try {
+      await fetch("/api/admin/clear-dummy-data", { method: "POST" });
       await fetch("/api/admin/sync", { method: "POST" });
     } catch (e) {
       console.warn("Manual sync error:", e);
@@ -147,6 +163,7 @@ async function loadAllAdminData(force = false) {
 
 async function forceSyncCloud() {
   try {
+    await fetch("/api/admin/clear-dummy-data", { method: "POST" });
     const res = await fetch("/api/admin/sync", { method: "POST" });
     const data = await res.json();
     alert("Supabase Cloud Sync completed successfully!");

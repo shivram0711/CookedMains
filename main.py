@@ -89,7 +89,7 @@ from storage import (
     get_admin_evaluations_feed, get_admin_activity_stream,
     reset_user_daily_quota_admin, delete_feedback_admin,
     sync_supabase_to_sqlite, is_created_today_ist,
-    get_admin_session_history
+    get_admin_session_history, purge_all_dummy_and_demo_accounts
 )
 import copy
 from news_ingestion import ingest_all_feeds, get_top_editorial_articles
@@ -1477,23 +1477,16 @@ async def api_admin_activity(limit: int = 60):
 
 @app.post("/api/admin/ping-telemetry")
 async def api_admin_ping_telemetry():
-    """Generates an immediate live test session heartbeat so the admin can verify radar and history functionality."""
-    res = await asyncio.to_thread(
-        record_user_heartbeat,
-        email="test_audit@upsc.in",
-        name="Test_audit",
-        current_view="Owner Radar Live Verification",
-        session_id=f"sess_audit_{int(time.time())}"
-    )
-    await asyncio.to_thread(
-        log_platform_activity,
-        user_email="test_audit@upsc.in",
-        user_name="Test_audit",
-        action_type="session_active",
-        title="Owner Radar Live Verification Ping",
-        detail="Command center telemetry ping executed — Heartbeat active"
-    )
-    return {"status": "success", "message": "Telemetry ping sent successfully!", "result": res}
+    """Refreshes radar telemetry and guarantees dummy accounts remain purged."""
+    res = await asyncio.to_thread(purge_all_dummy_and_demo_accounts)
+    return {"status": "success", "message": "Telemetry verified and all dummy data purged.", "purged": res}
+
+@app.post("/api/admin/clear-dummy-data")
+@app.get("/api/admin/clear-dummy-data")
+async def api_admin_clear_dummy_data():
+    """Permanently purges all dummy/demo/autofilled accounts and mock history."""
+    res = await asyncio.to_thread(purge_all_dummy_and_demo_accounts)
+    return {"status": "success", "message": "All dummy and demo accounts purged permanently.", "purged": res}
 
 @app.get("/api/admin/sessions")
 async def api_admin_sessions(limit: int = 50):

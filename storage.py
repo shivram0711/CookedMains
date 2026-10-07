@@ -2289,10 +2289,20 @@ def get_transaction_by_id(tx_id: str) -> Optional[Dict[str, Any]]:
 def get_all_transactions(status: Optional[str] = None) -> List[Dict[str, Any]]:
     conn = get_db()
     cursor = conn.cursor()
+    base_where = """
+        WHERE id NOT LIKE 'ORD-2026-%'
+          AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+          AND LOWER(user_email) NOT LIKE 'cadet.test%'
+          AND LOWER(user_email) NOT LIKE 'cadet.upsc%'
+          AND LOWER(user_email) NOT LIKE 'aspirant.sharma%'
+          AND LOWER(user_email) NOT LIKE 'aspirant.vikram%'
+    """
     if status and status.lower() != 'all':
-        cursor.execute("SELECT * FROM transactions WHERE status = ? ORDER BY created_at DESC", (status.lower(),))
+        cursor.execute(f"SELECT * FROM transactions {base_where} AND status = ? ORDER BY created_at DESC", (status.lower(),))
     else:
-        cursor.execute("SELECT * FROM transactions ORDER BY created_at DESC")
+        cursor.execute(f"SELECT * FROM transactions {base_where} ORDER BY created_at DESC")
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
@@ -2407,378 +2417,191 @@ def _ensure_admin_telemetry_tables() -> None:
 _ensure_admin_telemetry_tables()
 
 
-def ensure_telemetry_and_history_preserved() -> None:
-    """Safeguards and guarantees that registered aspirants, evaluations, feedback, and telemetry sessions exist."""
+DUMMY_EMAILS_TUPLE = (
+    'test_audit@upsc.in',
+    'cadet.test@gmail.com',
+    'aspirant.sharma@gmail.com',
+    'aspirant.vikram@gmail.com',
+    'cadet.upsc5409@gmail.com',
+    'cadet.instant@gmail.com',
+    'cadet.test2026@gmail.com',
+    'guest@upsc.gov.in'
+)
+
+DUMMY_EMAIL_PREFIXES = (
+    'cadet.test', 'cadet.upsc', 'cadet.instant',
+    'aspirant.sharma', 'aspirant.vikram', 'test_audit@',
+    'demo@', 'guest@', 'fake@', 'temp@', 'random@'
+)
+
+def is_dummy_or_demo_email(email: Optional[str]) -> bool:
+    if not email:
+        return False
+    em = email.strip().lower()
+    if em in DUMMY_EMAILS_TUPLE:
+        return True
+    return any(em.startswith(p) for p in DUMMY_EMAIL_PREFIXES)
+
+def purge_all_dummy_and_demo_accounts() -> Dict[str, Any]:
+    """
+    Permanently purges all hardcoded dummy, demo, autofilled test accounts and mock data
+    from SQLite and Supabase, ensuring that only genuine, real registered aspirants and
+    their actual evaluation history are preserved.
+    """
+    deleted_counts = {
+        "users": 0,
+        "evaluations": 0,
+        "transactions": 0,
+        "feedback": 0,
+        "sessions": 0,
+        "activity_logs": 0
+    }
+    
+    # 1. Purge from local SQLite
     try:
         conn = get_db()
         cursor = conn.cursor()
-
-        # 1. Ensure all candidates exist in users table
-        cadet_details = {
-            "test_audit@upsc.in": ("Test_audit", "2026", "PSIR", "free", "7cb99348-0a69-5f6f-bccf-49dd770ba59a", "2026-09-26 11:22:21"),
-            "cadet.test@gmail.com": ("Priya Test", "2026", "PSIR", "pro", "7667f181-69d3-4963-aa49-ebf74419942a", "2026-09-17 05:43:33"),
-            "aspirant.sharma@gmail.com": ("Priya Sharma", "2026", "Sociology", "pro", "708b8b70-6086-45a1-84b8-8d9a2ee3cb96", "2026-09-17 05:47:49"),
-            "aspirant.vikram@gmail.com": ("Vikram Rathore", "2026", "Geography", "pro", "e34801d0-4149-4b5c-bdd9-9948bfd18f27", "2026-09-17 05:54:26"),
-            "cadet.upsc5409@gmail.com": ("Cadet Aspirant", "2026", "History", "pro", "a07d6a88-45bf-4617-9cf1-e542806e8813", "2026-09-17 05:57:34"),
-            "cadet.instant@gmail.com": ("Instant Cadet", "2026", "Public Administration", "pro", "a1f36ada-364c-45c1-bfed-8aacab8ea4d6", "2026-09-17 07:03:21"),
-            "cadet.test2026@gmail.com": ("Cadet Aspirant", "2026", "Anthropology", "pro", "f47b663c-2b7e-4897-ba0b-ed8d4cd602a8", "2026-09-17 07:06:05")
-        }
-        for c_em, (c_nm, c_yr, c_opt, c_tier, c_uid, c_date) in cadet_details.items():
-            cursor.execute("""
-                INSERT OR IGNORE INTO users (id, email, name, avatar, free_credits, is_pro, free_rewrites, target_year, optional_subject, plan_tier, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                c_uid, c_em, c_nm, f"https://api.dicebear.com/7.x/bottts/svg?seed={c_em}",
-                15, 1, 5, c_yr, c_opt, c_tier, c_date
-            ))
-            cursor.execute("""
-                UPDATE users SET name = COALESCE(NULLIF(name, ''), ?), target_year = ?, optional_subject = ?, is_pro = 1, free_credits = MAX(free_credits, 15)
-                WHERE LOWER(email) = ?
-            """, (c_nm, c_yr, c_opt, c_em))
-
-        # Ensure approved UPI transactions are preserved
-        cursor.execute("SELECT COUNT(*) as c FROM transactions")
-        if cursor.fetchone()["c"] == 0:
-            seed_txs = [
-                ('ORD-2026-E6F5F4', '7667f181-69d3-4963-aa49-ebf74419942a', 'cadet.test@gmail.com', 'Priya Test', 'revision_10', 'Revision Pack (10 Copies + 5 Rewrites)', 149, '425698712345', 'approved', 'Founder Auto-Approval', '2026-09-17 05:43:33', '2026-09-17 07:01:52'),
-                ('ORD-2026-5644A2', '708b8b70-6086-45a1-84b8-8d9a2ee3cb96', 'aspirant.sharma@gmail.com', 'Priya Sharma', 'revision_10', 'Revision Pack (10 Copies + 5 Rewrites)', 149, '519827364019', 'approved', 'Founder Auto-Approval', '2026-09-17 05:47:49', '2026-09-17 07:01:52'),
-                ('ORD-2026-9B16A4', 'e34801d0-4149-4b5c-bdd9-9948bfd18f27', 'aspirant.vikram@gmail.com', 'Vikram Rathore', 'revision_10', 'Revision Pack (10 Copies + 5 Rewrites)', 149, '739102845619', 'approved', 'Verified via SBI UPI receipt', '2026-09-17 05:54:26', '2026-09-17 05:54:32'),
-                ('ORD-2026-8FE15C', 'a07d6a88-45bf-4617-9cf1-e542806e8813', 'cadet.upsc5409@gmail.com', 'Cadet Aspirant', 'revision_10', 'Revision Pack (10 Copies + 5 Rewrites)', 149, '938102947261', 'approved', 'Founder Auto-Approval', '2026-09-17 05:57:34', '2026-09-17 07:01:52'),
-                ('ORD-2026-AA05F4', 'a1f36ada-364c-45c1-bfed-8aacab8ea4d6', 'cadet.instant@gmail.com', 'Instant Cadet', 'revision_10', 'Revision Pack', 149, 'TESTUTR999999', 'approved', 'Instant Automated Approval (Zero Wait)', '2026-09-17 07:03:21', '2026-09-17 07:03:21'),
-                ('ORD-2026-8FA236', 'f47b663c-2b7e-4897-ba0b-ed8d4cd602a8', 'cadet.test2026@gmail.com', 'Cadet Aspirant', 'revision_10', 'Revision Pack (10 Copies + 5 Rewrites)', 149, '429911223344', 'approved', 'Instant Automated Approval (Zero Wait)', '2026-09-17 07:06:05', '2026-09-17 07:06:05'),
-                ('ORD-2026-67CAE0', 'f47b663c-2b7e-4897-ba0b-ed8d4cd602a8', 'cadet.test2026@gmail.com', 'Cadet Aspirant', 'revision_10', 'Revision Pack (10 Copies + 5 Rewrites)', 149, '991789629438', 'approved', 'Instant Automated Approval (Zero Wait)', '2026-09-17 07:17:18', '2026-09-17 07:17:18')
-            ]
-            for tx in seed_txs:
-                cursor.execute("""
-                    INSERT OR IGNORE INTO transactions (id, user_id, user_email, user_name, plan_id, plan_name, amount, utr_number, status, admin_notes, created_at, approved_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, tx)
-
-        # 2. Check evaluations count: if < 6, seed authentic UPSC sample evaluations
-        cursor.execute("SELECT COUNT(*) as c FROM evaluations WHERE question != '__USER_ACCOUNT_PROFILE__' AND question NOT LIKE '__SYSTEM_%'")
-        eval_count = cursor.fetchone()["c"]
-
-        if eval_count < 6:
-            try:
-                import sample_data
-                samples = sample_data.get_sample_datasets()
-                sample_map = {s["id"]: s for s in samples}
-
-                ist_base = datetime.utcnow() + timedelta(hours=5, minutes=30)
-                seed_evals = [
-                    {
-                        "id": "eval_gs2_sep_powers",
-                        "user_email": "cadet.test@gmail.com",
-                        "created_at": (ist_base - timedelta(hours=3, minutes=15)).strftime("%Y-%m-%d %H:%M:%S"),
-                        "sample_key": "sample-gs2-separation-powers",
-                        "score": 6.5,
-                        "percentage": 65.0
-                    },
-                    {
-                        "id": "eval_gs4_ethics_conduct",
-                        "user_email": "aspirant.sharma@gmail.com",
-                        "created_at": (ist_base - timedelta(hours=5, minutes=40)).strftime("%Y-%m-%d %H:%M:%S"),
-                        "sample_key": "sample-gs4-ethics-conduct-vs-ethics",
-                        "score": 6.0,
-                        "percentage": 60.0
-                    },
-                    {
-                        "id": "eval_opt_psir_plato",
-                        "user_email": "aspirant.vikram@gmail.com",
-                        "created_at": (ist_base - timedelta(days=1, hours=2)).strftime("%Y-%m-%d %H:%M:%S"),
-                        "sample_key": "sample-optional-plato-aristotle",
-                        "score": 12.0,
-                        "percentage": 60.0
-                    },
-                    {
-                        "id": "eval_gs3_agri_economy",
-                        "user_email": "cadet.upsc5409@gmail.com",
-                        "created_at": (ist_base - timedelta(days=1, hours=5)).strftime("%Y-%m-%d %H:%M:%S"),
-                        "sample_key": "sample-gs3-agriculture",
-                        "score": 9.0,
-                        "percentage": 60.0
-                    },
-                    {
-                        "id": "eval_gs2_federalism_cadet",
-                        "user_email": "cadet.test2026@gmail.com",
-                        "created_at": (ist_base - timedelta(days=2, hours=3)).strftime("%Y-%m-%d %H:%M:%S"),
-                        "sample_key": "sample-gs2-separation-powers",
-                        "score": 7.0,
-                        "percentage": 70.0
-                    }
-                ]
-
-                for se in seed_evals:
-                    s_data = sample_map.get(se["sample_key"])
-                    if not s_data:
-                        continue
-                    u_em = se["user_email"]
-                    cursor.execute("SELECT id FROM users WHERE LOWER(email) = ?", (u_em,))
-                    u_row = cursor.fetchone()
-                    u_id = u_row["id"] if u_row else get_deterministic_user_id(u_em)
-
-                    precomp = dict(s_data.get("precomputed_evaluation") or {})
-                    pages = s_data.get("pages") or []
-                    thumb = pages[0] if pages else ""
-
-                    cursor.execute("""
-                        INSERT OR IGNORE INTO evaluations (
-                            id, user_id, user_email, created_at, paper, max_marks, question,
-                            overall_score, percentage, evaluation_json, pages_json, thumbnail,
-                            is_rewrite, file_hash, has_been_rewritten
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 0)
-                    """, (
-                        se["id"], u_id, u_em, se["created_at"], s_data.get("paper") or "GS2",
-                        s_data.get("marks") or 10, s_data.get("question") or "UPSC Mains Answer Copy",
-                        se["score"], se["percentage"], json.dumps(precomp), json.dumps(pages),
-                        thumb, f"hash_{se['id']}"
-                    ))
-            except Exception as se_err:
-                print(f"Sample evaluations seed notice: {se_err}")
-
-        # 3. Check feedback count: if == 0, seed realistic candidate reviews
-        cursor.execute("SELECT COUNT(*) as c FROM feedback")
-        fb_cnt = cursor.fetchone()["c"]
-        if fb_cnt == 0:
-            ist_base = datetime.utcnow() + timedelta(hours=5, minutes=30)
-            feedbacks = [
-                ("fb_001", "cadet.test@gmail.com", "Priya Test", "Evaluation Quality", 5,
-                 "The line-by-line examiner comments on separation of powers and Kesavananda Bharati case reference were exceptionally thorough. Helped me identify missing constitutional articles.", 1,
-                 (ist_base - timedelta(hours=2, minutes=30)).strftime("%Y-%m-%d %H:%M:%S")),
-                ("fb_002", "aspirant.vikram@gmail.com", "Vikram Rathore", "Feature Request", 4,
-                 "The handwriting OCR read my diagrams accurately! Could you please add a toggle for full 20-question GS3 mock test series with timer?", 0,
-                 (ist_base - timedelta(hours=4, minutes=10)).strftime("%Y-%m-%d %H:%M:%S")),
-                ("fb_003", "aspirant.sharma@gmail.com", "Priya Sharma", "Speed & Accuracy", 5,
-                 "Scored 6/10 on GS-4 Code of Ethics question. The value-addition points (2nd ARC 4th report Nolan Committee recommendations) directly boosted my preparation.", 1,
-                 (ist_base - timedelta(days=1, hours=1)).strftime("%Y-%m-%d %H:%M:%S")),
-                ("fb_004", "cadet.upsc5409@gmail.com", "Cadet Aspirant", "Model Answer", 5,
-                 "The model answer structure provided for the Agriculture Agri-Stack question was topper-grade. Clean intro, 3-part body, and futuristic conclusion.", 1,
-                 (ist_base - timedelta(days=2)).strftime("%Y-%m-%d %H:%M:%S"))
-            ]
-            for fb_id, f_em, f_nm, f_cat, f_rat, f_msg, f_res, f_ts in feedbacks:
-                cursor.execute("""
-                    INSERT OR IGNORE INTO feedback (id, user_email, user_name, category, rating, message, is_resolved, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """, (fb_id, f_em, f_nm, f_cat, f_rat, f_msg, f_res, f_ts))
-
-        # 4. Check user_sessions count: if < 7, generate rich candidate sessions
-        cursor.execute("SELECT COUNT(*) as c FROM user_sessions")
-        sess_cnt = cursor.fetchone()["c"]
-        if sess_cnt < 7:
-            ist_base = datetime.utcnow() + timedelta(hours=5, minutes=30)
-            sample_sessions = [
-                {
-                    "id": "sess_audit_001",
-                    "email": "test_audit@upsc.in",
-                    "name": "Test_audit",
-                    "t_year": "2026",
-                    "o_subj": "PSIR",
-                    "start": (ist_base - timedelta(hours=1, minutes=45)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "last": (ist_base - timedelta(hours=1, minutes=25)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "dur": 1200,
-                    "view": "Reviewed GS2 Separation of Powers Marks (5.5/10)",
-                    "evals": 1,
-                    "actions": [
-                        {"action": "Opened Website & Intake Deck", "time": (ist_base - timedelta(hours=1, minutes=45)).strftime("%H:%M")},
-                        {"action": "Uploaded Handwritten 2-Page PDF", "time": (ist_base - timedelta(hours=1, minutes=41)).strftime("%H:%M")},
-                        {"action": "AI Evaluation Completed (Scored 5.5/10)", "time": (ist_base - timedelta(hours=1, minutes=39)).strftime("%H:%M"), "is_eval": True, "eval_id": "eval_1790421741_f1a6f4"},
-                        {"action": "Reviewing Evaluation Feedback & Marks", "time": (ist_base - timedelta(hours=1, minutes=30)).strftime("%H:%M")},
-                        {"action": "Downloaded PDF Annotations Dossier", "time": (ist_base - timedelta(hours=1, minutes=25)).strftime("%H:%M")}
-                    ]
-                },
-                {
-                    "id": "sess_cadet_002",
-                    "email": "cadet.test@gmail.com",
-                    "name": "Priya Test",
-                    "t_year": "2026",
-                    "o_subj": "PSIR",
-                    "start": (ist_base - timedelta(hours=3, minutes=30)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "last": (ist_base - timedelta(hours=3, minutes=6)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "dur": 1440,
-                    "view": "Evaluation Complete (Scored 6.5/10)",
-                    "evals": 1,
-                    "actions": [
-                        {"action": "Logged in via Google Authentication", "time": (ist_base - timedelta(hours=3, minutes=30)).strftime("%H:%M")},
-                        {"action": "Browsed Daily Current Affairs Question Bank", "time": (ist_base - timedelta(hours=3, minutes=27)).strftime("%H:%M")},
-                        {"action": "Uploaded 2-Page Handwritten GS2 Answer", "time": (ist_base - timedelta(hours=3, minutes=23)).strftime("%H:%M")},
-                        {"action": "Evaluated GS2 Separation of Powers (Scored 6.5/10)", "time": (ist_base - timedelta(hours=3, minutes=21)).strftime("%H:%M"), "is_eval": True, "eval_id": "eval_gs2_sep_powers"},
-                        {"action": "Reviewed Line-by-Line Examiner Comments", "time": (ist_base - timedelta(hours=3, minutes=12)).strftime("%H:%M")},
-                        {"action": "Submitted 5★ Evaluation Feedback", "time": (ist_base - timedelta(hours=3, minutes=6)).strftime("%H:%M")}
-                    ]
-                },
-                {
-                    "id": "sess_sharma_003",
-                    "email": "aspirant.sharma@gmail.com",
-                    "name": "Priya Sharma",
-                    "t_year": "2026",
-                    "o_subj": "Sociology",
-                    "start": (ist_base - timedelta(hours=6, minutes=0)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "last": (ist_base - timedelta(hours=5, minutes=35)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "dur": 1500,
-                    "view": "Reviewed GS4 Ethics Rubrics",
-                    "evals": 1,
-                    "actions": [
-                        {"action": "Opened CookedMains Evaluation Portal", "time": (ist_base - timedelta(hours=6, minutes=0)).strftime("%H:%M")},
-                        {"action": "Selected Paper: GS-4 Ethics, Integrity & Aptitude", "time": (ist_base - timedelta(hours=5, minutes=56)).strftime("%H:%M")},
-                        {"action": "Submitted Handwritten Copy via Gallery Upload", "time": (ist_base - timedelta(hours=5, minutes=51)).strftime("%H:%M")},
-                        {"action": "Evaluated GS4 Code of Conduct vs Ethics (Scored 6.0/10)", "time": (ist_base - timedelta(hours=5, minutes=49)).strftime("%H:%M"), "is_eval": True, "eval_id": "eval_gs4_ethics_conduct"},
-                        {"action": "Studied 2nd ARC Topper Reference Points", "time": (ist_base - timedelta(hours=5, minutes=38)).strftime("%H:%M")}
-                    ]
-                },
-                {
-                    "id": "sess_vikram_004",
-                    "email": "aspirant.vikram@gmail.com",
-                    "name": "Vikram Rathore",
-                    "t_year": "2026",
-                    "o_subj": "Geography",
-                    "start": (ist_base - timedelta(days=1, hours=2, minutes=30)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "last": (ist_base - timedelta(days=1, hours=1, minutes=58)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "dur": 1920,
-                    "view": "Optional PSIR Evaluation Review",
-                    "evals": 1,
-                    "actions": [
-                        {"action": "Signed in with Cadet Account", "time": "20:30"},
-                        {"action": "Purchased Revision Pack (10 Copies)", "time": "20:34"},
-                        {"action": "UPI Payment Approved (UTR: 739102845619)", "time": "20:35"},
-                        {"action": "Uploaded 4-Page PSIR Answer Sheet", "time": "20:41"},
-                        {"action": "Evaluated Plato vs Aristotle (Scored 12.0/20)", "time": "20:44", "is_eval": True, "eval_id": "eval_opt_psir_plato"},
-                        {"action": "Submitted Feature Request for 20-Q Mock Series", "time": "21:02"}
-                    ]
-                },
-                {
-                    "id": "sess_upsc5409_005",
-                    "email": "cadet.upsc5409@gmail.com",
-                    "name": "Cadet Aspirant",
-                    "t_year": "2026",
-                    "o_subj": "History",
-                    "start": (ist_base - timedelta(days=1, hours=5, minutes=40)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "last": (ist_base - timedelta(days=1, hours=5, minutes=18)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "dur": 1320,
-                    "view": "GS-3 Agriculture Agri-Stack Review",
-                    "evals": 1,
-                    "actions": [
-                        {"action": "Opened Website via Mobile Browser", "time": "17:20"},
-                        {"action": "Uploaded 1-Page CamScanner Image", "time": "17:24"},
-                        {"action": "Evaluated GS3 Agriculture Economy (Scored 9.0/15)", "time": "17:26", "is_eval": True, "eval_id": "eval_gs3_agri_economy"},
-                        {"action": "Reviewed Agri-Stack Value Additions", "time": "17:38"}
-                    ]
-                },
-                {
-                    "id": "sess_test2026_006",
-                    "email": "cadet.test2026@gmail.com",
-                    "name": "Cadet Aspirant",
-                    "t_year": "2026",
-                    "o_subj": "Anthropology",
-                    "start": (ist_base - timedelta(days=2, hours=3, minutes=15)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "last": (ist_base - timedelta(days=2, hours=2, minutes=45)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "dur": 1800,
-                    "view": "GS-2 Federalism Evaluation Review",
-                    "evals": 1,
-                    "actions": [
-                        {"action": "Logged into Platform", "time": "14:15"},
-                        {"action": "Uploaded GS2 Answer Copy", "time": "14:22"},
-                        {"action": "Evaluated Indian Federalism (Scored 7.0/10)", "time": "14:25", "is_eval": True, "eval_id": "eval_gs2_federalism_cadet"},
-                        {"action": "Reviewed Topper Model Answer", "time": "14:40"}
-                    ]
-                },
-                {
-                    "id": "sess_instant_007",
-                    "email": "cadet.instant@gmail.com",
-                    "name": "Instant Cadet",
-                    "t_year": "2026",
-                    "o_subj": "Public Administration",
-                    "start": (ist_base - timedelta(days=2, hours=6, minutes=0)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "last": (ist_base - timedelta(days=2, hours=5, minutes=32)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "dur": 1680,
-                    "view": "Browsed Question Bank & Model Answers",
-                    "evals": 0,
-                    "actions": [
-                        {"action": "Opened Homepage", "time": "11:00"},
-                        {"action": "Checked Topper Strategy & Model Answers", "time": "11:05"},
-                        {"action": "Explored GS-1 Geography Syllabus", "time": "11:15"},
-                        {"action": "Activated Instant Cadet Pack", "time": "11:25"}
-                    ]
-                }
-            ]
-
-            for ss in sample_sessions:
-                cursor.execute("""
-                    INSERT OR IGNORE INTO user_sessions (
-                        id, user_email, user_name, is_authenticated, started_at, last_active_at,
-                        duration_seconds, current_view, evaluations_count, actions_count,
-                        recent_actions, target_year, optional_subject
-                    ) VALUES (?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    ss["id"], ss["email"], ss["name"], ss["start"], ss["last"],
-                    ss["dur"], ss["view"], ss["evals"], len(ss["actions"]),
-                    json.dumps(ss["actions"]), ss["t_year"], ss["o_subj"]
-                ))
-
-        # 5. Check activity_logs count: if < 10, seed rich chronological activity stream
-        cursor.execute("SELECT COUNT(*) as c FROM activity_logs")
-        act_cnt = cursor.fetchone()["c"]
-        if act_cnt < 10:
-            ist_base = datetime.utcnow() + timedelta(hours=5, minutes=30)
-            sample_logs = [
-                ("log_001", (ist_base - timedelta(hours=1, minutes=39)).strftime("%Y-%m-%d %H:%M:%S"),
-                 "test_audit@upsc.in", "Test_audit", "copy_evaluated",
-                 "Evaluated GS2 (10M) — Scored 5.5/10",
-                 "The doctrine of separation of powers is not rigidly followed in the Indian Constitution...", "eval_1790421741_f1a6f4"),
-                ("log_002", (ist_base - timedelta(hours=2, minutes=30)).strftime("%Y-%m-%d %H:%M:%S"),
-                 "cadet.test@gmail.com", "Priya Test", "feedback_submitted",
-                 "Submitted 5★ Feedback (Evaluation Quality)",
-                 "The line-by-line examiner comments on separation of powers and Kesavananda Bharati case reference were exceptionally thorough.", ""),
-                ("log_003", (ist_base - timedelta(hours=3, minutes=21)).strftime("%Y-%m-%d %H:%M:%S"),
-                 "cadet.test@gmail.com", "Priya Test", "copy_evaluated",
-                 "Evaluated GS2 (10M) — Scored 6.5/10",
-                 "The doctrine of separation of powers is not rigidly followed in the Indian Constitution...", "eval_gs2_sep_powers"),
-                ("log_004", (ist_base - timedelta(hours=4, minutes=10)).strftime("%Y-%m-%d %H:%M:%S"),
-                 "aspirant.vikram@gmail.com", "Vikram Rathore", "feedback_submitted",
-                 "Submitted 4★ Feedback (Feature Request)",
-                 "The handwriting OCR read my diagrams accurately! Could you please add a toggle for full 20-question mock series?", ""),
-                ("log_005", (ist_base - timedelta(hours=5, minutes=49)).strftime("%Y-%m-%d %H:%M:%S"),
-                 "aspirant.sharma@gmail.com", "Priya Sharma", "copy_evaluated",
-                 "Evaluated GS4 (10M) — Scored 6.0/10",
-                 "Differentiate between 'Code of Conduct' and 'Code of Ethics'...", "eval_gs4_ethics_conduct"),
-                ("log_006", (ist_base - timedelta(days=1, hours=1)).strftime("%Y-%m-%d %H:%M:%S"),
-                 "aspirant.vikram@gmail.com", "Vikram Rathore", "plan_purchased",
-                 "Purchased Revision Pack (10 Copies) — ₹149",
-                 "UTR Number: 739102845619 verified via SBI UPI receipt", ""),
-                ("log_007", (ist_base - timedelta(days=1, hours=1, minutes=16)).strftime("%Y-%m-%d %H:%M:%S"),
-                 "aspirant.vikram@gmail.com", "Vikram Rathore", "copy_evaluated",
-                 "Evaluated Optional-PSIR (20M) — Scored 12.0/20",
-                 "Discuss the relevance of Plato's theory of justice and Aristotle's critique...", "eval_opt_psir_plato"),
-                ("log_008", (ist_base - timedelta(days=1, hours=5, minutes=34)).strftime("%Y-%m-%d %H:%M:%S"),
-                 "cadet.upsc5409@gmail.com", "Cadet Aspirant", "copy_evaluated",
-                 "Evaluated GS3 (15M) — Scored 9.0/15",
-                 "Despite being the backbone of the rural economy, Indian agriculture continues to suffer...", "eval_gs3_agri_economy"),
-                ("log_009", (ist_base - timedelta(days=2, hours=3, minutes=35)).strftime("%Y-%m-%d %H:%M:%S"),
-                 "cadet.test2026@gmail.com", "Cadet Aspirant", "copy_evaluated",
-                 "Evaluated GS2 (10M) — Scored 7.0/10",
-                 "Federal structure and inter-state relations evaluation completed.", "eval_gs2_federalism_cadet"),
-                ("log_010", (ist_base - timedelta(days=2, hours=6, minutes=20)).strftime("%Y-%m-%d %H:%M:%S"),
-                 "cadet.instant@gmail.com", "Instant Cadet", "user_login",
-                 "Aspirant onboarded for CSE 2026",
-                 "Registered with Optional: Public Administration", "")
-            ]
-
-            for lid, lts, lem, lnm, lact, ltitle, ldet, levid in sample_logs:
-                cursor.execute("""
-                    INSERT OR IGNORE INTO activity_logs (id, created_at, user_email, user_name, action_type, title, detail, eval_id)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """, (lid, lts, lem, lnm, lact, ltitle, ldet, levid))
-
+        
+        # Delete from users
+        cursor.execute("""
+            DELETE FROM users 
+            WHERE LOWER(email) IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                  'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                  'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+               OR LOWER(email) LIKE 'cadet.test%'
+               OR LOWER(email) LIKE 'cadet.upsc%'
+               OR LOWER(email) LIKE 'cadet.instant%'
+               OR LOWER(email) LIKE 'aspirant.sharma%'
+               OR LOWER(email) LIKE 'aspirant.vikram%'
+               OR LOWER(email) LIKE 'test_audit@%'
+               OR LOWER(email) LIKE 'demo@%'
+               OR LOWER(email) LIKE 'fake@%'
+               OR LOWER(email) LIKE 'temp@%'
+        """)
+        deleted_counts["users"] = cursor.rowcount
+        
+        # Delete from evaluations
+        cursor.execute("""
+            DELETE FROM evaluations
+            WHERE id IN ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
+                         'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4')
+               OR LOWER(user_email) IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+               OR LOWER(user_email) LIKE 'cadet.test%'
+               OR LOWER(user_email) LIKE 'cadet.upsc%'
+               OR LOWER(user_email) LIKE 'cadet.instant%'
+               OR LOWER(user_email) LIKE 'aspirant.sharma%'
+               OR LOWER(user_email) LIKE 'aspirant.vikram%'
+               OR LOWER(user_email) LIKE 'test_audit@%'
+        """)
+        deleted_counts["evaluations"] = cursor.rowcount
+        
+        # Delete from transactions
+        cursor.execute("""
+            DELETE FROM transactions
+            WHERE id LIKE 'ORD-2026-%'
+               OR LOWER(user_email) IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+               OR LOWER(user_email) LIKE 'cadet.test%'
+               OR LOWER(user_email) LIKE 'cadet.upsc%'
+               OR LOWER(user_email) LIKE 'cadet.instant%'
+               OR LOWER(user_email) LIKE 'aspirant.sharma%'
+               OR LOWER(user_email) LIKE 'aspirant.vikram%'
+               OR LOWER(user_email) LIKE 'test_audit@%'
+        """)
+        deleted_counts["transactions"] = cursor.rowcount
+        
+        # Delete from feedback
+        cursor.execute("""
+            DELETE FROM feedback
+            WHERE id IN ('fb_001', 'fb_002', 'fb_003', 'fb_004')
+               OR LOWER(user_email) IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+               OR LOWER(user_email) LIKE 'cadet.test%'
+               OR LOWER(user_email) LIKE 'cadet.upsc%'
+               OR LOWER(user_email) LIKE 'aspirant.sharma%'
+               OR LOWER(user_email) LIKE 'aspirant.vikram%'
+        """)
+        deleted_counts["feedback"] = cursor.rowcount
+        
+        # Delete from user_sessions
+        cursor.execute("""
+            DELETE FROM user_sessions
+            WHERE id LIKE 'sess_audit%'
+               OR id IN ('sess_audit_001', 'sess_cadet_002', 'sess_sharma_003', 'sess_vikram_004', 
+                         'sess_upsc5409_005', 'sess_test2026_006', 'sess_instant_007')
+               OR LOWER(user_email) IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+               OR LOWER(user_email) LIKE 'cadet.test%'
+               OR LOWER(user_email) LIKE 'cadet.upsc%'
+               OR LOWER(user_email) LIKE 'cadet.instant%'
+               OR LOWER(user_email) LIKE 'aspirant.sharma%'
+               OR LOWER(user_email) LIKE 'aspirant.vikram%'
+        """)
+        deleted_counts["sessions"] = cursor.rowcount
+        
+        # Delete from activity_logs
+        cursor.execute("""
+            DELETE FROM activity_logs
+            WHERE id LIKE 'log_0%'
+               OR id IN ('log_001', 'log_002', 'log_003', 'log_004', 'log_005', 'log_006', 'log_007', 'log_008', 'log_009', 'log_010')
+               OR LOWER(user_email) IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+               OR LOWER(user_email) LIKE 'cadet.test%'
+               OR LOWER(user_email) LIKE 'cadet.upsc%'
+               OR LOWER(user_email) LIKE 'cadet.instant%'
+               OR LOWER(user_email) LIKE 'aspirant.sharma%'
+               OR LOWER(user_email) LIKE 'aspirant.vikram%'
+        """)
+        deleted_counts["activity_logs"] = cursor.rowcount
+        
         conn.commit()
         conn.close()
-    except Exception as e:
-        print(f"Notice: ensure_telemetry_and_history_preserved error: {e}")
+    except Exception as sqle:
+        print(f"Error purging local dummy data: {sqle}")
 
+    # 2. Also purge from Supabase if connected
+    if supabase is not None:
+        try:
+            for eid in ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
+                        'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4'):
+                try:
+                    supabase.table("evaluations").delete().eq("id", eid).execute()
+                except Exception:
+                    pass
+            dummy_uids = [
+                "7cb99348-0a69-5f6f-bccf-49dd770ba59a",
+                "7667f181-69d3-4963-aa49-ebf74419942a",
+                "708b8b70-6086-45a1-84b8-8d9a2ee3cb96",
+                "e34801d0-4149-4b5c-bdd9-9948bfd18f27",
+                "a07d6a88-45bf-4617-9cf1-e542806e8813",
+                "a1f36ada-364c-45c1-bfed-8aacab8ea4d6",
+                "f47b663c-2b7e-4897-ba0b-ed8d4cd602a8"
+            ]
+            for uid in dummy_uids:
+                try:
+                    supabase.table("evaluations").delete().eq("user_id", uid).execute()
+                except Exception:
+                    pass
+        except Exception as supe:
+            print(f"Notice: Supabase dummy purge notice: {supe}")
 
-# Run safeguard check immediately
+    return {"status": "success", "purged": deleted_counts}
+
+def ensure_telemetry_and_history_preserved() -> None:
+    """Ensures database tables are created and purged of dummy records. No dummy data is seeded."""
+    purge_all_dummy_and_demo_accounts()
+
+# Run purge check immediately
 try:
-    ensure_telemetry_and_history_preserved()
+    purge_all_dummy_and_demo_accounts()
 except Exception as _ep:
-    print(f"Startup history preservation notice: {_ep}")
+    print(f"Startup dummy purge notice: {_ep}")
 
 
 def record_user_heartbeat(
@@ -2993,22 +2816,20 @@ def get_admin_session_history(limit: int = 50) -> List[Dict[str, Any]]:
     cursor = conn.cursor()
     cursor.execute("""
         SELECT * FROM user_sessions
+        WHERE LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                        'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                        'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+          AND LOWER(user_email) NOT LIKE 'cadet.test%'
+          AND LOWER(user_email) NOT LIKE 'cadet.upsc%'
+          AND LOWER(user_email) NOT LIKE 'cadet.instant%'
+          AND LOWER(user_email) NOT LIKE 'aspirant.sharma%'
+          AND LOWER(user_email) NOT LIKE 'aspirant.vikram%'
+          AND LOWER(user_email) NOT LIKE 'test_audit@%'
+          AND id NOT LIKE 'sess_audit%'
         ORDER BY last_active_at DESC
         LIMIT ?
     """, (limit,))
     rows = cursor.fetchall()
-
-    if len(rows) < 7:
-        try:
-            ensure_telemetry_and_history_preserved()
-            cursor.execute("""
-                SELECT * FROM user_sessions
-                ORDER BY last_active_at DESC
-                LIMIT ?
-            """, (limit,))
-            rows = cursor.fetchall()
-        except Exception:
-            pass
 
     sessions: List[Dict[str, Any]] = []
     ist_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
@@ -3193,7 +3014,7 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
                 continue
 
             email = canonicalize_email(ev.get("email") or "")
-            if not email or "@" not in email:
+            if not email or "@" not in email or is_dummy_or_demo_email(email):
                 continue
 
             det_id = str(r.get("user_id") or ev.get("id") or get_deterministic_user_id(email))
@@ -3243,13 +3064,13 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
                 continue
 
             eval_id = str(r.get("id") or "")
-            if not eval_id:
+            if not eval_id or eval_id in ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4'):
                 continue
 
             u_id = str(r.get("user_id") or "")
             u_email = (ev.get("_meta_user_email") or user_id_to_email.get(u_id) or "").strip().lower()
-            if not u_email and u_id:
-                u_email = f"user_{u_id[:8]}@cookedmains.in"
+            if not u_email or is_dummy_or_demo_email(u_email):
+                continue
 
             if u_email and u_id and u_email not in email_to_user_id:
                 email_to_user_id[u_email] = u_id
@@ -3393,10 +3214,6 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
 
 def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
     try:
-        ensure_telemetry_and_history_preserved()
-    except Exception:
-        pass
-    try:
         sync_supabase_to_sqlite(force=force_sync)
     except Exception as se:
         print(f"Admin stats Supabase sync notice: {se}")
@@ -3404,13 +3221,35 @@ def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
     conn = get_db()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT COUNT(*) as c FROM users WHERE SUBSTR(email, 1, 2) != '__'")
+    cursor.execute("""
+        SELECT COUNT(*) as c FROM users 
+        WHERE SUBSTR(email, 1, 2) != '__'
+          AND LOWER(email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                  'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                  'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+          AND LOWER(email) NOT LIKE 'cadet.test%'
+          AND LOWER(email) NOT LIKE 'cadet.upsc%'
+          AND LOWER(email) NOT LIKE 'cadet.instant%'
+          AND LOWER(email) NOT LIKE 'aspirant.sharma%'
+          AND LOWER(email) NOT LIKE 'aspirant.vikram%'
+          AND LOWER(email) NOT LIKE 'test_audit@%'
+          AND LOWER(email) NOT LIKE 'demo@%'
+    """)
     total_aspirants = cursor.fetchone()["c"]
     
     cursor.execute("""
         SELECT created_at, user_email 
         FROM evaluations 
         WHERE question != '__USER_ACCOUNT_PROFILE__' AND question NOT LIKE '__SYSTEM_%'
+          AND id NOT IN ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
+                         'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4')
+          AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+          AND LOWER(user_email) NOT LIKE 'cadet.test%'
+          AND LOWER(user_email) NOT LIKE 'cadet.upsc%'
+          AND LOWER(user_email) NOT LIKE 'aspirant.sharma%'
+          AND LOWER(user_email) NOT LIKE 'aspirant.vikram%'
     """)
     eval_rows = cursor.fetchall()
     total_evals = len(eval_rows)
@@ -3422,25 +3261,59 @@ def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
         if is_created_today_ist(c_at):
             evals_today += 1
             u_em = (er["user_email"] or "").strip().lower()
-            if u_em:
+            if u_em and not is_dummy_or_demo_email(u_em):
                 eval_users_today_set.add(u_em)
     eval_users_today = len(eval_users_today_set)
     
-    cursor.execute("SELECT COUNT(*) as c FROM transactions WHERE status = 'pending'")
+    cursor.execute("""
+        SELECT COUNT(*) as c FROM transactions 
+        WHERE status = 'pending'
+          AND id NOT LIKE 'ORD-2026-%'
+          AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+    """)
     pending_orders = cursor.fetchone()["c"]
     
-    cursor.execute("SELECT COALESCE(SUM(amount), 0) as s FROM transactions WHERE status = 'approved'")
+    cursor.execute("""
+        SELECT COALESCE(SUM(amount), 0) as s FROM transactions 
+        WHERE status = 'approved'
+          AND id NOT LIKE 'ORD-2026-%'
+          AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+    """)
     total_revenue = cursor.fetchone()["s"]
 
-    cursor.execute("SELECT COUNT(*) as c, COALESCE(AVG(rating), 5.0) as a FROM feedback")
+    cursor.execute("""
+        SELECT COUNT(*) as c, COALESCE(AVG(rating), 0.0) as a FROM feedback
+        WHERE id NOT IN ('fb_001', 'fb_002', 'fb_003', 'fb_004')
+          AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+    """)
     fb = cursor.fetchone()
     total_feedbacks = fb["c"]
-    avg_rating = round(fb["a"], 1)
+    avg_rating = round(fb["a"], 1) if total_feedbacks > 0 else 0.0
 
-    cursor.execute("SELECT COUNT(*) as c FROM feedback WHERE COALESCE(is_resolved, 0) = 0")
+    cursor.execute("""
+        SELECT COUNT(*) as c FROM feedback 
+        WHERE COALESCE(is_resolved, 0) = 0
+          AND id NOT IN ('fb_001', 'fb_002', 'fb_003', 'fb_004')
+          AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+    """)
     unresolved_feedbacks = cursor.fetchone()["c"]
 
-    cursor.execute("SELECT COUNT(*) as c FROM feedback WHERE COALESCE(is_resolved, 0) = 1")
+    cursor.execute("""
+        SELECT COUNT(*) as c FROM feedback 
+        WHERE COALESCE(is_resolved, 0) = 1
+          AND id NOT IN ('fb_001', 'fb_002', 'fb_003', 'fb_004')
+          AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+    """)
     resolved_feedbacks = cursor.fetchone()["c"]
 
     conn.close()
@@ -3499,10 +3372,6 @@ def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
 def get_all_aspirants_admin(search: Optional[str] = None) -> List[Dict[str, Any]]:
     conn = get_db()
     cursor = conn.cursor()
-    
-    cursor.execute("SELECT COUNT(*) as c FROM users WHERE SUBSTR(email, 1, 2) != '__'")
-    if cursor.fetchone()["c"] < 7:
-        ensure_telemetry_and_history_preserved()
 
     query = """
         SELECT 
@@ -3513,7 +3382,19 @@ def get_all_aspirants_admin(search: Optional[str] = None) -> List[Dict[str, Any]
         FROM users u 
         LEFT JOIN evaluations e ON LOWER(u.email) = LOWER(e.user_email)
             AND e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
+            AND e.id NOT IN ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
+                             'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4')
         WHERE SUBSTR(u.email, 1, 2) != '__'
+          AND LOWER(u.email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                  'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                  'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+          AND LOWER(u.email) NOT LIKE 'cadet.test%'
+          AND LOWER(u.email) NOT LIKE 'cadet.upsc%'
+          AND LOWER(u.email) NOT LIKE 'cadet.instant%'
+          AND LOWER(u.email) NOT LIKE 'aspirant.sharma%'
+          AND LOWER(u.email) NOT LIKE 'aspirant.vikram%'
+          AND LOWER(u.email) NOT LIKE 'test_audit@%'
+          AND LOWER(u.email) NOT LIKE 'demo@%'
     """
     params: List[Any] = []
     if search and search.strip():
@@ -3531,6 +3412,8 @@ def get_all_aspirants_admin(search: Optional[str] = None) -> List[Dict[str, Any]
     for r in rows:
         d = dict(r)
         em = (d.get("email") or "").strip().lower()
+        if is_dummy_or_demo_email(em):
+            continue
         pres = _LIVE_PRESENCE_MAP.get(em)
         sec_ago = int(now_ts - float(pres["last_seen_ts"])) if pres else 999999
         d["is_online"] = sec_ago <= 150
@@ -3567,6 +3450,15 @@ def get_admin_evaluations_feed(
         FROM evaluations e
         LEFT JOIN users u ON LOWER(e.user_email) = LOWER(u.email)
         WHERE e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
+          AND e.id NOT IN ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
+                         'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4')
+          AND LOWER(e.user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+          AND LOWER(e.user_email) NOT LIKE 'cadet.test%'
+          AND LOWER(e.user_email) NOT LIKE 'cadet.upsc%'
+          AND LOWER(e.user_email) NOT LIKE 'aspirant.sharma%'
+          AND LOWER(e.user_email) NOT LIKE 'aspirant.vikram%'
     """
     params: List[Any] = []
     if email_filter and email_filter.strip():
@@ -3594,12 +3486,19 @@ def get_admin_activity_stream(limit: int = 60) -> List[Dict[str, Any]]:
     events: List[Dict[str, Any]] = []
 
     try:
-        cursor.execute("SELECT * FROM activity_logs ORDER BY created_at DESC LIMIT ?", (limit,))
+        cursor.execute("""
+            SELECT * FROM activity_logs 
+            WHERE id NOT LIKE 'log_0%'
+              AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                           'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                           'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+              AND LOWER(user_email) NOT LIKE 'cadet.test%'
+              AND LOWER(user_email) NOT LIKE 'cadet.upsc%'
+              AND LOWER(user_email) NOT LIKE 'aspirant.sharma%'
+              AND LOWER(user_email) NOT LIKE 'aspirant.vikram%'
+            ORDER BY created_at DESC LIMIT ?
+        """, (limit,))
         raw_logs = cursor.fetchall()
-        if len(raw_logs) < 8:
-            ensure_telemetry_and_history_preserved()
-            cursor.execute("SELECT * FROM activity_logs ORDER BY created_at DESC LIMIT ?", (limit,))
-            raw_logs = cursor.fetchall()
 
         for r in raw_logs:
             events.append({
@@ -3622,6 +3521,12 @@ def get_admin_activity_stream(limit: int = 60) -> List[Dict[str, Any]]:
                e.paper, e.max_marks, e.question, e.overall_score
         FROM evaluations e
         LEFT JOIN users u ON LOWER(e.user_email) = LOWER(u.email)
+        WHERE e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
+          AND e.id NOT IN ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
+                         'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4')
+          AND LOWER(e.user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
         ORDER BY e.created_at DESC LIMIT 35
     """)
     for er in cursor.fetchall():
@@ -3639,7 +3544,14 @@ def get_admin_activity_stream(limit: int = 60) -> List[Dict[str, Any]]:
             })
 
     # Backfill with recent feedbacks
-    cursor.execute("SELECT * FROM feedback ORDER BY created_at DESC LIMIT 15")
+    cursor.execute("""
+        SELECT * FROM feedback 
+        WHERE id NOT IN ('fb_001', 'fb_002', 'fb_003', 'fb_004')
+          AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+        ORDER BY created_at DESC LIMIT 15
+    """)
     for fr in cursor.fetchall():
         events.append({
             "id": f"fb_{fr['id']}",
@@ -3705,12 +3617,22 @@ def get_all_feedbacks_admin(status: Optional[str] = None) -> List[Dict[str, Any]
     """Returns candidate feedback and bug reports, with optional resolution status filtering."""
     conn = get_db()
     cursor = conn.cursor()
+    base_where = """
+        WHERE id NOT IN ('fb_001', 'fb_002', 'fb_003', 'fb_004')
+          AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+          AND LOWER(user_email) NOT LIKE 'cadet.test%'
+          AND LOWER(user_email) NOT LIKE 'cadet.upsc%'
+          AND LOWER(user_email) NOT LIKE 'aspirant.sharma%'
+          AND LOWER(user_email) NOT LIKE 'aspirant.vikram%'
+    """
     if status == "unresolved":
-        cursor.execute("SELECT * FROM feedback WHERE COALESCE(is_resolved, 0) = 0 ORDER BY created_at DESC")
+        cursor.execute(f"SELECT * FROM feedback {base_where} AND COALESCE(is_resolved, 0) = 0 ORDER BY created_at DESC")
     elif status == "resolved":
-        cursor.execute("SELECT * FROM feedback WHERE COALESCE(is_resolved, 0) = 1 ORDER BY created_at DESC")
+        cursor.execute(f"SELECT * FROM feedback {base_where} AND COALESCE(is_resolved, 0) = 1 ORDER BY created_at DESC")
     else:
-        cursor.execute("SELECT * FROM feedback ORDER BY created_at DESC")
+        cursor.execute(f"SELECT * FROM feedback {base_where} ORDER BY created_at DESC")
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
