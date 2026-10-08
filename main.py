@@ -214,43 +214,6 @@ async def trigger_supabase_keepalive():
     res = await asyncio.to_thread(_execute_supabase_activity_ping)
     return {"status": "ok", "supabase_keepalive": res}
 
-@app.api_route("/api/admin/model-health", methods=["GET", "POST"])
-async def get_gemini_models_health(action: Optional[str] = None):
-    """Admin diagnostic and control endpoint to inspect live Gemini model latencies, cooldowns, and reset if needed."""
-    from evaluator_engine import (
-        get_active_gemini_models,
-        reset_gemini_model_cooldowns,
-        _MODEL_LATENCIES,
-        _MODEL_SUCCESS_COUNTS,
-        _MODEL_FAILURE_COUNTS,
-        _BUSY_MODEL_COOLDOWNS,
-        _LAST_WORKING_GEMINI_MODEL,
-        _INACTIVE_GEMINI_MODELS
-    )
-    if action == "reset_cooldowns":
-        reset_gemini_model_cooldowns()
-        return {"status": "success", "message": "All model cooldowns have been cleared."}
-
-    now_ts = time.time()
-    active_priority = get_active_gemini_models()
-    cooldowns = {
-        m: f"{round(exp - now_ts)}s remaining"
-        for m, exp in _BUSY_MODEL_COOLDOWNS.items()
-        if exp > now_ts
-    }
-    return {
-        "status": "healthy",
-        "configured_primary_model": os.environ.get("GEMINI_PRIMARY_MODEL") or None,
-        "configured_fallbacks": os.environ.get("GEMINI_FALLBACK_MODELS") or None,
-        "last_working_model": _LAST_WORKING_GEMINI_MODEL,
-        "active_priority_order": active_priority,
-        "average_latencies_seconds": _MODEL_LATENCIES,
-        "success_counts": _MODEL_SUCCESS_COUNTS,
-        "failure_counts": _MODEL_FAILURE_COUNTS,
-        "active_cooldowns": cooldowns,
-        "inactive_blacklisted": list(_INACTIVE_GEMINI_MODELS)
-    }
-
 @app.api_route("/", methods=["GET", "HEAD"])
 @app.api_route("/index.html", methods=["GET", "HEAD"])
 async def root():
@@ -2132,8 +2095,7 @@ async def evaluate_answer(
                     top_p=1.0,
                     top_k=1,
                     seed=20260925,
-                    response_mime_type="application/json",
-                    http_options=types.HttpOptions(timeout=28000)
+                    response_mime_type="application/json"
                 )
 
                 from evaluator_engine import (
@@ -2145,8 +2107,8 @@ async def evaluate_answer(
                 contents_payload = (multimodal_parts + [evaluator_prompt_text]) if multimodal_parts else [evaluator_prompt_text]
                 eval_loop_start = time.time()
 
-                for current_key in keys_to_try[:4]:
-                    if time.time() - eval_loop_start > 48:
+                for current_key in keys_to_try:
+                    if time.time() - eval_loop_start > 85:
                         break
                     try:
                         client = create_fast_gemini_client(current_key)
@@ -2154,12 +2116,11 @@ async def evaluate_answer(
                         continue
 
                     failed_key = False
-                    candidate_models = get_active_gemini_models(client)[:3]
+                    candidate_models = get_active_gemini_models(client)[:5]
                     for model_candidate in candidate_models:
-                        if time.time() - eval_loop_start > 48:
+                        if time.time() - eval_loop_start > 85:
                             break
                         try:
-                            start_call_ts = time.time()
                             response = client.models.generate_content(
                                 model=model_candidate,
                                 contents=contents_payload,
@@ -2169,8 +2130,7 @@ async def evaluate_answer(
                                 raw_text = response.text
                                 parsed_eval = parse_llm_json_response(raw_text)
                                 if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
-                                    call_dur = time.time() - start_call_ts
-                                    record_gemini_model_outcome(model_candidate, True, latency=call_dur)
+                                    record_gemini_model_outcome(model_candidate, True)
                                     if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
                                         parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
                                     evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
@@ -2191,18 +2151,12 @@ async def evaluate_answer(
                         break
 
                 if not evaluation_result:
-                    print("[EVALUATOR ENGINE] External Gemini endpoints timed out or busy — showing Guard Modal notice.")
-                    return JSONResponse(
-                        status_code=503,
-                        content={
-                            "status": "evaluator_busy",
-                            "error_type": "evaluator_busy",
-                            "title": "Evaluation Could Not Be Completed",
-                            "message": "The AI evaluator was temporarily unable to read or analyze this answer copy within the time limit. Rather than giving you generic or inaccurate placeholder marks, the evaluation has been safely paused.",
-                            "warning": "🛡️ Zero Credits Deducted: Your balance is 100% safe and intact.",
-                            "action_hint": "Please ensure your handwritten answer sheet is clearly lit and legible, then click 'Evaluate Copy' again.",
-                            "credits_deducted": 0
-                        }
+                    print("[EVALUATOR ENGINE] External Gemini endpoints timed out or busy — activating resilient fallback evaluation.")
+                    evaluation_result = build_resilient_fallback_evaluation(
+                        question=question,
+                        paper_key=detected_paper,
+                        max_marks=max_marks,
+                        previous_evaluation=prev_eval_dict
                     )
 
         # AI Vision Blank Sheet Verification Check
