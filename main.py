@@ -2133,7 +2133,7 @@ async def evaluate_answer(
                     top_k=1,
                     seed=20260925,
                     response_mime_type="application/json",
-                    http_options=types.HttpOptions(timeout=22000)
+                    http_options=types.HttpOptions(timeout=28000)
                 )
 
                 from evaluator_engine import (
@@ -2146,7 +2146,7 @@ async def evaluate_answer(
                 eval_loop_start = time.time()
 
                 for current_key in keys_to_try[:2]:
-                    if time.time() - eval_loop_start > 30:
+                    if time.time() - eval_loop_start > 48:
                         break
                     try:
                         client = create_fast_gemini_client(current_key)
@@ -2156,7 +2156,7 @@ async def evaluate_answer(
                     failed_key = False
                     candidate_models = get_active_gemini_models(client)[:2]
                     for model_candidate in candidate_models:
-                        if time.time() - eval_loop_start > 30:
+                        if time.time() - eval_loop_start > 48:
                             break
                         try:
                             start_call_ts = time.time()

@@ -487,16 +487,35 @@ function startForensicProgress() {
 
   if (window.forensicStatusTimer) clearInterval(window.forensicStatusTimer);
   setStepText(dynamicStatusSteps[0]);
+  const progressStartTime = Date.now();
   window.forensicStatusTimer = setInterval(() => {
-    statusStepIdx = (statusStepIdx + 1) % dynamicStatusSteps.length;
-    setStepText(dynamicStatusSteps[statusStepIdx]);
-  }, 4500);
+    const elapsedSec = Math.floor((Date.now() - progressStartTime) / 1000);
+    if (elapsedSec >= 32) {
+      setStepText("⏳ Rigorous UPSC Audit: Finalizing page-by-page margin remarks & topper blueprint. Thank you for your patience — almost done!");
+    } else if (elapsedSec >= 16) {
+      setStepText("⏳ Deep Handwriting & Diagram Analysis: Carefully auditing multi-page handwriting. Taking slightly more time than usual — please have patience...");
+    } else {
+      statusStepIdx = (statusStepIdx + 1) % dynamicStatusSteps.length;
+      setStepText(dynamicStatusSteps[statusStepIdx]);
+    }
+  }, 3500);
 
   let tipIdx = 0;
   if (window.forensicTipTimer) clearInterval(window.forensicTipTimer);
   window.forensicTipTimer = setInterval(() => {
-    tipIdx = (tipIdx + 1) % forensicTips.length;
-    const nextTip = forensicTips[tipIdx];
+    const elapsedSec = Math.floor((Date.now() - progressStartTime) / 1000);
+    let nextTip;
+    if (elapsedSec >= 18) {
+      const patienceTips = [
+        "⏳ Quality Assurance: We analyze every diagram, margin annotation, and keyword rather than rushing generic points. Please have patience!",
+        "⏳ Comprehensive Vision Audit: Multi-page handwritten copies take 35–45s for deep OCR and authentic UPSC percentile calibration.",
+        "⏳ Zero-Rushing Rule: Your answer is being thoroughly evaluated against official UPSC marking rubrics. Thank you for waiting!"
+      ];
+      nextTip = patienceTips[Math.floor(elapsedSec / 4) % patienceTips.length];
+    } else {
+      tipIdx = (tipIdx + 1) % forensicTips.length;
+      nextTip = forensicTips[tipIdx];
+    }
     [tipText, sTipText].forEach(el => {
       if (el) {
         el.style.opacity = "0";
@@ -7844,7 +7863,7 @@ window.runEvaluation = async function(allowAutoAligned = false) {
       didTimeout = true;
       window.currentEvaluationController.abort();
     }
-  }, 42000);
+  }, 65000);
 
   try {
     const response = await fetch("/api/evaluate", {

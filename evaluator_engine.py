@@ -5149,12 +5149,12 @@ async def evaluate_with_gemini(
             top_k=1,
             seed=20260925,
             response_mime_type="application/json",
-            http_options=types.HttpOptions(timeout=22000)
+            http_options=types.HttpOptions(timeout=28000)
         )
 
         sync_start = time.time()
         for current_key in keys_to_try[:2]:
-            if time.time() - sync_start > 30:
+            if time.time() - sync_start > 48:
                 break
             try:
                 client = create_fast_gemini_client(current_key)
@@ -5164,7 +5164,7 @@ async def evaluate_with_gemini(
             failed_auth = False
             candidate_models = get_active_gemini_models(client)[:2]
             for model_name in candidate_models:
-                if time.time() - sync_start > 30:
+                if time.time() - sync_start > 48:
                     break
                 try:
                     start_model_ts = time.time()
@@ -5503,9 +5503,9 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
 
 def create_fast_gemini_client(api_key: str) -> Any:
-    """Creates a genai.Client with a 22-second timeout so full handwritten vision evaluation completes quickly without lag."""
+    """Creates a genai.Client with a 28-second timeout so full handwritten vision evaluation completes reliably without lag."""
     try:
-        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=22000))
+        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=28000))
     except Exception:
         return genai.Client(api_key=api_key)
 
