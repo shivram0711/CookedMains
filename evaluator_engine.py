@@ -2639,6 +2639,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                                 break
 
                         c_crit = str(conc_audit_obj.get("current_critique") or "")
+                        c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "")
                         clean_close = _clean_quote_snippet(closing_line, 120)
                         clean_topper = c_rew.strip() if len(c_rew.strip()) >= 25 else 'Anchor closing line in 1 concrete institutional benchmark and forward-looking reform.'
                         if clean_close:
