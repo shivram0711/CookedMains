@@ -5265,9 +5265,9 @@ def record_gemini_model_outcome(model_name: str, success: bool, error_str: str =
         if _LAST_WORKING_GEMINI_MODEL == clean_name:
             _LAST_WORKING_GEMINI_MODEL = None
         _DISCOVERED_GEMINI_MODELS_TS = 0.0
-    elif any(tok in err_low for tok in ["503", "unavailable", "high demand", "resource_exhausted", "quota", "429"]):
-        # Cool down busy/congested model for 40 seconds so subsequent evaluations try other models/keys
-        _BUSY_MODEL_COOLDOWNS[clean_name] = time.time() + 40
+    elif any(tok in err_low for tok in ["503", "unavailable", "high demand"]):
+        # Cool down busy/congested model for 30 seconds so subsequent evaluations try other models
+        _BUSY_MODEL_COOLDOWNS[clean_name] = time.time() + 30
         if _LAST_WORKING_GEMINI_MODEL == clean_name:
             _LAST_WORKING_GEMINI_MODEL = None
 

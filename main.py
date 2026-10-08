@@ -2192,7 +2192,8 @@ async def evaluate_answer(
                             record_gemini_model_outcome(model_candidate, False, err_s)
                             if any(t in err_s.lower() for t in [
                                 "api_key_invalid", "api key not valid", "unauthenticated",
-                                "permission_denied", "forbidden", "access_token_type_unsupported"
+                                "permission_denied", "forbidden", "access_token_type_unsupported",
+                                "resource_exhausted", "quota", "429", "rate limit", "rate_limit"
                             ]):
                                 failed_key = True
                                 break
