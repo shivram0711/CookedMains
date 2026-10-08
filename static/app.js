@@ -7844,7 +7844,7 @@ window.runEvaluation = async function(allowAutoAligned = false) {
       didTimeout = true;
       window.currentEvaluationController.abort();
     }
-  }, 75000);
+  }, 42000);
 
   try {
     const response = await fetch("/api/evaluate", {

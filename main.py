@@ -2133,7 +2133,7 @@ async def evaluate_answer(
                     top_k=1,
                     seed=20260925,
                     response_mime_type="application/json",
-                    http_options=types.HttpOptions(timeout=32000)
+                    http_options=types.HttpOptions(timeout=22000)
                 )
 
                 from evaluator_engine import (
@@ -2145,8 +2145,8 @@ async def evaluate_answer(
                 contents_payload = (multimodal_parts + [evaluator_prompt_text]) if multimodal_parts else [evaluator_prompt_text]
                 eval_loop_start = time.time()
 
-                for current_key in keys_to_try:
-                    if time.time() - eval_loop_start > 55:
+                for current_key in keys_to_try[:2]:
+                    if time.time() - eval_loop_start > 30:
                         break
                     try:
                         client = create_fast_gemini_client(current_key)
@@ -2154,9 +2154,9 @@ async def evaluate_answer(
                         continue
 
                     failed_key = False
-                    candidate_models = get_active_gemini_models(client)[:4]
+                    candidate_models = get_active_gemini_models(client)[:2]
                     for model_candidate in candidate_models:
-                        if time.time() - eval_loop_start > 55:
+                        if time.time() - eval_loop_start > 30:
                             break
                         try:
                             start_call_ts = time.time()
@@ -2191,12 +2191,18 @@ async def evaluate_answer(
                         break
 
                 if not evaluation_result:
-                    print("[EVALUATOR ENGINE] External Gemini endpoints timed out or busy — activating resilient fallback evaluation.")
-                    evaluation_result = build_resilient_fallback_evaluation(
-                        question=question,
-                        paper_key=detected_paper,
-                        max_marks=max_marks,
-                        previous_evaluation=prev_eval_dict
+                    print("[EVALUATOR ENGINE] External Gemini endpoints timed out or busy — showing Guard Modal notice.")
+                    return JSONResponse(
+                        status_code=503,
+                        content={
+                            "status": "evaluator_busy",
+                            "error_type": "evaluator_busy",
+                            "title": "Evaluation Could Not Be Completed",
+                            "message": "The AI evaluator was temporarily unable to read or analyze this answer copy within the time limit. Rather than giving you generic or inaccurate placeholder marks, the evaluation has been safely paused.",
+                            "warning": "🛡️ Zero Credits Deducted: Your balance is 100% safe and intact.",
+                            "action_hint": "Please ensure your handwritten answer sheet is clearly lit and legible, then click 'Evaluate Copy' again.",
+                            "credits_deducted": 0
+                        }
                     )
 
         # AI Vision Blank Sheet Verification Check

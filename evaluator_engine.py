@@ -5117,7 +5117,7 @@ async def evaluate_with_gemini(
     directive_info = detect_directive(question)
 
     if not keys_to_try:
-        return build_resilient_fallback_evaluation(question, detected_paper, max_marks)
+        return None
 
     # Grounded Current Affairs Retrieval (Local Knowledge Store + Optional Web Search)
     current_affairs_context = await get_dynamic_grounded_context(question, detected_paper)
@@ -5148,12 +5148,13 @@ async def evaluate_with_gemini(
             top_p=1.0,
             top_k=1,
             seed=20260925,
-            response_mime_type="application/json"
+            response_mime_type="application/json",
+            http_options=types.HttpOptions(timeout=22000)
         )
 
         sync_start = time.time()
-        for current_key in keys_to_try:
-            if time.time() - sync_start > 65:
+        for current_key in keys_to_try[:2]:
+            if time.time() - sync_start > 30:
                 break
             try:
                 client = create_fast_gemini_client(current_key)
@@ -5161,8 +5162,9 @@ async def evaluate_with_gemini(
                 continue
 
             failed_auth = False
+            candidate_models = get_active_gemini_models(client)[:2]
             for model_name in candidate_models:
-                if time.time() - sync_start > 65:
+                if time.time() - sync_start > 30:
                     break
                 try:
                     start_model_ts = time.time()
@@ -5192,33 +5194,13 @@ async def evaluate_with_gemini(
             if failed_auth:
                 continue
 
-            # If static/cached candidates failed, force a live model refresh from client.models.list()
-            for model_name in get_active_gemini_models(client, force_refresh=True):
-                if model_name in candidate_models:
-                    continue
-                try:
-                    start_model_ts = time.time()
-                    response = client.models.generate_content(
-                        model=model_name,
-                        contents=[prompt] + processed_imgs,
-                        config=config
-                    )
-                    if response and response.text:
-                        parsed_dict = parse_llm_json_response(response.text)
-                        if isinstance(parsed_dict, dict) and len(parsed_dict) > 0:
-                            call_dur = time.time() - start_model_ts
-                            record_gemini_model_outcome(model_name, True, latency=call_dur)
-                            return parsed_dict
-                except Exception as e2:
-                    record_gemini_model_outcome(model_name, False, str(e2))
-
         return None
 
     async with _GEMINI_EVAL_SEMAPHORE:
         data = await asyncio.to_thread(_sync_call)
 
     if not data or not isinstance(data, dict):
-        return build_resilient_fallback_evaluation(question, detected_paper, max_marks)
+        return None
 
     if "directive_compliance" in data and not data["directive_compliance"].get("directive"):
         data["directive_compliance"]["directive"] = directive_info["directive"]
@@ -5521,9 +5503,9 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
 
 def create_fast_gemini_client(api_key: str) -> Any:
-    """Creates a genai.Client with a 32-second timeout so full 20,000-character handwritten vision evaluation completes reliably without exceeding reverse-proxy limits."""
+    """Creates a genai.Client with a 22-second timeout so full handwritten vision evaluation completes quickly without lag."""
     try:
-        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=32000))
+        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=22000))
     except Exception:
         return genai.Client(api_key=api_key)
 
