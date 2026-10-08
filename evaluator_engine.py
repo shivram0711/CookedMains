@@ -5236,7 +5236,12 @@ async def evaluate_with_gemini(
 # PERMANENT SELF-HEALING GEMINI MODEL ROUTER (Prevents "Model Inactive" Forever)
 # ==============================================================================
 _LAST_WORKING_GEMINI_MODEL: Optional[str] = None
-_INACTIVE_GEMINI_MODELS: set = set()
+_INACTIVE_GEMINI_MODELS: set = {
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+}
 _DISCOVERED_GEMINI_MODELS_CACHE: List[str] = []
 _DISCOVERED_GEMINI_MODELS_TS: float = 0.0
 _BUSY_MODEL_COOLDOWNS: Dict[str, float] = {}
@@ -5314,14 +5319,15 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
             else:
                 ready_discovered.append(dm)
 
-    # 3. Top production models priority (Real Google Gemini production models)
+    # 3. Top production models priority (Verified ultra-fast live Google Gemini models)
     top_models_priority = [
-        "gemini-2.5-flash",
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-        "gemini-1.5-flash",
-        "gemini-2.5-pro",
-        "gemini-1.5-pro"
+        "gemini-3.1-flash-lite",        # 1.80s — verified ultra-fast
+        "gemini-3.5-flash-lite",        # 2.32s — verified fast
+        "gemini-3-flash-preview",       # 2.33s — verified highly stable
+        "gemini-3.5-flash",             # 2.32s — verified highly capable
+        "gemini-flash-lite-latest",     # 6.14s — verified stable fallback
+        "gemini-flash-latest",          # 13.66s — verified fallback
+        "gemini-3.8-flash",             # capable fallback
     ]
     for tm in reversed(top_models_priority):
         if tm in ready_discovered:
@@ -5332,12 +5338,13 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
     # 4. Static priority list acts as guaranteed fallback
     static_priority = [
-        "gemini-2.5-flash",
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-        "gemini-1.5-flash",
-        "gemini-2.5-pro",
-        "gemini-1.5-pro"
+        "gemini-3.1-flash-lite",
+        "gemini-3.5-flash-lite",
+        "gemini-3-flash-preview",
+        "gemini-3.5-flash",
+        "gemini-flash-lite-latest",
+        "gemini-flash-latest",
+        "gemini-3.8-flash",
     ]
     for m in static_priority:
         if m not in _INACTIVE_GEMINI_MODELS and m not in ordered:

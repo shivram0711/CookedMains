@@ -214,6 +214,58 @@ async def trigger_supabase_keepalive():
     res = await asyncio.to_thread(_execute_supabase_activity_ping)
     return {"status": "ok", "supabase_keepalive": res}
 
+@app.get("/api/admin/model-health")
+async def get_model_health():
+    """Live diagnostic endpoint for administrator to verify Gemini API keys, active models, and real response latency."""
+    keys = get_active_gemini_keys()
+    if not keys:
+        return {
+            "status": "warning",
+            "api_working": False,
+            "message": "No Gemini API keys detected in the server environment. Please configure GEMINI_API_KEY on Render.",
+            "keys_detected_count": 0,
+            "models_priority": get_active_gemini_models()
+        }
+
+    from evaluator_engine import create_fast_gemini_client, get_active_gemini_models, record_gemini_model_outcome
+    test_models = get_active_gemini_models()[:3]
+    test_results = []
+    overall_working = False
+    active_champion = None
+
+    for m in test_models:
+        t0 = time.time()
+        try:
+            client = create_fast_gemini_client(keys[0])
+            resp = client.models.generate_content(
+                model=m,
+                contents="Ping. Respond with one word: OK"
+            )
+            lat = round(time.time() - t0, 2)
+            if resp and resp.text:
+                overall_working = True
+                active_champion = m
+                record_gemini_model_outcome(m, True)
+                test_results.append({"model": m, "status": "active", "latency_seconds": lat, "response": resp.text.strip()[:20]})
+                break
+        except Exception as e:
+            lat = round(time.time() - t0, 2)
+            err_msg = str(e)
+            record_gemini_model_outcome(m, False, err_msg)
+            test_results.append({"model": m, "status": "failed", "latency_seconds": lat, "error": err_msg[:120]})
+
+    masked_keys = [f"{k[:6]}...{k[-4:]}" if len(k) > 10 else "***" for k in keys]
+
+    return {
+        "status": "healthy" if overall_working else "issues_detected",
+        "api_working": overall_working,
+        "active_keys_count": len(keys),
+        "keys_configured": masked_keys,
+        "champion_model": active_champion,
+        "models_priority": get_active_gemini_models(),
+        "live_test": test_results
+    }
+
 @app.api_route("/", methods=["GET", "HEAD"])
 @app.api_route("/index.html", methods=["GET", "HEAD"])
 async def root():
