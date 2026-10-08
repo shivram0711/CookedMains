@@ -2158,21 +2158,25 @@ async def evaluate_answer(
 
                 contents_payload = (multimodal_parts + [evaluator_prompt_text]) if multimodal_parts else [evaluator_prompt_text]
                 eval_loop_start = time.time()
+                print(f"[EVALUATOR] Starting evaluation with {len(keys_to_try)} keys, {len(multimodal_parts)} uploaded pages.")
 
-                for current_key in keys_to_try:
-                    if time.time() - eval_loop_start > 50:
+                for key_idx, current_key in enumerate(keys_to_try):
+                    if time.time() - eval_loop_start > 80:
+                        print(f"[EVALUATOR] Overall evaluation timeout reached (80s). Halting loop.")
                         break
                     try:
                         client = create_fast_gemini_client(current_key)
-                    except Exception:
+                    except Exception as ce:
+                        print(f"[EVALUATOR] Client creation failed for key {key_idx+1}: {ce}")
                         continue
 
                     failed_key = False
-                    candidate_models = get_active_gemini_models(client)[:4]
+                    candidate_models = get_active_gemini_models(client)[:3]
                     for model_candidate in candidate_models:
-                        if time.time() - eval_loop_start > 50:
+                        if time.time() - eval_loop_start > 80:
                             break
                         try:
+                            print(f"[EVALUATOR] Calling model '{model_candidate}' with key {key_idx+1}/{len(keys_to_try)} (elapsed: {round(time.time() - eval_loop_start, 1)}s)...")
                             response = client.models.generate_content(
                                 model=model_candidate,
                                 contents=contents_payload,
@@ -2182,6 +2186,7 @@ async def evaluate_answer(
                                 raw_text = response.text
                                 parsed_eval = parse_llm_json_response(raw_text)
                                 if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
+                                    print(f"[EVALUATOR SUCCESS] Model '{model_candidate}' generated evaluation in {round(time.time() - eval_loop_start, 1)}s! Score: {parsed_eval.get('overall_score')}")
                                     record_gemini_model_outcome(model_candidate, True)
                                     if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
                                         parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
@@ -2189,6 +2194,7 @@ async def evaluate_answer(
                                     break
                         except Exception as ge:
                             err_s = str(ge)
+                            print(f"[EVALUATOR ERROR] Model '{model_candidate}' with key {key_idx+1} failed: {err_s[:150]}")
                             record_gemini_model_outcome(model_candidate, False, err_s)
                             if any(t in err_s.lower() for t in [
                                 "api_key_invalid", "api key not valid", "unauthenticated",

@@ -5362,9 +5362,9 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
 
 def create_fast_gemini_client(api_key: str) -> Any:
-    """Creates a genai.Client with a 25-second timeout so single model calls do not hang indefinitely."""
+    """Creates a genai.Client with a 60-second timeout so full vision evaluation across multiple handwritten pages completes reliably without premature cutoff."""
     try:
-        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=25000))
+        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=60000))
     except Exception:
         return genai.Client(api_key=api_key)
 
