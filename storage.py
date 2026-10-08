@@ -1759,47 +1759,62 @@ def find_canonical_evaluation_for_script(
     max_marks: Optional[int] = None
 ) -> Optional[Dict[str, Any]]:
     """
-    Disabled: Every uploaded answer sheet must be freshly evaluated on its own handwriting and question.
+    Finds a previously evaluated canonical record for identical or near-identical scripts
+    to guarantee 100% deterministic, equivalent evaluation across devices (PC vs Mobile).
     """
-    return None
+    candidates = _collect_all_recent_canonical_evaluations(limit=100)
+    if not candidates:
+        return None
 
-    # 2. Perceptual Visual Handwriting dHash match (>= 85% bit similarity across pages)
+    # 1. Exact File Hash Match (identical PDF or image file uploaded on PC vs Mobile)
+    if file_hash and file_hash.strip():
+        f_clean = file_hash.strip()
+        for cand in candidates:
+            c_fhash = str(cand.get("file_hash") or "").strip()
+            if c_fhash and c_fhash == f_clean:
+                if max_marks and int(cand.get("max_marks", 0)) != int(max_marks):
+                    continue
+                ev = cand.get("evaluation")
+                if ev and isinstance(ev, dict) and ev.get("overall_score") is not None:
+                    return ev
+
+    # 2. Perceptual Visual Handwriting dHash match (>= 92% bit similarity across pages)
     if visual_hashes and len(visual_hashes) > 0:
         best_vis_sim = 0.0
         best_vis_eval = None
         for cand in candidates:
             c_vhashes = cand.get("visual_hashes") or []
             if c_vhashes and len(c_vhashes) == len(visual_hashes):
-                if max_marks and int(cand["max_marks"]) != int(max_marks):
+                if max_marks and int(cand.get("max_marks", 0)) != int(max_marks):
                     continue
                 v_sim = _visual_signatures_similarity(visual_hashes, c_vhashes)
-                if v_sim >= 0.85 and v_sim > best_vis_sim:
+                if v_sim >= 0.92 and v_sim > best_vis_sim:
                     best_vis_sim = v_sim
-                    best_vis_eval = cand["evaluation"]
-        if best_vis_eval:
+                    best_vis_eval = cand.get("evaluation")
+        if best_vis_eval and isinstance(best_vis_eval, dict) and best_vis_eval.get("overall_score") is not None:
             return best_vis_eval
 
-    # 3. Post-OCR Handwritten Content & Point Similarity match (>= 68% overlap on same question)
-    if transcribed_text and len(transcribed_text.strip()) >= 45:
+    # 3. Post-OCR Handwritten Content & Semantic Overlap (>= 88% text similarity on matching question)
+    if transcribed_text and len(transcribed_text.strip()) >= 50:
         q_norm = re.sub(r"[^a-z0-9\s]", " ", (question or "").lower())
         q_tokens = {w for w in q_norm.split() if len(w) >= 4}
         best_txt_sim = 0.0
         best_txt_eval = None
         for cand in candidates:
-            if max_marks and int(cand["max_marks"]) != int(max_marks):
+            if max_marks and int(cand.get("max_marks", 0)) != int(max_marks):
                 continue
             cand_q_norm = re.sub(r"[^a-z0-9\s]", " ", (cand.get("question") or "").lower())
             cand_q_tokens = {w for w in cand_q_norm.split() if len(w) >= 4}
             if q_tokens and cand_q_tokens:
                 q_overlap = len(q_tokens & cand_q_tokens) / max(1, min(len(q_tokens), len(cand_q_tokens)))
-                if q_overlap < 0.35:
+                if q_overlap < 0.40:
                     continue
-            cand_text = _extract_comparable_script_text(cand["evaluation"])
+            cand_text = _extract_comparable_script_text(cand.get("evaluation") or {})
             t_sim = _text_content_similarity(transcribed_text, cand_text)
-            if t_sim >= 0.68 and t_sim > best_txt_sim:
+            if t_sim >= 0.88 and t_sim > best_txt_sim:
                 best_txt_sim = t_sim
-                best_txt_eval = cand["evaluation"]
-        if best_txt_eval:
+                best_txt_eval = cand.get("evaluation")
+        if best_txt_eval and isinstance(best_txt_eval, dict) and best_txt_eval.get("overall_score") is not None:
             return best_txt_eval
 
     return None

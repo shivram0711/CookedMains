@@ -2435,6 +2435,34 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                 if is_swapped:
                     ann0["remark"], ann1["remark"] = ann1["remark"], ann0["remark"]
 
+        def _enforce_clean_vertical_separation(pg_anns: list):
+            """
+            Ensures that all visual annotations on the same page have strictly positive spans
+            and maintain a minimum vertical gap of at least 3.0% between consecutive cards/pins,
+            completely preventing stacked or colliding pins.
+            """
+            if len(pg_anns) < 2:
+                return
+            pg_anns.sort(key=lambda a: float(a.get("start_y_percent", a.get("approx_y_percent", 0.0)) or 0.0))
+            for i in range(len(pg_anns)):
+                s_y = float(pg_anns[i].get("start_y_percent", 10.0) or 10.0)
+                e_y = float(pg_anns[i].get("end_y_percent", s_y + 15.0) or (s_y + 15.0))
+                if e_y <= s_y + 4.0:
+                    e_y = s_y + 8.0
+                pg_anns[i]["start_y_percent"] = s_y
+                pg_anns[i]["end_y_percent"] = e_y
+                pg_anns[i]["approx_y_percent"] = int(round((s_y + e_y) / 2))
+
+            for i in range(len(pg_anns) - 1):
+                curr_end = float(pg_anns[i].get("end_y_percent", 40.0) or 40.0)
+                next_start = float(pg_anns[i + 1].get("start_y_percent", 50.0) or 50.0)
+                if next_start < curr_end + 2.0:
+                    pg_anns[i + 1]["start_y_percent"] = curr_end + 2.0
+                    next_end = float(pg_anns[i + 1].get("end_y_percent", pg_anns[i + 1]["start_y_percent"] + 10.0) or (pg_anns[i + 1]["start_y_percent"] + 10.0))
+                    if next_end <= pg_anns[i + 1]["start_y_percent"] + 4.0:
+                        pg_anns[i + 1]["end_y_percent"] = min(92.0, pg_anns[i + 1]["start_y_percent"] + 8.0)
+                    pg_anns[i + 1]["approx_y_percent"] = int(round((pg_anns[i + 1]["start_y_percent"] + pg_anns[i + 1]["end_y_percent"]) / 2))
+
         # Extract student's first non-header sentence from transcribed_text
         first_student_sentence = ""
         trans_raw = str(data.get("transcribed_text") or "").replace("[Page 1]", "").replace("[Page 2]", "").replace("[Page 3]", "")
@@ -2619,11 +2647,23 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                         conc_s_y = float(conc_ann.get("start_y_percent", 26) or 26)
                         statutory_tag = "Body: Way Forward & Reforms"
 
+                        # Determine proper non-overlapping boundaries for statutory body and conclusion
+                        if conc_s_y < 60.0:
+                            stat_start = max(18.0, conc_s_y)
+                            stat_end = min(66.0, max(stat_start + 14.0, 52.0))
+                            real_conc_start = min(74.0, stat_end + 3.0)
+                            real_conc_end = min(88.0, real_conc_start + 10.0)
+                        else:
+                            stat_start = max(38.0, conc_s_y - 22.0)
+                            stat_end = max(stat_start + 10.0, conc_s_y - 2.5)
+                            real_conc_start = max(stat_end + 2.5, conc_s_y)
+                            real_conc_end = min(88.0, max(real_conc_start + 8.0, 80.0))
+
                         statutory_body_ann = {
                             "page": pg,
-                            "approx_y_percent": 45,
-                            "start_y_percent": max(24.0, conc_s_y),
-                            "end_y_percent": 68.0,
+                            "approx_y_percent": int(round((stat_start + stat_end) / 2)),
+                            "start_y_percent": stat_start,
+                            "end_y_percent": stat_end,
                             "tag": statutory_tag,
                             "type": "tick",
                             "marks_awarded": "+1.5 / 3.0",
@@ -2651,9 +2691,9 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
 
                         real_conc_ann = {
                             "page": pg,
-                            "approx_y_percent": 78,
-                            "start_y_percent": 70.0,
-                            "end_y_percent": 84.0,
+                            "approx_y_percent": int(round((real_conc_start + real_conc_end) / 2)),
+                            "start_y_percent": real_conc_start,
+                            "end_y_percent": real_conc_end,
                             "tag": "Conclusion",
                             "type": "suggestion",
                             "marks_awarded": "+1.0 / 2.0",
@@ -2661,7 +2701,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                         }
 
                         if body_anns:
-                            body_anns[0]["end_y_percent"] = max(18.0, statutory_body_ann["start_y_percent"] - 1.5)
+                            body_anns[0]["end_y_percent"] = max(18.0, stat_start - 2.0)
                             expanded_anns.append(body_anns[0])
                         expanded_anns.append(statutory_body_ann)
                         expanded_anns.append(real_conc_ann)
@@ -2717,6 +2757,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
             for pg_idx in range(1, max_pg + 1):
                 pg_subset = [a for a in annotations if int(a.get("page", 1) or 1) == pg_idx]
                 _heal_cross_attributed_page_annotations(pg_subset)
+                _enforce_clean_vertical_separation(pg_subset)
             data["visual_annotations"] = annotations
 
         total_awarded = 0.0

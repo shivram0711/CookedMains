@@ -6338,12 +6338,20 @@ function renderAnnotationsOverlay() {
 
           const splitRems = buildDynamicSplitRemarks();
 
-          const s1Start = (rawBodyAnns[0] && rawBodyAnns[0].start_y_percent) ? Number(rawBodyAnns[0].start_y_percent) : 14;
-          const s1End = (rawBodyAnns[0] && rawBodyAnns[0].end_y_percent) ? Number(rawBodyAnns[0].end_y_percent) : 38;
-          const s2Start = (rawBodyAnns[1] && rawBodyAnns[1].start_y_percent) ? Number(rawBodyAnns[1].start_y_percent) : (s1End + 2);
-          const s2End = (rawBodyAnns[1] && rawBodyAnns[1].end_y_percent) ? Number(rawBodyAnns[1].end_y_percent) : 68;
-          const concStart = (rawConc && rawConc.start_y_percent && Number(rawConc.start_y_percent) >= 65) ? Number(rawConc.start_y_percent) : Math.max(70, s2End + 2);
-          const concEnd = (rawConc && rawConc.end_y_percent) ? Number(rawConc.end_y_percent) : 84;
+          let s1Start = (rawBodyAnns[0] && rawBodyAnns[0].start_y_percent) ? Number(rawBodyAnns[0].start_y_percent) : 12;
+          s1Start = Math.max(6.0, Math.min(28.0, s1Start));
+          let s1End = (rawBodyAnns[0] && rawBodyAnns[0].end_y_percent) ? Number(rawBodyAnns[0].end_y_percent) : 38;
+          s1End = Math.max(s1Start + 10.0, Math.min(46.0, s1End));
+
+          let s2Start = (rawBodyAnns[1] && rawBodyAnns[1].start_y_percent) ? Number(rawBodyAnns[1].start_y_percent) : (s1End + 2);
+          s2Start = Math.max(s1End + 2.0, Math.min(62.0, s2Start));
+          let s2End = (rawBodyAnns[1] && rawBodyAnns[1].end_y_percent) ? Number(rawBodyAnns[1].end_y_percent) : 68;
+          s2End = Math.max(s2Start + 10.0, Math.min(72.0, s2End));
+
+          let concStart = (rawConc && rawConc.start_y_percent) ? Number(rawConc.start_y_percent) : (s2End + 2);
+          concStart = Math.max(s2End + 2.0, Math.min(78.0, Math.max(72.0, concStart)));
+          let concEnd = (rawConc && rawConc.end_y_percent) ? Number(rawConc.end_y_percent) : (concStart + 12);
+          concEnd = Math.max(concStart + 6.0, Math.min(90.0, concEnd));
 
           outSections.push({
             zone: "body",
@@ -6951,11 +6959,35 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
     window._currentMobileGutterIndex = 0;
 
     const N = sections.length;
+    // Step 1: Initial raw vertical centers
     sections.forEach((sec, idx) => {
       const clampedStart = Math.max(5.0, Math.min(88.0, sec.startYPercent || (10.0 + idx * (80.0 / Math.max(1, N)))));
       const clampedEnd = Math.max(clampedStart + 8.0, Math.min(94.0, sec.endYPercent || (clampedStart + 18.0)));
-      sec._yPct = Math.round((clampedStart + clampedEnd) / 2);
+      sec._yPct = (clampedStart + clampedEnd) / 2;
+    });
 
+    // Step 2: Strict Anti-Collision & Vertical Relaxation Pass
+    // Ensures adjacent pins maintain at least 6.5% vertical clearance (~36-40px), preventing bubble collisions
+    const MIN_PIN_GAP = 6.5;
+    for (let i = 1; i < sections.length; i++) {
+      if (sections[i]._yPct < sections[i - 1]._yPct + MIN_PIN_GAP) {
+        sections[i]._yPct = sections[i - 1]._yPct + MIN_PIN_GAP;
+      }
+    }
+    if (sections.length > 0 && sections[sections.length - 1]._yPct > 91.0) {
+      sections[sections.length - 1]._yPct = 91.0;
+      for (let i = sections.length - 2; i >= 0; i--) {
+        if (sections[i]._yPct > sections[i + 1]._yPct - MIN_PIN_GAP) {
+          sections[i]._yPct = sections[i + 1]._yPct - MIN_PIN_GAP;
+        }
+      }
+    }
+    sections.forEach(sec => {
+      sec._yPct = Math.max(8.0, Math.min(92.0, Math.round(sec._yPct * 10) / 10));
+    });
+
+    // Step 3: Render non-overlapping pins
+    sections.forEach((sec, idx) => {
       // Determine score label to display in the pin (e.g. "+1.5", "+1", "+0.5", "0.0")
       let pinText = sec.icon || "✓";
       const mMatch = String(sec.marks || "").match(/\+?(\d+(?:\.\d+)?)/);
