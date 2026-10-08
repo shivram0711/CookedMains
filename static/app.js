@@ -1556,6 +1556,92 @@ window.cancelRewriteMode = function() {
   alert("Re-evaluation cancelled. Your original evaluated copy has been preserved.");
 };
 
+// Global helper: Clear selected marks, subject/paper, and uploaded answersheet section (Image 2 Reset)
+window.clearPaperMarksAndAnswersheet = function(openFilePicker = false) {
+  // 1. Clear selected marks
+  state.marks = null;
+  const marksBtns = document.querySelectorAll(".marks-btn");
+  if (marksBtns) {
+    marksBtns.forEach(b => {
+      b.classList.remove("active", "border-amber-500", "bg-amber-500/10", "text-amber-600", "dark:text-amber-400", "shadow-sm");
+      b.classList.add("border-slate-200", "dark:border-slate-700", "bg-slate-50", "dark:bg-slate-800/60", "text-slate-700", "dark:text-slate-300");
+    });
+  }
+  const step2Badge = document.getElementById("step2Badge");
+  if (step2Badge) {
+    step2Badge.textContent = "Select Marks";
+    step2Badge.className = "text-[11px] font-medium text-slate-500 dark:text-slate-400";
+  }
+
+  // 2. Clear selected subject / paper
+  state.selectedPaperTab = null;
+  state.paper = null;
+  const paperTabs = document.querySelectorAll(".paper-tab");
+  if (paperTabs) {
+    paperTabs.forEach(t => {
+      t.classList.remove("active", "bg-white", "dark:bg-slate-900", "text-amber-600", "dark:text-amber-400", "shadow-sm", "border", "border-slate-200/80", "dark:border-slate-700");
+      t.classList.add("text-slate-600", "dark:text-slate-400");
+    });
+  }
+  const step1Badge = document.getElementById("step1Badge");
+  if (step1Badge) {
+    step1Badge.textContent = "Select Paper";
+    step1Badge.className = "text-[11px] font-medium text-slate-500 dark:text-slate-400";
+  }
+
+  // 3. Clear uploaded answersheet section
+  state.uploadedFiles = [];
+  state.activePages = [];
+  state.currentPageIndex = 0;
+  state.currentEvaluation = null;
+  state.activeSampleId = null;
+  state.isRewriteMode = false;
+
+  const previewStrip = document.getElementById("previewStrip");
+  if (previewStrip) {
+    previewStrip.innerHTML = "";
+    previewStrip.classList.add("hidden");
+  }
+
+  const pInput = document.getElementById("pdfFileInput");
+  const gInput = document.getElementById("galleryFileInput");
+  const cInput = document.getElementById("cameraFileInput");
+  const fInput = document.getElementById("fileInput");
+  const mInput = document.getElementById("modalRewriteFileInput");
+  if (pInput) pInput.value = "";
+  if (gInput) gInput.value = "";
+  if (cInput) cInput.value = "";
+  if (fInput) fInput.value = "";
+  if (mInput) mInput.value = "";
+
+  if (typeof setAnswersheetLockedState === "function") {
+    setAnswersheetLockedState(false);
+  }
+  if (typeof updateViewer === "function") {
+    updateViewer();
+  }
+  if (typeof updateStepProgression === "function") {
+    updateStepProgression();
+  }
+
+  window.switchStudioState("intake");
+
+  const intakeDeck = document.getElementById("intakeDeck");
+  if (intakeDeck) {
+    intakeDeck.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  if (openFilePicker) {
+    setTimeout(() => {
+      const fi = document.getElementById("pdfFileInput") || document.getElementById("fileInput");
+      if (fi) {
+        fi.value = "";
+        fi.click();
+      }
+    }, 200);
+  }
+};
+
 window.showGuardModal = function(data) {
   const modal = document.getElementById("guardAlertModal");
   if (!modal) {
@@ -1663,22 +1749,7 @@ window.showGuardModal = function(data) {
       `;
       reuploadBtn.onclick = () => {
         window.closeGuardModal();
-        if (state.isRewriteMode) {
-          window.openRewriteModal();
-          const mfi = document.getElementById("modalRewriteFileInput");
-          if (mfi) {
-            mfi.value = "";
-            setTimeout(() => mfi.click(), 100);
-          }
-        } else {
-          const fi = document.getElementById("fileInput");
-          if (fi) {
-            fi.value = "";
-            setTimeout(() => fi.click(), 100);
-          }
-          const dropEl = document.getElementById("dropzoneContainer");
-          if (dropEl) dropEl.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
+        window.clearPaperMarksAndAnswersheet(true);
       };
     } else {
       reuploadBtn.innerHTML = `
@@ -1687,12 +1758,7 @@ window.showGuardModal = function(data) {
       `;
       reuploadBtn.onclick = () => {
         window.closeGuardModal();
-        window.openRewriteModal();
-        const mfi = document.getElementById("modalRewriteFileInput");
-        if (mfi) {
-          mfi.value = "";
-          setTimeout(() => mfi.click(), 100);
-        }
+        window.clearPaperMarksAndAnswersheet(true);
       };
     }
   }
@@ -1707,9 +1773,7 @@ window.showGuardModal = function(data) {
       `;
       exitBtn.onclick = () => {
         window.closeGuardModal();
-        window.cancelUploadedAnswersheet();
-        const dropEl = document.getElementById("dropzoneContainer");
-        if (dropEl) dropEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        window.clearPaperMarksAndAnswersheet(true);
       };
     } else if (data.error_type === "blank_sheet" && !state.isRewriteMode) {
       exitBtn.classList.add("hidden");
@@ -1721,9 +1785,7 @@ window.showGuardModal = function(data) {
       `;
       exitBtn.onclick = () => {
         window.closeGuardModal();
-        window.cancelRewriteMode();
-        window.switchStudioState("intake");
-        if (typeof flashStep === "function") flashStep("step3Wrapper", "Ready for standard evaluation!");
+        window.clearPaperMarksAndAnswersheet(false);
       };
     }
   }
@@ -1744,6 +1806,7 @@ window.showGuardModal = function(data) {
     }
     cancelBtn.onclick = () => {
       window.closeGuardModal();
+      window.clearPaperMarksAndAnswersheet(false);
     };
   }
 
@@ -1751,6 +1814,7 @@ window.showGuardModal = function(data) {
   if (closeBtn) {
     closeBtn.onclick = () => {
       window.closeGuardModal();
+      window.clearPaperMarksAndAnswersheet(false);
     };
   }
 
@@ -7773,30 +7837,55 @@ window.runEvaluation = async function(allowAutoAligned = false) {
     question = "Extract question printed on booklet header";
   }
 
-  // If no files uploaded, auto-load topper sample answer copy and open the Evaluation Studio
-  if (state.uploadedFiles.length === 0) {
-    window.loadSampleAnswerCopy();
+  // 1. Step 1 Validation: Paper / Subject
+  if (!state.selectedPaperTab) {
+    if (typeof flashStep === "function") flashStep("step1Wrapper", "⚠ Select Subject First!");
+    const step1 = document.getElementById("step1Wrapper");
+    if (step1) step1.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (typeof window.showAppToast === "function") {
+      window.showAppToast("⚠️ Please complete Step 1: Select Paper / Subject first.", 3500);
+    } else {
+      alert("Please complete Step 1: Select Paper / Subject first.");
+    }
     return;
   }
 
-  // Check if we are running the preloaded sample without upload
-  if (state.activeSampleId && state.uploadedFiles.length === 0) {
-    const sample = state.samples.find(s => s.id === state.activeSampleId);
+  // 2. Step 2 Validation: Marks Weightage
+  if (!state.marks && state.selectedPaperTab !== "Essay") {
+    if (typeof flashStep === "function") flashStep("step2Wrapper", "⚠ Select Marks First!");
+    const step2 = document.getElementById("step2Wrapper");
+    if (step2) step2.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (typeof window.showAppToast === "function") {
+      window.showAppToast("⚠️ Please complete Step 2: Select Marks Weightage (10, 15, or 20 Marks) first.", 3500);
+    } else {
+      alert("Please complete Step 2: Select Marks Weightage (10, 15, or 20 Marks) first.");
+    }
+    return;
+  }
+
+  // 3. Step 3 Validation: Mandatory Handwritten Answersheet Upload Check
+  const hasUploadedFiles = Array.isArray(state.uploadedFiles) && state.uploadedFiles.length > 0;
+  const hasActivePages = Array.isArray(state.activePages) && state.activePages.length > 0;
+  if (!hasUploadedFiles && !hasActivePages) {
+    if (typeof flashStep === "function") {
+      flashStep("step3Wrapper", "⚠ Upload Answer Sheet First!");
+    }
+    const dropzone = document.getElementById("dropzoneContainer") || document.getElementById("step3Wrapper");
+    if (dropzone) {
+      dropzone.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    if (typeof window.showAppToast === "function") {
+      window.showAppToast("⚠️ Please upload your handwritten answer sheet (PDF or images) before evaluating.", 4500);
+    } else {
+      alert("Please upload your handwritten answer sheet (PDF or images) before evaluating.");
+    }
+    return;
+  }
+
+  // Check if running preloaded demo sample (only if user explicitly activated demo sample and has no uploaded files)
+  if (state.activeSampleId && (!state.uploadedFiles || state.uploadedFiles.length === 0)) {
+    const sample = (state.samples || []).find(s => s.id === state.activeSampleId);
     if (sample) {
-      if (state.isRewriteMode && state.previousEvaluation) {
-        const upgraded = JSON.parse(JSON.stringify(sample.precomputed_evaluation));
-        const maxM = upgraded.max_marks || (state.marks || 10);
-        upgraded.overall_score = Math.min(maxM, Math.round(((upgraded.overall_score || 4.5) + 1.5) * 2) / 2);
-        upgraded.is_rewrite = true;
-        upgraded.previous_evaluation = state.previousEvaluation;
-        if (upgraded.rubric_scores) {
-          upgraded.rubric_scores.core_demand_score = Math.round(((upgraded.rubric_scores.core_demand_score || 2.0) + 1.0) * 2) / 2;
-          upgraded.rubric_scores.value_add_score = Math.round(((upgraded.rubric_scores.value_add_score || 0.5) + 0.5) * 2) / 2;
-        }
-        renderEvaluation(upgraded);
-        window.cancelRewriteMode();
-        return;
-      }
       renderEvaluation(sample.precomputed_evaluation);
       window.switchStudioState("studio");
       return;
@@ -7808,18 +7897,6 @@ window.runEvaluation = async function(allowAutoAligned = false) {
     keyModal.classList.remove("hidden");
     keyModal.classList.add("flex");
     alert("Please set a Master Gemini API Key in Admin Settings to enable live evaluation for students, or click 'Try with Topper Sample Copy' for the demo.");
-    return;
-  }
-
-  if (!state.selectedPaperTab) {
-    flashStep("step1Wrapper", "⚠ Select Subject First!");
-    alert("Please complete Step 1: Select Paper / Subject first.");
-    return;
-  }
-
-  if (!state.marks && state.selectedPaperTab !== "Essay") {
-    flashStep("step2Wrapper", "⚠ Select Marks First!");
-    alert("Please complete Step 2: Select Marks Weightage (10, 15, or 20 Marks) first.");
     return;
   }
 
