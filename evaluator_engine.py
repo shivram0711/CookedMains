@@ -5153,7 +5153,7 @@ async def evaluate_with_gemini(
         )
 
         sync_start = time.time()
-        for current_key in keys_to_try[:2]:
+        for current_key in keys_to_try[:4]:
             if time.time() - sync_start > 48:
                 break
             try:
@@ -5162,7 +5162,7 @@ async def evaluate_with_gemini(
                 continue
 
             failed_auth = False
-            candidate_models = get_active_gemini_models(client)[:2]
+            candidate_models = get_active_gemini_models(client)[:3]
             for model_name in candidate_models:
                 if time.time() - sync_start > 48:
                     break
@@ -5401,14 +5401,12 @@ def record_gemini_model_outcome(
         "high demand", "resource_exhausted", "quota", "429", "read operation timed out",
         "connection timed out", "connection reset", "socket"
     ]):
-        # Place on 15-minute cooldown (900s) so NO OTHER USER REQUEST freezes on this model
-        cooldown_seconds = 900
+        # Place on 40-second temporary cooldown so concurrent requests try backup models during spikes
+        cooldown_seconds = 40
         _BUSY_MODEL_COOLDOWNS[clean_name] = now_ts + cooldown_seconds
         if _LAST_WORKING_GEMINI_MODEL == clean_name:
             _LAST_WORKING_GEMINI_MODEL = None
-        # Heavily penalize recorded latency so it drops down priority after cooldown
-        _MODEL_LATENCIES[clean_name] = max(_MODEL_LATENCIES.get(clean_name, 20.0), 38.0)
-        print(f"[MODEL ROUTER] Circuit Breaker: Model '{clean_name}' cooled down for 15m. Reason: {error_str[:120]}")
+        print(f"[MODEL ROUTER] Circuit Breaker: Model '{clean_name}' cooled down for 40s. Reason: {error_str[:120]}")
 
     _save_model_health_state()
 
