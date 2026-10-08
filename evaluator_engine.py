@@ -5307,9 +5307,12 @@ def record_gemini_model_outcome(model_name: str, success: bool, error_str: str =
         if _LAST_WORKING_GEMINI_MODEL == clean_name:
             _LAST_WORKING_GEMINI_MODEL = None
         _DISCOVERED_GEMINI_MODELS_TS = 0.0
-    elif any(tok in err_low for tok in ["503", "unavailable", "high demand"]):
-        # Cool down busy/congested model for 30 seconds so subsequent evaluations try other models
-        _BUSY_MODEL_COOLDOWNS[clean_name] = time.time() + 30
+    elif any(tok in err_low for tok in [
+        "503", "unavailable", "high demand", "overloaded",
+        "429", "resource_exhausted", "quota", "rate limit", "too many requests"
+    ]):
+        # Model is experiencing high traffic/load: rotate to alternative active models seamlessly without stalling
+        _BUSY_MODEL_COOLDOWNS[clean_name] = time.time() + 45
         if _LAST_WORKING_GEMINI_MODEL == clean_name:
             _LAST_WORKING_GEMINI_MODEL = None
 
@@ -5361,15 +5364,15 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
             else:
                 ready_discovered.append(dm)
 
-    # 3. Top production models priority (Verified ultra-fast live Google Gemini models)
+    # 3. Top production models priority (Verified live Google Gemini models with primary + instant rotation fallbacks)
     top_models_priority = [
-        "gemini-3.1-flash-lite",        # 1.80s — verified ultra-fast
-        "gemini-3.5-flash-lite",        # 2.32s — verified fast
-        "gemini-3-flash-preview",       # 2.33s — verified highly stable
-        "gemini-3.5-flash",             # 2.32s — verified highly capable
-        "gemini-flash-lite-latest",     # 6.14s — verified stable fallback
-        "gemini-flash-latest",          # 13.66s — verified fallback
-        "gemini-3.8-flash",             # capable fallback
+        "gemini-3.1-flash-lite",        # Primary evaluation model
+        "gemini-3.5-flash-lite",        # Instant active rotation fallback (verified ~2s)
+        "gemini-flash-lite-latest",     # Instant active rotation fallback (verified ~1s)
+        "gemini-3.6-flash",             # High-capacity active fallback
+        "gemini-3.7-flash",             # High-capacity active fallback
+        "gemini-flash-latest",          # Active fallback
+        "gemini-3.8-flash",             # High-capacity active fallback
     ]
     for tm in reversed(top_models_priority):
         if tm in ready_discovered:
@@ -5382,9 +5385,9 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
     static_priority = [
         "gemini-3.1-flash-lite",
         "gemini-3.5-flash-lite",
-        "gemini-3-flash-preview",
-        "gemini-3.5-flash",
         "gemini-flash-lite-latest",
+        "gemini-3.6-flash",
+        "gemini-3.7-flash",
         "gemini-flash-latest",
         "gemini-3.8-flash",
     ]
