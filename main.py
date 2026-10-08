@@ -2160,6 +2160,10 @@ async def evaluate_answer(
                 eval_loop_start = time.time()
                 print(f"[EVALUATOR] Starting evaluation with {len(keys_to_try)} keys, {len(multimodal_parts)} uploaded pages.")
 
+                # Directly evaluate with the single best, completely active champion model without multi-model hopping
+                active_models = get_active_gemini_models()
+                champion_model = active_models[0] if active_models else "gemini-3.5-flash-lite"
+
                 for key_idx, current_key in enumerate(keys_to_try):
                     if time.time() - eval_loop_start > 80:
                         print(f"[EVALUATOR] Overall evaluation timeout reached (80s). Halting loop.")
@@ -2170,41 +2174,28 @@ async def evaluate_answer(
                         print(f"[EVALUATOR] Client creation failed for key {key_idx+1}: {ce}")
                         continue
 
-                    failed_key = False
-                    candidate_models = get_active_gemini_models(client)[:3]
-                    for model_candidate in candidate_models:
-                        if time.time() - eval_loop_start > 80:
-                            break
-                        try:
-                            print(f"[EVALUATOR] Calling model '{model_candidate}' with key {key_idx+1}/{len(keys_to_try)} (elapsed: {round(time.time() - eval_loop_start, 1)}s)...")
-                            response = client.models.generate_content(
-                                model=model_candidate,
-                                contents=contents_payload,
-                                config=gen_config
-                            )
-                            if response and response.text:
-                                raw_text = response.text
-                                parsed_eval = parse_llm_json_response(raw_text)
-                                if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
-                                    print(f"[EVALUATOR SUCCESS] Model '{model_candidate}' generated evaluation in {round(time.time() - eval_loop_start, 1)}s! Score: {parsed_eval.get('overall_score')}")
-                                    record_gemini_model_outcome(model_candidate, True)
-                                    if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
-                                        parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
-                                    evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
-                                    break
-                        except Exception as ge:
-                            err_s = str(ge)
-                            print(f"[EVALUATOR ERROR] Model '{model_candidate}' with key {key_idx+1} failed: {err_s[:150]}")
-                            record_gemini_model_outcome(model_candidate, False, err_s)
-                            if any(t in err_s.lower() for t in [
-                                "api_key_invalid", "api key not valid", "unauthenticated",
-                                "permission_denied", "forbidden", "access_token_type_unsupported",
-                                "resource_exhausted", "quota", "429", "rate limit", "rate_limit"
-                            ]):
-                                failed_key = True
+                    try:
+                        print(f"[EVALUATOR] Evaluating copy with champion model '{champion_model}' (Key {key_idx+1}/{len(keys_to_try)})...")
+                        response = client.models.generate_content(
+                            model=champion_model,
+                            contents=contents_payload,
+                            config=gen_config
+                        )
+                        if response and response.text:
+                            raw_text = response.text
+                            parsed_eval = parse_llm_json_response(raw_text)
+                            if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
+                                print(f"[EVALUATOR SUCCESS] Evaluated in {round(time.time() - eval_loop_start, 1)}s with '{champion_model}'! Score: {parsed_eval.get('overall_score')}")
+                                record_gemini_model_outcome(champion_model, True)
+                                if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
+                                    parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
+                                evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
                                 break
-                        if evaluation_result or failed_key:
-                            break
+                    except Exception as ge:
+                        err_s = str(ge)
+                        print(f"[EVALUATOR NOTICE] Key {key_idx+1} on '{champion_model}': {err_s[:150]}")
+                        # Immediately failover to next key if quota or auth error
+                        continue
 
                     if evaluation_result:
                         break
