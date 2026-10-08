@@ -5015,14 +5015,20 @@ _KEY_RR_COUNTER = 0
 
 def get_active_gemini_keys(user_api_key: Optional[str] = None) -> List[str]:
     """
-    Collects all active Gemini API keys from server environment variables (GEMINI_API_KEY, GOOGLE_API_KEY,
-    GEMINI_API_KEY_2..5), rotates server keys in round-robin load-balanced order across concurrent requests,
-    and places any client-supplied localStorage key as a backup after server keys so a stale phone key
-    never blocks or delays evaluation.
+    Collects all active Gemini API keys:
+    1. Places client-supplied key FIRST so user-provided keys get instant dedicated priority.
+    2. Collects all server environment keys: GEMINI_API_KEY, GOOGLE_API_KEY, GEMINI_API_KEY_1..50,
+       plus any environment variable containing GEMINI and KEY or GOOGLE and KEY.
+    3. Rotates server keys in round-robin order for even load distribution across accounts.
     """
     global _KEY_RR_COUNTER
     server_keys: List[str] = []
-    for env_var in ("GEMINI_API_KEY", "GOOGLE_API_KEY", "GEMINI_API_KEY_2", "GEMINI_API_KEY_3", "GEMINI_API_KEY_4", "GEMINI_API_KEY_5"):
+    candidate_env_vars = ["GEMINI_API_KEY", "GOOGLE_API_KEY"] + [f"GEMINI_API_KEY_{i}" for i in range(1, 51)]
+    for env_k in sorted(os.environ.keys()):
+        if ("GEMINI" in env_k.upper() or "GOOGLE" in env_k.upper()) and "KEY" in env_k.upper() and env_k not in candidate_env_vars:
+            candidate_env_vars.append(env_k)
+
+    for env_var in candidate_env_vars:
         raw_val = os.environ.get(env_var) or ""
         for k_part in re.split(r"[,;\s\n]+", raw_val):
             clean_k = k_part.strip()
@@ -5034,12 +5040,17 @@ def get_active_gemini_keys(user_api_key: Optional[str] = None) -> List[str]:
         _KEY_RR_COUNTER += 1
         server_keys = server_keys[start_idx:] + server_keys[:start_idx]
 
-    keys_to_try = list(server_keys)
+    keys_to_try: List[str] = []
+    # If the user supplied their personal key, put it first for instant throughput
     if user_api_key and user_api_key.strip():
         for k_part in re.split(r"[,;\s\n]+", user_api_key):
             clean_u = k_part.strip()
             if clean_u and len(clean_u) > 15 and clean_u not in keys_to_try:
                 keys_to_try.append(clean_u)
+
+    for sk in server_keys:
+        if sk not in keys_to_try:
+            keys_to_try.append(sk)
 
     return keys_to_try
 
@@ -5113,7 +5124,7 @@ async def evaluate_with_gemini(
     directive_info = detect_directive(question)
 
     if not keys_to_try:
-        return build_resilient_fallback_evaluation(question, detected_paper, max_marks)
+        raise RuntimeError("No active Gemini API key configured.")
 
     # Grounded Current Affairs Retrieval (Local Knowledge Store + Optional Web Search)
     current_affairs_context = await get_dynamic_grounded_context(question, detected_paper)
@@ -5211,7 +5222,7 @@ async def evaluate_with_gemini(
         data = await asyncio.to_thread(_sync_call)
 
     if not data or not isinstance(data, dict):
-        return build_resilient_fallback_evaluation(question, detected_paper, max_marks)
+        raise RuntimeError("Gemini models could not complete evaluation across active keys.")
 
     if "directive_compliance" in data and not data["directive_compliance"].get("directive"):
         data["directive_compliance"]["directive"] = directive_info["directive"]
@@ -5225,39 +5236,14 @@ async def evaluate_with_gemini(
 # PERMANENT SELF-HEALING GEMINI MODEL ROUTER (Prevents "Model Inactive" Forever)
 # ==============================================================================
 _LAST_WORKING_GEMINI_MODEL: Optional[str] = None
-_INACTIVE_GEMINI_MODELS: set = {
-    "gemini-1.5-flash",
-    "gemini-1.5-pro",
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-lite",
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-    "gemini-2.5-pro",
-    "gemini-pro-latest",
-    "gemini-3.1-pro-preview",
-    "gemini-2.5-flash-image",
-    "gemini-3-pro-image",
-    "gemini-3-pro-image-preview",
-    "gemini-3.1-pro-preview-customtools",
-    "gemini-3.6-flash",
-    "gemini-3.1-flash-lite",
-    "gemini-omni-flash-preview",
-    "gemini-omni-1.1-flash",
-    "gemini-omni-flash",
-    "gemini-3.5-transcribe",
-    "antigravity-preview-05-2026",
-    "antigravity-preview-09-2026",
-    "antigravity-preview-latest",
-    "deep-research-max-preview-04-2026",
-    "deep-research-preview-04-2026",
-}
+_INACTIVE_GEMINI_MODELS: set = set()
 _DISCOVERED_GEMINI_MODELS_CACHE: List[str] = []
 _DISCOVERED_GEMINI_MODELS_TS: float = 0.0
 _BUSY_MODEL_COOLDOWNS: Dict[str, float] = {}
 
 
 def record_gemini_model_outcome(model_name: str, success: bool, error_str: str = "") -> None:
-    """Tracks live working models and temporarily cools down congested models (503/429) to eliminate 10s wait times."""
+    """Tracks live working models and temporarily cools down congested models (503/429) to eliminate wait times."""
     global _LAST_WORKING_GEMINI_MODEL, _DISCOVERED_GEMINI_MODELS_TS, _BUSY_MODEL_COOLDOWNS
     clean_name = str(model_name or "").replace("models/", "").strip()
     if not clean_name:
@@ -5275,8 +5261,8 @@ def record_gemini_model_outcome(model_name: str, success: bool, error_str: str =
             _LAST_WORKING_GEMINI_MODEL = None
         _DISCOVERED_GEMINI_MODELS_TS = 0.0
     elif any(tok in err_low for tok in ["503", "unavailable", "high demand", "resource_exhausted", "quota", "429"]):
-        # Temporarily back off busy/congested model for 5 minutes so subsequent evaluations do not suffer a timeout
-        _BUSY_MODEL_COOLDOWNS[clean_name] = time.time() + 300
+        # Cool down busy/congested model for 40 seconds so subsequent evaluations try other models/keys
+        _BUSY_MODEL_COOLDOWNS[clean_name] = time.time() + 40
         if _LAST_WORKING_GEMINI_MODEL == clean_name:
             _LAST_WORKING_GEMINI_MODEL = None
 
@@ -5295,6 +5281,7 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
     if client is not None and (force_refresh or not _DISCOVERED_GEMINI_MODELS_CACHE or (now_ts - _DISCOVERED_GEMINI_MODELS_TS) > 1800):
         try:
             discovered_flash: List[str] = []
+            discovered_other: List[str] = []
             for m_obj in client.models.list():
                 actions = getattr(m_obj, "supported_actions", None) or []
                 if "generateContent" not in actions:
@@ -5302,16 +5289,17 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
                 mod_name = str(getattr(m_obj, "name", "") or "").replace("models/", "").strip()
                 if not mod_name or mod_name in _INACTIVE_GEMINI_MODELS:
                     continue
+                # Exclude only non-generative or non-multimodal models
                 if any(bad in mod_name for bad in [
-                    "1.5", "2.0", "2.5", "pro", "tts", "audio", "customtools", "image", "embedding",
-                    "er-2", "computer-use", "lyria", "gemma", "robotics", "research", "banana", "omni",
-                    "transcribe", "antigravity", "preview-0", "preview-1", "preview-2"
+                    "tts", "audio", "embedding", "imagen", "robotics", "lyria"
                 ]):
                     continue
                 if "flash" in mod_name:
                     discovered_flash.append(mod_name)
+                else:
+                    discovered_other.append(mod_name)
             discovered_flash.sort(reverse=True)
-            _DISCOVERED_GEMINI_MODELS_CACHE = discovered_flash
+            _DISCOVERED_GEMINI_MODELS_CACHE = discovered_flash + discovered_other
             _DISCOVERED_GEMINI_MODELS_TS = now_ts
         except Exception:
             pass
@@ -5326,14 +5314,14 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
             else:
                 ready_discovered.append(dm)
 
-    # Ensure ultra-fast, proven working models are prioritized at the very top
+    # 3. Top production models priority (Real Google Gemini production models)
     top_models_priority = [
-        "gemini-3-flash-preview",      # 1.33s — 100% reliable, never 503
-        "gemini-3.5-flash-lite",       # 1.10s — ultra-fast, light
-        "gemini-flash-lite-latest",    # 0.79s — fastest available
-        "gemini-3.1-flash-lite-preview",# 1.94s — highly stable
-        "gemini-3.8-flash",            # 3.69s — capable fallback
-        "gemini-3.5-flash",            # capable but occasionally experiences 503 spikes
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-1.5-flash",
+        "gemini-2.5-pro",
+        "gemini-1.5-pro"
     ]
     for tm in reversed(top_models_priority):
         if tm in ready_discovered:
@@ -5342,16 +5330,14 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
     ordered.extend(ready_discovered)
 
-    # 3. Static priority list acts as guaranteed fallback, ordered by verified response latency
+    # 4. Static priority list acts as guaranteed fallback
     static_priority = [
-        "gemini-3-flash-preview",
-        "gemini-3.5-flash-lite",
-        "gemini-flash-lite-latest",
-        "gemini-3.1-flash-lite-preview",
-        "gemini-3.8-flash",
-        "gemini-3.5-flash",
-        "gemini-flash-latest",
-        "gemini-3.7-flash",
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-1.5-flash",
+        "gemini-2.5-pro",
+        "gemini-1.5-pro"
     ]
     for m in static_priority:
         if m not in _INACTIVE_GEMINI_MODELS and m not in ordered:
@@ -5360,7 +5346,7 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
             else:
                 ordered.append(m)
 
-    # 4. Append cooling down models at the very end as last resort
+    # 5. Append cooling down models at the very end as last resort
     for cm in cooldown_models:
         if cm not in ordered and cm not in _INACTIVE_GEMINI_MODELS:
             ordered.append(cm)
@@ -5369,9 +5355,9 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
 
 def create_fast_gemini_client(api_key: str) -> Any:
-    """Creates a genai.Client with a 50-second timeout so full 20,000-character handwritten vision evaluation completes reliably without premature cutoff."""
+    """Creates a genai.Client with a 25-second timeout so single model calls do not hang indefinitely."""
     try:
-        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=50000))
+        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=25000))
     except Exception:
         return genai.Client(api_key=api_key)
 

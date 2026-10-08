@@ -2108,7 +2108,7 @@ async def evaluate_answer(
                 eval_loop_start = time.time()
 
                 for current_key in keys_to_try:
-                    if time.time() - eval_loop_start > 85:
+                    if time.time() - eval_loop_start > 50:
                         break
                     try:
                         client = create_fast_gemini_client(current_key)
@@ -2116,9 +2116,9 @@ async def evaluate_answer(
                         continue
 
                     failed_key = False
-                    candidate_models = get_active_gemini_models(client)[:5]
+                    candidate_models = get_active_gemini_models(client)[:4]
                     for model_candidate in candidate_models:
-                        if time.time() - eval_loop_start > 85:
+                        if time.time() - eval_loop_start > 50:
                             break
                         try:
                             response = client.models.generate_content(
@@ -2151,12 +2151,18 @@ async def evaluate_answer(
                         break
 
                 if not evaluation_result:
-                    print("[EVALUATOR ENGINE] External Gemini endpoints timed out or busy — activating resilient fallback evaluation.")
-                    evaluation_result = build_resilient_fallback_evaluation(
-                        question=question,
-                        paper_key=detected_paper,
-                        max_marks=max_marks,
-                        previous_evaluation=prev_eval_dict
+                    print("[EVALUATOR ENGINE] Gemini models could not complete evaluation across active keys — returning clean guard notice.")
+                    return JSONResponse(
+                        status_code=503,
+                        content={
+                            "status": "service_unavailable",
+                            "error_type": "evaluator_busy",
+                            "title": "Evaluator Node Notice",
+                            "message": "AI evaluator models are currently experiencing high traffic or quota saturation across available keys. To protect evaluation authenticity, generic estimates are not provided.",
+                            "warning": "🛡️ Zero Credits Deducted: Your daily evaluation limit is 100% intact.",
+                            "action_hint": "Please click 'Evaluate Copy' again in a few moments, or enter your personal Gemini API key in Settings for immediate dedicated access.",
+                            "credits_deducted": 0
+                        }
                     )
 
         # AI Vision Blank Sheet Verification Check
