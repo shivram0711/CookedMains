@@ -7856,14 +7856,7 @@ window.runEvaluation = async function(allowAutoAligned = false) {
     formData.append("files", file);
   });
 
-  let didTimeout = false;
   window.currentEvaluationController = new AbortController();
-  const evaluationNetworkTimeout = setTimeout(() => {
-    if (window.currentEvaluationController) {
-      didTimeout = true;
-      window.currentEvaluationController.abort();
-    }
-  }, 65000);
 
   try {
     const response = await fetch("/api/evaluate", {
@@ -7968,15 +7961,7 @@ window.runEvaluation = async function(allowAutoAligned = false) {
     }
   } catch (error) {
     if (error.name === "AbortError") {
-      if (didTimeout) {
-        if (typeof window.showAppNotice === 'function') {
-          window.showAppNotice("Evaluation Network Notice", "Evaluation took longer than expected due to network latency. 🛡️ Zero Credits Deducted: Your evaluation credits are 100% safe. Please click Evaluate again.");
-        } else {
-          alert("Evaluation Network Notice: Evaluation took longer than expected. Zero credits deducted. Please retry.");
-        }
-      } else {
-        console.log("Evaluation request aborted by user.");
-      }
+      console.log("Evaluation request cancelled by user.");
       return;
     }
     let errMsg = String(error.message || "");
@@ -7995,7 +7980,6 @@ window.runEvaluation = async function(allowAutoAligned = false) {
       alert(`Evaluation Notice: ${errMsg}`);
     }
   } finally {
-    clearTimeout(evaluationNetworkTimeout);
     setSubjectAndMarksLocked(false);
     stopForensicProgress();
     evaluateBtn.disabled = false;
