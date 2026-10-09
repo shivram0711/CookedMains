@@ -1,0 +1,2593 @@
+/* ==========================================================================
+   COOKED MAINS — CINEMATIC HERO DESIGN SYSTEM (PHASE 1 CORRECTIONS)
+   The Digital UPSC Examiner's Desk (Illustrative Demonstration)
+   Scope: Strictly isolated to #heroLandingSection and .cinematic-* classes
+   ========================================================================== */
+
+/* 1. Viewport & Desk Environment */
+.cinematic-hero-container {
+  position: relative;
+  width: 100%;
+  max-width: 76rem; /* 1216px */
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  box-sizing: border-box;
+  /* NOTE: overflow: clip removed per Phase 1 audit. Sizing is strictly self-contained. */
+}
+
+@media (min-width: 640px) {
+  .cinematic-hero-container {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+}
+
+/* Desk Ambient Lighting - Strictly contained within horizontal boundaries */
+.cinematic-desk-halo {
+  position: absolute;
+  top: 0;
+  left: 5%;
+  right: 5%;
+  height: 55%;
+  margin: 0 auto;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(50px);
+  opacity: 0.45;
+  transition: opacity 0.3s ease;
+}
+
+@media (max-width: 639px) {
+  .cinematic-desk-halo {
+    left: 10%;
+    right: 10%;
+    filter: blur(30px);
+    opacity: 0.3;
+  }
+}
+
+html.dark .cinematic-desk-halo {
+  background: radial-gradient(ellipse at 50% 20%, rgba(245, 158, 11, 0.16) 0%, rgba(180, 83, 9, 0.08) 40%, transparent 75%);
+}
+
+html:not(.dark) .cinematic-desk-halo {
+  background: radial-gradient(ellipse at 50% 20%, rgba(245, 158, 11, 0.15) 0%, rgba(251, 191, 36, 0.06) 45%, transparent 75%);
+}
+
+/* 2. Headline & Academic Typography */
+.cinematic-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: 9999px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+html.dark .cinematic-eyebrow {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #FBBF24;
+  box-shadow: 0 0 20px -5px rgba(245, 158, 11, 0.15);
+}
+
+html:not(.dark) .cinematic-eyebrow {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(217, 119, 6, 0.35);
+  color: #B45309;
+}
+
+.cinematic-hero-title {
+  font-family: 'Newsreader', 'Lora', Georgia, serif;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+/* 3. The 3D Desk Stage */
+.cinematic-desk-viewport {
+  position: relative;
+  width: 100%;
+  z-index: 10;
+}
+
+/* Enable 3D perspective ONLY on desktop viewports (>= 1024px) with fine pointer */
+@media (min-width: 1024px) and (pointer: fine) {
+  .cinematic-desk-viewport {
+    perspective: 1200px;
+    perspective-origin: center center;
+  }
+  .cinematic-stage-wrap {
+    transform-style: preserve-3d;
+    transition: transform 0.12s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+  }
+}
+
+/* Fully disable 3D on tablet and mobile viewports (< 1024px) or coarse pointers */
+@media (max-width: 1023px), (pointer: coarse) {
+  .cinematic-desk-viewport {
+    perspective: none !important;
+  }
+  .cinematic-stage-wrap {
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* 4. Physical UPSC QCAB Paper Sheet (Layered Physical Stationery) */
+.cinematic-qcab-paper {
+  position: relative;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  box-sizing: border-box;
+  max-width: 100%;
+  transition: box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  .cinematic-qcab-paper {
+    padding: 1.75rem;
+  }
+}
+
+/* Stacked under-sheet visual hint (second QCAB page underneath) */
+.cinematic-qcab-paper::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  right: -6px;
+  bottom: -6px;
+  left: 6px;
+  border-radius: 1rem;
+  z-index: -1;
+  pointer-events: none;
+  transform: rotate(0.4deg);
+  transform-origin: bottom left;
+  transition: opacity 0.3s ease;
+}
+
+/* Secondary under-sheet page edge simulating an authentic multi-page QCAB booklet */
+.cinematic-qcab-paper::after {
+  content: '';
+  position: absolute;
+  top: 9px;
+  right: -10px;
+  bottom: -10px;
+  left: 10px;
+  border-radius: 1rem;
+  z-index: -2;
+  pointer-events: none;
+  transform: rotate(-0.3deg);
+  transform-origin: top right;
+  transition: opacity 0.3s ease;
+}
+
+html.dark .cinematic-qcab-paper::before {
+  background: #1e293b;
+  border: 1px solid rgba(245, 158, 11, 0.18);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+}
+
+html.dark .cinematic-qcab-paper::after {
+  background: #172033;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  box-shadow: 0 14px 30px -6px rgba(0, 0, 0, 0.7);
+}
+
+html:not(.dark) .cinematic-qcab-paper::before {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.12);
+}
+
+html:not(.dark) .cinematic-qcab-paper::after {
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 12px 24px -5px rgba(15, 23, 42, 0.08);
+}
+
+/* Dark Mode Paper Appearance: Creamy Examination Rag Paper with deep shadow */
+html.dark .cinematic-qcab-paper {
+  background: linear-gradient(175deg, #FAF7EE 0%, #F5EEDC 100%);
+  color: #0F172A;
+  border: 1px solid rgba(217, 119, 6, 0.35);
+  box-shadow: 
+    0 26px 50px -12px rgba(0, 0, 0, 0.85),
+    0 8px 20px -3px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+}
+
+/* Light Mode Paper Appearance: Crisp ivory stationery with warm gold outline */
+html:not(.dark) .cinematic-qcab-paper {
+  background: linear-gradient(175deg, #FFFFFE 0%, #FAF8F2 100%);
+  color: #0F172A;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  box-shadow: 
+    0 22px 44px -14px rgba(15, 23, 42, 0.18),
+    0 8px 18px -3px rgba(15, 23, 42, 0.1),
+    0 0 0 1px rgba(245, 158, 11, 0.2);
+}
+
+/* Paper Header */
+.cinematic-qcab-header {
+  border-bottom: 2px solid #E2D9C5;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.cinematic-qcab-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748B;
+}
+
+.cinematic-qcab-badge {
+  color: #B45309;
+  background: rgba(245, 158, 11, 0.14);
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: 800;
+}
+
+.cinematic-question-box {
+  margin-top: 0.5rem;
+  font-family: 'Newsreader', 'Lora', Georgia, serif;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  font-weight: 700;
+  color: #1E293B;
+  background: rgba(241, 245, 249, 0.75);
+  border: 1px dashed #CBD5E1;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .cinematic-question-box {
+    font-size: 0.875rem;
+  }
+}
+
+/* Ruled Writing Area with 2.5cm Red Left Margin */
+.cinematic-qcab-body {
+  position: relative;
+  padding-left: 1.25rem;
+  border-left: 2px solid #F43F5E; /* Authentic UPSC red margin line */
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 1.62rem,
+    rgba(203, 213, 225, 0.45) 1.62rem,
+    rgba(203, 213, 225, 0.45) 1.7rem
+  );
+  line-height: 1.7rem;
+}
+
+@media (min-width: 640px) {
+  .cinematic-qcab-body {
+    padding-left: 1.75rem;
+  }
+}
+
+/* Margin Restriction Watermark - Kept strictly inside left margin area */
+.cinematic-margin-watermark {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .cinematic-margin-watermark {
+    display: block;
+    position: absolute;
+    left: 0.2rem;
+    top: 50%;
+    transform: rotate(-90deg) translateX(-50%);
+    transform-origin: center center;
+    font-family: ui-monospace, monospace;
+    font-size: 0.45rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #FDA4AF;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0.85;
+  }
+}
+
+/* Handwritten Student Script - High contrast authentic blue-black fountain ink */
+.cinematic-handwritten-text {
+  font-family: 'Caveat', cursive;
+  font-size: 1.25rem;
+  line-height: 1.6;
+  color: #091326; /* Deep rich midnight fountain pen ink with maximal contrast */
+  font-weight: 700;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@media (min-width: 640px) {
+  .cinematic-handwritten-text {
+    font-size: 1.35rem;
+  }
+}
+
+/* Hero QCAB Answer Sheet Scoped Override - Keep handwriting dark, crisp midnight fountain ink on cream paper in dark mode */
+#heroLandingSection .cinematic-qcab-paper .cinematic-handwritten-text,
+html.dark #heroLandingSection .cinematic-qcab-paper .cinematic-handwritten-text {
+  color: #091326 !important;
+  font-family: 'Caveat', cursive;
+  font-size: 1.25rem;
+  line-height: 1.6;
+  font-weight: 700;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@media (min-width: 640px) {
+  #heroLandingSection .cinematic-qcab-paper .cinematic-handwritten-text,
+  html.dark #heroLandingSection .cinematic-qcab-paper .cinematic-handwritten-text {
+    font-size: 1.35rem;
+  }
+}
+
+
+/* 5. Semantic Examiner Red Ink System */
+.cinematic-examiner-tick {
+  color: #DC2626;
+  font-weight: 800;
+  display: inline-block;
+  transform-origin: center bottom;
+}
+
+.cinematic-red-remark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  color: #DC2626;
+  font-family: 'Caveat', cursive;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.375rem;
+  margin-top: 0.25rem;
+  box-shadow: 0 1px 2px rgba(220, 38, 38, 0.08);
+  transition: transform 0.2s ease;
+}
+
+.cinematic-examiner-underline {
+  position: relative;
+  display: inline-block;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+/* Purposeful, single-run animated red-pen underline */
+.cinematic-pen-underline-svg {
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 8px;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.cinematic-pen-underline-path {
+  stroke: #DC2626;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  fill: none;
+  stroke-dasharray: 220;
+  stroke-dashoffset: 220;
+  animation: cinematicPenStroke 0.9s cubic-bezier(0.25, 1, 0.5, 1) 0.3s forwards;
+}
+
+@keyframes cinematicPenStroke {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-pen-underline-path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Hand-Drawn Flowchart Box */
+.cinematic-qcab-flowchart {
+  background: rgba(254, 243, 199, 0.5);
+  border: 1.5px solid #D97706;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 1px 3px rgba(217, 119, 6, 0.1);
+}
+
+/* Rubber Stamp for Illustrative Demonstration */
+.cinematic-examiner-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border: 2px dashed #DC2626;
+  border-radius: 0.375rem;
+  color: #DC2626;
+  font-family: ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  transform: rotate(-1.5deg);
+  background: rgba(220, 38, 38, 0.04);
+}
+
+/* Sequential One-Time Pen-Mark Reveal Choreography */
+.cinematic-anim-remark-1 {
+  opacity: 0;
+  transform: translateY(4px) scale(0.97);
+  animation: cinematicRemarkReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.95s forwards;
+}
+
+.cinematic-anim-remark-2 {
+  opacity: 0;
+  transform: translateY(4px) scale(0.97);
+  animation: cinematicRemarkReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) 1.4s forwards;
+}
+
+.cinematic-anim-gap-note {
+  opacity: 0;
+  transform: translateY(4px) scale(0.98);
+  animation: cinematicRemarkReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) 1.85s forwards;
+}
+
+.cinematic-anim-stamp {
+  opacity: 0;
+  transform: rotate(-1.5deg) scale(1.16);
+  animation: cinematicStampLand 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) 2.25s forwards;
+}
+
+@keyframes cinematicRemarkReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cinematicStampLand {
+  0% {
+    opacity: 0;
+    transform: rotate(-1.5deg) scale(1.16);
+  }
+  65% {
+    opacity: 0.95;
+    transform: rotate(-1.5deg) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-1.5deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-anim-remark-1,
+  .cinematic-anim-remark-2,
+  .cinematic-anim-gap-note,
+  .cinematic-anim-stamp {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .cinematic-anim-stamp {
+    transform: rotate(-1.5deg) !important;
+  }
+}
+
+/* 6. Digital Examiner Diagnostic Card */
+.cinematic-diagnostic-card {
+  border-radius: 1rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  box-sizing: border-box;
+  max-width: 100%;
+  transition: all 0.25s ease;
+}
+
+@media (min-width: 640px) {
+  .cinematic-diagnostic-card {
+    padding: 1.5rem;
+  }
+}
+
+html.dark .cinematic-diagnostic-card {
+  background: linear-gradient(145deg, #0B101B 0%, #080C14 100%);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  box-shadow: 
+    0 22px 46px -15px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  color: #F8FAFC;
+}
+
+html:not(.dark) .cinematic-diagnostic-card {
+  background: linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%);
+  border: 1px solid #CBD5E1;
+  box-shadow: 
+    0 18px 36px -12px rgba(15, 23, 42, 0.14),
+    0 2px 6px rgba(15, 23, 42, 0.04);
+  color: #0F172A;
+}
+
+/* Score Display Block */
+.cinematic-score-block {
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+html.dark .cinematic-score-block {
+  background: rgba(2, 6, 23, 0.8);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+html:not(.dark) .cinematic-score-block {
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+}
+
+.cinematic-score-value {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 2.25rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+@media (min-width: 640px) {
+  .cinematic-score-value {
+    font-size: 2.5rem;
+  }
+}
+
+/* 7. Metric Trust Strip */
+.cinematic-trust-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(203, 213, 225, 0.2);
+}
+
+@media (min-width: 768px) {
+  .cinematic-trust-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+
+html.dark .cinematic-trust-strip {
+  border-top-color: rgba(51, 65, 85, 0.6);
+}
+
+html:not(.dark) .cinematic-trust-strip {
+  border-top-color: rgba(226, 232, 240, 0.9);
+}
+
+.cinematic-trust-metric {
+  font-family: ui-monospace, monospace;
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+@media (min-width: 640px) {
+  .cinematic-trust-metric {
+    font-size: 1.35rem;
+  }
+}
+
+/* 7b. Examiner Docket Cards (The 3 Feature Cards Below Hero) */
+.cinematic-docket-card {
+  position: relative;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+  overflow: hidden;
+}
+
+.cinematic-docket-card:hover {
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-docket-card:hover {
+    transform: none;
+  }
+}
+
+html.dark .cinematic-docket-card {
+  background: linear-gradient(160deg, #0d1424 0%, #080d18 100%);
+  border: 1px solid rgba(51, 65, 85, 0.7);
+  box-shadow: 0 4px 14px -3px rgba(0, 0, 0, 0.5);
+}
+
+html.dark .cinematic-docket-card:hover {
+  border-color: rgba(245, 158, 11, 0.35);
+  box-shadow: 0 10px 24px -5px rgba(0, 0, 0, 0.7), 0 0 15px -3px rgba(245, 158, 11, 0.1);
+}
+
+html:not(.dark) .cinematic-docket-card {
+  background: linear-gradient(160deg, #FFFFFF 0%, #FAF8F5 100%);
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 14px -3px rgba(15, 23, 42, 0.06);
+}
+
+html:not(.dark) .cinematic-docket-card:hover {
+  border-color: rgba(217, 119, 6, 0.4);
+  box-shadow: 0 10px 22px -5px rgba(15, 23, 42, 0.1), 0 0 12px -2px rgba(245, 158, 11, 0.08);
+}
+
+/* Header strip with dossier tab aesthetic */
+.cinematic-docket-tag {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748B;
+  border-bottom: 1px dashed rgba(203, 213, 225, 0.4);
+  padding-bottom: 0.5rem;
+}
+
+html.dark .cinematic-docket-tag {
+  border-bottom-color: rgba(51, 65, 85, 0.5);
+  color: #94A3B8;
+}
+
+.cinematic-docket-icon-wrap {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  shrink: 0;
+}
+
+/* 8. Phase 2: Scroll Storytelling Narrative System */
+.cinematic-story-section {
+  position: relative;
+  width: 100%;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(203, 213, 225, 0.25);
+}
+
+html.dark .cinematic-story-section {
+  border-top-color: rgba(51, 65, 85, 0.5);
+}
+
+html:not(.dark) .cinematic-story-section {
+  border-top-color: rgba(226, 232, 240, 0.9);
+}
+
+.cinematic-story-header {
+  text-align: center;
+  max-width: 48rem;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 2.5rem;
+}
+
+.cinematic-story-timeline {
+  position: relative;
+  max-width: 58rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .cinematic-story-timeline {
+    padding-left: 2.5rem;
+  }
+}
+
+/* Vertical Spine Line */
+.cinematic-story-spine {
+  position: absolute;
+  top: 1rem;
+  bottom: 2rem;
+  left: 0.75rem;
+  width: 2px;
+  background: linear-gradient(180deg, #F59E0B 0%, rgba(245, 158, 11, 0.2) 80%, transparent 100%);
+}
+
+@media (min-width: 640px) {
+  .cinematic-story-spine {
+    left: 1.25rem;
+  }
+}
+
+/* Individual Scene Node */
+.cinematic-story-node {
+  position: relative;
+  margin-bottom: 2.5rem;
+  opacity: 0.38;
+  transform: translateY(18px);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cinematic-story-node.is-active,
+.cinematic-story-node.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Scene Marker on the Spine */
+.cinematic-story-marker {
+  position: absolute;
+  left: -1.5rem;
+  top: 1.25rem;
+  transform: translateX(-50%) scale(0.95);
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: ui-monospace, monospace;
+  font-size: 0.65rem;
+  font-weight: 800;
+  z-index: 10;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 640px) {
+  .cinematic-story-marker {
+    left: -2.5rem;
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.7rem;
+  }
+}
+
+html.dark .cinematic-story-marker {
+  background: #0B101B;
+  border: 2px solid rgba(245, 158, 11, 0.35);
+  color: #94A3B8;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+}
+
+html.dark .cinematic-story-node.is-active .cinematic-story-marker {
+  border-color: #D97706;
+  color: #0F172A;
+  background: #F59E0B;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.55), 0 0 0 3px rgba(245, 158, 11, 0.2);
+  transform: translateX(-50%) scale(1.08);
+}
+
+html:not(.dark) .cinematic-story-marker {
+  background: #FFFFFF;
+  border: 2px solid #CBD5E1;
+  color: #64748B;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
+}
+
+html:not(.dark) .cinematic-story-node.is-active .cinematic-story-marker {
+  background: #D97706;
+  border-color: #B45309;
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35), 0 0 0 3px rgba(245, 158, 11, 0.2);
+  transform: translateX(-50%) scale(1.08);
+}
+
+/* Story Card */
+.cinematic-story-card {
+  border-radius: 1rem;
+  padding: 1.25rem;
+  box-sizing: border-box;
+  max-width: 100%;
+  transition: box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+@media (min-width: 640px) {
+  .cinematic-story-card {
+    padding: 1.5rem;
+  }
+}
+
+html.dark .cinematic-story-card {
+  background: linear-gradient(150deg, #0F172A 0%, #0B101B 100%);
+  border: 1px solid rgba(245, 158, 11, 0.18);
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.6);
+}
+
+html.dark .cinematic-story-node.is-active .cinematic-story-card {
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(245, 158, 11, 0.15);
+}
+
+html:not(.dark) .cinematic-story-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 6px 18px -4px rgba(15, 23, 42, 0.06);
+}
+
+html:not(.dark) .cinematic-story-node.is-active .cinematic-story-card {
+  border-color: rgba(245, 158, 11, 0.45);
+  box-shadow: 0 10px 28px -6px rgba(217, 119, 6, 0.12), 0 0 0 1px rgba(245, 158, 11, 0.15);
+}
+
+/* Secondary Staggered Reveal on Forensic Takeaway */
+.cinematic-story-card > div:last-child {
+  opacity: 0.8;
+  transform: translateY(3px);
+  transition: opacity 0.4s ease 0.12s, transform 0.4s ease 0.12s;
+}
+
+.cinematic-story-node.is-active .cinematic-story-card > div:last-child {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 9. Reduced-Motion Preferences: Completely Disable Animations in Hero, Story & Rubric */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  #heroLandingSection *,
+  #heroLandingSection *::before,
+  #heroLandingSection *::after,
+  #mainsRubricSection *,
+  #mainsRubricSection *::before,
+  #mainsRubricSection *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .cinematic-desk-viewport {
+    perspective: none !important;
+  }
+  .cinematic-stage-wrap {
+    transform: none !important;
+    transition: none !important;
+  }
+  .cinematic-desk-halo {
+    display: none !important;
+  }
+  .cinematic-story-node {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .cinematic-story-card > div:last-child {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .cinematic-story-marker {
+    transition: none !important;
+    transform: translateX(-50%) !important;
+  }
+  .cinematic-rubric-panel {
+    animation: none !important;
+  }
+  .cinematic-anim-remark-1,
+  .cinematic-anim-remark-2,
+  .cinematic-anim-gap-note,
+  .cinematic-anim-stamp {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .cinematic-anim-stamp {
+    transform: rotate(-1.5deg) !important;
+  }
+}
+
+/* =========================================================================
+   10. Phase 3: UPSC Rubric Inspector (6-Pillar Interactive Diagnostic System)
+   ========================================================================= */
+
+.cinematic-rubric-container {
+  position: relative;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  transition: all 0.25s ease;
+}
+
+@media (min-width: 640px) {
+  .cinematic-rubric-container {
+    padding: 2rem;
+    border-radius: 2rem;
+  }
+}
+
+html.dark .cinematic-rubric-container {
+  background: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.04) 0%, transparent 60%),
+              linear-gradient(180deg, rgba(15, 23, 42, 0.8) 0%, rgba(11, 16, 27, 0.95) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+}
+
+html:not(.dark) .cinematic-rubric-container {
+  background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
+  border: 1px solid #CBD5E1;
+  box-shadow: 0 16px 32px -12px rgba(15, 23, 42, 0.08);
+}
+
+/* Horizontal scrolling tab track for mobile, grid for desktop */
+.cinematic-rubric-nav-wrap {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.25rem;
+}
+
+.cinematic-rubric-nav-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.cinematic-rubric-tabs {
+  display: flex;
+  gap: 0.5rem;
+  min-width: max-content;
+}
+
+@media (min-width: 1024px) {
+  .cinematic-rubric-tabs {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    min-width: 0;
+    gap: 0.625rem;
+  }
+}
+
+/* Individual Rubric Tab Button */
+.cinematic-rubric-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+  user-select: none;
+  border: 1px solid transparent;
+  outline: none;
+  background: transparent;
+}
+
+@media (min-width: 1024px) {
+  .cinematic-rubric-tab {
+    padding: 0.875rem 0.75rem;
+  }
+}
+
+html.dark .cinematic-rubric-tab {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(51, 65, 85, 0.6);
+  color: #94A3B8;
+}
+
+html.dark .cinematic-rubric-tab:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #F8FAFC;
+}
+
+html.dark .cinematic-rubric-tab.is-active {
+  background: linear-gradient(145deg, #1E293B 0%, #0F172A 100%);
+  border-color: #F59E0B;
+  color: #FBBF24;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.2), inset 0 0 0 1px rgba(245, 158, 11, 0.3);
+}
+
+html:not(.dark) .cinematic-rubric-tab {
+  background: #FFFFFF;
+  border-color: #E2E8F0;
+  color: #64748B;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+html:not(.dark) .cinematic-rubric-tab:hover {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+  color: #0F172A;
+}
+
+html:not(.dark) .cinematic-rubric-tab.is-active {
+  background: #FFFFFF;
+  border-color: #D97706;
+  color: #B45309;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.12), inset 0 0 0 1px rgba(217, 119, 6, 0.25);
+}
+
+/* Weight Distribution Gauge */
+.cinematic-rubric-gauge-wrap {
+  margin-top: 1.25rem;
+  margin-bottom: 1.5rem;
+  background: rgba(148, 163, 184, 0.1);
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(203, 213, 225, 0.3);
+}
+
+html.dark .cinematic-rubric-gauge-wrap {
+  background: rgba(2, 6, 23, 0.6);
+  border-color: rgba(51, 65, 85, 0.5);
+}
+
+.cinematic-rubric-gauge-bar {
+  display: flex;
+  height: 0.625rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  gap: 2px;
+  margin-top: 0.5rem;
+}
+
+.cinematic-rubric-gauge-segment {
+  height: 100%;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.cinematic-rubric-gauge-segment:hover {
+  filter: brightness(1.25);
+  transform: scaleY(1.2);
+}
+
+.cinematic-rubric-gauge-segment.is-active {
+  filter: brightness(1.3);
+  box-shadow: 0 0 8px currentColor;
+  transform: scaleY(1.3);
+}
+
+/* Active Rubric Panel */
+.cinematic-rubric-panel {
+  display: none;
+  animation: rubricFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cinematic-rubric-panel.is-active {
+  display: block;
+}
+
+@keyframes rubricFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Handwritten QCAB Excerpt Snippet */
+.cinematic-rubric-snippet {
+  position: relative;
+  background-color: #FEFCE8;
+  background-image: 
+    linear-gradient(#FDE047 1px, transparent 1px),
+    linear-gradient(to right, transparent 2.25rem, #EF4444 2.25rem, #EF4444 2.35rem, transparent 2.35rem);
+  background-size: 100% 1.85rem, 100% 100%;
+  border: 1px solid #FDE047;
+  border-radius: 0.875rem;
+  padding: 1rem 1rem 1rem 3rem;
+  color: #0F172A;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+}
+
+.cinematic-rubric-handwritten {
+  font-family: 'Caveat', cursive, -apple-system, sans-serif;
+  font-size: 1.25rem;
+  line-height: 1.85rem;
+  color: #1E293B;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.cinematic-rubric-examiner-callout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.375rem;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  color: #DC2626;
+  font-family: ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  margin-top: 0.5rem;
+}
+
+/* Comparative Benchmark Card Enhancements */
+.cinematic-benchmark-card {
+  border-radius: 1.25rem;
+  padding: 1.25rem;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  .cinematic-benchmark-card {
+    padding: 1.5rem;
+  }
+}
+
+html.dark .cinematic-benchmark-card-avg {
+  background: rgba(225, 29, 72, 0.08);
+  border: 1px solid rgba(225, 29, 72, 0.3);
+}
+
+html:not(.dark) .cinematic-benchmark-card-avg {
+  background: #FFF1F2;
+  border: 1px solid #FECDD3;
+}
+
+html.dark .cinematic-benchmark-card-topper {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+html:not(.dark) .cinematic-benchmark-card-topper {
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+}
+
+/* ==========================================================================
+   Phase 4: Before / After Interactive Answer Copy Comparison System
+   ========================================================================== */
+
+.cinematic-compare-wrapper {
+  position: relative;
+  border-radius: 1.5rem;
+  box-sizing: border-box;
+}
+
+/* Mode Switcher Pill Group */
+.cinematic-compare-pill-group {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(148, 163, 184, 0.14);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 9999px;
+  padding: 0.25rem;
+  gap: 0.25rem;
+}
+
+html.dark .cinematic-compare-pill-group {
+  background: rgba(15, 23, 42, 0.65);
+  border-color: rgba(51, 65, 85, 0.6);
+}
+
+.cinematic-compare-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748B;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  outline: none;
+}
+
+.cinematic-compare-pill-btn:hover {
+  color: #0F172A;
+}
+
+html.dark .cinematic-compare-pill-btn:hover {
+  color: #F8FAFC;
+}
+
+.cinematic-compare-pill-btn.is-active {
+  background: #FFFFFF;
+  color: #0F172A;
+  box-shadow: 0 2px 6px -1px rgba(0, 0, 0, 0.12);
+}
+
+html.dark .cinematic-compare-pill-btn.is-active {
+  background: #1E293B;
+  color: #F8FAFC;
+  box-shadow: 0 2px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+.cinematic-compare-pill-btn:focus-visible {
+  outline: 2px solid #F59E0B;
+  outline-offset: 1px;
+}
+
+/* Interactive Slider Stage */
+.cinematic-compare-stage {
+  position: relative;
+  width: 100%;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.08);
+  user-select: none;
+  --compare-pos: 50%;
+  touch-action: pan-y;
+}
+
+html.dark .cinematic-compare-stage {
+  border-color: rgba(51, 65, 85, 0.7);
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.4);
+}
+
+/* QCAB Ruled Sheet Paper Styling */
+.cinematic-compare-sheet {
+  padding: 1.25rem 0.875rem;
+  box-sizing: border-box;
+}
+
+/* Base layer (Structured Model Revision - 7.0 / 10 M) */
+.cinematic-compare-layer-after {
+  position: relative;
+  width: 100%;
+  background: #FFFFFF;
+}
+
+html.dark .cinematic-compare-layer-after {
+  background: #0B0F19;
+}
+
+/* Overlay layer (Baseline Draft - 3.5 / 10 M) clipped dynamically */
+.cinematic-compare-layer-before {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  background: #FFFDF8;
+  clip-path: inset(0 calc(100% - var(--compare-pos, 50%)) 0 0);
+  -webkit-clip-path: inset(0 calc(100% - var(--compare-pos, 50%)) 0 0);
+  z-index: 10;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+html.dark .cinematic-compare-layer-before {
+  background: #0B0F19;
+}
+
+@media (min-width: 640px) {
+  .cinematic-compare-sheet {
+    padding: 1.75rem 2rem;
+  }
+}
+
+/* Ruled Margins */
+.cinematic-sheet-margin-left {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 1.5rem;
+  width: 2px;
+  background-color: #FB7185;
+  opacity: 0.65;
+}
+
+.cinematic-sheet-margin-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 1.5rem;
+  width: 2px;
+  background-color: #FB7185;
+  opacity: 0.65;
+}
+
+@media (max-width: 639px) {
+  .cinematic-sheet-margin-left { left: 0.75rem; }
+  .cinematic-sheet-margin-right { right: 0.75rem; }
+}
+
+/* Margin Restriction Watermarks */
+.cinematic-sheet-margin-tag {
+  position: absolute;
+  top: 50%;
+  transform: rotate(-90deg) translateX(-50%);
+  transform-origin: center center;
+  font-family: ui-monospace, monospace;
+  font-size: 0.45rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #FDA4AF;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.cinematic-sheet-margin-tag.left { left: 0.15rem; }
+.cinematic-sheet-margin-tag.right { right: 0.15rem; }
+
+@media (max-width: 639px) {
+  .cinematic-sheet-margin-tag { display: none; }
+}
+
+/* Ruled Content Container */
+.cinematic-sheet-inner {
+  position: relative;
+  padding-left: 1.75rem;
+  padding-right: 1.75rem;
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 1.75rem,
+    rgba(226, 232, 240, 0.7) 1.75rem,
+    rgba(226, 232, 240, 0.7) 1.85rem
+  );
+  line-height: 1.85rem;
+}
+
+html.dark .cinematic-sheet-inner {
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 1.75rem,
+    rgba(51, 65, 85, 0.45) 1.75rem,
+    rgba(51, 65, 85, 0.45) 1.85rem
+  );
+}
+
+@media (max-width: 639px) {
+  .cinematic-sheet-inner {
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+    line-height: 1.65rem;
+    background-image: repeating-linear-gradient(
+      transparent,
+      transparent 1.55rem,
+      rgba(226, 232, 240, 0.6) 1.55rem,
+      rgba(226, 232, 240, 0.6) 1.65rem
+    );
+  }
+}
+
+/* Floating Badges */
+.cinematic-compare-badge {
+  position: absolute;
+  top: 0.875rem;
+  z-index: 15;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 0.5rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+}
+
+.cinematic-badge-draft {
+  left: 0.875rem;
+  background: rgba(225, 29, 72, 0.94);
+  color: #FFFFFF;
+}
+
+.cinematic-badge-model {
+  right: 0.875rem;
+  background: rgba(16, 185, 129, 0.94);
+  color: #FFFFFF;
+}
+
+@media (max-width: 639px) {
+  .cinematic-compare-badge {
+    font-size: 0.6rem;
+    padding: 0.2rem 0.5rem;
+  }
+}
+
+/* Draggable Vertical Divider */
+.cinematic-compare-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--compare-pos, 50%);
+  width: 2px;
+  background: #F59E0B;
+  transform: translateX(-50%);
+  z-index: 20;
+  pointer-events: none;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+/* Draggable Grip Handle */
+.cinematic-compare-handle {
+  position: absolute;
+  top: 50%;
+  left: var(--compare-pos, 50%);
+  transform: translate(-50%, -50%);
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  background: #F59E0B;
+  color: #0F172A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 4px 14px rgba(245, 158, 11, 0.45),
+    0 0 0 3px rgba(255, 255, 255, 0.95);
+  cursor: ew-resize;
+  z-index: 25;
+  touch-action: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+}
+
+html.dark .cinematic-compare-handle {
+  box-shadow: 
+    0 4px 14px rgba(245, 158, 11, 0.55),
+    0 0 0 3px rgba(15, 23, 42, 0.95);
+}
+
+.cinematic-compare-handle:hover,
+.cinematic-compare-handle:focus-visible,
+.cinematic-compare-handle.is-dragging {
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow: 
+    0 6px 20px rgba(245, 158, 11, 0.65),
+    0 0 0 4px #FBBF24;
+}
+
+/* Baseline Draft Handwriting & Red Remarks */
+.cinematic-handwritten-text {
+  font-family: 'Caveat', cursive, -apple-system, sans-serif;
+  font-size: 1.1875rem;
+  color: #1E293B;
+  line-height: 1.85rem;
+}
+
+html.dark .cinematic-handwritten-text {
+  color: #E2E8F0;
+}
+
+@media (max-width: 639px) {
+  .cinematic-handwritten-text {
+    font-size: 1.0625rem;
+    line-height: 1.65rem;
+  }
+}
+
+.cinematic-red-remark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.375rem;
+  background: rgba(225, 29, 72, 0.12);
+  border: 1px dashed rgba(225, 29, 72, 0.45);
+  color: #E11D48;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0.25rem 0;
+  vertical-align: middle;
+}
+
+html.dark .cinematic-red-remark {
+  color: #FB7185;
+}
+
+.cinematic-green-remark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.375rem;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px dashed rgba(16, 185, 129, 0.45);
+  color: #059669;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0.25rem 0;
+  vertical-align: middle;
+}
+
+html.dark .cinematic-green-remark {
+  color: #34D399;
+}
+
+/* Schematic Diagram Box */
+.cinematic-compare-diagram-box {
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid #CBD5E1;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin: 0.5rem 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+html.dark .cinematic-compare-diagram-box {
+  background: rgba(15, 23, 42, 0.75);
+  border-color: #334155;
+}
+
+/* Metric Delta Cards */
+.cinematic-compare-delta-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .cinematic-compare-delta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .cinematic-compare-delta-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.cinematic-compare-delta-card {
+  padding: 0.875rem 1rem;
+  border-radius: 1rem;
+  background: rgba(248, 250, 252, 0.85);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.35rem;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+html.dark .cinematic-compare-delta-card {
+  background: rgba(15, 23, 42, 0.65);
+  border-color: rgba(51, 65, 85, 0.65);
+}
+
+.cinematic-compare-delta-card:hover {
+  transform: translateY(-2px);
+  border-color: #F59E0B;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-compare-pill-btn,
+  .cinematic-compare-handle,
+  .cinematic-compare-delta-card {
+    transition: none !important;
+  }
+}
+
+/* ==========================================================================
+   Phase 5: Daily Routine Protocol & 6-Stage Forensic Evaluation Flow
+   ========================================================================== */
+
+.cinematic-routine-stepper-wrap {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cinematic-routine-stepper {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  min-width: 650px;
+}
+
+@media (min-width: 1024px) {
+  .cinematic-routine-stepper {
+    min-width: 100%;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.cinematic-routine-step-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: 1rem;
+  background: rgba(248, 250, 252, 0.85);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  outline: none;
+  position: relative;
+  user-select: none;
+  flex: 1;
+}
+
+html.dark .cinematic-routine-step-btn {
+  background: rgba(15, 23, 42, 0.65);
+  border-color: rgba(51, 65, 85, 0.65);
+}
+
+.cinematic-routine-step-btn:hover {
+  border-color: #F59E0B;
+  transform: translateY(-1px);
+}
+
+.cinematic-routine-step-btn.is-active {
+  background: #FFFFFF;
+  border-color: #F59E0B;
+  box-shadow: 0 4px 15px -2px rgba(245, 158, 11, 0.25);
+}
+
+html.dark .cinematic-routine-step-btn.is-active {
+  background: #1E293B;
+  border-color: #F59E0B;
+  box-shadow: 0 4px 15px -2px rgba(245, 158, 11, 0.4);
+}
+
+.cinematic-routine-step-btn:focus-visible {
+  outline: 2px solid #F59E0B;
+  outline-offset: 1px;
+}
+
+.cinematic-routine-panel {
+  display: none;
+  animation: cinematicFadeIn 0.25s ease-out;
+}
+
+.cinematic-routine-panel.is-active {
+  display: block;
+}
+
+@keyframes cinematicFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-routine-step-btn {
+    transition: none !important;
+  }
+  .cinematic-routine-panel {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   CINEMATIC SPLIT HERO & EXAMINER'S DESK INTEGRATION
+   ========================================================================== */
+
+/* Split Hero Container Card */
+.cinematic-hero-split-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 2rem 2.25rem;
+  display: grid;
+  grid-template-columns: 1.05fr 1.15fr;
+  gap: 2.25rem;
+  align-items: center;
+}
+
+html.dark .cinematic-hero-split-card {
+  background: rgba(11, 19, 43, 0.95);
+  border-color: rgba(245, 158, 11, 0.22);
+  box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.65), 0 0 40px rgba(245, 158, 11, 0.08);
+}
+
+html:not(.dark) .cinematic-hero-split-card {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(217, 119, 6, 0.2);
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.1);
+}
+
+/* Left Pitch Column */
+.cinematic-hero-pitch-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  text-align: left;
+  z-index: 5;
+}
+
+.cinematic-hero-pitch-col .cinematic-eyebrow {
+  align-self: flex-start;
+}
+
+.cinematic-hero-pitch-col .cinematic-hero-title {
+  margin: 0;
+  text-align: left;
+}
+
+.cinematic-hero-subhead {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: #475569;
+  max-width: 520px;
+}
+
+html.dark .cinematic-hero-subhead {
+  color: #94A3B8;
+}
+
+/* CTAs inside split column */
+.cinematic-hero-cta-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
+}
+
+.btn-primary-eval {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: #0A1128;
+  font-weight: 800;
+  font-size: 0.875rem;
+  padding: 0.85rem 1.35rem;
+  border-radius: 0.875rem;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.4);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-primary-eval:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -5px rgba(217, 119, 6, 0.55);
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+}
+
+.btn-primary-eval:active {
+  transform: translateY(0);
+}
+
+.btn-secondary-demo {
+  background: rgba(241, 245, 249, 0.9);
+  color: #1E293B;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  padding: 0.85rem 1.25rem;
+  border-radius: 0.875rem;
+  border: 1px solid #CBD5E1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+html.dark .btn-secondary-demo {
+  background: rgba(17, 28, 61, 0.9);
+  color: #F8FAFC;
+  border-color: #334155;
+}
+
+.btn-secondary-demo:hover {
+  border-color: #F59E0B;
+  background: rgba(245, 158, 11, 0.15);
+}
+
+/* Trust strip in pitch column */
+.cinematic-hero-trust-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+html.dark .cinematic-hero-trust-strip {
+  border-top-color: rgba(30, 41, 59, 0.7);
+}
+
+.trust-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748B;
+}
+
+html.dark .trust-pill {
+  color: #94A3B8;
+}
+
+/* Right Scene Column */
+.cinematic-hero-scene-col {
+  position: relative;
+  min-height: 440px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+}
+
+/* Restrained 3-Step Product Progression Switcher */
+.cinematic-demo-step-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.45);
+  padding: 4px 6px;
+  border-radius: 9999px;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  margin-bottom: 10px;
+  width: fit-content;
+  backdrop-filter: blur(8px);
+}
+
+html:not(.dark) .cinematic-demo-step-bar {
+  background: rgba(241, 245, 249, 0.9);
+  border-color: rgba(217, 119, 6, 0.25);
+}
+
+.cinematic-demo-step-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #94A3B8;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+html:not(.dark) .cinematic-demo-step-pill {
+  color: #64748B;
+}
+
+.cinematic-demo-step-pill .pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.cinematic-demo-step-pill:hover {
+  color: #F8FAFC;
+}
+
+html:not(.dark) .cinematic-demo-step-pill:hover {
+  color: #0F172A;
+}
+
+.cinematic-demo-step-pill.is-active {
+  background: #F59E0B;
+  color: #0A1128;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+}
+
+.cinematic-demo-step-pill.is-active .pill-dot {
+  background: #0A1128;
+  opacity: 1;
+}
+
+/* The Desk Container Stage */
+.examiner-desk-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 1.5rem;
+  background: #0B132B;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 35px rgba(245, 158, 11, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Ambient Warm Lamp Glow Overlay */
+.desk-lamp-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 65% 35%, rgba(245, 158, 11, 0.18) 0%, rgba(6, 11, 24, 0) 70%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Base Artwork Image */
+.desk-artwork {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Dynamic Annotations Layer */
+.desk-annotations-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+/* Step 1: Clean Handwritten Answer Copy */
+.examiner-desk-stage[data-active-step="1"] .desk-annotations-layer {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.examiner-desk-stage[data-active-step="1"] .floating-hud-panel {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(16px);
+}
+
+/* Step 2: Red-Pen Annotations & Margin Remarks Reveal */
+.examiner-desk-stage[data-active-step="2"] .desk-annotations-layer {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.examiner-desk-stage[data-active-step="2"] .examiner-pen-underline path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.8s ease;
+}
+
+.examiner-desk-stage[data-active-step="2"] .margin-critique-note {
+  opacity: 1;
+  transform: translateY(0) rotate(-1.5deg);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.examiner-desk-stage[data-active-step="2"] .examiner-stamp-overlay {
+  opacity: 0.95;
+  transform: rotate(-10deg) scale(1);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1.2);
+}
+
+.examiner-desk-stage[data-active-step="2"] .floating-hud-panel {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(16px);
+}
+
+/* Step 3: Five Rubric Dimensions Sequential Fill */
+.examiner-desk-stage[data-active-step="3"] .desk-annotations-layer {
+  opacity: 0.85;
+  pointer-events: auto;
+}
+
+.examiner-desk-stage[data-active-step="3"] .examiner-pen-underline path {
+  stroke-dashoffset: 0;
+}
+
+.examiner-desk-stage[data-active-step="3"] .margin-critique-note {
+  opacity: 0.95;
+  transform: translateY(0) rotate(-1.5deg);
+}
+
+.examiner-desk-stage[data-active-step="3"] .examiner-stamp-overlay {
+  opacity: 0.85;
+  transform: rotate(-10deg) scale(1);
+}
+
+.examiner-desk-stage[data-active-step="3"] .floating-hud-panel {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.examiner-desk-stage[data-active-step="3"] .hud-feedback-callout {
+  display: none;
+  opacity: 0;
+}
+
+/* Step 4: Practice Evaluation & Sample Feedback Settled State */
+.examiner-desk-stage[data-active-step="4"] .desk-annotations-layer {
+  opacity: 0.95;
+  pointer-events: auto;
+}
+
+.examiner-desk-stage[data-active-step="4"] .examiner-pen-underline path {
+  stroke-dashoffset: 0;
+}
+
+.examiner-desk-stage[data-active-step="4"] .margin-critique-note {
+  opacity: 1;
+  transform: translateY(0) rotate(-1.5deg);
+}
+
+.examiner-desk-stage[data-active-step="4"] .examiner-stamp-overlay {
+  opacity: 0.9;
+  transform: rotate(-10deg) scale(1);
+}
+
+.examiner-desk-stage[data-active-step="4"] .floating-hud-panel {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(245, 158, 11, 0.35);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.examiner-desk-stage[data-active-step="4"] .hud-feedback-callout {
+  display: block;
+  opacity: 1;
+  animation: feedbackSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Step 4 Dedicated Examiner Practice Evaluation Feedback Callout */
+.hud-feedback-callout {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 8px;
+  padding: 6px 8px;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  transition: all 0.3s ease;
+}
+
+html:not(.dark) .hud-feedback-callout {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(217, 119, 6, 0.35);
+}
+
+.feedback-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 8.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #F59E0B;
+  margin-bottom: 3px;
+}
+
+html:not(.dark) .feedback-badge {
+  color: #D97706;
+}
+
+.feedback-text {
+  font-size: 9.5px;
+  line-height: 1.35;
+  color: #CBD5E1;
+  margin: 0;
+}
+
+html:not(.dark) .feedback-text {
+  color: #334155;
+}
+
+.feedback-text strong {
+  color: #F8FAFC;
+  font-weight: 700;
+}
+
+html:not(.dark) .feedback-text strong {
+  color: #0F172A;
+}
+
+@keyframes feedbackSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Red Pen Underline */
+.examiner-pen-underline {
+  position: absolute;
+  top: 48%;
+  left: 46%;
+  width: 28%;
+  height: 12px;
+}
+
+.examiner-pen-underline path {
+  stroke: #EF4444;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  fill: none;
+  stroke-dasharray: 220;
+  stroke-dashoffset: 220;
+}
+
+/* Margin Critique Note - Cleanly anchored to left margin */
+.margin-critique-note {
+  position: absolute;
+  top: 26%;
+  left: 12%;
+  max-width: 215px;
+  background: rgba(220, 38, 38, 0.96);
+  color: #FFFFFF;
+  font-size: 0.625rem;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  padding: 5px 9px;
+  border-radius: 6px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+  border-left: 3px solid #FEE2E2;
+  opacity: 0;
+  transform: translateY(10px) rotate(-1.5deg);
+  pointer-events: auto;
+  z-index: 5;
+}
+
+/* Practice Evaluation Sample Demo Stamp - Cleanly anchored to lower-left page */
+.examiner-stamp-overlay {
+  position: absolute;
+  bottom: 12%;
+  left: 10%;
+  border: 2px dashed #DC2626;
+  color: #DC2626;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 800;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transform: rotate(-10deg) scale(1.6);
+  opacity: 0;
+  background: rgba(254, 226, 226, 0.88);
+  z-index: 4;
+}
+
+/* Floating Diagnostic Scorecard - Anchored to right desk wood with generous breathing room */
+.floating-hud-panel {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: min(265px, 48%);
+  max-width: 265px;
+  background: rgba(11, 19, 43, 0.94);
+  border: 1px solid rgba(51, 65, 85, 0.85);
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(245, 158, 11, 0.2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 12px 14px;
+  z-index: 10;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+html:not(.dark) .floating-hud-panel {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(226, 232, 240, 0.9);
+  box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(226, 232, 240, 0.8);
+}
+
+.hud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+html.dark .hud-header {
+  border-bottom-color: rgba(51, 65, 85, 0.6);
+}
+
+.hud-title-badge {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #F59E0B;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.hud-demo-tag {
+  font-size: 9px;
+  font-weight: 700;
+  background: rgba(16, 185, 129, 0.14);
+  color: #10B981;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #10B981;
+}
+
+.hud-score-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.hud-big-score {
+  font-size: 24px;
+  font-weight: 900;
+  font-family: "Newsreader", "Lora", Georgia, serif;
+  color: #F8FAFC;
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+html:not(.dark) .hud-big-score {
+  color: #0F172A;
+}
+
+.hud-big-score span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94A3B8;
+}
+
+html:not(.dark) .hud-big-score span {
+  color: #64748B;
+}
+
+.hud-rubric-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.rubric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5px;
+}
+
+.rubric-item-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 600;
+  color: #94A3B8;
+}
+
+html:not(.dark) .rubric-item-header {
+  color: #64748B;
+}
+
+.rubric-item-header .val {
+  font-weight: 700;
+  color: #F8FAFC;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+html:not(.dark) .rubric-item-header .val {
+  color: #0F172A;
+}
+
+.rubric-track {
+  width: 100%;
+  height: 4.5px;
+  background: rgba(51, 65, 85, 0.5);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+html:not(.dark) .rubric-track {
+  background: rgba(226, 232, 240, 0.9);
+}
+
+.rubric-fill {
+  height: 100%;
+  border-radius: 3px;
+  width: 0%;
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fill-intro { background: #10B981; }
+.fill-core { background: #F59E0B; }
+.fill-value { background: #EC4899; }
+.fill-presentation { background: #3B82F6; }
+.fill-conclusion { background: #8B5CF6; }
+
+.hud-footer-note {
+  font-size: 9px;
+  color: #64748B;
+  line-height: 1.4;
+  border-top: 1px solid rgba(51, 65, 85, 0.6);
+  padding-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+html:not(.dark) .hud-footer-note {
+  border-top-color: rgba(226, 232, 240, 0.8);
+  color: #94A3B8;
+}
+
+/* Mobile Responsive Composition */
+@media (max-width: 1024px) {
+  /* Prevent fixed bottom-nav from obscuring scrolled hero content */
+  #heroLandingSection {
+    padding-bottom: 5.5rem;
+  }
+
+  /* Reposition or minimize floating feedback widget on mobile */
+  #floatingFeedbackWidget {
+    bottom: 5.25rem !important;
+    right: 0.75rem !important;
+    transform: scale(0.85);
+    transform-origin: bottom right;
+    z-index: 25 !important;
+  }
+
+  .cinematic-hero-split-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 10px 16px;
+    border-radius: 1.25rem;
+  }
+
+  .cinematic-hero-pitch-col {
+    gap: 7px;
+    text-align: left;
+  }
+
+  .cinematic-hero-pitch-col .cinematic-eyebrow {
+    font-size: 9px;
+    padding: 2px 7px;
+    margin-bottom: 0;
+  }
+
+  .cinematic-hero-pitch-col .cinematic-hero-title {
+    font-size: clamp(1.35rem, 5.2vw, 1.65rem);
+    line-height: 1.15;
+    margin: 0;
+  }
+
+  .cinematic-hero-subhead {
+    font-size: 11px;
+    line-height: 1.45;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  /* Clean full-width stacked CTAs on mobile so 15 Daily Copies text is unclipped */
+  .cinematic-hero-cta-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding-top: 2px;
+    width: 100%;
+  }
+
+  .btn-primary-eval {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 10px;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .btn-secondary-demo {
+    width: 100%;
+    padding: 9px 14px;
+    font-size: 11.5px;
+    border-radius: 10px;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .cinematic-hero-trust-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 2px;
+    border-top: none;
+  }
+
+  .trust-pill {
+    font-size: 9.5px;
+  }
+
+  /* Mobile Answer-Sheet Stage */
+  .cinematic-hero-scene-col {
+    min-height: auto;
+    width: 100%;
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cinematic-demo-step-bar {
+    margin-bottom: 6px;
+    align-self: center;
+  }
+
+  .cinematic-demo-step-pill {
+    padding: 3px 7px;
+    font-size: 8.5px;
+  }
+
+  .examiner-desk-stage {
+    aspect-ratio: 16 / 11;
+    min-height: 305px;
+    max-height: 345px;
+    border-radius: 14px;
+  }
+
+  /* On mobile Step 3/4: scorecard fits comfortably without clipping */
+  .floating-hud-panel {
+    width: min(265px, 92%);
+    bottom: 6px;
+    right: 6px;
+    padding: 6px 9px;
+    border-radius: 12px;
+  }
+
+  .hud-header {
+    padding-bottom: 4px;
+    margin-bottom: 5px;
+  }
+
+  .hud-title-badge {
+    font-size: 8px;
+    gap: 3px;
+  }
+
+  .hud-demo-tag {
+    font-size: 7.5px;
+    padding: 1px 4px;
+  }
+
+  .hud-score-row {
+    margin-bottom: 5px;
+  }
+
+  .hud-feedback-callout {
+    padding: 3px 6px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border-radius: 6px;
+  }
+
+  .feedback-badge {
+    font-size: 7px;
+    margin-bottom: 2px;
+  }
+
+  .feedback-text {
+    font-size: 7.5px;
+    line-height: 1.25;
+  }
+
+  .hud-big-score {
+    font-size: 16px;
+  }
+
+  .hud-rubric-bars {
+    gap: 2.5px;
+    margin-bottom: 3px;
+  }
+
+  .rubric-item-header {
+    font-size: 7.5px;
+  }
+
+  .rubric-track {
+    height: 2.5px;
+  }
+
+  .hud-footer-note {
+    font-size: 7px;
+    padding-top: 2px;
+  }
+
+  .margin-critique-note {
+    top: 14%;
+    left: 8%;
+    max-width: 175px;
+    font-size: 8px;
+    padding: 3px 6px;
+  }
+
+  .examiner-stamp-overlay {
+    bottom: 8%;
+    left: 8%;
+    font-size: 8px;
+    padding: 3px 6px;
+  }
+}
+
+/* Reduced Motion Accessibility Overrides */
+@media (prefers-reduced-motion: reduce) {
+  .examiner-desk-stage {
+    transform: none !important;
+  }
+  .floating-hud-panel {
+    transform: none !important;
+    opacity: 1 !important;
+    animation: none !important;
+  }
+  .examiner-pen-underline path {
+    stroke-dashoffset: 0 !important;
+    animation: none !important;
+  }
+  .margin-critique-note, .examiner-stamp-overlay {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  .rubric-fill {
+    transition: none !important;
+  }
+}
+
+
+
