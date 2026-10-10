@@ -1757,43 +1757,43 @@ Generate strictly valid JSON matching this schema:
     //    - NEVER invert or cross-attribute quotes between cards (e.g. placing an Exchange Rate quote into an Oil Dynamics card, or placing an OPEC oil quote into an Exchange Rate card)!
     {{
       "page": 1,
-      "approx_y_percent": 32,
+      "approx_y_percent": 30,
       "start_y_percent": 24,
-      "end_y_percent": 44,
-      "tag": "Intro: Core Premise & Definition",
+      "end_y_percent": 42,
+      "tag": "Intro: Context & Conceptual Definition",
       "type": "tick",
       "marks_awarded": "+{sample_intro_aw:.1f} / {intro_d:.1f}",
-      "remark": "✓ **Foundational Definition**: Opened with *\"Article 280 specifies the Finance Commission as the quasi-judicial body for financial devolution\"*, setting clear context.\\n✎ **Contextual Upgrade**: Mention the contemporary 15th FC award period (2021–26) under N.K. Singh to anchor current relevance."
+      "remark": "✓ **Direct Premise**: Opened by defining the core concept (*\"[Quote student opening phrase]\"*), establishing direct analytical context.\\n✎ **Opening Upgrade**: Anchor with official doctrine, article/statute, or recent benchmark for immediate analytical authority."
     }},
     {{
       "page": 1,
       "approx_y_percent": 68,
-      "start_y_percent": 46,
+      "start_y_percent": 44,
       "end_y_percent": 88,
-      "tag": "Body: Part A — Constitutional Mandate",
+      "tag": "Body: [Candidate Written Heading 1 / Primary Demand]",
       "type": "tick",
       "marks_awarded": "+{round(sample_body_aw * 0.40, 1):.1f} / {round(body_d * 0.40, 1):.1f}",
-      "remark": "✓ **Divisible Pool Devolution**: Accurately explained the vertical share formula with 41% net proceeds to states (1% retained for J&K/Ladakh).\\n✎ **Empirical Depth**: Detail horizontal devolution criteria weights (Income Distance 45%, Population 15%, Demographic Performance 12.5%, Forest 10%)."
+      "remark": "✓ **Core Argumentation**: Articulated key mechanisms (*\"[Quote student points on this page]\"*), addressing primary question dimension.\\n✎ **Substantiation**: Back argument with 1 concrete empirical metric, committee recommendation, or case law."
     }},
     {{
       "page": 2,
       "approx_y_percent": 40,
       "start_y_percent": 8,
       "end_y_percent": 68,
-      "tag": "Body: Part B — ToR & Fiscal Federalism",
+      "tag": "Body: [Candidate Written Heading 2 / Secondary Dimension]",
       "type": "tick",
       "marks_awarded": "+{round(sample_body_aw * 0.35, 1):.1f} / {round(body_d * 0.35, 1):.1f}",
-      "remark": "✓ **Federal Balance**: Highlighted southern states' concerns regarding 2011 census substitution over 1971 population baseline.\\n✎ **Institutional Depth**: Cite Article 275 grants-in-aid and performance-based incentives for power sector and local bodies."
+      "remark": "✓ **Dimension Coverage**: Evaluated practical implications (*\"[Quote student second page points]\"*), demonstrating multidimensional coverage.\\n✎ **Policy Linkage**: Anchor with official guidelines, statutory framework, or best practice."
     }},
     {{
       "page": 2,
-      "approx_y_percent": 72,
-      "start_y_percent": 69,
-      "end_y_percent": 75,
-      "tag": "Conclusion",
+      "approx_y_percent": 74,
+      "start_y_percent": 70,
+      "end_y_percent": 86,
+      "tag": "Conclusion: Closing Synthesis",
       "type": "suggestion",
       "marks_awarded": "+{sample_conc_aw:.1f} / {conc_d:.1f}",
-      "remark": "✓ **Closing Synthesis**: Concluded with *\"FC must act as a collaborative federal platform balancing equity and efficiency\"*, synthesizing well.\\n✎ **Topper Finish**: Anchor with institutionalization of Inter-State Council (Art 263) and a permanent Fiscal Council for fiscal sustainability."
+      "remark": "✓ **Closing Synthesis**: Concluded with *\"[Quote student actual closing sentence]\"*, synthesizing core arguments.\\n✎ **Topper Finish**: Connect final sentence to long-term constitutional or institutional vision rather than broad generalization."
     }}
   ]
 }}
@@ -2768,8 +2768,14 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                     has_written_wf = _has_candidate_written_way_forward(pg_trans)
                     is_wf_demanded = _is_way_forward_demanded_by_question(resolved_q)
                     has_statutory_act = bool(re.search(r'\b(?:act\s+\d{4}|statutory|model\s+contract\s+farming|disaster\s+management\s+act)\b', pg_trans))
+                    
+                    # On a 10-marker (or max_pg <= 2), if the candidate continued continuous points (e.g. Points 4, 5, 6),
+                    # do NOT split Page 2 into two body banners unless the candidate authored two distinct separate sub-headings.
+                    cand_page_headings = _extract_candidate_headings_from_page(raw_pg_trans_final)
+                    cand_has_two_distinct_sections = (len(cand_page_headings) >= 2) or has_written_wf or has_statutory_act
+                    allow_final_body_split = (max_pg >= 3) or cand_has_two_distinct_sections
 
-                    if conc_ann and (float(conc_ann.get("start_y_percent", 62) or 62) < 60.0 or has_written_wf or has_statutory_act):
+                    if conc_ann and allow_final_body_split and (float(conc_ann.get("start_y_percent", 62) or 62) < 60.0 or has_written_wf or has_statutory_act):
                         conc_s_y = float(conc_ann.get("start_y_percent", 26) or 26)
 
                         # Determine what the candidate actually wrote in this body region
@@ -2780,9 +2786,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                             statutory_tag = f"Body: {m_act.group(1).strip()}" if m_act else "Body: Statutory & Policy Framework"
                         else:
                             # Extract the candidate's actual written sub-heading on this page!
-                            cand_heads = _extract_candidate_headings_from_page(raw_pg_trans_final)
-                            if cand_heads:
-                                chosen_h = cand_heads[-1] if len(cand_heads) > 1 else cand_heads[0]
+                            if cand_page_headings:
+                                chosen_h = cand_page_headings[-1] if len(cand_page_headings) > 1 else cand_page_headings[0]
                                 clean_h = chosen_h.title() if chosen_h.isupper() and len(chosen_h) > 3 else chosen_h
                                 statutory_tag = f"Body: {clean_h}"
                             else:
@@ -2816,13 +2821,17 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                             "remark": conc_ann.get("remark") if (conc_ann.get("remark") and not _is_conc_bullet(conc_ann.get("remark", "")) and len(str(conc_ann.get("remark"))).strip() >= 25) else _build_page_zone_remark(pg, 1, statutory_tag, stat_start)
                         }
 
-                        # Extract closing prose line from pg_trans (e.g. "It can be seen that...")
+                        # Extract closing prose line from pg_trans (e.g. "It can be seen that...", "Thus ethical ideas...")
                         closing_line = ""
-                        for ln in reversed(raw_pg_trans_final.splitlines()):
+                        cand_conc_candidates = []
+                        for ln in raw_pg_trans_final.splitlines():
                             ln_c = ln.strip()
-                            if len(ln_c) >= 25 and not ln_c.startswith("-") and not ln_c.startswith("*"):
-                                closing_line = ln_c
-                                break
+                            if re.match(r'^(?:thus|hence|therefore|in\s+conclusion|overall|consequently|to\s+conclude)\b', ln_c, re.IGNORECASE):
+                                cand_conc_candidates.append(ln_c)
+                            elif len(ln_c) >= 25 and not re.match(r'^(?:[-*•–—]|point\s*\d+|\b[①-⑩\d]+[\.\)])', ln_c):
+                                cand_conc_candidates.append(ln_c)
+                        if cand_conc_candidates:
+                            closing_line = cand_conc_candidates[-1]
 
                         c_crit = str(conc_audit_obj.get("current_critique") or "")
                         c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "")
@@ -2831,7 +2840,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                         if clean_close:
                             real_conc_rem = f"✓ **Closing Stance Evaluated**: Concluded with *\"{clean_close}\"* tying together the core directive.\n✎ **Topper Finish**: {clean_topper}"
                         elif c_crit and len(c_crit) >= 30 and not _has_meta_placeholder(c_crit):
-                            real_conc_rem = f"{_fmt_bullet(c_crit, '✓')}\n✎ **Topper Finish**: {clean_topper}"
+                            clean_crit = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:\*\*(?:Closing|Concluding)\s*Synthesis\s*Evaluated\*\*:?\s*)+', '', c_crit).strip()
+                            real_conc_rem = f"✓ **Closing Stance Evaluated**: {clean_crit}\n✎ **Topper Finish**: {clean_topper}"
                         else:
                             real_conc_rem = f"✓ **Closing Stance Evaluated**: Summarized candidate's concluding stand on the core directive.\n✎ **Topper Finish**: {clean_topper}"
 
@@ -3025,6 +3035,19 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                         ann["tag"] = f"Body: {h_clean}"
                     else:
                         ann["tag"] = "Body: Core Arguments"
+
+            # Cleanse leaked prompt example tags (e.g. ToR, Fiscal Federalism, Divisible Pool, Article 280) when question is NOT about Finance Commission
+            is_fc_q = bool(re.search(r'(?i)\b(?:finance\s+commission|fiscal\s+federalism|devolution|article\s+280|divisible\s+pool)\b', resolved_q))
+            if not is_fc_q and re.search(r'(?i)\b(?:tor|fiscal\s+federalism|divisible\s+pool|article\s+280)\b', str(ann.get("tag", ""))):
+                cand_heads_ann = _extract_candidate_headings_from_page(_get_page_transcript(ann_page))
+                if cand_heads_ann:
+                    h_clean = cand_heads_ann[-1].title() if cand_heads_ann[-1].isupper() and len(cand_heads_ann[-1]) > 3 else cand_heads_ann[-1]
+                    ann["tag"] = f"Body: {h_clean}"
+                else:
+                    ann["tag"] = "Body: Secondary Analytical Dimension"
+
+            # Strip artificial (Part 1) and (Part 2) suffixes from tags
+            ann["tag"] = re.sub(r'\s*\((?:Part|Pt\.?)\s*[12]\)', '', str(ann.get("tag", ""))).strip()
 
             rem_text = str(ann.get("remark", ""))
             if "lacks structure" in rem_text.lower():
@@ -3820,7 +3843,9 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
             else:
                 body_idx = idx - 1
                 part_letter = chr(65 + body_idx)
-                item["step_label"] = item.get("step_label") or f"{idx + 1}. Part {part_letter} — Question Dimension {part_letter}"
+                raw_sl = str(item.get("step_label") or "").strip()
+                clean_sl = re.sub(r'^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*)+', '', raw_sl, flags=re.IGNORECASE).strip()
+                item["step_label"] = f"{idx + 1}. Part {part_letter} — {clean_sl}" if clean_sl else f"{idx + 1}. Part {part_letter} — Question Dimension {part_letter}"
                 raw_sh = str(item.get("sub_heading") or "")
                 if not raw_sh or "explain what" in raw_sh.lower():
                     if body_idx == 0:
@@ -3834,7 +3859,12 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
             assigned_steps.append(item)
         data["sub_part_step_marking"] = assigned_steps
     else:
-        num_gen_body = 3 if (len(strengths) >= 3 or int(data.get("total_pages", 0) or 0) >= 3) else 2
+        # For 10-markers (max_marks == 10 or total_pages <= 2), strictly default to 2 body parts (Intro + Part A + Part B + Conclusion)
+        total_p = int(data.get("total_pages", 0) or 0)
+        if max_marks <= 10 or total_p <= 2:
+            num_gen_body = 2
+        else:
+            num_gen_body = 3 if (len(strengths) >= 3 or total_p >= 3) else 2
         total_body_max = max(1.0, round((max_marks - intro_max - conc_max) * 4) / 4)
         total_body_aw = max(0.0, round((overall_score - intro_aw - conc_aw) * 4) / 4)
 
@@ -4451,14 +4481,38 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
         c_audit["score"] = assigned_conc
         c_audit["model_conclusion_rewrite"] = effective_conc
 
+        # Extract candidate closing sentence directly from transcribed text if available
+        closing_cand_quote = ""
+        trans_full_txt = str(data.get("transcribed_text") or "")
+        cand_conc_matches = []
+        for ln in trans_full_txt.splitlines():
+            ln_c = ln.strip()
+            if re.match(r'^(?:thus|hence|therefore|in\s+conclusion|overall|consequently|to\s+conclude)\b', ln_c, re.IGNORECASE):
+                cand_conc_matches.append(ln_c)
+            elif len(ln_c) >= 25 and not re.match(r'^(?:[-*•–—]|point\s*\d+|\b[①-⑩\d]+[\.\)])', ln_c) and not ln_c.startswith("#"):
+                cand_conc_matches.append(ln_c)
+        if cand_conc_matches:
+            closing_cand_quote = cand_conc_matches[-1]
+
+        # Clean up existing conclusion critique and strip repeated prefixes
+        raw_c_crit = str(c_audit.get("current_critique") or "")
+        clean_c_crit = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:(?:\*\*)?(?:Closing|Concluding)\s*Synthesis\s*Evaluated(?:\*\*)?:?\s*)+', '', raw_c_crit).strip()
+        is_generic_or_empty_crit = (not clean_c_crit) or (len(clean_c_crit) < 30) or bool(re.search(r'(?i)\b(?:not\s+attempted|unwritten|summarizes\s+your\s+stance)\b', clean_c_crit))
+
         # Preserve Gemini's insightful conclusion critique if present, or construct a precise feedback note inspired by Image 4
-        if not c_audit.get("current_critique") or re.search(r'(?i)\b(?:not\s+attempted|unwritten)\b', str(c_audit.get("current_critique") or "")):
+        if is_generic_or_empty_crit:
             if gemini_step_conc_text and not re.search(r'(?i)\b(?:not\s+attempted|unwritten)\b', gemini_step_conc_text):
-                c_audit["current_critique"] = gemini_step_conc_text.strip()
+                c_audit["current_critique"] = f"✓ **Closing Synthesis Evaluated**: {gemini_step_conc_text.strip()}"
+            elif closing_cand_quote:
+                clean_cand_close = _clean_quote_snippet(closing_cand_quote, 140)
+                c_audit["current_critique"] = (
+                    f"✓ **Closing Synthesis Evaluated**: Concluded with *\"{clean_cand_close}\"*, summarizing core stance.\n"
+                    f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {effective_conc}"
+                )
             elif is_last_line_narrative and last_line:
                 clean_last = _clean_quote_snippet(last_line, 120)
                 c_audit["current_critique"] = (
-                    f"✓ **Closing Synthesis Evaluated**: Concluded with relevant statement (*\"{clean_last}\"*), but it remained somewhat broad.\n"
+                    f"✓ **Closing Synthesis Evaluated**: Concluded with *\"{clean_last}\"*, but it remained somewhat broad.\n"
                     f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {effective_conc}"
                 )
             else:
@@ -4466,6 +4520,9 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                     f"✓ **Closing Synthesis Evaluated**: Concluded with a relevant synthesis statement, but it remained somewhat broad.\n"
                     f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {domain_conc}"
                 )
+        else:
+            c_audit["current_critique"] = f"✓ **Closing Synthesis Evaluated**: {clean_c_crit}"
+
         data["conclusion_audit"] = c_audit
         data["rubric_scores"] = rubric_d
 
@@ -4478,8 +4535,9 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                 if "not attempted" in t_low:
                     ann["tag"] = "Conclusion: Closing Synthesis"
                 crit_clean = str(c_audit.get("current_critique") or "").splitlines()[0]
+                crit_body = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:\*\*(?:Closing|Concluding)\s*Synthesis\s*Evaluated\*\*:?\s*)+', '', crit_clean).strip()
                 ann["remark"] = (
-                    f"✓ **Closing Synthesis Evaluated**: {crit_clean}\n"
+                    f"✓ **Closing Synthesis Evaluated**: {crit_body}\n"
                     f"✎ **To Score Full Marks**: {domain_conc}"
                 )
 

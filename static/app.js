@@ -4740,20 +4740,32 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
 
     // 1. Extract title, statement, note from AI sub-part step marking
     if (aiBodySteps[i]) {
-      title = String(aiBodySteps[i].step_label || aiBodySteps[i].sub_heading || "").replace(/^(?:part\s*[a-z]\s*[-—:]\s*|\d+\.\s*)/i, "").trim();
+      let rawTitle = String(aiBodySteps[i].step_label || aiBodySteps[i].sub_heading || "").trim();
+      title = rawTitle.replace(/^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*)+/gi, "").trim();
+      // If AI labeled this body part with "Synthesis", that is a conclusion keyword; fall back to substantive dimension
+      if (/synthesis/i.test(title)) {
+        title = "Socio-Economic Integration & Application";
+      }
       const rawSh = String(aiBodySteps[i].sub_heading || "").trim();
       if (rawSh && rawSh.length >= 10 && !window.isMetaPlaceholderText(rawSh)) {
         statement = rawSh.startsWith("What the Question Demands:") ? rawSh : `What the Question Demands: ${rawSh}`;
       }
       note = String(aiBodySteps[i].quoted_written || "");
     } else if (bodyAnns[i] && bodyAnns[i].tag) {
-      title = String(bodyAnns[i].tag).replace(/^(?:body:\s*|part\s*[a-z]\s*[-—:]\s*|\d+\.\s*)/i, "").trim();
+      let rawTag = String(bodyAnns[i].tag).replace(/^body:\s*/i, "").trim();
+      title = rawTag.replace(/^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*)+/gi, "").trim();
+      if (/synthesis/i.test(title)) {
+        title = "Socio-Economic Integration & Application";
+      }
       if (bodyAnns[i].remark && !window.isMetaPlaceholderText(bodyAnns[i].remark)) {
         note = String(bodyAnns[i].remark).trim();
       }
     } else if (sArr[i]) {
       const parts = sArr[i].split(":");
-      title = parts[0].replace(/\*\*/g, "").trim();
+      title = parts[0].replace(/\*\*/g, "").replace(/^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*)+/gi, "").trim();
+      if (/synthesis/i.test(title)) {
+        title = "Socio-Economic Integration & Application";
+      }
       if (parts.length > 1) note = parts.slice(1).join(":").trim();
       else note = sArr[i];
     }
@@ -6144,11 +6156,11 @@ function renderAnnotationsOverlay() {
           // Never show "DEPTH & SUBSTANTIATION" or "SUBSTANTIATION" as section titles
           if (!t1 || /depth|substantiat/i.test(t1) || window.isMetaPlaceholderText(t1)) {
             const matchH1 = nonConcAnns[0].remark && nonConcAnns[0].remark.match(/\*\*(?:Candidate Heading|Section):\s*([^*]+)\*\*/i);
-            t1 = matchH1 ? matchH1[1].trim().toUpperCase() : `${bodyPart.shortTitle.toUpperCase()} (PART 1)`;
+            t1 = matchH1 ? matchH1[1].trim().toUpperCase() : `${bodyPart.shortTitle.toUpperCase()}`;
           }
           if (!t2 || /depth|substantiat/i.test(t2) || window.isMetaPlaceholderText(t2)) {
             const matchH2 = nonConcAnns[1].remark && nonConcAnns[1].remark.match(/\*\*(?:Candidate Heading|Section):\s*([^*]+)\*\*/i);
-            t2 = matchH2 ? matchH2[1].trim().toUpperCase() : `${bodyPart.shortTitle.toUpperCase()} (PART 2)`;
+            t2 = matchH2 ? matchH2[1].trim().toUpperCase() : `SECONDARY DIMENSIONS`;
           }
 
           outSections.push({
@@ -6282,7 +6294,8 @@ function renderAnnotationsOverlay() {
           /way\s*forward|way\s*ahead|measure|solution|reform|strateg/i.test(combinedTagParts[1])
         );
         const hasMultipleBodyAnnsOnFinalPage = rawBodyAnns.length >= 2;
-        const shouldRenderThreeSectionsOnFinalPage = !isHeatwaveCopy && (hasTwoDistinctSubheadingsInTag || hasMultipleBodyAnnsOnFinalPage);
+        // On 10-markers (totalPages <= 2), only render 3 sections on final page if candidate explicitly authored two distinct sections
+        const shouldRenderThreeSectionsOnFinalPage = !isHeatwaveCopy && (totalPages > 2 || evalData.max_marks > 10) && (hasTwoDistinctSubheadingsInTag || hasMultipleBodyAnnsOnFinalPage);
 
         const finalConcRemark = buildDynamicConcRemark(concRemCandidate);
 
@@ -6345,9 +6358,11 @@ function renderAnnotationsOverlay() {
             ? String(rawBodyAnns[1].tag || "").replace(/^body:\s*/i, "").trim().toUpperCase()
             : (combinedTagParts[1] ? combinedTagParts[1].toUpperCase() : "");
 
-          // Strip any depth/substantiation from titles
+          // Strip any depth/substantiation or synthesis from titles
           if (/depth|substantiat/i.test(sec1TitleRaw)) sec1TitleRaw = "";
           if (/depth|substantiat/i.test(sec2TitleRaw)) sec2TitleRaw = "";
+          if (/synthesis/i.test(sec1TitleRaw)) sec1TitleRaw = "";
+          if (/synthesis/i.test(sec2TitleRaw)) sec2TitleRaw = "";
 
           // If sec2 claims to be Way Forward when neither demanded nor written by candidate, strip it
           if (/way\s*forward|way\s*ahead|mitigat|reform|measure|solution/i.test(sec2TitleRaw) && !isWfDemanded && !hasCandidateWf) {
@@ -6357,7 +6372,7 @@ function renderAnnotationsOverlay() {
           // Resolve sec1 title
           if (!sec1TitleRaw || window.isMetaPlaceholderText(sec1TitleRaw)) {
             const matchH1 = rawBodyAnns[0] && rawBodyAnns[0].remark && rawBodyAnns[0].remark.match(/\*\*(?:Candidate Heading|Section):\s*([^*]+)\*\*/i);
-            sec1TitleRaw = matchH1 ? matchH1[1].trim().toUpperCase() : `${finalBodyPart.shortTitle.toUpperCase()} (PART 1)`;
+            sec1TitleRaw = matchH1 ? matchH1[1].trim().toUpperCase() : `${finalBodyPart.shortTitle.toUpperCase()}`;
           }
 
           // Resolve sec2 title
@@ -6372,7 +6387,7 @@ function renderAnnotationsOverlay() {
             } else if (isWfDemanded || hasCandidateWf) {
               sec2TitleRaw = "WAY FORWARD & REFORMS";
             } else {
-              sec2TitleRaw = `${finalBodyPart.shortTitle.toUpperCase()} (PART 2)`;
+              sec2TitleRaw = "SOCIO-ECONOMIC INTEGRATION";
             }
           }
 
@@ -9146,12 +9161,26 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
         evalData.conclusion_audit.current_critique = `✗ **Conclusion Not Attempted (Incomplete Answer)**: Your answer ended without writing a concluding synthesis paragraph (+0.0 marks awarded).<br>✎ **60-Second Recovery Strategy**: In the initial phase of answer writing, practice reserving the last 60 seconds to write a 2-line synthesis: ${cRewr}`;
       }
     } else {
-      const rawCCrit = String(evalData.conclusion_audit.current_critique || "").trim();
-      if (rawCCrit.length < 85 || /balanced conclusion|connect to sustainable development goals/i.test(rawCCrit)) {
-        const closingLines = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20).slice(-1)[0] || "";
-        const cleanClosing = cleanCandidateQuote(closingLines, 120);
-        const quoteClosing = cleanClosing ? ` (*"${cleanClosing}"*)` : "";
-        evalData.conclusion_audit.current_critique = `✓ **Concluding Synthesis Evaluated**: Your closing paragraph summarizes your stance on the topic${quoteClosing}.<br>✎ **How to Score Full Conclusion Marks**: Anchor your final lines in a specific institutional framework, national guideline, or statutory benchmark rather than a broad generalization.`;
+      let rawCCrit = String(evalData.conclusion_audit.current_critique || "").trim();
+      // Strip duplicated prefixes like "Closing Synthesis Evaluated: Concluding Synthesis Evaluated**:"
+      rawCCrit = rawCCrit.replace(/^(?:[✓✔✎✗×]\s*)?(?:\*\*(?:Closing|Concluding)\s*Synthesis\s*Evaluated\*\*:?\s*)+/gi, "").trim();
+      if (!rawCCrit || rawCCrit.length < 35 || /balanced conclusion|connect to sustainable development goals/i.test(rawCCrit)) {
+        const transLines = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20);
+        let closingLine = "";
+        for (let idx = transLines.length - 1; idx >= 0; idx--) {
+          const tl = transLines[idx];
+          if (/^(?:thus|hence|therefore|in\s+conclusion|overall|consequently|to\s+conclude)\b/i.test(tl)) {
+            closingLine = tl;
+            break;
+          } else if (!closingLine && !/^[-*•–—]|^\d+[\.\)]|^point\s*\d+/i.test(tl)) {
+            closingLine = tl;
+          }
+        }
+        const cleanClosing = cleanCandidateQuote(closingLine, 140);
+        const quoteClosing = cleanClosing ? ` Concluded with *"${cleanClosing}"*, summarizing core stance.` : " Your closing paragraph summarizes your stance on the topic.";
+        evalData.conclusion_audit.current_critique = `✓ **Concluding Synthesis Evaluated**:${quoteClosing}<br>✎ **How to Score Full Conclusion Marks**: Anchor your final lines in a specific institutional framework, national guideline, or statutory benchmark rather than a broad generalization.`;
+      } else {
+        evalData.conclusion_audit.current_critique = `✓ **Concluding Synthesis Evaluated**: ${rawCCrit}`;
       }
     }
   }
@@ -10941,7 +10970,7 @@ function renderBatch1ExaminerMastery(evalData) {
       .split(/<br\s*\/?>|\n|✎/i)[0]
       .replace(/^[✓✔✎✗×]\s*/, "")
       .replace(/\(\+?\d+(?:\.\d+)?\s*\/\s*\d+(?:\.\d+)?\s*M?\)/gi, "")
-      .replace(/\*\*([^*]+)\*\*:\s*/, "")
+      .replace(/^(?:\*\*([^*]+)\*\*:\s*)+/, "")
       .replace(/\b(?:Mention|Do NOT|Simply attach|Add|Keep your|To score full marks|How to Score)[^.]*\.?/gi, "")
       .trim();
 
