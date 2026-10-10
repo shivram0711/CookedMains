@@ -1951,7 +1951,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Handle direct navigation via URL hash (e.g. #mainsAnswerWritingGuide)
   if (window.location.hash) {
     const initialHash = window.location.hash.replace(/^#/, "");
-    if (["mainsAnswerWritingGuide", "mainsRubricSection", "dailyRoutineSection", "faqSection"].includes(initialHash)) {
+    if (["mainsAnswerWritingGuide", "mainsRubricSection", "dailyRoutineSection", "anatomySection", "faqSection"].includes(initialHash)) {
       setTimeout(() => {
         if (typeof window.navigateToLandingSection === "function") {
           window.navigateToLandingSection(initialHash);
