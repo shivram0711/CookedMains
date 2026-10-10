@@ -1030,12 +1030,19 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
         Crisp, punchy opening: 1-line technical/conceptual definition + 1-line empirical data anchor or baseline context.
         CRITICAL EXAM-HALL REALISM: NEVER write discursive, rambling 4-line paragraphs! Candidates have only 7 min (10M) or 10 min (15M) and examiners scan in ~12 seconds. An introduction exceeding 25 words wastes critical space and slows down the evaluator.
       * 2. Core Body Sub-parts (adhering strictly to Question Demand & Marks Blueprint):
-        - FOR 10-MARKERS: 2 sub-parts aligned to the question demands (3 to 4 numbered points per sub-part). If a Way Forward is included at the bottom of a tight 10-marker, keep it to a crisp 2-3 line paragraph or 2 short bullets so space is not wasted.
+        - FOR 10-MARKERS: 2 sub-parts aligned to the question demands (3 to 4 numbered points per sub-part).
         - FOR 15-MARKERS: 2 to 3 sub-parts aligned strictly to the explicit demands of the prompt (total 9-12 points).
-          * RATIONAL WAY-FORWARD RULE ("Don't write Way Forward in every question"):
-            1. If the question is History, Art & Culture, or pure Physical Geography mechanism (e.g. Ahom Kingdom, Temple Architecture, Plate Tectonics): DO NOT include or demand a "Way Forward" section!
-            2. If Part B of the question ALREADY asks for "steps taken by the government", "measures to control", or "framework to be adopted" (e.g. "Highlight the steps taken by the government to address the fall in private investments"): That sub-part IS the forward-looking section! DO NOT add a separate redundant "Way Forward" heading after it.
-            3. ONLY include/recommend a dedicated "Way Forward" sub-part when the question focuses on governance/economic/social/security challenges, limitations, or bottlenecks without already having a "Measures/Steps" sub-part.
+          * RATIONAL WAY-FORWARD & MITIGATION RULE ("Demand drives structure; NEVER invent phantom Way Forward"):
+            1. If the question does NOT demand mitigation, measures, or solutions (e.g. analytical, explanatory, comparative, philosophical, or historical questions) AND the candidate did NOT write a "Way Forward":
+               - NEVER label any section as "Way Forward" or "Way Forward & Reforms"!
+               - NEVER create a synthetic "Way Forward" section or award marks (+0.5M) for it!
+               - NEVER criticize the answer for "Missing Way Forward"!
+               - Faithfully track and label the candidate's ACTUAL headings and points (e.g. [PROS], [FEAR MANAGEMENT], etc.).
+            2. If the question DOES demand mitigation, measures, or solutions:
+               - If the candidate fulfilled it: Highlight it under their written heading, evaluate their points, and award marks for that demand.
+               - If the candidate omitted it: Give explicit feedback under critical gaps ("✗ Missing Required Mitigation: The question demanded concrete measures/mitigation, but this was omitted"). Do NOT fabricate a section or award marks for unwritten points!
+            3. If Part B of the question ALREADY asks for "steps taken by the government", "measures to control", or "framework to be adopted": That sub-part IS the forward-looking section! DO NOT add a separate redundant "Way Forward" heading after it.
+            4. ONLY include/recommend a dedicated "Way Forward" sub-part when the question focuses on governance/economic/social/security challenges, limitations, or bottlenecks without already having a "Measures/Steps" sub-part.
         - FOR 20-MARKERS: 3 to 4 sub-parts (12-16 points total) matched to the question's analytical dimensions.
         - Every bullet MUST follow Point-First Assertion (Bold key takeaway -> 1-line causal reasoning -> specific real-world example/data).
       * 3. [EXAM-HALL SCHEMATIC]: Include a compact 4-line micro-diagram or map ONLY where it is self-explanatory and adds spatial/process clarity (never draw decorative cartoons).
@@ -1094,7 +1101,7 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       * Sub-part count: 2 to 3 distinct sub-parts in the body matched to the question prompt.
       * Point budget: 3 to 4 points per sub-part (9 to 12 points total across the body).
       * Balanced distribution: Equal point counts across sub-parts (penalize answers that write 8 points for one sub-part and only 2 for another).
-      * CONDITIONAL WAY-FORWARD RULE: Do NOT force a "Way Forward" in every question! If the question is History/Culture/Pure Physical Geography, OR if Part B of the prompt ALREADY asks for "Steps taken / Measures / Framework", do NOT demand a separate "Way Forward" heading (and if the student wrote a redundant Way Forward after a Steps/Measures section, advise: "Don't write a separate Way Forward in every question—merge these into your Measures/Steps section"). Only expect a dedicated Way Forward when a governance/economy/social/security question ends on challenges or limitations without a solution sub-part.
+      * CONDITIONAL WAY-FORWARD RULE: Do NOT force a "Way Forward" in every question! If the question does NOT demand mitigation/way forward and the candidate did NOT write it, NEVER invent a "Way Forward" section, never award marks to it, and never complain about it. If the prompt ALREADY asks for "Steps taken / Measures / Framework", that sub-part IS the forward-looking section. Only evaluate/expect a dedicated Way Forward when the question explicitly demands solutions/mitigation or when the candidate actually authored one.
     - FOR 20-MARKERS (250-300 words / 4 pages / ~14-15 min):
       * Sub-part count: 3 to 4 distinct sub-parts.
       * Point budget: 4 to 5 points per sub-part (12 to 16 points total across the body).
@@ -1200,12 +1207,18 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       * Write every evaluation remark in plain, natural English that any aspirant can understand in 3 seconds.
       * STRICTLY AVOID dense, robotic phrases such as `"Addressed limitations superficially without citing institutional friction"`, `"underweighting separation of powers constraints"`, `"epistemic tautology"`, `"dichotomy"`, `"substantiation"`.
       * Instead of `"Addressed limitations superficially without citing institutional friction"`, write: `"**Explain Both Sides**: You explained well how courts protect the Constitution (using **NJAC** & **Maneka Gandhi**). Add 2 simple points on **Judicial Restraint**—where courts should respect Parliament's law-making role."`
-    - D. MATCH MARGIN CARD TAGS TO EXACT STUDENT HEADINGS & FLAG MISSING 'WAY FORWARD' HONESTLY:
-      * NEVER label a Margin Card `"Body: Way Forward"` unless the student ACTUALLY wrote a `"Way Forward / Solutions / Reforms"` heading or section on that page!
-      * If the student wrote a `"Limitations"`, `"Challenges"`, `"Issues"`, or `"Criticisms"` section/diagram on the final page (e.g., a boxed `[Limitations of Judicial Review]` diagram) and jumped directly to the `Conclusion` WITHOUT writing a `"Way Forward"`:
-        1. Set the Margin Card `tag` to match the student's actual heading (e.g., `"Body: Limitations of Judicial Review"`).
-        2. Praise their written Limitations/Challenges points or diagram in the `✓` line.
-        3. Explicitly state in the `✗` line AND in `body_audit.critical_gaps`: `"✗ **Missing Way Forward**: You moved directly from **Limitations** to the Conclusion—add 2 short **Way Forward** points before concluding."`
+    - D. STRICT TRACKING OF STUDENT HEADINGS & ELIMINATION OF SYNTHETIC TEMPLATES:
+      * TRACK CANDIDATE'S ACTUAL WRITTEN HEADINGS & STRUCTURE:
+        - In `visual_annotations`, every margin card `tag` MUST strictly match the candidate's actual handwritten sub-heading, boxed heading, or thematic section (e.g. `Body: Pros`, `Body: Fear Management`, `Body: Plastic Pollution & Soil Degradation`).
+        - NEVER replace the candidate's actual written headings with artificial AI templates!
+      * STRICT BAN ON "BODY: DEPTH & SUBSTANTIATION" AS A SECTION HEADING:
+        - NEVER write `Body: Depth & Substantiation` or `Depth & Substantiation` as a tag or heading!
+        - Depth and substantiation is an internal quality metric evaluated WITHIN candidate body points (assessing whether arguments are backed by data, cases, and causal logic), NOT an independent section header.
+      * STRICT BAN ON UNWARRANTED "WAY FORWARD" SECTIONS & MARKS ALLOCATION:
+        - NEVER label a Margin Card `"Body: Way Forward"` or `"Body: Way Forward & Reforms"` unless the student ACTUALLY wrote a `"Way Forward / Solutions / Reforms"` heading on that page!
+        - If the candidate wrote `PROS`, tag it `Body: Pros`. If they wrote `FEAR MANAGEMENT`, tag it `Body: Fear Management`.
+        - If the question did not demand a Way Forward and the candidate did not write it, DO NOT expect it, DO NOT flag it as missing, and DO NOT award marks to a phantom section.
+        - Only if the question explicitly demanded mitigation/solutions and the candidate omitted it: flag it in `body_audit.critical_gaps` and deductions, but do NOT fabricate a margin card or award unearned marks!
 
 21. REAL UPSC EXAMINER PER-PAGE MARGIN EVALUATION & STRICT SUBJECT ISOLATION (NON-NEGOTIABLE):
     - Think and grade like a senior UPSC Mains Evaluator reading each physical page of the candidate's answer booklet:
@@ -1233,7 +1246,7 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
               1. `"Body: [Top Sub-Part]"` (`start_y_percent: 10, end_y_percent: 25`).
               2. `"Body: Model Contract Farming Act 2018"` (`start_y_percent: 26, end_y_percent: 68`) — evaluate ONLY the statutory points (FDI, land protection, insurance, supply chain integration).
               3. `"Conclusion"` (`start_y_percent: 70, end_y_percent: 84`) — evaluate ONLY the final closing prose paragraph.
-            * If the candidate wrote 1 Body section (`Way Forward` or `Strategies` or `Model Act`) + `Conclusion`, output Annotation 1 = `"Body: [Exact Final Section Heading]"` (`start_y_percent: 7, end_y_percent: 68`) and Annotation 2 = `"Conclusion"` (`start_y_percent: 70, end_y_percent: 86`).
+            * If the candidate wrote 1 Body section (e.g. `Pros`, `Fear Management`, `Plastic Impacts`, `Strategies`, or `Model Act`) + `Conclusion`, output Annotation 1 = `"Body: [Exact Final Section Heading Written by Student]"` (`start_y_percent: 7, end_y_percent: 68`) and Annotation 2 = `"Conclusion"` (`start_y_percent: 70, end_y_percent: 86`). Never label Annotation 1 "Way Forward" unless the student explicitly wrote that heading!
       * B. QUOTE THE CANDIDATE'S EXACT HANDWRITTEN KEYWORDS, DATA & FLOWCHARTS ON EACH PAGE:
         - Every margin card's `✓` bullet MUST cite ONLY the exact facts, schemes, statistics, or diagrams written by the student inside that specific bracketed margin region! Never mix a `Way Forward` point into a `Challenges` card, and never wrap `Way Forward` inside the `Conclusion` bracket!
         - Every margin card's `✗` / `✎` bullet MUST state the exact domain-specific keyword, policy, or dimension needed for that specific sub-part.
@@ -1487,8 +1500,8 @@ Generate strictly valid JSON matching this schema:
       "quoted_written": "✓ Demand Met: Candidate substantiated with [exact case laws / data / points written]."
     }},
     {{
-      "step_label": "4. Part C — Tertiary Demand / Limitations / Way Forward (Include whenever question has 3 demands)",
-      "sub_heading": "Explain what Sub-Part 3 demands (e.g. Institutional Limitations, Challenges & Reform Measures)",
+      "step_label": "4. Part C — Tertiary Demand / Question Sub-Part C (Include whenever question has 3 distinct demands)",
+      "sub_heading": "Explain what Sub-Part 3 actually demands (e.g. Sectoral Impacts, Institutional Safeguards, or Comparative Dimension)",
       "demand_status": "Partially Fulfilled",
       "awarded": {round(sample_body_aw - round(sample_body_aw * 0.40, 2) - round(sample_body_aw * 0.35, 2), 2):.2f},
       "max": {round(body_d - round(body_d * 0.40, 1) - round(body_d * 0.35, 1), 1):.1f},
@@ -1533,10 +1546,10 @@ Generate strictly valid JSON matching this schema:
     }},
     {{
       "page": 3,
-      "badge": "Page 3 • Way Forward & Conclusion",
-      "title": "Exact Final Section / Boxed Flowchart & Closing",
-      "what_you_wrote": "Verbatim quote of candidate's final page strategies/diagram and conclusion",
-      "examiner_verdict": "Appreciation for the concluding roadmap + 1 high-impact policy anchor for full marks",
+      "badge": "Page 3 • Final Sub-Part & Closing",
+      "title": "Exact Final Section Heading & Closing Written on Page 3",
+      "what_you_wrote": "Verbatim quote of candidate's final page section/arguments and closing line",
+      "examiner_verdict": "Appreciation for the closing arguments + 1 high-impact policy anchor for full marks",
       "credit_badge": "✓ +1.25M Credit",
       "is_positive": true
     }}
@@ -1780,7 +1793,7 @@ Generate strictly valid JSON matching this schema:
       "tag": "Conclusion",
       "type": "suggestion",
       "marks_awarded": "+{sample_conc_aw:.1f} / {conc_d:.1f}",
-      "remark": "✓ **Closing Synthesis**: Concluded with *\"FC must act as a collaborative federal platform balancing equity and efficiency\"*, synthesizing well.\\n✎ **Way Forward**: Anchor with institutionalization of Inter-State Council (Art 263) and a permanent Fiscal Council for fiscal sustainability."
+      "remark": "✓ **Closing Synthesis**: Concluded with *\"FC must act as a collaborative federal platform balancing equity and efficiency\"*, synthesizing well.\\n✎ **Topper Finish**: Anchor with institutionalization of Inter-State Council (Art 263) and a permanent Fiscal Council for fiscal sustainability."
     }}
   ]
 }}
@@ -2044,7 +2057,49 @@ def _has_meta_placeholder(txt: str) -> bool:
                           r'bridge the gap in point)', str(txt or "")))
 
 
-def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: str, paper: str) -> Dict[str, Any]:
+def _is_way_forward_demanded_by_question(q_text: str) -> bool:
+    q_low = str(q_text or "").lower()
+    return bool(re.search(
+        r'\b(?:mitigat\w*|measures|solutions|steps\s+to|suggest\s+steps|remedial|remed\w*|how\s+to\s+address|way\s+forward|way\s+ahead|strategies\s+to|policy\s+interventions|policy\s+roadmap|action\s+plan)\b',
+        q_low
+    ))
+
+
+def _has_candidate_written_way_forward(pg_text: str) -> bool:
+    t_low = str(pg_text or "").lower()
+    return bool(re.search(
+        r'\b(?:way\s+forward|way\s+ahead|measures\s+needed|solutions|reforms\s+needed|mitigation\s+measures|steps\s+needed|strategies\s+to\s+overcome)\b',
+        t_low
+    ))
+
+
+def _extract_candidate_headings_from_page(raw_pg_trans: str) -> list:
+    """
+    Extracts authentic handwritten headings written by the student on this specific page.
+    Scans for boxed headings [HEADING], uppercase sub-headings, and short title lines.
+    """
+    if not raw_pg_trans:
+        return []
+    heads = []
+    lines = [l.strip() for l in raw_pg_trans.splitlines() if l.strip()]
+    for l in lines:
+        m_box = re.search(r'\[([A-Za-z0-9\s/&—–-]{2,55})\]', l)
+        if m_box:
+            h = m_box.group(1).strip()
+            if not re.match(r'^(?:page\s*\d+|q\s*\d+|figure|diagram|map|source)$', h.lower()):
+                heads.append(h)
+                continue
+        clean_l = re.sub(r'^(?:[①-⑩\d]+[\.\)]\s*|[-•*✓✔✎✗×]\s*)', '', l).strip()
+        if clean_l and len(clean_l) <= 45 and not clean_l.endswith(('.', ',')):
+            if clean_l.isupper() or re.match(r'^[A-Z][A-Za-z0-9\s/&—–-]+(?::| - | -- |$)', clean_l):
+                h = re.sub(r'[:\s-]+$', '', clean_l).strip()
+                if len(h) >= 3 and not re.match(r'^(?:page\s*\d+|q\s*\d+|total|marks|feedback|scanned\s+by.*)$', h.lower()):
+                    if not any(h.lower() == existing.lower() for existing in heads):
+                        heads.append(h)
+    return heads
+
+
+def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, question: str = "", paper: str = "") -> Dict[str, Any]:
     """
     Enforces 100% mathematical consistency (denominators sum to max_marks, numerators sum to overall_score).
     Embeds the diagram inside the model answer and eliminates cross-subject hallucinations and cross-page margin duplication.
@@ -2202,6 +2257,45 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                 if int(parts[i]) == page_num and i + 1 < len(parts):
                     return parts[i + 1]
             return ""
+
+        def _is_way_forward_demanded_by_question(q_text: str) -> bool:
+            q_low = str(q_text or "").lower()
+            return bool(re.search(
+                r'\b(?:mitigat\w*|measures|solutions|steps\s+to|suggest\s+steps|remedial|remed\w*|how\s+to\s+address|way\s+forward|way\s+ahead|strategies\s+to|policy\s+interventions|policy\s+roadmap|action\s+plan)\b',
+                q_low
+            ))
+
+        def _has_candidate_written_way_forward(pg_text: str) -> bool:
+            t_low = str(pg_text or "").lower()
+            return bool(re.search(
+                r'\b(?:way\s+forward|way\s+ahead|measures\s+needed|solutions|reforms\s+needed|mitigation\s+measures|steps\s+needed|strategies\s+to\s+overcome)\b',
+                t_low
+            ))
+
+        def _extract_candidate_headings_from_page(raw_pg_trans: str) -> list:
+            """
+            Extracts authentic handwritten headings written by the student on this specific page.
+            Scans for boxed headings [HEADING], uppercase sub-headings, and short title lines.
+            """
+            if not raw_pg_trans:
+                return []
+            heads = []
+            lines = [l.strip() for l in raw_pg_trans.splitlines() if l.strip()]
+            for l in lines:
+                m_box = re.search(r'\[([A-Za-z0-9\s/&—–-]{2,55})\]', l)
+                if m_box:
+                    h = m_box.group(1).strip()
+                    if not re.match(r'^(?:page\s*\d+|q\s*\d+|figure|diagram|map|source)$', h.lower()):
+                        heads.append(h)
+                        continue
+                clean_l = re.sub(r'^(?:[①-⑩\d]+[\.\)]\s*|[-•*✓✔✎✗×]\s*)', '', l).strip()
+                if clean_l and len(clean_l) <= 45 and not clean_l.endswith(('.', ',')):
+                    if clean_l.isupper() or re.match(r'^[A-Z][A-Za-z0-9\s/&—–-]+(?::| - | -- |$)', clean_l):
+                        h = re.sub(r'[:\s-]+$', '', clean_l).strip()
+                        if len(h) >= 3 and not re.match(r'^(?:page\s*\d+|q\s*\d+|total|marks|feedback|scanned\s+by.*)$', h.lower()):
+                            if not any(h.lower() == existing.lower() for existing in heads):
+                                heads.append(h)
+            return heads
 
         # Track every bullet and bullet title used across the answer sheet so Page 2 and Page 3 NEVER copy Page 1 or each other
         used_margin_bullets = set()
@@ -2610,15 +2704,46 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                             }
                             pg_anns.append(ann2)
                         else:
+                            # Instead of generic "Body: Depth & Substantiation", extract the candidate's actual written sub-heading from page pg!
+                            cand_heads = _extract_candidate_headings_from_page(_get_page_transcript(pg))
+                            second_head = ""
+                            if len(cand_heads) >= 2:
+                                second_head = cand_heads[1]
+                            elif len(cand_heads) == 1 and cand_heads[0].lower() not in single_tag.lower():
+                                second_head = cand_heads[0]
+
+                            if not second_head:
+                                pg_pbps = [p for p in pbp_list if isinstance(p, dict) and int(p.get("page", 0) or 0) == pg]
+                                if len(pg_pbps) >= 2:
+                                    second_head = str(pg_pbps[1].get("title", "")).strip()
+
+                            if not second_head:
+                                cand_lines = [
+                                    l.strip() for l in _get_page_transcript(pg).splitlines()
+                                    if len(l.strip()) >= 15 and not l.strip().startswith("#") and not re.match(r'^(?:Q\.?|\d+[\.\)])\s*', l.strip())
+                                ]
+                                if len(cand_lines) > 2:
+                                    lower_pool = cand_lines[len(cand_lines)//2:]
+                                    if lower_pool:
+                                        first_w = " ".join(lower_pool[0].split()[:5])
+                                        second_head = re.sub(r'[:—\-.]+$', '', first_w).strip()
+
+                            if not second_head or len(second_head) < 4:
+                                second_head = "Secondary Analysis & Arguments"
+
+                            second_clean = re.sub(r'(?i)^body:\s*', '', second_head).strip()
+                            if second_clean.isupper() and len(second_clean) > 3:
+                                second_clean = second_clean.title()
+
                             ann2 = {
                                 "page": pg,
                                 "approx_y_percent": 72,
                                 "start_y_percent": max(50.0, float(pg_anns[0].get("end_y_percent", 50.0) or 50.0)),
                                 "end_y_percent": 88.0,
-                                "tag": "Body: Depth & Substantiation",
-                                "type": "suggestion",
+                                "tag": f"Body: {second_clean}",
+                                "type": "tick",
                                 "marks_awarded": "+1.5 / 3.0",
-                                "remark": _build_page_zone_remark(pg, 1, "Body: Depth & Substantiation", 50.0)
+                                "remark": _build_page_zone_remark(pg, 1, f"Body: {second_clean}", 50.0)
                             }
                             pg_anns.append(ann2)
                     elif len(pg_anns) >= 2:
@@ -2633,19 +2758,40 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                         _heal_cross_attributed_page_annotations(pg_anns)
                     expanded_anns.extend(pg_anns)
                 else:
-                    pg_trans = _get_page_transcript(pg).lower()
+                    raw_pg_trans_final = _get_page_transcript(pg)
+                    pg_trans = raw_pg_trans_final.lower()
                     conc_ann = next((a for a in pg_anns if "concl" in str(a.get("tag", "")).lower() or "synthesis" in str(a.get("tag", "")).lower()), None)
                     body_anns = [a for a in pg_anns if a is not conc_ann]
 
-                    # Detect if candidate wrote a statutory act or way forward sub-heading on the final page
-                    has_statutory_subheading = (
-                        bool(re.search(r'\b(?:way\s+forward|way\s+ahead|measures\s+needed|solutions|strategies\s+to|\bact\s+\d{4}\b)\b', pg_trans)) or
-                        (conc_ann and bool(re.search(r'(?i)(statutory|legislative|\bact\b|reforms|way\s*forward)', str(conc_ann.get("tag", "")) + " " + str(conc_ann.get("remark", "")))))
-                    )
+                    # Check if candidate ACTUALLY wrote a way forward / statutory sub-heading on the final page
+                    # Notice: ONLY inspect pg_trans (the student's handwritten ink text), NEVER conc_ann.remark!
+                    has_written_wf = _has_candidate_written_way_forward(pg_trans)
+                    is_wf_demanded = _is_way_forward_demanded_by_question(resolved_q)
+                    has_statutory_act = bool(re.search(r'\b(?:act\s+\d{4}|statutory|model\s+contract\s+farming|disaster\s+management\s+act)\b', pg_trans))
 
-                    if conc_ann and (has_statutory_subheading or float(conc_ann.get("start_y_percent", 62) or 62) < 60.0):
+                    if conc_ann and (float(conc_ann.get("start_y_percent", 62) or 62) < 60.0 or has_written_wf or has_statutory_act):
                         conc_s_y = float(conc_ann.get("start_y_percent", 26) or 26)
-                        statutory_tag = "Body: Way Forward & Reforms"
+
+                        # Determine what the candidate actually wrote in this body region
+                        if has_written_wf:
+                            statutory_tag = "Body: Way Forward & Solutions"
+                        elif has_statutory_act:
+                            m_act = re.search(r'\b([A-Za-z\s]+Act\s+\d{4})\b', raw_pg_trans_final, re.IGNORECASE)
+                            statutory_tag = f"Body: {m_act.group(1).strip()}" if m_act else "Body: Statutory & Policy Framework"
+                        else:
+                            # Extract the candidate's actual written sub-heading on this page!
+                            cand_heads = _extract_candidate_headings_from_page(raw_pg_trans_final)
+                            if cand_heads:
+                                chosen_h = cand_heads[-1] if len(cand_heads) > 1 else cand_heads[0]
+                                clean_h = chosen_h.title() if chosen_h.isupper() and len(chosen_h) > 3 else chosen_h
+                                statutory_tag = f"Body: {clean_h}"
+                            else:
+                                pg_pbps = [p for p in pbp_list if isinstance(p, dict) and int(p.get("page", 0) or 0) == pg]
+                                if pg_pbps and str(pg_pbps[0].get("title")):
+                                    clean_pbp_t = re.sub(r'(?i)^body:\s*', '', str(pg_pbps[0].get("title"))).strip()
+                                    statutory_tag = f"Body: {clean_pbp_t}"
+                                else:
+                                    statutory_tag = "Body: Key Dimensions & Impact Analysis"
 
                         # Determine proper non-overlapping boundaries for statutory body and conclusion
                         if conc_s_y < 60.0:
@@ -2667,12 +2813,12 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                             "tag": statutory_tag,
                             "type": "tick",
                             "marks_awarded": "+1.5 / 3.0",
-                            "remark": conc_ann.get("remark") if (conc_ann.get("remark") and not _is_conc_bullet(conc_ann.get("remark", "")) and len(str(conc_ann.get("remark"))).strip() >= 25) else _build_page_zone_remark(pg, 1)
+                            "remark": conc_ann.get("remark") if (conc_ann.get("remark") and not _is_conc_bullet(conc_ann.get("remark", "")) and len(str(conc_ann.get("remark"))).strip() >= 25) else _build_page_zone_remark(pg, 1, statutory_tag, stat_start)
                         }
 
                         # Extract closing prose line from pg_trans (e.g. "It can be seen that...")
                         closing_line = ""
-                        for ln in reversed(pg_trans.splitlines()):
+                        for ln in reversed(raw_pg_trans_final.splitlines()):
                             ln_c = ln.strip()
                             if len(ln_c) >= 25 and not ln_c.startswith("-") and not ln_c.startswith("*"):
                                 closing_line = ln_c
@@ -2688,6 +2834,11 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
                             real_conc_rem = f"{_fmt_bullet(c_crit, '✓')}\n✎ **Topper Finish**: {clean_topper}"
                         else:
                             real_conc_rem = f"✓ **Closing Stance Evaluated**: Summarized candidate's concluding stand on the core directive.\n✎ **Topper Finish**: {clean_topper}"
+
+                        # If question explicitly demanded mitigation / way forward, but candidate omitted it: add feedback!
+                        if is_wf_demanded and not has_written_wf:
+                            if "Missing Required Mitigation" not in real_conc_rem:
+                                real_conc_rem += "\n✗ **Missing Required Mitigation**: The question demanded practical measures/mitigation, but no remedial points were provided before concluding."
 
                         real_conc_ann = {
                             "page": pg,
@@ -2840,15 +2991,41 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int, question: st
             for a in annotations
         )
         for ann in annotations:
-            ann_page = ann.get("page", 1)
+            ann_page = int(ann.get("page", 1) or 1)
             t_str = str(ann.get("tag", "")).strip()
             if ann_page < max_ann_page:
                 if "conclusion" in t_str.lower() or "synthesis" in t_str.lower():
-                    ann["tag"] = "Body: Way Forward"
+                    cand_heads_ann = _extract_candidate_headings_from_page(_get_page_transcript(ann_page))
+                    if cand_heads_ann:
+                        ann["tag"] = f"Body: {cand_heads_ann[-1]}"
+                    else:
+                        ann["tag"] = "Body: Key Dimensions"
             if ann_page > 1:
                 # Do NOT convert intro on page > 1 if page 1 had no student intro (e.g. Case Study Prompt on Page 1)
                 if p1_has_graded_intro and ("intro" in t_str.lower() or "definition" in t_str.lower()):
                     ann["tag"] = "Body: Core Analysis"
+
+            # Cleanse any lingering "Depth & Substantiation" tag
+            if re.search(r'(?i)\bdepth\s*(?:&|and)\s*substantiation\b', str(ann.get("tag", ""))):
+                cand_heads_ann = _extract_candidate_headings_from_page(_get_page_transcript(ann_page))
+                if cand_heads_ann:
+                    h_clean = cand_heads_ann[-1].title() if cand_heads_ann[-1].isupper() and len(cand_heads_ann[-1]) > 3 else cand_heads_ann[-1]
+                    ann["tag"] = f"Body: {h_clean}"
+                else:
+                    ann["tag"] = "Body: Core Dimensional Analysis"
+
+            # Cleanse any lingering unwarranted "Way Forward" tag
+            if re.search(r'(?i)\bway\s*forward(?:\s*(?:&|and)\s*reforms)?\b', str(ann.get("tag", ""))):
+                cand_has_wf_ann = _has_candidate_written_way_forward(_get_page_transcript(ann_page))
+                q_demands_wf_ann = _is_way_forward_demanded_by_question(resolved_q)
+                if not cand_has_wf_ann and not q_demands_wf_ann:
+                    cand_heads_ann = _extract_candidate_headings_from_page(_get_page_transcript(ann_page))
+                    if cand_heads_ann:
+                        h_clean = cand_heads_ann[-1].title() if cand_heads_ann[-1].isupper() and len(cand_heads_ann[-1]) > 3 else cand_heads_ann[-1]
+                        ann["tag"] = f"Body: {h_clean}"
+                    else:
+                        ann["tag"] = "Body: Core Arguments"
+
             rem_text = str(ann.get("remark", ""))
             if "lacks structure" in rem_text.lower():
                 rem_text = re.sub(r'(?i)/\s*lacks\s+structure', '/ Generic Points Need Data & Committee Backing', rem_text)
@@ -3623,6 +3800,10 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
                 rem_m = max(0.5, rem_m - m_val)
                 rem_aw = max(0.0, rem_aw - aw_val)
 
+        q_ctx = str(data.get("detected_question") or data.get("question") or "")
+        wf_demanded = _is_way_forward_demanded_by_question(q_ctx)
+        wf_written = _has_candidate_written_way_forward(str(data.get("transcribed_text") or ""))
+
         assigned_steps = []
         for idx in range(num_steps):
             item = existing_steps[idx] if isinstance(existing_steps[idx], dict) else {}
@@ -3647,7 +3828,7 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
                     elif body_idx == 1:
                         item["sub_heading"] = "Multidimensional Impacts & Ground Vulnerabilities"
                     else:
-                        item["sub_heading"] = "Actionable Policy Interventions & Regulatory Safeguards"
+                        item["sub_heading"] = "Actionable Policy Interventions & Regulatory Safeguards" if (wf_demanded or wf_written) else "Structural Implications & Institutional Analysis"
                 item["max"] = body_max_list[body_idx] if body_idx < len(body_max_list) else 2.0
                 item["awarded"] = body_aw_list[body_idx] if body_idx < len(body_aw_list) else 1.0
             assigned_steps.append(item)
@@ -3656,6 +3837,10 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
         num_gen_body = 3 if (len(strengths) >= 3 or int(data.get("total_pages", 0) or 0) >= 3) else 2
         total_body_max = max(1.0, round((max_marks - intro_max - conc_max) * 4) / 4)
         total_body_aw = max(0.0, round((overall_score - intro_aw - conc_aw) * 4) / 4)
+
+        q_ctx = str(data.get("detected_question") or data.get("question") or "")
+        wf_demanded = _is_way_forward_demanded_by_question(q_ctx)
+        wf_written = _has_candidate_written_way_forward(str(data.get("transcribed_text") or ""))
 
         gen_steps = [
             {
@@ -3679,7 +3864,16 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
 
             note_a = str(strengths[0]) if len(strengths) > 0 else "Systematically delineated foundational drivers on Page 1."
             note_b = str(strengths[1]) if len(strengths) > 1 else "Evaluated multidimensional impacts and stakeholder vulnerabilities."
-            note_c = str(strengths[2]) if len(strengths) > 2 else (str(gaps[0]) if len(gaps) > 0 else "Formulated actionable policy interventions and institutional safeguards.")
+            if wf_demanded or wf_written:
+                step_c_label = "4. Part C — Policy Roadmap & Safeguards"
+                step_c_sub = "Mitigation Framework & Institutional Governance"
+                step_c_note = str(strengths[2]) if len(strengths) > 2 else (str(gaps[0]) if len(gaps) > 0 else "Formulated actionable policy interventions and institutional safeguards.")
+                step_c_lever = str(gaps[2] if len(gaps) > 2 else "Include an actionable 3-point reform matrix before concluding.")
+            else:
+                step_c_label = "4. Part C — Structural Implications & Impact Analysis"
+                step_c_sub = "Multidimensional Analysis & Key Arguments"
+                step_c_note = str(strengths[2]) if len(strengths) > 2 else (str(gaps[0]) if len(gaps) > 0 else "Evaluated critical dimensions and practical implications across sub-parts.")
+                step_c_lever = str(gaps[2] if len(gaps) > 2 else "Substantiate arguments with 1 concrete case study or institutional report.")
 
             gen_steps.extend([
                 {
@@ -3699,17 +3893,24 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
                     "step_up_lever": str(gaps[1] if len(gaps) > 1 else "Incorporate empirical case studies from recent reports.")
                 },
                 {
-                    "step_label": "4. Part C — Policy Roadmap & Safeguards",
-                    "sub_heading": "Mitigation Framework & Institutional Governance",
+                    "step_label": step_c_label,
+                    "sub_heading": step_c_sub,
                     "awarded": part_c_s,
                     "max": part_c_m,
-                    "quoted_written": note_c,
-                    "step_up_lever": str(gaps[2] if len(gaps) > 2 else "Include an actionable 3-point reform matrix before concluding.")
+                    "quoted_written": step_c_note,
+                    "step_up_lever": step_c_lever
                 }
             ])
         else:
             note_a = str(strengths[0]) if len(strengths) > 0 else "Addressed primary sub-part with structured points on Page 1."
             note_b = str(strengths[1]) if len(strengths) > 1 else "Covered secondary dimension, policy measures, and impact analysis."
+            if wf_demanded or wf_written:
+                part_b_sub = "Secondary Dimension & Mitigation Measures"
+                part_b_lever = str(gaps[1] if len(gaps) > 1 else "Include a 3-point actionable Way Forward before concluding.")
+            else:
+                part_b_sub = "Secondary Dimension & Structural Implications"
+                part_b_lever = str(gaps[1] if len(gaps) > 1 else "Substantiate secondary dimension with specific empirical data or committee benchmarks.")
+
             gen_steps.extend([
                 {
                     "step_label": "2. CORE DEMAND — PART A",
@@ -3721,11 +3922,11 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
                 },
                 {
                     "step_label": "3. CORE DEMAND — PART B",
-                    "sub_heading": "Secondary Dimension & Mitigation Measures",
+                    "sub_heading": part_b_sub,
                     "awarded": part_b_aw,
                     "max": part_b_max,
                     "quoted_written": note_b,
-                    "step_up_lever": str(gaps[1] if len(gaps) > 1 else "Include a 3-point actionable Way Forward before concluding.")
+                    "step_up_lever": part_b_lever
                 }
             ])
 
@@ -3891,6 +4092,10 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
     ]
     written_terms = [t for t in tracked_landmarks if t in positive_corpus]
 
+    q_str_san = str(data.get("detected_question") or data.get("question") or "")
+    is_wf_demanded_san = _is_way_forward_demanded_by_question(q_str_san)
+    has_wf_written_san = _has_candidate_written_way_forward(positive_corpus)
+
     def simplify_and_decontradict(text: str, is_gap: bool = False) -> str:
         if not text:
             return text
@@ -3904,6 +4109,11 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
             return "**Explain Both Sides Clearly**: You explained well how courts protect the Constitution. To score +1M higher, add 2 simple points on **Judicial Restraint** (where courts should avoid stepping into Parliament's policy domain)."
         if is_gap and ("underweighting separation of powers" in s_low or "focused primarily on rights expansion" in s_low):
             return "**Show Both Sides of the Question**: Your answer covers the **benefits** of Judicial Review well. Balance it with a short sub-heading on **Limits of Judicial Review** (such as **Separation of Powers** under **Article 50**)."
+
+        # Check for false "Missing Way Forward" critiques when question did NOT demand a Way Forward
+        if is_gap and not (is_wf_demanded_san or has_wf_written_san):
+            if re.search(r'(?i)\b(?:missing|lacks?|without|failed\s+to\s+provide|no)\b.*?\b(?:way\s*forward|mitigation|reforms?\s*(?:section|matrix)?)\b', s_low):
+                return "**Deepen Dimensional Analysis**: You addressed the core demand systematically. To elevate your score by +1M, substantiate arguments with specific committee recommendations or empirical data before concluding."
 
         # Generic check: if any gap claims 'without citing X' or '(e.g., X)' where X is already in written_terms
         if is_gap:

@@ -6138,15 +6138,23 @@ function renderAnnotationsOverlay() {
           const m1 = Math.round((bodyPart.max * 0.5) * 2) / 2;
           const m2 = Math.max(0.5, Math.round((bodyPart.max - m1) * 2) / 2);
 
-          let t1 = String(nonConcAnns[0].tag || "CORE ANALYSIS").replace(/^body:\s*/i, "").trim().toUpperCase();
-          let t2 = String(nonConcAnns[1].tag || "SUBSTANTIATION").replace(/^body:\s*/i, "").trim().toUpperCase();
-          if (window.isMetaPlaceholderText(t1)) t1 = `${bodyPart.shortTitle.toUpperCase()} (PART 1)`;
-          if (window.isMetaPlaceholderText(t2)) t2 = `${bodyPart.shortTitle.toUpperCase()} (PART 2)`;
+          let t1 = String(nonConcAnns[0].tag || "").replace(/^body:\s*/i, "").trim().toUpperCase();
+          let t2 = String(nonConcAnns[1].tag || "").replace(/^body:\s*/i, "").trim().toUpperCase();
+
+          // Never show "DEPTH & SUBSTANTIATION" or "SUBSTANTIATION" as section titles
+          if (!t1 || /depth|substantiat/i.test(t1) || window.isMetaPlaceholderText(t1)) {
+            const matchH1 = nonConcAnns[0].remark && nonConcAnns[0].remark.match(/\*\*(?:Candidate Heading|Section):\s*([^*]+)\*\*/i);
+            t1 = matchH1 ? matchH1[1].trim().toUpperCase() : `${bodyPart.shortTitle.toUpperCase()} (PART 1)`;
+          }
+          if (!t2 || /depth|substantiat/i.test(t2) || window.isMetaPlaceholderText(t2)) {
+            const matchH2 = nonConcAnns[1].remark && nonConcAnns[1].remark.match(/\*\*(?:Candidate Heading|Section):\s*([^*]+)\*\*/i);
+            t2 = matchH2 ? matchH2[1].trim().toUpperCase() : `${bodyPart.shortTitle.toUpperCase()} (PART 2)`;
+          }
 
           outSections.push({
             zone: "body",
             cardIndex: 0,
-            title: `BODY: ${t1}`,
+            title: t1.startsWith("BODY:") ? t1 : `BODY: ${t1}`,
             icon: nonConcAnns[0].type === "warning" ? "✗" : "✓",
             isTick: nonConcAnns[0].type !== "warning",
             startYPercent: nonConcAnns[0].start_y_percent || 16,
@@ -6160,7 +6168,7 @@ function renderAnnotationsOverlay() {
           outSections.push({
             zone: "body",
             cardIndex: 1,
-            title: `BODY: ${t2}`,
+            title: t2.startsWith("BODY:") ? t2 : `BODY: ${t2}`,
             icon: nonConcAnns[1].type === "warning" ? "✗" : "✓",
             isTick: nonConcAnns[1].type !== "warning",
             startYPercent: nonConcAnns[1].start_y_percent || 54,
@@ -6176,7 +6184,9 @@ function renderAnnotationsOverlay() {
           let cleanTitle = bodyPart.tag;
           if (singleAnn && singleAnn.tag && !window.isMetaPlaceholderText(singleAnn.tag) && !/concl|synthesis/i.test(singleAnn.tag)) {
             const rawT = String(singleAnn.tag).replace(/^body:\s*/i, "").trim().toUpperCase();
-            cleanTitle = rawT.startsWith("BODY") ? rawT : `BODY: ${rawT}`;
+            if (!/depth|substantiat/i.test(rawT)) {
+              cleanTitle = rawT.startsWith("BODY") ? rawT : `BODY: ${rawT}`;
+            }
           }
 
           outSections.push({
@@ -6322,13 +6332,49 @@ function renderAnnotationsOverlay() {
             targetKey: "conclusion"
           });
         } else if (shouldRenderThreeSectionsOnFinalPage) {
-          // Dynamically derive the 2 Body sub-section titles from the AI's tag(s) on this copy
-          const sec1TitleRaw = hasMultipleBodyAnnsOnFinalPage
-            ? String(rawBodyAnns[0].tag || "CHALLENGES").replace(/^body:\s*/i, "").trim().toUpperCase()
-            : combinedTagParts[0].toUpperCase();
-          const sec2TitleRaw = hasMultipleBodyAnnsOnFinalPage
-            ? String(rawBodyAnns[1].tag || "WAY FORWARD").replace(/^body:\s*/i, "").trim().toUpperCase()
-            : (combinedTagParts[1].toUpperCase().startsWith("WA") ? "WAY FORWARD" : combinedTagParts[1].toUpperCase());
+          const qText = String(evalData.detected_question || evalData.question || "");
+          const transText = String(evalData.transcribed_text || "");
+          const isWfDemanded = /\b(?:way\s+forward|mitigat|suggest\s+measures|remed|roadmap|policy\s+response|solutions?|what\s+steps|how\s+to\s+address)\b/i.test(qText);
+          const hasCandidateWf = /\b(?:way\s+forward|way\s+ahead|measures\s+needed|mitigation|solutions?|suggestions?|reforms?)\b/i.test(transText);
+
+          // Dynamically derive the 2 Body sub-section titles from the candidate's written headings or AI's tags
+          let sec1TitleRaw = hasMultipleBodyAnnsOnFinalPage
+            ? String(rawBodyAnns[0].tag || "").replace(/^body:\s*/i, "").trim().toUpperCase()
+            : (combinedTagParts[0] ? combinedTagParts[0].toUpperCase() : "");
+          let sec2TitleRaw = hasMultipleBodyAnnsOnFinalPage
+            ? String(rawBodyAnns[1].tag || "").replace(/^body:\s*/i, "").trim().toUpperCase()
+            : (combinedTagParts[1] ? combinedTagParts[1].toUpperCase() : "");
+
+          // Strip any depth/substantiation from titles
+          if (/depth|substantiat/i.test(sec1TitleRaw)) sec1TitleRaw = "";
+          if (/depth|substantiat/i.test(sec2TitleRaw)) sec2TitleRaw = "";
+
+          // If sec2 claims to be Way Forward when neither demanded nor written by candidate, strip it
+          if (/way\s*forward|way\s*ahead|mitigat|reform|measure|solution/i.test(sec2TitleRaw) && !isWfDemanded && !hasCandidateWf) {
+            sec2TitleRaw = "";
+          }
+
+          // Resolve sec1 title
+          if (!sec1TitleRaw || window.isMetaPlaceholderText(sec1TitleRaw)) {
+            const matchH1 = rawBodyAnns[0] && rawBodyAnns[0].remark && rawBodyAnns[0].remark.match(/\*\*(?:Candidate Heading|Section):\s*([^*]+)\*\*/i);
+            sec1TitleRaw = matchH1 ? matchH1[1].trim().toUpperCase() : `${finalBodyPart.shortTitle.toUpperCase()} (PART 1)`;
+          }
+
+          // Resolve sec2 title
+          if (!sec2TitleRaw || window.isMetaPlaceholderText(sec2TitleRaw)) {
+            const finalPgTranscript = getPageTranscript(pgNum);
+            const boxedMatch = finalPgTranscript.match(/\[([A-Z\s/&-]{3,40})\]/);
+            const matchH2 = rawBodyAnns[1] && rawBodyAnns[1].remark && rawBodyAnns[1].remark.match(/\*\*(?:Candidate Heading|Section):\s*([^*]+)\*\*/i);
+            if (boxedMatch && boxedMatch[1] && !/intro|concl|way\s*forward/i.test(boxedMatch[1])) {
+              sec2TitleRaw = boxedMatch[1].trim().toUpperCase();
+            } else if (matchH2) {
+              sec2TitleRaw = matchH2[1].trim().toUpperCase();
+            } else if (isWfDemanded || hasCandidateWf) {
+              sec2TitleRaw = "WAY FORWARD & REFORMS";
+            } else {
+              sec2TitleRaw = `${finalBodyPart.shortTitle.toUpperCase()} (PART 2)`;
+            }
+          }
 
           const s1 = Math.round((finalBodyPart.score * 0.5) * 2) / 2;
           const s2 = Math.max(0, Math.round((finalBodyPart.score - s1) * 2) / 2);
@@ -6337,22 +6383,25 @@ function renderAnnotationsOverlay() {
           const chalMarks = `+${s1.toFixed(1)} / ${m1.toFixed(1)}`;
           const wfMarks = `+${s2.toFixed(1)} / ${m2.toFixed(1)}`;
 
-          // Dynamically separate remarks using the candidate's actual transcribed_text before vs after 'Way Forward'
+          // Dynamically separate remarks using the candidate's actual transcribed_text
           const buildDynamicSplitRemarks = () => {
             if (hasMultipleBodyAnnsOnFinalPage && rawBodyAnns[0].remark && rawBodyAnns[1].remark) {
-              return {
-                r1: sanitizeCrossSubjectText(rawBodyAnns[0].remark),
-                r2: sanitizeCrossSubjectText(rawBodyAnns[1].remark)
-              };
+              let r1 = sanitizeCrossSubjectText(rawBodyAnns[0].remark);
+              let r2 = sanitizeCrossSubjectText(rawBodyAnns[1].remark);
+              if (!isWfDemanded && !hasCandidateWf) {
+                r2 = r2.replace(/\b(?:Actionable|Constructive)?\s*Way\s*Forward\b/gi, sec2TitleRaw);
+              }
+              return { r1, r2 };
             }
             const transRaw = String(evalData.transcribed_text || "");
+            const isAgriCopy = /floriculture|crop|horticulture|farmer|agriculture/i.test(qText + " " + transRaw);
             const wfSplitRegex = /\b(?:way\s+forward|way\s+ahead|measures\s+needed|solutions|strategies\s+to)\b/i;
-            const wfMatch = transRaw.match(wfSplitRegex);
+            const wfMatch = (isWfDemanded || hasCandidateWf) ? transRaw.match(wfSplitRegex) : null;
 
             let combinedRem = String(bodyRemCandidate || "");
             let wfExtractedItems = [];
 
-            if (wfMatch && wfMatch.index !== undefined) {
+            if (isAgriCopy && wfMatch && wfMatch.index !== undefined) {
               const beforeWfText = transRaw.slice(0, wfMatch.index).toLowerCase();
               const afterWfText = transRaw.slice(wfMatch.index).toLowerCase();
 
@@ -6365,7 +6414,7 @@ function renderAnnotationsOverlay() {
                 return fullM;
               });
               combinedRem = combinedRem.replace(/,\s*([^,]+)\.\s*$/m, " and $1.");
-            } else {
+            } else if (isAgriCopy) {
               combinedRem = combinedRem.replace(/,?\s*(?:and\s+)?([^,.;\n]*(?:cold-chain\s+logistics|crop\s+diversification|farmer\s+skilling)[^,.;\n]*)/gi, (fullM, itemGrp) => {
                 if (itemGrp && itemGrp.trim()) wfExtractedItems.push(itemGrp.trim());
                 return "";
@@ -6378,21 +6427,33 @@ function renderAnnotationsOverlay() {
             const bAudit = evalData.body_audit || {};
             const sList = Array.isArray(bAudit.strengths) ? bAudit.strengths : [];
             const gList = Array.isArray(bAudit.critical_gaps) ? bAudit.critical_gaps : [];
-            const wfStrength = sList.find(s => /way forward|cold-chain|diversification|skilling|solution|scheme|measure/i.test(String(s))) || sList[1] || "";
-            const wfGap = gList.find(g => /way forward|scheme|cluster|export|policy|institutional/i.test(String(g))) || gList[0] || "";
+            const isSec2Wf = /way\s*forward|way\s*ahead|mitigat|measure|reform|solution/i.test(sec2TitleRaw);
 
             let r2Positive = "";
-            if (wfExtractedItems.length > 0) {
-              r2Positive = `✓ **Actionable Way Forward**: Proposed **${wfExtractedItems.join("**, **")}**, crop diversification, and scientific crop management.`;
-            } else if (wfStrength) {
-              r2Positive = `✓ ${String(wfStrength).replace(/^[✓✔✎✗×]\s*/, "")}`;
+            let r2Suggestion = "";
+            if (isSec2Wf && (isWfDemanded || hasCandidateWf)) {
+              const wfStrength = sList.find(s => /way forward|solution|scheme|measure|mitigat/i.test(String(s))) || sList[1] || "";
+              const wfGap = gList.find(g => /way forward|scheme|cluster|export|policy|institutional/i.test(String(g))) || gList[0] || "";
+              if (wfExtractedItems.length > 0) {
+                r2Positive = `✓ **Actionable Way Forward**: Proposed **${wfExtractedItems.join("**, **")}** and practical interventions.`;
+              } else if (wfStrength) {
+                r2Positive = `✓ ${String(wfStrength).replace(/^[✓✔✎✗×]\s*/, "")}`;
+              } else {
+                r2Positive = "✓ **Constructive Way Forward**: Structured actionable reforms and policy measures to address core bottlenecks.";
+              }
+              r2Suggestion = wfGap
+                ? `✎ ${String(wfGap).replace(/^[✓✔✎✗×]\s*/, "")}`
+                : "✎ **Scheme & Institutional Anchor**: Link Way Forward points with official mission targets and statutory frameworks.";
             } else {
-              r2Positive = "✓ **Constructive Way Forward**: Structured actionable reforms and policy measures to address core bottlenecks.";
+              const sec2Strength = sList.find(s => String(s).toLowerCase().includes(sec2TitleRaw.toLowerCase().slice(0, 8))) || sList[1] || "";
+              const sec2Gap = gList.find(g => String(g).toLowerCase().includes(sec2TitleRaw.toLowerCase().slice(0, 8))) || gList[0] || "";
+              r2Positive = sec2Strength
+                ? `✓ ${String(sec2Strength).replace(/^[✓✔✎✗×]\s*/, "")}`
+                : `✓ **${sec2TitleRaw}**: Structured examination addressing this dimension with relevant points.`;
+              r2Suggestion = sec2Gap
+                ? `✎ ${String(sec2Gap).replace(/^[✓✔✎✗×]\s*/, "")}`
+                : `✎ **Substantiation & Data**: Back arguments under ${sec2TitleRaw} with specific committee reports, constitutional articles, or empirical metrics.`;
             }
-
-            const r2Suggestion = wfGap
-              ? `✎ ${String(wfGap).replace(/^[✓✔✎✗×]\s*/, "")}`
-              : "✎ **Scheme & Institutional Anchor**: Link Way Forward points with official mission targets and cluster models.";
 
             return {
               r1: r1Final,
@@ -6462,11 +6523,23 @@ function renderAnnotationsOverlay() {
             targetKey: "conclusion"
           });
         } else {
+          const qTextSingle = String(evalData.detected_question || evalData.question || "");
+          const transTextSingle = String(evalData.transcribed_text || "");
+          const isWfDemandedSingle = /\b(?:way\s+forward|mitigat|suggest\s+measures|remed|roadmap|policy\s+response|solutions?|what\s+steps|how\s+to\s+address)\b/i.test(qTextSingle);
+          const hasCandidateWfSingle = /\b(?:way\s+forward|way\s+ahead|measures\s+needed|mitigation|solutions?|suggestions?|reforms?)\b/i.test(transTextSingle);
+
           let resolvedFinalBodyTitle = isEarthquakeMapCopy
             ? "BODY: REGIONAL VULNERABILITY & DISASTERS (POINTS ①–③)"
             : isAhomCopy
               ? "BODY: CONTEMPORARY LEGACY (POINTS 1–5)"
               : ((rawBody && rawBody.tag && !window.isMetaPlaceholderText(rawBody.tag)) ? String(rawBody.tag).replace(/^body:\s*/i, "").trim().toUpperCase() : finalBodyPart.shortTitle.toUpperCase());
+
+          if (/depth|substantiat/i.test(resolvedFinalBodyTitle)) {
+            resolvedFinalBodyTitle = finalBodyPart.shortTitle.toUpperCase();
+          }
+          if (/way\s*forward/i.test(resolvedFinalBodyTitle) && !isWfDemandedSingle && !hasCandidateWfSingle) {
+            resolvedFinalBodyTitle = finalBodyPart.shortTitle.toUpperCase();
+          }
           let resolvedFinalBodyRemark = buildDynamicBodyRemark(2, bodyRemCandidate, pgNum);
 
           const sBodyStart = (rawBody && rawBody.start_y_percent) ? Number(rawBody.start_y_percent) : (isEarthquakeMapCopy ? 8 : 14);
