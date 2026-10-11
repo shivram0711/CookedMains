@@ -61,6 +61,7 @@ if supabase_url and supabase_key:
 from evaluator_engine import (
     evaluate_with_gemini, detect_directive, PAPER_TAXONOMIES,
     are_questions_semantically_mismatched, infer_paper_from_question_content,
+    is_paper_compatible,
     detect_academic_discipline, build_evaluation_prompt,
     get_dynamic_grounded_context, parse_llm_json_response, normalize_evaluation_data,
     get_active_gemini_keys, build_resilient_fallback_evaluation
@@ -2344,11 +2345,13 @@ async def evaluate_answer(
         paper_mismatch = False
         true_detected_paper = paper
         if det_p_norm and det_p_norm in ["GS1", "GS2", "GS3", "GS4", "ESSAY", "OPTIONAL"] and det_p_norm != req_p_norm:
-            paper_mismatch = True
-            true_detected_paper = detected_p
+            if not is_paper_compatible(paper, detected_p, final_question):
+                paper_mismatch = True
+                true_detected_paper = detected_p
         elif inf_p_norm and inf_p_norm in ["GS1", "GS2", "GS3", "GS4", "ESSAY"] and inf_p_norm != req_p_norm:
-            paper_mismatch = True
-            true_detected_paper = inferred_p
+            if not is_paper_compatible(paper, inferred_p, final_question):
+                paper_mismatch = True
+                true_detected_paper = inferred_p
 
         marks_mismatch = False
         true_detected_marks = req_m_int

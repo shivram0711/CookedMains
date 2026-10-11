@@ -327,7 +327,6 @@ def detect_academic_discipline(question_text: str, current_paper: str = "GS2") -
         return "Optional-History"
     if has_any_phrase(text, hist_keywords) and current_paper not in ["GS1", "GS2", "GS3"]:
         return "Optional-History"
-        
     # Pub Ad keywords
     pubad_keywords = [
         "taylorism", "scientific management", "henri fayol", "herbert simon", "bounded rationality",
@@ -336,7 +335,81 @@ def detect_academic_discipline(question_text: str, current_paper: str = "GS2") -
     if (is_explicit_optional or current_paper in ["Optional", "default"]) and has_any_phrase(text, pubad_keywords):
         return "Optional-PubAd"
         
+    # Check if question content decisively belongs to a specific GS paper
+    inferred = infer_paper_from_question_content(question_text)
+    if inferred:
+        # If user explicitly selected a valid standard paper, check compatibility before overriding
+        if current_paper in ["GS1", "GS2", "GS3", "GS4", "Essay"]:
+            if is_paper_compatible(current_paper, inferred, question_text):
+                return current_paper
+        return inferred
+
     return current_paper or "GS2"
+
+def is_paper_compatible(selected_paper: str, detected_or_inferred_paper: str, question_text: str = "") -> bool:
+    """
+    Checks if a user-selected UPSC paper is academically compatible with the detected/inferred paper,
+    specifically accounting for interdisciplinary UPSC Mains overlap areas.
+    Prevents false-positive intake rejections while strictly blocking genuine mismatches (e.g. GS4 case study in GS1).
+    """
+    if not selected_paper or not detected_or_inferred_paper:
+        return True
+        
+    s_norm = selected_paper.replace("-", "").replace(" ", "").upper()
+    d_norm = detected_or_inferred_paper.replace("-", "").replace(" ", "").upper()
+    
+    if s_norm == d_norm:
+        return True
+        
+    # Interdisciplinary Overlap Matrix for UPSC Mains:
+    # 1. GS2 <-> GS3 Overlap:
+    #    - Anti-terror laws, internal security vs civil liberties (NSA, UAPA, PMLA, AFSPA, NIA, police reforms vs Art 19/21/22)
+    #    - Federalism vs Resource mobilization (GST, Finance Commission, PMLA federal impact)
+    #    - Environmental rights vs Tribals/Forest Rights (FRA, PESA vs Wildlife Protection)
+    #    - Tech governance vs Fundamental rights (DPDPA, surveillance, AI ethics vs Art 21)
+    gs2_gs3_overlap_keywords = [
+        "uapa", "unlawful activities", "national security act", "nsa", "afspa", "pmla", "money laundering",
+        "preventive detention", "freedom of speech", "freedom of expression", "democratic ethos", "civil liberties",
+        "human rights", "police reform", "police reforms", "prakash singh", "sedition", "section 124a",
+        "surveillance", "pegasus", "privacy", "data protection", "dpdpa", "right to privacy", "article 21",
+        "forest rights act", "fra", "pesa", "tribal", "green tribunal", "ngt", "environmental governance",
+        "gst council", "fiscal federalism", "finance commission", "disaster management"
+    ]
+    if (s_norm in ["GS2", "GS3"]) and (d_norm in ["GS2", "GS3"]):
+        if question_text and has_any_phrase(question_text.lower(), gs2_gs3_overlap_keywords):
+            return True
+
+    # 2. GS1 <-> GS2 Overlap:
+    #    - Society vs Social Justice / Vulnerable Sections (caste, women, secularism, urbanization, population vs schemes/rights)
+    gs1_gs2_overlap_keywords = [
+        "secularism", "communalism", "regionalism", "caste", "women empowerment", "child labor",
+        "elderly", "transgender", "vulnerable sections", "social justice", "poverty", "urbanization",
+        "social empowerment", "tribal", "scheduled caste", "scheduled tribe", "minority", "minorities"
+    ]
+    if (s_norm in ["GS1", "GS2"]) and (d_norm in ["GS1", "GS2"]):
+        if question_text and has_any_phrase(question_text.lower(), gs1_gs2_overlap_keywords):
+            return True
+
+    # 3. GS1 Geography <-> GS3 Disaster / Agriculture / Environment:
+    gs1_gs3_overlap_keywords = [
+        "cyclone", "flood", "landslide", "earthquake", "drought", "monsoon", "el nino", "climate change",
+        "soil degradation", "crop pattern", "irrigation", "water resource", "renewable energy"
+    ]
+    if (s_norm in ["GS1", "GS3"]) and (d_norm in ["GS1", "GS3"]):
+        if question_text and has_any_phrase(question_text.lower(), gs1_gs3_overlap_keywords):
+            return True
+
+    # 4. Optional-PSIR <-> GS2 Polity & International Relations
+    if (s_norm in ["GS2", "OPTIONALPSIR"]) and (d_norm in ["GS2", "OPTIONALPSIR"]):
+        return True
+
+    # 5. Optional-Sociology <-> GS1 Society / GS2 Social Justice
+    if (s_norm in ["GS1", "GS2", "OPTIONALSOCIOLOGY"]) and (d_norm in ["GS1", "GS2", "OPTIONALSOCIOLOGY"]):
+        if question_text and has_any_phrase(question_text.lower(), ["caste", "sanskritization", "modernization", "stratification", "tribal", "family", "religion"]):
+            return True
+
+    return False
+
 def infer_paper_from_question_content(question_text: str) -> Optional[str]:
     """
     Objectively determines the true UPSC GS Paper (GS1, GS2, GS3, GS4, Essay, or Optional)
@@ -349,24 +422,27 @@ def infer_paper_from_question_content(question_text: str) -> Optional[str]:
     
     # 1. GS4 Ethics unequivocal signals
     gs4_signals = [
-        "ethics", "moral", "probity", "integrity", "attitude", "emotional intelligence",
-        "conflict of interest", "deontology", "utilitarianism", "virtue ethics",
+        "ethics", "ethical", "moral", "morality", "probity", "integrity", "attitude", "emotional intelligence",
+        "conflict of interest", "deontology", "utilitarianism", "virtue ethics", "impartiality",
         "code of conduct", "code of ethics", "talisman", "categorical imperative",
-        "nishkam karma", "ethical dilemma", "crisis of conscience", "case study",
-        "as district collector", "as superintendent", "civil service values"
+        "nishkam karma", "ethical dilemma", "ethical dilemmas", "dilemma", "dilemmas", "crisis of conscience", "case study",
+        "district collector", "superintendent", "civil service values", "whistleblower",
+        "moral muteness", "ethical fading", "summum bonum", "eudaimonia", "human interface"
     ]
     gs4_score = sum(2 if has_phrase(text, w) else 0 for w in gs4_signals)
     
     # 2. GS2 Polity, Governance, Constitution, Social Justice, IR signals
     gs2_signals = [
+        "freedom of speech", "freedom of expression", "speech and expression", "democratic ethos", "vibrant democracy",
+        "national security act", "nsa", "preventive detention", "civil liberties", "draconian laws",
         "forest rights act", "fra", "tribal community", "tribal", "tribals", "gram sabha", "fifth schedule", "sixth schedule", "pesa",
-        "constitution", "constitutional", "article 21", "article 14", "article 32", "article 200", "article 356", "article 142",
-        "basic structure", "fundamental rights", "dpsp", "directive principles", "preamble",
+        "constitution", "constitutional", "article 21", "article 14", "article 19", "article 22", "article 32", "article 200", "article 356", "article 142",
+        "basic structure", "fundamental rights", "fundamental right", "dpsp", "directive principles", "preamble", "constitutional morality",
         "governor", "federalism", "centre-state", "inter-state", "panchayat", "73rd amendment", "74th amendment",
         "civil service", "civil services", "mission karmayogi", "karmayogi", "governance", "transparency", "accountability", "citizen charter",
-        "2nd arc", "second arc", "rti act", "judiciary", "supreme court", "collegium", "judicial review", "judicial activism",
-        "parliament", "lok sabha", "rajya sabha", "standing committee", "anti-defection", "10th schedule", "election commission", "rpa",
-        "social justice", "vulnerable sections", "welfare schemes", "poverty alleviation",
+        "2nd arc", "second arc", "rti act", "judiciary", "supreme court", "collegium", "judicial review", "judicial activism", "due process", "procedure established by law",
+        "parliament", "lok sabha", "rajya sabha", "standing committee", "anti-defection", "10th schedule", "election commission", "rpa", "simultaneous elections",
+        "social justice", "vulnerable sections", "welfare schemes", "poverty alleviation", "social empowerment",
         "bilateral", "foreign policy", "international relations", "unsc", "quad", "brics", "sco", "indo-pacific"
     ]
     gs2_score = sum(2 if has_phrase(text, w) else 0 for w in gs2_signals)
@@ -378,18 +454,26 @@ def infer_paper_from_question_content(question_text: str) -> Optional[str]:
         "artificial intelligence", "semiconductor", "quantum computing", "space tech", "isro", "nanotechnology",
         "climate change", "cop28", "cop29", "renewable energy", "solar mission", "green hydrogen", "biodiversity",
         "disaster management", "ndma", "sendai framework", "urban flood", "landslide",
-        "internal security", "border management", "cyber warfare", "money laundering", "pmla", "uapa", "naxalism", "lwe"
+        "internal security", "border management", "cyber warfare", "money laundering", "pmla", "uapa", "naxalism", "lwe", "cross-border terrorism", "asymmetric warfare"
     ]
     gs3_score = sum(2 if has_phrase(text, w) else 0 for w in gs3_signals)
 
     # 4. GS1 History, Geography, Society signals
     gs1_signals = [
-        "art and culture", "temple architecture", "sculpture", "ancient india", "medieval india", "mughal", "gupta", "mauryan", "chola",
+        "art and culture", "temple architecture", "temple", "sculpture", "ancient india", "medieval india", "mughal", "gupta", "mauryan", "chola", "cholas",
         "freedom struggle", "1857", "swadeshi", "gandhi", "non-cooperation", "quit india", "subhash chandra bose", "colonial rule",
         "geomorphology", "plate tectonics", "earthquake", "volcano", "cyclone", "monsoon", "el nino", "la nina", "ocean current",
-        "secularism in india", "communalism", "regionalism", "caste system", "urbanization issues"
+        "secularism in india", "communalism", "regionalism", "caste system", "caste", "urbanization issues"
     ]
     gs1_score = sum(2 if has_phrase(text, w) else 0 for w in gs1_signals)
+
+    # Contextual Demands Analysis for Overlap Resolution (e.g. Security laws vs Civil Liberties)
+    # If question is fundamentally about democratic balance, civil liberties, or constitutional safeguards:
+    if has_any_phrase(text, ["freedom of speech", "speech and expression", "democratic ethos", "vibrant democracy", "civil liberties", "fundamental rights", "article 19", "article 21", "article 22"]):
+        gs2_score += 4
+    # If question is fundamentally about operational warfare, terror financing, or border defense:
+    if has_any_phrase(text, ["terror financing", "cyber warfare", "border management", "cross-border", "coastal defense", "insurgency tactics"]):
+        gs3_score += 4
 
     # Determine highest scoring paper
     scores = {"GS2": gs2_score, "GS3": gs3_score, "GS1": gs1_score, "GS4": gs4_score}
@@ -397,40 +481,6 @@ def infer_paper_from_question_content(question_text: str) -> Optional[str]:
     if best_score >= 2:
         return best_paper
     return None
-
-    # Ethics GS4 keywords
-    ethics_keywords = [
-        "ethics", "moral", "probity", "integrity", "attitude", "emotional intelligence",
-        "conflict of interest", "deontology", "utilitarianism", "virtue ethics", "impartiality",
-        "code of conduct", "code of ethics", "talisman", "categorical imperative", "nishkam karma",
-        "moral muteness", "ethical fading", "crisis of conscience", "summum bonum", "eudaimonia"
-    ]
-    if has_any_phrase(text, ethics_keywords) and current_paper not in ["Optional-PSIR", "Optional-Sociology", "GS1", "GS2", "GS3"]:
-        return "GS4"
-        
-    # Essay
-    if current_paper == "Essay" or (current_paper in ["default", "Extract question printed on booklet header", ""] and has_phrase(text, "essay")):
-        return "Essay"
-        
-    # Check if question content decisively belongs to a specific GS paper
-    inferred = infer_paper_from_question_content(question_text)
-    if inferred:
-        return inferred
-
-    # If current_paper is one of standard papers, preserve it!
-    if current_paper in ["GS1", "GS2", "GS3", "GS4", "Essay"] or (current_paper and current_paper.startswith("Optional")):
-        return current_paper
-        
-    # If paper was not specified ("default", "", or "Extract question printed on booklet header"):
-    # Infer best GS paper based on whole-word matching
-    if has_any_phrase(text, ["civil service", "mission karmayogi", "karmayogi", "governance", "transparency", "accountability", "constitution", "parliament", "judiciary", "article 21", "article 14", "federalism", "governor", "election", "rpa"]):
-        return "GS2"
-    if has_any_phrase(text, ["economy", "gdp", "fiscal deficit", "inflation", "agriculture", "farmer", "msp", "renewable energy", "climate change", "disaster management", "cyber security", "internal security"]):
-        return "GS3"
-    if has_any_phrase(text, ["art and culture", "temple", "sculpture", "architecture", "freedom struggle", "1857", "gandhi", "monsoon", "earthquake", "cyclone", "plate tectonics", "caste"]):
-        return "GS1"
-        
-    return current_paper or "GS2"
 
 def detect_precise_subject(question_text: str, current_paper: str = "GS2") -> Dict[str, str]:
     """
@@ -557,13 +607,13 @@ def detect_precise_subject(question_text: str, current_paper: str = "GS2") -> Di
                 "full_display": "GS-2 (Federalism & Inter-State Relations)",
                 "syllabus_subheading": "Functions and Responsibilities of the Union and States, Federal Structure Issues"
             }
-        elif has_any_phrase(text, ["basic structure", "judicial review", "kesavananda", "fundamental rights", "article 21", "article 14", "preamble", "ordinance", "article 123", "constitution", "constitutionalism", "amendment", "dpsp", "directive principles"]):
+        elif has_any_phrase(text, ["basic structure", "judicial review", "kesavananda", "fundamental rights", "article 21", "article 14", "article 19", "article 22", "preamble", "ordinance", "article 123", "constitution", "constitutionalism", "amendment", "dpsp", "directive principles", "freedom of speech", "speech and expression", "democratic ethos", "civil liberties", "national security act", "nsa", "uapa", "preventive detention", "due process"]):
             return {
                 "paper_code": "GS2",
                 "paper_label": "General Studies Paper - II",
-                "discipline": "Indian Constitution & Constitutionalism",
-                "full_display": "GS-2 (Indian Constitution & Polity)",
-                "syllabus_subheading": "Indian Constitution: Historical Underpinnings, Evolution, Features, Amendments & Basic Structure"
+                "discipline": "Indian Constitution, Fundamental Rights & Civil Liberties",
+                "full_display": "GS-2 (Indian Constitution, Fundamental Rights & Civil Liberties)",
+                "syllabus_subheading": "Indian Constitution: Fundamental Rights, Reasonable Restrictions, Civil Liberties & Due Process"
             }
         elif has_any_phrase(text, ["parliament", "lok sabha", "rajya sabha", "standing committee", "anti-defection", "10th schedule", "speaker", "election", "rpa", "simultaneous election", "one nation one election"]):
             return {
