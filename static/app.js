@@ -3277,7 +3277,11 @@ let directiveDebounce = null;
 if (questionInput) {
   questionInput.addEventListener("input", () => {
     state.question = questionInput.value;
-    if (/[\u0900-\u097F]/.test(questionInput.value) && state.medium !== "hindi") {
+    const val = questionInput.value || "";
+    const devCount = (val.match(/[\u0900-\u097F]/g) || []).length;
+    const latCount = (val.match(/[a-zA-Z]/g) || []).length;
+    // Only auto-switch to Hindi if the input is overwhelmingly Devanagari with no substantial English
+    if (devCount >= 25 && latCount < 10 && state.medium !== "hindi") {
       setEvaluationMedium("hindi");
     }
     clearTimeout(directiveDebounce);
@@ -3288,7 +3292,9 @@ if (questionInput) {
 if (customQuestionInput) {
   customQuestionInput.addEventListener("input", () => {
     const val = customQuestionInput.value || "";
-    if (/[\u0900-\u097F]/.test(val) && state.medium !== "hindi") {
+    const devCount = (val.match(/[\u0900-\u097F]/g) || []).length;
+    const latCount = (val.match(/[a-zA-Z]/g) || []).length;
+    if (devCount >= 25 && latCount < 10 && state.medium !== "hindi") {
       setEvaluationMedium("hindi");
     }
   });
@@ -3299,6 +3305,7 @@ function detectDirectiveFromInput() {
   const text = textRaw.toLowerCase();
   
   const hindiDirectives = [
+    { key: "विश्लेषण कीजिए", label: "विश्लेषण कीजिए", tip: "मुद्दे के प्रमुख घटकों, अंतर्संबंधों और प्रभावों का साक्ष्य-सहित विश्लेषण करें।" },
     { key: "समालोचनात्मक विश्लेषण", label: "समालोचनात्मक विश्लेषण", tip: "पक्ष (Thesis), विपक्ष (Anti-thesis) और समन्वित समाधान (Synthesis) प्रस्तुत करें।" },
     { key: "आलोचनात्मक विश्लेषण", label: "आलोचनात्मक विश्लेषण", tip: "पक्ष और विपक्ष का निष्पक्ष परीक्षण कर संतुलित निष्कर्ष दें।" },
     { key: "आलोचनात्मक मूल्यांकन", label: "आलोचनात्मक मूल्यांकन", tip: "मानक-आधारित समीक्षा कर उपलब्धियों व कमियों का आकलन करें।" },
@@ -3323,7 +3330,9 @@ function detectDirectiveFromInput() {
   ];
 
   let found = null;
-  if (/[\u0900-\u097F]/.test(textRaw)) {
+  const isHindiMode = String(state.medium || "").toLowerCase() === "hindi";
+
+  if (isHindiMode) {
     for (const hd of hindiDirectives) {
       const stem = hd.key.replace(/\s*(?:कीजिए|कीजिये)\s*$/, "");
       if (textRaw.includes(hd.key) || textRaw.includes(stem)) {
@@ -3331,13 +3340,31 @@ function detectDirectiveFromInput() {
         break;
       }
     }
-  }
-
-  if (!found) {
+  } else {
     for (const d of directives) {
       if (text.includes(d.key)) {
         found = d;
         break;
+      }
+    }
+  }
+
+  if (!found && isHindiMode) {
+    for (const d of directives) {
+      if (text.includes(d.key)) {
+        found = d;
+        break;
+      }
+    }
+  } else if (!found && !isHindiMode) {
+    const latCount = (textRaw.match(/[a-zA-Z]/g) || []).length;
+    if (latCount < 10) {
+      for (const hd of hindiDirectives) {
+        const stem = hd.key.replace(/\s*(?:कीजिए|कीजिये)\s*$/, "");
+        if (textRaw.includes(hd.key) || textRaw.includes(stem)) {
+          found = hd;
+          break;
+        }
       }
     }
   }
@@ -4694,13 +4721,48 @@ window.isDevanagariText = function(str) {
   return /[\u0900-\u097F]/.test(String(str));
 };
 
-// Global helper: Check if evaluation is in Hindi medium
+// Global helper: Detect if text is dominantly Devanagari
+window.isDevanagariDominant = function(str) {
+  if (!str) return false;
+  const s = String(str);
+  const devCount = (s.match(/[\u0900-\u097F]/g) || []).length;
+  const latCount = (s.match(/[a-zA-Z]/g) || []).length;
+  return devCount >= 30 && devCount > latCount * 1.5;
+};
+
+// Global helper: Check if evaluation is in Hindi medium (STRICT separation from English evaluation)
 window.isHindiEvaluation = function(evalData) {
   if (!evalData) evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
-  if (evalData.is_hindi === true || String(evalData.medium || "").toLowerCase() === "hindi") return true;
-  if (typeof state !== "undefined" && String(state.medium || "").toLowerCase() === "hindi") return true;
-  if (window.isDevanagariText(evalData.detected_question || evalData.question || (typeof state !== "undefined" && state.question))) return true;
-  if (window.isDevanagariText(evalData.transcribed_text)) return true;
+  
+  // 1. Explicit Medium overrides:
+  const evalMed = String(evalData.medium || "").toLowerCase().trim();
+  const stateMed = (typeof state !== "undefined" && state.medium) ? String(state.medium).toLowerCase().trim() : "";
+
+  // If explicitly declared English on either data or state:
+  if (evalMed === "english" || evalMed === "en") return false;
+  if (evalData.is_hindi === false && stateMed !== "hindi") return false;
+
+  // If explicitly declared Hindi on either data or state:
+  if (evalMed === "hindi" || evalMed === "hi" || evalMed === "हिंदी") return true;
+  if (stateMed === "hindi" && evalMed !== "english") return true;
+  if (evalData.is_hindi === true && evalMed !== "english" && stateMed !== "english") return true;
+
+  // 2. Candidate's Handwritten Script Ratio (NOT bilingual question paper header!):
+  const txt = String(evalData.transcribed_text || "");
+  const devChars = (txt.match(/[\u0900-\u097F]/g) || []).length;
+  const latChars = (txt.match(/[a-zA-Z]/g) || []).length;
+
+  if (latChars >= 40 && latChars > devChars * 1.5) return false;
+  if (devChars >= 40 && devChars > latChars * 1.5) return true;
+
+  // 3. Question check ONLY if transcript is empty/ambiguous:
+  const qTxt = String(evalData.detected_question || evalData.question || (typeof state !== "undefined" && state.question) || "");
+  const qDevChars = (qTxt.match(/[\u0900-\u097F]/g) || []).length;
+  const qLatChars = (qTxt.match(/[a-zA-Z]/g) || []).length;
+  // If question contains English (bilingual papers always have English), default to English:
+  if (qLatChars >= 15) return false;
+  if (qDevChars >= 20 && qLatChars < 10) return true;
+
   return false;
 };
 
@@ -4881,12 +4943,25 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
       else note = sArr[i];
     }
 
-    // Filter out meta placeholders
+    // Filter out meta placeholders & enforce script purity
     if (window.isMetaPlaceholderText(title) || /point\s*\[[a-z0-9]+\]/i.test(title)) title = "";
     if (window.isMetaPlaceholderText(statement) || /point\s*\[[a-z0-9]+\]/i.test(statement)) statement = "";
     if (window.isMetaPlaceholderText(note) || /point\s*\[[a-z0-9]+\]/i.test(note)) note = "";
 
-    // If title is a generic label, upgrade it
+    if (!isHindi) {
+      if (/[\u0900-\u097F]/.test(title)) {
+        title = title.replace(/[\u0900-\u097F]+/g, "").replace(/\(\s*\)/g, "").trim();
+      }
+      if (/[\u0900-\u097F]/.test(statement)) statement = "";
+      if (/[\u0900-\u097F]/.test(note)) {
+        note = note.replace(/[\u0900-\u097F]+/g, "").trim();
+      }
+    } else {
+      if (!/[\u0900-\u097F]/.test(title)) title = "";
+      if (!/[\u0900-\u097F]/.test(statement)) statement = "";
+    }
+
+    // If title is a generic label or empty, upgrade it
     if (!title || title.length < 5 || /^(?:core demand|depth & substantiation|body part|primary demand|secondary demand)$/i.test(title.trim())) {
       const isPolity = /(?:article\s+\d+|constitutional|parliament|supreme court|fundamental right|governor|federalism|judiciary|executive|संविधान|न्यायपालिका|अधिकार|संसद|आयोग)/i.test(qL);
       const isEnvironment = /(?:environment|tourism|climate|ecology|pollution|biodiversity|himalayan|forest|wildlife|water|पर्यावरण|जलवायु|प्रदूषण)/i.test(qL);

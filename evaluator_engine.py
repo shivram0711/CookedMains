@@ -98,6 +98,14 @@ DIRECTIVES = {
     "distinguish": {
         "meaning": "Clearly differentiate concepts based on definitions, operational mechanisms, legal/institutional status, and practical implications.",
         "ideal_balance": "25% definitions, 60% tabular/thematic differentiation criteria, 15% contemporary relevance."
+    },
+    "analyse": {
+        "meaning": "Break down the issue into component dimensions, examine interlinkages, and synthesize cause-and-effect relationships with evidence.",
+        "ideal_balance": "Systematic multi-dimensional breakdown (45% analytical mechanisms, 40% practical implications, 15% constructive synthesis)."
+    },
+    "analyze": {
+        "meaning": "Break down the issue into component dimensions, examine interlinkages, and synthesize cause-and-effect relationships with evidence.",
+        "ideal_balance": "Systematic multi-dimensional breakdown (45% analytical mechanisms, 40% practical implications, 15% constructive synthesis)."
     }
 }
 
@@ -209,6 +217,10 @@ PAPER_TAXONOMIES = {
 
 # Hindi Directives Taxonomy for UPSC Mains (हिंदी माध्यम आधिकारिक निर्देश शब्दावली)
 HINDI_DIRECTIVES = {
+    "विश्लेषण कीजिए": {
+        "meaning": "मुद्दे को उसके प्रमुख घटकों में विभाजित कर कारणों, प्रभावों एवं अंतर-संबंधों का साक्ष्य-सहित परीक्षण करें।",
+        "ideal_balance": "व्यवस्थित बहुआयामी विश्लेषण (45% अवधारणात्मक तंत्र, 40% व्यावहारिक निहितार्थ, 15% संतुलित समन्वय)।"
+    },
     "आलोचनात्मक विश्लेषण कीजिए": {
         "meaning": "पक्ष (Thesis), विपक्ष/सीमाएं (Anti-thesis) और समन्वित संतुलित समाधान (Synthesis) प्रस्तुत करें।",
         "ideal_balance": "संतुलित द्वंद्वात्मक दृष्टिकोण (पक्ष 45%, विपक्ष 40%, समाधान 15%)।"
@@ -277,16 +289,122 @@ def is_devanagari_text(text: Optional[str]) -> bool:
     dev_chars = len(re.findall(r'[\u0900-\u097F]', text))
     return dev_chars >= 5
 
-def detect_directive(question_text: str) -> Dict[str, str]:
+def is_devanagari_dominant(text: Optional[str]) -> bool:
+    if not text:
+        return False
+    dev_chars = len(re.findall(r'[\u0900-\u097F]', text))
+    lat_chars = len(re.findall(r'[a-zA-Z]', text))
+    return dev_chars >= 30 and dev_chars > lat_chars * 1.5
+
+def resolve_evaluation_medium(
+    medium_param: Optional[str] = None,
+    transcribed_text: Optional[str] = None,
+    question_text: Optional[str] = None,
+    fallback_medium: str = "english"
+) -> tuple[str, bool]:
+    """
+    Deterministically determines whether the evaluation medium is 'english' or 'hindi'.
+    Returns (resolved_medium, is_hindi).
+    
+    Principles:
+    1. EXPLICIT CHOICE:
+       - If medium_param is explicitly 'english' or 'en' -> STRICTLY ('english', False).
+       - If medium_param is explicitly 'hindi' or 'hi' or 'हिंदी' -> STRICTLY ('hindi', True).
+    2. CANDIDATE HANDWRITTEN SCRIPT RATIO:
+       UPSC/coaching question papers print both English and Hindi versions on every answer sheet.
+       Therefore, presence of Hindi in the printed question header MUST NEVER classify an English answer as Hindi.
+       The true ground truth is the candidate's actual handwritten answer body (transcribed_text).
+       - Latin letters [a-zA-Z] vs Devanagari characters [\u0900-\u097F].
+       - If Latin >= 40 and Latin > Devanagari * 1.5 -> STRICTLY ('english', False).
+       - If Devanagari >= 40 and Devanagari > Latin * 1.5 -> STRICTLY ('hindi', True).
+    3. QUESTION SCRUTINY (ONLY when transcribed_text is unavailable or script counts are low):
+       - If question has Latin >= 15 -> ('english', False) (bilingual papers always have English).
+       - Only if question is pure Devanagari (Devanagari >= 20 and Latin < 10) -> ('hindi', True).
+    4. DEFAULT: fallback_medium ('english', False).
+    """
+    m_str = str(medium_param or "").strip().lower()
+    if m_str in ("english", "en"):
+        return ("english", False)
+    if m_str in ("hindi", "hi", "हिंदी"):
+        return ("hindi", True)
+
+    # Scrutinize candidate handwritten body script
+    t_str = str(transcribed_text or "").strip()
+    if t_str:
+        lat_count = len(re.findall(r'[a-zA-Z]', t_str))
+        dev_count = len(re.findall(r'[\u0900-\u097F]', t_str))
+        if lat_count >= 40 and lat_count > dev_count * 1.5:
+            return ("english", False)
+        if dev_count >= 40 and dev_count > lat_count * 1.5:
+            return ("hindi", True)
+
+    # Scrutinize question text
+    q_str = str(question_text or "").strip()
+    if q_str:
+        q_lat = len(re.findall(r'[a-zA-Z]', q_str))
+        q_dev = len(re.findall(r'[\u0900-\u097F]', q_str))
+        if q_lat >= 15:
+            return ("english", False)
+        if q_dev >= 20 and q_lat < 10:
+            return ("hindi", True)
+
+    return ("hindi", True) if fallback_medium == "hindi" else ("english", False)
+
+def separate_bilingual_question(question_text: str, target_medium: str = "english") -> str:
+    """
+    Separates bilingual UPSC / coaching question papers that print both English and Hindi versions.
+    If target_medium == 'english', extracts the English portion.
+    If target_medium == 'hindi', extracts the Hindi portion.
+    Preserves question numbering / letters like '(b)', 'Q.1', etc.
+    """
+    if not question_text or not isinstance(question_text, str):
+        return ""
+    q_raw = question_text.strip()
+    dev_chars = len(re.findall(r'[\u0900-\u097F]', q_raw))
+    lat_chars = len(re.findall(r'[a-zA-Z]', q_raw))
+    
+    # If single-script only, return as-is
+    if dev_chars == 0 or lat_chars == 0:
+        return q_raw
+        
+    lines = [line.strip() for line in q_raw.splitlines() if line.strip()]
+    
+    if target_medium == "english":
+        eng_lines = []
+        for l in lines:
+            l_dev = len(re.findall(r'[\u0900-\u097F]', l))
+            l_lat = len(re.findall(r'[a-zA-Z]', l))
+            if l_dev == 0 or l_lat >= l_dev:
+                clean_l = re.sub(r'[\u0900-\u097F]+', '', l).strip()
+                if clean_l and len(clean_l) > 2:
+                    eng_lines.append(clean_l)
+        result = " ".join(eng_lines).strip()
+        if len(result) >= 20:
+            return re.sub(r'\s{2,}', ' ', result)
+        cleaned = re.sub(r'[\u0900-\u097F]+', '', q_raw).strip()
+        return re.sub(r'\s{2,}', ' ', cleaned) if len(cleaned) >= 15 else q_raw
+    else:
+        hin_lines = []
+        for l in lines:
+            l_dev = len(re.findall(r'[\u0900-\u097F]', l))
+            l_lat = len(re.findall(r'[a-zA-Z]', l))
+            if l_lat == 0 or l_dev >= l_lat:
+                hin_lines.append(l)
+        result = " ".join(hin_lines).strip()
+        if len(result) >= 20:
+            return re.sub(r'\s{2,}', ' ', result)
+        return q_raw
+
+def detect_directive(question_text: str, medium: Optional[str] = "english") -> Dict[str, str]:
     text_raw = (question_text or "").strip()
     text_lower = text_raw.lower()
     
-    # Check Hindi directives first if Devanagari is present or matched
-    if is_devanagari_text(text_raw):
-        # Sort Hindi directives by phrase length descending
+    is_hi = str(medium or "").lower() in ("hindi", "hi", "हिंदी")
+    
+    if is_hi:
+        # Check Hindi directives first
         sorted_h_dirs = sorted(HINDI_DIRECTIVES.items(), key=lambda x: len(x[0]), reverse=True)
         for h_dir, info in sorted_h_dirs:
-            # Check full phrase or stem without 'कीजिए'/'कीजिये'
             h_stem = re.sub(r'\s*(?:कीजिए|कीजिये)\s*$', '', h_dir).strip()
             if h_dir in text_raw or (len(h_stem) >= 4 and h_stem in text_raw):
                 return {
@@ -294,23 +412,38 @@ def detect_directive(question_text: str) -> Dict[str, str]:
                     "details": info["meaning"],
                     "ideal_balance": info["ideal_balance"]
                 }
+    else:
+        # Check English directives first
+        sorted_directives = sorted(DIRECTIVES.items(), key=lambda x: len(x[0]), reverse=True)
+        for directive, info in sorted_directives:
+            if re.search(r'\b' + re.escape(directive) + r'\b', text_lower):
+                return {"directive": directive.title(), "details": info["meaning"], "ideal_balance": info["ideal_balance"]}
     
-    # Sort by key length descending so multi-word directives take precedence (e.g. "do you agree" before "agree", "critically examine" before "examine")
-    sorted_directives = sorted(DIRECTIVES.items(), key=lambda x: len(x[0]), reverse=True)
-    for directive, info in sorted_directives:
-        if re.search(r'\b' + re.escape(directive) + r'\b', text_lower):
-            return {"directive": directive.title(), "details": info["meaning"], "ideal_balance": info["ideal_balance"]}
-    
-    # Also check if any Hindi directive appears in text even without explicit devanagari dominant tag
-    for h_dir, info in HINDI_DIRECTIVES.items():
-        h_stem = re.sub(r'\s*(?:कीजिए|कीजिये)\s*$', '', h_dir).strip()
-        if h_dir in text_raw or (len(h_stem) >= 4 and h_stem in text_raw):
-            return {
-                "directive": h_dir,
-                "details": info["meaning"],
-                "ideal_balance": info["ideal_balance"]
-            }
+    # Fallback to secondary language if directive not found
+    if is_hi:
+        sorted_directives = sorted(DIRECTIVES.items(), key=lambda x: len(x[0]), reverse=True)
+        for directive, info in sorted_directives:
+            if re.search(r'\b' + re.escape(directive) + r'\b', text_lower):
+                return {"directive": directive.title(), "details": info["meaning"], "ideal_balance": info["ideal_balance"]}
+    else:
+        # For English medium, do NOT return Hindi directive unless the question is 100% pure Devanagari with no English
+        q_lat = len(re.findall(r'[a-zA-Z]', text_raw))
+        if q_lat < 10 and is_devanagari_text(text_raw):
+            for h_dir, info in HINDI_DIRECTIVES.items():
+                h_stem = re.sub(r'\s*(?:कीजिए|कीजिये)\s*$', '', h_dir).strip()
+                if h_dir in text_raw or (len(h_stem) >= 4 and h_stem in text_raw):
+                    return {
+                        "directive": h_dir,
+                        "details": info["meaning"],
+                        "ideal_balance": info["ideal_balance"]
+                    }
 
+    if is_hi:
+        return {
+            "directive": "चर्चा कीजिए (Discuss)",
+            "details": "विषय के सभी आयामों (PESTLE रूपरेखा) का स्पष्ट उप-शीर्षकों के साथ विस्तार करें।",
+            "ideal_balance": "संतुलित परिचय, संरचित मुख्य भाग और समाधानपरक निष्कर्ष।"
+        }
     return {
         "directive": "Discuss / Comprehensive Analysis",
         "details": "Explore multiple dimensions (PESTLE framework) systematically with clear subheadings.",
@@ -1196,10 +1329,12 @@ def build_evaluation_prompt(
     previous_evaluation: Optional[Dict[str, Any]] = None,
     medium: Optional[str] = "english"
 ) -> str:
-    # Dedicated Hindi medium routing (preserves existing English mechanism 100% untouched)
-    if (medium and str(medium).lower() in ("hindi", "hi", "हिंदी")) or is_devanagari_text(question):
+    # Dedicated Hindi medium routing (strictly isolated from English evaluation)
+    _, is_prompt_hindi = resolve_evaluation_medium(medium_param=medium, question_text=question)
+    if is_prompt_hindi:
+        clean_hindi_q = separate_bilingual_question(question, target_medium="hindi")
         return build_hindi_evaluation_prompt(
-            question=question,
+            question=clean_hindi_q or question,
             paper_key=paper_key,
             max_marks=max_marks,
             directive_info=directive_info,
@@ -1207,6 +1342,11 @@ def build_evaluation_prompt(
             current_affairs_context=current_affairs_context,
             previous_evaluation=previous_evaluation
         )
+
+    # For English evaluation, ensure bilingual printed questions are cleaned of Devanagari translation
+    clean_eng_q = separate_bilingual_question(question, target_medium="english")
+    if clean_eng_q:
+        question = clean_eng_q
 
     detected_paper = detect_academic_discipline(question, paper_key)
     taxonomy = PAPER_TAXONOMIES.get(detected_paper, PAPER_TAXONOMIES.get("GS2"))
@@ -2341,12 +2481,12 @@ def _clean_concepts_string(text: str, max_chars: int = 160) -> str:
     return _clean_quote_snippet(clean, max_chars)
 
 
-def _build_domain_specific_intro(question_text: str, paper_name: str, existing_text: str = "", missing_elements: list = None) -> str:
+def _build_domain_specific_intro(question_text: str, paper_name: str, existing_text: str = "", missing_elements: list = None, is_hindi: bool = False) -> str:
     """Construct a high-yield, 25-35 word topper model introduction tailored to the question's core subject, articles, and benchmarks."""
     q_low = f"{question_text} {existing_text}".lower()
     p_up = str(paper_name or "").upper()
 
-    if is_devanagari_text(question_text) or is_devanagari_text(existing_text):
+    if is_hindi:
         if "GS4" in p_up or "ETHICS" in p_up or any(k in q_low for k in ["नैतिक", "सत्यनिष्ठा", "मूल्य", "प्रशासनिक"]):
             return (
                 "लोक प्रशासन में नैतिकता प्रशासनिक निर्णयों को **संवैधानिक नैतिकता (Constitutional Morality)** और "
@@ -2560,22 +2700,29 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
     is_polity = (discipline == "POLITY_GOVERNANCE")
     is_econ = (discipline == "ECONOMY_DEVELOPMENT")
 
-    # Comprehensive Hindi Medium detection:
-    is_hindi = bool(
-        data.get("is_hindi") or
-        str(data.get("medium") or "").lower() in ("hindi", "hi", "हिंदी") or
-        str(medium).lower() in ("hindi", "hi", "हिंदी") or
-        is_devanagari_text(resolved_q) or
-        is_devanagari_text(str(data.get("transcribed_text") or "")) or
-        is_devanagari_text(str(data.get("full_model_answer") or ""))
+    # Comprehensive, robust Hindi vs English medium separation:
+    resolved_med, is_hindi = resolve_evaluation_medium(
+        medium_param=medium or data.get("medium"),
+        transcribed_text=str(data.get("transcribed_text") or ""),
+        question_text=resolved_q,
+        fallback_medium="english"
     )
-    if is_hindi:
-        data["is_hindi"] = True
-        data["medium"] = "hindi"
-    else:
-        data["is_hindi"] = False
-        if not data.get("medium"):
-            data["medium"] = "english"
+    data["is_hindi"] = is_hindi
+    data["medium"] = resolved_med
+
+    # Separate bilingual question (isolate English for English medium, Hindi for Hindi medium)
+    if not is_hindi and resolved_q:
+        clean_q_eng = separate_bilingual_question(resolved_q, target_medium="english")
+        if clean_q_eng:
+            data["detected_question"] = clean_q_eng
+            resolved_q = clean_q_eng
+            q_lower = resolved_q.lower()
+    elif is_hindi and resolved_q:
+        clean_q_hi = separate_bilingual_question(resolved_q, target_medium="hindi")
+        if clean_q_hi:
+            data["detected_question"] = clean_q_hi
+            resolved_q = clean_q_hi
+            q_lower = resolved_q.lower()
 
     trans_corpus = str(data.get("transcribed_text") or "").lower()
     has_dates_in_transcript = bool(re.search(r'\b(?:\d{3,4}(?:s|\s*(?:ad|bc|bce|ce))?|\d{1,2}(?:th|st|nd|rd)\s*century)\b', trans_corpus))
@@ -2583,10 +2730,26 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
     def _sanitize_annotation_remark(rem_text: str, tag_str: str) -> str:
         if not rem_text:
             return rem_text
-        if is_hindi or is_devanagari_text(rem_text):
+        if is_hindi:
             return rem_text
         t_low = tag_str.lower()
         clean = rem_text
+        # If English evaluation but remark has leaked Devanagari text, sanitize it
+        if is_devanagari_text(clean):
+            clean = re.sub(r'✓\s*\*\*सकारात्मक\*\*', '✓ **Positive**', clean)
+            clean = re.sub(r'✎\s*\*\*सुधार\*\*', '✎ **Improvement**', clean)
+            clean = re.sub(r'\*\*अभ्यर्थी ने लिखा\*\*', '**What You Wrote**', clean)
+            clean = re.sub(r'प्रस्तावना:', 'Introduction:', clean)
+            clean = re.sub(r'निष्कर्ष:', 'Conclusion:', clean)
+            clean = re.sub(r'मुख्य भाग:', 'Body Part:', clean)
+            clean = re.sub(r'आयाम\s*([A-Za-z0-9])', r'Dimension \1', clean)
+            if is_devanagari_dominant(clean):
+                if any(k in t_low for k in ["intro", "परिभाषा", "प्रस्तावना"]):
+                    clean = "✓ **Clear Opening Context**: Effectively established the core conceptual premise on Page 1.\n✎ **Upgrade**: Anchor with a primary doctrine or constitutional benchmark."
+                elif any(k in t_low for k in ["concl", "निष्कर्ष", "समापन"]):
+                    clean = "✓ **Balanced Conclusion**: Concluded with relevant forward-looking synthesis.\n✎ **Upgrade**: Anchor closing sentence in statutory benchmarks."
+                else:
+                    clean = "✓ **Analytical Dimension**: Directly addressed key demands with structured arguments.\n✎ **Upgrade**: Substantiate with specific empirical data or committee reports."
 
         # 1. Eliminate false timeline / chronological premise hallucinations
         if ("chronological" in clean.lower() or "timeline" in clean.lower()) and not has_dates_in_transcript:
@@ -4072,7 +4235,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
 
     # Re-evaluate directive compliance on final_question if needed
     if "directive_compliance" in data and isinstance(data["directive_compliance"], dict):
-        d_info = detect_directive(final_question)
+        d_info = detect_directive(final_question, medium=data.get("medium"))
         if not data["directive_compliance"].get("directive") or data["directive_compliance"].get("directive") == "Discuss / Comprehensive Analysis":
             data["directive_compliance"]["directive"] = d_info["directive"]
 
@@ -4254,7 +4417,7 @@ def _normalize_exam_hall_discipline_and_micro_marking(data: Dict[str, Any], max_
     # 3. Official UPSC Syllabus Micro-Topic Tagging & PYQ Trend Anchoring
     subj_meta = detect_precise_subject(question, paper)
     pyq_trend = detect_pyq_trend(question, subj_meta.get("discipline", ""))
-    dir_info = detect_directive(question)
+    dir_info = detect_directive(question, medium=data.get("medium"))
 
     data["syllabus_mapping"] = {
         "paper": subj_meta.get("paper_code", "GS2"),
@@ -4347,26 +4510,46 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
         for idx in range(num_steps):
             item = existing_steps[idx] if isinstance(existing_steps[idx], dict) else {}
             if idx == 0:
-                item["step_label"] = item.get("step_label") or ("1. प्रस्तावना एवं संदर्भ (Intro & Context)" if is_hindi else "1. INTRO & CONTEXT")
-                item["sub_heading"] = item.get("sub_heading") or ("प्रारंभिक विषय-परिचय एवं अवधारणात्मक आधार" if is_hindi else "Opening Premise & Conceptual Anchor")
+                raw_sl = str(item.get("step_label") or "")
+                raw_sh = str(item.get("sub_heading") or "")
+                if is_hindi:
+                    item["step_label"] = raw_sl if (raw_sl and is_devanagari_text(raw_sl)) else "1. प्रस्तावना एवं संदर्भ (Intro & Context)"
+                    item["sub_heading"] = raw_sh if (raw_sh and is_devanagari_text(raw_sh)) else "प्रारंभिक विषय-परिचय एवं अवधारणात्मक आधार"
+                else:
+                    item["step_label"] = "1. INTRO & CONTEXT" if (not raw_sl or is_devanagari_text(raw_sl)) else raw_sl
+                    item["sub_heading"] = "Opening Premise & Conceptual Anchor" if (not raw_sh or is_devanagari_text(raw_sh)) else raw_sh
                 item["max"] = intro_max
                 item["awarded"] = intro_aw
             elif idx == num_steps - 1:
-                item["step_label"] = item.get("step_label") or (f"{num_steps}. निष्कर्ष एवं आगे की राह (Conclusion & Way Forward)" if is_hindi else f"{num_steps}. CONCLUSION & SYNTHESIS")
-                item["sub_heading"] = item.get("sub_heading") or ("अग्रगामी समाधान एवं संस्थागत समन्वय" if is_hindi else "Closing Vision & Institutional Forward Linkage")
+                raw_sl = str(item.get("step_label") or "")
+                raw_sh = str(item.get("sub_heading") or "")
+                if is_hindi:
+                    item["step_label"] = raw_sl if (raw_sl and is_devanagari_text(raw_sl)) else f"{num_steps}. निष्कर्ष एवं आगे की राह (Conclusion & Way Forward)"
+                    item["sub_heading"] = raw_sh if (raw_sh and is_devanagari_text(raw_sh)) else "अग्रगामी समाधान एवं संस्थागत समन्वय"
+                else:
+                    item["step_label"] = f"{num_steps}. CONCLUSION & SYNTHESIS" if (not raw_sl or is_devanagari_text(raw_sl)) else raw_sl
+                    item["sub_heading"] = "Closing Vision & Institutional Forward Linkage" if (not raw_sh or is_devanagari_text(raw_sh)) else raw_sh
                 item["max"] = conc_max
                 item["awarded"] = conc_aw
             else:
                 body_idx = idx - 1
                 part_letter = chr(65 + body_idx)
                 raw_sl = str(item.get("step_label") or "").strip()
-                clean_sl = re.sub(r'^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*)+', '', raw_sl, flags=re.IGNORECASE).strip()
+                clean_sl = re.sub(r'^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*|भाग\s*[a-z0-9]\s*[-—:]\s*)+', '', raw_sl, flags=re.IGNORECASE).strip()
                 if is_hindi:
-                    item["step_label"] = f"{idx + 1}. मुख्य भाग — आयाम {part_letter} ({clean_sl})" if clean_sl else f"{idx + 1}. मुख्य भाग — आयाम {part_letter}"
+                    item["step_label"] = f"{idx + 1}. मुख्य भाग — आयाम {part_letter} ({clean_sl})" if (clean_sl and is_devanagari_text(clean_sl)) else f"{idx + 1}. मुख्य भाग — आयाम {part_letter}"
                 else:
-                    item["step_label"] = f"{idx + 1}. Part {part_letter} — {clean_sl}" if clean_sl else f"{idx + 1}. Part {part_letter} — Question Dimension {part_letter}"
+                    if is_devanagari_text(clean_sl):
+                        clean_sl = re.sub(r'[\u0900-\u097F]+', '', clean_sl).strip()
+                    item["step_label"] = f"{idx + 1}. Part {part_letter} — {clean_sl}" if (clean_sl and len(clean_sl) > 3) else f"{idx + 1}. Part {part_letter} — Question Dimension {part_letter}"
                 raw_sh = str(item.get("sub_heading") or "")
-                if not raw_sh or "explain what" in raw_sh.lower():
+                need_default_sh = (
+                    not raw_sh or
+                    "explain what" in raw_sh.lower() or
+                    (not is_hindi and is_devanagari_text(raw_sh)) or
+                    (is_hindi and not is_devanagari_text(raw_sh))
+                )
+                if need_default_sh:
                     if is_hindi:
                         if body_idx == 0:
                             item["sub_heading"] = "मुख्य मांग का विश्लेषण एवं प्राथमिक कारक"
@@ -4610,11 +4793,11 @@ def extract_model_answer_conclusion(model_ans: str) -> str:
     return ""
 
 
-def _build_domain_specific_conclusion(question_text: str, paper_name: str, existing_text: str = "") -> str:
+def _build_domain_specific_conclusion(question_text: str, paper_name: str, existing_text: str = "", is_hindi: bool = False) -> str:
     q_low = f"{question_text} {existing_text}".lower()
     p_up = str(paper_name or "").upper()
 
-    if is_devanagari_text(question_text) or is_devanagari_text(existing_text):
+    if is_hindi:
         if "GS4" in p_up or "ETHICS" in p_up or any(k in q_low for k in ["नैतिक", "सत्यनिष्ठा", "मूल्य"]):
             return (
                 "प्रशासनिक निर्णयों को **संवैधानिक नैतिकता**, **नोलन समिति के सिद्धांतों (सत्यनिष्ठा, निष्पक्षता, जवाबदेही)** "
@@ -4976,27 +5159,43 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             if "intro" in str(ann.get("tag") or "").lower() or "premise" in str(ann.get("tag") or "").lower():
                 ann["marks_awarded"] = f"+{new_i_score:.1f} / {i_max:.1f}"
 
-    # Ensure model_intro_rewrite is never empty or generic across all subjects
+    # Ensure model_intro_rewrite is never empty or generic and strictly matches evaluation medium
     raw_model_intro = str(i_audit.get("model_intro_rewrite") or "").strip()
-    if not raw_model_intro or len(raw_model_intro) < 25 or _has_meta_placeholder(raw_model_intro) or raw_model_intro in ('""', "''"):
-        domain_intro = _build_domain_specific_intro(q_str, p_str, raw_model_intro, i_missing)
+    need_new_intro = (
+        not raw_model_intro or
+        len(raw_model_intro) < 25 or
+        _has_meta_placeholder(raw_model_intro) or
+        raw_model_intro in ('""', "''") or
+        (not is_hindi and is_devanagari_text(raw_model_intro)) or
+        (is_hindi and not is_devanagari_text(raw_model_intro))
+    )
+    if need_new_intro:
+        domain_intro = _build_domain_specific_intro(q_str, p_str, raw_model_intro, i_missing, is_hindi=is_hindi)
         i_audit["model_intro_rewrite"] = domain_intro
         data["intro_audit"] = i_audit
 
     c_audit = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
     topper_conc = extract_model_answer_conclusion(str(data.get("full_model_answer") or ""))
-    domain_conc = _build_domain_specific_conclusion(q_str, p_str, str(c_audit.get("model_conclusion_rewrite") or ""))
+    domain_conc = _build_domain_specific_conclusion(q_str, p_str, str(c_audit.get("model_conclusion_rewrite") or ""), is_hindi=is_hindi)
 
-    # Priority: Topper Model Answer conclusion > dynamic question conclusion > fallback
+    # Priority: Topper Model Answer conclusion > dynamic question conclusion > fallback (strictly respecting evaluation medium)
     raw_model_conc = str(c_audit.get("model_conclusion_rewrite") or "").strip()
     is_raw_stuck = bool(re.search(r'(?i)(viksit\s*bharat|@\s*2047|by\s*2047|Harmonizing.*?constitutional morality.*?2nd ARC)', raw_model_conc))
 
-    if topper_conc and len(topper_conc) >= 25:
-        effective_conc = topper_conc
-    elif raw_model_conc and not is_raw_stuck and len(raw_model_conc) >= 25:
-        effective_conc = raw_model_conc
+    if not is_hindi:
+        if topper_conc and len(topper_conc) >= 25 and not is_devanagari_text(topper_conc):
+            effective_conc = topper_conc
+        elif raw_model_conc and not is_raw_stuck and len(raw_model_conc) >= 25 and not is_devanagari_text(raw_model_conc):
+            effective_conc = raw_model_conc
+        else:
+            effective_conc = domain_conc
     else:
-        effective_conc = domain_conc
+        if topper_conc and len(topper_conc) >= 25 and is_devanagari_text(topper_conc):
+            effective_conc = topper_conc
+        elif raw_model_conc and not is_raw_stuck and len(raw_model_conc) >= 25 and is_devanagari_text(raw_model_conc):
+            effective_conc = raw_model_conc
+        else:
+            effective_conc = domain_conc
 
     c_audit["model_conclusion_rewrite"] = effective_conc
     data["conclusion_audit"] = c_audit
@@ -6068,7 +6267,12 @@ def build_resilient_fallback_evaluation(
     else:
         target_score = round(mm * 0.48, 1)
 
-    is_hindi_mode = (medium == "hindi") or is_devanagari_text(clean_q)
+    _, is_hindi_mode = resolve_evaluation_medium(medium_param=medium, question_text=clean_q)
+    if not is_hindi_mode:
+        clean_q = separate_bilingual_question(clean_q, target_medium="english")
+    else:
+        clean_q = separate_bilingual_question(clean_q, target_medium="hindi")
+
     if is_hindi_mode:
         examiner_verdict = (
             f"आपके संशोधित उत्तर में '{clean_q[:95]}' की मुख्य मांग पर स्पष्ट संरचनात्मक सुधार दिखा है। उप-शीर्षकों एवं आयामों के मध्य बेहतर तार्किक समन्वय स्थापित हुआ है।"
@@ -6131,7 +6335,7 @@ async def evaluate_with_gemini(
     """
     keys_to_try = get_active_gemini_keys(api_key)
     detected_paper = detect_academic_discipline(question, paper)
-    directive_info = detect_directive(question)
+    directive_info = detect_directive(question, medium=medium)
 
     if not keys_to_try:
         raise RuntimeError("No active Gemini API key configured.")

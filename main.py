@@ -450,8 +450,8 @@ async def get_taxonomies():
     return PAPER_TAXONOMIES
 
 @app.post("/api/detect-directive")
-async def api_detect_directive(question: str = Form(...)):
-    return detect_directive(question)
+async def api_detect_directive(question: str = Form(...), medium: Optional[str] = Form("english")):
+    return detect_directive(question, medium=medium)
 
 @app.post("/api/test-key")
 async def test_key(api_key: str = Form(...)):
@@ -2117,7 +2117,7 @@ async def evaluate_answer(
                 if cand_q and "extract question printed" not in cand_q.lower():
                     prev_q = cand_q
             detected_paper = detect_academic_discipline(question, paper)
-            directive_info = detect_directive(question)
+            directive_info = detect_directive(question, medium=medium)
 
             if not keys_to_try:
                 return JSONResponse(
