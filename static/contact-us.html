@@ -96,7 +96,7 @@
         Get in Touch with Cooked Mains
       </h1>
       <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-sans">
-        Have questions regarding evaluation rubrics, suggestions to improve our AI model, or experiencing an issue? Send us a message below or join our Telegram community.
+        Have questions regarding evaluation rubrics, suggestions to improve our AI model, or experiencing an issue? Send us a message below or connect with us directly via Telegram, Instagram, or Email.
       </p>
     </div>
 
@@ -115,25 +115,89 @@
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Email Support</h3>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Direct reach to our engineering and academic team</p>
           </div>
-          <a href="mailto:support@cookedmains.com" class="inline-block text-sm font-semibold text-amber-600 dark:text-amber-400 hover:underline font-mono">
-            support@cookedmains.com
-          </a>
+          <div class="flex items-center gap-2 flex-wrap">
+            <a href="mailto:help.cookedmains.com@gmail.com" class="inline-block text-xs sm:text-sm font-semibold text-amber-600 dark:text-amber-400 hover:underline font-mono break-all">
+              help.cookedmains.com@gmail.com
+            </a>
+            <button type="button" onclick="navigator.clipboard.writeText('help.cookedmains.com@gmail.com'); alert('Email address copied to clipboard!');" title="Copy Email" class="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-amber-500 transition cursor-pointer">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
           <p class="text-[11px] text-slate-500 dark:text-slate-400">Average response time: &lt; 24 hours</p>
         </div>
 
-        <!-- Telegram Community Card -->
-        <div class="p-6 rounded-3xl bg-sky-500/5 dark:bg-sky-950/20 border border-sky-500/20 space-y-3">
-          <div class="w-10 h-10 rounded-2xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold">
-            <i data-lucide="send" class="w-5 h-5"></i>
+        <!-- Telegram Aspirants Community Card (with QR & 1-Click Access) -->
+        <div class="p-6 rounded-3xl bg-sky-500/5 dark:bg-sky-950/20 border border-sky-500/25 space-y-4 shadow-sm">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold shrink-0">
+                <i data-lucide="send" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white">Telegram Channel &amp; Community</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Daily model answers, UPSC editorial questions &amp; notices</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-600 dark:text-sky-400 text-[10px] font-mono font-bold shrink-0">@cookedmains</span>
           </div>
-          <div>
-            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Telegram Aspirants Community</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Discuss daily answers, model copies &amp; exam strategies</p>
+
+          <!-- Telegram Quick Actions & QR Preview -->
+          <div class="flex flex-col sm:flex-row items-center gap-4 p-3.5 rounded-2xl bg-white/70 dark:bg-slate-900/70 border border-sky-500/20">
+            <a href="https://t.me/cookedmains" target="_blank" rel="noopener noreferrer" class="shrink-0 group block" title="Scan or click to open Telegram">
+              <img src="/static/telegram_qr.jpg" alt="Telegram @cookedmains QR Code" class="w-24 h-24 object-contain rounded-xl border border-sky-400/30 shadow-xs group-hover:scale-105 transition-transform bg-slate-950">
+            </a>
+            <div class="space-y-2 text-center sm:text-left flex-1">
+              <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-snug">
+                Scan QR or tap below to join <strong>@cookedmains</strong> on Telegram.
+              </p>
+              <div class="flex items-center gap-2 justify-center sm:justify-start flex-wrap">
+                <a href="https://t.me/cookedmains" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition shadow-xs">
+                  <span>Open Telegram</span>
+                  <i data-lucide="external-link" class="w-3 h-3"></i>
+                </a>
+                <button type="button" onclick="navigator.clipboard.writeText('https://t.me/cookedmains'); alert('Telegram link copied!');" class="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-sky-500 text-xs font-semibold transition border border-slate-200 dark:border-slate-700 cursor-pointer">
+                  Copy Link
+                </button>
+              </div>
+            </div>
           </div>
-          <a href="https://t.me/cookedmains" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition">
-            <span>Join @cookedmains</span>
-            <i data-lucide="external-link" class="w-3 h-3"></i>
-          </a>
+        </div>
+
+        <!-- Instagram Community Card (with QR & 1-Click Access) -->
+        <div class="p-6 rounded-3xl bg-pink-500/5 dark:bg-pink-950/20 border border-pink-500/25 space-y-4 shadow-sm">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500/20 via-pink-500/20 to-purple-500/20 text-pink-600 dark:text-pink-400 flex items-center justify-center font-bold shrink-0">
+                <i data-lucide="instagram" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white">Instagram Community</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Answer writing infographics, topper breakdowns &amp; reels</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded-full bg-pink-500/15 text-pink-600 dark:text-pink-400 text-[10px] font-mono font-bold shrink-0">@cookedmains</span>
+          </div>
+
+          <!-- Instagram Quick Actions & QR Preview -->
+          <div class="flex flex-col sm:flex-row items-center gap-4 p-3.5 rounded-2xl bg-white/70 dark:bg-slate-900/70 border border-pink-500/20">
+            <a href="https://instagram.com/cookedmains" target="_blank" rel="noopener noreferrer" class="shrink-0 group block" title="Scan or click to open Instagram">
+              <img src="/static/instagram_qr.png" alt="Instagram @cookedmains QR Code" class="w-24 h-24 object-contain rounded-xl border border-pink-400/30 shadow-xs group-hover:scale-105 transition-transform bg-white">
+            </a>
+            <div class="space-y-2 text-center sm:text-left flex-1">
+              <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-snug">
+                Scan QR or tap below to follow <strong>@cookedmains</strong> on Instagram.
+              </p>
+              <div class="flex items-center gap-2 justify-center sm:justify-start flex-wrap">
+                <a href="https://instagram.com/cookedmains" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-pink-600 via-rose-600 to-amber-600 hover:opacity-90 text-white text-xs font-bold transition shadow-xs">
+                  <span>Follow @cookedmains</span>
+                  <i data-lucide="external-link" class="w-3 h-3"></i>
+                </a>
+                <button type="button" onclick="navigator.clipboard.writeText('https://instagram.com/cookedmains'); alert('Instagram profile link copied!');" class="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-pink-500 text-xs font-semibold transition border border-slate-200 dark:border-slate-700 cursor-pointer">
+                  Copy Link
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Operating Hours Card -->
@@ -144,7 +208,7 @@
           </div>
           <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
             <strong>AI Evaluation Engine:</strong> 24 hours / 7 days a week (Instant processing)<br>
-            <strong>Human Support &amp; Technical Help:</strong> Monday to Saturday, 9:00 AM – 7:00 PM IST
+            <strong>Human Support &amp; Community Help:</strong> Monday to Saturday, 9:00 AM – 7:00 PM IST
           </p>
           <div class="pt-2 text-[11px] text-slate-500 font-mono">
             Location: New Delhi, India
@@ -258,6 +322,16 @@
       <a href="/privacy-policy" class="hover:text-amber-500 transition">Privacy Policy</a>
       <span>•</span>
       <a href="/terms-and-conditions" class="hover:text-amber-500 transition">Terms &amp; Conditions</a>
+      <span>•</span>
+      <a href="https://t.me/cookedmains" target="_blank" rel="noopener noreferrer" class="hover:text-sky-500 transition flex items-center gap-1 text-sky-600 dark:text-sky-400">
+        <i data-lucide="send" class="w-3 h-3"></i>
+        <span>Telegram</span>
+      </a>
+      <span>•</span>
+      <a href="https://instagram.com/cookedmains" target="_blank" rel="noopener noreferrer" class="hover:text-pink-500 transition flex items-center gap-1 text-pink-600 dark:text-pink-400">
+        <i data-lucide="instagram" class="w-3 h-3"></i>
+        <span>Instagram</span>
+      </a>
     </div>
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800/40 text-[11px]">
       <p>© 2026 Cooked Mains — Empowering Self-Study UPSC Aspirants with 100% Free, Authentic Evaluation.</p>
