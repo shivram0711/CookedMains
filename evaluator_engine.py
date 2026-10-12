@@ -6314,7 +6314,10 @@ def build_resilient_fallback_evaluation(
             "value_add_score": round(target_score * 0.16, 1),
             "presentation_score": round(target_score * 0.11, 1),
             "conclusion_score": round(target_score - (round(target_score * 0.16, 1) + round(target_score * 0.46, 1) + round(target_score * 0.16, 1) + round(target_score * 0.11, 1)), 1)
-        }
+        },
+        "is_fallback": True,
+        "is_resilient_fallback": True,
+        "is_half_evaluated": True
     }
     return normalize_evaluation_data(raw_fallback, mm, clean_q, paper_key or "GS2", medium="hindi" if is_hindi_mode else "english")
 

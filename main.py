@@ -74,6 +74,7 @@ from storage import (
     get_last_evaluation_for_user, has_user_rewritten_question, find_evaluation_by_hash,
     find_evaluation_by_hash_global, has_evaluation_been_rewritten,
     segment_qcab_pdf, create_test_series, save_test_question,
+    is_evaluation_fully_completed,
     finalize_test_series, get_test_series_by_id, get_user_test_series,
     get_daily_news_questions, get_recent_current_affairs,
     create_transaction, get_transaction_by_id, get_all_transactions,
@@ -1277,7 +1278,14 @@ async def api_user_history(email: Optional[str] = None, user_id: Optional[str] =
         try:
             res = supabase.table("evaluations").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
             if res and res.data:
-                return [_format_supabase_eval_row(r) for r in res.data if not str(r.get("question_title") or "").startswith("__")]
+                rows_clean = []
+                for r in res.data:
+                    if str(r.get("question_title") or "").startswith("__"):
+                        continue
+                    formatted = _format_supabase_eval_row(r)
+                    if is_evaluation_fully_completed(formatted.get("evaluation"), formatted.get("question"), formatted.get("max_marks")):
+                        rows_clean.append(formatted)
+                return rows_clean
         except Exception as e:
             print(f"Supabase /locker query error: {e}")
 
@@ -1285,7 +1293,14 @@ async def api_user_history(email: Optional[str] = None, user_id: Optional[str] =
         try:
             res = supabase.table("evaluations").select("*").order("created_at", desc=True).limit(50).execute()
             if res and res.data:
-                return [_format_supabase_eval_row(r) for r in res.data if not str(r.get("question_title") or "").startswith("__")]
+                rows_clean = []
+                for r in res.data:
+                    if str(r.get("question_title") or "").startswith("__"):
+                        continue
+                    formatted = _format_supabase_eval_row(r)
+                    if is_evaluation_fully_completed(formatted.get("evaluation"), formatted.get("question"), formatted.get("max_marks")):
+                        rows_clean.append(formatted)
+                return rows_clean
         except Exception as e:
             print(f"Supabase /locker query error: {e}")
 
@@ -1293,22 +1308,36 @@ async def api_user_history(email: Optional[str] = None, user_id: Optional[str] =
     cursor = conn.cursor()
     cursor.execute("""
         SELECT id, created_at, paper, max_marks, question, overall_score, percentage, thumbnail, is_rewrite,
-               has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
+               has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url, evaluation_json
         FROM evaluations
         WHERE SUBSTR(question, 1, 2) != '__'
+          AND LOWER(question) NOT IN ('general studies mains question', 'upsc mains question', 'upsc mains answer')
+          AND LOWER(question) NOT LIKE '%general studies mains question%'
+          AND overall_score > 0
         ORDER BY created_at DESC
         LIMIT 50
     """)
     rows = cursor.fetchall()
     conn.close()
-    return [dict(r) for r in rows]
+    valid_rows = []
+    for r in rows:
+        d = dict(r)
+        ev = {}
+        try:
+            ev = json.loads(d.pop("evaluation_json")) if d.get("evaluation_json") else {}
+        except Exception:
+            pass
+        if is_evaluation_fully_completed(ev, d.get("question"), d.get("max_marks")):
+            d["evaluation"] = ev
+            valid_rows.append(d)
+    return valid_rows
 
 @app.get("/api/user/history/{eval_id}")
 async def api_history_detail(eval_id: str):
     """Fetches complete copy payload including annotations and pages for instant reloading."""
     record = get_evaluation_by_id(eval_id)
-    if not record:
-        raise HTTPException(status_code=404, detail="Evaluated copy not found.")
+    if not record or not is_evaluation_fully_completed(record.get("evaluation"), record.get("question"), record.get("max_marks")):
+        raise HTTPException(status_code=404, detail="Evaluated copy not found or incomplete.")
     return record
 
 @app.post("/api/user/sync-vault")
@@ -2417,6 +2446,23 @@ async def evaluate_answer(
             if prev_record.get("pages"):
                 evaluation_result["previous_pages"] = prev_record.get("pages")
             evaluation_result["is_rewrite"] = True
+
+        # Strict Evaluation Completeness & Authenticity Guard:
+        # Never add unevaluated or half-evaluated copies to the locker and NEVER deduct credits!
+        if not is_evaluation_fully_completed(evaluation_result, final_question, final_max_marks):
+            print(f"[EVALUATOR GUARD] Answer sheet evaluation incomplete/unextracted for {user_email}: Q='{final_question}'. Zero credits deducted. Rejected from locker.")
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "incomplete_evaluation",
+                    "error_type": "evaluator_incomplete",
+                    "title": "Evaluation Incomplete — Zero Credits Deducted",
+                    "message": "The AI examiner could not fully complete the evaluation of your answer sheet across all pages and rubrics. To protect scoring calibration, half-evaluated copies are never saved to your locker.",
+                    "warning": "🛡️ Zero Credits Deducted: Your daily evaluation limit is 100% intact.",
+                    "action_hint": "Please click 'Evaluate Copy' again in a few moments to generate a full evaluation with complete visual annotations and marks.",
+                    "credits_deducted": 0
+                }
+            )
 
         if user_email:
             if not is_rewrite:

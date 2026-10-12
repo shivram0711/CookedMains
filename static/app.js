@@ -1198,7 +1198,7 @@ window.parseEvaluationResponse = async function parseEvaluationResponse(response
   }
 
   if (!response.ok) {
-    if (data && (data.error_type === "wrong_answersheet" || data.error_type === "wrong_paper" || data.error_type === "wrong_marks" || data.error_type === "intake_mismatch" || data.error_type === "identical_copy" || data.error_type === "blank_sheet" || data.error_type === "rewrite_quota_exhausted" || data.error_type === "single_rewrite_limit" || data.error_type === "evaluator_busy")) {
+    if (data && (data.error_type === "wrong_answersheet" || data.error_type === "wrong_paper" || data.error_type === "wrong_marks" || data.error_type === "intake_mismatch" || data.error_type === "identical_copy" || data.error_type === "blank_sheet" || data.error_type === "rewrite_quota_exhausted" || data.error_type === "single_rewrite_limit" || data.error_type === "evaluator_busy" || data.error_type === "evaluator_incomplete" || data.error_type === "half_evaluated")) {
       return { ok: false, guardModal: data };
     }
     let errorDetail = "";
@@ -1674,13 +1674,15 @@ window.showGuardModal = function(data) {
       subtitleEl.textContent = "Subject & Marks Discrepancy Guard Active";
     } else if (data.error_type === "evaluator_busy") {
       subtitleEl.textContent = "AI Vision Traffic Surge — Zero Credits Deducted";
+    } else if (data.error_type === "evaluator_incomplete" || data.error_type === "half_evaluated") {
+      subtitleEl.textContent = "Evaluation Integrity Guard Active — Zero Credits Deducted";
     } else {
       subtitleEl.textContent = "Rewrite Loophole Guard Active";
     }
   }
   if (msgEl) msgEl.textContent = data.message || "";
   
-  if (data.error_type === "blank_sheet" || data.error_type === "evaluator_busy") {
+  if (data.error_type === "blank_sheet" || data.error_type === "evaluator_busy" || data.error_type === "evaluator_incomplete" || data.error_type === "half_evaluated") {
     if (compBox) compBox.classList.add("hidden");
   } else if (data.error_type === "intake_mismatch") {
     if (compBox) compBox.classList.remove("hidden");
@@ -2534,10 +2536,88 @@ window.formatLockerTimestampIST = function(rawTs, itemRecord = null) {
   }
 };
 
+window.GENERIC_QUESTION_PHRASES = [
+  "general studies mains question",
+  "upsc mains question",
+  "upsc mains answer",
+  "extract question printed",
+  "question not found",
+  "general studies question",
+  "mains question",
+  "unattempted question"
+];
+
+window.isEvaluationFullyCompleted = function(evalObj, questionText = "", maxMarks = null) {
+  if (!evalObj || typeof evalObj !== "object") return false;
+
+  // 1. Fallback / Mock / Intake Error flags
+  if (evalObj.is_fallback === true || evalObj.is_resilient_fallback === true || evalObj.is_mock === true) return false;
+  if (evalObj.is_half_evaluated === true || evalObj.is_blank_sheet === true || evalObj.is_intake_mismatch === true) return false;
+  if (evalObj.error_type) return false;
+  if (evalObj.status && ["mismatch", "duplicate", "blank_sheet", "service_unavailable", "service_busy", "error", "incomplete_evaluation"].includes(evalObj.status)) return false;
+
+  const verdict = String(evalObj.percentile_verdict || "").trim().toLowerCase();
+  if (verdict.includes("unattempted") || verdict.includes("blank copy")) return false;
+
+  // 2. Question text validation
+  const resolvedQ = String(questionText || evalObj.detected_question || evalObj.question || evalObj.question_title || "").trim();
+  if (!resolvedQ || resolvedQ.startsWith("__")) return false;
+  const qLow = resolvedQ.toLowerCase();
+  if (window.GENERIC_QUESTION_PHRASES.some(phrase => qLow.includes(phrase))) return false;
+  if (resolvedQ.length < 15) return false;
+
+  // 3. Overall Score validation
+  const score = Number(evalObj.overall_score ?? evalObj.total_score ?? 0);
+  if (isNaN(score) || score <= 0) return false;
+  const mm = Number(maxMarks || evalObj.max_marks || 10);
+  if (mm > 0 && score > mm * 1.05) return false;
+
+  // 4. Handwritten text transcription validation
+  const transcript = String(evalObj.transcribed_text || "").trim();
+  if (!transcript || transcript.length < 25) return false;
+  const transLow = transcript.toLowerCase();
+  if (transLow.includes("evaluated for: general studies mains question") || transLow.includes("उत्तर पुस्तिका: general studies mains question")) {
+    return false;
+  }
+
+  // 5. Examiner Overall Verdict validation
+  const examinerVerdict = String(evalObj.examiner_overall_verdict || "").trim();
+  if (!examinerVerdict || examinerVerdict.length < 20) return false;
+
+  // 6. Rubric Scores validation
+  const rubric = evalObj.rubric_scores;
+  if (!rubric || typeof rubric !== "object") return false;
+  const hasSubstantiveRubric = ["core_demand_score", "intro_score", "body_score", "value_add_score", "presentation_score", "conclusion_score"].some(k => Number(rubric[k] || 0) > 0);
+  if (!hasSubstantiveRubric) return false;
+
+  // 7. Breakdown validation (sub-parts or page annotations or visual annotations)
+  const subParts = evalObj.sub_part_step_marking;
+  const pageEvals = evalObj.page_evaluations;
+  const visAnn = evalObj.visual_annotations;
+  const hasBreakdown = (
+    (Array.isArray(subParts) && subParts.length > 0) ||
+    (Array.isArray(pageEvals) && pageEvals.length > 0) ||
+    (Array.isArray(visAnn) && visAnn.length > 0) ||
+    (visAnn && typeof visAnn === "object" && Object.keys(visAnn).length > 0)
+  );
+  if (!hasBreakdown) return false;
+
+  return true;
+};
+
 window.saveEvaluationToBrowserVault = async function(email, rawRecord) {
   const cleanEmail = String(email || state.user?.email || "").trim().toLowerCase();
   if (!cleanEmail || !rawRecord) return;
   const evalObj = rawRecord.evaluation || rawRecord.evaluation_data || {};
+  const question = String(rawRecord.question || rawRecord.question_title || evalObj.detected_question || "").trim();
+  const maxMarks = Number(rawRecord.max_marks ?? evalObj.max_marks ?? state.marks ?? 15);
+
+  // STRICT LOCKER GUARD: Never save unevaluated or half-evaluated copies to browser vault!
+  if (!window.isEvaluationFullyCompleted(evalObj, question, maxMarks)) {
+    console.warn("[LOCKER GUARD] Rejected saving incomplete/unevaluated copy to browser vault:", rawRecord.id, question);
+    return;
+  }
+
   const id = String(rawRecord.id || rawRecord.eval_id || evalObj.eval_id || `eval_${Math.floor(Date.now() / 1000)}_${Math.random().toString(36).slice(2, 8)}`).trim();
   rawRecord.id = id;
 
@@ -2555,7 +2635,6 @@ window.saveEvaluationToBrowserVault = async function(email, rawRecord) {
   const authenticCreatedAt = window.resolveAuthenticEvalTimestamp(rawRecord, existingLocalRec);
   const pages = rawRecord.pages || rawRecord.page_images || existingLocalRec?.pages || state.activePages || [];
   const overallScore = Number(rawRecord.overall_score ?? rawRecord.total_score ?? evalObj.overall_score ?? 0);
-  const maxMarks = Number(rawRecord.max_marks ?? evalObj.max_marks ?? state.marks ?? 15);
   const pct = maxMarks > 0 ? Number(((overallScore / maxMarks) * 100).toFixed(1)) : 0;
 
   const rewrittenEval = rawRecord.rewritten_evaluation || evalObj.rewritten_evaluation || existingLocalRec?.rewritten_evaluation || null;
@@ -2765,11 +2844,53 @@ window.getEvaluationsFromBrowserVault = async function(email) {
     const existingRaw = localStorage.getItem(lsKey);
     const lsList = existingRaw ? JSON.parse(existingRaw) : [];
     if (Array.isArray(lsList)) {
+      const validLsList = [];
       lsList.forEach(item => {
         if (item && item.id) {
-          window.resolveAuthenticEvalTimestamp(item);
-          byId.set(String(item.id), item);
+          const evalObj = item.evaluation || item.evaluation_data || item;
+          const q = item.question || item.question_title || evalObj.detected_question || "";
+          if (window.isEvaluationFullyCompleted(evalObj, q, item.max_marks)) {
+            window.resolveAuthenticEvalTimestamp(item);
+            byId.set(String(item.id), item);
+            validLsList.push(item);
+          } else {
+            console.warn("[LOCKER GUARD] Purged incomplete/placeholder record from localStorage:", item.id, q);
+          }
         }
+      });
+      if (validLsList.length !== lsList.length) {
+        localStorage.setItem(lsKey, JSON.stringify(validLsList));
+      }
+    }
+  } catch (e) {}
+
+  try {
+    const db = await _openBrowserVaultDB();
+    if (db) {
+      await new Promise((resolve) => {
+        const tx = db.transaction("evaluations", "readwrite");
+        const store = tx.objectStore("evaluations");
+        const req = store.getAll();
+        req.onsuccess = () => {
+          const res = req.result || [];
+          res.forEach(item => {
+            if (item && item.id) {
+              const evalObj = item.evaluation || item.evaluation_data || item;
+              const q = item.question || item.question_title || evalObj.detected_question || "";
+              if (window.isEvaluationFullyCompleted(evalObj, q, item.max_marks)) {
+                if (!byId.has(String(item.id))) {
+                  window.resolveAuthenticEvalTimestamp(item);
+                  byId.set(String(item.id), item);
+                }
+              } else {
+                store.delete(item.id);
+                console.warn("[LOCKER GUARD] Purged incomplete/placeholder record from IndexedDB:", item.id, q);
+              }
+            }
+          });
+          resolve(true);
+        };
+        req.onerror = () => resolve(false);
       });
     }
   } catch (e) {}
@@ -2792,6 +2913,11 @@ window.getEvaluationByIdFromBrowserVault = async function(evalId) {
         req.onerror = () => resolve(null);
       });
       if (rec) {
+        const evalObj = rec.evaluation || rec.evaluation_data || rec;
+        const q = rec.question || rec.question_title || evalObj.detected_question || "";
+        if (!window.isEvaluationFullyCompleted(evalObj, q, rec.max_marks)) {
+          return null;
+        }
         window.resolveAuthenticEvalTimestamp(rec);
         window.healAndLinkRewriteRecords([rec]);
         return rec;
@@ -2811,7 +2937,14 @@ window.fetchAndSyncUserLockerHistory = async function(email) {
     const res = await fetch(`/api/user/history?email=${encodeURIComponent(cleanEmail)}&light=1`);
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) serverList = data;
+      if (Array.isArray(data)) {
+        serverList = data.filter(item => {
+          if (!item || !item.id) return false;
+          const ev = item.evaluation || item.evaluation_data || item;
+          const q = item.question || item.question_title || ev.detected_question || "";
+          return window.isEvaluationFullyCompleted(ev, q, item.max_marks);
+        });
+      }
     }
   } catch (e) {}
 
@@ -2833,7 +2966,13 @@ window.fetchAndSyncUserLockerHistory = async function(email) {
     }
   });
 
-  const finalHistory = window.healAndLinkRewriteRecords(Array.from(mergedMap.values()));
+  const validMerged = Array.from(mergedMap.values()).filter(item => {
+    if (!item || !item.id) return false;
+    const ev = item.evaluation || item.evaluation_data || item;
+    const q = item.question || item.question_title || ev.detected_question || "";
+    return window.isEvaluationFullyCompleted(ev, q, item.max_marks);
+  });
+  const finalHistory = window.healAndLinkRewriteRecords(validMerged);
   finalHistory.sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
   state.lockerHistory = finalHistory;
 
@@ -15129,6 +15268,11 @@ window.renderWeeklyLocker = function() {
 
   // Filter items
   const filtered = state.lockerHistory.filter(item => {
+    if (!item) return false;
+    const ev = item.evaluation || item.evaluation_data || item;
+    const q = item.question || item.question_title || ev.detected_question || "";
+    if (!window.isEvaluationFullyCompleted(ev, q, item.max_marks)) return false;
+
     const paperMatch = state.lockerFilterSubject === 'ALL' || 
       (item.paper || '').toUpperCase().includes(state.lockerFilterSubject);
     

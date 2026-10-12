@@ -305,6 +305,18 @@ def _init_db_tables():
         )
     """)
     
+    # Auto-clean legacy corrupted, placeholder, or unevaluated copies
+    try:
+        cursor.execute("""
+            DELETE FROM evaluations
+            WHERE LOWER(question) IN ('general studies mains question', 'upsc mains question', 'upsc mains answer')
+               OR LOWER(question) LIKE '%general studies mains question%'
+               OR LOWER(question) LIKE '%extract question printed%'
+               OR overall_score <= 0
+        """)
+    except Exception:
+        pass
+
     conn.commit()
     conn.close()
 
@@ -1090,6 +1102,132 @@ def _resolve_authentic_created_at(
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
 
+GENERIC_QUESTION_PHRASES: List[str] = [
+    "general studies mains question",
+    "upsc mains question",
+    "upsc mains answer",
+    "extract question printed",
+    "question not found",
+    "general studies question",
+    "mains question",
+    "unattempted question",
+]
+
+
+def is_evaluation_fully_completed(
+    evaluation_dict: Any,
+    question: Optional[str] = None,
+    max_marks: Optional[int] = None
+) -> bool:
+    """
+    Strict Integrity Guard:
+    Verifies that an answer sheet has been genuinely, fully, and properly evaluated by AI Vision.
+    Rejects:
+    - Fallback / synthetic mock / placeholder copies (e.g. 'General Studies Mains Question')
+    - Half-evaluated copies where LLM failed midway or omitted score / rubric / transcription
+    - Blank / unwritten / unattempted copies
+    - Intake error or mismatch responses
+    """
+    if not isinstance(evaluation_dict, dict) or not evaluation_dict:
+        return False
+
+    # 1. Fallback / Mock / Intake Error flags
+    if evaluation_dict.get("is_fallback") is True:
+        return False
+    if evaluation_dict.get("is_resilient_fallback") is True:
+        return False
+    if evaluation_dict.get("is_mock") is True:
+        return False
+    if evaluation_dict.get("is_half_evaluated") is True:
+        return False
+    if evaluation_dict.get("is_blank_sheet") is True:
+        return False
+    if evaluation_dict.get("is_intake_mismatch") is True:
+        return False
+    if evaluation_dict.get("error_type"):
+        return False
+    if evaluation_dict.get("status") in [
+        "mismatch", "duplicate", "blank_sheet", "service_unavailable",
+        "service_busy", "error", "incomplete_evaluation"
+    ]:
+        return False
+
+    verdict_str = str(evaluation_dict.get("percentile_verdict") or "").strip().lower()
+    if "unattempted" in verdict_str or "blank copy" in verdict_str:
+        return False
+
+    # 2. Question validation
+    resolved_q = str(question or evaluation_dict.get("detected_question") or evaluation_dict.get("question") or "").strip()
+    if not resolved_q or resolved_q.startswith("__"):
+        return False
+    q_low = resolved_q.lower()
+    if any(phrase in q_low for phrase in GENERIC_QUESTION_PHRASES):
+        return False
+    if len(resolved_q) < 15:
+        return False
+
+    # 3. Overall Score validation
+    try:
+        score = float(evaluation_dict.get("overall_score", 0.0))
+    except (ValueError, TypeError):
+        return False
+    if score <= 0.0:
+        return False
+
+    mm = 10
+    if max_marks is not None:
+        try:
+            mm = int(max_marks)
+        except (ValueError, TypeError):
+            mm = 10
+    elif evaluation_dict.get("max_marks"):
+        try:
+            mm = int(evaluation_dict.get("max_marks"))
+        except (ValueError, TypeError):
+            mm = 10
+    if mm > 0 and score > (mm * 1.05):
+        return False
+
+    # 4. Transcription validation (candidate's handwritten answer text must have been extracted)
+    transcript = str(evaluation_dict.get("transcribed_text") or "").strip()
+    if not transcript or len(transcript) < 25:
+        return False
+    trans_low = transcript.lower()
+    if "evaluated for: general studies mains question" in trans_low or "उत्तर पुस्तिका: general studies mains question" in trans_low:
+        return False
+
+    # 5. Examiner Overall Verdict validation
+    verdict = str(evaluation_dict.get("examiner_overall_verdict") or "").strip()
+    if not verdict or len(verdict) < 20:
+        return False
+
+    # 6. Rubric Scores validation
+    rubric = evaluation_dict.get("rubric_scores")
+    if not isinstance(rubric, dict) or not rubric:
+        return False
+    has_substantive_rubric = any(
+        float(rubric.get(k, 0.0) or 0.0) > 0.0
+        for k in ["core_demand_score", "intro_score", "body_score", "value_add_score", "presentation_score", "conclusion_score"]
+    )
+    if not has_substantive_rubric:
+        return False
+
+    # 7. Sub-part step marking or visual annotations breakdown
+    sub_parts = evaluation_dict.get("sub_part_step_marking")
+    page_evals = evaluation_dict.get("page_evaluations")
+    vis_ann = evaluation_dict.get("visual_annotations")
+    has_breakdown = (
+        (isinstance(sub_parts, list) and len(sub_parts) > 0) or
+        (isinstance(page_evals, list) and len(page_evals) > 0) or
+        (isinstance(vis_ann, list) and len(vis_ann) > 0) or
+        (isinstance(vis_ann, dict) and len(vis_ann) > 0)
+    )
+    if not has_breakdown:
+        return False
+
+    return True
+
+
 def save_evaluation_record(
     email: str,
     paper: str,
@@ -1108,6 +1246,12 @@ def save_evaluation_record(
     forced_created_at: Optional[str] = None
 ) -> str:
     """Saves an evaluated copy into the student's personal answer locker (both Supabase & SQLite with guaranteed persistence)."""
+    # STRICT EVALUATION LOCKER GUARD:
+    # Do NOT add unevaluated, half-evaluated, fallback, or placeholder copies to the locker!
+    if not is_evaluation_fully_completed(evaluation_dict, question, max_marks):
+        print(f"[LOCKER GUARD] Rejected saving incomplete/unevaluated copy (Q='{question}', score={overall_score}) to locker for {email}.")
+        return ""
+
     user = get_or_create_user(email)
     eval_id = forced_eval_id or f"eval_{int(datetime.now(timezone.utc).timestamp())}_{uuid.uuid4().hex[:6]}"
     
@@ -1298,6 +1442,9 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
                     formatted = _format_supabase_eval_row(row)
                     if str(formatted.get("question") or "").startswith("__") or (formatted.get("evaluation") or {}).get("_is_account_profile"):
                         continue
+                    # LOCKER GUARD: Filter out unevaluated or half-evaluated copies
+                    if not is_evaluation_fully_completed(formatted.get("evaluation"), formatted.get("question"), formatted.get("max_marks")):
+                        continue
                     merged_by_id[formatted["id"]] = formatted
                     try:
                         cur_bf.execute("""
@@ -1336,6 +1483,9 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
         FROM evaluations
         WHERE LOWER(user_email) = ?
           AND question != '__USER_ACCOUNT_PROFILE__'
+          AND LOWER(question) NOT IN ('general studies mains question', 'upsc mains question', 'upsc mains answer')
+          AND LOWER(question) NOT LIKE '%general studies mains question%'
+          AND overall_score > 0
         ORDER BY created_at DESC
     """, (clean_email,))
     rows = cursor.fetchall()
@@ -1349,6 +1499,9 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
             d["evaluation"] = json.loads(d["evaluation_json"]) if d.get("evaluation_json") else {}
         except Exception:
             d["evaluation"] = {}
+        # LOCKER GUARD: Filter out unevaluated or half-evaluated copies
+        if not is_evaluation_fully_completed(d["evaluation"], d.get("question"), d.get("max_marks")):
+            continue
         if isinstance(d["evaluation"], dict):
             d["evaluation"].pop("page_previews", None)
             d["evaluation"].pop("pages", None)
@@ -1421,7 +1574,11 @@ def restore_evaluations_to_vault(email: str, records: List[Dict[str, Any]]) -> D
         eval_obj = rec.get("evaluation") or rec.get("evaluation_data") or {}
         if not isinstance(eval_obj, dict) or not eval_obj:
             continue
-        question = str(rec.get("question") or eval_obj.get("detected_question") or "UPSC Mains Question")
+        question = str(rec.get("question") or eval_obj.get("detected_question") or "")
+        max_marks = int(rec.get("max_marks") or eval_obj.get("max_marks") or 15)
+        # LOCKER GUARD: Never restore unevaluated, half-evaluated, or placeholder evaluations!
+        if not is_evaluation_fully_completed(eval_obj, question, max_marks):
+            continue
         rec_authentic_ts = _resolve_authentic_created_at(
             eval_id=rid,
             evaluation_dict=eval_obj,
@@ -1508,13 +1665,17 @@ def get_evaluation_by_id(eval_id: str) -> Optional[Dict[str, Any]]:
             res["has_been_rewritten"] = 1
             res["evaluation"]["has_been_rewritten"] = 1
             res["evaluation"]["rewrite_eval_id"] = res.get("rewrite_eval_id")
+        if not is_evaluation_fully_completed(res["evaluation"], res.get("question"), res.get("max_marks")):
+            return None
         return res
 
     if supabase:
         try:
             res = supabase.table("evaluations").select("*").eq("id", clean_id).execute()
             if res and res.data and len(res.data) > 0:
-                return _format_supabase_eval_row(res.data[0])
+                formatted = _format_supabase_eval_row(res.data[0])
+                if is_evaluation_fully_completed(formatted.get("evaluation"), formatted.get("question"), formatted.get("max_marks")):
+                    return formatted
         except Exception as se:
             print(f"Supabase get_evaluation_by_id notice: {se}")
     return None
@@ -1526,6 +1687,9 @@ def get_last_evaluation_for_user(email: str) -> Optional[Dict[str, Any]]:
     cursor.execute("""
         SELECT * FROM evaluations 
         WHERE user_email = ? 
+          AND LOWER(question) NOT IN ('general studies mains question', 'upsc mains question', 'upsc mains answer')
+          AND LOWER(question) NOT LIKE '%general studies mains question%'
+          AND overall_score > 0
         ORDER BY created_at DESC LIMIT 1
     """, (email.strip().lower(),))
     row = cursor.fetchone()
@@ -1533,9 +1697,14 @@ def get_last_evaluation_for_user(email: str) -> Optional[Dict[str, Any]]:
     if not row:
         return None
     res = dict(row)
-    res["evaluation"] = json.loads(res["evaluation_json"])
+    try:
+        res["evaluation"] = json.loads(res["evaluation_json"])
+    except Exception:
+        return None
     res["evaluation_data"] = res["evaluation"]
-    res["pages"] = json.loads(res["pages_json"])
+    if not is_evaluation_fully_completed(res["evaluation"], res.get("question"), res.get("max_marks")):
+        return None
+    res["pages"] = json.loads(res["pages_json"]) if res.get("pages_json") else []
     res["page_images"] = res["pages"]
     if res.get("has_been_rewritten") or res.get("rewrite_eval_id"):
         res["has_been_rewritten"] = 1
@@ -1706,13 +1875,15 @@ def _collect_all_recent_canonical_evaluations(limit: int = 120) -> List[Dict[str
                 ev = json.loads(d.get("evaluation_json") or "{}")
             except Exception:
                 ev = {}
-            if ev.get("_is_account_profile") or ev.get("_is_system_marker"):
+            q_cand = str(d.get("question") or ev.get("detected_question") or "")
+            mm_cand = int(d.get("max_marks") or ev.get("max_marks") or 15)
+            if not is_evaluation_fully_completed(ev, q_cand, mm_cand):
                 continue
             seen_ids.add(str(d.get("id")))
             candidates.append({
                 "id": str(d.get("id")),
-                "question": str(d.get("question") or ev.get("detected_question") or ""),
-                "max_marks": int(d.get("max_marks") or ev.get("max_marks") or 15),
+                "question": q_cand,
+                "max_marks": mm_cand,
                 "file_hash": str(d.get("file_hash") or ev.get("_meta_file_hash") or ""),
                 "visual_hashes": ev.get("_meta_visual_hashes") or [],
                 "evaluation": ev
@@ -1738,11 +1909,15 @@ def _collect_all_recent_canonical_evaluations(limit: int = 120) -> List[Dict[str
                             ev = {}
                     if ev.get("_is_account_profile") or ev.get("_is_system_marker"):
                         continue
+                    q_cand = q_t or str(ev.get("detected_question") or "")
+                    mm_cand = int(row.get("total_marks") or ev.get("_meta_max_marks") or ev.get("max_marks") or 15)
+                    if not is_evaluation_fully_completed(ev, q_cand, mm_cand):
+                        continue
                     seen_ids.add(rid)
                     candidates.append({
                         "id": rid,
-                        "question": q_t or str(ev.get("detected_question") or ""),
-                        "max_marks": int(row.get("total_marks") or ev.get("_meta_max_marks") or ev.get("max_marks") or 15),
+                        "question": q_cand,
+                        "max_marks": mm_cand,
                         "file_hash": str(ev.get("_meta_file_hash") or ""),
                         "visual_hashes": ev.get("_meta_visual_hashes") or [],
                         "evaluation": ev
