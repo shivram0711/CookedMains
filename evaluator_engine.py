@@ -2310,6 +2310,12 @@ Generate strictly valid JSON matching this schema:
     //    - If Annotation 1 is tagged with the upper theme, its quote MUST come from the upper region.
     //    - If Annotation 2 is tagged with the lower theme, its quote MUST come from the lower region.
     //    - NEVER invert or cross-attribute quotes between cards (e.g. placing an Exchange Rate quote into an Oil Dynamics card, or placing an OPEC oil quote into an Exchange Rate card)!
+    // [MANDATORY REAL CANDIDATE QUOTE EXTRACTION]:
+    // In EVERY annotation card:
+    // - Card 1 (Intro): Quote the candidate's ACTUAL opening words in *"..."* from their handwriting on Page 1. The feedback must directly address the question's core subject!
+    // - Card 2 & 3 (Body): Quote candidate's ACTUAL handwritten points/arguments on that page in *"..."*. The feedback must be strictly subject-specific (History: historical actors, reform movements, social debates, primary texts; Geography: geomorphic processes, climate mechanisms, spatial distribution; Polity: constitutional provisions, institutional mechanisms; Ethics: ethical theories, thinkers, dilemmas). NEVER give case laws/committee recommendations on History questions!
+    // - Card 4 (Conclusion on Final Page): Quote candidate's ACTUAL concluding sentence in *"..."* from the bottom of their answer. Provide subject-tailored elevation.
+    // ZERO STATIC PHRASES ALLOWED: NEVER copy "Opened by defining the core concept", "Articulated key mechanisms", "Evaluated practical implications", "establishing direct analytical context", "addressing primary question dimension", "demonstrating multidimensional coverage", or "Back argument with 1 concrete empirical metric, committee recommendation, or case law".
     {{
       "page": 1,
       "approx_y_percent": 30,
@@ -2318,27 +2324,27 @@ Generate strictly valid JSON matching this schema:
       "tag": "Intro: Context & Conceptual Definition",
       "type": "tick",
       "marks_awarded": "+{sample_intro_aw:.1f} / {intro_d:.1f}",
-      "remark": "✓ **Direct Premise**: Opened by defining the core concept (*\"[Quote student opening phrase]\"*), establishing direct analytical context.\\n✎ **Opening Upgrade**: Anchor with official doctrine, article/statute, or recent benchmark for immediate analytical authority."
+      "remark": "✓ **Direct Premise**: Opened directly with *\"[Extract 10-18 words verbatim from candidate's handwritten opening paragraph]\"*, framing the core thesis.\n✎ **Opening Upgrade**: [Provide 1 discipline-specific elevation tailored strictly to this question topic, e.g. for History cite contemporary socio-religious debates or key thinkers; for Polity cite constitutional articles; for Geography cite physical drivers]."
     }},
     {{
       "page": 1,
       "approx_y_percent": 68,
       "start_y_percent": 44,
       "end_y_percent": 88,
-      "tag": "Body: [Candidate Written Heading 1 / Primary Demand]",
+      "tag": "Body: [Candidate's Actual Written Sub-Heading 1]",
       "type": "tick",
       "marks_awarded": "+{round(sample_body_aw * 0.40, 1):.1f} / {round(body_d * 0.40, 1):.1f}",
-      "remark": "✓ **Core Argumentation**: Articulated key mechanisms (*\"[Quote student points on this page]\"*), addressing primary question dimension.\\n✎ **Substantiation**: Back argument with 1 concrete empirical metric, committee recommendation, or case law."
+      "remark": "✓ **Core Argumentation**: Articulated *\"[Extract verbatim handwritten sentence from candidate's first body section]\"*.\n✎ **Substantive Elevation**: [Provide 1 concrete upgrade relevant strictly to this subject, e.g. for History cite specific reform movements, organizations, or historical figures; for Economy cite data/schemes; for Ethics cite moral principles]."
     }},
     {{
       "page": 2,
       "approx_y_percent": 40,
       "start_y_percent": 8,
       "end_y_percent": 68,
-      "tag": "Body: [Candidate Written Heading 2 / Secondary Dimension]",
+      "tag": "Body: [Candidate's Actual Written Sub-Heading 2]",
       "type": "tick",
       "marks_awarded": "+{round(sample_body_aw * 0.35, 1):.1f} / {round(body_d * 0.35, 1):.1f}",
-      "remark": "✓ **Dimension Coverage**: Evaluated practical implications (*\"[Quote student second page points]\"*), demonstrating multidimensional coverage.\\n✎ **Policy Linkage**: Anchor with official guidelines, statutory framework, or best practice."
+      "remark": "✓ **Analytical Dimension**: Examined *\"[Extract verbatim handwritten sentence from candidate's second page handwriting]\"*.\n✎ **Substantive Elevation**: [Provide 1 concrete upgrade relevant strictly to this subject and dimension]."
     }},
     {{
       "page": 2,
@@ -2348,7 +2354,7 @@ Generate strictly valid JSON matching this schema:
       "tag": "Conclusion: Closing Synthesis",
       "type": "suggestion",
       "marks_awarded": "+{sample_conc_aw:.1f} / {conc_d:.1f}",
-      "remark": "✓ **Closing Synthesis**: Concluded with *\"[Quote student actual closing sentence]\"*, synthesizing core arguments.\\n✎ **Topper Finish**: Connect final sentence to long-term constitutional or institutional vision rather than broad generalization."
+      "remark": "✓ **Closing Synthesis**: Concluded with *\"[Extract verbatim handwritten closing sentence from student's conclusion]\"*.\n✎ **Topper Finish**: [Provide 1 forward-looking subject-appropriate finish connecting to long-term impact or enduring significance]."
     }}
   ]
 }}
@@ -2625,9 +2631,9 @@ def _has_meta_placeholder(txt: str) -> bool:
                           r'argument & point audit:\s*specific|'
                           r'page \d+ points evaluated:\s*specific|'
                           r'closing stance evaluated:\s*direct|'
-                          r'opening premise evaluated|'
-                          r'substantive arguments analyzed|'
-                          r'core dimensional scope|'
+                                   r'opening premise evaluated:\s*direct|'
+                                   r'substantive arguments analyzed:\s*direct|'
+                                   r'core dimensional scope:\s*direct|'
                           r'directly engaged the core directive|'
                           r'evaluated candidate\'s specific points|'
                           r'detailed analysis across candidate\'s points|'
@@ -2808,7 +2814,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
             elif is_polity:
                 clean = re.sub(r'(?i)forward anchor:\s*connect the closing line to contemporary [^\n.]*', 'Constitutional Reform: Anchor the closing line in 2nd ARC recommendations or Supreme Court constitutional benchmarks.', clean)
 
-        # Eliminate ANY prompt meta-placeholder text or prompt echo
+        # Eliminate ANY prompt meta-placeholder text, prompt echo, or static template boilerplate
         if re.search(r'(?i)(?:direct assessment quoting|'
                      r'specific technical concept|'
                      r'foundational doctrine missing|'
@@ -2822,7 +2828,16 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                      r'substantive upgrade:\s*specific|'
                      r'argument & point audit:\s*specific|'
                      r'page \d+ points evaluated:\s*specific|'
-                     r'closing stance evaluated:\s*direct)', clean):
+                     r'closing stance evaluated:\s*direct|'
+                     r'opened by defining the core concept|'
+                     r'establishing direct analytical context|'
+                     r'articulated key mechanisms|'
+                     r'addressing primary question dimension|'
+                     r'evaluated practical implications|'
+                     r'demonstrating multidimensional coverage|'
+                     r'back argument with 1 concrete empirical metric|'
+                     r'anchor with official guidelines,\s*statutory framework|'
+                     r'anchor with official doctrine,\s*article/statute)', clean):
             return ""
 
         return clean
@@ -2853,15 +2868,24 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                                   r'argument & point audit:\s*specific|'
                                   r'page \d+ points evaluated:\s*specific|'
                                   r'closing stance evaluated:\s*direct|'
-                                  r'opening premise evaluated|'
-                                  r'substantive arguments analyzed|'
-                                  r'core dimensional scope|'
+                                   r'opening premise evaluated:\s*direct|'
+                                   r'substantive arguments analyzed:\s*direct|'
+                                   r'core dimensional scope:\s*direct|'
                                   r'directly engaged the core directive|'
                                   r'evaluated candidate\'s specific points|'
                                   r'detailed analysis across candidate\'s points|'
                                   r'point \[[a-z0-9]+\]|'
                                   r'substantiate point|'
-                                  r'bridge the gap in point)', str(txt or "")))
+                                  r'bridge the gap in point|'
+                                  r'opened by defining the core concept|'
+                                  r'establishing direct analytical context|'
+                                  r'articulated key mechanisms|'
+                                  r'addressing primary question dimension|'
+                                  r'evaluated practical implications|'
+                                  r'demonstrating multidimensional coverage|'
+                                  r'back argument with 1 concrete empirical metric|'
+                                  r'anchor with official guidelines,\s*statutory framework|'
+                                  r'anchor with official doctrine,\s*article/statute)', str(txt or "")))
 
         def _fmt_bullet(text_line: str, prefix: str) -> str:
             clean = str(text_line or "").strip()
@@ -3011,7 +3035,14 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
 
                     clean_snip = _clean_quote_snippet(best_line, 120)
                     if clean_snip:
-                        _add_unique_bullet(bullets, f"**Arguments Analyzed**: Evaluated analysis on *\"{clean_snip}\"* addressing core directive dimensions.", "✓")
+                        if clean_tag and len(clean_tag) >= 3:
+                            b_title = f"{clean_tag} Analyzed"
+                        elif slot_idx == 0:
+                            b_title = f"Page {pg_num} Core Argument"
+                        else:
+                            b_title = f"Page {pg_num} Dimension {slot_idx + 1}"
+                        if not _add_unique_bullet(bullets, f"**{b_title}**: Evaluated analysis on *\"{clean_snip}\"* addressing core directive dimensions.", "✓"):
+                            _add_unique_bullet(bullets, f"**Page {pg_num} Point Evaluated**: Evaluated analysis on *\"{clean_snip}\"* addressing core directive dimensions.", "✓")
 
             # 3. Pull from sub_part_step_marking
             sub_steps = data.get("sub_part_step_marking") or []
@@ -3073,29 +3104,82 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
             if len(bullets) < 2:
                 if is_hindi:
                     if is_polity:
-                        _add_unique_bullet(bullets, "**संस्थागत मूल्य संवर्धन (Value Addition)**: द्वितीय प्रशासनिक सुधार आयोग (2nd ARC), विधि आयोग रिपोर्ट या सर्वोच्च न्यायालय के संवैधानिक मानकों से तर्क को पुष्ट करें।", "✎")
+                        hindi_levers = [
+                            "**संस्थागत मूल्य संवर्धन (Value Addition)**: द्वितीय प्रशासनिक सुधार आयोग (2nd ARC), विधि आयोग रिपोर्ट या सर्वोच्च न्यायालय के संवैधानिक मानकों से तर्क को पुष्ट करें।",
+                            "**संवैधानिक प्रावधान (Constitutional Benchmark)**: संबंधित अनुच्छेदों, संविधान सभा वाद-विवाद या ऐतिहासिक न्यायिक निर्णयों का संदर्भ दें।",
+                            "**सांविधिक व नीतिगत सुधार (Governance Upgrade)**: संसदीय स्थायी समितियों की समीक्षाओं या कैग (CAG) की टिप्पणियों से उत्तर को पुष्ट करें।"
+                        ]
                     elif is_econ:
-                        _add_unique_bullet(bullets, "**आर्थिक एवं तथ्यपरक विश्लेषण (Empirical Depth)**: नीति आयोग सूचकांकों, आर्थिक सर्वेक्षण और आधिकारिक बजटीय आंकड़ों से उत्तर को पुष्ट करें।", "✎")
+                        hindi_levers = [
+                            "**आर्थिक एवं तथ्यपरक विश्लेषण (Empirical Depth)**: नीति आयोग सूचकांकों, आर्थिक सर्वेक्षण और आधिकारिक बजटीय आंकड़ों से उत्तर को पुष्ट करें।",
+                            "**व्यापक आर्थिक आयाम (Macroeconomic Scope)**: पूंजीगत व्यय (Capex), आपूर्ति-श्रृंखला सुधारों और क्षेत्रीय उत्पादन के आंकड़ों को शामिल करें।",
+                            "**नीतिगत व संस्थागत समाधान (Policy Roadmap)**: आरबीआई वित्तीय स्थिरता रिपोर्ट या पीएलआई (PLI) योजनाओं के संदर्भ से तर्कों को पुष्ट करें।"
+                        ]
                     elif is_history_culture:
-                        _add_unique_bullet(bullets, "**ऐतिहासिक व सांस्कृतिक प्रमाण (Historical Depth)**: प्राथमिक ऐतिहासिक स्रोतों, अभिलेखीय साक्ष्यों या दार्शनिक ग्रंथों का उल्लेख करें।", "✎")
+                        hindi_levers = [
+                            "**ऐतिहासिक व सांस्कृतिक प्रमाण (Historical Depth)**: प्राथमिक ऐतिहासिक स्रोतों, अभिलेखीय साक्ष्यों या दार्शनिक ग्रंथों का उल्लेख करें।",
+                            "**ऐतिहासिक संदर्भ व साहित्य (Historiographical Context)**: समकालीन सुधार पत्रिकाओं, सुधारवादी संगठनों और क्षेत्रीय आंदोलनों का तुलनात्मक उल्लेख करें।",
+                            "**समाजिक व वैचारिक निरंतरता (Civilizational Continuity)**: विभिन्न सुधारवादी धाराओं के बीच वैचारिक आदान-प्रदान और उनके अखिल भारतीय प्रभाव को रेखांकित करें।"
+                        ]
                     elif is_geo:
-                        _add_unique_bullet(bullets, "**भौगोलिक व स्थानिक आयाम (Spatial Nuance)**: एनडीएमए (NDMA) दिशानिर्देशों, सेंदाई फ्रेमवर्क या स्पष्ट मानचित्र/आरेख का समावेश करें।", "✎")
+                        hindi_levers = [
+                            "**भौगोलिक व स्थानिक आयाम (Spatial Nuance)**: एनडीएमए (NDMA) दिशानिर्देशों, सेंदाई फ्रेमवर्क या स्पष्ट मानचित्र/आरेख का समावेश करें।",
+                            "**भौतिक व भू-आकृतिक प्रक्रम (Geomorphic Mechanisms)**: वायुमंडलीय दाब प्रवणता, जल-चक्र या भू-आकृतिक बलों के वैज्ञानिक आधार को स्पष्ट करें।",
+                            "**पारिस्थितिक व आपदा प्रबंधन (Disaster Resilience)**: स्थानीय बेसिन जल विज्ञान और कृषि-जलवायु क्षेत्रों के संदर्भ से विश्लेषण को समृद्ध करें।"
+                        ]
                     elif is_ethics:
-                        _add_unique_bullet(bullets, "**नैतिक एवं प्रशासनिक मूल्य (Ethical Depth)**: 2nd ARC (शासन में नैतिकता), नोलन सिद्धांतों या गांधीवादी अंत्योदय के दर्शन से जोड़ें।", "✎")
+                        hindi_levers = [
+                            "**नैतिक एवं प्रशासनिक मूल्य (Ethical Depth)**: 2nd ARC (शासन में नैतिकता), नोलन सिद्धांतों या गांधीवादी अंत्योदय के दर्शन से जोड़ें।",
+                            "**प्रशासनिक दुविधा व समाधान (Applied Ethical Reasoning)**: कर्तव्यपरायणता (Deontology) और लोक कल्याणकारी परिणामों (Teleology) के मध्य संतुलन स्थापित करें।",
+                            "**दार्शनिक आधार (Philosophical Anchoring)**: गांधीवादी ट्रस्टीशिप, रॉल्स के न्याय सिद्धांत या अरस्तू के सद्गुण नीतिशास्त्र का संदर्भ दें।"
+                        ]
                     else:
-                        _add_unique_bullet(bullets, "**मानक शब्दावली एवं सुधार (Actionable Upgrade)**: आधिकारिक आयोगों की अनुशंसाओं और सांविधिक प्रावधानों के साथ तर्कों को पुष्ट करें।", "✎")
-                elif is_polity:
-                    _add_unique_bullet(bullets, "**Institutional Value Addition**: Substantiate with specific recommendations from 2nd ARC, Law Commission reports, or Supreme Court constitutional benchmarks.", "✎")
-                elif is_econ:
-                    _add_unique_bullet(bullets, "**Empirical Depth**: Substantiate points with official economic telemetry, NITI Aayog indices, or statutory compliance frameworks.", "✎")
-                elif is_history_culture:
-                    _add_unique_bullet(bullets, "**Historical Depth**: Substantiate arguments with specific epigraphical records, primary cultural treatises, or regional landmarks.", "✎")
-                elif is_geo:
-                    _add_unique_bullet(bullets, "**Scientific Nuance**: Frame points in terms of thermodynamic driving forces, NDMA guidelines, or Sendai Framework indicators.", "✎")
-                elif is_ethics:
-                    _add_unique_bullet(bullets, "**Ethical Depth**: Ground arguments in Nolan Principles of Public Life, 2nd ARC (Ethics in Governance), or constitutional values.", "✎")
+                        hindi_levers = [
+                            "**मानक शब्दावली एवं सुधार (Actionable Upgrade)**: आधिकारिक आयोगों की अनुशंसाओं और सांविधिक प्रावधानों के साथ तर्कों को पुष्ट करें।",
+                            "**संस्थागत ढांचा (Institutional Framework)**: संबंधित वैधानिक नियमों और प्रशासनिक सुधारों का स्पष्ट उल्लेख करें।"
+                        ]
+                    for lev in hindi_levers:
+                        if _add_unique_bullet(bullets, lev, "✎"):
+                            break
                 else:
-                    _add_unique_bullet(bullets, "**Domain Substantiation**: Support arguments with official committee recommendations, statutory frameworks, or empirical telemetry.", "✎")
+                    if is_polity:
+                        eng_levers = [
+                            "**Institutional Value Addition**: Substantiate with specific recommendations from 2nd ARC, Law Commission reports, or Supreme Court constitutional benchmarks.",
+                            "**Constitutional Doctrine**: Anchor arguments in specific Articles, Constituent Assembly Debates, or landmark judicial precedents.",
+                            "**Governance & Regulatory Telemetry**: Corroborate claims with Parliamentary Standing Committee reviews or CAG audit observations."
+                        ]
+                    elif is_econ:
+                        eng_levers = [
+                            "**Empirical Depth**: Substantiate points with official economic telemetry, NITI Aayog indices, or statutory compliance frameworks.",
+                            "**Macroeconomic Linkage**: Interlink capital expenditure, sectoral gross value added, and structural supply-side reforms.",
+                            "**Policy Benchmarking**: Support recommendations with Economic Survey findings or RBI Financial Stability Report telemetry."
+                        ]
+                    elif is_history_culture:
+                        eng_levers = [
+                            "**Historical Depth**: Substantiate arguments with specific epigraphical records, primary cultural treatises, or regional landmarks.",
+                            "**Historiographical Context**: Corroborate socio-religious reform trends with contemporaneous reform journals and vernacular literature.",
+                            "**Institutional & Social Breadth**: Contrast regional reformist strands to demonstrate pan-Indian sociological breadth and civilizational impact."
+                        ]
+                    elif is_geo:
+                        eng_levers = [
+                            "**Scientific Nuance**: Frame points in terms of thermodynamic driving forces, NDMA guidelines, or Sendai Framework indicators.",
+                            "**Spatial & Geomorphic Depth**: Illustrate physical mechanisms with pressure gradients, geomorphic processes, or spatial zoning.",
+                            "**Basin & Climate Resilience**: Substantiate with specific regional drainage basins, micro-climatic patterns, or IPCC adaptation benchmarks."
+                        ]
+                    elif is_ethics:
+                        eng_levers = [
+                            "**Ethical Depth**: Ground arguments in Nolan Principles of Public Life, 2nd ARC (Ethics in Governance), or constitutional values.",
+                            "**Applied Ethical Reasoning**: Balance deontological duties with consequentialist public outcomes through practical administrative dilemmas.",
+                            "**Moral Philosophy Anchoring**: Anchor arguments in Gandhian Trusteeship, Rawlsian Justice (Difference Principle), or Aristotelian Virtue Ethics."
+                        ]
+                    else:
+                        eng_levers = [
+                            "**Domain Substantiation**: Support arguments with official committee recommendations, statutory frameworks, or empirical telemetry.",
+                            "**Institutional Depth**: Corroborate core points with statutory compliance benchmarks and actionable governance levers."
+                        ]
+                    for lev in eng_levers:
+                        if _add_unique_bullet(bullets, lev, "✎"):
+                            break
 
             return "\n".join(bullets[:4])
 
@@ -3253,8 +3337,10 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                     if ln.strip():
                         used_margin_bullets.add(_norm_sig(ln))
             elif "concl" not in str(ann.get("tag", "")).lower() and "synthesis" not in str(ann.get("tag", "")).lower():
-                if not ann.get("remark") or _has_meta_placeholder(str(ann.get("remark", ""))):
-                    ann["remark"] = _build_page_zone_remark(int(ann.get("page", 1) or 1), 0)
+                clean_r = str(ann.get("remark", "")).strip()
+                if _has_meta_placeholder(clean_r):
+                    clean_r = ""
+                ann["remark"] = clean_r
             elif "concl" in str(ann.get("tag", "")).lower() or "synthesis" in str(ann.get("tag", "")).lower():
                 if not ann.get("remark") or _has_meta_placeholder(str(ann.get("remark", ""))):
                     c_crit = str(conc_audit_obj.get("current_critique") or "")
@@ -3269,6 +3355,11 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                         used_margin_bullets.add(_norm_sig(ln))
 
         max_pg = max([int(a.get("page", 1) or 1) for a in annotations], default=1)
+        if max_pg == 1:
+            for idx_a, ann in enumerate(annotations):
+                if "intro" not in str(ann.get("tag", "")).lower() and "concl" not in str(ann.get("tag", "")).lower():
+                    if not ann.get("remark") or len(str(ann.get("remark")).strip()) < 25 or _has_meta_placeholder(str(ann.get("remark", ""))):
+                        ann["remark"] = _build_page_zone_remark(1, idx_a, str(ann.get("tag", "")), float(ann.get("start_y_percent", 0.0) or 0.0))
         if max_pg >= 2:
             expanded_anns = []
             for pg in range(1, max_pg + 1):
@@ -3277,20 +3368,21 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                 pg_anns.sort(key=lambda a: float(a.get("start_y_percent", a.get("approx_y_percent", 0.0)) or 0.0))
 
                 # Deduplicate any existing body annotation remarks on pg >= 2 that accidentally copied Page 1 or Page 2
-                for existing_ann in pg_anns:
+                for idx_ann, existing_ann in enumerate(pg_anns):
                     t_low = str(existing_ann.get("tag", "")).lower()
                     if "intro" not in t_low and "concl" not in t_low:
                         raw_b_lines = [ln.strip() for ln in str(existing_ann.get("remark", "")).split("\n") if ln.strip()]
                         unique_b_lines = []
                         for r_ln in raw_b_lines:
-                            sig = _norm_sig(r_ln)
-                            if sig and sig not in used_margin_bullets:
-                                used_margin_bullets.add(sig)
-                                unique_b_lines.append(r_ln)
-                        if unique_b_lines:
+                            if not _has_meta_placeholder(r_ln):
+                                sig = _norm_sig(r_ln)
+                                if sig and sig not in used_margin_bullets:
+                                    used_margin_bullets.add(sig)
+                                    unique_b_lines.append(r_ln)
+                        if len(unique_b_lines) >= 2:
                             existing_ann["remark"] = "\n".join(unique_b_lines)
                         else:
-                            existing_ann["remark"] = _build_page_zone_remark(pg, 0, str(existing_ann.get("tag", "")), float(existing_ann.get("start_y_percent", 0.0) or 0.0))
+                            existing_ann["remark"] = _build_page_zone_remark(pg, idx_ann, str(existing_ann.get("tag", "")), float(existing_ann.get("start_y_percent", 0.0) or 0.0))
 
                 if pg == 1:
                     is_p1_prompt = any(
@@ -3507,7 +3599,9 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                             c_lines = [ln.strip() for ln in re.split(r'\n+|\s*\|\s*', c_rem) if ln.strip()]
                             leaked_body_lines = [
                                 ln for ln in c_lines
-                                if re.search(r'(?i)(policy\s*breakdown|mitigation,\s*preparedness|mitigation.*response|ndma\s*guidelines|heat\s*action\s*plans|\bhaps\b|flowchart|schematic|diagram|anrf|vaibhav|strategies|sub-headings|empirical\s*data)', ln)
+                                if not _has_meta_placeholder(ln)
+                                and not re.search(r'(?i)\b(?:elevate|anchor\s+with|how\s+to\s+elevate|topper\s+finish|to\s+score\s+full\s+marks)\b', ln)
+                                and re.search(r'(?i)(policy\s*breakdown|mitigation,\s*preparedness|mitigation.*response|ndma\s*guidelines|heat\s*action\s*plans|\bhaps\b|anrf|vaibhav)', ln)
                             ]
                             pure_conc_lines = [ln for ln in c_lines if ln not in leaked_body_lines]
                             if leaked_body_lines:
@@ -3522,7 +3616,11 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                                     for bl in leaked_body_lines:
                                         if not any(bl[:20].lower() in ex.lower() for ex in b_existing):
                                             b_existing.append(_fmt_bullet(bl, '✓' if ('good' in bl.lower() or 'structured' in bl.lower()) else '✎'))
-                                    body_anns[0]["remark"] = "\n".join([ln for ln in b_existing if not _is_conc_bullet(ln)])
+                                    clean_combined = [ln for ln in b_existing if not _is_conc_bullet(ln) and not _has_meta_placeholder(ln)]
+                                    if len(clean_combined) >= 2:
+                                        body_anns[0]["remark"] = "\n".join(clean_combined)
+                                    else:
+                                        body_anns[0]["remark"] = _build_page_zone_remark(pg, 0, str(body_anns[0].get("tag", "")), float(body_anns[0].get("start_y_percent", 0.0) or 0.0))
                                 else:
                                     body_ann_new = {
                                         "page": pg,
@@ -3532,7 +3630,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                                         "tag": "Body: Key Dimensions",
                                         "type": "tick",
                                         "marks_awarded": "+1.5 / 2.5",
-                                        "remark": "\n".join(leaked_body_lines)
+                                        "remark": _build_page_zone_remark(pg, 0, "Body: Key Dimensions", 8.0)
                                     }
                                     pg_anns.insert(0, body_ann_new)
 
@@ -3548,6 +3646,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                                 for b in body_anns:
                                     if float(b.get("end_y_percent", 68) or 68) >= float(conc_ann.get("start_y_percent", 70) or 70):
                                         b["end_y_percent"] = float(conc_ann.get("start_y_percent", 70) or 70) - 1.5
+                                    if not b.get("remark") or len(str(b.get("remark")).strip()) < 25 or _has_meta_placeholder(str(b.get("remark"))):
+                                        b["remark"] = _build_page_zone_remark(pg, 0, str(b.get("tag", "")), float(b.get("start_y_percent", 0.0) or 0.0))
                         expanded_anns.extend(pg_anns)
             annotations = expanded_anns
             for pg_idx in range(1, max_pg + 1):
@@ -5348,15 +5448,17 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             closing_cand_quote = cand_conc_matches[-1]
 
         # Clean up existing conclusion critique and strip repeated prefixes
+        # Clean up existing conclusion critique and strip repeated prefixes
         raw_c_crit = str(c_audit.get("current_critique") or "")
-        clean_c_crit = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:(?:\*\*)?(?:Closing|Concluding)\s*Synthesis\s*Evaluated(?:\*\*)?:?\s*)+', '', raw_c_crit).strip()
+        clean_c_crit = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:(?:\*\*)?(?:Closing|Concluding)\s*Synthesis(?:\s*Evaluated)?(?:\*\*)?:?\s*)+', '', raw_c_crit).strip()
         is_generic_or_empty_crit = (not clean_c_crit) or (len(clean_c_crit) < 30) or bool(re.search(r'(?i)\b(?:not\s+attempted|unwritten|summarizes\s+your\s+stance)\b', clean_c_crit))
 
         # Preserve Gemini's insightful conclusion critique if present, or construct a precise feedback note inspired by Image 4
         if is_generic_or_empty_crit:
             if is_hindi:
                 if gemini_step_conc_text and not re.search(r'(?i)\b(?:not\s+attempted|unwritten|अनुत्तरित)\b', gemini_step_conc_text):
-                    c_audit["current_critique"] = f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: {gemini_step_conc_text.strip()}"
+                    clean_g_step = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:(?:\*\*)?(?:Closing|Concluding|निष्कर्ष)\s*(?:Synthesis|का\s*मूल्यांकन)?(?:\s*Evaluated)?(?:\*\*)?:?\s*)+', '', gemini_step_conc_text.strip()).strip()
+                    c_audit["current_critique"] = f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: {clean_g_step}"
                 elif closing_cand_quote:
                     clean_cand_close = _clean_quote_snippet(closing_cand_quote, 140)
                     c_audit["current_critique"] = (
@@ -5376,7 +5478,8 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                     )
             else:
                 if gemini_step_conc_text and not re.search(r'(?i)\b(?:not\s+attempted|unwritten)\b', gemini_step_conc_text):
-                    c_audit["current_critique"] = f"✓ **Closing Synthesis Evaluated**: {gemini_step_conc_text.strip()}"
+                    clean_g_step = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:(?:\*\*)?(?:Closing|Concluding)\s*Synthesis(?:\s*Evaluated)?(?:\*\*)?:?\s*)+', '', gemini_step_conc_text.strip()).strip()
+                    c_audit["current_critique"] = f"✓ **Closing Synthesis Evaluated**: {clean_g_step}"
                 elif closing_cand_quote:
                     clean_cand_close = _clean_quote_snippet(closing_cand_quote, 140)
                     c_audit["current_critique"] = (
@@ -5412,7 +5515,7 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                 if "not attempted" in t_low:
                     ann["tag"] = "Conclusion: Closing Synthesis"
                 crit_clean = str(c_audit.get("current_critique") or "").splitlines()[0]
-                crit_body = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:\*\*(?:Closing|Concluding)\s*Synthesis\s*Evaluated\*\*:?\s*)+', '', crit_clean).strip()
+                crit_body = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:(?:\*\*)?(?:Closing|Concluding|निष्कर्ष)\s*(?:Synthesis|का\s*मूल्यांकन)?(?:\s*Evaluated)?(?:\*\*)?:?\s*)+', '', crit_clean).strip()
                 ann["remark"] = (
                     f"✓ **Closing Synthesis Evaluated**: {crit_body}\n"
                     f"✎ **To Score Full Marks**: {domain_conc}"

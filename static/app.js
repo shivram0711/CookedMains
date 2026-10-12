@@ -4906,7 +4906,7 @@ window.getPageTranscript = function(evalData, tPage) {
 
 // Global helper: Detect meta-prompt placeholders or evaluator comments that should NEVER appear as candidate quotes or advice
 window.isMetaPlaceholderText = function(str) {
-  return /(?:direct assessment quoting|specific technical concept|foundational doctrine missing|specific missing institutional|empirical data point|specific assessment of the candidate|concrete institutional|discipline-specific|accurate conceptual opening|opening upgrade|substantive upgrade|argument & point audit|page \d+ points evaluated|closing stance evaluated|opening premise evaluated|substantive arguments analyzed|core dimensional scope|directly engaged the core directive|evaluated candidate's specific points|detailed analysis across candidate's points|point \[[a-z0-9]+\]|\[point \d+|substantiate point|bridge the gap in point|add [^;*]+\*[^;*]+ as a keyword|^add .* as a keyword)/i.test(String(str || ""));
+  return /(?:direct assessment quoting|specific technical concept|foundational doctrine missing|specific missing institutional|empirical data point|specific assessment of the candidate|concrete institutional|discipline-specific|accurate conceptual opening|opening upgrade|substantive upgrade|argument & point audit|page \d+ points evaluated|closing stance evaluated|opening premise evaluated|substantive arguments analyzed|core dimensional scope|directly engaged the core directive|evaluated candidate's specific points|detailed analysis across candidate's points|point \[[a-z0-9]+\]|\[point \d+|substantiate point|bridge the gap in point|add [^;*]+\*[^;*]+ as a keyword|^add .* as a keyword|direct premise|core argumentation|dimension coverage|closing synthesis evaluated|concluding synthesis evaluated|opened by defining the core concept|establishing direct analytical context|articulated key mechanisms|addressing primary question dimension|evaluated practical implications|demonstrating multidimensional coverage|the conclusion is balanced|the conclusion summarizes|summarizes the argument well|back argument with 1 concrete empirical metric|anchor with official guidelines|anchor with official doctrine|committee recommendation, or case law)/i.test(String(str || ""));
 };
 
 // Global helper: Detect Devanagari text
@@ -6127,10 +6127,12 @@ function renderAnnotationsOverlay() {
         }
         if (concAudit && concAudit.current_critique && !/not attempted|unwritten|unaddressed|stopped abruptly/i.test(concAudit.current_critique)) {
           const rawCrit = String(concAudit.current_critique).replace(/^[✗✓✔✎\s*]+/, "").trim();
-          const firstCritLine = rawCrit.split(/<br\s*\/?>|\n|✎/i)[0].trim();
-          const secondCritLine = rawCrit.includes("✎")
+          let firstCritLine = rawCrit.split(/<br\s*\/?>|\n|✎/i)[0].trim();
+          firstCritLine = firstCritLine.replace(/^(?:(?:\*\*)?(?:Closing|Concluding|निष्कर्ष)\s*(?:Synthesis|का\s*मूल्यांकन)?(?:\s*Evaluated)?(?:\*\*)?:?\s*)+/i, "").trim();
+          let secondCritLine = rawCrit.includes("✎")
             ? rawCrit.split("✎")[1].trim()
             : (concAudit.model_conclusion_rewrite ? `Anchor with: ${String(concAudit.model_conclusion_rewrite).slice(0, 140)}` : "");
+          secondCritLine = secondCritLine.replace(/^(?:(?:\*\*)?(?:How to Elevate|Elevate|To Score Full Marks|Anchor with|सुधार बिंदु)(?:\*\*)?:?\s*)+/i, "").trim();
           return `✓ **Closing Synthesis Evaluated**: ${firstCritLine}\n✎ **How to Elevate**: ${secondCritLine || "Anchor the closing sentence in 1–2 specific topic keywords and statutory frameworks."}`;
         }
         let cleaned = sanitizeCrossSubjectText(rawRem);
@@ -7881,7 +7883,7 @@ function getCardQuoteAndElevate(sec) {
 
   // Helper to test if a text string is an evaluator meta-comment rather than candidate handwriting
   const isMetaText = (str) => {
-    return window.isMetaPlaceholderText ? window.isMetaPlaceholderText(str) : /(?:opening premise evaluated|substantive arguments analyzed|core dimensional scope|closing stance evaluated|directly engaged the core directive|evaluated candidate's specific points|detailed analysis across candidate's points|point \[[a-z0-9]+\]|\[point \d+|add .* as a keyword|substantive upgrade|page \d+ points evaluated|foundational doctrine missing|concrete institutional|discipline-specific|clear closing line|living cultural continuity|planetary equilibrium|clear concluding stand|actionable way forward|constructive way forward|comprehensive challenges faced|steps needed to be taken|^add [^*]+\*[^*]+)/i.test(String(str || ""));
+    return window.isMetaPlaceholderText ? window.isMetaPlaceholderText(str) : /(?:opening premise evaluated|substantive arguments analyzed|core dimensional scope|closing stance evaluated|directly engaged the core directive|evaluated candidate's specific points|detailed analysis across candidate's points|point \[[a-z0-9]+\]|\[point \d+|add .* as a keyword|substantive upgrade|page \d+ points evaluated|foundational doctrine missing|concrete institutional|discipline-specific|clear closing line|living cultural continuity|planetary equilibrium|clear concluding stand|actionable way forward|constructive way forward|comprehensive challenges faced|steps needed to be taken|^add [^*]+\*[^*]+|direct premise|core argumentation|dimension coverage|closing synthesis evaluated|concluding synthesis evaluated|opened by defining the core concept|establishing direct analytical context|articulated key mechanisms|addressing primary question dimension|evaluated practical implications|demonstrating multidimensional coverage|the conclusion is balanced|the conclusion summarizes|summarizes the argument well)/i.test(String(str || ""));
   };
 
   // If quote or advise was not set, try to extract from sourceHtml
@@ -7898,11 +7900,6 @@ function getCardQuoteAndElevate(sec) {
         if ((text.startsWith("✓") || text.startsWith("✔") || text.startsWith("★")) && (!quote || isMetaText(quote))) {
           if (qMatch && !isMetaText(qMatch[1] || qMatch[2])) {
             quote = (qMatch[1] || qMatch[2]).trim();
-          } else if (!isMetaText(text.replace(/^[✓✔★⭐]\s*/, ""))) {
-            const stripped = text.replace(/^[✓✔★⭐]\s*/, "").trim();
-            if (!/^\*\*[A-Z][^:]+\*\*:\s*(?:Clearly|Evaluated|Addressed|Substantiated|Analyzed|Demonstrated|Structured|Framed|Highlighted)/i.test(stripped)) {
-              quote = stripped;
-            }
           }
         } else if ((text.startsWith("✎") || text.startsWith("✗") || text.startsWith("×")) && !advise) {
           advise = text.replace(/^[✎✗×✘]\s*/, "");
@@ -7974,10 +7971,11 @@ function getCardQuoteAndElevate(sec) {
   // Clean quote wrapper quotes and eliminate any trailing ellipsis or chopped words
   quote = cleanCandidateQuote(quote, 140);
 
-  // Strip leading bold title or prefix from advise
+  // Strip leading bold title or prefix from advise, including duplicated prefixes
   advise = String(advise || "")
     .replace(/^\*\*[^*]+\*\*:\s*/, "")
-    .replace(/^(?:Value Addition|Elevate|Improvement|Actionable Upgrade|Suggestion):\s*/i, "")
+    .replace(/^(?:(?:Value Addition|Elevate|How to Elevate|Improvement|Actionable Upgrade|Suggestion|Anchor with|Substantiation|Policy Linkage|Opening Upgrade|To Score Full Marks):\s*)+/gi, "")
+    .replace(/^Anchor with:\s*:?\s*/i, "")
     .trim();
 
   // Clean corrupted keyword pattern like: Add Term*Term: definition... as a keyword
@@ -8019,11 +8017,22 @@ function getCardQuoteAndElevate(sec) {
       }
     } else {
       // Body section
+      const discipline = window.classifyQuestionDiscipline
+        ? window.classifyQuestionDiscipline(evalData.detected_question || (typeof state !== "undefined" && state.question), evalData.detected_paper || (typeof state !== "undefined" && state.paper))
+        : "POLICY_GOVERNANCE_ECONOMY";
       if (gaps[cardIdx]) {
         advise = String(gaps[cardIdx]).replace(/^[✓✔✎✗×✘•]\s*/, "").replace(/^\*\*[^*]+\*\*:\s*/, "").trim();
       } else if (kwList[cardIdx % kwList.length] && kwList[cardIdx % kwList.length].term) {
         const kw = kwList[cardIdx % kwList.length];
         advise = `Integrate **${kw.term}** (${String(kw.definition || "").slice(0, 75).trim()}) to sharpen technical scoring.`;
+      } else if (discipline === "HISTORY_CULTURE") {
+        advise = "Substantiate arguments with specific historical actors, primary treatises, reform movements, or regional landmarks.";
+      } else if (discipline === "PHYSICAL_GEOGRAPHY") {
+        advise = "Substantiate points with physical mechanisms, thermodynamic principles, or spatial hazard mapping.";
+      } else if (discipline === "PHILOSOPHY_ETHICS") {
+        advise = "Ground arguments in foundational ethical doctrines, Nolan Principles, or moral philosophical frameworks.";
+      } else if (discipline === "ECONOMY") {
+        advise = "Support points with official macroeconomic telemetry, NITI Aayog policy frameworks, or Budget data.";
       } else {
         advise = "Substantiate arguments with concrete committee recommendations, statutory mechanisms, or empirical metrics.";
       }
