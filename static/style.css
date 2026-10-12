@@ -914,7 +914,7 @@ html.dark .gutter-pin-danger {
 }
 
 #gutterLaserBeam {
-  transition: top 0.22s cubic-bezier(0.4, 0, 0.2, 1), left 0.22s cubic-bezier(0.4, 0, 0.2, 1), width 0.22s ease, height 0.22s ease, opacity 0.2s ease;
+  transition: top 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
 }
 
 .pulse-glow {

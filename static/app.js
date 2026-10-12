@@ -4685,7 +4685,7 @@ window.getPageTranscript = function(evalData, tPage) {
 
 // Global helper: Detect meta-prompt placeholders or evaluator comments that should NEVER appear as candidate quotes or advice
 window.isMetaPlaceholderText = function(str) {
-  return /(?:direct assessment quoting|specific technical concept|foundational doctrine missing|specific missing institutional|empirical data point|specific assessment of the candidate|concrete institutional|discipline-specific|accurate conceptual opening|opening upgrade|substantive upgrade|argument & point audit|page \d+ points evaluated|closing stance evaluated|opening premise evaluated|substantive arguments analyzed|core dimensional scope|directly engaged the core directive|evaluated candidate's specific points|detailed analysis across candidate's points|point \[[a-z0-9]+\]|\[point \d+|substantiate point|bridge the gap in point|add [^;*]+\*[^;*]+ as a keyword|^add .* as a keyword|clear spatial context|good case citation|accurately covered|candidate addressed|demand met|demand fulfilled|partially fulfilled|core argument evaluated|inclusive growth:\s*highlighted|closing synthesis evaluated)/i.test(String(str || ""));
+  return /(?:direct assessment quoting|specific technical concept|foundational doctrine missing|specific missing institutional|empirical data point|specific assessment of the candidate|concrete institutional|discipline-specific|accurate conceptual opening|opening upgrade|substantive upgrade|argument & point audit|page \d+ points evaluated|closing stance evaluated|opening premise evaluated|substantive arguments analyzed|core dimensional scope|directly engaged the core directive|evaluated candidate's specific points|detailed analysis across candidate's points|point \[[a-z0-9]+\]|\[point \d+|substantiate point|bridge the gap in point|add [^;*]+\*[^;*]+ as a keyword|^add .* as a keyword)/i.test(String(str || ""));
 };
 
 // Single Canonical Source of Truth for Sub-Part Step-Marking Ceilings & Allocations across the Entire Website
@@ -7317,7 +7317,7 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
 
     // Populate desktop & tablet Examiner Line-by-Line Audit in blank area below answersheet
     if (typeof window.renderDesktopAuditCards === "function") {
-      window.renderDesktopAuditCards(sections, currentPg, totalPages, activeEval);
+      window.renderDesktopAuditCards(sections, currentPg, totalPages);
     }
   } else {
     if (gutterRibbon) gutterRibbon.innerHTML = "";
@@ -7704,8 +7704,7 @@ function getCardQuoteAndElevate(sec) {
 }
 
 // Global helper: Render Examiner Line-by-Line Audit cards in blank area below answersheet on PC & Tablet
-window.renderDesktopAuditCards = function(sections, currentPg, totalPages, activeEval) {
-  const evalData = activeEval || (typeof state !== "undefined" && (state.currentEvaluation || state.originalEvaluation)) || (typeof window.evalData !== "undefined" ? window.evalData : {});
+window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
   const container = document.getElementById("desktopAuditCardsContainer");
   const header = document.getElementById("desktopAuditHeader");
   const scorePill = document.getElementById("desktopAuditScorePill");
@@ -7813,15 +7812,6 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages, activ
       ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
       : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30";
 
-    const fullTrans = String(evalData.transcribed_text || "").toLowerCase();
-    const cleanQuoteStr = String(quote || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").trim();
-    const isVerbatimVerified = cleanQuoteStr.length >= 10 && fullTrans.includes(cleanQuoteStr.slice(0, 22));
-
-    const quoteTag = isVerbatimVerified ? "Candidate Quote (Verified):" : "AI Summary:";
-    const quoteHtml = isVerbatimVerified
-      ? `<strong class="text-slate-900 dark:text-slate-200">${quoteTag}</strong> "${escapeHtml(quote)}"`
-      : `<strong class="text-slate-900 dark:text-slate-200">${quoteTag}</strong> ${escapeHtml(quote)}`;
-
     card.innerHTML = `
       <div class="flex items-center justify-between mb-1.5 gap-2">
         <span class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 min-w-0">
@@ -7833,7 +7823,7 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages, activ
         </span>
       </div>
       <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans mb-2">
-        ${quoteHtml}
+        <strong class="text-slate-900 dark:text-slate-200">Candidate Quote:</strong> "${escapeHtml(quote)}"
       </p>
       <div class="p-2 rounded-lg bg-amber-50/70 dark:bg-slate-900 border border-amber-200 dark:border-slate-800 text-[11px] text-amber-900 dark:text-amber-300/90 leading-relaxed font-sans">
         💡 <strong>Elevate:</strong> ${typeof formatHighlightedText === "function" ? formatHighlightedText(advise) : escapeHtml(advise)}
@@ -7852,12 +7842,6 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages, activ
   });
 };
 
-// Global helper: Dismiss mobile feedback drawer
-window.closeMobileDrawer = function() {
-  const drawer = document.getElementById("mobileDrawerBar");
-  if (drawer) drawer.classList.add("hidden");
-};
-
 // Global helper: Focus specific point on paper with laser beam and synchronized label
 window.focusGutterPointOnPage = function(index, yPercent, marksStr, sec, isPinned = false) {
   const beam = document.getElementById("gutterLaserBeam");
@@ -7868,39 +7852,13 @@ window.focusGutterPointOnPage = function(index, yPercent, marksStr, sec, isPinne
   }
 
   if (beam) {
-    const b = sec && (sec.bounds || sec.box || sec.bounding_box);
-    if (Array.isArray(b) && b.length === 4) {
-      // High-precision bounding box anchor: [ymin, xmin, ymax, xmax]
-      const [ymin, xmin, ymax, xmax] = b;
-      beam.style.top = `${ymin * 100}%`;
-      beam.style.left = `${xmin * 100}%`;
-      beam.style.width = `${Math.max(6.0, (xmax - xmin) * 100)}%`;
-      beam.style.height = `${Math.max(2.5, (ymax - ymin) * 100)}%`;
-      beam.style.right = "auto";
-      beam.style.transform = "none";
-      beam.style.borderRadius = "8px";
-      beam.style.backgroundColor = "rgba(245, 158, 11, 0.16)";
-      beam.style.border = "1.5px solid rgba(245, 158, 11, 0.65)";
-      beam.style.opacity = "1";
-      if (lbl && sec) {
-        lbl.innerHTML = `<span class="opacity-90 font-sans mr-1">${escapeHtml(sec.title)}</span> &bull; <span class="font-bold font-mono text-[9px] uppercase">Focused Anchor</span> &bull; <span class="underline font-black font-mono">Awarded: ${escapeHtml(marksStr)}</span>`;
-      }
-    } else {
-      // Unanchored / Page-Level Note: do NOT draw a 56px opaque stripe across handwriting!
-      beam.style.top = `${yPercent}%`;
-      beam.style.left = "auto";
-      beam.style.right = "0";
-      beam.style.width = "48px";
-      beam.style.height = "26px";
-      beam.style.transform = "translateY(-50%)";
-      beam.style.borderRadius = "6px 0 0 6px";
-      beam.style.backgroundColor = "rgba(245, 158, 11, 0.25)";
-      beam.style.border = "1px solid rgba(245, 158, 11, 0.55)";
-      beam.style.opacity = "1";
-      if (lbl && sec) {
-        lbl.innerHTML = `<span class="opacity-90 font-sans mr-1">📌 Page-Level Note</span> &bull; <span class="underline font-black font-mono">Awarded: ${escapeHtml(marksStr)}</span>`;
-      }
-    }
+    beam.style.top = `${yPercent}%`;
+    beam.style.transform = "translateY(-50%)";
+    beam.style.opacity = "1";
+  }
+
+  if (lbl && sec) {
+    lbl.innerHTML = `<span class="opacity-90 font-sans mr-1">${escapeHtml(sec.title)}</span> &bull; <span class="underline font-black font-mono">Awarded: ${escapeHtml(marksStr)}</span>`;
   }
 
   document.querySelectorAll(".gutter-pin").forEach((pin, pIdx) => {
@@ -9639,7 +9597,6 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
 
 // Render the Full Evaluation Scorecard
 function renderEvaluation(evalData) {
-  window.evalData = evalData;
   if (typeof window.sanitizeRepetitiveConclusionCliches === "function") {
     window.sanitizeRepetitiveConclusionCliches(
       evalData,

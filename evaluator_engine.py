@@ -317,136 +317,6 @@ def detect_directive(question_text: str) -> Dict[str, str]:
         "ideal_balance": "Multi-dimensional coverage with clear introduction, structured body, and way forward."
     }
 
-def is_evaluator_commentary(text: str) -> bool:
-    """Detects if a string is evaluator meta-critique rather than genuine candidate handwriting."""
-    if not text:
-        return False
-    t_low = str(text).lower().strip()
-    patterns = [
-        r'^[✓✔★⭐•\-*]\s*',
-        r'\b(?:demand\s+met|demand\s+fulfilled|partially\s+fulfilled|candidate\s+addressed|accurately\s+covered|evaluated\s+analysis|clear\s+spatial\s+context|good\s+case\s+citation|opening\s+premise|closing\s+stance|substantive\s+arguments|direct\s+assessment|core\s+argument\s+evaluated|points?\s+evaluated|strengths?\s+and\s+gaps?|held\s+back\s+for|awarded\s+marks\s+for|missing\s+technical|inclusive\s+growth:\s*highlighted|closing\s+synthesis\s+evaluated)\b'
-    ]
-    for p in patterns:
-        if re.search(p, t_low):
-            return True
-    return False
-
-def detect_question_demands(question_text: str, total_marks: Optional[float] = None) -> List[Dict[str, Any]]:
-    """
-    Deconstructs a UPSC Mains question into its genuine, question-derived analytical demands
-    based on directives, punctuation, and semantic topic clauses (NOT based on page count!).
-    """
-    q_str = str(question_text or "").strip()
-    if not q_str:
-        return []
-
-    q_clean = re.sub(r'^(?:Q\.?\s*\d*[\.\)]?\s*)+', '', q_str, flags=re.IGNORECASE).strip()
-    q_clean = re.sub(r'\(\s*\d+\s*(?:marks?|अंक)[\s\S]*?\)', '', q_clean, flags=re.IGNORECASE).strip()
-
-    demands = []
-    q_low = q_clean.lower()
-
-    if "carrying capacity" in q_low and "tourism" in q_low:
-        demands = [
-            {
-                "demand_id": "D1",
-                "label": "Demand 1: Factors Driving Tourism Beyond Carrying Capacity",
-                "sub_heading": "Climatic, post-pandemic, demographic and promotional drivers",
-                "weight_ratio": 0.27
-            },
-            {
-                "demand_id": "D2",
-                "label": "Demand 2: Potential Environmental & Ecological Impacts",
-                "sub_heading": "Pollution burden, construction stress, slope instability & subsidence",
-                "weight_ratio": 0.27
-            },
-            {
-                "demand_id": "D3",
-                "label": "Demand 3: Sustainable Tourism Measures for Hill States",
-                "sub_heading": "Tourism circuits, visitor monitoring, waste penalties & eco-clearances",
-                "weight_ratio": 0.33
-            }
-        ]
-    elif "5 trillion" in q_low and ("ethics" in q_low or "values" in q_low):
-        demands = [
-            {
-                "demand_id": "D1",
-                "label": "Demand 1: Governance & Market Ethics in Wealth Creation",
-                "sub_heading": "Probity, anti-corruption, checking willful defaults & cooperative federalism",
-                "weight_ratio": 0.35
-            },
-            {
-                "demand_id": "D2",
-                "label": "Demand 2: Social Ethics & Inclusive Human Capital",
-                "sub_heading": "Antyodaya, welfare delivery, Nari Shakti & gender dividend",
-                "weight_ratio": 0.35
-            },
-            {
-                "demand_id": "D3",
-                "label": "Demand 3: Environmental Ethics for Sustainable Growth",
-                "sub_heading": "Mission LiFE, Panchamrita & climate-conscious industrial expansion",
-                "weight_ratio": 0.15
-            }
-        ]
-    else:
-        clauses = re.split(r';|\b(?:and\s+(?:suggest|evaluate|discuss|examine|analyze|highlight|critically)|also\s+(?:suggest|evaluate|discuss))\b', q_clean, flags=re.IGNORECASE)
-        clauses = [c.strip() for c in clauses if len(c.strip()) > 15]
-
-        if len(clauses) >= 2:
-            num_c = len(clauses)
-            ratio = 0.80 / num_c
-            for idx, c in enumerate(clauses):
-                first_words = " ".join(c.split()[:8])
-                demands.append({
-                    "demand_id": f"D{idx+1}",
-                    "label": f"Demand {idx+1}: {first_words.capitalize()}",
-                    "sub_heading": c[:100],
-                    "weight_ratio": ratio
-                })
-        else:
-            demands = [
-                {
-                    "demand_id": "D1",
-                    "label": "Demand 1: Primary Analytical Dimension",
-                    "sub_heading": "Core concept, structural drivers, and institutional analysis",
-                    "weight_ratio": 0.40
-                },
-                {
-                    "demand_id": "D2",
-                    "label": "Demand 2: Secondary Evaluation & Implications",
-                    "sub_heading": "Ground impact, implementation challenges, and policy roadmap",
-                    "weight_ratio": 0.40
-                }
-            ]
-
-    if total_marks is not None and total_marks > 0:
-        synthesis_ratio = 0.13 if total_marks >= 15 else 0.15
-        synthesis_max = round((total_marks * synthesis_ratio) * 2) / 2
-        body_pool = max(1.0, total_marks - synthesis_max)
-
-        allocated_demands = []
-        rem_body = body_pool
-        total_weights = sum(d["weight_ratio"] for d in demands)
-
-        for i, d in enumerate(demands):
-            if i == len(demands) - 1:
-                d_max = max(0.5, round(rem_body * 2) / 2)
-            else:
-                raw_m = body_pool * (d["weight_ratio"] / total_weights)
-                d_max = max(1.0, round(raw_m * 2) / 2)
-                rem_body = max(0.5, rem_body - d_max)
-            d["max_marks"] = d_max
-            allocated_demands.append(d)
-
-        actual_sum = sum(d["max_marks"] for d in allocated_demands) + synthesis_max
-        if actual_sum != total_marks:
-            diff = total_marks - actual_sum
-            allocated_demands[-1]["max_marks"] = max(0.5, allocated_demands[-1]["max_marks"] + diff)
-
-        return allocated_demands
-
-    return demands
-
 def are_questions_semantically_mismatched(q1: str, q2: str) -> tuple[bool, float, str]:
     """
     Compares two question statements to determine if they address different topics.
@@ -2934,7 +2804,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
 
                     clean_snip = _clean_quote_snippet(best_line, 120)
                     if clean_snip:
-                        _add_unique_bullet(bullets, f"**Candidate Quote**: \"{clean_snip}\"", "✓")
+                        _add_unique_bullet(bullets, f"**Arguments Analyzed**: Evaluated analysis on *\"{clean_snip}\"* addressing core directive dimensions.", "✓")
 
             # 3. Pull from sub_part_step_marking
             sub_steps = data.get("sub_part_step_marking") or []
@@ -2944,8 +2814,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                 q_w = str(step_obj.get("quoted_written") or "").strip()
                 s_u = str(step_obj.get("step_up_lever") or "").strip()
                 if len(bullets) < 2 and q_w and len(q_w) >= 20 and not _has_meta_placeholder(q_w):
-                    clean_qw = re.sub(r'^[✓✔★⭐•\-*]\s*(?:Demand Met|Demand Fulfilled|Candidate addressed|Accurately covered|Core Argument Evaluated):\s*', '', q_w, flags=re.IGNORECASE).strip()
-                    _add_unique_bullet(bullets, f"**Candidate Quote**: \"{clean_qw}\"", "✓")
+                    _add_unique_bullet(bullets, f"**Core Argument Evaluated**: {q_w}", "✓")
                 if len(bullets) < 2 and s_u and len(s_u) >= 20 and not _has_meta_placeholder(s_u):
                     _add_unique_bullet(bullets, f"**Value Addition**: {s_u}", "✎")
 
@@ -4309,35 +4178,35 @@ def _normalize_exam_hall_discipline_and_micro_marking(data: Dict[str, Any], max_
 def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> None:
     """
     Ensures that:
-    1. data['sub_part_step_marking'] derives from genuine question demands (detect_question_demands),
-       preserving multi-demand separation (e.g. 3 demands for Tourism: Factors, Impacts, Measures) regardless of page count.
-    2. Sum of 'max' across demands + synthesis strictly equals max_marks.
-    3. Sum of 'awarded' across demands + synthesis strictly equals overall_score (to 0.25M precision).
-    4. Evaluator commentary is strictly cleaned out from quotes, and quotes are marked verified or summary.
+    1. data['sub_part_step_marking'] has 4 structured sub-parts (Intro, Part A, Part B, Conclusion)
+       whose 'max' sum equals max_marks and whose 'awarded' sum equals overall_score (to 0.25M precision).
+    2. data['point_by_point_audit'] has 4 authentic, non-generic handwritten point checks derived from
+       the candidate's actual points, visual annotations, and body strengths/gaps.
     """
     if not isinstance(data, dict):
         return
 
     overall_score = float(data.get("overall_score", 0.0) or 0.0)
     rubric = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
-    q_ctx = str(data.get("detected_question") or data.get("question") or "")
-    trans_text = str(data.get("transcribed_text") or "")
-
-    # Derive question-specific demands
-    question_demands = detect_question_demands(q_ctx, float(max_marks))
 
     if max_marks == 10:
-        intro_max, conc_max = 1.5, 1.5
+        intro_max, part_a_max, part_b_max, conc_max = 1.5, 4.0, 3.0, 1.5
     elif max_marks == 15:
-        intro_max, conc_max = 2.0, 2.0
+        intro_max, part_a_max, part_b_max, conc_max = 2.0, 6.0, 5.0, 2.0
     elif max_marks == 20:
-        intro_max, conc_max = 2.5, 2.5
+        intro_max, part_a_max, part_b_max, conc_max = 2.5, 8.0, 7.0, 2.5
     else:
         intro_max = round(max_marks * 0.15, 1)
         conc_max = round(max_marks * 0.15, 1)
+        body_m = round(max_marks - intro_max - conc_max, 1)
+        part_a_max = round(body_m * 0.55, 1)
+        part_b_max = round(body_m - part_a_max, 1)
 
     intro_aw = round(min(intro_max, float(rubric.get("intro_score", round(overall_score * 0.15, 2)) or 0.0)) * 4) / 4
     conc_aw = round(min(conc_max, float(rubric.get("conclusion_score", round(overall_score * 0.12, 2)) or 0.0)) * 4) / 4
+    rem_body = max(0.0, round((overall_score - intro_aw - conc_aw) * 4) / 4)
+    part_a_aw = min(part_a_max, round((rem_body * (part_a_max / max(0.1, part_a_max + part_b_max))) * 4) / 4)
+    part_b_aw = max(0.0, round((overall_score - intro_aw - conc_aw - part_a_aw) * 4) / 4)
 
     body_audit = data.get("body_audit") if isinstance(data.get("body_audit"), dict) else {}
     strengths = body_audit.get("strengths") if isinstance(body_audit.get("strengths"), list) else []
@@ -4346,13 +4215,13 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
     conc_audit = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
 
     existing_steps = data.get("sub_part_step_marking")
-
     if isinstance(existing_steps, list) and len(existing_steps) >= 3:
         num_steps = len(existing_steps)
         num_body = max(1, num_steps - 2)
         total_body_max = max(1.0, round((max_marks - intro_max - conc_max) * 4) / 4)
         total_body_aw = max(0.0, round((overall_score - intro_aw - conc_aw) * 4) / 4)
 
+        # Calculate individual body part ceilings and awards proportionally
         body_max_list = []
         body_aw_list = []
         rem_m = total_body_max
@@ -4369,6 +4238,10 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
                 rem_m = max(0.5, rem_m - m_val)
                 rem_aw = max(0.0, rem_aw - aw_val)
 
+        q_ctx = str(data.get("detected_question") or data.get("question") or "")
+        wf_demanded = _is_way_forward_demanded_by_question(q_ctx)
+        wf_written = _has_candidate_written_way_forward(str(data.get("transcribed_text") or ""))
+
         assigned_steps = []
         for idx in range(num_steps):
             item = existing_steps[idx] if isinstance(existing_steps[idx], dict) else {}
@@ -4384,26 +4257,36 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
                 item["awarded"] = conc_aw
             else:
                 body_idx = idx - 1
-                if question_demands and body_idx < len(question_demands):
-                    qd = question_demands[body_idx]
-                    item["step_label"] = f"{idx + 1}. {qd['label']}"
-                    item["sub_heading"] = qd.get("sub_heading") or item.get("sub_heading")
-                    item["max"] = qd.get("max_marks", body_max_list[body_idx] if body_idx < len(body_max_list) else 2.0)
-                else:
-                    part_letter = chr(65 + body_idx)
-                    raw_sl = str(item.get("step_label") or "").strip()
-                    clean_sl = re.sub(r'^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*)+', '', raw_sl, flags=re.IGNORECASE).strip()
-                    item["step_label"] = f"{idx + 1}. Part {part_letter} — {clean_sl}" if clean_sl else f"{idx + 1}. Part {part_letter} — Question Dimension {part_letter}"
-                    item["max"] = body_max_list[body_idx] if body_idx < len(body_max_list) else 2.0
+                part_letter = chr(65 + body_idx)
+                raw_sl = str(item.get("step_label") or "").strip()
+                clean_sl = re.sub(r'^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*)+', '', raw_sl, flags=re.IGNORECASE).strip()
+                item["step_label"] = f"{idx + 1}. Part {part_letter} — {clean_sl}" if clean_sl else f"{idx + 1}. Part {part_letter} — Question Dimension {part_letter}"
+                raw_sh = str(item.get("sub_heading") or "")
+                if not raw_sh or "explain what" in raw_sh.lower():
+                    if body_idx == 0:
+                        item["sub_heading"] = "Core Analytical Demand & Structural Drivers"
+                    elif body_idx == 1:
+                        item["sub_heading"] = "Multidimensional Impacts & Ground Vulnerabilities"
+                    else:
+                        item["sub_heading"] = "Actionable Policy Interventions & Regulatory Safeguards" if (wf_demanded or wf_written) else "Structural Implications & Institutional Analysis"
+                item["max"] = body_max_list[body_idx] if body_idx < len(body_max_list) else 2.0
                 item["awarded"] = body_aw_list[body_idx] if body_idx < len(body_aw_list) else 1.0
-
-            raw_qw = str(item.get("quoted_written") or "").strip()
-            if is_evaluator_commentary(raw_qw):
-                clean_qw = re.sub(r'^[✓✔★⭐•\-*]\s*(?:Demand Met|Demand Fulfilled|Candidate addressed|Accurately covered|Core Argument Evaluated):\s*', '', raw_qw, flags=re.IGNORECASE).strip()
-                item["quoted_written"] = clean_qw if len(clean_qw) >= 15 else "Argued core analytical dimension."
             assigned_steps.append(item)
         data["sub_part_step_marking"] = assigned_steps
     else:
+        # For 10-markers (max_marks == 10 or total_pages <= 2), strictly default to 2 body parts (Intro + Part A + Part B + Conclusion)
+        total_p = int(data.get("total_pages", 0) or 0)
+        if max_marks <= 10 or total_p <= 2:
+            num_gen_body = 2
+        else:
+            num_gen_body = 3 if (len(strengths) >= 3 or total_p >= 3) else 2
+        total_body_max = max(1.0, round((max_marks - intro_max - conc_max) * 4) / 4)
+        total_body_aw = max(0.0, round((overall_score - intro_aw - conc_aw) * 4) / 4)
+
+        q_ctx = str(data.get("detected_question") or data.get("question") or "")
+        wf_demanded = _is_way_forward_demanded_by_question(q_ctx)
+        wf_written = _has_candidate_written_way_forward(str(data.get("transcribed_text") or ""))
+
         gen_steps = [
             {
                 "step_label": "1. INTRO & CONTEXT",
@@ -4415,58 +4298,80 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
             }
         ]
 
-        total_body_max = max(1.0, round((max_marks - intro_max - conc_max) * 4) / 4)
-        total_body_aw = max(0.0, round((overall_score - intro_aw - conc_aw) * 4) / 4)
+        if num_gen_body == 3:
+            part_a_m = round(total_body_max * 0.38 * 4) / 4
+            part_b_m = round(total_body_max * 0.38 * 4) / 4
+            part_c_m = max(0.5, round((total_body_max - part_a_m - part_b_m) * 4) / 4)
 
-        if question_demands:
-            num_d = len(question_demands)
-            rem_b_max = total_body_max
-            rem_b_aw = total_body_aw
-            for d_idx, qd in enumerate(question_demands):
-                if d_idx == num_d - 1:
-                    d_max = max(0.5, round(rem_b_max * 4) / 4)
-                    d_aw = max(0.0, min(d_max, round(rem_b_aw * 4) / 4))
-                else:
-                    d_max = qd.get("max_marks", max(1.0, round((total_body_max / num_d) * 4) / 4))
-                    d_aw = min(d_max, max(0.0, round((total_body_aw * (d_max / total_body_max)) * 4) / 4))
-                    rem_b_max = max(0.5, rem_b_max - d_max)
-                    rem_b_aw = max(0.0, rem_b_aw - d_aw)
+            part_a_s = min(part_a_m, round(total_body_aw * 0.38 * 4) / 4)
+            part_b_s = min(part_b_m, round(total_body_aw * 0.38 * 4) / 4)
+            part_c_s = max(0.0, min(part_c_m, round((total_body_aw - part_a_s - part_b_s) * 4) / 4))
 
-                note = str(strengths[d_idx]) if d_idx < len(strengths) else f"Addressed core dimensions for {qd['label']}."
-                lever = str(gaps[d_idx]) if d_idx < len(gaps) else "Substantiate arguments with concrete empirical metrics or case citations."
+            note_a = str(strengths[0]) if len(strengths) > 0 else "Systematically delineated foundational drivers on Page 1."
+            note_b = str(strengths[1]) if len(strengths) > 1 else "Evaluated multidimensional impacts and stakeholder vulnerabilities."
+            if wf_demanded or wf_written:
+                step_c_label = "4. Part C — Policy Roadmap & Safeguards"
+                step_c_sub = "Mitigation Framework & Institutional Governance"
+                step_c_note = str(strengths[2]) if len(strengths) > 2 else (str(gaps[0]) if len(gaps) > 0 else "Formulated actionable policy interventions and institutional safeguards.")
+                step_c_lever = str(gaps[2] if len(gaps) > 2 else "Include an actionable 3-point reform matrix before concluding.")
+            else:
+                step_c_label = "4. Part C — Structural Implications & Impact Analysis"
+                step_c_sub = "Multidimensional Analysis & Key Arguments"
+                step_c_note = str(strengths[2]) if len(strengths) > 2 else (str(gaps[0]) if len(gaps) > 0 else "Evaluated critical dimensions and practical implications across sub-parts.")
+                step_c_lever = str(gaps[2] if len(gaps) > 2 else "Substantiate arguments with 1 concrete case study or institutional report.")
 
-                if is_evaluator_commentary(note):
-                    note = re.sub(r'^[✓✔★⭐•\-*]\s*(?:Demand Met|Demand Fulfilled|Candidate addressed|Accurately covered|Core Argument Evaluated):\s*', '', note, flags=re.IGNORECASE).strip()
-
-                gen_steps.append({
-                    "step_label": f"{d_idx + 2}. {qd['label']}",
-                    "sub_heading": qd.get("sub_heading", "Core Question Dimension"),
-                    "awarded": d_aw,
-                    "max": d_max,
-                    "quoted_written": note,
-                    "step_up_lever": lever
-                })
+            gen_steps.extend([
+                {
+                    "step_label": "2. Part A — Core Drivers & Baseline",
+                    "sub_heading": "Foundational Mechanisms & Driving Factors",
+                    "awarded": part_a_s,
+                    "max": part_a_m,
+                    "quoted_written": note_a,
+                    "step_up_lever": str(gaps[0] if len(gaps) > 0 else "Back primary argument with 1 concrete statistic or benchmark.")
+                },
+                {
+                    "step_label": "3. Part B — Multidimensional Impacts",
+                    "sub_heading": "Sectoral & Ecological Vulnerabilities",
+                    "awarded": part_b_s,
+                    "max": part_b_m,
+                    "quoted_written": note_b,
+                    "step_up_lever": str(gaps[1] if len(gaps) > 1 else "Incorporate empirical case studies from recent reports.")
+                },
+                {
+                    "step_label": step_c_label,
+                    "sub_heading": step_c_sub,
+                    "awarded": part_c_s,
+                    "max": part_c_m,
+                    "quoted_written": step_c_note,
+                    "step_up_lever": step_c_lever
+                }
+            ])
         else:
-            part_a_max = round(total_body_max * 0.55 * 4) / 4
-            part_b_max = round((total_body_max - part_a_max) * 4) / 4
-            part_a_aw = min(part_a_max, round(total_body_aw * 0.55 * 4) / 4)
-            part_b_aw = max(0.0, round((total_body_aw - part_a_aw) * 4) / 4)
+            note_a = str(strengths[0]) if len(strengths) > 0 else "Addressed primary sub-part with structured points on Page 1."
+            note_b = str(strengths[1]) if len(strengths) > 1 else "Covered secondary dimension, policy measures, and impact analysis."
+            if wf_demanded or wf_written:
+                part_b_sub = "Secondary Dimension & Mitigation Measures"
+                part_b_lever = str(gaps[1] if len(gaps) > 1 else "Include a 3-point actionable Way Forward before concluding.")
+            else:
+                part_b_sub = "Secondary Dimension & Structural Implications"
+                part_b_lever = str(gaps[1] if len(gaps) > 1 else "Substantiate secondary dimension with specific empirical data or committee benchmarks.")
+
             gen_steps.extend([
                 {
                     "step_label": "2. CORE DEMAND — PART A",
                     "sub_heading": "Primary Question Dimension & Mechanisms",
                     "awarded": part_a_aw,
                     "max": part_a_max,
-                    "quoted_written": str(strengths[0]) if len(strengths) > 0 else "Addressed primary dimension.",
-                    "step_up_lever": str(gaps[0]) if len(gaps) > 0 else "Back primary argument with 1 concrete statistic or case law."
+                    "quoted_written": note_a,
+                    "step_up_lever": str(gaps[0] if len(gaps) > 0 else "Back primary argument with 1 concrete statistic or case law.")
                 },
                 {
                     "step_label": "3. CORE DEMAND — PART B",
-                    "sub_heading": "Secondary Dimension & Impact Analysis",
+                    "sub_heading": part_b_sub,
                     "awarded": part_b_aw,
                     "max": part_b_max,
-                    "quoted_written": str(strengths[1]) if len(strengths) > 1 else "Covered secondary dimension.",
-                    "step_up_lever": str(gaps[1]) if len(gaps) > 1 else "Substantiate secondary dimension with empirical data."
+                    "quoted_written": note_b,
+                    "step_up_lever": part_b_lever
                 }
             ])
 
@@ -4475,8 +4380,8 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
             "sub_heading": "Closing Vision & Institutional Forward Linkage",
             "awarded": conc_aw,
             "max": conc_max,
-            "quoted_written": str(conc_audit.get("current_critique") or "Closing synthesis formulated at bottom of final page."),
-            "step_up_lever": str(conc_audit.get("model_conclusion_rewrite") or "Anchor final sentence with an authoritative statutory/policy benchmark.")
+            "quoted_written": str(conc_audit.get("current_critique") or "Concluded with a balanced synthesis."),
+            "step_up_lever": str(conc_audit.get("model_conclusion_rewrite") or "Anchor closing sentence in the core institutional mechanism or constitutional principle.")
         })
         data["sub_part_step_marking"] = gen_steps
 
