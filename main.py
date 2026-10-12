@@ -17,7 +17,7 @@ import time
 import hashlib
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Any, Dict
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request, BackgroundTasks
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request, BackgroundTasks, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 import base64
@@ -284,12 +284,18 @@ async def root():
 @app.api_route("/demo-workbench", methods=["GET", "HEAD"])
 @app.api_route("/demo-workbench.html", methods=["GET", "HEAD"])
 async def demo_workbench():
-    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "demo-workbench.html"))
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "static", "demo-workbench.html"),
+        headers={"X-Robots-Tag": "noindex, nofollow"}
+    )
 
 @app.api_route("/demo", methods=["GET", "HEAD"])
 @app.api_route("/demo.html", methods=["GET", "HEAD"])
 async def demo():
-    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "demo.html"))
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "static", "demo.html"),
+        headers={"X-Robots-Tag": "noindex, nofollow"}
+    )
 
 @app.api_route("/about-us", methods=["GET", "HEAD"])
 @app.api_route("/about-us.html", methods=["GET", "HEAD"])
@@ -1270,8 +1276,10 @@ async def api_admin_factory_reset():
 @app.get("/locker")
 @app.get("/history")
 @app.get("/api/user/history")
-async def api_user_history(email: Optional[str] = None, user_id: Optional[str] = None):
+async def api_user_history(email: Optional[str] = None, user_id: Optional[str] = None, response: Optional[Response] = None):
     """Returns list of student's past evaluated answer copies ordered by created_at desc."""
+    if response:
+        response.headers["X-Robots-Tag"] = "noindex, nofollow"
     if email:
         return get_user_evaluations(email)
 

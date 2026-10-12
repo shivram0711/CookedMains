@@ -3,13 +3,20 @@
 
 User-agent: *
 Allow: /
-Allow: /demo
-Allow: /demo-workbench
 Allow: /about-us
 Allow: /contact-us
 Allow: /privacy-policy
 Allow: /terms-and-conditions
-Allow: /locker
+
+# Disallow private user lockers, internal demo tools & workbench
+Disallow: /locker
+Disallow: /locker/
+Disallow: /demo
+Disallow: /demo/
+Disallow: /demo.html
+Disallow: /demo-workbench
+Disallow: /demo-workbench/
+Disallow: /demo-workbench.html
 
 # Disallow private founder command center & sensitive internal system APIs
 Disallow: /admin
@@ -23,15 +30,75 @@ Disallow: /api/auth/
 # Dedicated Search Engine & AI Bot directives
 User-agent: Googlebot
 Allow: /
+Allow: /about-us
+Allow: /contact-us
+Allow: /privacy-policy
+Allow: /terms-and-conditions
+Disallow: /locker
+Disallow: /locker/
+Disallow: /demo
+Disallow: /demo/
+Disallow: /demo.html
+Disallow: /demo-workbench
+Disallow: /demo-workbench/
+Disallow: /demo-workbench.html
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /api/
 
 User-agent: Bingbot
 Allow: /
+Allow: /about-us
+Allow: /contact-us
+Allow: /privacy-policy
+Allow: /terms-and-conditions
+Disallow: /locker
+Disallow: /locker/
+Disallow: /demo
+Disallow: /demo/
+Disallow: /demo.html
+Disallow: /demo-workbench
+Disallow: /demo-workbench/
+Disallow: /demo-workbench.html
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /api/
 
 User-agent: Applebot
 Allow: /
+Allow: /about-us
+Allow: /contact-us
+Allow: /privacy-policy
+Allow: /terms-and-conditions
+Disallow: /locker
+Disallow: /locker/
+Disallow: /demo
+Disallow: /demo/
+Disallow: /demo.html
+Disallow: /demo-workbench
+Disallow: /demo-workbench/
+Disallow: /demo-workbench.html
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /api/
 
 User-agent: GPTBot
 Allow: /
+Allow: /about-us
+Allow: /contact-us
+Allow: /privacy-policy
+Allow: /terms-and-conditions
+Disallow: /locker
+Disallow: /locker/
+Disallow: /demo
+Disallow: /demo/
+Disallow: /demo.html
+Disallow: /demo-workbench
+Disallow: /demo-workbench/
+Disallow: /demo-workbench.html
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /api/
 
 # Sitemaps
 Sitemap: https://cookedmains.com/sitemap-index.xml
