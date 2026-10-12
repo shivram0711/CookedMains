@@ -2346,6 +2346,30 @@ def _build_domain_specific_intro(question_text: str, paper_name: str, existing_t
     q_low = f"{question_text} {existing_text}".lower()
     p_up = str(paper_name or "").upper()
 
+    if is_devanagari_text(question_text) or is_devanagari_text(existing_text):
+        if "GS4" in p_up or "ETHICS" in p_up or any(k in q_low for k in ["नैतिक", "सत्यनिष्ठा", "मूल्य", "प्रशासनिक"]):
+            return (
+                "लोक प्रशासन में नैतिकता प्रशासनिक निर्णयों को **संवैधानिक नैतिकता (Constitutional Morality)** और "
+                "**नोलन समिति के 7 सिद्धांतों** से जोड़ती है, जिससे लोक सेवक सत्यनिष्ठा, निष्पक्षता और सहानुभूति के साथ जनहित को प्राथमिकता दे सकें।"
+            )
+        if "GS2" in p_up or "POLITY" in p_up or any(k in q_low for k in ["संविधान", "न्यायपालिका", "अधिकार", "संसद", "आयोग", "राज्यपाल", "निर्वाचन"]):
+            return (
+                "भारत में संवैधानिक अभिशासन शक्तियों के पृथक्करण और संस्थागत संतुलन पर आधारित है, जो **संवैधानिक नैतिकता** "
+                "तथा **विधि के शासन (Rule of Law)** के माध्यम से मूल अधिकारों एवं सहकारी संघवाद को सुदृढ़ करता है।"
+            )
+        if "GS3" in p_up or any(k in q_low for k in ["अर्थव्यवस्था", "पर्यावरण", "जलवायु", "सुरक्षा", "कृषि", "जीडीपी"]):
+            return (
+                "समावेशी आर्थिक संवृद्धि एवं धारणीय विकास के लिए संरचनात्मक सुधारों, पूंजीगत व्यय के विस्तार तथा "
+                "पर्यावरणीय संतुलन के मध्य रणनीतिक समन्वय अनिवार्य है।"
+            )
+        clean_q = re.sub(r'^(?:चर्चा\s+कीजिए|परीक्षण\s+कीजिए|समीक्षा\s+कीजिए|विश्लेषण\s+कीजिए|प्रकाश\s+डालिए|व्याख्या\s+कीजिए|स्पष्ट\s+कीजिए)\s*', '', question_text, flags=re.I).strip()
+        words = clean_q.split()
+        core_topic = " ".join(words[:6]).rstrip(",;:") if words else "मुख्य विषय"
+        return (
+            f"**{core_topic}** के प्रभावी समाधान हेतु नीतिगत ढांचे, प्रामाणिक साक्ष्यों एवं संस्थागत जवाबदेही का समेकित क्रियान्वयन "
+            f"संवैधानिक मूल्यों के अनुरूप परिणामोन्मुखी शासन सुनिश्चित करता है।"
+        )
+
     if "aspirational" in q_low or ("good governance" in q_low and "district" in q_low):
         return (
             "Launched in 2018 by **NITI Aayog** across 112 underdeveloped districts, the **Aspirational Districts Programme (ADP)** operationalizes the **3Cs strategy** "
@@ -2514,10 +2538,11 @@ def _extract_candidate_headings_from_page(raw_pg_trans: str) -> list:
     return heads
 
 
-def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, question: str = "", paper: str = "") -> Dict[str, Any]:
+def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, question: str = "", paper: str = "", medium: str = "english") -> Dict[str, Any]:
     """
     Enforces 100% mathematical consistency (denominators sum to max_marks, numerators sum to overall_score).
     Embeds the diagram inside the model answer and eliminates cross-subject hallucinations and cross-page margin duplication.
+    Guarantees authentic Hindi medium evaluation if input question/text or medium is Hindi/Devanagari.
     """
     overall_score = float(data.get("overall_score", 4.0 if max_marks == 10 else 6.5))
     data["overall_score"] = round(overall_score, 1)
@@ -2535,11 +2560,30 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
     is_polity = (discipline == "POLITY_GOVERNANCE")
     is_econ = (discipline == "ECONOMY_DEVELOPMENT")
 
+    # Comprehensive Hindi Medium detection:
+    is_hindi = bool(
+        data.get("is_hindi") or
+        str(data.get("medium") or "").lower() in ("hindi", "hi", "हिंदी") or
+        str(medium).lower() in ("hindi", "hi", "हिंदी") or
+        is_devanagari_text(resolved_q) or
+        is_devanagari_text(str(data.get("transcribed_text") or "")) or
+        is_devanagari_text(str(data.get("full_model_answer") or ""))
+    )
+    if is_hindi:
+        data["is_hindi"] = True
+        data["medium"] = "hindi"
+    else:
+        data["is_hindi"] = False
+        if not data.get("medium"):
+            data["medium"] = "english"
+
     trans_corpus = str(data.get("transcribed_text") or "").lower()
     has_dates_in_transcript = bool(re.search(r'\b(?:\d{3,4}(?:s|\s*(?:ad|bc|bce|ce))?|\d{1,2}(?:th|st|nd|rd)\s*century)\b', trans_corpus))
 
     def _sanitize_annotation_remark(rem_text: str, tag_str: str) -> str:
         if not rem_text:
+            return rem_text
+        if is_hindi or is_devanagari_text(rem_text):
             return rem_text
         t_low = tag_str.lower()
         clean = rem_text
@@ -2864,7 +2908,20 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
 
             # 5. Dynamic subject-anchored upgrade lever if still under 2 bullets
             if len(bullets) < 2:
-                if is_polity:
+                if is_hindi:
+                    if is_polity:
+                        _add_unique_bullet(bullets, "**संस्थागत मूल्य संवर्धन (Value Addition)**: द्वितीय प्रशासनिक सुधार आयोग (2nd ARC), विधि आयोग रिपोर्ट या सर्वोच्च न्यायालय के संवैधानिक मानकों से तर्क को पुष्ट करें।", "✎")
+                    elif is_econ:
+                        _add_unique_bullet(bullets, "**आर्थिक एवं तथ्यपरक विश्लेषण (Empirical Depth)**: नीति आयोग सूचकांकों, आर्थिक सर्वेक्षण और आधिकारिक बजटीय आंकड़ों से उत्तर को पुष्ट करें।", "✎")
+                    elif is_history_culture:
+                        _add_unique_bullet(bullets, "**ऐतिहासिक व सांस्कृतिक प्रमाण (Historical Depth)**: प्राथमिक ऐतिहासिक स्रोतों, अभिलेखीय साक्ष्यों या दार्शनिक ग्रंथों का उल्लेख करें।", "✎")
+                    elif is_geo:
+                        _add_unique_bullet(bullets, "**भौगोलिक व स्थानिक आयाम (Spatial Nuance)**: एनडीएमए (NDMA) दिशानिर्देशों, सेंदाई फ्रेमवर्क या स्पष्ट मानचित्र/आरेख का समावेश करें।", "✎")
+                    elif is_ethics:
+                        _add_unique_bullet(bullets, "**नैतिक एवं प्रशासनिक मूल्य (Ethical Depth)**: 2nd ARC (शासन में नैतिकता), नोलन सिद्धांतों या गांधीवादी अंत्योदय के दर्शन से जोड़ें।", "✎")
+                    else:
+                        _add_unique_bullet(bullets, "**मानक शब्दावली एवं सुधार (Actionable Upgrade)**: आधिकारिक आयोगों की अनुशंसाओं और सांविधिक प्रावधानों के साथ तर्कों को पुष्ट करें।", "✎")
+                elif is_polity:
                     _add_unique_bullet(bullets, "**Institutional Value Addition**: Substantiate with specific recommendations from 2nd ARC, Law Commission reports, or Supreme Court constitutional benchmarks.", "✎")
                 elif is_econ:
                     _add_unique_bullet(bullets, "**Empirical Depth**: Substantiate points with official economic telemetry, NITI Aayog indices, or statutory compliance frameworks.", "✎")
@@ -4019,19 +4076,19 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         if not data["directive_compliance"].get("directive") or data["directive_compliance"].get("directive") == "Discuss / Comprehensive Analysis":
             data["directive_compliance"]["directive"] = d_info["directive"]
 
-    # 7. Zero-Contradiction Audit & Plain-English Simplification across all feedback fields
-    _sanitize_and_simplify_feedback(data)
+    # 7. Zero-Contradiction Audit & Plain-English / Hindi Simplification across all feedback fields
+    _sanitize_and_simplify_feedback(data, is_hindi=is_hindi)
 
     # 8. Batch 1 Examiner Mastery: Mathematically lock Sub-Part Step-Marking & Point-by-Point Handwritten Audit
-    _normalize_batch1_examiner_mastery(data, max_marks)
+    _normalize_batch1_examiner_mastery(data, max_marks, is_hindi=is_hindi)
 
     # 9. UPSC Exam-Hall Discipline & Transparent Micro-Marking Normalization
-    _normalize_exam_hall_discipline_and_micro_marking(data, max_marks, final_question, effective_paper)
+    _normalize_exam_hall_discipline_and_micro_marking(data, max_marks, final_question, effective_paper, is_hindi=is_hindi)
 
     return data
 
 
-def _normalize_exam_hall_discipline_and_micro_marking(data: Dict[str, Any], max_marks: int, question: str, paper: str) -> None:
+def _normalize_exam_hall_discipline_and_micro_marking(data: Dict[str, Any], max_marks: int, question: str, paper: str, is_hindi: bool = False) -> None:
     """
     Computes exact exam-hall discipline metrics:
     1. Word count & time pacing penalty: estimated handwriting speed (~22 wpm) and impact on Q19/Q20.
@@ -4068,37 +4125,69 @@ def _normalize_exam_hall_discipline_and_micro_marking(data: Dict[str, Any], max_
     word_pct = round((cand_word_count / max(1, prescribed_limit)) * 100)
 
     if cand_word_count > prescribed_limit * 1.25:
-        word_status = f"Over Limit (+{word_pct - 100}%)"
         risk_level = "HIGH_TIME_RISK"
-        hall_warning = (
-            f"Writing ~{cand_word_count} words requires ~{est_writing_time} mins against the strict {allotted_mins}-minute ceiling. "
-            f"This surplus {time_diff} minutes is directly stolen from final questions (Q19/Q20), guaranteeing incomplete answers or lost 10–15 marks. "
-            f"In UPSC Mains, completing all 20 questions in 140–150 words beats over-writing on early questions."
-        )
+        if is_hindi:
+            word_status = f"सीमा से अधिक (+{word_pct - 100}%)"
+            hall_warning = (
+                f"लगभग {cand_word_count} शब्द लिखने में लगभग {est_writing_time} मिनट लगे, जबकि निर्धारित समय सीमा {allotted_mins} मिनट है। "
+                f"यह अतिरिक्त {time_diff} मिनट अंतिम प्रश्नों (Q19/Q20) के समय से कटेंगे, जिससे 10–15 अंकों का नुकसान हो सकता है। "
+                f"UPSC मुख्य परीक्षा में सभी 20 प्रश्नों को संतुलित 140–150 शब्दों में हल करना शुरुआती प्रश्नों में अधिक लिखने से कहीं अधिक अंक दिलाता है।"
+            )
+        else:
+            word_status = f"Over Limit (+{word_pct - 100}%)"
+            hall_warning = (
+                f"Writing ~{cand_word_count} words requires ~{est_writing_time} mins against the strict {allotted_mins}-minute ceiling. "
+                f"This surplus {time_diff} minutes is directly stolen from final questions (Q19/Q20), guaranteeing incomplete answers or lost 10–15 marks. "
+                f"In UPSC Mains, completing all 20 questions in 140–150 words beats over-writing on early questions."
+            )
     elif cand_word_count > prescribed_limit * 1.10:
-        word_status = f"Slightly Over (+{word_pct - 100}%)"
         risk_level = "MODERATE_RISK"
-        hall_warning = (
-            f"At ~{cand_word_count} words, you spent ~{est_writing_time} mins ({time_diff} mins over budget). "
-            f"Prune descriptive filler to stay under {prescribed_limit} words so you don't accumulate time pressure in the final hour."
-        )
+        if is_hindi:
+            word_status = f"हल्का अधिक (+{word_pct - 100}%)"
+            hall_warning = (
+                f"लगभग {cand_word_count} शब्दों में आपने लगभग {est_writing_time} मिनट खर्च किए ({time_diff} मिनट अधिक)। "
+                f"वर्णनात्मक विवरणों को संक्षिप्त करें ताकि {prescribed_limit} शब्दों की सीमा में रहें और अंतिम घंटे में समय का दबाव न बने।"
+            )
+        else:
+            word_status = f"Slightly Over (+{word_pct - 100}%)"
+            hall_warning = (
+                f"At ~{cand_word_count} words, you spent ~{est_writing_time} mins ({time_diff} mins over budget). "
+                f"Prune descriptive filler to stay under {prescribed_limit} words so you don't accumulate time pressure in the final hour."
+            )
     elif cand_word_count < prescribed_limit * 0.70:
-        word_status = f"Under Budget (-{100 - word_pct}%)"
         risk_level = "UNDER_LENGTH"
-        hall_warning = (
-            f"At only ~{cand_word_count} words, you left ~{100 - word_pct}% of the prescribed QCAB space unfilled. "
-            f"UPSC evaluators penalize thin content density. Aim for {int(prescribed_limit * 0.88)}–{prescribed_limit} words using point-wise dimensions and a 30-second diagram."
-        )
+        if is_hindi:
+            word_status = f"सीमा से कम (-{100 - word_pct}%)"
+            hall_warning = (
+                f"केवल ~{cand_word_count} शब्दों में, आपने निर्धारित उत्तर पुस्तिका (QCAB) का लगभग {100 - word_pct}% स्थान खाली छोड़ दिया। "
+                f"कम विषय-सामग्री पर अंक कटते हैं। बिंदुवार आयामों और 30-सेकंड के आरेख के साथ {int(prescribed_limit * 0.88)}–{prescribed_limit} शब्द लिखने का प्रयास करें।"
+            )
+        else:
+            word_status = f"Under Budget (-{100 - word_pct}%)"
+            hall_warning = (
+                f"At only ~{cand_word_count} words, you left ~{100 - word_pct}% of the prescribed QCAB space unfilled. "
+                f"UPSC evaluators penalize thin content density. Aim for {int(prescribed_limit * 0.88)}–{prescribed_limit} words using point-wise dimensions and a 30-second diagram."
+            )
     else:
-        word_status = f"Optimal ({cand_word_count}/{prescribed_limit}w)"
         risk_level = "BALANCED"
-        hall_warning = (
-            f"Excellent exam pacing! ~{cand_word_count} words written in ~{est_writing_time} mins fits comfortably within the {allotted_mins}-minute target, "
-            f"leaving ample reserve to finish all 20 questions without panic."
-        )
+        if is_hindi:
+            word_status = f"संतुलित ({cand_word_count}/{prescribed_limit} शब्द)"
+            hall_warning = (
+                f"शानदार समय प्रबंधन! लगभग {cand_word_count} शब्द ~{est_writing_time} मिनट में लिखना {allotted_mins} मिनट के लक्ष्य के अनुकूल है, "
+                f"जिससे सभी 20 प्रश्नों को बिना किसी तनाव के पूरा करने का पर्याप्त समय मिलता है।"
+            )
+        else:
+            word_status = f"Optimal ({cand_word_count}/{prescribed_limit}w)"
+            hall_warning = (
+                f"Excellent exam pacing! ~{cand_word_count} words written in ~{est_writing_time} mins fits comfortably within the {allotted_mins}-minute target, "
+                f"leaving ample reserve to finish all 20 questions without panic."
+            )
 
     has_margin_bleed = any("margin" in str(a.get("remark", "")).lower() for a in data.get("visual_annotations", []))
-    margin_status = "Margin Intrusion Detected (-0.5M Risk)" if has_margin_bleed else "QCAB Compliant (Margins Respected)"
+    if is_hindi:
+        margin_status = "हाशिया उल्लंघन (Margin Intrusion -0.5M जोखिम)" if has_margin_bleed else "QCAB मानक अनुपालन (हाशिया सुरक्षित)"
+    else:
+        margin_status = "Margin Intrusion Detected (-0.5M Risk)" if has_margin_bleed else "QCAB Compliant (Margins Respected)"
 
     data["upsc_exam_hall_discipline"] = {
         "estimated_word_count": cand_word_count,
@@ -4126,14 +4215,24 @@ def _normalize_exam_hall_discipline_and_micro_marking(data: Dict[str, Any], max_
     conc_aw = float(rubric.get("conclusion_score", 0.5) or 0.5)
     conc_max = float(rubric.get("conclusion_max", 1.5 if max_marks == 10 else 2.0) or (1.5 if max_marks == 10 else 2.0))
 
-    formula_str = (
-        f"Intro ({intro_aw:.1f}/{intro_max:.1f}) + "
-        f"Core ({core_aw:.1f}/{core_max:.1f}) + "
-        f"Value ({val_aw:.1f}/{val_max:.1f}) + "
-        f"Pres ({pres_aw:.1f}/{pres_max:.1f}) + "
-        f"Conc ({conc_aw:.1f}/{conc_max:.1f}) = "
-        f"{overall_score:.1f} / {max_marks}.0"
-    )
+    if is_hindi:
+        formula_str = (
+            f"प्रस्तावना ({intro_aw:.1f}/{intro_max:.1f}) + "
+            f"मुख्य भाग ({core_aw:.1f}/{core_max:.1f}) + "
+            f"मूल्य संवर्धन ({val_aw:.1f}/{val_max:.1f}) + "
+            f"प्रस्तुतिकरण ({pres_aw:.1f}/{pres_max:.1f}) + "
+            f"निष्कर्ष ({conc_aw:.1f}/{conc_max:.1f}) = "
+            f"{overall_score:.1f} / {max_marks}.0 अंक"
+        )
+    else:
+        formula_str = (
+            f"Intro ({intro_aw:.1f}/{intro_max:.1f}) + "
+            f"Core ({core_aw:.1f}/{core_max:.1f}) + "
+            f"Value ({val_aw:.1f}/{val_max:.1f}) + "
+            f"Pres ({pres_aw:.1f}/{pres_max:.1f}) + "
+            f"Conc ({conc_aw:.1f}/{conc_max:.1f}) = "
+            f"{overall_score:.1f} / {max_marks}.0"
+        )
 
     data["micro_marking_arithmetic"] = {
         "formula_display": formula_str,
@@ -4175,13 +4274,15 @@ def _normalize_exam_hall_discipline_and_micro_marking(data: Dict[str, Any], max_
         data["full_model_answer"] = model_ans
 
 
-def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> None:
+def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10, is_hindi: bool = False) -> None:
     """
+    Guarantees mathematically locked Batch 1 Examiner Mastery metrics.
     Ensures that:
     1. data['sub_part_step_marking'] has 4 structured sub-parts (Intro, Part A, Part B, Conclusion)
        whose 'max' sum equals max_marks and whose 'awarded' sum equals overall_score (to 0.25M precision).
     2. data['point_by_point_audit'] has 4 authentic, non-generic handwritten point checks derived from
        the candidate's actual points, visual annotations, and body strengths/gaps.
+    3. If is_hindi is True, outputs authentic Devanagari Hindi labels and sub-headings with standard English acronyms.
     """
     if not isinstance(data, dict):
         return
@@ -4246,13 +4347,13 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
         for idx in range(num_steps):
             item = existing_steps[idx] if isinstance(existing_steps[idx], dict) else {}
             if idx == 0:
-                item["step_label"] = item.get("step_label") or "1. INTRO & CONTEXT"
-                item["sub_heading"] = item.get("sub_heading") or "Opening Premise & Conceptual Anchor"
+                item["step_label"] = item.get("step_label") or ("1. प्रस्तावना एवं संदर्भ (Intro & Context)" if is_hindi else "1. INTRO & CONTEXT")
+                item["sub_heading"] = item.get("sub_heading") or ("प्रारंभिक विषय-परिचय एवं अवधारणात्मक आधार" if is_hindi else "Opening Premise & Conceptual Anchor")
                 item["max"] = intro_max
                 item["awarded"] = intro_aw
             elif idx == num_steps - 1:
-                item["step_label"] = item.get("step_label") or f"{num_steps}. CONCLUSION & SYNTHESIS"
-                item["sub_heading"] = item.get("sub_heading") or "Closing Vision & Institutional Forward Linkage"
+                item["step_label"] = item.get("step_label") or (f"{num_steps}. निष्कर्ष एवं आगे की राह (Conclusion & Way Forward)" if is_hindi else f"{num_steps}. CONCLUSION & SYNTHESIS")
+                item["sub_heading"] = item.get("sub_heading") or ("अग्रगामी समाधान एवं संस्थागत समन्वय" if is_hindi else "Closing Vision & Institutional Forward Linkage")
                 item["max"] = conc_max
                 item["awarded"] = conc_aw
             else:
@@ -4260,15 +4361,26 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
                 part_letter = chr(65 + body_idx)
                 raw_sl = str(item.get("step_label") or "").strip()
                 clean_sl = re.sub(r'^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*)+', '', raw_sl, flags=re.IGNORECASE).strip()
-                item["step_label"] = f"{idx + 1}. Part {part_letter} — {clean_sl}" if clean_sl else f"{idx + 1}. Part {part_letter} — Question Dimension {part_letter}"
+                if is_hindi:
+                    item["step_label"] = f"{idx + 1}. मुख्य भाग — आयाम {part_letter} ({clean_sl})" if clean_sl else f"{idx + 1}. मुख्य भाग — आयाम {part_letter}"
+                else:
+                    item["step_label"] = f"{idx + 1}. Part {part_letter} — {clean_sl}" if clean_sl else f"{idx + 1}. Part {part_letter} — Question Dimension {part_letter}"
                 raw_sh = str(item.get("sub_heading") or "")
                 if not raw_sh or "explain what" in raw_sh.lower():
-                    if body_idx == 0:
-                        item["sub_heading"] = "Core Analytical Demand & Structural Drivers"
-                    elif body_idx == 1:
-                        item["sub_heading"] = "Multidimensional Impacts & Ground Vulnerabilities"
+                    if is_hindi:
+                        if body_idx == 0:
+                            item["sub_heading"] = "मुख्य मांग का विश्लेषण एवं प्राथमिक कारक"
+                        elif body_idx == 1:
+                            item["sub_heading"] = "बहुआयामी प्रभाव एवं क्षेत्रीय/हितधारक चुनौतियां"
+                        else:
+                            item["sub_heading"] = "नीतिगत हस्तक्षेप एवं सांविधिक सुधार" if (wf_demanded or wf_written) else "संरचनात्मक प्रभाव एवं संस्थागत मूल्यांकन"
                     else:
-                        item["sub_heading"] = "Actionable Policy Interventions & Regulatory Safeguards" if (wf_demanded or wf_written) else "Structural Implications & Institutional Analysis"
+                        if body_idx == 0:
+                            item["sub_heading"] = "Core Analytical Demand & Structural Drivers"
+                        elif body_idx == 1:
+                            item["sub_heading"] = "Multidimensional Impacts & Ground Vulnerabilities"
+                        else:
+                            item["sub_heading"] = "Actionable Policy Interventions & Regulatory Safeguards" if (wf_demanded or wf_written) else "Structural Implications & Institutional Analysis"
                 item["max"] = body_max_list[body_idx] if body_idx < len(body_max_list) else 2.0
                 item["awarded"] = body_aw_list[body_idx] if body_idx < len(body_aw_list) else 1.0
             assigned_steps.append(item)
@@ -4287,14 +4399,17 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
         wf_demanded = _is_way_forward_demanded_by_question(q_ctx)
         wf_written = _has_candidate_written_way_forward(str(data.get("transcribed_text") or ""))
 
+        intro_def_note = "पृष्ठ 1 पर विषय का प्रारंभिक संदर्भ प्रस्तुत किया गया।" if is_hindi else "Opening context established on Page 1."
+        intro_def_lever = "प्रथम पंक्ति में संवैधानिक अनुच्छेद, आधिकारिक रिपोर्ट या मानक सूचकांक का संदर्भ जोड़ें।" if is_hindi else "Anchor line 1 with an official report, constitutional article, or index."
+
         gen_steps = [
             {
-                "step_label": "1. INTRO & CONTEXT",
-                "sub_heading": "Opening Premise & Conceptual Anchor",
+                "step_label": "1. प्रस्तावना एवं संदर्भ (Intro & Context)" if is_hindi else "1. INTRO & CONTEXT",
+                "sub_heading": "प्रारंभिक विषय-परिचय एवं अवधारणात्मक आधार" if is_hindi else "Opening Premise & Conceptual Anchor",
                 "awarded": intro_aw,
                 "max": intro_max,
-                "quoted_written": str(intro_audit.get("current_critique") or "Opening context established on Page 1."),
-                "step_up_lever": str(intro_audit.get("model_intro_rewrite") or "Anchor line 1 with an official report, constitutional article, or index.")
+                "quoted_written": str(intro_audit.get("current_critique") or intro_def_note),
+                "step_up_lever": str(intro_audit.get("model_intro_rewrite") or intro_def_lever)
             }
         ]
 
@@ -4307,81 +4422,154 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int) -> 
             part_b_s = min(part_b_m, round(total_body_aw * 0.38 * 4) / 4)
             part_c_s = max(0.0, min(part_c_m, round((total_body_aw - part_a_s - part_b_s) * 4) / 4))
 
-            note_a = str(strengths[0]) if len(strengths) > 0 else "Systematically delineated foundational drivers on Page 1."
-            note_b = str(strengths[1]) if len(strengths) > 1 else "Evaluated multidimensional impacts and stakeholder vulnerabilities."
-            if wf_demanded or wf_written:
-                step_c_label = "4. Part C — Policy Roadmap & Safeguards"
-                step_c_sub = "Mitigation Framework & Institutional Governance"
-                step_c_note = str(strengths[2]) if len(strengths) > 2 else (str(gaps[0]) if len(gaps) > 0 else "Formulated actionable policy interventions and institutional safeguards.")
-                step_c_lever = str(gaps[2] if len(gaps) > 2 else "Include an actionable 3-point reform matrix before concluding.")
-            else:
-                step_c_label = "4. Part C — Structural Implications & Impact Analysis"
-                step_c_sub = "Multidimensional Analysis & Key Arguments"
-                step_c_note = str(strengths[2]) if len(strengths) > 2 else (str(gaps[0]) if len(gaps) > 0 else "Evaluated critical dimensions and practical implications across sub-parts.")
-                step_c_lever = str(gaps[2] if len(gaps) > 2 else "Substantiate arguments with 1 concrete case study or institutional report.")
+            if is_hindi:
+                note_a = str(strengths[0]) if len(strengths) > 0 else "पृष्ठ 1 पर प्राथमिक आयामों का बिंदुवार व संरचित निरूपण किया गया।"
+                note_b = str(strengths[1]) if len(strengths) > 1 else "बहुआयामी प्रभावों व संबंधित पक्षकारों की चुनौतियों का परीक्षण किया गया।"
+                if wf_demanded or wf_written:
+                    step_c_label = "4. मुख्य भाग — आयाम C (नीतिगत रोडमैप व समाधान)"
+                    step_c_sub = "शमन कार्ययोजना एवं संस्थागत शासन व्यवस्था"
+                    step_c_note = str(strengths[2]) if len(strengths) > 2 else (str(gaps[0]) if len(gaps) > 0 else "व्यावहारिक नीतिगत हस्तक्षेप एवं संस्थागत सुरक्षा उपाय प्रस्तुत किए।")
+                    step_c_lever = str(gaps[2] if len(gaps) > 2 else "निष्कर्ष से पहले 3-बिंदुवार सुधारात्मक मैट्रिक्स जोड़ें।")
+                else:
+                    step_c_label = "4. मुख्य भाग — आयाम C (संरचनात्मक प्रभाव व संस्थागत विश्लेषण)"
+                    step_c_sub = "बहुआयामी विश्लेषण एवं प्रमुख प्रशासनिक तर्क"
+                    step_c_note = str(strengths[2]) if len(strengths) > 2 else (str(gaps[0]) if len(gaps) > 0 else "महत्वपूर्ण आयामों व व्यावहारिक प्रभावों का परीक्षण किया।")
+                    step_c_lever = str(gaps[2] if len(gaps) > 2 else "तर्कों को 1 ठोस केस स्टडी या संस्थागत रिपोर्ट से पुष्ट करें।")
 
-            gen_steps.extend([
-                {
-                    "step_label": "2. Part A — Core Drivers & Baseline",
-                    "sub_heading": "Foundational Mechanisms & Driving Factors",
-                    "awarded": part_a_s,
-                    "max": part_a_m,
-                    "quoted_written": note_a,
-                    "step_up_lever": str(gaps[0] if len(gaps) > 0 else "Back primary argument with 1 concrete statistic or benchmark.")
-                },
-                {
-                    "step_label": "3. Part B — Multidimensional Impacts",
-                    "sub_heading": "Sectoral & Ecological Vulnerabilities",
-                    "awarded": part_b_s,
-                    "max": part_b_m,
-                    "quoted_written": note_b,
-                    "step_up_lever": str(gaps[1] if len(gaps) > 1 else "Incorporate empirical case studies from recent reports.")
-                },
-                {
-                    "step_label": step_c_label,
-                    "sub_heading": step_c_sub,
-                    "awarded": part_c_s,
-                    "max": part_c_m,
-                    "quoted_written": step_c_note,
-                    "step_up_lever": step_c_lever
-                }
-            ])
+                gen_steps.extend([
+                    {
+                        "step_label": "2. मुख्य भाग — आयाम A (मूल कारण व आधारभूत संरचना)",
+                        "sub_heading": "आधारभूत तंत्र एवं प्रेरक कारक (Core Drivers)",
+                        "awarded": part_a_s,
+                        "max": part_a_m,
+                        "quoted_written": note_a,
+                        "step_up_lever": str(gaps[0] if len(gaps) > 0 else "प्राथमिक तर्क को 1 आधिकारिक आंकड़े या समिति रिपोर्ट से पुष्ट करें।")
+                    },
+                    {
+                        "step_label": "3. मुख्य भाग — आयाम B (बहुआयामी प्रभाव व चुनौतियां)",
+                        "sub_heading": "क्षेत्रीय व पारिस्थितिक संवेदनशीलता (Impact Analysis)",
+                        "awarded": part_b_s,
+                        "max": part_b_m,
+                        "quoted_written": note_b,
+                        "step_up_lever": str(gaps[1] if len(gaps) > 1 else "हाल की रिपोर्टों से प्रासंगिक व्यावहारिक उदाहरण जोड़ें।")
+                    },
+                    {
+                        "step_label": step_c_label,
+                        "sub_heading": step_c_sub,
+                        "awarded": part_c_s,
+                        "max": part_c_m,
+                        "quoted_written": step_c_note,
+                        "step_up_lever": step_c_lever
+                    }
+                ])
+            else:
+                note_a = str(strengths[0]) if len(strengths) > 0 else "Systematically delineated foundational drivers on Page 1."
+                note_b = str(strengths[1]) if len(strengths) > 1 else "Evaluated multidimensional impacts and stakeholder vulnerabilities."
+                if wf_demanded or wf_written:
+                    step_c_label = "4. Part C — Policy Roadmap & Safeguards"
+                    step_c_sub = "Mitigation Framework & Institutional Governance"
+                    step_c_note = str(strengths[2]) if len(strengths) > 2 else (str(gaps[0]) if len(gaps) > 0 else "Formulated actionable policy interventions and institutional safeguards.")
+                    step_c_lever = str(gaps[2] if len(gaps) > 2 else "Include an actionable 3-point reform matrix before concluding.")
+                else:
+                    step_c_label = "4. Part C — Structural Implications & Impact Analysis"
+                    step_c_sub = "Multidimensional Analysis & Key Arguments"
+                    step_c_note = str(strengths[2]) if len(strengths) > 2 else (str(gaps[0]) if len(gaps) > 0 else "Evaluated critical dimensions and practical implications across sub-parts.")
+                    step_c_lever = str(gaps[2] if len(gaps) > 2 else "Substantiate arguments with 1 concrete case study or institutional report.")
+
+                gen_steps.extend([
+                    {
+                        "step_label": "2. Part A — Core Drivers & Baseline",
+                        "sub_heading": "Foundational Mechanisms & Driving Factors",
+                        "awarded": part_a_s,
+                        "max": part_a_m,
+                        "quoted_written": note_a,
+                        "step_up_lever": str(gaps[0] if len(gaps) > 0 else "Back primary argument with 1 concrete statistic or benchmark.")
+                    },
+                    {
+                        "step_label": "3. Part B — Multidimensional Impacts",
+                        "sub_heading": "Sectoral & Ecological Vulnerabilities",
+                        "awarded": part_b_s,
+                        "max": part_b_m,
+                        "quoted_written": note_b,
+                        "step_up_lever": str(gaps[1] if len(gaps) > 1 else "Incorporate empirical case studies from recent reports.")
+                    },
+                    {
+                        "step_label": step_c_label,
+                        "sub_heading": step_c_sub,
+                        "awarded": part_c_s,
+                        "max": part_c_m,
+                        "quoted_written": step_c_note,
+                        "step_up_lever": step_c_lever
+                    }
+                ])
         else:
-            note_a = str(strengths[0]) if len(strengths) > 0 else "Addressed primary sub-part with structured points on Page 1."
-            note_b = str(strengths[1]) if len(strengths) > 1 else "Covered secondary dimension, policy measures, and impact analysis."
-            if wf_demanded or wf_written:
-                part_b_sub = "Secondary Dimension & Mitigation Measures"
-                part_b_lever = str(gaps[1] if len(gaps) > 1 else "Include a 3-point actionable Way Forward before concluding.")
-            else:
-                part_b_sub = "Secondary Dimension & Structural Implications"
-                part_b_lever = str(gaps[1] if len(gaps) > 1 else "Substantiate secondary dimension with specific empirical data or committee benchmarks.")
+            if is_hindi:
+                note_a = str(strengths[0]) if len(strengths) > 0 else "पृष्ठ 1 पर प्राथमिक उप-भाग को संरचित बिंदुओं के साथ संबोधित किया।"
+                note_b = str(strengths[1]) if len(strengths) > 1 else "द्वितीयक आयाम, नीतिगत उपाय एवं प्रभाव विश्लेषण का समावेश किया।"
+                if wf_demanded or wf_written:
+                    part_b_sub = "द्वितीयक आयाम एवं शमन उपाय (Mitigation Measures)"
+                    part_b_lever = str(gaps[1] if len(gaps) > 1 else "निष्कर्ष से पहले 3-बिंदुवार ठोस 'आगे की राह' (Way Forward) जोड़ें।")
+                else:
+                    part_b_sub = "द्वितीयक आयाम एवं संरचनात्मक निहितार्थ"
+                    part_b_lever = str(gaps[1] if len(gaps) > 1 else "तर्कों को विशिष्ट समिति रिपोर्ट या आधिकारिक आंकड़ों से पुष्ट करें।")
 
-            gen_steps.extend([
-                {
-                    "step_label": "2. CORE DEMAND — PART A",
-                    "sub_heading": "Primary Question Dimension & Mechanisms",
-                    "awarded": part_a_aw,
-                    "max": part_a_max,
-                    "quoted_written": note_a,
-                    "step_up_lever": str(gaps[0] if len(gaps) > 0 else "Back primary argument with 1 concrete statistic or case law.")
-                },
-                {
-                    "step_label": "3. CORE DEMAND — PART B",
-                    "sub_heading": part_b_sub,
-                    "awarded": part_b_aw,
-                    "max": part_b_max,
-                    "quoted_written": note_b,
-                    "step_up_lever": part_b_lever
-                }
-            ])
+                gen_steps.extend([
+                    {
+                        "step_label": "2. मुख्य मांग — प्रथम आयाम (Core Demand Part A)",
+                        "sub_heading": "प्रश्न का प्राथमिक आयाम एवं अंतर्निहित तंत्र",
+                        "awarded": part_a_aw,
+                        "max": part_a_max,
+                        "quoted_written": note_a,
+                        "step_up_lever": str(gaps[0] if len(gaps) > 0 else "प्राथमिक तर्क को 1 ठोस आंकड़े या न्यायिक निर्णय से पुष्ट करें।")
+                    },
+                    {
+                        "step_label": "3. मुख्य मांग — द्वितीय आयाम (Core Demand Part B)",
+                        "sub_heading": part_b_sub,
+                        "awarded": part_b_aw,
+                        "max": part_b_max,
+                        "quoted_written": note_b,
+                        "step_up_lever": part_b_lever
+                    }
+                ])
+            else:
+                note_a = str(strengths[0]) if len(strengths) > 0 else "Addressed primary sub-part with structured points on Page 1."
+                note_b = str(strengths[1]) if len(strengths) > 1 else "Covered secondary dimension, policy measures, and impact analysis."
+                if wf_demanded or wf_written:
+                    part_b_sub = "Secondary Dimension & Mitigation Measures"
+                    part_b_lever = str(gaps[1] if len(gaps) > 1 else "Include a 3-point actionable Way Forward before concluding.")
+                else:
+                    part_b_sub = "Secondary Dimension & Structural Implications"
+                    part_b_lever = str(gaps[1] if len(gaps) > 1 else "Substantiate secondary dimension with specific empirical data or committee benchmarks.")
+
+                gen_steps.extend([
+                    {
+                        "step_label": "2. CORE DEMAND — PART A",
+                        "sub_heading": "Primary Question Dimension & Mechanisms",
+                        "awarded": part_a_aw,
+                        "max": part_a_max,
+                        "quoted_written": note_a,
+                        "step_up_lever": str(gaps[0] if len(gaps) > 0 else "Back primary argument with 1 concrete statistic or case law.")
+                    },
+                    {
+                        "step_label": "3. CORE DEMAND — PART B",
+                        "sub_heading": part_b_sub,
+                        "awarded": part_b_aw,
+                        "max": part_b_max,
+                        "quoted_written": note_b,
+                        "step_up_lever": part_b_lever
+                    }
+                ])
+
+        conc_def_note = "संतुलित एवं अग्रगामी दृष्टि के साथ उत्तर का समापन किया गया।" if is_hindi else "Concluded with a balanced synthesis."
+        conc_def_lever = "अंतिम वाक्य को मुख्य संस्थागत तंत्र या संवैधानिक सिद्धांत से पुष्ट करें।" if is_hindi else "Anchor closing sentence in the core institutional mechanism or constitutional principle."
 
         gen_steps.append({
-            "step_label": f"{len(gen_steps) + 1}. CONCLUSION & SYNTHESIS",
-            "sub_heading": "Closing Vision & Institutional Forward Linkage",
+            "step_label": f"{len(gen_steps) + 1}. निष्कर्ष एवं आगे की राह (Conclusion & Way Forward)" if is_hindi else f"{len(gen_steps) + 1}. CONCLUSION & SYNTHESIS",
+            "sub_heading": "अग्रगामी समाधान एवं संस्थागत समन्वय" if is_hindi else "Closing Vision & Institutional Forward Linkage",
             "awarded": conc_aw,
             "max": conc_max,
-            "quoted_written": str(conc_audit.get("current_critique") or "Concluded with a balanced synthesis."),
-            "step_up_lever": str(conc_audit.get("model_conclusion_rewrite") or "Anchor closing sentence in the core institutional mechanism or constitutional principle.")
+            "quoted_written": str(conc_audit.get("current_critique") or conc_def_note),
+            "step_up_lever": str(conc_audit.get("model_conclusion_rewrite") or conc_def_lever)
         })
         data["sub_part_step_marking"] = gen_steps
 
@@ -4425,6 +4613,28 @@ def extract_model_answer_conclusion(model_ans: str) -> str:
 def _build_domain_specific_conclusion(question_text: str, paper_name: str, existing_text: str = "") -> str:
     q_low = f"{question_text} {existing_text}".lower()
     p_up = str(paper_name or "").upper()
+
+    if is_devanagari_text(question_text) or is_devanagari_text(existing_text):
+        if "GS4" in p_up or "ETHICS" in p_up or any(k in q_low for k in ["नैतिक", "सत्यनिष्ठा", "मूल्य"]):
+            return (
+                "प्रशासनिक निर्णयों को **संवैधानिक नैतिकता**, **नोलन समिति के सिद्धांतों (सत्यनिष्ठा, निष्पक्षता, जवाबदेही)** "
+                "तथा **गांधीवादी अंत्योदय** से जोड़ना लोक सेवकों को नैतिक दुविधाओं का संवेदनशील समाधान करने में सक्षम बनाता है।"
+            )
+        if "GS2" in p_up or "POLITY" in p_up or any(k in q_low for k in ["संविधान", "न्यायपालिका", "अधिकार", "संसद", "आयोग", "राज्यपाल"]):
+            return (
+                "**अनुच्छेद 13** के न्यायिक पुनरावलोकन, **अनुच्छेद 50** के शक्ति-पृथक्करण एवं **संवैधानिक नैतिकता** का सामंजस्य "
+                "संस्थागत सौहार्द, वास्तविक न्याय तथा लोकतांत्रिक जवाबदेही सुनिश्चित करता है।"
+            )
+        if "GS3" in p_up or any(k in q_low for k in ["अर्थव्यवस्था", "पर्यावरण", "जलवायु", "सुरक्षा", "कृषि"]):
+            return (
+                "**पंचामृत जलवायु लक्ष्यों**, लक्षित पूंजीगत निवेश तथा घरेलू आपूर्ति-श्रृंखला के सुदृढ़ीकरण से ही "
+                "एक समावेशी, धारणीय एवं आत्मनिर्भर अर्थव्यवस्था का निर्माण संभव हो सकेगा।"
+            )
+        return (
+            "साक्ष्य-आधारित संस्थागत सुधारों, अंतिम छोर तक क्षमता निर्माण तथा परिणाम-उन्मुख वित्तीय अभिशासन का समन्वय "
+            "नीतिगत संकल्प को टिकाऊ एवं समावेशी संरचनात्मक परिवर्तन में रूपांतरित करेगा।"
+        )
+
     if any(k in q_low for k in ["election", "eci", "cec", "commissioner", "324", "anoop baranwal", "appointment", "electoral"]):
         return (
             "Insulating the **Election Commission of India under Article 324** through an independent consultative collegium and "
@@ -4511,12 +4721,12 @@ def _build_domain_specific_conclusion(question_text: str, paper_name: str, exist
     )
 
 
-def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
+def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False) -> None:
     """
     Guarantees that:
     1. No 'missing' / 'upgrade lever' critique ever claims the student failed to cite a case/article/term
        that is already present in transcribed_text, body_audit.strengths, or positive ✓ margin remarks.
-    2. Stiff, robotic jargon is simplified into clear, appreciative, actionable UPSC Mentor English.
+    2. Stiff, robotic jargon is simplified into clear, appreciative, actionable UPSC Mentor English or authentic Hindi.
     3. Repetitive 'Viksit Bharat @2047' / 'by 2047' conclusion clichés are replaced with question-specific syntheses.
     """
     if not isinstance(data, dict):
@@ -4602,7 +4812,7 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
     formatted_strengths = []
     for idx, s_pt in enumerate(unpacked_strengths):
         clean = re.sub(r'^[✓✔•★⭐\s\-]+', '', s_pt).strip()
-        clean = re.sub(r'^([A-Za-z0-9][^:*\n]{1,60})\*\*:', r'**\1**:', clean)
+        clean = re.sub(r'^([A-Za-z0-9\u0900-\u097F][^:*\n]{1,60})\*\*:', r'**\1**:', clean)
         if not clean.startswith("**"):
             if ":" in clean and clean.index(":") <= 65:
                 parts = clean.split(":", 1)
@@ -4612,8 +4822,11 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                 t_words = " ".join(words[:min(5, len(words))])
                 r_words = " ".join(words[min(5, len(words)):])
                 clean = f"**{t_words}**: {r_words}"
-        if not re.search(r'\(Page\s*[\d–-]+\)', clean, re.IGNORECASE):
-            tgt_pg = "Page 1" if idx == 0 else ("Page 1–2" if idx == 1 else ("Page 2" if idx == 2 else "Page 2–3"))
+        if not re.search(r'\((?:Page|पृष्ठ)\s*[\d–-]+\)', clean, re.IGNORECASE):
+            if is_hindi:
+                tgt_pg = "पृष्ठ 1" if idx == 0 else ("पृष्ठ 1–2" if idx == 1 else ("पृष्ठ 2" if idx == 2 else "पृष्ठ 2–3"))
+            else:
+                tgt_pg = "Page 1" if idx == 0 else ("Page 1–2" if idx == 1 else ("Page 2" if idx == 2 else "Page 2–3"))
             clean = re.sub(r'^(\*\*[^*]+)(\*\*)', rf'\1 ({tgt_pg})\2', clean)
 
         # Ensure deep elaboration: avoid 5-10 word fragments in the Deep Evaluation section
@@ -4634,14 +4847,25 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
                     what_w = str(matched_pbp.get("what_you_wrote") or "").strip()
                     verd_w = str(matched_pbp.get("examiner_verdict") or "").strip()
                     clean_cand_pts = _clean_concepts_string(what_w)
-                    if clean_cand_pts and clean_cand_pts.lower() not in body_part.lower():
-                        clean = f"{header_part} You clearly articulated this on your sheet by citing **{clean_cand_pts}**. {body_part} This demonstrated clear conceptual grounding and secured core demand marks."
-                    elif verd_w and verd_w.lower() not in body_part.lower():
-                        clean = f"{header_part} {body_part} {verd_w}"
+                    if is_hindi:
+                        if clean_cand_pts and clean_cand_pts.lower() not in body_part.lower():
+                            clean = f"{header_part} आपने उत्तर-पुस्तिका में **{clean_cand_pts}** का उल्लेख कर इस आयाम को स्पष्ट रूप से निरूपित किया है। {body_part} यह सुदृढ़ अवधारणात्मक समझ को दर्शाता है तथा मुख्य मांग के अनुसार अंक दिलाता है।"
+                        elif verd_w and verd_w.lower() not in body_part.lower():
+                            clean = f"{header_part} {body_part} {verd_w}"
+                        else:
+                            clean = f"{header_part} {body_part} आपका यह बिंदुवार एवं संरचित प्रस्तुतीकरण सुदृढ़ अवधारणात्मक समझ को दर्शाता है तथा मुख्य मांग के अनुरूप अंक अर्जित करता है।"
+                    else:
+                        if clean_cand_pts and clean_cand_pts.lower() not in body_part.lower():
+                            clean = f"{header_part} You clearly articulated this on your sheet by citing **{clean_cand_pts}**. {body_part} This demonstrated clear conceptual grounding and secured core demand marks."
+                        elif verd_w and verd_w.lower() not in body_part.lower():
+                            clean = f"{header_part} {body_part} {verd_w}"
+                        else:
+                            clean = f"{header_part} {body_part} Your structured presentation of this dimension demonstrated strong conceptual grasp, fulfilling examiner expectations and securing primary demand marks."
+                else:
+                    if is_hindi:
+                        clean = f"{header_part} {body_part} आपका यह बिंदुवार एवं संरचित प्रस्तुतीकरण सुदृढ़ अवधारणात्मक समझ को दर्शाता है तथा मुख्य मांग के अनुरूप अंक अर्जित करता है।"
                     else:
                         clean = f"{header_part} {body_part} Your structured presentation of this dimension demonstrated strong conceptual grasp, fulfilling examiner expectations and securing primary demand marks."
-                else:
-                    clean = f"{header_part} {body_part} Your structured presentation of this dimension demonstrated strong conceptual grasp, fulfilling examiner expectations and securing primary demand marks."
 
         formatted_strengths.append(clean)
 
@@ -4721,9 +4945,12 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
         b_max = float(rubric_eval.get("core_demand_max", 0.0) or 0.0) + float(rubric_eval.get("value_add_max", 0.0) or 0.0) + float(rubric_eval.get("presentation_max", 0.0) or 0.0)
         if b_max <= 0.0:
             b_max = def_b_max
-        top_str = formatted_strengths[0].split(":")[0].replace("**", "") if formatted_strengths else "structured sub-headings addressing primary demand"
-        top_gap = formatted_gaps[0].split(":")[0].replace("**", "") if 'formatted_gaps' in locals() and formatted_gaps else "deeper domain-specific conceptual and empirical anchors"
-        body_audit["overall_assessment"] = f"Your Body section scored **{b_earned:.1f} / {b_max:.1f}M** by demonstrating **{top_str}**. To unlock the next **+1.5 to +2.5M** band, focus on **{top_gap}** and substantiate with official statutory benchmarks."
+        top_str = formatted_strengths[0].split(":")[0].replace("**", "") if formatted_strengths else ("मुख्य मांग के अनुरूप संरचित उप-शीर्षक" if is_hindi else "structured sub-headings addressing primary demand")
+        top_gap = formatted_gaps[0].split(":")[0].replace("**", "") if 'formatted_gaps' in locals() and formatted_gaps else ("गहन वैचारिक एवं आधिकारिक संदर्भ" if is_hindi else "deeper domain-specific conceptual and empirical anchors")
+        if is_hindi:
+            body_audit["overall_assessment"] = f"मुख्य भाग (Body) में आपने **{top_str}** प्रस्तुत कर **{b_earned:.1f} / {b_max:.1f} अंक** प्राप्त किए हैं। अगले **+1.5 से +2.5 अंक** के स्तर तक पहुँचने के लिए **{top_gap}** पर विशेष ध्यान दें और आधिकारिक संदर्भों से पुष्ट करें।"
+        else:
+            body_audit["overall_assessment"] = f"Your Body section scored **{b_earned:.1f} / {b_max:.1f}M** by demonstrating **{top_str}**. To unlock the next **+1.5 to +2.5M** band, focus on **{top_gap}** and substantiate with official statutory benchmarks."
         data["body_audit"] = body_audit
 
     q_str = str(data.get("detected_question") or data.get("question") or "")
@@ -4858,22 +5085,34 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
         data["is_incomplete_answer"] = True
         c_audit["score"] = 0.0
         c_audit["is_unwritten"] = True
-        c_audit["current_critique"] = (
-            f"✗ **Conclusion Not Attempted (Incomplete Answer)**: Your answer ended without writing a concluding synthesis paragraph (forfeits +{c_max:.1f}M).\n"
-            f"✎ **How to Conclude in 60 Seconds**: In a {mm_eval}-marker, reserve 60 seconds to write a 2-line synthesis: {effective_conc}"
-        )
+        if is_hindi:
+            c_audit["current_critique"] = (
+                f"✗ **निष्कर्ष अधूरा / अनुत्तरित (Conclusion Not Attempted)**: आपका उत्तर बिना अंतिम संश्लेषित निष्कर्ष लिखे समाप्त हुआ (+{c_max:.1f} अंक की हानि)।\n"
+                f"✎ **60-सेकंड समाधान**: {mm_eval}-अंकों के प्रश्न में अंतिम 60 सेकंड 2-पंक्ति के अग्रगामी समाधान हेतु सुरक्षित रखें: {effective_conc}"
+            )
+        else:
+            c_audit["current_critique"] = (
+                f"✗ **Conclusion Not Attempted (Incomplete Answer)**: Your answer ended without writing a concluding synthesis paragraph (forfeits +{c_max:.1f}M).\n"
+                f"✎ **How to Conclude in 60 Seconds**: In a {mm_eval}-marker, reserve 60 seconds to write a 2-line synthesis: {effective_conc}"
+            )
         c_audit["model_conclusion_rewrite"] = effective_conc
         data["conclusion_audit"] = c_audit
         for ann in anns_list:
             t_low = str(ann.get("tag") or "").lower()
-            if "concl" in t_low or "synthesis" in t_low or "finish" in t_low:
+            if "concl" in t_low or "synthesis" in t_low or "finish" in t_low or "निष्कर्ष" in t_low:
                 ann["marks_awarded"] = f"+0.0 / {c_max:.1f}"
                 ann["type"] = "warning"
-                ann["tag"] = "Conclusion: Not Attempted"
-                ann["remark"] = (
-                    f"✗ **Conclusion Not Attempted (Incomplete Answer)**: Answer stopped after the Way Forward points without a closing synthesis (forfeits +{c_max:.1f}M).\n"
-                    f"✎ **60-Second Closing Formula**: In a {mm_eval}-marker, reserve 60 seconds to write a 2-line closing linking to the core policy framework: {effective_conc}"
-                )
+                ann["tag"] = "निष्कर्ष: अनुत्तरित" if is_hindi else "Conclusion: Not Attempted"
+                if is_hindi:
+                    ann["remark"] = (
+                        f"✗ **निष्कर्ष अनुत्तरित (Incomplete Answer)**: उत्तर आगे की राह के बिंदुओं के बाद बिना अंतिम संश्लेषित निष्कर्ष के समाप्त हुआ (+{c_max:.1f} अंक छूटे)।\n"
+                        f"✎ **60-सेकंड समाधान**: {mm_eval}-अंकों के प्रश्न में 2-पंक्ति का अग्रगामी निष्कर्ष नीतिगत ढांचे से जोड़कर अवश्य लिखें: {effective_conc}"
+                    )
+                else:
+                    ann["remark"] = (
+                        f"✗ **Conclusion Not Attempted (Incomplete Answer)**: Answer stopped after the Way Forward points without a closing synthesis (forfeits +{c_max:.1f}M).\n"
+                        f"✎ **60-Second Closing Formula**: In a {mm_eval}-marker, reserve 60 seconds to write a 2-line closing linking to the core policy framework: {effective_conc}"
+                    )
     else:
         # Authentic Conclusion Detected!
         data["is_incomplete_answer"] = False
@@ -4916,27 +5155,51 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any]) -> None:
 
         # Preserve Gemini's insightful conclusion critique if present, or construct a precise feedback note inspired by Image 4
         if is_generic_or_empty_crit:
-            if gemini_step_conc_text and not re.search(r'(?i)\b(?:not\s+attempted|unwritten)\b', gemini_step_conc_text):
-                c_audit["current_critique"] = f"✓ **Closing Synthesis Evaluated**: {gemini_step_conc_text.strip()}"
-            elif closing_cand_quote:
-                clean_cand_close = _clean_quote_snippet(closing_cand_quote, 140)
-                c_audit["current_critique"] = (
-                    f"✓ **Closing Synthesis Evaluated**: Concluded with *\"{clean_cand_close}\"*, summarizing core stance.\n"
-                    f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {effective_conc}"
-                )
-            elif is_last_line_narrative and last_line:
-                clean_last = _clean_quote_snippet(last_line, 120)
-                c_audit["current_critique"] = (
-                    f"✓ **Closing Synthesis Evaluated**: Concluded with *\"{clean_last}\"*, but it remained somewhat broad.\n"
-                    f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {effective_conc}"
-                )
+            if is_hindi:
+                if gemini_step_conc_text and not re.search(r'(?i)\b(?:not\s+attempted|unwritten|अनुत्तरित)\b', gemini_step_conc_text):
+                    c_audit["current_critique"] = f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: {gemini_step_conc_text.strip()}"
+                elif closing_cand_quote:
+                    clean_cand_close = _clean_quote_snippet(closing_cand_quote, 140)
+                    c_audit["current_critique"] = (
+                        f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: आपने *\"{clean_cand_close}\"* के साथ उत्तर का समापन किया।\n"
+                        f"✎ **पूर्ण अंक प्राप्त करने हेतु**: अंतिम वाक्य को संबंधित संस्थागत ढांचे, संवैधानिक आदर्श या समिति रिपोर्ट से जोड़ें: {effective_conc}"
+                    )
+                elif is_last_line_narrative and last_line:
+                    clean_last = _clean_quote_snippet(last_line, 120)
+                    c_audit["current_critique"] = (
+                        f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: आपने *\"{clean_last}\"* के साथ समापन किया, किंतु यह सामान्य है।\n"
+                        f"✎ **पूर्ण अंक प्राप्त करने हेतु**: अंतिम वाक्य को नीतिगत ढांचे या संवैधानिक लक्ष्य से जोड़ें: {effective_conc}"
+                    )
+                else:
+                    c_audit["current_critique"] = (
+                        f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: आपने प्रासंगिक निष्कर्ष प्रस्तुत किया, किंतु इसे और सुदृढ़ किया जा सकता है।\n"
+                        f"✎ **पूर्ण अंक प्राप्त करने हेतु**: अंतिम वाक्य को संबंधित संस्थागत ढांचे या आयोग की अनुशंसा से जोड़ें: {domain_conc}"
+                    )
             else:
-                c_audit["current_critique"] = (
-                    f"✓ **Closing Synthesis Evaluated**: Concluded with a relevant synthesis statement, but it remained somewhat broad.\n"
-                    f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {domain_conc}"
-                )
+                if gemini_step_conc_text and not re.search(r'(?i)\b(?:not\s+attempted|unwritten)\b', gemini_step_conc_text):
+                    c_audit["current_critique"] = f"✓ **Closing Synthesis Evaluated**: {gemini_step_conc_text.strip()}"
+                elif closing_cand_quote:
+                    clean_cand_close = _clean_quote_snippet(closing_cand_quote, 140)
+                    c_audit["current_critique"] = (
+                        f"✓ **Closing Synthesis Evaluated**: Concluded with *\"{clean_cand_close}\"*, summarizing core stance.\n"
+                        f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {effective_conc}"
+                    )
+                elif is_last_line_narrative and last_line:
+                    clean_last = _clean_quote_snippet(last_line, 120)
+                    c_audit["current_critique"] = (
+                        f"✓ **Closing Synthesis Evaluated**: Concluded with *\"{clean_last}\"*, but it remained somewhat broad.\n"
+                        f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {effective_conc}"
+                    )
+                else:
+                    c_audit["current_critique"] = (
+                        f"✓ **Closing Synthesis Evaluated**: Concluded with a relevant synthesis statement, but it remained somewhat broad.\n"
+                        f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {domain_conc}"
+                    )
         else:
-            c_audit["current_critique"] = f"✓ **Closing Synthesis Evaluated**: {clean_c_crit}"
+            if is_hindi:
+                c_audit["current_critique"] = f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: {clean_c_crit}"
+            else:
+                c_audit["current_critique"] = f"✓ **Closing Synthesis Evaluated**: {clean_c_crit}"
 
         data["conclusion_audit"] = c_audit
         data["rubric_scores"] = rubric_d
@@ -5784,7 +6047,8 @@ def build_resilient_fallback_evaluation(
     question: str,
     paper_key: str,
     max_marks: int,
-    previous_evaluation: Optional[Dict[str, Any]] = None
+    previous_evaluation: Optional[Dict[str, Any]] = None,
+    medium: Optional[str] = "english"
 ) -> Dict[str, Any]:
     """
     Zero-crash resilience synthesizer: if all external Gemini API keys/models are temporarily rate-limited
@@ -5804,23 +6068,42 @@ def build_resilient_fallback_evaluation(
     else:
         target_score = round(mm * 0.48, 1)
 
+    is_hindi_mode = (medium == "hindi") or is_devanagari_text(clean_q)
+    if is_hindi_mode:
+        examiner_verdict = (
+            f"आपके संशोधित उत्तर में '{clean_q[:95]}' की मुख्य मांग पर स्पष्ट संरचनात्मक सुधार दिखा है। उप-शीर्षकों एवं आयामों के मध्य बेहतर तार्किक समन्वय स्थापित हुआ है।"
+            if is_rewrite_eval else
+            f"आपके उत्तर ने '{clean_q[:95]}' की मुख्य मांग को प्रस्तावना-मुख्य भाग-निष्कर्ष के स्पष्ट प्रारूप में संबोधित किया है। आधिकारिक समिति रिपोर्टों, संवैधानिक/वैधानिक संदर्भों और प्रामाणिक आंकड़ों के समावेश से यह उत्तर शीर्ष 5% श्रेणी में स्थान प्राप्त कर सकता है।"
+        )
+        transcribed_sample = (
+            f"मूल्यांकित हस्तलिखित उत्तर पुस्तिका: {clean_q}। "
+            f"प्रस्तावना विषय के आधारभूत संस्थागत संदर्भ को स्पष्ट करती है। "
+            f"मुख्य भाग में क्रमांकित बिंदुओं और उप-शीर्षकों के माध्यम से प्रमुख कारकों, संरचनात्मक चुनौतियों एवं बहु-आयामी नीतिगत सुधारों का विश्लेषण किया गया है। "
+            f"निष्कर्ष नीतिगत सुधारों को दीर्घकालिक राष्ट्रीय अभिशासन परिणामों से जोड़ता है।"
+        )
+    else:
+        examiner_verdict = (
+            f"Your revised answer copy demonstrates clear structural progress on '{clean_q[:95]}', integrating sharper sub-headings and improved analytical linkage across sub-parts."
+            if is_rewrite_eval else
+            f"Your answer addresses the core demand of '{clean_q[:95]}' with a clear introduction-body-conclusion structure. Substantiating arguments with official committee reports, constitutional/statutory anchors, and comparative data will elevate this copy into the Top 5% bracket."
+        )
+        transcribed_sample = (
+            f"Handwritten Answer Copy evaluated for: {clean_q}. "
+            f"Introduction establishes baseline institutional context. "
+            f"Body paragraphs analyze key drivers, structural challenges, and multi-dimensional policy reforms using numbered points and sub-headings. "
+            f"Conclusion links reforms to sustainable long-term national governance outcomes."
+        )
+
     raw_fallback = {
         "detected_question": clean_q,
         "detected_paper": paper_key or "GS2",
         "overall_score": target_score,
         "max_marks": mm,
-        "percentile_verdict": "Top 12% Mains Contender" if is_rewrite_eval else "Top 25% — Good Foundation, Needs Value Addition",
-        "examiner_overall_verdict": (
-            f"Your revised answer copy demonstrates clear structural progress on '{clean_q[:95]}', integrating sharper sub-headings and improved analytical linkage across sub-parts."
-            if is_rewrite_eval else
-            f"Your answer addresses the core demand of '{clean_q[:95]}' with a clear introduction-body-conclusion structure. Substantiating arguments with official committee reports, constitutional/statutory anchors, and comparative data will elevate this copy into the Top 5% bracket."
-        ),
-        "transcribed_text": (
-            f"Handwritten Answer Copy evaluated for: {clean_q}. "
-            f"Introduction establishes baseline institutional context. "
-            f"Body paragraphs analyze key drivers, structural challenges, and multi-dimensional policy reforms using numbered points and sub-headings. "
-            f"Conclusion links reforms to sustainable long-term national governance outcomes."
-        ),
+        "medium": "hindi" if is_hindi_mode else "english",
+        "is_hindi": is_hindi_mode,
+        "percentile_verdict": ("शीर्ष 12% मुख्य परीक्षा दावेदार" if is_hindi_mode else "Top 12% Mains Contender") if is_rewrite_eval else ("शीर्ष 25% — सुदृढ़ आधार, मूल्य संवर्धन आवश्यक" if is_hindi_mode else "Top 25% — Good Foundation, Needs Value Addition"),
+        "examiner_overall_verdict": examiner_verdict,
+        "transcribed_text": transcribed_sample,
         "rubric_scores": {
             "intro_score": round(target_score * 0.16, 1),
             "core_demand_score": round(target_score * 0.46, 1),
@@ -5829,7 +6112,7 @@ def build_resilient_fallback_evaluation(
             "conclusion_score": round(target_score - (round(target_score * 0.16, 1) + round(target_score * 0.46, 1) + round(target_score * 0.16, 1) + round(target_score * 0.11, 1)), 1)
         }
     }
-    return normalize_evaluation_data(raw_fallback, mm, clean_q, paper_key or "GS2")
+    return normalize_evaluation_data(raw_fallback, mm, clean_q, paper_key or "GS2", medium="hindi" if is_hindi_mode else "english")
 
 
 async def evaluate_with_gemini(
@@ -5956,7 +6239,7 @@ async def evaluate_with_gemini(
         data["directive_compliance"]["directive"] = directive_info["directive"]
 
     # Post-process to ensure 100% mathematical accuracy, granular subject taxonomy, and diagram embedding
-    data = normalize_evaluation_data(data, max_marks, question, detected_paper)
+    data = normalize_evaluation_data(data, max_marks, question, detected_paper, medium=medium)
     return data
 
 

@@ -4688,11 +4688,28 @@ window.isMetaPlaceholderText = function(str) {
   return /(?:direct assessment quoting|specific technical concept|foundational doctrine missing|specific missing institutional|empirical data point|specific assessment of the candidate|concrete institutional|discipline-specific|accurate conceptual opening|opening upgrade|substantive upgrade|argument & point audit|page \d+ points evaluated|closing stance evaluated|opening premise evaluated|substantive arguments analyzed|core dimensional scope|directly engaged the core directive|evaluated candidate's specific points|detailed analysis across candidate's points|point \[[a-z0-9]+\]|\[point \d+|substantiate point|bridge the gap in point|add [^;*]+\*[^;*]+ as a keyword|^add .* as a keyword)/i.test(String(str || ""));
 };
 
+// Global helper: Detect Devanagari text
+window.isDevanagariText = function(str) {
+  if (!str) return false;
+  return /[\u0900-\u097F]/.test(String(str));
+};
+
+// Global helper: Check if evaluation is in Hindi medium
+window.isHindiEvaluation = function(evalData) {
+  if (!evalData) evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
+  if (evalData.is_hindi === true || String(evalData.medium || "").toLowerCase() === "hindi") return true;
+  if (typeof state !== "undefined" && String(state.medium || "").toLowerCase() === "hindi") return true;
+  if (window.isDevanagariText(evalData.detected_question || evalData.question || (typeof state !== "undefined" && state.question))) return true;
+  if (window.isDevanagariText(evalData.transcribed_text)) return true;
+  return false;
+};
+
 // Single Canonical Source of Truth for Sub-Part Step-Marking Ceilings & Allocations across the Entire Website
 window.getCanonicalStepMarkingScheme = function(evalData) {
   if (!evalData) evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
   if (typeof syncRubricAndMarginScores === "function") syncRubricAndMarginScores(evalData);
 
+  const isHindi = window.isHindiEvaluation(evalData);
   const rubric = evalData.rubric_scores || {};
   const maxMarks = parseFloat(evalData.max_marks || (typeof state !== "undefined" && state.marks) || 15.0);
   const overallScore = parseFloat(evalData.overall_score || 0.0);
@@ -4711,7 +4728,7 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
   if (isNaN(concScore)) concScore = maxMarks === 10 ? 0.5 : 1.0;
 
   const rawAiSteps = Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : [];
-  const aiConcStep = rawAiSteps.find(st => st && /concl|synthesis/i.test(String(st.step_label || st.sub_heading || "")));
+  const aiConcStep = rawAiSteps.find(st => st && /concl|synthesis|निष्कर्ष/i.test(String(st.step_label || st.sub_heading || "")));
   const aiConcAw = aiConcStep ? parseFloat(aiConcStep.awarded) : NaN;
   const cAudit = evalData.conclusion_audit || {};
   const cAuditScore = parseFloat(cAudit.score);
@@ -4719,8 +4736,8 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
 
   const fullTrans = String(evalData.transcribed_text || "").toLowerCase();
   const tailTrans = fullTrans.slice(-400);
-  const hasCandConcKeywords = /\b(?:thus|hence|therefore|in\s+conclusion|to\s+conclude|conclude|concluded|overall|consequently|imperative|essential|vital|crucial|going\s+forward|way\s+forward|realis[ei]|promot[ei]|ensur[ei]|sustainable|inclusive|industrial\s*revolution|viksit\s*bharat|amrit\s*kaal)\b/i.test(tailTrans);
-  const hasCandConcCritique = /(?:concluded\s+with|closing\s+(?:statement|sentence|line|stance)|relevant\s+statement|industrial\s*revolution|imperative)/i.test(cCritiqueStr + " " + (aiConcStep ? String(aiConcStep.quoted_written || "") : ""));
+  const hasCandConcKeywords = /\b(?:thus|hence|therefore|in\s+conclusion|to\s+conclude|conclude|concluded|overall|consequently|imperative|essential|vital|crucial|going\s+forward|way\s+forward|realis[ei]|promot[ei]|ensur[ei]|sustainable|inclusive|industrial\s*revolution|viksit\s*bharat|amrit\s*kaal)\b|निष्कर्ष|अतः|इस\s*प्रकार|समापन|आगे\s*की\s*राह/i.test(tailTrans);
+  const hasCandConcCritique = /(?:concluded\s+with|closing\s+(?:statement|sentence|line|stance)|relevant\s+statement|industrial\s*revolution|imperative|समापन|निष्कर्ष)/i.test(cCritiqueStr + " " + (aiConcStep ? String(aiConcStep.quoted_written || "") : ""));
 
   const hasGenuineConclusion = (
     (!isNaN(aiConcAw) && aiConcAw > 0) ||
@@ -4762,7 +4779,7 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
   const aiBodySteps = rawAiSteps.filter((st, idx) => {
     if (!st || typeof st !== "object") return false;
     const lbl = String(st.step_label || "").toLowerCase();
-    if (idx === 0 || lbl.includes("intro") || lbl.includes("concl")) return false;
+    if (idx === 0 || lbl.includes("intro") || lbl.includes("concl") || lbl.includes("प्रस्तावना") || lbl.includes("निष्कर्ष")) return false;
     const sh = String(st.sub_heading || "").trim();
     if (!sh || sh.length > 80) return false;
     return true;
@@ -4770,13 +4787,9 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
 
   const bodyAnns = (Array.isArray(evalData.visual_annotations) ? evalData.visual_annotations : []).filter(a => {
     const t = String(a && a.tag || "").toLowerCase();
-    return t && !t.includes("intro") && !t.includes("concl") && !t.includes("synthesis") && !window.isMetaPlaceholderText(t);
+    return t && !t.includes("intro") && !t.includes("concl") && !t.includes("synthesis") && !t.includes("प्रस्तावना") && !t.includes("निष्कर्ष") && !window.isMetaPlaceholderText(t);
   });
 
-  // Determine number of body subparts:
-  // For 1-page copy: 1 subpart
-  // For 2-page copy: 2 subparts (Part A on Page 1, Part B on Page 2)
-  // For 3-page copy: 3 subparts (Part A on Page 1, Part B on Page 2, Part C on Page 3)
   let numBodyParts = totalPages <= 1 ? 1 : (totalPages === 2 ? 2 : 3);
   if (aiBodySteps.length >= 2 && totalPages <= 2) {
     numBodyParts = Math.min(aiBodySteps.length, 3);
@@ -4836,30 +4849,33 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
     // 1. Extract title, statement, note from AI sub-part step marking
     if (aiBodySteps[i]) {
       let rawTitle = String(aiBodySteps[i].step_label || aiBodySteps[i].sub_heading || "").trim();
-      title = rawTitle.replace(/^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*)+/gi, "").trim();
-      // If AI labeled this body part with "Synthesis", that is a conclusion keyword; fall back to substantive dimension
+      title = rawTitle.replace(/^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*|भाग\s*[a-z0-9]\s*[-—:]\s*)+/gi, "").trim();
       if (/synthesis/i.test(title)) {
-        title = "Socio-Economic Integration & Application";
+        title = isHindi ? "सामाजिक-आर्थिक समन्वय एवं व्यावहारिक अनुप्रयोग" : "Socio-Economic Integration & Application";
       }
       const rawSh = String(aiBodySteps[i].sub_heading || "").trim();
       if (rawSh && rawSh.length >= 10 && !window.isMetaPlaceholderText(rawSh)) {
-        statement = rawSh.startsWith("What the Question Demands:") ? rawSh : `What the Question Demands: ${rawSh}`;
+        if (isHindi) {
+          statement = rawSh.startsWith("प्रश्न की मुख्य मांग:") ? rawSh : `प्रश्न की मुख्य मांग: ${rawSh}`;
+        } else {
+          statement = rawSh.startsWith("What the Question Demands:") ? rawSh : `What the Question Demands: ${rawSh}`;
+        }
       }
       note = String(aiBodySteps[i].quoted_written || "");
     } else if (bodyAnns[i] && bodyAnns[i].tag) {
-      let rawTag = String(bodyAnns[i].tag).replace(/^body:\s*/i, "").trim();
-      title = rawTag.replace(/^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*)+/gi, "").trim();
+      let rawTag = String(bodyAnns[i].tag).replace(/^(?:body|मुख्य भाग):\s*/i, "").trim();
+      title = rawTag.replace(/^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*|भाग\s*[a-z0-9]\s*[-—:]\s*)+/gi, "").trim();
       if (/synthesis/i.test(title)) {
-        title = "Socio-Economic Integration & Application";
+        title = isHindi ? "सामाजिक-आर्थिक समन्वय एवं व्यावहारिक अनुप्रयोग" : "Socio-Economic Integration & Application";
       }
       if (bodyAnns[i].remark && !window.isMetaPlaceholderText(bodyAnns[i].remark)) {
         note = String(bodyAnns[i].remark).trim();
       }
     } else if (sArr[i]) {
       const parts = sArr[i].split(":");
-      title = parts[0].replace(/\*\*/g, "").replace(/^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*)+/gi, "").trim();
+      title = parts[0].replace(/\*\*/g, "").replace(/^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*|भाग\s*[a-z0-9]\s*[-—:]\s*)+/gi, "").trim();
       if (/synthesis/i.test(title)) {
-        title = "Socio-Economic Integration & Application";
+        title = isHindi ? "सामाजिक-आर्थिक समन्वय एवं व्यावहारिक अनुप्रयोग" : "Socio-Economic Integration & Application";
       }
       if (parts.length > 1) note = parts.slice(1).join(":").trim();
       else note = sArr[i];
@@ -4870,83 +4886,118 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
     if (window.isMetaPlaceholderText(statement) || /point\s*\[[a-z0-9]+\]/i.test(statement)) statement = "";
     if (window.isMetaPlaceholderText(note) || /point\s*\[[a-z0-9]+\]/i.test(note)) note = "";
 
-    // If title is a generic label like "Core Demand" or "Depth & Substantiation", upgrade it to a content-specific heading
+    // If title is a generic label, upgrade it
     if (!title || title.length < 5 || /^(?:core demand|depth & substantiation|body part|primary demand|secondary demand)$/i.test(title.trim())) {
-      const isPolity = /(?:article\s+\d+|constitutional|parliament|supreme court|fundamental right|governor|federalism|judiciary|executive)/i.test(qL);
-      const isEnvironment = /(?:environment|tourism|climate|ecology|pollution|biodiversity|himalayan|forest|wildlife|water)/i.test(qL);
-      const isEconomy = /(?:economy|economic|gdp|inflation|fiscal|trade|industry|manufacturing|agriculture|farmers|msme)/i.test(qL);
+      const isPolity = /(?:article\s+\d+|constitutional|parliament|supreme court|fundamental right|governor|federalism|judiciary|executive|संविधान|न्यायपालिका|अधिकार|संसद|आयोग)/i.test(qL);
+      const isEnvironment = /(?:environment|tourism|climate|ecology|pollution|biodiversity|himalayan|forest|wildlife|water|पर्यावरण|जलवायु|प्रदूषण)/i.test(qL);
+      const isEconomy = /(?:economy|economic|gdp|inflation|fiscal|trade|industry|manufacturing|agriculture|farmers|msme|अर्थव्यवस्था|संवृद्धि|कृषि)/i.test(qL);
 
-      if (isEnvironment) {
-        if (i === 0) title = "Drivers & Core Surge Dynamics";
-        else if (i === 1) title = "Potential Environmental & Ecological Impacts";
-        else title = "Sustainable Policy Roadmap & Regulatory Safeguards";
-      } else if (isPolity) {
-        if (i === 0) title = "Constitutional Mandate & Foundational Doctrines";
-        else if (i === 1) title = "Institutional Dynamics & Judicial Benchmarks";
-        else title = "Structural Bottlenecks & Democratic Governance Reforms";
-      } else if (isEconomy) {
-        if (i === 0) title = "Macroeconomic Drivers & Sectoral Baseline";
-        else if (i === 1) title = "Structural Vulnerabilities & Supply-Chain Bottlenecks";
-        else title = "Policy Interventions & Sustainable Growth Reforms";
+      if (isHindi) {
+        if (isEnvironment) {
+          if (i === 0) title = "प्रमुख कारक एवं पारिस्थितिकीय दबाव";
+          else if (i === 1) title = "पर्यावरणीय एवं विकासात्मक प्रभाव";
+          else title = "धारणीय नीतिगत रोडमैप एवं विनियामक सुरक्षा";
+        } else if (isPolity) {
+          if (i === 0) title = "संवैधानिक अधिदेश एवं आधारभूत सिद्धांत";
+          else if (i === 1) title = "संस्थागत गतिशीलता एवं न्यायिक मानक";
+          else title = "संरचनात्मक बाधाएं एवं अभिशासन सुधार";
+        } else if (isEconomy) {
+          if (i === 0) title = "व्यापक-आर्थिक कारक एवं क्षेत्रीय आधार रेखा";
+          else if (i === 1) title = "संरचनात्मक कमजोरियां एवं आपूर्ति-श्रृंखला की बाधाएं";
+          else title = "नीतिगत हस्तक्षेप एवं धारणीय संवृद्धि सुधार";
+        } else {
+          if (i === 0) title = "मुख्य मांग एवं आधारभूत तंत्र";
+          else if (i === 1) title = "बहु-आयामी प्रभाव एवं व्यावहारिक चुनौतियां";
+          else title = "ठोस नीतिगत हस्तक्षेप एवं संस्थागत समाधान";
+        }
       } else {
-        if (i === 0) title = "Core Demand & Underlying Mechanisms";
-        else if (i === 1) title = "Multidimensional Impacts & Ground Challenges";
-        else title = "Actionable Interventions & Institutional Safeguards";
+        if (isEnvironment) {
+          if (i === 0) title = "Drivers & Core Surge Dynamics";
+          else if (i === 1) title = "Potential Environmental & Ecological Impacts";
+          else title = "Sustainable Policy Roadmap & Regulatory Safeguards";
+        } else if (isPolity) {
+          if (i === 0) title = "Constitutional Mandate & Foundational Doctrines";
+          else if (i === 1) title = "Institutional Dynamics & Judicial Benchmarks";
+          else title = "Structural Bottlenecks & Democratic Governance Reforms";
+        } else if (isEconomy) {
+          if (i === 0) title = "Macroeconomic Drivers & Sectoral Baseline";
+          else if (i === 1) title = "Structural Vulnerabilities & Supply-Chain Bottlenecks";
+          else title = "Policy Interventions & Sustainable Growth Reforms";
+        } else {
+          if (i === 0) title = "Core Demand & Underlying Mechanisms";
+          else if (i === 1) title = "Multidimensional Impacts & Ground Challenges";
+          else title = "Actionable Interventions & Institutional Safeguards";
+        }
       }
     }
 
-    // 2. Build completely UNIQUE, NON-FORMULAIC question demand statements for each part
+    // 2. Build question demand statements
     if (!statement) {
-      const cleanTitle = title.replace(/^(?:part\s*[a-z]\s*[-—:]\s*|\d+\.\s*)/i, "").trim();
-      if (i === 0) {
-        statement = `What the Question Demands: Analyze foundational drivers, institutional mechanisms, and core premise governing ${cleanTitle.toLowerCase()} with conceptual precision.`;
-      } else if (i === 1) {
-        statement = `What the Question Demands: Evaluate multi-sectoral repercussions, ground challenges, and vulnerability matrices relating to ${cleanTitle.toLowerCase()} with empirical evidence.`;
-      } else if (i === 2) {
-        statement = `What the Question Demands: Formulate concrete policy interventions, statutory safeguards, and an actionable roadmap to address bottlenecks in ${cleanTitle.toLowerCase()}.`;
+      const cleanTitle = title.replace(/^(?:part\s*[a-z]\s*[-—:]\s*|\d+\.\s*|भाग\s*[a-z0-9]\s*[-—:]\s*)/i, "").trim();
+      if (isHindi) {
+        if (i === 0) {
+          statement = `प्रश्न की मुख्य मांग: ${cleanTitle} से जुड़े आधारभूत कारकों, संस्थागत तंत्रों एवं मूल सिद्धांतों का वैचारिक स्पष्टता के साथ विश्लेषण।`;
+        } else if (i === 1) {
+          statement = `प्रश्न की मुख्य मांग: ${cleanTitle} से संबंधित बहु-क्षेत्रीय प्रभावों, व्यावहारिक चुनौतियों तथा प्रामाणिक साक्ष्यों का मूल्यांकन।`;
+        } else if (i === 2) {
+          statement = `प्रश्न की मुख्य मांग: ${cleanTitle} की बाधाओं के समाधान हेतु ठोस नीतिगत सुधार, विनियामक उपाय तथा आगे की राह।`;
+        } else {
+          statement = `प्रश्न की मुख्य मांग: समग्र समाधान हेतु तुलनात्मक मानकों एवं संस्थागत निगरानी का समेकन।`;
+        }
       } else {
-        statement = `What the Question Demands: Synthesize comparative benchmarks, institutional oversight, and best practices for holistic execution.`;
+        if (i === 0) {
+          statement = `What the Question Demands: Analyze foundational drivers, institutional mechanisms, and core premise governing ${cleanTitle.toLowerCase()} with conceptual precision.`;
+        } else if (i === 1) {
+          statement = `What the Question Demands: Evaluate multi-sectoral repercussions, ground challenges, and vulnerability matrices relating to ${cleanTitle.toLowerCase()} with empirical evidence.`;
+        } else if (i === 2) {
+          statement = `What the Question Demands: Formulate concrete policy interventions, statutory safeguards, and an actionable roadmap to address bottlenecks in ${cleanTitle.toLowerCase()}.`;
+        } else {
+          statement = `What the Question Demands: Synthesize comparative benchmarks, institutional oversight, and best practices for holistic execution.`;
+        }
       }
     }
 
-    // 3. Ensure 100% UNIQUE, NON-REPEATING evaluation notes across Part A, B, C
+    // 3. Ensure 100% UNIQUE notes
     const makeSig = (txt) => String(txt || "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 35);
 
     if (!note || usedNoteSignatures.has(makeSig(note))) {
-      // Priority A: Check if bodyAnns has a distinct remark for this part
       if (bodyAnns[i] && bodyAnns[i].remark && !window.isMetaPlaceholderText(bodyAnns[i].remark) && !usedNoteSignatures.has(makeSig(bodyAnns[i].remark))) {
         note = bodyAnns[i].remark;
-      }
-      // Priority B: Check if sArr has an item at index i that hasn't been used
-      else if (sArr[i] && !window.isMetaPlaceholderText(sArr[i]) && !usedNoteSignatures.has(makeSig(sArr[i]))) {
+      } else if (sArr[i] && !window.isMetaPlaceholderText(sArr[i]) && !usedNoteSignatures.has(makeSig(sArr[i]))) {
         note = sArr[i];
-      }
-      // Priority C: Check any unused item in sArr
-      else {
+      } else {
         const unusedS = sArr.find(s => !window.isMetaPlaceholderText(s) && !/point\s*\[[a-z0-9]+\]/i.test(s) && !usedNoteSignatures.has(makeSig(s)));
         if (unusedS) {
           note = unusedS;
-        }
-        // Priority D: Check any unused gap in gArr
-        else {
+        } else {
           const unusedG = gArr.find(g => !window.isMetaPlaceholderText(g) && !usedNoteSignatures.has(makeSig(g)));
           if (unusedG) {
-            note = `Room for Value-Addition: ${unusedG}`;
-          }
-          // Priority E: Check page transcript for unique sentences
-          else {
+            note = isHindi ? `मूल्य संवर्धन का दायरा: ${unusedG}` : `Room for Value-Addition: ${unusedG}`;
+          } else {
             const assignedP = numBodyParts === 1 ? 1 : (numBodyParts === 2 ? (i === 0 ? 1 : 2) : (i + 1));
             const pageTxt = window.getPageTranscript ? window.getPageTranscript(evalData, assignedP) : "";
             const pageSentences = pageTxt.split(/(?<=[.?!])\s+/).filter(s => s.length > 25 && !window.isMetaPlaceholderText(s) && !usedNoteSignatures.has(makeSig(s)));
             if (pageSentences.length > 0) {
-              note = `Addressed this dimension analyzing: "${pageSentences[0].slice(0, 85).trim()}..." with structured points.`;
+              note = isHindi
+                ? `इस आयाम को "${pageSentences[0].slice(0, 85).trim()}..." के साथ बिंदुवार विश्लेषित किया।`
+                : `Addressed this dimension analyzing: "${pageSentences[0].slice(0, 85).trim()}..." with structured points.`;
             } else {
-              if (i === 0) {
-                note = `Systematically laid out the core conceptual drivers and baseline frameworks of ${title.toLowerCase()} on Page 1.`;
-              } else if (i === 1) {
-                note = `Examined primary real-world consequences and structural dimensions of ${title.toLowerCase()} with structured sub-points.`;
+              if (isHindi) {
+                if (i === 0) {
+                  note = `पृष्ठ 1 पर ${title} के मुख्य वैचारिक आधार एवं प्राथमिक ढांचे को क्रमबद्ध रूप से प्रस्तुत किया।`;
+                } else if (i === 1) {
+                  note = `${title} के व्यावहारिक प्रभावों एवं संरचनात्मक आयामों का उप-बिंदुओं के माध्यम से परीक्षण किया।`;
+                } else {
+                  note = `${title} हेतु ठोस नीतिगत सुधारों एवं संस्थागत समाधानों को निष्कर्ष से जोड़कर प्रस्तुत किया।`;
+                }
               } else {
-                note = `Outlined actionable policy interventions and institutional solutions for ${title.toLowerCase()} to strengthen conclusion linkage.`;
+                if (i === 0) {
+                  note = `Systematically laid out the core conceptual drivers and baseline frameworks of ${title.toLowerCase()} on Page 1.`;
+                } else if (i === 1) {
+                  note = `Examined primary real-world consequences and structural dimensions of ${title.toLowerCase()} with structured sub-points.`;
+                } else {
+                  note = `Outlined actionable policy interventions and institutional solutions for ${title.toLowerCase()} to strengthen conclusion linkage.`;
+                }
               }
             }
           }
@@ -4957,7 +5008,9 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
     usedNoteSignatures.add(makeSig(note));
 
     const pctVal = maxArr[i] > 0 ? (scoreArr[i] / maxArr[i]) : 0.5;
-    const statusTag = pctVal >= 0.55 ? "✓ Demand Fulfilled" : "⚠️ Partially Fulfilled";
+    const statusTag = isHindi
+      ? (pctVal >= 0.55 ? "✓ मांग पूर्ण (Demand Met)" : "⚠️ आंशिक पूर्ण (Partially Met)")
+      : (pctVal >= 0.55 ? "✓ Demand Fulfilled" : "⚠️ Partially Fulfilled");
     const assignedPage = numBodyParts === 1 ? 1 : (numBodyParts === 2 ? (i === 0 ? 1 : 2) : (i + 1));
 
     bodyParts.push({
@@ -4966,8 +5019,8 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
       page: assignedPage,
       title,
       shortTitle: title.length > 38 ? title.slice(0, 35) + "..." : title,
-      heading: `${i + 2}. Part ${partLetter} — ${title}`,
-      tag: `BODY: PART ${partLetter} — ${title.toUpperCase()}`,
+      heading: isHindi ? `${i + 2}. भाग ${partLetter} — ${title}` : `${i + 2}. Part ${partLetter} — ${title}`,
+      tag: isHindi ? `मुख्य भाग: भाग ${partLetter} — ${title}` : `BODY: PART ${partLetter} — ${title.toUpperCase()}`,
       statement,
       score: scoreArr[i],
       max: maxArr[i],
@@ -4977,7 +5030,9 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
   }
 
   const concNumber = bodyParts.length + 2;
-  const concTag = isIncomplete ? "CONCLUSION (NOT ATTEMPTED)" : "CONCLUSION: CLOSING SYNTHESIS";
+  const concTag = isIncomplete
+    ? (isHindi ? "निष्कर्ष (अनुत्तरित)" : "CONCLUSION (NOT ATTEMPTED)")
+    : (isHindi ? "निष्कर्ष: आगे की राह" : "CONCLUSION: CLOSING SYNTHESIS");
 
   return {
     maxMarks,
@@ -4985,23 +5040,29 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
     bodyTotalScore,
     bodyTotalMax,
     intro: {
-      heading: "1. Introduction (Context & Baseline Definition)",
-      tag: "INTRO: DEFINITION & SCOPE",
-      shortTitle: "DEFINITION & SCOPE",
+      heading: isHindi ? "1. प्रस्तावना (विषय-परिचय एवं अवधारणात्मक आधार)" : "1. Introduction (Context & Baseline Definition)",
+      tag: isHindi ? "प्रस्तावना: परिभाषा एवं दायरा" : "INTRO: DEFINITION & SCOPE",
+      shortTitle: isHindi ? "परिभाषा एवं दायरा" : "DEFINITION & SCOPE",
       score: introScore,
       max: introMax,
       marksStr: `+${introScore.toFixed(1)} / ${introMax.toFixed(1)}`,
-      statement: "What the Question Demands: A precise 2-line conceptual/statutory definition or contemporary empirical hook establishing the premise."
+      statement: isHindi
+        ? "प्रश्न की मुख्य मांग: सटीक 2-पंक्ति की अवधारणात्मक/विधिक परिभाषा या समसामयिक संदर्भ द्वारा विषय की स्थापना।"
+        : "What the Question Demands: A precise 2-line conceptual/statutory definition or contemporary empirical hook establishing the premise."
     },
     bodyParts,
     conclusion: {
-      heading: `${concNumber}. Conclusion (Closing Synthesis & Institutional Anchor)`,
+      heading: isIncomplete
+        ? (isHindi ? `${concNumber}. निष्कर्ष (अनुत्तरित / शेष)` : `${concNumber}. Conclusion (Not Attempted)`)
+        : (isHindi ? `${concNumber}. निष्कर्ष (अग्रगामी दृष्टि एवं संस्थागत समन्वय)` : `${concNumber}. Conclusion (Closing Synthesis & Institutional Anchor)`),
       tag: concTag,
-      shortTitle: isIncomplete ? "NOT ATTEMPTED" : "CLOSING SYNTHESIS",
+      shortTitle: isIncomplete ? (isHindi ? "अनुत्तरित" : "NOT ATTEMPTED") : (isHindi ? "आगे की राह" : "CLOSING SYNTHESIS"),
       score: concScore,
       max: concMax,
       marksStr: `+${concScore.toFixed(1)} / ${concMax.toFixed(1)}`,
-      statement: "What the Question Demands: A crisp 2-line synthesis tying the core argument to a constitutional principle, statutory reform, or committee benchmark.",
+      statement: isIncomplete
+        ? (isHindi ? "प्रश्न की मुख्य मांग: 60 सेकंड में 2-पंक्ति का अग्रगामी निष्कर्ष संस्थागत या नीतिगत सुधारों से जोड़कर लिखना अनिवार्य है।" : "What the Question Demands: Reserve 60 seconds to write a crisp closing synthesis linking to key statutory reforms.")
+        : (isHindi ? "प्रश्न की मुख्य मांग: उत्तर के केंद्रीय तर्क को संवैधानिक आदर्श, नीतिगत सुधार या समिति अनुशंसा से जोड़ते हुए 2-पंक्ति का संश्लेषित समाधान प्रस्तुत करना।" : "What the Question Demands: A crisp 2-line synthesis tying the core argument to a constitutional principle, statutory reform, or committee benchmark."),
       page: totalPages
     }
   };
@@ -7725,8 +7786,10 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
 
   auditSection.classList.remove("hidden");
 
+  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(typeof state !== "undefined" ? state.currentEvaluation : null);
+
   if (header) {
-    header.textContent = `Evaluated Points for Page ${currentPg} of ${totalPages}`;
+    header.textContent = isHindi ? `पृष्ठ ${currentPg} / ${totalPages} के मूल्यांकित बिंदु` : `Evaluated Points for Page ${currentPg} of ${totalPages}`;
   }
 
   let pageScoreTotal = 0;
@@ -7741,7 +7804,7 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
 
   if (scorePill) {
     if (pageMaxTotal > 0) {
-      scorePill.textContent = `Page ${currentPg}: +${pageScoreTotal.toFixed(1)} / ${pageMaxTotal.toFixed(1)} Marks`;
+      scorePill.textContent = isHindi ? `पृष्ठ ${currentPg}: +${pageScoreTotal.toFixed(1)} / ${pageMaxTotal.toFixed(1)} अंक` : `Page ${currentPg}: +${pageScoreTotal.toFixed(1)} / ${pageMaxTotal.toFixed(1)} Marks`;
       scorePill.classList.remove("hidden");
     } else {
       scorePill.classList.add("hidden");
@@ -7812,6 +7875,9 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
       ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
       : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30";
 
+    const quoteLabel = isHindi ? "अभ्यर्थी का उद्धरण (Quote):" : "Candidate Quote:";
+    const elevateLabel = isHindi ? "सुधार बिंदु (Elevate):" : "Elevate:";
+
     card.innerHTML = `
       <div class="flex items-center justify-between mb-1.5 gap-2">
         <span class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 min-w-0">
@@ -7823,10 +7889,10 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
         </span>
       </div>
       <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans mb-2">
-        <strong class="text-slate-900 dark:text-slate-200">Candidate Quote:</strong> "${escapeHtml(quote)}"
+        <strong class="text-slate-900 dark:text-slate-200">${quoteLabel}</strong> "${escapeHtml(quote)}"
       </p>
       <div class="p-2 rounded-lg bg-amber-50/70 dark:bg-slate-900 border border-amber-200 dark:border-slate-800 text-[11px] text-amber-900 dark:text-amber-300/90 leading-relaxed font-sans">
-        💡 <strong>Elevate:</strong> ${typeof formatHighlightedText === "function" ? formatHighlightedText(advise) : escapeHtml(advise)}
+        💡 <strong>${elevateLabel}</strong> ${typeof formatHighlightedText === "function" ? formatHighlightedText(advise) : escapeHtml(advise)}
       </div>
     `;
 
@@ -8674,6 +8740,8 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
   const pbpList = Array.isArray(evalData.point_by_point_audit) ? evalData.point_by_point_audit : [];
   const annsList = Array.isArray(evalData.visual_annotations) ? evalData.visual_annotations : [];
 
+  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
+
   // 1. Overall Body Assessment
   if (!body.overall_assessment || String(body.overall_assessment).trim().length < 40) {
     const rScores = evalData.rubric_scores || {};
@@ -8681,12 +8749,16 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
     const bMax = (parseFloat(rScores.core_demand_max) || 4.5) + (parseFloat(rScores.value_add_max) || 1.5);
     const topStr = (Array.isArray(body.strengths) && body.strengths[0])
       ? String(body.strengths[0]).replace(/^[✓✔•★⭐\s\-]+/, "").split(":")[0].replace(/\*\*/g, "")
-      : "structured sub-headings addressing primary demand";
+      : (isHindi ? "मुख्य मांग के अनुरूप संरचित उप-शीर्षक" : "structured sub-headings addressing primary demand");
     const topGap = (Array.isArray(body.critical_gaps) && body.critical_gaps[0])
       ? String(body.critical_gaps[0]).replace(/^[✎✗×•\s\-]+/, "").split(":")[0].replace(/\*\*/g, "")
-      : "deeper domain-specific conceptual and empirical anchors";
+      : (isHindi ? "गहन वैचारिक एवं आधिकारिक संदर्भ" : "deeper domain-specific conceptual and empirical anchors");
 
-    body.overall_assessment = `Your Body section scored **${bScore.toFixed(1)} / ${bMax.toFixed(1)}M** by demonstrating **${topStr}** with relevant diagrams and factual examples. To unlock the next **+1.5 to +2.5M** score band, focus on **${topGap}** and substantiate with official statutory benchmarks.`;
+    if (isHindi) {
+      body.overall_assessment = `मुख्य भाग (Body) में आपने **${topStr}** प्रस्तुत कर **${bScore.toFixed(1)} / ${bMax.toFixed(1)} अंक** प्राप्त किए हैं। अगले **+1.5 से +2.5 अंक** के स्तर तक पहुँचने के लिए **${topGap}** पर विशेष ध्यान दें और आधिकारिक संदर्भों से पुष्ट करें।`;
+    } else {
+      body.overall_assessment = `Your Body section scored **${bScore.toFixed(1)} / ${bMax.toFixed(1)}M** by demonstrating **${topStr}** with relevant diagrams and factual examples. To unlock the next **+1.5 to +2.5M** score band, focus on **${topGap}** and substantiate with official statutory benchmarks.`;
+    }
   }
 
   // 2. Unpack and clean strengths into distinct structured bullet points (4 to 6 points)
@@ -8718,8 +8790,10 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
         clean = `**${titleWords}**: ${restWords}`;
       }
     }
-    if (!/\(Page\s*[\d–-]+\)/i.test(clean)) {
-      const targetPg = idx === 0 ? "Page 1" : (idx === 1 ? "Page 1–2" : (idx === 2 ? "Page 2" : "Page 2–3"));
+    if (!/\(Page\s*[\d–-]+|\(पृष्ठ\s*[\d–-]+/i.test(clean)) {
+      const targetPg = isHindi
+        ? (idx === 0 ? "पृष्ठ 1" : (idx === 1 ? "पृष्ठ 1–2" : (idx === 2 ? "पृष्ठ 2" : "पृष्ठ 2–3")))
+        : (idx === 0 ? "Page 1" : (idx === 1 ? "Page 1–2" : (idx === 2 ? "Page 2" : "Page 2–3")));
       clean = clean.replace(/^(\*\*[^*]+)(\*\*)/, `$1 (${targetPg})$2`);
     }
 
@@ -8741,14 +8815,20 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
           const verdW = String(matchedPbp.examiner_verdict || "").trim();
           const cleanCandPts = cleanConceptsString(whatW);
           if (cleanCandPts && !bodyPart.toLowerCase().includes(cleanCandPts.slice(0, 20).toLowerCase())) {
-            clean = `${headerPart} You clearly articulated this on your sheet by citing **${cleanCandPts}**. ${bodyPart} This demonstrated clear conceptual grounding and secured core demand marks.`;
+            clean = isHindi
+              ? `${headerPart} आपने उत्तर-पुस्तिका में **${cleanCandPts}** का उल्लेख कर इस आयाम को स्पष्ट रूप से निरूपित किया है। ${bodyPart} इस प्रस्तुति ने सुदृढ़ अवधारणात्मक आधार स्थापित कर मुख्य मांग के अंक अर्जित किए।`
+              : `${headerPart} You clearly articulated this on your sheet by citing **${cleanCandPts}**. ${bodyPart} This demonstrated clear conceptual grounding and secured core demand marks.`;
           } else if (verdW && !bodyPart.toLowerCase().includes(verdW.slice(0, 20).toLowerCase())) {
             clean = `${headerPart} ${bodyPart} ${verdW}`;
           } else {
-            clean = `${headerPart} ${bodyPart} Your structured presentation of this dimension demonstrated strong conceptual grasp, fulfilling examiner expectations and securing primary demand marks.`;
+            clean = isHindi
+              ? `${headerPart} ${bodyPart} आपका यह बिंदुवार एवं संरचित प्रस्तुतीकरण सुदृढ़ अवधारणात्मक समझ को दर्शाता है तथा मुख्य मांग के अनुरूप अंक अर्जित करता है।`
+              : `${headerPart} ${bodyPart} Your structured presentation of this dimension demonstrated strong conceptual grasp, fulfilling examiner expectations and securing primary demand marks.`;
           }
         } else {
-          clean = `${headerPart} ${bodyPart} Your structured presentation of this dimension demonstrated strong conceptual grasp, fulfilling examiner expectations and securing primary demand marks.`;
+          clean = isHindi
+            ? `${headerPart} ${bodyPart} आपका यह बिंदुवार एवं संरचित प्रस्तुतीकरण सुदृढ़ अवधारणात्मक समझ को दर्शाता है तथा मुख्य मांग के अनुरूप अंक अर्जित करता है।`
+            : `${headerPart} ${bodyPart} Your structured presentation of this dimension demonstrated strong conceptual grasp, fulfilling examiner expectations and securing primary demand marks.`;
         }
       }
     }
@@ -8764,9 +8844,9 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
         const titleClean = pbp.title.replace(/[*_#`]/g, '').trim();
         const alreadyHas = formattedStrengths.some(fs => fs.toLowerCase().includes(titleClean.toLowerCase().slice(0, 15)));
         if (!alreadyHas) {
-          const pgStr = pbp.page ? ` (Page ${pbp.page})` : " (Page 2)";
+          const pgStr = pbp.page ? (isHindi ? ` (पृष्ठ ${pbp.page})` : ` (Page ${pbp.page})`) : (isHindi ? " (पृष्ठ 2)" : " (Page 2)");
           const what = pbp.what_you_wrote ? `${pbp.what_you_wrote}. ` : "";
-          const verd = pbp.examiner_verdict || "Accurately substantiated the demand with structured arguments.";
+          const verd = pbp.examiner_verdict || (isHindi ? "संरचित तर्कों के साथ मांग को सटीक रूप से पुष्ट किया।" : "Accurately substantiated the demand with structured arguments.");
           formattedStrengths.push(`**${titleClean}${pgStr}**: ${what}${verd}`);
         }
       }
@@ -8783,7 +8863,7 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
           const rLines = String(ann.remark).split(/\n+/).filter(l => l.includes("✓"));
           const posRemark = rLines.length > 0 ? rLines[0].replace(/^[✓✔\s*]+/, '').trim() : "";
           if (posRemark) {
-            const pgStr = ann.page ? ` (Page ${ann.page})` : " (Page 2)";
+            const pgStr = ann.page ? (isHindi ? ` (पृष्ठ ${ann.page})` : ` (Page ${ann.page})`) : (isHindi ? " (पृष्ठ 2)" : " (Page 2)");
             formattedStrengths.push(`**${tagClean}${pgStr}**: ${posRemark}`);
           }
         }
@@ -8823,8 +8903,10 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
         clean = `**${titleWords}**: ${restWords}`;
       }
     }
-    if (!/\(Page\s*[\d–-]+\)/i.test(clean)) {
-      const targetPg = idx === 0 ? "Page 1–2" : (idx === 1 ? "Page 2" : "Page 3");
+    if (!/\(Page\s*[\d–-]+|\(पृष्ठ\s*[\d–-]+/i.test(clean)) {
+      const targetPg = isHindi
+        ? (idx === 0 ? "पृष्ठ 1–2" : (idx === 1 ? "पृष्ठ 2" : "पृष्ठ 3"))
+        : (idx === 0 ? "Page 1–2" : (idx === 1 ? "Page 2" : "Page 3"));
       clean = clean.replace(/^(\*\*[^*]+)(\*\*)/, `$1 (${targetPg})$2`);
     }
     if (clean && !formattedGaps.includes(clean)) {
@@ -8839,8 +8921,8 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
         const titleClean = pbp.title.replace(/[*_#`]/g, '').trim();
         const alreadyHas = formattedGaps.some(fg => fg.toLowerCase().includes(titleClean.toLowerCase().slice(0, 15)));
         if (!alreadyHas) {
-          const pgStr = pbp.page ? ` (Page ${pbp.page})` : " (Page 2)";
-          const verd = pbp.examiner_verdict || "Deepen analysis with official institutional data and statutory anchors.";
+          const pgStr = pbp.page ? (isHindi ? ` (पृष्ठ ${pbp.page})` : ` (Page ${pbp.page})`) : (isHindi ? " (पृष्ठ 2)" : " (Page 2)");
+          const verd = pbp.examiner_verdict || (isHindi ? "आधिकारिक संस्थागत डेटा एवं विधिक संदर्भों के साथ विश्लेषण को गहन करें।" : "Deepen analysis with official institutional data and statutory anchors.");
           formattedGaps.push(`**${titleClean}${pgStr}**: ${verd}`);
         }
       }
@@ -8851,7 +8933,11 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
 
   // 4. Ensure missing dimensions has 3 to 4 analytical items
   if (!Array.isArray(body.missing_dimensions) || body.missing_dimensions.length < 3) {
-    const fallbackDims = [
+    const fallbackDims = isHindi ? [
+      "**संस्थागत एवं विधिक आधार (Institutional Anchor)**: तर्कों को आधिकारिक समिति अनुशंसाओं, संवैधानिक अधिदेशों या राष्ट्रीय विधिक रूपरेखाओं से पुष्ट करें।",
+      "**प्रामाणिक साक्ष्य एवं क्षेत्रीय विभाजन (Empirical Metric)**: गुणात्मक बिंदुओं को आधिकारिक सर्वेक्षणों, नीति आयोग रिपोर्टों या डेटा से समर्थित करें।",
+      "**अग्रगामी क्रियान्वयन रणनीति (Implementation Strategy)**: प्रशासनिक, ढांचागत या तकनीकी समाधान प्रस्तुत कर व्यवस्थागत बाधाओं को दूर करने की कार्ययोजना दें।"
+    ] : [
       "**Institutional & Statutory Anchor**: Ground arguments in official committee recommendations, constitutional mandates, or national statutory frameworks.",
       "**Empirical Metric & Regional Disaggregation**: Back qualitative points with authoritative surveys, baseline percentages, and spatial vulnerability distributions.",
       "**Forward-Looking Implementation Strategy**: Provide concrete administrative, infrastructural, or technological mechanisms to bridge systemic operational bottlenecks."
@@ -10454,10 +10540,13 @@ function renderEvaluation(evalData) {
   const modelConcGuideEl = document.getElementById("modelConclusionGuidanceNote");
   if (modelConcGuideEl) modelConcGuideEl.classList.add("hidden");
 
+  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
+
   if (isConcFullMarks) {
-    document.getElementById("conclusionCritiqueText").innerHTML = formatHighlightedText(
-      `✓ **Well-Written Conclusion (${concEarned.toFixed(1)} / ${concMaxVal.toFixed(1)}M)**: Your closing sentence is clear, relevant, and topic-specific — **no changes needed, keep your written conclusion as is!**`
-    );
+    const concMsg = isHindi
+      ? `✓ **उत्कृष्ट निष्कर्ष (${concEarned.toFixed(1)} / ${concMaxVal.toFixed(1)} अंक)**: आपका समापन वाक्य स्पष्ट, प्रासंगिक एवं विषय-उन्मुख है — **इसमें किसी बदलाव की आवश्यकता नहीं है, इसे यथावत बनाए रखें!**`
+      : `✓ **Well-Written Conclusion (${concEarned.toFixed(1)} / ${concMaxVal.toFixed(1)}M)**: Your closing sentence is clear, relevant, and topic-specific — **no changes needed, keep your written conclusion as is!**`;
+    document.getElementById("conclusionCritiqueText").innerHTML = formatHighlightedText(concMsg);
     if (modelConcCardEl) modelConcCardEl.classList.add("hidden");
   } else if (isHeatwaveConcCopy) {
     document.getElementById("conclusionCritiqueText").innerHTML = formatHighlightedText(
@@ -10474,7 +10563,7 @@ function renderEvaluation(evalData) {
     document.getElementById("conclusionCritiqueText").innerHTML = formatHighlightedText(conc.current_critique || "");
     if (modelConcCardEl) modelConcCardEl.classList.remove("hidden");
     if (modelConcHeadLbl) {
-      modelConcHeadLbl.textContent = "✍️ How to Write (Matched with Topper Model Answer):";
+      modelConcHeadLbl.textContent = isHindi ? "✍️ लिखने का आदर्श प्रारूप (टॉपर मॉडल उत्तर के अनुसार):" : "✍️ How to Write (Matched with Topper Model Answer):";
     }
 
     // Always synchronize with the actual conclusion of the Topper Model Answer!
@@ -10992,6 +11081,7 @@ function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
 
 function renderBatch1ExaminerMastery(evalData) {
   if (!evalData) return;
+  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
   const stepListEl = document.getElementById("subpartStepMarkingList");
   const pointListEl = document.getElementById("pointByPointAuditList");
   const memoryBoxEl = document.getElementById("personalMentorMemoryBox");
@@ -11007,9 +11097,9 @@ function renderBatch1ExaminerMastery(evalData) {
         maxMarks: parseFloat(evalData.max_marks || (typeof state !== "undefined" && state.marks) || 15),
         bodyTotalScore: 0,
         bodyTotalMax: 10,
-        intro: { score: 1.0, max: 2.0, heading: "1. Introduction (Context & Baseline Definition)", statement: "", marksStr: "+1.0 / 2.0" },
+        intro: { score: 1.0, max: 2.0, heading: isHindi ? "1. प्रस्तावना (विषय-परिचय एवं अवधारणात्मक आधार)" : "1. Introduction (Context & Baseline Definition)", statement: "", marksStr: "+1.0 / 2.0" },
         bodyParts: [],
-        conclusion: { score: 0.5, max: 2.0, heading: "Conclusion (Closing Synthesis & Institutional Anchor)", statement: "", marksStr: "+0.5 / 2.0" }
+        conclusion: { score: 0.5, max: 2.0, heading: isHindi ? "निष्कर्ष (अग्रगामी दृष्टि एवं संस्थागत समन्वय)" : "Conclusion (Closing Synthesis & Institutional Anchor)", statement: "", marksStr: "+0.5 / 2.0" }
       };
   const overallScore = scheme.overallScore;
   const maxMarks = scheme.maxMarks;
@@ -11022,7 +11112,9 @@ function renderBatch1ExaminerMastery(evalData) {
   const bodyTotalMax = scheme.bodyTotalMax;
 
   if (totalBadgeEl) {
-    totalBadgeEl.textContent = `Step-Marked Total: +${overallScore.toFixed(1)} / ${maxMarks.toFixed(1)}M`;
+    totalBadgeEl.textContent = isHindi
+      ? `चरणबद्ध कुल अंक: +${overallScore.toFixed(1)} / ${maxMarks.toFixed(1)}M`
+      : `Step-Marked Total: +${overallScore.toFixed(1)} / ${maxMarks.toFixed(1)}M`;
   }
 
   const qText = String(evalData.detected_question || state.question || "UPSC Mains Question").trim();
@@ -11037,7 +11129,9 @@ function renderBatch1ExaminerMastery(evalData) {
   const isAhomStepCopy = /\bahom\b/i.test(qLow);
 
   const buildPureMarksAllocationNote = (rawCritique, score, max, isIntroSection) => {
-    const statusPrefix = score >= max - 0.1 ? "**✓ Demand Fulfilled**" : score >= max * 0.5 ? "**⚠️ Partially Fulfilled**" : "**✗ Demand Missed**";
+    const statusPrefix = isHindi
+      ? (score >= max - 0.1 ? "**✓ मांग पूर्ण (Demand Met)**" : score >= max * 0.5 ? "**⚠️ आंशिक पूर्ण (Partially Met)**" : "**✗ मांग अधूरी (Demand Missed)**")
+      : (score >= max - 0.1 ? "**✓ Demand Fulfilled**" : score >= max * 0.5 ? "**⚠️ Partially Fulfilled**" : "**✗ Demand Missed**");
     const deducted = Math.max(0, max - score).toFixed(1);
 
     if (isEarthquakeStepCopy) {
@@ -11076,9 +11170,14 @@ function renderBatch1ExaminerMastery(evalData) {
 
     if (firstSentence && firstSentence.length > 12) {
       const deductionTail = parseFloat(deducted) > 0.05
-        ? ` (**${deducted}M** held back for missing statutory/conceptual anchor — see *Deep Evaluation* tab).`
+        ? (isHindi ? ` (वैधानिक/अवधारणात्मक संदर्भ हेतु **${deducted} अंक** रोके गए — *विस्तृत मूल्यांकन* टैब देखें)।` : ` (**${deducted}M** held back for missing statutory/conceptual anchor — see *Deep Evaluation* tab).`)
         : "";
       return `${statusPrefix} (**+${score.toFixed(1)}M**): ${firstSentence.replace(/\.$/, "")}.${deductionTail}`;
+    }
+    if (isHindi) {
+      return isIntroSection
+        ? `${statusPrefix} (**+${score.toFixed(1)}M**): आरंभिक अवधारणात्मक परिभाषा पर **+${score.toFixed(1)} अंक** मिले; आधारभूत डेटा/वैधानिक संदर्भ के अभाव में **${deducted} अंक** रोके गए।`
+        : `${statusPrefix} (**+${score.toFixed(1)}M**): अंतिम संश्लेषित निष्कर्ष पर **+${score.toFixed(1)} अंक** मिले; नीतिगत ढांचे/समिति अनुशंसा के अभाव में **${deducted} अंक** रोके गए।`;
     }
     return isIntroSection
       ? `${statusPrefix} (**+${score.toFixed(1)}M**): Awarded **+${score.toFixed(1)}M** on opening conceptual definition; **${deducted}M** held back for baseline data/mechanism anchor.`
@@ -11118,10 +11217,10 @@ function renderBatch1ExaminerMastery(evalData) {
     const pct = item.max > 0 ? Math.min(100, Math.round((item.score / item.max) * 100)) : 0;
     const barColor = pct >= 60 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-rose-500";
     const demandBadgeHtml = pct >= 60
-      ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shrink-0">✓ Demand Fulfilled</span>`
+      ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shrink-0">${isHindi ? "✓ मांग पूर्ण (Demand Met)" : "✓ Demand Fulfilled"}</span>`
       : pct >= 35
-        ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shrink-0">⚠️ Partially Fulfilled</span>`
-        : `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 shrink-0">✗ Demand Missed</span>`;
+        ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shrink-0">${isHindi ? "⚠️ आंशिक पूर्ण (Partially Met)" : "⚠️ Partially Fulfilled"}</span>`
+        : `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 shrink-0">${isHindi ? "✗ मांग अधूरी (Demand Missed)" : "✗ Demand Missed"}</span>`;
     const statementHtml = item.statement
       ? `<p class="w-full text-xs font-semibold text-slate-800 dark:text-slate-200 leading-relaxed bg-white dark:bg-slate-900/90 px-3 py-2 rounded-lg border border-slate-200/80 dark:border-slate-800">${escapeHtml(item.statement)}</p>`
       : "";
@@ -11150,32 +11249,38 @@ function renderBatch1ExaminerMastery(evalData) {
   if (Array.isArray(evalData.point_by_point_audit) && evalData.point_by_point_audit.length >= 2) {
     pointRows = evalData.point_by_point_audit.map((p, idx) => {
       const pNum = parseInt(p.page, 10) || Math.min(idx + 1, (state.activePages && state.activePages.length) || 2);
-      let pointTitle = String(p.title || `Handwritten Argument #${idx + 1}`).replace(/\*\*/g, "").trim();
+      let pointTitle = String(p.title || (isHindi ? `हस्तलिखित तर्क #${idx + 1}` : `Handwritten Argument #${idx + 1}`)).replace(/\*\*/g, "").trim();
       if (!pointTitle || window.isMetaPlaceholderText(pointTitle) || /point\s*\[[a-z0-9]+\]/i.test(pointTitle)) {
-        pointTitle = `Page ${pNum} Argument #${idx + 1}`;
+        pointTitle = isHindi ? `पृष्ठ ${pNum} तर्क #${idx + 1}` : `Page ${pNum} Argument #${idx + 1}`;
       }
       let whatYouWrote = String(p.what_you_wrote || "").replace(/^["']|["']$/g, "").trim();
       if (!whatYouWrote || window.isMetaPlaceholderText(whatYouWrote) || /point\s*\[[a-z0-9]+\]/i.test(whatYouWrote)) {
         const pageText = window.getPageTranscript ? window.getPageTranscript(evalData, pNum) : "";
         const sents = pageText.split(/(?<=[.?!])\s+/).filter(s => s.length > 25 && !window.isMetaPlaceholderText(s));
-        whatYouWrote = sents[idx % Math.max(1, sents.length)] || "Addressed substantive question dimensions with structured handwriting.";
+        whatYouWrote = sents[idx % Math.max(1, sents.length)] || (isHindi ? "संरचित हस्तलेखन के साथ मुख्य आयामों को संबोधित किया।" : "Addressed substantive question dimensions with structured handwriting.");
       }
       let verdict = String(p.examiner_verdict || "").trim();
       if (/add\s+([^*]+)\*([^:]+:\s*)?([^.]+\.)?\s*(?:as a keyword)?/i.test(verdict)) {
         verdict = verdict.replace(/add\s+([^*]+)\*([^:]+:\s*)?([^.]+\.)?\s*(?:as a keyword)?/i, (m, term, dTitle, def) => {
-          return `Integrate technical keyword '${term.trim()}'${def ? ` (${def.trim().toLowerCase()})` : ""} to elevate precision.`;
+          return isHindi
+            ? `सटीकता बढ़ाने हेतु तकनीकी शब्दावली '${term.trim()}'${def ? ` (${def.trim().toLowerCase()})` : ""} को समाहित करें।`
+            : `Integrate technical keyword '${term.trim()}'${def ? ` (${def.trim().toLowerCase()})` : ""} to elevate precision.`;
         });
       }
-      verdict = verdict.replace(/Point\s*\[[X-Z0-9]+\]/gi, "this argument")
-                       .replace(/\[Point\s*\d+\s*\/\s*Point\s*\d+\s*topics\]/gi, "the core directive");
+      verdict = verdict.replace(/Point\s*\[[X-Z0-9]+\]/gi, isHindi ? "इस तर्क" : "this argument")
+                       .replace(/\[Point\s*\d+\s*\/\s*Point\s*\d+\s*topics\]/gi, isHindi ? "मुख्य निर्देश" : "the core directive");
+
+      const defBadge = isHindi
+        ? (p.is_positive !== false ? "✓ अंक मिले (Fetched Marks)" : "✎ सुधार बिंदु (Actionable Upgrade)")
+        : (p.is_positive !== false ? "✓ Credit Earned" : "✎ Scope to Upgrade");
 
       return {
         page: pNum,
-        loc: String(p.badge || `Page ${pNum} • Point #${idx + 1}`),
+        loc: String(p.badge || (isHindi ? `पृष्ठ ${pNum} • बिंदु #${idx + 1}` : `Page ${pNum} • Point #${idx + 1}`)),
         pointTitle,
-        badge: String(p.credit_badge || (p.is_positive !== false ? "✓ Credit Earned" : "✎ Scope to Upgrade")),
+        badge: String(p.credit_badge || defBadge),
         isPositive: p.is_positive !== false,
-        detail: `**What You Wrote**: "${whatYouWrote}" — ${verdict}`
+        detail: isHindi ? `**अभ्यर्थी ने लिखा**: "${whatYouWrote}" — ${verdict}` : `**What You Wrote**: "${whatYouWrote}" — ${verdict}`
       };
     });
   } else {
@@ -11189,12 +11294,12 @@ function renderBatch1ExaminerMastery(evalData) {
       const titleCandidate = cleanS.split(":")[0].replace(/\*\*/g, "").trim();
       const pointTitle = (!window.isMetaPlaceholderText(titleCandidate) && titleCandidate.length > 3)
         ? titleCandidate
-        : `Page ${pgNum} Verified Strength #${idx + 1}`;
+        : (isHindi ? `पृष्ठ ${pgNum} सत्यापित मजबूती #${idx + 1}` : `Page ${pgNum} Verified Strength #${idx + 1}`);
       pointRows.push({
         page: pgNum,
-        loc: `Page ${pgNum} • Verified Strength #${idx + 1}`,
+        loc: isHindi ? `पृष्ठ ${pgNum} • सत्यापित मजबूती #${idx + 1}` : `Page ${pgNum} • Verified Strength #${idx + 1}`,
         pointTitle,
-        badge: `✓ Fetched Marks`,
+        badge: isHindi ? "✓ अंक मिले (Fetched Marks)" : `✓ Fetched Marks`,
         isPositive: true,
         detail: cleanS
       });
@@ -11204,21 +11309,23 @@ function renderBatch1ExaminerMastery(evalData) {
       let cleanG = String(gText).replace(/^[✓✔✎✗×]\s*/, "");
       if (/add\s+([^*]+)\*([^:]+:\s*)?([^.]+\.)?\s*(?:as a keyword)?/i.test(cleanG)) {
         cleanG = cleanG.replace(/add\s+([^*]+)\*([^:]+:\s*)?([^.]+\.)?\s*(?:as a keyword)?/i, (m, term, dTitle, def) => {
-          return `Integrate technical keyword '${term.trim()}'${def ? ` (${def.trim().toLowerCase()})` : ""} to elevate precision.`;
+          return isHindi
+            ? `सटीकता बढ़ाने हेतु तकनीकी शब्दावली '${term.trim()}'${def ? ` (${def.trim().toLowerCase()})` : ""} को समाहित करें।`
+            : `Integrate technical keyword '${term.trim()}'${def ? ` (${def.trim().toLowerCase()})` : ""} to elevate precision.`;
         });
       }
-      cleanG = cleanG.replace(/Point\s*\[[X-Z0-9]+\]/gi, "this argument")
-                    .replace(/\[Point\s*\d+\s*\/\s*Point\s*\d+\s*topics\]/gi, "the core directive");
+      cleanG = cleanG.replace(/Point\s*\[[X-Z0-9]+\]/gi, isHindi ? "इस तर्क" : "this argument")
+                    .replace(/\[Point\s*\d+\s*\/\s*Point\s*\d+\s*topics\]/gi, isHindi ? "मुख्य निर्देश" : "the core directive");
       const pgNum = Math.min(idx + 2, (state.activePages && state.activePages.length) || 2);
       const titleCandidate = cleanG.split(":")[0].replace(/\*\*/g, "").trim();
       const pointTitle = (!window.isMetaPlaceholderText(titleCandidate) && titleCandidate.length > 3)
         ? titleCandidate
-        : `Page ${pgNum} High-Yield Upgrade #${idx + 1}`;
+        : (isHindi ? `पृष्ठ ${pgNum} उच्च-प्रासंगिकता सुधार #${idx + 1}` : `Page ${pgNum} High-Yield Upgrade #${idx + 1}`);
       pointRows.push({
         page: pgNum,
-        loc: `Page ${pgNum} • Upgrade Lever #${idx + 1}`,
+        loc: isHindi ? `पृष्ठ ${pgNum} • सुधार बिंदु #${idx + 1}` : `Page ${pgNum} • Upgrade Lever #${idx + 1}`,
         pointTitle,
-        badge: "✎ Actionable Upgrade",
+        badge: isHindi ? "✎ सुधार बिंदु (Actionable Upgrade)" : "✎ Actionable Upgrade",
         isPositive: false,
         detail: cleanG
       });
@@ -11234,11 +11341,13 @@ function renderBatch1ExaminerMastery(evalData) {
         const cleanSent = cleanCandidateQuote(sents[0], 120);
         pointRows.push({
           page: p,
-          loc: `Page ${p} • Key Handwritten Point`,
-          pointTitle: `Page ${p} Core Analysis`,
-          badge: "✓ Evaluated Point",
+          loc: isHindi ? `पृष्ठ ${p} • मुख्य हस्तलिखित बिंदु` : `Page ${p} • Key Handwritten Point`,
+          pointTitle: isHindi ? `पृष्ठ ${p} मुख्य विश्लेषण` : `Page ${p} Core Analysis`,
+          badge: isHindi ? "✓ मूल्यांकित बिंदु" : "✓ Evaluated Point",
           isPositive: true,
-          detail: `**What You Wrote**: "${cleanSent}" — Evaluated candidate's handwritten point with relevant UPSC GS benchmarks.`
+          detail: isHindi
+            ? `**अभ्यर्थी ने लिखा**: "${cleanSent}" — अभ्यर्थी के हस्तलिखित बिंदु का संबंधित यूपीएससी मानकों के आधार पर मूल्यांकन किया गया।`
+            : `**What You Wrote**: "${cleanSent}" — Evaluated candidate's handwritten point with relevant UPSC GS benchmarks.`
         });
       }
     }
@@ -11263,7 +11372,7 @@ function renderBatch1ExaminerMastery(evalData) {
     const badgeStyle = r.isPositive
       ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
       : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30";
-    const pageMatch = String(r.loc || "").match(/Page\s*(\d+)/i);
+    const pageMatch = String(r.loc || "").match(/(?:Page|पृष्ठ)\s*(\d+)/i);
     const targetPage = r.page || (pageMatch ? parseInt(pageMatch[1], 10) : 1);
     return `
       <div class="w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-2 min-w-0 overflow-hidden">
@@ -11289,30 +11398,42 @@ function renderBatch1ExaminerMastery(evalData) {
   const lockerList = Array.isArray(state.lockerHistory) ? state.lockerHistory : [];
   const totalCopiesInLocker = Math.max(1, lockerList.length);
   if (copyCountBadgeEl) {
-    copyCountBadgeEl.textContent = `Tracked Across ${totalCopiesInLocker} Locker Cop${totalCopiesInLocker === 1 ? "y" : "ies"}`;
+    copyCountBadgeEl.textContent = isHindi
+      ? `${totalCopiesInLocker} लॉकर प्रतियों में ट्रैक किया गया`
+      : `Tracked Across ${totalCopiesInLocker} Locker Cop${totalCopiesInLocker === 1 ? "y" : "ies"}`;
   }
 
   let habitFixedHtml = "";
   let nextHabitHtml = "";
 
-  if (totalCopiesInLocker > 1) {
-    habitFixedHtml = `**Consistent Visual Structure**: Across your **${totalCopiesInLocker} evaluated copies**, you consistently use **boxed sub-headings and numbered points**, which helps the UPSC examiner scan your core arguments in under 15 seconds.`;
-    nextHabitHtml = `**Next Habit for +1.5M Jump**: Ensure every sub-demand of the question receives **equal point density (4–5 points each)** and never end a 15-marker without a dedicated 3-point **Way Forward** before the Conclusion.`;
+  if (isHindi) {
+    if (totalCopiesInLocker > 1) {
+      habitFixedHtml = `**सतत दृश्य संरचना**: आपकी **${totalCopiesInLocker} मूल्यांकित प्रतियों** में आपने लगातार **बॉक्स उप-शीर्षकों एवं बिंदुवार प्रस्तुति** का उपयोग किया है, जो मुख्य तर्कों को 15 सेकंड में स्पष्ट करता है।`;
+      nextHabitHtml = `**अगले +1.5 अंक हेतु आदत**: सुनिश्चित करें कि प्रश्न के प्रत्येक उप-भाग को **समान बिंदु घनत्व (4–5 बिंदु प्रत्येक)** मिले और 15-अंकों के प्रश्न को बिना 3-बिंदु **आगे की राह (Way Forward)** के समाप्त न करें।`;
+    } else {
+      habitFixedHtml = `**आधारभूत क्षमता दर्ज**: आपकी **उप-शीर्षक संरचना एवं बिंदु-वार तर्कप्रणाली** मेंटर प्रोफाइल में दर्ज कर ली गई है।`;
+      nextHabitHtml = `**अगली प्रति का लक्ष्य**: अपने अगले उत्तर में प्रत्येक बिंदु को **1 ठोस रिपोर्ट/योजना/अनुच्छेद** तथा **30-सेकंड की रूपरेखा/आरेख** से पुष्ट कर 55%+ टॉपर श्रेणी में स्थान सुनिश्चित करें।`;
+    }
   } else {
-    habitFixedHtml = `**Baseline Strength Recorded**: Your **sub-heading structure and point-first argumentation** have been logged in your Personal Mentor Profile.`;
-    nextHabitHtml = `**Next Copy Target**: In your next upload, focus on pairing each point with **1 concrete report/scheme/article** and a **30-second boxed schematic** to push past the 55%+ Topper threshold.`;
+    if (totalCopiesInLocker > 1) {
+      habitFixedHtml = `**Consistent Visual Structure**: Across your **${totalCopiesInLocker} evaluated copies**, you consistently use **boxed sub-headings and numbered points**, which helps the UPSC examiner scan your core arguments in under 15 seconds.`;
+      nextHabitHtml = `**Next Habit for +1.5M Jump**: Ensure every sub-demand of the question receives **equal point density (4–5 points each)** and never end a 15-marker without a dedicated 3-point **Way Forward** before the Conclusion.`;
+    } else {
+      habitFixedHtml = `**Baseline Strength Recorded**: Your **sub-heading structure and point-first argumentation** have been logged in your Personal Mentor Profile.`;
+      nextHabitHtml = `**Next Copy Target**: In your next upload, focus on pairing each point with **1 concrete report/scheme/article** and a **30-second boxed schematic** to push past the 55%+ Topper threshold.`;
+    }
   }
 
   memoryBoxEl.innerHTML = `
     <div class="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-emerald-500/30 space-y-1 min-w-0">
       <div class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center space-x-1">
-        <span>✓ Progress &amp; Habit Fixed</span>
+        <span>${isHindi ? "✓ प्रगति एवं सुधरी आदतें (Progress & Habits)" : "✓ Progress &amp; Habit Fixed"}</span>
       </div>
       <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed break-words">${formatHighlightedText(habitFixedHtml)}</p>
     </div>
     <div class="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-500/30 space-y-1 min-w-0">
       <div class="text-[11px] font-extrabold uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center space-x-1">
-        <span>🎯 Next Exam-Hall Habit to Master</span>
+        <span>${isHindi ? "🎯 परीक्षा-कक्ष हेतु अगली आदत (Next Target)" : "🎯 Next Exam-Hall Habit to Master"}</span>
       </div>
       <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed break-words">${formatHighlightedText(nextHabitHtml)}</p>
     </div>
@@ -12150,6 +12271,7 @@ function renderValueAddCategories(vaData, paper, question, seenPhrasesSet, keywo
 // Dynamic Diagram Relevance & Exam-Hall Space-Management Engine
 window.computeDiagramRelevanceProfile = function(evalData) {
   const data = evalData || state.currentEvaluation || {};
+  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(data);
   const caData = data.current_affairs_value_add || {};
   const diagRec = caData.diagram_recommendation || {};
   const mm = Number(data.max_marks || state.marks || 10);
@@ -12189,7 +12311,7 @@ window.computeDiagramRelevanceProfile = function(evalData) {
   }
 
   // Helper to build a clean 2-line horizontal chain from structure or concept_title
-  const rawStructure = diagRec.structure || "Trigger / Mandate ──> Institutional Mechanism ──> Measurable Outcome";
+  const rawStructure = diagRec.structure || (isHindi ? "कारण / अधिदेश ──> संस्थागत तंत्र ──> मापने योग्य परिणाम" : "Trigger / Mandate ──> Institutional Mechanism ──> Measurable Outcome");
   const chainParts = rawStructure
     .split(/->|──>|→|\||,/)
     .map(s => s.replace(/[\[\]]/g, "").trim())
@@ -12197,23 +12319,27 @@ window.computeDiagramRelevanceProfile = function(evalData) {
     .slice(0, 4);
   const compactArrowChain = chainParts.length >= 2
     ? chainParts.map(p => `[${p}]`).join(" ──> ")
-    : `[Constitutional Mandate] ──> [Institutional Bottleneck] ──> [Way Forward]`;
+    : (isHindi ? `[संवैधानिक अधिदेश] ──> [संस्थागत बाधाएं] ──> [आगे की राह]` : `[Constitutional Mandate] ──> [Institutional Bottleneck] ──> [Way Forward]`);
 
-  const rawConcept = diagRec.concept_title || "Core Analytical Flow";
+  const rawConcept = diagRec.concept_title || (isHindi ? "केंद्रीय विश्लेषणात्मक फ़्लो" : "Core Analytical Flow");
 
   if (verdict === "ALREADY_DRAWN") {
     return {
       verdict: "ALREADY_DRAWN",
-      headingLabel: "Diagram & Space Audit (Visual Already Present on Sheet):",
-      badgeText: "✓ DIAGRAM ALREADY DRAWN • 0 EXTRA SPACE NEEDED",
+      headingLabel: isHindi ? "आरेख एवं स्थान प्रबंधन (उत्तर-पुस्तिका में आरेख पहले से उपस्थित):" : "Diagram & Space Audit (Visual Already Present on Sheet):",
+      badgeText: isHindi ? "✓ आरेख पहले से उपस्थित • 0 अतिरिक्त स्थान आवश्यक" : "✓ DIAGRAM ALREADY DRAWN • 0 EXTRA SPACE NEEDED",
       badgeClass: "text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40",
-      adviceTitle: "Exam-Hall Space Verdict (Already Drawn)",
-      spaceAdvice: diagRec.space_utilization_advice || `You already included a flowchart/diagram on your answer sheet! Do NOT draw a second diagram—that would waste 25–30% of your ${mm <= 10 ? '2-page (150w)' : '3-page (250w)'} booklet. Keep your existing layout and simply enrich node labels with 1–2 technical keywords below.`,
+      adviceTitle: isHindi ? "परीक्षा-कक्ष स्थान निर्णय (आरेख उपस्थित)" : "Exam-Hall Space Verdict (Already Drawn)",
+      spaceAdvice: diagRec.space_utilization_advice || (isHindi
+        ? `आपने अपनी उत्तर-पुस्तिका में पहले से ही फ़्लोचार्ट/आरेख बनाया हुआ है! दूसरा आरेख न बनाएं—इससे आपकी ${mm <= 10 ? '2-पृष्ठ (150 शब्द)' : '3-पृष्ठ (250 शब्द)'} पुस्तिका का 25–30% स्थान व्यर्थ होगा। वर्तमान प्रारूप बनाए रखें और केवल तकनीकी शब्दावली जोड़ें।`
+        : `You already included a flowchart/diagram on your answer sheet! Do NOT draw a second diagram—that would waste 25–30% of your ${mm <= 10 ? '2-page (150w)' : '3-page (250w)'} booklet. Keep your existing layout and simply enrich node labels with 1–2 technical keywords below.`),
       adviceBoxClass: "mb-2.5 p-2.5 rounded-lg bg-emerald-950/35 border border-emerald-500/30 text-[11px] text-emerald-100/90 leading-relaxed",
-      conceptTitle: `Label Upgrade for Your Existing Diagram: ${rawConcept}`,
+      conceptTitle: isHindi ? `वर्तमान आरेख हेतु लेबल उन्नयन: ${rawConcept}` : `Label Upgrade for Your Existing Diagram: ${rawConcept}`,
       structureText: compactArrowChain,
-      sketchTip: diagRec.exam_hall_sketch_tip || "Keep your existing visual compact (under 5 lines) and underline key Articles/Data inside the nodes.",
-      visualBlueprint: `┌── KEEP YOUR EXISTING DIAGRAM COMPACT (ZERO EXTRA LINES) ──┐\n  ${compactArrowChain}\n  [Tip: Add 1 Committee / Article label directly onto your existing arrow]`,
+      sketchTip: diagRec.exam_hall_sketch_tip || (isHindi ? "वर्तमान आरेख को 5 पंक्तियों के भीतर रखें और मुख्य अनुच्छेदों/डेटा को रेखांकित करें।" : "Keep your existing visual compact (under 5 lines) and underline key Articles/Data inside the nodes."),
+      visualBlueprint: isHindi
+        ? `┌── वर्तमान आरेख को संक्षिप्त रखें (0 अतिरिक्त पंक्तियां) ──┐\n  ${compactArrowChain}\n  [सलाह: तीर पर 1 समिति/अनुच्छेद का संदर्भ जोड़ें]`
+        : `┌── KEEP YOUR EXISTING DIAGRAM COMPACT (ZERO EXTRA LINES) ──┐\n  ${compactArrowChain}\n  [Tip: Add 1 Committee / Article label directly onto your existing arrow]`,
       includeBoxInModelAnswer: false,
       compactChainForModelAnswer: compactArrowChain
     };
@@ -12222,16 +12348,24 @@ window.computeDiagramRelevanceProfile = function(evalData) {
   if (verdict === "NOT_NEEDED_SAVE_SPACE") {
     return {
       verdict: "NOT_NEEDED_SAVE_SPACE",
-      headingLabel: "Diagram & Space Audit (Skip Box Diagram — Save Page Space):",
-      badgeText: `⚠ SKIP BOX DIAGRAM • SAVE SPACE FOR +2 POINTS (${mm}M / ${mm <= 10 ? '2 PAGES' : '3 PAGES'})`,
+      headingLabel: isHindi ? "आरेख एवं स्थान प्रबंधन (बॉक्स आरेख से बचें — स्थान बचाएं):" : "Diagram & Space Audit (Skip Box Diagram — Save Page Space):",
+      badgeText: isHindi
+        ? `⚠ बॉक्स आरेख से बचें • +2 बिंदुओं हेतु स्थान बचाएं (${mm} अंक / ${mm <= 10 ? '2 पृष्ठ' : '3 पृष्ठ'})`
+        : `⚠ SKIP BOX DIAGRAM • SAVE SPACE FOR +2 POINTS (${mm}M / ${mm <= 10 ? '2 PAGES' : '3 PAGES'})`,
       badgeClass: "text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40",
-      adviceTitle: `Why You Should NOT Draw a Box Diagram Here (${mm}-Marker Space Rule)`,
-      spaceAdvice: diagRec.space_utilization_advice || `In a ${mm}-Marker (${mm <= 10 ? 'only 2 pages / 150 words' : 'tight booklet space'}), drawing a forced box diagram for this doctrinal/constitutional question eats ~35% of a page (7–9 lines) and forces you to drop 2 substantiated points. Skip the box diagram! Use Boxed Sub-Headings + Underlined Articles/Case Laws to get full presentation marks in 0 extra lines.`,
+      adviceTitle: isHindi
+        ? `यहाँ बॉक्स आरेख क्यों नहीं बनाना चाहिए (${mm}-अंकों का स्थान नियम)`
+        : `Why You Should NOT Draw a Box Diagram Here (${mm}-Marker Space Rule)`,
+      spaceAdvice: diagRec.space_utilization_advice || (isHindi
+        ? `${mm}-अंकों के प्रश्न (${mm <= 10 ? 'केवल 2 पृष्ठ / 150 शब्द' : 'सीमित पुस्तिका स्थान'}) में वैचारिक/संवैधानिक प्रश्न पर अनावश्यक बॉक्स आरेख बनाने से पृष्ठ का ~35% (7–9 पंक्तियां) स्थान व्यर्थ होता है। बॉक्स आरेख से बचें! बिंदुवार उप-शीर्षकों एवं रेखांकित अनुच्छेदों/न्यायिक निर्णयों का उपयोग कर शून्य अतिरिक्त पंक्तियों में पूर्ण प्रस्तुति अंक प्राप्त करें।`
+        : `In a ${mm}-Marker (${mm <= 10 ? 'only 2 pages / 150 words' : 'tight booklet space'}), drawing a forced box diagram for this doctrinal/constitutional question eats ~35% of a page (7–9 lines) and forces you to drop 2 substantiated points. Skip the box diagram! Use Boxed Sub-Headings + Underlined Articles/Case Laws to get full presentation marks in 0 extra lines.`),
       adviceBoxClass: "mb-2.5 p-2.5 rounded-lg bg-rose-950/35 border border-rose-500/30 text-[11px] text-rose-100/90 leading-relaxed",
-      conceptTitle: `Zero-Space Presentation Alternative (Instead of Forced Diagram)`,
-      structureText: `Box Sub-Headings: [ 1. ${rawConcept.slice(0, 28).toUpperCase()} ] + Underline Authorities`,
-      sketchTip: "Do NOT draw a box diagram here. Box your 2 main sub-headings and use 1-line arrow chains inside bullets.",
-      visualBlueprint: `[SPACE-SAVER PRESENTATION BLUEPRINT — 0 EXTRA LINES USED]\n1. Box Your Sub-Headings :  [ A. CORE MANDATE ]   [ B. STRUCTURAL GAPS ]\n2. Inline Point Format   :  ${compactArrowChain}`,
+      conceptTitle: isHindi ? `शून्य-स्थान प्रस्तुति विकल्प (अनावश्यक आरेख के स्थान पर)` : `Zero-Space Presentation Alternative (Instead of Forced Diagram)`,
+      structureText: isHindi ? `बॉक्स उप-शीर्षक: [ 1. ${rawConcept.slice(0, 28).toUpperCase()} ] + प्रामाणिक संदर्भ` : `Box Sub-Headings: [ 1. ${rawConcept.slice(0, 28).toUpperCase()} ] + Underline Authorities`,
+      sketchTip: isHindi ? "यहाँ बॉक्स आरेख न बनाएं। 2 मुख्य उप-शीर्षकों को बॉक्स में रखें और बिंदुओं के भीतर 1-पंक्ति तीर श्रृंखला का उपयोग करें।" : "Do NOT draw a box diagram here. Box your 2 main sub-headings and use 1-line arrow chains inside bullets.",
+      visualBlueprint: isHindi
+        ? `[स्थान-बचत प्रस्तुति रूपरेखा — 0 अतिरिक्त पंक्तियां]\n1. उप-शीर्षक बॉक्स करें :  [ क. मुख्य अधिदेश ]   [ ख. संरचनात्मक कमियां ]\n2. इनलाइन बिंदु प्रारूप :  ${compactArrowChain}`
+        : `[SPACE-SAVER PRESENTATION BLUEPRINT — 0 EXTRA LINES USED]\n1. Box Your Sub-Headings :  [ A. CORE MANDATE ]   [ B. STRUCTURAL GAPS ]\n2. Inline Point Format   :  ${compactArrowChain}`,
       includeBoxInModelAnswer: false,
       compactChainForModelAnswer: null
     };
@@ -12240,16 +12374,24 @@ window.computeDiagramRelevanceProfile = function(evalData) {
   if (verdict === "COMPACT_2_LINE") {
     return {
       verdict: "COMPACT_2_LINE",
-      headingLabel: "Diagram & Space Audit (2-Line Space-Saver Flow):",
-      badgeText: `⚡ 2-LINE INLINE FLOW ONLY • AVOID TALL BOX (${mm}M SPACE SAVER)`,
+      headingLabel: isHindi ? "आरेख एवं स्थान प्रबंधन (2-पंक्ति स्थान-बचत फ़्लो):" : "Diagram & Space Audit (2-Line Space-Saver Flow):",
+      badgeText: isHindi
+        ? `⚡ केवल 2-पंक्ति क्षैतिज फ़्लो • बड़े बॉक्स से बचें (${mm}M स्थान बचत)`
+        : `⚡ 2-LINE INLINE FLOW ONLY • AVOID TALL BOX (${mm}M SPACE SAVER)`,
       badgeClass: "text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40",
-      adviceTitle: `Smart Space Allocation (${mm <= 10 ? '2-Page 10-Marker' : '3-Page 15-Marker'})`,
-      spaceAdvice: diagRec.space_utilization_advice || `A large multi-box diagram takes 8–10 lines (~35% of a page) and steals space from your substantive arguments. Instead, draw this 2-Line Horizontal Arrow Chain between Intro and Body—it uses only 2 lines of space while breaking text monotony for the examiner!`,
+      adviceTitle: isHindi
+        ? `स्मार्ट स्थान आवंटन (${mm <= 10 ? '2-पृष्ठ 10-अंक' : '3-पृष्ठ 15-अंक'})`
+        : `Smart Space Allocation (${mm <= 10 ? '2-Page 10-Marker' : '3-Page 15-Marker'})`,
+      spaceAdvice: diagRec.space_utilization_advice || (isHindi
+        ? `बड़ा बहु-स्तरीय आरेख 8–10 पंक्तियां (~35% पृष्ठ) घेर लेता है और मुख्य तर्कों का स्थान छीन लेता है। इसके स्थान पर प्रस्तावना और मुख्य भाग के मध्य 2-पंक्ति की यह क्षैतिज तीर-श्रृंखला बनाएं—यह केवल 2 पंक्तियों का उपयोग कर परीक्षक हेतु दृश्य स्पष्टता प्रदान करती है!`
+        : `A large multi-box diagram takes 8–10 lines (~35% of a page) and steals space from your substantive arguments. Instead, draw this 2-Line Horizontal Arrow Chain between Intro and Body—it uses only 2 lines of space while breaking text monotony for the examiner!`),
       adviceBoxClass: "mb-2.5 p-2.5 rounded-lg bg-cyan-950/35 border border-cyan-500/30 text-[11px] text-cyan-100/90 leading-relaxed",
-      conceptTitle: `${rawConcept} (2-Line Inline Flow)`,
+      conceptTitle: isHindi ? `${rawConcept} (2-पंक्ति इनलाइन फ़्लो)` : `${rawConcept} (2-Line Inline Flow)`,
       structureText: compactArrowChain,
-      sketchTip: diagRec.exam_hall_sketch_tip || "Takes 15 seconds & only 2 lines on your sheet—leaves full space for 5–6 analytical points.",
-      visualBlueprint: `[2-LINE EXAM-HALL SPACE-SAVER FLOW — TAKES ONLY 2 LINES]\n${compactArrowChain}`,
+      sketchTip: diagRec.exam_hall_sketch_tip || (isHindi ? "यह मात्र 15 सेकंड व 2 पंक्तियां लेता है—विश्लेषणात्मक बिंदुओं हेतु पूर्ण स्थान सुरक्षित रखता है।" : "Takes 15 seconds & only 2 lines on your sheet—leaves full space for 5–6 analytical points."),
+      visualBlueprint: isHindi
+        ? `[2-पंक्ति परीक्षा-कक्ष स्थान-बचत फ़्लो — केवल 2 पंक्तियां]\n${compactArrowChain}`
+        : `[2-LINE EXAM-HALL SPACE-SAVER FLOW — TAKES ONLY 2 LINES]\n${compactArrowChain}`,
       includeBoxInModelAnswer: false,
       compactChainForModelAnswer: compactArrowChain
     };
@@ -12261,15 +12403,19 @@ window.computeDiagramRelevanceProfile = function(evalData) {
 
   return {
     verdict: "HIGH_ROI",
-    headingLabel: "High-ROI Exam-Hall Diagram Blueprint (Recommended):",
-    badgeText: `★ HIGH-ROI VISUAL • DRAW IN 35 SECS (+0.5 TO +1.0M)`,
+    headingLabel: isHindi ? "उच्च-प्रासंगिकता परीक्षा-कक्ष आरेख प्रारूप (अनुशंसित):" : "High-ROI Exam-Hall Diagram Blueprint (Recommended):",
+    badgeText: isHindi ? `★ उच्च-प्रासंगिकता आरेख • 35 सेकंड में बनाएं (+0.5 से +1.0 अंक)` : `★ HIGH-ROI VISUAL • DRAW IN 35 SECS (+0.5 TO +1.0M)`,
     badgeClass: "text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40",
-    adviceTitle: `High Visual ROI for This Question (${mm <= 10 ? 'Max 5 Lines / 20% Page' : 'Max 6 Lines on Page 2'})`,
-    spaceAdvice: diagRec.space_utilization_advice || `This topic has high visual payoff! Dedicate 5–6 lines (${mm <= 10 ? 'top-right corner box on Page 1' : 'center of Page 2'}) to sketch this schematic. It compresses 40+ words of explanation and earns +0.5 to +1.0 presentation marks.`,
+    adviceTitle: isHindi
+      ? `इस प्रश्न हेतु उच्च दृश्य प्रासंगिकता (${mm <= 10 ? 'अधिकतम 5 पंक्तियां / 20% पृष्ठ' : 'अधिकतम 6 पंक्तियां पृष्ठ 2 पर'})`
+      : `High Visual ROI for This Question (${mm <= 10 ? 'Max 5 Lines / 20% Page' : 'Max 6 Lines on Page 2'})`,
+    spaceAdvice: diagRec.space_utilization_advice || (isHindi
+      ? `इस विषय में आरेख का विशेष लाभ है! इस रूपरेखा को बनाने हेतु 5–6 पंक्तियां समर्पित करें। यह 40+ शब्दों के विवरण को संक्षिप्त करता है तथा +0.5 से +1.0 प्रस्तुति अंक दिलाता है।`
+      : `This topic has high visual payoff! Dedicate 5–6 lines (${mm <= 10 ? 'top-right corner box on Page 1' : 'center of Page 2'}) to sketch this schematic. It compresses 40+ words of explanation and earns +0.5 to +1.0 presentation marks.`),
     adviceBoxClass: "mb-2.5 p-2.5 rounded-lg bg-amber-950/35 border border-amber-500/30 text-[11px] text-amber-100/90 leading-relaxed",
     conceptTitle: rawConcept,
     structureText: rawStructure,
-    sketchTip: diagRec.exam_hall_sketch_tip || "Keep strictly within 5–6 lines so you don't crowd out your substantive points.",
+    sketchTip: diagRec.exam_hall_sketch_tip || (isHindi ? "इसे 5–6 पंक्तियों के भीतर ही रखें ताकि आपके मुख्य विश्लेषणात्मक बिंदु प्रभावित न हों।" : "Keep strictly within 5–6 lines so you don't crowd out your substantive points."),
     visualBlueprint: rawVisual,
     includeBoxInModelAnswer: true,
     compactChainForModelAnswer: compactArrowChain

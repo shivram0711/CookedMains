@@ -363,7 +363,7 @@ async def get_samples():
     samples = get_sample_datasets()
     result = []
     for s in samples:
-        norm_eval = normalize_evaluation_data(dict(s["precomputed_evaluation"]), s["marks"], s["question"], s["paper"])
+        norm_eval = normalize_evaluation_data(dict(s["precomputed_evaluation"]), s["marks"], s["question"], s["paper"], medium=s.get("medium", "english"))
         result.append({
             "id": s["id"],
             "paper": s["paper"],
@@ -2192,7 +2192,7 @@ async def evaluate_answer(
                                 record_gemini_model_outcome(champion_model, True)
                                 if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
                                     parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
-                                evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper)
+                                evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper, medium=medium)
                                 break
                     except Exception as ge:
                         err_s = str(ge)
