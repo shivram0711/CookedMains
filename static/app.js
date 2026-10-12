@@ -7317,7 +7317,7 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
 
     // Populate desktop & tablet Examiner Line-by-Line Audit in blank area below answersheet
     if (typeof window.renderDesktopAuditCards === "function") {
-      window.renderDesktopAuditCards(sections, currentPg, totalPages);
+      window.renderDesktopAuditCards(sections, currentPg, totalPages, activeEval);
     }
   } else {
     if (gutterRibbon) gutterRibbon.innerHTML = "";
@@ -7704,7 +7704,8 @@ function getCardQuoteAndElevate(sec) {
 }
 
 // Global helper: Render Examiner Line-by-Line Audit cards in blank area below answersheet on PC & Tablet
-window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
+window.renderDesktopAuditCards = function(sections, currentPg, totalPages, activeEval) {
+  const evalData = activeEval || (typeof state !== "undefined" && (state.currentEvaluation || state.originalEvaluation)) || (typeof window.evalData !== "undefined" ? window.evalData : {});
   const container = document.getElementById("desktopAuditCardsContainer");
   const header = document.getElementById("desktopAuditHeader");
   const scorePill = document.getElementById("desktopAuditScorePill");
@@ -9638,6 +9639,7 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
 
 // Render the Full Evaluation Scorecard
 function renderEvaluation(evalData) {
+  window.evalData = evalData;
   if (typeof window.sanitizeRepetitiveConclusionCliches === "function") {
     window.sanitizeRepetitiveConclusionCliches(
       evalData,
