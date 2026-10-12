@@ -207,13 +207,110 @@ PAPER_TAXONOMIES = {
     }
 }
 
+# Hindi Directives Taxonomy for UPSC Mains (हिंदी माध्यम आधिकारिक निर्देश शब्दावली)
+HINDI_DIRECTIVES = {
+    "आलोचनात्मक विश्लेषण कीजिए": {
+        "meaning": "पक्ष (Thesis), विपक्ष/सीमाएं (Anti-thesis) और समन्वित संतुलित समाधान (Synthesis) प्रस्तुत करें।",
+        "ideal_balance": "संतुलित द्वंद्वात्मक दृष्टिकोण (पक्ष 45%, विपक्ष 40%, समाधान 15%)।"
+    },
+    "समालोचनात्मक विश्लेषण कीजिए": {
+        "meaning": "सकारात्मक एवं नकारात्मक पक्षों का निष्पक्ष परीक्षण कर संतुलित निष्कर्ष दें।",
+        "ideal_balance": "पक्ष 45%, विपक्ष 40%, आगे की राह 15%।"
+    },
+    "आलोचनात्मक मूल्यांकन कीजिए": {
+        "meaning": "संवैधानिक या नीतिगत मानकों के आधार पर उपलब्धियों और विचलनों का वस्तुनिष्ठ आकलन करें।",
+        "ideal_balance": "मानक-आधारित समीक्षा, पक्ष 45%, विपक्ष 40%, समाधान 15%।"
+    },
+    "समालोचनात्मक मूल्यांकन कीजिए": {
+        "meaning": "गुण-दोषों का सम्यक विश्लेषण कर स्पष्ट सुधारात्मक दृष्टिकोण प्रस्तुत करें।",
+        "ideal_balance": "सकारात्मक पक्ष 45%, सीमाएं 40%, नीतिगत समाधान 15%।"
+    },
+    "समीक्षा कीजिए": {
+        "meaning": "उपलब्धियों और व्यवस्थागत कमियों दोनों की गहन पड़ताल करें और संतुलित समाधान दें।",
+        "ideal_balance": "तथ्यात्मक अन्वेषण (50% पक्ष, 40% चुनौतियां, 10% निष्कर्ष)।"
+    },
+    "परीक्षण कीजिए": {
+        "meaning": "तथ्यों, कारणों एवं संरचनात्मक उपायों की सूक्ष्मता से निष्पक्ष पड़ताल करें।",
+        "ideal_balance": "कारण-प्रभाव विश्लेषण और व्यावहारिक समाधान।"
+    },
+    "स्पष्ट कीजिए": {
+        "meaning": "अवधारणा को सरल भाषा, प्रामाणिक तथ्यों और उदाहरणों से सुस्पष्ट करें।",
+        "ideal_balance": "70% विश्लेषणात्मक व्याख्या, 20% उदाहरण/केस स्टडी, 10% निष्कर्ष।"
+    },
+    "सोदाहरण समझाइए": {
+        "meaning": "प्रत्येक प्रमुख तर्क को ठोस वास्तविक उदाहरणों (उदा०), केस स्टडी या आरेख से प्रमाणित करें।",
+        "ideal_balance": "60% अवधारणात्मक समझ, 30% प्रामाणिक उदाहरण (उदा०), 10% आगे की राह।"
+    },
+    "सविस्तार वर्णन कीजिए": {
+        "meaning": "विभिन्न आयामों और हितधारकों के संदर्भ में व्यापक और बिंदुवार विवरण दें।",
+        "ideal_balance": "बहुआयामी बिंदुवार प्रस्तुति और प्रासंगिक उदाहरण।"
+    },
+    "चर्चा कीजिए": {
+        "meaning": "मुद्दे के सभी आयामों (सामाजिक, आर्थिक, राजनीतिक, विधिक, तकनीकी) की बिंदुवार पड़ताल करें।",
+        "ideal_balance": "व्यापक बहुआयामी दृष्टिकोण (PESTLE ढांचा)।"
+    },
+    "मूल्यांकन कीजिए": {
+        "meaning": "उद्देश्यों या संवैधानिक आदर्शों के विरुद्ध प्रभावशीलता या परिणामों का स्पष्ट आकलन करें।",
+        "ideal_balance": "मानदंड-आधारित मूल्यांकन और निर्णायक निष्कर्ष।"
+    },
+    "टिप्पणी कीजिए": {
+        "meaning": "तर्क, संवैधानिक सिद्धांतों और तथ्यों के आधार पर अपना पुष्ट दृष्टिकोण रखें।",
+        "ideal_balance": "स्पष्ट एवं पुष्ट तर्कों के साथ संतुलन।"
+    },
+    "तुलना कीजिए": {
+        "meaning": "समानताओं और भिन्नताओं का व्यवस्थित तुलनात्मक ढांचा या तालिका प्रस्तुत करें।",
+        "ideal_balance": "संरचित तुलनात्मक विश्लेषण (तालिका/बिंदुवार)।"
+    },
+    "अंतर स्पष्ट कीजिए": {
+        "meaning": "परिभाषाओं, संस्थागत स्थिति और व्यावहारिक प्रभावों के आधार पर स्पष्ट भेद करें।",
+        "ideal_balance": "तालिकाबद्ध विभेदीकरण और समकालीन प्रासंगिकता।"
+    },
+    "क्या आप सहमत हैं": {
+        "meaning": "आरंभ में स्पष्ट तार्किक रुख लें, पक्ष में ठोस तर्क दें, प्रति-तर्कों को पहचानें और संतुलित समन्वय करें।",
+        "ideal_balance": "प्रारंभिक रुख, मुख्य तर्क, व्यावहारिक चुनौतियां और अग्रगामी समाधान।"
+    }
+}
+
+def is_devanagari_text(text: Optional[str]) -> bool:
+    if not text:
+        return False
+    dev_chars = len(re.findall(r'[\u0900-\u097F]', text))
+    return dev_chars >= 5
+
 def detect_directive(question_text: str) -> Dict[str, str]:
-    text_lower = (question_text or "").lower()
+    text_raw = (question_text or "").strip()
+    text_lower = text_raw.lower()
+    
+    # Check Hindi directives first if Devanagari is present or matched
+    if is_devanagari_text(text_raw):
+        # Sort Hindi directives by phrase length descending
+        sorted_h_dirs = sorted(HINDI_DIRECTIVES.items(), key=lambda x: len(x[0]), reverse=True)
+        for h_dir, info in sorted_h_dirs:
+            # Check full phrase or stem without 'कीजिए'/'कीजिये'
+            h_stem = re.sub(r'\s*(?:कीजिए|कीजिये)\s*$', '', h_dir).strip()
+            if h_dir in text_raw or (len(h_stem) >= 4 and h_stem in text_raw):
+                return {
+                    "directive": h_dir,
+                    "details": info["meaning"],
+                    "ideal_balance": info["ideal_balance"]
+                }
+    
     # Sort by key length descending so multi-word directives take precedence (e.g. "do you agree" before "agree", "critically examine" before "examine")
     sorted_directives = sorted(DIRECTIVES.items(), key=lambda x: len(x[0]), reverse=True)
     for directive, info in sorted_directives:
         if re.search(r'\b' + re.escape(directive) + r'\b', text_lower):
             return {"directive": directive.title(), "details": info["meaning"], "ideal_balance": info["ideal_balance"]}
+    
+    # Also check if any Hindi directive appears in text even without explicit devanagari dominant tag
+    for h_dir, info in HINDI_DIRECTIVES.items():
+        h_stem = re.sub(r'\s*(?:कीजिए|कीजिये)\s*$', '', h_dir).strip()
+        if h_dir in text_raw or (len(h_stem) >= 4 and h_stem in text_raw):
+            return {
+                "directive": h_dir,
+                "details": info["meaning"],
+                "ideal_balance": info["ideal_balance"]
+            }
+
     return {
         "directive": "Discuss / Comprehensive Analysis",
         "details": "Explore multiple dimensions (PESTLE framework) systematically with clear subheadings.",
@@ -834,6 +931,259 @@ def are_questions_semantically_mismatched(q1: Optional[str], q2: Optional[str]) 
         return True, overlap, f"Topic mismatch: Keyword overlap is only {overlap*100:.1f}%."
     return False, overlap, f"Matching topic ({overlap*100:.1f}% keyword overlap)."
 
+def build_hindi_evaluation_prompt(
+    question: str,
+    paper_key: str,
+    max_marks: int,
+    directive_info: Dict[str, str],
+    previous_question: Optional[str] = None,
+    current_affairs_context: Optional[str] = None,
+    previous_evaluation: Optional[Dict[str, Any]] = None
+) -> str:
+    """
+    Dedicated UPSC Mains Hindi Medium Evaluation Prompt Engine.
+    Engineered based on authentic evaluations and answer copies of Hindi medium candidates & toppers.
+    Calibrated for:
+      - GS-1 History/Geography/Society (1857, Ryotwari, Congress debates, Geomorphic models)
+      - GS-2 Polity/Governance/IR (Constitutional Articles, Kesavananda, PAC, 7th Sched, 3Fs, ECI triangles, CBI)
+      - GS-3 Economy/Tech/Internal Security (Nanotech, BEC, AMR, BSF 50km, Coastline 3-tier, Red Corridor, Biopiracy)
+      - GS-4 Ethics & Case Studies (Aristotle Golden Mean, Option Pros/Cons matrix, 2nd ARC, Gita Lok-Sangrah, 3-Phase SOP)
+    """
+    detected_paper = detect_academic_discipline(question, paper_key)
+
+    # Denominators strictly based on max_marks
+    if max_marks == 10:
+        intro_d, body_d, conc_d = 1.5, 7.0, 1.5
+        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 1.5, 4.5, 1.5, 1.0, 1.5
+    elif max_marks == 15:
+        intro_d, body_d, conc_d = 2.0, 11.0, 2.0
+        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 2.0, 7.0, 2.5, 1.5, 2.0
+    elif max_marks == 20:
+        intro_d, body_d, conc_d = 2.5, 15.0, 2.5
+        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 2.5, 9.5, 3.5, 2.0, 2.5
+    else:  # Essay 125M
+        intro_d, body_d, conc_d = 20.0, 85.0, 20.0
+        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 20.0, 50.0, 20.0, 15.0, 20.0
+
+    prompt = f"""You are a Senior UPSC Mains Examiner (वरिष्ठ संघ लोक सेवा आयोग मुख्य परीक्षा परीक्षक - हिंदी माध्यम).
+You are evaluating a handwritten Hindi medium UPSC Mains answer sheet.
+
+CRITICAL ROLE & PERSONA:
+- आप संघ लोक सेवा आयोग (UPSC) मुख्य परीक्षा के वरिष्ठ एवं अनुभवी परीक्षक हैं, जो हिंदी माध्यम के अभ्यर्थियों की उत्तर-पुस्तिकाओं के निष्पक्ष, प्रामाणिक और मानक मूल्यांकन के विशेषज्ञ हैं।
+- भाषा की शुद्धता: आपकी प्रतिक्रिया पूर्णतः शुद्ध, मानक एवं प्रशासनिक हिंदी (देवनागरी लिपि) में होगी। किसी भी प्रकार की सतही या गूगल-ट्रांसलेट जैसी मशीनी भाषा का प्रयोग पूर्णतः वर्जित है।
+- आयोग की आधिकारिक पारिभाषिक शब्दावली का उपयोग करें (जैसे: राजकोषीय घाटा, सहकारी संघवाद, सत्यनिष्ठा, वस्तुनिष्ठता, समानुभूति, संवैधानिक नैतिकता, विधिक ढाँचा)।
+
+QUESTION UNDER EVALUATION:
+"{question}"
+
+ACADEMIC PAPER: {detected_paper} (सामान्य अध्ययन)
+MAXIMUM MARKS: {max_marks} अंक (शब्द सीमा: {150 if max_marks <= 10 else 250} शब्द)
+DIRECTIVE / निर्देश: {directive_info.get('directive', 'चर्चा कीजिए')}
+DIRECTIVE DEMAND: {directive_info.get('details', 'विभिन्न आयामों का संतुलित विश्लेषण')}
+IDEAL BALANCE: {directive_info.get('ideal_balance', 'प्रस्तावना 15%, मुख्य भाग 70%, निष्कर्ष 15%')}
+
+{f"CURRENT AFFAIRS CONTEXT (समसामयिक संदर्भ):\n{current_affairs_context}\n" if current_affairs_context else ""}
+
+NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के विश्लेषण पर आधारित 6 स्वर्णिम नियम):
+
+1. वास्तविक उत्तर-पुस्तिका ट्रेसिंग (STRICT ANSWERSHEET TRACING - ZERO GHOST HEADINGS):
+   - अभ्यर्थी ने उत्तर में जो वास्तविक बक्सेदार शीर्षक (Boxed Headings), रेखांकित शीर्षक, या भाग (a), (b), (c) लिखे हैं, केवल उन्हीं को ट्रेस करें!
+   - कभी भी कोई काल्पनिक या मनगढ़ंत हेडिंग (जैसे 'Fiscal Federalism' या 'Synthesis Part 2') न बनाएं।
+   - यदि अभ्यर्थी ने केवल 3 भाग लिखे हैं: [प्रस्तावना (भूमिका) ➔ मुख्य बिंदु ➔ निष्कर्ष (आगे की राह)], तो मूल्यांकन में केवल वही 3 भाग होने चाहिए।
+   - प्रत्येक मार्जिन कार्ड (visual_annotations) में अभ्यर्थी की हस्तलिखित पंक्तियों से वास्तविक शब्द उद्धृत (Quote) करें।
+
+2. हस्तलिखित आरेखों व मानचित्रों की पहचान एवं अंक (DIAGRAMS & MAPS RECOGNITION):
+   - उत्तर-पुस्तिका में अभ्यर्थी द्वारा बनाए गए रेखाचित्रों, मानचित्रों, तालिकाओं या फ्लोचार्ट की पहचान करें:
+     * जैसे: भारत की तटरेखा मानचित्र, नक्सल प्रभावित रेड कॉरिडोर मानचित्र, अरस्तू का स्वर्णिम मध्यम मार्ग आरेख, चुनाव आयुक्त चयन समिति का त्रिभुज, मूल ढांचा वृत्त, पंचायती राज 3Fs (Funds, Functions, Functionaries)।
+   - यदि प्रासंगिक आरेख उपस्थित है, तो प्रस्तुति में उसकी स्पष्ट सराहना करें और +0.5 से +1.0 अंक दें।
+
+3. द्विभाषी तकनीकी शब्दावली की स्वीकार्यता (ENGLISH / HINGLISH ACRONYM TOLERANCE):
+   - हिंदी माध्यम के शीर्ष अभ्यर्थी गति और सटीकता हेतु कोष्ठक में अंग्रेजी तकनीकी शब्द या संक्षिप्त नाम लिखते हैं:
+     * जैसे: (2nd ARC), (Deep Web / Dark Web), (Safe Harbour), (Appropriation), (mRNA), (AMR), (Single Sign On - SSO), (Checks & Balances)।
+   - इसके लिए अंक कभी न काटें! आयोग में यह अवधारणात्मक स्पष्टता का प्रमाण माना जाता है।
+
+4. प्रश्न-प्रकार के अनुसार विषयगत गहराई (SUBJECT-SPECIFIC DNA):
+   - GS-1: ऐतिहासिक कारण-प्रभाव शृंखला, 1857 के बाद प्रशासनिक पुनर्गठन, तड़ित चालक बनाम सुरक्षा वाल्व वाद, भूगोल में भू-आकृतिक प्रक्रम।
+   - GS-2: संवैधानिक अनुच्छेद (Art 315-323, 243I, 239AA, 324-328), सर्वोच्च न्यायालय के ऐतिहासिक वाद (केशवानंद भारती, विनीत नारायण, एल. चंद्रकुमार, लिली थॉमस, पुट्टास्वामी), संसदीय समितियां (PAC, CAG)।
+   - GS-3: आर्थिक एवं तकनीकी मानक (BEC, नैनो यूरिया, AMR, BSF 50 किमी क्षेत्राधिकार, FATF, TKDL, तटीय सुरक्षा का त्रि-स्तरीय ढांचा: नौसेना-तटरक्षक-समुद्री पुलिस)।
+   - GS-4 (नीतिशास्त्र व केस स्टडीज):
+     * सैद्धांतिक: केईई मॉडल (की-वर्ड ➔ नैतिक व्याख्या ➔ वास्तविक प्रशासनिक उदाहरण), नोलन सिद्धांत, अरस्तू, कांत, गीता का लोकसंग्रह।
+     * केस स्टडीज: 2-स्तंभीय विकल्प विश्लेषण [लाभ (Pros) | हानि (Cons)], 3-चरणीय प्रशासनिक एसओपी (तात्कालिक 0-24h ➔ प्रशासनिक 24-72h ➔ व्यवस्थागत सुधार)।
+
+5. गणितीय शुद्धता (MATHEMATICAL SUM LAW):
+   - कुल प्राप्तांक (overall_score) = प्रस्तावना अंक + मुख्य भाग अंक + निष्कर्ष अंक।
+   - visual_annotations के हर कार्ड में प्राप्तांक "+प्राप्त / अधिकतम" प्रारूप में हो।
+   - सभी भाजकों (Denominators) का योग ठीक {max_marks}.0 होना चाहिए (प्रस्तावना {intro_d} + मुख्य भाग {body_d} + निष्कर्ष {conc_d} = {max_marks}.0)।
+
+6. निष्कर्ष व आगे की राह की सटीक जांच:
+   - अंतिम पृष्ठ के अंतिम पैराग्राफ को पढ़ें (जो सामान्यतः 'अतः', 'निष्कर्षतः', या '[आगे की राह]' से शुरू होता है)।
+   - यदि निष्कर्ष केवल 1 सामान्य पंक्ति है जिसमें विषय-विशेष कीवर्ड्स नहीं हैं, तो केवल 0.5 अंक दें और बताएं कि पूर्ण अंक कैसे प्राप्त करें।
+   - यदि निष्कर्ष दूरदर्शी, नीतिगत और समाधानपरक है, तो उचित अंक दें।
+
+OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
+{{
+  "detected_question": "{question}",
+  "detected_paper": "{detected_paper}",
+  "max_marks": {max_marks},
+  "overall_score": 4.5,
+  "percentile_verdict": "प्रतिस्पर्धी प्रयास (शीर्ष 15% अंक)",
+  "executive_summary": "परीक्षक का संक्षिप्त 2-पंक्ति सारांश: मुख्य शक्ति एवं सुधार हेतु सबसे महत्वपूर्ण क्षेत्र को स्पष्ट करता हुआ।",
+  "fatal_blunders_alert": {{
+    "has_blunder": false,
+    "title": "विषयगत या विधिक विचलन चेतावनी",
+    "attribution_error": "",
+    "disciplinary_leak": ""
+  }},
+  "next_attempt_focus": {{
+    "target_section": "मुख्य भाग: उदाहरणों व समिति संदर्भों का संवर्धन",
+    "student_draft_quote": "अभ्यर्थी की कॉपी से कमजोर या सतही पंक्ति",
+    "topper_transformation": "टॉपर स्तर का 20-25 शब्दों का पुनर्गठित मॉडल वाक्य",
+    "mentor_why": "यह परिवर्तन क्यों अंक दिलाएगा",
+    "booklet_placement": "पृष्ठ 1 पर बिंदु संख्या 2 के स्थान पर"
+  }},
+  "upsc_exam_hall_discipline": {{
+    "estimated_word_count": 140,
+    "prescribed_word_limit": {150 if max_marks <= 10 else 250},
+    "word_budget_status": "अनुकूल",
+    "estimated_writing_time_mins": {6.5 if max_marks <= 10 else 10.5},
+    "time_budget_allotted_mins": {7.0 if max_marks <= 10 else 11.0},
+    "time_penalty_warning": "समय प्रबंधन पर टिप्पणी",
+    "margin_discipline": "मानकों के अनुरूप",
+    "presentation_impression": "बक्सेदार शीर्षकों और रेखांकित की-वर्ड्स के साथ सुव्यवस्थित प्रस्तुति"
+  }},
+  "syllabus_mapping": {{
+    "paper": "{detected_paper}",
+    "micro_topic": "आधिकारिक यूपीएससी पाठ्यक्रम का सूक्ष्म विषय",
+    "pyq_trend_frequency": "विगत वर्षों में इस विषय की पुनरावृत्ति प्रवृत्ति",
+    "directive_action_rule": "इस निर्देश शब्द हेतु परीक्षा हॉल नियम"
+  }},
+  "subpart_marks_breakdown": [
+    {{
+      "part_name": "प्रस्तावना / पृष्ठभूमि",
+      "max_marks": {intro_d},
+      "marks_awarded": 1.0,
+      "analysis": "अभ्यर्थी की प्रस्तावना का संक्षिप्त वस्तुनिष्ठ विश्लेषण।"
+    }},
+    {{
+      "part_name": "मुख्य भाग: [अभ्यर्थी का शीर्षक 1]",
+      "max_marks": {round(body_d * 0.5, 1)},
+      "marks_awarded": {round(body_d * 0.25, 1)},
+      "analysis": "अभ्यर्थी द्वारा प्रस्तुत बिंदुओं और उदाहरणों का तथ्यात्मक मूल्यांकन।"
+    }},
+    {{
+      "part_name": "मुख्य भाग: [अभ्यर्थी का शीर्षक 2]",
+      "max_marks": {round(body_d * 0.5, 1)},
+      "marks_awarded": {round(body_d * 0.25, 1)},
+      "analysis": "चुनौतियों व संवैधानिक आयामों की गहराई का परीक्षण।"
+    }},
+    {{
+      "part_name": "निष्कर्ष / आगे की राह",
+      "max_marks": {conc_d},
+      "marks_awarded": 0.5,
+      "analysis": "अंतिम निष्कर्ष की अग्रगामी दृष्टि का परीक्षण।"
+    }}
+  ],
+  "intro_audit": {{
+    "intro_score": 1.0,
+    "intro_max": {intro_d},
+    "current_critique": "अभ्यर्थी की प्रस्तावना की निष्पक्ष समीक्षा।",
+    "model_intro_rewrite": "प्रामाणिक परिभाषा, अनुच्छेद या समिति रिपोर्ट से युक्त आदर्श प्रस्तावना पुनर्गठन।"
+  }},
+  "body_audit": {{
+    "body_score": 2.5,
+    "body_max": {body_d},
+    "strengths": [
+      "सकारात्मक बिंदु 1: प्रामाणिक शब्दावली और तार्किक प्रवाह।",
+      "सकारात्मक बिंदु 2: प्रासंगिक उदाहरण का समावेश।"
+    ],
+    "critical_gaps": [
+      "कमी 1: महत्वपूर्ण संस्थागत/विधिक आयाम छूटा।",
+      "कमी 2: डेटा या समिति रिपोर्ट का अभाव।"
+    ],
+    "missing_dimensions": [
+      "**[छूटा हुआ आयाम 1]**: इसका विस्तृत प्रशासनिक महत्व।",
+      "**[छूटा हुआ आयाम 2]**: नीतिगत समाधान या अंतर्राष्ट्रीय उदाहरण।"
+    ],
+    "examiner_guidance": "मुख्य भाग को टॉपर स्तर पर ले जाने हेतु 2 ठोस सुधारात्मक कदम।"
+  }},
+  "conclusion_audit": {{
+    "conclusion_score": 0.5,
+    "conclusion_max": {conc_d},
+    "current_critique": "अभ्यर्थी के निष्कर्ष की समीक्षा (क्या यह सामान्य है या दूरदर्शी)।",
+    "model_conclusion_rewrite": "समस्या समाधान और संवैधानिक मूल्यों को जोड़ता हुआ उत्कृष्ट अग्रगामी निष्कर्ष।"
+  }},
+  "missing_keywords_cards": [
+    {{
+      "number": 1,
+      "term": "मानक शब्दावली / समिति / अनुच्छेद 1",
+      "thinker": "संवैधानिक प्रावधान",
+      "domain_or_thinker": "संवैधानिक प्रावधान",
+      "definition": "इस की-वर्ड का सटीक अर्थ और प्रश्न में इसकी अनिवार्यता।",
+      "where_to_use": "पृष्ठ 1 • आपके '[शीर्षक]' के अंतर्गत",
+      "how_to_use_one_line": "\"वाक्य में इस प्रकार जोड़ें: '...ताकि संस्थागत निष्पक्षता और संवैधानिक संतुलन सुनिश्चित हो सके।'\""
+    }},
+    {{
+      "number": 2,
+      "term": "मानक शब्दावली / समिति / अनुच्छेद 2",
+      "thinker": "समिति अनुशंसा",
+      "domain_or_thinker": "समिति अनुशंसा",
+      "definition": "इस रिपोर्ट का केंद्रीय सुझाव।",
+      "where_to_use": "पृष्ठ 2 • आपके '[शीर्षक]' के अंतर्गत",
+      "how_to_use_one_line": "\"वाक्य में इस प्रकार जोड़ें: '...द्वितीय प्रशासनिक सुधार आयोग (2nd ARC) के अनुसार पारदर्शी प्रक्रियाओं का अनुपालन आवश्यक है।'\""
+    }}
+  ],
+  "visual_annotations": [
+    {{
+      "page_number": 1,
+      "tag": "प्रस्तावना",
+      "start_y_percent": 24,
+      "end_y_percent": 38,
+      "marks_awarded": "+1.0 / {intro_d}",
+      "remark": "✓ **सकारात्मक**: सटीक विषयगत परिभाषा के साथ प्रभावी शुरुआत।\n✎ **सुधार**: प्रथम पंक्ति में संवैधानिक अनुच्छेद या आधिकारिक रिपोर्ट का संदर्भ जोड़ें।"
+    }},
+    {{
+      "page_number": 1,
+      "tag": "मुख्य भाग: [अभ्यर्थी का प्रथम शीर्षक]",
+      "start_y_percent": 42,
+      "end_y_percent": 88,
+      "marks_awarded": "+1.5 / {round(body_d * 0.5, 1)}",
+      "remark": "✓ **सकारात्मक**: बिंदुवार संरचना एवं 'उदा०' का सटीक उपयोग।\n✎ **सुधार**: अधिक स्पष्ट प्रशासनिक शब्दावली का प्रयोग करें।"
+    }},
+    {{
+      "page_number": 2,
+      "tag": "मुख्य भाग: [अभ्यर्थी का द्वितीय शीर्षक]",
+      "start_y_percent": 10,
+      "end_y_percent": 68,
+      "marks_awarded": "+1.5 / {round(body_d * 0.5, 1)}",
+      "remark": "✓ **सकारात्मक**: चुनौतियों का व्यवस्थित विश्लेषण।\n✎ **सुधार**: नीतिगत उपायों में विशिष्ट समिति रिपोर्ट का उल्लेख करें।"
+    }},
+    {{
+      "page_number": 2,
+      "tag": "निष्कर्ष",
+      "start_y_percent": 70,
+      "end_y_percent": 86,
+      "marks_awarded": "+0.5 / {conc_d}",
+      "remark": "✓ **सकारात्मक**: उत्तर को संतुलित दिशा में समाप्त किया।\n✎ **सुधार**: सामान्य समापन के स्थान पर आगे की राह (Way Forward) में 1 ठोस संस्थागत सुधार जोड़ें।"
+    }}
+  ],
+  "rubric_scores": {{
+    "intro_score": 1.0,
+    "core_demand_score": 2.0,
+    "value_add_score": 0.5,
+    "presentation_score": 0.5,
+    "conclusion_score": 0.5
+  }},
+  "directive_compliance": {{
+    "directive": "{directive_info.get('directive', 'चर्चा कीजिए')}",
+    "is_compliant": true,
+    "compliance_verdict": "अभ्यर्थी ने निर्देश के अनुरूप उत्तर की संरचना की है।",
+    "examiner_advice": "आगामी उत्तरों में निर्देश की मांग के अनुसार पक्ष और विपक्ष के अनुपातिक संतुलन पर विशेष ध्यान दें।"
+  }},
+  "full_model_answer": "संपूर्ण 150/250 शब्दों का उच्च-स्तरीय मॉडल उत्तर शुद्ध मानक हिंदी में।"
+}}
+"""
+    return prompt
+
 def build_evaluation_prompt(
     question: str, 
     paper_key: str, 
@@ -841,8 +1191,21 @@ def build_evaluation_prompt(
     directive_info: Dict[str, str], 
     previous_question: Optional[str] = None,
     current_affairs_context: Optional[str] = None,
-    previous_evaluation: Optional[Dict[str, Any]] = None
+    previous_evaluation: Optional[Dict[str, Any]] = None,
+    medium: Optional[str] = "english"
 ) -> str:
+    # Dedicated Hindi medium routing (preserves existing English mechanism 100% untouched)
+    if (medium and str(medium).lower() in ("hindi", "hi", "हिंदी")) or is_devanagari_text(question):
+        return build_hindi_evaluation_prompt(
+            question=question,
+            paper_key=paper_key,
+            max_marks=max_marks,
+            directive_info=directive_info,
+            previous_question=previous_question,
+            current_affairs_context=current_affairs_context,
+            previous_evaluation=previous_evaluation
+        )
+
     detected_paper = detect_academic_discipline(question, paper_key)
     taxonomy = PAPER_TAXONOMIES.get(detected_paper, PAPER_TAXONOMIES.get("GS2"))
     
@@ -5473,11 +5836,13 @@ async def evaluate_with_gemini(
     paper: str,
     max_marks: int,
     api_key: Optional[str] = None,
-    previous_question: Optional[str] = None
+    previous_question: Optional[str] = None,
+    medium: Optional[str] = "english"
 ) -> Dict[str, Any]:
     """
     Evaluates handwritten images using the official Google GenAI SDK with multi-key round-robin load balancing,
     live dynamic model discovery, and zero-crash resilience fallback.
+    Supports both English and Hindi mediums.
     """
     keys_to_try = get_active_gemini_keys(api_key)
     detected_paper = detect_academic_discipline(question, paper)
@@ -5492,7 +5857,8 @@ async def evaluate_with_gemini(
     prompt = build_evaluation_prompt(
         question, detected_paper, max_marks, directive_info,
         previous_question=previous_question,
-        current_affairs_context=current_affairs_context
+        current_affairs_context=current_affairs_context,
+        medium=medium
     )
 
     # Prepare items for Gemini contents (handles PIL images, Gemini File objects, or raw bytes)

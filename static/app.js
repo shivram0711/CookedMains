@@ -18,6 +18,7 @@ const state = {
   paper: "GS3",
   selectedPaperTab: "GS3",
   marks: 15,
+  medium: "english",
   question: "",
   questionMode: "auto", // "auto", "daily", "custom"
   apiKey: localStorage.getItem("mainsmentor_gemini_key") || "",
@@ -3110,6 +3111,55 @@ if (optionalSubjectSelect) {
   });
 }
 
+// Medium Selection (Step 1.5: English / Hindi)
+const mediumEnglishBtn = document.getElementById("mediumEnglishBtn");
+const mediumHindiBtn = document.getElementById("mediumHindiBtn");
+const mediumBadge = document.getElementById("mediumBadge");
+const mediumInput = document.getElementById("mediumInput");
+const hindiNotice = document.getElementById("hindiNotice");
+
+function setEvaluationMedium(med) {
+  state.medium = med;
+  if (mediumInput) mediumInput.value = med;
+  if (med === "hindi") {
+    if (mediumHindiBtn) {
+      mediumHindiBtn.classList.add("active", "border-amber-500", "bg-amber-500/10", "text-amber-600", "dark:text-amber-400", "shadow-sm");
+      mediumHindiBtn.classList.remove("border-slate-200", "dark:border-slate-700", "bg-slate-50", "dark:bg-slate-800/60", "text-slate-700", "dark:text-slate-300");
+    }
+    if (mediumEnglishBtn) {
+      mediumEnglishBtn.classList.remove("active", "border-amber-500", "bg-amber-500/10", "text-amber-600", "dark:text-amber-400", "shadow-sm");
+      mediumEnglishBtn.classList.add("border-slate-200", "dark:border-slate-700", "bg-slate-50", "dark:bg-slate-800/60", "text-slate-700", "dark:text-slate-300");
+    }
+    if (mediumBadge) {
+      mediumBadge.textContent = "✓ हिंदी माध्यम सक्रिय";
+      mediumBadge.className = "text-[11px] font-semibold text-amber-600 dark:text-amber-400";
+    }
+    if (hindiNotice) hindiNotice.classList.remove("hidden");
+  } else {
+    if (mediumEnglishBtn) {
+      mediumEnglishBtn.classList.add("active", "border-amber-500", "bg-amber-500/10", "text-amber-600", "dark:text-amber-400", "shadow-sm");
+      mediumEnglishBtn.classList.remove("border-slate-200", "dark:border-slate-700", "bg-slate-50", "dark:bg-slate-800/60", "text-slate-700", "dark:text-slate-300");
+    }
+    if (mediumHindiBtn) {
+      mediumHindiBtn.classList.remove("active", "border-amber-500", "bg-amber-500/10", "text-amber-600", "dark:text-amber-400", "shadow-sm");
+      mediumHindiBtn.classList.add("border-slate-200", "dark:border-slate-700", "bg-slate-50", "dark:bg-slate-800/60", "text-slate-700", "dark:text-slate-300");
+    }
+    if (mediumBadge) {
+      mediumBadge.textContent = "✓ English Medium";
+      mediumBadge.className = "text-[11px] font-semibold text-emerald-600 dark:text-emerald-400";
+    }
+    if (hindiNotice) hindiNotice.classList.add("hidden");
+  }
+}
+window.setEvaluationMedium = setEvaluationMedium;
+
+if (mediumEnglishBtn) {
+  mediumEnglishBtn.addEventListener("click", () => setEvaluationMedium("english"));
+}
+if (mediumHindiBtn) {
+  mediumHindiBtn.addEventListener("click", () => setEvaluationMedium("hindi"));
+}
+
 // Marks Selection (Step 2: 10, 15, or 20 Marks)
 marksBtns.forEach(btn => {
   btn.addEventListener("click", () => {
@@ -3224,14 +3274,43 @@ if (qModeCustomBtn) qModeCustomBtn.addEventListener("click", () => setQuestionMo
 
 // Live Directive Detection
 let directiveDebounce = null;
-questionInput.addEventListener("input", () => {
-  state.question = questionInput.value;
-  clearTimeout(directiveDebounce);
-  directiveDebounce = setTimeout(detectDirectiveFromInput, 300);
-});
+if (questionInput) {
+  questionInput.addEventListener("input", () => {
+    state.question = questionInput.value;
+    if (/[\u0900-\u097F]/.test(questionInput.value) && state.medium !== "hindi") {
+      setEvaluationMedium("hindi");
+    }
+    clearTimeout(directiveDebounce);
+    directiveDebounce = setTimeout(detectDirectiveFromInput, 300);
+  });
+}
+
+if (customQuestionInput) {
+  customQuestionInput.addEventListener("input", () => {
+    const val = customQuestionInput.value || "";
+    if (/[\u0900-\u097F]/.test(val) && state.medium !== "hindi") {
+      setEvaluationMedium("hindi");
+    }
+  });
+}
 
 function detectDirectiveFromInput() {
-  const text = (questionInput.value || "").toLowerCase();
+  const textRaw = (questionInput ? questionInput.value : "") || "";
+  const text = textRaw.toLowerCase();
+  
+  const hindiDirectives = [
+    { key: "समालोचनात्मक विश्लेषण", label: "समालोचनात्मक विश्लेषण", tip: "पक्ष (Thesis), विपक्ष (Anti-thesis) और समन्वित समाधान (Synthesis) प्रस्तुत करें।" },
+    { key: "आलोचनात्मक विश्लेषण", label: "आलोचनात्मक विश्लेषण", tip: "पक्ष और विपक्ष का निष्पक्ष परीक्षण कर संतुलित निष्कर्ष दें।" },
+    { key: "आलोचनात्मक मूल्यांकन", label: "आलोचनात्मक मूल्यांकन", tip: "मानक-आधारित समीक्षा कर उपलब्धियों व कमियों का आकलन करें।" },
+    { key: "समीक्षा कीजिए", label: "समीक्षा कीजिए", tip: "उपलब्धियों और व्यवस्थागत कमियों दोनों की गहन पड़ताल करें।" },
+    { key: "परीक्षण कीजिए", label: "परीक्षण कीजिए", tip: "तथ्यों, कारणों एवं संरचनात्मक उपायों की सूक्ष्म पड़ताल करें।" },
+    { key: "स्पष्ट कीजिए", label: "स्पष्ट कीजिए", tip: "अवधारणा को सरल भाषा, प्रामाणिक तथ्यों और उदाहरणों से सुस्पष्ट करें।" },
+    { key: "सोदाहरण समझाइए", label: "सोदाहरण समझाइए", tip: "तर्कों को वास्तविक उदाहरणों (उदा०), केस स्टडी या आरेख से प्रमाणित करें।" },
+    { key: "चर्चा कीजिए", label: "चर्चा कीजिए", tip: "मुद्दे के सभी आयामों (सामाजिक, आर्थिक, विधिक, तकनीकी) का विस्तार करें।" },
+    { key: "मूल्यांकन कीजिए", label: "मूल्यांकन कीजिए", tip: "प्रभावशीलता या परिणामों का स्पष्ट आकलन करें।" },
+    { key: "टिप्पणी कीजिए", label: "टिप्पणी कीजिए", tip: "तर्क व संवैधानिक सिद्धांतों पर अपना पुष्ट दृष्टिकोण रखें।" }
+  ];
+
   const directives = [
     { key: "critically examine", label: "Critically Examine", tip: "Probe both achievements and systemic lacunae; conclude with balanced synthesis." },
     { key: "critically analyse", label: "Critically Analyse", tip: "Balanced dialectic required (Thesis, Anti-thesis, Synthesis)." },
@@ -3244,21 +3323,37 @@ function detectDirectiveFromInput() {
   ];
 
   let found = null;
-  for (const d of directives) {
-    if (text.includes(d.key)) {
-      found = d;
-      break;
+  if (/[\u0900-\u097F]/.test(textRaw)) {
+    for (const hd of hindiDirectives) {
+      const stem = hd.key.replace(/\s*(?:कीजिए|कीजिये)\s*$/, "");
+      if (textRaw.includes(hd.key) || textRaw.includes(stem)) {
+        found = hd;
+        break;
+      }
+    }
+  }
+
+  if (!found) {
+    for (const d of directives) {
+      if (text.includes(d.key)) {
+        found = d;
+        break;
+      }
     }
   }
 
   if (found) {
-    detectedDirectiveBadge.textContent = `Directive: ${found.label}`;
-    detectedDirectiveBadge.className = "text-[11px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold";
-    directiveGuidance.textContent = `Target: ${found.tip}`;
+    if (detectedDirectiveBadge) {
+      detectedDirectiveBadge.textContent = `Directive: ${found.label}`;
+      detectedDirectiveBadge.className = "text-[11px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold";
+    }
+    if (directiveGuidance) directiveGuidance.textContent = `Target: ${found.tip}`;
   } else {
-    detectedDirectiveBadge.textContent = "Directive: General / Discuss";
-    detectedDirectiveBadge.className = "text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 font-medium";
-    directiveGuidance.textContent = "Explore multiple dimensions (PESTLE framework) with clear headings.";
+    if (detectedDirectiveBadge) {
+      detectedDirectiveBadge.textContent = "Directive: General / Discuss";
+      detectedDirectiveBadge.className = "text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 font-medium";
+    }
+    if (directiveGuidance) directiveGuidance.textContent = "Explore multiple dimensions (PESTLE framework) with clear headings.";
   }
 }
 
@@ -8005,6 +8100,7 @@ window.runEvaluation = async function(allowAutoAligned = false) {
   formData.append("question", question || "Extract question printed on booklet header");
   formData.append("paper", state.paper);
   formData.append("max_marks", state.marks);
+  formData.append("medium", state.medium || "english");
   if (allowAutoAligned) {
     formData.append("allow_auto_aligned", "true");
   }

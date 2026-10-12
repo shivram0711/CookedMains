@@ -1750,6 +1750,7 @@ async def evaluate_answer(
     question: str = Form(...),
     paper: str = Form("GS2"),
     max_marks: int = Form(10),
+    medium: Optional[str] = Form("english"),
     api_key: Optional[str] = Form(None),
     sample_id: Optional[str] = Form(None),
     user_email: Optional[str] = Form(None),
@@ -2140,7 +2141,8 @@ async def evaluate_answer(
                     directive_info=directive_info,
                     previous_question=prev_q,
                     current_affairs_context=current_affairs_context,
-                    previous_evaluation=prev_eval_dict
+                    previous_evaluation=prev_eval_dict,
+                    medium=medium
                 )
 
                 gen_config = types.GenerateContentConfig(
