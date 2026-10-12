@@ -3161,8 +3161,8 @@
                         <!-- Connector Guides Overlay Layer: Hidden per user request -->
                         <div id="annotationsGuideLayer" class="absolute inset-0 pointer-events-none hidden" style="display: none !important;"></div>
 
-                        <!-- Horizontal Laser Focus Beam (Illuminates exact handwriting line) -->
-                        <div id="gutterLaserBeam" class="absolute left-0 right-0 h-14 bg-amber-500/15 border-y border-amber-400/50 pointer-events-none transition-all duration-300 opacity-0 flex items-center justify-end pr-2 z-20">
+                        <!-- Precise Focus Highlight Overlay (Illuminates exact coordinate anchor or subtle margin indicator) -->
+                        <div id="gutterLaserBeam" class="absolute pointer-events-none transition-all duration-300 opacity-0 flex items-center justify-end pr-2 z-20">
                           <span id="gutterLaserLabel" class="text-[9.5px] font-bold font-mono px-2 py-0.5 rounded bg-amber-500 text-black shadow-md">FOCUSED POINT</span>
                         </div>
                       </div>
@@ -3188,16 +3188,17 @@
 
             </div>
 
-            <!-- Mobile Thumb-Card Drawer (Visible on screens < 1024px when evaluation loaded) -->
-            <div id="mobileDrawerBar" class="hidden lg:hidden mt-2 bg-slate-900/95 border border-slate-800 rounded-xl p-3 z-30 backdrop-blur-md shadow-2xl">
+            <!-- Mobile Thumb-Card Drawer (Visible on screens < 1024px when evaluation loaded; dismissible to inspect copy) -->
+            <div id="mobileDrawerBar" class="hidden lg:hidden mt-2 bg-slate-900/95 border border-slate-800 rounded-xl p-3 z-30 backdrop-blur-md shadow-2xl transition-all duration-300">
               <div class="flex items-center justify-between text-xs mb-1.5">
                 <span id="mobileDrawerPillLabel" class="font-bold text-white flex items-center gap-1.5">
                   <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                   <span id="mobileDrawerCounter">Point 1 of 4</span>
                 </span>
-                <div class="flex items-center gap-1">
+                <div class="flex items-center gap-1.5">
                   <button id="mobileDrawerPrevBtn" type="button" onclick="window.prevMobileGutterPoint()" class="p-1 px-2.5 rounded bg-slate-800 text-slate-300 hover:text-white text-[11px] font-bold cursor-pointer">&larr; Prev</button>
                   <button id="mobileDrawerNextBtn" type="button" onclick="window.nextMobileGutterPoint()" class="p-1 px-2.5 rounded bg-amber-500 text-black font-bold hover:bg-amber-400 text-[11px] cursor-pointer">Next &rarr;</button>
+                  <button id="mobileDrawerCloseBtn" type="button" onclick="window.closeMobileDrawer()" class="p-1 px-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-[11px] font-bold cursor-pointer" title="Dismiss feedback">✕</button>
                 </div>
               </div>
               <div id="mobileDrawerContent" class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs">
