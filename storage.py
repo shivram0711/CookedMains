@@ -1418,6 +1418,7 @@ def _format_supabase_eval_row(row: Dict[str, Any]) -> Dict[str, Any]:
         "evaluation_data": eval_data,
         "evaluation_json": eval_data,
         "is_rewrite": is_rw,
+        "file_hash": str(eval_data.get("_meta_file_hash") or ""),
         "has_been_rewritten": has_rw,
         "rewrite_eval_id": eval_data.get("rewrite_eval_id"),
         "baseline_eval_id": eval_data.get("_meta_baseline_eval_id")
@@ -1479,7 +1480,7 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
     cursor = conn.cursor()
     cursor.execute("""
         SELECT id, created_at, paper, max_marks, question, overall_score, percentage, thumbnail, is_rewrite,
-               has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url, evaluation_json, pages_json
+               has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url, file_hash, evaluation_json, pages_json
         FROM evaluations
         WHERE LOWER(user_email) = ?
           AND question != '__USER_ACCOUNT_PROFILE__'
@@ -1499,6 +1500,7 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
             d["evaluation"] = json.loads(d["evaluation_json"]) if d.get("evaluation_json") else {}
         except Exception:
             d["evaluation"] = {}
+        d["file_hash"] = str(d.get("file_hash") or (d["evaluation"].get("_meta_file_hash") if isinstance(d.get("evaluation"), dict) else "") or "").strip()
         # LOCKER GUARD: Filter out unevaluated or half-evaluated copies
         if not is_evaluation_fully_completed(d["evaluation"], d.get("question"), d.get("max_marks")):
             continue
@@ -1803,21 +1805,29 @@ def compute_visual_handwriting_signature(pages_b64: List[str]) -> List[str]:
 
 def _visual_signatures_similarity(sig_a: List[str], sig_b: List[str]) -> float:
     """Returns perceptual handwriting similarity (0.0 to 1.0) between two page dHash lists."""
-    if not sig_a or not sig_b or len(sig_a) != len(sig_b):
+    if not sig_a or not sig_b:
         return 0.0
-    total_bits = 0
-    matching_bits = 0
-    for ha, hb in zip(sig_a, sig_b):
+
+    def _sim(ha: str, hb: str) -> float:
         try:
             va = int(ha, 16)
             vb = int(hb, 16)
-            xor_val = va ^ vb
-            diff_bits = bin(xor_val).count("1")
-            matching_bits += (64 - diff_bits)
-            total_bits += 64
+            diff_bits = bin(va ^ vb).count("1")
+            return (64 - diff_bits) / 64.0
         except Exception:
             return 0.0
-    return (matching_bits / total_bits) if total_bits > 0 else 0.0
+
+    if len(sig_a) == len(sig_b):
+        sims = [_sim(ha, hb) for ha, hb in zip(sig_a, sig_b)]
+        return sum(sims) / len(sims) if sims else 0.0
+
+    # Differing page counts: match each page in smaller set with best-matching page in larger set
+    smaller, larger = (sig_a, sig_b) if len(sig_a) <= len(sig_b) else (sig_b, sig_a)
+    best_matches = []
+    for ha in smaller:
+        best_val = max((_sim(ha, hb) for hb in larger), default=0.0)
+        best_matches.append(best_val)
+    return sum(best_matches) / len(best_matches) if best_matches else 0.0
 
 def _extract_comparable_script_text(eval_dict: Dict[str, Any]) -> str:
     """Extracts normalized handwritten transcript + quoted points from an evaluation payload."""
@@ -1853,6 +1863,175 @@ def _text_content_similarity(text_a: str, text_b: str) -> float:
     grams_b = {compact_b[i:i+4] for i in range(0, max(1, len(compact_b) - 3), 2)}
     gram_sim = (len(grams_a & grams_b) / len(grams_a | grams_b)) if (grams_a and grams_b) else 0.0
     return (0.55 * tok_sim) + (0.45 * gram_sim)
+
+def _normalize_paper_code(paper: Optional[str]) -> str:
+    """Normalizes paper identifiers (e.g. 'GS-4', 'GS 4', 'General Studies 4' -> 'GS4')."""
+    if not paper:
+        return ""
+    p = str(paper).strip().upper()
+    p_clean = re.sub(r"[^A-Z0-9]", "", p)
+    if "ETHICS" in p_clean or p_clean in ("GS4", "GENERALSTUDIES4", "GSIV", "GENERALSTUDIESIV"):
+        return "GS4"
+    if p_clean in ("GS1", "GENERALSTUDIES1", "GSI", "GENERALSTUDIESI"):
+        return "GS1"
+    if p_clean in ("GS2", "GENERALSTUDIES2", "GSII", "GENERALSTUDIESII"):
+        return "GS2"
+    if p_clean in ("GS3", "GENERALSTUDIES3", "GSIII", "GENERALSTUDIESIII"):
+        return "GS3"
+    if "ESSAY" in p_clean:
+        return "ESSAY"
+    return p_clean
+
+def _question_similarity(q1: str, q2: str) -> float:
+    """Computes keyword and n-gram overlap between two question strings."""
+    c1 = re.sub(r"[^a-z0-9\s]", " ", (q1 or "").lower()).strip()
+    c2 = re.sub(r"[^a-z0-9\s]", " ", (q2 or "").lower()).strip()
+    if not c1 or not c2:
+        return 0.0
+    stop_words = {"the", "and", "for", "that", "with", "this", "from", "are", "was", "were", "have", "has", "not", "but", "into", "what", "how", "discuss", "examine", "critically", "analyze", "elucidate", "comment", "explain", "evaluate"}
+    tokens_1 = {w for w in c1.split() if len(w) >= 3 and w not in stop_words}
+    tokens_2 = {w for w in c2.split() if len(w) >= 3 and w not in stop_words}
+    if not tokens_1 or not tokens_2:
+        tokens_1 = {w for w in c1.split() if len(w) >= 2}
+        tokens_2 = {w for w in c2.split() if len(w) >= 2}
+    if not tokens_1 or not tokens_2:
+        return 0.0
+    overlap = len(tokens_1 & tokens_2)
+    jaccard = overlap / len(tokens_1 | tokens_2)
+    min_containment = overlap / min(len(tokens_1), len(tokens_2))
+    return max(jaccard, min_containment * 0.8)
+
+def find_duplicate_evaluation_in_user_account(
+    email: str,
+    paper: Optional[str] = None,
+    max_marks: Optional[int] = None,
+    file_hash: Optional[str] = None,
+    visual_hashes: Optional[List[str]] = None,
+    question: Optional[str] = None,
+    transcribed_text: Optional[str] = None
+) -> Optional[Dict[str, Any]]:
+    """
+    Detects if an aspirant has already evaluated an identical answer copy
+    under the same user account, subject/paper, and marks weightage.
+    Matches via:
+    1. Exact SHA-256 file hash match.
+    2. Perceptual handwriting visual dHash similarity (>= 82%).
+    3. Candidate written answer transcript text similarity (>= 68%) on matching question.
+    """
+    clean_email = (email or "").strip().lower()
+    if not clean_email:
+        return None
+
+    past_records = get_user_evaluations(clean_email)
+    if not past_records:
+        return None
+
+    curr_paper_norm = _normalize_paper_code(paper)
+    curr_marks_int = None
+    if max_marks is not None:
+        try:
+            curr_marks_int = int(max_marks)
+        except Exception:
+            curr_marks_int = None
+
+    clean_file_hash = (file_hash or "").strip()
+    clean_question = (question or "").strip()
+    is_placeholder_q = not clean_question or clean_question.lower().startswith("extract question") or clean_question.startswith("__")
+    clean_transcript = (transcribed_text or "").strip()
+
+    for cand in past_records:
+        cand_id = cand.get("id")
+        if not cand_id:
+            continue
+
+        cand_ev = cand.get("evaluation") or {}
+        if not isinstance(cand_ev, dict):
+            cand_ev = {}
+
+        # 1. Subject / Paper check: must match subject
+        cand_paper = str(cand.get("paper") or cand_ev.get("detected_paper") or cand_ev.get("_meta_paper") or "")
+        cand_paper_norm = _normalize_paper_code(cand_paper)
+        if curr_paper_norm and cand_paper_norm and curr_paper_norm != cand_paper_norm:
+            continue
+
+        # 2. Marks check: must match marks weightage
+        cand_marks_raw = cand.get("max_marks") or cand_ev.get("max_marks") or cand_ev.get("_meta_max_marks")
+        try:
+            cand_marks_int = int(cand_marks_raw)
+        except Exception:
+            cand_marks_int = None
+
+        if curr_marks_int and cand_marks_int and curr_marks_int != cand_marks_int:
+            continue
+
+        cand_file_hash = str(cand.get("file_hash") or cand_ev.get("_meta_file_hash") or "").strip()
+        cand_visual_hashes = cand_ev.get("_meta_visual_hashes") or []
+        cand_q = str(cand.get("question") or cand_ev.get("detected_question") or "").strip()
+        cand_score = cand.get("overall_score") or cand_ev.get("overall_score")
+
+        # MATCH TYPE A: Exact File Hash Match
+        if clean_file_hash and cand_file_hash and clean_file_hash == cand_file_hash:
+            return {
+                "matched_by": "exact_file_hash",
+                "existing_eval_id": cand_id,
+                "existing_score": cand_score,
+                "existing_marks": cand_marks_int or curr_marks_int,
+                "existing_paper": cand_paper or paper,
+                "existing_question": cand_q or question,
+                "existing_created_at": cand.get("created_at"),
+                "similarity_score": 1.0,
+                "evaluation": cand_ev
+            }
+
+        # MATCH TYPE B: Visual Handwriting Perceptual Hash (dHash >= 82%)
+        if visual_hashes and cand_visual_hashes and len(visual_hashes) > 0 and len(cand_visual_hashes) > 0:
+            vis_sim = _visual_signatures_similarity(visual_hashes, cand_visual_hashes)
+            if vis_sim >= 0.82:
+                # Also check question if both have specific non-placeholder questions
+                if not is_placeholder_q and cand_q and not cand_q.lower().startswith("extract question") and not cand_q.startswith("__"):
+                    q_sim = _question_similarity(clean_question, cand_q)
+                    if q_sim < 0.25:
+                        continue
+                return {
+                    "matched_by": "visual_handwriting",
+                    "existing_eval_id": cand_id,
+                    "existing_score": cand_score,
+                    "existing_marks": cand_marks_int or curr_marks_int,
+                    "existing_paper": cand_paper or paper,
+                    "existing_question": cand_q or question,
+                    "existing_created_at": cand.get("created_at"),
+                    "similarity_score": round(vis_sim, 2),
+                    "evaluation": cand_ev
+                }
+
+        # MATCH TYPE C: Transcribed Text & Question Similarity (>= 60% candidate answer match)
+        if clean_transcript and len(clean_transcript) >= 35:
+            cand_raw_transcript = str(cand_ev.get("transcribed_text") or "").strip()
+            cand_comparable = _extract_comparable_script_text(cand_ev)
+            cand_text = cand_raw_transcript or cand_comparable
+            if cand_text and len(cand_text.strip()) >= 35:
+                if not is_placeholder_q and cand_q and not cand_q.lower().startswith("extract question") and not cand_q.startswith("__"):
+                    q_sim = _question_similarity(clean_question, cand_q)
+                    if q_sim < 0.35:
+                        continue
+                txt_sim = max(
+                    _text_content_similarity(clean_transcript, cand_raw_transcript) if cand_raw_transcript else 0.0,
+                    _text_content_similarity(clean_transcript, cand_comparable) if cand_comparable else 0.0
+                )
+                if txt_sim >= 0.60:
+                    return {
+                        "matched_by": "answer_transcript",
+                        "existing_eval_id": cand_id,
+                        "existing_score": cand_score,
+                        "existing_marks": cand_marks_int or curr_marks_int,
+                        "existing_paper": cand_paper or paper,
+                        "existing_question": cand_q or question,
+                        "existing_created_at": cand.get("created_at"),
+                        "similarity_score": round(txt_sim, 2),
+                        "evaluation": cand_ev
+                    }
+
+    return None
 
 def _collect_all_recent_canonical_evaluations(limit: int = 120) -> List[Dict[str, Any]]:
     """Fetches recent evaluated copies across BOTH SQLite and Supabase (across all user accounts)."""
@@ -1959,11 +2138,11 @@ def find_canonical_evaluation_for_script(
         best_vis_eval = None
         for cand in candidates:
             c_vhashes = cand.get("visual_hashes") or []
-            if c_vhashes and len(c_vhashes) == len(visual_hashes):
+            if c_vhashes and len(visual_hashes) > 0:
                 if max_marks and int(cand.get("max_marks", 0)) != int(max_marks):
                     continue
                 v_sim = _visual_signatures_similarity(visual_hashes, c_vhashes)
-                if v_sim >= 0.92 and v_sim > best_vis_sim:
+                if v_sim >= 0.85 and v_sim > best_vis_sim:
                     best_vis_sim = v_sim
                     best_vis_eval = cand.get("evaluation")
         if best_vis_eval and isinstance(best_vis_eval, dict) and best_vis_eval.get("overall_score") is not None:

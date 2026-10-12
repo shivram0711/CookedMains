@@ -86,6 +86,7 @@ from storage import (
     upload_file_to_supabase, insert_supabase_evaluation, get_db,
     get_deterministic_user_id, _format_supabase_eval_row,
     compute_visual_handwriting_signature, find_canonical_evaluation_for_script,
+    find_duplicate_evaluation_in_user_account,
     restore_evaluations_to_vault,
     record_user_heartbeat, log_platform_activity,
     get_admin_evaluations_feed, get_admin_activity_stream,
@@ -2123,6 +2124,50 @@ async def evaluate_answer(
         # Compute perceptual handwriting signature (dHash across pages) for cross-account consistency
         visual_hashes = compute_visual_handwriting_signature(uploaded_page_previews)
 
+        # PRE-LLM ACCOUNT DUPLICATE GUARD:
+        # Check if aspirant re-uploaded an already-evaluated answer copy in their account
+        # for the same subject, marks, and question.
+        if user_email:
+            dup_record = find_duplicate_evaluation_in_user_account(
+                email=user_email,
+                paper=paper,
+                max_marks=max_marks,
+                file_hash=submission_hash,
+                visual_hashes=visual_hashes,
+                question=question,
+                transcribed_text=None
+            )
+            if dup_record:
+                prev_id = dup_record.get("existing_eval_id")
+                prev_score = dup_record.get("existing_score")
+                prev_p = dup_record.get("existing_paper") or paper
+                prev_m = dup_record.get("existing_marks") or max_marks
+                prev_q = dup_record.get("existing_question") or question
+                print(f"[DUPLICATE GUARD - PRE-LLM] Detected re-upload of evaluated copy for {user_email}: {prev_id} (Score: {prev_score}/{prev_m})")
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "status": "duplicate",
+                        "error_type": "identical_copy",
+                        "title": "Duplicate Copy Detected — Script Already Evaluated",
+                        "message": f"This answer copy has already been evaluated in your account under {prev_p} ({prev_m} Marks) with an authentic score of {prev_score}/{prev_m}. Re-evaluating unchanged copies defeats the purpose of practice.",
+                        "warning": "🛡️ Zero Credits Deducted: Your daily evaluation limit is 100% intact.",
+                        "action_hint": "Review examiner annotations on your previously evaluated copy, or incorporate feedback before uploading a revised draft.",
+                        "credits_deducted": 0,
+                        "existing_eval_id": prev_id,
+                        "existing_score": prev_score,
+                        "existing_paper": prev_p,
+                        "existing_marks": prev_m,
+                        "existing_question": prev_q,
+                        "expected_paper": prev_p,
+                        "expected_marks": prev_m,
+                        "expected_question": prev_q,
+                        "detected_paper": paper,
+                        "detected_marks": max_marks,
+                        "detected_question": question
+                    }
+                )
+
         # PRE-LLM CANONICAL SCRIPT CHECK (100% Cross-Account Consistency for Same File or Same Handwriting Sheet)
         evaluation_result = None
         if not is_rewrite:
@@ -2463,6 +2508,49 @@ async def evaluate_answer(
                     "credits_deducted": 0
                 }
             )
+
+        # POST-LLM ACCOUNT DUPLICATE GUARD:
+        # Deep check after OCR/transcription to catch re-taken photos of identical handwritten answers
+        if user_email:
+            dup_record_post = find_duplicate_evaluation_in_user_account(
+                email=user_email,
+                paper=final_paper,
+                max_marks=final_max_marks,
+                file_hash=submission_hash,
+                visual_hashes=visual_hashes,
+                question=final_question,
+                transcribed_text=evaluation_result.get("transcribed_text") or ""
+            )
+            if dup_record_post:
+                prev_id = dup_record_post.get("existing_eval_id")
+                prev_score = dup_record_post.get("existing_score")
+                prev_p = dup_record_post.get("existing_paper") or final_paper
+                prev_m = dup_record_post.get("existing_marks") or final_max_marks
+                prev_q = dup_record_post.get("existing_question") or final_question
+                print(f"[DUPLICATE GUARD - POST-LLM] Detected re-upload of evaluated copy for {user_email}: {prev_id} (Score: {prev_score}/{prev_m})")
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "status": "duplicate",
+                        "error_type": "identical_copy",
+                        "title": "Duplicate Copy Detected — Script Already Evaluated",
+                        "message": f"This answer sheet contains the same handwritten answers for the question already evaluated in your account ({prev_p}, {prev_m} Marks, Scored {prev_score}/{prev_m}). Re-evaluating unchanged copies defeats the purpose of practice.",
+                        "warning": "🛡️ Zero Credits Deducted: Your daily evaluation limit is 100% intact.",
+                        "action_hint": "Review examiner annotations on your previously evaluated copy, or incorporate feedback before uploading a revised draft.",
+                        "credits_deducted": 0,
+                        "existing_eval_id": prev_id,
+                        "existing_score": prev_score,
+                        "existing_paper": prev_p,
+                        "existing_marks": prev_m,
+                        "existing_question": prev_q,
+                        "expected_paper": prev_p,
+                        "expected_marks": prev_m,
+                        "expected_question": prev_q,
+                        "detected_paper": final_paper,
+                        "detected_marks": final_max_marks,
+                        "detected_question": final_question
+                    }
+                )
 
         if user_email:
             if not is_rewrite:

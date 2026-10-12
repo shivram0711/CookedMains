@@ -1665,7 +1665,7 @@ window.showGuardModal = function(data) {
     if (data.error_type === "blank_sheet") {
       subtitleEl.textContent = "Blank / Unwritten Sheet Guard";
     } else if (data.error_type === "identical_copy") {
-      subtitleEl.textContent = "Duplicate Submission Detected";
+      subtitleEl.textContent = "Duplicate Submission Detected — Zero Credits Deducted";
     } else if (data.error_type === "wrong_marks") {
       subtitleEl.textContent = "Question Marks Weightage Mismatch";
     } else if (data.error_type === "wrong_paper") {
@@ -1684,6 +1684,28 @@ window.showGuardModal = function(data) {
   
   if (data.error_type === "blank_sheet" || data.error_type === "evaluator_busy" || data.error_type === "evaluator_incomplete" || data.error_type === "half_evaluated") {
     if (compBox) compBox.classList.add("hidden");
+  } else if (data.error_type === "identical_copy") {
+    if (compBox) compBox.classList.remove("hidden");
+    if (expectedLabel) {
+      expectedLabel.textContent = "Previously Evaluated Copy:";
+      expectedLabel.className = "block text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400";
+    }
+    if (detectedLabel) {
+      detectedLabel.textContent = "Re-Uploaded Duplicate Submission:";
+      detectedLabel.className = "block text-[10px] font-mono font-bold uppercase tracking-wider text-rose-400";
+    }
+    const prevScore = (data.existing_score !== undefined && data.existing_score !== null) ? `Score: ${data.existing_score}/${data.existing_marks || data.expected_marks || 15} | ` : "";
+    const prevPaper = data.existing_paper || data.expected_paper || state.paper || "GS";
+    const prevMarks = `${data.existing_marks || data.expected_marks || 15} Marks`;
+    const prevQ = data.existing_question || data.expected_question || "";
+    if (expectedEl) {
+      expectedEl.textContent = `${prevScore}${prevPaper} (${prevMarks})${prevQ ? ` — "${prevQ.slice(0, 95)}..."` : ""}`;
+    }
+    if (detectedEl) {
+      const detPaper = data.detected_paper || data.paper || state.paper || "GS";
+      const detMarks = `${data.detected_marks || data.max_marks || state.marks || 15} Marks`;
+      detectedEl.textContent = `Identical answers & handwriting submitted for ${detPaper} (${detMarks})`;
+    }
   } else if (data.error_type === "intake_mismatch") {
     if (compBox) compBox.classList.remove("hidden");
     if (expectedLabel) {
@@ -1745,6 +1767,17 @@ window.showGuardModal = function(data) {
           window.runEvaluation(true);
         }
       };
+    } else if (data.error_type === "identical_copy") {
+      reuploadBtn.innerHTML = `
+        <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+        <span>Review Existing Evaluated Copy</span>
+      `;
+      reuploadBtn.onclick = () => {
+        window.closeGuardModal();
+        if (data.existing_eval_id && typeof window.viewSavedCopy === "function") {
+          window.viewSavedCopy(data.existing_eval_id);
+        }
+      };
     } else if (data.error_type === "blank_sheet") {
       reuploadBtn.innerHTML = `
         <i data-lucide="upload" class="w-3.5 h-3.5"></i>
@@ -1778,6 +1811,16 @@ window.showGuardModal = function(data) {
         window.closeGuardModal();
         window.clearPaperMarksAndAnswersheet(true);
       };
+    } else if (data.error_type === "identical_copy") {
+      exitBtn.classList.remove("hidden");
+      exitBtn.innerHTML = `
+        <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+        <span>Upload Different / Revised Copy</span>
+      `;
+      exitBtn.onclick = () => {
+        window.closeGuardModal();
+        window.clearPaperMarksAndAnswersheet(true);
+      };
     } else if (data.error_type === "blank_sheet" && !state.isRewriteMode) {
       exitBtn.classList.add("hidden");
     } else {
@@ -1801,16 +1844,28 @@ window.showGuardModal = function(data) {
         <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
         <span>Keep Intake & Dismiss</span>
       `;
+      cancelBtn.onclick = () => {
+        window.closeGuardModal();
+        window.clearPaperMarksAndAnswersheet(false);
+      };
+    } else if (data.error_type === "identical_copy") {
+      cancelBtn.innerHTML = `
+        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        <span>Dismiss Alert</span>
+      `;
+      cancelBtn.onclick = () => {
+        window.closeGuardModal();
+      };
     } else {
       cancelBtn.innerHTML = `
         <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
         <span>Cancel & Go Back to Evaluation</span>
       `;
+      cancelBtn.onclick = () => {
+        window.closeGuardModal();
+        window.clearPaperMarksAndAnswersheet(false);
+      };
     }
-    cancelBtn.onclick = () => {
-      window.closeGuardModal();
-      window.clearPaperMarksAndAnswersheet(false);
-    };
   }
 
   const closeBtn = document.getElementById("closeGuardModalBtn");
