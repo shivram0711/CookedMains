@@ -5777,23 +5777,23 @@ function renderAnnotationsOverlay() {
           return res;
         }
         const rawCritClean = stripBodyDiagramFromIntroText(introAudit.current_critique || "");
-        const firstStudentLine = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20 && !s.startsWith("#") && !/^(?:Q\.?|\d+[\.\)])\s*/i.test(s))[0] || "";
+        const firstStudentLine = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20 && !s.startsWith("#") && !/^(?:Q\.?\s*\d*[\.\):]?|Question\s*\d*[\.\):]?)\s+/i.test(s))[0] || "";
+        const cleanIntro = cleanCandidateQuote(firstStudentLine, 220);
         const p1 = (rawCritClean && rawCritClean.length >= 42 && !isMetaPlaceholderText(rawCritClean) && !/defines the phenomenon well|good chronological premise|historical timeline/i.test(rawCritClean))
           ? ensureBulletPrefix(rawCritClean.split(/<br\s*\/?>|\n|✎/i)[0], "✓")
-          : (firstStudentLine
-              ? `✓ **Opening Premise Evaluated**: Opened directly with *"${firstStudentLine.slice(0, 80)}..."* establishing the baseline context.`
+          : (cleanIntro
+              ? `✓ **Opening Premise Evaluated**: Opened directly with *"${cleanIntro}"* establishing the baseline context.`
               : "✓ **Good Opening Premise**: Addressed the foundational definition and opening context of the question.");
         const missArr = Array.isArray(introAudit.missing_elements) ? introAudit.missing_elements.filter(Boolean) : [];
         const kwAnchor = (kwCards[0] && kwCards[0].term) ? `**${kwCards[0].term}**` : "";
-        let p2 = "";
         if (discipline === "PHYSICAL_GEOGRAPHY") {
           p2 = "✎ **Insolation / Process Hook**: Anchor the opening definition directly with the primary driving mechanism (e.g. differential solar insolation and Earth's axial tilt) to establish analytical depth upfront.";
         } else if (discipline === "HISTORY_CULTURE") {
-          p2 = "✎ **Conceptual Anchor**: Ground the first sentence in foundational philosophical doctrines or primary cultural texts to immediately elevate the answer.";
+          p2 = "✎ **Historical Context**: Ground the first sentence in the primary historical movement and timeline directly answering the question's premise.";
         } else if (discipline === "PHILOSOPHY_ETHICS") {
           if (/vivekananda/i.test(fullTextLow)) {
             p2 = "✎ **Philosophical Depth**: Connect Swami Vivekananda's Seva Bhav to Practical Vedanta and Ramakrishna Mission's ideal of *'Atmano Mokshartham Jagat Hitaya Cha'* (for one's own salvation and the welfare of the world).";
-          } else if (/gandhi|sarvodaya|trusteeship|talisman/i.test(fullTextLow)) {
+          } else if (/sarvodaya|trusteeship|talisman/i.test(fullTextLow)) {
             p2 = "✎ **Ethical Anchoring**: Link the opening directly to Gandhian Sarvodaya, Trusteeship, or the Talisman of serving the last person (Antyodaya).";
           } else if (/kant|categorical\s*imperative|deontolog/i.test(fullTextLow)) {
             p2 = "✎ **Philosophical Anchoring**: Anchor the opening in Kantian Deontology and treating humanity always as an end, never merely as a means.";
@@ -5803,11 +5803,11 @@ function renderAnnotationsOverlay() {
             p2 = "✎ **Ethical Anchoring**: Ground the opening definition in foundational ethical doctrines (e.g. Deontology vs Consequentialism, virtue ethics, or public trust) to establish analytical depth.";
           }
         } else if (missArr.length > 0) {
-          p2 = `✎ **Intro Value-Addition**: Anchor your opening with ${missArr.slice(0, 2).join(" & ")}${kwAnchor && !missArr.join(" ").includes(kwCards[0].term) ? ` and ${kwAnchor}` : ""} in 1–2 lines.`;
+          p2 = `✎ **Opening Upgrade**: Anchor your opening with ${missArr.slice(0, 2).join(" & ")}${kwAnchor && !missArr.join(" ").includes(kwCards[0].term) ? ` and ${kwAnchor}` : ""} in 1–2 lines.`;
         } else if (kwAnchor) {
-          p2 = `✎ **Intro Value-Addition**: Strengthen your opening sentence by citing ${kwAnchor} and 1 concrete empirical/theoretical benchmark.`;
+          p2 = `✎ **Opening Upgrade**: Strengthen your opening sentence by integrating ${kwAnchor} directly into the framing premise.`;
         } else {
-          p2 = "✎ **Intro Value-Addition**: Anchor your opening 2 lines with the core theoretical mechanism or baseline definition.";
+          p2 = "✎ **Opening Upgrade**: Anchor your opening 2 lines directly in the core premise demanded by the question.";
         }
         const finalIntroRem = `${p1}\n${p2}`;
         registerUsedRemark(finalIntroRem);
@@ -5887,6 +5887,7 @@ function renderAnnotationsOverlay() {
             ].join("\n");
           }
         }
+
 
         const isConclusionOrSynthesisLine = (str) => {
           return /\b(?:conclusion|concl|synthesis|closing\s*stance|closing\s*line|closing\s*view|forward-looking|stronger\s*finish|topper\s*finish|balanced\s*conclusion)\b/i.test(String(str || ""));
@@ -5978,10 +5979,16 @@ function renderAnnotationsOverlay() {
         if (uniqueBullets.length < 2) {
           const pageRawT = getPageTranscript(targetPageNum);
           if (pageRawT) {
-            const candLines = pageRawT
+            const allPageLines = pageRawT
               .split(/\n+/)
               .map(l => l.trim())
-              .filter(l => l.length >= 22 && !l.startsWith("#") && !/^(?:Q\.?|\d+[\.\)])\s*/i.test(l));
+              .filter(l => l.length >= 18 && !l.startsWith("#") && !/^(?:Q\.?\s*\d*[\.\):]?|Question\s*\d*[\.\):]?)\s+/i.test(l));
+            // On Page 1, skip the opening line ONLY if it is demonstrably an unnumbered narrative intro premise and subsequent lines exist
+            const hasUnnumberedNarrativeIntro = allPageLines.length > 1 && !/^(?:[-*•–—]|point\s*\d+|\b\d+[\.\)])/i.test(allPageLines[0]);
+            const numberedOrBodyLines = (targetPageNum === 1 && hasUnnumberedNarrativeIntro)
+              ? allPageLines.slice(1)
+              : allPageLines;
+            const candLines = numberedOrBodyLines.length > 0 ? numberedOrBodyLines : allPageLines;
             if (candLines.length > 0) {
               const half = Math.max(1, Math.floor(candLines.length / 2));
               const pool = (slotIndex === 0) ? candLines.slice(0, half) : (candLines.length > 1 ? candLines.slice(half) : candLines);
@@ -6000,7 +6007,7 @@ function renderAnnotationsOverlay() {
                   }
                 });
               }
-              const cleanSnip = cleanCandidateQuote(bestLine, 120);
+              const cleanSnip = cleanCandidateQuote(bestLine, 220);
               if (cleanSnip) {
                 pushUnique(`**Candidate Analysis**: Analyzed handwritten argument *"${cleanSnip}"* addressing core directive dimensions.`, "✓");
               }
@@ -6034,9 +6041,15 @@ function renderAnnotationsOverlay() {
         // Final dynamic discipline-tailored elevation if still under 2 bullets (NEVER static boilerplate!)
         if (uniqueBullets.length < 1) {
           const pageRawT = getPageTranscript(targetPageNum);
-          const firstLine = pageRawT ? pageRawT.split(/\n+/).map(l => l.trim()).find(l => l.length >= 20 && !l.startsWith("#") && !/^(?:Q\.?|\d+[\.\)])\s*/i.test(l)) : "";
+          const pageCandidateLines = pageRawT
+            ? pageRawT.split(/\n+/).map(l => l.trim()).filter(l => l.length >= 18 && !l.startsWith("#") && !/^(?:Q\.?\s*\d*[\.\):]?|Question\s*\d*[\.\):]?)\s+/i.test(l))
+            : [];
+          const hasUnnumberedPage1Intro = pageCandidateLines.length > 1 && !/^(?:[-*•–—]|point\s*\d+|\b\d+[\.\)])/i.test(pageCandidateLines[0]);
+          const bodyCandidateLines = (targetPageNum === 1 && hasUnnumberedPage1Intro) ? pageCandidateLines.slice(1) : pageCandidateLines;
+          const firstLine = bodyCandidateLines[0] || pageCandidateLines[0] || "";
           if (firstLine) {
-            uniqueBullets.push(`✓ **Analyzed Argument**: Evaluated handwritten point *"${firstLine.slice(0, 90)}..."* addressing core analytical dimensions.`);
+            const cleanFirst = cleanCandidateQuote(firstLine, 220);
+            uniqueBullets.push(`✓ **Analyzed Argument**: Evaluated handwritten point *"${cleanFirst}"* addressing core analytical dimensions.`);
           } else {
             uniqueBullets.push(`✓ **Core Dimension Evaluated**: Structured analytical points addressing key sub-parts of the directive.`);
           }
@@ -6150,7 +6163,7 @@ function renderAnnotationsOverlay() {
         const lastStudentLines = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20 && !s.startsWith("#")).slice(-1)[0] || "";
         let c1 = "";
         if (lastStudentLines) {
-          const cleanLast = cleanCandidateQuote(lastStudentLines, 120);
+          const cleanLast = cleanCandidateQuote(lastStudentLines, 220);
           c1 = `✓ **Relevant Closing Synthesis**: Concluded with *"${cleanLast}"* tying together the core theme.`;
         } else if (discipline === "HISTORY_CULTURE") {
           c1 = "✓ **Living Cultural Continuity**: Concluded by tying historical/philosophical evolution to enduring civilizational synthesis and national heritage.";
@@ -6162,7 +6175,7 @@ function renderAnnotationsOverlay() {
 
         let c2 = "";
         if (discipline === "HISTORY_CULTURE") {
-          c2 = "✎ **Civilizational Synthesis**: Anchor the closing line in the living continuity of regional philosophical traditions (e.g. Adi Shankara's Advaita Vedanta monastic integration across India's four corners or Kashi-Tamil Sangamam).";
+          c2 = "✎ **Historical Synthesis**: Synthesize core arguments into a balanced, forward-looking takeaway directly answering the prompt's directive.";
         } else if (discipline === "PHYSICAL_GEOGRAPHY") {
           c2 = "✎ **Thermodynamic & Policy Anchor**: Anchor the closing line in global thermodynamic heat equilibrium and climate adaptation frameworks (e.g. IPCC WG-I / Heat Action Plans).";
         } else if (discipline === "PHILOSOPHY_ETHICS") {
@@ -6479,28 +6492,34 @@ function renderAnnotationsOverlay() {
           const rawBody = pageAnns.find(a => a !== rawIntro);
 
           const introRem = buildDynamicIntroRemark(rawIntro && rawIntro.remark);
-          let p1BodyTitle = isEarthquakeMapCopy
-            ? "BODY: MECHANISM & OCCURRENCE (OPENING)"
-            : isAhomCopy
-              ? "BODY: CULTURAL & HISTORICAL IDENTITY (POINTS 1–4)"
-              : ((rawBody && rawBody.tag) ? rawBody.tag.toUpperCase() : "BODY: CORE DEMAND");
+          let p1IntroTitle = (rawIntro && rawIntro.tag && !window.isMetaPlaceholderText(rawIntro.tag))
+            ? String(rawIntro.tag).toUpperCase()
+            : (hasPrePrintedMapOnPage1 ? "INTRO & MAP" : scheme.intro.tag);
+          let p1BodyTitle = (rawBody && rawBody.tag && !window.isMetaPlaceholderText(rawBody.tag))
+            ? String(rawBody.tag).toUpperCase()
+            : (isEarthquakeMapCopy
+              ? "BODY: MECHANISM & OCCURRENCE (OPENING)"
+              : isAhomCopy
+                ? "BODY: CULTURAL & HISTORICAL IDENTITY (POINTS 1–4)"
+                : scheme.bodyParts[0].tag);
           let p1BodyRem = buildDynamicBodyRemark(0, rawBody && rawBody.remark, 1);
 
-          const p1IntroStart = hasPrePrintedMapOnPage1 ? 60.5 : 16;
-          const p1IntroEnd = hasPrePrintedMapOnPage1 ? 77.0 : 34;
-          const p1IntroCardTop = hasPrePrintedMapOnPage1 ? 46 : 12;
-          const p1BodyStart = hasPrePrintedMapOnPage1 ? 78.5 : 36;
-          const p1BodyEnd = hasPrePrintedMapOnPage1 ? 89.5 : 94;
-          const p1BodyCardTop = hasPrePrintedMapOnPage1 ? 76 : 44;
+          const p1IntroStart = (rawIntro && rawIntro.start_y_percent) ? Number(rawIntro.start_y_percent) : (hasPrePrintedMapOnPage1 ? 60.5 : 28.0);
+          const p1IntroEnd = (rawIntro && rawIntro.end_y_percent) ? Number(rawIntro.end_y_percent) : (hasPrePrintedMapOnPage1 ? 77.0 : 38.0);
+          const p1IntroCardTop = (rawIntro && rawIntro.start_y_percent) ? Number(rawIntro.start_y_percent) : (hasPrePrintedMapOnPage1 ? 46 : 26);
+          const p1BodyStart = (rawBody && rawBody.start_y_percent) ? Number(rawBody.start_y_percent) : (hasPrePrintedMapOnPage1 ? 78.5 : 40.0);
+          const p1BodyEnd = (rawBody && rawBody.end_y_percent) ? Number(rawBody.end_y_percent) : (hasPrePrintedMapOnPage1 ? 89.5 : 82.0);
+          const p1BodyCardTop = (rawBody && rawBody.start_y_percent) ? Number(rawBody.start_y_percent) : (hasPrePrintedMapOnPage1 ? 76 : 40);
 
           outSections.push({
             zone: "intro",
-            title: hasPrePrintedMapOnPage1 ? "INTRO & MAP" : scheme.intro.tag,
+            title: p1IntroTitle,
             icon: "✓",
             isTick: true,
             startYPercent: p1IntroStart,
             endYPercent: p1IntroEnd,
             cardTopPercent: p1IntroCardTop,
+            lockCustomBounds: Boolean(rawIntro && rawIntro.start_y_percent) || hasPrePrintedMapOnPage1,
             hasPrePrintedMapAbove: hasPrePrintedMapOnPage1,
             marks: scheme.intro.marksStr,
             bodyHtml: formatBulletsFn(introRem),
@@ -6509,12 +6528,13 @@ function renderAnnotationsOverlay() {
           });
           outSections.push({
             zone: "body",
-            title: p1BodyTitle.includes("BODY") ? p1BodyTitle : scheme.bodyParts[0].tag,
+            title: p1BodyTitle,
             icon: "✓",
             isTick: true,
             startYPercent: p1BodyStart,
             endYPercent: p1BodyEnd,
             cardTopPercent: p1BodyCardTop,
+            lockCustomBounds: Boolean(rawBody && rawBody.start_y_percent) || hasPrePrintedMapOnPage1,
             hasPrePrintedMapAbove: hasPrePrintedMapOnPage1,
             marks: scheme.bodyParts[0].marksStr,
             bodyHtml: formatBulletsFn(p1BodyRem),
@@ -6984,14 +7004,20 @@ function renderAnnotationsOverlay() {
           }
           let resolvedFinalBodyRemark = buildDynamicBodyRemark(2, bodyRemCandidate, pgNum);
 
-          const sBodyStart = (rawBody && rawBody.start_y_percent) ? Number(rawBody.start_y_percent) : (isEarthquakeMapCopy ? 8 : 14);
-          const sConcStart = (rawConc && rawConc.start_y_percent && Number(rawConc.start_y_percent) >= 65)
+          let resolvedFinalConcTitle = isCandidateIncompleteCopy
+            ? "CONCLUSION (NOT ATTEMPTED)"
+            : (isEarthquakeMapCopy
+              ? "CONCLUSION: MITIGATION & PREPAREDNESS"
+              : ((rawConc && rawConc.tag && !window.isMetaPlaceholderText(rawConc.tag)) ? String(rawConc.tag).toUpperCase() : scheme.conclusion.tag));
+
+          const sBodyStart = (rawBody && rawBody.start_y_percent) ? Number(rawBody.start_y_percent) : (isEarthquakeMapCopy ? 8.0 : 12.0);
+          const sConcStart = (rawConc && rawConc.start_y_percent && Number(rawConc.start_y_percent) >= 60)
             ? Number(rawConc.start_y_percent)
             : (isEarthquakeMapCopy ? 78.5 : 70.0);
           const sBodyEnd = (rawBody && rawBody.end_y_percent && Number(rawBody.end_y_percent) < sConcStart)
             ? Number(rawBody.end_y_percent)
-            : (sConcStart - 1.5);
-          const sConcEnd = (rawConc && rawConc.end_y_percent) ? Number(rawConc.end_y_percent) : (isEarthquakeMapCopy ? 90 : 84);
+            : (sConcStart - 2.0);
+          const sConcEnd = (rawConc && rawConc.end_y_percent) ? Number(rawConc.end_y_percent) : (isEarthquakeMapCopy ? 90.0 : 86.0);
 
           outSections.push({
             zone: "body",
@@ -7009,7 +7035,7 @@ function renderAnnotationsOverlay() {
           });
           outSections.push({
             zone: "conclusion",
-            title: isCandidateIncompleteCopy ? "CONCLUSION (NOT ATTEMPTED)" : (isEarthquakeMapCopy ? "CONCLUSION: MITIGATION & PREPAREDNESS" : scheme.conclusion.tag),
+            title: resolvedFinalConcTitle,
             icon: (isCandidateIncompleteCopy || isGenericConclusionCopy) ? "✗" : "✓",
             isTick: !isCandidateIncompleteCopy && !isGenericConclusionCopy,
             startYPercent: sConcStart,
@@ -7660,15 +7686,26 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
   }
 }
 
-// Universal helper: Clean candidate handwriting quotes without cutting words in half or leaving dangling ellipsis
-function cleanCandidateQuote(rawStr, maxChars = 140) {
+// Universal helper: Clean candidate handwriting quotes without cutting words in half, stripping inner quotes, or leaving dangling ellipsis
+function cleanCandidateQuote(rawStr, maxChars = 220) {
   if (!rawStr) return "";
   let s = String(rawStr)
-    .replace(/^["“'\s*✓✔✎✗×✘★⭐]+|["”'\s*]+$/g, "")
+    .replace(/^[\s*✓✔✎✗×✘★⭐]+|[\s*]+$/g, "")
     .replace(/\s+/g, " ")
     .replace(/\s*\.{2,}\s*$/g, "")
     .trim();
   if (!s) return "";
+
+  // Only strip outer quotation marks if the entire string is wrapped in them
+  if (
+    (s.startsWith('"') && s.endsWith('"') && s.slice(1, -1).indexOf('"') === -1) ||
+    (s.startsWith('“') && s.endsWith('”')) ||
+    (s.startsWith("'") && s.endsWith("'") && s.slice(1, -1).indexOf("'") === -1)
+  ) {
+    s = s.slice(1, -1).trim();
+  } else if (s.startsWith('"') && s.endsWith('"') && (s.match(/"/g) || []).length % 2 === 0) {
+    s = s.slice(1, -1).trim();
+  }
 
   // If already <= maxChars, clean trailing punctuation and dangling prepositions/conjunctions
   if (s.length <= maxChars) {
@@ -7679,14 +7716,14 @@ function cleanCandidateQuote(rawStr, maxChars = 140) {
 
   // Look for natural sentence or clause boundary before maxChars
   const sentMatch = s.slice(0, maxChars + 15).match(/([.?!;])\s+/);
-  if (sentMatch && sentMatch.index >= 35) {
+  if (sentMatch && sentMatch.index >= 45) {
     return s.slice(0, sentMatch.index).trim();
   }
 
   // Otherwise cut at last space before maxChars
   let cut = s.slice(0, maxChars);
   const lastSpace = cut.lastIndexOf(" ");
-  if (lastSpace > 35) {
+  if (lastSpace > 45) {
     cut = cut.slice(0, lastSpace);
   }
   cut = cut.replace(/[,;:\s\-–—]+$/, "");
@@ -7869,13 +7906,176 @@ function buildDomainModelConclusion(evalData) {
 }
 window.buildDomainModelConclusion = buildDomainModelConclusion;
 
+// Helper: Normalize quote signature so identical/near-identical passages are never reused across unrelated cards
+function normalizeQuoteSignature(str) {
+  return String(str || "")
+    .toLowerCase()
+    .replace(/^(?:\d+[\.\)]|[-•*✓✔✎✗×✘★⭐])\s*/g, "")
+    .replace(/[^a-z0-9\u0900-\u097F]+/g, "")
+    .slice(0, 52);
+}
+
+// Helper: Extract a quoted span from an evaluator remark without truncating at inner quotation marks (e.g., book titles like "Discovery of India")
+function extractOuterQuotedSpanFromRemark(remarkText) {
+  const s = String(remarkText || "").trim();
+  if (!s) return "";
+  // 1. Check for markdown italic-quoted span: *"..."* or *“...”* (greedy across inner quotes up to closing *"*)
+  const italicQuoteMatch = s.match(/\*["“]([\s\S]{15,240})["”]\*/);
+  if (italicQuoteMatch && italicQuoteMatch[1]) {
+    return italicQuoteMatch[1].trim();
+  }
+  // 2. Check for explicit evaluator verbs followed by a quoted passage up to the last quote in the clause
+  const verbQuoteMatch = s.match(/(?:opened\s+(?:directly\s+)?with|concluded\s+with|wrote|quoting|cited|argument|point)\s*:?\s*\*?["“]([\s\S]{15,240})["”]\*?/i);
+  if (verbQuoteMatch && verbQuoteMatch[1]) {
+    return verbQuoteMatch[1].trim();
+  }
+  return "";
+}
+
+// Helper: Verify whether a candidate quote string matches a literal passage in the candidate's page transcript
+// Note: A transcript substring match alone is reported as "transcript_matched" unless source-image evidence and confidence support a literal quote ("verified").
+function verifyCandidateHandwritingQuote(quoteStr, pageTranscript, fullTranscript, pageNum, isMetaFn, hasSourceImageEvidence = false) {
+  const cleanQ = String(quoteStr || "").trim();
+  if (!cleanQ || cleanQ.length < 10) {
+    return { status: "ai_summary", sourcePage: pageNum, sourcePassage: "", confidence: "none" };
+  }
+  if (typeof isMetaFn === "function" && isMetaFn(cleanQ)) {
+    return { status: "ai_summary", sourcePage: pageNum, sourcePassage: "", confidence: "none" };
+  }
+  if (/\[uncertain|uncertain\s*handwriting|\[\?\]/i.test(cleanQ)) {
+    return { status: "unverified", sourcePage: pageNum, sourcePassage: `Page ${pageNum}`, confidence: "uncertain" };
+  }
+
+  const normAlpha = (txt) => String(txt || "").toLowerCase().replace(/[^a-z0-9\u0900-\u097F\s]/g, " ").replace(/\s+/g, " ").trim();
+  const qNorm = normAlpha(cleanQ.replace(/^(?:\d+[\.\)]|\([a-z0-9]+\)|[-•*])\s*/i, ""));
+  const qTokens = qNorm.split(" ").filter(w => w.length >= 3);
+  if (qTokens.length === 0) {
+    return { status: "ai_summary", sourcePage: pageNum, sourcePassage: "", confidence: "none" };
+  }
+
+  const matchedStatus = hasSourceImageEvidence ? "verified" : "transcript_matched";
+  const matchedConfidence = hasSourceImageEvidence ? "high (source-image + transcript)" : "transcript-only";
+
+  const checkAgainstText = (rawText, pgLabel) => {
+    if (!rawText) return null;
+    const lines = String(rawText).split(/\n+/).map(l => l.trim()).filter(Boolean);
+    const fullNorm = normAlpha(rawText);
+
+    // Direct contiguous substring match against the page transcript
+    if (qNorm.length >= 16 && fullNorm.includes(qNorm.slice(0, Math.min(qNorm.length, 45)))) {
+      let matchedLineIdx = -1;
+      for (let i = 0; i < lines.length; i++) {
+        const lNorm = normAlpha(lines[i]);
+        if (lNorm && (lNorm.includes(qNorm.slice(0, Math.min(qNorm.length, 28))) || qNorm.includes(lNorm.slice(0, Math.min(lNorm.length, 28))))) {
+          matchedLineIdx = i + 1;
+          break;
+        }
+      }
+      return {
+        status: matchedStatus,
+        sourcePage: pgLabel,
+        sourcePassage: matchedLineIdx > 0 ? `Page ${pgLabel}, OCR Transcript Segment ${matchedLineIdx}` : `Page ${pgLabel}, OCR Transcript`,
+        confidence: matchedConfidence
+      };
+    }
+
+    // Token overlap check against individual lines/passages on the page
+    let bestLineRatio = 0;
+    let bestLineNum = -1;
+    for (let i = 0; i < lines.length; i++) {
+      const windowText = [lines[i], lines[i + 1] || "", lines[i + 2] || ""].join(" ");
+      const wNorm = normAlpha(windowText);
+      if (!wNorm) continue;
+      let hits = 0;
+      qTokens.forEach(t => {
+        if (wNorm.includes(t)) hits++;
+      });
+      const ratio = hits / qTokens.length;
+      if (ratio > bestLineRatio) {
+        bestLineRatio = ratio;
+        bestLineNum = i + 1;
+      }
+    }
+
+    if (bestLineRatio >= 0.78) {
+      return {
+        status: matchedStatus,
+        sourcePage: pgLabel,
+        sourcePassage: bestLineNum > 0 ? `Page ${pgLabel}, OCR Transcript Segment ${bestLineNum}` : `Page ${pgLabel}, OCR Transcript`,
+        confidence: matchedConfidence
+      };
+    }
+    if (bestLineRatio >= 0.50) {
+      return {
+        status: "unverified",
+        sourcePage: pgLabel,
+        sourcePassage: bestLineNum > 0 ? `Page ${pgLabel}, OCR Transcript Segment ${bestLineNum}` : `Page ${pgLabel}, OCR Transcript`,
+        confidence: "partial"
+      };
+    }
+    return null;
+  };
+
+  const pageMatch = checkAgainstText(pageTranscript, pageNum);
+  if (pageMatch) return pageMatch;
+
+  const fullMatch = checkAgainstText(fullTranscript, pageNum);
+  if (fullMatch) {
+    // Matched in full transcript but not verified on this specific page slice
+    return {
+      status: "unverified",
+      sourcePage: pageNum,
+      sourcePassage: `Page ${pageNum}`,
+      confidence: "cross-page"
+    };
+  }
+
+  return { status: "ai_summary", sourcePage: pageNum, sourcePassage: `Page ${pageNum}`, confidence: "none" };
+}
+
+function formatQuoteStatusDisplay(quote, quoteStatus, sourcePassage, isHindi = false) {
+  const safeQuote = typeof escapeHtml === "function" ? escapeHtml(quote) : String(quote || "");
+  const passageBadge = sourcePassage ? ` (${sourcePassage})` : "";
+  if (quoteStatus === "verified") {
+    return {
+      quoteLabel: isHindi ? `अभ्यर्थी का उद्धरण${passageBadge}:` : `Candidate Quote${passageBadge}:`,
+      formattedQuoteHtml: `"${safeQuote}"`
+    };
+  }
+  if (quoteStatus === "transcript_matched") {
+    return {
+      quoteLabel: isHindi ? `ट्रांसक्रिप्ट-सत्यापित अंश${passageBadge}:` : `Transcript-matched${passageBadge}:`,
+      formattedQuoteHtml: `"${safeQuote}"`
+    };
+  }
+  if (quoteStatus === "unverified") {
+    return {
+      quoteLabel: isHindi ? `असत्यापित उद्धरण${passageBadge}:` : `Quote unverified${passageBadge}:`,
+      formattedQuoteHtml: `"${safeQuote}"`
+    };
+  }
+  return {
+    quoteLabel: isHindi ? `AI सारांश${passageBadge}:` : `AI summary${passageBadge}:`,
+    formattedQuoteHtml: `${safeQuote}`
+  };
+}
+window.formatQuoteStatusDisplay = formatQuoteStatusDisplay;
+
 // Helper: Extract clean candidate quote and actionable elevation advice for examiner cards
-function getCardQuoteAndElevate(sec) {
+function getCardQuoteAndElevate(sec, usedQuotesSet = null) {
   let quote = sec.quote || "";
   let advise = sec.advise || sec.elevation || "";
 
   const evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
   const pNum = parseInt(sec.page, 10) || (typeof state !== "undefined" && state.currentPageIndex !== undefined ? state.currentPageIndex + 1 : 1);
+  // Real source image evidence requires genuine handwriting bounding box coordinates with high confidence;
+  // in normal application data where character/word polygons do not exist, quotes remain strictly at "transcript_matched".
+  const hasSourceImageEvidence = Boolean(
+    sec.handwriting_bbox &&
+    Array.isArray(sec.handwriting_bbox) &&
+    sec.handwriting_bbox.length === 4 &&
+    parseFloat(sec.bbox_confidence || 0) >= 0.85
+  );
   const isCandidateIncomplete = Boolean(
     (sec.zone === "conclusion" && sec.isUnwritten && (!sec.marks || sec.marks.includes("0.0"))) ||
     (sec.zone === "conclusion" && (!sec.marks || sec.marks.includes("0.0")) && evalData.is_incomplete_answer && (!evalData.conclusion_audit || evalData.conclusion_audit.score === 0))
@@ -7883,23 +8083,39 @@ function getCardQuoteAndElevate(sec) {
 
   // Helper to test if a text string is an evaluator meta-comment rather than candidate handwriting
   const isMetaText = (str) => {
-    return window.isMetaPlaceholderText ? window.isMetaPlaceholderText(str) : /(?:opening premise evaluated|substantive arguments analyzed|core dimensional scope|closing stance evaluated|directly engaged the core directive|evaluated candidate's specific points|detailed analysis across candidate's points|point \[[a-z0-9]+\]|\[point \d+|add .* as a keyword|substantive upgrade|page \d+ points evaluated|foundational doctrine missing|concrete institutional|discipline-specific|clear closing line|living cultural continuity|planetary equilibrium|clear concluding stand|actionable way forward|constructive way forward|comprehensive challenges faced|steps needed to be taken|^add [^*]+\*[^*]+|direct premise|core argumentation|dimension coverage|closing synthesis evaluated|concluding synthesis evaluated|opened by defining the core concept|establishing direct analytical context|articulated key mechanisms|addressing primary question dimension|evaluated practical implications|demonstrating multidimensional coverage|the conclusion is balanced|the conclusion summarizes|summarizes the argument well)/i.test(String(str || ""));
+    const s = String(str || "").trim();
+    if (!s) return true;
+    if (window.isMetaPlaceholderText && window.isMetaPlaceholderText(s)) return true;
+    return /(?:opening premise evaluated|substantive arguments analyzed|core dimensional scope|closing stance evaluated|directly engaged the core directive|evaluated candidate's specific points|detailed analysis across candidate's points|point \[[a-z0-9]+\]|\[point \d+|add .* as a keyword|substantive upgrade|page \d+ points evaluated|foundational doctrine missing|concrete institutional|discipline-specific|clear closing line|living cultural continuity|planetary equilibrium|clear concluding stand|actionable way forward|constructive way forward|comprehensive challenges faced|steps needed to be taken|^add [^*]+\*[^*]+|direct premise|core argumentation|dimension coverage|closing synthesis evaluated|concluding synthesis evaluated|opened by defining the core concept|establishing direct analytical context|articulated key mechanisms|addressing primary question dimension|evaluated practical implications|demonstrating multidimensional coverage|the conclusion is balanced|the conclusion summarizes|summarizes the argument well|examined arguments addressing|structured arguments addressing|addressed introductory premise|synthesized closing stance|analyzed handwritten argument|evaluated handwritten point|core analytical dimensions|answer ends without an explicit closing)/i.test(s);
   };
 
-  // If quote or advise was not set, try to extract from sourceHtml
-  if (!quote || !advise || isMetaText(quote)) {
+  const isAlreadyUsedQuote = (candStr) => {
+    if (!usedQuotesSet || typeof usedQuotesSet.has !== "function") return false;
+    const sig = normalizeQuoteSignature(candStr);
+    return Boolean(sig && sig.length >= 10 && usedQuotesSet.has(sig));
+  };
+
+  // If quote or advise was not set, try to extract from sourceHtml without truncating inner quotes
+  if (!quote || !advise || isMetaText(quote) || isAlreadyUsedQuote(quote)) {
     const sourceHtml = sec.bodyHtml || sec.bulletsHtml || "";
-    if (sourceHtml) {
+    if (sourceHtml && typeof document !== "undefined" && document.createElement) {
       const temp = document.createElement("div");
       temp.innerHTML = sourceHtml;
       const items = temp.querySelectorAll(".flex");
       items.forEach(item => {
         const text = item.textContent.replace(/\s+/g, " ").trim();
-        // Look for embedded quotation inside the tick line: *"..."* or "..."
-        const qMatch = text.match(/["“']([^"”']{15,160})["”']|\*["“']?([^"*”']{15,160})["”']?\*/);
-        if ((text.startsWith("✓") || text.startsWith("✔") || text.startsWith("★")) && (!quote || isMetaText(quote))) {
-          if (qMatch && !isMetaText(qMatch[1] || qMatch[2])) {
-            quote = (qMatch[1] || qMatch[2]).trim();
+        const extractedSpan = extractOuterQuotedSpanFromRemark(text);
+        if ((text.startsWith("✓") || text.startsWith("✔") || text.startsWith("★")) && (!quote || isMetaText(quote) || isAlreadyUsedQuote(quote))) {
+          if (extractedSpan && !isMetaText(extractedSpan) && !isAlreadyUsedQuote(extractedSpan)) {
+            // Guard: Never extract an opening intro premise into a body or conclusion card!
+            const firstIntroLine = candLines[0] || "";
+            const isFirstLineUnnumbered = candLines.length > 1 && !/^(?:[-*•–—]|point\s*\d+|\b\d+[\.\)])/i.test(firstIntroLine);
+            const isSpanIntroLine = isFirstLineUnnumbered && normalizeQuoteSignature(extractedSpan) === normalizeQuoteSignature(firstIntroLine);
+            if (sec.zone !== "intro" && isSpanIntroLine) {
+              // Skip opening intro premise for body cards
+            } else {
+              quote = extractedSpan;
+            }
           }
         } else if ((text.startsWith("✎") || text.startsWith("✗") || text.startsWith("×")) && !advise) {
           advise = text.replace(/^[✎✗×✘]\s*/, "");
@@ -7908,52 +8124,99 @@ function getCardQuoteAndElevate(sec) {
     }
   }
 
-  // If quote still contains embedded quotes, extract just the quoted text
-  const embeddedMatch = String(quote || "").match(/["“']([^"”']{15,160})["”']|\*["“']?([^"*”']{15,160})["”']?\*/);
-  if (embeddedMatch && !isMetaText(embeddedMatch[1] || embeddedMatch[2])) {
-    quote = (embeddedMatch[1] || embeddedMatch[2]).trim();
-  }
+  const pageT = (typeof window.getPageTranscript === "function")
+    ? window.getPageTranscript(evalData, pNum)
+    : "";
+  const fullT = String(evalData.transcribed_text || "");
 
-  // If quote is meta-text, placeholder, or empty, extract REAL candidate handwritten words from transcribed text!
-  if (!quote || isMetaText(quote) || quote.length < 12) {
+  // Build candidate handwritten lines on this page, preserving numbered/bulleted points (1), 2), etc.) and excluding only printed question prompts
+  const qLow = String(evalData.detected_question || (typeof state !== "undefined" && state.question) || "").toLowerCase();
+  const candLines = String(pageT || "")
+    .split(/\n+/)
+    .map(l => l.trim())
+    .filter(l => {
+      if (l.length < 18) return false;
+      if (l.startsWith("#") || /^\[page/i.test(l) || /^page\s*\d+/i.test(l)) return false;
+      // Exclude ONLY printed question prompts (Q.1, Q1, Question 1), NEVER candidate numbered points like 1) or 2)
+      if (/^(?:Q\.?\s*\d*[\.\):]?|Question\s*\d*[\.\):]?)\s+/i.test(l)) return false;
+      // Exclude pre-printed bilingual translations of the prompt (e.g. printed Hindi on English copies)
+      const isEnglishEval = !((typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData));
+      if (isEnglishEval && /[\u0900-\u097F]/.test(l)) return false;
+      if (!isEnglishEval && !/[\u0900-\u097F]/.test(l) && /^(?:comment|discuss|examine|analyse|\d+\s*marks|\d+\s*words)/i.test(l)) return false;
+      if (qLow && qLow.length >= 20 && qLow.includes(l.toLowerCase().slice(0, 25))) return false;
+      return true;
+    });
+
+  // If quote is empty, evaluator meta-text, unverified against transcript, or already used on an earlier card on this page, select a distinct passage from candLines
+  const initialVerification = quote ? verifyCandidateHandwritingQuote(quote, pageT, fullT, pNum, isMetaText, hasSourceImageEvidence) : { status: "ai_summary" };
+  if (!quote || isMetaText(quote) || quote.length < 12 || isAlreadyUsedQuote(quote) || (initialVerification.status === "ai_summary" && !sec.isAiSummary)) {
     if (sec.zone === "conclusion" && isCandidateIncomplete) {
       quote = "Answer ends without an explicit closing synthesis paragraph.";
-    } else {
-      const pageT = (typeof window.getPageTranscript === "function")
-        ? window.getPageTranscript(evalData, pNum)
-        : "";
-      const qLow = String(evalData.detected_question || (typeof state !== "undefined" && state.question) || "").toLowerCase();
-      const candLines = pageT
-        .split(/\n+/)
-        .map(l => l.trim())
-        .filter(l => {
-          if (l.length < 18) return false;
-          if (l.startsWith("#") || /^\[page/i.test(l) || /^page\s*\d+/i.test(l)) return false;
-          if (/^(?:Q\.?|\d+[\.\)])\s*/i.test(l)) return false;
-          if (qLow && qLow.includes(l.toLowerCase().slice(0, 25))) return false;
-          return true;
-        });
+    } else if (candLines.length > 0 && candLines.some(l => !isAlreadyUsedQuote(l))) {
+      const unusedCandLines = candLines.filter(l => !isAlreadyUsedQuote(l));
+      const availableLines = unusedCandLines;
 
-      if (candLines.length > 0) {
-        if (sec.zone === "intro") {
-          quote = cleanCandidateQuote(candLines[0]);
-        } else if (sec.zone === "conclusion") {
-          quote = cleanCandidateQuote(candLines[candLines.length - 1]);
+      if (sec.zone === "intro") {
+        // Prefer opening unnumbered premise line before the first numbered point if available
+        const firstUnnumbered = availableLines.find(l => !/^\d+[\.\)]/.test(l));
+        quote = cleanCandidateQuote(firstUnnumbered || availableLines[0]);
+      } else if (sec.zone === "conclusion") {
+        quote = cleanCandidateQuote(availableLines[availableLines.length - 1]);
+      } else {
+        // Body section: on Page 1, exclude the opening unnumbered intro premise when numbered or subsequent body points exist
+        let bodyPool = availableLines;
+        if (pNum === 1 && candLines.length > 1 && !/^\d+[\.\)]/.test(candLines[0])) {
+          const withoutOpening = availableLines.filter(l => normalizeQuoteSignature(l) !== normalizeQuoteSignature(candLines[0]));
+          if (withoutOpening.length > 0) {
+            bodyPool = withoutOpening;
+          }
+        }
+
+        // Target all unused candidate lines so numbered points are never artificially sliced away
+        let targetPool = bodyPool;
+        let isMultiPointRange = false;
+
+        // Check if the card title or feedback specifically evaluates structured/numbered points (e.g. Points 4–6, Points 1–3, Point 2)
+        const combinedCardRef = [sec.title || "", sec.heading || "", sec.advise || ""].join(" ");
+        const ptMatch = combinedCardRef.match(/points?\s*(\d+)(?:\s*[-–—]\s*(\d+))?/i);
+        if (ptMatch) {
+          const startPt = parseInt(ptMatch[1], 10);
+          const endPt = ptMatch[2] ? parseInt(ptMatch[2], 10) : startPt;
+          const matchingNumberedLines = bodyPool.filter(l => {
+            const numM = l.match(/^(?:[-*•–—]|point\s*)?(\d+)[\.\)]/i);
+            if (numM) {
+              const n = parseInt(numM[1], 10);
+              return n >= startPt && n <= endPt;
+            }
+            return false;
+          });
+          if (matchingNumberedLines.length > 0) {
+            targetPool = matchingNumberedLines;
+            if (startPt !== endPt && matchingNumberedLines.length > 1) {
+              isMultiPointRange = true;
+            }
+          }
+        } else if (bodyPool.some(l => /^(?:[-*•–—]|point\s*\d+|\b\d+[\.\)])/i.test(l))) {
+          // If bodyPool has structured candidate points, prefer structured points over narrative summary/concluding paragraphs for body cards
+          const structuredPoints = bodyPool.filter(l => /^(?:[-*•–—]|point\s*\d+|\b\d+[\.\)])/i.test(l));
+          if (structuredPoints.length > 0) {
+            targetPool = structuredPoints;
+          }
+        }
+
+        if (isMultiPointRange) {
+          // For a card evaluating a multi-point range (e.g. Points 4–6), cite the relevant exact evidence across all evaluated points
+          quote = targetPool.join(" \n ");
         } else {
-          // Body lines: spatially partition based on cardIndex / startYPercent
-          const cardIdx = (sec.cardIndex !== undefined) ? sec.cardIndex : (sec.startYPercent && sec.startYPercent >= 48 ? 1 : 0);
-          const half = Math.max(1, Math.floor(candLines.length / 2));
-          const pool = (cardIdx === 0) ? candLines.slice(0, half) : (candLines.length > 1 ? candLines.slice(half) : candLines);
-          const targetPool = (pool && pool.length > 0) ? pool : candLines;
-
           let bestCand = targetPool[0];
-          const titleTokens = String(sec.title || "").toLowerCase().replace(/[^a-z\s]/g, " ").split(/\s+/).filter(w => w.length >= 4 && !['body', 'part', 'core', 'demand', 'analysis', 'substantiation'].includes(w));
-          if (titleTokens.length > 0) {
-            let maxOverlap = -1;
+          const feedbackText = [sec.title || "", sec.advise || "", sec.bodyHtml || ""].join(" ");
+          const cardTokens = String(feedbackText).toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(w => w.length >= 4 && !['body', 'part', 'core', 'demand', 'analysis', 'substantiation', 'that', 'this', 'with', 'from', 'have', 'were', 'also', 'more'].includes(w));
+          if (cardTokens.length > 0) {
+            let maxOverlap = 0;
             targetPool.forEach(l => {
               const lLow = l.toLowerCase();
               let overlap = 0;
-              titleTokens.forEach(tok => { if (lLow.includes(tok)) overlap++; });
+              cardTokens.forEach(tok => { if (lLow.includes(tok)) overlap++; });
               if (overlap > maxOverlap) {
                 maxOverlap = overlap;
                 bestCand = l;
@@ -7962,20 +8225,34 @@ function getCardQuoteAndElevate(sec) {
           }
           quote = cleanCandidateQuote(bestCand);
         }
-      } else {
-        quote = sec.summary || (sec.zone === "intro" ? "Addressed introductory premise and conceptual context." : (sec.zone === "conclusion" ? "Synthesized closing stance on the core directive." : "Structured arguments addressing core analytical dimensions."));
       }
+    } else if (!quote) {
+      quote = "Evidence passage not available in handwriting transcript.";
+      sec.isAiSummary = true;
     }
   }
 
-  // Clean quote wrapper quotes and eliminate any trailing ellipsis or chopped words
-  quote = cleanCandidateQuote(quote, 140);
+  // Clean quote wrapper quotes without truncating inner quotes
+  const quoteCharLimit = (quote && quote.includes("\n")) ? 650 : 220;
+  quote = cleanCandidateQuote(quote, quoteCharLimit);
 
-  // Strip leading bold title or prefix from advise, including duplicated prefixes
+  // Record used quote signature so subsequent cards on this page never reuse the same passage
+  if (usedQuotesSet && typeof usedQuotesSet.add === "function") {
+    const finalSig = normalizeQuoteSignature(quote);
+    if (finalSig) usedQuotesSet.add(finalSig);
+  }
+
+  // Final verification of quote against page transcript to determine honest label ("Candidate Quote" vs "Transcript-matched" vs "Quote unverified" vs "AI summary")
+  const verification = (sec.zone === "conclusion" && isCandidateIncomplete)
+    ? { status: "ai_summary", sourcePage: pNum, sourcePassage: `Page ${pNum}`, confidence: "none" }
+    : verifyCandidateHandwritingQuote(quote, pageT, fullT, pNum, isMetaText, hasSourceImageEvidence);
+
+  // Strip leading bold title or prefix from advise, including duplicated prefixes and any hardcoded constitutional/statutory filler
   advise = String(advise || "")
     .replace(/^\*\*[^*]+\*\*:\s*/, "")
-    .replace(/^(?:(?:Value Addition|Elevate|How to Elevate|Improvement|Actionable Upgrade|Suggestion|Anchor with|Substantiation|Policy Linkage|Opening Upgrade|To Score Full Marks):\s*)+/gi, "")
+    .replace(/^(?:(?:Value Addition|Elevate|How to Elevate|Improvement|Actionable Upgrade|Suggestion|Anchor with|Substantiation|Policy Linkage|Opening Upgrade|To Score Full Marks|Substantive Elevation):\s*)+/gi, "")
     .replace(/^Anchor with:\s*:?\s*/i, "")
+    .replace(/\s*and primary constitutional\/statutory baseline\.?/gi, ".")
     .trim();
 
   // Clean corrupted keyword pattern like: Add Term*Term: definition... as a keyword
@@ -7994,53 +8271,71 @@ function getCardQuoteAndElevate(sec) {
     .replace(/Substantiate Point\s*\[[X-Z0-9]+\]/gi, "Substantiate arguments")
     .replace(/Bridge the gap in Point\s*\[[X-Z0-9]+\]/gi, "Bridge analytical gaps");
 
-  // If advise is generic boilerplate or meta text, replace with specific gap from body_audit or missing_keywords_cards
-  if (!advise || advise.length < 20 || isMetaText(advise) || /substantiate points with specific case studies|anchor arguments with 1 statutory commission/i.test(advise)) {
+  // If advise is empty, generic boilerplate, or meta text, replace with specific question-grounded feedback (no hardcoded constitutional/statutory baseline)
+  if (!advise || advise.length < 20 || isMetaText(advise) || /substantiate points with specific case studies|anchor arguments with 1 statutory commission|primary constitutional\/statutory baseline|primary constitutional article, statutory enactment year/i.test(advise)) {
     const gaps = (evalData.body_audit && evalData.body_audit.critical_gaps) || [];
     const kwList = evalData.missing_keywords_cards || [];
     const cardIdx = sec.cardIndex || 0;
 
     if (sec.zone === "intro") {
       const introMiss = (evalData.intro_audit && evalData.intro_audit.missing_elements) || [];
+      const introCrit = String((evalData.intro_audit && evalData.intro_audit.current_critique) || "").trim();
       if (introMiss.length > 0) {
-        advise = `Anchor opening definition with ${introMiss.slice(0, 2).join(" and ")} to establish immediate depth.`;
+        advise = `Connect the opening premise directly to ${introMiss.slice(0, 2).join(" and ")}.`;
+      } else if (introCrit && introCrit.length >= 25 && !isMetaText(introCrit)) {
+        advise = introCrit.replace(/^[✓✔✎✗×✘•\s*]+/, "").replace(/^\*\*[^*]+\*\*:\s*/, "").trim();
       } else if (kwList[0] && kwList[0].term) {
-        advise = `Strengthen the opening definition by citing **${kwList[0].term}** and primary constitutional/statutory baseline.`;
+        advise = `Strengthen the opening framing by integrating **${kwList[0].term}** directly into the core premise of the question.`;
       } else {
-        advise = "Anchor opening in the primary constitutional article, statutory enactment year, or authoritative benchmark.";
+        advise = "Link the opening sentence directly to the specific claim and scope of the question.";
       }
     } else if (sec.zone === "conclusion") {
+      const concRewrite = String((evalData.conclusion_audit && evalData.conclusion_audit.model_conclusion_rewrite) || "").trim();
       if (isCandidateIncomplete) {
-        advise = "In the final 60 seconds, practice writing a 2-line closing linking the core issue to national policy goals and sustainable execution.";
+        advise = "Reserve the final 60 seconds to write a concise 2-line synthesis tying together the question's core demand.";
+      } else if (concRewrite && concRewrite.length >= 25) {
+        advise = concRewrite;
       } else {
-        advise = "Anchor closing recommendation in an actionable institutional benchmark (e.g. 2nd ARC, Inter-State Council Art 263, or Constitutional Morality).";
+        advise = "Tie the closing synthesis directly back to the question's specific proposition without ambiguous pronouns.";
       }
     } else {
       // Body section
-      const discipline = window.classifyQuestionDiscipline
-        ? window.classifyQuestionDiscipline(evalData.detected_question || (typeof state !== "undefined" && state.question), evalData.detected_paper || (typeof state !== "undefined" && state.paper))
-        : "POLICY_GOVERNANCE_ECONOMY";
       if (gaps[cardIdx]) {
         advise = String(gaps[cardIdx]).replace(/^[✓✔✎✗×✘•]\s*/, "").replace(/^\*\*[^*]+\*\*:\s*/, "").trim();
-      } else if (kwList[cardIdx % kwList.length] && kwList[cardIdx % kwList.length].term) {
+      } else if (gaps[0]) {
+        advise = String(gaps[0]).replace(/^[✓✔✎✗×✘•]\s*/, "").replace(/^\*\*[^*]+\*\*:\s*/, "").trim();
+      } else if (kwList[cardIdx % Math.max(1, kwList.length)] && kwList[cardIdx % Math.max(1, kwList.length)].term) {
         const kw = kwList[cardIdx % kwList.length];
-        advise = `Integrate **${kw.term}** (${String(kw.definition || "").slice(0, 75).trim()}) to sharpen technical scoring.`;
-      } else if (discipline === "HISTORY_CULTURE") {
-        advise = "Substantiate arguments with specific historical actors, primary treatises, reform movements, or regional landmarks.";
-      } else if (discipline === "PHYSICAL_GEOGRAPHY") {
-        advise = "Substantiate points with physical mechanisms, thermodynamic principles, or spatial hazard mapping.";
-      } else if (discipline === "PHILOSOPHY_ETHICS") {
-        advise = "Ground arguments in foundational ethical doctrines, Nolan Principles, or moral philosophical frameworks.";
-      } else if (discipline === "ECONOMY") {
-        advise = "Support points with official macroeconomic telemetry, NITI Aayog policy frameworks, or Budget data.";
+        advise = `Integrate **${kw.term}** (${String(kw.definition || "").slice(0, 85).trim()}) where it directly supports this dimension.`;
       } else {
-        advise = "Substantiate arguments with concrete committee recommendations, statutory mechanisms, or empirical metrics.";
+        advise = "Substantiate this point with a specific example or direct analytical link to the question's core demand.";
       }
     }
   }
 
-  return { quote, advise };
+  return {
+    quote,
+    advise,
+    quoteStatus: verification.status,
+    sourcePage: verification.sourcePage || pNum,
+    sourcePassage: verification.sourcePassage || `Page ${pNum}`,
+    confidence: verification.confidence || "none"
+  };
 }
+window.getCardQuoteAndElevate = getCardQuoteAndElevate;
+
+function ensureSectionsQuoteAudit(sections, currentPg) {
+  if (!Array.isArray(sections) || !sections.length) return [];
+  const usedQuotesOnPage = new Set();
+  return sections.map((sec, idx) => {
+    if (sec.cardIndex === undefined) sec.cardIndex = idx;
+    if (sec.page === undefined) sec.page = currentPg;
+    const audit = getCardQuoteAndElevate(sec, usedQuotesOnPage);
+    sec._quoteAudit = audit;
+    return { sec, ...audit, idx };
+  });
+}
+window.ensureSectionsQuoteAudit = ensureSectionsQuoteAudit;
 
 // Global helper: Render Examiner Line-by-Line Audit cards in blank area below answersheet on PC & Tablet
 window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
@@ -8091,11 +8386,7 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
 
   container.innerHTML = "";
 
-  const cardData = sections.map((sec, idx) => {
-    if (sec.cardIndex === undefined) sec.cardIndex = idx;
-    const { quote, advise } = getCardQuoteAndElevate(sec);
-    return { sec, quote, advise, idx };
-  });
+  const cardData = ensureSectionsQuoteAudit(sections, currentPg);
 
   // Cross-card validation: heal swapped quotes between cards on this page
   if (cardData.length >= 2) {
@@ -8135,7 +8426,7 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
     }
   }
 
-  cardData.forEach(({ sec, quote, advise, idx }) => {
+  cardData.forEach(({ sec, quote, advise, quoteStatus, sourcePassage, idx }) => {
     const card = document.createElement("div");
     card.id = `desktopEvalCard_${idx}`;
     card.className = "eval-card p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 transition-all duration-300 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer select-none";
@@ -8153,7 +8444,7 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
       ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
       : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30";
 
-    const quoteLabel = isHindi ? "अभ्यर्थी का उद्धरण (Quote):" : "Candidate Quote:";
+    const { quoteLabel, formattedQuoteHtml } = formatQuoteStatusDisplay(quote, quoteStatus, sourcePassage, isHindi);
     const elevateLabel = isHindi ? "सुधार बिंदु (Elevate):" : "Elevate:";
 
     card.innerHTML = `
@@ -8167,7 +8458,7 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
         </span>
       </div>
       <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans mb-2">
-        <strong class="text-slate-900 dark:text-slate-200">${quoteLabel}</strong> "${escapeHtml(quote)}"
+        <strong class="text-slate-900 dark:text-slate-200">${escapeHtml(quoteLabel)}</strong> ${formattedQuoteHtml}
       </p>
       <div class="p-2 rounded-lg bg-amber-50/70 dark:bg-slate-900 border border-amber-200 dark:border-slate-800 text-[11px] text-amber-900 dark:text-amber-300/90 leading-relaxed font-sans">
         💡 <strong>${elevateLabel}</strong> ${typeof formatHighlightedText === "function" ? formatHighlightedText(advise) : escapeHtml(advise)}
@@ -8196,8 +8487,21 @@ window.focusGutterPointOnPage = function(index, yPercent, marksStr, sec, isPinne
   }
 
   if (beam) {
-    beam.style.top = `${yPercent}%`;
-    beam.style.transform = "translateY(-50%)";
+    // Keep annotation tightly bounded within the writing column (not a full-width band)
+    beam.style.left = "16%";
+    beam.style.right = "16%";
+    beam.style.width = "68%";
+    beam.style.borderRadius = "8px";
+
+    // Tightly position close to the candidate passage rather than a broad full-page band
+    const sY = sec && sec.startYPercent !== undefined ? Number(sec.startYPercent) : (yPercent - 4);
+    const eY = sec && sec.endYPercent !== undefined ? Number(sec.endYPercent) : (yPercent + 4);
+    const tightHeight = Math.max(4.5, Math.min(16.0, eY - sY));
+    const targetTop = Math.max(sY, Math.min(88.0, yPercent - (tightHeight / 2)));
+
+    beam.style.top = `${targetTop}%`;
+    beam.style.height = `${tightHeight}%`;
+    beam.style.transform = "none";
     beam.style.opacity = "1";
   }
 
@@ -8234,6 +8538,8 @@ window.renderMobileDrawerPoint = function(index) {
   if (!sections.length) return;
   const safeIdx = Math.max(0, Math.min(sections.length - 1, index));
   window._currentMobileGutterIndex = safeIdx;
+  const currentPg = ((typeof state !== "undefined" && state.currentPageIndex) || 0) + 1;
+  ensureSectionsQuoteAudit(sections, currentPg);
   const sec = sections[safeIdx];
   const drawer = document.getElementById("mobileDrawerBar");
   const counter = document.getElementById("mobileDrawerCounter");
@@ -8245,16 +8551,16 @@ window.renderMobileDrawerPoint = function(index) {
     counter.textContent = `Point ${safeIdx + 1} of ${sections.length}`;
   }
 
+  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(typeof state !== "undefined" ? state.currentEvaluation : null);
   const isGreen = sec.isTick;
   const badgeColor = isGreen ? "text-emerald-400" : "text-amber-400";
   const badgeBg = isGreen
     ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
     : "bg-amber-500/20 text-amber-300 border border-amber-500/40";
 
-  let renderedBody = String(sec.bodyHtml || "").trim();
-  if (!renderedBody) {
-    renderedBody = `<p class="text-slate-300 text-xs">${escapeHtml(sec.title)}</p>`;
-  }
+  const audit = sec._quoteAudit || getCardQuoteAndElevate(sec, null);
+  const { quoteLabel, formattedQuoteHtml } = formatQuoteStatusDisplay(audit.quote, audit.quoteStatus, audit.sourcePassage, isHindi);
+  const elevateLabel = isHindi ? "सुधार बिंदु (Elevate):" : "Elevate:";
 
   content.innerHTML = `
     <div class="flex items-start justify-between gap-2 mb-1.5">
@@ -8266,14 +8572,19 @@ window.renderMobileDrawerPoint = function(index) {
         ${escapeHtml(sec.marks)}
       </span>
     </div>
-    <div class="text-[11px] text-slate-300 leading-relaxed mb-2 space-y-1">
-      ${renderedBody}
+    <div class="text-[11px] text-slate-300 leading-relaxed mb-2 space-y-1.5">
+      <p class="text-[11px] text-slate-200 leading-relaxed font-sans">
+        <strong class="text-white">${escapeHtml(quoteLabel)}</strong> ${formattedQuoteHtml}
+      </p>
+      <div class="p-1.5 rounded-lg bg-slate-900/90 border border-slate-800 text-[10.5px] text-amber-300/90 leading-relaxed font-sans">
+        💡 <strong>${elevateLabel}</strong> ${typeof formatHighlightedText === "function" ? formatHighlightedText(audit.advise) : escapeHtml(audit.advise)}
+      </div>
     </div>
     <div class="pt-1.5 border-t border-slate-800 flex items-center justify-between text-[10.5px]">
       <button type="button" onclick="window.viewFullEvaluationSection('${sec.targetKey}')" class="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 cursor-pointer">
         <span>View Full Analysis in Right Panel &rarr;</span>
       </button>
-      <span class="text-slate-400 text-[10px] font-mono">Page ${(state.currentPageIndex || 0) + 1}</span>
+      <span class="text-slate-400 text-[10px] font-mono">Page ${currentPg}</span>
     </div>
   `;
 
@@ -11532,8 +11843,8 @@ function renderBatch1ExaminerMastery(evalData) {
         pointTitle = isHindi ? `पृष्ठ ${pNum} तर्क #${idx + 1}` : `Page ${pNum} Argument #${idx + 1}`;
       }
       let whatYouWrote = String(p.what_you_wrote || "").replace(/^["']|["']$/g, "").trim();
+      const pageText = window.getPageTranscript ? window.getPageTranscript(evalData, pNum) : "";
       if (!whatYouWrote || window.isMetaPlaceholderText(whatYouWrote) || /point\s*\[[a-z0-9]+\]/i.test(whatYouWrote)) {
-        const pageText = window.getPageTranscript ? window.getPageTranscript(evalData, pNum) : "";
         const sents = pageText.split(/(?<=[.?!])\s+/).filter(s => s.length > 25 && !window.isMetaPlaceholderText(s));
         whatYouWrote = sents[idx % Math.max(1, sents.length)] || (isHindi ? "संरचित हस्तलेखन के साथ मुख्य आयामों को संबोधित किया।" : "Addressed substantive question dimensions with structured handwriting.");
       }
@@ -11552,13 +11863,27 @@ function renderBatch1ExaminerMastery(evalData) {
         ? (p.is_positive !== false ? "✓ अंक मिले (Fetched Marks)" : "✎ सुधार बिंदु (Actionable Upgrade)")
         : (p.is_positive !== false ? "✓ Credit Earned" : "✎ Scope to Upgrade");
 
+      const quoteCheck = (typeof verifyCandidateHandwritingQuote === "function")
+        ? verifyCandidateHandwritingQuote(whatYouWrote, pageText, evalData.transcribed_text, pNum, window.isMetaPlaceholderText, Boolean(p.sourceImageVerified))
+        : { status: "transcript_matched" };
+      let quotePrefix = isHindi ? "**अभ्यर्थी ने लिखा**" : "**Candidate Quote**";
+      let quoteBody = `"${whatYouWrote}"`;
+      if (quoteCheck.status === "transcript_matched") {
+        quotePrefix = isHindi ? "**ट्रांसक्रिप्ट-सत्यापित अंश**" : "**Transcript-matched**";
+      } else if (quoteCheck.status === "unverified") {
+        quotePrefix = isHindi ? "**असत्यापित उद्धरण**" : "**Quote unverified**";
+      } else if (quoteCheck.status === "ai_summary") {
+        quotePrefix = isHindi ? "**AI सारांश**" : "**AI Summary**";
+        quoteBody = `${whatYouWrote}`;
+      }
+
       return {
         page: pNum,
         loc: String(p.badge || (isHindi ? `पृष्ठ ${pNum} • बिंदु #${idx + 1}` : `Page ${pNum} • Point #${idx + 1}`)),
         pointTitle,
         badge: String(p.credit_badge || defBadge),
         isPositive: p.is_positive !== false,
-        detail: isHindi ? `**अभ्यर्थी ने लिखा**: "${whatYouWrote}" — ${verdict}` : `**What You Wrote**: "${whatYouWrote}" — ${verdict}`
+        detail: `${quotePrefix}: ${quoteBody} — ${verdict}`
       };
     });
   } else {

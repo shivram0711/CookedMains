@@ -2423,11 +2423,18 @@ def detect_question_discipline(question_str: str, paper_str: str) -> str:
     return "GENERAL"
 
 
-def _clean_quote_snippet(text: str, max_chars: int = 140) -> str:
-    """Extract a complete, grammatically sound quote from candidate text without cutting words in half or ending with dangling ellipsis."""
+def _clean_quote_snippet(text: str, max_chars: int = 220) -> str:
+    """Extract a complete, grammatically sound quote from candidate text without cutting words in half, stripping balanced inner quotes, or ending with dangling ellipsis."""
     if not text:
         return ""
-    clean = " ".join(str(text).split()).strip().strip('"\'*')
+    clean = " ".join(str(text).split()).strip()
+    clean = re.sub(r'^\*+|\*+$', '', clean).strip()
+    if (
+        len(clean) >= 2
+        and ((clean[0] in '"\'“' and clean[-1] in '"\'”'))
+        and not re.search(r'["“\']', clean[1:-1])
+    ):
+        clean = clean[1:-1].strip()
     clean = re.sub(r'^\s*[-•*✓✔✎✗×]\s*', '', clean)
     clean = re.sub(r'\s*\.{2,}\s*$', '', clean).strip()
     if not clean:
@@ -3012,14 +3019,13 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
             if len(bullets) < 2 and raw_pg_trans:
                 cand_lines = [
                     l.strip() for l in raw_pg_trans.splitlines()
-                    if len(l.strip()) >= 22 and not l.strip().startswith("#") and not re.match(r'^(?:Q\.?|\d+[\.\)])\s*', l.strip())
+                    if len(l.strip()) >= 20 and not l.strip().startswith("#") and not re.match(r'^(?:Q\.?\s*\d*[\.\):]?|Question\s*\d*[\.\):]?)\s+', l.strip(), re.IGNORECASE)
                 ]
                 if cand_lines:
-                    half_point = max(1, len(cand_lines) // 2)
-                    if slot_idx == 0 or (start_y > 0 and start_y < 48.0):
-                        pool = cand_lines[:half_point]
-                    else:
-                        pool = cand_lines[half_point:] if len(cand_lines) > 1 else cand_lines
+                    # On Page 1, isolate the opening unnumbered narrative intro so body remarks never reuse the opening premise
+                    has_unnum_p1_intro = (pg_num == 1 and len(cand_lines) > 1 and not re.match(r'^(?:[-*•–—]|point\s*\d+|\b\d+[\.\)])', cand_lines[0], re.IGNORECASE))
+                    body_cand_lines = cand_lines[1:] if has_unnum_p1_intro else cand_lines
+                    pool = body_cand_lines if body_cand_lines else cand_lines
 
                     best_line = None
                     if tag_tokens:
@@ -3156,9 +3162,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                         ]
                     elif is_history_culture:
                         eng_levers = [
-                            "**Historical Depth**: Substantiate arguments with specific epigraphical records, primary cultural treatises, or regional landmarks.",
-                            "**Historiographical Context**: Corroborate socio-religious reform trends with contemporaneous reform journals and vernacular literature.",
-                            "**Institutional & Social Breadth**: Contrast regional reformist strands to demonstrate pan-Indian sociological breadth and civilizational impact."
+                            "**Historical Depth & Substantiation**: Substantiate arguments with specific primary source evidence, key institutional milestones, and organizational reforms directly answering the prompt's directive.",
+                            "**Historical Nuance**: Balance qualitative points by analyzing organizational structures and societal mobilization patterns that pre-figured the stated historical outcome."
                         ]
                     elif is_geo:
                         eng_levers = [
@@ -3281,7 +3286,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         trans_raw = str(data.get("transcribed_text") or "").replace("[Page 1]", "").replace("[Page 2]", "").replace("[Page 3]", "")
         for line in trans_raw.splitlines():
             l_str = line.strip()
-            if len(l_str) >= 20 and not l_str.startswith("#") and not re.match(r'^(?:Q\.?|\d+[\.\)])\s*', l_str):
+            if len(l_str) >= 20 and not l_str.startswith("#") and not re.match(r'^(?:Q\.?\s*\d*[\.\):]?|Question\s*\d*[\.\):]?)\s+', l_str, re.IGNORECASE):
                 first_student_sentence = l_str
                 break
 
@@ -5238,9 +5243,9 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
         top_str = formatted_strengths[0].split(":")[0].replace("**", "") if formatted_strengths else ("मुख्य मांग के अनुरूप संरचित उप-शीर्षक" if is_hindi else "structured sub-headings addressing primary demand")
         top_gap = formatted_gaps[0].split(":")[0].replace("**", "") if 'formatted_gaps' in locals() and formatted_gaps else ("गहन वैचारिक एवं आधिकारिक संदर्भ" if is_hindi else "deeper domain-specific conceptual and empirical anchors")
         if is_hindi:
-            body_audit["overall_assessment"] = f"मुख्य भाग (Body) में आपने **{top_str}** प्रस्तुत कर **{b_earned:.1f} / {b_max:.1f} अंक** प्राप्त किए हैं। अगले **+1.5 से +2.5 अंक** के स्तर तक पहुँचने के लिए **{top_gap}** पर विशेष ध्यान दें और आधिकारिक संदर्भों से पुष्ट करें।"
+            body_audit["overall_assessment"] = f"मुख्य भाग (Body) में आपने **{top_str}** प्रस्तुत कर **{b_earned:.1f} / {b_max:.1f} अंक** प्राप्त किए हैं। अगले **+1.5 से +2.5 अंक** के स्तर तक पहुँचने के लिए **{top_gap}** पर विशेष ध्यान दें और प्रश्न-विशिष्ट साक्ष्यों से पुष्ट करें।"
         else:
-            body_audit["overall_assessment"] = f"Your Body section scored **{b_earned:.1f} / {b_max:.1f}M** by demonstrating **{top_str}**. To unlock the next **+1.5 to +2.5M** band, focus on **{top_gap}** and substantiate with official statutory benchmarks."
+            body_audit["overall_assessment"] = f"Your Body section scored **{b_earned:.1f} / {b_max:.1f}M** by demonstrating **{top_str}**. To unlock the next **+1.5 to +2.5M** band, focus on **{top_gap}** with question-specific evidence."
         data["body_audit"] = body_audit
 
     q_str = str(data.get("detected_question") or data.get("question") or "")
@@ -5394,7 +5399,7 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
         if is_hindi:
             c_audit["current_critique"] = (
                 f"✗ **निष्कर्ष अधूरा / अनुत्तरित (Conclusion Not Attempted)**: आपका उत्तर बिना अंतिम संश्लेषित निष्कर्ष लिखे समाप्त हुआ (+{c_max:.1f} अंक की हानि)।\n"
-                f"✎ **60-सेकंड समाधान**: {mm_eval}-अंकों के प्रश्न में अंतिम 60 सेकंड 2-पंक्ति के अग्रगामी समाधान हेतु सुरक्षित रखें: {effective_conc}"
+                f"✎ **60-सेकंड समाधान**: {mm_eval}-अंकों के प्रश्न में अंतिम 60 सेकंड 2-पंक्ति के संश्लेषित निष्कर्ष हेतु सुरक्षित रखें: {effective_conc}"
             )
         else:
             c_audit["current_critique"] = (
@@ -5412,12 +5417,12 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                 if is_hindi:
                     ann["remark"] = (
                         f"✗ **निष्कर्ष अनुत्तरित (Incomplete Answer)**: उत्तर आगे की राह के बिंदुओं के बाद बिना अंतिम संश्लेषित निष्कर्ष के समाप्त हुआ (+{c_max:.1f} अंक छूटे)।\n"
-                        f"✎ **60-सेकंड समाधान**: {mm_eval}-अंकों के प्रश्न में 2-पंक्ति का अग्रगामी निष्कर्ष नीतिगत ढांचे से जोड़कर अवश्य लिखें: {effective_conc}"
+                        f"✎ **60-सेकंड समाधान**: {mm_eval}-अंकों के प्रश्न में 2-पंक्ति का संश्लेषित निष्कर्ष मुख्य मांग से जोड़कर अवश्य लिखें: {effective_conc}"
                     )
                 else:
                     ann["remark"] = (
                         f"✗ **Conclusion Not Attempted (Incomplete Answer)**: Answer stopped after the Way Forward points without a closing synthesis (forfeits +{c_max:.1f}M).\n"
-                        f"✎ **60-Second Closing Formula**: In a {mm_eval}-marker, reserve 60 seconds to write a 2-line closing linking to the core policy framework: {effective_conc}"
+                        f"✎ **60-Second Closing Formula**: In a {mm_eval}-marker, reserve 60 seconds to write a 2-line closing linking directly to the question's core thesis: {effective_conc}"
                     )
     else:
         # Authentic Conclusion Detected!
@@ -5455,54 +5460,53 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             closing_cand_quote = cand_conc_matches[-1]
 
         # Clean up existing conclusion critique and strip repeated prefixes
-        # Clean up existing conclusion critique and strip repeated prefixes
         raw_c_crit = str(c_audit.get("current_critique") or "")
         clean_c_crit = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:(?:\*\*)?(?:Closing|Concluding)\s*Synthesis(?:\s*Evaluated)?(?:\*\*)?:?\s*)+', '', raw_c_crit).strip()
         is_generic_or_empty_crit = (not clean_c_crit) or (len(clean_c_crit) < 30) or bool(re.search(r'(?i)\b(?:not\s+attempted|unwritten|summarizes\s+your\s+stance)\b', clean_c_crit))
 
-        # Preserve Gemini's insightful conclusion critique if present, or construct a precise feedback note inspired by Image 4
+        # Preserve Gemini's insightful conclusion critique if present, or construct a question-anchored feedback note
         if is_generic_or_empty_crit:
             if is_hindi:
                 if gemini_step_conc_text and not re.search(r'(?i)\b(?:not\s+attempted|unwritten|अनुत्तरित)\b', gemini_step_conc_text):
                     clean_g_step = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:(?:\*\*)?(?:Closing|Concluding|निष्कर्ष)\s*(?:Synthesis|का\s*मूल्यांकन)?(?:\s*Evaluated)?(?:\*\*)?:?\s*)+', '', gemini_step_conc_text.strip()).strip()
                     c_audit["current_critique"] = f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: {clean_g_step}"
                 elif closing_cand_quote:
-                    clean_cand_close = _clean_quote_snippet(closing_cand_quote, 140)
+                    clean_cand_close = _clean_quote_snippet(closing_cand_quote, 220)
                     c_audit["current_critique"] = (
                         f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: आपने *\"{clean_cand_close}\"* के साथ उत्तर का समापन किया।\n"
-                        f"✎ **पूर्ण अंक प्राप्त करने हेतु**: अंतिम वाक्य को संबंधित संस्थागत ढांचे, संवैधानिक आदर्श या समिति रिपोर्ट से जोड़ें: {effective_conc}"
+                        f"✎ **सुझाव (Refinement)**: {effective_conc}"
                     )
                 elif is_last_line_narrative and last_line:
-                    clean_last = _clean_quote_snippet(last_line, 120)
+                    clean_last = _clean_quote_snippet(last_line, 220)
                     c_audit["current_critique"] = (
                         f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: आपने *\"{clean_last}\"* के साथ समापन किया, किंतु यह सामान्य है।\n"
-                        f"✎ **पूर्ण अंक प्राप्त करने हेतु**: अंतिम वाक्य को नीतिगत ढांचे या संवैधानिक लक्ष्य से जोड़ें: {effective_conc}"
+                        f"✎ **सुझाव (Refinement)**: {effective_conc}"
                     )
                 else:
                     c_audit["current_critique"] = (
                         f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: आपने प्रासंगिक निष्कर्ष प्रस्तुत किया, किंतु इसे और सुदृढ़ किया जा सकता है।\n"
-                        f"✎ **पूर्ण अंक प्राप्त करने हेतु**: अंतिम वाक्य को संबंधित संस्थागत ढांचे या आयोग की अनुशंसा से जोड़ें: {domain_conc}"
+                        f"✎ **सुझाव (Refinement)**: {domain_conc}"
                     )
             else:
                 if gemini_step_conc_text and not re.search(r'(?i)\b(?:not\s+attempted|unwritten)\b', gemini_step_conc_text):
                     clean_g_step = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:(?:\*\*)?(?:Closing|Concluding)\s*Synthesis(?:\s*Evaluated)?(?:\*\*)?:?\s*)+', '', gemini_step_conc_text.strip()).strip()
                     c_audit["current_critique"] = f"✓ **Closing Synthesis Evaluated**: {clean_g_step}"
                 elif closing_cand_quote:
-                    clean_cand_close = _clean_quote_snippet(closing_cand_quote, 140)
+                    clean_cand_close = _clean_quote_snippet(closing_cand_quote, 220)
                     c_audit["current_critique"] = (
                         f"✓ **Closing Synthesis Evaluated**: Concluded with *\"{clean_cand_close}\"*, summarizing core stance.\n"
-                        f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {effective_conc}"
+                        f"✎ **Refinement**: {effective_conc}"
                     )
                 elif is_last_line_narrative and last_line:
-                    clean_last = _clean_quote_snippet(last_line, 120)
+                    clean_last = _clean_quote_snippet(last_line, 220)
                     c_audit["current_critique"] = (
                         f"✓ **Closing Synthesis Evaluated**: Concluded with *\"{clean_last}\"*, but it remained somewhat broad.\n"
-                        f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {effective_conc}"
+                        f"✎ **Refinement**: {effective_conc}"
                     )
                 else:
                     c_audit["current_critique"] = (
                         f"✓ **Closing Synthesis Evaluated**: Concluded with a relevant synthesis statement, but it remained somewhat broad.\n"
-                        f"✎ **To Score Full Marks**: Anchor your closing sentence in the core institutional framework or committee benchmark: {domain_conc}"
+                        f"✎ **Refinement**: {domain_conc}"
                     )
         else:
             if is_hindi:
