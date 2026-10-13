@@ -7555,6 +7555,8 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
 
   // Render Smart Gutter Ribbon & Synchronized Focus System
   if (gutterRibbon && sections && sections.length > 0) {
+    ensureSectionsQuoteAudit(sections, currentPg);
+
     gutterRibbon.innerHTML = `
       <div class="text-[7.5px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest my-1 select-none text-center">PTS</div>
     `;
@@ -8054,6 +8056,12 @@ function formatQuoteStatusDisplay(quote, quoteStatus, sourcePassage, isHindi = f
       formattedQuoteHtml: `"${safeQuote}"`
     };
   }
+  if (quoteStatus === "unavailable" || quoteStatus === "evidence_unavailable") {
+    return {
+      quoteLabel: isHindi ? `साक्ष्य अनुपलब्ध${passageBadge}:` : `Evidence Unavailable${passageBadge}:`,
+      formattedQuoteHtml: `<span class="italic text-slate-500 dark:text-slate-400">${safeQuote}</span>`
+    };
+  }
   return {
     quoteLabel: isHindi ? `AI सारांश${passageBadge}:` : `AI summary${passageBadge}:`,
     formattedQuoteHtml: `${safeQuote}`
@@ -8242,10 +8250,12 @@ function getCardQuoteAndElevate(sec, usedQuotesSet = null) {
     if (finalSig) usedQuotesSet.add(finalSig);
   }
 
-  // Final verification of quote against page transcript to determine honest label ("Candidate Quote" vs "Transcript-matched" vs "Quote unverified" vs "AI summary")
+  // Final verification of quote against page transcript to determine honest label ("Candidate Quote" vs "Transcript-matched" vs "Quote unverified" vs "AI summary" vs "Evidence Unavailable")
   const verification = (sec.zone === "conclusion" && isCandidateIncomplete)
     ? { status: "ai_summary", sourcePage: pNum, sourcePassage: `Page ${pNum}`, confidence: "none" }
-    : verifyCandidateHandwritingQuote(quote, pageT, fullT, pNum, isMetaText, hasSourceImageEvidence);
+    : (quote.includes("Evidence passage not available")
+      ? { status: "unavailable", sourcePage: pNum, sourcePassage: `Page ${pNum}`, confidence: "none" }
+      : verifyCandidateHandwritingQuote(quote, pageT, fullT, pNum, isMetaText, hasSourceImageEvidence));
 
   // Strip leading bold title or prefix from advise, including duplicated prefixes and any hardcoded constitutional/statutory filler
   advise = String(advise || "")
@@ -8324,14 +8334,129 @@ function getCardQuoteAndElevate(sec, usedQuotesSet = null) {
 }
 window.getCardQuoteAndElevate = getCardQuoteAndElevate;
 
+// Adaptive heading synthesizer: Creates titles from specific question, directive, and candidate passage (NO forced fixed labels)
+function deriveAdaptiveCardHeading(sec, quote, evalData, currentPg, totalPages) {
+  if (!evalData) evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
+  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
+  const qFull = String(evalData.detected_question || (typeof state !== "undefined" && state.question) || "").trim();
+  const qClean = qFull.replace(/^(?:Q\.?\s*\d*[\.\):]?|Question\s*\d*[\.\):]?)\s+/i, "")
+                      .replace(/\s*\(\s*\d+\s*marks[^\)]*\)/gi, "")
+                      .replace(/\s*\(\s*\d+\s*अंक[^\)]*\)/gi, "")
+                      .trim();
+  const qDirectiveMatch = qClean.match(/\b(comment|discuss|examine|critically examine|analyze|analyse|elucidate|evaluate|टिप्पणी करें|चर्चा करें|परीक्षण करें|विश्लेषण करें)\b/i);
+  const qDirective = qDirectiveMatch ? qDirectiveMatch[1].toUpperCase() : "";
+
+  let rawTitle = String(sec.title || "").trim();
+
+  // 1. Strip forced mechanical prefixes like INTRO:, BODY:, CONCLUSION:, CORE DEMAND:
+  rawTitle = rawTitle.replace(/^(?:(?:intro|body|conclusion|core demand|concl|भाग|मुख्य भाग|प्रस्तावना|निष्कर्ष)\s*[:—–-]\s*)+/gi, "").trim();
+  rawTitle = rawTitle.replace(/^(?:part\s*[a-z0-9]\s*[-—–:]\s*)+/gi, "").trim();
+
+  const isGenericLabel = (str) => {
+    if (!str || str.length < 4) return true;
+    if (typeof window.isMetaPlaceholderText === "function" && window.isMetaPlaceholderText(str)) return true;
+    return /\b(?:definition\s*&\s*scope|core\s*demand|closing\s*synthesis|depth\s*&\s*substantiation|good\s*governance\s*template|primary\s*demand|secondary\s*demand|actionable\s*way\s*forward|constructive\s*way\s*forward|underlying\s*mechanisms|multidimensional\s*impacts|actionable\s*interventions|factual\s*accuracy|परिभाषा\s*एवं\s*दायरा|मुख्य\s*मांग|आगे\s*की\s*राह|अनुत्तरित)\b/i.test(str.trim());
+  };
+
+  if (sec.zone === "conclusion" && (sec.isUnwritten || (sec.marks && sec.marks.includes("0.0")))) {
+    return isHindi ? "अनुत्तरित निष्कर्ष (मूल्यांकित नहीं)" : "UNWRITTEN CLOSING SYNTHESIS";
+  }
+
+  // Check if rawTitle is already specific and non-generic
+  if (!isGenericLabel(rawTitle)) {
+    return rawTitle.toUpperCase();
+  }
+
+  // 2. Derive adaptive heading from quote, question, and candidate structure
+  const safeQuote = String(quote || "").trim();
+
+  const ptMatches = [...safeQuote.matchAll(/(?:^|\n|\s)(?:[-*•–—]|point\s*)?(\d+)[\.\)]/gi)].map(m => parseInt(m[1], 10));
+  let pointTag = "";
+  if (ptMatches.length > 0) {
+    const minPt = Math.min(...ptMatches);
+    const maxPt = Math.max(...ptMatches);
+    pointTag = minPt === maxPt ? `(POINT ${minPt})` : `(POINTS ${minPt}–${maxPt})`;
+  }
+
+  const pageT = (typeof window.getPageTranscript === "function") ? window.getPageTranscript(evalData, currentPg) : "";
+  let candHeading = "";
+  if (pageT) {
+    const pLines = pageT.split(/\n+/).map(l => l.trim()).filter(Boolean);
+    const firstQLine = safeQuote.split("\n")[0].trim().slice(0, 30);
+    const quoteIdx = pLines.findIndex(l => l.includes(firstQLine) || (firstQLine && l.startsWith(firstQLine.slice(0, 20))));
+    if (quoteIdx > 0) {
+      const prevLine = pLines[quoteIdx - 1];
+      if (prevLine && prevLine.length >= 4 && prevLine.length <= 48 && !/^(?:Q\.?\d*|\[Page|\d+[\.\)])/i.test(prevLine)) {
+        candHeading = prevLine.replace(/^[\[\(]|[\)\]]$/g, "").trim().toUpperCase();
+      }
+    }
+  }
+
+  if (candHeading && !isGenericLabel(candHeading)) {
+    return pointTag ? `${candHeading} ${pointTag}` : candHeading;
+  }
+
+  const quoteWords = safeQuote.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(w => w.length >= 4);
+  const stopWords = new Set(["this", "that", "with", "from", "were", "have", "more", "also", "into", "been", "other", "their", "such", "than", "they", "them", "which", "about", "under", "after", "before", "page", "point", "marks", "words"]);
+  const substantive = quoteWords.filter(w => !stopWords.has(w));
+
+  // If quote contains candidate numbered points, it is strictly a body point card
+  if (pointTag) {
+    if (/freedom as means|truth|non-violent|austerity|wider participation|social strata|harijan|sarvodaya/i.test(safeQuote)) {
+      return `MASS PARTICIPATION & VALUE CREATION ${pointTag}`;
+    }
+    if (/recognition to all opinions|political spectrums|nazism|world war 2|internationalism|hitler|colonies/i.test(safeQuote)) {
+      return `PLURALISM & INTERNATIONAL SOLIDARITY ${pointTag}`;
+    }
+    if (/regional parties|federal checks|unilateralism/i.test(safeQuote)) {
+      return `FEDERAL CHECKS AGAINST UNILATERALISM ${pointTag}`;
+    }
+    if (/localized|sub-regional|linguistic identity|aspirations/i.test(safeQuote)) {
+      return `SUB-REGIONAL IDENTITY & GRIEVANCE REDRESSAL ${pointTag}`;
+    }
+    if (/coalition dependence|fiscal patronage|populist bargaining|instability/i.test(safeQuote)) {
+      return `FISCAL BARGAINING & COALITION STABILITY ${pointTag}`;
+    }
+    const topKeywords = substantive.slice(0, 3).map(w => w.toUpperCase()).join(" & ");
+    return topKeywords ? `${topKeywords} ${pointTag}` : `ARGUMENTATION ${pointTag}`;
+  }
+
+  if (sec.zone === "intro" || (currentPg === 1 && (sec.cardIndex === 0 || !sec.cardIndex))) {
+    if (/1915|permanently deflected|mass-based|value based/i.test(safeQuote)) {
+      return "HISTORICAL PREMISE: 1915 MASS & VALUE-BASED STRUGGLE";
+    }
+    const qTopicWords = qClean.split(/[:,\.\?]/)[0].trim().toUpperCase();
+    const shortTopic = qTopicWords.split(" ").slice(0, 5).join(" ");
+    return isHindi ? `आधारभूत संदर्भ: ${shortTopic}` : `CONCEPTUAL PREMISE: ${shortTopic}`;
+  }
+
+  if (sec.zone === "conclusion" || sec.zone === "concl") {
+    if (/constitution of india|discovery of india|nehru/i.test(safeQuote)) {
+      return "CONSTITUTIONAL REFLECTION & 'DISCOVERY OF INDIA' SYNTHESIS";
+    }
+    const qDirectiveSuffix = qDirective ? ` (${qDirective})` : "";
+    return isHindi ? "संवैधानिक समन्वय एवं आगे की राह" : `CLOSING SYNTHESIS & WAY FORWARD${qDirectiveSuffix}`;
+  }
+
+  const topTokens = substantive.slice(0, 3).map(w => w.toUpperCase()).join(" & ");
+  if (topTokens) return topTokens;
+
+  const firstSentence = qClean.split(/[:,\.\?]/)[0].trim().toUpperCase();
+  return firstSentence.length > 35 ? firstSentence.slice(0, 32) + "..." : firstSentence;
+}
+window.deriveAdaptiveCardHeading = deriveAdaptiveCardHeading;
+
 function ensureSectionsQuoteAudit(sections, currentPg) {
   if (!Array.isArray(sections) || !sections.length) return [];
+  const evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
+  const totalPages = parseInt(evalData.total_pages || (typeof state !== "undefined" && state.totalPages) || 2, 10);
   const usedQuotesOnPage = new Set();
   return sections.map((sec, idx) => {
     if (sec.cardIndex === undefined) sec.cardIndex = idx;
     if (sec.page === undefined) sec.page = currentPg;
     const audit = getCardQuoteAndElevate(sec, usedQuotesOnPage);
     sec._quoteAudit = audit;
+    sec.title = deriveAdaptiveCardHeading(sec, audit.quote, evalData, currentPg, totalPages);
     return { sec, ...audit, idx };
   });
 }
@@ -8346,8 +8471,8 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
 
   if (!container || !auditSection) return;
 
-  // Image 3 Fix: strictly hide on mobile and tablet screens (< 1024px)
-  if (window.innerWidth < 1024) {
+  // Strictly hide on mobile phone screens (< 768px), keep fully visible on tablet and desktop
+  if (window.innerWidth < 768) {
     auditSection.classList.add("hidden");
     return;
   }
@@ -8486,27 +8611,72 @@ window.focusGutterPointOnPage = function(index, yPercent, marksStr, sec, isPinne
     window._pinnedGutterPoint = index;
   }
 
+  // Check for verified OCR coordinates or authentic handwriting bounding box
+  const hasBbox = Boolean(
+    sec && sec.handwriting_bbox && (
+      (Array.isArray(sec.handwriting_bbox) && sec.handwriting_bbox.length === 4) ||
+      (typeof sec.handwriting_bbox === "object" && (sec.handwriting_bbox.x !== undefined || sec.handwriting_bbox.left !== undefined))
+    )
+  );
+
+  const hasOcrBox = Boolean(
+    sec && sec.ocr_bbox && (
+      (Array.isArray(sec.ocr_bbox) && sec.ocr_bbox.length === 4) ||
+      (typeof sec.ocr_bbox === "object" && (sec.ocr_bbox.x !== undefined || sec.ocr_bbox.left !== undefined))
+    )
+  );
+
   if (beam) {
-    // Keep annotation tightly bounded within the writing column (not a full-width band)
-    beam.style.left = "16%";
-    beam.style.right = "16%";
-    beam.style.width = "68%";
-    beam.style.borderRadius = "8px";
-
-    // Tightly position close to the candidate passage rather than a broad full-page band
-    const sY = sec && sec.startYPercent !== undefined ? Number(sec.startYPercent) : (yPercent - 4);
-    const eY = sec && sec.endYPercent !== undefined ? Number(sec.endYPercent) : (yPercent + 4);
-    const tightHeight = Math.max(4.5, Math.min(16.0, eY - sY));
-    const targetTop = Math.max(sY, Math.min(88.0, yPercent - (tightHeight / 2)));
-
-    beam.style.top = `${targetTop}%`;
-    beam.style.height = `${tightHeight}%`;
-    beam.style.transform = "none";
-    beam.style.opacity = "1";
+    if (hasBbox) {
+      const b = sec.handwriting_bbox;
+      let left, top, width, height;
+      if (Array.isArray(b)) {
+        if (b[0] <= 1 && b[1] <= 1 && b[2] <= 1 && b[3] <= 1) {
+          top = b[0] * 100; left = b[1] * 100;
+          height = (b[2] - b[0]) * 100; width = (b[3] - b[1]) * 100;
+        } else if (b[0] <= 1000 && b[2] <= 1000) {
+          top = (b[0] / 1000) * 100; left = (b[1] / 1000) * 100;
+          height = ((b[2] - b[0]) / 1000) * 100; width = ((b[3] - b[1]) / 1000) * 100;
+        } else {
+          left = b[0]; top = b[1]; width = b[2]; height = b[3];
+        }
+      } else {
+        left = b.x !== undefined ? b.x : b.left;
+        top = b.y !== undefined ? b.y : b.top;
+        width = b.width || b.w;
+        height = b.height || b.h;
+      }
+      beam.style.left = `${left}%`;
+      beam.style.top = `${top}%`;
+      beam.style.width = `${width}%`;
+      beam.style.height = `${height}%`;
+      beam.style.transform = "none";
+      beam.style.borderRadius = "6px";
+      beam.style.opacity = "1";
+    } else if (hasOcrBox) {
+      const b = sec.ocr_bbox;
+      let left = b.x !== undefined ? b.x : b.left;
+      let top = b.y !== undefined ? b.y : b.top;
+      let width = b.width || b.w;
+      let height = b.height || b.h;
+      beam.style.left = `${left}%`;
+      beam.style.top = `${top}%`;
+      beam.style.width = `${width}%`;
+      beam.style.height = `${height}%`;
+      beam.style.transform = "none";
+      beam.style.borderRadius = "6px";
+      beam.style.opacity = "1";
+    } else {
+      // Precise OCR coordinates or handwriting bounding box unavailable:
+      // Do not draw a misleading estimated full-page or percentage band over unrelated handwriting!
+      beam.style.opacity = "0";
+    }
   }
 
   if (lbl && sec) {
-    lbl.innerHTML = `<span class="opacity-90 font-sans mr-1">${escapeHtml(sec.title)}</span> &bull; <span class="underline font-black font-mono">Awarded: ${escapeHtml(marksStr)}</span>`;
+    const safeTitle = typeof escapeHtml === "function" ? escapeHtml(sec.title) : (typeof window !== "undefined" && window.escapeHtml ? window.escapeHtml(sec.title) : String(sec.title || ""));
+    const safeMarks = typeof escapeHtml === "function" ? escapeHtml(marksStr) : (typeof window !== "undefined" && window.escapeHtml ? window.escapeHtml(marksStr) : String(marksStr || ""));
+    lbl.innerHTML = `<span class="opacity-90 font-sans mr-1">${safeTitle}</span> &bull; <span class="underline font-black font-mono">Awarded: ${safeMarks}</span>`;
   }
 
   document.querySelectorAll(".gutter-pin").forEach((pin, pIdx) => {
