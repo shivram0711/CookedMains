@@ -8103,6 +8103,29 @@ function getCardQuoteAndElevate(sec, usedQuotesSet = null) {
     return Boolean(sig && sig.length >= 10 && usedQuotesSet.has(sig));
   };
 
+  const pageT = (typeof window.getPageTranscript === "function")
+    ? window.getPageTranscript(evalData, pNum)
+    : "";
+  const fullT = String(evalData.transcribed_text || "");
+
+  // Build candidate handwritten lines on this page, preserving numbered/bulleted points (1), 2), etc.) and excluding only printed question prompts
+  const qLow = String(evalData.detected_question || (typeof state !== "undefined" && state.question) || "").toLowerCase();
+  const candLines = String(pageT || "")
+    .split(/\n+/)
+    .map(l => l.trim())
+    .filter(l => {
+      if (l.length < 18) return false;
+      if (l.startsWith("#") || /^\[page/i.test(l) || /^page\s*\d+/i.test(l)) return false;
+      // Exclude ONLY printed question prompts (Q.1, Q1, Question 1), NEVER candidate numbered points like 1) or 2)
+      if (/^(?:Q\.?\s*\d*[\.\):]?|Question\s*\d*[\.\):]?)\s+/i.test(l)) return false;
+      // Exclude pre-printed bilingual translations of the prompt (e.g. printed Hindi on English copies)
+      const isEnglishEval = !((typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData));
+      if (isEnglishEval && /[\u0900-\u097F]/.test(l)) return false;
+      if (!isEnglishEval && !/[\u0900-\u097F]/.test(l) && /^(?:comment|discuss|examine|analyse|\d+\s*marks|\d+\s*words)/i.test(l)) return false;
+      if (qLow && qLow.length >= 20 && qLow.includes(l.toLowerCase().slice(0, 25))) return false;
+      return true;
+    });
+
   // If quote or advise was not set, try to extract from sourceHtml without truncating inner quotes
   if (!quote || !advise || isMetaText(quote) || isAlreadyUsedQuote(quote)) {
     const sourceHtml = sec.bodyHtml || sec.bulletsHtml || "";
@@ -8131,29 +8154,6 @@ function getCardQuoteAndElevate(sec, usedQuotesSet = null) {
       });
     }
   }
-
-  const pageT = (typeof window.getPageTranscript === "function")
-    ? window.getPageTranscript(evalData, pNum)
-    : "";
-  const fullT = String(evalData.transcribed_text || "");
-
-  // Build candidate handwritten lines on this page, preserving numbered/bulleted points (1), 2), etc.) and excluding only printed question prompts
-  const qLow = String(evalData.detected_question || (typeof state !== "undefined" && state.question) || "").toLowerCase();
-  const candLines = String(pageT || "")
-    .split(/\n+/)
-    .map(l => l.trim())
-    .filter(l => {
-      if (l.length < 18) return false;
-      if (l.startsWith("#") || /^\[page/i.test(l) || /^page\s*\d+/i.test(l)) return false;
-      // Exclude ONLY printed question prompts (Q.1, Q1, Question 1), NEVER candidate numbered points like 1) or 2)
-      if (/^(?:Q\.?\s*\d*[\.\):]?|Question\s*\d*[\.\):]?)\s+/i.test(l)) return false;
-      // Exclude pre-printed bilingual translations of the prompt (e.g. printed Hindi on English copies)
-      const isEnglishEval = !((typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData));
-      if (isEnglishEval && /[\u0900-\u097F]/.test(l)) return false;
-      if (!isEnglishEval && !/[\u0900-\u097F]/.test(l) && /^(?:comment|discuss|examine|analyse|\d+\s*marks|\d+\s*words)/i.test(l)) return false;
-      if (qLow && qLow.length >= 20 && qLow.includes(l.toLowerCase().slice(0, 25))) return false;
-      return true;
-    });
 
   // If quote is empty, evaluator meta-text, unverified against transcript, or already used on an earlier card on this page, select a distinct passage from candLines
   const initialVerification = quote ? verifyCandidateHandwritingQuote(quote, pageT, fullT, pNum, isMetaText, hasSourceImageEvidence) : { status: "ai_summary" };
