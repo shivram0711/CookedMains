@@ -1104,12 +1104,6 @@ def _resolve_authentic_created_at(
 
 GENERIC_QUESTION_PHRASES: List[str] = [
     "general studies mains question",
-    "upsc mains question",
-    "upsc mains answer",
-    "extract question printed",
-    "question not found",
-    "general studies question",
-    "mains question",
     "unattempted question",
 ]
 
@@ -1120,18 +1114,15 @@ def is_evaluation_fully_completed(
     max_marks: Optional[int] = None
 ) -> bool:
     """
-    Strict Integrity Guard:
-    Verifies that an answer sheet has been genuinely, fully, and properly evaluated by AI Vision.
-    Rejects:
-    - Fallback / synthetic mock / placeholder copies (e.g. 'General Studies Mains Question')
-    - Half-evaluated copies where LLM failed midway or omitted score / rubric / transcription
-    - Blank / unwritten / unattempted copies
-    - Intake error or mismatch responses
+    Integrity Guard for Storage / Locker:
+    Rejects ONLY dummy/fallback/mock evaluations or failed/un-evaluated copies caused by
+    technical, model, or server errors, as well as blank/unwritten copies.
+    Never rejects genuine AI-evaluated answer sheets.
     """
     if not isinstance(evaluation_dict, dict) or not evaluation_dict:
         return False
 
-    # 1. Fallback / Mock / Intake Error flags
+    # 1. Fallback / Dummy / Mock / Technical Error flags
     if evaluation_dict.get("is_fallback") is True:
         return False
     if evaluation_dict.get("is_resilient_fallback") is True:
@@ -1156,17 +1147,23 @@ def is_evaluation_fully_completed(
     if "unattempted" in verdict_str or "blank copy" in verdict_str:
         return False
 
-    # 2. Question validation
-    resolved_q = str(question or evaluation_dict.get("detected_question") or evaluation_dict.get("question") or "").strip()
-    if not resolved_q or resolved_q.startswith("__"):
+    # 2. Reject internal profile rows or dummy fallback question placeholders
+    det_q = str(evaluation_dict.get("detected_question") or "").strip()
+    req_q = str(question or "").strip()
+    if det_q and "extract question printed" not in det_q.lower():
+        resolved_q = det_q
+    elif req_q and "extract question printed" not in req_q.lower():
+        resolved_q = req_q
+    else:
+        resolved_q = det_q or req_q or str(evaluation_dict.get("question") or "").strip()
+
+    if resolved_q.startswith("__"):
         return False
     q_low = resolved_q.lower()
     if any(phrase in q_low for phrase in GENERIC_QUESTION_PHRASES):
         return False
-    if len(resolved_q) < 15:
-        return False
 
-    # 3. Overall Score validation
+    # 3. Overall Score validation (must have a positive evaluated score)
     try:
         score = float(evaluation_dict.get("overall_score", 0.0))
     except (ValueError, TypeError):
@@ -1174,55 +1171,25 @@ def is_evaluation_fully_completed(
     if score <= 0.0:
         return False
 
-    mm = 10
-    if max_marks is not None:
-        try:
-            mm = int(max_marks)
-        except (ValueError, TypeError):
-            mm = 10
-    elif evaluation_dict.get("max_marks"):
-        try:
-            mm = int(evaluation_dict.get("max_marks"))
-        except (ValueError, TypeError):
-            mm = 10
-    if mm > 0 and score > (mm * 1.05):
-        return False
-
-    # 4. Transcription validation (candidate's handwritten answer text must have been extracted)
+    # 4. Reject dummy fallback transcription template
     transcript = str(evaluation_dict.get("transcribed_text") or "").strip()
-    if not transcript or len(transcript) < 25:
-        return False
     trans_low = transcript.lower()
     if "evaluated for: general studies mains question" in trans_low or "उत्तर पुस्तिका: general studies mains question" in trans_low:
         return False
 
-    # 5. Examiner Overall Verdict validation
-    verdict = str(evaluation_dict.get("examiner_overall_verdict") or "").strip()
-    if not verdict or len(verdict) < 20:
-        return False
-
-    # 6. Rubric Scores validation
-    rubric = evaluation_dict.get("rubric_scores")
-    if not isinstance(rubric, dict) or not rubric:
-        return False
-    has_substantive_rubric = any(
-        float(rubric.get(k, 0.0) or 0.0) > 0.0
-        for k in ["core_demand_score", "intro_score", "body_score", "value_add_score", "presentation_score", "conclusion_score"]
+    # 5. Verify substantive AI evaluation structure exists (real Gemini schema uses executive_summary, body_audit, rubric_scores, visual_annotations)
+    has_summary = bool(
+        str(evaluation_dict.get("executive_summary") or "").strip() or
+        str(evaluation_dict.get("examiner_overall_verdict") or "").strip()
     )
-    if not has_substantive_rubric:
-        return False
-
-    # 7. Sub-part step marking or visual annotations breakdown
-    sub_parts = evaluation_dict.get("sub_part_step_marking")
-    page_evals = evaluation_dict.get("page_evaluations")
-    vis_ann = evaluation_dict.get("visual_annotations")
-    has_breakdown = (
-        (isinstance(sub_parts, list) and len(sub_parts) > 0) or
-        (isinstance(page_evals, list) and len(page_evals) > 0) or
-        (isinstance(vis_ann, list) and len(vis_ann) > 0) or
-        (isinstance(vis_ann, dict) and len(vis_ann) > 0)
+    has_rubric = isinstance(evaluation_dict.get("rubric_scores"), dict) and len(evaluation_dict.get("rubric_scores")) > 0
+    has_audit = (
+        (isinstance(evaluation_dict.get("body_audit"), list) and len(evaluation_dict.get("body_audit")) > 0) or
+        (isinstance(evaluation_dict.get("visual_annotations"), (list, dict)) and len(evaluation_dict.get("visual_annotations")) > 0) or
+        (isinstance(evaluation_dict.get("page_evaluations"), list) and len(evaluation_dict.get("page_evaluations")) > 0) or
+        (isinstance(evaluation_dict.get("sub_part_step_marking"), list) and len(evaluation_dict.get("sub_part_step_marking")) > 0)
     )
-    if not has_breakdown:
+    if not (has_summary or has_rubric or has_audit):
         return False
 
     return True

@@ -1276,7 +1276,7 @@ async def api_admin_factory_reset():
 @app.get("/locker")
 @app.get("/history")
 @app.get("/api/user/history")
-async def api_user_history(email: Optional[str] = None, user_id: Optional[str] = None, response: Optional[Response] = None):
+async def api_user_history(response: Response, email: Optional[str] = None, user_id: Optional[str] = None):
     """Returns list of student's past evaluated answer copies ordered by created_at desc."""
     if response:
         response.headers["X-Robots-Tag"] = "noindex, nofollow"
@@ -2245,10 +2245,7 @@ async def evaluate_answer(
                 eval_loop_start = time.time()
                 print(f"[EVALUATOR] Starting evaluation with {len(keys_to_try)} keys, {len(multimodal_parts)} uploaded pages.")
 
-                # Directly evaluate with the single best, completely active champion model without multi-model hopping
-                active_models = get_active_gemini_models()
-                champion_model = active_models[0] if active_models else "gemini-3.5-flash-lite"
-
+                # Evaluate using active Gemini models with automatic instant failover if a model experiences 503 demand spike
                 for key_idx, current_key in enumerate(keys_to_try):
                     if time.time() - eval_loop_start > 80:
                         print(f"[EVALUATOR] Overall evaluation timeout reached (80s). Halting loop.")
@@ -2259,28 +2256,43 @@ async def evaluate_answer(
                         print(f"[EVALUATOR] Client creation failed for key {key_idx+1}: {ce}")
                         continue
 
-                    try:
-                        print(f"[EVALUATOR] Evaluating copy with champion model '{champion_model}' (Key {key_idx+1}/{len(keys_to_try)})...")
-                        response = client.models.generate_content(
-                            model=champion_model,
-                            contents=contents_payload,
-                            config=gen_config
-                        )
-                        if response and response.text:
-                            raw_text = response.text
-                            parsed_eval = parse_llm_json_response(raw_text)
-                            if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
-                                print(f"[EVALUATOR SUCCESS] Evaluated in {round(time.time() - eval_loop_start, 1)}s with '{champion_model}'! Score: {parsed_eval.get('overall_score')}")
-                                record_gemini_model_outcome(champion_model, True)
-                                if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
-                                    parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
-                                evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper, medium=medium)
+                    active_models = get_active_gemini_models(client)
+                    models_to_try = active_models[:4] if active_models else [
+                        "gemini-3.5-flash-lite",
+                        "gemini-flash-lite-latest",
+                        "gemini-flash-latest",
+                        "gemini-3.7-flash",
+                    ]
+
+                    for model_name in models_to_try:
+                        if time.time() - eval_loop_start > 80:
+                            break
+                        try:
+                            print(f"[EVALUATOR] Evaluating copy with model '{model_name}' (Key {key_idx+1}/{len(keys_to_try)})...")
+                            response = client.models.generate_content(
+                                model=model_name,
+                                contents=contents_payload,
+                                config=gen_config
+                            )
+                            if response and response.text:
+                                raw_text = response.text
+                                parsed_eval = parse_llm_json_response(raw_text)
+                                if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
+                                    print(f"[EVALUATOR SUCCESS] Evaluated in {round(time.time() - eval_loop_start, 1)}s with '{model_name}'! Score: {parsed_eval.get('overall_score')}")
+                                    record_gemini_model_outcome(model_name, True)
+                                    if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
+                                        parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
+                                    evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper, medium=medium)
+                                    break
+                        except Exception as ge:
+                            err_s = str(ge)
+                            print(f"[EVALUATOR NOTICE] Key {key_idx+1} on '{model_name}': {err_s[:150]}")
+                            record_gemini_model_outcome(model_name, False, err_s)
+                            err_low = err_s.lower()
+                            # If API key itself is invalid or out of quota, move to next key immediately
+                            if "api_key_invalid" in err_low or "invalid api key" in err_low or "permission_denied" in err_low:
                                 break
-                    except Exception as ge:
-                        err_s = str(ge)
-                        print(f"[EVALUATOR NOTICE] Key {key_idx+1} on '{champion_model}': {err_s[:150]}")
-                        # Immediately failover to next key if quota or auth error
-                        continue
+                            continue
 
                     if evaluation_result:
                         break
@@ -2500,23 +2512,6 @@ async def evaluate_answer(
                 evaluation_result["previous_pages"] = prev_record.get("pages")
             evaluation_result["is_rewrite"] = True
 
-        # Strict Evaluation Completeness & Authenticity Guard:
-        # Never add unevaluated or half-evaluated copies to the locker and NEVER deduct credits!
-        if not is_evaluation_fully_completed(evaluation_result, final_question, final_max_marks):
-            print(f"[EVALUATOR GUARD] Answer sheet evaluation incomplete/unextracted for {user_email}: Q='{final_question}'. Zero credits deducted. Rejected from locker.")
-            return JSONResponse(
-                status_code=503,
-                content={
-                    "status": "incomplete_evaluation",
-                    "error_type": "evaluator_incomplete",
-                    "title": "Evaluation Incomplete — Zero Credits Deducted",
-                    "message": "The AI examiner could not fully complete the evaluation of your answer sheet across all pages and rubrics. To protect scoring calibration, half-evaluated copies are never saved to your locker.",
-                    "warning": "🛡️ Zero Credits Deducted: Your daily evaluation limit is 100% intact.",
-                    "action_hint": "Please click 'Evaluate Copy' again in a few moments to generate a full evaluation with complete visual annotations and marks.",
-                    "credits_deducted": 0
-                }
-            )
-
         # POST-LLM ACCOUNT DUPLICATE GUARD:
         # Deep check after OCR/transcription to catch re-taken photos of identical handwritten answers
         if user_email:
@@ -2561,36 +2556,43 @@ async def evaluate_answer(
                 )
 
         if user_email:
-            if not is_rewrite:
-                use_user_credit(user_email)
+            if is_evaluation_fully_completed(evaluation_result, final_question, final_max_marks):
+                overall_score = float(evaluation_result.get("overall_score", 0.0))
+                pct = round((overall_score / final_max_marks) * 100, 1) if final_max_marks > 0 else 0.0
+                eval_id = save_evaluation_record(
+                    email=user_email,
+                    paper=final_paper,
+                    max_marks=final_max_marks,
+                    question=final_question,
+                    overall_score=overall_score,
+                    percentage=pct,
+                    evaluation_dict=evaluation_result,
+                    pages_list=uploaded_page_previews,
+                    is_rewrite=is_rewrite,
+                    file_hash=submission_hash,
+                    baseline_eval_id=(baseline_eval_id or (prev_record.get("id") if prev_record else None)) if is_rewrite else None,
+                    file_url=public_file_url
+                )
+                if eval_id:
+                    if not is_rewrite:
+                        use_user_credit(user_email)
+                    else:
+                        use_user_rewrite(user_email)
+                    user_info = get_user(user_email)
+                    log_platform_activity(
+                        user_email=user_email,
+                        user_name=(user_info.get("name") if user_info else None) or user_email.split("@")[0].title(),
+                        action_type="copy_evaluated",
+                        title=f"Evaluated {final_paper} ({final_max_marks}M) — Scored {overall_score}/{final_max_marks}",
+                        detail=f"Q: {(final_question or '')[:85]}",
+                        eval_id=eval_id or ""
+                    )
+                else:
+                    user_info = get_user(user_email)
             else:
-                use_user_rewrite(user_email)
-            overall_score = float(evaluation_result.get("overall_score", 0.0))
-            pct = round((overall_score / final_max_marks) * 100, 1) if final_max_marks > 0 else 0.0
-            eval_id = save_evaluation_record(
-                email=user_email,
-                paper=final_paper,
-                max_marks=final_max_marks,
-                question=final_question,
-                overall_score=overall_score,
-                percentage=pct,
-                evaluation_dict=evaluation_result,
-                pages_list=uploaded_page_previews,
-                is_rewrite=is_rewrite,
-                file_hash=submission_hash,
-                baseline_eval_id=(baseline_eval_id or (prev_record.get("id") if prev_record else None)) if is_rewrite else None,
-                file_url=public_file_url
-            )
-            user_info = get_user(user_email)
-            log_platform_activity(
-                user_email=user_email,
-                user_name=(user_info.get("name") if user_info else None) or user_email.split("@")[0].title(),
-                action_type="copy_evaluated",
-                title=f"Evaluated {final_paper} ({final_max_marks}M) — Scored {overall_score}/{final_max_marks}",
-                detail=f"Q: {(final_question or '')[:85]}",
-                eval_id=eval_id or ""
-            )
-        elif public_file_url:
+                print(f"[LOCKER GUARD] Skipped storing dummy/fallback/error evaluation for {user_email}")
+                user_info = get_user(user_email)
+        elif public_file_url and is_evaluation_fully_completed(evaluation_result, final_question, final_max_marks):
             try:
                 insert_supabase_evaluation(
                     user_id=user_id,

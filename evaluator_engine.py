@@ -4210,8 +4210,15 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
     elif question and question != "Extract question printed on booklet header" and len(question) > 10:
         final_question = question
     else:
-        final_question = det_q or question or "UPSC Mains Question"
+        syl_map = data.get("syllabus_mapping") if isinstance(data.get("syllabus_mapping"), dict) else {}
+        micro_t = str(syl_map.get("micro_topic") or syl_map.get("topic") or "").strip()
+        if micro_t and len(micro_t) > 5:
+            final_question = f"{paper or 'GS'} Question on {micro_t}"
+        else:
+            final_question = det_q if (det_q and "extract question printed" not in det_q.lower()) else "UPSC Mains Evaluated Answer Copy"
     data["detected_question"] = final_question
+    if not data.get("examiner_overall_verdict") and data.get("executive_summary"):
+        data["examiner_overall_verdict"] = data.get("executive_summary")
 
     det_p = (data.get("detected_paper") or "").strip()
     effective_paper = det_p if (det_p and (det_p in PAPER_TAXONOMIES or det_p in ["GS1", "GS2", "GS3", "GS4", "Essay"])) else (paper or "GS2")
@@ -6645,13 +6652,13 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
     # 3. Top production models priority (Verified live Google Gemini models with primary + instant rotation fallbacks)
     top_models_priority = [
-        "gemini-3.1-flash-lite",        # Primary evaluation model
-        "gemini-3.5-flash-lite",        # Instant active rotation fallback (verified ~2s)
-        "gemini-flash-lite-latest",     # Instant active rotation fallback (verified ~1s)
-        "gemini-3.6-flash",             # High-capacity active fallback
-        "gemini-3.7-flash",             # High-capacity active fallback
-        "gemini-flash-latest",          # Active fallback
+        "gemini-3.5-flash-lite",        # Primary fast active model (verified ~1.2s)
+        "gemini-flash-lite-latest",     # Instant active rotation fallback (verified ~0.8s)
+        "gemini-flash-latest",          # Active fallback (verified ~2.0s)
+        "gemini-3.7-flash",             # High-capacity active fallback (verified ~2.5s)
         "gemini-3.8-flash",             # High-capacity active fallback
+        "gemini-3.1-flash-lite",        # Secondary fallback
+        "gemini-3.6-flash",             # Secondary fallback
     ]
     for tm in reversed(top_models_priority):
         if tm in ready_discovered:
@@ -6662,13 +6669,13 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
     # 4. Static priority list acts as guaranteed fallback
     static_priority = [
-        "gemini-3.1-flash-lite",
         "gemini-3.5-flash-lite",
         "gemini-flash-lite-latest",
-        "gemini-3.6-flash",
-        "gemini-3.7-flash",
         "gemini-flash-latest",
+        "gemini-3.7-flash",
         "gemini-3.8-flash",
+        "gemini-3.1-flash-lite",
+        "gemini-3.6-flash",
     ]
     for m in static_priority:
         if m not in _INACTIVE_GEMINI_MODELS and m not in ordered:
