@@ -3491,11 +3491,14 @@ if (customQuestionInput) {
     if (devCount >= 25 && latCount < 10 && state.medium !== "hindi") {
       setEvaluationMedium("hindi");
     }
+    clearTimeout(directiveDebounce);
+    directiveDebounce = setTimeout(detectDirectiveFromInput, 300);
   });
 }
 
 function detectDirectiveFromInput() {
-  const textRaw = (questionInput ? questionInput.value : "") || "";
+  const customInput = document.getElementById("customQuestionInput");
+  const textRaw = (state.questionMode === "custom" && customInput ? customInput.value : (questionInput ? questionInput.value : "")) || "";
   const text = textRaw.toLowerCase();
   
   const hindiDirectives = [
@@ -3575,6 +3578,20 @@ function detectDirectiveFromInput() {
       detectedDirectiveBadge.className = "text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 font-medium";
     }
     if (directiveGuidance) directiveGuidance.textContent = "Explore multiple dimensions (PESTLE framework) with clear headings.";
+  }
+
+  // Live synchronize Left Column Directive Scrutiny Card with current question and detected directive
+  const directiveBadgeText = document.getElementById("directiveBadgeText");
+  const directiveTipList = document.getElementById("directiveTipList");
+  const dLabel = found ? found.label : "Discuss";
+  if (directiveBadgeText) {
+    directiveBadgeText.textContent = `Directive Scrutiny: "${dLabel}"`;
+  }
+  if (directiveTipList && typeof getStandardDirectiveGuidance === "function" && textRaw.trim().length > 15) {
+    const pTag = (typeof state !== "undefined" && (state.selectedPaperTab || state.paper)) || "GS";
+    const mTag = (typeof state !== "undefined" && state.marks) || 15;
+    const dynGuidance = getStandardDirectiveGuidance(dLabel, textRaw, pTag, mTag);
+    renderDirectiveBullets(directiveTipList, dynGuidance);
   }
 }
 
@@ -11724,12 +11741,153 @@ function renderEvaluation(evalData) {
   // Dynamic Score Bands Update
   updateScoreBands(evalData.overall_score, evalData.max_marks);
 
-  // Directive Adherence
+  // -------------------------------------------------------------------------
+  // DIRECTIVE ADHERENCE AUDIT (Image 2 Enhancement)
+  // -------------------------------------------------------------------------
   const dir = evalData.directive_compliance || {};
-  directiveNameDisplay.textContent = dir.directive || "General Discuss";
-  directiveScoreBadge.textContent = dir.adherence_score || "7/10";
-  directiveEvaluationText.innerHTML = formatHighlightedText(dir.evaluation || "Candidate addressed core demands.");
-  directiveGapText.innerHTML = formatHighlightedText(dir.gap || "Ensure both dimensions are weighed equally.");
+  const dName = dir.directive || (evalData.syllabus_mapping && evalData.syllabus_mapping.directive) || (typeof state !== "undefined" && state.dailyQuestion && state.dailyQuestion.directive) || "Critically Analyse";
+  if (directiveNameDisplay) directiveNameDisplay.textContent = dName;
+  if (directiveScoreBadge) directiveScoreBadge.textContent = dir.adherence_score || "7/10";
+
+  // Dynamic Command Type Pill and UPSC Evaluation Mandate
+  const directiveTypePill = document.getElementById("directiveTypePill");
+  const directiveMeaningText = document.getElementById("directiveMeaningText");
+  const directiveComprehensionBadge = document.getElementById("directiveComprehensionBadge");
+
+  const dNorm = dName.toLowerCase();
+  let cmdType = "Analytical Mandate";
+  let cmdMeaning = "";
+
+  if (dNorm.includes("critically")) {
+    cmdType = "Dialectical Mandate";
+    cmdMeaning = "Demands rigorous dialectical evaluation: balancing substantive operational merits (Thesis) against systemic bottlenecks, constitutional risks, or unintended harms (Anti-thesis) to reach a forward-looking verdict.";
+  } else if (dNorm.includes("examine") || dNorm.includes("investigate")) {
+    cmdType = "Diagnostic Mandate";
+    cmdMeaning = "Demands probing beneath surface-level descriptions to diagnose root institutional causes, statutory tensions, and ground-level implementation challenges, supported by actionable structural remedies.";
+  } else if (dNorm.includes("discuss")) {
+    cmdType = "Multi-Dimensional Mandate";
+    cmdMeaning = "Demands exploring comprehensive multi-stakeholder dimensions (PESTLE: Political, Economic, Social, Technological, Legal, Environmental) with structured headings and concrete empirical evidence.";
+  } else if (dNorm.includes("evaluate") || dNorm.includes("assess")) {
+    cmdType = "Criterion-Based Audit";
+    cmdMeaning = "Demands measuring actual policy or operational outcomes directly against original constitutional/statutory intent, identifying quantitative gaps and delivering an authoritative verdict.";
+  } else if (dNorm.includes("elucidate") || dNorm.includes("explain") || dNorm.includes("elaborate")) {
+    cmdType = "Explanatory Mandate";
+    cmdMeaning = "Demands presenting complex institutional and doctrinal mechanisms with unmistakable clarity, substantiated by landmark judicial rulings, administrative flowcharts, and real-world cases.";
+  } else if (dNorm.includes("comment")) {
+    cmdType = "Judicious Perspective";
+    cmdMeaning = "Demands formulating a reasoned, independent perspective anchored firmly in constitutional morality, statutory safeguards, and empirical governance outcomes.";
+  } else if (dNorm.includes("differentiate")) {
+    cmdType = "Comparative Mandate";
+    cmdMeaning = "Demands articulating crisp tabular distinctions across conceptual origin, legal enforceability, and administrative practice before diagnosing behavioral failure points.";
+  } else if (dNorm.includes("case study")) {
+    cmdType = "Applied Ethics Mandate";
+    cmdMeaning = "Demands rigorous UPSC case study architecture: Stakeholder Mapping -> Ethical Dilemmas -> Multi-Option Matrix -> Deontologically Justified Course of Action.";
+  } else {
+    cmdType = "Comprehensive Mandate";
+    cmdMeaning = "Demands addressing all explicit and implicit sub-demands with balanced argumentation, factual grounding, and constitutional fidelity.";
+  }
+
+  if (directiveTypePill) directiveTypePill.textContent = cmdType;
+  if (directiveMeaningText) directiveMeaningText.innerHTML = formatHighlightedText(cmdMeaning);
+
+  // Comprehension score extraction and badge
+  const scoreMatch = String(dir.adherence_score || "").match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+)/);
+  if (directiveComprehensionBadge) {
+    if (scoreMatch) {
+      const scored = parseFloat(scoreMatch[1]);
+      const total = parseFloat(scoreMatch[2]);
+      const pct = Math.round((scored / total) * 100);
+      if (pct >= 80) {
+        directiveComprehensionBadge.textContent = `High Grasp (${pct}%)`;
+        directiveComprehensionBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30";
+      } else if (pct >= 60) {
+        directiveComprehensionBadge.textContent = `Substantive Grasp (${pct}%)`;
+        directiveComprehensionBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30";
+      } else {
+        directiveComprehensionBadge.textContent = `Partial Fulfillment (${pct}%)`;
+        directiveComprehensionBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30";
+      }
+    } else {
+      directiveComprehensionBadge.textContent = "Mandate Evaluated";
+    }
+  }
+
+  // Auto-enrich evaluation and gap with bold keywords so formatHighlightedText produces interactive chips
+  const enrichDirectiveAuditText = (txt) => {
+    let s = String(txt || "").trim();
+    if (!s) return "";
+    const keyPhrases = [
+      "security necessity", "civil liberties", "judicial precedents", "statutory recommendations",
+      "way forward", "proportionality test", "proportionality", "substantive balance",
+      "fundamental rights", "article 21", "article 19", "article 324", "critical information infrastructure",
+      "red-teaming", "sovereign ai", "algorithmic agency", "pestle framework", "zero-mdr",
+      "financial inclusion", "blue bonds", "eco-sensitive areas", "western ghats", "sendai framework",
+      "fiduciary stewardship", "gandhian trusteeship", "automation bias", "human-in-the-loop",
+      "parliamentary scrutiny", "electoral bonds", "fcra", "brics", "un security council", "nolan principles"
+    ];
+    for (let phrase of keyPhrases) {
+      const reg = new RegExp(`(?<!\\*\\*)\\b(${phrase})\\b(?!\\*\\*)`, 'gi');
+      s = s.replace(reg, '**$1**');
+    }
+    s = s.replace(/(?<!\*\*)\b(Section\s*\d+[A-Z]?(?:\s*\([^)]+\))?(?:\s*[A-Z][a-zA-Z]+)*)\b(?!\*\*)/g, '**$1**');
+    if (!/[.!?]$/.test(s)) s += ".";
+    s = s.replace(/\*{3,}/g, '**');
+    return s;
+  };
+
+  if (directiveEvaluationText) directiveEvaluationText.innerHTML = formatHighlightedText(enrichDirectiveAuditText(dir.evaluation || "Candidate addressed core demands."));
+  if (directiveGapText) directiveGapText.innerHTML = formatHighlightedText(enrichDirectiveAuditText(dir.gap || "Ensure both dimensions are weighed equally."));
+
+  // Operative Keywords & Glossary Chips
+  const glossaryChipsContainer = document.getElementById("directiveGlossaryChips");
+  if (glossaryChipsContainer) {
+    glossaryChipsContainer.innerHTML = "";
+    const qRaw = String(evalData.detected_question || (typeof state !== "undefined" && state.question) || "").trim();
+    const combinedTokens = typeof extractCoreQuestionTokens === "function" ? extractCoreQuestionTokens(qRaw) : [];
+    
+    // Built-in evaluator meaning glossary
+    const glossaryDict = {
+      "security necessity": "Operational requirement to protect sovereignty or critical infrastructure against hostile intrusion.",
+      "civil liberties": "Fundamental freedoms guaranteed under Part III of the Constitution that restrict arbitrary state coercion.",
+      "judicial precedents": "Landmark apex court rulings establishing binding constitutional doctrines and legal tests.",
+      "statutory recommendations": "Actionable, legal amendments and legislative provisions required to plug administrative lacunae.",
+      "proportionality": "Four-fold judicial test (Legality, Aim, Necessity, Safeguards) from Puttaswamy (2017).",
+      "critical information infrastructure": "Computer assets whose destruction would impact national security or public safety (Sec 70A IT Act).",
+      "red-teaming": "Rigorous simulated adversarial probing of models or systems before real-world operational deployment.",
+      "sovereign ai": "Domestic indigenous foundational intelligence infrastructure independent of foreign commercial platforms.",
+      "electoral bonds": "Struck-down opaque bearer bonds; landmark for voter's right to know under Article 19(1)(a).",
+      "zero-mdr": "Zero Merchant Discount Rate on UPI; balances grassroot inclusion against banking tech solvency."
+    };
+
+    const candidateTerms = [];
+    if (combinedTokens && combinedTokens.length > 0) {
+      combinedTokens.forEach(tok => candidateTerms.push({ term: tok, meaning: "Operative subject keyword demanded by question." }));
+    }
+    const fullAuditText = `${dir.evaluation || ""} ${dir.gap || ""}`.toLowerCase();
+    for (let [k, v] of Object.entries(glossaryDict)) {
+      if (fullAuditText.includes(k) && !candidateTerms.some(c => c.term.toLowerCase() === k)) {
+        candidateTerms.push({ term: k.charAt(0).toUpperCase() + k.slice(1), meaning: v });
+      }
+    }
+
+    candidateTerms.slice(0, 5).forEach(kw => {
+      const chip = document.createElement("span");
+      chip.className = "inline-flex items-center gap-1 text-[10.5px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium cursor-help hover:border-amber-400 dark:hover:border-amber-500 transition-colors";
+      chip.title = kw.meaning;
+      chip.innerHTML = `<span class="font-bold text-slate-900 dark:text-slate-100">${escapeHtml(kw.term)}</span> <span class="text-[9px] text-amber-500 font-mono">ℹ</span>`;
+      glossaryChipsContainer.appendChild(chip);
+    });
+  }
+
+  // Print layout sync
+  const printDirectiveCommandWord = document.getElementById("printDirectiveCommandWord");
+  const printDirectiveAdherenceBadge = document.getElementById("printDirectiveAdherenceBadge");
+  const printDirectiveEvalText = document.getElementById("printDirectiveEvalText");
+  const printDirectiveLacunaText = document.getElementById("printDirectiveLacunaText");
+  if (printDirectiveCommandWord) printDirectiveCommandWord.textContent = dName;
+  if (printDirectiveAdherenceBadge) printDirectiveAdherenceBadge.textContent = dir.adherence_score || "7/10";
+  if (printDirectiveEvalText) printDirectiveEvalText.innerHTML = formatHighlightedText(enrichDirectiveAuditText(dir.evaluation || "Candidate addressed core demands."));
+  if (printDirectiveLacunaText) printDirectiveLacunaText.innerHTML = formatHighlightedText(enrichDirectiveAuditText(dir.gap || "Ensure both dimensions are weighed equally."));
 
   // UPSC Exam-Hall Discipline & Transparent Micro-Marking Arithmetic
   renderUPSCExamHallDisciplineAndMicroMarking(evalData);
@@ -12502,13 +12660,38 @@ function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
   const prescribedLimit = discData.prescribed_word_limit || (mm === 10 ? 150 : (mm === 15 || mm === 20 ? 250 : 1000));
   const allottedMins = discData.time_budget_allotted_mins || (mm === 10 ? 7.0 : (mm === 15 ? 11.0 : (mm === 20 ? 14.0 : 90.0)));
 
-  // Calculate word count from transcript if not present
-  let wordCount = discData.estimated_word_count;
-  if (!wordCount || wordCount < 10) {
-    const rawTr = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, " ");
-    const words = rawTr.trim().split(/\s+/).filter(w => w.length > 1 && !w.startsWith("#"));
-    wordCount = words.length > 15 ? words.length : (mm === 10 ? 145 : 240);
+  // Authentic Candidate Word Count & Page Breakdown Calculation
+  const totalPages = parseInt(evalData.total_pages || (evalData.images && evalData.images.length) || (state.activePages && state.activePages.length) || (mm === 10 ? 2 : 3), 10);
+  const qPromptLow = String(evalData.detected_question || (typeof state !== "undefined" && state.question) || "").toLowerCase().replace(/[^a-z0-9]/g, " ").trim();
+
+  // Helper to count authentic handwritten candidate words on a page
+  const countPageWords = (pageText, pNum) => {
+    if (!pageText) return 0;
+    const lines = pageText.split(/\n+/).map(l => l.trim()).filter(Boolean);
+    let legitimateWords = [];
+    for (let line of lines) {
+      if (line.startsWith("#") || /^\[page/i.test(line) || /^page\s*\d+/i.test(line)) continue;
+      // Skip preprinted question prompt on Page 1
+      if (pNum === 1 && (line.toLowerCase().startsWith("q.") || line.toLowerCase().startsWith("question") || (qPromptLow && line.length > 25 && qPromptLow.includes(line.toLowerCase().slice(0, 25))))) {
+        continue;
+      }
+      const tokens = line.split(/\s+/).filter(w => w.length > 0 && !/^\[\/?(?:page|\d+)\]$/i.test(w) && !/^#+$/.test(w));
+      legitimateWords.push(...tokens);
+    }
+    return legitimateWords.length;
+  };
+
+  let pageWordCounts = [];
+  let computedTotalWords = 0;
+  for (let p = 1; p <= totalPages; p++) {
+    const pText = (typeof window.getPageTranscript === "function") ? window.getPageTranscript(evalData, p) : "";
+    const pCount = countPageWords(pText, p);
+    pageWordCounts.push({ page: p, count: pCount });
+    computedTotalWords += pCount;
   }
+
+  // Use computed authentic word count if substantial transcript exists, else fallback to discData / standard baseline
+  let wordCount = computedTotalWords >= 30 ? computedTotalWords : (discData.estimated_word_count || (mm === 10 ? 142 : 242));
 
   const estTime = discData.estimated_writing_time_mins || Math.round((wordCount / 22.0) * 10) / 10;
   const timeDelta = Math.round((estTime - allottedMins) * 10) / 10;
@@ -12533,11 +12716,13 @@ function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
     }
   }
 
-  // Metric 1: Word Count
+  // Metric 1: Word Count Meter
   const wActual = document.getElementById("examHallWordActual");
   const wLimit = document.getElementById("examHallWordLimit");
   const wStatus = document.getElementById("examHallWordStatus");
   const wBar = document.getElementById("examHallWordBar");
+  const pageBreakdownEl = document.getElementById("examHallPageBreakdown");
+
   if (wActual) wActual.textContent = wordCount;
   if (wLimit) wLimit.textContent = `/ ${prescribedLimit} words`;
   if (wStatus) {
@@ -12558,6 +12743,17 @@ function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
     wBar.className = wordPct > 125 ? "bg-rose-500 h-full rounded-full transition-all duration-500" : (wordPct < 75 ? "bg-amber-500 h-full rounded-full transition-all duration-500" : "bg-emerald-500 h-full rounded-full transition-all duration-500");
   }
 
+  if (pageBreakdownEl) {
+    if (pageWordCounts.length > 0 && computedTotalWords >= 30) {
+      const breakdownItems = pageWordCounts.map(pw => `<span>P${pw.page}: ~${pw.count}w</span>`).join('<span class="text-slate-400">•</span>');
+      pageBreakdownEl.innerHTML = breakdownItems;
+    } else {
+      const perP = Math.round(wordCount / Math.max(1, totalPages));
+      const fallbackP = Array.from({ length: totalPages }, (_, i) => `<span>P${i + 1}: ~${perP}w</span>`).join('<span class="text-slate-400">•</span>');
+      pageBreakdownEl.innerHTML = fallbackP;
+    }
+  }
+
   // Metric 2: Estimated Time
   const tActual = document.getElementById("examHallTimeActual");
   const tAllotted = document.getElementById("examHallTimeAllotted");
@@ -12573,7 +12769,9 @@ function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
   // Metric 3: Layout & Space Density
   const pBadge = document.getElementById("examHallPagesBadge");
   const sDensity = document.getElementById("examHallSpaceDensity");
-  const totalPages = parseInt(evalData.total_pages || (evalData.images && evalData.images.length) || (state.activePages && state.activePages.length) || (mm === 10 ? 2 : 3), 10);
+  const examHallLayoutSubtext = document.getElementById("examHallLayoutSubtext");
+  const avgWordsPerPage = Math.round(wordCount / Math.max(1, totalPages));
+
   if (pBadge) pBadge.textContent = `${totalPages} Page${totalPages > 1 ? 's' : ''}`;
   if (sDensity) {
     if (wordPct >= 80 && wordPct <= 115) {
@@ -12583,6 +12781,9 @@ function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
     } else {
       sDensity.textContent = "Thin (<70% Fill)";
     }
+  }
+  if (examHallLayoutSubtext) {
+    examHallLayoutSubtext.textContent = `Zero white-space penalty • ~${avgWordsPerPage}w/pg avg`;
   }
 
   // Metric 4: Pacing & Paper Completion Risk
@@ -12610,16 +12811,33 @@ function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
     }
   }
 
+  // Helper to enrich exam hall warning text with markdown bolding on numbers, minutes, targets, and consequences
+  const enrichExamHallDiagnosis = (rawText) => {
+    let t = String(rawText || "").trim();
+    if (!t) return "";
+    t = t.replace(/\b(?:~?\d{2,4}\s*words?)\b/gi, '**$&**');
+    t = t.replace(/\b(?:~?\d{1,2}(?:\.\d)?\s*mins?)\b/gi, '**$&**');
+    t = t.replace(/\b(?:\d{1,2}(?:\.\d)?-minute\s*(?:ceiling|target|budget))\b/gi, '**$&**');
+    t = t.replace(/\b(?:Q19\s*\/\s*Q20|Q19|Q20)\b/gi, '**$&**');
+    t = t.replace(/\b(?:all\s*20\s*questions|20\s*questions)\b/gi, '**$&**');
+    t = t.replace(/\b(?:\d{1,2}(?:–|-)\d{1,2}\s*marks?)\b/gi, '**$&**');
+    t = t.replace(/\b(?:-\d+(?:\.\d)?M\s*(?:penalty|Risk)?)\b/gi, '**$&**');
+    t = t.replace(/\b(?:Safe Pace|Optimal|Time Deficit|Severe Time Risk)\b/gi, '**$&**');
+    if (!/[.!?]$/.test(t)) t += ".";
+    t = t.replace(/\*{3,}/g, '**');
+    return t;
+  };
+
   // Time Penalty Diagnosis
   const warnText = document.getElementById("examHallWarningText");
   if (warnText) {
     if (discData.time_penalty_warning) {
-      warnText.innerHTML = formatHighlightedText(discData.time_penalty_warning);
+      warnText.innerHTML = formatHighlightedText(enrichExamHallDiagnosis(discData.time_penalty_warning));
     } else if (timeDelta >= 2.0) {
       warnText.innerHTML = formatHighlightedText(
         `Writing **~${wordCount} words** took **~${estTime} mins** against the strict **${allottedMins}-minute ceiling**. ` +
-        `This surplus **${timeDelta.toFixed(1)} minutes** is directly stolen from final questions (**Q19/Q20**), guaranteeing incomplete answers or lost 10–15 marks. ` +
-        `In UPSC Mains, completing all 20 questions in 140–150 words beats over-writing on early questions.`
+        `This surplus **${timeDelta.toFixed(1)} minutes** is directly stolen from final questions (**Q19/Q20**), guaranteeing incomplete answers or lost **10–15 marks**. ` +
+        `In UPSC Mains, completing **all 20 questions** in **140–150 words** beats over-writing on early questions.`
       );
     } else if (wordPct < 75) {
       warnText.innerHTML = formatHighlightedText(
@@ -12629,7 +12847,7 @@ function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
     } else {
       warnText.innerHTML = formatHighlightedText(
         `**Pacing Calibrated**: ~${wordCount} words written in **~${estTime} mins** fits comfortably within the **${allottedMins}-minute target**, ` +
-        `leaving ample reserve to finish all 20 questions across the 3-hour exam.`
+        `leaving ample reserve to finish **all 20 questions** across the 3-hour exam without panic.`
       );
     }
   }
@@ -15128,22 +15346,133 @@ function setupUserAndModalListeners() {
     });
   }
 
-  // Standard UPSC Faculty Directive Guidance Generator (5-6 structured sentences)
-  function getStandardDirectiveGuidance(directive, question) {
-    const d = (directive || "Critically Analyze").toLowerCase().trim();
-    if (d.includes("critically") && (d.includes("analyze") || d.includes("examine") || d.includes("evaluate") || d.includes("discuss"))) {
-      return "1. Adopt a balanced dialectical approach addressing both thesis and counter-critique. 2. Begin with a 2-3 line contextual introduction defining the issue through constitutional articles, statutory frameworks, or recent empirical data. 3. Dedicate the primary body section (50% weightage) to substantiating core arguments with case laws, committee recommendations, or official indices. 4. Allocate 35% of the body to interrogating systemic bottlenecks, structural constraints, and unintended consequences. 5. Enhance presentation with a 40-second schematic flowchart or comparative matrix. 6. Conclude with a 15% pragmatic synthesis offering constructive, forward-looking policy solutions.";
+  // Topic and Subject Taxonomy Classifier
+  function classifyQuestionDiscipline(qText, paperHint) {
+    const q = String(qText || "").toLowerCase();
+    const p = String(paperHint || "").toUpperCase();
+
+    if (p.includes("GS4") || /\b(?:ethics|probity|moral|integrity|whistleblow|trusteeship|compassion|deontolog|utilitarian|nolan|case study|collector|sdm|bribe|code of conduct)\b/i.test(q)) {
+      return { paper: "GS4", discipline: "GS Paper 4 (Ethics, Integrity & Aptitude)", domain: "ethics" };
     }
-    if (d.includes("discuss")) {
-      return "1. Adopt an expansive multi-dimensional analytical framework covering PESTLE dimensions (Political, Economic, Social, Technological, Legal, Environmental). 2. Open with a crisp contextual thesis unpacking the core scope and significance of the question. 3. Formulate clear thematic sub-headings for each dimension rather than writing generic paragraphs. 4. Substantiate each argument with verifiable facts, government schemes, or landmark judicial precedents. 5. Include a conceptual schematic or stakeholder mapping flowchart to visually reinforce depth. 6. Conclude with a forward-looking, visionary conclusion rooted in sustainable development and constitutional values.";
+    if (p.includes("ESSAY") || /^["'].*["']$/.test(qText.trim()) || /\b(?:essay|civilization|sovereign.*citizen|algorithm.*arbiter|seeds we save|fractured superpowers|falling tree)\b/i.test(q)) {
+      return { paper: "ESSAY", discipline: "UPSC Essay Paper (Philosophical & Socio-Economic)", domain: "essay" };
     }
-    if (d.includes("elucidate") || d.includes("elaborate") || d.includes("explain")) {
-      return "1. Focus on making the central proposition unmistakably clear with high explanatory depth. 2. Begin with a precise operational definition or doctrinal anchor establishing conceptual authority. 3. Unpack underlying mechanisms step-by-step using concrete real-world examples and committee findings. 4. Connect theoretical concepts to contemporary governance challenges and public administration reforms. 5. Utilize structured bullet points with bold keywords and an illustrative schematic. 6. Conclude by summarizing how effective operationalization advances good governance and constitutional ideals.";
+    if (p.includes("GS1") || /\b(?:history|monsoon|orograph|rain-shadow|western ghats.*geography|cyclone|depressions|urbanization.*gender|flfpr|tribal.*groves|1929|bhagat singh|vande mataram|swadeshi|chola|dravidian)\b/i.test(q)) {
+      return { paper: "GS1", discipline: "GS Paper 1 (History, Geography & Society)", domain: "gs1" };
     }
-    if (d.includes("evaluate") || d.includes("assess")) {
-      return "1. Undertake a rigorous criteria-based assessment weighing policy outcomes against statutory or constitutional intent. 2. Begin with a sharp introductory baseline outlining the legislative or executive mandate under review. 3. Structure the first half around tangible achievements, positive impacts, and key milestones. 4. Devote the second half to an evidence-backed audit of operational shortfalls and financial constraints. 5. Support evaluation with a benchmark comparison against NITI Aayog indices or international standards. 6. Conclude with a definitive, judicious verdict followed by a targeted reform agenda.";
+    if (p.includes("GS2") || /\b(?:constitution|article \d+|electoral rolls|election commission|voter|rti|dpdp|privacy|electoral bonds|fcra|ngo|brics|unsc|united nations|governor|parliament|federalism|judiciary|bilateral|global south)\b/i.test(q)) {
+      return { paper: "GS2", discipline: "GS Paper 2 (Polity, Governance, Constitution & IR)", domain: "gs2" };
     }
-    return "1. Structure your answer using a balanced dialectical approach addressing both thesis and antithesis. 2. Begin with a concise 2-3 line introduction contextualizing the issue through constitutional articles or statutory frameworks. 3. Dedicate the primary body section to substantiating core arguments with empirical data, committee reports, or case laws. 4. Dedicate the secondary body section to unearthing systemic bottlenecks and ground-level challenges. 5. Emphasize multi-dimensional perspectives using clean sub-headings and a neat schematic diagram. 6. Conclude with a pragmatic, constitutional synthesis outlining actionable policy recommendations.";
+    if (p.includes("GS3") || /\b(?:economy|gdp|make in india|pli|manufacturing|upi|mdr|digital public infrastructure|blue bonds|eco-sensitive|gadgil|kasturirangan|disaster|ai flood|hydrological|autonomous ai|cyber|critical infrastructure|red-teaming|indiaai|climate)\b/i.test(q)) {
+      return { paper: "GS3", discipline: "GS Paper 3 (Economy, S&T, Cyber, Environment & Disaster)", domain: "gs3" };
+    }
+    return { paper: "GS", discipline: "UPSC General Studies", domain: "general" };
+  }
+  window.classifyQuestionDiscipline = classifyQuestionDiscipline;
+
+  // Extract operative noun phrases or central entities from question text
+  function extractCoreQuestionTokens(qText) {
+    if (!qText) return ["the central question demand"];
+    const q = qText.replace(/^["']|["']$/g, "").trim();
+    const quotes = (q.match(/"([^"]+)"|'([^']+)'/g) || []).map(s => s.replace(/["']/g, "").trim());
+    const caps = (q.match(/\b[A-Z][a-zA-Z]*(?:\s+[A-Z][a-zA-Z]*)+\b/g) || []).filter(s => s.length > 5 && !/^(The|In|A|An|Under|With|Despite|As|When|Why|How)\b/.test(s));
+    const entities = [...quotes, ...caps].filter(Boolean);
+    if (entities.length > 0) {
+      return Array.from(new Set(entities)).slice(0, 3);
+    }
+    const words = q.split(/\s+/).filter(w => w.length > 5 && !/^(between|against|without|through|whether|regarding|should|during|across|toward)$/i.test(w));
+    return words.slice(0, 2);
+  }
+  window.extractCoreQuestionTokens = extractCoreQuestionTokens;
+
+  // Check if bank guidance belongs to a completely different subject
+  function checkGuidanceMismatch(guidance, question) {
+    if (!guidance || !question) return false;
+    const g = String(guidance).toLowerCase();
+    const q = String(question).toLowerCase();
+
+    // Specific severe cross-contamination checks
+    if (!q.includes("logistics") && !q.includes("freight") && !q.includes("gatishakti") && (g.includes("gatishakti") || g.includes("logistics performance index") || g.includes("multimodal bottlenecks"))) {
+      return true;
+    }
+    if (!q.includes("cyber") && !q.includes("scada") && (g.includes("fifth domain of warfare") || g.includes("scada industrial sabotage"))) {
+      return true;
+    }
+    if (!q.includes("parliament") && !q.includes("legislat") && (g.includes("prs data") || g.includes("workhorses of the legislature"))) {
+      return true;
+    }
+    if (!q.includes("msp") && !q.includes("farmer") && (g.includes("bhavantar") || g.includes("wto amber box") || g.includes("food security in your introduction"))) {
+      return true;
+    }
+    if (!q.includes("governor") && !q.includes("article 200") && (g.includes("article 200") || g.includes("pocket vetoes") || g.includes("sarkaria commission guidelines"))) {
+      return true;
+    }
+    if (!q.includes("chola") && !q.includes("temple") && (g.includes("dravidian architectural climax") || g.includes("vimana"))) {
+      return true;
+    }
+    return false;
+  }
+  window.checkGuidanceMismatch = checkGuidanceMismatch;
+
+  // Standard UPSC Faculty Directive Guidance Generator (Dynamic, Subject-Aware & Keyword-Grounded)
+  function getStandardDirectiveGuidance(directive, question, paper, marks) {
+    const d = (directive || "Critically Analyze").trim();
+    const dLow = d.toLowerCase();
+    const qText = String(question || "").trim();
+    const tokens = extractCoreQuestionTokens(qText);
+    const primaryEntity = tokens[0] || "the core analytical premise";
+    const secondaryEntity = tokens[1] || "underlying structural mechanisms";
+    const discInfo = classifyQuestionDiscipline(qText, paper);
+
+    let step1 = "";
+    if (dLow.includes("examine") || dLow.includes("investigate")) {
+      step1 = `1. Approach this '${d}' directive by probing beneath surface-level descriptions to diagnose root institutional, structural, and operational causes of ${primaryEntity}.`;
+    } else if (dLow.includes("critically")) {
+      step1 = `1. Approach this '${d}' directive with a balanced dialectical approach (Thesis, Anti-thesis, Synthesis) interrogating both potential merits and systemic vulnerabilities of ${primaryEntity}.`;
+    } else if (dLow.includes("discuss")) {
+      step1 = `1. Approach this '${d}' directive by exploring multi-dimensional perspectives across institutional, socio-economic, and legal facets surrounding ${primaryEntity}.`;
+    } else if (dLow.includes("evaluate") || dLow.includes("assess")) {
+      step1 = `1. Approach this '${d}' directive through a criteria-based assessment measuring actual ground outcomes of ${primaryEntity} against original statutory and constitutional benchmarks.`;
+    } else if (dLow.includes("elucidate") || dLow.includes("explain") || dLow.includes("elaborate")) {
+      step1 = `1. Approach this '${d}' directive with high explanatory depth, breaking down the underlying mechanisms of ${primaryEntity} step-by-step with empirical examples.`;
+    } else if (dLow.includes("differentiate")) {
+      step1 = `1. Approach this '${d}' directive by formulating a crisp comparative matrix contrasting statutory compliance against constitutional probity across origins, enforcement, and mindset.`;
+    } else if (dLow.includes("case study")) {
+      step1 = `1. Structure this 'Case Study' methodically: Stakeholder Identification -> Value Matrix -> Options Appraisal -> Justified Course of Action.`;
+    } else {
+      step1 = `1. Structure your answer using a balanced dialectical framework directly addressing all primary and secondary demands of ${primaryEntity}.`;
+    }
+
+    let step2 = "";
+    if (discInfo.domain === "gs2") {
+      step2 = `2. Open with a crisp 2-3 line constitutional or statutory baseline establishing institutional authority through relevant Articles, Acts, or landmark Supreme Court jurisprudence.`;
+    } else if (discInfo.domain === "gs3") {
+      step2 = `2. Open with an authoritative empirical hook citing official data, NITI Aayog benchmarks, national missions, or global indices grounding ${primaryEntity}.`;
+    } else if (discInfo.domain === "gs4") {
+      step2 = `2. Open by anchoring your ethical foundation in constitutional morality, Nolan's Principles of Public Life, or canonical philosophical doctrines (Gandhian Trusteeship / Deontology).`;
+    } else if (discInfo.domain === "essay") {
+      step2 = `2. Open with an evocative hook deconstructing the central metaphor and tracing its civilizational and philosophical relevance across history and modernity.`;
+    } else {
+      step2 = `2. Open with a crisp contextual thesis defining ${primaryEntity} and establishing its significance within the contemporary governance landscape.`;
+    }
+
+    let step3 = `3. Dedicate the primary body section to unpacking substantive dimensions: articulate core arguments and operational drivers concerning ${primaryEntity} using clear thematic sub-headings.`;
+    let step4 = `4. Interrogate counter-perspectives and systemic challenges: allocate substantial space to analyzing structural bottlenecks, regulatory gaps, and operational frictions related to ${secondaryEntity}.`;
+
+    let step5 = "";
+    if (discInfo.domain === "gs2") {
+      step5 = `5. Substantiate your analysis with concrete governance levers: cite Law Commission / 2nd ARC recommendations, parliamentary committee precedents, and statutory safeguards.`;
+    } else if (discInfo.domain === "gs3") {
+      step5 = `5. Enrich your presentation with concrete institutional mechanisms: reference statutory bodies, technological safeguards, and a clean 30-second conceptual schematic diagram.`;
+    } else if (discInfo.domain === "gs4") {
+      step5 = `5. Formulate an actionable administrative roadmap: delineate institutional safeguards, transparent audit mechanisms, and protective provisions for frontline officials.`;
+    } else {
+      step5 = `5. Incorporate evidence-backed value additions: support arguments with official committee findings, best practices, and a concise comparative matrix.`;
+    }
+
+    let step6 = `6. Conclude with a forward-looking, directive-aligned synthesis offering constructive policy pathways rooted in sustainable development and constitutional values.`;
+
+    return [step1, step2, step3, step4, step5, step6].join(" ");
   }
   window.getStandardDirectiveGuidance = getStandardDirectiveGuidance;
 
@@ -15290,7 +15619,13 @@ function setupUserAndModalListeners() {
       if (directiveBadgeText) {
         directiveBadgeText.textContent = `Directive Scrutiny: "${dName}"`;
       }
-      const guidance = daw.directive_guidance || getStandardDirectiveGuidance(dName, daw.question);
+      let guidance = daw.directive_guidance;
+      if (guidance && typeof checkGuidanceMismatch === "function" && checkGuidanceMismatch(guidance, daw.question)) {
+        guidance = null;
+      }
+      if (!guidance) {
+        guidance = getStandardDirectiveGuidance(dName, daw.question, daw.paper, daw.marks);
+      }
       if (directiveTipList) {
         renderDirectiveBullets(directiveTipList, guidance);
       }

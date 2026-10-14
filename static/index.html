@@ -3392,6 +3392,9 @@
                 <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                   <div id="examHallWordBar" class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 98%"></div>
                 </div>
+                <div id="examHallPageBreakdown" class="text-[9.5px] font-mono text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between">
+                  <span>P1: ~74w</span><span>•</span><span>P2: ~74w</span>
+                </div>
               </div>
 
               <!-- Metric 2: Estimated Time Spent -->
@@ -3407,6 +3410,9 @@
                 <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                   <div id="examHallTimeBar" class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 95%"></div>
                 </div>
+                <div class="text-[9.5px] font-mono text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between">
+                  <span>Velocity: 22 wpm</span><span>•</span><span>Target: 7.0m</span>
+                </div>
               </div>
 
               <!-- Metric 3: QCAB Space Utilization -->
@@ -3419,7 +3425,7 @@
                   <i data-lucide="layout" class="w-4 h-4 text-amber-500"></i>
                   <span id="examHallSpaceDensity">Balanced 85% Fill</span>
                 </div>
-                <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Zero white-space penalty</p>
+                <p id="examHallLayoutSubtext" class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Zero white-space penalty</p>
               </div>
 
               <!-- Metric 4: Pacing & Paper Completion Risk -->
@@ -3563,17 +3569,48 @@
                   <i data-lucide="compass" class="w-4 h-4 text-amber-500 dark:text-amber-400"></i>
                   <span>Directive Adherence Audit</span>
                 </span>
-                <span id="directiveScoreBadge" class="text-xs font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-amber-700 dark:text-amber-400 border border-slate-200 dark:border-slate-700">7/10</span>
-              </div>
-              <div class="space-y-2 text-xs">
-                <div>
-                  <span class="text-slate-600 dark:text-slate-400 font-semibold">Command Word:</span>
-                  <span class="text-amber-700 dark:text-amber-300 font-bold ml-1" id="directiveNameDisplay">Critically Analyse</span>
+                <div class="flex items-center space-x-2">
+                  <span id="directiveComprehensionBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">Mandate Grasped</span>
+                  <span id="directiveScoreBadge" class="text-xs font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-amber-700 dark:text-amber-400 border border-slate-200 dark:border-slate-700">7/10</span>
                 </div>
-                <p class="text-slate-700 dark:text-slate-300 leading-relaxed" id="directiveEvaluationText"></p>
+              </div>
+              <div class="space-y-2.5 text-xs">
+                <!-- Command Word & UPSC Evaluation Mandate -->
+                <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 space-y-1">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <span class="text-slate-500 dark:text-slate-400 font-semibold text-[11px]">Command Word:</span>
+                      <span class="text-amber-700 dark:text-amber-300 font-bold ml-1 font-mono text-xs" id="directiveNameDisplay">Critically Analyse</span>
+                    </div>
+                    <span id="directiveTypePill" class="text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">Dialectical Mandate</span>
+                  </div>
+                  <div class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed pt-0.5" id="directiveMeaningText">
+                    <!-- Dynamic explanation of what this directive demands -->
+                  </div>
+                </div>
+
+                <!-- Aspirant's Fulfillment Assessment -->
+                <div class="space-y-1">
+                  <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Aspirant's Command Scrutiny:</span>
+                  <p class="text-slate-700 dark:text-slate-300 leading-relaxed" id="directiveEvaluationText"></p>
+                </div>
+
+                <!-- Lacuna Box -->
                 <div class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/20 text-[11px] text-amber-900 dark:text-amber-200">
                   <span class="font-bold">Directive Lacuna: </span>
                   <span id="directiveGapText"></span>
+                </div>
+
+                <!-- Operative Keywords & Glossary Tooltips -->
+                <div id="directiveGlossarySection" class="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-1.5">
+                  <div class="flex items-center justify-between text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">
+                    <span class="flex items-center space-x-1">
+                      <i data-lucide="tag" class="w-3 h-3 text-amber-500"></i>
+                      <span>Operative Keywords &amp; Evaluator Glossary</span>
+                    </span>
+                    <span class="text-[9px] lowercase font-normal text-slate-400">click/hover for exam meaning</span>
+                  </div>
+                  <div id="directiveGlossaryChips" class="flex flex-wrap gap-1.5"></div>
                 </div>
               </div>
             </div>

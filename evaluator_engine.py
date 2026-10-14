@@ -4404,58 +4404,58 @@ def _normalize_exam_hall_discipline_and_micro_marking(data: Dict[str, Any], max_
         if is_hindi:
             word_status = f"सीमा से अधिक (+{word_pct - 100}%)"
             hall_warning = (
-                f"लगभग {cand_word_count} शब्द लिखने में लगभग {est_writing_time} मिनट लगे, जबकि निर्धारित समय सीमा {allotted_mins} मिनट है। "
-                f"यह अतिरिक्त {time_diff} मिनट अंतिम प्रश्नों (Q19/Q20) के समय से कटेंगे, जिससे 10–15 अंकों का नुकसान हो सकता है। "
-                f"UPSC मुख्य परीक्षा में सभी 20 प्रश्नों को संतुलित 140–150 शब्दों में हल करना शुरुआती प्रश्नों में अधिक लिखने से कहीं अधिक अंक दिलाता है।"
+                f"लगभग **{cand_word_count} शब्द** लिखने में लगभग **{est_writing_time} मिनट** लगे, जबकि निर्धारित समय सीमा **{allotted_mins} मिनट** है। "
+                f"यह अतिरिक्त **{time_diff} मिनट** अंतिम प्रश्नों (**Q19/Q20**) के समय से कटेंगे, जिससे **10–15 अंकों** का नुकसान हो सकता है। "
+                f"UPSC मुख्य परीक्षा में सभी 20 प्रश्नों को संतुलित **140–150 शब्दों** में हल करना शुरुआती प्रश्नों में अधिक लिखने से कहीं अधिक अंक दिलाता है।"
             )
         else:
             word_status = f"Over Limit (+{word_pct - 100}%)"
             hall_warning = (
-                f"Writing ~{cand_word_count} words requires ~{est_writing_time} mins against the strict {allotted_mins}-minute ceiling. "
-                f"This surplus {time_diff} minutes is directly stolen from final questions (Q19/Q20), guaranteeing incomplete answers or lost 10–15 marks. "
-                f"In UPSC Mains, completing all 20 questions in 140–150 words beats over-writing on early questions."
+                f"Writing **~{cand_word_count} words** requires **~{est_writing_time} mins** against the strict **{allotted_mins}-minute ceiling**. "
+                f"This surplus **{time_diff} minutes** is directly stolen from final questions (**Q19/Q20**), guaranteeing incomplete answers or lost **10–15 marks**. "
+                f"In UPSC Mains, completing **all 20 questions** in **140–150 words** beats over-writing on early questions."
             )
     elif cand_word_count > prescribed_limit * 1.10:
         risk_level = "MODERATE_RISK"
         if is_hindi:
             word_status = f"हल्का अधिक (+{word_pct - 100}%)"
             hall_warning = (
-                f"लगभग {cand_word_count} शब्दों में आपने लगभग {est_writing_time} मिनट खर्च किए ({time_diff} मिनट अधिक)। "
-                f"वर्णनात्मक विवरणों को संक्षिप्त करें ताकि {prescribed_limit} शब्दों की सीमा में रहें और अंतिम घंटे में समय का दबाव न बने।"
+                f"लगभग **{cand_word_count} शब्दों** में आपने लगभग **{est_writing_time} मिनट** खर्च किए (**{time_diff} मिनट अधिक**)। "
+                f"वर्णनात्मक विवरणों को संक्षिप्त करें ताकि **{prescribed_limit} शब्दों** की सीमा में रहें और अंतिम घंटे में समय का दबाव न बने।"
             )
         else:
             word_status = f"Slightly Over (+{word_pct - 100}%)"
             hall_warning = (
-                f"At ~{cand_word_count} words, you spent ~{est_writing_time} mins ({time_diff} mins over budget). "
-                f"Prune descriptive filler to stay under {prescribed_limit} words so you don't accumulate time pressure in the final hour."
+                f"At **~{cand_word_count} words**, you spent **~{est_writing_time} mins** (**{time_diff} mins over budget**). "
+                f"Prune descriptive filler to stay under **{prescribed_limit} words** so you don't accumulate time pressure in the final hour."
             )
     elif cand_word_count < prescribed_limit * 0.70:
         risk_level = "UNDER_LENGTH"
         if is_hindi:
             word_status = f"सीमा से कम (-{100 - word_pct}%)"
             hall_warning = (
-                f"केवल ~{cand_word_count} शब्दों में, आपने निर्धारित उत्तर पुस्तिका (QCAB) का लगभग {100 - word_pct}% स्थान खाली छोड़ दिया। "
-                f"कम विषय-सामग्री पर अंक कटते हैं। बिंदुवार आयामों और 30-सेकंड के आरेख के साथ {int(prescribed_limit * 0.88)}–{prescribed_limit} शब्द लिखने का प्रयास करें।"
+                f"केवल **~{cand_word_count} शब्दों** में, आपने निर्धारित उत्तर पुस्तिका (QCAB) का लगभग **{100 - word_pct}% स्थान खाली** छोड़ दिया। "
+                f"कम विषय-सामग्री पर अंक कटते हैं। बिंदुवार आयामों और 30-सेकंड के आरेख के साथ **{int(prescribed_limit * 0.88)}–{prescribed_limit} शब्द** लिखने का प्रयास करें।"
             )
         else:
             word_status = f"Under Budget (-{100 - word_pct}%)"
             hall_warning = (
-                f"At only ~{cand_word_count} words, you left ~{100 - word_pct}% of the prescribed QCAB space unfilled. "
-                f"UPSC evaluators penalize thin content density. Aim for {int(prescribed_limit * 0.88)}–{prescribed_limit} words using point-wise dimensions and a 30-second diagram."
+                f"At only **~{cand_word_count} words**, you left **~{100 - word_pct}%** of the prescribed QCAB space unfilled. "
+                f"UPSC evaluators penalize thin content density. Aim for **{int(prescribed_limit * 0.88)}–{prescribed_limit} words** using point-wise dimensions and a 30-second diagram."
             )
     else:
         risk_level = "BALANCED"
         if is_hindi:
             word_status = f"संतुलित ({cand_word_count}/{prescribed_limit} शब्द)"
             hall_warning = (
-                f"शानदार समय प्रबंधन! लगभग {cand_word_count} शब्द ~{est_writing_time} मिनट में लिखना {allotted_mins} मिनट के लक्ष्य के अनुकूल है, "
-                f"जिससे सभी 20 प्रश्नों को बिना किसी तनाव के पूरा करने का पर्याप्त समय मिलता है।"
+                f"शानदार समय प्रबंधन! लगभग **{cand_word_count} शब्द** **~{est_writing_time} मिनट** में लिखना **{allotted_mins} मिनट** के लक्ष्य के अनुकूल है, "
+                f"जिससे **सभी 20 प्रश्नों** को बिना किसी तनाव के पूरा करने का पर्याप्त समय मिलता है।"
             )
         else:
             word_status = f"Optimal ({cand_word_count}/{prescribed_limit}w)"
             hall_warning = (
-                f"Excellent exam pacing! ~{cand_word_count} words written in ~{est_writing_time} mins fits comfortably within the {allotted_mins}-minute target, "
-                f"leaving ample reserve to finish all 20 questions without panic."
+                f"Excellent exam pacing! **~{cand_word_count} words** written in **~{est_writing_time} mins** fits comfortably within the **{allotted_mins}-minute target**, "
+                f"leaving ample reserve to finish **all 20 questions** without panic."
             )
 
     has_margin_bleed = any("margin" in str(a.get("remark", "")).lower() for a in data.get("visual_annotations", []))
