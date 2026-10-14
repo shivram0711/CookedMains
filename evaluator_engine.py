@@ -43,6 +43,22 @@ DIRECTIVES = {
         "meaning": "Dialectical multi-dimensional analysis weighing arguments, counter-arguments, and synthesis.",
         "ideal_balance": "45% core arguments, 40% systemic critique/challenges, 15% constructive synthesis."
     },
+    "write a critical note": {
+        "meaning": "Dialectical breakdown: probe genesis, systemic utility, critical shortcomings/concerns, and constructive reforms.",
+        "ideal_balance": "45% core context & merits, 45% critical challenges & institutional lacunae, 10% balanced reform synthesis."
+    },
+    "critical note": {
+        "meaning": "Dialectical breakdown: probe genesis, systemic utility, critical shortcomings/concerns, and constructive reforms.",
+        "ideal_balance": "45% core context & merits, 45% critical challenges & institutional lacunae, 10% balanced reform synthesis."
+    },
+    "write a note": {
+        "meaning": "Provide a comprehensive, multi-dimensional overview detailing origins, core significance, contemporary status, and future outlook.",
+        "ideal_balance": "60% conceptual core & mechanisms, 30% challenges & significance, 10% forward-looking summary."
+    },
+    "short note": {
+        "meaning": "Crisp, information-dense overview covering definitions, key mechanisms, relevance, and contemporary issues.",
+        "ideal_balance": "60% conceptual core & mechanisms, 30% challenges & significance, 10% forward-looking summary."
+    },
     "elucidate": {
         "meaning": "Clarify concept using lucid explanations, facts, and concrete case studies.",
         "ideal_balance": "70% explanatory depth with clear examples, 20% relevance/impact, 10% crisp conclusion."
@@ -236,6 +252,14 @@ HINDI_DIRECTIVES = {
     "समालोचनात्मक मूल्यांकन कीजिए": {
         "meaning": "गुण-दोषों का सम्यक विश्लेषण कर स्पष्ट सुधारात्मक दृष्टिकोण प्रस्तुत करें।",
         "ideal_balance": "सकारात्मक पक्ष 45%, सीमाएं 40%, नीतिगत समाधान 15%।"
+    },
+    "आलोचनात्मक टिप्पणी लिखिए": {
+        "meaning": "उपलब्धियों और व्यवस्थागत कमियों दोनों की पड़ताल कर संतुलित सुधारपरक दृष्टिकोण प्रस्तुत करें।",
+        "ideal_balance": "पक्ष 45%, कमियां 45%, आगे की राह 10%।"
+    },
+    "आलोचनात्मक टिप्पणी": {
+        "meaning": "उपलब्धियों और व्यवस्थागत कमियों दोनों की पड़ताल कर संतुलित सुधारपरक दृष्टिकोण प्रस्तुत करें।",
+        "ideal_balance": "पक्ष 45%, कमियां 45%, आगे की राह 10%।"
     },
     "समीक्षा कीजिए": {
         "meaning": "उपलब्धियों और व्यवस्थागत कमियों दोनों की गहन पड़ताल करें और संतुलित समाधान दें।",
@@ -440,12 +464,12 @@ def detect_directive(question_text: str, medium: Optional[str] = "english") -> D
 
     if is_hi:
         return {
-            "directive": "चर्चा कीजिए (Discuss)",
+            "directive": "चर्चा कीजिए",
             "details": "विषय के सभी आयामों (PESTLE रूपरेखा) का स्पष्ट उप-शीर्षकों के साथ विस्तार करें।",
             "ideal_balance": "संतुलित परिचय, संरचित मुख्य भाग और समाधानपरक निष्कर्ष।"
         }
     return {
-        "directive": "Discuss / Comprehensive Analysis",
+        "directive": "Discuss",
         "details": "Explore multiple dimensions (PESTLE framework) systematically with clear subheadings.",
         "ideal_balance": "Multi-dimensional coverage with clear introduction, structured body, and way forward."
     }
@@ -1314,6 +1338,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
     "compliance_verdict": "अभ्यर्थी ने निर्देश के अनुरूप उत्तर की संरचना की है।",
     "examiner_advice": "आगामी उत्तरों में निर्देश की मांग के अनुसार पक्ष और विपक्ष के अनुपातिक संतुलन पर विशेष ध्यान दें।"
   }},
+  "transcribed_text": "अभ्यर्थी द्वारा लिखी गई हस्तलिखित उत्तर-पुस्तिका का प्रामाणिक पाठ (प्रतिलेखन), जिसे [Page 1], [Page 2], [Page 3] चिह्नों द्वारा स्पष्ट रूप से विभाजित किया गया हो।",
   "full_model_answer": "संपूर्ण 150/250 शब्दों का उच्च-स्तरीय मॉडल उत्तर शुद्ध मानक हिंदी में।"
 }}
 """
@@ -4386,11 +4411,20 @@ def _normalize_exam_hall_discipline_and_micro_marking(data: Dict[str, Any], max_
 
     total_pgs = int(data.get("total_pages") or 2)
     if cand_word_count < 15:
-        # Fallback to existing LLM estimate or sensible page-based estimate
-        existing_wc = 0
-        if isinstance(data.get("upsc_exam_hall_discipline"), dict):
-            existing_wc = int(data["upsc_exam_hall_discipline"].get("estimated_word_count") or 0)
-        cand_word_count = existing_wc if existing_wc >= 20 else max(45, total_pgs * 68)
+        # Fallback to candidate quotes found in visual annotations remarks before synthetic fallback
+        ann_words = []
+        for a in data.get("visual_annotations", []):
+            rem = str(a.get("remark") or "")
+            q_m = re.findall(r'["“\']([^"”\']{10,})["”\']', rem)
+            for q in q_m:
+                ann_words.extend([w for w in q.split() if any(c.isalnum() for c in w)])
+        if len(ann_words) >= 20:
+            cand_word_count = len(ann_words)
+        else:
+            existing_wc = 0
+            if isinstance(data.get("upsc_exam_hall_discipline"), dict):
+                existing_wc = int(data["upsc_exam_hall_discipline"].get("estimated_word_count") or 0)
+            cand_word_count = existing_wc if existing_wc >= 20 else max(45, total_pgs * 68)
 
     prescribed_limit = 150 if max_marks == 10 else (250 if max_marks in [15, 20] else 1000)
     allotted_mins = 7.0 if max_marks == 10 else (11.0 if max_marks == 15 else (14.0 if max_marks == 20 else 90.0))

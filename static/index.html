@@ -3189,18 +3189,18 @@
             </div>
 
             <!-- Mobile Thumb-Card Drawer (Visible on phone screens < 768px when evaluation loaded) -->
-            <div id="mobileDrawerBar" class="hidden md:hidden mt-2 bg-slate-900/95 border border-slate-800 rounded-xl p-3 z-30 backdrop-blur-md shadow-2xl">
+            <div id="mobileDrawerBar" class="hidden md:hidden mt-2 bg-white dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 rounded-xl p-3 z-30 backdrop-blur-md shadow-xl dark:shadow-2xl">
               <div class="flex items-center justify-between text-xs mb-1.5">
-                <span id="mobileDrawerPillLabel" class="font-bold text-white flex items-center gap-1.5">
+                <span id="mobileDrawerPillLabel" class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                   <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  <span id="mobileDrawerCounter">Point 1 of 4</span>
+                  <span id="mobileDrawerCounter" class="text-slate-800 dark:text-slate-200">Point 1 of 4</span>
                 </span>
                 <div class="flex items-center gap-1">
-                  <button id="mobileDrawerPrevBtn" type="button" onclick="window.prevMobileGutterPoint()" class="p-1 px-2.5 rounded bg-slate-800 text-slate-300 hover:text-white text-[11px] font-bold cursor-pointer">&larr; Prev</button>
+                  <button id="mobileDrawerPrevBtn" type="button" onclick="window.prevMobileGutterPoint()" class="p-1 px-2.5 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-[11px] font-bold cursor-pointer border border-slate-200 dark:border-slate-700">&larr; Prev</button>
                   <button id="mobileDrawerNextBtn" type="button" onclick="window.nextMobileGutterPoint()" class="p-1 px-2.5 rounded bg-amber-500 text-black font-bold hover:bg-amber-400 text-[11px] cursor-pointer">Next &rarr;</button>
                 </div>
               </div>
-              <div id="mobileDrawerContent" class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs">
+              <div id="mobileDrawerContent" class="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
                 <!-- Populated by JS -->
               </div>
             </div>

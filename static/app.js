@@ -4912,13 +4912,18 @@ function formatHighlightedText(text) {
 // Global helper: Extract authentic handwritten lines from transcribed text for given page
 window.getPageTranscript = function(evalData, tPage) {
   const fullT = String((evalData && evalData.transcribed_text) || (typeof state !== "undefined" && state.currentEvaluation && state.currentEvaluation.transcribed_text) || "");
+  if (!fullT.trim()) return "";
   const parts = fullT.split(/\[Page\s*(\d+)\]/i);
-  for (let i = 1; i < parts.length; i += 2) {
-    if (parseInt(parts[i], 10) === tPage && i + 1 < parts.length) {
-      return parts[i + 1].trim();
+  if (parts.length > 1) {
+    for (let i = 1; i < parts.length; i += 2) {
+      if (parseInt(parts[i], 10) === tPage && i + 1 < parts.length) {
+        return parts[i + 1].trim();
+      }
     }
+    return "";
   }
-  return fullT.trim();
+  // Single-block transcript without page delimiter tags: attribute strictly to page 1
+  return tPage === 1 ? fullT.trim() : "";
 };
 
 // Global helper: Detect meta-prompt placeholders or evaluator comments that should NEVER appear as candidate quotes or advice
@@ -9441,10 +9446,10 @@ window.renderMobileDrawerPoint = function(index) {
 
   const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(typeof state !== "undefined" ? state.currentEvaluation : null);
   const isGreen = sec.isTick;
-  const badgeColor = isGreen ? "text-emerald-400" : "text-amber-400";
+  const badgeColor = isGreen ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400";
   const badgeBg = isGreen
-    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-    : "bg-amber-500/20 text-amber-300 border border-amber-500/40";
+    ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30"
+    : "bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30";
 
   const audit = sec._quoteAudit || getCardQuoteAndElevate(sec, null);
   const { quoteLabel, formattedQuoteHtml } = formatQuoteStatusDisplay(audit.quote, audit.quoteStatus, audit.sourcePassage, isHindi);
@@ -9458,7 +9463,7 @@ window.renderMobileDrawerPoint = function(index) {
 
   content.innerHTML = `
     <div class="flex items-start justify-between gap-2 mb-2">
-      <div class="font-bold text-white text-xs flex items-start gap-1.5 min-w-0">
+      <div class="font-bold text-slate-900 dark:text-white text-xs flex items-start gap-1.5 min-w-0">
         <span class="${badgeColor} font-mono shrink-0 mt-0.5">${sec.icon || '✓'}</span>
         <span class="break-words leading-tight">${escapeHtml(sec.title)}</span>
       </div>
@@ -9468,12 +9473,12 @@ window.renderMobileDrawerPoint = function(index) {
     </div>
 
     <!-- Candidate Evidence -->
-    <div class="mb-2 p-2 rounded-lg bg-slate-900 border border-slate-800">
-      <div class="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center justify-between">
+    <div class="mb-2 p-2 rounded-lg bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+      <div class="text-[9.5px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
         <span>${escapeHtml(quoteLabel)}</span>
         <span class="font-mono text-[9px] opacity-75">${escapeHtml(pageBadge)}</span>
       </div>
-      <p class="text-[11px] text-slate-200 leading-relaxed font-sans italic">
+      <p class="text-[11px] text-slate-800 dark:text-slate-200 leading-relaxed font-sans italic">
         ${formattedQuoteHtml}
       </p>
     </div>
@@ -9481,51 +9486,51 @@ window.renderMobileDrawerPoint = function(index) {
     <!-- Assessor's Judgment: 4 Structured Pillars -->
     <div class="space-y-1.5 text-[11px] font-sans">
       ${answersWell ? `
-      <div class="p-2 rounded-lg bg-emerald-950/30 border border-emerald-500/30 text-emerald-200 leading-relaxed">
-        <div class="font-bold flex items-center gap-1 text-emerald-400 mb-0.5 text-[10px]">
+      <div class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/25 border border-emerald-300 dark:border-emerald-500/30 text-emerald-950 dark:text-emerald-200 leading-relaxed">
+        <div class="font-bold flex items-center gap-1 text-emerald-700 dark:text-emerald-400 mb-0.5 text-[10.5px]">
           <span>✓</span> <span>${isHindi ? "प्रभावी उत्तर" : "Answers Well"}:</span>
         </div>
-        <div class="pl-3 text-slate-300 text-[10.5px] leading-relaxed">
+        <div class="pl-3 text-slate-700 dark:text-slate-300 text-[10.5px] leading-relaxed">
           ${typeof formatHighlightedText === "function" ? formatHighlightedText(answersWell) : escapeHtml(answersWell)}
         </div>
       </div>` : ""}
 
       ${inaccuracyOrGap ? `
-      <div class="p-2 rounded-lg bg-rose-950/30 border border-rose-500/30 text-rose-200 leading-relaxed">
-        <div class="font-bold flex items-center gap-1 text-rose-400 mb-0.5 text-[10px]">
+      <div class="p-2 rounded-lg bg-rose-50 dark:bg-rose-950/25 border border-rose-300 dark:border-rose-500/30 text-rose-950 dark:text-rose-200 leading-relaxed">
+        <div class="font-bold flex items-center gap-1 text-rose-700 dark:text-rose-400 mb-0.5 text-[10.5px]">
           <span>✗</span> <span>${isHindi ? "कमी / अशुद्धि" : "Inaccurate / Incomplete (Deduction)"}:</span>
         </div>
-        <div class="pl-3 text-slate-300 text-[10.5px] leading-relaxed">
+        <div class="pl-3 text-slate-700 dark:text-slate-300 text-[10.5px] leading-relaxed">
           ${typeof formatHighlightedText === "function" ? formatHighlightedText(inaccuracyOrGap) : escapeHtml(inaccuracyOrGap)}
         </div>
       </div>` : ""}
 
       ${whyItMatters ? `
-      <div class="p-2 rounded-lg bg-indigo-950/30 border border-indigo-500/30 text-indigo-200 leading-relaxed">
-        <div class="font-bold flex items-center gap-1 text-indigo-400 mb-0.5 text-[10px]">
+      <div class="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/25 border border-indigo-300 dark:border-indigo-500/30 text-indigo-950 dark:text-indigo-200 leading-relaxed">
+        <div class="font-bold flex items-center gap-1 text-indigo-700 dark:text-indigo-400 mb-0.5 text-[10.5px]">
           <span>⚖</span> <span>${isHindi ? "प्रश्न के लिए महत्व" : "Why It Matters"}:</span>
         </div>
-        <div class="pl-3 text-slate-300 text-[10.5px] leading-relaxed italic">
+        <div class="pl-3 text-slate-700 dark:text-slate-300 text-[10.5px] leading-relaxed italic">
           ${typeof formatHighlightedText === "function" ? formatHighlightedText(whyItMatters) : escapeHtml(whyItMatters)}
         </div>
       </div>` : ""}
 
       ${specificImprovement ? `
-      <div class="p-2 rounded-lg bg-amber-950/30 border border-amber-500/30 text-amber-200 leading-relaxed">
-        <div class="font-bold flex items-center gap-1 text-amber-400 mb-0.5 text-[10px]">
+      <div class="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/25 border border-amber-300 dark:border-amber-500/30 text-amber-950 dark:text-amber-200 leading-relaxed">
+        <div class="font-bold flex items-center gap-1 text-amber-700 dark:text-amber-400 mb-0.5 text-[10.5px]">
           <span>💡</span> <span>${isHindi ? "ठोस सुधार" : "Specific Improvement"}:</span>
         </div>
-        <div class="pl-3 text-slate-300 text-[10.5px] leading-relaxed">
+        <div class="pl-3 text-slate-700 dark:text-slate-300 text-[10.5px] leading-relaxed">
           ${typeof formatHighlightedText === "function" ? formatHighlightedText(specificImprovement) : escapeHtml(specificImprovement)}
         </div>
       </div>` : ""}
     </div>
 
-    <div class="pt-1.5 border-t border-slate-800 flex items-center justify-between text-[10.5px] mt-2">
-      <button type="button" onclick="window.viewFullEvaluationSection('${sec.targetKey}')" class="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 cursor-pointer">
+    <div class="pt-1.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[10.5px] mt-2">
+      <button type="button" onclick="window.viewFullEvaluationSection('${sec.targetKey}')" class="text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-bold flex items-center gap-1 cursor-pointer">
         <span>View Full Analysis in Right Panel &rarr;</span>
       </button>
-      <span class="text-slate-400 text-[10px] font-mono">Page ${currentPg}</span>
+      <span class="text-slate-500 dark:text-slate-400 text-[10px] font-mono">Page ${currentPg}</span>
     </div>
   `;
 
@@ -11745,7 +11750,12 @@ function renderEvaluation(evalData) {
   // DIRECTIVE ADHERENCE AUDIT (Image 2 Enhancement)
   // -------------------------------------------------------------------------
   const dir = evalData.directive_compliance || {};
-  const dName = dir.directive || (evalData.syllabus_mapping && evalData.syllabus_mapping.directive) || (typeof state !== "undefined" && state.dailyQuestion && state.dailyQuestion.directive) || "Critically Analyse";
+  const rawDName = dir.directive || (evalData.syllabus_mapping && evalData.syllabus_mapping.directive) || (typeof state !== "undefined" && state.dailyQuestion && state.dailyQuestion.directive) || "Critically Analyse";
+  
+  // Clean up any double slash fallback (e.g. "Critical Note / Comprehensive Analysis" -> "Critical Note")
+  let dName = String(rawDName).split("/")[0].trim();
+  if (!dName) dName = rawDName;
+
   if (directiveNameDisplay) directiveNameDisplay.textContent = dName;
   if (directiveScoreBadge) directiveScoreBadge.textContent = dir.adherence_score || "7/10";
 
@@ -11755,36 +11765,36 @@ function renderEvaluation(evalData) {
   const directiveComprehensionBadge = document.getElementById("directiveComprehensionBadge");
 
   const dNorm = dName.toLowerCase();
-  let cmdType = "Analytical Mandate";
-  let cmdMeaning = "";
+  let cmdType = "Comprehensive Mandate";
+  let cmdMeaning = "Demands addressing all explicit and implicit sub-demands with balanced argumentation, factual grounding, and constitutional fidelity.";
 
-  if (dNorm.includes("critically")) {
+  if (dNorm.includes("critically") || dNorm.includes("critical") || dNorm.includes("आलोचना")) {
     cmdType = "Dialectical Mandate";
     cmdMeaning = "Demands rigorous dialectical evaluation: balancing substantive operational merits (Thesis) against systemic bottlenecks, constitutional risks, or unintended harms (Anti-thesis) to reach a forward-looking verdict.";
-  } else if (dNorm.includes("examine") || dNorm.includes("investigate")) {
+  } else if (dNorm.includes("examine") || dNorm.includes("investigate") || dNorm.includes("परीक्षण") || dNorm.includes("जांच")) {
     cmdType = "Diagnostic Mandate";
     cmdMeaning = "Demands probing beneath surface-level descriptions to diagnose root institutional causes, statutory tensions, and ground-level implementation challenges, supported by actionable structural remedies.";
-  } else if (dNorm.includes("discuss")) {
+  } else if (dNorm.includes("discuss") || dNorm.includes("चर्चा")) {
     cmdType = "Multi-Dimensional Mandate";
     cmdMeaning = "Demands exploring comprehensive multi-stakeholder dimensions (PESTLE: Political, Economic, Social, Technological, Legal, Environmental) with structured headings and concrete empirical evidence.";
-  } else if (dNorm.includes("evaluate") || dNorm.includes("assess")) {
+  } else if (dNorm.includes("evaluate") || dNorm.includes("assess") || dNorm.includes("मूल्यांकन") || dNorm.includes("आकलन")) {
     cmdType = "Criterion-Based Audit";
     cmdMeaning = "Demands measuring actual policy or operational outcomes directly against original constitutional/statutory intent, identifying quantitative gaps and delivering an authoritative verdict.";
-  } else if (dNorm.includes("elucidate") || dNorm.includes("explain") || dNorm.includes("elaborate")) {
+  } else if (dNorm.includes("elucidate") || dNorm.includes("explain") || dNorm.includes("elaborate") || dNorm.includes("प्रकाश डालिए") || dNorm.includes("स्पष्ट कीजिए")) {
     cmdType = "Explanatory Mandate";
     cmdMeaning = "Demands presenting complex institutional and doctrinal mechanisms with unmistakable clarity, substantiated by landmark judicial rulings, administrative flowcharts, and real-world cases.";
-  } else if (dNorm.includes("comment")) {
+  } else if (dNorm.includes("comment") || dNorm.includes("opinion") || dNorm.includes("दृष्टिकोण") || dNorm.includes("अभिमत")) {
     cmdType = "Judicious Perspective";
     cmdMeaning = "Demands formulating a reasoned, independent perspective anchored firmly in constitutional morality, statutory safeguards, and empirical governance outcomes.";
-  } else if (dNorm.includes("differentiate")) {
+  } else if (dNorm.includes("note") || dNorm.includes("टिप्पणी")) {
+    cmdType = "Analytical Synthesis & Overview";
+    cmdMeaning = "Demands a structured, multi-dimensional overview detailing foundational genesis, operational significance, key institutional challenges, and forward-looking reforms.";
+  } else if (dNorm.includes("differentiate") || dNorm.includes("distinguish") || dNorm.includes("compare") || dNorm.includes("अंतर") || dNorm.includes("तुलना")) {
     cmdType = "Comparative Mandate";
     cmdMeaning = "Demands articulating crisp tabular distinctions across conceptual origin, legal enforceability, and administrative practice before diagnosing behavioral failure points.";
-  } else if (dNorm.includes("case study")) {
+  } else if (dNorm.includes("case study") || dNorm.includes("केस स्टडी")) {
     cmdType = "Applied Ethics Mandate";
     cmdMeaning = "Demands rigorous UPSC case study architecture: Stakeholder Mapping -> Ethical Dilemmas -> Multi-Option Matrix -> Deontologically Justified Course of Action.";
-  } else {
-    cmdType = "Comprehensive Mandate";
-    cmdMeaning = "Demands addressing all explicit and implicit sub-demands with balanced argumentation, factual grounding, and constitutional fidelity.";
   }
 
   if (directiveTypePill) directiveTypePill.textContent = cmdType;
@@ -11823,7 +11833,9 @@ function renderEvaluation(evalData) {
       "red-teaming", "sovereign ai", "algorithmic agency", "pestle framework", "zero-mdr",
       "financial inclusion", "blue bonds", "eco-sensitive areas", "western ghats", "sendai framework",
       "fiduciary stewardship", "gandhian trusteeship", "automation bias", "human-in-the-loop",
-      "parliamentary scrutiny", "electoral bonds", "fcra", "brics", "un security council", "nolan principles"
+      "parliamentary scrutiny", "electoral bonds", "fcra", "brics", "un security council", "nolan principles",
+      "separation of powers", "checks and balances", "judicial review", "basic structure", "cooperative federalism",
+      "due process of law", "procedure established by law", "quasi-judicial", "substantive equality"
     ];
     for (let phrase of keyPhrases) {
       const reg = new RegExp(`(?<!\\*\\*)\\b(${phrase})\\b(?!\\*\\*)`, 'gi');
@@ -11845,7 +11857,7 @@ function renderEvaluation(evalData) {
     const qRaw = String(evalData.detected_question || (typeof state !== "undefined" && state.question) || "").trim();
     const combinedTokens = typeof extractCoreQuestionTokens === "function" ? extractCoreQuestionTokens(qRaw) : [];
     
-    // Built-in evaluator meaning glossary
+    // Built-in comprehensive UPSC evaluator glossary
     const glossaryDict = {
       "security necessity": "Operational requirement to protect sovereignty or critical infrastructure against hostile intrusion.",
       "civil liberties": "Fundamental freedoms guaranteed under Part III of the Constitution that restrict arbitrary state coercion.",
@@ -11856,17 +11868,30 @@ function renderEvaluation(evalData) {
       "red-teaming": "Rigorous simulated adversarial probing of models or systems before real-world operational deployment.",
       "sovereign ai": "Domestic indigenous foundational intelligence infrastructure independent of foreign commercial platforms.",
       "electoral bonds": "Struck-down opaque bearer bonds; landmark for voter's right to know under Article 19(1)(a).",
-      "zero-mdr": "Zero Merchant Discount Rate on UPI; balances grassroot inclusion against banking tech solvency."
+      "zero-mdr": "Zero Merchant Discount Rate on UPI; balances grassroot inclusion against banking tech solvency.",
+      "separation of powers": "Constitutional doctrine dividing sovereign authority among Legislature, Executive, and Judiciary (Art 50, Kesavananda).",
+      "checks and balances": "Constitutional mechanisms enabling each branch to prevent arbitrary hegemony by other branches.",
+      "judicial review": "Power of higher courts (Art 13, 32, 226) to test statutory and executive acts against the Constitution.",
+      "basic structure": "Inviolable core constitutional principles (Kesavananda Bharati 1973) immune to constitutional amendments (Art 368).",
+      "cooperative federalism": "Collaborative governance framework between Union and States (Art 263 Inter-State Council, GST Council).",
+      "due process": "Substantive fairness, reasonableness, and natural justice read into Art 21 via Maneka Gandhi (1978).",
+      "rule of law": "Supremacy of regular law, equality before law, and absence of executive arbitrariness (Art 14, Dicey).",
+      "fiscal deficit": "Excess of total government expenditure over revenue and non-debt receipts; capped under FRBM Act.",
+      "inflation targeting": "Statutory monetary policy framework (4% ± 2%) anchored by the RBI Monetary Policy Committee.",
+      "inclusive growth": "Economic growth that distributes opportunities equitable across social strata and reduces regional disparity.",
+      "climate resilience": "Adaptive capacity of ecosystems and communities to withstand extreme climate events (Sendai/Paris Accord).",
+      "strategic autonomy": "India's independent foreign policy doctrine prioritizing national interests without military alliance entanglement.",
+      "nolan principles": "Seven standards of ethical public conduct: Selflessness, Integrity, Objectivity, Accountability, Openness, Honesty, Leadership."
     };
 
     const candidateTerms = [];
     if (combinedTokens && combinedTokens.length > 0) {
       combinedTokens.forEach(tok => candidateTerms.push({ term: tok, meaning: "Operative subject keyword demanded by question." }));
     }
-    const fullAuditText = `${dir.evaluation || ""} ${dir.gap || ""}`.toLowerCase();
+    const fullAuditText = `${dir.evaluation || ""} ${dir.gap || ""} ${dName} ${qRaw}`.toLowerCase();
     for (let [k, v] of Object.entries(glossaryDict)) {
       if (fullAuditText.includes(k) && !candidateTerms.some(c => c.term.toLowerCase() === k)) {
-        candidateTerms.push({ term: k.charAt(0).toUpperCase() + k.slice(1), meaning: v });
+        candidateTerms.push({ term: k.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" "), meaning: v });
       }
     }
 
@@ -12651,7 +12676,8 @@ function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
   const trendText = sylMap.pyq_trend_frequency || (evalData.pyq_theme_frequency || "Core UPSC Mains Syllabus Theme");
   if (pyqTrend) pyqTrend.textContent = trendText;
 
-  const dirName = (evalData.directive_compliance && evalData.directive_compliance.directive) || sylMap.directive || "Discuss";
+  const rawDir = (evalData.directive_compliance && evalData.directive_compliance.directive) || sylMap.directive || "Discuss";
+  const dirName = String(rawDir).split("/")[0].trim() || "Discuss";
   if (dirRule) dirRule.textContent = `Directive: ${dirName}`;
 
 
@@ -12690,8 +12716,20 @@ function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
     computedTotalWords += pCount;
   }
 
+  // If per-page counts were low but raw transcribed_text exists, count directly from full transcript
+  if (computedTotalWords < 20 && evalData.transcribed_text) {
+    const directWords = countPageWords(evalData.transcribed_text, 1);
+    if (directWords > computedTotalWords) {
+      computedTotalWords = directWords;
+      if (pageWordCounts.length > 0) {
+        const perPageApprox = Math.round(directWords / Math.max(1, totalPages));
+        pageWordCounts.forEach(pw => pw.count = perPageApprox);
+      }
+    }
+  }
+
   // Use computed authentic word count if substantial transcript exists, else fallback to discData / standard baseline
-  let wordCount = computedTotalWords >= 30 ? computedTotalWords : (discData.estimated_word_count || (mm === 10 ? 142 : 242));
+  let wordCount = computedTotalWords >= 25 ? computedTotalWords : (discData.estimated_word_count || (mm === 10 ? 142 : 238));
 
   const estTime = discData.estimated_writing_time_mins || Math.round((wordCount / 22.0) * 10) / 10;
   const timeDelta = Math.round((estTime - allottedMins) * 10) / 10;
@@ -12744,7 +12782,7 @@ function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
   }
 
   if (pageBreakdownEl) {
-    if (pageWordCounts.length > 0 && computedTotalWords >= 30) {
+    if (pageWordCounts.length > 0 && computedTotalWords >= 25) {
       const breakdownItems = pageWordCounts.map(pw => `<span>P${pw.page}: ~${pw.count}w</span>`).join('<span class="text-slate-400">•</span>');
       pageBreakdownEl.innerHTML = breakdownItems;
     } else {
@@ -12802,11 +12840,14 @@ function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
     }
   }
   if (tDelta) {
-    if (timeDelta > 0) {
+    if (timeDelta > 0.1) {
       tDelta.textContent = `-${timeDelta.toFixed(1)}m Deficit`;
       tDelta.className = "font-bold text-rose-600 dark:text-rose-400";
-    } else {
+    } else if (timeDelta < -0.1) {
       tDelta.textContent = `+${Math.abs(timeDelta).toFixed(1)}m Surplus`;
+      tDelta.className = "font-bold text-emerald-600 dark:text-emerald-400";
+    } else {
+      tDelta.textContent = "On Pace (0m)";
       tDelta.className = "font-bold text-emerald-600 dark:text-emerald-400";
     }
   }

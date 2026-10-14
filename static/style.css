@@ -1658,93 +1658,151 @@ html:not(.dark) #paperTabs {
   border-color: #DCD6CB !important;
 }
 
-/* Step 1 Paper Tabs */
-html:not(.dark) .paper-tab {
-  color: #64748B !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+/* Step 1 Paper Tabs - Professional Segmented Control (Zero Glow) */
+.paper-tab {
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  position: relative;
+  outline: none !important;
 }
 
-html:not(.dark) .paper-tab:hover {
-  color: #1E293B !important;
+.paper-tab:active {
+  transform: scale(0.97);
+}
+
+html:not(.dark) .paper-tab {
+  color: #475569 !important;
+}
+
+html:not(.dark) .paper-tab:hover:not(.active) {
+  color: #0F172A !important;
+  background-color: rgba(226, 232, 240, 0.6) !important;
 }
 
 html:not(.dark) .paper-tab.active {
-  background-color: #EA580C !important;
-  color: #FFFFFF !important;
-  font-weight: 700 !important;
-  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3) !important;
+  background-color: #FFFFFF !important;
+  color: #B45309 !important;
+  font-weight: 800 !important;
+  border: 1.5px solid #F59E0B !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+
+html.dark .paper-tab {
+  color: #94A3B8 !important;
+}
+
+html.dark .paper-tab:hover:not(.active) {
+  color: #F8FAFC !important;
+  background-color: rgba(51, 65, 85, 0.5) !important;
 }
 
 html.dark .paper-tab.active {
-  background-color: #F59E0B !important;
-  color: #0F172A !important;
-  font-weight: 700 !important;
-  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35) !important;
+  background-color: #1E293B !important;
+  color: #FCD34D !important;
+  font-weight: 800 !important;
+  border: 1.5px solid #F59E0B !important;
+  box-shadow: none !important;
 }
 
-/* Step 2 Marks Selection Buttons (Vivid Popping Interaction in Both Themes) */
-.marks-btn {
+/* Step 2 Marks Selection Buttons - Tactile, Crisp & Professional (Zero Fuzzy Glow) */
+.marks-btn,
+.qmode-btn,
+.medium-btn {
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
   position: relative;
+  outline: none !important;
 }
 
-/* Light Mode: Marks Buttons */
-html:not(.dark) .marks-btn {
+.marks-btn:active,
+.qmode-btn:active,
+.medium-btn:active {
+  transform: scale(0.98);
+}
+
+/* Light Mode: Marks & Chamber Select Buttons */
+html:not(.dark) .marks-btn,
+html:not(.dark) .qmode-btn,
+html:not(.dark) .medium-btn {
   background-color: #FFFFFF !important;
-  border: 1.5px solid #E5E0D8 !important;
-  color: #475569 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  border: 1.5px solid #E2E8F0 !important;
+  color: #334155 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
 }
 
-html:not(.dark) .marks-btn:hover {
-  border-color: #F59E0B !important;
-  background-color: #FFFDF5 !important;
+html:not(.dark) .marks-btn:hover:not(.active),
+html:not(.dark) .qmode-btn:hover:not(.active),
+html:not(.dark) .medium-btn:hover:not(.active) {
+  border-color: #94A3B8 !important;
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
   transform: translateY(-1px);
 }
 
-html:not(.dark) .marks-btn.active {
+html:not(.dark) .marks-btn.active,
+html:not(.dark) .qmode-btn.active,
+html:not(.dark) .medium-btn.active {
   border: 2px solid #D97706 !important;
   background-color: #FEF3C7 !important;
-  box-shadow: 0 0 0 2.5px #FDE68A, 0 4px 14px rgba(217, 119, 6, 0.22) !important;
-  transform: translateY(-1px) scale(1.02) !important;
+  box-shadow: 0 1px 3px rgba(217, 119, 6, 0.15) !important;
+  transform: translateY(-1px);
 }
 
-html:not(.dark) .marks-btn.active span:first-child {
+html:not(.dark) .marks-btn.active span:first-child,
+html:not(.dark) .qmode-btn.active span,
+html:not(.dark) .medium-btn.active span {
   color: #78350F !important;
   font-weight: 800 !important;
 }
 
 html:not(.dark) .marks-btn.active span:last-child {
   color: #92400E !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
 }
 
-/* Dark Mode: Marks Buttons */
+/* Dark Mode: Marks & Chamber Select Buttons */
 html.dark .marks-btn,
-.marks-btn {
+html.dark .qmode-btn,
+html.dark .medium-btn,
+.marks-btn,
+.qmode-btn,
+.medium-btn {
   background-color: #0F172A;
   border: 1.5px solid #334155;
   color: #94A3B8;
+  box-shadow: none !important;
 }
 
-html.dark .marks-btn:hover,
-.marks-btn:hover {
-  border-color: #F59E0B;
-  background-color: rgba(15, 23, 42, 0.9);
+html.dark .marks-btn:hover:not(.active),
+html.dark .qmode-btn:hover:not(.active),
+html.dark .medium-btn:hover:not(.active),
+.marks-btn:hover:not(.active),
+.qmode-btn:hover:not(.active),
+.medium-btn:hover:not(.active) {
+  border-color: #64748B !important;
+  background-color: #1E293B !important;
+  color: #F8FAFC !important;
   transform: translateY(-1px);
 }
 
 html.dark .marks-btn.active,
-.marks-btn.active {
+html.dark .qmode-btn.active,
+html.dark .medium-btn.active,
+.marks-btn.active,
+.qmode-btn.active,
+.medium-btn.active {
   border: 2px solid #F59E0B !important;
-  background-color: rgba(245, 158, 11, 0.22) !important;
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.45), 0 4px 16px rgba(245, 158, 11, 0.25) !important;
-  transform: translateY(-1px) scale(1.02) !important;
+  background-color: rgba(245, 158, 11, 0.16) !important;
+  box-shadow: none !important;
+  transform: translateY(-1px);
 }
 
 html.dark .marks-btn.active span:first-child,
-.marks-btn.active span:first-child {
+html.dark .qmode-btn.active span,
+html.dark .medium-btn.active span,
+.marks-btn.active span:first-child,
+.qmode-btn.active span,
+.medium-btn.active span {
   color: #FEF08A !important;
   font-weight: 800 !important;
 }
@@ -1752,7 +1810,7 @@ html.dark .marks-btn.active span:first-child,
 html.dark .marks-btn.active span:last-child,
 .marks-btn.active span:last-child {
   color: #FCD34D !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
 }
 
 html:not(.dark) textarea#questionInput,
@@ -1983,8 +2041,99 @@ html:not(.dark) #resultMaxMarks {
 
 html:not(.dark) #resultPercentileBadge {
   background-color: #FEF3C7 !important;
+  color: #78350F !important;
+  border: 1.5px solid #F59E0B !important;
+  font-weight: 800 !important;
+}
+
+html.dark #resultPercentileBadge {
+  background-color: rgba(245, 158, 11, 0.18) !important;
+  color: #FDE68A !important;
+  border: 1px solid rgba(245, 158, 11, 0.45) !important;
+  font-weight: 700 !important;
+}
+
+html:not(.dark) #resultPaperBadge {
+  background-color: #F1F5F9 !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #0F172A !important;
+  font-weight: 700 !important;
+}
+
+html.dark #resultPaperBadge {
+  background-color: rgba(30, 41, 59, 0.9) !important;
+  border: 1px solid rgba(71, 85, 105, 0.7) !important;
+  color: #CBD5E1 !important;
+  font-weight: 700 !important;
+}
+
+html:not(.dark) #resultSyllabusPill {
+  background-color: #EFF6FF !important;
+  border: 1px solid #93C5FD !important;
+  color: #1E40AF !important;
+  font-weight: 700 !important;
+}
+
+html:not(.dark) #resultSyllabusPill i,
+html:not(.dark) #resultSyllabusPill svg {
+  color: #2563EB !important;
+}
+
+html.dark #resultSyllabusPill {
+  background-color: rgba(14, 165, 233, 0.15) !important;
+  border: 1px solid rgba(14, 165, 233, 0.35) !important;
+  color: #7DD3FC !important;
+}
+
+html.dark #resultSyllabusPill i,
+html.dark #resultSyllabusPill svg {
+  color: #38BDF8 !important;
+}
+
+html:not(.dark) #resultDirectivePill {
+  background-color: #FFFBEB !important;
+  border: 1px solid #FCD34D !important;
   color: #92400E !important;
-  border-color: #FDE68A !important;
+  font-weight: 700 !important;
+}
+
+html:not(.dark) #resultDirectivePill i,
+html:not(.dark) #resultDirectivePill svg {
+  color: #D97706 !important;
+}
+
+html.dark #resultDirectivePill {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+  color: #FDE68A !important;
+}
+
+html.dark #resultDirectivePill i,
+html.dark #resultDirectivePill svg {
+  color: #FBBF24 !important;
+}
+
+html:not(.dark) #resultPyqTrendPill {
+  background-color: #FAF5FF !important;
+  border: 1px solid #D8B4FE !important;
+  color: #6B21A8 !important;
+  font-weight: 700 !important;
+}
+
+html:not(.dark) #resultPyqTrendPill i,
+html:not(.dark) #resultPyqTrendPill svg {
+  color: #9333EA !important;
+}
+
+html.dark #resultPyqTrendPill {
+  background-color: rgba(168, 85, 247, 0.15) !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
+  color: #D8B4FE !important;
+}
+
+html.dark #resultPyqTrendPill i,
+html.dark #resultPyqTrendPill svg {
+  color: #C084FC !important;
 }
 
 html:not(.dark) #resultExecutiveSummary {
@@ -4292,6 +4441,53 @@ html.dark .account-nav-btn.active {
 .star-btn:hover svg {
   transform: scale(1.15);
 }
+
+/* ==========================================================================
+   Image 3: High-Contrast Adaptive Mobile Preview Drawer
+   ========================================================================== */
+html:not(.dark) #mobileDrawerBar {
+  background-color: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+}
+
+html:not(.dark) #mobileDrawerPillLabel {
+  color: #0F172A !important;
+}
+
+html:not(.dark) #mobileDrawerCounter {
+  color: #334155 !important;
+}
+
+html:not(.dark) #mobileDrawerPrevBtn {
+  background-color: #F1F5F9 !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #1E293B !important;
+}
+
+html:not(.dark) #mobileDrawerPrevBtn:hover {
+  background-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+html:not(.dark) #mobileDrawerNextBtn {
+  background-color: #F59E0B !important;
+  border: 1px solid #D97706 !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+html:not(.dark) #mobileDrawerNextBtn:hover {
+  background-color: #D97706 !important;
+  color: #FFFFFF !important;
+}
+
+html:not(.dark) #mobileDrawerContent {
+  background-color: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+  color: #1E293B !important;
+}
+
 
 /* Image 3 Fix: Examiner Line-by-Line Audit below answersheet: strictly hidden on mobile and tablet (< 1024px), visible only on Windows/Desktop (>= 1024px) */
 @media (max-width: 1023px) {
