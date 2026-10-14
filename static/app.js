@@ -5020,6 +5020,78 @@ window.isHindiEvaluation = function(evalData) {
   return false;
 };
 
+// Strict, Bi-Directional Scorecard Localization (Hindi/Hinglish vs. 100% Preserved English)
+window.localizeEvaluationUI = function(evalData) {
+  if (!evalData) evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
+  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
+
+  const setText = (id, enText, hiText) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = isHindi ? hiText : enText;
+  };
+
+  // 1. Analytical Rubric & Score Bars
+  setText("rubricCardHeading", "Analytical Rubric", "विश्लेषणात्मक रूब्रिक (Analytical Rubric)");
+  setText("barIntroLabel", "1. Introduction:", "1. प्रस्तावना (Introduction):");
+  setText("barCoreLabel", "2. Core Demand:", "2. मुख्य मांग (Core Demand):");
+  setText("barValueLabel", "3. Value Addition:", "3. मूल्य संवर्धन (Value Addition):");
+  setText("barPresLabel", "4. Presentation:", "4. प्रस्तुतिकरण (Presentation):");
+  setText("barConcLabel", "5. Conclusion:", "5. निष्कर्ष (Conclusion):");
+
+  // 2. Directive Adherence Audit
+  setText("directiveAuditHeading", "Directive Adherence Audit", "निर्देश अनुपालन ऑडिट (Directive Adherence Audit)");
+  setText("directiveCommandWordLabel", "Command Word:", "निर्देश शब्द (Command Word):");
+  setText("directiveScrutinyLabel", "Aspirant's Command Scrutiny:", "अभ्यर्थी का निर्देश अनुपालन (Aspirant's Scrutiny):");
+  setText("directiveLacunaLabel", "Directive Lacuna: ", "निर्देश अंतराल / कमी (Directive Lacuna): ");
+  setText("directiveGlossaryLabel", "Operative Keywords & Evaluator Glossary", "प्रभावी कीवर्ड्स एवं परीक्षक शब्दावली (Operative Keywords)");
+  setText("directiveGlossarySubLabel", "click/hover for exam meaning", "अर्थ देखने हेतु क्लिक/होवर करें");
+
+  // 3. Batch 1: UPSC Examiner Step-Marking & Point-by-Point Copy Audit
+  setText("batch1CardHeading", "UPSC Examiner Step-Marking & Point-by-Point Copy Audit", "UPSC परीक्षक चरणबद्ध अंकन (Step-Marking) एवं बिंदुवार कॉपी ऑडिट");
+  setText("batch1CardSubtitle", "Exact sub-demand step marks, handwritten point-level grading & your personal Locker habit progress", "सटीक उप-मांग स्टेप मार्क्स, हस्तलिखित बिंदु-वार ग्रेडिंग एवं लॉकर प्रगति ट्रैकर");
+  setText("batch1SubpartHeading", "1. Question Sub-Part Step-Marking Ceiling (How Your Marks Were Allocated)", "1. प्रश्न उप-भाग स्टेप-मार्किंग सीमा (अंक आवंटन वितरण)");
+  setText("batch1PointAuditHeading", "2. Point-by-Point Handwritten Audit (Which Exact Points Fetched Marks vs. Scope to Upgrade)", "2. बिंदुवार हस्तलिखित मूल्यांकन (किन बिंदुओं पर अंक मिले बनाम सुधार का दायरा)");
+  setText("batch1MentorMemoryHeading", "3. Personal Mentor Memory (Progress Across Your Answer Locker)", "3. व्यक्तिगत मेंटर स्मृति (उत्तर लॉकर में आपकी क्रमिक प्रगति)");
+  setText("mentorMemoryCopyCountBadge", "Longitudinal Habit Tracker", "दीर्घकालिक उत्तर लेखन ट्रैकर");
+
+  // 4. Micro-Hygiene & Presentation Polish
+  setText("microHygieneHeading", "Micro-Hygiene & Presentation Polish", "सूक्ष्म-शुद्धता एवं प्रस्तुतिकरण समीक्षा (Micro-Hygiene & Presentation Polish)");
+  setText("microHygieneImpressionBadge", "Examiner Impression", "परीक्षक दृष्टिकोण (Examiner Impression)");
+  setText("hygieneSpellingLabel", "Spelling Catches:", "वर्तनी त्रुटियां (Spelling Catches):");
+  setText("hygieneGrammarLabel", "Grammar & Syntax:", "व्याकरण एवं वाक्य विन्यास (Grammar & Syntax):");
+  setText("hygienePresentationLabel", "Presentation & Budget:", "प्रस्तुतिकरण एवं शब्द सीमा (Presentation & Budget):");
+  setText("section1FooterStatus", "Completed Section 1: Audit & Marks", "खंड 1 पूर्ण: ऑडिट एवं प्राप्तांक (Section 1: Audit & Marks)");
+  setText("section1FooterBtnText", "Next: Deep Evaluation (Section Audit & Value Multipliers)", "आगे बढ़ें: विस्तृत मूल्यांकन (Deep Evaluation & Value Multipliers) →");
+
+  // 5. Deep Evaluation (Tab 2)
+  setText("forensicAuditCardHeading", "Section-by-Section Deep Evaluation & Value Addition (Intro • Body • Conclusion)", "खंडवार विस्तृत मूल्यांकन एवं मूल्य संवर्धन (प्रस्तावना • मुख्य भाग • निष्कर्ष)");
+  setText("forensicAuditCardBadge", "Where & How to Write", "कहाँ और कैसे लिखें (Where & How to Write)");
+  setText("introAccordionBtnText", "1. Introduction Audit & How to Write", "1. प्रस्तावना मूल्यांकन एवं आदर्श प्रारूप (Introduction Audit & How to Write)");
+  setText("introFeedbackMistakesLabel", "Feedback & Mistakes:", "परीक्षक प्रतिपुष्टि एवं कमियां (Feedback & Mistakes):");
+  setText("bodyAccordionBtnText", "2. Body Audit, Value Addition & Current Affairs (Where & How to Write)", "2. मुख्य भाग मूल्यांकन, मूल्य संवर्धन एवं समसामयिकी (Body Audit & Value Multipliers)");
+  setText("bodyOverallAssessmentHeading", "Examiner's Overall Body Assessment:", "परीक्षक का समग्र मुख्य भाग मूल्यांकन (Overall Body Assessment):");
+  setText("bodyStrengthsHeading", "What Fetched Marks in Body:", "मुख्य भाग में जिन बिंदुओं पर अंक मिले (What Fetched Marks):");
+  setText("bodyUpgradeLeversHeading", "Body Upgrade Levers (Gain +1.5 to +2.5M):", "मुख्य भाग में अंक सुधार के बिंदु (+1.5 से +2.5 अंक वृद्धि):");
+  setText("bodyMissingDimensionsHeading", "Missing Analytical Dimensions (Uncovered Demands):", "छूटे हुए विश्लेषणात्मक आयाम (Missing Dimensions):");
+  setText("bodyValueAddSectionTitle", "Value Addition & Contemporary Linkages for Body (Where & How to Write)", "मुख्य भाग हेतु मूल्य संवर्धन एवं समसामयिक जुड़ाव (Where & How to Write)");
+  setText("bodyValueAddBadge", "Integrated Value Multipliers", "एकीकृत मूल्य संवर्धन (Integrated Value Multipliers)");
+  setText("caExampleHeadingLabel", "Current Affairs & Contemporary Example", "समसामयिक घटनाक्रम एवं प्रासंगिक उदाहरण (Current Affairs Linkage)");
+  setText("caWhereToWritePrefix", "Where to Write: ", "कहाँ लिखें (Where to Write): ");
+  setText("caHowToWriteTitle", "✍️ How to Write in Body (2-Line Exam Format):", "✍️ मुख्य भाग में ऐसे लिखें (2-Line Exam Format):");
+  setText("caReportsHeadingLabel", "Official Reports, Committees & Data", "प्रामाणिक रिपोर्ट, समितियां एवं डेटा (Official Reports & Data)");
+  setText("caReportsBadgeLabel", "Authority Anchor", "प्रामाणिक आधार (Authority Anchor)");
+  setText("missingKeywordsHeading", "High-Yield Keywords, Articles & Doctrines for Body", "मुख्य भाग हेतु उच्च-अंकदायी कीवर्ड्स, अनुच्छेद एवं सिद्धांत (Keywords & Doctrines)");
+  setText("missingKeywordsSubBadge", "Exact Keyword Placement", "सटीक कीवर्ड स्थान (Exact Keyword Placement)");
+  setText("conclusionAccordionBtnText", "3. Conclusion Audit & How to Write", "3. निष्कर्ष मूल्यांकन एवं आदर्श प्रारूप (Conclusion Audit & How to Write)");
+  setText("conclusionFeedbackMistakesLabel", "Feedback & Mistakes:", "परीक्षक प्रतिपुष्टि एवं कमियां (Feedback & Mistakes):");
+  setText("transcriptionAccordionBtnText", "Step 4: Deciphered Handwriting (What the Examiner Read)", "चरण 4: हस्तलिखित उत्तर (परीक्षक द्वारा पढ़ा गया पाठ)");
+  setText("transcriptionOcrLabel", "Deciphered using Gemini 2.5 Multimodal OCR:", "OCR द्वारा पठित हस्तलेखन:");
+  setText("transcriptionCopyBtnText", "Copy Text", "प्रतिलिपि बनाएं (Copy)");
+  setText("tab2NavPrevBtnText", "Previous: Audit & Marks", "← पिछला: ऑडिट एवं प्राप्तांक");
+  setText("tab2NavNextBtnText", "Next: Topper Model Answer", "आगे बढ़ें: टॉपर मॉडल उत्तर →");
+};
+
 // Single Canonical Source of Truth for Sub-Part Step-Marking Ceilings & Allocations across the Entire Website
 window.getCanonicalStepMarkingScheme = function(evalData) {
   if (!evalData) evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
@@ -11106,37 +11178,41 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
 
   // UNIVERSAL DECONTRADICTION, DISTINCT BADGES, EXACT PAGE PLACEMENT & 1-LINE SPACE-SAVING USAGE FOR MISSING KEYWORDS CARDS
   if (Array.isArray(evalData.missing_keywords_cards)) {
+    const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
+    const qTextLow = (String(evalData.detected_question || (typeof state !== "undefined" && state.question) || evalData.question || "") + " " + String(evalData.transcribed_text || "")).toLowerCase();
     const pbpForPlacement = Array.isArray(evalData.point_by_point_audit) ? evalData.point_by_point_audit : [];
     const annsForPlacement = (Array.isArray(evalData.visual_annotations) ? evalData.visual_annotations : []).filter(a => a && a.tag);
 
     const getCleanDomainBadge = (termStr, currentTag, idx = 0) => {
       const tLow = String(termStr || "").toLowerCase();
       const cTag = String(currentTag || "").trim();
-      if (tLow.includes("benioff")) return "Subduction Seismology";
-      if (tLow.includes("sendai")) return "Global DRR Standard (2015–30)";
-      if (tLow.includes("microzonation") || tLow.includes("zone v") || tLow.includes("seismic zon")) return "Hazard Zonation & Planning";
-      if (tLow.includes("liquefaction")) return "Alluvial Geomorphic Hazard";
-      if (tLow.includes("elastic rebound") || tLow.includes("reid")) return "Fault-Rupture Mechanics";
-      if (tLow.includes("buranji")) return "Ahom Royal Chronicles";
-      if (tLow.includes("paik")) return "Military-Agrarian System";
-      if (tLow.includes("satra") || tLow.includes("sankardev") || tLow.includes("vaishnav")) return "Cultural & Monastic Network";
-      if (tLow.includes("saraighat") || tLow.includes("lachit")) return "1671 Naval Defense Milestone";
-      if (tLow.includes("charaideo") || tLow.includes("moidam")) return "2024 UNESCO World Heritage";
-      if (/\barticle\s+\d+/i.test(tLow)) return "Constitutional Mandate";
-      if (/\bv\.\s+|\bcase\b|\bjudgment\b/i.test(tLow)) return "Supreme Court Precedent";
-
-      // Subject-specific keyword matching:
-      if (/\b(?:cultural synthesis|syncretism|advaita|dvaita|vishishtadvaita|vedanta|bhakti|alvar|nayanar|agamic|sramana|upanishad|sangam|dharma|darshana|samkhya|nyaya|mimamsa|charvaka)\b/i.test(tLow)) {
-        return "Philosophical & Cultural Synthesis";
+      let badge = "";
+      if (tLow.includes("benioff")) badge = isHindi ? "भूकंपीय विवर्तनिकी (Seismology)" : "Subduction Seismology";
+      else if (tLow.includes("sendai")) badge = isHindi ? "सेंडाई आपदा रूपरेखा (Global DRR)" : "Global DRR Standard (2015–30)";
+      else if (tLow.includes("microzonation") || tLow.includes("zone v") || tLow.includes("seismic zon")) badge = isHindi ? "आपदा क्षेत्रीकरण एवं नियोजन (Hazard Zonation)" : "Hazard Zonation & Planning";
+      else if (tLow.includes("liquefaction")) badge = isHindi ? "जलोढ़ भू-आकृतिक जोखिम (Geomorphic Hazard)" : "Alluvial Geomorphic Hazard";
+      else if (tLow.includes("elastic rebound") || tLow.includes("reid")) badge = isHindi ? "भ्रंश-विदारण यांत्रिकी (Fault Mechanics)" : "Fault-Rupture Mechanics";
+      else if (tLow.includes("buranji")) badge = isHindi ? "अहोम बुरंजी ऐतिहासिक स्रोत" : "Ahom Royal Chronicles";
+      else if (tLow.includes("paik")) badge = isHindi ? "पाइक सैन्य-कृषि व्यवस्था" : "Military-Agrarian System";
+      else if (tLow.includes("satra") || tLow.includes("sankardev") || tLow.includes("vaishnav")) badge = isHindi ? "सत्र एवं वैष्णव सांस्कृतिक नेटवर्क" : "Cultural & Monastic Network";
+      else if (tLow.includes("saraighat") || tLow.includes("lachit")) badge = isHindi ? "सरायघाट ऐतिहासिक रक्षा मील का पत्थर" : "1671 Naval Defense Milestone";
+      else if (tLow.includes("charaideo") || tLow.includes("moidam")) badge = isHindi ? "यूनेस्को विश्व धरोहर (Charaideo)" : "2024 UNESCO World Heritage";
+      else if (/\barticle\s+\d+/i.test(tLow)) badge = isHindi ? "संवैधानिक प्रावधान (Constitutional Mandate)" : "Constitutional Mandate";
+      else if (/\bv\.\s+|\bcase\b|\bjudgment\b/i.test(tLow)) badge = isHindi ? "सर्वोच्च न्यायालय निर्णय (SC Precedent)" : "Supreme Court Precedent";
+      else if (/\b(?:cultural synthesis|syncretism|advaita|dvaita|vishishtadvaita|vedanta|bhakti|alvar|nayanar|agamic|sramana|upanishad|sangam|dharma|darshana|samkhya|nyaya|mimamsa|charvaka)\b/i.test(tLow)) {
+        badge = isHindi ? "दार्शनिक एवं सांस्कृतिक संश्लेषण" : "Philosophical & Cultural Synthesis";
       }
-      if (/\b(?:insolation|albedo|continentality|lapse rate|coriolis|temperature inversion|specific heat|urban heat island|hadley cell|ferrel cell|jet stream)\b/i.test(tLow)) {
-        return "Climatological & Spatial Mechanism";
+      else if (/\b(?:insolation|albedo|continentality|lapse rate|coriolis|temperature inversion|specific heat|urban heat island|hadley cell|ferrel cell|jet stream)\b/i.test(tLow)) {
+        badge = isHindi ? "जलवायु एवं स्थानिक प्रक्रिया" : "Climatological & Spatial Mechanism";
       }
+      else if (/\bcommittee\b|\bcommission\b|\barc\b|समिति|आयोग/i.test(tLow) && discipline !== "HISTORY_CULTURE" && discipline !== "PHYSICAL_GEOGRAPHY") {
+        badge = isHindi ? "समिति अनुशंसा (Committee Benchmark)" : "Committee Benchmark";
+      }
+      else if (/\bindex\b|\breport\b|\bsurvey\b|\bdata\b|%|सूचकांक|रिपोर्ट/i.test(tLow)) {
+        badge = isHindi ? "तथ्यात्मक सांख्यिकी (Empirical Metric)" : "Empirical Metric";
+      }
+      if (badge) return badge;
 
-      if (/\bcommittee\b|\bcommission\b|\barc\b/i.test(tLow) && discipline !== "HISTORY_CULTURE" && discipline !== "PHYSICAL_GEOGRAPHY") return "Committee Benchmark";
-      if (/\bindex\b|\breport\b|\bsurvey\b|\bdata\b|%/i.test(tLow)) return "Empirical Metric";
-
-      // If currentTag is specific (and NOT a repeated generic label or cross-subject mismatch), keep it
       if (cTag && !/written|deepen application|keyword upgrade|geomorphic & scientific concept|historical & cultural anchor|high-yield domain anchor/i.test(cTag)) {
         if ((discipline === "HISTORY_CULTURE" || discipline === "PHYSICAL_GEOGRAPHY") && /committee|policy reform|constitutional|statutory/i.test(cTag)) {
           // Reject cross-subject label and fall through to discipline pool!
@@ -11145,10 +11221,10 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
         }
       }
       const fallbackBadgesByDiscipline = {
-        PHYSICAL_GEOGRAPHY: ["Climatological / Thermal Mechanism", "Spatial Heat Budget & Radiation", "Geomorphic & Dynamic Process", "Global Climate / DRR Standard"],
-        HISTORY_CULTURE: ["Primary Historical Chronicle", "Philosophical Doctrine & Darshana", "Syncretic Cultural Movement", "UNESCO & Living Heritage"],
-        PHILOSOPHY_ETHICS: ["Deontological / Moral Principle", "Virtue & Character Anchor", "Public Probity Framework", "Applied Governance Standard"],
-        POLICY_GOVERNANCE_ECONOMY: ["Constitutional / Statutory Anchor", "Empirical & Index Benchmark", "Institutional Mechanism", "Policy Reform Framework"]
+        PHYSICAL_GEOGRAPHY: isHindi ? ["जलवायु / तापीय क्रियाविधि", "स्थानिक ऊष्मा बजट एवं विकिरण", "भू-आकृतिक एवं गतिक प्रक्रिया", "वैश्विक जलवायु / DRR मानक"] : ["Climatological / Thermal Mechanism", "Spatial Heat Budget & Radiation", "Geomorphic & Dynamic Process", "Global Climate / DRR Standard"],
+        HISTORY_CULTURE: isHindi ? ["प्राथमिक ऐतिहासिक स्रोत", "दार्शनिक सिद्धांत एवं दर्शन", "सांस्कृतिक संश्लेषण आंदोलन", "यूनेस्को एवं सजीव धरोहर"] : ["Primary Historical Chronicle", "Philosophical Doctrine & Darshana", "Syncretic Cultural Movement", "UNESCO & Living Heritage"],
+        PHILOSOPHY_ETHICS: isHindi ? ["कर्तव्यशास्त्रीय / नैतिक सिद्धांत", "सद्गुण एवं चारित्रिक आधार", "प्रशासनिक शुचिता ढांचा", "व्यावहारिक शासन मानक"] : ["Deontological / Moral Principle", "Virtue & Character Anchor", "Public Probity Framework", "Applied Governance Standard"],
+        POLICY_GOVERNANCE_ECONOMY: isHindi ? ["संवैधानिक / वैधानिक आधार", "तथ्यात्मक एवं सूचकांक बेंचमार्क", "संस्थागत तंत्र", "नीतिगत सुधार रूपरेखा"] : ["Constitutional / Statutory Anchor", "Empirical & Index Benchmark", "Institutional Mechanism", "Policy Reform Framework"]
       };
       const pool = fallbackBadgesByDiscipline[discipline] || fallbackBadgesByDiscipline.POLICY_GOVERNANCE_ECONOMY;
       return pool[idx % pool.length];
@@ -11156,19 +11232,39 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
 
     const getCleanWhereToUse = (termStr, currentWhere, idx = 0) => {
       const tLow = String(termStr || "").toLowerCase();
-      if (tLow.includes("benioff")) return "Page 2 • Inside your [Convergent Boundary] sketch or plate-friction bullet";
-      if (tLow.includes("sendai")) return "Page 3 (Bottom) • Attach to the end of your closing 'seismic retrofitting & early warning' line";
-      if (tLow.includes("microzonation") || tLow.includes("zone v") || tLow.includes("seismic zon")) return "Page 3 • Under '① Earthquakes (Himalayas)' in your Vulnerability tree";
-      if (tLow.includes("liquefaction")) return "Page 2 (Bottom) • Add as 4th hazard in your 'Tsunami, Chemical leakage...' transition line";
-      if (tLow.includes("elastic rebound") || tLow.includes("reid")) return "Page 1 (Below Map) • Add as a 4-word bracket inside your tectonic tremor definition";
-      if (tLow.includes("buranji")) return "Page 1 • Under 'Role in Shaping Cultural & Historical Identity' alongside Assamese language";
-      if (tLow.includes("paik")) return "Page 1 • Under 'Role of Ahom Kingdom' beside your point on halting 17 Mughal invasions";
-      if (tLow.includes("satra") || tLow.includes("sankardev")) return "Page 2 • Under 'Cultural Identity & Contemporary Legacy' to replace Manipuri/Meghalaya examples";
-      if (tLow.includes("saraighat") || tLow.includes("lachit")) return "Page 1 • Inline with your point on repulsing 17 Mughal invasions";
-      if (tLow.includes("charaideo") || tLow.includes("moidam")) return "Page 3 • Under 'Legacy in Contemporary Times' (replacing Buddhist/Chinese Pagodas)";
+      if (isHindi) {
+        if (tLow.includes("benioff")) return "पृष्ठ 2 • अपने [अभिसारी सीमा] रेखाचित्र या विवर्तनिकी घर्षण बिंदु में जोड़ें";
+        if (tLow.includes("sendai")) return "पृष्ठ 3 (नीचे) • अपने समापन के 'भूकंपरोधी निर्माण एवं पूर्व चेतावनी' वाक्य के अंत में शामिल करें";
+        if (tLow.includes("microzonation") || tLow.includes("zone v") || tLow.includes("seismic zon")) return "पृष्ठ 3 • सुभेद्यता आरेख में '① हिमालयी भूकंप' के अंतर्गत जोड़ें";
+        if (tLow.includes("liquefaction")) return "पृष्ठ 2 (नीचे) • जलोढ़ बाढ़ मैदानों में 4थे जोखिम के रूप में शामिल करें";
+        if (tLow.includes("elastic rebound") || tLow.includes("reid")) return "पृष्ठ 1 (मानचित्र के नीचे) • प्लेट विवर्तनिकी परिभाषा में कोष्ठक में जोड़ें";
+        if (tLow.includes("buranji")) return "पृष्ठ 1 • 'सांस्कृतिक एवं ऐतिहासिक पहचान' उप-शीर्षक के अंतर्गत असमिया भाषा के साथ जोड़ें";
+        if (tLow.includes("paik")) return "पृष्ठ 1 • 'अहोम साम्राज्य की भूमिका' उप-शीर्षक के अंतर्गत 17 मुगल आक्रमणों के बिंदु के पास जोड़ें";
+        if (tLow.includes("satra") || tLow.includes("sankardev")) return "पृष्ठ 2 • 'सांस्कृतिक पहचान एवं समकालीन विरासत' उप-शीर्षक के अंतर्गत शामिल करें";
+        if (tLow.includes("saraighat") || tLow.includes("lachit")) return "पृष्ठ 1 • 17 मुगल आक्रमणों को विफल करने के बिंदु में शामिल करें";
+        if (tLow.includes("charaideo") || tLow.includes("moidam")) return "पृष्ठ 3 • 'समकालीन समय में विरासत' उप-शीर्षक के अंतर्गत जोड़ें";
+      } else {
+        if (tLow.includes("benioff")) return "Page 2 • Inside your [Convergent Boundary] sketch or plate-friction bullet";
+        if (tLow.includes("sendai")) return "Page 3 (Bottom) • Attach to the end of your closing 'seismic retrofitting & early warning' line";
+        if (tLow.includes("microzonation") || tLow.includes("zone v") || tLow.includes("seismic zon")) return "Page 3 • Under '① Earthquakes (Himalayas)' in your Vulnerability tree";
+        if (tLow.includes("liquefaction")) return "Page 2 (Bottom) • Add as 4th hazard in your 'Tsunami, Chemical leakage...' transition line";
+        if (tLow.includes("elastic rebound") || tLow.includes("reid")) return "Page 1 (Below Map) • Add as a 4-word bracket inside your tectonic tremor definition";
+        if (tLow.includes("buranji")) return "Page 1 • Under 'Role in Shaping Cultural & Historical Identity' alongside Assamese language";
+        if (tLow.includes("paik")) return "Page 1 • Under 'Role of Ahom Kingdom' beside your point on halting 17 Mughal invasions";
+        if (tLow.includes("satra") || tLow.includes("sankardev")) return "Page 2 • Under 'Cultural Identity & Contemporary Legacy' to replace Manipuri/Meghalaya examples";
+        if (tLow.includes("saraighat") || tLow.includes("lachit")) return "Page 1 • Inline with your point on repulsing 17 Mughal invasions";
+        if (tLow.includes("charaideo") || tLow.includes("moidam")) return "Page 3 • Under 'Legacy in Contemporary Times' (replacing Buddhist/Chinese Pagodas)";
+      }
 
       const wStr = String(currentWhere || "").trim();
       if (wStr && wStr.length >= 22 && !/build directly on your existing|replace your descriptive sentence|integrate into the relevant body sub-heading/i.test(wStr)) {
+        if (isHindi && !/[\u0900-\u097F]/.test(wStr)) {
+          return wStr.replace(/^Page\s*(\d+)/i, "पृष्ठ $1")
+                     .replace(/Plug inline under your ['"]([^'"]+)['"] point/i, "अपने '$1' बिंदु के अंतर्गत जोड़ें")
+                     .replace(/Inside ['"]([^'"]+)['"] sub-heading/i, "'$1' उप-शीर्षक के अंतर्गत जोड़ें")
+                     .replace(/Attach as a 4-word bracket inside your opening Body bullet/i, "मुख्य भाग के आरंभिक बिंदु में कोष्ठक में जोड़ें")
+                     .replace(/Attach to the end of your closing reform\/mitigation sentence/i, "समाधान/सुधार संबंधी वाक्य के अंत में जोड़ें");
+        }
         return wStr;
       }
 
@@ -11177,14 +11273,24 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
       if (pbpMatch && pbpMatch.title) {
         const pg = pbpMatch.page || (idx + 1);
         const shortTitle = String(pbpMatch.title).split(/[:(]/)[0].trim().slice(0, 46);
-        return `Page ${pg} • Plug inline under your '${shortTitle}' point`;
+        return isHindi
+          ? `पृष्ठ ${pg} • अपने '${shortTitle}' बिंदु के अंतर्गत जोड़ें`
+          : `Page ${pg} • Plug inline under your '${shortTitle}' point`;
       }
       const annMatch = annsForPlacement[idx] || annsForPlacement[idx % Math.max(1, annsForPlacement.length)];
       if (annMatch && annMatch.tag) {
         const pg = annMatch.page || (idx + 1);
-        return `Page ${pg} • Inside '${String(annMatch.tag).replace(/^BODY:\s*/i, "").trim()}' sub-heading`;
+        const tagClean = String(annMatch.tag).replace(/^BODY:\s*/i, "").trim();
+        return isHindi
+          ? `पृष्ठ ${pg} • '${tagClean}' उप-शीर्षक के अंतर्गत जोड़ें`
+          : `Page ${pg} • Inside '${tagClean}' sub-heading`;
       }
-      const slotLocations = [
+      const slotLocations = isHindi ? [
+        "पृष्ठ 1 • मुख्य भाग के आरंभिक बिंदु में कोष्ठक में जोड़ें",
+        "पृष्ठ 1–2 • मुख्य कारण/क्रियाविधि उप-शीर्षक के साथ जोड़ें",
+        "पृष्ठ 2 • क्षेत्रीय/क्षेत्रीय प्रभाव बिंदु में उप-वाक्य के रूप में शामिल करें",
+        "अंतिम पृष्ठ • अपने समाधान/सुधार संबंधी वाक्य के अंत में जोड़ें"
+      ] : [
         "Page 1 • Attach as a 4-word bracket inside your opening Body bullet",
         "Page 1–2 • Pair inline with your primary causal/mechanism sub-heading",
         "Page 2 • Add as a sub-clause inside your regional/sectoral impact point",
@@ -11209,6 +11315,37 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
         }
       }
 
+      const isElectionOrWatchdogQ = /\b(?:election|eci|election commission|election commissioner|electoral|watchdog|collegium|appointment|cbi|cag|lokpal)\b/i.test(qTextLow);
+      const isCitizenCharterQ = /\b(?:citizen'?s?\s*charter|sevottam|service delivery|citizen centric|नागरिक चार्टर|सिटिजन चार्टर|सेवोत्तम|लोक सेवा|प्रशासनिक सुधार)\b/i.test(qTextLow);
+
+      if (tLow.includes("arc") || tLow.includes("administrative reforms") || tLow.includes("प्रशासनिक सुधार")) {
+        if (isCitizenCharterQ) {
+          return isHindi
+            ? "\"**द्वितीय प्रशासनिक सुधार आयोग (2nd ARC 12वीं रिपोर्ट)** के अनुसार सिटिजन चार्टर को 7-सूत्रीय मॉडल, स्वतंत्र ऑडिट एवं सेवा में देरी पर वैधानिक क्षतिपूर्ति के साथ लागू करें।\""
+            : "\"Substantiate via **2nd ARC (12th Report: Citizen Centric Administration)** to institutionalize the 7-step model, periodic independent audits, and enforceable compensation for service delivery delays.\"";
+        }
+        if (isElectionOrWatchdogQ) {
+          return isHindi
+            ? "\"**द्वितीय प्रशासनिक सुधार आयोग (2nd ARC 4th Report)** के अनुसार निगरानी संस्थाओं की स्वायत्तता हेतु निष्पक्ष चयन समिति (पीएम, सीजेआई, लोकसभा स्पीकर, विपक्ष के नेता) का गठन करें।\""
+            : "\"Substantiate via **2nd ARC 4th Report** to recommend a broad collegium (PM, CJI, Speaker, LoP, Law Minister) to insulate watchdog bodies.\"";
+        }
+        return isHindi
+          ? "\"**द्वितीय प्रशासनिक सुधार आयोग (2nd ARC)** की अनुशंसाओं के अनुसार शासन में पारदर्शिता, समयबद्ध सेवा वितरण एवं नैतिक जवाबदेही सुनिश्चित करें।\""
+          : "\"Anchor under **2nd ARC Recommendations** to enforce institutional transparency, time-bound service delivery, and public integrity.\"";
+      }
+
+      if (tLow.includes("social audit") || tLow.includes("सामाजिक अंकेक्षण") || tLow.includes("जन अंकेक्षण")) {
+        return isHindi
+          ? "\"**सामाजिक अंकेक्षण (Social Audit)** को ग्राम सभा स्तर पर अनिवार्य बनाकर योजनाओं के क्रियान्वयन में प्रत्यक्ष जन-निगरानी एवं पारदर्शिता स्थापित करें।\""
+          : "\"Institutionalize **Social Audit** with Gram Sabha oversight to enforce participatory transparency and ground-level expenditure verification.\"";
+      }
+
+      if (tLow.includes("sevottam") || tLow.includes("सेवोत्तम")) {
+        return isHindi
+          ? "\"**सेवोत्तम मॉडल (Sevottam Framework)** के तीन घटकों (सिटिजन चार्टर, लोक शिकायत निवारण, सेवा वितरण क्षमता) को प्रशासनिक प्रक्रिया में समाहित करें।\""
+          : "\"Apply the **Sevottam Framework** (Citizen's Charter, Public Grievance Redress, and Service Delivery Capability) to systematically benchmark administrative delivery.\"";
+      }
+
       // Domain-specific high-yield exam phrasing
       if (tLow.includes("baranwal")) {
         return "\"Cite **Anoop Baranwal (2023)** to mandate a balanced multi-party selection committee (PM, CJI, LoP) to safeguard institutional neutrality.\"";
@@ -11221,9 +11358,6 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
       }
       if (tLow.includes("255") || (tLow.includes("law commission") && tLow.includes("electoral"))) {
         return "\"Cite **Law Commission 255th Report (2015)** to advocate equal constitutional removal safeguards and a 3-member collegium for all Election Commissioners.\"";
-      }
-      if (tLow.includes("arc") || tLow.includes("ethics in governance")) {
-        return "\"Substantiate via **2nd ARC 4th Report** to recommend a broad collegium (PM, CJI, Speaker, LoP, Law Minister) to insulate watchdog bodies.\"";
       }
       if (tLow.includes("tarkunde")) {
         return "\"Cite **Tarkunde Committee (1975)** to mandate an independent selection panel of PM, CJI, and LoP to insulate election machinery.\"";
@@ -11384,15 +11518,23 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
           }
         }
         if (!replaced) {
-          card.domain_or_thinker = "⚡ Shallow Mention — Analytical Upgrade Needed";
-          card.definition = `You mentioned **${rawTerm}** on your answer sheet—substantiate its core analytical significance: ${cleanCoreDef}`;
+          card.domain_or_thinker = isHindi
+            ? "⚡ संक्षिप्त उल्लेख — विश्लेषणात्मक विस्तार अपेक्षित"
+            : "⚡ Shallow Mention — Analytical Upgrade Needed";
+          card.definition = isHindi
+            ? `आपने अपने उत्तर में **${rawTerm}** का उल्लेख किया है—इसके मुख्य विश्लेषणात्मक संदर्भ को स्पष्ट करें: ${cleanCoreDef}`
+            : `You mentioned **${rawTerm}** on your answer sheet—substantiate its core analytical significance: ${cleanCoreDef}`;
           card.where_to_use = getCleanWhereToUse(rawTerm, card.where_to_use, idx);
           card.how_to_use_one_line = getCleanOneLineUsage(rawTerm, cleanCoreDef, card.how_to_use_one_line, idx);
         }
       } else if (termWrittenVerbatim) {
         shallowCount++;
-        card.domain_or_thinker = "⚡ Shallow Mention — Analytical Upgrade Needed";
-        card.definition = `You mentioned **${rawTerm}** in passing—connect it directly to its core analytical significance: ${cleanCoreDef}`;
+        card.domain_or_thinker = isHindi
+          ? "⚡ संक्षिप्त उल्लेख — विश्लेषणात्मक विस्तार अपेक्षित"
+          : "⚡ Shallow Mention — Analytical Upgrade Needed";
+        card.definition = isHindi
+          ? `आपने अपने उत्तर में **${rawTerm}** का संक्षिप्त उल्लेख किया है—इसे इसके मुख्य विश्लेषणात्मक महत्व से जोड़ें: ${cleanCoreDef}`
+          : `You mentioned **${rawTerm}** in passing—connect it directly to its core analytical significance: ${cleanCoreDef}`;
         card.where_to_use = getCleanWhereToUse(rawTerm, card.where_to_use, idx);
         card.how_to_use_one_line = getCleanOneLineUsage(rawTerm, cleanCoreDef, card.how_to_use_one_line, idx);
       } else {
@@ -11451,6 +11593,9 @@ function renderEvaluation(evalData) {
   }
   syncRubricAndMarginScores(evalData);
   state.currentEvaluation = evalData;
+  if (typeof window.localizeEvaluationUI === "function") {
+    try { window.localizeEvaluationUI(evalData); } catch (e) { console.error("localizeEvaluationUI err:", e); }
+  }
 
   // 0. Build Glossary Map for Instant Inline Jargon Decoding across remarks and model answer
   state.glossaryMap = {};
@@ -11941,37 +12086,58 @@ function renderEvaluation(evalData) {
   const directiveMeaningText = document.getElementById("directiveMeaningText");
   const directiveComprehensionBadge = document.getElementById("directiveComprehensionBadge");
 
+  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
   const dNorm = dName.toLowerCase();
-  let cmdType = "Comprehensive Mandate";
-  let cmdMeaning = "Demands addressing all explicit and implicit sub-demands with balanced argumentation, factual grounding, and constitutional fidelity.";
+  let cmdType = isHindi ? "समग्र निर्देश (Comprehensive Mandate)" : "Comprehensive Mandate";
+  let cmdMeaning = isHindi
+    ? "प्रश्न की प्रत्यक्ष व अंतर्निहित सभी उप-मांगों को संतुलित तर्कों, तथ्यात्मक आधार एवं संवैधानिक निष्ठा के साथ पूर्ण करना अपेक्षित है।"
+    : "Demands addressing all explicit and implicit sub-demands with balanced argumentation, factual grounding, and constitutional fidelity.";
 
   if (dNorm.includes("critically") || dNorm.includes("critical") || dNorm.includes("आलोचना")) {
-    cmdType = "Dialectical Mandate";
-    cmdMeaning = "Demands rigorous dialectical evaluation: balancing substantive operational merits (Thesis) against systemic bottlenecks, constitutional risks, or unintended harms (Anti-thesis) to reach a forward-looking verdict.";
+    cmdType = isHindi ? "द्वंद्वात्मक निर्देश (Dialectical Mandate)" : "Dialectical Mandate";
+    cmdMeaning = isHindi
+      ? "दोनों पक्षों का गहन द्वंद्वात्मक मूल्यांकन: व्यावहारिक लाभों (Thesis) के साथ-साथ प्रणालीगत बाधाओं एवं चुनौतियों (Anti-thesis) का संतुलन कर अग्रगामी निष्कर्ष प्रस्तुत करना।"
+      : "Demands rigorous dialectical evaluation: balancing substantive operational merits (Thesis) against systemic bottlenecks, constitutional risks, or unintended harms (Anti-thesis) to reach a forward-looking verdict.";
   } else if (dNorm.includes("examine") || dNorm.includes("investigate") || dNorm.includes("परीक्षण") || dNorm.includes("जांच")) {
-    cmdType = "Diagnostic Mandate";
-    cmdMeaning = "Demands probing beneath surface-level descriptions to diagnose root institutional causes, statutory tensions, and ground-level implementation challenges, supported by actionable structural remedies.";
+    cmdType = isHindi ? "नैदानिक परीक्षण निर्देश (Diagnostic Mandate)" : "Diagnostic Mandate";
+    cmdMeaning = isHindi
+      ? "सतही विवरण से आगे बढ़कर संस्थागत कारणों, वैधानिक प्रावधानों एवं जमीनी बाधाओं की पहचान कर संरचनात्मक समाधान प्रस्तुत करना।"
+      : "Demands probing beneath surface-level descriptions to diagnose root institutional causes, statutory tensions, and ground-level implementation challenges, supported by actionable structural remedies.";
   } else if (dNorm.includes("discuss") || dNorm.includes("चर्चा")) {
-    cmdType = "Multi-Dimensional Mandate";
-    cmdMeaning = "Demands exploring comprehensive multi-stakeholder dimensions (PESTLE: Political, Economic, Social, Technological, Legal, Environmental) with structured headings and concrete empirical evidence.";
+    cmdType = isHindi ? "बहु-आयामी चर्चा निर्देश (Multi-Dimensional Mandate)" : "Multi-Dimensional Mandate";
+    cmdMeaning = isHindi
+      ? "विभिन्न हितधारक आयामों (सामाजिक, आर्थिक, राजनीतिक, प्रशासनिक, विधिक) को संरचित शीर्षकों एवं ठोस साक्ष्यों के साथ विस्तार देना।"
+      : "Demands exploring comprehensive multi-stakeholder dimensions (PESTLE: Political, Economic, Social, Technological, Legal, Environmental) with structured headings and concrete empirical evidence.";
   } else if (dNorm.includes("evaluate") || dNorm.includes("assess") || dNorm.includes("मूल्यांकन") || dNorm.includes("आकलन")) {
-    cmdType = "Criterion-Based Audit";
-    cmdMeaning = "Demands measuring actual policy or operational outcomes directly against original constitutional/statutory intent, identifying quantitative gaps and delivering an authoritative verdict.";
+    cmdType = isHindi ? "मानक-आधारित मूल्यांकन (Criterion-Based Audit)" : "Criterion-Based Audit";
+    cmdMeaning = isHindi
+      ? "नीतिगत या प्रशासनिक परिणामों को मूल संवैधानिक/वैधानिक उद्देश्यों की कसौटी पर परखना, कमियों की पहचान करना एवं प्रामाणिक निष्कर्ष देना।"
+      : "Demands measuring actual policy or operational outcomes directly against original constitutional/statutory intent, identifying quantitative gaps and delivering an authoritative verdict.";
   } else if (dNorm.includes("elucidate") || dNorm.includes("explain") || dNorm.includes("elaborate") || dNorm.includes("प्रकाश डालिए") || dNorm.includes("स्पष्ट कीजिए")) {
-    cmdType = "Explanatory Mandate";
-    cmdMeaning = "Demands presenting complex institutional and doctrinal mechanisms with unmistakable clarity, substantiated by landmark judicial rulings, administrative flowcharts, and real-world cases.";
+    cmdType = isHindi ? "स्पष्टीकरण निर्देश (Explanatory Mandate)" : "Explanatory Mandate";
+    cmdMeaning = isHindi
+      ? "जटिल संस्थागत प्रक्रियाओं एवं सिद्धांतों को न्यायिक निर्णयों, प्रशासनिक उदाहरणों और प्रवाह-चित्रों द्वारा पूर्ण स्पष्टता से समझाना।"
+      : "Demands presenting complex institutional and doctrinal mechanisms with unmistakable clarity, substantiated by landmark judicial rulings, administrative flowcharts, and real-world cases.";
   } else if (dNorm.includes("comment") || dNorm.includes("opinion") || dNorm.includes("दृष्टिकोण") || dNorm.includes("अभिमत")) {
-    cmdType = "Judicious Perspective";
-    cmdMeaning = "Demands formulating a reasoned, independent perspective anchored firmly in constitutional morality, statutory safeguards, and empirical governance outcomes.";
+    cmdType = isHindi ? "संतुलित वैचारिक दृष्टिकोण (Judicious Perspective)" : "Judicious Perspective";
+    cmdMeaning = isHindi
+      ? "संवैधानिक नैतिकता और प्रशासनिक यथार्थ के आधार पर एक सुविचारित, स्वतंत्र एवं तर्कसंगत दृष्टिकोण प्रस्तुत करना।"
+      : "Demands formulating a reasoned, independent perspective anchored firmly in constitutional morality, statutory safeguards, and empirical governance outcomes.";
   } else if (dNorm.includes("note") || dNorm.includes("टिप्पणी")) {
-    cmdType = "Analytical Synthesis & Overview";
-    cmdMeaning = "Demands a structured, multi-dimensional overview detailing foundational genesis, operational significance, key institutional challenges, and forward-looking reforms.";
+    cmdType = isHindi ? "विश्लेषणात्मक सारांश (Analytical Synthesis)" : "Analytical Synthesis & Overview";
+    cmdMeaning = isHindi
+      ? "विषय की ऐतिहासिक पृष्ठभूमि, व्यावहारिक महत्व, प्रमुख चुनौतियों एवं भविष्यगामी सुधारों का संरचित समग्र विवरण प्रस्तुत करना।"
+      : "Demands a structured, multi-dimensional overview detailing foundational genesis, operational significance, key institutional challenges, and forward-looking reforms.";
   } else if (dNorm.includes("differentiate") || dNorm.includes("distinguish") || dNorm.includes("compare") || dNorm.includes("अंतर") || dNorm.includes("तुलना")) {
-    cmdType = "Comparative Mandate";
-    cmdMeaning = "Demands articulating crisp tabular distinctions across conceptual origin, legal enforceability, and administrative practice before diagnosing behavioral failure points.";
+    cmdType = isHindi ? "तुलनात्मक विश्लेषण (Comparative Mandate)" : "Comparative Mandate";
+    cmdMeaning = isHindi
+      ? "अवधारणात्मक उद्भव, कानूनी प्रभावशीलता एवं प्रशासनिक व्यवहार के आधार पर स्पष्ट सारणीबद्ध अंतर निरूपित करना।"
+      : "Demands articulating crisp tabular distinctions across conceptual origin, legal enforceability, and administrative practice before diagnosing behavioral failure points.";
   } else if (dNorm.includes("case study") || dNorm.includes("केस स्टडी")) {
-    cmdType = "Applied Ethics Mandate";
-    cmdMeaning = "Demands rigorous UPSC case study architecture: Stakeholder Mapping -> Ethical Dilemmas -> Multi-Option Matrix -> Deontologically Justified Course of Action.";
+    cmdType = isHindi ? "व्यावहारिक नीतिशास्त्र निर्देश (Applied Ethics)" : "Applied Ethics Mandate";
+    cmdMeaning = isHindi
+      ? "हितधारक मानचित्रण -> नैतिक द्वंद्व -> बहु-विकल्प आव्यूह -> नीतिशास्त्रीय रूप से समर्थित कार्ययोजना प्रस्तुत करना।"
+      : "Demands rigorous UPSC case study architecture: Stakeholder Mapping -> Ethical Dilemmas -> Multi-Option Matrix -> Deontologically Justified Course of Action.";
   }
 
   if (directiveTypePill) directiveTypePill.textContent = cmdType;
@@ -11985,17 +12151,17 @@ function renderEvaluation(evalData) {
       const total = parseFloat(scoreMatch[2]);
       const pct = Math.round((scored / total) * 100);
       if (pct >= 80) {
-        directiveComprehensionBadge.textContent = `High Grasp (${pct}%)`;
+        directiveComprehensionBadge.textContent = isHindi ? `उत्कृष्ट अनुपालन (${pct}%)` : `High Grasp (${pct}%)`;
         directiveComprehensionBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30";
       } else if (pct >= 60) {
-        directiveComprehensionBadge.textContent = `Substantive Grasp (${pct}%)`;
+        directiveComprehensionBadge.textContent = isHindi ? `संतोषजनक अनुपालन (${pct}%)` : `Substantive Grasp (${pct}%)`;
         directiveComprehensionBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30";
       } else {
-        directiveComprehensionBadge.textContent = `Partial Fulfillment (${pct}%)`;
+        directiveComprehensionBadge.textContent = isHindi ? `आंशिक अनुपालन (${pct}%)` : `Partial Fulfillment (${pct}%)`;
         directiveComprehensionBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30";
       }
     } else {
-      directiveComprehensionBadge.textContent = "Mandate Evaluated";
+      directiveComprehensionBadge.textContent = isHindi ? "निर्देश अनुपालन मूल्यांकित" : "Mandate Evaluated";
     }
   }
 
@@ -12024,8 +12190,10 @@ function renderEvaluation(evalData) {
     return s;
   };
 
-  if (directiveEvaluationText) directiveEvaluationText.innerHTML = formatHighlightedText(enrichDirectiveAuditText(dir.evaluation || "Candidate addressed core demands."));
-  if (directiveGapText) directiveGapText.innerHTML = formatHighlightedText(enrichDirectiveAuditText(dir.gap || "Ensure both dimensions are weighed equally."));
+  const defEval = isHindi ? "अभ्यर्थी ने प्रश्न की मूल मांग को संबोधित किया है, परंतु तर्कों में संस्थागत उदाहरणों व आंकड़ों का समावेश अपेक्षित है।" : "Candidate addressed core demands.";
+  const defGap = isHindi ? "प्रश्न के दोनों पहलुओं (सकारात्मक एवं चुनौतियों) को संतुलित अनुपात में प्रस्तुत करें तथा अग्रगामी समाधान जोड़ें।" : "Ensure both dimensions are weighed equally.";
+  if (directiveEvaluationText) directiveEvaluationText.innerHTML = formatHighlightedText(enrichDirectiveAuditText(dir.evaluation || defEval));
+  if (directiveGapText) directiveGapText.innerHTML = formatHighlightedText(enrichDirectiveAuditText(dir.gap || defGap));
 
   // Operative Keywords & Glossary Chips
   const glossaryChipsContainer = document.getElementById("directiveGlossaryChips");
@@ -12317,24 +12485,39 @@ function renderEvaluation(evalData) {
   if (modelIntroGuideEl) modelIntroGuideEl.classList.add("hidden");
 
   if (isIntroFullMarks) {
-    document.getElementById("introCritiqueText").innerHTML = formatHighlightedText(
-      `✓ **Well-Written Introduction (${introEarned.toFixed(1)} / ${introMaxVal.toFixed(1)}M)**: ${String(intro.current_critique || "Clear, accurate opening that directly addresses the question prompt and establishes the core premise.").replace(/^[✓✔✎✗×]\s*/, "")}`
-    );
-    if (modelIntroCardEl) modelIntroCardEl.classList.add("hidden");
+    const introFullMsg = isHindi
+      ? `✓ **उत्कृष्ट प्रस्तावना (${introEarned.toFixed(1)} / ${introMaxVal.toFixed(1)} अंक)**: ${String(intro.current_critique || "स्पष्ट, सटीक एवं विषय-उन्मुख शुरुआत जो सीधे प्रश्न की मुख्य मांग को स्थापित करती है।").replace(/^[✓✔✎✗×]\s*/, "")}`
+      : `✓ **Well-Written Introduction (${introEarned.toFixed(1)} / ${introMaxVal.toFixed(1)}M)**: ${String(intro.current_critique || "Clear, accurate opening that directly addresses the question prompt and establishes the core premise.").replace(/^[✓✔✎✗×]\s*/, "")}`;
+    document.getElementById("introCritiqueText").innerHTML = formatHighlightedText(introFullMsg);
+    if (modelIntroCardEl) modelIntroCardEl.classList.remove("hidden");
+    if (modelIntroHeadLbl) {
+      modelIntroHeadLbl.textContent = isHindi
+        ? "✍️ आदर्श भूमिका (Topper Benchmark Model Introduction):"
+        : "✍️ Topper Benchmark Model Introduction:";
+    }
+    let modelIntro = String(intro.model_intro_rewrite || "").trim();
+    if (!modelIntro || modelIntro === '""' || modelIntro.length < 20) {
+      modelIntro = window.buildDomainModelIntro ? window.buildDomainModelIntro(evalData) : (isHindi ? "प्रश्न की मूल मांग को संबोधित करते हुए प्रमुख अवधारणाओं एवं वैधानिक ढांचे को स्पष्ट करने वाली आदर्श भूमिका।" : "Addressing the core directive requires an opening sentence defining key terms and statutory frameworks.");
+    }
+    document.getElementById("modelIntroText").innerHTML = `"${formatHighlightedText(modelIntro)}"`;
   } else {
     let rawIntroCrit = String(intro.current_critique || "").trim();
     const missList = Array.isArray(intro.missing_elements) ? intro.missing_elements.filter(Boolean) : [];
     if (rawIntroCrit.length < 55 && missList.length > 0) {
-      rawIntroCrit = `${rawIntroCrit ? rawIntroCrit.replace(/\.?$/, ".") + " " : "Addressed the opening theme of the prompt. "}To score full marks in the introduction, expand by 1–2 lines integrating ${missList.slice(0, 2).join(" and ")} to establish the foundational context upfront.`;
+      rawIntroCrit = isHindi
+        ? `${rawIntroCrit ? rawIntroCrit.replace(/\.?$/, ".") + " " : "प्रश्न की आरंभिक विषयवस्तु को छुआ गया है। "}प्रस्तावना में पूरे अंक प्राप्त करने हेतु, आरंभ में ही ${missList.slice(0, 2).join(" तथा ")} को समाहित करते हुए 1-2 पंक्तियां जोड़ें।`
+        : `${rawIntroCrit ? rawIntroCrit.replace(/\.?$/, ".") + " " : "Addressed the opening theme of the prompt. "}To score full marks in the introduction, expand by 1–2 lines integrating ${missList.slice(0, 2).join(" and ")} to establish the foundational context upfront.`;
     }
     document.getElementById("introCritiqueText").innerHTML = formatHighlightedText(rawIntroCrit);
     if (modelIntroCardEl) modelIntroCardEl.classList.remove("hidden");
     if (modelIntroHeadLbl) {
-      modelIntroHeadLbl.textContent = "✍️ How to Write (Keeping Your Point + Adding Missing Keyword):";
+      modelIntroHeadLbl.textContent = isHindi
+        ? "✍️ ऐसे लिखें (आपके बिंदु + छूटे हुए कीवर्ड्स का समावेश):"
+        : "✍️ How to Write (Keeping Your Point + Adding Missing Keyword):";
     }
     let modelIntro = String(intro.model_intro_rewrite || "").trim();
     if (!modelIntro || modelIntro === '""' || modelIntro.length < 20) {
-      modelIntro = window.buildDomainModelIntro ? window.buildDomainModelIntro(evalData) : "Addressing the core directive requires an opening sentence defining key terms and statutory frameworks.";
+      modelIntro = window.buildDomainModelIntro ? window.buildDomainModelIntro(evalData) : (isHindi ? "प्रश्न की मूल मांग को संबोधित करते हुए प्रमुख अवधारणाओं एवं वैधानिक ढांचे को स्पष्ट करने वाली आदर्श भूमिका।" : "Addressing the core directive requires an opening sentence defining key terms and statutory frameworks.");
     }
     document.getElementById("modelIntroText").innerHTML = `"${formatHighlightedText(modelIntro)}"`;
   }
@@ -12460,14 +12643,25 @@ function renderEvaluation(evalData) {
   const modelConcGuideEl = document.getElementById("modelConclusionGuidanceNote");
   if (modelConcGuideEl) modelConcGuideEl.classList.add("hidden");
 
-  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
-
   if (isConcFullMarks) {
     const concMsg = isHindi
       ? `✓ **उत्कृष्ट निष्कर्ष (${concEarned.toFixed(1)} / ${concMaxVal.toFixed(1)} अंक)**: आपका समापन वाक्य स्पष्ट, प्रासंगिक एवं विषय-उन्मुख है — **इसमें किसी बदलाव की आवश्यकता नहीं है, इसे यथावत बनाए रखें!**`
       : `✓ **Well-Written Conclusion (${concEarned.toFixed(1)} / ${concMaxVal.toFixed(1)}M)**: Your closing sentence is clear, relevant, and topic-specific — **no changes needed, keep your written conclusion as is!**`;
     document.getElementById("conclusionCritiqueText").innerHTML = formatHighlightedText(concMsg);
-    if (modelConcCardEl) modelConcCardEl.classList.add("hidden");
+    if (modelConcCardEl) modelConcCardEl.classList.remove("hidden");
+    if (modelConcHeadLbl) {
+      modelConcHeadLbl.textContent = isHindi ? "✍️ आदर्श निष्कर्ष (Topper Benchmark Model Conclusion):" : "✍️ Topper Benchmark Model Conclusion:";
+    }
+    let topperConc = window.extractConclusionFromModelAnswer ? window.extractConclusionFromModelAnswer(evalData.full_model_answer) : "";
+    let modelConc = topperConc;
+    const isStuckBoilerplate = /Harmonizing.*?constitutional morality.*?2nd ARC/i.test(conc.model_conclusion_rewrite || "");
+    if (!modelConc && conc.model_conclusion_rewrite && !isStuckBoilerplate && String(conc.model_conclusion_rewrite).trim().length >= 20) {
+      modelConc = String(conc.model_conclusion_rewrite).trim();
+    }
+    if (!modelConc || modelConc === '""' || modelConc.length < 20) {
+      modelConc = window.buildDomainModelConclusion ? window.buildDomainModelConclusion(evalData) : (isHindi ? "नीतिगत उद्देश्यों को व्यावहारिक परिणामों में बदलने हेतु संस्थागत सुधारों एवं अंतिम छोर तक क्षमता निर्माण को एकीकृत करना।" : "Integrating evidence-based institutional reforms and last-mile capacity building will translate policy intent into durable outcomes.");
+    }
+    document.getElementById("modelConclusionText").innerHTML = `"${formatHighlightedText(modelConc)}"`;
   } else if (isHeatwaveConcCopy) {
     document.getElementById("conclusionCritiqueText").innerHTML = formatHighlightedText(
       `✓ **Well-Written Conclusion (${concEarned.toFixed(1)} / ${concMaxVal.toFixed(1)}M)**: Good, specific closing demand to categorise **heatwaves as a notified 'disaster'** in India.<br>✎ **Small +0.5M Addition**: Keep your exact closing sentence—just add **'under the Disaster Management Act, 2005'** right after *'disaster'* to score full **${concMaxVal.toFixed(1)} / ${concMaxVal.toFixed(1)}** marks.`
@@ -12555,7 +12749,7 @@ function renderEvaluation(evalData) {
         : "keyword-tag text-[9.5px] self-start px-2 py-0.5 rounded font-semibold mt-0.5 whitespace-normal break-words";
       const oneLineHtml = c.how_to_use_one_line
         ? `<div class="mt-1.5 px-2.5 py-1.5 rounded-md bg-amber-50/90 dark:bg-amber-950/25 border border-amber-300/70 dark:border-amber-500/30 text-[10.5px] leading-snug font-sans">
-             <span class="font-extrabold text-amber-800 dark:text-amber-400 uppercase tracking-wide text-[9.5px] block mb-0.5">✍️ 1-Line Space-Saving Usage:</span>
+             <span class="font-extrabold text-amber-800 dark:text-amber-400 uppercase tracking-wide text-[9.5px] block mb-0.5">${isHindi ? "✍️ 1-पंक्ति में प्रयोग (Space-Saving Usage):" : "✍️ 1-Line Space-Saving Usage:"}</span>
              <span class="text-slate-800 dark:text-slate-200 font-medium break-words">${formatHighlightedText(c.how_to_use_one_line)}</span>
            </div>`
         : "";
@@ -12570,7 +12764,7 @@ function renderEvaluation(evalData) {
         <p class="keyword-desc text-[11px] leading-relaxed font-sans text-slate-700 dark:text-slate-300 mt-1 break-words">${formatHighlightedText(c.definition)}</p>
         <div class="keyword-action pt-1.5 border-t border-slate-200 dark:border-slate-700/60 flex items-start space-x-1.5 text-[10.5px] font-semibold text-emerald-700 dark:text-emerald-400">
           <i data-lucide="map-pin" class="w-3.5 h-3.5 shrink-0 mt-0.5 text-emerald-700 dark:text-emerald-400"></i>
-          <span class="break-words"><strong>Where to Plug In:</strong> ${escapeHtml(c.where_to_use || 'Plug into relevant Body bullet')}</span>
+          <span class="break-words"><strong>${isHindi ? "कहाँ जोड़ें (Where to Plug In):" : "Where to Plug In:"}</strong> ${escapeHtml(c.where_to_use || (isHindi ? 'मुख्य भाग के संबंधित बिंदु में शामिल करें' : 'Plug into relevant Body bullet'))}</span>
         </div>
         ${oneLineHtml}
       `;
@@ -12589,16 +12783,26 @@ function renderEvaluation(evalData) {
     if (spells.length > 0) {
       spellEl.innerHTML = spells.map(s => `<div class="text-rose-300 font-medium">• ${s}</div>`).join("");
     } else {
-      spellEl.innerHTML = `<span class="text-emerald-400 font-semibold">✓ Zero spelling errors detected</span>`;
+      spellEl.innerHTML = isHindi
+        ? `<span class="text-emerald-400 font-semibold">✓ कोई वर्तनी त्रुटि नहीं पाई गई (Zero spelling errors detected)</span>`
+        : `<span class="text-emerald-400 font-semibold">✓ Zero spelling errors detected</span>`;
     }
   }
   const gramEl = document.getElementById("hygieneGrammar");
   if (gramEl) {
-    gramEl.innerHTML = formatHighlightedText(mh.grammar_and_syntax || "Syntax is clear and grammatically sound.");
+    let gramText = mh.grammar_and_syntax;
+    if (!gramText || gramText === "Syntax is clear and grammatically sound.") {
+      gramText = isHindi ? "वाक्य विन्यास स्पष्ट एवं व्याकरण सम्मत है (Syntax is clear and grammatically sound)." : "Syntax is clear and grammatically sound.";
+    }
+    gramEl.innerHTML = formatHighlightedText(gramText);
   }
   const presEl = document.getElementById("hygienePresentation");
   if (presEl) {
-    presEl.innerHTML = formatHighlightedText(mh.presentation_and_word_count || "Legible handwriting with consistent paragraph structure.");
+    let presText = mh.presentation_and_word_count;
+    if (!presText || presText === "Legible handwriting with consistent paragraph structure.") {
+      presText = isHindi ? "सुपाठ्य हस्तलेखन एवं संतुलित पैराग्राफ संरचना (Legible handwriting with consistent paragraph structure)." : "Legible handwriting with consistent paragraph structure.";
+    }
+    presEl.innerHTML = formatHighlightedText(presText);
   }
 
   // 5. Dynamic Grounded Current Affairs & Value-Addition Multipliers Card
@@ -12833,6 +13037,9 @@ function renderEvaluation(evalData) {
 
   // Update Red-Pen Annotations on the active copy
   renderAnnotationsOverlay();
+  if (typeof window.localizeEvaluationUI === "function") {
+    try { window.localizeEvaluationUI(evalData); } catch (e) { console.error("localizeEvaluationUI end err:", e); }
+  }
   lucide.createIcons();
 }
 
@@ -13077,6 +13284,9 @@ function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
 
 function renderBatch1ExaminerMastery(evalData) {
   if (!evalData) return;
+  if (typeof window.localizeEvaluationUI === "function") {
+    try { window.localizeEvaluationUI(evalData); } catch (e) { console.error("localizeEvaluationUI batch1 err:", e); }
+  }
   const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
   const stepListEl = document.getElementById("subpartStepMarkingList");
   const pointListEl = document.getElementById("pointByPointAuditList");
@@ -14960,6 +15170,7 @@ function renderRadar(rubric, maxMarks, isPrintMode = false) {
 
   const dataPoints = toPctArray(rubric);
   const curEval = state.currentEvaluation || {};
+  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(curEval);
   const prevEval = curEval.previous_evaluation || state.previousEvaluation;
   const hasRewriteOverlay = Boolean(curEval.is_rewrite && prevEval && prevEval.rubric_scores && !isPrintMode);
 
@@ -14974,7 +15185,7 @@ function renderRadar(rubric, maxMarks, isPrintMode = false) {
   const datasets = [];
   if (hasRewriteOverlay) {
     datasets.push({
-      label: "Draft 2 (Rewritten %)",
+      label: isHindi ? "प्रारूप २ (Rewritten %)" : "Draft 2 (Rewritten %)",
       data: dataPoints,
       backgroundColor: "rgba(16, 185, 129, 0.28)",
       borderColor: "#10b981",
@@ -14983,7 +15194,7 @@ function renderRadar(rubric, maxMarks, isPrintMode = false) {
       borderWidth: 2.5
     });
     datasets.push({
-      label: "Draft 1 (Original %)",
+      label: isHindi ? "प्रारूप १ (Original %)" : "Draft 1 (Original %)",
       data: toPctArray(prevEval.rubric_scores),
       backgroundColor: "rgba(245, 158, 11, 0.14)",
       borderColor: "rgba(245, 158, 11, 0.9)",
@@ -14994,7 +15205,7 @@ function renderRadar(rubric, maxMarks, isPrintMode = false) {
     });
   } else {
     datasets.push({
-      label: "Your Score %",
+      label: isHindi ? "आपका प्राप्तांक %" : "Your Score %",
       data: dataPoints,
       backgroundColor: isPrintMode ? "rgba(180, 83, 9, 0.25)" : "rgba(245, 158, 11, 0.25)",
       borderColor: isPrintMode ? "#b45309" : "rgba(245, 158, 11, 0.9)",
@@ -15007,7 +15218,7 @@ function renderRadar(rubric, maxMarks, isPrintMode = false) {
   }
 
   datasets.push({
-    label: "Topper Benchmark",
+    label: isHindi ? "टॉपर बेंचमार्क" : "Topper Benchmark",
     data: [85, 80, 75, 85, 80],
     backgroundColor: isPrintMode ? "rgba(71, 85, 105, 0.12)" : "rgba(59, 130, 246, 0.08)",
     borderColor: isPrintMode ? "#334155" : "rgba(59, 130, 246, 0.5)",
@@ -15019,7 +15230,9 @@ function renderRadar(rubric, maxMarks, isPrintMode = false) {
   radarChartInstance = new Chart(ctx, {
     type: "radar",
     data: {
-      labels: ["Introduction", "Core Demand", "Value Addition", "Presentation", "Conclusion"],
+      labels: isHindi
+        ? ["प्रस्तावना (Intro)", "मुख्य मांग (Core Demand)", "मूल्य संवर्धन (Value Addition)", "प्रस्तुति (Presentation)", "निष्कर्ष (Conclusion)"]
+        : ["Introduction", "Core Demand", "Value Addition", "Presentation", "Conclusion"],
       datasets
     },
     options: {
