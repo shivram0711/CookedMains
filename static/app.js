@@ -6136,11 +6136,17 @@ function renderAnnotationsOverlay() {
           } else if (discipline === "PHYSICAL_GEOGRAPHY") {
             uniqueBullets.push(`✎ **Physical Precision**: Frame land-sea thermal contrasts in terms of thermodynamic driving forces and specific heat capacity.`);
           } else if (discipline === "POLITY_GOVERNANCE") {
-            uniqueBullets.push(`✎ **Institutional Depth**: Ground analysis in 2nd ARC recommendations, Law Commission reports, or landmark Supreme Court rulings.`);
+            const hasArcInCorpus = /\b(?:2nd\s*arc|second\s*arc|प्रशासनिक\s*सुधार\s*आयोग|सात\s*उपाय)\b/i.test(String(evalData.transcribed_text || ""));
+            uniqueBullets.push(hasArcInCorpus
+              ? `✎ **Institutional Depth**: Ground analysis in statutory Right to Public Services (RTPS) frameworks, Law Commission reports, or landmark Supreme Court rulings.`
+              : `✎ **Institutional Depth**: Ground analysis in 2nd ARC recommendations, Law Commission reports, or landmark Supreme Court rulings.`);
           } else if (discipline === "ECONOMY") {
             uniqueBullets.push(`✎ **Empirical Rigor**: Support points with official data telemetry, Economic Survey / Budget references, or NITI Aayog policy frameworks.`);
           } else if (discipline === "PHILOSOPHY_ETHICS") {
-            uniqueBullets.push(`✎ **Ethical Anchoring**: Ground arguments in Nolan Principles of Public Life, 2nd ARC (Ethics in Governance), or constitutional values.`);
+            const hasNolanInCorpus = /\b(?:nolan|नोलन)\b/i.test(String(evalData.transcribed_text || ""));
+            uniqueBullets.push(hasNolanInCorpus
+              ? `✎ **Ethical Anchoring**: Ground arguments in ARC 'Ethics in Governance' benchmarks, Central Vigilance guidelines, or constitutional morality.`
+              : `✎ **Ethical Anchoring**: Ground arguments in Nolan Principles of Public Life, 2nd ARC (Ethics in Governance), or constitutional values.`);
           } else {
             uniqueBullets.push(`✎ **Actionable Elevation**: Substantiate points with specific statutory frameworks, committee recommendations, or official empirical benchmarks.`);
           }
@@ -8536,6 +8542,18 @@ function deriveAssessorJudgment(sec, quote, advise, evalData, pNum) {
     ? window.classifyQuestionDiscipline(qText, evalData.detected_paper || (typeof state !== "undefined" && state.paper) || "")
     : "GENERAL";
 
+  // Build candidate written corpus to ensure strict evidence integrity (NEVER claim candidate missed what they wrote!)
+  const candidateCorpus = [
+    String(evalData.transcribed_text || ""),
+    String(quote || ""),
+    String(sec.title || sec.heading || ""),
+    String(sec.raw_text || sec.handwritten_text || "")
+  ].join(" ").toLowerCase();
+
+  const hasCandidateArc = /\b(?:2nd\s*arc|second\s*arc|प्रशासनिक\s*सुधार\s*आयोग|सात\s*उपाय|sevottam|sewottam|arc\s*(?:report|सुझाव|सिफारिश)|2nd\s*प्रशासनिक)\b/i.test(candidateCorpus);
+  const hasCandidateNolan = /\b(?:nolan|नोलन)\b/i.test(candidateCorpus);
+  const hasCandidateSarkaria = /\b(?:sarkaria|सरकारिया)\b/i.test(candidateCorpus);
+
   // Synthesize concise, demand-aware answersWell (NO verbatim quote repeating!)
   let dynamicAnswersWell = "";
   if (extractedAnswersWell && !window.isMetaPlaceholderText(extractedAnswersWell) && !/Articulated relevant arguments addressing this dimension/i.test(extractedAnswersWell)) {
@@ -8548,7 +8566,11 @@ function deriveAssessorJudgment(sec, quote, advise, evalData, pNum) {
       .filter(w => w.length >= 4 && !/^(this|that|with|from|have|more|also|been|other|their|such|they|them|which|about|under|after|before|page|point|evidence|passage|available|transcript)$/i.test(w));
     const keyConcept = candWords.slice(0, 3).join(" ") || (isHindi ? "मुख्य विषयगत आयाम" : "core subject theme");
 
-    if (zone === "intro" || (pNum === 1 && cardIdx === 0)) {
+    if (titleLow.includes("2nd arc") || titleLow.includes("arc") || titleLow.includes("सात उपाय") || quoteLow.includes("2nd arc") || quoteLow.includes("प्रशासनिक सुधार आयोग") || quoteLow.includes("सात उपाय") || quoteLow.includes("sevottam")) {
+      dynamicAnswersWell = isHindi
+        ? `द्वितीय प्रशासनिक सुधार आयोग (2nd ARC) के नागरिक-केन्द्रित 'सात उपाय मॉडल' (Seven Step Model) एवं प्रमुख सुझावों का सटीक उल्लेख किया। यह प्रशासनिक जवाबदेही की मांग को पूर्ण करता है और प्रासंगिक संस्थागत संदर्भ हेतु अंक (+${(earnedM !== null ? earnedM : 1.0).toFixed(1)} अंक) प्राप्त करता है।`
+        : `Accurately incorporates the 2nd Administrative Reforms Commission (2nd ARC) citizen-centric 'Seven Step Model' and actionable reform recommendations. Earns credit (+${(earnedM !== null ? earnedM : 1.0).toFixed(1)}M) for authoritative institutional grounding.`;
+    } else if (zone === "intro" || (pNum === 1 && cardIdx === 0)) {
       dynamicAnswersWell = isHindi
         ? `${keyConcept ? keyConcept + ' के ' : ''}अवधारणात्मक आधार (Conceptual Baseline) को स्पष्ट करते हुए उत्तर का सुसंगत प्रारंभिक संदर्भ स्थापित किया। यह प्रश्न की प्राथमिक मांग (Opening Demand) के अनुरूप है और प्रासंगिक भूमिका हेतु अंक (+${(earnedM !== null ? earnedM : 0.5).toFixed(1)} अंक) प्राप्त करता है।`
         : `Accurately establishes the foundational conceptual baseline addressing ${keyConcept}. Satisfies the question's introductory demand for contextual framing and earns credit (+${(earnedM !== null ? earnedM : 0.5).toFixed(1)}M) for relevant opening premise.`;
@@ -8594,8 +8616,12 @@ function deriveAssessorJudgment(sec, quote, advise, evalData, pNum) {
       } else {
         if (discipline === "POLITY_GOVERNANCE") {
           dynamicInaccuracy = isHindi
-            ? `विषय का केवल वर्णनात्मक विश्लेषण किया गया है; विशिष्ट संवैधानिक अनुच्छेदों (Constitutional Articles), 2nd ARC रिपोर्ट अथवा ऐतिहासिक न्यायिक निर्णयों (Landmark Precedents) का संस्थागत संदर्भ अनुपस्थित है${deductionTag}।`
-            : `Analyzes the issue descriptively without grounding arguments in specific constitutional articles, statutory commission reports (such as 2nd ARC), or landmark judicial precedents${deductionTag}.`;
+            ? (hasCandidateArc
+                ? `विषय का केवल वर्णनात्मक विश्लेषण किया गया है; विशिष्ट संवैधानिक अनुच्छेदों (Constitutional Articles), विधिक जवाबदेही तंत्र (Statutory Enforcement) अथवा ऐतिहासिक न्यायिक निर्णयों (Landmark Precedents) का संस्थागत संदर्भ अनुपस्थित है${deductionTag}।`
+                : `विषय का केवल वर्णनात्मक विश्लेषण किया गया है; विशिष्ट संवैधानिक अनुच्छेदों (Constitutional Articles), 2nd ARC रिपोर्ट अथवा ऐतिहासिक न्यायिक निर्णयों (Landmark Precedents) का संस्थागत संदर्भ अनुपस्थित है${deductionTag}।`)
+            : (hasCandidateArc
+                ? `Analyzes the issue descriptively without grounding arguments in specific constitutional articles, statutory enforcement mechanisms (such as Right to Public Services Acts), or landmark judicial precedents${deductionTag}.`
+                : `Analyzes the issue descriptively without grounding arguments in specific constitutional articles, statutory commission reports (such as 2nd ARC), or landmark judicial precedents${deductionTag}.`);
         } else if (discipline === "PHYSICAL_GEOGRAPHY") {
           dynamicInaccuracy = isHindi
             ? `भौगोलिक परिघटनाओं का विवरण दिया गया है किंतु अंतर्निहित ऊष्मागतिक प्रक्रियाओं (Thermodynamic Processes) अथवा दबाव प्रवणता (Pressure Gradients) का वैज्ञानिक विश्लेषण नहीं है${deductionTag}।`
@@ -8623,6 +8649,14 @@ function deriveAssessorJudgment(sec, quote, advise, evalData, pNum) {
         ? "प्रस्तुत अंश में कोई प्रमुख तथ्यात्मक अशुद्धि नहीं है; मुख्य अवधारणात्मक आवश्यकताएं (Core Requirements) पूर्ण हैं।"
         : "Passage satisfies core foundational requirements without significant conceptual errors or omissions.";
     }
+  }
+
+  // STRICT ZERO-CONTRADICTION GUARD FOR 2nd ARC & REFORMS:
+  // If the candidate already wrote 2nd ARC / सात उपाय / प्रशासनिक सुधार आयोग, NEVER claim it is missing or lacks depth!
+  if (hasCandidateArc && /\b(?:2nd\s*arc|second\s*arc|प्रशासनिक\s*सुधार\s*आयोग|सात\s*उपाय)\b/i.test(dynamicInaccuracy)) {
+    dynamicInaccuracy = isHindi
+      ? `2nd ARC एवं सात उपाय मॉडल का उल्लेख सराहनीय है; इसमें राइट टू सर्विसेज (RTPS) एवं विधिक जवाबदेही तंत्र (Statutory Enforcement) का 1 बिंदु जोड़कर इसे और अधिक सुदृढ़ करें${deductionTag}।`
+      : `Validly incorporates 2nd ARC / institutional framework; elevate further by adding statutory Right to Public Services (RTPS) enforcement mechanisms${deductionTag}.`;
   }
 
   // Synthesize dynamic whyItMatters linking to question directive and marks
@@ -8686,9 +8720,22 @@ function deriveAssessorJudgment(sec, quote, advise, evalData, pNum) {
   } else if (advise && !window.isMetaPlaceholderText(advise)) {
     dynamicImprovement = advise;
   } else {
+    if (hasCandidateArc) {
+      dynamicImprovement = isHindi
+        ? "ठोस संस्थागत संदर्भ (Institutional Framework), सेवा का अधिकार अधिनियम (Right to Services Acts / विधिक बाध्यता), अथवा आधिकारिक नीतिगत आंकड़ों से इस बिंदु को पुष्ट करें।"
+        : "Substantiate this point with statutory Right to Public Services (RTPS) benchmarks, compliance audit mechanisms, or empirical governance metrics.";
+    } else {
+      dynamicImprovement = isHindi
+        ? "ठोस संस्थागत संदर्भ (Institutional Framework), विशिष्ट समिति रिपोर्ट (जैसे 2nd ARC / NITI Aayog), संवैधानिक प्रावधान अथवा आधिकारिक आंकड़ों से इस बिंदु को पुष्ट करें।"
+        : "Substantiate this point with a specific institutional framework, empirical metric, or primary source citation.";
+    }
+  }
+
+  // De-contradict improvement if it tells the candidate to cite 2nd ARC when they already did!
+  if (hasCandidateArc && /\b(?:2nd\s*arc|second\s*arc|प्रशासनिक\s*सुधार\s*आयोग|सात\s*उपाय)\b/i.test(dynamicImprovement)) {
     dynamicImprovement = isHindi
-      ? "ठोस संस्थागत संदर्भ (Institutional Framework), विशिष्ट समिति रिपोर्ट (जैसे 2nd ARC / NITI Aayog), संवैधानिक प्रावधान अथवा आधिकारिक आंकड़ों से इस बिंदु को पुष्ट करें।"
-      : "Substantiate this point with a specific institutional framework, empirical metric, or primary source citation.";
+      ? "2nd ARC के अतिरिक्त, सेवा का अधिकार अधिनियम (Right to Services Acts / विधिक बाध्यता) एवं सोशल ऑडिट (Social Audit) के विधिक प्रावधानों से इस बिंदु को पुष्ट करें।"
+      : "In addition to 2nd ARC, substantiate this dimension with statutory Right to Public Services (RTPS) enforcement and institutional social audit mechanisms.";
   }
 
   return {
@@ -10615,9 +10662,17 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
 
   const trackedTerms = [
     "njac", "maneka gandhi", "navtej johar", "shreya singhal", "kesavananda",
-    "basic structure", "article 13", "article 21", "article 14", "article 32",
-    "rule of law", "due process", "minerva mills", "sr bommai", "puttaswamy",
-    "vishaka", "indira sawheny", "lily thomas", "vohra committee"
+    "basic structure", "मूल संरचना", "article 13", "article 21", "article 14", "article 32",
+    "article 50", "article 243", "article 324", "अनुच्छेद", "rule of law", "विधि का शासन",
+    "due process", "minerva mills", "sr bommai", "puttaswamy", "vishaka", "indira sawheny",
+    "lily thomas", "vohra committee",
+    // Institutional Reforms, Commissions & Governance Tools
+    "2nd arc", "second arc", "arc", "प्रशासनिक सुधार आयोग", "सात उपाय", "7-step",
+    "sevottam", "सेवोत्तम", "citizen charter", "नागरिक घोषणा पत्र", "नागरिक चार्टर",
+    "social audit", "सोशल ऑडिट", "rtps", "right to service", "सेवा का अधिकार",
+    "sarkaria", "सरकारिया", "punchhi", "पुंछी", "nolan", "नोलन",
+    "dinesh goswami", "दिनेश गोस्वामी", "law commission", "विधि आयोग",
+    "anoop baranwal", "jaya thakur", "kothari commission", "kasturirangan", "venn diagram"
   ];
   const writtenTerms = trackedTerms.filter(t => studentWrittenCorpus.includes(t));
 
@@ -10626,7 +10681,18 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
     let s = String(text).trim();
     const sLow = s.toLowerCase();
 
-    // 1. Catch NJAC contradiction or robotic 'Judicial Overreach Dimension' / 'Analytical Balance' phrasing
+    // 1. Dedicated de-contradiction for 2nd ARC / प्रशासनिक सुधार आयोग / सात उपाय
+    const hasArcWritten = studentWrittenCorpus.includes("2nd arc") || studentWrittenCorpus.includes("second arc") ||
+      studentWrittenCorpus.includes("arc") || studentWrittenCorpus.includes("प्रशासनिक सुधार आयोग") ||
+      studentWrittenCorpus.includes("सात उपाय") || studentWrittenCorpus.includes("sevottam");
+    if (isGap && hasArcWritten && (sLow.includes("2nd arc") || sLow.includes("second arc") || sLow.includes("arc") || sLow.includes("प्रशासनिक सुधार आयोग") || sLow.includes("सात उपाय"))) {
+      const isHindiEval = (typeof window.isHindiEvaluation === "function" && window.isHindiEvaluation(evalData)) || /[\u0900-\u097F]/.test(s);
+      return isHindiEval
+        ? "**2nd ARC एवं सात उपाय मॉडल का सटीक उपयोग**: आपने 2nd ARC के नागरिक-केन्द्रित 'सात उपाय मॉडल' का सही उल्लेख किया है। इसे और अधिक प्रभावी बनाने हेतु राइट टू पब्लिक सर्विसेज (RTPS) या विधिक जवाबदेही का 1 अतिरिक्त बिंदु जोड़ें।"
+        : "**Good Use of 2nd ARC Recommendations**: You rightly cited 2nd ARC and the Citizen-Centric 7-Step Model. To gain top marks, connect it to statutory enforcement under Right to Public Service (RTPS) legislation.";
+    }
+
+    // 2. Catch NJAC contradiction or robotic 'Judicial Overreach Dimension' / 'Analytical Balance' phrasing
     if (isGap && ((sLow.includes("njac") && studentWrittenCorpus.includes("njac")) || sLow.includes("addressed limitations superficially") || sLow.includes("institutional friction"))) {
       return "**Good Use of NJAC Case — Now Add Judicial Restraint**: You rightly cited the **NJAC Act** to show judicial independence. To score +1M higher, add 2 simple points on **Judicial Restraint** (why courts should respect Parliament's law-making role).";
     }
@@ -10634,17 +10700,20 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
       return "**Show Both Sides of the Question**: Your answer explains the **benefits** of Judicial Review very well. Balance it with a short sub-heading on **Limits of Judicial Review** (such as **Separation of Powers** under **Article 50**).";
     }
 
-    // 2. Generic Zero-Contradiction Guard: if any gap claims 'without citing X' or 'missing X' when X is in writtenTerms
+    // 3. Generic Zero-Contradiction Guard: if any gap claims 'without citing X' or 'missing X' when X is in writtenTerms
     if (isGap) {
       for (const term of writtenTerms) {
-        if (sLow.includes(term) && (sLow.includes("without citing") || sLow.includes("missing") || sLow.includes("lacks") || sLow.includes("e.g."))) {
-          const pretty = term.length <= 4 ? term.toUpperCase() : term.replace(/\b\w/g, c => c.toUpperCase());
-          return `**Good Point on ${pretty} — Add Both Sides**: You rightly covered **${pretty}** in your answer. To gain +1M more, add 2 simple points on **practical challenges / institutional balance** so both sides are complete.`;
+        if (sLow.includes(term) && (sLow.includes("without citing") || sLow.includes("missing") || sLow.includes("lacks") || sLow.includes("e.g.") || sLow.includes("जैसे") || sLow.includes("अभाव") || sLow.includes("अनुपस्थित") || sLow.includes("कमी") || sLow.includes("छूटा"))) {
+          const pretty = term.length <= 5 ? term.toUpperCase() : term.replace(/\b\w/g, c => c.toUpperCase());
+          const isHindiEval = (typeof window.isHindiEvaluation === "function" && window.isHindiEvaluation(evalData)) || /[\u0900-\u097F]/.test(s);
+          return isHindiEval
+            ? `**${pretty} का प्रासंगिक प्रयोग**: आपने **${pretty}** का सही उल्लेख किया है। इसे और अधिक अंकदायी बनाने हेतु 1 व्यावहारिक क्रियान्वयन चुनौती अथवा विधिक समाधान जोड़ें।`
+            : `**Good Point on ${pretty} — Add Both Sides**: You rightly covered **${pretty}** in your answer. To gain +1M more, add 2 simple points on **practical challenges / institutional balance** so both sides are complete.`;
         }
       }
     }
 
-    // 3. Simplify complex academic phrasing into clear, everyday English
+    // 4. Simplify complex academic phrasing into clear, everyday English
     s = s
       .replace(/Addressed limitations superficially without citing institutional friction\s*(\([^)]*\))?/gi, "Mentioned limits briefly—add 2 simple points on how Parliament and Judiciary balance each other")
       .replace(/while underweighting separation of powers constraints/gi, "—also add a short point on **Separation of Powers (Article 50)** so both sides are balanced")
@@ -11017,6 +11086,18 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
   // Universal Body Audit enrichment and structuring across all questions and subjects
   if (typeof window.normalizeAndEnrichBodyAudit === "function") {
     window.normalizeAndEnrichBodyAudit(evalData);
+  }
+
+  // De-contradict critical gaps against student written text
+  if (evalData.body_audit && Array.isArray(evalData.body_audit.critical_gaps)) {
+    evalData.body_audit.critical_gaps = evalData.body_audit.critical_gaps.map(g => simplifyAndDecontradict(g, true));
+  }
+  if (Array.isArray(evalData.point_by_point_audit)) {
+    evalData.point_by_point_audit.forEach(pbp => {
+      if (pbp && pbp.examiner_verdict) {
+        pbp.examiner_verdict = simplifyAndDecontradict(pbp.examiner_verdict, !pbp.is_positive);
+      }
+    });
   }
 
   if (evalData.executive_summary) {

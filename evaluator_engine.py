@@ -1180,12 +1180,20 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
    - यदि निष्कर्ष दूरदर्शी, नीतिगत और समाधानपरक है, तो उचित अंक दें।
 
 7. मार्जिन मूल्यांकन एवं गतिशील शीर्षक पहचान (MANDATORY DYNAMIC MARGIN EVALUATION IN HINGLISH):
-   - प्रत्येक पृष्ठ के मार्जिन कार्ड्स (visual_annotations) में अभ्यर्थी द्वारा लिखे गए वास्तविक बक्सेदार शीर्षक (Boxed Headings), रेखांकित शीर्षक (Underlined Headings) या आरेख के नाम (Diagram Titles) को tag में लिखें (जैसे: "Body: शुचिता से सामाजिक-आर्थिक विकास", "Body: अंत्योदय व Inclusive Growth (Venn Diagram)", "Body: चुनौतियाँ: Celebrity कल्चर", "Body: 2nd ARC अनुशंसाएं")। कभी भी जेनेरिक सांचा (जैसे "मुख्य भाग: [अभ्यर्थी का प्रथम शीर्षक]") न लिखें!
+   - प्रत्येक पृष्ठ के मार्जिन कार्ड्स (visual_annotations) में अभ्यर्थी द्वारा लिखे गए वास्तविक बक्सेदार शीर्षक (Boxed Headings), रेखांकित शीर्षक (Underlined Headings) या आरेख के नाम (Diagram Titles) को tag में लिखें (जैसे: "Body: जिम्मेदार कारक (फ्लोचार्ट)", "Body: 2nd ARC के अनुसार सुझाव", "Body: शुचिता से सामाजिक-आर्थिक विकास", "Body: चुनौतियाँ: Celebrity कल्चर")। कभी भी जेनेरिक सांचा (जैसे "मुख्य भाग: [अभ्यर्थी का प्रथम शीर्षक]" या "मुख्य भाग — आयाम A") न लिखें!
    - प्रत्येक visual_annotation के remark में अनिवार्य रूप से अभ्यर्थी की हस्तलिखित कॉपी से 10 से 25 वास्तविक शब्द उद्धृत (Quote) करें:
      * प्रारूप: `✓ **सकारात्मक**: परीक्षार्थी ने लिखा: "..." [सटीक विश्लेषणात्मक मूल्यांकन]।\n✎ **सुधार**: [ठोस संस्थागत सुधार एवं मानक शब्दावली]।`
+   - बहु-खंडीय पृष्ठों पर पृथक मार्जिन कार्ड्स: यदि किसी पृष्ठ (विशेषकर पृष्ठ 2) पर 2 अलग-अलग बक्सेदार शीर्षक या उप-भाग हैं (जैसे 'जिम्मेदार कारक' और '2nd ARC के अनुसार सुझाव'), तो दोनों के लिए 2 अलग-अलग Body कार्ड बनाएं! मुख्य भाग के उप-भाग (जैसे '2nd ARC के अनुसार सुझाव') को कभी भी 'निष्कर्ष' या 'आगे की राह' में न समेटें!
    - मूल्यांकन भाषा — सुगम हिंग्लिश (Accessible Hinglish):
      * UPSC मुख्य परीक्षा के उच्च मानकों के अनुरूप मानक प्रशासनिक हिंदी में मानक अंग्रेजी तकनीकी शब्दों (जैसे Probity, Inclusive Development, Venn Diagram, 2nd ARC, Civil Services, Nolan Principles, Checks & Balances, Deontology, Administrative Bottlenecks) का सहज समन्वय करें।
      * मूल्यांकन सीधा, सटीक, तथ्यात्मक और गतिशील होना चाहिए ताकि अभ्यर्थी को पूर्ण विश्वास हो कि उसकी कॉपी के प्रत्येक शब्द का सूक्ष्म परीक्षण हुआ है।
+
+8. वास्तविक तथ्यों की पहचान एवं विरोधाभास-निषेध (ZERO FALSE OMISSIONS - STRICT EVIDENCE INTEGRITY):
+   - अत्यंत महत्वपूर्ण: यदि अभ्यर्थी ने अपनी उत्तर-पुस्तिका में किसी भी आयोग (जैसे '2nd ARC', 'द्वितीय प्रशासनिक सुधार आयोग'), समिति, मॉडल (जैसे 'सात उपाय मॉडल', 'Sevottam', 'सेवोत्तम'), संवैधानिक अनुच्छेद (जैसे Art 324, 243, 14, 21), वाद, रिपोर्ट, या योजना का स्पष्ट उल्लेख किया है:
+     * परीक्षक कभी भी उस बिंदु/आयोग को 'छूटा हुआ' (Missing), 'अनुपस्थित' (Absent), या 'अनुल्लेखित' घोषित नहीं करेगा!
+     * जैसे: यदि अभ्यर्थी ने लिखा है "2nd ARC के अनुसार सुझाव" या "प्रशासनिक सुधार आयोग के नागरिक केन्द्रित सात उपाय मॉडल", तो कभी भी यह मत कहिए कि "2nd ARC का संदर्भ छूटा" या "(जैसे 2nd ARC) के संदर्भों को और अधिक विस्तार दिया जाना चाहिए था"!
+     * इसके स्थान पर अभ्यर्थी द्वारा उल्लिखित उस बिंदु की पुष्टि करें और उसकी सराहना करें: `✓ परीक्षार्थी ने 2nd ARC के सुझावों व 7-उपाय मॉडल का सटीक संदर्भ दिया।`
+     * सुधार में केवल वही आयाम बताएं जो वास्तव में कॉपी में नहीं लिखे गए हैं (जैसे Right to Public Services विधिक ढांचा, सोशल ऑडिट मानक)।
 
 OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
 {{
@@ -5102,14 +5110,33 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
     strengths_list = body_audit.get("strengths") if isinstance(body_audit.get("strengths"), list) else []
     anns_list = data.get("visual_annotations") if isinstance(data.get("visual_annotations"), list) else []
 
-    # Build corpus of what the student ACTUALLY wrote on their sheet (transcribed_text)
-    positive_corpus = str(data.get("transcribed_text") or "").lower()
+    # Build comprehensive corpus of what the student ACTUALLY wrote on their sheet
+    corpus_parts = [
+        str(data.get("transcribed_text") or ""),
+        str(data.get("full_model_answer") or ""),
+    ]
+    for va in (data.get("visual_annotations") or []):
+        if isinstance(va, dict):
+            corpus_parts.append(str(va.get("tag") or ""))
+            corpus_parts.append(str(va.get("remark") or ""))
+    for sp in (data.get("subpart_marks_breakdown") or []):
+        if isinstance(sp, dict):
+            corpus_parts.append(str(sp.get("part_name") or ""))
+            corpus_parts.append(str(sp.get("analysis") or ""))
+    positive_corpus = " ".join(corpus_parts).lower()
 
     tracked_landmarks = [
         "njac", "maneka gandhi", "navtej johar", "shreya singhal", "kesavananda",
-        "basic structure", "article 13", "article 21", "article 14", "article 32",
-        "rule of law", "due process", "minerva mills", "sr bommai", "puttaswamy",
-        "vishaka", "indira sawheny", "lily thomas", "vohra committee"
+        "basic structure", "मूल संरचना", "article 13", "article 21", "article 14", "article 32",
+        "article 50", "article 243", "article 324", "अनुच्छेद", "rule of law", "विधि का शासन",
+        "due process", "minerva mills", "sr bommai", "puttaswamy", "vishaka", "indira sawheny",
+        "lily thomas", "vohra committee",
+        "2nd arc", "second arc", "arc", "प्रशासनिक सुधार आयोग", "सात उपाय", "7-step",
+        "sevottam", "सेवोत्तम", "citizen charter", "नागरिक घोषणा पत्र", "नागरिक चार्टर",
+        "social audit", "सोशल ऑडिट", "राइट टू सर्विस", "right to service", "rtps",
+        "sarkaria", "सरकारीया", "punchhi", "पुंछी", "nolan", "नोलन सिद्धांत",
+        "dinesh goswami", "दिनेश गोस्वामी", "law commission", "विधि आयोग",
+        "niti aayog", "नीति आयोग", "venn diagram", "वेन आरेख"
     ]
     written_terms = [t for t in tracked_landmarks if t in positive_corpus]
 
@@ -5122,6 +5149,14 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             return text
         s = str(text).strip()
         s_low = s.lower()
+
+        # Dedicated de-contradiction for 2nd ARC / प्रशासनिक सुधार आयोग / सात उपाय मॉडल
+        has_arc_written = any(k in positive_corpus for k in ["2nd arc", "second arc", "arc", "प्रशासनिक सुधार आयोग", "सात उपाय"])
+        if is_gap and has_arc_written and any(k in s_low for k in ["2nd arc", "second arc", "arc", "प्रशासनिक सुधार आयोग", "सात उपाय"]):
+            if is_hindi:
+                return "**2nd ARC एवं सात उपाय मॉडल का सटीक उपयोग**: आपने 2nd ARC के नागरिक-केन्द्रित 'सात उपाय मॉडल' का सही उल्लेख किया है। इसे और अधिक प्रभावी बनाने हेतु राइट टू पब्लिक सर्विसेज (RTPS) या विधिक जवाबदेही का 1 अतिरिक्त बिंदु जोड़ें।"
+            else:
+                return "**Good Use of 2nd ARC Recommendations**: You rightly cited 2nd ARC and the Citizen-Centric 7-Step Model. To gain top marks, connect it to statutory enforcement under Right to Public Service (RTPS) legislation."
 
         # Check for specific NJAC contradiction or robotic 'Judicial Overreach Dimension' / 'Analytical Balance' phrasing
         if is_gap and ("njac" in s_low and "njac" in positive_corpus):
@@ -5139,9 +5174,12 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
         # Generic check: if any gap claims 'without citing X' or '(e.g., X)' where X is already in written_terms
         if is_gap:
             for term in written_terms:
-                if term in s_low and any(phrase in s_low for phrase in ["without citing", "missing", "lacks", "failed to cite", "e.g."]):
-                    pretty_term = term.upper() if len(term) <= 4 else term.title()
-                    return f"**Build on Your {pretty_term} Point**: You rightly mentioned **{pretty_term}**. To gain +1M more, add a short point on **practical challenges / institutional balance** to cover both sides of the question."
+                if term in s_low and any(phrase in s_low for phrase in ["without citing", "missing", "lacks", "failed to cite", "e.g.", "जैसे", "अभाव", "छूटा", "विस्तार", "कमी"]):
+                    pretty_term = term.upper() if len(term) <= 5 else term.title()
+                    if is_hindi:
+                        return f"**{pretty_term} का प्रासंगिक प्रयोग**: आपने **{pretty_term}** का सही उल्लेख किया है। इसे और अधिक अंकदायी बनाने हेतु 1 व्यावहारिक क्रियान्वयन चुनौती अथवा विधिक समाधान जोड़ें।"
+                    else:
+                        return f"**Build on Your {pretty_term} Point**: You rightly mentioned **{pretty_term}**. To gain +1M more, add a short point on **practical challenges / institutional balance** to cover both sides of the question."
 
         # Simplify stiff academic vocabulary into clear, everyday mentor English
         replacements = [
