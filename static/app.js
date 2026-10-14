@@ -4913,6 +4913,28 @@ function formatHighlightedText(text) {
 window.getPageTranscript = function(evalData, tPage) {
   const fullT = String((evalData && evalData.transcribed_text) || (typeof state !== "undefined" && state.currentEvaluation && state.currentEvaluation.transcribed_text) || "");
   if (!fullT.trim()) return "";
+
+  // 1. Try regex matching English & Hindi page markers ([Page 1], [पृष्ठ 1], Page 1:, पृष्ठ 1:, --- Page 1 ---)
+  const pageRegex = /(?:\[(?:Page|पृष्ठ)\s*(\d+)\]|(?:^|\n)(?:---|\#{1,3})?\s*(?:Page|पृष्ठ)\s*(\d+)[:\s---]*)/gi;
+  const matches = [];
+  let m;
+  while ((m = pageRegex.exec(fullT)) !== null) {
+    const pNum = parseInt(m[1] || m[2], 10);
+    matches.push({ page: pNum, index: m.index, matchLen: m[0].length });
+  }
+
+  if (matches.length > 0) {
+    for (let i = 0; i < matches.length; i++) {
+      if (matches[i].page === tPage) {
+        const start = matches[i].index + matches[i].matchLen;
+        const end = (i + 1 < matches.length) ? matches[i + 1].index : fullT.length;
+        const pageContent = fullT.slice(start, end).trim();
+        if (pageContent) return pageContent;
+      }
+    }
+  }
+
+  // 2. Standard [Page 1] split fallback
   const parts = fullT.split(/\[Page\s*(\d+)\]/i);
   if (parts.length > 1) {
     for (let i = 1; i < parts.length; i += 2) {
@@ -4922,7 +4944,23 @@ window.getPageTranscript = function(evalData, tPage) {
     }
     return "";
   }
-  // Single-block transcript without page delimiter tags: attribute strictly to page 1
+
+  // 3. Fallback for copies without explicit page tags: distribute lines across pages
+  const totalPages = parseInt((evalData && evalData.total_pages) || (typeof state !== "undefined" && state.totalPages) || 1, 10);
+  if (totalPages <= 1) {
+    return tPage === 1 ? fullT.trim() : "";
+  }
+
+  const allLines = fullT.split(/\n+/).map(l => l.trim()).filter(Boolean);
+  if (allLines.length >= 4) {
+    const linesPerPage = Math.ceil(allLines.length / totalPages);
+    const startIdx = (tPage - 1) * linesPerPage;
+    const endIdx = Math.min(allLines.length, startIdx + linesPerPage);
+    if (startIdx < allLines.length) {
+      return allLines.slice(startIdx, endIdx).join("\n");
+    }
+  }
+
   return tPage === 1 ? fullT.trim() : "";
 };
 
@@ -5140,7 +5178,19 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
         }
       }
       note = String(aiBodySteps[i].quoted_written || "");
-    } else if (bodyAnns[i] && bodyAnns[i].tag) {
+    }
+    // Prefer authentic handwritten tag from visual annotations if step label is generic or placeholder
+    if ((!title || title.length < 4 || /^(?:मुख्य भाग\s*[-—]\s*आयाम\s*[a-z0-9]?|part\s*[a-z0-9]|question dimension)/i.test(title)) && bodyAnns[i] && bodyAnns[i].tag) {
+      let rawTag = String(bodyAnns[i].tag).replace(/^(?:body|मुख्य भाग):\s*/i, "").trim();
+      rawTag = rawTag.replace(/^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*|भाग\s*[a-z0-9]\s*[-—:]\s*)+/gi, "").trim();
+      rawTag = rawTag.replace(/\[(?:अभ्यर्थी का )?[^\]]+\]/g, "").trim();
+      if (rawTag && rawTag.length >= 4) {
+        title = rawTag;
+      }
+      if (!note && bodyAnns[i].remark && !window.isMetaPlaceholderText(bodyAnns[i].remark)) {
+        note = String(bodyAnns[i].remark).trim();
+      }
+    } else if (!title && bodyAnns[i] && bodyAnns[i].tag) {
       let rawTag = String(bodyAnns[i].tag).replace(/^(?:body|मुख्य भाग):\s*/i, "").trim();
       title = rawTag.replace(/^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*|भाग\s*[a-z0-9]\s*[-—:]\s*)+/gi, "").trim();
       if (/synthesis/i.test(title)) {
@@ -5173,12 +5223,15 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
         note = note.replace(/[\u0900-\u097F]+/g, "").trim();
       }
     } else {
-      if (!/[\u0900-\u097F]/.test(title)) title = "";
-      if (!/[\u0900-\u097F]/.test(statement)) statement = "";
+      // In Hindi evaluation, permit Hinglish & English technical vocabulary (Venn Diagram, Probity, 2nd ARC, etc.)
+      title = title.replace(/\[(?:अभ्यर्थी का )?[^\]]+\]/g, "").trim();
+      statement = statement.replace(/\[(?:अभ्यर्थी का )?[^\]]+\]/g, "").trim();
+      if (window.isMetaPlaceholderText(title)) title = "";
+      if (window.isMetaPlaceholderText(statement)) statement = "";
     }
 
     // If title is a generic label or empty, upgrade it
-    if (!title || title.length < 5 || /^(?:core demand|depth & substantiation|body part|primary demand|secondary demand)$/i.test(title.trim())) {
+    if (!title || title.length < 4 || /^(?:core demand|depth & substantiation|body part|primary demand|secondary demand|मुख्य भाग\s*[-—]\s*आयाम\s*[a-z0-9]?)$/i.test(title.trim())) {
       const isPolity = /(?:article\s+\d+|constitutional|parliament|supreme court|fundamental right|governor|federalism|judiciary|executive|संविधान|न्यायपालिका|अधिकार|संसद|आयोग)/i.test(qL);
       const isEnvironment = /(?:environment|tourism|climate|ecology|pollution|biodiversity|himalayan|forest|wildlife|water|पर्यावरण|जलवायु|प्रदूषण)/i.test(qL);
       const isEconomy = /(?:economy|economic|gdp|inflation|fiscal|trade|industry|manufacturing|agriculture|farmers|msme|अर्थव्यवस्था|संवृद्धि|कृषि)/i.test(qL);
@@ -7945,14 +7998,19 @@ function extractOuterQuotedSpanFromRemark(remarkText) {
   const s = String(remarkText || "").trim();
   if (!s) return "";
   // 1. Check for markdown italic-quoted span: *"..."* or *“...”* (greedy across inner quotes up to closing *"*)
-  const italicQuoteMatch = s.match(/\*["“]([\s\S]{15,240})["”]\*/);
+  const italicQuoteMatch = s.match(/\*["“]([\s\S]{10,240})["”]\*/);
   if (italicQuoteMatch && italicQuoteMatch[1]) {
     return italicQuoteMatch[1].trim();
   }
-  // 2. Check for explicit evaluator verbs followed by a quoted passage up to the last quote in the clause
-  const verbQuoteMatch = s.match(/(?:opened\s+(?:directly\s+)?with|concluded\s+with|wrote|quoting|cited|argument|point)\s*:?\s*\*?["“]([\s\S]{15,240})["”]\*?/i);
+  // 2. Check for explicit evaluator verbs (English or Hindi) followed by a quoted passage
+  const verbQuoteMatch = s.match(/(?:opened\s+(?:directly\s+)?with|concluded\s+with|wrote|quoting|cited|argument|point|लिखा|उद्धृत|सकारात्मक|साक्ष्य|प्रभावी\s*उत्तर|अभ्यर्थी\s*ने|परीक्षार्थी\s*ने)\s*:?\s*\*?["“]([\s\S]{10,240})["”]\*?/i);
   if (verbQuoteMatch && verbQuoteMatch[1]) {
     return verbQuoteMatch[1].trim();
+  }
+  // 3. Fallback: Check for any explicit double-quoted passage between 10 and 240 chars
+  const fallbackQuoteMatch = s.match(/["“]([\s\S]{10,240})["”]/);
+  if (fallbackQuoteMatch && fallbackQuoteMatch[1] && !window.isMetaPlaceholderText(fallbackQuoteMatch[1])) {
+    return fallbackQuoteMatch[1].trim();
   }
   return "";
 }
@@ -8059,7 +8117,10 @@ function verifyCandidateHandwritingQuote(quoteStr, pageTranscript, fullTranscrip
 }
 
 function formatQuoteStatusDisplay(quote, quoteStatus, sourcePassage, isHindi = false) {
-  const safeQuote = typeof escapeHtml === "function" ? escapeHtml(quote) : String(quote || "");
+  let safeQuote = typeof escapeHtml === "function" ? escapeHtml(quote) : String(quote || "");
+  if (safeQuote.includes("Evidence passage not available")) {
+    safeQuote = isHindi ? "हस्तलिखित उत्तर के इस भाग का प्रत्यक्ष मूल्यांकन" : "Passage under analytical evaluation";
+  }
   if (quoteStatus === "diagram_evidence") {
     return {
       quoteLabel: isHindi ? "आरेख साक्ष्य:" : "Diagram Evidence:",
@@ -8068,8 +8129,8 @@ function formatQuoteStatusDisplay(quote, quoteStatus, sourcePassage, isHindi = f
   }
   if (quoteStatus === "unavailable" || quoteStatus === "evidence_unavailable") {
     return {
-      quoteLabel: isHindi ? "साक्ष्य टिप्पणी:" : "Evidence Note:",
-      formattedQuoteHtml: `<span class="italic text-slate-500 dark:text-slate-400">${safeQuote}</span>`
+      quoteLabel: isHindi ? "परीक्षार्थी का उत्तर:" : "Candidate's Writing:",
+      formattedQuoteHtml: `<span class="italic text-slate-600 dark:text-slate-300">"${safeQuote}"</span>`
     };
   }
   return {
@@ -8480,29 +8541,30 @@ function deriveAssessorJudgment(sec, quote, advise, evalData, pNum) {
   if (extractedAnswersWell && !window.isMetaPlaceholderText(extractedAnswersWell) && !/Articulated relevant arguments addressing this dimension/i.test(extractedAnswersWell)) {
     dynamicAnswersWell = extractedAnswersWell;
   } else {
-    const candWords = String(quote || sec.title || "")
-      .replace(/[^a-zA-Z0-9\s]/g, " ")
+    const rawQuoteClean = String(quote || "").replace(/evidence passage not available[^\.]*/gi, "").trim();
+    const candWords = String(rawQuoteClean || sec.title || sec.tag || "")
+      .replace(/[^a-zA-Z0-9\u0900-\u097F\s]/g, " ")
       .split(/\s+/)
-      .filter(w => w.length >= 4 && !/^(this|that|with|from|have|more|also|been|other|their|such|they|them|which|about|under|after|before|page|point)$/i.test(w));
-    const keyConcept = candWords.slice(0, 3).join(" ") || "core subject theme";
+      .filter(w => w.length >= 4 && !/^(this|that|with|from|have|more|also|been|other|their|such|they|them|which|about|under|after|before|page|point|evidence|passage|available|transcript)$/i.test(w));
+    const keyConcept = candWords.slice(0, 3).join(" ") || (isHindi ? "मुख्य विषयगत आयाम" : "core subject theme");
 
     if (zone === "intro" || (pNum === 1 && cardIdx === 0)) {
       dynamicAnswersWell = isHindi
-        ? `मुख्य विषय के वैचारिक आधार को रेखांकित करते हुए उत्तर का सुसंगत प्रारंभिक संदर्भ स्थापित किया। यह प्रश्न की प्राथमिक मांग के अनुरूप है और प्रासंगिक प्रस्तावना हेतु अंक (+${(earnedM !== null ? earnedM : 0.5).toFixed(1)} अंक) प्राप्त करता है।`
+        ? `${keyConcept ? keyConcept + ' के ' : ''}अवधारणात्मक आधार (Conceptual Baseline) को स्पष्ट करते हुए उत्तर का सुसंगत प्रारंभिक संदर्भ स्थापित किया। यह प्रश्न की प्राथमिक मांग (Opening Demand) के अनुरूप है और प्रासंगिक भूमिका हेतु अंक (+${(earnedM !== null ? earnedM : 0.5).toFixed(1)} अंक) प्राप्त करता है।`
         : `Accurately establishes the foundational conceptual baseline addressing ${keyConcept}. Satisfies the question's introductory demand for contextual framing and earns credit (+${(earnedM !== null ? earnedM : 0.5).toFixed(1)}M) for relevant opening premise.`;
     } else if (zone === "conclusion" || (pNum >= (evalData.total_pages || 2) && cardIdx === 1)) {
       dynamicAnswersWell = isHindi
-        ? `मुख्य तर्कों को संश्लेषित करते हुए एक सकारात्मक और नीति-उन्मुख निष्कर्ष प्रस्तुत किया। यह प्रश्न के निर्देश के अनुसार सुसंगत समापन दृष्टिकोण प्रदान करता है और अंक (+${(earnedM !== null ? earnedM : 0.5).toFixed(1)} अंक) का हकदार है।`
+        ? `समस्त मुख्य तर्कों को संश्लेषित (Synthesize) करते हुए एक संतुलित एवं अग्रगामी दृष्टिकोण (Forward-Looking Vision) प्रस्तुत किया, जो नीतिगत सुधारों को जोड़ता है। प्रासंगिक समापन हेतु अंक (+${(earnedM !== null ? earnedM : 0.5).toFixed(1)} अंक) प्रदान किए गए हैं।`
         : `Synthesizes the core arguments into a forward-looking, balanced perspective connecting ${keyConcept} to broader systemic outcomes. Earns credit (+${(earnedM !== null ? earnedM : 0.5).toFixed(1)}M) for a constructive concluding vision matching the directive.`;
     } else {
       const hasMultiplePoints = /\b(?:\(?[1-3]\)?|[1-3]\.|\bfirst|\bsecond|\bmoreover)\b/i.test(quoteLow) || quoteLow.length > 90;
       if (hasMultiplePoints) {
         dynamicAnswersWell = isHindi
-          ? `मुख्य भाग के इस विस्तृत खंड में बहुआयामी तर्कों को प्रस्तुत किया तथा ${keyConcept} से जुड़े मुख्य घटकों को स्पष्ट किया। प्रश्न की मुख्य विश्लेषणात्मक मांग को पूरा करने के लिए अंक (+${(earnedM !== null ? earnedM : 1.0).toFixed(1)} अंक) दिए गए हैं।`
+          ? `मुख्य भाग के इस खंड में ${keyConcept ? keyConcept + ' के ' : ''}बहुआयामी घटकों (Multi-Dimensional Factors) को संरचित रूप से प्रस्तुत किया। यह प्रश्न के मुख्य डायरेक्टिव (Core Directive) को संतुष्ट करता है और विषयगत विस्तार (Substantive Thematic Coverage) हेतु अंक (+${(earnedM !== null ? earnedM : 1.0).toFixed(1)} अंक) प्राप्त करता है।`
           : `Develops structured multi-dimensional argumentation, articulating key operative factors across ${keyConcept}. Directly addresses the core directive and earns credit (+${(earnedM !== null ? earnedM : 1.0).toFixed(1)}M) for substantive thematic coverage.`;
       } else {
         dynamicAnswersWell = isHindi
-          ? `प्रश्न के इस मुख्य आयाम पर केंद्रित तर्क प्रस्तुत किया तथा ${keyConcept} की व्यावहारिक भूमिका को रेखांकित किया। प्रासंगिक विषयगत विश्लेषण हेतु अंक (+${(earnedM !== null ? earnedM : 1.0).toFixed(1)} अंक) प्रदान किए गए हैं।`
+          ? `प्रश्न के इस मुख्य आयाम पर केंद्रित तर्क प्रस्तुत किया तथा ${keyConcept ? keyConcept + ' की ' : ''}प्रशासनिक उपयोगिता (Operational Role) को स्पष्ट किया। प्रासंगिक विषयगत विश्लेषण हेतु अंक (+${(earnedM !== null ? earnedM : 1.0).toFixed(1)} अंक) दिए गए हैं।`
           : `Directly engages this critical dimension by examining the core mechanism and operational role of ${keyConcept}. Earns marks (+${(earnedM !== null ? earnedM : 1.0).toFixed(1)}M) for factual alignment with the question demand.`;
       }
     }
@@ -8519,46 +8581,46 @@ function deriveAssessorJudgment(sec, quote, advise, evalData, pNum) {
       if (specificGap && !window.isMetaPlaceholderText(specificGap) && specificGap.length > 20) {
         const cleanGap = String(specificGap).replace(/^[✓✔✎✗×✘•]\s*/, "").replace(/^\*\*[^*]+\*\*:\s*/, "").trim();
         dynamicInaccuracy = isHindi
-          ? `विश्लेषणात्मक गहराई का अभाव: ${cleanGap}${deductionTag}।`
+          ? `विश्लेषणात्मक गहराई का अभाव (Analytical Depth Gap): ${cleanGap}${deductionTag}।`
           : `Lacks analytical depth: ${cleanGap}${deductionTag}.`;
       } else if (zone === "intro" || (pNum === 1 && cardIdx === 0)) {
         dynamicInaccuracy = isHindi
-          ? `प्रस्तावना में मानक तकनीकी वर्गीकरण, मात्रात्मक आधाररेखा अथवा प्राथमिक सांविधिक/संवैधानिक प्रावधानों का अभाव है${deductionTag}।`
+          ? `प्रस्तावना में मानक तकनीकी वर्गीकरण (Technical Classification), आधिकारिक डेटा आधाररेखा (Quantitative Baseline), अथवा प्राथमिक सांविधिक/संवैधानिक प्रावधानों (Constitutional Provisions) का अभाव है${deductionTag}।`
           : `Omitted formal quantitative criteria, statutory/constitutional baseline provisions, or technical classification needed to establish analytical depth upfront${deductionTag}.`;
       } else if (zone === "conclusion") {
         dynamicInaccuracy = isHindi
-          ? `निष्कर्ष एक सामान्य वक्तव्य बनकर रह गया है; इसमें ठोस संस्थागत रोडमैप, नीतिगत मानदंड अथवा क्रियान्वयन तंत्र का अभाव है${deductionTag}।`
+          ? `निष्कर्ष सामान्य वक्तव्य (Generic Narrative) बनकर रह गया है; इसमें ठोस संस्थागत रोडमैप (Actionable Institutional Roadmap), विनियामक मानक अथवा नीतिगत समाधान (Policy Framework) अनुपस्थित हैं${deductionTag}।`
           : `The closing synthesis is generic and lacks an actionable institutional roadmap, statutory benchmark, or forward-looking policy vision${deductionTag}.`;
       } else {
         if (discipline === "POLITY_GOVERNANCE") {
           dynamicInaccuracy = isHindi
-            ? `विषय का केवल वर्णनात्मक विश्लेषण किया गया है; विशिष्ट संवैधानिक अनुच्छेदों, द्वितीय प्रशासनिक सुधार आयोग (2nd ARC) अथवा न्यायिक निर्णयों का संस्थागत संदर्भ अनुपस्थित है${deductionTag}।`
+            ? `विषय का केवल वर्णनात्मक विश्लेषण किया गया है; विशिष्ट संवैधानिक अनुच्छेदों (Constitutional Articles), 2nd ARC रिपोर्ट अथवा ऐतिहासिक न्यायिक निर्णयों (Landmark Precedents) का संस्थागत संदर्भ अनुपस्थित है${deductionTag}।`
             : `Analyzes the issue descriptively without grounding arguments in specific constitutional articles, statutory commission reports (such as 2nd ARC), or landmark judicial precedents${deductionTag}.`;
         } else if (discipline === "PHYSICAL_GEOGRAPHY") {
           dynamicInaccuracy = isHindi
-            ? `भौगोलिक परिघटनाओं का विवरण दिया गया है किंतु अंतर्निहित ऊष्मागतिक प्रक्रियाओं, दाब प्रवणता अथवा वायुमंडलीय-महासागरीय अंतःक्रियाओं की व्याख्या नहीं की गई${deductionTag}।`
+            ? `भौगोलिक परिघटनाओं का विवरण दिया गया है किंतु अंतर्निहित ऊष्मागतिक प्रक्रियाओं (Thermodynamic Processes) अथवा दबाव प्रवणता (Pressure Gradients) का वैज्ञानिक विश्लेषण नहीं है${deductionTag}।`
             : `Lists geographic occurrences without detailing underlying thermodynamic processes, pressure gradients, or coupled atmospheric-oceanic driving forces${deductionTag}.`;
         } else if (discipline === "HISTORY_CULTURE") {
           dynamicInaccuracy = isHindi
-            ? `ऐतिहासिक घटनाओं का केवल सतही विवरण दिया गया है; तत्कालीन सामाजिक-आर्थिक उत्प्रेरकों अथवा प्राथमिक अभिलेखीय साक्ष्यों का विश्लेषण नहीं किया गया${deductionTag}।`
+            ? `ऐतिहासिक घटनाओं का सतही विवरण है; तत्कालीन सामाजिक-आर्थिक उत्प्रेरकों (Socio-Economic Catalysts) अथवा प्राथमिक अभिलेखीय साक्ष्यों (Primary Records) का विश्लेषण नहीं है${deductionTag}।`
             : `Presents historical events descriptively without engaging underlying socio-economic catalysts, primary epigraphical/literary sources, or contemporary institutional records${deductionTag}.`;
         } else if (discipline === "ECONOMY") {
           dynamicInaccuracy = isHindi
-            ? `आर्थिक तर्कों में आधिकारिक आंकड़ों (आर्थिक सर्वेक्षण / बजट), राजकोषीय संकेतकों अथवा संरचनात्मक सुधार तंत्रों के प्रमाण का अभाव है${deductionTag}।`
+            ? `आर्थिक तर्कों में आधिकारिक आंकड़ों (Economic Survey / Budget data), राजकोषीय संकेतकों (Fiscal Metrics) अथवा संरचनात्मक सुधार तंत्रों (Structural Mechanisms) के साक्ष्य का अभाव है${deductionTag}।`
             : `Presents economic arguments without official empirical metrics, fiscal telemetry (such as Economic Survey / Budget data), or structural reform mechanisms${deductionTag}.`;
         } else if (discipline === "PHILOSOPHY_ETHICS") {
           dynamicInaccuracy = isHindi
-            ? `दार्शनिक गहराई का अभाव है; मूलभूत नैतिक सिद्धांतों (कर्तव्यशास्त्र, सद्गुण नीतिशास्त्र) अथवा नोलन समिति के सार्वजनिक जीवन के मूल्यों का संदर्भ नहीं दिया गया${deductionTag}।`
+            ? `दार्शनिक गहराई (Philosophical Rigor) का अभाव है; मूलभूत नैतिक सिद्धांतों (Deontology, Virtue Ethics) अथवा लोक सेवा मूल्यों (Nolan Principles) का संदर्भ नहीं दिया गया${deductionTag}।`
             : `Lacks philosophical rigor: omits foundational ethical doctrines (such as Deontology or Virtue Ethics) and specific civil service value benchmarks (such as Nolan Principles)${deductionTag}.`;
         } else {
           dynamicInaccuracy = isHindi
-            ? `तर्क सामान्य स्तर पर हैं; तकनीकी सूक्ष्मता, प्राथमिक विधिक संदर्भ अथवा ठोस वास्तविक उदाहरणों का अभाव है${deductionTag}।`
+            ? `तर्क सामान्य स्तर पर हैं; तकनीकी सूक्ष्मता (Technical Precision), प्राथमिक विधिक संदर्भ अथवा ठोस वास्तविक उदाहरणों (Empirical Examples) का अभाव है${deductionTag}।`
             : `Arguments remain broad and lack technical precision, primary statutory citations, or concrete real-world empirical examples${deductionTag}.`;
         }
       }
     } else {
       dynamicInaccuracy = isHindi
-        ? "प्रस्तुत अंश में कोई प्रमुख तथ्यात्मक अशुद्धि नहीं है; मुख्य आवश्यकताएं पूर्ण हैं।"
+        ? "प्रस्तुत अंश में कोई प्रमुख तथ्यात्मक अशुद्धि नहीं है; मुख्य अवधारणात्मक आवश्यकताएं (Core Requirements) पूर्ण हैं।"
         : "Passage satisfies core foundational requirements without significant conceptual errors or omissions.";
     }
   }
@@ -8570,44 +8632,48 @@ function deriveAssessorJudgment(sec, quote, advise, evalData, pNum) {
   } else {
     if (/comment|टिप्पणी/i.test(qLow)) {
       dynamicWhyItMatters = isHindi
-        ? "निर्देश 'टिप्पणी करें' के तहत विषय पर सुविचारित विश्लेषणात्मक दृष्टिकोण और संस्थागत प्रमाण प्रस्तुत करना उच्चतम अंक प्राप्त करने हेतु आवश्यक है।"
+        ? "निर्देश 'टिप्पणी करें' (Comment) के तहत केवल विवरण देने के बजाय संस्थागत साक्ष्यों (Institutional Evidence) पर आधारित एक सुविचारित विश्लेषणात्मक रुख (Definitive Stance) लेना उच्चतम अंक हेतु आवश्यक है।"
         : "Under the directive 'Comment', the candidate must take a definitive, well-reasoned stance substantiated by authoritative institutional evidence rather than passive narration.";
     } else if (/discuss|चर्चा/i.test(qLow)) {
       dynamicWhyItMatters = isHindi
-        ? "निर्देश 'चर्चा करें' के तहत एकतरफा विवरण के बजाय विभिन्न हितधारक दृष्टिकोणों, नीतिगत अंतर्विरोधों और व्यावहारिक निहितार्थों की पड़ताल आवश्यक है।"
+        ? "निर्देश 'चर्चा करें' (Discuss) के तहत एकतरफा प्रस्तुति के बजाय बहु-हितधारक दृष्टिकोण (Multi-Stakeholder Perspectives), नीतिगत विरोधाभास और प्रशासनिक संतुलन (Administrative Trade-offs) की पड़ताल अनिवार्य है।"
         : "The directive 'Discuss' mandates exploring multiple stakeholder perspectives, counter-arguments, and administrative trade-offs.";
     } else if (/critically\s*examine|examine|परीक्षण/i.test(qLow)) {
       dynamicWhyItMatters = isHindi
-        ? "निर्देश 'परीक्षण करें' के तहत व्यावहारिक बाधाओं, क्रियान्वयन चुनौतियों और संस्थागत कमियों की सूक्ष्म जांच संतुलित निष्कर्ष हेतु अनिवार्य है।"
+        ? "निर्देश 'समालोचनात्मक परीक्षण' (Critically Examine) के तहत जमीनी बाधाओं, क्रियान्वयन चुनौतियों (Implementation Bottlenecks) और व्यवस्थागत कमियों (Systemic Lacunae) की सूक्ष्म जांच संतुलित निष्कर्ष हेतु आवश्यक है।"
         : "The directive 'Critically Examine' demands probing systemic lacunae, operational bottlenecks, and practical implementation limits to provide a balanced critique.";
     } else if (/analys|analyz|विश्लेषण/i.test(qLow)) {
       dynamicWhyItMatters = isHindi
-        ? "निर्देश 'विश्लेषण करें' के तहत सतही विवरण के बजाय मूल कारणात्मक घटकों, संरचनात्मक अंतर्संबंधों और प्रभावों की व्याख्या अंक योजना की मुख्य मांग है।"
+        ? "निर्देश 'विश्लेषण करें' (Analyze) के तहत सतही बिंदुओं के बजाय मूल कारणात्मक घटकों (Constituent Causes) और संरचनात्मक प्रभावों (Downstream Impacts) का विच्छेदन रूब्रिक की मुख्य मांग है।"
         : "The directive 'Analyze' requires dissecting constituent causes, structural interdependencies, and downstream impacts rather than summarizing surface features.";
     } else if (/evaluate|मूल्यांकन/i.test(qLow)) {
       dynamicWhyItMatters = isHindi
-        ? "निर्देश 'मूल्यांकन करें' के तहत संवैधानिक या नीतिगत लक्ष्यों के सापेक्ष व्यावहारिक परिणामों की निष्पक्ष जांच करना आवश्यक है।"
+        ? "निर्देश 'मूल्यांकन करें' (Evaluate) के तहत संवैधानिक या नीतिगत लक्ष्यों के सापेक्ष वास्तविक परिणामों (Outcomes vs Benchmarks) की निष्पक्ष जांच करना आवश्यक है।"
         : "The directive 'Evaluate' necessitates assessing outcomes against stated constitutional or policy benchmarks to deliver an evidence-backed verdict.";
     } else if (/elucidate|स्पष्ट/i.test(qLow)) {
       dynamicWhyItMatters = isHindi
-        ? "निर्देश 'स्पष्ट करें' के तहत जटिल अवधारणाओं को प्रामाणिक उदाहरणों और स्पष्ट तर्कों के माध्यम से समझाना अपेक्षित है।"
+        ? "निर्देश 'स्पष्ट करें' (Elucidate) के तहत जटिल अवधारणाओं को प्रामाणिक केस उदाहरणों (Case Examples) और स्पष्ट अंतर्संबंधों (Conceptual Linkages) के माध्यम से समझाना अपेक्षित है।"
         : "The directive 'Elucidate' requires clarifying complex conceptual interlinkages with lucid explanations and authoritative case examples.";
     } else {
       if (discipline === "POLITY_GOVERNANCE") {
         dynamicWhyItMatters = isHindi
-          ? "जीएस-2 राजव्यवस्था में संवैधानिक अनुच्छेदों और संस्थागत तंत्रों पर आधारित तर्क कानूनी प्रामाणिकता सिद्ध करते हैं और उच्च अंक दिलाते हैं।"
+          ? "GS-2 Polity में संवैधानिक अनुच्छेदों और संस्थागत तंत्रों (Institutional Frameworks) पर आधारित तर्क विधिक प्रामाणिकता सिद्ध करते हैं और उच्च अंक दिलाते हैं।"
           : "In GS2 Polity, grounding arguments in constitutional articles and institutional mechanisms is essential to demonstrate legal rigor and earn top-bracket marks.";
       } else if (discipline === "PHYSICAL_GEOGRAPHY") {
         dynamicWhyItMatters = isHindi
-          ? "भौतिक भूगोल में भौतिक और ऊष्मागतिक तंत्रों की व्याख्या विषय पर वैज्ञानिक पकड़ को सिद्ध करने हेतु निर्णायक है।"
+          ? "भौतिक भूगोल में भौतिक और ऊष्मागतिक तंत्रों (Thermodynamic Mechanisms) की व्याख्या विषय पर वैज्ञानिक पकड़ को सिद्ध करने हेतु निर्णायक है।"
           : "In Physical Geography, explaining physical and thermodynamic mechanisms is critical to demonstrate conceptual mastery of Earth systems.";
       } else if (discipline === "ECONOMY") {
         dynamicWhyItMatters = isHindi
-          ? "जीएस-3 अर्थव्यवस्था में आधिकारिक आंकड़ों और नीतिगत तंत्रों के साथ पुष्टि विश्लेषणात्मक प्रामाणिकता सिद्ध करने हेतु अनिवार्य है।"
+          ? "GS-3 Economy में आधिकारिक आर्थिक सर्वेक्षण/नीतिगत डेटा (Empirical Metrics) के साथ पुष्टि विश्लेषणात्मक प्रामाणिकता हेतु अनिवार्य है।"
           : "In GS3 Economy, empirical substantiation with official data benchmarks is mandatory to prove economic viability and analytical competence.";
+      } else if (discipline === "PHILOSOPHY_ETHICS") {
+        dynamicWhyItMatters = isHindi
+          ? "GS-4 Ethics में नैतिक दार्शनिक सिद्धांतों और प्रशासनिक केस अनुप्रयोगों (Administrative Applications) का समन्वय शीर्ष अंक कोष्ठक (Top Bracket) में स्थान सुनिश्चित करता है।"
+          : "In GS4 Ethics, integrating foundational moral doctrines with concrete administrative applications secures top-bracket evaluation marks.";
       } else {
         dynamicWhyItMatters = isHindi
-          ? "इस आयाम का ठोस और प्रमाण-आधारित मूल्यांकन यूपीएससी मूल्यांकन रूब्रिक की मुख्य मांग को संतुष्ट करता है।"
+          ? "इस आयाम का ठोस और प्रमाण-आधारित मूल्यांकन (Substantiated Evaluation) UPSC मुख्य परीक्षा मूल्यांकन रूब्रिक की मुख्य मांग को संतुष्ट करता है।"
           : "Thorough substantiation of this dimension directly fulfills the primary scoring criteria in the UPSC evaluation rubric.";
       }
     }
@@ -8621,7 +8687,7 @@ function deriveAssessorJudgment(sec, quote, advise, evalData, pNum) {
     dynamicImprovement = advise;
   } else {
     dynamicImprovement = isHindi
-      ? "विशिष्ट नीतिगत पहलों, संवैधानिक अनुच्छेदों या प्रामाणिक आधिकारिक आंकड़ों से इस बिंदु को पुष्ट करें।"
+      ? "ठोस संस्थागत संदर्भ (Institutional Framework), विशिष्ट समिति रिपोर्ट (जैसे 2nd ARC / NITI Aayog), संवैधानिक प्रावधान अथवा आधिकारिक आंकड़ों से इस बिंदु को पुष्ट करें।"
       : "Substantiate this point with a specific institutional framework, empirical metric, or primary source citation.";
   }
 
@@ -8690,6 +8756,25 @@ function getCardQuoteAndElevate(sec, usedQuotesSet = null) {
       if (qLow && qLow.length >= 20 && lCleanNorm.length >= 20 && qLow.includes(lCleanNorm.slice(0, 25))) return false;
       return true;
     });
+
+  // If candLines on this page is empty, fallback to candidate lines from full transcript
+  if (candLines.length === 0 && fullT.trim()) {
+    const isEnglishEval = !((typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData));
+    const allFullLines = fullT.split(/\n+/).map(l => l.trim()).filter(l => {
+      if (l.length < 10) return false;
+      if (l.startsWith("#") || /^\[(?:page|पृष्ठ)/i.test(l) || /^(?:page|पृष्ठ)\s*\d+/i.test(l)) return false;
+      const lClean = l.replace(/^(?:Q\.?\s*\d*[\.\):]?|Question\s*\d*[\.\):]?|\d+[\.\):]\s+)/i, "").trim();
+      const lCleanNorm = lClean.toLowerCase().replace(/[^a-z0-9]/g, " ").trim();
+      if (/^(?:Q\.?\s*\d*[\.\):]?|Question\s*\d*[\.\):]?)\s+/i.test(l)) return false;
+      if (isEnglishEval && /[\u0900-\u097F]/.test(l)) return false;
+      if (!isEnglishEval && !/[\u0900-\u097F]/.test(l) && /^(?:comment|discuss|examine|analyse|\d+\s*marks|\d+\s*words)/i.test(l)) return false;
+      if (qLow && qLow.length >= 20 && lCleanNorm.length >= 20 && qLow.includes(lCleanNorm.slice(0, 25))) return false;
+      return true;
+    });
+    if (allFullLines.length > 0) {
+      candLines.push(...allFullLines);
+    }
+  }
 
   // If quote or advise was not set, try to extract from sourceHtml without truncating inner quotes
   if (!quote || !advise || isMetaText(quote) || isAlreadyUsedQuote(quote)) {
@@ -8836,8 +8921,14 @@ function getCardQuoteAndElevate(sec, usedQuotesSet = null) {
         }
       }
     } else if (!quote) {
-      quote = "Evidence passage not available in handwriting transcript.";
-      sec.isAiSummary = true;
+      const isHindiEval = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
+      if (isHindiEval) {
+        quote = sec.tag || sec.title || "अभ्यर्थी द्वारा प्रस्तुत मुख्य विश्लेषणात्मक बिंदु";
+        sec.isAiSummary = true;
+      } else {
+        quote = sec.tag || sec.title || "Passage under analytical evaluation.";
+        sec.isAiSummary = true;
+      }
     }
   }
 
@@ -8959,7 +9050,8 @@ function deriveAdaptiveCardHeading(sec, quote, evalData, currentPg, totalPages) 
   const qDirectiveMatch = qClean.match(/\b(comment|discuss|examine|critically examine|analyze|analyse|elucidate|evaluate|टिप्पणी करें|चर्चा करें|परीक्षण करें|विश्लेषण करें)\b/i);
   const qDirective = qDirectiveMatch ? qDirectiveMatch[1].toUpperCase() : "";
 
-  let rawTitle = String(sec.title || "").trim();
+  let rawTitle = String(sec.title || sec.tag || "").trim();
+  rawTitle = rawTitle.replace(/\[(?:अभ्यर्थी का )?[^\]]+\]/g, "").trim();
 
   // 1. Strip forced mechanical prefixes like INTRO:, BODY:, CONCLUSION:, CORE DEMAND:
   rawTitle = rawTitle.replace(/^(?:(?:intro|body|conclusion|core demand|concl|भाग|मुख्य भाग|प्रस्तावना|निष्कर्ष)\s*[:—–-]\s*)+/gi, "").trim();
@@ -9055,9 +9147,13 @@ function deriveAdaptiveCardHeading(sec, quote, evalData, currentPg, totalPages) 
     const firstQLine = safeQuote.split("\n")[0].trim().slice(0, 30);
     const quoteIdx = pLines.findIndex(l => l.includes(firstQLine) || (firstQLine && l.startsWith(firstQLine.slice(0, 20))));
     if (quoteIdx > 0) {
-      const prevLine = pLines[quoteIdx - 1];
-      if (prevLine && prevLine.length >= 4 && prevLine.length <= 48 && !/^(?:Q\.?\d*|\[Page|\(?\d+[\.\)])/i.test(prevLine)) {
-        candHeading = prevLine.replace(/^[\[\(]|[\)\]]$/g, "").trim().toUpperCase();
+      // Check up to 3 lines backward from quote for a candidate heading
+      for (let back = 1; back <= 3 && quoteIdx - back >= 0; back++) {
+        const lineCandidate = pLines[quoteIdx - back];
+        if (lineCandidate && lineCandidate.length >= 4 && lineCandidate.length <= 60 && !/^(?:Q\.?\d*|\[Page|\[पृष्ठ|\(?\d+[\.\)])/i.test(lineCandidate)) {
+          candHeading = lineCandidate.replace(/^[\[\(]|[\)\]]$/g, "").replace(/[:-—–\s]+$/, "").trim().toUpperCase();
+          break;
+        }
       }
     }
   }

@@ -1143,22 +1143,22 @@ IDEAL BALANCE: {directive_info.get('ideal_balance', 'प्रस्तावन
 
 {ca_block}
 
-NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के विश्लेषण पर आधारित 6 स्वर्णिम नियम):
+NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के विश्लेषण पर आधारित 7 स्वर्णिम नियम):
 
-1. वास्तविक उत्तर-पुस्तिका ट्रेसिंग (STRICT ANSWERSHEET TRACING - ZERO GHOST HEADINGS):
+1. वास्तविक उत्तर-पुस्तिका ट्रेसिंग एवं गतिशील शीर्षक पहचान (STRICT ANSWERSHEET TRACING - ZERO GHOST HEADINGS):
    - अभ्यर्थी ने उत्तर में जो वास्तविक बक्सेदार शीर्षक (Boxed Headings), रेखांकित शीर्षक, या भाग (a), (b), (c) लिखे हैं, केवल उन्हीं को ट्रेस करें!
    - कभी भी कोई काल्पनिक या मनगढ़ंत हेडिंग (जैसे 'Fiscal Federalism' या 'Synthesis Part 2') न बनाएं।
    - यदि अभ्यर्थी ने केवल 3 भाग लिखे हैं: [प्रस्तावना (भूमिका) ➔ मुख्य बिंदु ➔ निष्कर्ष (आगे की राह)], तो मूल्यांकन में केवल वही 3 भाग होने चाहिए।
-   - प्रत्येक मार्जिन कार्ड (visual_annotations) में अभ्यर्थी की हस्तलिखित पंक्तियों से वास्तविक शब्द उद्धृत (Quote) करें।
+   - प्रत्येक मार्जिन कार्ड (visual_annotations) के 'tag' में अभ्यर्थी द्वारा लिखा गया वास्तविक शीर्षक या विषयगत आयाम ही दर्ज करें।
 
 2. हस्तलिखित आरेखों व मानचित्रों की पहचान एवं अंक (DIAGRAMS & MAPS RECOGNITION):
    - उत्तर-पुस्तिका में अभ्यर्थी द्वारा बनाए गए रेखाचित्रों, मानचित्रों, तालिकाओं या फ्लोचार्ट की पहचान करें:
-     * जैसे: भारत की तटरेखा मानचित्र, नक्सल प्रभावित रेड कॉरिडोर मानचित्र, अरस्तू का स्वर्णिम मध्यम मार्ग आरेख, चुनाव आयुक्त चयन समिति का त्रिभुज, मूल ढांचा वृत्त, पंचायती राज 3Fs (Funds, Functions, Functionaries)।
+     * जैसे: भारत की तटरेखा मानचित्र, नक्सल प्रभावित रेड कॉरिडोर मानचित्र, अरस्तू का स्वर्णिम मध्यम मार्ग आरेख, चुनाव आयुक्त चयन समिति का त्रिभुज, मूल ढांचा वृत्त, पंचायती राज 3Fs (Funds, Functions, Functionaries), वेन आरेख (Venn Diagram)।
    - यदि प्रासंगिक आरेख उपस्थित है, तो प्रस्तुति में उसकी स्पष्ट सराहना करें और +0.5 से +1.0 अंक दें।
 
-3. द्विभाषी तकनीकी शब्दावली की स्वीकार्यता (ENGLISH / HINGLISH ACRONYM TOLERANCE):
+3. द्विभाषी तकनीकी शब्दावली एवं हिंग्लिश की स्वीकार्यता (ENGLISH / HINGLISH ACRONYM TOLERANCE):
    - हिंदी माध्यम के शीर्ष अभ्यर्थी गति और सटीकता हेतु कोष्ठक में अंग्रेजी तकनीकी शब्द या संक्षिप्त नाम लिखते हैं:
-     * जैसे: (2nd ARC), (Deep Web / Dark Web), (Safe Harbour), (Appropriation), (mRNA), (AMR), (Single Sign On - SSO), (Checks & Balances)।
+     * जैसे: (2nd ARC), (Deep Web / Dark Web), (Safe Harbour), (Appropriation), (mRNA), (AMR), (Single Sign On - SSO), (Checks & Balances), (Probity), (Inclusive Growth), (Venn Diagram)।
    - इसके लिए अंक कभी न काटें! आयोग में यह अवधारणात्मक स्पष्टता का प्रमाण माना जाता है।
 
 4. प्रश्न-प्रकार के अनुसार विषयगत गहराई (SUBJECT-SPECIFIC DNA):
@@ -1178,6 +1178,14 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
    - अंतिम पृष्ठ के अंतिम पैराग्राफ को पढ़ें (जो सामान्यतः 'अतः', 'निष्कर्षतः', या '[आगे की राह]' से शुरू होता है)।
    - यदि निष्कर्ष केवल 1 सामान्य पंक्ति है जिसमें विषय-विशेष कीवर्ड्स नहीं हैं, तो केवल 0.5 अंक दें और बताएं कि पूर्ण अंक कैसे प्राप्त करें।
    - यदि निष्कर्ष दूरदर्शी, नीतिगत और समाधानपरक है, तो उचित अंक दें।
+
+7. मार्जिन मूल्यांकन एवं गतिशील शीर्षक पहचान (MANDATORY DYNAMIC MARGIN EVALUATION IN HINGLISH):
+   - प्रत्येक पृष्ठ के मार्जिन कार्ड्स (visual_annotations) में अभ्यर्थी द्वारा लिखे गए वास्तविक बक्सेदार शीर्षक (Boxed Headings), रेखांकित शीर्षक (Underlined Headings) या आरेख के नाम (Diagram Titles) को tag में लिखें (जैसे: "Body: शुचिता से सामाजिक-आर्थिक विकास", "Body: अंत्योदय व Inclusive Growth (Venn Diagram)", "Body: चुनौतियाँ: Celebrity कल्चर", "Body: 2nd ARC अनुशंसाएं")। कभी भी जेनेरिक सांचा (जैसे "मुख्य भाग: [अभ्यर्थी का प्रथम शीर्षक]") न लिखें!
+   - प्रत्येक visual_annotation के remark में अनिवार्य रूप से अभ्यर्थी की हस्तलिखित कॉपी से 10 से 25 वास्तविक शब्द उद्धृत (Quote) करें:
+     * प्रारूप: `✓ **सकारात्मक**: परीक्षार्थी ने लिखा: "..." [सटीक विश्लेषणात्मक मूल्यांकन]।\n✎ **सुधार**: [ठोस संस्थागत सुधार एवं मानक शब्दावली]।`
+   - मूल्यांकन भाषा — सुगम हिंग्लिश (Accessible Hinglish):
+     * UPSC मुख्य परीक्षा के उच्च मानकों के अनुरूप मानक प्रशासनिक हिंदी में मानक अंग्रेजी तकनीकी शब्दों (जैसे Probity, Inclusive Development, Venn Diagram, 2nd ARC, Civil Services, Nolan Principles, Checks & Balances, Deontology, Administrative Bottlenecks) का सहज समन्वय करें।
+     * मूल्यांकन सीधा, सटीक, तथ्यात्मक और गतिशील होना चाहिए ताकि अभ्यर्थी को पूर्ण विश्वास हो कि उसकी कॉपी के प्रत्येक शब्द का सूक्ष्म परीक्षण हुआ है।
 
 OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
 {{
@@ -1218,19 +1226,19 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
   }},
   "subpart_marks_breakdown": [
     {{
-      "part_name": "प्रस्तावना / पृष्ठभूमि",
+      "part_name": "प्रस्तावना / अवधारणात्मक आधार",
       "max_marks": {intro_d},
       "marks_awarded": 1.0,
       "analysis": "अभ्यर्थी की प्रस्तावना का संक्षिप्त वस्तुनिष्ठ विश्लेषण।"
     }},
     {{
-      "part_name": "मुख्य भाग: [अभ्यर्थी का शीर्षक 1]",
+      "part_name": "मुख्य भाग: सामाजिक-आर्थिक विकास के आयाम",
       "max_marks": {round(body_d * 0.5, 1)},
       "marks_awarded": {round(body_d * 0.25, 1)},
       "analysis": "अभ्यर्थी द्वारा प्रस्तुत बिंदुओं और उदाहरणों का तथ्यात्मक मूल्यांकन।"
     }},
     {{
-      "part_name": "मुख्य भाग: [अभ्यर्थी का शीर्षक 2]",
+      "part_name": "मुख्य भाग: चुनौतियाँ एवं संस्थागत सीमाएं",
       "max_marks": {round(body_d * 0.5, 1)},
       "marks_awarded": {round(body_d * 0.25, 1)},
       "analysis": "चुनौतियों व संवैधानिक आयामों की गहराई का परीक्षण।"
@@ -1294,35 +1302,35 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
   "visual_annotations": [
     {{
       "page_number": 1,
-      "tag": "प्रस्तावना",
+      "tag": "प्रस्तावना (भूमिका)",
       "start_y_percent": 24,
       "end_y_percent": 38,
       "marks_awarded": "+1.0 / {intro_d}",
-      "remark": "✓ **सकारात्मक**: सटीक विषयगत परिभाषा के साथ प्रभावी शुरुआत।\n✎ **सुधार**: प्रथम पंक्ति में संवैधानिक अनुच्छेद या आधिकारिक रिपोर्ट का संदर्भ जोड़ें।"
+      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"शुचिता केवल वित्तीय ईमानदारी नहीं, बल्कि समग्र लोक सेवा आचरण है...\" — सटीक Conceptual Baseline के साथ प्रभावी शुरुआत।\\n✎ **सुधार**: प्रथम पंक्ति में 2nd ARC (Ethics in Governance) या Nolan Principles का औपचारिक संदर्भ जोड़ें।"
     }},
     {{
       "page_number": 1,
-      "tag": "मुख्य भाग: [अभ्यर्थी का प्रथम शीर्षक]",
+      "tag": "Body: शुचिता से सामाजिक-आर्थिक विकास",
       "start_y_percent": 42,
       "end_y_percent": 88,
       "marks_awarded": "+1.5 / {round(body_d * 0.5, 1)}",
-      "remark": "✓ **सकारात्मक**: बिंदुवार संरचना एवं 'उदा०' का सटीक उपयोग।\n✎ **सुधार**: अधिक स्पष्ट प्रशासनिक शब्दावली का प्रयोग करें।"
+      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"पारदर्शिता से योजनाओं का लीकेज रुकता है और DBT प्रभावी होता है...\" — बिंदुवार संरचना व DBT उदाहरण का सटीक उपयोग।\\n✎ **सुधार**: Inclusive Growth के संदर्भ में अंत्योदय और NITI Aayog के Aspirational Districts का आंकड़ा जोड़ें।"
     }},
     {{
       "page_number": 2,
-      "tag": "मुख्य भाग: [अभ्यर्थी का द्वितीय शीर्षक]",
+      "tag": "Body: चुनौतियाँ व Celebrity कल्चर (Venn Diagram)",
       "start_y_percent": 10,
       "end_y_percent": 68,
       "marks_awarded": "+1.5 / {round(body_d * 0.5, 1)}",
-      "remark": "✓ **सकारात्मक**: चुनौतियों का व्यवस्थित विश्लेषण।\n✎ **सुधार**: नीतिगत उपायों में विशिष्ट समिति रिपोर्ट का उल्लेख करें।"
+      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"सोशल मीडिया पर आत्म-प्रचार से निष्पक्षता प्रभावित होती है...\" — जमीनी चुनौतियों व Venn Diagram का उत्कृष्ट प्रयोग।\\n✎ **सुधार**: सिविल सेवा आचरण नियमावली (Conduct Rules 1964) एवं संस्थागत जवाबदेही (Institutional Accountability) का उल्लेख करें।"
     }},
     {{
       "page_number": 2,
-      "tag": "निष्कर्ष",
+      "tag": "निष्कर्ष (आगे की राह)",
       "start_y_percent": 70,
       "end_y_percent": 86,
       "marks_awarded": "+0.5 / {conc_d}",
-      "remark": "✓ **सकारात्मक**: उत्तर को संतुलित दिशा में समाप्त किया।\n✎ **सुधार**: सामान्य समापन के स्थान पर आगे की राह (Way Forward) में 1 ठोस संस्थागत सुधार जोड़ें।"
+      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"अतः शुचिता और नैतिक नेतृत्व से ही अंत्योदय का लक्ष्य साकार होगा...\" — उत्तर का संतुलित समापन।\\n✎ **सुधार**: सामान्य समापन के स्थान पर आगे की राह (Way Forward) में 1 ठोस संस्थागत सुधार (जैसे Mission Karmayogi या 3-Phase SOP) जोड़ें।"
     }}
   ],
   "rubric_scores": {{
@@ -4625,6 +4633,31 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
     conc_audit = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
 
     existing_steps = data.get("sub_part_step_marking")
+    # If sub_part_step_marking is absent or incomplete, check if subpart_marks_breakdown exists
+    if (not isinstance(existing_steps, list) or len(existing_steps) < 3) and isinstance(data.get("subpart_marks_breakdown"), list) and len(data.get("subpart_marks_breakdown")) >= 3:
+        existing_steps = []
+        for sb in data["subpart_marks_breakdown"]:
+            if isinstance(sb, dict):
+                existing_steps.append({
+                    "step_label": sb.get("part_name", ""),
+                    "sub_heading": sb.get("analysis", ""),
+                    "max": sb.get("max_marks", 2.0),
+                    "awarded": sb.get("marks_awarded", 1.0)
+                })
+    # If still absent, check if visual_annotations exist and can provide candidate section headings
+    if (not isinstance(existing_steps, list) or len(existing_steps) < 3) and isinstance(data.get("visual_annotations"), list) and len(data.get("visual_annotations")) >= 3:
+        v_anns = data.get("visual_annotations")
+        existing_steps = []
+        for va in v_anns:
+            if isinstance(va, dict):
+                tag_str = str(va.get("tag") or "")
+                existing_steps.append({
+                    "step_label": tag_str,
+                    "sub_heading": re.sub(r'^[✓✔✎✗×✘•]\s*', '', str(va.get("remark") or "").split("\n")[0]),
+                    "max": 2.0,
+                    "awarded": 1.0
+                })
+
     if isinstance(existing_steps, list) and len(existing_steps) >= 3:
         num_steps = len(existing_steps)
         num_body = max(1, num_steps - 2)
@@ -4659,8 +4692,8 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                 raw_sl = str(item.get("step_label") or "")
                 raw_sh = str(item.get("sub_heading") or "")
                 if is_hindi:
-                    item["step_label"] = raw_sl if (raw_sl and is_devanagari_text(raw_sl)) else "1. प्रस्तावना एवं संदर्भ (Intro & Context)"
-                    item["sub_heading"] = raw_sh if (raw_sh and is_devanagari_text(raw_sh)) else "प्रारंभिक विषय-परिचय एवं अवधारणात्मक आधार"
+                    item["step_label"] = raw_sl if (raw_sl and (is_devanagari_text(raw_sl) or len(raw_sl) >= 4)) else "1. प्रस्तावना एवं संदर्भ (Intro & Context)"
+                    item["sub_heading"] = raw_sh if (raw_sh and (is_devanagari_text(raw_sh) or len(raw_sh) >= 6)) else "प्रारंभिक विषय-परिचय एवं अवधारणात्मक आधार"
                 else:
                     item["step_label"] = "1. INTRO & CONTEXT" if (not raw_sl or is_devanagari_text(raw_sl)) else raw_sl
                     item["sub_heading"] = "Opening Premise & Conceptual Anchor" if (not raw_sh or is_devanagari_text(raw_sh)) else raw_sh
@@ -4670,8 +4703,8 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                 raw_sl = str(item.get("step_label") or "")
                 raw_sh = str(item.get("sub_heading") or "")
                 if is_hindi:
-                    item["step_label"] = raw_sl if (raw_sl and is_devanagari_text(raw_sl)) else f"{num_steps}. निष्कर्ष एवं आगे की राह (Conclusion & Way Forward)"
-                    item["sub_heading"] = raw_sh if (raw_sh and is_devanagari_text(raw_sh)) else "अग्रगामी समाधान एवं संस्थागत समन्वय"
+                    item["step_label"] = raw_sl if (raw_sl and (is_devanagari_text(raw_sl) or len(raw_sl) >= 4)) else f"{num_steps}. निष्कर्ष एवं आगे की राह (Conclusion & Way Forward)"
+                    item["sub_heading"] = raw_sh if (raw_sh and (is_devanagari_text(raw_sh) or len(raw_sh) >= 6)) else "अग्रगामी समाधान एवं संस्थागत समन्वय"
                 else:
                     item["step_label"] = f"{num_steps}. CONCLUSION & SYNTHESIS" if (not raw_sl or is_devanagari_text(raw_sl)) else raw_sl
                     item["sub_heading"] = "Closing Vision & Institutional Forward Linkage" if (not raw_sh or is_devanagari_text(raw_sh)) else raw_sh
@@ -4681,19 +4714,21 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                 body_idx = idx - 1
                 part_letter = chr(65 + body_idx)
                 raw_sl = str(item.get("step_label") or "").strip()
-                clean_sl = re.sub(r'^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*|भाग\s*[a-z0-9]\s*[-—:]\s*)+', '', raw_sl, flags=re.IGNORECASE).strip()
+                clean_sl = re.sub(r'^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*|भाग\s*[a-z0-9]\s*[-—:]\s*|मुख्य भाग\s*[-—:]\s*)+', '', raw_sl, flags=re.IGNORECASE).strip()
+                clean_sl = re.sub(r'\[(?:अभ्यर्थी का )?[^\]]+\]', '', clean_sl).strip()
                 if is_hindi:
-                    item["step_label"] = f"{idx + 1}. मुख्य भाग — आयाम {part_letter} ({clean_sl})" if (clean_sl and is_devanagari_text(clean_sl)) else f"{idx + 1}. मुख्य भाग — आयाम {part_letter}"
+                    # Allow authentic Hinglish, Devanagari, and English technical terms in Hindi answer sheet headings
+                    item["step_label"] = f"{idx + 1}. मुख्य भाग — {clean_sl}" if (clean_sl and len(clean_sl) >= 3 and not re.match(r'^(?:आयाम\s*[a-z0-9]|dimension\s*[a-z0-9])$', clean_sl, re.I)) else f"{idx + 1}. मुख्य भाग — आयाम {part_letter}"
                 else:
                     if is_devanagari_text(clean_sl):
                         clean_sl = re.sub(r'[\u0900-\u097F]+', '', clean_sl).strip()
                     item["step_label"] = f"{idx + 1}. Part {part_letter} — {clean_sl}" if (clean_sl and len(clean_sl) > 3) else f"{idx + 1}. Part {part_letter} — Question Dimension {part_letter}"
                 raw_sh = str(item.get("sub_heading") or "")
+                raw_sh_clean = re.sub(r'\[(?:अभ्यर्थी का )?[^\]]+\]', '', raw_sh).strip()
                 need_default_sh = (
-                    not raw_sh or
-                    "explain what" in raw_sh.lower() or
-                    (not is_hindi and is_devanagari_text(raw_sh)) or
-                    (is_hindi and not is_devanagari_text(raw_sh))
+                    not raw_sh_clean or
+                    "explain what" in raw_sh_clean.lower() or
+                    (not is_hindi and is_devanagari_text(raw_sh_clean))
                 )
                 if need_default_sh:
                     if is_hindi:
@@ -4710,6 +4745,8 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                             item["sub_heading"] = "Multidimensional Impacts & Ground Vulnerabilities"
                         else:
                             item["sub_heading"] = "Actionable Policy Interventions & Regulatory Safeguards" if (wf_demanded or wf_written) else "Structural Implications & Institutional Analysis"
+                else:
+                    item["sub_heading"] = raw_sh_clean
                 item["max"] = body_max_list[body_idx] if body_idx < len(body_max_list) else 2.0
                 item["awarded"] = body_aw_list[body_idx] if body_idx < len(body_aw_list) else 1.0
             assigned_steps.append(item)
