@@ -5109,12 +5109,11 @@ window.localizeEvaluationUI = function(evalData) {
   setText("directiveGlossaryLabel", "Operative Keywords & Evaluator Glossary", "प्रभावी कीवर्ड्स एवं परीक्षक शब्दावली (Operative Keywords)");
   setText("directiveGlossarySubLabel", "click/hover for exam meaning", "अर्थ देखने हेतु क्लिक/होवर करें");
 
-  // 3. Batch 1: UPSC Examiner Step-Marking & Point-by-Point Copy Audit
-  setText("batch1CardHeading", "UPSC Examiner Step-Marking & Point-by-Point Copy Audit", "UPSC परीक्षक चरणबद्ध अंकन (Step-Marking) एवं बिंदुवार कॉपी ऑडिट");
-  setText("batch1CardSubtitle", "Exact sub-demand step marks, handwritten point-level grading & your personal Locker habit progress", "सटीक उप-मांग स्टेप मार्क्स, हस्तलिखित बिंदु-वार ग्रेडिंग एवं लॉकर प्रगति ट्रैकर");
+  // 3. Batch 1: UPSC Examiner Step-Marking & Copy Audit
+  setText("batch1CardHeading", "UPSC Examiner Step-Marking & Copy Audit", "UPSC परीक्षक चरणबद्ध अंकन (Step-Marking) एवं कॉपी ऑडिट");
+  setText("batch1CardSubtitle", "Exact sub-demand step marks & your personal Locker habit progress", "सटीक उप-मांग स्टेप मार्क्स एवं लॉकर प्रगति ट्रैकर");
   setText("batch1SubpartHeading", "1. Question Sub-Part Step-Marking Ceiling (How Your Marks Were Allocated)", "1. प्रश्न उप-भाग स्टेप-मार्किंग सीमा (अंक आवंटन वितरण)");
-  setText("batch1PointAuditHeading", "2. Point-by-Point Handwritten Audit (Which Exact Points Fetched Marks vs. Scope to Upgrade)", "2. बिंदुवार हस्तलिखित मूल्यांकन (किन बिंदुओं पर अंक मिले बनाम सुधार का दायरा)");
-  setText("batch1MentorMemoryHeading", "3. Personal Mentor Memory (Progress Across Your Answer Locker)", "3. व्यक्तिगत मेंटर स्मृति (उत्तर लॉकर में आपकी क्रमिक प्रगति)");
+  setText("batch1MentorMemoryHeading", "2. Personal Mentor Memory (Progress Across Your Answer Locker)", "2. व्यक्तिगत मेंटर स्मृति (उत्तर लॉकर में आपकी क्रमिक प्रगति)");
   setText("mentorMemoryCopyCountBadge", "Longitudinal Habit Tracker", "दीर्घकालिक उत्तर लेखन ट्रैकर");
 
   // 4. Micro-Hygiene & Presentation Polish
@@ -13465,7 +13464,7 @@ function renderBatch1ExaminerMastery(evalData) {
   const memoryBoxEl = document.getElementById("personalMentorMemoryBox");
   const totalBadgeEl = document.getElementById("batch1StepTotalBadge");
   const copyCountBadgeEl = document.getElementById("mentorMemoryCopyCountBadge");
-  if (!stepListEl || !pointListEl || !memoryBoxEl) return;
+  if (!stepListEl || !memoryBoxEl) return;
 
   syncRubricAndMarginScores(evalData);
   const scheme = (typeof window.getCanonicalStepMarkingScheme === "function")
@@ -13772,31 +13771,33 @@ function renderBatch1ExaminerMastery(evalData) {
     }
   };
 
-  pointListEl.innerHTML = pointRows.map(r => {
-    const badgeStyle = r.isPositive
-      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
-      : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30";
-    const pageMatch = String(r.loc || "").match(/(?:Page|पृष्ठ)\s*(\d+)/i);
-    const targetPage = r.page || (pageMatch ? parseInt(pageMatch[1], 10) : 1);
-    return `
-      <div class="w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-2 min-w-0 overflow-hidden">
-        <div class="w-full flex flex-wrap items-center justify-between gap-1.5 min-w-0">
-          <button type="button" onclick="window.jumpToAnswerSheetPage(${targetPage})" title="Click to view Page ${targetPage} on Answer Sheet" class="text-[10px] sm:text-[10.5px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 transition cursor-pointer max-w-full whitespace-normal break-words text-left leading-snug">
-            ${escapeHtml(r.loc)} ↗
-          </button>
-          <span class="text-[10.5px] sm:text-[11px] font-extrabold px-2 py-0.5 rounded-md border ${badgeStyle} shrink-0 whitespace-nowrap">
-            ${escapeHtml(r.badge)}
-          </span>
+  if (pointListEl) {
+    pointListEl.innerHTML = pointRows.map(r => {
+      const badgeStyle = r.isPositive
+        ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+        : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30";
+      const pageMatch = String(r.loc || "").match(/(?:Page|पृष्ठ)\s*(\d+)/i);
+      const targetPage = r.page || (pageMatch ? parseInt(pageMatch[1], 10) : 1);
+      return `
+        <div class="w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-2 min-w-0 overflow-hidden">
+          <div class="w-full flex flex-wrap items-center justify-between gap-1.5 min-w-0">
+            <button type="button" onclick="window.jumpToAnswerSheetPage(${targetPage})" title="Click to view Page ${targetPage} on Answer Sheet" class="text-[10px] sm:text-[10.5px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 transition cursor-pointer max-w-full whitespace-normal break-words text-left leading-snug">
+              ${escapeHtml(r.loc)} ↗
+            </button>
+            <span class="text-[10.5px] sm:text-[11px] font-extrabold px-2 py-0.5 rounded-md border ${badgeStyle} shrink-0 whitespace-nowrap">
+              ${escapeHtml(r.badge)}
+            </span>
+          </div>
+          <div class="w-full text-xs font-extrabold text-slate-900 dark:text-slate-100 leading-snug break-words">
+            ${escapeHtml(r.pointTitle)}
+          </div>
+          <p class="w-full text-xs text-slate-700 dark:text-slate-300 leading-relaxed break-words">
+            ${formatHighlightedText(r.detail)}
+          </p>
         </div>
-        <div class="w-full text-xs font-extrabold text-slate-900 dark:text-slate-100 leading-snug break-words">
-          ${escapeHtml(r.pointTitle)}
-        </div>
-        <p class="w-full text-xs text-slate-700 dark:text-slate-300 leading-relaxed break-words">
-          ${formatHighlightedText(r.detail)}
-        </p>
-      </div>
-    `;
-  }).join("");
+      `;
+    }).join("");
+  }
 
   // 3. Longitudinal Personal Mentor Memory (Compares with Past Locker Copies)
   const lockerList = Array.isArray(state.lockerHistory) ? state.lockerHistory : [];
