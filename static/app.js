@@ -14356,7 +14356,7 @@ function formatModelBlock(text) {
   if (!text) return "";
   let s = text;
   // Strip any schematic/flowchart blocks completely
-  s = s.replace(/\[EXAM-HALL SCHEMATIC[^\]]*\][\s\S]*?(?=\n\s*\n\s*[A-Za-z*#]|$)/gi, "");
+  s = s.replace(/\[EXAM-HALL SCHEMATIC[^\]]*\][\s\S]*?(?=\n\s*\n\s*[A-Za-z*#\u0900-\u097F]|$)/gi, "");
   // Strip any multiline ASCII box/table blocks
   s = s.replace(/(?:^[ \t]*[+|].*(?:\r?\n|$))+/gm, "");
   // Strip any leftover sequences of +, -, |, >
@@ -14365,17 +14365,17 @@ function formatModelBlock(text) {
   s = s.replace(/\+\s*\+\s*\|+/g, "");
   s = s.replace(/\|\s*\+\s*\+/g, "");
   // Convert any lines starting with ### or #### into clean bold UPSC subheadings
-  s = s.replace(/^(?:#{3,6})\s+(.*)$/gm, '<div class="text-[7pt] font-bold text-slate-950 uppercase tracking-wide mt-1 mb-0.5">$1</div>');
-  s = s.replace(/^(?:#{1,2})\s+(.*)$/gm, '<div class="text-[7.2pt] font-bold text-slate-950 uppercase tracking-wider mt-1 mb-0.5">$1</div>');
+  s = s.replace(/^(?:#{3,6})\s+(.*)$/gm, '<div class="text-[11px] font-bold text-amber-300 dark:text-amber-300 uppercase tracking-wide mt-2 mb-1">$1</div>');
+  s = s.replace(/^(?:#{1,2})\s+(.*)$/gm, '<div class="text-xs font-bold text-amber-300 dark:text-amber-300 uppercase tracking-wider mt-2 mb-1">$1</div>');
   // Convert standalone bold lines like **Snapshot...** or **Way Forward**
-  s = s.replace(/^\*\*([^*]+)\*\*$/gm, '<div class="text-[7pt] font-bold text-slate-950 uppercase tracking-wide mt-1 mb-0.5">$1</div>');
+  s = s.replace(/^\*\*([^*]+)\*\*$/gm, '<div class="text-[11px] font-bold text-amber-300 dark:text-amber-300 uppercase tracking-wide mt-2 mb-1">$1</div>');
   // Strip any lingering markdown header hashes
   s = s.replace(/^#{1,6}\s*/gm, '');
   s = s.replace(/^\s*[-•*]\s+/gm, '• ');
   s = s.replace(/\n• /g, '<br>• ');
-  s = s.replace(/\n(?=[A-Za-z0-9])/g, '<br>');
-  s = s.replace(/\*\*(.*?)\*\*/g, '<strong class="text-blue-900 font-bold">$1</strong>');
-  s = s.replace(/\*(.*?)\*/g, '<em class="text-blue-700 font-serif">$1</em>');
+  s = s.replace(/\n(?=[A-Za-z0-9\u0900-\u097F])/g, '<br>');
+  s = s.replace(/\*\*(.*?)\*\*/g, '<strong class="text-amber-300 dark:text-amber-300 font-bold font-sans">$1</strong>');
+  s = s.replace(/\*(.*?)\*/g, '<em class="text-sky-300 dark:text-sky-300 font-serif">$1</em>');
   return s.trim();
 }
 
@@ -14830,28 +14830,70 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     return;
   }
 
-  // Update Metadata Badges
+  // Update Metadata Badges & Adaptive Synthesis Indicators
   const budgetBadge = document.getElementById("modelWordBudgetBadge");
   const timeBadge = document.getElementById("modelTimeBadge");
   const benchBadge = document.getElementById("modelBenchmarkBadge");
-  const mm = maxMarks || state.marks || 20;
+  const synthBadge = document.getElementById("modelSynthesisBadge");
+  const subTitle = document.getElementById("modelAnswerSubTitle");
+  const mm = maxMarks || state.marks || 15;
+
+  const cleanForCount = (fullText || "")
+    .replace(/\[EXAM-HALL.*?\][\s\S]*?(?=\n\s*\n\s*[A-Za-z*#\u0900-\u097F]|$)/gi, '')
+    .replace(/(?:^[┌├│└+|-].*\n?)+/gm, '')
+    .trim();
+  const wordCount = cleanForCount ? cleanForCount.split(/\s+/).filter(Boolean).length : 0;
+
+  const isHindi = (state.evaluationLanguage === "hindi" || /[\u0900-\u097F]/.test(fullText));
+  const evalData = state.currentEvaluation || {};
+  const meta = evalData.model_answer_meta || {};
+  const isAdaptive = (meta.is_adaptive !== undefined)
+    ? meta.is_adaptive
+    : Boolean(evalData.transcribed_text && evalData.transcribed_text.length > 50 && (evalData.overall_score || 0) >= (mm * 0.3));
+
+  if (synthBadge) {
+    if (isAdaptive) {
+      synthBadge.textContent = isHindi ? "✨ अभ्यर्थी-संवर्धित मॉडल उत्तर" : "✨ Adaptive Topper Synthesis";
+      synthBadge.title = isHindi ? "आपके मान्य बिंदु सुरक्षित + परीक्षक मूल्य-संवर्धन सम्मिलित" : "Your verified handwritten points retained + high-yield dimensions synthesized";
+      synthBadge.className = "px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[9px] font-bold";
+      synthBadge.classList.remove("hidden");
+    } else {
+      synthBadge.textContent = isHindi ? "⭐ पूर्ण टॉपर मॉडल उत्तर" : "⭐ Comprehensive Topper Blueprint";
+      synthBadge.title = isHindi ? "आयोग के आधिकारिक मानकों के अनुरूप संपूर्ण मॉडल उत्तर" : "Complete model answer built from scratch to UPSC standard";
+      synthBadge.className = "px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/30 text-[9px] font-bold";
+      synthBadge.classList.remove("hidden");
+    }
+  }
+
+  if (subTitle) {
+    if (isAdaptive) {
+      subTitle.textContent = isHindi
+        ? "आपके मान्य उत्तर-बिंदुओं और परीक्षक के उच्च-प्राप्तांक मूल्य-संवर्धन का यथार्थवादी समन्वय (Zero FOMO)"
+        : "Realistic synthesis of your valid handwritten points + examiner high-scoring value additions (Zero FOMO)";
+    } else {
+      subTitle.textContent = isHindi
+        ? "आयोग के आधिकारिक मानकों के अनुरूप बिंदुवार परीक्षा-हॉल मॉडल उत्तर"
+        : "Structured strictly in authentic multi-dimensional UPSC booklet format";
+    }
+  }
 
   if (budgetBadge && timeBadge && benchBadge) {
+    const wcSuffix = wordCount > 0 ? ` (${wordCount}w)` : "";
     if (mm === 10) {
-      budgetBadge.textContent = "Target: ~150 Words";
-      timeBadge.textContent = "Time: 7 Mins";
+      budgetBadge.textContent = isHindi ? `लक्ष्य: ~150 शब्द${wcSuffix}` : `Target: ~150 Words${wcSuffix}`;
+      timeBadge.textContent = isHindi ? "समय: 7 मिनट" : "Time: 7 Mins";
       benchBadge.textContent = "6.0 / 10.0 (Top 1%)";
     } else if (mm === 15) {
-      budgetBadge.textContent = "Target: ~250 Words";
-      timeBadge.textContent = "Time: 11 Mins";
+      budgetBadge.textContent = isHindi ? `लक्ष्य: ~250 शब्द${wcSuffix}` : `Target: ~250 Words${wcSuffix}`;
+      timeBadge.textContent = isHindi ? "समय: 11 मिनट" : "Time: 11 Mins";
       benchBadge.textContent = "9.5 / 15.0 (Top 1%)";
     } else if (mm === 20) {
-      budgetBadge.textContent = "Target: ~250 Words";
-      timeBadge.textContent = "Time: 14 Mins";
+      budgetBadge.textContent = isHindi ? `लक्ष्य: ~250-300 शब्द${wcSuffix}` : `Target: ~275 Words${wcSuffix}`;
+      timeBadge.textContent = isHindi ? "समय: 14 मिनट" : "Time: 14 Mins";
       benchBadge.textContent = "13.0 / 20.0 (Top 1%)";
     } else {
-      budgetBadge.textContent = "Target: 1000–1200 Words";
-      timeBadge.textContent = "Time: 90 Mins";
+      budgetBadge.textContent = isHindi ? `लक्ष्य: 1000–1200 शब्द${wcSuffix}` : `Target: 1000–1200 Words${wcSuffix}`;
+      timeBadge.textContent = isHindi ? "समय: 90 मिनट" : "Time: 90 Mins";
       benchBadge.textContent = "75+ / 125.0 (Top 1%)";
     }
   }
@@ -15022,23 +15064,30 @@ ${cleanDiagram}
       return;
     }
 
-    // 6. Section Headings (starts with #{1,6}, numbers like 1., or (a), (b), or Introduction / Conclusion)
+    // 6. Section Headings (starts with #{1,6}, numbers like 1., or (a), (b), or bold titles in English or Hindi)
     const lines = b.split('\n');
     const firstLine = lines[0].trim();
-    const isHeadingBlock = /^(?:#{1,6}\s+|(?:\d+\.|\([a-zA-Z0-9]+\)|[a-zA-Z]\))\s+|Introduction|Conclusion|Way Forward|Dimension|Recommendation)/i.test(firstLine);
+    const cleanFirst = firstLine.replace(/^\*\*|\*\*$/g, '').replace(/^#{1,6}\s*/, '').trim();
+
+    const isHeadingBlock = (
+      /^(?:(?:\d+\.|\([a-zA-Z0-9]+\)|[a-zA-Z]\))\s+|Introduction|Conclusion|Way Forward|Way Ahead|Dimension|Recommendation|Snapshot|प्रस्तावना|निष्कर्ष|आगे की राह|मुख्य भाग)/i.test(firstLine) ||
+      /^(?:(?:\d+\.|\([a-zA-Z0-9]+\)|[a-zA-Z]\))\s+|Introduction|Conclusion|Way Forward|Way Ahead|Dimension|Recommendation|Snapshot|प्रस्तावना|निष्कर्ष|आगे की राह|मुख्य भाग)/i.test(cleanFirst) ||
+      (firstLine.startsWith('**') && firstLine.endsWith('**') && !firstLine.includes('\n') && cleanFirst.length < 90) ||
+      (/^#{1,6}\s+/.test(firstLine))
+    );
 
     if (isHeadingBlock) {
-      const cleanHeading = firstLine.replace(/^#{1,6}\s*/, '').replace(/^\*\*(.*?)\*\*$/, '$1').trim();
+      const cleanHeading = cleanFirst;
       const restLines = lines.slice(1).join('\n').trim();
       const formattedRest = restLines ? formatModelBlock(restLines) : "";
 
       html += `
-        <div class="pt-2.5 space-y-1.5 border-t border-slate-200 dark:border-slate-800/80 first:border-t-0">
-          <div class="text-xs font-bold font-sans text-blue-900 dark:text-blue-300 uppercase tracking-wide flex items-center space-x-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400"></span>
-            <span>${cleanHeading}</span>
+        <div class="pt-3.5 space-y-2 border-t border-slate-700/60 dark:border-slate-800/80 first:border-t-0">
+          <div class="text-[11.5px] font-extrabold font-sans text-amber-300 dark:text-amber-400 uppercase tracking-wider flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full bg-amber-400 dark:bg-amber-500 shadow-sm shadow-amber-400/50"></span>
+            <span>${escapeHtml(cleanHeading)}</span>
           </div>
-          ${formattedRest ? `<div class="pl-3.5 border-l-2 border-blue-500/30 dark:border-blue-400/30 text-slate-800 dark:text-slate-200 leading-relaxed">${formattedRest}</div>` : ''}
+          ${formattedRest ? `<div class="pl-4 border-l-2 border-amber-500/30 text-slate-200 leading-relaxed space-y-1.5 font-sans">${formattedRest}</div>` : ''}
         </div>
       `;
       return;
