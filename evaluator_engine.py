@@ -1212,11 +1212,13 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
 
 9. यथार्थवादी, सुगम एवं अभ्यर्थी-संवर्धित टॉपर मॉडल उत्तर (ADAPTIVE TOPPER MODEL ANSWER - NO FOMO, STRICT WORD BUDGET):
    - आयोग के वास्तविक परीक्षा हॉल मानकों का कड़ा पालन:
-     * 10-अंकीय प्रश्न (150 शब्द): मॉडल उत्तर अनिवार्य रूप से 140 से 165 शब्दों का होगा।
-       संरचना: 2-पंक्ति प्रस्तावना (20-25 शब्द), 2 स्पष्ट उप-शीर्षक (कुल 6-8 ठोस बिंदु, प्रत्येक में **बोल्ड की-वर्ड** + 1-2 पंक्ति की व्याख्या + प्रामाणिक तथ्य/अनुच्छेद/डेटा), 1 परीक्षा-हॉल आरेख, एवं 2-पंक्ति संतुलित निष्कर्ष (20-25 शब्द)।
-     * 15-अंकीय प्रश्न (250 शब्द): मॉडल उत्तर अनिवार्य रूप से 230 से 265 शब्दों का होगा (कड़ाई से ध्यान दें: कभी भी केवल 3 बिंदुओं या 140 शब्दों का अधूरा मॉडल उत्तर न दें!)।
-       संरचना: प्रस्तावना (25-30 शब्द), 2 से 3 विषयगत उप-शीर्षक (कुल 8 से 11 ठोस बिंदु जिनमें ऐतिहासिक/संवैधानिक/आर्थिक साक्ष्य, तिथियां, शासक, समितियां या विधिक प्रावधान शामिल हों), 1 स्पष्ट योजनाबद्ध आरेख/फ्लोचार्ट, एवं निष्कर्ष (25-30 शब्द)।
-     * 20-अंकीय प्रश्न (250-300 शब्द): 260 से 300 शब्द (12-15 बिंदु, 3-4 उप-शीर्षक)।
+     * 10-अंकीय प्रश्न (150 शब्द): मॉडल उत्तर 150 से 175 शब्दों का होगा (2 पृष्ठ भरने हेतु)।
+       संरचना: 2-पंक्ति प्रस्तावना (20-25 शब्द), 2 स्पष्ट उप-शीर्षक (कुल 7-10 ठोस बिंदु, प्रत्येक में **बोल्ड की-वर्ड** + 1-2 पंक्ति की कार्य-कारण व्याख्या [Mechanism: कारण -> प्रभाव -> परिणाम] + प्रामाणिक तथ्य/समिति/अनुच्छेद), एवं 2-पंक्ति अग्रगामी निष्कर्ष (20-25 शब्द)।
+     * 15-अंकीय प्रश्न (250 शब्द): मॉडल उत्तर 240 से 275 शब्दों का होगा (3 पृष्ठ भरने हेतु, कड़ाई से ध्यान दें: कभी भी केवल 4-5 बिंदुओं का संक्षिप्त मॉडल उत्तर न दें!)।
+       संरचना: प्रस्तावना (25-30 शब्द), 2 से 3 विषयगत उप-शीर्षक (कुल 10 से 15 ठोस बिंदु जिनमें ऐतिहासिक/संवैधानिक/आर्थिक साक्ष्य, तिथियां, शासक, समितियां या विधिक प्रावधान शामिल हों), एवं 2-3 पंक्ति अग्रगामी निष्कर्ष (25-30 शब्द)।
+     * 20-अंकीय प्रश्न (250-300 शब्द): 270 से 310 शब्द (कुल 12-16 बिंदु, 3-4 उप-शीर्षक)।
+   - कोई कृत्रिम आरेख या फ्लोचार्ट नहीं (NO DIAGRAMS IN MODEL ANSWER):
+     * मॉडल उत्तर में कोई ASCII बॉक्स, तीर वाले फ्लोचार्ट ('->') या आरेख न बनाएं! परीक्षा हॉल में 2-3 पृष्ठ भरने हेतु परीक्षार्थी को सारगर्भित, बहु-आयामी और अंकदायी लिखित बिंदुओं की आवश्यकता होती है। आरेख पर समय और स्थान नष्ट न करें।
    - अभ्यर्थी-संवर्धित मॉडल उत्तर नियम (ADAPTIVE COMBINATION RULE):
      * यदि अभ्यर्थी ने कमजोर या सतही उत्तर लिखा है ➔ पूर्ण टॉपर मॉडल उत्तर नए सिरे से तैयार करें।
      * यदि अभ्यर्थी ने औसत या अच्छा उत्तर लिखा है (जिसमें 6 से 10 वैध बिंदु/तथ्य पहले से मौजूद हैं, जैसे बौद्ध धर्म के पतन के कारण) ➔ अभ्यर्थी के सही बिंदुओं, उदाहरणों और वाक्यों को मॉडल उत्तर का मुख्य आधार बनाएं! उनकी भाषा को परिष्कृत एवं टॉपर-स्तरीय करें (बोल्ड की-वर्ड्स व मानक शब्दावली के साथ) तथा जहाँ अभ्यर्थी से महत्वपूर्ण आयाम छूटे हैं, वहाँ हमारे परीक्षक के मूल्य-संवर्धन (Value-Additions) और विधिक/ऐतिहासिक साक्ष्यों को सहजता से सम्मिलित करें।
@@ -1452,7 +1454,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
     "examiner_advice": "आगामी उत्तरों में निर्देश की मांग के अनुसार पक्ष और विपक्ष के अनुपातिक संतुलन पर विशेष ध्यान दें।"
   }},
   "transcribed_text": "अभ्यर्थी द्वारा लिखी गई हस्तलिखित उत्तर-पुस्तिका का प्रामाणिक पाठ (प्रतिलेखन), जिसे [Page 1], [Page 2], [Page 3] चिह्नों द्वारा स्पष्ट रूप से विभाजित किया गया हो।",
-  "full_model_answer": "संपूर्ण यथार्थवादी यूपीएससी टॉपर मॉडल उत्तर (कड़ी शब्द सीमा: 10M हेतु 140-165 शब्द, 15M हेतु 230-265 शब्द, 20M हेतु 260-300 शब्द)। संरचना: (1) 20-25 शब्दों की प्रस्तावना (15M हेतु 25-30 शब्द); (2) 10M में 2 उप-शीर्षक (कुल 6-8 बिंदु) एवं 15M में 2-3 उप-शीर्षक (कुल 8-11 बिंदु), प्रत्येक बिंदु में **बोल्ड की-वर्ड** + 1-2 पंक्ति की व्याख्या + ठोस तथ्य/समिति/अनुच्छेद/उदाहरण; (3) 1 परीक्षा-हॉल आरेख/फ्लोचार्ट; (4) 20-25 शब्दों का समाधानपरक निष्कर्ष। अभ्यर्थी-संवर्धित नियम: यदि अभ्यर्थी ने अच्छे/औसत बिंदु लिखे हैं, तो उनके मान्य बिंदुओं को आधार बनाकर परीक्षक के छूटे हुए आयाम व मूल्य-संवर्धन जोड़कर एक संयुक्त, सहज मॉडल उत्तर बनाएं; यदि उत्तर कमजोर है तो नए सिरे से पूर्ण मॉडल उत्तर बनाएं। भाषा: मानक देवनागरी हिंदी।"
+  "full_model_answer": "संपूर्ण यथार्थवादी यूपीएससी टॉपर मॉडल उत्तर (कड़ी शब्द सीमा: 10M हेतु 150-175 शब्द [2 पृष्ठ भरने हेतु कुल 7-10 बिंदु], 15M हेतु 240-275 शब्द [3 पृष्ठ भरने हेतु कुल 10-15 बिंदु], 20M हेतु 270-310 शब्द)। संरचना: (1) 20-25 शब्दों की मानक प्रस्तावना (15M हेतु 25-30 शब्द); (2) 10M में 2 उप-शीर्षक (कुल 7-10 बिंदु) एवं 15M में 2-3 उप-शीर्षक (कुल 10-15 बिंदु), प्रत्येक बिंदु में **बोल्ड की-वर्ड** + कार्य-कारण व्याख्या (Mechanism: कारण -> प्रभाव -> परिणाम) + ठोस साक्ष्य/डेटा/समिति/अनुच्छेद/उदाहरण; (3) कोई कृत्रिम आरेख या तीर वाले फ्लोचार्ट नहीं; (4) 20-25 शब्दों का अग्रगामी नीतिगत निष्कर्ष। अभ्यर्थी-संवर्धित नियम: यदि अभ्यर्थी ने अच्छे/औसत बिंदु लिखे हैं, तो उनके मान्य बिंदुओं को आधार बनाकर परीक्षक के छूटे हुए आयाम व मूल्य-संवर्धन जोड़कर एक संयुक्त, सहज मॉडल उत्तर बनाएं; यदि उत्तर कमजोर है तो नए सिरे से पूर्ण मॉडल उत्तर बनाएं। भाषा: मानक देवनागरी हिंदी।"
 }}
 """
     return prompt
@@ -1716,15 +1718,19 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
    - Catch misspelled technical terms (e.g. Nicomachean, Temperance) in 'micro_hygiene'.
 
 8. TOPPER MODEL ANSWER (STRICT EXAM-HALL FEASIBILITY & MARKS-BASED BLUEPRINT):
-   - WORD BUDGET: Strictly {140 if max_marks == 10 else 220 if max_marks == 15 else 280} words!
-     In an actual exam, candidates have ONLY 7 minutes for 10M (2 ruled pages), 10 minutes for 15M (3 ruled pages), or 14-15 minutes for 20M (4 ruled pages). An answer exceeding word limits is unfeasible in the exam hall.
+   - WORD BUDGET: Strictly {150 if max_marks == 10 else 250 if max_marks == 15 else 285} words ({150 if max_marks == 10 else 240 if max_marks == 15 else 270}-{175 if max_marks == 10 else 275 if max_marks == 15 else 310} words range)!
+     In an actual exam, candidates have 7 minutes for 10M (2 ruled pages to fill), 10-11 minutes for 15M (3 ruled pages to fill), or 14-15 minutes for 20M (4 ruled pages). The model answer MUST provide sufficient point density and substance to realistically fill those pages!
     - AUTHENTIC TOPPER ARCHITECTURE:
-      * 1. Introduction (STRICTLY 2 LINES / 20-25 WORDS MAXIMUM):
-        Crisp, punchy opening: 1-line technical/conceptual definition + 1-line empirical data anchor or baseline context.
-        CRITICAL EXAM-HALL REALISM: NEVER write discursive, rambling 4-line paragraphs! Candidates have only 7 min (10M) or 10 min (15M) and examiners scan in ~12 seconds. An introduction exceeding 25 words wastes critical space and slows down the evaluator.
-      * 2. Core Body Sub-parts (adhering strictly to Question Demand & Marks Blueprint):
-        - FOR 10-MARKERS: 2 sub-parts aligned to the question demands (3 to 4 numbered points per sub-part).
-        - FOR 15-MARKERS: 2 to 3 sub-parts aligned strictly to the explicit demands of the prompt (total 9-12 points).
+      * 1. Introduction (STRICTLY 2-3 LINES / 20-25 WORDS for 10M, 25-30 WORDS for 15M):
+        Crisp, punchy opening: direct conceptual/technical definition + empirical data anchor or baseline constitutional/statutory context.
+        CRITICAL EXAM-HALL REALISM: NEVER write discursive, rambling paragraphs! Avoid empty fluff ("Since ancient times...", "India is a vast country..."). Hit the core thesis immediately.
+      * 2. Core Body Sub-parts (Adhering strictly to Question Demands & Marks Blueprint):
+        - FOR 10-MARKERS (2 Pages to fill): 2 sub-parts aligned to the question demands, TOTAL 7 TO 10 SUBSTANTIVE POINTS (3 to 5 points per sub-part).
+        - FOR 15-MARKERS (3 Pages to fill): 2 to 3 sub-parts aligned strictly to explicit demands of the prompt, TOTAL 10 TO 15 SUBSTANTIVE POINTS (4 to 6 points per sub-part, e.g. 5-7 points across 2 sub-parts or 4-5 points across 3 sub-parts). NEVER write a truncated 4-5 point stub for a 15-marker!
+        - FOR 20-MARKERS (4 Pages to fill): 3 to 4 sub-parts (TOTAL 12 TO 16 POINTS across the body).
+        - Every bullet MUST follow the Factor -> Mechanism -> Consequence/Evidence model from the evaluator framework:
+          `• **Bold Lead Keyword**: [1-line causal mechanism explaining the HOW/WHY] + [Concrete evidence: Article, Supreme Court case law, committee, economic data, historical ruler/text, or government initiative].`
+          Avoid naked keyword listing ("notes dump"); every point must perform a distinct analytical job.
           * RATIONAL WAY-FORWARD & MITIGATION RULE ("Demand drives structure; NEVER invent phantom Way Forward"):
             1. If the question does NOT demand mitigation, measures, or solutions (e.g. analytical, explanatory, comparative, philosophical, or historical questions) AND the candidate did NOT write a "Way Forward":
                - NEVER label any section as "Way Forward" or "Way Forward & Reforms"!
@@ -1736,11 +1742,10 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
                - If the candidate omitted it: Give explicit feedback under critical gaps ("✗ Missing Required Mitigation: The question demanded concrete measures/mitigation, but this was omitted"). Do NOT fabricate a section or award marks for unwritten points!
             3. If Part B of the question ALREADY asks for "steps taken by the government", "measures to control", or "framework to be adopted": That sub-part IS the forward-looking section! DO NOT add a separate redundant "Way Forward" heading after it.
             4. ONLY include/recommend a dedicated "Way Forward" sub-part when the question focuses on governance/economic/social/security challenges, limitations, or bottlenecks without already having a "Measures/Steps" sub-part.
-        - FOR 20-MARKERS: 3 to 4 sub-parts (12-16 points total) matched to the question's analytical dimensions.
-        - Every bullet MUST follow Point-First Assertion (Bold key takeaway -> 1-line causal reasoning -> specific real-world example/data).
-      * 3. [EXAM-HALL SCHEMATIC]: Include a compact 4-line micro-diagram or map ONLY where it is self-explanatory and adds spatial/process clarity (never draw decorative cartoons).
-      * 4. Conclusion (strictly 2-3 lines / 20-25 words): Forward-looking, positive synthesis citing 1 concrete scheme/committee or constitutional ideal.
-      * Total word count MUST NOT exceed {150 if max_marks == 10 else 250 if max_marks == 15 else 300} words!
+      * 3. NO CONFUSING ASCII DIAGRAMS OR ARROW FLOWCHARTS:
+        DO NOT generate ASCII art boxes, flowcharts with arrows (`->`), or schematics inside `full_model_answer`. Candidates writing 2-3 pages under exam conditions prioritize substantive written points and multi-dimensional analysis over artificial, cryptic diagrams. Devote all space to high-scoring written arguments!
+      * 4. Conclusion (strictly 2-3 lines / 20-25 words for 10M, 25-30 words for 15M): Forward-looking, demand-specific institutional synthesis citing 1 concrete scheme/committee or constitutional ideal. NEVER write a redundant summary ("Thus, it is clear that...").
+      * Total word count: {150 if max_marks == 10 else 240 if max_marks == 15 else 270} to {175 if max_marks == 10 else 275 if max_marks == 15 else 310} words!
 
 9. GS-4 ETHICS TOPPER MASTER BENCHMARK (SYNTHESIZED FROM MASTERCLASSES & AIR-1 SHAKTI DUBEY, AIR-1 SHRUTI SHARMA, AIR-1 ADITYA SRIVASTAVA, AIR-2 GARIMA LOHIA, AIR-6 VISHAKHA YADAV):
    If detected_paper is "GS4":
@@ -1788,27 +1793,27 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
     UPSC aspirants do NOT need impossible 500-word PhD literature reviews or alien synthetic summaries that create FOMO. They need a realistic, handwriting-friendly Topper Blueprint that can actually be executed in 7 to 11 minutes under exam conditions!
 
     A. STRICT WORD COUNT & SUBSTANTIVE POINT DENSITY:
-    - FOR 10-MARKERS (150 words / 2 pages / ~7 min):
-      * Word limit: Exactly 140 to 165 words total.
+    - FOR 10-MARKERS (150-175 words / 2 pages / ~7 min):
+      * Word limit: Exactly 150 to 175 words total (to realistically fill 2 pages).
       * Sub-part count: 2 sub-parts in the body aligned to the question demands.
-      * Point budget: 3 to 4 points per sub-part (6 to 8 points total across the body).
-      * Point structure: Every single point MUST have a **Bold Lead Keyword** followed by concise 1–2 line explanation and concrete evidence (data, case law, article, historical ruler/text, or committee).
+      * Point budget: 3 to 5 points per sub-part (7 to 10 points total across the body).
+      * Point structure: Every single point MUST have a **Bold Lead Keyword** followed by concise 1–2 line causal explanation (Mechanism) and concrete evidence (data, case law, article, historical ruler/text, or committee).
       * Intro: 2-3 lines (~20–25 words: crisp definition, data baseline, or recent context).
-      * Visual: 1 fast 20-second exam-hall schematic / 2-line inline flow.
+      * Diagrams: NO diagrams, ASCII boxes, or arrow flowcharts in the model answer.
       * Conclusion: 2-3 lines (~20–25 words: forward-looking policy or vision).
-    - FOR 15-MARKERS (250 words / 3 pages / ~9-11 min):
-      * Word limit: Exactly 230 to 265 words total (MANDATORY: NEVER write a truncated 140-word stub!).
+    - FOR 15-MARKERS (240-275 words / 3 pages / ~9-11 min):
+      * Word limit: Exactly 240 to 275 words total (MANDATORY: to realistically fill 3 pages, NEVER write a truncated 4-5 point stub!).
       * Sub-part count: 2 to 3 distinct sub-parts in the body matched to the question prompt.
-      * Point budget: 4 to 5 points per sub-part (8 to 11 points total across the body).
-      * Point structure: Every single point MUST have a **Bold Lead Keyword** + concise 1–2 line explanation + specific historical/statutory/empirical evidence (e.g. for History: specific rulers, texts, inscriptions, councils, monasteries, trade shifts; for Polity: Articles, Supreme Court cases, committees; for Economy: schemes, NITI Aayog, economic data; for Ethics: thinkers, moral principles, administrative examples).
+      * Point budget: 4 to 6 points per sub-part (10 to 15 points total across the body).
+      * Point structure: Every single point MUST have a **Bold Lead Keyword** + concise 1–2 line causal explanation (Factor -> Mechanism -> Consequence/Evidence) + specific historical/statutory/empirical evidence (e.g. for History: specific rulers, texts, inscriptions, councils, monasteries, trade shifts; for Polity: Articles, Supreme Court cases, committees; for Economy: schemes, NITI Aayog, economic data; for Ethics: thinkers, moral principles, administrative examples).
       * Balanced distribution: Equal point counts across sub-parts.
-      * Visual: 1 high-ROI conceptual diagram, flowchart, or micro-table.
+      * Diagrams: NO diagrams, ASCII boxes, or arrow flowcharts in the model answer.
       * Conclusion: 2-3 lines (~25–30 words: well-rounded concluding synthesis).
       * CONDITIONAL WAY-FORWARD RULE: Do NOT force a "Way Forward" in every question! If the question does NOT demand mitigation/way forward and the candidate did NOT write it, NEVER invent a "Way Forward" section. If the prompt ALREADY asks for "Steps taken / Measures / Framework", that sub-part IS the forward-looking section.
-    - FOR 20-MARKERS (250-300 words / 4 pages / ~14-15 min):
-      * Word limit: Exactly 260 to 300 words total.
+    - FOR 20-MARKERS (270-310 words / 4 pages / ~14-15 min):
+      * Word limit: Exactly 270 to 310 words total.
       * Sub-part count: 3 to 4 distinct sub-parts.
-      * Point budget: 4 to 5 points per sub-part (12 to 16 points total across the body).
+      * Point budget: 3 to 5 points per sub-part (12 to 16 points total across the body).
 
     B. THE CANDIDATE-ADAPTIVE COMBINATION LAW:
     Check candidate's actual written points in `transcribed_text`:
@@ -2427,7 +2432,7 @@ Generate strictly valid JSON matching this schema:
     ]
   }},
   "transcribed_text": "Readable transcription of candidate's actual written text, separated clearly by [Page 1], [Page 2], [Page 3] markers.",
-  "full_model_answer": "Complete authentic UPSC Topper Model Answer (STRICT WORD LIMIT: 140-165 words for 10M; 230-265 words for 15M; 260-300 words for 20M). Structure: (1) 20-25w Intro (25-30w for 15M/20M); (2) Multi-part body with 6-8 total points for 10M, 8-11 total points for 15M, 12-15 points for 20M, each point having a **Bold Lead Keyword** followed by concise explanation and concrete evidence/data/examples; (3) 1 high-ROI exam schematic; (4) 20-25w concluding synthesis. ADAPTIVE RULE: If candidate wrote an average/good answer, synthesize their valid handwritten points into topper language and weave in our missing dimensions/feedback; if beginner answer, generate full topper blueprint from scratch. Written in realistic, handwriting-friendly topper style—ZERO FOMO!",
+  "full_model_answer": "Complete authentic UPSC Topper Model Answer (STRICT WORD LIMIT: 150-175 words for 10M; 240-275 words for 15M; 270-310 words for 20M). Structure: (1) 20-25w Intro (25-30w for 15M/20M); (2) Multi-part body with 7-10 total points for 10M (fills 2 pages), 10-15 total points for 15M (fills 3 pages), 12-16 points for 20M, each point having a **Bold Lead Keyword** followed by concise causal mechanism and concrete evidence/data/examples (Factor -> Mechanism -> Consequence/Evidence); (3) NO confusing diagrams or arrow-based flowcharts; (4) 20-25w forward-looking concluding synthesis. ADAPTIVE RULE: If candidate wrote an average/good answer, synthesize their valid handwritten points into topper language and weave in our missing dimensions/feedback; if beginner answer, generate full topper blueprint from scratch. Written in realistic, handwriting-friendly topper style—ZERO FOMO!",
   "jargon_buster": [
     {{
       "term": "Tautological",
@@ -3048,27 +3053,53 @@ def _ensure_topper_model_answer_quality(data: Dict[str, Any], max_marks: int = 1
     has_candidate_work = len(transcribed.split()) >= 35 and score >= (max_marks * 0.3)
     is_adaptive = has_candidate_work
 
-    # Minimum word thresholds
+    # Minimum word thresholds and point targets
     if max_marks <= 10:
-        min_target_wc = 130
+        min_target_wc = 140
         target_words = 150
-        min_points = 6
+        min_points = 8   # 7 to 10 points to fill 2 pages
     elif max_marks == 15:
-        min_target_wc = 195
+        min_target_wc = 220
         target_words = 250
-        min_points = 8
+        min_points = 11  # 10 to 15 points to fill 3 pages
     else:
-        min_target_wc = 240
+        min_target_wc = 260
         target_words = 275
-        min_points = 10
+        min_points = 13  # 12 to 16 points to fill 4 pages
 
-    # If the model answer is under-developed (e.g. only 3-4 bullets or < min_target_wc words),
+    # If the model answer is under-developed (e.g. only 3-5 bullets or < min_target_wc words),
     # enrich it with examiner value-additions, critical gaps, or candidate valid points!
     if current_wc < min_target_wc or bullet_count < min_points:
         b_audit = data.get("body_audit") if isinstance(data.get("body_audit"), dict) else {}
         strengths = b_audit.get("strengths") or []
         gaps = b_audit.get("critical_gaps") or b_audit.get("missing_dimensions") or []
         val_checklist = data.get("value_add_checklist") or []
+
+        def _sanitize_enrichment_candidate(raw_str: str) -> Optional[Tuple[str, str]]:
+            if not raw_str or len(raw_str) < 15:
+                return None
+            # Skip any diagrams / flowcharts / arrow sequences
+            if any(marker in raw_str.lower() for marker in ["diagram", "flowchart", "schematic", "आरेख", "->", "──>", "+---", "┌──"]):
+                return None
+            # Skip raw evaluator critique remarks
+            if any(critique in raw_str for critique in ["(Page ", "Lacks specific", "Omitted specific", "Did not discuss", "Candidate wrote", "परीक्षार्थी ने लिखा", "what you wrote", "What You Wrote"]):
+                return None
+            # Strip markdown bolding / bullets / prefix words
+            clean = re.sub(r'^\s*[-*•]\s*', '', raw_str).strip()
+            clean = re.sub(r'^(?:Missing|Lacked|Add|Incorporate|छूटा|कमी|Effective|Strong|Good|सराहनीय|सकारात्मक|Address)\s*', '', clean, flags=re.IGNORECASE).strip()
+            clean = re.sub(r'\*{2,}', '', clean).strip()
+            # Split keyword vs explanation
+            parts = clean.split(":", 1)
+            if len(parts) > 1 and 2 <= len(parts[0].split()) <= 6:
+                kw = parts[0].strip()
+                exp = parts[1].strip()
+            else:
+                words_list = clean.split()
+                kw = " ".join(words_list[:3]).strip()
+                exp = clean
+            if not kw or not exp or len(exp) < 15:
+                return None
+            return kw, exp
 
         enrichment_points = []
 
@@ -3081,45 +3112,42 @@ def _ensure_topper_model_answer_quality(data: Dict[str, Any], max_marks: int = 1
                         if isinstance(it, dict):
                             how = it.get("how_to_write") or ""
                             term = it.get("item") or it.get("term") or ""
-                            if how and term and term.lower() not in model_ans.lower():
-                                enrichment_points.append(f"• **{term}**: {how}")
-                        elif isinstance(it, str) and len(it) > 15 and it.lower() not in model_ans.lower():
-                            enrichment_points.append(f"• **Value Addition**: {it}")
+                            cand = _sanitize_enrichment_candidate(f"{term}: {how}")
+                            if cand:
+                                kw, exp = cand
+                                if kw.lower() not in model_ans.lower():
+                                    enrichment_points.append(f"• **{kw}**: {exp}")
+                        elif isinstance(it, str):
+                            cand = _sanitize_enrichment_candidate(it)
+                            if cand:
+                                kw, exp = cand
+                                if kw.lower() not in model_ans.lower():
+                                    enrichment_points.append(f"• **{kw}**: {exp}")
 
         # Pull from critical gaps
         if isinstance(gaps, list):
             for gap in gaps:
-                if isinstance(gap, str) and len(gap) > 20:
-                    clean_gap = re.sub(r'^(?:Missing|Lacked|Add|Incorporate|छूटा|कमी)\s*', '', gap, flags=re.IGNORECASE).strip()
-                    parts = clean_gap.split(":")
-                    if len(parts) > 1 and len(parts[0].split()) <= 5:
-                        kw = parts[0].strip()
-                        exp = parts[1].strip()
-                    else:
-                        kw = " ".join(clean_gap.split()[:4])
-                        exp = clean_gap
-                    if kw.lower() not in model_ans.lower():
-                        enrichment_points.append(f"• **{kw}**: {exp}")
+                if isinstance(gap, str):
+                    cand = _sanitize_enrichment_candidate(gap)
+                    if cand:
+                        kw, exp = cand
+                        if kw.lower() not in model_ans.lower():
+                            enrichment_points.append(f"• **{kw}**: {exp}")
 
         # Pull from candidate strengths if adaptive
         if is_adaptive and isinstance(strengths, list):
             for st in strengths:
-                if isinstance(st, str) and len(st) > 20:
-                    clean_st = re.sub(r'^(?:Effective|Strong|Good|सराहनीय|सकारात्मक)\s*', '', st, flags=re.IGNORECASE).strip()
-                    parts = clean_st.split(":")
-                    if len(parts) > 1 and len(parts[0].split()) <= 5:
-                        kw = parts[0].strip()
-                        exp = parts[1].strip()
-                    else:
-                        kw = " ".join(clean_st.split()[:4])
-                        exp = clean_st
-                    if kw.lower() not in model_ans.lower():
-                        enrichment_points.append(f"• **{kw}**: {exp}")
+                if isinstance(st, str):
+                    cand = _sanitize_enrichment_candidate(st)
+                    if cand:
+                        kw, exp = cand
+                        if kw.lower() not in model_ans.lower():
+                            enrichment_points.append(f"• **{kw}**: {exp}")
 
         # If we have enrichment points, weave them in before conclusion
         if enrichment_points:
             conc_match = re.search(r'(?i)(\n\s*\*\*(?:Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead|निष्कर्ष|आगे\s*की\s*राह)\*\*[\s\S]*$)', model_ans)
-            needed_pts = max(2, min_points - bullet_count)
+            needed_pts = max(3, min_points - bullet_count)
             pts_to_add = enrichment_points[:needed_pts]
 
             if pts_to_add:
@@ -3131,6 +3159,10 @@ def _ensure_topper_model_answer_quality(data: Dict[str, Any], max_marks: int = 1
                 else:
                     model_ans = f"{model_ans}\n\n{pts_block}"
 
+    # Final strip of any stray diagrams or flowchart lines
+    model_ans = re.sub(r'\[EXAM-HALL.*?\][\s\S]*?(?=\n\s*\n\s*[A-Za-z*#\u0900-\u097F]|$)', '', model_ans, flags=re.IGNORECASE)
+    model_ans = re.sub(r'(?:^[┌├│└+|-].*\n?)+', '', model_ans, flags=re.MULTILINE)
+    model_ans = re.sub(r'(?im)^\s*(?:\[?[A-Za-z0-9\s_-]*\]?\s*)?(?:Diagram|Schematic|Flowchart|Exam-Hall Flowchart)\s*:\s*.*$', '', model_ans)
     data["full_model_answer"] = model_ans.strip()
 
     # Calculate final word count
@@ -4310,7 +4342,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                        .replace("Indian constitutional provisions Supreme Court rulings", "Easton & Bismarck")
                 )
 
-    # 3. Clean Model Answer Typography and Embed Diagram
+    # 3. Clean Model Answer Typography and Remove Forced Diagrams
     model_ans = data.get("full_model_answer", "")
     if model_ans and isinstance(model_ans, str):
         # Strip raw markdown hashes from headings
@@ -4319,42 +4351,13 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         model_ans = re.sub(r'(?m)^\s*---+(\s*)$', '', model_ans)
         # Eliminate meta-coaching tags like [INITIAL VALUE-ADDITION BOX] cleanly
         model_ans = re.sub(r'(?:\*\*)?\[(?:INITIAL\s+)?VALUE-ADD(?:ITION)?\s+BOX\](?:\*\*)?', '**Snapshot: Core Dimensions at a Glance**', model_ans, flags=re.IGNORECASE)
-        data["full_model_answer"] = model_ans.strip()
-
-    diagram = str(data.get("recommended_diagram_visual") or "").strip()
-    
-    # Check diagram relevance: do NOT inject random or forced diagrams for pure literature or textual analysis questions
-    q_all = f"{data.get('question_text', '')} {data.get('extracted_question', '')} {data.get('detected_question', '')} {question}".lower()
-    is_non_diagram_topic = any(kw in q_all for kw in [
-        "sanskrit literature", "sanskrit drama", "sanskrit poetry", "literary criticism", "playwright",
-        "moral quote", "ethics quote", "comment on the statement", "critically evaluate the statement"
-    ])
-    diag_verdict = str((data.get("diagram_recommendation") or {}).get("relevance_verdict", "")).upper()
-    if diag_verdict == "NOT_NEEDED_SAVE_SPACE" or (is_non_diagram_topic and diag_verdict != "HIGH_ROI" and not diagram):
-        data["recommended_diagram_visual"] = ""
-        diagram = ""
-        # Strip any accidental forced flowchart block from model_ans
-        model_ans = re.sub(r'\[EXAM-HALL SCHEMATIC[^\]]*\][\s\S]*?(?=\n\s*\n\s*[A-Za-z*#]|$)', '', model_ans, flags=re.IGNORECASE).strip()
+        # Strip any accidental or forced flowchart blocks from model_ans (diagrams removed per user directive)
+        model_ans = re.sub(r'\[EXAM-HALL.*?\][\s\S]*?(?=\n\s*\n\s*[A-Za-z*#\u0900-\u097F]|$)', '', model_ans, flags=re.IGNORECASE).strip()
+        model_ans = re.sub(r'(?:^[┌├│└+|-].*\n?)+', '', model_ans, flags=re.MULTILINE).strip()
+        model_ans = re.sub(r'(?im)^\s*(?:\[?[A-Za-z0-9\s_-]*\]?\s*)?(?:Diagram|Schematic|Flowchart|Exam-Hall Flowchart)\s*:\s*.*$', '', model_ans).strip()
         data["full_model_answer"] = model_ans
 
-    if diagram and ("+---" not in model_ans and "┌──" not in model_ans and "[EXAM-HALL" not in model_ans):
-        # Insert diagram cleanly between Introduction and first body sub-heading
-        intro_split = re.split(
-            r'(\n\s*(?:\*\*(?!(?:Introduction|प्रस्तावना)\*\*)[^*]+\*\*|(?:\d+\.|\([a-zA-Z0-9]+\))\s+|(?:Body|Dimension|Part|मुख्य भाग)[:\s]))',
-            model_ans,
-            maxsplit=1,
-            flags=re.IGNORECASE
-        )
-        if len(intro_split) > 2:
-            data["full_model_answer"] = f"{intro_split[0].strip()}\n\n[EXAM-HALL SCHEMATIC / FLOWCHART]:\n{diagram}\n\n{intro_split[1].lstrip()}{intro_split[2]}".strip()
-        else:
-            blocks = [b.strip() for b in model_ans.split("\n\n") if b.strip()]
-            if len(blocks) > 1:
-                data["full_model_answer"] = f"{blocks[0]}\n\n[EXAM-HALL SCHEMATIC / FLOWCHART]:\n{diagram}\n\n" + "\n\n".join(blocks[1:])
-            else:
-                data["full_model_answer"] = f"{model_ans}\n\n[EXAM-HALL SCHEMATIC / FLOWCHART]:\n{diagram}".strip()
-
-    # Enforce strict Topper Model Answer word budget, point density & adaptive synthesis
+    # Enforce strict Topper Model Answer word budget, point density & adaptive synthesis (Zero Diagrams)
     _ensure_topper_model_answer_quality(data, max_marks=max_marks, is_hindi=is_hindi)
 
     # 4. Ensure Self-Study Aspirant-Friendly Feature Blocks are Present

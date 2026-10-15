@@ -14889,15 +14889,15 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
   if (budgetBadge && timeBadge && benchBadge) {
     const wcSuffix = wordCount > 0 ? ` (${wordCount}w)` : "";
     if (mm === 10) {
-      budgetBadge.textContent = isHindi ? `लक्ष्य: ~150 शब्द${wcSuffix}` : `Target: ~150 Words${wcSuffix}`;
+      budgetBadge.textContent = isHindi ? `लक्ष्य: ~150-170 शब्द (2 पृष्ठ, 7-10 बिंदु)${wcSuffix}` : `Target: ~150-170 Words (2 Pages, 7-10 Points)${wcSuffix}`;
       timeBadge.textContent = isHindi ? "समय: 7 मिनट" : "Time: 7 Mins";
       benchBadge.textContent = "6.0 / 10.0 (Top 1%)";
     } else if (mm === 15) {
-      budgetBadge.textContent = isHindi ? `लक्ष्य: ~250 शब्द${wcSuffix}` : `Target: ~250 Words${wcSuffix}`;
+      budgetBadge.textContent = isHindi ? `लक्ष्य: ~240-270 शब्द (3 पृष्ठ, 10-15 बिंदु)${wcSuffix}` : `Target: ~240-270 Words (3 Pages, 10-15 Points)${wcSuffix}`;
       timeBadge.textContent = isHindi ? "समय: 11 मिनट" : "Time: 11 Mins";
       benchBadge.textContent = "9.5 / 15.0 (Top 1%)";
     } else if (mm === 20) {
-      budgetBadge.textContent = isHindi ? `लक्ष्य: ~250-300 शब्द${wcSuffix}` : `Target: ~275 Words${wcSuffix}`;
+      budgetBadge.textContent = isHindi ? `लक्ष्य: ~270-300 शब्द (4 पृष्ठ, 12-16 बिंदु)${wcSuffix}` : `Target: ~270-300 Words (4 Pages, 12-16 Points)${wcSuffix}`;
       timeBadge.textContent = isHindi ? "समय: 14 मिनट" : "Time: 14 Mins";
       benchBadge.textContent = "13.0 / 20.0 (Top 1%)";
     } else {
@@ -14907,39 +14907,13 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     }
   }
 
-  const diagProfile = window.computeDiagramRelevanceProfile(state.currentEvaluation);
-  let processedText = fullText;
-
-  // Strip any accidental leading target badge or empty exam-hall tags (Fix for Image 1)
-  processedText = processedText.replace(/^(?:⏱️?\s*)?\[EXAM-HALL.*?(?:BLUEPRINT|QCAB).*?\]\s*\n*/gi, "");
-
-  // If diagram is NOT_NEEDED_SAVE_SPACE, strip any forced multi-line ASCII boxes so the Model Answer saves space too
-  if (diagProfile && diagProfile.verdict === "NOT_NEEDED_SAVE_SPACE") {
-    processedText = processedText
-      .replace(/\[EXAM-HALL SCHEMATIC[^\]]*\][\s\S]*?(?=\n\s*\n\s*[A-Za-z*#]|$)/gi, "")
-      .replace(/\[EXAM-HALL.*?\]:?\s*\n(?:[┌├│└+|-].*\n?)+/gi, "")
-      .replace(/(?:^[┌├│└+].*\n?){3,}/gm, "");
-  } else if (diagProfile && (diagProfile.verdict === "COMPACT_2_LINE" || diagProfile.verdict === "ALREADY_DRAWN")) {
-    // Replace any bulky ASCII box with the sleek 2-line inline chain
-    const compactBlock = `[EXAM-HALL 2-LINE SPACE-SAVER FLOW]:\n${diagProfile.compactChainForModelAnswer}`;
-    if (processedText.includes("+---") || processedText.includes("┌──") || processedText.includes("[EXAM-HALL")) {
-      processedText = processedText
-        .replace(/\[EXAM-HALL.*?\]:?\s*\n(?:[┌├│└+|-].*\n?)+/gi, `${compactBlock}\n\n`)
-        .replace(/(?:^[┌├│└+].*\n?){3,}/gm, `${compactBlock}\n\n`);
-    } else if (diagProfile.compactChainForModelAnswer) {
-      const parts = processedText.split(/\n(?=(?:1\.|2\.|Body|Dimension))/i);
-      if (parts.length > 1) {
-        processedText = `${parts[0]}\n\n${compactBlock}\n\n${parts.slice(1).join('\n')}`;
-      }
-    }
-  } else if (diagramVisual && !processedText.includes("+---") && !processedText.includes("┌──") && !processedText.includes("[EXAM-HALL")) {
-    const parts = processedText.split(/\n(?=(?:1\.|2\.|Body|Dimension))/i);
-    if (parts.length > 1) {
-      processedText = `${parts[0]}\n\n[EXAM-HALL SCHEMATIC / FLOWCHART]:\n${diagramVisual}\n\n${parts.slice(1).join('\n')}`;
-    } else {
-      processedText = `${processedText}\n\n[EXAM-HALL SCHEMATIC / FLOWCHART]:\n${diagramVisual}`;
-    }
-  }
+  // Strip diagrams and flowchart blocks from Model Answer (diagrams removed per user directive)
+  let processedText = (fullText || "")
+    .replace(/^(?:⏱️?\s*)?\[EXAM-HALL.*?(?:BLUEPRINT|QCAB).*?\]\s*\n*/gi, "")
+    .replace(/\[EXAM-HALL.*?\][\s\S]*?(?=\n\s*\n\s*[A-Za-z*#\u0900-\u097F]|$)/gi, "")
+    .replace(/(?:^[┌├│└+|-].*\n?)+/gm, "")
+    .replace(/^\s*(?:\[?[A-Za-z0-9\s_-]*\]?\s*)?(?:Diagram|Schematic|Flowchart|Exam-Hall Flowchart)\s*:\s*.*$/gim, "")
+    .trim();
 
   // Apply UPSC Ruled Paper aesthetic
   container.className = "space-y-3.5 upsc-booklet-paper p-5 sm:p-7 rounded-2xl border border-slate-800 text-xs text-slate-200 leading-relaxed font-serif";
@@ -14950,60 +14924,8 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     let b = block.trim();
     if (!b) return;
 
-    // 1. Exam-Hall Flowchart / Diagram or 2-Line Space-Saver Flow (Fix for Image 1 & 2)
-    const isFlowchartCandidate = (
-      (b.includes("+---") || b.includes("┌──") || b.includes("|  ") || b.includes("──> ") || b.includes("➔") || b.includes("[EXAM-HALL SCHEMATIC")) &&
-      !b.includes("BLUEPRINT") &&
-      !b.includes("QCAB")
-    );
-    if (isFlowchartCandidate) {
-      const isCompact2Line = b.includes("2-LINE SPACE-SAVER") || (diagProfile && diagProfile.verdict === "COMPACT_2_LINE");
-      const cleanDiagram = b.replace(/\[EXAM-HALL.*?\]:?\s*/i, '').trim();
-
-      // Guard: Never render empty/stub box or lone emoji (Fix for Image 1)
-      if (!cleanDiagram || cleanDiagram.length < 15 || cleanDiagram === "⏱️" || cleanDiagram === "⏱") {
-        return;
-      }
-
-      // Format clean, readable diagram representation (Fix for Image 2)
-      let diagramHtml = "";
-      if (cleanDiagram.includes("──>") || cleanDiagram.includes("➔") || cleanDiagram.includes("->")) {
-        const steps = cleanDiagram.split(/(?:──>|➔|->)/).map(s => s.replace(/[\[\]]/g, '').trim()).filter(Boolean);
-        if (steps.length >= 2) {
-          diagramHtml = `
-            <div class="py-2.5 px-1 flex flex-wrap items-center justify-center gap-2 text-xs">
-              ${steps.map((st, sIdx) => `
-                <div class="px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-200 font-sans font-semibold text-[11px] shadow-sm flex items-center gap-1.5">
-                  <span class="w-4 h-4 rounded-full bg-emerald-500/30 text-emerald-300 text-[9px] flex items-center justify-center shrink-0 font-bold">${sIdx + 1}</span>
-                  <span>${st}</span>
-                </div>
-                ${sIdx < steps.length - 1 ? '<i data-lucide="arrow-right" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>' : ''}
-              `).join('')}
-            </div>
-          `;
-        }
-      }
-      if (!diagramHtml) {
-        diagramHtml = `
-          <div class="my-1 p-2.5 rounded bg-slate-950 text-emerald-300 font-mono text-[11px] leading-snug whitespace-pre overflow-x-auto shadow-inner">
-${cleanDiagram}
-          </div>
-          <div class="text-[9px] text-slate-500 font-sans italic text-right mt-1 sm:hidden">← Scroll horizontally to view full schematic →</div>
-        `;
-      }
-
-      html += `
-        <div class="my-3.5 p-3.5 rounded-xl bg-slate-900/95 border ${isCompact2Line ? 'border-cyan-500/40 text-cyan-300' : 'border-2 border-amber-500/40 text-emerald-300'} font-sans text-xs leading-relaxed shadow-xl">
-          <div class="text-[10px] font-extrabold ${isCompact2Line ? 'text-cyan-400' : 'text-amber-400'} uppercase tracking-wider mb-2 flex items-center justify-between">
-            <span class="flex items-center space-x-1.5">
-              <i data-lucide="git-merge" class="w-3.5 h-3.5 ${isCompact2Line ? 'text-cyan-400' : 'text-amber-400'}"></i>
-              <span>${isCompact2Line ? '2-Line Inline Flow (10M Space-Saver — Only 2 Lines on Sheet):' : 'Exam-Hall Flowchart (High-ROI Schematic):'}</span>
-            </span>
-            <span class="text-emerald-400 font-sans font-semibold text-[9px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">${isCompact2Line ? 'Takes 15 secs • 2 Lines' : 'Draw in 35 secs'}</span>
-          </div>
-          ${diagramHtml}
-        </div>
-      `;
+    // Filter out residual diagram or flowchart blocks
+    if (b.includes("[EXAM-HALL") || b.includes("+---") || b.includes("┌──") || /^(?:Diagram|Flowchart|Schematic)\s*:/i.test(b)) {
       return;
     }
 
