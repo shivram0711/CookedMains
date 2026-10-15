@@ -14927,15 +14927,15 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
   if (budgetBadge && timeBadge && benchBadge) {
     const wcSuffix = wordCount > 0 ? ` (${wordCount}w)` : "";
     if (mm === 10) {
-      budgetBadge.textContent = isHindi ? `लक्ष्य: ~150-170 शब्द (2 पृष्ठ, 7-10 बिंदु)${wcSuffix}` : `Target: ~150-170 Words (2 Pages, 7-10 Points)${wcSuffix}`;
+      budgetBadge.textContent = isHindi ? `लक्ष्य: ~130-160 शब्द (2 पृष्ठ, 5-8 बिंदु)${wcSuffix}` : `Target: ~130-160 Words (2 Pages, 5-8 Points)${wcSuffix}`;
       timeBadge.textContent = isHindi ? "समय: 7 मिनट" : "Time: 7 Mins";
       benchBadge.textContent = "6.0 / 10.0 (Top 1%)";
     } else if (mm === 15) {
-      budgetBadge.textContent = isHindi ? `लक्ष्य: ~240-270 शब्द (3 पृष्ठ, 10-15 बिंदु)${wcSuffix}` : `Target: ~240-270 Words (3 Pages, 10-15 Points)${wcSuffix}`;
+      budgetBadge.textContent = isHindi ? `लक्ष्य: ~200-250 शब्द (3 पृष्ठ, 8-12 बिंदु)${wcSuffix}` : `Target: ~200-250 Words (3 Pages, 8-12 Points)${wcSuffix}`;
       timeBadge.textContent = isHindi ? "समय: 11 मिनट" : "Time: 11 Mins";
       benchBadge.textContent = "9.5 / 15.0 (Top 1%)";
     } else if (mm === 20) {
-      budgetBadge.textContent = isHindi ? `लक्ष्य: ~270-300 शब्द (4 पृष्ठ, 12-16 बिंदु)${wcSuffix}` : `Target: ~270-300 Words (4 Pages, 12-16 Points)${wcSuffix}`;
+      budgetBadge.textContent = isHindi ? `लक्ष्य: ~250-300 शब्द (4 पृष्ठ, 10-15 बिंदु)${wcSuffix}` : `Target: ~250-300 Words (4 Pages, 10-15 Points)${wcSuffix}`;
       timeBadge.textContent = isHindi ? "समय: 14 मिनट" : "Time: 14 Mins";
       benchBadge.textContent = "13.0 / 20.0 (Top 1%)";
     } else {
@@ -14954,11 +14954,22 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     .trim();
 
   // Apply UPSC Ruled Paper aesthetic
-  container.className = "space-y-3.5 upsc-booklet-paper p-5 sm:p-7 rounded-2xl border border-slate-800 text-xs text-slate-200 leading-relaxed font-serif";
+  container.className = "space-y-3 upsc-booklet-paper p-5 sm:p-7 rounded-2xl border border-slate-800 text-xs text-slate-200 leading-relaxed font-serif";
+
+  function formatInlineModelText(str) {
+    if (!str) return "";
+    let s = str;
+    s = s.replace(/\*\*(.*?)\*\*/g, '<strong class="text-amber-300 dark:text-amber-300 font-bold font-sans">$1</strong>');
+    s = s.replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, '<em class="text-sky-300 dark:text-sky-300 font-serif">$1</em>');
+    return s;
+  }
 
   const blocks = processedText.split(/\n\s*\n/);
   let html = "";
-  blocks.forEach(block => {
+  let introRendered = false;
+  let hasHeadingAppeared = false;
+
+  blocks.forEach((block, bIdx) => {
     let b = block.trim();
     if (!b) return;
 
@@ -14967,7 +14978,7 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
       return;
     }
 
-    // 2. Markdown Table (e.g. Distinction Matrices)
+    // 1. Markdown Table (e.g. Distinction Matrices like Code of Conduct vs Code of Ethics)
     if (b.includes("|") && b.includes("---")) {
       const rows = b.split('\n').filter(r => r.trim().startsWith('|'));
       let tableHtml = '<div class="my-3 overflow-x-auto"><table class="min-w-full text-xs border-collapse border border-slate-700 bg-slate-950/80 rounded-lg overflow-hidden">';
@@ -14995,13 +15006,13 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
       return;
     }
 
-    // 3. Horizontal Separator (--- or ***): Subtle line, ZERO question mark boxes!
+    // 2. Horizontal Separator (--- or ***)
     if (/^---+$/.test(b) || /^\*\*\*+$/.test(b)) {
       html += `<div class="my-3 border-t border-slate-800/80"></div>`;
       return;
     }
 
-    // 4. Actual Question Prompt Box (Q. or Question:)
+    // 3. Question Prompt Box
     if (/^(?:Q\.|Question[:\s])/i.test(b)) {
       html += `
         <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/25 text-blue-950 dark:text-blue-200 text-xs font-semibold font-sans flex items-start space-x-2">
@@ -15012,7 +15023,7 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
       return;
     }
 
-    // 5. Topper Initial Anchor / Snapshot Box (Eliminates meta [INITIAL VALUE-ADDITION BOX])
+    // 4. Snapshot / Anchor Box
     if (/^(?:\[?(?:INITIAL\s+)?VALUE-ADD(?:ITION)?\s+BOX\]?|(?:\*\*)?(?:Snapshot|At a Glance):?)/i.test(b) || (b.toLowerCase().includes("snapshot:") && b.includes("•"))) {
       let cleanBox = b.replace(/^(?:\*\*)?\[?(?:INITIAL\s+)?VALUE-ADD(?:ITION)?\s+BOX\]?(?:\*\*)?:?\s*/i, '');
       cleanBox = cleanBox.replace(/^(?:\*\*)?(?:Snapshot|At a Glance)[^:\n]*:?(?:\*\*)?\s*/i, '');
@@ -15033,38 +15044,126 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
       return;
     }
 
-    // 6. Section Headings (starts with #{1,6}, numbers like 1., or (a), (b), or bold titles in English or Hindi)
-    const lines = b.split('\n');
-    const firstLine = lines[0].trim();
-    const cleanFirst = firstLine.replace(/^\*\*|\*\*$/g, '').replace(/^#{1,6}\s*/, '').trim();
+    // 5. Check lines inside block for Headings, Numbered Points, Bullets, and Intro/Conclusion
+    const rawLines = b.split('\n').map(l => l.trim()).filter(Boolean);
+    if (rawLines.length === 0) return;
 
-    const isHeadingBlock = (
-      /^(?:(?:\d+\.|\([a-zA-Z0-9]+\)|[a-zA-Z]\))\s+|Introduction|Conclusion|Way Forward|Way Ahead|Dimension|Recommendation|Snapshot|प्रस्तावना|निष्कर्ष|आगे की राह|मुख्य भाग)/i.test(firstLine) ||
-      /^(?:(?:\d+\.|\([a-zA-Z0-9]+\)|[a-zA-Z]\))\s+|Introduction|Conclusion|Way Forward|Way Ahead|Dimension|Recommendation|Snapshot|प्रस्तावना|निष्कर्ष|आगे की राह|मुख्य भाग)/i.test(cleanFirst) ||
-      (firstLine.startsWith('**') && firstLine.endsWith('**') && !firstLine.includes('\n') && cleanFirst.length < 90) ||
-      (/^#{1,6}\s+/.test(firstLine))
-    );
-
-    if (isHeadingBlock) {
-      const cleanHeading = cleanFirst;
-      const restLines = lines.slice(1).join('\n').trim();
-      const formattedRest = restLines ? formatModelBlock(restLines) : "";
-
+    // Check if block is the first paragraph (Introduction before any headings)
+    const isFirstBlock = (!introRendered && !hasHeadingAppeared && bIdx === 0 && !/^#{1,6}\s+/.test(rawLines[0]) && !/^\s*(?:\*\*)?\d+[\.\)]/.test(rawLines[0]));
+    if (isFirstBlock) {
+      introRendered = true;
       html += `
-        <div class="pt-3.5 space-y-2 border-t border-slate-700/60 dark:border-slate-800/80 first:border-t-0">
-          <div class="text-[11.5px] font-extrabold font-sans text-amber-300 dark:text-amber-400 uppercase tracking-wider flex items-center space-x-2">
-            <span class="w-2 h-2 rounded-full bg-amber-400 dark:bg-amber-500 shadow-sm shadow-amber-400/50"></span>
-            <span>${escapeHtml(cleanHeading)}</span>
+        <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 text-xs text-slate-200 leading-relaxed font-sans space-y-1">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-blue-400 flex items-center space-x-1.5 font-sans">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+            <span>${isHindi ? "प्रस्तावना (Context & Framing)" : "Context & Framing"}</span>
           </div>
-          ${formattedRest ? `<div class="pl-4 border-l-2 border-amber-500/30 text-slate-200 leading-relaxed space-y-1.5 font-sans">${formattedRest}</div>` : ''}
+          <p class="text-slate-200 leading-relaxed">${formatInlineModelText(b)}</p>
         </div>
       `;
       return;
     }
 
-    // 7. Regular Paragraph / Bullet Block
-    let formatted = formatModelBlock(b);
-    html += `<div class="text-slate-800 dark:text-slate-200 leading-relaxed text-xs pl-3.5 border-l-2 border-slate-300 dark:border-slate-700/40">${formatted}</div>`;
+    // Check if block is an explicit Conclusion paragraph
+    const isConclusionBlock = (
+      /^(?:(?:\*\*)?(?:Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead|निष्कर्ष|आगे\s*की\s*राह)(?:\*\*)?:?)/i.test(rawLines[0]) ||
+      (bIdx === blocks.length - 1 && hasHeadingAppeared && !/^#{1,6}\s+/.test(rawLines[0]) && !/^\s*(?:\*\*)?\d+[\.\)]/.test(rawLines[0]))
+    );
+
+    if (isConclusionBlock) {
+      let concText = b.replace(/^(?:\*\*)?(?:Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead|निष्कर्ष|आगे\s*की\s*राह)(?:\*\*)?:?\s*/i, '');
+      if (!concText) concText = b;
+      html += `
+        <div class="mt-4 p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/25 text-xs text-slate-200 leading-relaxed font-sans space-y-1">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center space-x-1.5 font-sans">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            <span>${isHindi ? "निष्कर्ष (Concluding Synthesis)" : "Concluding Synthesis"}</span>
+          </div>
+          <p class="text-slate-200 leading-relaxed">${formatInlineModelText(concText.trim())}</p>
+        </div>
+      `;
+      return;
+    }
+
+    // Process line-by-line inside the block
+    rawLines.forEach(line => {
+      // (a) Section Heading: starts with ### or is a standalone bold title without explanation
+      const isHashHeading = /^#{1,6}\s+(.*)$/.test(line);
+      const isBoldHeading = /^\*\*([^*:\n]{3,65})\*\*$/.test(line) && !line.includes(':');
+      const isNamedHeading = /^(?:Introduction|Conclusion|Way Forward|Way Ahead|प्रस्तावना|निष्कर्ष|आगे की राह):?$/i.test(line);
+
+      if (isHashHeading || isBoldHeading || isNamedHeading) {
+        hasHeadingAppeared = true;
+        let cleanHeading = line.replace(/^#{1,6}\s*/, '').replace(/^\*\*|\*\*$/g, '').replace(/:$/, '').trim();
+        html += `
+          <div class="mt-4 mb-2 pt-2.5 border-t border-slate-700/60 dark:border-slate-800/80 first:border-t-0 first:pt-0 first:mt-0 flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-sm bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shrink-0"></span>
+            <h4 class="text-xs sm:text-[13px] font-bold text-amber-300 dark:text-amber-400 uppercase tracking-wider font-sans">${escapeHtml(cleanHeading)}</h4>
+          </div>
+        `;
+        return;
+      }
+
+      // (b) Numbered Point: e.g. "**1. Political Significance:** Explanation..." or "1. **Political:** ..."
+      const numMatch = line.match(/^\s*(?:\*\*)?(\d+|[a-zA-Z])[\.\)]\s*(?:\*\*)?\s*(?:(?:\*\*(.*?)\*\*:?|\*([^*]+)\*:?|([^:]{2,55}):))\s*(.*)$/);
+      if (numMatch) {
+        const num = numMatch[1];
+        const lead = (numMatch[2] || numMatch[3] || numMatch[4] || "").trim().replace(/^[:\s]+|[:\s]+$/g, '');
+        const exp = numMatch[5].trim();
+        html += `
+          <div class="my-2 p-2.5 sm:p-3 rounded-xl bg-slate-900/60 hover:bg-slate-900/90 border border-slate-800/80 transition-colors flex items-start space-x-2.5">
+            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 font-bold font-sans text-[11px] shrink-0 border border-amber-500/35 shadow-xs mt-0.5">${escapeHtml(num)}</span>
+            <div class="flex-1 text-slate-200 text-xs leading-relaxed font-sans">
+              ${lead ? `<strong class="text-amber-300 font-bold mr-1.5">${escapeHtml(lead)}:</strong>` : ''}
+              <span>${formatInlineModelText(exp)}</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // (c) Simple Numbered Point without colon/bold lead: e.g. "1. Explanation..."
+      const simpleNumMatch = line.match(/^\s*(?:\*\*)?(\d+|[a-zA-Z])[\.\)]\s*(?:\*\*)?\s+(.*)$/);
+      if (simpleNumMatch) {
+        const num = simpleNumMatch[1];
+        const exp = simpleNumMatch[2].trim();
+        html += `
+          <div class="my-2 p-2.5 sm:p-3 rounded-xl bg-slate-900/60 hover:bg-slate-900/90 border border-slate-800/80 transition-colors flex items-start space-x-2.5">
+            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 font-bold font-sans text-[11px] shrink-0 border border-amber-500/35 shadow-xs mt-0.5">${escapeHtml(num)}</span>
+            <div class="flex-1 text-slate-200 text-xs leading-relaxed font-sans">
+              <span>${formatInlineModelText(exp)}</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // (d) Bullet Point: e.g. "• **Lead:** Exp" or "- **Lead:** Exp"
+      const bulletMatch = line.match(/^\s*[-*•]\s+(.*)$/);
+      if (bulletMatch) {
+        const content = bulletMatch[1].trim();
+        const bLeadMatch = content.match(/^(?:(?:\*\*(.*?)\*\*:?|([^:]{2,55}):))\s*(.*)$/);
+        let bLead = "";
+        let bExp = content;
+        if (bLeadMatch) {
+          bLead = (bLeadMatch[1] || bLeadMatch[2] || "").trim().replace(/^[:\s]+|[:\s]+$/g, '');
+          bExp = bLeadMatch[3].trim();
+        }
+        html += `
+          <div class="my-1.5 p-2 sm:p-2.5 rounded-xl bg-slate-900/40 hover:bg-slate-900/70 border border-slate-800/50 transition-colors flex items-start space-x-2.5">
+            <span class="inline-block w-2 h-2 rounded-full bg-sky-400/80 shrink-0 mt-1.5 ml-1"></span>
+            <div class="flex-1 text-slate-200 text-xs leading-relaxed font-sans">
+              ${bLead ? `<strong class="text-sky-300 font-bold mr-1.5">${escapeHtml(bLead)}:</strong>` : ''}
+              <span>${formatInlineModelText(bExp)}</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // (e) Standard prose line/paragraph
+      html += `<div class="text-slate-200 leading-relaxed text-xs pl-3.5 border-l-2 border-slate-700/60 font-sans my-1">${formatInlineModelText(line)}</div>`;
+    });
   });
 
   container.innerHTML = html;
@@ -15879,9 +15978,34 @@ window.copyTranscribedText = function() {
 };
 
 window.copyFullModelAnswer = function() {
-  const text = document.getElementById("fullModelAnswerText").textContent;
-  navigator.clipboard.writeText(text);
-  alert("Complete Topper Model Answer copied to clipboard!");
+  const el = document.getElementById("fullModelAnswerText");
+  const text = el ? el.textContent : "";
+  if (!text) {
+    alert("No model answer available to copy.");
+    return;
+  }
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector("#modelAnswerCard button[onclick*='copyFullModelAnswer']");
+    if (btn) {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-950"></i> <span>Copied!</span>';
+      btn.classList.add("bg-emerald-400");
+      btn.classList.remove("bg-amber-400");
+      setTimeout(() => {
+        btn.innerHTML = orig;
+        btn.classList.remove("bg-emerald-400");
+        btn.classList.add("bg-amber-400");
+        if (window.lucide) {
+          try { window.lucide.createIcons({ root: btn }); } catch (e) {}
+        }
+      }, 2000);
+    } else {
+      alert("Complete Topper Model Answer copied to clipboard!");
+    }
+  }).catch(() => {
+    navigator.clipboard.writeText(text);
+    alert("Complete Topper Model Answer copied to clipboard!");
+  });
 };
 
 // API Key Modal Controls
