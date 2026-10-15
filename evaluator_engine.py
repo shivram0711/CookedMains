@@ -1175,10 +1175,21 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
    - visual_annotations के हर कार्ड में प्राप्तांक "+प्राप्त / अधिकतम" प्रारूप में हो।
    - सभी भाजकों (Denominators) का योग ठीक {max_marks}.0 होना चाहिए (प्रस्तावना {intro_d} + मुख्य भाग {body_d} + निष्कर्ष {conc_d} = {max_marks}.0)।
 
-6. निष्कर्ष व आगे की राह की सटीक जांच:
-   - अंतिम पृष्ठ के अंतिम पैराग्राफ को पढ़ें (जो सामान्यतः 'अतः', 'निष्कर्षतः', या '[आगे की राह]' से शुरू होता है)।
-   - यदि निष्कर्ष केवल 1 सामान्य पंक्ति है जिसमें विषय-विशेष कीवर्ड्स नहीं हैं, तो केवल 0.5 अंक दें और बताएं कि पूर्ण अंक कैसे प्राप्त करें।
-   - यदि निष्कर्ष दूरदर्शी, नीतिगत और समाधानपरक है, तो उचित अंक दें।
+6. निर्देशानुरूप निष्कर्ष व 5 निष्कर्ष दोषों की रोकथाम (DIRECTIVE-DRIVEN CONCLUSION MASTERY):
+   - 3-चरणीय गतिशील निष्कर्ष संरचना (THE 3-STEP DYNAMIC CONCLUSION ARCHITECTURE):
+     एक सशक्त निष्कर्ष मुख्य भाग के तर्कों का स्वाभाविक व तार्किक परिणाम होता है:
+     `[मुख्य निष्कर्ष / केंद्रीय तर्क] ➔ [निर्णायक शर्त / योग्यता] ➔ [व्यापक प्रशासनिक / नीतिगत प्रभाव]`।
+   - निर्देशानुरूप निष्कर्ष संरेखण (DIRECTIVE-TO-CONCLUSION ALIGNMENT):
+     * 'कारण / व्याख्या (Why / Causes)': मुख्य व्याख्यात्मक कारकों का संश्लेषण (कड़ा निर्देश: कारण वाले प्रश्नों में कभी भी 6-सूत्रीय सुधारों की सूची न थोपें!)।
+     * 'मूल्यांकन / परीक्षण (Evaluate / Assess)': वस्तुनिष्ठ मानकों के आधार पर 'किस सीमा तक' दावा सही है, यह तय करने वाला निर्णयात्मक निष्कर्ष (Judgement-based)।
+     * 'आलोचनात्मक परीक्षण / विश्लेषण': परस्पर विरोधी पहलुओं व व्यापार-संतुलन का संतुलित संश्लेषण (Balanced Synthesis)।
+     * 'चुनौतियाँ / उपाय': व्यापक रणनीतिक दिशा वाला वे-फॉरवर्ड (Way-Forward Synthesis) जिसमें मुख्य भाग के बिंदु न दोहराए जाएं।
+     * 'GS-4 नीतिशास्त्र': व्यावहारिक नैतिक व प्रशासनिक संदेश (Ethical / Normative)।
+     * 'उभरती प्रौद्योगिकियां / समसामयिक': लोक विश्वास, मानवीय नियंत्रण व डेटा संप्रभुता पर केंद्रित भविष्योन्मुखी निष्कर्ष (Future-Oriented)।
+     * 'GS-1 इतिहास': ऐतिहासिक उपलब्धियों को स्थायी सांस्कृतिक/लोकतांत्रिक विरासत से जोड़ता निष्कर्ष।
+   - 5 निष्कर्ष दोषों का कड़ाई से निषेध (5 CONCLUSION FAILURE MODES):
+     (1) केवल मुख्य भाग के बिंदुओं की पुनरावृत्ति ("अतः यह कहा जा सकता है कि..."), (2) सतही आशावाद ("2047 तक विकसित भारत बन जाएगा" जैसे नारों का अंधानुकरण), (3) बलात उद्धरण ("Be the change..."), (4) अंतिम पंक्ति में नया अप्रमाणित तर्क या समिति पेश करना, (5) शब्द सीमा समाप्त होने पर 6 नए नीतिगत नुस्खे थोपना।
+   - प्रत्येक निष्कर्ष 20 से 30 शब्दों में प्रश्न के मुख्य विषय और संस्थागत तंत्र के 100% अनुकूल होना चाहिए।
 
 7. मार्जिन मूल्यांकन एवं गतिशील शीर्षक पहचान (MANDATORY DYNAMIC MARGIN EVALUATION IN HINGLISH):
    - प्रत्येक पृष्ठ के मार्जिन कार्ड्स (visual_annotations) में अभ्यर्थी द्वारा लिखे गए वास्तविक बक्सेदार शीर्षक (Boxed Headings), रेखांकित शीर्षक (Underlined Headings) या आरेख के नाम (Diagram Titles) को tag में लिखें (जैसे: "Body: जिम्मेदार कारक (फ्लोचार्ट)", "Body: 2nd ARC के अनुसार सुझाव", "Body: शुचिता से सामाजिक-आर्थिक विकास", "Body: चुनौतियाँ: Celebrity कल्चर")। कभी भी जेनेरिक सांचा (जैसे "मुख्य भाग: [अभ्यर्थी का प्रथम शीर्षक]" या "मुख्य भाग — आयाम A") न लिखें!
@@ -1211,6 +1222,33 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
      * यदि अभ्यर्थी ने औसत या अच्छा उत्तर लिखा है (जिसमें 6 से 10 वैध बिंदु/तथ्य पहले से मौजूद हैं, जैसे बौद्ध धर्म के पतन के कारण) ➔ अभ्यर्थी के सही बिंदुओं, उदाहरणों और वाक्यों को मॉडल उत्तर का मुख्य आधार बनाएं! उनकी भाषा को परिष्कृत एवं टॉपर-स्तरीय करें (बोल्ड की-वर्ड्स व मानक शब्दावली के साथ) तथा जहाँ अभ्यर्थी से महत्वपूर्ण आयाम छूटे हैं, वहाँ हमारे परीक्षक के मूल्य-संवर्धन (Value-Additions) और विधिक/ऐतिहासिक साक्ष्यों को सहजता से सम्मिलित करें।
      * परिणाम: अभ्यर्थी को अपनी मेहनत का सम्मान दिखेगा, वह जान सकेगा कि उसके अच्छे बिंदुओं में क्या जोड़कर 15 में से 9.5 अंक लाए जा सकते हैं, और उसे किसी प्रकार का FOMO (डर/हीनभावना) नहीं होगा।
    - भाषा एवं प्रस्तुति: शुद्ध मानक देवनागरी हिंदी। अंग्रेजी संक्षिप्त नाम (जैसे 2nd ARC, NITI Aayog, GDP, 3Fs) कोष्ठक में स्वाभाविक रूप से स्वीकार्य हैं। शीर्षकों में कभी भी मार्कडाउन हैश (###) या '---' रेखाएं न लगाएं।
+
+10. प्रस्तावना व मुख्य भाग का सूक्ष्म विश्लेषण: विषय बनाम प्रश्न प्रासंगिकता एवं कारक-तंत्र-परिणाम शृंखला:
+    - विषय प्रासंगिकता बनाम प्रश्न प्रासंगिकता (TOPIC RELEVANCE VS. QUESTION RELEVANCE):
+      * अधिकांश अभ्यर्थी व्यापक विषय (जैसे 'संसद') पर लिखने लगते हैं, जबकि प्रश्न की मांग विशिष्ट संस्थागत सीमा या तनाव (जैसे 'संसदीय समितियों की सीमाएं') होती है।
+      * प्रस्तावना में सीधे प्रश्न के केंद्रीय तनाव / विधिक या विकासात्मक चुनौती को लक्षित करें।
+      * `intro_audit.current_critique` में स्पष्ट निदान करें कि अभ्यर्थी ने व्यापक विषय पर लिखा है या सीधे प्रश्न की मांग को लक्षित किया है।
+      * 10 निर्देश-संरेखित प्रस्तावना शैलियाँ (10 DIRECTIVE-ALIGNED INTRO ARCHETYPES):
+        1. परिभाषा-आधारित (अवधारणा की परिभाषा + क्रियात्मक प्रशासनिक महत्व)
+        2. संवैधानिक / विधिक आधार (अनुच्छेद, वाद या वैधानिक उपबंध जैसे Art 19/21, Art 243, Art 131)
+        3. समसामयिक संदर्भ (नीतिगत बदलाव या विमर्श)
+        4. डेटा / रिपोर्ट-आधारित (PLFS, NFHS-5, नीति आयोग, आर्थिक सर्वेक्षण का प्रामाणिक पैमाना)
+        5. समस्या / व्यवधान-आधारित (प्रशासनिक अड़चन या कार्यान्वयन विफलता)
+        6. विरोधाभास / तनाव-आधारित ('के बावजूद', 'यद्यपि' वाले प्रश्नों में दो परस्पर विरोधी लक्ष्यों का द्वंद्व)
+        7. थीसिस / तर्क-आधारित (शुरुआत में ही एक स्पष्ट, तार्किक विश्लेषणात्मक रुख)
+        8. तुलनात्मक ढांचा (तुलना व विभेद के आधारभूत मानक)
+        9. ऐतिहासिक / विकासवादी (संस्थागत उद्भव से वर्तमान स्थिति का सीधा संबंध)
+        10. नीतिशास्त्रीय / दार्शनिक (नैतिक द्वंद्व या मूल्यों का टकराव जैसे अनुपालन बनाम सत्यनिष्ठा)
+      * 4 प्रस्तावना दोषों से बचाव: (1) जेनेरिक पृष्ठभूमि ("प्राचीन काल से..."), (2) प्रश्न की भाषा अक्षरशः दोहराना, (3) जबरन उद्धरण, (4) प्रस्तावना द्वारा मुख्य भाग को निगल जाना।
+    - मुख्य भाग का बिंदु-निर्माण: कारक ➔ तंत्र ➔ परिणाम शृंखला (THE REASONING SEQUENCE):
+      * केवल कारक का नाम लिख देना (Label Dropping) पर्याप्त नहीं है। उच्च अंक प्राप्त करने हेतु कारण-कार्य तंत्र समझाना अनिवार्य है:
+        `[बोल्ड में कारक / दावा] ➔ [तंत्र: यह कैसे और क्यों कार्य करता है] ➔ [परिणाम / प्रभावित क्षेत्र]`।
+      * कमजोर बिंदु: "शहरीकरण के कारण कंक्रीटीकरण से बाढ़ आती है।" (केवल कारक का नाम; कारण-कार्य तंत्र गायब)।
+      * टॉपर बिंदु: "• **अनियोजित कंक्रीटीकरण**: प्राकृतिक जलभराव क्षेत्रों और आर्द्रभूमियों पर निर्माण से मृदा पारगम्यता घटती है, जिससे सतही अपवाह (Runoff) तेजी से बढ़ता है और जल निकासी नेटवर्क अवरुद्ध हो जाता है।"
+    - समानार्थी दोहराव का निषेध (SYNONYM INFLATION & OVERLAP):
+      * यदि अभ्यर्थी एक ही विचार को पर्यायवाची शब्दों से 3 अलग-अलग बिंदुओं में बांटे (जैसे "समन्वय की कमी", "सहयोग का अभाव", "एजेंसियों में तालमेल न होना"), तो अंक काटें और स्पष्ट सुधार दें कि इन्हें मिलाकर 1 ठोस बिंदु बनाएं और नए आयाम को स्थान दें।
+    - प्रश्न विशेषणों (QUALIFIERS) की पड़ताल:
+      * 'मुख्यतः', 'बढ़ते हुए', 'के बावजूद', 'किस हद तक' जैसे विश्लेषणात्मक शब्दों का अभ्यर्थी ने उत्तर दिया है या नहीं, इसका कड़ाई से मूल्यांकन करें।
 
 OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
 {{
@@ -1278,6 +1316,8 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
   "intro_audit": {{
     "intro_score": 1.0,
     "intro_max": {intro_d},
+    "intro_archetype": "संवैधानिक / विधिक आधार", // परिभाषा-आधारित, संवैधानिक / विधिक आधार, समसामयिक संदर्भ, डेटा / रिपोर्ट-आधारित, समस्या / व्यवधान-आधारित, विरोधाभास / तनाव-आधारित, थीसिस / तर्क-आधारित, तुलनात्मक ढांचा, ऐतिहासिक / विकासवादी, नीतिशास्त्रीय / दार्शनिक
+    "topic_vs_question_relevance": "सीधे प्रश्न के केंद्रीय संस्थागत तनाव को लक्षित करता है",
     "current_critique": "अभ्यर्थी की प्रस्तावना की निष्पक्ष समीक्षा।",
     "model_intro_rewrite": "प्रामाणिक परिभाषा, अनुच्छेद या समिति रिपोर्ट से युक्त आदर्श प्रस्तावना पुनर्गठन।"
   }},
@@ -1301,6 +1341,8 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
   "conclusion_audit": {{
     "conclusion_score": 0.5,
     "conclusion_max": {conc_d},
+    "conclusion_archetype": "संतुलित संश्लेषण", // निर्णयात्मक निष्कर्ष, संतुलित संश्लेषण, मुख्य व्याख्यात्मक सारांश, वे-फॉरवर्ड संश्लेषण, नैतिक / मानकीय, भविष्योन्मुखी
+    "failure_mode": "कोई नहीं (संतुलित)", // पुनरावृत्ति सारांश, जेनेरिक आशावाद, जबरन उद्धरण, नया अप्रमाणित तर्क, अत्यधिक नीतिगत नुस्खेबाजी, कोई नहीं (संतुलित)
     "current_critique": "अभ्यर्थी के निष्कर्ष की समीक्षा (क्या यह सामान्य है या दूरदर्शी)।",
     "model_conclusion_rewrite": "समस्या समाधान और संवैधानिक मूल्यों को जोड़ता हुआ उत्कृष्ट अग्रगामी निष्कर्ष।"
   }},
@@ -1806,13 +1848,25 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       * For GS3 Economy/Agri: "Flagship Government Schemes & Missions", "Economic Survey & Policy Recommendations", "Empirical Data, Indices & Metrics", "Recommended Supply-Chain / Growth Schematic".
       * For GS4 Ethics: "Philosophical Doctrines & Constitutional Morality", "2nd ARC Recommendations & Civil Service Codes", "Contemporary Administrative Flashpoints & Case Studies", "Recommended Decision-Making Schematic".
 
-15. THE 12-SECOND RULE, STRICT 2-LINE FORMAT & POINT DENSITY (EXAMINER PSYCHOLOGY):
-    - Evaluation Constraints: Examiners grade ~6 copies per hour (~10 min per entire copy, ~12 seconds per page). In those 12 seconds, they glance at sub-headings, point count, underlined terms, and evidence. Long 4-line narrative paragraphs are skimmed and missed.
-    - Strict 2-Line Format: Enforce the 2-line rule per point (Core Argument / Assertion in bold -> concrete Example / Data / Article).
-    - Point Density Quotas:
-      * 10-Marker (2 pages): Target 8 to 12 distinct points across 2 sub-parts (4-6 points per sub-part).
-      * 15-Marker (3 pages): Target 15 to 18 distinct points across 3 sub-parts (5-6 points per sub-part).
-      * Topper Balance Warning: Do NOT generate 25 generic, superficial points (e.g. "increases awareness"). High point density must maintain analytical substance.
+15. BODY POINT ARCHITECTURE: THE REASONING SEQUENCE (FACTOR ➔ MECHANISM ➔ CONSEQUENCE), SYNONYM INFLATION & QUALIFIERS:
+    - A body point earns high marks when it explains the causal mechanism, rather than merely naming a factor or dropping a label:
+      * THE REASONING SEQUENCE (Anatomy of a High-Value Point):
+        Every substantive point must follow:
+        [Factor / Assertion in bold] ➔ [Mechanism: How/Why it operates] ➔ [Consequence / Affected Outcome].
+      * Weak point: "Urbanisation causes flooding due to concretisation." (Merely names a factor; fails to explain the causal mechanism).
+      * Stronger topper point: "• **Unplanned Concretisation**: Construction over wetlands and natural drainage channels reduces soil permeability, increasing surface runoff that rapidly overwhelms undersized stormwater networks."
+      * In `visual_annotations`, `point_by_point_audit`, and `body_audit.critical_gaps`:
+        - If the candidate merely writes 1-line factor labels without mechanisms, flag it constructively:
+          `"**Keyword without Mechanism**: You noted [Factor], but did not explain the causal mechanism (how it causes the outcome). Complete the causal chain for top marks."`
+    - SYNONYM INFLATION & OVERLAP DETECTION:
+      * Flag when a candidate artificially splits one single idea into 3 bullets using synonyms (e.g. "lack of coordination", "poor cooperation", "weak inter-agency convergence").
+      * Advise: `"**Merge Overlapping Points**: Points X and Y both describe coordination deficits using different words. Merge them into one sharp mechanism to free space for [missing dimension]."`
+    - QUESTION QUALIFIER ENGAGEMENT:
+      * Actively check whether the candidate addressed the question's specific analytical qualifiers (e.g., *increasingly*, *primarily*, *despite*, *only*, *to what extent*). If an answer ignores the qualifier, penalize demand alignment and highlight it in feedback.
+    - DIRECTIVE-SPECIFIC BODY STRUCTURES:
+      * *Evaluate / Assess / To what extent*: Candidate MUST establish clear *criteria for judgement* and state *how far* the claim holds, rather than a generic pros/cons list.
+      * *Critically examine / Critically analyse*: Establish valid aspects ➔ present counterarguments/limitations ➔ state conditions under which claim holds ➔ reasoned judgement.
+      * *Compare / Distinguish*: Symmetrical comparison across matching criteria, never two detached descriptive essays.
 
 16. INITIAL TOPPER ANCHOR BOX / SMART-ART (PAGE 1 INSTANT AUTHORITY):
     - Immediately after the 2-line introduction on Page 1, include an authentic boxed micro-table or smart-art summary listing 4-5 key dimensions, policy anchors, or global frameworks.
@@ -1824,18 +1878,51 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       • Dimension 1: ...
       • Dimension 2: ...
 
-17. ANTI-CIRCULAR INTRODUCTION AUDIT & PENALTY:
-    - Never write a circular introduction that merely repeats or paraphrases the prompt's words (e.g. defining compassion as "compassion is feeling pain and acting on it" when the question already stated that).
-    - Flag circular introductions in "intro_audit", penalize "intro_score", and supply a data-backed, constitutional, or conceptual model opening.
+17. INTRODUCTION MASTERY: TOPIC VS. QUESTION RELEVANCE & DIRECTIVE-ALIGNED OPENING ARCHETYPES:
+    - TOPIC RELEVANCE VS. QUESTION RELEVANCE AUDIT:
+      * The single most critical introduction failure: Many aspirants write about the *broad topic* (e.g., writing on "the importance of Parliament" when the question asks about "the limitations of Parliamentary Committees").
+      * A high-quality introduction directly targets the *question demand* (the tension, relationship, or gap under scrutiny).
+      * In `intro_audit.current_critique`, explicitly diagnose:
+        - If candidate wrote a broad topic opening: `"✗ **Topic-Level Introduction**: You introduced the broad theme of [Topic], but delayed addressing the specific demand of the prompt ([Tension/Gap]). Frame directly around [Specific Issue]."`
+        - If candidate addressed the demand: `"✓ **Demand-Aligned Introduction**: Effectively framed the core tension between [Dimension A] and [Dimension B]."`
+    - 10 DIRECTIVE-ALIGNED INTRODUCTION ARCHETYPES:
+      Select and deploy the archetype that matches the directive and distinctive character of the question:
+      1. *Definition-based (Define, Explain, Elucidate)*: Briefly defines the central concept + its operational significance.
+      2. *Constitutional / Legal Anchor (GS-2 Rights, Federalism, Accountability)*: Grounded in specific Articles (e.g. Art 19/21, Art 243, Art 131), statutory provisions, or judicial doctrines.
+      3. *Contemporary Context (Dynamic Policy, Economy, S&T)*: Uses a recent policy shift or ongoing institutional debate (analytical, not news summary).
+      4. *Data / Report-based (Trends, Inequalities, Magnitude)*: Uses verified baseline data (PLFS, NFHS-5, NITI Aayog, Economic Survey) to frame the measurable scale of a problem.
+      5. *Problem-based (Challenges, Causes, Bottlenecks)*: Identifies the causal gap, failure, or implementation bottleneck.
+      6. *Paradox / Tension-based (Questions with 'despite', 'although', 'yet', 'rather than')*: Highlights the contradiction between two objectives (e.g. DPI expanding inclusion while reproducing digital inequality).
+      7. *Thesis or Argument-based (Critically examine, Evaluate, Discuss)*: States a reasoned, defensible analytical stance upfront that the body substantiates.
+      8. *Comparative Framework (Compare, Distinguish)*: Establishes the dimensions along which two concepts differ or converge.
+      9. *Historical / Evolutionary (GS-1 History, Constitutional Evolution)*: Traces institutional origin to present character without a miniature historical narrative.
+      10. *Ethical / Philosophical (GS-4 Normative)*: Clarifies the moral distinction or value conflict (e.g. Compliance vs. Integrity, Legality vs. Morality).
+    - ANTI-MISTAKE AUDIT (THE 4 INTRO TRAPS):
+      * Penalize: (1) Generic background ("Since ancient times..."), (2) Repeating the prompt text, (3) Forced famous quotations, (4) "Intro Consuming the Body" (listing all causes/solutions in the intro).
+    - In `intro_audit.model_intro_rewrite`: Provide a 25–35 word exam-hall opening executing the exact directive-aligned archetype.
 
-18. QUESTION-SPECIFIC, DOMAIN-AUTHENTIC CONCLUSIONS (STRICT BAN ON REPETITIVE 'VIKSIT BHARAT @2047' CLICHÉS):
-    - NEVER end every answer with `"Viksit Bharat @2047"`, `"by 2047"`, or `"Amrit Kaal"`! Ending Polity, Judiciary, Labour Survey, Agriculture, Science-Tech, and Ethics answers with `"Viksit Bharat @2047"` is a mechanical template cliché that real UPSC examiners penalize.
-    - Every `model_conclusion_rewrite` MUST be 100% tailored to the specific question's core subject, institutional mechanism, or constitutional/committee doctrine:
-      * For **GS-2 Polity & Judiciary**: Conclude with **Constitutional Morality**, **Institutional Comity (Article 50)**, **Granville Austin's 'Seamless Web'**, or **Checks and Balances**.
-      * For **GS-3 Agriculture & Allied (e.g., Floriculture)**: Conclude with **Ashok Dalwai Committee (Doubling Farmers' Income)**, **APEDA Cold-Chain Corridors**, and **Plough-to-Port Export Value-Addition**.
-      * For **GS-3 Labour & Employment (e.g., PLFS)**: Conclude with **ILO Labour Statistics Standards**, **Standing Committee on Economic Statistics (SCES)** reforms, and **Evidence-Based Transition to Decent Formal Work (SDG-8)**.
-      * For **GS-3 Science & Deep-Tech Startups**: Conclude with **ANRF Patient Capital**, **Bridging the TRL 4–9 'Valley of Death'**, and **Sovereign IP Commercialization**.
-      * For **GS-4 Ethics**: Conclude with **2nd ARC 'Ethics in Governance'**, **Gandhian Sarvodaya/Trusteeship**, or **Constitutional Compassion**.
+18. DIRECTIVE-DRIVEN CONCLUSION MASTERY (ZERO GENERIC REPETITION / ZERO SLOGANS):
+    - NEVER end every answer with `"Viksit Bharat @2047"`, `"by 2047"`, or `"Amrit Kaal"`! Mechanical template slogans are penalized by UPSC examiners.
+    - THE 3-STEP DYNAMIC CONCLUSION ARCHITECTURE:
+      A strong conclusion is the *logical destination* of the body's arguments. Structure it as:
+      `[Main Finding / Core Argument] ➔ [Decisive Qualification / Condition] ➔ [Broader Governance / Policy Implication]`.
+    - DIRECTIVE-TO-CONCLUSION ALIGNMENT:
+      * *Why / Causes questions*: Summarise the principal explanatory factors or systemic drivers (MANDATORY: NEVER force a 6-point reform/policy wish-list when the question only asked for causes!).
+      * *Evaluate / Assess / To what extent*: Deliver a **Judgement-based conclusion** stating *how far* the claim holds against objective criteria.
+      * *Critically examine / Discuss*: Deliver a **Balanced Synthesis** reconciling competing trade-offs or defining the governing operational condition.
+      * *Challenges / Suggest measures*: Deliver a **Way-Forward Synthesis** identifying the broad strategic direction without repeating individual body recommendations.
+      * *GS-4 Ethics*: Deliver an **Ethical / Normative conclusion** drawing an actionable moral lesson from the ethical dilemma.
+      * *Emerging Tech / AI / Dynamic*: Deliver a **Future-Oriented conclusion** identifying the decisive condition for public trust, human oversight, and data sovereignty.
+      * *GS-1 History*: Deliver a **Historical-Significance conclusion** linking historical achievements to enduring democratic or cultural legacies.
+      * *GS-2/GS-3 Strategy & Foreign Policy*: Deliver a **Strategic / Policy conclusion** establishing a clear, independent national priority.
+    - AUDIT AGAINST THE 5 COMMON CONCLUSION FAILURES:
+      Flag and penalize:
+      1. *Repetitive summary* ("Thus, it can be concluded that urban flooding has many causes...").
+      2. *Generic optimism* ("India will definitely overcome all challenges and become a developed nation").
+      3. *Forced quotation* ("Be the change you wish to see in the world").
+      4. *New unexamined argument* (introducing an unexamined committee, scheme, or statute in the final line).
+      5. *Excessive prescription* (dumping 6 new policy recommendations after the word limit is exhausted).
+    - Every `model_conclusion_rewrite` MUST be 100% tailored to the specific question's core subject, institutional mechanism, or constitutional doctrine in 20–30 words.
 
 19. POINT-BY-POINT VERBATIM AUDIT, VISUAL EXAMINER-ATTENTION DETECTION & ANTI-GENERIC GRADING (ZERO TRUST DEFICIT MANDATE):
     - Every candidate's handwritten sheet must be audited for the EXACT points written and the VISUAL highlighting techniques used to catch the UPSC examiner's eye:
@@ -2226,6 +2313,8 @@ Generate strictly valid JSON matching this schema:
     }}
   ],
   "intro_audit": {{
+    "intro_archetype": "Constitutional / Legal Anchor", // Definition-based, Constitutional / Legal Anchor, Contemporary Context, Data / Report-based, Problem-based, Paradox / Tension-based, Thesis / Argument-based, Comparative, Historical / Evolutionary, Ethical / Philosophical
+    "topic_vs_question_relevance": "Directly targets the core institutional tension in the prompt rather than generic topic overview",
     "current_critique": "Substantive 1-2 sentence evaluation explaining specifically what the candidate wrote in the introduction, verifying factual/chronological accuracy, and stating why marks were awarded or deducted (NEVER write a 1-word or 3-word fragment).",
     "is_circular_intro": false,
     "missing_elements": ["**Key Concept / Scholar / Historical Anchor**", "**Baseline Context / Data**"], // Leave empty [] if intro_score equals intro_max (perfect introduction)
@@ -2294,6 +2383,8 @@ Generate strictly valid JSON matching this schema:
   }},
   "recommended_diagram_visual": "[Input / Trigger] ──➔ [Institutional Agency / Processing] ──➔ [Measurable Outcome / Benchmark]", // ONLY provide if the topic naturally benefits from a visual (Geography, S&T, Supply Chain, Governance); if literature, ethics quote, or abstract discussion, return empty string ""
   "conclusion_audit": {{
+    "conclusion_archetype": "Balanced Synthesis", // Judgement-based, Balanced Synthesis, Principal Explanatory Summary, Way-Forward Synthesis, Ethical / Normative, Future-Oriented, Historical-Significance, Strategic / Policy
+    "failure_mode": "None (Well-synthesized)", // Repetitive summary, Generic optimism, Forced quotation, New unexamined argument, Excessive prescription, None (Well-synthesized)
     "current_critique": "Substantive 1-2 line evaluation of candidate's concluding paragraph.",
     "aligns_with_national_goals": true,
     "model_conclusion_rewrite": "MUST EXACTLY MATCH the concluding synthesis / Way Forward paragraph of your 'full_model_answer'! Ensure 100% thematic and structural alignment between this rewrite and the model answer's conclusion. NEVER output generic boilerplate (such as repeating 'Harmonizing constitutional morality with institutional accountability (2nd ARC)')."
@@ -5895,7 +5986,34 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
     if need_new_intro:
         domain_intro = _build_domain_specific_intro(q_str, p_str, raw_model_intro, i_missing, is_hindi=is_hindi)
         i_audit["model_intro_rewrite"] = domain_intro
-        data["intro_audit"] = i_audit
+
+    # Normalize intro_archetype and topic_vs_question_relevance
+    if not i_audit.get("intro_archetype"):
+        p_up = p_str.upper()
+        q_l = q_str.lower()
+        if any(k in q_l for k in ["compare", "distinguish", "तुलना", "अंतर"]):
+            i_audit["intro_archetype"] = "तुलनात्मक ढांचा" if is_hindi else "Comparative Framework"
+        elif any(k in q_l for k in ["despite", "although", "yet", "rather than", "के बावजूद", "यद्यपि"]):
+            i_audit["intro_archetype"] = "विरोधाभास / तनाव-आधारित" if is_hindi else "Paradox / Tension-based"
+        elif any(k in q_l for k in ["challenge", "bottleneck", "issue", "problem", "threat", "vulnerability", "flood", "disaster", "hazard", "causes", "चुनौतियाँ", "समस्या", "कारण"]):
+            i_audit["intro_archetype"] = "समस्या / व्यवधान-आधारित" if is_hindi else "Problem-based"
+        elif any(k in q_l for k in ["gdp", "growth", "inflation", "unemployment", "poverty", "inequality", "plfs", "अर्थव्यवस्था", "मुद्रास्फीति"]):
+            i_audit["intro_archetype"] = "डेटा / रिपोर्ट-आधारित" if is_hindi else "Data / Report-based"
+        elif any(k in q_l for k in ["history", "ancient", "medieval", "freedom", "heritage", "movement", "इतिहास", "विरासत"]) or ("GS1" in p_up and "history" in q_l):
+            i_audit["intro_archetype"] = "ऐतिहासिक / विकासवादी" if is_hindi else "Historical / Evolutionary"
+        elif "GS4" in p_up or "ETHICS" in p_up or any(k in q_l for k in ["morality", "integrity", "probity", "nolan", "ethical", "नैतिकता", "शुचिता"]):
+            i_audit["intro_archetype"] = "नीतिशास्त्रीय / दार्शनिक" if is_hindi else "Ethical / Philosophical"
+        elif any(k in q_l for k in ["article", "constitution", "judicial", "parliament", "amendment", "अनुच्छेद", "संविधान"]) or ("GS2" in p_up or "POLITY" in p_up):
+            i_audit["intro_archetype"] = "संवैधानिक / विधिक आधार" if is_hindi else "Constitutional / Legal Anchor"
+        else:
+            i_audit["intro_archetype"] = "परिभाषा-आधारित" if is_hindi else "Definition-based"
+
+    if not i_audit.get("topic_vs_question_relevance"):
+        if has_intro_gap:
+            i_audit["topic_vs_question_relevance"] = "सामान्य विषय पर केंद्रित; प्रश्न के केंद्रीय तनाव को सीधे संबोधित करने की आवश्यकता है।" if is_hindi else "Topic-level framing; needs direct engagement with the core tension/demand of the prompt."
+        else:
+            i_audit["topic_vs_question_relevance"] = "सीधे प्रश्न की मुख्य मांग और अवधारणात्मक आधार को लक्षित करता है।" if is_hindi else "Directly addresses the core demand and analytical tension of the question."
+    data["intro_audit"] = i_audit
 
     c_audit = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
     topper_conc = extract_model_answer_conclusion(str(data.get("full_model_answer") or ""))
@@ -5921,6 +6039,41 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             effective_conc = domain_conc
 
     c_audit["model_conclusion_rewrite"] = effective_conc
+
+    # Normalize conclusion_archetype and failure_mode
+    if not c_audit.get("conclusion_archetype"):
+        q_l = q_str.lower()
+        p_up = p_str.upper()
+        if any(k in q_l for k in ["why", "causes", "factor", "कारण"]):
+            c_audit["conclusion_archetype"] = "मुख्य व्याख्यात्मक सारांश" if is_hindi else "Principal Explanatory Summary"
+        elif any(k in q_l for k in ["evaluate", "assess", "to what extent", "मूल्यांकन", "परीक्षण"]):
+            c_audit["conclusion_archetype"] = "निर्णयात्मक निष्कर्ष" if is_hindi else "Judgement-based"
+        elif any(k in q_l for k in ["critically", "discuss", "examine", "आलोचनात्मक", "चर्चा"]):
+            c_audit["conclusion_archetype"] = "संतुलित संश्लेषण" if is_hindi else "Balanced Synthesis"
+        elif any(k in q_l for k in ["measure", "suggest", "way forward", "उपाय", "आगे की राह"]):
+            c_audit["conclusion_archetype"] = "वे-फॉरवर्ड संश्लेषण" if is_hindi else "Way-Forward Synthesis"
+        elif "GS4" in p_up or "ETHICS" in p_up:
+            c_audit["conclusion_archetype"] = "नैतिक / मानकीय" if is_hindi else "Ethical / Normative"
+        elif any(k in q_l for k in ["ai", "digital", "technology", "quantum", "space", "प्रौद्योगिकी"]):
+            c_audit["conclusion_archetype"] = "भविष्योन्मुखी" if is_hindi else "Future-Oriented"
+        elif "GS1" in p_up and any(k in q_l for k in ["history", "art", "culture", "इतिहास", "संस्कृति"]):
+            c_audit["conclusion_archetype"] = "ऐतिहासिक महत्व" if is_hindi else "Historical-Significance"
+        else:
+            c_audit["conclusion_archetype"] = "संतुलित संश्लेषण" if is_hindi else "Balanced Synthesis"
+
+    if not c_audit.get("failure_mode"):
+        crit_c = str(c_audit.get("current_critique") or "").lower()
+        if any(k in crit_c for k in ["repeat", "repetitive", "पुनरावृत्ति"]):
+            c_audit["failure_mode"] = "पुनरावृत्ति सारांश" if is_hindi else "Repetitive summary"
+        elif any(k in crit_c for k in ["slogan", "generic", "viksit bharat", "2047", "आशावाद", "सामान्य"]):
+            c_audit["failure_mode"] = "जेनेरिक आशावाद" if is_hindi else "Generic optimism"
+        elif any(k in crit_c for k in ["quote", "quotation", "उद्धरण"]):
+            c_audit["failure_mode"] = "जबरन उद्धरण" if is_hindi else "Forced quotation"
+        elif any(k in crit_c for k in ["excessive", "wish-list", "wishlist", "अत्यधिक"]):
+            c_audit["failure_mode"] = "अत्यधिक नीतिगत नुस्खेबाजी" if is_hindi else "Excessive prescription"
+        else:
+            c_audit["failure_mode"] = "कोई नहीं (संतुलित)" if is_hindi else "None (Well-synthesized)"
+
     data["conclusion_audit"] = c_audit
 
     # Incomplete Answer & Generic Conclusion Audit across all UPSC subjects:
@@ -6219,6 +6372,8 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                 f"✓ **Direct Premise & Objective (+{i_score_val:.1f} / {i_max_val:.1f}M)**: Accurately identified ADP as a flagship initiative designed to bridge regional developmental disparities.<br>"
                 "✎ **Factual Check & 3Cs Hook**: Spearheaded by **NITI Aayog** (launched in Jan 2018 across 112 districts), NOT MoUD. Anchor with its foundational **3Cs strategy**: **Convergence** of schemes, **Collaboration** of officers, and **Competition** via delta rankings."
             )
+            i_audit["intro_archetype"] = "Contemporary Context / Scheme Anchor"
+            i_audit["topic_vs_question_relevance"] = "Directly addresses ADP core premise and regional disparity mandate"
             i_audit["missing_elements"] = ["**NITI Aayog (Jan 2018; 112 Districts)**", "**3Cs Strategy (Convergence, Collaboration, Competition)**"]
             i_audit["model_intro_rewrite"] = "Launched in 2018 by **NITI Aayog** across 112 underdeveloped districts, the **Aspirational Districts Programme (ADP)** operationalizes the **3Cs strategy** (**Convergence** of Central/State schemes, **Collaboration** of Centre-State-District machinery, and **Competition** via monthly delta rankings) to transform grassroots governance."
             data["intro_audit"] = i_audit
