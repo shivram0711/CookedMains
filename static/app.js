@@ -4964,6 +4964,62 @@ window.getPageTranscript = function(evalData, tPage) {
   return tPage === 1 ? fullT.trim() : "";
 };
 
+// Global helper: Extract authentic candidate handwritten headings and their approximate vertical positions
+// Supports English, Hinglish, and Devanagari Hindi (boxed headings, underlined, or standalone lines)
+window.extractCandidateHeadingsWithPositions = function(rawPgTrans) {
+  if (!rawPgTrans) return [];
+  const heads = [];
+  const lines = String(rawPgTrans).split(/\n+/).map(l => l.trim()).filter(Boolean);
+  const totalLines = lines.length;
+  if (totalLines === 0) return [];
+
+  for (let i = 0; i < totalLines; i++) {
+    const l = lines[i];
+    // 1. Boxed headings [HEADING] or [शीर्षक] or 【HEADING】 up to 85 chars
+    const mBox = l.match(/[\[【]([A-Za-z0-9\u0900-\u097F\s/&—–\(\)\.,':-]{2,85})[\]】]/);
+    if (mBox) {
+      const h = mBox[1].trim();
+      if (!/^(?:page\s*\d+|q\s*\d+|figure|diagram|map|source|पृष्ठ\s*\d+|प्रश्न\s*\d+)$/i.test(h)) {
+        const approxY = Math.round(10.0 + (i / Math.max(1, totalLines)) * 76.0);
+        heads.push({
+          text: h,
+          lineIndex: i,
+          totalLines: totalLines,
+          approxY: approxY,
+          isBoxed: true
+        });
+        continue;
+      }
+    }
+
+    // 2. Clean bullet prefix if present
+    const cleanL = l.replace(/^(?:[①-⑩\d]+[\.\)]\s*|[-•*✓✔✎✗×]\s*)/, "").trim();
+
+    // 3. Standalone heading lines (not full sentences, <= 70 chars, doesn't end with period)
+    if (cleanL && cleanL.length <= 70 && !/[.,]$/.test(cleanL)) {
+      const isHindiHeading = /[\u0900-\u097F]/.test(cleanL) && /(?:चुनौत|समस्या|आगे\s*की\s*राह|समाधान|सुझाव|प्रासंगिकता|आवश्यकता|महत्व|उद्देश्य|प्रभाव|कारण|ढांचा|सिद्धांत|विशेषता|प्रस्तावना|निष्कर्ष|कदम)/.test(cleanL);
+      const isEngHeading = (cleanL === cleanL.toUpperCase() && cleanL.length >= 3) ||
+        /^[A-Z][A-Za-z0-9\s/&—–\(\),-]+(?::| - | -- |$)/.test(cleanL) ||
+        /^(?:Challenges|Relevance|Need|Way Forward|Solutions|Issues|Implications|Impacts|Significance|Role of|Measures|Key Pillars|Dimensions|Arguments)\b/i.test(cleanL);
+
+      if ((isHindiHeading || isEngHeading) && !/^(?:page\s*\d+|q\s*\d+|total|marks|feedback|scanned\s+by.*)$/i.test(cleanL)) {
+        const h = cleanL.replace(/[:\s-]+$/, "").trim();
+        if (h.length >= 3 && !heads.some(existing => existing.text.toLowerCase() === h.toLowerCase())) {
+          const approxY = Math.round(10.0 + (i / Math.max(1, totalLines)) * 76.0);
+          heads.push({
+            text: h,
+            lineIndex: i,
+            totalLines: totalLines,
+            approxY: approxY,
+            isBoxed: false
+          });
+        }
+      }
+    }
+  }
+  return heads;
+};
+
 // Global helper: Detect meta-prompt placeholders or evaluator comments that should NEVER appear as candidate quotes or advice
 window.isMetaPlaceholderText = function(str) {
   return /(?:direct assessment quoting|specific technical concept|foundational doctrine missing|specific missing institutional|empirical data point|specific assessment of the candidate|concrete institutional|discipline-specific|accurate conceptual opening|opening upgrade|substantive upgrade|argument & point audit|page \d+ points evaluated|closing stance evaluated|opening premise evaluated|substantive arguments analyzed|core dimensional scope|directly engaged the core directive|evaluated candidate's specific points|detailed analysis across candidate's points|point \[[a-z0-9]+\]|\[point \d+|substantiate point|bridge the gap in point|add [^;*]+\*[^;*]+ as a keyword|^add .* as a keyword|direct premise|core argumentation|dimension coverage|closing synthesis evaluated|concluding synthesis evaluated|opened by defining the core concept|establishing direct analytical context|articulated key mechanisms|addressing primary question dimension|evaluated practical implications|demonstrating multidimensional coverage|the conclusion is balanced|the conclusion summarizes|summarizes the argument well|back argument with 1 concrete empirical metric|anchor with official guidelines|anchor with official doctrine|committee recommendation, or case law)/i.test(String(str || ""));
@@ -6639,31 +6695,55 @@ function renderAnnotationsOverlay() {
             targetKey: "body"
           });
         } else {
+          const p1Transcript = (typeof window.getPageTranscript === "function") ? window.getPageTranscript(evalData, 1) : getPageTranscript(1);
+          const p1CandHeadings = (typeof window.extractCandidateHeadingsWithPositions === "function") ? window.extractCandidateHeadingsWithPositions(p1Transcript) : [];
+
           const rawIntro = pageAnns.find(a => {
             const t = String(a.tag || "").toLowerCase();
-            return t.includes("intro") || t.includes("premise") || t.includes("definition") || (a.approx_y_percent && a.approx_y_percent <= 36);
+            return t.includes("intro") || t.includes("premise") || t.includes("definition") || t.includes("प्रस्तावना") || t.includes("भूमिका");
+          }) || pageAnns.find(a => {
+            const isTopY = (a.approx_y_percent && a.approx_y_percent <= 38) || (a.start_y_percent && a.start_y_percent <= 35);
+            const matchesBodyHead = p1CandHeadings.some(h => String(a.tag || "").toLowerCase().includes(h.text.toLowerCase()));
+            return isTopY && !matchesBodyHead;
           });
           const rawBody = pageAnns.find(a => a !== rawIntro);
 
           const introRem = buildDynamicIntroRemark(rawIntro && rawIntro.remark);
-          let p1IntroTitle = (rawIntro && rawIntro.tag && !window.isMetaPlaceholderText(rawIntro.tag))
-            ? String(rawIntro.tag).toUpperCase()
-            : (hasPrePrintedMapOnPage1 ? "INTRO & MAP" : scheme.intro.tag);
-          let p1BodyTitle = (rawBody && rawBody.tag && !window.isMetaPlaceholderText(rawBody.tag))
-            ? String(rawBody.tag).toUpperCase()
-            : (isEarthquakeMapCopy
-              ? "BODY: MECHANISM & OCCURRENCE (OPENING)"
-              : isAhomCopy
-                ? "BODY: CULTURAL & HISTORICAL IDENTITY (POINTS 1–4)"
-                : scheme.bodyParts[0].tag);
+          
+          // CRITICAL: Intro title must ALWAYS remain an Intro title (scheme.intro.tag or Hindi प्रस्तावना)
+          // It must NEVER borrow candidate's body heading written below!
+          let p1IntroTitle = scheme.intro.tag;
+          if (rawIntro && rawIntro.tag && /intro|premise|definition|परिचय|प्रस्तावना|भूमिका/i.test(rawIntro.tag) && !window.isMetaPlaceholderText(rawIntro.tag)) {
+            p1IntroTitle = String(rawIntro.tag).toUpperCase();
+          } else if (hasPrePrintedMapOnPage1) {
+            p1IntroTitle = "INTRO & MAP";
+          }
+
+          // CRITICAL: Body title on Page 1 must track candidate's actual written heading without artificial split
+          let p1BodyTitle = scheme.bodyParts[0].tag;
+          if (p1CandHeadings.length > 0) {
+            const hText = p1CandHeadings[0].text;
+            p1BodyTitle = hText.toUpperCase().includes("BODY") ? hText.toUpperCase() : `BODY: ${hText.toUpperCase()}`;
+          } else if (rawBody && rawBody.tag && !window.isMetaPlaceholderText(rawBody.tag)) {
+            const bTag = String(rawBody.tag).replace(/^body:\s*/i, "").trim();
+            p1BodyTitle = bTag.toUpperCase().includes("BODY") ? bTag.toUpperCase() : `BODY: ${bTag.toUpperCase()}`;
+          } else if (isEarthquakeMapCopy) {
+            p1BodyTitle = "BODY: MECHANISM & OCCURRENCE (OPENING)";
+          } else if (isAhomCopy) {
+            p1BodyTitle = "BODY: CULTURAL & HISTORICAL IDENTITY (POINTS 1–4)";
+          }
+
           let p1BodyRem = buildDynamicBodyRemark(0, rawBody && rawBody.remark, 1);
 
-          const p1IntroStart = (rawIntro && rawIntro.start_y_percent) ? Number(rawIntro.start_y_percent) : (hasPrePrintedMapOnPage1 ? 60.5 : 28.0);
+          const p1IntroStart = (rawIntro && rawIntro.start_y_percent) ? Number(rawIntro.start_y_percent) : (hasPrePrintedMapOnPage1 ? 60.5 : 24.0);
           const p1IntroEnd = (rawIntro && rawIntro.end_y_percent) ? Number(rawIntro.end_y_percent) : (hasPrePrintedMapOnPage1 ? 77.0 : 38.0);
-          const p1IntroCardTop = (rawIntro && rawIntro.start_y_percent) ? Number(rawIntro.start_y_percent) : (hasPrePrintedMapOnPage1 ? 46 : 26);
-          const p1BodyStart = (rawBody && rawBody.start_y_percent) ? Number(rawBody.start_y_percent) : (hasPrePrintedMapOnPage1 ? 78.5 : 40.0);
-          const p1BodyEnd = (rawBody && rawBody.end_y_percent) ? Number(rawBody.end_y_percent) : (hasPrePrintedMapOnPage1 ? 89.5 : 82.0);
-          const p1BodyCardTop = (rawBody && rawBody.start_y_percent) ? Number(rawBody.start_y_percent) : (hasPrePrintedMapOnPage1 ? 76 : 40);
+          const p1IntroCardTop = (rawIntro && rawIntro.start_y_percent) ? Number(rawIntro.start_y_percent) : (hasPrePrintedMapOnPage1 ? 46 : 24);
+
+          const p1BodyStart = (p1CandHeadings.length > 0)
+            ? Math.max(38.0, Number(p1CandHeadings[0].approxY) - 3.0)
+            : ((rawBody && rawBody.start_y_percent) ? Number(rawBody.start_y_percent) : (hasPrePrintedMapOnPage1 ? 78.5 : 42.0));
+          const p1BodyEnd = (rawBody && rawBody.end_y_percent) ? Number(rawBody.end_y_percent) : (hasPrePrintedMapOnPage1 ? 89.5 : 88.0);
+          const p1BodyCardTop = p1BodyStart;
 
           outSections.push({
             zone: "intro",
@@ -6887,16 +6967,32 @@ function renderAnnotationsOverlay() {
           ].join("\n");
         }
 
+        const finalPgTranscript = (typeof window.getPageTranscript === "function") ? window.getPageTranscript(evalData, pgNum) : getPageTranscript(pgNum);
+        const candHeadingsOnFinalPage = (typeof window.extractCandidateHeadingsWithPositions === "function") ? window.extractCandidateHeadingsWithPositions(finalPgTranscript) : [];
+        const hasMultipleCandHeadings = candHeadingsOnFinalPage.length >= 2;
+        const qText = String(evalData.detected_question || evalData.question || "");
+        const transText = String(evalData.transcribed_text || "");
+        const isWfDemanded = /\b(?:way\s+forward|mitigat|suggest\s+measures|remed|roadmap|policy\s+response|solutions?|what\s+steps|how\s+to\s+address)\b/i.test(qText);
+        const hasCandidateWf = /\b(?:way\s*forward|way\s*ahead|measures\s*needed|mitigation|solutions?|suggestions?|reforms?|आगे\s*की\s*राह|समाधान|सुझाव)\b/i.test(finalPgTranscript || transText);
+
         const rawBodyTagStr = (rawBody && rawBody.tag) ? String(rawBody.tag).replace(/^body:\s*/i, "").trim() : "";
         const combinedTagParts = rawBodyTagStr.split(/\s*(?:&|\band\b|\/)\s*/i).map(s => s.trim()).filter(Boolean);
         const hasTwoDistinctSubheadingsInTag = (
           combinedTagParts.length >= 2 &&
-          /challenge|issue|constraint|limitation|factor|problem/i.test(combinedTagParts[0]) &&
-          /way\s*forward|way\s*ahead|measure|solution|reform|strateg/i.test(combinedTagParts[1])
+          /challenge|issue|constraint|limitation|factor|problem|चुनौत/i.test(combinedTagParts[0]) &&
+          /way\s*forward|way\s*ahead|measure|solution|reform|strateg|आगे\s*की\s*राह|समाधान/i.test(combinedTagParts[1])
         );
         const hasMultipleBodyAnnsOnFinalPage = rawBodyAnns.length >= 2;
-        // On 10-markers (totalPages <= 2), only render 3 sections on final page if candidate explicitly authored two distinct sections
-        const shouldRenderThreeSectionsOnFinalPage = !isHeatwaveCopy && (totalPages > 2 || evalData.max_marks > 10) && (hasTwoDistinctSubheadingsInTag || hasMultipleBodyAnnsOnFinalPage);
+
+        // On both 10-markers and 15-markers, render 3 sections on final page if candidate authored multiple headings
+        // OR if candidate authored a heading + way forward / multiple body annotations exist
+        const shouldRenderThreeSectionsOnFinalPage = !isHeatwaveCopy && (
+          hasMultipleBodyAnnsOnFinalPage ||
+          hasTwoDistinctSubheadingsInTag ||
+          hasMultipleCandHeadings ||
+          (candHeadingsOnFinalPage.length >= 1 && hasCandidateWf) ||
+          ((totalPages > 2 || evalData.max_marks > 10) && hasCandidateWf)
+        );
 
         const finalConcRemark = buildDynamicConcRemark(concRemCandidate);
 
@@ -6946,18 +7042,32 @@ function renderAnnotationsOverlay() {
             targetKey: "conclusion"
           });
         } else if (shouldRenderThreeSectionsOnFinalPage) {
-          const qText = String(evalData.detected_question || evalData.question || "");
-          const transText = String(evalData.transcribed_text || "");
-          const isWfDemanded = /\b(?:way\s+forward|mitigat|suggest\s+measures|remed|roadmap|policy\s+response|solutions?|what\s+steps|how\s+to\s+address)\b/i.test(qText);
-          const hasCandidateWf = /\b(?:way\s+forward|way\s+ahead|measures\s+needed|mitigation|solutions?|suggestions?|reforms?)\b/i.test(transText);
+          // Dynamically derive the 2 Body sub-section titles strictly respecting physical top-to-bottom order!
+          let sec1TitleRaw = "";
+          let sec2TitleRaw = "";
 
-          // Dynamically derive the 2 Body sub-section titles from the candidate's written headings or AI's tags
-          let sec1TitleRaw = hasMultipleBodyAnnsOnFinalPage
-            ? String(rawBodyAnns[0].tag || "").replace(/^body:\s*/i, "").trim().toUpperCase()
-            : (combinedTagParts[0] ? combinedTagParts[0].toUpperCase() : "");
-          let sec2TitleRaw = hasMultipleBodyAnnsOnFinalPage
-            ? String(rawBodyAnns[1].tag || "").replace(/^body:\s*/i, "").trim().toUpperCase()
-            : (combinedTagParts[1] ? combinedTagParts[1].toUpperCase() : "");
+          if (candHeadingsOnFinalPage.length >= 2) {
+            sec1TitleRaw = candHeadingsOnFinalPage[0].text.toUpperCase();
+            sec2TitleRaw = candHeadingsOnFinalPage[1].text.toUpperCase();
+          } else if (candHeadingsOnFinalPage.length === 1) {
+            sec1TitleRaw = candHeadingsOnFinalPage[0].text.toUpperCase();
+            if (hasCandidateWf) {
+              sec2TitleRaw = /आगे\s*की\s*राह/i.test(finalPgTranscript) ? "आगे की राह व समाधान" : "WAY FORWARD & SOLUTIONS";
+            }
+          }
+
+          if (!sec1TitleRaw && hasMultipleBodyAnnsOnFinalPage) {
+            sec1TitleRaw = String(rawBodyAnns[0].tag || "").replace(/^body:\s*/i, "").trim().toUpperCase();
+          }
+          if (!sec2TitleRaw && hasMultipleBodyAnnsOnFinalPage) {
+            sec2TitleRaw = String(rawBodyAnns[1].tag || "").replace(/^body:\s*/i, "").trim().toUpperCase();
+          }
+          if (!sec1TitleRaw && combinedTagParts[0]) {
+            sec1TitleRaw = combinedTagParts[0].toUpperCase();
+          }
+          if (!sec2TitleRaw && combinedTagParts[1]) {
+            sec2TitleRaw = combinedTagParts[1].toUpperCase();
+          }
 
           // Strip any depth/substantiation or synthesis from titles
           if (/depth|substantiat/i.test(sec1TitleRaw)) sec1TitleRaw = "";
@@ -6966,29 +7076,25 @@ function renderAnnotationsOverlay() {
           if (/synthesis/i.test(sec2TitleRaw)) sec2TitleRaw = "";
 
           // If sec2 claims to be Way Forward when neither demanded nor written by candidate, strip it
-          if (/way\s*forward|way\s*ahead|mitigat|reform|measure|solution/i.test(sec2TitleRaw) && !isWfDemanded && !hasCandidateWf) {
+          if (/way\s*forward|way\s*ahead|mitigat|reform|measure|solution|आगे\s*की\s*राह/i.test(sec2TitleRaw) && !isWfDemanded && !hasCandidateWf) {
             sec2TitleRaw = "";
           }
 
-          // Resolve sec1 title
+          // Resolve sec1 title fallback
           if (!sec1TitleRaw || window.isMetaPlaceholderText(sec1TitleRaw)) {
             const matchH1 = rawBodyAnns[0] && rawBodyAnns[0].remark && rawBodyAnns[0].remark.match(/\*\*(?:Candidate Heading|Section):\s*([^*]+)\*\*/i);
             sec1TitleRaw = matchH1 ? matchH1[1].trim().toUpperCase() : `${finalBodyPart.shortTitle.toUpperCase()}`;
           }
 
-          // Resolve sec2 title
+          // Resolve sec2 title fallback
           if (!sec2TitleRaw || window.isMetaPlaceholderText(sec2TitleRaw)) {
-            const finalPgTranscript = getPageTranscript(pgNum);
-            const boxedMatch = finalPgTranscript.match(/\[([A-Z\s/&-]{3,40})\]/);
             const matchH2 = rawBodyAnns[1] && rawBodyAnns[1].remark && rawBodyAnns[1].remark.match(/\*\*(?:Candidate Heading|Section):\s*([^*]+)\*\*/i);
-            if (boxedMatch && boxedMatch[1] && !/intro|concl|way\s*forward/i.test(boxedMatch[1])) {
-              sec2TitleRaw = boxedMatch[1].trim().toUpperCase();
-            } else if (matchH2) {
+            if (matchH2) {
               sec2TitleRaw = matchH2[1].trim().toUpperCase();
             } else if (isWfDemanded || hasCandidateWf) {
-              sec2TitleRaw = "WAY FORWARD & REFORMS";
+              sec2TitleRaw = /आगे\s*की\s*राह/i.test(finalPgTranscript) ? "आगे की राह व समाधान" : "WAY FORWARD & REFORMS";
             } else {
-              sec2TitleRaw = "SOCIO-ECONOMIC INTEGRATION";
+              sec2TitleRaw = "STRATEGIC INTERVENTIONS";
             }
           }
 
@@ -7079,30 +7185,33 @@ function renderAnnotationsOverlay() {
 
           const splitRems = buildDynamicSplitRemarks();
 
-          let s1Start = (rawBodyAnns[0] && rawBodyAnns[0].start_y_percent) ? Number(rawBodyAnns[0].start_y_percent) : 12;
+          let s1Start = (candHeadingsOnFinalPage.length >= 1) ? Math.max(8.0, Number(candHeadingsOnFinalPage[0].approxY) - 3.0) : ((rawBodyAnns[0] && rawBodyAnns[0].start_y_percent) ? Number(rawBodyAnns[0].start_y_percent) : 12);
           s1Start = Math.max(6.0, Math.min(28.0, s1Start));
-          let s1End = (rawBodyAnns[0] && rawBodyAnns[0].end_y_percent) ? Number(rawBodyAnns[0].end_y_percent) : 38;
-          s1End = Math.max(s1Start + 10.0, Math.min(46.0, s1End));
+          let s1End = (candHeadingsOnFinalPage.length >= 2) ? Math.max(s1Start + 10.0, Number(candHeadingsOnFinalPage[1].approxY) - 3.0) : ((rawBodyAnns[0] && rawBodyAnns[0].end_y_percent) ? Number(rawBodyAnns[0].end_y_percent) : 46);
+          s1End = Math.max(s1Start + 10.0, Math.min(48.0, s1End));
 
-          let s2Start = (rawBodyAnns[1] && rawBodyAnns[1].start_y_percent) ? Number(rawBodyAnns[1].start_y_percent) : (s1End + 2);
+          let s2Start = (candHeadingsOnFinalPage.length >= 2) ? Math.max(s1End + 2.0, Number(candHeadingsOnFinalPage[1].approxY) - 2.0) : ((rawBodyAnns[1] && rawBodyAnns[1].start_y_percent) ? Number(rawBodyAnns[1].start_y_percent) : (s1End + 2));
           s2Start = Math.max(s1End + 2.0, Math.min(62.0, s2Start));
-          let s2End = (rawBodyAnns[1] && rawBodyAnns[1].end_y_percent) ? Number(rawBodyAnns[1].end_y_percent) : 68;
+          let s2End = (rawBodyAnns[1] && rawBodyAnns[1].end_y_percent) ? Number(rawBodyAnns[1].end_y_percent) : 70;
           s2End = Math.max(s2Start + 10.0, Math.min(72.0, s2End));
 
           let concStart = (rawConc && rawConc.start_y_percent) ? Number(rawConc.start_y_percent) : (s2End + 2);
-          concStart = Math.max(s2End + 2.0, Math.min(78.0, Math.max(72.0, concStart)));
-          let concEnd = (rawConc && rawConc.end_y_percent) ? Number(rawConc.end_y_percent) : (concStart + 12);
-          concEnd = Math.max(concStart + 6.0, Math.min(90.0, concEnd));
+          concStart = Math.max(s2End + 2.0, Math.min(76.0, Math.max(72.0, concStart)));
+          let concEnd = (rawConc && rawConc.end_y_percent) ? Number(rawConc.end_y_percent) : (concStart + 6);
+          concEnd = Math.min(80.0, concEnd);
+
+          const titleSec1 = sec1TitleRaw.startsWith("BODY") ? sec1TitleRaw : `BODY: ${sec1TitleRaw}`;
+          const titleSec2 = sec2TitleRaw.startsWith("BODY") ? sec2TitleRaw : `BODY: ${sec2TitleRaw}`;
 
           outSections.push({
             zone: "body",
-            title: `BODY: ${sec1TitleRaw}`,
+            title: titleSec1,
             icon: "✓",
             isTick: true,
             startYPercent: s1Start,
             endYPercent: s1End,
             cardTopPercent: s1Start,
-            lockCustomBounds: Boolean(rawBodyAnns[0] && rawBodyAnns[0].start_y_percent),
+            lockCustomBounds: true,
             marks: chalMarks,
             bodyHtml: formatBulletsFn(splitRems.r1),
             bulletsHtml: formatBulletsFn(splitRems.r1),
@@ -7110,13 +7219,13 @@ function renderAnnotationsOverlay() {
           });
           outSections.push({
             zone: "body",
-            title: `BODY: ${sec2TitleRaw}`,
+            title: titleSec2,
             icon: "✓",
             isTick: true,
             startYPercent: s2Start,
             endYPercent: s2End,
             cardTopPercent: s2Start,
-            lockCustomBounds: Boolean(rawBodyAnns[1] && rawBodyAnns[1].start_y_percent),
+            lockCustomBounds: true,
             marks: wfMarks,
             bodyHtml: formatBulletsFn(splitRems.r2),
             bulletsHtml: formatBulletsFn(splitRems.r2),
@@ -7148,7 +7257,9 @@ function renderAnnotationsOverlay() {
             ? "BODY: REGIONAL VULNERABILITY & DISASTERS (POINTS ①–③)"
             : isAhomCopy
               ? "BODY: CONTEMPORARY LEGACY (POINTS 1–5)"
-              : ((rawBody && rawBody.tag && !window.isMetaPlaceholderText(rawBody.tag)) ? String(rawBody.tag).replace(/^body:\s*/i, "").trim().toUpperCase() : finalBodyPart.shortTitle.toUpperCase());
+              : ((candHeadingsOnFinalPage.length > 0)
+                ? (candHeadingsOnFinalPage[0].text.toUpperCase().includes("BODY") ? candHeadingsOnFinalPage[0].text.toUpperCase() : `BODY: ${candHeadingsOnFinalPage[0].text.toUpperCase()}`)
+                : ((rawBody && rawBody.tag && !window.isMetaPlaceholderText(rawBody.tag)) ? String(rawBody.tag).replace(/^body:\s*/i, "").trim().toUpperCase() : finalBodyPart.shortTitle.toUpperCase()));
 
           if (/depth|substantiat/i.test(resolvedFinalBodyTitle)) {
             resolvedFinalBodyTitle = finalBodyPart.shortTitle.toUpperCase();

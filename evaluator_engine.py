@@ -1148,6 +1148,7 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
 1. वास्तविक उत्तर-पुस्तिका ट्रेसिंग एवं गतिशील शीर्षक पहचान (STRICT ANSWERSHEET TRACING - ZERO GHOST HEADINGS):
    - अभ्यर्थी ने उत्तर में जो वास्तविक बक्सेदार शीर्षक (Boxed Headings), रेखांकित शीर्षक, या भाग (a), (b), (c) लिखे हैं, केवल उन्हीं को ट्रेस करें!
    - कभी भी कोई काल्पनिक या मनगढ़ंत हेडिंग (जैसे 'Fiscal Federalism' या 'Synthesis Part 2') न बनाएं।
+   - एकल शीर्षक को कभी न तोड़ें (NEVER SPLIT COHESIVE HEADINGS): यदि अभ्यर्थी ने एक ही बॉक्स या पंक्ति में शीर्षक लिखा है (जैसे '[प्रासंगिकता व आवश्यकता]' या '[Relevance and need of UAPA and National Security Act]'), तो उसे 'और', 'व', 'एवं', या 'तथा' पर दो टुकड़ों में कभी न काटें! पूरा शीर्षक एक ही मार्जिन कार्ड में रहेगा।
    - यदि अभ्यर्थी ने केवल 3 भाग लिखे हैं: [प्रस्तावना (भूमिका) ➔ मुख्य बिंदु ➔ निष्कर्ष (आगे की राह)], तो मूल्यांकन में केवल वही 3 भाग होने चाहिए।
    - प्रत्येक मार्जिन कार्ड (visual_annotations) के 'tag' में अभ्यर्थी द्वारा लिखा गया वास्तविक शीर्षक या विषयगत आयाम ही दर्ज करें।
 
@@ -1181,9 +1182,12 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
 
 7. मार्जिन मूल्यांकन एवं गतिशील शीर्षक पहचान (MANDATORY DYNAMIC MARGIN EVALUATION IN HINGLISH):
    - प्रत्येक पृष्ठ के मार्जिन कार्ड्स (visual_annotations) में अभ्यर्थी द्वारा लिखे गए वास्तविक बक्सेदार शीर्षक (Boxed Headings), रेखांकित शीर्षक (Underlined Headings) या आरेख के नाम (Diagram Titles) को tag में लिखें (जैसे: "Body: जिम्मेदार कारक (फ्लोचार्ट)", "Body: 2nd ARC के अनुसार सुझाव", "Body: शुचिता से सामाजिक-आर्थिक विकास", "Body: चुनौतियाँ: Celebrity कल्चर")। कभी भी जेनेरिक सांचा (जैसे "मुख्य भाग: [अभ्यर्थी का प्रथम शीर्षक]" या "मुख्य भाग — आयाम A") न लिखें!
+   - मार्जिन कार्ड का ऊर्ध्वाधर संरेखण (EXACT MARGIN VERTICAL ALIGNMENT): मार्जिन कार्ड का 'start_y_percent' ठीक वहीं से शुरू होना चाहिए जहाँ कॉपी में वह शीर्षक या अनुभाग वास्तव में लिखा गया है।
+     * पृष्ठ 1 पर: प्रस्तावना (भूमिका) कार्ड सदैव सबसे ऊपर (y: 20%-38%) रहेगा। मुख्य भाग का शीर्षक कार्ड ठीक वहीं से शुरू होगा जहाँ अभ्यर्थी ने हेडिंग लिखी है (y >= 40%)। प्रस्तावना के ऊपर मुख्य भाग का शीर्षक कभी न चिपकाएं!
+     * पृष्ठ 2 / अंतिम पृष्ठ पर (10-अंकीय व 15-अंकीय प्रश्न): भौतिक क्रम का अक्षरशः पालन करें! यदि ऊपर 'चुनौतियाँ' (Challenges) लिखा है और नीचे 'आगे की राह' (Way Forward) लिखा है, तो ऊपर वाले कार्ड का टैग 'चुनौतियाँ' होगा और नीचे वाले का 'आगे की राह'। कभी भी 'आगे की राह' को 'चुनौतियाँ' के ऊपर न रखें!
    - प्रत्येक visual_annotation के remark में अनिवार्य रूप से अभ्यर्थी की हस्तलिखित कॉपी से 10 से 25 वास्तविक शब्द उद्धृत (Quote) करें:
      * प्रारूप: `✓ **सकारात्मक**: परीक्षार्थी ने लिखा: "..." [सटीक विश्लेषणात्मक मूल्यांकन]।\n✎ **सुधार**: [ठोस संस्थागत सुधार एवं मानक शब्दावली]।`
-   - बहु-खंडीय पृष्ठों पर पृथक मार्जिन कार्ड्स: यदि किसी पृष्ठ (विशेषकर पृष्ठ 2) पर 2 अलग-अलग बक्सेदार शीर्षक या उप-भाग हैं (जैसे 'जिम्मेदार कारक' और '2nd ARC के अनुसार सुझाव'), तो दोनों के लिए 2 अलग-अलग Body कार्ड बनाएं! मुख्य भाग के उप-भाग (जैसे '2nd ARC के अनुसार सुझाव') को कभी भी 'निष्कर्ष' या 'आगे की राह' में न समेटें!
+   - बहु-खंडीय पृष्ठों पर पृथक मार्जिन कार्ड्स: यदि किसी पृष्ठ (विशेषकर पृष्ठ 2) पर 2 अलग-अलग बक्सेदार शीर्षक या उप-भाग हैं (जैसे 'चुनौतियाँ' और 'आगे की राह व 2nd ARC के अनुसार सुझाव'), तो दोनों के लिए 2 अलग-अलग Body कार्ड बनाएं! मुख्य भाग के उप-भाग (जैसे 'चुनौतियाँ') को कभी भी मिटाएं या दबाएं नहीं!
    - मूल्यांकन भाषा — सुगम हिंग्लिश (Accessible Hinglish):
      * UPSC मुख्य परीक्षा के उच्च मानकों के अनुरूप मानक प्रशासनिक हिंदी में मानक अंग्रेजी तकनीकी शब्दों (जैसे Probity, Inclusive Development, Venn Diagram, 2nd ARC, Civil Services, Nolan Principles, Checks & Balances, Deontology, Administrative Bottlenecks) का सहज समन्वय करें।
      * मूल्यांकन सीधा, सटीक, तथ्यात्मक और गतिशील होना चाहिए ताकि अभ्यर्थी को पूर्ण विश्वास हो कि उसकी कॉपी के प्रत्येक शब्द का सूक्ष्म परीक्षण हुआ है।
@@ -2333,20 +2337,29 @@ Generate strictly valid JSON matching this schema:
     //    - The Conclusion section on the final page MUST tightly encompass ONLY the candidate's actual handwritten concluding sentences (typically spanning ~6%–8% of the page height, e.g. start_y_percent: 68, end_y_percent: 74).
     //    - UPSC QCAB and mock test booklets (Vajiram, ForumIAS, Vision, Insights, Drishti, etc.) have a pre-printed table, marks rubric, or "Students should not write anything inside the box" in the bottom 20%–25% (usually y >= 75%–80%).
     //    - Conclusion end_y_percent MUST STOP ABOVE THIS PRINTED BOX (typically 74%–76%)! NEVER include the printed box or blank bottom margin in end_y_percent!
-    // 3. SEPARATE SUB-HEADINGS ON A PAGE:
-    //    - If a page has 2 distinct sections/sub-headings (e.g. Page 2 has continuation of points at top, and a boxed heading "Challenges Faced" with a diagram in the middle), generate 2 separate visual_annotations with their exact sub-headings as tags and accurate start_y_percent / end_y_percent!
-    // 4. SUBJECT-DISCIPLINED CONCLUSION:
+    // 3. AUTHENTIC CANDIDATE HEADINGS & ZERO HEADING SPLITTING (CRITICAL):
+    //    - NEVER split a single candidate heading or compound phrase into two separate tags on "and", "&", or "/"! (e.g. if candidate writes "[Relevance and need of UAPA and National Security Act]", output ONE single tag "Body: Relevance and need of UAPA and National Security Act". NEVER split it into "Relevance" and "Need"!).
+    //    - Do NOT make up static headings or frameworks. UPSC questions are dynamic; trace EXACTLY what the candidate wrote in brackets [..] or as underlined headings.
+    // 4. ACCURATE MARGIN POSITIONING (NEVER PLACE HEADING ABOVE HANDWRITING):
+    //    - Margin annotations MUST start at the exact vertical location where that section actually begins!
+    //    - On Page 1: If candidate writes an Intro in lines 1-4, the top card MUST be tagged "Intro" (start_y_percent: ~24%-28%). NEVER place a Body heading in the margin next to the Intro! The candidate's Body heading must start where that heading actually begins (y >= 40%).
+    //    - On Page 2 / Final Page (10-Markers & 15-Markers): Strictly respect top-to-bottom physical order on the page! If candidate writes "[Challenges in such law]" at the top and "[Way Forward]" in the middle, Card 1 MUST be "Body: Challenges in such law" (y: ~10%-48%), Card 2 MUST be "Body: Way Forward & Solutions" (y: ~50%-72%), and Card 3 MUST be "Conclusion" (y: ~74%-80%). NEVER place "Way Forward" at the top over "Challenges"!
+    // 5. CRITICAL CONCLUSION BOTTOM STOP (NEVER EXTEND INTO PRINTED BOX):
+    //    - The Conclusion section on the final page MUST tightly encompass ONLY the candidate's actual handwritten concluding sentences (typically spanning ~6%–8% of the page height, e.g. start_y_percent: 72, end_y_percent: 78).
+    //    - UPSC QCAB and mock test booklets (Vajiram, ForumIAS, Vision, Insights, Drishti, etc.) have a pre-printed table, marks rubric, or "Students should not write anything inside the box" in the bottom 20%–25% (usually y >= 75%–80%).
+    //    - Conclusion end_y_percent MUST STOP ABOVE THIS PRINTED BOX (typically 76%–78%)! NEVER include the printed box or blank bottom margin in end_y_percent!
+    // 6. SUBJECT-DISCIPLINED CONCLUSION:
     //    - In Conclusion, evaluate the candidate's actual closing recommendation. Connect Geography to IPCC/NDMA/Sendai or planetary balance; History/Culture to living cultural continuity; Ethics to Nolan principles or constitutional morality; Polity to 2nd ARC or constitutional accountability.
-    // 5. PRECISE & CONCISE EXAMINER FEEDBACK (NEVER USE META-PLACEHOLDERS!):
+    // 7. PRECISE & CONCISE EXAMINER FEEDBACK (NEVER USE META-PLACEHOLDERS!):
     //    - NEVER write generic placeholders like "Point [X]", "Point [Y]", "[Point 1 / Point 2 topics]", or "Directly engaged the core directive by quoting...".
     //    - Quote candidate's ACTUAL handwritten words in quotation marks *"..."* in the first sentence.
     //    - Follow with 1 concise, specific upgrade citing the exact missing constitutional article, landmark case law, official committee recommendation, or empirical metric.
-    // 6. SYNCHRONIZED MARKS CEILING:
+    // 8. SYNCHRONIZED MARKS CEILING:
     //    - The marks awarded on each visual annotation MUST strictly equal its sub-part allocation from sub_part_step_marking!
     //    - For Page 1 Intro: "+{sample_intro_aw:.1f} / {intro_d:.1f}"
     //    - For Body Sub-Parts: allocate the body ceiling across distinct sub-parts so the sum of all body annotations equals the body ceiling!
     //    - For Conclusion: "+{sample_conc_aw:.1f} / {conc_d:.1f}". Conclusion MUST ONLY be on the FINAL page!
-    // 7. THEMATIC INTEGRITY (NEVER SWAP TAGS AND QUOTES ACROSS SECTIONS):
+    // 9. THEMATIC INTEGRITY (NEVER SWAP TAGS AND QUOTES ACROSS SECTIONS):
     //    - The candidate's handwritten quote in every annotation card MUST 100% semantically match the tag of that card!
     //    - If Annotation 1 is tagged with the upper theme, its quote MUST come from the upper region.
     //    - If Annotation 2 is tagged with the lower theme, its quote MUST come from the lower region.
@@ -2706,30 +2719,72 @@ def _has_candidate_written_way_forward(pg_text: str) -> bool:
     ))
 
 
-def _extract_candidate_headings_from_page(raw_pg_trans: str) -> list:
+def _extract_candidate_headings_with_positions(raw_pg_trans: str) -> list:
     """
-    Extracts authentic handwritten headings written by the student on this specific page.
-    Scans for boxed headings [HEADING], uppercase sub-headings, and short title lines.
+    Extracts authentic handwritten headings written by the student on this specific page
+    along with their line positions and approximate vertical percentages (approx_y).
+    Supports English, Hinglish, and Devanagari Hindi.
     """
     if not raw_pg_trans:
         return []
     heads = []
     lines = [l.strip() for l in raw_pg_trans.splitlines() if l.strip()]
-    for l in lines:
-        m_box = re.search(r'\[([A-Za-z0-9\s/&—–-]{2,55})\]', l)
+    total_lines = len(lines)
+    if total_lines == 0:
+        return []
+
+    for i, l in enumerate(lines):
+        # 1. Boxed headings [HEADING] or [शीर्षक] (up to 85 chars, supports English & Devanagari)
+        m_box = re.search(r'\[([A-Za-z0-9\u0900-\u097F\s/&—–\(\)\.,\':-]{2,85})\]', l)
         if m_box:
             h = m_box.group(1).strip()
-            if not re.match(r'^(?:page\s*\d+|q\s*\d+|figure|diagram|map|source)$', h.lower()):
-                heads.append(h)
+            if not re.match(r'^(?:page\s*\d+|q\s*\d+|figure|diagram|map|source|पृष्ठ\s*\d+|प्रश्न\s*\d+)$', h.lower()):
+                approx_y = int(round(10.0 + (float(i) / max(1, total_lines)) * 76.0))
+                heads.append({
+                    "text": h,
+                    "line_index": i,
+                    "total_lines": total_lines,
+                    "approx_y": approx_y,
+                    "is_boxed": True
+                })
                 continue
+
+        # 2. Clean bullet prefix if present
         clean_l = re.sub(r'^(?:[①-⑩\d]+[\.\)]\s*|[-•*✓✔✎✗×]\s*)', '', l).strip()
-        if clean_l and len(clean_l) <= 45 and not clean_l.endswith(('.', ',')):
-            if clean_l.isupper() or re.match(r'^[A-Z][A-Za-z0-9\s/&—–-]+(?::| - | -- |$)', clean_l):
+
+        # 3. Standalone heading lines (not full sentences, <= 70 chars, doesn't end with period)
+        if clean_l and len(clean_l) <= 70 and not clean_l.endswith(('.', ',')):
+            is_hindi_heading = bool(
+                re.search(r'[\u0900-\u097F]', clean_l) and
+                re.search(r'(?:चुनौत|समस्या|आगे\s*की\s*राह|समाधान|सुझाव|प्रासंगिकता|आवश्यकता|महत्व|उद्देश्य|प्रभाव|कारण|ढांचा|सिद्धांत|विशेषता|प्रस्तावना|निष्कर्ष|कदम)', clean_l)
+            )
+            is_eng_heading = bool(
+                clean_l.isupper() or
+                re.match(r'^[A-Z][A-Za-z0-9\s/&—–\(\),-]+(?::| - | -- |$)', clean_l) or
+                re.match(r'^(?:Challenges|Relevance|Need|Way Forward|Solutions|Issues|Implications|Impacts|Significance|Role of|Measures|Key Pillars|Dimensions|Arguments)\b', clean_l, re.IGNORECASE)
+            )
+
+            if (is_hindi_heading or is_eng_heading) and not re.match(r'^(?:page\s*\d+|q\s*\d+|total|marks|feedback|scanned\s+by.*)$', clean_l.lower()):
                 h = re.sub(r'[:\s-]+$', '', clean_l).strip()
-                if len(h) >= 3 and not re.match(r'^(?:page\s*\d+|q\s*\d+|total|marks|feedback|scanned\s+by.*)$', h.lower()):
-                    if not any(h.lower() == existing.lower() for existing in heads):
-                        heads.append(h)
+                if len(h) >= 3 and not any(h.lower() == existing["text"].lower() for existing in heads):
+                    approx_y = int(round(10.0 + (float(i) / max(1, total_lines)) * 76.0))
+                    heads.append({
+                        "text": h,
+                        "line_index": i,
+                        "total_lines": total_lines,
+                        "approx_y": approx_y,
+                        "is_boxed": False
+                    })
     return heads
+
+
+def _extract_candidate_headings_from_page(raw_pg_trans: str) -> list:
+    """
+    Extracts authentic handwritten headings written by the student on this specific page.
+    Returns list of heading strings in physical order from top to bottom.
+    """
+    items = _extract_candidate_headings_with_positions(raw_pg_trans)
+    return [it["text"] for it in items]
 
 
 def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, question: str = "", paper: str = "", medium: str = "english") -> Dict[str, Any]:
@@ -2966,30 +3021,9 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                 t_low
             ))
 
-        def _extract_candidate_headings_from_page(raw_pg_trans: str) -> list:
-            """
-            Extracts authentic handwritten headings written by the student on this specific page.
-            Scans for boxed headings [HEADING], uppercase sub-headings, and short title lines.
-            """
-            if not raw_pg_trans:
-                return []
-            heads = []
-            lines = [l.strip() for l in raw_pg_trans.splitlines() if l.strip()]
-            for l in lines:
-                m_box = re.search(r'\[([A-Za-z0-9\s/&—–-]{2,55})\]', l)
-                if m_box:
-                    h = m_box.group(1).strip()
-                    if not re.match(r'^(?:page\s*\d+|q\s*\d+|figure|diagram|map|source)$', h.lower()):
-                        heads.append(h)
-                        continue
-                clean_l = re.sub(r'^(?:[①-⑩\d]+[\.\)]\s*|[-•*✓✔✎✗×]\s*)', '', l).strip()
-                if clean_l and len(clean_l) <= 45 and not clean_l.endswith(('.', ',')):
-                    if clean_l.isupper() or re.match(r'^[A-Z][A-Za-z0-9\s/&—–-]+(?::| - | -- |$)', clean_l):
-                        h = re.sub(r'[:\s-]+$', '', clean_l).strip()
-                        if len(h) >= 3 and not re.match(r'^(?:page\s*\d+|q\s*\d+|total|marks|feedback|scanned\s+by.*)$', h.lower()):
-                            if not any(h.lower() == existing.lower() for existing in heads):
-                                heads.append(h)
-            return heads
+        # Use top-level enhanced heading extraction supporting Devanagari Hindi and positional metadata
+        def _extract_page_heading_objs(raw_pg_trans: str) -> list:
+            return _extract_candidate_headings_with_positions(raw_pg_trans)
 
         # Track every bullet and bullet title used across the answer sheet so Page 2 and Page 3 NEVER copy Page 1 or each other
         used_margin_bullets = set()
@@ -3435,64 +3469,108 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                         (a.get("type") == "info" or "prompt" in str(a.get("tag", "")).lower() or "case study" in str(a.get("tag", "")).lower())
                         for a in pg_anns
                     )
-                    intro_ann_p1 = next((a for a in pg_anns if "intro" in str(a.get("tag", "")).lower() or "premise" in str(a.get("tag", "")).lower()), None)
+                    # Extract authentic candidate headings on Page 1 (supports Devanagari Hindi & English)
+                    p1_heading_objs = _extract_candidate_headings_with_positions(_get_page_transcript(1))
+
+                    intro_ann_p1 = next((a for a in pg_anns if "intro" in str(a.get("tag", "")).lower() or "premise" in str(a.get("tag", "")).lower() or "प्रस्तावना" in str(a.get("tag", "")).lower() or "भूमिका" in str(a.get("tag", "")).lower()), None)
+
+                    # If pg_anns has annotations, but none explicitly tagged as intro:
+                    # The very first annotation on Page 1 (if starting above y <= 42%) is the Introduction!
+                    if not intro_ann_p1 and pg_anns and not is_p1_prompt:
+                        first_ann_y = float(pg_anns[0].get("start_y_percent", pg_anns[0].get("approx_y_percent", 0.0)) or 0.0)
+                        if first_ann_y <= 42.0:
+                            intro_ann_p1 = pg_anns[0]
+                            intro_ann_p1["tag"] = "प्रस्तावना (भूमिका)" if is_hindi else "Intro: Context & Core Premise"
+                            intro_ann_p1["start_y_percent"] = max(20.0, first_ann_y)
+                            intro_ann_p1["end_y_percent"] = min(40.0, max(intro_ann_p1["start_y_percent"] + 10.0, float(intro_ann_p1.get("end_y_percent", 38.0) or 38.0)))
+                            intro_ann_p1["approx_y_percent"] = int(round((intro_ann_p1["start_y_percent"] + intro_ann_p1["end_y_percent"]) / 2))
+
                     body_ann_p1 = next((a for a in pg_anns if a is not intro_ann_p1 and a.get("type") != "info"), None)
-                    has_intro = intro_ann_p1 is not None
-                    has_body = body_ann_p1 is not None
+
+                    # If candidate authored a heading on Page 1 (e.g. [Relevance and need of UAPA and National Security Act]),
+                    # ensure body_ann_p1 carries the ENTIRE heading without splitting on 'and' or '&'!
+                    if p1_heading_objs:
+                        p1_h0 = p1_heading_objs[0]
+                        clean_h0 = p1_h0["text"].strip()
+                        if clean_h0.isupper() and len(clean_h0) > 3 and not re.search(r'[\u0900-\u097F]', clean_h0):
+                            clean_h0 = clean_h0.title()
+                        target_body_tag = f"Body: {clean_h0}"
+                        h0_y = float(p1_h0.get("approx_y", 44.0))
+
+                        if body_ann_p1:
+                            body_ann_p1["tag"] = target_body_tag
+                            body_ann_p1["start_y_percent"] = max(38.0, h0_y - 3.0)
+                            if float(body_ann_p1.get("end_y_percent", 88.0) or 88.0) <= body_ann_p1["start_y_percent"] + 10.0:
+                                body_ann_p1["end_y_percent"] = 88.0
+                            body_ann_p1["approx_y_percent"] = int(round((body_ann_p1["start_y_percent"] + float(body_ann_p1["end_y_percent"])) / 2))
+                            # Deduplicate if another body card was created from splitting
+                            pg_anns = [a for a in pg_anns if a is intro_ann_p1 or a is body_ann_p1 or a.get("type") == "info"]
+                        else:
+                            body_ann_p1 = {
+                                "page": 1,
+                                "approx_y_percent": int(round((max(38.0, h0_y - 3.0) + 88.0) / 2)),
+                                "start_y_percent": max(38.0, h0_y - 3.0),
+                                "end_y_percent": 88.0,
+                                "tag": target_body_tag,
+                                "type": "tick",
+                                "marks_awarded": "+1.5 / 3.5",
+                                "remark": _build_page_zone_remark(1, 0, target_body_tag, max(38.0, h0_y - 3.0))
+                            }
+                            pg_anns.append(body_ann_p1)
+                    else:
+                        has_intro = intro_ann_p1 is not None
+                        has_body = body_ann_p1 is not None
+                        if not is_p1_prompt and has_intro and not has_body:
+                            pg_anns.append({
+                                "page": 1,
+                                "approx_y_percent": 65,
+                                "start_y_percent": 41,
+                                "end_y_percent": 89,
+                                "tag": "Body: Core Demand",
+                                "type": "tick",
+                                "marks_awarded": "+1.5 / 3.5",
+                                "remark": _build_page_zone_remark(1, 0, "Body: Core Demand", 41.0)
+                            })
                     expanded_anns.extend(pg_anns)
-                    if not is_p1_prompt and has_intro and not has_body:
-                        expanded_anns.append({
-                            "page": 1,
-                            "approx_y_percent": 65,
-                            "start_y_percent": 41,
-                            "end_y_percent": 89,
-                            "tag": "Body: Core Demand",
-                            "type": "tick",
-                            "marks_awarded": "+1.5 / 3.5",
-                            "remark": _build_page_zone_remark(1, 0, "Body: Core Demand", 41.0)
-                        })
                 elif pg < max_pg:
-                    pg_trans = _get_page_transcript(pg).lower()
+                    pg_trans = _get_page_transcript(pg)
+                    cand_heads_pg = _extract_candidate_headings_with_positions(pg_trans)
                     if len(pg_anns) == 1:
-                        single_tag = str(pg_anns[0].get("tag", "")).strip()
-                        comp_match = re.split(r'\s*(?:&|\band\b|/)\s*', single_tag, maxsplit=1)
-                        if len(comp_match) == 2:
-                            t1_clean = re.sub(r'(?i)^body:\s*', '', comp_match[0]).strip()
-                            t2_clean = re.sub(r'(?i)^body:\s*', '', comp_match[1]).strip()
-                            pg_anns[0]["tag"] = f"Body: {t1_clean}"
-                            pg_anns[0]["start_y_percent"] = 12.0
-                            pg_anns[0]["end_y_percent"] = 48.0
+                        if len(cand_heads_pg) >= 2:
+                            # Candidate explicitly authored 2 distinct sub-headings!
+                            h0 = cand_heads_pg[0]
+                            h1 = cand_heads_pg[1]
+                            pg_anns[0]["tag"] = f"Body: {h0['text']}"
+                            pg_anns[0]["start_y_percent"] = max(8.0, float(h0.get("approx_y", 12.0) - 2.0))
+                            pg_anns[0]["end_y_percent"] = min(48.0, float(h1.get("approx_y", 50.0) - 2.0))
                             if not pg_anns[0].get("remark") or len(str(pg_anns[0].get("remark")).strip()) < 25 or _has_meta_placeholder(str(pg_anns[0].get("remark"))):
-                                pg_anns[0]["remark"] = _build_page_zone_remark(pg, 0, pg_anns[0]["tag"], 12.0)
+                                pg_anns[0]["remark"] = _build_page_zone_remark(pg, 0, pg_anns[0]["tag"], pg_anns[0]["start_y_percent"])
 
                             ann2 = {
                                 "page": pg,
-                                "approx_y_percent": 72,
-                                "start_y_percent": 50.0,
+                                "approx_y_percent": int(h1.get("approx_y", 70)),
+                                "start_y_percent": max(48.0, float(h1.get("approx_y", 50.0) - 2.0)),
                                 "end_y_percent": 88.0,
-                                "tag": f"Body: {t2_clean}",
+                                "tag": f"Body: {h1['text']}",
                                 "type": "tick",
                                 "marks_awarded": "+1.5 / 3.0",
-                                "remark": _build_page_zone_remark(pg, 1, f"Body: {t2_clean}", 50.0)
+                                "remark": _build_page_zone_remark(pg, 1, f"Body: {h1['text']}", max(48.0, float(h1.get("approx_y", 50.0) - 2.0)))
                             }
                             pg_anns.append(ann2)
+                        elif len(cand_heads_pg) == 1:
+                            # Single candidate heading: NEVER split on 'and' or '&'
+                            pg_anns[0]["tag"] = f"Body: {cand_heads_pg[0]['text']}"
+                            if not pg_anns[0].get("remark") or len(str(pg_anns[0].get("remark")).strip()) < 25 or _has_meta_placeholder(str(pg_anns[0].get("remark"))):
+                                pg_anns[0]["remark"] = _build_page_zone_remark(pg, 0, pg_anns[0]["tag"], float(pg_anns[0].get("start_y_percent", 12.0) or 12.0))
                         else:
-                            # Instead of generic "Body: Depth & Substantiation", extract the candidate's actual written sub-heading from page pg!
-                            cand_heads = _extract_candidate_headings_from_page(_get_page_transcript(pg))
                             second_head = ""
-                            if len(cand_heads) >= 2:
-                                second_head = cand_heads[1]
-                            elif len(cand_heads) == 1 and cand_heads[0].lower() not in single_tag.lower():
-                                second_head = cand_heads[0]
-
-                            if not second_head:
-                                pg_pbps = [p for p in pbp_list if isinstance(p, dict) and int(p.get("page", 0) or 0) == pg]
-                                if len(pg_pbps) >= 2:
-                                    second_head = str(pg_pbps[1].get("title", "")).strip()
+                            pg_pbps = [p for p in pbp_list if isinstance(p, dict) and int(p.get("page", 0) or 0) == pg]
+                            if len(pg_pbps) >= 2:
+                                second_head = str(pg_pbps[1].get("title", "")).strip()
 
                             if not second_head:
                                 cand_lines = [
-                                    l.strip() for l in _get_page_transcript(pg).splitlines()
+                                    l.strip() for l in pg_trans.splitlines()
                                     if len(l.strip()) >= 15 and not l.strip().startswith("#") and not re.match(r'^(?:Q\.?|\d+[\.\)])\s*', l.strip())
                                 ]
                                 if len(cand_lines) > 2:
@@ -3533,79 +3611,116 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                 else:
                     raw_pg_trans_final = _get_page_transcript(pg)
                     pg_trans = raw_pg_trans_final.lower()
-                    conc_ann = next((a for a in pg_anns if "concl" in str(a.get("tag", "")).lower() or "synthesis" in str(a.get("tag", "")).lower()), None)
+                    conc_ann = next((a for a in pg_anns if "concl" in str(a.get("tag", "")).lower() or "synthesis" in str(a.get("tag", "")).lower() or "निष्कर्ष" in str(a.get("tag", "")).lower()), None)
                     body_anns = [a for a in pg_anns if a is not conc_ann]
 
-                    # Check if candidate ACTUALLY wrote a way forward / statutory sub-heading on the final page
-                    # Notice: ONLY inspect pg_trans (the student's handwritten ink text), NEVER conc_ann.remark!
+                    # Extract all authentic candidate headings with positions on the final page
+                    cand_page_headings = _extract_candidate_headings_with_positions(raw_pg_trans_final)
                     has_written_wf = _has_candidate_written_way_forward(pg_trans)
                     is_wf_demanded = _is_way_forward_demanded_by_question(resolved_q)
                     has_statutory_act = bool(re.search(r'\b(?:act\s+\d{4}|statutory|model\s+contract\s+farming|disaster\s+management\s+act)\b', pg_trans))
-                    
-                    # On a 10-marker (or max_pg <= 2), if the candidate continued continuous points (e.g. Points 4, 5, 6),
-                    # do NOT split Page 2 into two body banners unless the candidate authored two distinct separate sub-headings.
-                    cand_page_headings = _extract_candidate_headings_from_page(raw_pg_trans_final)
-                    cand_has_two_distinct_sections = (len(cand_page_headings) >= 2) or has_written_wf or has_statutory_act
-                    allow_final_body_split = (max_pg >= 3) or cand_has_two_distinct_sections
 
-                    if conc_ann and allow_final_body_split and (float(conc_ann.get("start_y_percent", 62) or 62) < 60.0 or has_written_wf or has_statutory_act):
-                        conc_s_y = float(conc_ann.get("start_y_percent", 26) or 26)
+                    # On both 10-markers and 15-markers, allow 3 sections on final page if candidate authored multiple headings
+                    # OR if candidate authored a heading + way forward / statutory act
+                    cand_has_two_distinct_sections = (len(cand_page_headings) >= 2) or (len(cand_page_headings) >= 1 and (has_written_wf or has_statutory_act)) or has_written_wf
+                    allow_final_body_split = cand_has_two_distinct_sections or (max_pg >= 3)
 
-                        # Determine what the candidate actually wrote in this body region
-                        if has_written_wf:
-                            statutory_tag = "Body: Way Forward & Solutions"
-                        elif has_statutory_act:
-                            m_act = re.search(r'\b([A-Za-z\s]+Act\s+\d{4})\b', raw_pg_trans_final, re.IGNORECASE)
-                            statutory_tag = f"Body: {m_act.group(1).strip()}" if m_act else "Body: Statutory & Policy Framework"
-                        else:
-                            # Extract the candidate's actual written sub-heading on this page!
-                            if cand_page_headings:
-                                chosen_h = cand_page_headings[-1] if len(cand_page_headings) > 1 else cand_page_headings[0]
-                                clean_h = chosen_h.title() if chosen_h.isupper() and len(chosen_h) > 3 else chosen_h
-                                statutory_tag = f"Body: {clean_h}"
-                            else:
-                                pg_pbps = [p for p in pbp_list if isinstance(p, dict) and int(p.get("page", 0) or 0) == pg]
-                                if pg_pbps and str(pg_pbps[0].get("title")):
-                                    clean_pbp_t = re.sub(r'(?i)^body:\s*', '', str(pg_pbps[0].get("title"))).strip()
-                                    statutory_tag = f"Body: {clean_pbp_t}"
-                                else:
-                                    statutory_tag = "Body: Key Dimensions & Impact Analysis"
-
-                        # Determine proper non-overlapping boundaries for statutory body and conclusion
-                        if conc_s_y < 60.0:
-                            stat_start = max(18.0, conc_s_y)
-                            stat_end = min(66.0, max(stat_start + 14.0, 52.0))
-                            real_conc_start = min(74.0, stat_end + 3.0)
-                            real_conc_end = min(88.0, real_conc_start + 10.0)
-                        else:
-                            stat_start = max(38.0, conc_s_y - 22.0)
-                            stat_end = max(stat_start + 10.0, conc_s_y - 2.5)
-                            real_conc_start = max(stat_end + 2.5, conc_s_y)
-                            real_conc_end = min(88.0, max(real_conc_start + 8.0, 80.0))
-
-                        statutory_body_ann = {
-                            "page": pg,
-                            "approx_y_percent": int(round((stat_start + stat_end) / 2)),
-                            "start_y_percent": stat_start,
-                            "end_y_percent": stat_end,
-                            "tag": statutory_tag,
-                            "type": "tick",
-                            "marks_awarded": "+1.5 / 3.0",
-                            "remark": conc_ann.get("remark") if (conc_ann.get("remark") and not _is_conc_bullet(conc_ann.get("remark", "")) and len(str(conc_ann.get("remark"))).strip() >= 25) else _build_page_zone_remark(pg, 1, statutory_tag, stat_start)
-                        }
-
+                    if conc_ann and allow_final_body_split:
                         # Extract closing prose line from pg_trans (e.g. "It can be seen that...", "Thus ethical ideas...")
                         closing_line = ""
                         cand_conc_candidates = []
                         for ln in raw_pg_trans_final.splitlines():
                             ln_c = ln.strip()
-                            if re.match(r'^(?:thus|hence|therefore|in\s+conclusion|overall|consequently|to\s+conclude)\b', ln_c, re.IGNORECASE):
+                            if re.match(r'^(?:thus|hence|therefore|in\s+conclusion|overall|consequently|to\s+conclude|अतः|निष्कर्षतः)\b', ln_c, re.IGNORECASE):
                                 cand_conc_candidates.append(ln_c)
                             elif len(ln_c) >= 25 and not re.match(r'^(?:[-*•–—]|point\s*\d+|\b[①-⑩\d]+[\.\)])', ln_c):
                                 cand_conc_candidates.append(ln_c)
                         if cand_conc_candidates:
                             closing_line = cand_conc_candidates[-1]
 
+                        # Conclusion boundaries: strictly above bottom printed examiner box (y >= 80%)
+                        real_conc_start = max(72.0, float(conc_ann.get("start_y_percent", 72.0) or 72.0))
+                        real_conc_end = min(79.0, max(real_conc_start + 4.0, float(conc_ann.get("end_y_percent", 78.0) or 78.0)))
+
+                        # Determine UPPER and LOWER body section tags and bounds strictly respecting physical top-to-bottom order!
+                        if len(cand_page_headings) >= 2:
+                            # Candidate explicitly authored 2 distinct sub-headings!
+                            upper_tag = f"Body: {cand_page_headings[0]['text']}"
+                            upper_start = max(8.0, float(cand_page_headings[0].get("approx_y", 10.0) - 2.0))
+
+                            lower_tag = f"Body: {cand_page_headings[1]['text']}"
+                            lower_start = max(48.0, float(cand_page_headings[1].get("approx_y", 50.0) - 2.0))
+                            upper_end = min(48.0, lower_start - 2.0)
+                            lower_end = min(70.0, real_conc_start - 2.0)
+                        elif len(cand_page_headings) == 1:
+                            upper_tag = f"Body: {cand_page_headings[0]['text']}"
+                            upper_start = max(8.0, float(cand_page_headings[0].get("approx_y", 10.0) - 2.0))
+                            upper_end = 46.0
+                            if has_written_wf:
+                                lower_tag = "Body: आगे की राह व समाधान" if is_hindi else "Body: Way Forward & Solutions"
+                            elif has_statutory_act:
+                                m_act = re.search(r'\b([A-Za-z\s]+Act\s+\d{4})\b', raw_pg_trans_final, re.IGNORECASE)
+                                lower_tag = f"Body: {m_act.group(1).strip()}" if m_act else "Body: Statutory & Policy Framework"
+                            else:
+                                lower_tag = "Body: Strategic Measures & Governance Roadmap"
+                            lower_start = 48.0
+                            lower_end = min(70.0, real_conc_start - 2.0)
+                        else:
+                            if body_anns and body_anns[0].get("tag"):
+                                upper_tag = str(body_anns[0]["tag"])
+                            else:
+                                upper_tag = "Body: Challenges & Critical Constraints"
+                            upper_start = 10.0
+                            upper_end = 46.0
+                            if has_written_wf:
+                                lower_tag = "Body: आगे की राह व समाधान" if is_hindi else "Body: Way Forward & Solutions"
+                            else:
+                                lower_tag = "Body: Policy Interventions & Way Forward"
+                            lower_start = 48.0
+                            lower_end = min(70.0, real_conc_start - 2.0)
+
+                        # Construct Upper Body Annotation (Placed at the TOP of the page!)
+                        if body_anns:
+                            body_ann_upper = body_anns[0]
+                            body_ann_upper["tag"] = upper_tag
+                            body_ann_upper["start_y_percent"] = upper_start
+                            body_ann_upper["end_y_percent"] = upper_end
+                            body_ann_upper["approx_y_percent"] = int(round((upper_start + upper_end) / 2))
+                            if not body_ann_upper.get("remark") or len(str(body_ann_upper.get("remark")).strip()) < 25 or _has_meta_placeholder(str(body_ann_upper.get("remark"))):
+                                body_ann_upper["remark"] = _build_page_zone_remark(pg, 0, upper_tag, upper_start)
+                        else:
+                            body_ann_upper = {
+                                "page": pg,
+                                "approx_y_percent": int(round((upper_start + upper_end) / 2)),
+                                "start_y_percent": upper_start,
+                                "end_y_percent": upper_end,
+                                "tag": upper_tag,
+                                "type": "tick",
+                                "marks_awarded": "+1.5 / 3.0",
+                                "remark": _build_page_zone_remark(pg, 0, upper_tag, upper_start)
+                            }
+
+                        # Construct Lower Body Annotation (Placed in the LOWER half of the page!)
+                        lower_remark = ""
+                        if len(body_anns) > 1 and body_anns[1].get("remark") and len(str(body_anns[1]["remark"])) >= 25 and not _has_meta_placeholder(str(body_anns[1]["remark"])):
+                            lower_remark = body_anns[1]["remark"]
+                        elif conc_ann.get("remark") and not _is_conc_bullet(conc_ann.get("remark", "")) and len(str(conc_ann.get("remark"))).strip() >= 25:
+                            lower_remark = conc_ann.get("remark")
+                        else:
+                            lower_remark = _build_page_zone_remark(pg, 1, lower_tag, lower_start)
+
+                        body_ann_lower = {
+                            "page": pg,
+                            "approx_y_percent": int(round((lower_start + lower_end) / 2)),
+                            "start_y_percent": lower_start,
+                            "end_y_percent": lower_end,
+                            "tag": lower_tag,
+                            "type": "tick",
+                            "marks_awarded": "+1.5 / 3.0",
+                            "remark": lower_remark
+                        }
+
+                        # Conclusion remark & annotation (Placed strictly at the bottom before printed box!)
                         c_crit = str(conc_audit_obj.get("current_critique") or "")
                         c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "")
                         clean_close = _clean_quote_snippet(closing_line, 120)
@@ -3618,7 +3733,6 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                         else:
                             real_conc_rem = f"✓ **Closing Stance Evaluated**: Summarized candidate's concluding stand on the core directive.\n✎ **Topper Finish**: {clean_topper}"
 
-                        # If question explicitly demanded mitigation / way forward, but candidate omitted it: add feedback!
                         if is_wf_demanded and not has_written_wf:
                             if "Missing Required Mitigation" not in real_conc_rem:
                                 real_conc_rem += "\n✗ **Missing Required Mitigation**: The question demanded practical measures/mitigation, but no remedial points were provided before concluding."
@@ -3628,16 +3742,14 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                             "approx_y_percent": int(round((real_conc_start + real_conc_end) / 2)),
                             "start_y_percent": real_conc_start,
                             "end_y_percent": real_conc_end,
-                            "tag": "Conclusion",
+                            "tag": "निष्कर्ष" if is_hindi else "Conclusion",
                             "type": "suggestion",
                             "marks_awarded": "+1.0 / 2.0",
                             "remark": real_conc_rem
                         }
 
-                        if body_anns:
-                            body_anns[0]["end_y_percent"] = max(18.0, stat_start - 2.0)
-                            expanded_anns.append(body_anns[0])
-                        expanded_anns.append(statutory_body_ann)
+                        expanded_anns.append(body_ann_upper)
+                        expanded_anns.append(body_ann_lower)
                         expanded_anns.append(real_conc_ann)
                     else:
                         if conc_ann:
@@ -3781,41 +3893,33 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
             (int(a.get("page", 1) or 1) == 1) and ("intro" in str(a.get("tag", "")).lower() or "premise" in str(a.get("tag", "")).lower()) and bool(a.get("marks_awarded"))
             for a in annotations
         )
-        for ann in annotations:
-            ann_page = int(ann.get("page", 1) or 1)
-            t_str = str(ann.get("tag", "")).strip()
-            if ann_page < max_ann_page:
-                if "conclusion" in t_str.lower() or "synthesis" in t_str.lower():
-                    cand_heads_ann = _extract_candidate_headings_from_page(_get_page_transcript(ann_page))
-                    if cand_heads_ann:
-                        ann["tag"] = f"Body: {cand_heads_ann[-1]}"
-                    else:
-                        ann["tag"] = "Body: Key Dimensions"
-            if ann_page > 1:
-                # Do NOT convert intro on page > 1 if page 1 had no student intro (e.g. Case Study Prompt on Page 1)
-                if p1_has_graded_intro and ("intro" in t_str.lower() or "definition" in t_str.lower()):
-                    ann["tag"] = "Body: Core Analysis"
+        # Group annotations by page to preserve exact slot alignment during cleansing
+        for p_num in range(1, max_ann_page + 1):
+            p_anns = [a for a in annotations if int(a.get("page", 1) or 1) == p_num]
+            cand_heads_ann = _extract_candidate_headings_from_page(_get_page_transcript(p_num))
+            for idx_a, ann in enumerate(p_anns):
+                t_str = str(ann.get("tag", "")).strip()
+                target_head = cand_heads_ann[min(idx_a, len(cand_heads_ann) - 1)] if cand_heads_ann else ""
+                clean_target_head = target_head.title() if (target_head.isupper() and len(target_head) > 3) else target_head
 
-            # Cleanse any lingering "Depth & Substantiation" tag
-            if re.search(r'(?i)\bdepth\s*(?:&|and)\s*substantiation\b', str(ann.get("tag", ""))):
-                cand_heads_ann = _extract_candidate_headings_from_page(_get_page_transcript(ann_page))
-                if cand_heads_ann:
-                    h_clean = cand_heads_ann[-1].title() if cand_heads_ann[-1].isupper() and len(cand_heads_ann[-1]) > 3 else cand_heads_ann[-1]
-                    ann["tag"] = f"Body: {h_clean}"
-                else:
-                    ann["tag"] = "Body: Core Dimensional Analysis"
+                if p_num < max_ann_page:
+                    if "conclusion" in t_str.lower() or "synthesis" in t_str.lower():
+                        ann["tag"] = f"Body: {clean_target_head}" if clean_target_head else "Body: Key Dimensions"
+                if p_num > 1:
+                    # Do NOT convert intro on page > 1 if page 1 had no student intro (e.g. Case Study Prompt on Page 1)
+                    if p1_has_graded_intro and ("intro" in t_str.lower() or "definition" in t_str.lower()):
+                        ann["tag"] = f"Body: {clean_target_head}" if clean_target_head else "Body: Core Analysis"
 
-            # Cleanse any lingering unwarranted "Way Forward" tag
-            if re.search(r'(?i)\bway\s*forward(?:\s*(?:&|and)\s*reforms)?\b', str(ann.get("tag", ""))):
-                cand_has_wf_ann = _has_candidate_written_way_forward(_get_page_transcript(ann_page))
-                q_demands_wf_ann = _is_way_forward_demanded_by_question(resolved_q)
-                if not cand_has_wf_ann and not q_demands_wf_ann:
-                    cand_heads_ann = _extract_candidate_headings_from_page(_get_page_transcript(ann_page))
-                    if cand_heads_ann:
-                        h_clean = cand_heads_ann[-1].title() if cand_heads_ann[-1].isupper() and len(cand_heads_ann[-1]) > 3 else cand_heads_ann[-1]
-                        ann["tag"] = f"Body: {h_clean}"
-                    else:
-                        ann["tag"] = "Body: Core Arguments"
+                # Cleanse any lingering "Depth & Substantiation" tag
+                if re.search(r'(?i)\bdepth\s*(?:&|and)\s*substantiation\b', str(ann.get("tag", ""))):
+                    ann["tag"] = f"Body: {clean_target_head}" if clean_target_head else "Body: Core Dimensional Analysis"
+
+                # Cleanse any lingering unwarranted "Way Forward" tag
+                if re.search(r'(?i)\bway\s*forward(?:\s*(?:&|and)\s*reforms)?\b', str(ann.get("tag", ""))):
+                    cand_has_wf_ann = _has_candidate_written_way_forward(_get_page_transcript(p_num))
+                    q_demands_wf_ann = _is_way_forward_demanded_by_question(resolved_q)
+                    if not cand_has_wf_ann and not q_demands_wf_ann:
+                        ann["tag"] = f"Body: {clean_target_head}" if clean_target_head else "Body: Core Arguments"
 
             # Cleanse leaked prompt example tags (e.g. ToR, Fiscal Federalism, Divisible Pool, Article 280) when question is NOT about Finance Commission
             is_fc_q = bool(re.search(r'(?i)\b(?:finance\s+commission|fiscal\s+federalism|devolution|article\s+280|divisible\s+pool)\b', resolved_q))
