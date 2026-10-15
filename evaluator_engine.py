@@ -2825,6 +2825,62 @@ def _extract_candidate_headings_from_page(raw_pg_trans: str) -> list:
     return [it["text"] for it in items]
 
 
+def _extract_page_point_range(raw_pg_trans: str, is_hindi: bool = False):
+    """
+    Detects the range of candidate's numbered points on this page.
+    Supports digits 1., 2), circled numbers ①-⑳, point 1, बिंदु 1, and Devanagari numerals.
+    Returns (min_pt, max_pt, point_str) e.g. (2, 7, "Points 2–7") or (1, 1, "Point 1")
+    """
+    if not raw_pg_trans:
+        return None, None, ""
+
+    circled_map = {
+        '①': 1, '②': 2, '③': 3, '④': 4, '⑤': 5,
+        '⑥': 6, '⑦': 7, '⑧': 8, '⑨': 9, '⑩': 10,
+        '⑪': 11, '⑫': 12, '⑬': 13, '⑭': 14, '⑮': 15,
+        '⑯': 16, '⑰': 17, '⑱': 18, '⑲': 19, '⑳': 20
+    }
+
+    devanagari_digits = {
+        '०': '0', '१': '1', '२': '2', '३': '3', '४': '4',
+        '५': '5', '६': '6', '७': '7', '८': '8', '९': '9'
+    }
+
+    pts = []
+    lines = raw_pg_trans.splitlines()
+    for l in lines:
+        l_s = l.strip()
+        if not l_s:
+            continue
+        m_circ = re.match(r'^(?:[-*•–—]\s*)?([①-⑳])', l_s)
+        if m_circ and m_circ.group(1) in circled_map:
+            pts.append(circled_map[m_circ.group(1)])
+            continue
+
+        l_norm = ""
+        for ch in l_s[:15]:
+            l_norm += devanagari_digits.get(ch, ch)
+
+        m_dig = re.match(r'^(?:(?:point|बिंदु)\s*)?\(?(\d{1,2})\)?[\.\):\-]\s+', l_norm, re.IGNORECASE)
+        if m_dig:
+            v = int(m_dig.group(1))
+            if 1 <= v <= 30:
+                pts.append(v)
+
+    if not pts:
+        return None, None, ""
+
+    pts = sorted(set(pts))
+    min_pt, max_pt = pts[0], pts[-1]
+
+    if min_pt == max_pt:
+        p_str = f"Point {min_pt}" if not is_hindi else f"बिंदु {min_pt}"
+    else:
+        p_str = f"Points {min_pt}–{max_pt}" if not is_hindi else f"बिंदु {min_pt}–{max_pt}"
+
+    return min_pt, max_pt, p_str
+
+
 def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, question: str = "", paper: str = "", medium: str = "english") -> Dict[str, Any]:
     """
     Enforces 100% mathematical consistency (denominators sum to max_marks, numerators sum to overall_score).
@@ -3480,6 +3536,32 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                         ann["remark"] = _build_page_zone_remark(1, idx_a, str(ann.get("tag", "")), float(ann.get("start_y_percent", 0.0) or 0.0))
         if max_pg >= 2:
             expanded_anns = []
+
+            # Global scan: identify all candidate handwritten headings across the entire answer
+            all_cand_headings_with_pages = []
+            for p_scan in range(1, max_pg + 1):
+                p_scan_trans = _get_page_transcript(p_scan)
+                p_scan_heads = _extract_candidate_headings_with_positions(p_scan_trans)
+                for h_item in p_scan_heads:
+                    all_cand_headings_with_pages.append({"page": p_scan, **h_item})
+
+            has_single_cand_heading_overall = (len(all_cand_headings_with_pages) == 1)
+            primary_cand_heading = all_cand_headings_with_pages[0]["text"].strip() if all_cand_headings_with_pages else ""
+            if primary_cand_heading.isupper() and len(primary_cand_heading) > 3 and not re.search(r'[\u0900-\u097F]', primary_cand_heading):
+                primary_cand_heading = primary_cand_heading.title()
+
+            # If student only authored 1 heading across a 15-marker, record structural feedback in critical_gaps
+            if has_single_cand_heading_overall and max_pg >= 3 and primary_cand_heading:
+                struct_note = (
+                    f"संरचनात्मक प्रस्तुति सुझाव: आपने संपूर्ण मुख्य भाग को केवल एक शीर्षक ('{primary_cand_heading}') के अंतर्गत लिखा है। यद्यपि आपकी बिंदुवार निरंतरता उत्तम है, परंतु 15 अंकों के उत्तर में 2–3 स्पष्ट उप-शीर्षक (उदा. आंतरिक कारण बनाम बाह्य आक्रमण व पतन) बनाने से परीक्षक को बहु-आयामी अंक आवंटित करने में सुगमता होती है।"
+                    if is_hindi else
+                    f"Structural Presentation Note: You authored the entire body under a single heading ('{primary_cand_heading}'). While your point-wise coverage is thorough, dividing a 15-marker into 2–3 distinct thematic sub-headings (e.g. Internal Sangha/Doctrinal Decay vs External Socio-Political Shifts & Invasions) enables the UPSC examiner to award top-bracket credit for multi-dimensional structuring."
+                )
+                b_audit = data.setdefault("body_audit", {})
+                crit_gaps = b_audit.setdefault("critical_gaps", [])
+                if not any("Structural Presentation Note" in g or "संरचनात्मक प्रस्तुति" in g for g in crit_gaps):
+                    crit_gaps.append(struct_note)
+
             for pg in range(1, max_pg + 1):
                 pg_anns = [a for a in annotations if (int(a.get("page", 1) or 1) == pg)]
                 # Ensure annotations are sorted strictly top-to-bottom physically
@@ -3509,6 +3591,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                     )
                     # Extract authentic candidate headings on Page 1 (supports Devanagari Hindi & English)
                     p1_heading_objs = _extract_candidate_headings_with_positions(_get_page_transcript(1))
+                    _, _, p1_pt_str = _extract_page_point_range(_get_page_transcript(1), is_hindi)
+                    has_p1_diag = bool(re.search(r'\b(?:diagram|flowchart|figure|चित्र|आरेख|causes\s*of\s*decline)\b', _get_page_transcript(1), re.IGNORECASE))
 
                     intro_ann_p1 = next((a for a in pg_anns if "intro" in str(a.get("tag", "")).lower() or "premise" in str(a.get("tag", "")).lower() or "प्रस्तावना" in str(a.get("tag", "")).lower() or "भूमिका" in str(a.get("tag", "")).lower()), None)
 
@@ -3525,14 +3609,19 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
 
                     body_ann_p1 = next((a for a in pg_anns if a is not intro_ann_p1 and a.get("type") != "info"), None)
 
-                    # If candidate authored a heading on Page 1 (e.g. [Relevance and need of UAPA and National Security Act]),
-                    # ensure body_ann_p1 carries the ENTIRE heading without splitting on 'and' or '&'!
                     if p1_heading_objs:
                         p1_h0 = p1_heading_objs[0]
                         clean_h0 = p1_h0["text"].strip()
                         if clean_h0.isupper() and len(clean_h0) > 3 and not re.search(r'[\u0900-\u097F]', clean_h0):
                             clean_h0 = clean_h0.title()
-                        target_body_tag = f"Body: {clean_h0}"
+
+                        if has_p1_diag and p1_pt_str:
+                            target_body_tag = f"Body: {clean_h0} ({p1_pt_str} & Diagram)" if not is_hindi else f"मुख्य भाग: {clean_h0} ({p1_pt_str} व आरेख)"
+                        elif p1_pt_str:
+                            target_body_tag = f"Body: {clean_h0} ({p1_pt_str})" if not is_hindi else f"मुख्य भाग: {clean_h0} ({p1_pt_str})"
+                        else:
+                            target_body_tag = f"Body: {clean_h0}" if not is_hindi else f"मुख्य भाग: {clean_h0}"
+
                         h0_y = float(p1_h0.get("approx_y", 44.0))
 
                         if body_ann_p1:
@@ -3541,7 +3630,6 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                             if float(body_ann_p1.get("end_y_percent", 88.0) or 88.0) <= body_ann_p1["start_y_percent"] + 10.0:
                                 body_ann_p1["end_y_percent"] = 88.0
                             body_ann_p1["approx_y_percent"] = int(round((body_ann_p1["start_y_percent"] + float(body_ann_p1["end_y_percent"])) / 2))
-                            # Deduplicate if another body card was created from splitting
                             pg_anns = [a for a in pg_anns if a is intro_ann_p1 or a is body_ann_p1 or a.get("type") == "info"]
                         else:
                             body_ann_p1 = {
@@ -3559,92 +3647,95 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                         has_intro = intro_ann_p1 is not None
                         has_body = body_ann_p1 is not None
                         if not is_p1_prompt and has_intro and not has_body:
+                            p1_tag = f"Body: Core Demand ({p1_pt_str})" if (p1_pt_str and not is_hindi) else ("Body: Core Demand" if not is_hindi else "मुख्य भाग: मुख्य मांग")
                             pg_anns.append({
                                 "page": 1,
                                 "approx_y_percent": 65,
                                 "start_y_percent": 41,
                                 "end_y_percent": 89,
-                                "tag": "Body: Core Demand",
+                                "tag": p1_tag,
                                 "type": "tick",
                                 "marks_awarded": "+1.5 / 3.5",
-                                "remark": _build_page_zone_remark(1, 0, "Body: Core Demand", 41.0)
+                                "remark": _build_page_zone_remark(1, 0, p1_tag, 41.0)
                             })
                     expanded_anns.extend(pg_anns)
                 elif pg < max_pg:
                     pg_trans = _get_page_transcript(pg)
-                    cand_heads_pg = _extract_candidate_headings_with_positions(pg_trans)
-                    if len(pg_anns) == 1:
-                        if len(cand_heads_pg) >= 2:
-                            # Candidate explicitly authored 2 distinct sub-headings!
-                            h0 = cand_heads_pg[0]
-                            h1 = cand_heads_pg[1]
-                            pg_anns[0]["tag"] = f"Body: {h0['text']}"
-                            pg_anns[0]["start_y_percent"] = max(8.0, float(h0.get("approx_y", 12.0) - 2.0))
-                            pg_anns[0]["end_y_percent"] = min(48.0, float(h1.get("approx_y", 50.0) - 2.0))
-                            if not pg_anns[0].get("remark") or len(str(pg_anns[0].get("remark")).strip()) < 25 or _has_meta_placeholder(str(pg_anns[0].get("remark"))):
-                                pg_anns[0]["remark"] = _build_page_zone_remark(pg, 0, pg_anns[0]["tag"], pg_anns[0]["start_y_percent"])
+                    cand_heads_pg = [h for h in all_cand_headings_with_pages if h["page"] == pg]
+                    _, _, pg_pt_str = _extract_page_point_range(pg_trans, is_hindi)
 
-                            ann2 = {
-                                "page": pg,
-                                "approx_y_percent": int(h1.get("approx_y", 70)),
-                                "start_y_percent": max(48.0, float(h1.get("approx_y", 50.0) - 2.0)),
-                                "end_y_percent": 88.0,
-                                "tag": f"Body: {h1['text']}",
-                                "type": "tick",
-                                "marks_awarded": "+1.5 / 3.0",
-                                "remark": _build_page_zone_remark(pg, 1, f"Body: {h1['text']}", max(48.0, float(h1.get("approx_y", 50.0) - 2.0)))
-                            }
-                            pg_anns.append(ann2)
-                        elif len(cand_heads_pg) == 1:
-                            # Single candidate heading: NEVER split on 'and' or '&'
-                            pg_anns[0]["tag"] = f"Body: {cand_heads_pg[0]['text']}"
-                            if not pg_anns[0].get("remark") or len(str(pg_anns[0].get("remark")).strip()) < 25 or _has_meta_placeholder(str(pg_anns[0].get("remark"))):
-                                pg_anns[0]["remark"] = _build_page_zone_remark(pg, 0, pg_anns[0]["tag"], float(pg_anns[0].get("start_y_percent", 12.0) or 12.0))
+                    if len(cand_heads_pg) >= 2:
+                        # Candidate explicitly authored >= 2 distinct sub-headings!
+                        h0 = cand_heads_pg[0]
+                        h1 = cand_heads_pg[1]
+                        h0_txt = h0['text'].title() if (h0['text'].isupper() and len(h0['text']) > 3 and not re.search(r'[\u0900-\u097F]', h0['text'])) else h0['text']
+                        h1_txt = h1['text'].title() if (h1['text'].isupper() and len(h1['text']) > 3 and not re.search(r'[\u0900-\u097F]', h1['text'])) else h1['text']
+
+                        ann0 = pg_anns[0] if pg_anns else {}
+                        ann0["page"] = pg
+                        ann0["tag"] = f"Body: {h0_txt}" if not is_hindi else f"मुख्य भाग: {h0_txt}"
+                        ann0["start_y_percent"] = max(8.0, float(h0.get("approx_y", 12.0) - 2.0))
+                        ann0["end_y_percent"] = min(48.0, float(h1.get("approx_y", 50.0) - 2.0))
+                        ann0["approx_y_percent"] = int(round((ann0["start_y_percent"] + ann0["end_y_percent"]) / 2))
+                        ann0["type"] = "tick"
+                        ann0["marks_awarded"] = "+1.5 / 3.0"
+                        if not ann0.get("remark") or len(str(ann0.get("remark")).strip()) < 25 or _has_meta_placeholder(str(ann0.get("remark"))):
+                            ann0["remark"] = _build_page_zone_remark(pg, 0, ann0["tag"], ann0["start_y_percent"])
+
+                        ann1 = pg_anns[1] if len(pg_anns) >= 2 else {}
+                        ann1["page"] = pg
+                        ann1["tag"] = f"Body: {h1_txt}" if not is_hindi else f"मुख्य भाग: {h1_txt}"
+                        ann1["start_y_percent"] = max(48.0, float(h1.get("approx_y", 50.0) - 2.0))
+                        ann1["end_y_percent"] = 88.0
+                        ann1["approx_y_percent"] = int(round((ann1["start_y_percent"] + ann1["end_y_percent"]) / 2))
+                        ann1["type"] = "tick"
+                        ann1["marks_awarded"] = "+1.5 / 3.0"
+                        if not ann1.get("remark") or len(str(ann1.get("remark")).strip()) < 25 or _has_meta_placeholder(str(ann1.get("remark"))):
+                            ann1["remark"] = _build_page_zone_remark(pg, 1, ann1["tag"], ann1["start_y_percent"])
+
+                        pg_anns = [ann0, ann1]
+                    elif len(cand_heads_pg) == 1:
+                        # Candidate authored 1 distinct sub-heading!
+                        h0 = cand_heads_pg[0]
+                        h0_txt = h0['text'].title() if (h0['text'].isupper() and len(h0['text']) > 3 and not re.search(r'[\u0900-\u097F]', h0['text'])) else h0['text']
+                        tag_1 = f"Body: {h0_txt}" if not is_hindi else f"मुख्य भाग: {h0_txt}"
+                        if pg_pt_str:
+                            tag_1 += f" ({pg_pt_str})"
+                        ann0 = pg_anns[0] if pg_anns else {}
+                        ann0["page"] = pg
+                        ann0["tag"] = tag_1
+                        ann0["start_y_percent"] = 12.0
+                        ann0["end_y_percent"] = 88.0
+                        ann0["approx_y_percent"] = 50
+                        ann0["type"] = "tick"
+                        ann0["marks_awarded"] = "+2.0 / 4.0"
+                        if not ann0.get("remark") or len(str(ann0.get("remark")).strip()) < 25 or _has_meta_placeholder(str(ann0.get("remark"))):
+                            ann0["remark"] = _build_page_zone_remark(pg, 0, ann0["tag"], 12.0)
+                        pg_anns = [ann0]
+                    else:
+                        # Candidate authored NO new heading on this page: continuous points!
+                        if primary_cand_heading:
+                            if pg_pt_str:
+                                page_body_tag = f"Body: {primary_cand_heading} ({pg_pt_str})" if not is_hindi else f"मुख्य भाग: {primary_cand_heading} ({pg_pt_str})"
+                            else:
+                                page_body_tag = f"Body: {primary_cand_heading} (Contd.)" if not is_hindi else f"मुख्य भाग: {primary_cand_heading} (आगे जारी)"
+                        elif pg_pt_str:
+                            page_body_tag = f"Body: Core Analysis ({pg_pt_str})" if not is_hindi else f"मुख्य भाग: मुख्य विश्लेषण ({pg_pt_str})"
                         else:
-                            second_head = ""
-                            pg_pbps = [p for p in pbp_list if isinstance(p, dict) and int(p.get("page", 0) or 0) == pg]
-                            if len(pg_pbps) >= 2:
-                                second_head = str(pg_pbps[1].get("title", "")).strip()
+                            page_body_tag = f"Body: Core Demand" if not is_hindi else f"मुख्य भाग: मुख्य मांग"
 
-                            if not second_head:
-                                cand_lines = [
-                                    l.strip() for l in pg_trans.splitlines()
-                                    if len(l.strip()) >= 15 and not l.strip().startswith("#") and not re.match(r'^(?:Q\.?|\d+[\.\)])\s*', l.strip())
-                                ]
-                                if len(cand_lines) > 2:
-                                    lower_pool = cand_lines[len(cand_lines)//2:]
-                                    if lower_pool:
-                                        first_w = " ".join(lower_pool[0].split()[:5])
-                                        second_head = re.sub(r'[:—\-.]+$', '', first_w).strip()
+                        ann0 = pg_anns[0] if pg_anns else {}
+                        ann0["page"] = pg
+                        ann0["tag"] = page_body_tag
+                        ann0["start_y_percent"] = 12.0
+                        ann0["end_y_percent"] = 88.0
+                        ann0["approx_y_percent"] = 50
+                        ann0["type"] = "tick"
+                        ann0["marks_awarded"] = "+2.0 / 4.0"
+                        if not ann0.get("remark") or len(str(ann0.get("remark")).strip()) < 25 or _has_meta_placeholder(str(ann0.get("remark"))):
+                            ann0["remark"] = _build_page_zone_remark(pg, 0, page_body_tag, 12.0)
+                        pg_anns = [ann0]
 
-                            if not second_head or len(second_head) < 4:
-                                second_head = "Secondary Analysis & Arguments"
-
-                            second_clean = re.sub(r'(?i)^body:\s*', '', second_head).strip()
-                            if second_clean.isupper() and len(second_clean) > 3:
-                                second_clean = second_clean.title()
-
-                            ann2 = {
-                                "page": pg,
-                                "approx_y_percent": 72,
-                                "start_y_percent": max(50.0, float(pg_anns[0].get("end_y_percent", 50.0) or 50.0)),
-                                "end_y_percent": 88.0,
-                                "tag": f"Body: {second_clean}",
-                                "type": "tick",
-                                "marks_awarded": "+1.5 / 3.0",
-                                "remark": _build_page_zone_remark(pg, 1, f"Body: {second_clean}", 50.0)
-                            }
-                            pg_anns.append(ann2)
-                    elif len(pg_anns) >= 2:
-                        t1 = str(pg_anns[0].get("tag", "")).strip().lower()
-                        t2 = str(pg_anns[1].get("tag", "")).strip().lower()
-                        if t1 == t2:
-                            pg_anns[0]["tag"] = f"{pg_anns[0]['tag']} (Part 1)"
-                            pg_anns[1]["tag"] = f"{pg_anns[1]['tag']} (Part 2)"
-                        for idx_p, p_ann in enumerate(pg_anns[:2]):
-                            if not p_ann.get("remark") or len(str(p_ann.get("remark")).strip()) < 25 or _has_meta_placeholder(str(p_ann.get("remark"))):
-                                p_ann["remark"] = _build_page_zone_remark(pg, idx_p, str(p_ann.get("tag", "")), float(p_ann.get("start_y_percent", 0.0) or 0.0))
-                        _heal_cross_attributed_page_annotations(pg_anns)
                     expanded_anns.extend(pg_anns)
                 else:
                     raw_pg_trans_final = _get_page_transcript(pg)
@@ -3652,199 +3743,153 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                     conc_ann = next((a for a in pg_anns if "concl" in str(a.get("tag", "")).lower() or "synthesis" in str(a.get("tag", "")).lower() or "निष्कर्ष" in str(a.get("tag", "")).lower()), None)
                     body_anns = [a for a in pg_anns if a is not conc_ann]
 
-                    # Extract all authentic candidate headings with positions on the final page
-                    cand_page_headings = _extract_candidate_headings_with_positions(raw_pg_trans_final)
+                    cand_page_headings = [h for h in all_cand_headings_with_pages if h["page"] == pg]
                     has_written_wf = _has_candidate_written_way_forward(pg_trans)
                     is_wf_demanded = _is_way_forward_demanded_by_question(resolved_q)
                     has_statutory_act = bool(re.search(r'\b(?:act\s+\d{4}|statutory|model\s+contract\s+farming|disaster\s+management\s+act)\b', pg_trans))
+                    _, _, p_final_pt_str = _extract_page_point_range(raw_pg_trans_final, is_hindi)
 
-                    # On both 10-markers and 15-markers, allow 3 sections on final page if candidate authored multiple headings
-                    # OR if candidate authored a heading + way forward / statutory act
+                    # Only split final page body into 2 sections if candidate authored >= 2 distinct headings
+                    # OR candidate authored a heading + explicit way forward / statutory act
                     cand_has_two_distinct_sections = (len(cand_page_headings) >= 2) or (len(cand_page_headings) >= 1 and (has_written_wf or has_statutory_act)) or has_written_wf
-                    allow_final_body_split = cand_has_two_distinct_sections or (max_pg >= 3)
+                    allow_final_body_split = cand_has_two_distinct_sections
+
+                    # Extract closing prose line from pg_trans (e.g. "It can be seen that...", "Thus ethical ideas...")
+                    closing_line = ""
+                    cand_conc_candidates = []
+                    for ln in raw_pg_trans_final.splitlines():
+                        ln_c = ln.strip()
+                        if re.match(r'^(?:thus|hence|therefore|in\s+conclusion|overall|consequently|to\s+conclude|अतः|निष्कर्षतः)\b', ln_c, re.IGNORECASE):
+                            cand_conc_candidates.append(ln_c)
+                        elif len(ln_c) >= 25 and not re.match(r'^(?:[-*•–—]|point\s*\d+|\b[①-⑩\d]+[\.\)])', ln_c):
+                            cand_conc_candidates.append(ln_c)
+                    if cand_conc_candidates:
+                        closing_line = cand_conc_candidates[-1]
+
+                    # Conclusion boundaries: strictly above bottom printed examiner box (y >= 80%)
+                    real_conc_start = max(70.0, float(conc_ann.get("start_y_percent", 70.0) or 70.0) if conc_ann else 70.0)
+                    real_conc_end = min(78.0, max(real_conc_start + 4.0, float(conc_ann.get("end_y_percent", 77.0) or 77.0) if conc_ann else 77.0))
+
+                    # Conclusion remark & annotation
+                    c_crit = str(conc_audit_obj.get("current_critique") or "")
+                    c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "")
+                    clean_close = _clean_quote_snippet(closing_line, 120)
+                    clean_topper = c_rew.strip() if len(c_rew.strip()) >= 25 else 'Anchor closing line in 1 concrete institutional benchmark.'
+                    if clean_close:
+                        real_conc_rem = f"✓ **Closing Stance Evaluated**: Concluded with *\"{clean_close}\"* tying together the core directive.\n✎ **Topper Finish**: {clean_topper}"
+                    elif c_crit and len(c_crit) >= 30 and not _has_meta_placeholder(c_crit):
+                        clean_crit = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:\*\*(?:Closing|Concluding)\s*Synthesis\s*Evaluated\*\*:?\s*)+', '', c_crit).strip()
+                        real_conc_rem = f"✓ **Closing Stance Evaluated**: {clean_crit}\n✎ **Topper Finish**: {clean_topper}"
+                    else:
+                        real_conc_rem = f"✓ **Closing Stance Evaluated**: Summarized candidate's concluding stand on the core directive.\n✎ **Topper Finish**: {clean_topper}"
+
+                    if is_wf_demanded and not has_written_wf:
+                        if "Missing Required Mitigation" not in real_conc_rem:
+                            real_conc_rem += "\n✗ **Missing Required Mitigation**: The question demanded practical measures/mitigation, but no remedial points were provided before concluding."
+
+                    real_conc_ann = {
+                        "page": pg,
+                        "approx_y_percent": int(round((real_conc_start + real_conc_end) / 2)),
+                        "start_y_percent": real_conc_start,
+                        "end_y_percent": real_conc_end,
+                        "tag": "निष्कर्ष" if is_hindi else "Conclusion",
+                        "type": "suggestion",
+                        "marks_awarded": "+1.0 / 2.0",
+                        "remark": real_conc_rem
+                    }
 
                     if conc_ann and allow_final_body_split:
-                        # Extract closing prose line from pg_trans (e.g. "It can be seen that...", "Thus ethical ideas...")
-                        closing_line = ""
-                        cand_conc_candidates = []
-                        for ln in raw_pg_trans_final.splitlines():
-                            ln_c = ln.strip()
-                            if re.match(r'^(?:thus|hence|therefore|in\s+conclusion|overall|consequently|to\s+conclude|अतः|निष्कर्षतः)\b', ln_c, re.IGNORECASE):
-                                cand_conc_candidates.append(ln_c)
-                            elif len(ln_c) >= 25 and not re.match(r'^(?:[-*•–—]|point\s*\d+|\b[①-⑩\d]+[\.\)])', ln_c):
-                                cand_conc_candidates.append(ln_c)
-                        if cand_conc_candidates:
-                            closing_line = cand_conc_candidates[-1]
-
-                        # Conclusion boundaries: strictly above bottom printed examiner box (y >= 80%)
-                        real_conc_start = max(72.0, float(conc_ann.get("start_y_percent", 72.0) or 72.0))
-                        real_conc_end = min(79.0, max(real_conc_start + 4.0, float(conc_ann.get("end_y_percent", 78.0) or 78.0)))
-
                         # Determine UPPER and LOWER body section tags and bounds strictly respecting physical top-to-bottom order!
                         if len(cand_page_headings) >= 2:
-                            # Candidate explicitly authored 2 distinct sub-headings!
-                            upper_tag = f"Body: {cand_page_headings[0]['text']}"
+                            h0_txt = cand_page_headings[0]['text'].title() if (cand_page_headings[0]['text'].isupper() and len(cand_page_headings[0]['text']) > 3 and not re.search(r'[\u0900-\u097F]', cand_page_headings[0]['text'])) else cand_page_headings[0]['text']
+                            h1_txt = cand_page_headings[1]['text'].title() if (cand_page_headings[1]['text'].isupper() and len(cand_page_headings[1]['text']) > 3 and not re.search(r'[\u0900-\u097F]', cand_page_headings[1]['text'])) else cand_page_headings[1]['text']
+                            upper_tag = f"Body: {h0_txt}" if not is_hindi else f"मुख्य भाग: {h0_txt}"
                             upper_start = max(8.0, float(cand_page_headings[0].get("approx_y", 10.0) - 2.0))
 
-                            lower_tag = f"Body: {cand_page_headings[1]['text']}"
+                            lower_tag = f"Body: {h1_txt}" if not is_hindi else f"मुख्य भाग: {h1_txt}"
                             lower_start = max(48.0, float(cand_page_headings[1].get("approx_y", 50.0) - 2.0))
                             upper_end = min(48.0, lower_start - 2.0)
                             lower_end = min(70.0, real_conc_start - 2.0)
                         elif len(cand_page_headings) == 1:
-                            upper_tag = f"Body: {cand_page_headings[0]['text']}"
+                            h0_txt = cand_page_headings[0]['text'].title() if (cand_page_headings[0]['text'].isupper() and len(cand_page_headings[0]['text']) > 3 and not re.search(r'[\u0900-\u097F]', cand_page_headings[0]['text'])) else cand_page_headings[0]['text']
+                            upper_tag = f"Body: {h0_txt}" if not is_hindi else f"मुख्य भाग: {h0_txt}"
                             upper_start = max(8.0, float(cand_page_headings[0].get("approx_y", 10.0) - 2.0))
                             upper_end = 46.0
                             if has_written_wf:
                                 lower_tag = "Body: आगे की राह व समाधान" if is_hindi else "Body: Way Forward & Solutions"
                             elif has_statutory_act:
                                 m_act = re.search(r'\b([A-Za-z\s]+Act\s+\d{4})\b', raw_pg_trans_final, re.IGNORECASE)
-                                lower_tag = f"Body: {m_act.group(1).strip()}" if m_act else "Body: Statutory & Policy Framework"
+                                lower_tag = f"Body: {m_act.group(1).strip()}" if m_act else ("Body: Statutory & Policy Framework" if not is_hindi else "मुख्य भाग: वैधानिक एवं नीतिगत ढांचा")
                             else:
-                                lower_tag = "Body: Strategic Measures & Governance Roadmap"
+                                lower_tag = f"Body: {h0_txt} (Contd.)" if not is_hindi else f"मुख्य भाग: {h0_txt} (आगे जारी)"
                             lower_start = 48.0
                             lower_end = min(70.0, real_conc_start - 2.0)
                         else:
-                            if body_anns and body_anns[0].get("tag"):
-                                upper_tag = str(body_anns[0]["tag"])
-                            else:
-                                upper_tag = "Body: Challenges & Critical Constraints"
+                            upper_tag = f"Body: {primary_cand_heading}" if primary_cand_heading else ("Body: Core Analysis" if not is_hindi else "मुख्य भाग: मुख्य विश्लेषण")
                             upper_start = 10.0
                             upper_end = 46.0
-                            if has_written_wf:
-                                lower_tag = "Body: आगे की राह व समाधान" if is_hindi else "Body: Way Forward & Solutions"
-                            else:
-                                lower_tag = "Body: Policy Interventions & Way Forward"
+                            lower_tag = "Body: आगे की राह व समाधान" if is_hindi else "Body: Way Forward & Solutions"
                             lower_start = 48.0
                             lower_end = min(70.0, real_conc_start - 2.0)
 
-                        # Construct Upper Body Annotation (Placed at the TOP of the page!)
-                        if body_anns:
-                            body_ann_upper = body_anns[0]
-                            body_ann_upper["tag"] = upper_tag
-                            body_ann_upper["start_y_percent"] = upper_start
-                            body_ann_upper["end_y_percent"] = upper_end
-                            body_ann_upper["approx_y_percent"] = int(round((upper_start + upper_end) / 2))
-                            if not body_ann_upper.get("remark") or len(str(body_ann_upper.get("remark")).strip()) < 25 or _has_meta_placeholder(str(body_ann_upper.get("remark"))):
-                                body_ann_upper["remark"] = _build_page_zone_remark(pg, 0, upper_tag, upper_start)
-                        else:
-                            body_ann_upper = {
-                                "page": pg,
-                                "approx_y_percent": int(round((upper_start + upper_end) / 2)),
-                                "start_y_percent": upper_start,
-                                "end_y_percent": upper_end,
-                                "tag": upper_tag,
-                                "type": "tick",
-                                "marks_awarded": "+1.5 / 3.0",
-                                "remark": _build_page_zone_remark(pg, 0, upper_tag, upper_start)
-                            }
+                        body_ann_upper = body_anns[0] if body_anns else {}
+                        body_ann_upper["page"] = pg
+                        body_ann_upper["tag"] = upper_tag
+                        body_ann_upper["start_y_percent"] = upper_start
+                        body_ann_upper["end_y_percent"] = upper_end
+                        body_ann_upper["approx_y_percent"] = int(round((upper_start + upper_end) / 2))
+                        body_ann_upper["type"] = "tick"
+                        body_ann_upper["marks_awarded"] = "+1.5 / 3.0"
+                        if not body_ann_upper.get("remark") or len(str(body_ann_upper.get("remark")).strip()) < 25 or _has_meta_placeholder(str(body_ann_upper.get("remark"))):
+                            body_ann_upper["remark"] = _build_page_zone_remark(pg, 0, upper_tag, upper_start)
 
-                        # Construct Lower Body Annotation (Placed in the LOWER half of the page!)
                         lower_remark = ""
                         if len(body_anns) > 1 and body_anns[1].get("remark") and len(str(body_anns[1]["remark"])) >= 25 and not _has_meta_placeholder(str(body_anns[1]["remark"])):
                             lower_remark = body_anns[1]["remark"]
-                        elif conc_ann.get("remark") and not _is_conc_bullet(conc_ann.get("remark", "")) and len(str(conc_ann.get("remark"))).strip() >= 25:
-                            lower_remark = conc_ann.get("remark")
                         else:
                             lower_remark = _build_page_zone_remark(pg, 1, lower_tag, lower_start)
 
-                        body_ann_lower = {
-                            "page": pg,
-                            "approx_y_percent": int(round((lower_start + lower_end) / 2)),
-                            "start_y_percent": lower_start,
-                            "end_y_percent": lower_end,
-                            "tag": lower_tag,
-                            "type": "tick",
-                            "marks_awarded": "+1.5 / 3.0",
-                            "remark": lower_remark
-                        }
-
-                        # Conclusion remark & annotation (Placed strictly at the bottom before printed box!)
-                        c_crit = str(conc_audit_obj.get("current_critique") or "")
-                        c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "")
-                        clean_close = _clean_quote_snippet(closing_line, 120)
-                        clean_topper = c_rew.strip() if len(c_rew.strip()) >= 25 else 'Anchor closing line in 1 concrete institutional benchmark and forward-looking reform.'
-                        if clean_close:
-                            real_conc_rem = f"✓ **Closing Stance Evaluated**: Concluded with *\"{clean_close}\"* tying together the core directive.\n✎ **Topper Finish**: {clean_topper}"
-                        elif c_crit and len(c_crit) >= 30 and not _has_meta_placeholder(c_crit):
-                            clean_crit = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:\*\*(?:Closing|Concluding)\s*Synthesis\s*Evaluated\*\*:?\s*)+', '', c_crit).strip()
-                            real_conc_rem = f"✓ **Closing Stance Evaluated**: {clean_crit}\n✎ **Topper Finish**: {clean_topper}"
-                        else:
-                            real_conc_rem = f"✓ **Closing Stance Evaluated**: Summarized candidate's concluding stand on the core directive.\n✎ **Topper Finish**: {clean_topper}"
-
-                        if is_wf_demanded and not has_written_wf:
-                            if "Missing Required Mitigation" not in real_conc_rem:
-                                real_conc_rem += "\n✗ **Missing Required Mitigation**: The question demanded practical measures/mitigation, but no remedial points were provided before concluding."
-
-                        real_conc_ann = {
-                            "page": pg,
-                            "approx_y_percent": int(round((real_conc_start + real_conc_end) / 2)),
-                            "start_y_percent": real_conc_start,
-                            "end_y_percent": real_conc_end,
-                            "tag": "निष्कर्ष" if is_hindi else "Conclusion",
-                            "type": "suggestion",
-                            "marks_awarded": "+1.0 / 2.0",
-                            "remark": real_conc_rem
-                        }
+                        body_ann_lower = body_anns[1] if len(body_anns) > 1 else {}
+                        body_ann_lower["page"] = pg
+                        body_ann_lower["tag"] = lower_tag
+                        body_ann_lower["start_y_percent"] = lower_start
+                        body_ann_lower["end_y_percent"] = lower_end
+                        body_ann_lower["approx_y_percent"] = int(round((lower_start + lower_end) / 2))
+                        body_ann_lower["type"] = "tick"
+                        body_ann_lower["marks_awarded"] = "+1.5 / 3.0"
+                        body_ann_lower["remark"] = lower_remark
 
                         expanded_anns.append(body_ann_upper)
                         expanded_anns.append(body_ann_lower)
                         expanded_anns.append(real_conc_ann)
                     else:
-                        if conc_ann:
-                            c_rem = str(conc_ann.get("remark", ""))
-                            c_lines = [ln.strip() for ln in re.split(r'\n+|\s*\|\s*', c_rem) if ln.strip()]
-                            leaked_body_lines = [
-                                ln for ln in c_lines
-                                if not _has_meta_placeholder(ln)
-                                and not re.search(r'(?i)\b(?:elevate|anchor\s+with|how\s+to\s+elevate|topper\s+finish|to\s+score\s+full\s+marks)\b', ln)
-                                and re.search(r'(?i)(policy\s*breakdown|mitigation,\s*preparedness|mitigation.*response|ndma\s*guidelines|heat\s*action\s*plans|\bhaps\b|anrf|vaibhav)', ln)
-                            ]
-                            pure_conc_lines = [ln for ln in c_lines if ln not in leaked_body_lines]
-                            if leaked_body_lines:
-                                c_crit = str(conc_audit_obj.get("current_critique") or "✓ **Good Closing Line**: Balanced concluding stand on the core demand.")
-                                c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "Anchor closing sentence with topic-specific institutional and statutory reforms.")
-                                if pure_conc_lines:
-                                    conc_ann["remark"] = "\n".join(pure_conc_lines)
-                                else:
-                                    conc_ann["remark"] = f"{_fmt_bullet(c_crit, '✓')}\n✎ **Topper Finish**: {c_rew[:140]}"
-                                if body_anns:
-                                    b_existing = [ln.strip() for ln in re.split(r'\n+|\s*\|\s*', str(body_anns[0].get("remark", ""))) if ln.strip()]
-                                    for bl in leaked_body_lines:
-                                        if not any(bl[:20].lower() in ex.lower() for ex in b_existing):
-                                            b_existing.append(_fmt_bullet(bl, '✓' if ('good' in bl.lower() or 'structured' in bl.lower()) else '✎'))
-                                    clean_combined = [ln for ln in b_existing if not _is_conc_bullet(ln) and not _has_meta_placeholder(ln)]
-                                    if len(clean_combined) >= 2:
-                                        body_anns[0]["remark"] = "\n".join(clean_combined)
-                                    else:
-                                        body_anns[0]["remark"] = _build_page_zone_remark(pg, 0, str(body_anns[0].get("tag", "")), float(body_anns[0].get("start_y_percent", 0.0) or 0.0))
-                                else:
-                                    body_ann_new = {
-                                        "page": pg,
-                                        "approx_y_percent": 35,
-                                        "start_y_percent": 8,
-                                        "end_y_percent": 68,
-                                        "tag": "Body: Key Dimensions",
-                                        "type": "tick",
-                                        "marks_awarded": "+1.5 / 2.5",
-                                        "remark": _build_page_zone_remark(pg, 0, "Body: Key Dimensions", 8.0)
-                                    }
-                                    pg_anns.insert(0, body_ann_new)
-
-                            raw_conc_start = float(conc_ann.get("start_y_percent", 69.0) or 69.0)
-                            if raw_conc_start < 65.0:
-                                conc_ann["start_y_percent"] = 68.0
+                        # Final page has exactly 1 Body section + 1 Conclusion section!
+                        if len(cand_page_headings) == 1:
+                            h0_txt = cand_page_headings[0]['text'].title() if (cand_page_headings[0]['text'].isupper() and len(cand_page_headings[0]['text']) > 3 and not re.search(r'[\u0900-\u097F]', cand_page_headings[0]['text'])) else cand_page_headings[0]['text']
+                            single_body_tag = f"Body: {h0_txt}" if not is_hindi else f"मुख्य भाग: {h0_txt}"
+                        elif primary_cand_heading:
+                            if p_final_pt_str:
+                                single_body_tag = f"Body: {primary_cand_heading} ({p_final_pt_str})" if not is_hindi else f"मुख्य भाग: {primary_cand_heading} ({p_final_pt_str})"
                             else:
-                                conc_ann["start_y_percent"] = raw_conc_start
-                            # Conclusion must stop before pre-printed examiner table / footer box (typically y >= 75%-80%)
-                            raw_conc_end = float(conc_ann.get("end_y_percent", conc_ann["start_y_percent"] + 6.0) or (conc_ann["start_y_percent"] + 6.0))
-                            conc_ann["end_y_percent"] = min(76.0, max(conc_ann["start_y_percent"] + 4.0, raw_conc_end))
-                            if body_anns:
-                                for b in body_anns:
-                                    if float(b.get("end_y_percent", 68) or 68) >= float(conc_ann.get("start_y_percent", 70) or 70):
-                                        b["end_y_percent"] = float(conc_ann.get("start_y_percent", 70) or 70) - 1.5
-                                    if not b.get("remark") or len(str(b.get("remark")).strip()) < 25 or _has_meta_placeholder(str(b.get("remark"))):
-                                        b["remark"] = _build_page_zone_remark(pg, 0, str(b.get("tag", "")), float(b.get("start_y_percent", 0.0) or 0.0))
-                        expanded_anns.extend(pg_anns)
+                                single_body_tag = f"Body: {primary_cand_heading} (Contd.)" if not is_hindi else f"मुख्य भाग: {primary_cand_heading} (आगे जारी)"
+                        elif p_final_pt_str:
+                            single_body_tag = f"Body: Core Analysis ({p_final_pt_str})" if not is_hindi else f"मुख्य भाग: मुख्य विश्लेषण ({p_final_pt_str})"
+                        else:
+                            single_body_tag = f"Body: Core Demand" if not is_hindi else f"मुख्य भाग: मुख्य मांग"
+
+                        body_ann_single = body_anns[0] if body_anns else {}
+                        body_ann_single["page"] = pg
+                        body_ann_single["tag"] = single_body_tag
+                        body_ann_single["start_y_percent"] = 10.0
+                        body_ann_single["end_y_percent"] = real_conc_start - 2.0
+                        body_ann_single["approx_y_percent"] = int(round((10.0 + body_ann_single["end_y_percent"]) / 2))
+                        body_ann_single["type"] = "tick"
+                        body_ann_single["marks_awarded"] = "+1.5 / 3.0"
+                        if not body_ann_single.get("remark") or len(str(body_ann_single.get("remark")).strip()) < 25 or _has_meta_placeholder(str(body_ann_single.get("remark"))):
+                            body_ann_single["remark"] = _build_page_zone_remark(pg, 0, single_body_tag, 10.0)
+
+                        expanded_anns.append(body_ann_single)
+                        expanded_anns.append(real_conc_ann)
             annotations = expanded_anns
             for pg_idx in range(1, max_pg + 1):
                 pg_subset = [a for a in annotations if int(a.get("page", 1) or 1) == pg_idx]
@@ -3935,39 +3980,46 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         for p_num in range(1, max_ann_page + 1):
             p_anns = [a for a in annotations if int(a.get("page", 1) or 1) == p_num]
             cand_heads_ann = _extract_candidate_headings_from_page(_get_page_transcript(p_num))
+            _, _, p_pt_range = _extract_page_point_range(_get_page_transcript(p_num), is_hindi)
+            clean_target_tag = ""
             for idx_a, ann in enumerate(p_anns):
                 t_str = str(ann.get("tag", "")).strip()
                 target_head = cand_heads_ann[min(idx_a, len(cand_heads_ann) - 1)] if cand_heads_ann else ""
-                clean_target_head = target_head.title() if (target_head.isupper() and len(target_head) > 3) else target_head
+                clean_target_head = target_head.title() if (target_head.isupper() and len(target_head) > 3 and not re.search(r'[\u0900-\u097F]', target_head)) else target_head
+
+                if not clean_target_head:
+                    if primary_cand_heading:
+                        clean_target_head = f"{primary_cand_heading} ({p_pt_range})" if p_pt_range else f"{primary_cand_heading} (Contd.)"
+                    elif p_pt_range:
+                        clean_target_head = f"Core Analysis ({p_pt_range})"
+                    else:
+                        clean_target_head = "Core Demand" if not is_hindi else "मुख्य मांग"
+
+                clean_target_tag = f"Body: {clean_target_head}" if not is_hindi else f"मुख्य भाग: {clean_target_head}"
 
                 if p_num < max_ann_page:
                     if "conclusion" in t_str.lower() or "synthesis" in t_str.lower():
-                        ann["tag"] = f"Body: {clean_target_head}" if clean_target_head else "Body: Key Dimensions"
+                        ann["tag"] = clean_target_tag
                 if p_num > 1:
                     # Do NOT convert intro on page > 1 if page 1 had no student intro (e.g. Case Study Prompt on Page 1)
                     if p1_has_graded_intro and ("intro" in t_str.lower() or "definition" in t_str.lower()):
-                        ann["tag"] = f"Body: {clean_target_head}" if clean_target_head else "Body: Core Analysis"
+                        ann["tag"] = clean_target_tag
 
                 # Cleanse any lingering "Depth & Substantiation" tag
                 if re.search(r'(?i)\bdepth\s*(?:&|and)\s*substantiation\b', str(ann.get("tag", ""))):
-                    ann["tag"] = f"Body: {clean_target_head}" if clean_target_head else "Body: Core Dimensional Analysis"
+                    ann["tag"] = clean_target_tag
 
                 # Cleanse any lingering unwarranted "Way Forward" tag
                 if re.search(r'(?i)\bway\s*forward(?:\s*(?:&|and)\s*reforms)?\b', str(ann.get("tag", ""))):
                     cand_has_wf_ann = _has_candidate_written_way_forward(_get_page_transcript(p_num))
                     q_demands_wf_ann = _is_way_forward_demanded_by_question(resolved_q)
                     if not cand_has_wf_ann and not q_demands_wf_ann:
-                        ann["tag"] = f"Body: {clean_target_head}" if clean_target_head else "Body: Core Arguments"
+                        ann["tag"] = clean_target_tag
 
             # Cleanse leaked prompt example tags (e.g. ToR, Fiscal Federalism, Divisible Pool, Article 280) when question is NOT about Finance Commission
             is_fc_q = bool(re.search(r'(?i)\b(?:finance\s+commission|fiscal\s+federalism|devolution|article\s+280|divisible\s+pool)\b', resolved_q))
             if not is_fc_q and re.search(r'(?i)\b(?:tor|fiscal\s+federalism|divisible\s+pool|article\s+280)\b', str(ann.get("tag", ""))):
-                cand_heads_ann = _extract_candidate_headings_from_page(_get_page_transcript(ann_page))
-                if cand_heads_ann:
-                    h_clean = cand_heads_ann[-1].title() if cand_heads_ann[-1].isupper() and len(cand_heads_ann[-1]) > 3 else cand_heads_ann[-1]
-                    ann["tag"] = f"Body: {h_clean}"
-                else:
-                    ann["tag"] = "Body: Secondary Analytical Dimension"
+                ann["tag"] = clean_target_tag if clean_target_tag else ("Body: Core Analysis" if not is_hindi else "मुख्य भाग: मुख्य विश्लेषण")
 
             # Strip artificial (Part 1) and (Part 2) suffixes from tags
             ann["tag"] = re.sub(r'\s*\((?:Part|Pt\.?)\s*[12]\)', '', str(ann.get("tag", ""))).strip()

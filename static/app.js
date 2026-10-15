@@ -6841,7 +6841,7 @@ function renderAnnotationsOverlay() {
           }
           if (!t2 || /depth|substantiat/i.test(t2) || window.isMetaPlaceholderText(t2)) {
             const matchH2 = nonConcAnns[1].remark && nonConcAnns[1].remark.match(/\*\*(?:Candidate Heading|Section):\s*([^*]+)\*\*/i);
-            t2 = matchH2 ? matchH2[1].trim().toUpperCase() : `SECONDARY DIMENSIONS`;
+            t2 = matchH2 ? matchH2[1].trim().toUpperCase() : (t1 ? `${t1} (CONTD.)` : (isHindi ? "विश्लेषणात्मक आयाम" : "ANALYTICAL DIMENSIONS"));
           }
 
           outSections.push({
@@ -7094,7 +7094,7 @@ function renderAnnotationsOverlay() {
             } else if (isWfDemanded || hasCandidateWf) {
               sec2TitleRaw = /आगे\s*की\s*राह/i.test(finalPgTranscript) ? "आगे की राह व समाधान" : "WAY FORWARD & REFORMS";
             } else {
-              sec2TitleRaw = "STRATEGIC INTERVENTIONS";
+              sec2TitleRaw = (sec1TitleRaw ? `${sec1TitleRaw} (CONTD.)` : (isHindi ? "विश्लेषणात्मक आयाम" : "ANALYTICAL DIMENSIONS"));
             }
           }
 
@@ -9290,7 +9290,7 @@ function deriveAdaptiveCardHeading(sec, quote, evalData, currentPg, totalPages) 
   const isGenericLabel = (str) => {
     if (!str || str.length < 4) return true;
     if (typeof window.isMetaPlaceholderText === "function" && window.isMetaPlaceholderText(str)) return true;
-    return /\b(?:definition\s*&\s*scope|core\s*demand|closing\s*synthesis|depth\s*&\s*substantiation|good\s*governance\s*template|primary\s*demand|secondary\s*demand|actionable\s*way\s*forward|constructive\s*way\s*forward|underlying\s*mechanisms|multidimensional\s*impacts|actionable\s*interventions|factual\s*accuracy|परिभाषा\s*एवं\s*दायरा|मुख्य\s*मांग|आगे\s*की\s*राह|अनुत्तरित|context\s*&\s*conceptual\s*definition|closing\s*synthesis\s*&\s*way\s*forward|evolution\s*of\s*case\s*laws|constitutional\s*supremacy\s*\(page\s*\d+\)|causes\s*of\s*marine\s*heat\s*waves|impacts\s*of\s*marine\s*heat\s*waves)\b/i.test(str.trim());
+    return /\b(?:definition\s*&\s*scope|core\s*demand|closing\s*synthesis|depth\s*&\s*substantiation|good\s*governance\s*template|primary\s*demand|secondary\s*demand|actionable\s*way\s*forward|constructive\s*way\s*forward|underlying\s*mechanisms|multidimensional\s*impacts|actionable\s*interventions|factual\s*accuracy|secondary\s*analysis|challenges\s*(?:&|and)\s*critical|core\s*arguments|strategic\s*interventions|secondary\s*dimensions|governance\s*roadmap|policy\s*interventions|परिभाषा\s*एवं\s*दायरा|मुख्य\s*मांग|आगे\s*की\s*राह|अनुत्तरित|द्वितीयक\s*विश्लेषण|चुनौतियाँ\s*एवं\s*बाधाएं|संवैधानिक\s*समन्वय|context\s*&\s*conceptual\s*definition|closing\s*synthesis\s*&\s*way\s*forward|evolution\s*of\s*case\s*laws|constitutional\s*supremacy\s*\(page\s*\d+\)|causes\s*of\s*marine\s*heat\s*waves|impacts\s*of\s*marine\s*heat\s*waves)\b/i.test(str.trim());
   };
 
   if (sec.zone === "conclusion" && (sec.isUnwritten || (sec.marks && sec.marks.includes("0.0")))) {
@@ -9388,6 +9388,14 @@ function deriveAdaptiveCardHeading(sec, quote, evalData, currentPg, totalPages) 
     }
   }
 
+  // If no local heading found, check global candidate headings across the entire answer
+  if (!candHeading && typeof window.extractCandidateHeadingsWithPositions === "function") {
+    const allHeads = window.extractCandidateHeadingsWithPositions(String(evalData.transcribed_text || ""));
+    if (allHeads && allHeads.length >= 1) {
+      candHeading = allHeads[0].text.replace(/^[\[\(]|[\)\]]$/g, "").replace(/[:-—–\s]+$/, "").trim().toUpperCase();
+    }
+  }
+
   if (candHeading && !isGenericLabel(candHeading)) {
     return pointTag ? `${candHeading} ${pointTag}` : candHeading;
   }
@@ -9398,13 +9406,14 @@ function deriveAdaptiveCardHeading(sec, quote, evalData, currentPg, totalPages) 
 
   // If quote contains candidate numbered points, it is strictly a body point card
   if (pointTag) {
-    if (/regional parties|federal checks|unilateralism/i.test(safeQuote)) {
+    const isRegionalQ = /coalition|regionalism|federal/i.test(qClean);
+    if (isRegionalQ && /regional parties|federal checks|unilateralism/i.test(safeQuote)) {
       return `FEDERAL CHECKS AGAINST UNILATERALISM ${pointTag}`;
     }
-    if (/localized|sub-regional|linguistic identity|aspirations/i.test(safeQuote)) {
+    if (isRegionalQ && /localized|sub-regional|linguistic identity|aspirations/i.test(safeQuote)) {
       return `SUB-REGIONAL IDENTITY & GRIEVANCE REDRESSAL ${pointTag}`;
     }
-    if (/coalition dependence|fiscal patronage|populist bargaining|instability/i.test(safeQuote)) {
+    if (isRegionalQ && /coalition dependence|fiscal patronage|populist bargaining|instability/i.test(safeQuote)) {
       return `FISCAL BARGAINING & COALITION STABILITY ${pointTag}`;
     }
     const topKeywords = substantive.slice(0, 3).map(w => w.toUpperCase()).join(" & ");
@@ -9418,8 +9427,13 @@ function deriveAdaptiveCardHeading(sec, quote, evalData, currentPg, totalPages) 
   }
 
   if (sec.zone === "conclusion" || sec.zone === "concl") {
+    const hasCandWf = /\b(?:way\s*forward|way\s*ahead|measures\s*needed|mitigation|solutions?|suggestions?|reforms?|आगे\s*की\s*राह|समाधान|सुझाव)\b/i.test(safeQuote + " " + qClean);
+    const isWfDemanded = /\b(?:way\s+forward|mitigat|suggest\s+measures|remed|roadmap|policy\s+response|solutions?|what\s+steps|how\s+to\s+address)\b/i.test(qClean);
+    if (hasCandWf || isWfDemanded) {
+      return isHindi ? "समाधान एवं आगे की राह" : "WAY FORWARD & SYNTHESIS";
+    }
     const qDirectiveSuffix = qDirective ? ` (${qDirective})` : "";
-    return isHindi ? "संवैधानिक समन्वय एवं आगे की राह" : `CLOSING SYNTHESIS & WAY FORWARD${qDirectiveSuffix}`;
+    return isHindi ? "निष्कर्ष एवं मूल्यांकन" : `CONCLUSION & SYNTHESIS${qDirectiveSuffix}`;
   }
 
   const topTokens = substantive.slice(0, 3).map(w => w.toUpperCase()).join(" & ");
