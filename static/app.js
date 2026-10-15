@@ -9457,10 +9457,11 @@ function ensureSectionsQuoteAudit(sections, currentPg) {
 }
 window.ensureSectionsQuoteAudit = ensureSectionsQuoteAudit;
 
-// Global helper: Render Examiner Line-by-Line Audit cards in blank area below answersheet on PC & Tablet
+// Global helper: Render Point-by-Point Handwritten Audit cards in blank area below answersheet on PC & Tablet (Image 2 style)
 window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
   const container = document.getElementById("desktopAuditCardsContainer");
   const header = document.getElementById("desktopAuditHeader");
+  const subHeading = document.getElementById("desktopAuditSubHeading");
   const scorePill = document.getElementById("desktopAuditScorePill");
   const auditSection = document.getElementById("desktopExaminerAuditContainer");
 
@@ -9479,10 +9480,16 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
 
   auditSection.classList.remove("hidden");
 
-  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(typeof state !== "undefined" ? state.currentEvaluation : null);
+  const evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
+  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
 
+  if (subHeading) {
+    subHeading.textContent = isHindi ? "2. हस्तलिखित उत्तर का बिंदुवार मूल्यांकन" : "2. Point-by-Point Handwritten Audit";
+  }
   if (header) {
-    header.textContent = isHindi ? `पृष्ठ ${currentPg} / ${totalPages} के मूल्यांकित बिंदु` : `Evaluated Points for Page ${currentPg} of ${totalPages}`;
+    header.textContent = isHindi
+      ? `पृष्ठ ${currentPg} / ${totalPages} — किन बिंदुओं पर अंक मिले बनाम सुधार का दायरा`
+      : `Which Exact Points Fetched Marks vs. Scope to Upgrade (Page ${currentPg} of ${totalPages})`;
   }
 
   let pageScoreTotal = 0;
@@ -9546,97 +9553,117 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
     }
   }
 
+  // Cross-reference with evalData.point_by_point_audit if available
+  const pbpAll = Array.isArray(evalData.point_by_point_audit) ? evalData.point_by_point_audit : [];
+  const pbpPageItems = pbpAll.filter(p => (parseInt(p.page, 10) || 1) === currentPg);
+
   cardData.forEach(({ sec, quote, advise, quoteStatus, sourcePassage, assessment, idx }) => {
     const card = document.createElement("div");
     card.id = `desktopEvalCard_${idx}`;
-    card.className = "eval-card p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 transition-all duration-300 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer select-none";
+    card.setAttribute("data-point-page", currentPg);
+    card.setAttribute("data-point-idx", idx);
+    card.className = "eval-card w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-2 transition-all duration-300 hover:border-slate-300 dark:hover:border-slate-700 select-text";
 
-    let pinLabel = sec.icon || "✓";
-    const mMatch = String(sec.marks || "").match(/\+?(\d+(?:\.\d+)?)/);
+    const matchedPbp = pbpPageItems[idx] || null;
+
+    // 1. Left Pill: PAGE X • [SECTION/CATEGORY] ↗
+    let shortTag = "";
+    if (matchedPbp && matchedPbp.badge) {
+      shortTag = String(matchedPbp.badge).replace(/^Page\s*\d+\s*[•·-]\s*/i, "").replace(/^पृष्ठ\s*\d+\s*[•·-]\s*/i, "").trim();
+    }
+    if (!shortTag) {
+      if (sec.zone === "intro" || (idx === 0 && currentPg === 1)) {
+        shortTag = isHindi ? "प्रारंभिक संदर्भ व भूमिका" : "OPENING & CONTEXT";
+      } else if (sec.zone === "conclusion" || (idx === cardData.length - 1 && currentPg === totalPages)) {
+        shortTag = isHindi ? "आगे की राह व निष्कर्ष" : "WAY FORWARD & CLOSING";
+      } else {
+        const rawT = String(sec.title || "").replace(/^(?:BODY|PART\s*[A-Z]|मुख्य\s*भाग)[:\s-]*/i, "").trim();
+        shortTag = rawT.length > 32 ? (rawT.slice(0, 30) + "..") : rawT;
+      }
+    }
+    const pageBadgeText = isHindi ? `पृष्ठ ${currentPg} • ${shortTag.toUpperCase()}` : `PAGE ${currentPg} • ${shortTag.toUpperCase()}`;
+
+    // 2. Right Pill: Exact marks awarded
+    let awardedVal = 1.0;
+    let maxVal = 2.0;
+    const mMatch = String(sec.marks || "").match(/([0-9]+(?:\.[0-9]+)?)\s*\/\s*([0-9]+(?:\.[0-9]+)?)/);
     if (mMatch) {
-      const val = parseFloat(mMatch[1]);
-      pinLabel = val === 0 ? "0.0" : ("+" + (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)));
+      awardedVal = parseFloat(mMatch[1]);
+      maxVal = parseFloat(mMatch[2]);
+    } else {
+      const singleM = String(sec.marks || "").match(/\+?([0-9]+(?:\.[0-9]+)?)/);
+      if (singleM) awardedVal = parseFloat(singleM[1]);
     }
 
-    const isGreen = sec.isTick && pinLabel !== "0.0";
-    const labelColor = isGreen ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400";
-    const pillClass = isGreen
-      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
-      : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30";
+    let isPositive = sec.isTick !== false && awardedVal > 0;
+    let creditBadgeText = "";
+    if (matchedPbp && matchedPbp.credit_badge) {
+      creditBadgeText = matchedPbp.credit_badge;
+      if (matchedPbp.is_positive !== undefined) isPositive = Boolean(matchedPbp.is_positive);
+    } else {
+      const ratio = maxVal > 0 ? (awardedVal / maxVal) : 0.5;
+      if (isHindi) {
+        creditBadgeText = ratio >= 0.4 ? `✓ +${awardedVal.toFixed(1)}M अंक मिले` : `✎ +${awardedVal.toFixed(1)}M सुधार का दायरा`;
+      } else {
+        creditBadgeText = ratio >= 0.6 ? `✓ +${awardedVal.toFixed(1)}M Rewarded` : (ratio >= 0.4 ? `✓ +${awardedVal.toFixed(1)}M Credit` : `➔ +${awardedVal.toFixed(1)}M Scope`);
+      }
+    }
 
-    const { quoteLabel, formattedQuoteHtml } = formatQuoteStatusDisplay(quote, quoteStatus, sourcePassage, isHindi);
-    const pageBadge = isHindi ? `पृष्ठ ${currentPg}` : `Page ${currentPg}`;
+    const badgeStyle = isPositive
+      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+      : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30";
 
-    const ass = assessment || sec.assessment || (sec._quoteAudit && sec._quoteAudit.assessment) || {};
-    const answersWell = sanitizeCompleteSentence(ass.answersWell || "");
-    const inaccuracyOrGap = sanitizeCompleteSentence(ass.inaccuracyOrGap || "");
-    const whyItMatters = sanitizeCompleteSentence(ass.whyItMatters || "");
-    const specificImprovement = sanitizeCompleteSentence(ass.specificImprovement || advise || "");
+    // 3. Bold Heading Title
+    let headingTitle = "";
+    if (matchedPbp && matchedPbp.title && !window.isMetaPlaceholderText(matchedPbp.title)) {
+      headingTitle = matchedPbp.title;
+    } else if (sec.headingTitle && !window.isMetaPlaceholderText(sec.headingTitle)) {
+      headingTitle = sec.headingTitle;
+    } else {
+      headingTitle = String(sec.title || "").replace(/^(?:BODY|PART\s*[A-Z]|मुख्य\s*भाग)[:\s-]*/i, "").trim();
+    }
+
+    // 4. Quote & Verdict
+    let whatYouWrote = (matchedPbp && matchedPbp.what_you_wrote && !window.isMetaPlaceholderText(matchedPbp.what_you_wrote))
+      ? matchedPbp.what_you_wrote
+      : cleanCandidateQuote(quote, 220);
+    if (!whatYouWrote) {
+      whatYouWrote = cleanCandidateQuote(sourcePassage || sec.bodyHtml || "", 220);
+    }
+    whatYouWrote = whatYouWrote.replace(/^["']|["']$/g, "").trim();
+
+    let verdict = "";
+    if (matchedPbp && matchedPbp.examiner_verdict && !window.isMetaPlaceholderText(matchedPbp.examiner_verdict)) {
+      verdict = matchedPbp.examiner_verdict;
+    } else {
+      const ass = assessment || sec.assessment || (sec._quoteAudit && sec._quoteAudit.assessment) || {};
+      const answersWell = sanitizeCompleteSentence(ass.answersWell || "");
+      const specificImprovement = sanitizeCompleteSentence(ass.specificImprovement || advise || "");
+      const inaccuracyOrGap = sanitizeCompleteSentence(ass.inaccuracyOrGap || "");
+      if (answersWell) {
+        verdict = `${answersWell} ${specificImprovement || inaccuracyOrGap}`.trim();
+      } else {
+        verdict = specificImprovement || inaccuracyOrGap || advise || (isHindi ? "यूपीएससी मूल्यांकन मानकों के अनुरूप प्रभावी प्रस्तुति।" : "Evaluated candidate's handwritten point with UPSC benchmarks.");
+      }
+    }
+
+    const quotePrefix = isHindi ? "परीक्षार्थी का उत्तर" : "Candidate's Writing";
 
     card.innerHTML = `
-      <div class="flex items-start justify-between mb-2 gap-2">
-        <span class="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-white flex items-start gap-1.5 min-w-0">
-          <span class="${labelColor} font-mono font-bold shrink-0 mt-0.5">${escapeHtml(pinLabel)}</span>
-          <span class="break-words leading-snug">${escapeHtml(sec.title)}</span>
+      <div class="w-full flex flex-wrap items-center justify-between gap-1.5 min-w-0">
+        <button type="button" onclick="window.jumpToAnswerSheetPage(${currentPg})" title="Click to view Page ${currentPg} on Answer Sheet" class="text-[10px] sm:text-[10.5px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 transition cursor-pointer max-w-full whitespace-normal break-words text-left leading-snug">
+          ${escapeHtml(pageBadgeText)} ↗
+        </button>
+        <span class="text-[10.5px] sm:text-[11px] font-extrabold px-2 py-0.5 rounded-md border ${badgeStyle} shrink-0 whitespace-nowrap">
+          ${escapeHtml(creditBadgeText)}
         </span>
-        <span class="text-xs font-mono font-bold px-2 py-0.5 rounded ${pillClass} shrink-0 whitespace-nowrap">
-          ${escapeHtml(sec.marks)}
-        </span>
       </div>
-
-      <!-- Candidate Evidence -->
-      <div class="mb-2 p-2 rounded-lg bg-slate-100 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800/80">
-        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
-          <span>${escapeHtml(quoteLabel)}</span>
-          <span class="font-mono text-[9.5px] opacity-75">${escapeHtml(pageBadge)}</span>
-        </div>
-        <p class="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-sans italic">
-          ${formattedQuoteHtml}
-        </p>
+      <div class="w-full text-xs font-extrabold text-slate-900 dark:text-slate-100 leading-snug break-words">
+        ${escapeHtml(headingTitle)}
       </div>
-
-      <!-- Assessor's Judgment: 4 Structured Pillars -->
-      <div class="space-y-1.5 text-xs font-sans">
-        ${answersWell ? `
-        <div class="p-2 rounded-lg bg-emerald-500/10 dark:bg-emerald-950/25 border border-emerald-500/30 text-emerald-950 dark:text-emerald-200 leading-relaxed">
-          <div class="font-bold flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 mb-0.5 text-[11px]">
-            <span>✓</span> <span>${isHindi ? "प्रभावी उत्तर" : "Answers Well"}:</span>
-          </div>
-          <div class="pl-3.5 text-slate-700 dark:text-slate-300 text-[11.5px] leading-relaxed">
-            ${typeof formatHighlightedText === "function" ? formatHighlightedText(answersWell) : escapeHtml(answersWell)}
-          </div>
-        </div>` : ""}
-
-        ${inaccuracyOrGap ? `
-        <div class="p-2 rounded-lg bg-rose-500/10 dark:bg-rose-950/25 border border-rose-500/30 text-rose-950 dark:text-rose-200 leading-relaxed">
-          <div class="font-bold flex items-center gap-1.5 text-rose-700 dark:text-rose-400 mb-0.5 text-[11px]">
-            <span>✗</span> <span>${isHindi ? "कमी / अशुद्धि (अंक कटौती)" : "Inaccurate / Incomplete (Deduction)"}:</span>
-          </div>
-          <div class="pl-3.5 text-slate-700 dark:text-slate-300 text-[11.5px] leading-relaxed">
-            ${typeof formatHighlightedText === "function" ? formatHighlightedText(inaccuracyOrGap) : escapeHtml(inaccuracyOrGap)}
-          </div>
-        </div>` : ""}
-
-        ${whyItMatters ? `
-        <div class="p-2 rounded-lg bg-indigo-500/10 dark:bg-indigo-950/25 border border-indigo-500/30 text-indigo-950 dark:text-indigo-200 leading-relaxed">
-          <div class="font-bold flex items-center gap-1.5 text-indigo-700 dark:text-indigo-400 mb-0.5 text-[11px]">
-            <span>⚖</span> <span>${isHindi ? "प्रश्न के लिए महत्व" : "Why It Matters"}:</span>
-          </div>
-          <div class="pl-3.5 text-slate-700 dark:text-slate-300 text-[11.5px] leading-relaxed italic">
-            ${typeof formatHighlightedText === "function" ? formatHighlightedText(whyItMatters) : escapeHtml(whyItMatters)}
-          </div>
-        </div>` : ""}
-
-        ${specificImprovement ? `
-        <div class="p-2 rounded-lg bg-amber-500/10 dark:bg-amber-950/25 border border-amber-500/30 text-amber-950 dark:text-amber-200 leading-relaxed">
-          <div class="font-bold flex items-center gap-1.5 text-amber-700 dark:text-amber-400 mb-0.5 text-[11px]">
-            <span>💡</span> <span>${isHindi ? "ठोस सुधार" : "Specific Improvement"}:</span>
-          </div>
-          <div class="pl-3.5 text-slate-700 dark:text-slate-300 text-[11.5px] leading-relaxed">
-            ${typeof formatHighlightedText === "function" ? formatHighlightedText(specificImprovement) : escapeHtml(specificImprovement)}
-          </div>
-        </div>` : ""}
-      </div>
+      <p class="w-full text-xs text-slate-700 dark:text-slate-300 leading-relaxed break-words font-sans">
+        <strong class="text-slate-900 dark:text-white">${quotePrefix}:</strong> "${escapeHtml(whatYouWrote)}" &mdash; ${typeof formatHighlightedText === "function" ? formatHighlightedText(verdict) : escapeHtml(verdict)}
+      </p>
     `;
 
     card.addEventListener("mouseenter", () => {
@@ -9736,22 +9763,20 @@ window.focusGutterPointOnPage = function(index, yPercent, marksStr, sec, isPinne
     }
   });
 
-  // Directs to and highlights matching card in Examiner Line-by-Line Audit below answersheet
+  // Highlights matching card in Point-by-Point Handwritten Audit below answersheet (without intrusive scroll-jumping)
   document.querySelectorAll("#desktopAuditCardsContainer .eval-card").forEach((card, cIdx) => {
     if (cIdx === index) {
-      card.classList.remove("border-slate-200", "dark:border-slate-800", "bg-slate-50", "dark:bg-slate-950");
+      card.classList.remove("border-slate-200", "dark:border-slate-800", "bg-slate-50", "dark:bg-slate-950/70");
       card.classList.add("border-amber-500", "dark:border-amber-400", "bg-amber-50/60", "dark:bg-slate-900", "pulse-glow");
-      if (isPinned) {
-        card.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
+      // DELINKED from forced viewport scroll: user remains uninterrupted on the handwritten answer sheet
     } else {
       card.classList.remove("border-amber-500", "dark:border-amber-400", "bg-amber-50/60", "dark:bg-slate-900", "pulse-glow");
-      card.classList.add("border-slate-200", "dark:border-slate-800", "bg-slate-50", "dark:bg-slate-950");
+      card.classList.add("border-slate-200", "dark:border-slate-800", "bg-slate-50", "dark:bg-slate-950/70");
     }
   });
 };
 
-// Global helper: Render point inside mobile thumb-card drawer (< 1024px)
+// Global helper: Render point inside mobile thumb-card drawer (< 1024px) (Image 2 style)
 window.renderMobileDrawerPoint = function(index) {
   const sections = window._activeGutterSections || [];
   if (!sections.length) return;
@@ -9770,93 +9795,107 @@ window.renderMobileDrawerPoint = function(index) {
     counter.textContent = `Point ${safeIdx + 1} of ${sections.length}`;
   }
 
-  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(typeof state !== "undefined" ? state.currentEvaluation : null);
-  const isGreen = sec.isTick;
-  const badgeColor = isGreen ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400";
-  const badgeBg = isGreen
-    ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30"
-    : "bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30";
+  const evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
+  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
 
-  const audit = sec._quoteAudit || getCardQuoteAndElevate(sec, null);
-  const { quoteLabel, formattedQuoteHtml } = formatQuoteStatusDisplay(audit.quote, audit.quoteStatus, audit.sourcePassage, isHindi);
-  const pageBadge = isHindi ? `पृष्ठ ${currentPg}` : `Page ${currentPg}`;
+  // Check matching point in point_by_point_audit
+  const pbpAll = Array.isArray(evalData.point_by_point_audit) ? evalData.point_by_point_audit : [];
+  const pbpPageItems = pbpAll.filter(p => (parseInt(p.page, 10) || 1) === currentPg);
+  const matchedPbp = pbpPageItems[safeIdx] || null;
 
-  const ass = audit.assessment || sec.assessment || {};
-  const answersWell = sanitizeCompleteSentence(ass.answersWell || "");
-  const inaccuracyOrGap = sanitizeCompleteSentence(ass.inaccuracyOrGap || "");
-  const whyItMatters = sanitizeCompleteSentence(ass.whyItMatters || "");
-  const specificImprovement = sanitizeCompleteSentence(ass.specificImprovement || audit.advise || "");
+  let shortTag = "";
+  if (matchedPbp && matchedPbp.badge) {
+    shortTag = String(matchedPbp.badge).replace(/^Page\s*\d+\s*[•·-]\s*/i, "").replace(/^पृष्ठ\s*\d+\s*[•·-]\s*/i, "").trim();
+  }
+  if (!shortTag) {
+    if (sec.zone === "intro" || (safeIdx === 0 && currentPg === 1)) {
+      shortTag = isHindi ? "प्रारंभिक संदर्भ" : "OPENING & CONTEXT";
+    } else if (sec.zone === "conclusion" || (safeIdx === sections.length - 1 && currentPg === ((state.activePages && state.activePages.length) || 1))) {
+      shortTag = isHindi ? "आगे की राह व निष्कर्ष" : "WAY FORWARD & CLOSING";
+    } else {
+      const rawT = String(sec.title || "").replace(/^(?:BODY|PART\s*[A-Z]|मुख्य\s*भाग)[:\s-]*/i, "").trim();
+      shortTag = rawT.length > 28 ? (rawT.slice(0, 26) + "..") : rawT;
+    }
+  }
+  const pageBadgeText = isHindi ? `पृष्ठ ${currentPg} • ${shortTag.toUpperCase()}` : `PAGE ${currentPg} • ${shortTag.toUpperCase()}`;
+
+  let awardedVal = 1.0;
+  let maxVal = 2.0;
+  const mMatch = String(sec.marks || "").match(/([0-9]+(?:\.[0-9]+)?)\s*\/\s*([0-9]+(?:\.[0-9]+)?)/);
+  if (mMatch) {
+    awardedVal = parseFloat(mMatch[1]);
+    maxVal = parseFloat(mMatch[2]);
+  } else {
+    const singleM = String(sec.marks || "").match(/\+?([0-9]+(?:\.[0-9]+)?)/);
+    if (singleM) awardedVal = parseFloat(singleM[1]);
+  }
+
+  let isPositive = sec.isTick !== false && awardedVal > 0;
+  let creditBadgeText = "";
+  if (matchedPbp && matchedPbp.credit_badge) {
+    creditBadgeText = matchedPbp.credit_badge;
+    if (matchedPbp.is_positive !== undefined) isPositive = Boolean(matchedPbp.is_positive);
+  } else {
+    const ratio = maxVal > 0 ? (awardedVal / maxVal) : 0.5;
+    if (isHindi) {
+      creditBadgeText = ratio >= 0.4 ? `✓ +${awardedVal.toFixed(1)}M अंक मिले` : `✎ +${awardedVal.toFixed(1)}M सुधार का दायरा`;
+    } else {
+      creditBadgeText = ratio >= 0.6 ? `✓ +${awardedVal.toFixed(1)}M Rewarded` : (ratio >= 0.4 ? `✓ +${awardedVal.toFixed(1)}M Credit` : `➔ +${awardedVal.toFixed(1)}M Scope`);
+    }
+  }
+
+  const badgeStyle = isPositive
+    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+    : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30";
+
+  let headingTitle = "";
+  if (matchedPbp && matchedPbp.title && !window.isMetaPlaceholderText(matchedPbp.title)) {
+    headingTitle = matchedPbp.title;
+  } else if (sec.headingTitle && !window.isMetaPlaceholderText(sec.headingTitle)) {
+    headingTitle = sec.headingTitle;
+  } else {
+    headingTitle = String(sec.title || "").replace(/^(?:BODY|PART\s*[A-Z]|मुख्य\s*भाग)[:\s-]*/i, "").trim();
+  }
+
+  const audit = sec._quoteAudit || (typeof getCardQuoteAndElevate === "function" ? getCardQuoteAndElevate(sec, null) : {});
+  let whatYouWrote = (matchedPbp && matchedPbp.what_you_wrote && !window.isMetaPlaceholderText(matchedPbp.what_you_wrote))
+    ? matchedPbp.what_you_wrote
+    : cleanCandidateQuote(audit.quote || sec.quote, 180);
+  whatYouWrote = whatYouWrote.replace(/^["']|["']$/g, "").trim();
+
+  let verdict = "";
+  if (matchedPbp && matchedPbp.examiner_verdict && !window.isMetaPlaceholderText(matchedPbp.examiner_verdict)) {
+    verdict = matchedPbp.examiner_verdict;
+  } else {
+    const ass = audit.assessment || sec.assessment || {};
+    const answersWell = sanitizeCompleteSentence(ass.answersWell || "");
+    const specificImprovement = sanitizeCompleteSentence(ass.specificImprovement || audit.advise || "");
+    const inaccuracyOrGap = sanitizeCompleteSentence(ass.inaccuracyOrGap || "");
+    if (answersWell) {
+      verdict = `${answersWell} ${specificImprovement || inaccuracyOrGap}`.trim();
+    } else {
+      verdict = specificImprovement || inaccuracyOrGap || audit.advise || (isHindi ? "यूपीएससी मूल्यांकन मानकों के अनुरूप प्रभावी प्रस्तुति।" : "Evaluated candidate's handwritten point with UPSC benchmarks.");
+    }
+  }
+
+  const quotePrefix = isHindi ? "परीक्षार्थी का उत्तर" : "Candidate's Writing";
 
   content.innerHTML = `
-    <div class="flex items-start justify-between gap-2 mb-2">
-      <div class="font-bold text-slate-900 dark:text-white text-xs flex items-start gap-1.5 min-w-0">
-        <span class="${badgeColor} font-mono shrink-0 mt-0.5">${sec.icon || '✓'}</span>
-        <span class="break-words leading-tight">${escapeHtml(sec.title)}</span>
+    <div class="space-y-2">
+      <div class="flex items-center justify-between gap-1.5">
+        <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">
+          ${escapeHtml(pageBadgeText)} ↗
+        </span>
+        <span class="text-[10.5px] font-extrabold px-2 py-0.5 rounded border ${badgeStyle} shrink-0 whitespace-nowrap">
+          ${escapeHtml(creditBadgeText)}
+        </span>
       </div>
-      <span class="font-mono font-bold text-[10px] px-2 py-0.5 rounded ${badgeBg} shrink-0 whitespace-nowrap">
-        ${escapeHtml(sec.marks)}
-      </span>
-    </div>
-
-    <!-- Candidate Evidence -->
-    <div class="mb-2 p-2 rounded-lg bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
-      <div class="text-[9.5px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
-        <span>${escapeHtml(quoteLabel)}</span>
-        <span class="font-mono text-[9px] opacity-75">${escapeHtml(pageBadge)}</span>
+      <div class="text-xs font-extrabold text-slate-900 dark:text-white leading-snug break-words">
+        ${escapeHtml(headingTitle)}
       </div>
-      <p class="text-[11px] text-slate-800 dark:text-slate-200 leading-relaxed font-sans italic">
-        ${formattedQuoteHtml}
+      <p class="text-[11.5px] text-slate-700 dark:text-slate-300 leading-relaxed font-sans break-words">
+        <strong class="text-slate-900 dark:text-white">${quotePrefix}:</strong> "${escapeHtml(whatYouWrote)}" &mdash; ${typeof formatHighlightedText === "function" ? formatHighlightedText(verdict) : escapeHtml(verdict)}
       </p>
-    </div>
-
-    <!-- Assessor's Judgment: 4 Structured Pillars -->
-    <div class="space-y-1.5 text-[11px] font-sans">
-      ${answersWell ? `
-      <div class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/25 border border-emerald-300 dark:border-emerald-500/30 text-emerald-950 dark:text-emerald-200 leading-relaxed">
-        <div class="font-bold flex items-center gap-1 text-emerald-700 dark:text-emerald-400 mb-0.5 text-[10.5px]">
-          <span>✓</span> <span>${isHindi ? "प्रभावी उत्तर" : "Answers Well"}:</span>
-        </div>
-        <div class="pl-3 text-slate-700 dark:text-slate-300 text-[10.5px] leading-relaxed">
-          ${typeof formatHighlightedText === "function" ? formatHighlightedText(answersWell) : escapeHtml(answersWell)}
-        </div>
-      </div>` : ""}
-
-      ${inaccuracyOrGap ? `
-      <div class="p-2 rounded-lg bg-rose-50 dark:bg-rose-950/25 border border-rose-300 dark:border-rose-500/30 text-rose-950 dark:text-rose-200 leading-relaxed">
-        <div class="font-bold flex items-center gap-1 text-rose-700 dark:text-rose-400 mb-0.5 text-[10.5px]">
-          <span>✗</span> <span>${isHindi ? "कमी / अशुद्धि" : "Inaccurate / Incomplete (Deduction)"}:</span>
-        </div>
-        <div class="pl-3 text-slate-700 dark:text-slate-300 text-[10.5px] leading-relaxed">
-          ${typeof formatHighlightedText === "function" ? formatHighlightedText(inaccuracyOrGap) : escapeHtml(inaccuracyOrGap)}
-        </div>
-      </div>` : ""}
-
-      ${whyItMatters ? `
-      <div class="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/25 border border-indigo-300 dark:border-indigo-500/30 text-indigo-950 dark:text-indigo-200 leading-relaxed">
-        <div class="font-bold flex items-center gap-1 text-indigo-700 dark:text-indigo-400 mb-0.5 text-[10.5px]">
-          <span>⚖</span> <span>${isHindi ? "प्रश्न के लिए महत्व" : "Why It Matters"}:</span>
-        </div>
-        <div class="pl-3 text-slate-700 dark:text-slate-300 text-[10.5px] leading-relaxed italic">
-          ${typeof formatHighlightedText === "function" ? formatHighlightedText(whyItMatters) : escapeHtml(whyItMatters)}
-        </div>
-      </div>` : ""}
-
-      ${specificImprovement ? `
-      <div class="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/25 border border-amber-300 dark:border-amber-500/30 text-amber-950 dark:text-amber-200 leading-relaxed">
-        <div class="font-bold flex items-center gap-1 text-amber-700 dark:text-amber-400 mb-0.5 text-[10.5px]">
-          <span>💡</span> <span>${isHindi ? "ठोस सुधार" : "Specific Improvement"}:</span>
-        </div>
-        <div class="pl-3 text-slate-700 dark:text-slate-300 text-[10.5px] leading-relaxed">
-          ${typeof formatHighlightedText === "function" ? formatHighlightedText(specificImprovement) : escapeHtml(specificImprovement)}
-        </div>
-      </div>` : ""}
-    </div>
-
-    <div class="pt-1.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[10.5px] mt-2">
-      <button type="button" onclick="window.viewFullEvaluationSection('${sec.targetKey}')" class="text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-bold flex items-center gap-1 cursor-pointer">
-        <span>View Full Analysis in Right Panel &rarr;</span>
-      </button>
-      <span class="text-slate-500 dark:text-slate-400 text-[10px] font-mono">Page ${currentPg}</span>
     </div>
   `;
 
@@ -13587,9 +13626,17 @@ function renderBatch1ExaminerMastery(evalData) {
       verdict = verdict.replace(/Point\s*\[[X-Z0-9]+\]/gi, isHindi ? "इस तर्क" : "this argument")
                        .replace(/\[Point\s*\d+\s*\/\s*Point\s*\d+\s*topics\]/gi, isHindi ? "मुख्य निर्देश" : "the core directive");
 
-      const defBadge = isHindi
-        ? (p.is_positive !== false ? "✓ अंक मिले (Fetched Marks)" : "✎ सुधार बिंदु (Actionable Upgrade)")
-        : (p.is_positive !== false ? "✓ Credit Earned" : "✎ Scope to Upgrade");
+      let creditBadge = String(p.credit_badge || "").trim();
+      if (!creditBadge || !/\+\d+(?:\.\d+)?M/.test(creditBadge)) {
+        const stepMatch = (typeof stepItems !== "undefined" && Array.isArray(stepItems)) ? stepItems[Math.min(idx, stepItems.length - 1)] : null;
+        const sc = stepMatch ? stepMatch.score : 1.0;
+        const isPos = p.is_positive !== false;
+        if (isHindi) {
+          creditBadge = isPos ? `✓ +${sc.toFixed(1)}M अंक मिले` : `✎ +${sc.toFixed(1)}M सुधार का दायरा`;
+        } else {
+          creditBadge = isPos ? `✓ +${sc.toFixed(1)}M Credit` : `➔ +${sc.toFixed(1)}M Scope`;
+        }
+      }
 
       const quoteCheck = (typeof verifyCandidateHandwritingQuote === "function")
         ? verifyCandidateHandwritingQuote(whatYouWrote, pageText, evalData.transcribed_text, pNum, window.isMetaPlaceholderText, Boolean(p.sourceImageVerified))
@@ -13609,7 +13656,7 @@ function renderBatch1ExaminerMastery(evalData) {
         page: pNum,
         loc: String(p.badge || (isHindi ? `पृष्ठ ${pNum} • बिंदु #${idx + 1}` : `Page ${pNum} • Point #${idx + 1}`)),
         pointTitle,
-        badge: String(p.credit_badge || defBadge),
+        badge: creditBadge,
         isPositive: p.is_positive !== false,
         detail: `${quotePrefix}: ${quoteBody} — ${verdict}`
       };
@@ -13626,11 +13673,13 @@ function renderBatch1ExaminerMastery(evalData) {
       const pointTitle = (!window.isMetaPlaceholderText(titleCandidate) && titleCandidate.length > 3)
         ? titleCandidate
         : (isHindi ? `पृष्ठ ${pgNum} सत्यापित मजबूती #${idx + 1}` : `Page ${pgNum} Verified Strength #${idx + 1}`);
+      const stepMatch = (typeof stepItems !== "undefined" && Array.isArray(stepItems)) ? stepItems[Math.min(idx, stepItems.length - 1)] : null;
+      const sc = stepMatch ? stepMatch.score : 1.0;
       pointRows.push({
         page: pgNum,
         loc: isHindi ? `पृष्ठ ${pgNum} • सत्यापित मजबूती #${idx + 1}` : `Page ${pgNum} • Verified Strength #${idx + 1}`,
         pointTitle,
-        badge: isHindi ? "✓ अंक मिले (Fetched Marks)" : `✓ Fetched Marks`,
+        badge: isHindi ? `✓ +${sc.toFixed(1)}M अंक मिले` : `✓ +${sc.toFixed(1)}M Credit`,
         isPositive: true,
         detail: cleanS
       });
@@ -13652,11 +13701,13 @@ function renderBatch1ExaminerMastery(evalData) {
       const pointTitle = (!window.isMetaPlaceholderText(titleCandidate) && titleCandidate.length > 3)
         ? titleCandidate
         : (isHindi ? `पृष्ठ ${pgNum} उच्च-प्रासंगिकता सुधार #${idx + 1}` : `Page ${pgNum} High-Yield Upgrade #${idx + 1}`);
+      const stepMatch = (typeof stepItems !== "undefined" && Array.isArray(stepItems)) ? stepItems[Math.min(idx + 2, stepItems.length - 1)] : null;
+      const sc = stepMatch ? Math.max(0.5, stepMatch.score * 0.5) : 0.5;
       pointRows.push({
         page: pgNum,
         loc: isHindi ? `पृष्ठ ${pgNum} • सुधार बिंदु #${idx + 1}` : `Page ${pgNum} • Upgrade Lever #${idx + 1}`,
         pointTitle,
-        badge: isHindi ? "✎ सुधार बिंदु (Actionable Upgrade)" : "✎ Actionable Upgrade",
+        badge: isHindi ? `✎ +${sc.toFixed(1)}M सुधार का दायरा` : `➔ +${sc.toFixed(1)}M Scope`,
         isPositive: false,
         detail: cleanG
       });

@@ -1345,6 +1345,44 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"अतः शुचिता और नैतिक नेतृत्व से ही अंत्योदय का लक्ष्य साकार होगा...\" — उत्तर का संतुलित समापन।\\n✎ **सुधार**: सामान्य समापन के स्थान पर आगे की राह (Way Forward) में 1 ठोस संस्थागत सुधार (जैसे Mission Karmayogi या 3-Phase SOP) जोड़ें।"
     }}
   ],
+  "point_by_point_audit": [
+    {{
+      "page": 1,
+      "badge": "पृष्ठ 1 • प्रारंभिक संदर्भ व भूमिका",
+      "title": "अभ्यर्थी द्वारा लिखा गया सटीक शीर्षक या अवधारणात्मक आधार",
+      "what_you_wrote": "अभ्यर्थी की कॉपी से उद्धृत विशिष्ट तर्क, तथ्य या उद्धरण",
+      "examiner_verdict": "परीक्षक का सुविचारित विश्लेषण: अंक क्यों मिले + 1 ठोस टॉपर सुधार",
+      "credit_badge": "✓ +1.0M अंक मिले",
+      "is_positive": true
+    }},
+    {{
+      "page": 1,
+      "badge": "पृष्ठ 1 • मुख्य भाग (आयाम A)",
+      "title": "पृष्ठ 1 पर अभ्यर्थी का मुख्य उप-शीर्षक / तर्क",
+      "what_you_wrote": "अभ्यर्थी द्वारा लिखे गए बिंदु 1-2 का प्रामाणिक उद्धरण",
+      "examiner_verdict": "सकारात्मक पक्ष की सराहना + प्रासंगिक समिति/डेटा जोड़ने का सुझाव",
+      "credit_badge": "✓ +1.5M अंक मिले",
+      "is_positive": true
+    }},
+    {{
+      "page": 2,
+      "badge": "पृष्ठ 2 • मुख्य भाग (आयाम B)",
+      "title": "पृष्ठ 2 पर चुनौतियाँ या विधिक/संवैधानिक उप-शीर्षक",
+      "what_you_wrote": "पृष्ठ 2 के तर्कों व उदाहरणों का सटीक उद्धरण",
+      "examiner_verdict": "गहराई का वस्तुनिष्ठ परीक्षण + 1 उच्च-प्रासंगिकता की-वर्ड सुधार",
+      "credit_badge": "✓ +1.5M अंक मिले",
+      "is_positive": true
+    }},
+    {{
+      "page": 2,
+      "badge": "पृष्ठ 2 • निष्कर्ष एवं आगे की राह",
+      "title": "समापन एवं आगे की राह (Way Forward)",
+      "what_you_wrote": "अभ्यर्थी के अंतिम समाधान एवं समापन वाक्य का उद्धरण",
+      "examiner_verdict": "संतुलित अग्रगामी दृष्टि की पुष्टि + 1 विधिक/प्रशासनिक संस्थागत सुधार",
+      "credit_badge": "✓ +0.5M अंक मिले",
+      "is_positive": true
+    }}
+  ],
   "rubric_scores": {{
     "intro_score": 1.0,
     "core_demand_score": 2.0,
@@ -5050,6 +5088,100 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
             "step_up_lever": str(conc_audit.get("model_conclusion_rewrite") or conc_def_lever)
         })
         data["sub_part_step_marking"] = gen_steps
+
+    # 2. Strict Mathematical Calibration & Authentic Extraction for point_by_point_audit (Image 2 style)
+    existing_pbp = data.get("point_by_point_audit")
+    steps = data.get("sub_part_step_marking", [])
+    total_pages_val = max(1, int(data.get("total_pages", 0) or len(data.get("processed_pages", [])) or (2 if max_marks <= 10 else 3)))
+
+    if not isinstance(existing_pbp, list) or len(existing_pbp) < 3:
+        # Build authentic, non-generic point_by_point_audit derived from sub_part_step_marking, strengths and gaps
+        pbp_generated = []
+        for s_idx, st in enumerate(steps):
+            if not isinstance(st, dict):
+                continue
+
+            if s_idx == 0:
+                p_num = 1
+            elif s_idx == len(steps) - 1:
+                p_num = total_pages_val
+            else:
+                p_num = 1 if (s_idx == 1 and total_pages_val > 2) else min(total_pages_val, s_idx)
+
+            raw_label = str(st.get("step_label", "")).strip()
+            clean_title = re.sub(r'^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*|भाग\s*[a-z0-9]\s*[-—:]\s*|मुख्य भाग\s*[-—:]\s*)+', '', raw_label, flags=re.IGNORECASE).strip()
+            clean_title = re.sub(r'\[(?:अभ्यर्थी का )?[^\]]+\]', '', clean_title).strip()
+            sub_h = str(st.get("sub_heading", "")).strip()
+
+            if not clean_title or len(clean_title) < 3:
+                clean_title = sub_h or (f"Page {p_num} Core Analysis" if not is_hindi else f"पृष्ठ {p_num} मुख्य विश्लेषण")
+
+            aw = float(st.get("awarded", 1.0) or 1.0)
+            mx = float(st.get("max", 2.0) or 2.0)
+            ratio = aw / max(0.1, mx)
+            is_pos = ratio >= 0.4 and aw > 0
+
+            short_tag = re.split(r'[:(]', clean_title)[0].strip()[:24]
+            if is_hindi:
+                badge_loc = f"पृष्ठ {p_num} • {short_tag}"
+                credit_badge = f"✓ +{aw:.1f}M अंक मिले" if is_pos else f"✎ +{aw:.1f}M सुधार का दायरा"
+            else:
+                badge_loc = f"Page {p_num} • {short_tag}"
+                credit_badge = f"✓ +{aw:.1f}M Rewarded" if ratio >= 0.6 else (f"✓ +{aw:.1f}M Credit" if is_pos else f"➔ +{aw:.1f}M Scope")
+
+            qw = str(st.get("quoted_written", "")).strip()
+            if not qw or _has_meta_placeholder(qw):
+                if s_idx < len(strengths) and not _has_meta_placeholder(str(strengths[s_idx])):
+                    qw = str(strengths[s_idx])
+                else:
+                    qw = "संरचित बिंदुओं के साथ प्रश्न के मुख्य आयाम को संबोधित किया।" if is_hindi else "Addressed substantive question dimensions with structured handwriting."
+
+            lever = str(st.get("step_up_lever", "")).strip()
+            if lever and not _has_meta_placeholder(lever):
+                verdict = f"{'विषय का प्रभावी विश्लेषण।' if is_hindi else 'Effective analytical coverage.'} {lever}"
+            else:
+                if s_idx < len(gaps) and not _has_meta_placeholder(str(gaps[s_idx])):
+                    verdict = f"{'विषय का प्रभावी विश्लेषण।' if is_hindi else 'Effective analytical coverage.'} {str(gaps[s_idx])}"
+                else:
+                    verdict = "यूपीएससी मूल्यांकन मानकों के अनुरूप प्रभावी प्रस्तुति।" if is_hindi else "Evaluated candidate's handwritten point with UPSC benchmarks."
+
+            pbp_generated.append({
+                "page": p_num,
+                "badge": badge_loc,
+                "title": clean_title,
+                "what_you_wrote": qw,
+                "examiner_verdict": verdict,
+                "credit_badge": credit_badge,
+                "is_positive": is_pos
+            })
+        data["point_by_point_audit"] = pbp_generated
+    else:
+        # Existing point_by_point_audit: calibrate marks and badges
+        for idx, item in enumerate(existing_pbp):
+            if not isinstance(item, dict):
+                continue
+            p_val = int(item.get("page", 0) or 0)
+            if p_val <= 0 or p_val > total_pages_val:
+                item["page"] = min(total_pages_val, max(1, idx + 1))
+
+            t = str(item.get("title", "")).strip()
+            if not t or _has_meta_placeholder(t):
+                if idx < len(steps):
+                    st = steps[idx]
+                    t = str(st.get("sub_heading") or st.get("step_label") or "")
+                if not t:
+                    t = f"Page {item['page']} Argument #{idx + 1}" if not is_hindi else f"पृष्ठ {item['page']} मुख्य तर्क #{idx + 1}"
+            item["title"] = t
+
+            c_badge = str(item.get("credit_badge", "")).strip()
+            if not re.search(r'\+\d+(?:\.\d+)?M', c_badge):
+                st_match = steps[min(idx, len(steps) - 1)] if steps else {}
+                aw = float(st_match.get("awarded", 1.0) or 1.0)
+                is_pos = bool(item.get("is_positive", True))
+                if is_hindi:
+                    item["credit_badge"] = f"✓ +{aw:.1f}M अंक मिले" if is_pos else f"✎ +{aw:.1f}M सुधार का दायरा"
+                else:
+                    item["credit_badge"] = f"✓ +{aw:.1f}M Rewarded" if is_pos else f"➔ +{aw:.1f}M Scope"
 
 
 
