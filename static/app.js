@@ -44,6 +44,23 @@ const state = {
 // DOM Elements
 const paperTabs = document.querySelectorAll(".paper-tab");
 const marksBtns = document.querySelectorAll(".marks-btn");
+
+// Paper Tab Visual Synchronizer: Guarantees single-active state and completely purges stale background classes
+function applyPaperTabVisualState(activePaper) {
+  const pTabs = document.querySelectorAll(".paper-tab");
+  pTabs.forEach(t => {
+    const p = t.getAttribute("data-paper");
+    const isMatch = Boolean(activePaper && (p === activePaper || (activePaper.startsWith("Optional") && p === "Optional")));
+    if (isMatch) {
+      t.className = "paper-tab shrink-0 sm:shrink active py-2 px-3 sm:px-0 text-xs font-semibold rounded-lg bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm border border-slate-200/80 dark:border-slate-700 transition-all text-center";
+      t.setAttribute("data-active", "true");
+    } else {
+      t.className = "paper-tab shrink-0 sm:shrink py-2 px-3 sm:px-0 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all text-center";
+      t.removeAttribute("data-active");
+    }
+  });
+}
+window.applyPaperTabVisualState = applyPaperTabVisualState;
 const questionInput = document.getElementById("questionInput");
 const detectedDirectiveBadge = document.getElementById("detectedDirectiveBadge");
 const directiveGuidance = document.getElementById("directiveGuidance");
@@ -303,6 +320,11 @@ window.resetToCleanIntake = function(shouldScroll = true) {
 
   if (typeof updateViewer === "function") {
     updateViewer();
+  }
+
+  // Ensure paper selection buttons are cleanly styled with zero stuck colors
+  if (typeof applyPaperTabVisualState === "function") {
+    applyPaperTabVisualState(state.selectedPaperTab || "GS3");
   }
 
   window.switchStudioState("intake");
@@ -1577,12 +1599,8 @@ window.clearPaperMarksAndAnswersheet = function(openFilePicker = false) {
   // 2. Clear selected subject / paper
   state.selectedPaperTab = null;
   state.paper = null;
-  const paperTabs = document.querySelectorAll(".paper-tab");
-  if (paperTabs) {
-    paperTabs.forEach(t => {
-      t.classList.remove("active", "bg-white", "dark:bg-slate-900", "text-amber-600", "dark:text-amber-400", "shadow-sm", "border", "border-slate-200/80", "dark:border-slate-700");
-      t.classList.add("text-slate-600", "dark:text-slate-400");
-    });
+  if (typeof applyPaperTabVisualState === "function") {
+    applyPaperTabVisualState(null);
   }
   const step1Badge = document.getElementById("step1Badge");
   if (step1Badge) {
@@ -3143,18 +3161,15 @@ function updateStepProgression() {
       step1Badge.textContent = `✓ ${state.selectedPaperTab} Active`;
       step1Badge.className = "text-[11px] font-semibold text-emerald-600 dark:text-emerald-400";
       if (step1Wrapper) step1Wrapper.classList.remove("border-amber-500/60", "ring-1", "ring-amber-500/40");
-      paperTabs.forEach(t => {
-        if (t.getAttribute("data-paper") === state.selectedPaperTab) {
-          t.classList.add("active", "bg-white", "dark:bg-slate-900", "text-amber-600", "dark:text-amber-400", "shadow-sm", "border", "border-slate-200/80", "dark:border-slate-700");
-          t.classList.remove("text-slate-600", "dark:text-slate-400");
-        } else {
-          t.classList.remove("active", "bg-white", "dark:bg-slate-900", "text-amber-600", "dark:text-amber-400", "shadow-sm", "border", "border-slate-200/80", "dark:border-slate-700");
-          t.classList.add("text-slate-600", "dark:text-slate-400");
-        }
-      });
+      if (typeof applyPaperTabVisualState === "function") {
+        applyPaperTabVisualState(state.selectedPaperTab);
+      }
     } else {
       step1Badge.textContent = "Select Subject";
       step1Badge.className = "text-[11px] font-semibold text-amber-600 dark:text-amber-400";
+      if (typeof applyPaperTabVisualState === "function") {
+        applyPaperTabVisualState(null);
+      }
     }
   }
 
@@ -3259,14 +3274,11 @@ if (dropzoneLockOverlay) {
 paperTabs.forEach(tab => {
   tab.addEventListener("click", () => {
     if (state.isControlsLocked) return;
-    paperTabs.forEach(t => {
-      t.classList.remove("active", "bg-white", "dark:bg-slate-900", "text-amber-600", "dark:text-amber-400", "shadow-sm", "border", "border-slate-200/80", "dark:border-slate-700");
-      t.classList.add("text-slate-600", "dark:text-slate-400");
-    });
-    tab.classList.add("active", "bg-white", "dark:bg-slate-900", "text-amber-600", "dark:text-amber-400", "shadow-sm", "border", "border-slate-200/80", "dark:border-slate-700");
-    tab.classList.remove("text-slate-600", "dark:text-slate-400");
     const paperVal = tab.getAttribute("data-paper");
     state.selectedPaperTab = paperVal;
+    if (typeof applyPaperTabVisualState === "function") {
+      applyPaperTabVisualState(paperVal);
+    }
 
     if (paperVal === "Optional") {
       if (optionalSubjectWrapper) optionalSubjectWrapper.classList.remove("hidden");
@@ -3377,14 +3389,8 @@ window.setPaperAndMarks = function(paperVal, marksVal) {
   if (paperVal) {
     state.selectedPaperTab = paperVal;
     state.paper = paperVal;
-    const tab = document.querySelector(`.paper-tab[data-paper="${paperVal}"]`);
-    if (tab && typeof paperTabs !== "undefined") {
-      paperTabs.forEach(t => {
-        t.classList.remove("active", "bg-white", "dark:bg-slate-900", "text-amber-600", "dark:text-amber-400", "shadow-sm", "border", "border-slate-200/80", "dark:border-slate-700");
-        t.classList.add("text-slate-600", "dark:text-slate-400");
-      });
-      tab.classList.add("active", "bg-white", "dark:bg-slate-900", "text-amber-600", "dark:text-amber-400", "shadow-sm", "border", "border-slate-200/80", "dark:border-slate-700");
-      tab.classList.remove("text-slate-600", "dark:text-slate-400");
+    if (typeof applyPaperTabVisualState === "function") {
+      applyPaperTabVisualState(paperVal);
     }
     const step1Badge = document.getElementById("step1Badge");
     if (step1Badge) step1Badge.textContent = `✓ ${paperVal} Active`;
@@ -11826,14 +11832,16 @@ function renderEvaluation(evalData) {
     state.paper = evalData.detected_paper;
     preciseDiscipline = evalData.detected_paper_display || evalData.paper_display || evalData.paper_title || evalData.detected_paper;
     resultPaperBadge.textContent = preciseDiscipline;
-    paperTabs.forEach(t => {
-      const p = t.getAttribute("data-paper");
-      if (p === evalData.detected_paper || (evalData.detected_paper.startsWith("Optional") && p === "Optional")) {
-        t.className = "paper-tab py-1.5 text-xs font-medium rounded-lg bg-amber-500 text-slate-950 font-bold transition shadow";
-      } else {
-        t.className = "paper-tab py-1.5 text-xs font-medium rounded-lg text-slate-400 hover:text-white transition";
-      }
-    });
+    const normPaper = evalData.detected_paper.startsWith("Optional") ? "Optional" : evalData.detected_paper;
+    state.selectedPaperTab = normPaper;
+    if (typeof applyPaperTabVisualState === "function") {
+      applyPaperTabVisualState(normPaper);
+    }
+    const step1Badge = document.getElementById("step1Badge");
+    if (step1Badge) {
+      step1Badge.textContent = `✓ ${normPaper} Active`;
+      step1Badge.className = "text-[11px] font-semibold text-emerald-600 dark:text-emerald-400";
+    }
   }
 
   // Rewrite Mark Recovery Comparison Card & Copy Switcher

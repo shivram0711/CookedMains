@@ -1670,8 +1670,11 @@ html:not(.dark) #paperTabs {
   transform: scale(0.97);
 }
 
-html:not(.dark) .paper-tab {
+html:not(.dark) .paper-tab:not(.active) {
   color: #475569 !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
 }
 
 html:not(.dark) .paper-tab:hover:not(.active) {
@@ -1687,8 +1690,11 @@ html:not(.dark) .paper-tab.active {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
 }
 
-html.dark .paper-tab {
+html.dark .paper-tab:not(.active) {
   color: #94A3B8 !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
 }
 
 html.dark .paper-tab:hover:not(.active) {
