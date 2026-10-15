@@ -39,6 +39,10 @@ DIRECTIVES = {
         "meaning": "Break issue into constituent parts, assess positives and negatives, synthesize balanced judgment.",
         "ideal_balance": "Balanced dialectical approach (Thesis, Anti-thesis, Synthesis)."
     },
+    "critically analyze": {
+        "meaning": "Break issue into constituent parts, assess positives and negatives, synthesize balanced judgment.",
+        "ideal_balance": "Balanced dialectical approach (Thesis, Anti-thesis, Synthesis)."
+    },
     "critically discuss": {
         "meaning": "Dialectical multi-dimensional analysis weighing arguments, counter-arguments, and synthesis.",
         "ideal_balance": "45% core arguments, 40% systemic critique/challenges, 15% constructive synthesis."
@@ -3973,6 +3977,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                     if ln.strip():
                         used_margin_bullets.add(_norm_sig(ln))
 
+        primary_cand_heading = ""
         max_pg = max([int(a.get("page", 1) or 1) for a in annotations], default=1)
         if max_pg == 1:
             for idx_a, ann in enumerate(annotations):
@@ -5183,16 +5188,16 @@ def _normalize_exam_hall_discipline_and_micro_marking(data: Dict[str, Any], max_
     }
 
     # 2. Transparent Micro-Marking Arithmetic
-    intro_aw = float(rubric.get("intro_score", 1.0) or 1.0)
-    intro_max = float(rubric.get("intro_max", 1.5 if max_marks == 10 else 2.0) or (1.5 if max_marks == 10 else 2.0))
-    core_aw = float(rubric.get("core_demand_score", 2.0) or 2.0)
-    core_max = float(rubric.get("core_demand_max", 4.5 if max_marks == 10 else 7.0) or (4.5 if max_marks == 10 else 7.0))
-    val_aw = float(rubric.get("value_add_score", 0.5) or 0.5)
-    val_max = float(rubric.get("value_add_max", 1.5 if max_marks == 10 else 2.5) or (1.5 if max_marks == 10 else 2.5))
-    pres_aw = float(rubric.get("presentation_score", 0.5) or 0.5)
-    pres_max = float(rubric.get("presentation_max", 1.0 if max_marks == 10 else 1.5) or (1.0 if max_marks == 10 else 1.5))
-    conc_aw = float(rubric.get("conclusion_score", 0.5) or 0.5)
-    conc_max = float(rubric.get("conclusion_max", 1.5 if max_marks == 10 else 2.0) or (1.5 if max_marks == 10 else 2.0))
+    intro_aw = float(rubric.get("intro_score") if rubric.get("intro_score") is not None else 1.0)
+    intro_max = float(rubric.get("intro_max") if rubric.get("intro_max") is not None else (1.5 if max_marks == 10 else 2.0))
+    core_aw = float(rubric.get("core_demand_score") if rubric.get("core_demand_score") is not None else 2.0)
+    core_max = float(rubric.get("core_demand_max") if rubric.get("core_demand_max") is not None else (4.5 if max_marks == 10 else 7.0))
+    val_aw = float(rubric.get("value_add_score") if rubric.get("value_add_score") is not None else 0.5)
+    val_max = float(rubric.get("value_add_max") if rubric.get("value_add_max") is not None else (1.5 if max_marks == 10 else 2.5))
+    pres_aw = float(rubric.get("presentation_score") if rubric.get("presentation_score") is not None else 0.5)
+    pres_max = float(rubric.get("presentation_max") if rubric.get("presentation_max") is not None else (1.0 if max_marks == 10 else 1.5))
+    conc_aw = float(rubric.get("conclusion_score") if rubric.get("conclusion_score") is not None else 0.5)
+    conc_max = float(rubric.get("conclusion_max") if rubric.get("conclusion_max") is not None else (1.5 if max_marks == 10 else 2.0))
 
     if is_hindi:
         formula_str = (
