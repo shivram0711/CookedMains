@@ -5240,17 +5240,55 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
   });
 
   let numBodyParts = totalPages <= 1 ? 1 : (totalPages === 2 ? 2 : 3);
-  if (aiBodySteps.length >= 2 && totalPages <= 2) {
-    numBodyParts = Math.min(aiBodySteps.length, 3);
+  if (aiBodySteps.length >= 1) {
+    numBodyParts = Math.min(aiBodySteps.length, 4);
+  }
+
+  // Derive weights and scores dynamically if provided by AI steps
+  const rawAiBodyMaxes = [];
+  const rawAiBodyScores = [];
+  for (let i = 0; i < numBodyParts; i++) {
+    const st = aiBodySteps[i];
+    if (st) {
+      const m = parseFloat(st.marks_max != null ? st.marks_max : st.max);
+      const s = parseFloat(st.marks_awarded != null ? st.marks_awarded : st.awarded);
+      if (!isNaN(m) && m > 0) {
+        rawAiBodyMaxes.push(m);
+        rawAiBodyScores.push(!isNaN(s) ? s : 0.0);
+      }
+    }
   }
 
   let weights = [];
-  if (numBodyParts === 1) {
-    weights = [1.0];
-  } else if (numBodyParts === 2) {
-    weights = [0.5, 0.5];
-  } else {
-    weights = [0.36, 0.36, 0.28];
+  let scoreWeights = [];
+  if (rawAiBodyMaxes.length === numBodyParts) {
+    const sumM = rawAiBodyMaxes.reduce((a, b) => a + b, 0);
+    if (sumM > 0) {
+      weights = rawAiBodyMaxes.map(m => m / sumM);
+    }
+  }
+
+  if (weights.length !== numBodyParts) {
+    if (numBodyParts === 1) {
+      weights = [1.0];
+    } else if (numBodyParts === 2) {
+      weights = [0.5, 0.5];
+    } else if (numBodyParts === 3) {
+      weights = [0.36, 0.36, 0.28];
+    } else {
+      const eq = 1.0 / numBodyParts;
+      weights = Array(numBodyParts).fill(eq);
+    }
+  }
+
+  if (rawAiBodyScores.length === numBodyParts) {
+    const sumS = rawAiBodyScores.reduce((a, b) => a + b, 0);
+    if (sumS > 0) {
+      scoreWeights = rawAiBodyScores.map(s => s / sumS);
+    }
+  }
+  if (scoreWeights.length !== numBodyParts) {
+    scoreWeights = weights;
   }
 
   const maxArr = [];
@@ -5264,7 +5302,7 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
       scoreArr.push(Math.max(0.0, Math.min(maxArr[i], Math.round(scoreRem * 2) / 2)));
     } else {
       const m = Math.max(1.0, Math.round((bodyTotalMax * weights[i]) * 2) / 2);
-      const s = Math.min(m, Math.max(0.0, Math.round((bodyTotalScore * weights[i]) * 2) / 2));
+      const s = Math.min(m, Math.max(0.0, Math.round((bodyTotalScore * scoreWeights[i]) * 2) / 2));
       maxArr.push(m);
       scoreArr.push(s);
       maxRem = Math.max(0.5, maxRem - m);

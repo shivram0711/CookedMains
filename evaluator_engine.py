@@ -1143,37 +1143,65 @@ IDEAL BALANCE: {directive_info.get('ideal_balance', 'प्रस्तावन
 
 {ca_block}
 
-NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के विश्लेषण पर आधारित 7 स्वर्णिम नियम):
+NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के विश्लेषण पर आधारित स्वर्णिम नियम):
 
-1. वास्तविक उत्तर-पुस्तिका ट्रेसिंग एवं गतिशील शीर्षक पहचान (STRICT ANSWERSHEET TRACING - ZERO GHOST HEADINGS):
+1. गतिशील प्रश्न व्याख्या एवं मूल्यांकन योजना (DYNAMIC QUESTION UNDERSTANDING & EVALUATION PLAN):
+   - उत्तर-पुस्तिका का मूल्यांकन करने से पूर्व, प्रश्न की वास्तविक मांग का गहन विश्लेषण करें:
+     * पाठ्यक्रम व सूक्ष्म-विषय (Micro-Topic): प्रश्न से जुड़े आधिकारिक यूपीएससी पाठ्यक्रम के मुख्य क्षेत्र की पहचान करें।
+     * निर्देश शब्द की सूक्ष्मता (Directive Nuance):
+       - 'चर्चा कीजिए' (Discuss): महत्वपूर्ण आयामों का कारण-कार्य संबंधों के साथ संतुलित विश्लेषण।
+       - 'परीक्षण कीजिए' (Examine): अंतर्निहित व्यवस्था, कारणों और नीतिगत प्रभावों की गहन पड़ताल।
+       - 'आलोचनात्मक परीक्षण / विश्लेषण' (Critically Examine/Analyse): दावों के पक्ष, विपक्ष, सीमाओं व अंतर्विरोधों का वस्तुनिष्ठ विश्लेषण करने के पश्चात ही एक संतुलित निष्कर्ष पर पहुंचें।
+       - 'मूल्यांकन कीजिए / किस सीमा तक' (Evaluate / To what extent): स्पष्ट मानकों के आधार पर प्रभावशीलता या वैधता का वस्तुनिष्ठ निर्धारण करें।
+       - 'टिप्पणी कीजिए' (Comment): साक्ष्य-आधारित दृष्टिकोण के साथ शुरुआत में ही स्पष्ट रुख प्रकट करें।
+       - 'स्पष्ट कीजिए / औचित्य सिद्ध कीजिए' (Elucidate / Justify): व्यावहारिक संस्थागत उदाहरणों व साक्ष्यों के साथ अवधारणा स्पष्ट करें।
+     * उप-मांगों का विखंडन (Explicit & Implicit Sub-Demands): प्रश्न की प्रत्यक्ष व अंतर्निहित मांगों को 2 या 3 स्पष्ट विश्लेषणात्मक उप-भागों में विभाजित करें।
+     * अनिवार्य विषयवस्तु बनाम वैकल्पिक मूल्य-संवर्धन: प्रश्न के मूल उत्तर और अतिरिक्त मूल्य-संवर्धन में अंतर रखें। किसी अप्रासंगिक अनुच्छेद या समिति को जबरन न थोपें।
+     * वैध वैकल्पिक दृष्टिकोण स्वीकार्य: अभ्यर्थी द्वारा प्रस्तुत किए गए तर्कसंगत वैकल्पिक उदाहरणों, दृष्टिकोणों व मॉडलों को पूरा श्रेय दें, भले ही वे मानक उत्तर से भिन्न हों।
+
+2. एक एकीकृत प्रामाणिक अंक प्रणाली एवं गतिशील रुब्रिक (ONE CANONICAL SCORING RECORD):
+   - सभी अंकों का योग पूर्णतः सुसंगत एवं गणितीय रूप से शुद्ध होना चाहिए:
+     * सभी उप-भागों के अधिकतम अंकों (Intro + Body Parts + Conclusion) का योग ठीक {max_marks}.0 होना चाहिए।
+     * सभी उप-भागों के प्राप्तांकों का योग ठीक overall_score होना चाहिए।
+     * rubric_scores (intro_score + core_demand_score + value_add_score + presentation_score + conclusion_score) का योग ठीक overall_score होना चाहिए।
+     * प्रत्येक उप-भाग के प्राप्तांक उस भाग के अधिकतम अंक से कम या बराबर होंगे (0.0 <= प्राप्तांक <= अधिकतम अंक)।
+     * अनुपातिक अपेक्षाएं: 10-अंकीय उत्तर (150 शब्द, 2 पृष्ठ) में संक्षिप्त व सीधे उत्तर की अपेक्षा होती है; 15-अंकीय उत्तर (250 शब्द, 3 पृष्ठ) में अधिक विश्लेषणात्मक गहराई और व्यापक आयाम अपेक्षित होते हैं। 10-अंकीय उत्तर को 15-अंकीय विस्तार न होने पर दंडित न करें।
+     * एक ही कमी के लिए बार-बार अंक न काटें (No Double Deductions)।
+
+3. 5-श्रेणी साक्ष्य-आधारित परीक्षण (5-CATEGORY EVIDENCE GROUNDING):
+   - अभ्यर्थी के उत्तर के प्रत्येक बिंदु को 5 स्पष्ट श्रेणियों में विश्लेषित करें:
+     (A) उपस्थित व सही (✓): अभ्यर्थी द्वारा सही लिखा गया तथ्य, सिद्धांत या व्यवस्था। अभ्यर्थी के वास्तविक शब्द उद्धृत करें।
+     (B) उपस्थित परंतु अपूर्ण (⚠️): केवल बिंदु या लेबल लिखा गया है लेकिन कार्य-कारण तंत्र (Mechanism) नहीं समझाया गया ("कारक बिना तंत्र")।
+     (C) प्रासंगिक छूटा हुआ आयाम (✗): प्रश्न की मुख्य मांग से जुड़ा वह आवश्यक आयाम जो उत्तर में पूरी तरह छूट गया है।
+     (D) तथ्यात्मक त्रुटि (✗): गलत तथ्य, समिति या कालक्रम। सही तथ्य शालीनता से बताएं।
+     (E) मूल्य-संवर्धन (✎): अंक बढ़ाने हेतु उच्च-प्रासंगिकता वाला सुझाव (जैसे कोई प्रासंगिक समिति, वाद या आंकड़ा)।
+   - पूर्ण प्रामाणिकता (ZERO HALLUCINATIONS): केवल वही उद्धृत करें जो उत्तर-पुस्तिका में वास्तव में लिखा गया है।
+   - पूर्ण सुसंगतता (ZERO CONTRADICTIONS): यदि अभ्यर्थी ने कोई बिंदु, समिति, अनुच्छेद या वाद लिखा है, तो उसे भूलकर भी 'छूटा हुआ' न कहें!
+
+4. वास्तविक उत्तर-पुस्तिका ट्रेसिंग एवं गतिशील शीर्षक पहचान (STRICT ANSWERSHEET TRACING - ZERO GHOST HEADINGS):
    - अभ्यर्थी ने उत्तर में जो वास्तविक बक्सेदार शीर्षक (Boxed Headings), रेखांकित शीर्षक, या भाग (a), (b), (c) लिखे हैं, केवल उन्हीं को ट्रेस करें!
-   - कभी भी कोई काल्पनिक या मनगढ़ंत हेडिंग (जैसे 'Fiscal Federalism' या 'Synthesis Part 2') न बनाएं।
+   - कभी भी कोई काल्पनिक या मनगढ़ंत हेडिंग न बनाएं।
    - एकल शीर्षक को कभी न तोड़ें (NEVER SPLIT COHESIVE HEADINGS): यदि अभ्यर्थी ने एक ही बॉक्स या पंक्ति में शीर्षक लिखा है (जैसे '[प्रासंगिकता व आवश्यकता]' या '[Relevance and need of UAPA and National Security Act]'), तो उसे 'और', 'व', 'एवं', या 'तथा' पर दो टुकड़ों में कभी न काटें! पूरा शीर्षक एक ही मार्जिन कार्ड में रहेगा।
    - यदि अभ्यर्थी ने केवल 3 भाग लिखे हैं: [प्रस्तावना (भूमिका) ➔ मुख्य बिंदु ➔ निष्कर्ष (आगे की राह)], तो मूल्यांकन में केवल वही 3 भाग होने चाहिए।
    - प्रत्येक मार्जिन कार्ड (visual_annotations) के 'tag' में अभ्यर्थी द्वारा लिखा गया वास्तविक शीर्षक या विषयगत आयाम ही दर्ज करें।
 
-2. हस्तलिखित आरेखों व मानचित्रों की पहचान एवं अंक (DIAGRAMS & MAPS RECOGNITION):
+5. हस्तलिखित आरेखों व मानचित्रों की पहचान एवं अंक (DIAGRAMS & MAPS RECOGNITION):
    - उत्तर-पुस्तिका में अभ्यर्थी द्वारा बनाए गए रेखाचित्रों, मानचित्रों, तालिकाओं या फ्लोचार्ट की पहचान करें:
      * जैसे: भारत की तटरेखा मानचित्र, नक्सल प्रभावित रेड कॉरिडोर मानचित्र, अरस्तू का स्वर्णिम मध्यम मार्ग आरेख, चुनाव आयुक्त चयन समिति का त्रिभुज, मूल ढांचा वृत्त, पंचायती राज 3Fs (Funds, Functions, Functionaries), वेन आरेख (Venn Diagram)।
    - यदि प्रासंगिक आरेख उपस्थित है, तो प्रस्तुति में उसकी स्पष्ट सराहना करें और +0.5 से +1.0 अंक दें।
 
-3. द्विभाषी तकनीकी शब्दावली एवं हिंग्लिश की स्वीकार्यता (ENGLISH / HINGLISH ACRONYM TOLERANCE):
+6. द्विभाषी तकनीकी शब्दावली एवं हिंग्लिश की स्वीकार्यता (ENGLISH / HINGLISH ACRONYM TOLERANCE):
    - हिंदी माध्यम के शीर्ष अभ्यर्थी गति और सटीकता हेतु कोष्ठक में अंग्रेजी तकनीकी शब्द या संक्षिप्त नाम लिखते हैं:
      * जैसे: (2nd ARC), (Deep Web / Dark Web), (Safe Harbour), (Appropriation), (mRNA), (AMR), (Single Sign On - SSO), (Checks & Balances), (Probity), (Inclusive Growth), (Venn Diagram)।
    - इसके लिए अंक कभी न काटें! आयोग में यह अवधारणात्मक स्पष्टता का प्रमाण माना जाता है।
 
-4. प्रश्न-प्रकार के अनुसार विषयगत गहराई (SUBJECT-SPECIFIC DNA):
+7. प्रश्न-प्रकार के अनुसार विषयगत गहराई (SUBJECT-SPECIFIC DNA):
    - GS-1: ऐतिहासिक कारण-प्रभाव शृंखला, 1857 के बाद प्रशासनिक पुनर्गठन, तड़ित चालक बनाम सुरक्षा वाल्व वाद, भूगोल में भू-आकृतिक प्रक्रम।
    - GS-2: संवैधानिक अनुच्छेद (Art 315-323, 243I, 239AA, 324-328), सर्वोच्च न्यायालय के ऐतिहासिक वाद (केशवानंद भारती, विनीत नारायण, एल. चंद्रकुमार, लिली थॉमस, पुट्टास्वामी), संसदीय समितियां (PAC, CAG)।
    - GS-3: आर्थिक एवं तकनीकी मानक (BEC, नैनो यूरिया, AMR, BSF 50 किमी क्षेत्राधिकार, FATF, TKDL, तटीय सुरक्षा का त्रि-स्तरीय ढांचा: नौसेना-तटरक्षक-समुद्री पुलिस)।
    - GS-4 (नीतिशास्त्र व केस स्टडीज):
      * सैद्धांतिक: केईई मॉडल (की-वर्ड ➔ नैतिक व्याख्या ➔ वास्तविक प्रशासनिक उदाहरण), नोलन सिद्धांत, अरस्तू, कांत, गीता का लोकसंग्रह।
      * केस स्टडीज: 2-स्तंभीय विकल्प विश्लेषण [लाभ (Pros) | हानि (Cons)], 3-चरणीय प्रशासनिक एसओपी (तात्कालिक 0-24h ➔ प्रशासनिक 24-72h ➔ व्यवस्थागत सुधार)।
-
-5. गणितीय शुद्धता (MATHEMATICAL SUM LAW):
-   - कुल प्राप्तांक (overall_score) = प्रस्तावना अंक + मुख्य भाग अंक + निष्कर्ष अंक।
-   - visual_annotations के हर कार्ड में प्राप्तांक "+प्राप्त / अधिकतम" प्रारूप में हो।
-   - सभी भाजकों (Denominators) का योग ठीक {max_marks}.0 होना चाहिए (प्रस्तावना {intro_d} + मुख्य भाग {body_d} + निष्कर्ष {conc_d} = {max_marks}.0)।
 
 6. निर्देशानुरूप निष्कर्ष व 5 निष्कर्ष दोषों की रोकथाम (DIRECTIVE-DRIVEN CONCLUSION MASTERY):
    - 3-चरणीय गतिशील निष्कर्ष संरचना (THE 3-STEP DYNAMIC CONCLUSION ARCHITECTURE):
@@ -1289,30 +1317,72 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
     "pyq_trend_frequency": "विगत वर्षों में इस विषय की पुनरावृत्ति प्रवृत्ति",
     "directive_action_rule": "इस निर्देश शब्द हेतु परीक्षा हॉल नियम"
   }},
+  "sub_part_step_marking": [
+    {{
+      "step_label": "1. प्रस्तावना एवं संदर्भ (Intro & Context)",
+      "sub_heading": "प्रारंभिक विषय-परिचय एवं अवधारणात्मक आधार",
+      "demand_status": "मांग आंशिक रूप से पूर्ण",
+      "awarded": 1.0,
+      "max": {intro_d},
+      "quoted_written": "अभ्यर्थी द्वारा लिखी गई प्रस्तावना का प्रामाणिक उद्धरण।"
+    }},
+    {{
+      "step_label": "2. मुख्य भाग — आयाम A (प्राथमिक विश्लेषणात्मक मांग)",
+      "sub_heading": "प्रश्न की पहली प्रमुख मांग का विश्लेषण (कारण-कार्य तंत्र)",
+      "demand_status": "मांग पूर्णतः संतुष्ट",
+      "awarded": {round(body_d * 0.25, 1)},
+      "max": {round(body_d * 0.5, 1)},
+      "quoted_written": "✓ अभ्यर्थी ने इन बिंदुओं व तथ्यों का उल्लेख किया।"
+    }},
+    {{
+      "step_label": "3. मुख्य भाग — आयाम B (द्वितीयक मांग / चुनौतियाँ)",
+      "sub_heading": "प्रश्न की दूसरी मांग अथवा बहुआयामी प्रभावों का परीक्षण",
+      "demand_status": "मांग आंशिक रूप से पूर्ण",
+      "awarded": {round(body_d * 0.25, 1)},
+      "max": {round(body_d * 0.5, 1)},
+      "quoted_written": "अभ्यर्थी द्वारा प्रस्तुत तर्कों व साक्ष्यों का परीक्षण।"
+    }},
+    {{
+      "step_label": "4. निष्कर्ष एवं आगे की राह (Conclusion)",
+      "sub_heading": "अग्रगामी समाधान एवं संस्थागत समन्वय",
+      "demand_status": "मांग पूर्णतः संतुष्ट",
+      "awarded": 0.5,
+      "max": {conc_d},
+      "quoted_written": "अभ्यर्थी के अंतिम निष्कर्ष का सारांश।"
+    }}
+  ],
   "subpart_marks_breakdown": [
     {{
-      "part_name": "प्रस्तावना / अवधारणात्मक आधार",
+      "part_name": "1. प्रस्तावना / अवधारणात्मक आधार",
       "max_marks": {intro_d},
       "marks_awarded": 1.0,
-      "analysis": "अभ्यर्थी की प्रस्तावना का संक्षिप्त वस्तुनिष्ठ विश्लेषण।"
+      "demand_status": "मांग आंशिक रूप से पूर्ण",
+      "analysis": "अभ्यर्थी की प्रस्तावना का संक्षिप्त वस्तुनिष्ठ विश्लेषण।",
+      "scoring_rationale": "अवधारणात्मक आधार प्रस्तुत करने पर अंक दिए गए।"
     }},
     {{
-      "part_name": "मुख्य भाग: सामाजिक-आर्थिक विकास के आयाम",
+      "part_name": "2. मुख्य भाग — आयाम A",
       "max_marks": {round(body_d * 0.5, 1)},
       "marks_awarded": {round(body_d * 0.25, 1)},
-      "analysis": "अभ्यर्थी द्वारा प्रस्तुत बिंदुओं और उदाहरणों का तथ्यात्मक मूल्यांकन।"
+      "demand_status": "मांग पूर्णतः संतुष्ट",
+      "analysis": "अभ्यर्थी द्वारा प्रस्तुत बिंदुओं और उदाहरणों का तथ्यात्मक मूल्यांकन।",
+      "scoring_rationale": "तार्किक प्रवाह व साक्ष्यों के आधार पर अंक दिए गए।"
     }},
     {{
-      "part_name": "मुख्य भाग: चुनौतियाँ एवं संस्थागत सीमाएं",
+      "part_name": "3. मुख्य भाग — आयाम B",
       "max_marks": {round(body_d * 0.5, 1)},
       "marks_awarded": {round(body_d * 0.25, 1)},
-      "analysis": "चुनौतियों व संवैधानिक आयामों की गहराई का परीक्षण।"
+      "demand_status": "मांग आंशिक रूप से पूर्ण",
+      "analysis": "चुनौतियों व संवैधानिक आयामों की गहराई का परीक्षण।",
+      "scoring_rationale": "मुख्य आयाम शामिल किंतु संस्थागत सुधारों की आवश्यकता।"
     }},
     {{
-      "part_name": "निष्कर्ष / आगे की राह",
+      "part_name": "4. निष्कर्ष / आगे की राह",
       "max_marks": {conc_d},
       "marks_awarded": 0.5,
-      "analysis": "अंतिम निष्कर्ष की अग्रगामी दृष्टि का परीक्षण।"
+      "demand_status": "मांग पूर्णतः संतुष्ट",
+      "analysis": "अंतिम निष्कर्ष की अग्रगामी दृष्टि का परीक्षण।",
+      "scoring_rationale": "संवैधानिक व नीतिगत मूल्यों के साथ संतुलित समापन।"
     }}
   ],
   "intro_audit": {{
@@ -1442,10 +1512,15 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
   ],
   "rubric_scores": {{
     "intro_score": 1.0,
+    "intro_max": {rubric_i_max},
     "core_demand_score": 2.0,
+    "core_demand_max": {rubric_c_max},
     "value_add_score": 0.5,
+    "value_add_max": {rubric_v_max},
     "presentation_score": 0.5,
-    "conclusion_score": 0.5
+    "presentation_max": {rubric_p_max},
+    "conclusion_score": 0.5,
+    "conclusion_max": {rubric_co_max}
   }},
   "directive_compliance": {{
     "directive": "{directive_info.get('directive', 'चर्चा कीजिए')}",
@@ -1467,7 +1542,7 @@ def build_evaluation_prompt(
     previous_question: Optional[str] = None,
     current_affairs_context: Optional[str] = None,
     previous_evaluation: Optional[Dict[str, Any]] = None,
-    medium: Optional[str] = "english"
+    medium: Optional[str] = None
 ) -> str:
     # Dedicated Hindi medium routing (strictly isolated from English evaluation)
     _, is_prompt_hindi = resolve_evaluation_medium(medium_param=medium, question_text=question)
@@ -1605,6 +1680,42 @@ ROLE DUALITY (CRITICAL):
    - Write in warm, clear, conversational English that directly helps the aspirant in self-study.
    - For all long-form narrative explanations, reduce verbosity by 50% compared to typical academic critiques. Prioritize brevity, crispness, and punchy takeaways.
    - Give direct, memorable advice ("Solid premise!", "Watch out for this quote trap:", "Plug this exact sentence in your revision notes:").
+
+CORE EVALUATION PRINCIPLES (DYNAMIC QUESTION UNDERSTANDING & CANONICAL SCORING RECORD):
+1. DYNAMIC QUESTION INTERPRETATION & EVALUATION PLAN (NO RIGID TEMPLATE):
+   - Before evaluating candidate handwriting, formulate an internal question-specific evaluation plan:
+     * Syllabus Micro-Topic: Pinpoint the official syllabus theme and core tension.
+     * Directive Nuance & Command Word:
+       - 'Discuss': Address core dimensions with balanced causal explanation and mechanisms.
+       - 'Examine': Investigate underlying mechanisms, implications, and systemic constraints.
+       - 'Critically Examine / Critically Analyse': Investigate merits/valid aspects, limitations/counter-arguments, before arriving at a balanced, reasoned assessment.
+       - 'Analyse': Deconstruct into components, drivers, causes, consequences, and stakeholders.
+       - 'Evaluate / To what extent': Establish objective criteria and assess validity/significance with a defensible judgement.
+       - 'Comment': Offer an evidence-backed assessment with a clear thesis upfront.
+       - 'Elucidate / Justify': Clarify concepts using concrete operational examples and empirical evidence.
+       - 'Compare / Distinguish': Symmetrical comparison across matching criteria.
+     * Explicit Sub-Demands vs Implied Requirements: Deconstruct the prompt into its actual analytical parts (e.g. Demand 1: Economic Costs; Demand 2: Social Costs; Demand 3: Mitigation / Policy).
+     * Essential Core Content vs Optional Value Additions: Distinguish what is mandatory to answer the prompt from supplementary additions. Never force irrelevant constitutional articles, committee reports, or diagrams onto topics where they do not naturally belong.
+     * Accept Valid Alternative Approaches: Give full credit to well-reasoned alternative arguments, regional perspectives, or frameworks even if they differ from standard coaching model answers.
+
+2. ONE CANONICAL SCORING RECORD (MATHEMATICAL SUM LAW):
+   - Every score in this evaluation must derive from a single unified source of truth:
+     * Sum of sub_part_step_marking maxes (Intro + Body Parts + Conclusion) MUST EQUAL EXACTLY {max_marks}.0.
+     * Sum of sub_part_step_marking awarded marks MUST EQUAL EXACTLY overall_score.
+     * Sum of rubric_scores (intro_score + core_demand_score + value_add_score + presentation_score + conclusion_score) MUST EQUAL EXACTLY overall_score.
+     * For every step: 0.0 <= awarded <= max.
+     * Proportional Scaling: A 10-mark answer (~150 words, 2 pages) expects concise directness; a 15-mark answer (~250 words, 3 pages) expects deeper mechanisms and broader dimensions. Never penalize a 10-marker for lacking 15-marker breadth.
+     * No Double Penalties: Never penalize the same weakness across multiple criteria unless separate consequences are independently justified.
+
+3. 5-CATEGORY EVIDENCE GROUNDING (ZERO HALLUCINATIONS, ZERO CONTRADICTIONS):
+   - Classify candidate content strictly into 5 evidence categories:
+     (A) Present & Correct (✓): Concepts, mechanisms, or evidence written accurately. Quote exact candidate handwriting.
+     (B) Present but Insufficient (⚠️): Mentioned without causal explanation ("Factor without Mechanism"). Guide how to complete the causal chain.
+     (C) Relevant Missing (✗): Essential demand or dimension required by the prompt that was omitted.
+     (D) Incorrect / Unsupported (✗): Factually or chronologically inaccurate claims. Correct constructively.
+     (E) Optional Value-Addition (✎): High-yield upgrade (policy, metric, doctrine) to reach topper levels.
+   - ZERO HALLUCINATIONS: Quote ONLY what is actually written on the uploaded answer sheet.
+   - ZERO CONTRADICTIONS: If the student wrote a point, committee, article, or case law, NEVER flag it as missing! Appreciate it first, then guide them to the next distinct angle.
 
 EVALUATION PARAMETERS:
 - Detected Subject Discipline: {detected_paper} ({taxonomy['name']})
@@ -2277,6 +2388,40 @@ Generate strictly valid JSON matching this schema:
       "awarded": {sample_conc_aw:.2f},
       "max": {conc_d:.1f},
       "quoted_written": "Awarded marks for [exact closing line summary]."
+    }}
+  ],
+  "subpart_marks_breakdown": [
+    {{
+      "part_name": "1. Introduction (Context & Baseline Hook)",
+      "max_marks": {intro_d:.1f},
+      "marks_awarded": {sample_intro_aw:.2f},
+      "demand_status": "Partially Fulfilled",
+      "analysis": "Opening premise and conceptual anchor evaluation.",
+      "scoring_rationale": "Awarded marks for exact opening hook; marks held back for missing technical anchor."
+    }},
+    {{
+      "part_name": "2. Part A — Primary Analytical Demand",
+      "max_marks": {round(body_d * 0.40, 1):.1f},
+      "marks_awarded": {round(sample_body_aw * 0.40, 2):.2f},
+      "demand_status": "Demand Fulfilled",
+      "analysis": "Evaluation of primary question demand and causal mechanisms.",
+      "scoring_rationale": "Candidate substantiated arguments with concrete evidence."
+    }},
+    {{
+      "part_name": "3. Part B — Secondary Analytical Demand",
+      "max_marks": {round(body_d * 0.35, 1):.1f},
+      "marks_awarded": {round(sample_body_aw * 0.35, 2):.2f},
+      "demand_status": "Demand Fulfilled",
+      "analysis": "Evaluation of secondary question demand and multidimensional effects.",
+      "scoring_rationale": "Addressed key factors with relevant examples."
+    }},
+    {{
+      "part_name": "4. Conclusion (Closing Synthesis)",
+      "max_marks": {conc_d:.1f},
+      "marks_awarded": {sample_conc_aw:.2f},
+      "demand_status": "Demand Fulfilled",
+      "analysis": "Closing synthesis and forward-looking linkage.",
+      "scoring_rationale": "Effective, balanced conclusion tied to the core thesis."
     }}
   ],
   "point_by_point_audit": [
@@ -4216,6 +4361,9 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
             if m:
                 aw = float(m.group(1))
                 den = float(m.group(2))
+            elif "score" in ann or "max" in ann:
+                aw = float(ann.get("score") if ann.get("score") is not None else 0.5)
+                den = float(ann.get("max") if ann.get("max") is not None else 2.0)
             else:
                 aw = 0.5
                 den = 2.0
@@ -4226,17 +4374,11 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         # Enforce deterministic canonical denominators based on number of graded sections
         # so that two evaluations of a 2-page or 3-page answer never fluctuate between /7.0 and /4.0
         n_sec = len(parsed)
-        if n_sec == 3:
-            new_dens = [2.0, 6.0, 2.0] if max_marks == 10 else ([2.5, 10.0, 2.5] if max_marks == 15 else [3.0, 14.0, 3.0])
-        elif n_sec == 4:
-            new_dens = [1.5, 3.5, 3.5, 1.5] if max_marks == 10 else ([2.0, 5.5, 5.5, 2.0] if max_marks == 15 else [2.5, 7.5, 7.5, 2.5])
-        elif n_sec == 5:
-            new_dens = [1.5, 2.5, 2.5, 2.0, 1.5] if max_marks == 10 else ([2.0, 4.0, 4.0, 3.0, 2.0] if max_marks == 15 else [2.5, 5.0, 5.0, 5.0, 2.5])
-        elif n_sec == 6:
-            new_dens = [1.5, 2.0, 2.0, 1.5, 1.5, 1.5] if max_marks == 10 else ([2.0, 3.0, 3.0, 3.0, 2.0, 2.0] if max_marks == 15 else [2.5, 4.0, 4.0, 4.0, 3.0, 2.5])
-        elif n_sec == 7:
-            new_dens = [1.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5] if max_marks == 10 else ([2.0, 2.5, 2.5, 2.5, 2.0, 2.0, 1.5] if max_marks == 15 else [2.0, 3.5, 3.5, 3.5, 3.0, 2.5, 2.0])
-        elif parsed and abs(total_den - max_marks) > 0.01 and total_den > 0:
+        if parsed and abs(total_den - max_marks) <= 0.01 and all(item[2] > 0.4 for item in parsed):
+            # Model provided a valid, dynamic denominator distribution summing exactly to max_marks
+            new_dens = [item[2] for item in parsed]
+        elif parsed and abs(total_den - max_marks) > 0.01 and total_den > 0 and all(item[2] > 0.4 for item in parsed):
+            # Scale model's dynamic denominators proportionally to max_marks
             scale_d = max_marks / total_den
             new_dens = []
             curr_sum = 0.0
@@ -4247,6 +4389,16 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                     new_d = round(den * scale_d * 2) / 2
                     curr_sum += new_d
                 new_dens.append(new_d)
+        elif n_sec == 3:
+            new_dens = [2.0, 6.0, 2.0] if max_marks == 10 else ([2.5, 10.0, 2.5] if max_marks == 15 else [3.0, 14.0, 3.0])
+        elif n_sec == 4:
+            new_dens = [1.5, 3.5, 3.5, 1.5] if max_marks == 10 else ([2.0, 5.5, 5.5, 2.0] if max_marks == 15 else [2.5, 7.5, 7.5, 2.5])
+        elif n_sec == 5:
+            new_dens = [1.5, 2.5, 2.5, 2.0, 1.5] if max_marks == 10 else ([2.0, 4.0, 4.0, 3.0, 2.0] if max_marks == 15 else [2.5, 5.0, 5.0, 5.0, 2.5])
+        elif n_sec == 6:
+            new_dens = [1.5, 2.0, 2.0, 1.5, 1.5, 1.5] if max_marks == 10 else ([2.0, 3.0, 3.0, 3.0, 2.0, 2.0] if max_marks == 15 else [2.5, 4.0, 4.0, 4.0, 3.0, 2.5])
+        elif n_sec == 7:
+            new_dens = [1.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5] if max_marks == 10 else ([2.0, 2.5, 2.5, 2.5, 2.0, 2.0, 1.5] if max_marks == 15 else [2.0, 3.5, 3.5, 3.5, 3.0, 2.5, 2.0])
         else:
             new_dens = [item[2] for item in parsed]
 
@@ -4268,6 +4420,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
 
         for i, (ann, _, _) in enumerate(parsed):
             ann["marks_awarded"] = f"+{new_aws[i]:.1f} / {new_dens[i]:.1f}"
+            ann["score"] = float(round(new_aws[i], 1))
+            ann["max"] = float(round(new_dens[i], 1))
 
         # Ensure Conclusion is strictly reserved for the final page (never duplicate on intermediate pages)
         # And eliminate contradictory 'Lacks Structure' remarks when candidate used Case Laws, Chronology, or Boxed Headings
@@ -5172,18 +5326,41 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
         total_body_max = max(1.0, round((max_marks - intro_max - conc_max) * 4) / 4)
         total_body_aw = max(0.0, round((overall_score - intro_aw - conc_aw) * 4) / 4)
 
-        # Calculate individual body part ceilings and awards proportionally
+        # Calculate individual body part ceilings and awards proportionally, respecting dynamic weights if provided
+        raw_body_maxes = []
+        raw_body_aws = []
+        for b_idx in range(num_body):
+            step_idx = 1 + b_idx
+            if step_idx < len(existing_steps) - 1 and isinstance(existing_steps[step_idx], dict):
+                raw_body_maxes.append(float(existing_steps[step_idx].get("max") or 0.0))
+                raw_body_aws.append(float(existing_steps[step_idx].get("awarded") or 0.0))
+            else:
+                raw_body_maxes.append(0.0)
+                raw_body_aws.append(0.0)
+
+        sum_raw_b_max = sum(raw_body_maxes)
+        sum_raw_b_aw = sum(raw_body_aws)
+        has_dynamic_weights = (sum_raw_b_max > 0.1 and all(m > 0 for m in raw_body_maxes))
+
         body_max_list = []
         body_aw_list = []
         rem_m = total_body_max
         rem_aw = total_body_aw
         for b_idx in range(num_body):
             if b_idx == num_body - 1:
-                body_max_list.append(max(0.5, round(rem_m * 4) / 4))
-                body_aw_list.append(max(0.0, min(body_max_list[-1], round(rem_aw * 4) / 4)))
+                final_m = max(0.5, round(rem_m * 4) / 4)
+                final_aw = max(0.0, min(final_m, round(rem_aw * 4) / 4))
+                body_max_list.append(final_m)
+                body_aw_list.append(final_aw)
             else:
-                m_val = max(1.0, round((total_body_max / num_body) * 4) / 4)
-                aw_val = min(m_val, max(0.0, round((total_body_aw / num_body) * 4) / 4))
+                if has_dynamic_weights:
+                    ratio_m = raw_body_maxes[b_idx] / sum_raw_b_max
+                    m_val = max(0.5, round((total_body_max * ratio_m) * 4) / 4)
+                    ratio_aw = (raw_body_aws[b_idx] / sum_raw_b_aw) if sum_raw_b_aw > 0 else ratio_m
+                    aw_val = min(m_val, max(0.0, round((total_body_aw * ratio_aw) * 4) / 4))
+                else:
+                    m_val = max(1.0, round((total_body_max / num_body) * 4) / 4)
+                    aw_val = min(m_val, max(0.0, round((total_body_aw / num_body) * 4) / 4))
                 body_max_list.append(m_val)
                 body_aw_list.append(aw_val)
                 rem_m = max(0.5, rem_m - m_val)
@@ -5259,6 +5436,19 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                 item["awarded"] = body_aw_list[body_idx] if body_idx < len(body_aw_list) else 1.0
             assigned_steps.append(item)
         data["sub_part_step_marking"] = assigned_steps
+
+        # Synchronize subpart_marks_breakdown (Phase 3.1 & Phase 4)
+        data["subpart_marks_breakdown"] = [
+            {
+                "part_name": st.get("step_label", ""),
+                "max_marks": float(st.get("max", 0.0) or 0.0),
+                "marks_awarded": float(st.get("awarded", 0.0) or 0.0),
+                "demand_status": st.get("demand_status") or ("Demand Fulfilled" if float(st.get("awarded", 0.0) or 0.0) >= float(st.get("max", 0.0) or 0.0) * 0.5 else "Partially Fulfilled"),
+                "analysis": st.get("sub_heading", ""),
+                "scoring_rationale": st.get("quoted_written", "")
+            }
+            for st in assigned_steps if isinstance(st, dict)
+        ]
     else:
         # For 10-markers (max_marks == 10 or total_pages <= 2), strictly default to 2 body parts (Intro + Part A + Part B + Conclusion)
         total_p = int(data.get("total_pages", 0) or 0)
@@ -5446,6 +5636,17 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
             "step_up_lever": str(conc_audit.get("model_conclusion_rewrite") or conc_def_lever)
         })
         data["sub_part_step_marking"] = gen_steps
+        data["subpart_marks_breakdown"] = [
+            {
+                "part_name": st.get("step_label", ""),
+                "max_marks": float(st.get("max", 0.0) or 0.0),
+                "marks_awarded": float(st.get("awarded", 0.0) or 0.0),
+                "demand_status": st.get("demand_status") or ("Demand Fulfilled" if float(st.get("awarded", 0.0) or 0.0) >= float(st.get("max", 0.0) or 0.0) * 0.5 else "Partially Fulfilled"),
+                "analysis": st.get("sub_heading", ""),
+                "scoring_rationale": st.get("quoted_written", "")
+            }
+            for st in gen_steps if isinstance(st, dict)
+        ]
 
     # 2. Strict Mathematical Calibration & Authentic Extraction for point_by_point_audit (Image 2 style)
     existing_pbp = data.get("point_by_point_audit")
