@@ -14873,7 +14873,18 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
   if (!container) return;
 
   if (!fullText) {
-    container.innerHTML = `<p class="text-slate-500 italic">No model answer generated.</p>`;
+    container.innerHTML = `
+      <div class="p-8 text-center rounded-2xl border border-dashed border-slate-700/80 bg-slate-900/40 my-3 space-y-2.5">
+        <div class="w-10 h-10 mx-auto rounded-full bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-400">
+          <i data-lucide="file-text" class="w-5 h-5"></i>
+        </div>
+        <h4 class="text-xs font-semibold text-slate-300 font-sans">${isHindi ? "कोई मॉडल उत्तर उपलब्ध नहीं है" : "No Model Answer Available"}</h4>
+        <p class="text-[11px] text-slate-400 max-w-sm mx-auto font-sans leading-relaxed">${isHindi ? "उत्तर पुस्तिका का मूल्यांकन पूरा होने के बाद यहाँ टॉपर स्तर का मॉडल उत्तर प्रदर्शित होगा।" : "Evaluate an authentic answer copy to generate a structured UPSC Topper Model Answer tailored to this question."}</p>
+      </div>
+    `;
+    if (window.lucide) {
+      try { window.lucide.createIcons({ root: container }); } catch (e) {}
+    }
     return;
   }
 
@@ -14953,8 +14964,8 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     .replace(/^\s*(?:\[?[A-Za-z0-9\s_-]*\]?\s*)?(?:Diagram|Schematic|Flowchart|Exam-Hall Flowchart)\s*:\s*.*$/gim, "")
     .trim();
 
-  // Apply UPSC Ruled Paper aesthetic
-  container.className = "space-y-3 upsc-booklet-paper p-5 sm:p-7 rounded-2xl border border-slate-800 text-xs text-slate-200 leading-relaxed font-serif";
+  // Apply UPSC Ruled Paper aesthetic with refined design tokens
+  container.className = "space-y-3.5 upsc-booklet-paper p-5 sm:p-7 rounded-2xl border border-slate-800 text-xs text-slate-200 leading-relaxed font-serif";
 
   function formatInlineModelText(str) {
     if (!str) return "";
@@ -14981,7 +14992,7 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     // 1. Markdown Table (e.g. Distinction Matrices like Code of Conduct vs Code of Ethics)
     if (b.includes("|") && b.includes("---")) {
       const rows = b.split('\n').filter(r => r.trim().startsWith('|'));
-      let tableHtml = '<div class="my-3 overflow-x-auto"><table class="min-w-full text-xs border-collapse border border-slate-700 bg-slate-950/80 rounded-lg overflow-hidden">';
+      let tableHtml = '<div class="my-3.5 overflow-x-auto rounded-xl border border-slate-700/80 shadow-md bg-slate-950/90"><table class="min-w-full text-xs border-collapse">';
       let isHeader = true;
       rows.forEach((row) => {
         if (row.includes('---')) {
@@ -14991,13 +15002,13 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
         const cells = row.split('|').map(c => c.trim()).filter((c, i, a) => i > 0 && i < a.length - 1);
         if (cells.length === 0) return;
         if (isHeader) {
-          tableHtml += '<tr class="bg-amber-500/15 text-amber-300 font-bold border-b border-slate-700">';
-          cells.forEach(c => { tableHtml += `<th class="px-3 py-2 text-left border-r border-slate-800 last:border-r-0 font-sans">${formatModelBlock(c)}</th>`; });
+          tableHtml += '<tr class="bg-amber-500/15 text-amber-300 font-bold border-b border-slate-700/80">';
+          cells.forEach(c => { tableHtml += `<th class="px-3.5 py-2.5 text-left border-r border-slate-800/80 last:border-r-0 font-sans tracking-wide">${formatModelBlock(c)}</th>`; });
           tableHtml += '</tr>';
           isHeader = false;
         } else {
-          tableHtml += '<tr class="border-b border-slate-800/80 hover:bg-slate-900/50">';
-          cells.forEach(c => { tableHtml += `<td class="px-3 py-2 border-r border-slate-800/80 last:border-r-0 text-slate-200">${formatModelBlock(c)}</td>`; });
+          tableHtml += '<tr class="border-b border-slate-800/80 last:border-b-0 even:bg-slate-900/40 hover:bg-slate-800/50 transition-colors">';
+          cells.forEach(c => { tableHtml += `<td class="px-3.5 py-2.5 border-r border-slate-800/80 last:border-r-0 text-slate-200">${formatModelBlock(c)}</td>`; });
           tableHtml += '</tr>';
         }
       });
@@ -15008,14 +15019,14 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
 
     // 2. Horizontal Separator (--- or ***)
     if (/^---+$/.test(b) || /^\*\*\*+$/.test(b)) {
-      html += `<div class="my-3 border-t border-slate-800/80"></div>`;
+      html += `<div class="my-3.5 border-t border-slate-800/80"></div>`;
       return;
     }
 
     // 3. Question Prompt Box
     if (/^(?:Q\.|Question[:\s])/i.test(b)) {
       html += `
-        <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/25 text-blue-950 dark:text-blue-200 text-xs font-semibold font-sans flex items-start space-x-2">
+        <div class="p-3 sm:p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/25 text-blue-950 dark:text-blue-200 text-xs font-semibold font-sans flex items-start space-x-2.5 shadow-xs">
           <i data-lucide="help-circle" class="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"></i>
           <span>${formatModelBlock(b)}</span>
         </div>
@@ -15028,7 +15039,7 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
       let cleanBox = b.replace(/^(?:\*\*)?\[?(?:INITIAL\s+)?VALUE-ADD(?:ITION)?\s+BOX\]?(?:\*\*)?:?\s*/i, '');
       cleanBox = cleanBox.replace(/^(?:\*\*)?(?:Snapshot|At a Glance)[^:\n]*:?(?:\*\*)?\s*/i, '');
       html += `
-        <div class="topper-anchor-box my-3 p-3.5 sm:p-4 rounded-xl bg-blue-50/80 dark:bg-slate-950/90 border border-blue-200 dark:border-blue-500/40 shadow-sm dark:shadow-xl space-y-2">
+        <div class="topper-anchor-box my-3.5 p-3.5 sm:p-4 rounded-xl bg-blue-50/80 dark:bg-slate-950/90 border border-blue-200 dark:border-blue-500/40 shadow-sm dark:shadow-xl space-y-2">
           <div class="topper-anchor-title text-xs font-bold text-blue-900 dark:text-blue-300 uppercase tracking-wide flex items-center justify-between border-b border-blue-200 dark:border-blue-500/25 pb-1.5 font-sans">
             <span class="flex items-center space-x-1.5">
               <i data-lucide="layout-grid" class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400"></i>
@@ -15053,7 +15064,7 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     if (isFirstBlock) {
       introRendered = true;
       html += `
-        <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 text-xs text-slate-200 leading-relaxed font-sans space-y-1">
+        <div class="p-3.5 sm:p-4 rounded-xl bg-slate-900/70 border border-slate-800 border-l-3 border-l-blue-400/80 text-xs text-slate-200 leading-relaxed font-sans space-y-1.5 shadow-xs">
           <div class="text-[10px] font-bold uppercase tracking-wider text-blue-400 flex items-center space-x-1.5 font-sans">
             <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
             <span>${isHindi ? "प्रस्तावना (Context & Framing)" : "Context & Framing"}</span>
@@ -15074,7 +15085,7 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
       let concText = b.replace(/^(?:\*\*)?(?:Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead|निष्कर्ष|आगे\s*की\s*राह)(?:\*\*)?:?\s*/i, '');
       if (!concText) concText = b;
       html += `
-        <div class="mt-4 p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/25 text-xs text-slate-200 leading-relaxed font-sans space-y-1">
+        <div class="mt-4 p-3.5 sm:p-4 rounded-xl bg-amber-500/5 border border-amber-500/25 border-l-3 border-l-amber-400/80 text-xs text-slate-200 leading-relaxed font-sans space-y-1.5 shadow-xs">
           <div class="text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center space-x-1.5 font-sans">
             <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
             <span>${isHindi ? "निष्कर्ष (Concluding Synthesis)" : "Concluding Synthesis"}</span>
@@ -15096,7 +15107,7 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
         hasHeadingAppeared = true;
         let cleanHeading = line.replace(/^#{1,6}\s*/, '').replace(/^\*\*|\*\*$/g, '').replace(/:$/, '').trim();
         html += `
-          <div class="mt-4 mb-2 pt-2.5 border-t border-slate-700/60 dark:border-slate-800/80 first:border-t-0 first:pt-0 first:mt-0 flex items-center space-x-2">
+          <div class="mt-4.5 mb-2.5 pt-3 border-t border-slate-700/60 dark:border-slate-800/80 first:border-t-0 first:pt-0 first:mt-0 flex items-center space-x-2">
             <span class="w-2.5 h-2.5 rounded-sm bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shrink-0"></span>
             <h4 class="text-xs sm:text-[13px] font-bold text-amber-300 dark:text-amber-400 uppercase tracking-wider font-sans">${escapeHtml(cleanHeading)}</h4>
           </div>
@@ -15111,11 +15122,11 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
         const lead = (numMatch[2] || numMatch[3] || numMatch[4] || "").trim().replace(/^[:\s]+|[:\s]+$/g, '');
         const exp = numMatch[5].trim();
         html += `
-          <div class="my-2 p-2.5 sm:p-3 rounded-xl bg-slate-900/60 hover:bg-slate-900/90 border border-slate-800/80 transition-colors flex items-start space-x-2.5">
-            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 font-bold font-sans text-[11px] shrink-0 border border-amber-500/35 shadow-xs mt-0.5">${escapeHtml(num)}</span>
-            <div class="flex-1 text-slate-200 text-xs leading-relaxed font-sans">
-              ${lead ? `<strong class="text-amber-300 font-bold mr-1.5">${escapeHtml(lead)}:</strong>` : ''}
-              <span>${formatInlineModelText(exp)}</span>
+          <div class="my-2.5 p-3 sm:p-3.5 rounded-xl bg-slate-900/70 hover:bg-slate-900/95 border border-slate-800/90 border-l-3 border-l-amber-500/70 transition-all flex items-start space-x-3 shadow-xs">
+            <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-amber-500/20 text-amber-300 font-bold font-sans text-[11px] shrink-0 border border-amber-500/40 shadow-xs mt-0.5">${escapeHtml(num)}</span>
+            <div class="flex-1 text-slate-200 text-xs sm:text-[13px] leading-relaxed font-sans">
+              ${lead ? `<strong class="text-amber-300 font-bold mr-1.5 font-sans">${escapeHtml(lead)}:</strong>` : ''}
+              <span class="text-slate-200">${formatInlineModelText(exp)}</span>
             </div>
           </div>
         `;
@@ -15128,10 +15139,10 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
         const num = simpleNumMatch[1];
         const exp = simpleNumMatch[2].trim();
         html += `
-          <div class="my-2 p-2.5 sm:p-3 rounded-xl bg-slate-900/60 hover:bg-slate-900/90 border border-slate-800/80 transition-colors flex items-start space-x-2.5">
-            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/20 text-amber-300 font-bold font-sans text-[11px] shrink-0 border border-amber-500/35 shadow-xs mt-0.5">${escapeHtml(num)}</span>
-            <div class="flex-1 text-slate-200 text-xs leading-relaxed font-sans">
-              <span>${formatInlineModelText(exp)}</span>
+          <div class="my-2.5 p-3 sm:p-3.5 rounded-xl bg-slate-900/70 hover:bg-slate-900/95 border border-slate-800/90 border-l-3 border-l-amber-500/70 transition-all flex items-start space-x-3 shadow-xs">
+            <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-amber-500/20 text-amber-300 font-bold font-sans text-[11px] shrink-0 border border-amber-500/40 shadow-xs mt-0.5">${escapeHtml(num)}</span>
+            <div class="flex-1 text-slate-200 text-xs sm:text-[13px] leading-relaxed font-sans">
+              <span class="text-slate-200">${formatInlineModelText(exp)}</span>
             </div>
           </div>
         `;

@@ -2239,6 +2239,7 @@ async def evaluate_answer(
                     create_fast_gemini_client,
                     get_active_gemini_models,
                     record_gemini_model_outcome,
+                    execute_gemini_with_resilience,
                 )
 
                 contents_payload = (multimodal_parts + [evaluator_prompt_text]) if multimodal_parts else [evaluator_prompt_text]
@@ -2269,10 +2270,12 @@ async def evaluate_answer(
                             break
                         try:
                             print(f"[EVALUATOR] Evaluating copy with model '{model_name}' (Key {key_idx+1}/{len(keys_to_try)})...")
-                            response = client.models.generate_content(
+                            response = execute_gemini_with_resilience(
+                                client=client,
                                 model=model_name,
                                 contents=contents_payload,
-                                config=gen_config
+                                config=gen_config,
+                                max_retries=3
                             )
                             if response and response.text:
                                 raw_text = response.text

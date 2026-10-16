@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-10-16T05:21:19.517Z",
+  "entries": [
+    "advanced-evaluation",
+    "ai-prompt-regression-testing",
+    "anti-ui-slop",
+    "api-rate-limit-handler",
+    "client-secret-exposure-audit",
+    "gemini-api-integration",
+    "prompt-injection-defense",
+    "score-eval",
+    "supabase-postgres-best-practices",
+    "tailwind-design-system"
+  ]
+}
