@@ -1,0 +1,171 @@
+/* ==========================================================================
+   Cooked Mains - Dedicated Essay Evaluation Results Experience Stylesheet
+   Strictly scoped to #essayEvaluationWorkspace to prevent any regression on GS
+   ========================================================================== */
+
+#essayEvaluationWorkspace {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Base transitions and smooth scrolling */
+#essayEvaluationWorkspace * {
+  box-sizing: border-box;
+}
+
+/* Focus and accessibility */
+#essayEvaluationWorkspace button:focus-visible,
+#essayEvaluationWorkspace [tabindex="0"]:focus-visible,
+#essayEvaluationWorkspace a:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  #essayEvaluationWorkspace * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Responsive Dual-Column Layout */
+.essay-col-viewer,
+.essay-col-analysis {
+  width: 100%;
+}
+
+@media (max-width: 1023px) {
+  .essay-mobile-hidden {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .essay-col-viewer,
+  .essay-col-analysis {
+    width: 50% !important;
+    display: flex !important;
+  }
+  .essay-sticky-sidebar {
+    position: sticky;
+    top: 4.75rem;
+    max-height: calc(100vh - 5.5rem);
+  }
+}
+
+/* Essay Journey Timeline Nodes */
+.essay-journey-timeline {
+  position: relative;
+}
+
+.essay-journey-timeline::before {
+  content: '';
+  position: absolute;
+  top: 1.5rem;
+  bottom: 1.5rem;
+  left: 1.25rem;
+  width: 2px;
+  background: linear-gradient(to bottom, #f59e0b, #6366f1, #10b981);
+  opacity: 0.35;
+}
+
+.essay-journey-node {
+  position: relative;
+  padding-left: 3rem;
+}
+
+.essay-journey-dot {
+  position: absolute;
+  left: 0.75rem;
+  top: 1.25rem;
+  transform: translateX(-50%);
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  border: 2px solid #f59e0b;
+  background-color: #ffffff;
+  z-index: 2;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.dark .essay-journey-dot {
+  background-color: #0f172a;
+}
+
+.essay-journey-node:hover .essay-journey-dot {
+  transform: translateX(-50%) scale(1.25);
+  background-color: #f59e0b;
+}
+
+/* Page Navigation Strip in Topic Alignment */
+.essay-page-strip-item {
+  transition: all 0.2s ease-in-out;
+}
+
+.essay-page-strip-item.active {
+  border-color: #f59e0b !important;
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  color: #d97706 !important;
+  font-weight: 700;
+}
+
+.dark .essay-page-strip-item.active {
+  color: #fbbf24 !important;
+}
+
+/* Annotation Card styling */
+.essay-annotation-card {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.essay-annotation-card:hover {
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.dark .essay-annotation-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+/* Annotation overlay markers on canvas */
+.essay-annotation-pin {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background-color: rgba(245, 158, 11, 0.18);
+  border-left: 4px solid #f59e0b;
+  border-top: 1px dashed rgba(245, 158, 11, 0.5);
+  border-bottom: 1px dashed rgba(245, 158, 11, 0.5);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  z-index: 10;
+}
+
+.essay-annotation-pin:hover,
+.essay-annotation-pin.active-pin {
+  background-color: rgba(245, 158, 11, 0.35);
+  border-left: 5px solid #d97706;
+}
+
+/* Zoom controls */
+.essay-zoom-btn {
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease;
+}
+
+/* Print styling */
+@media print {
+  #essayEvaluationWorkspace {
+    display: block !important;
+  }
+  .essay-sticky-sidebar {
+    position: static !important;
+    max-height: none !important;
+  }
+}

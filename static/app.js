@@ -322,6 +322,18 @@ window.resetToCleanIntake = function(shouldScroll = true) {
     updateViewer();
   }
 
+  // Reset essay evaluation workspace visibility
+  const essayWs = document.getElementById("essayEvaluationWorkspace");
+  if (essayWs) {
+    essayWs.classList.add("hidden");
+    essayWs.classList.remove("flex");
+    essayWs.innerHTML = "";
+  }
+  const gsWs = document.getElementById("gsEvaluationWorkspace");
+  if (gsWs) {
+    gsWs.classList.remove("hidden");
+  }
+
   // Ensure paper selection buttons are cleanly styled with zero stuck colors
   if (typeof applyPaperTabVisualState === "function") {
     applyPaperTabVisualState(state.selectedPaperTab || "GS3");
@@ -11791,6 +11803,7 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
 
 // Render the Full Evaluation Scorecard
 function renderEvaluation(evalData) {
+  window.renderEvaluation = renderEvaluation;
   if (typeof window.sanitizeRepetitiveConclusionCliches === "function") {
     window.sanitizeRepetitiveConclusionCliches(
       evalData,
@@ -11858,6 +11871,40 @@ function renderEvaluation(evalData) {
 
   // Automatically lock screen into State B (The Evaluation Studio)
   window.switchStudioState("studio");
+
+  // DEDICATED ESSAY SUBMISSION BIFURCATION (Strictly isolated from GS results)
+  const isEssay = typeof window.isEssaySubmission === "function" ? window.isEssaySubmission(evalData) : false;
+  const gsWs = document.getElementById("gsEvaluationWorkspace");
+  const essayWs = document.getElementById("essayEvaluationWorkspace");
+
+  if (isEssay) {
+    if (gsWs) gsWs.classList.add("hidden");
+    if (essayWs) {
+      essayWs.classList.remove("hidden");
+      essayWs.classList.add("flex");
+    }
+    if (typeof window.renderEssayEvaluation === "function") {
+      window.renderEssayEvaluation(evalData);
+    }
+    if (evalData.detected_question) {
+      state.question = evalData.detected_question;
+      if (questionInput) questionInput.value = evalData.detected_question;
+    }
+    if (evalData.detected_paper) {
+      state.paper = evalData.detected_paper;
+      state.selectedPaperTab = "Essay";
+      if (typeof applyPaperTabVisualState === "function") {
+        applyPaperTabVisualState("Essay");
+      }
+    }
+    return;
+  } else {
+    if (essayWs) {
+      essayWs.classList.add("hidden");
+      essayWs.classList.remove("flex");
+    }
+    if (gsWs) gsWs.classList.remove("hidden");
+  }
 
 
   // Auto-sync question and subject if detected from booklet header
