@@ -2270,12 +2270,13 @@ async def evaluate_answer(
                             break
                         try:
                             print(f"[EVALUATOR] Evaluating copy with model '{model_name}' (Key {key_idx+1}/{len(keys_to_try)})...")
-                            response = execute_gemini_with_resilience(
+                            response = await asyncio.to_thread(
+                                execute_gemini_with_resilience,
                                 client=client,
                                 model=model_name,
                                 contents=contents_payload,
                                 config=gen_config,
-                                max_retries=3
+                                max_retries=2
                             )
                             if response and response.text:
                                 raw_text = response.text
@@ -2293,7 +2294,10 @@ async def evaluate_answer(
                             record_gemini_model_outcome(model_name, False, err_s)
                             err_low = err_s.lower()
                             # If API key itself is invalid or out of quota, move to next key immediately
-                            if "api_key_invalid" in err_low or "invalid api key" in err_low or "permission_denied" in err_low:
+                            if any(k_err in err_low for k_err in [
+                                "api_key_invalid", "invalid api key", "permission_denied",
+                                "resource_exhausted", "quota", "429"
+                            ]):
                                 break
                             continue
 
@@ -2771,3 +2775,4 @@ if __name__ == "__main__":
     host = os.environ.get("HOST", "0.0.0.0")
     print(f"Starting Cooked Mains AI server on http://{host}:{port} ...")
     uvicorn.run("main:app", host=host, port=port, reload=False)
+
