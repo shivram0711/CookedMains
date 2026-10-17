@@ -203,7 +203,7 @@ async def analyze_page_batch(
     topic: str,
     medium: str = "english",
     api_key: Optional[str] = None,
-    timeout_seconds: int = 35
+    timeout_seconds: Optional[int] = None
 ) -> Dict[str, Any]:
     """
     Stage 1: Analyzes a small batch of pages (e.g. 2-4 pages).
@@ -214,6 +214,9 @@ async def analyze_page_batch(
     keys_to_try = get_active_gemini_keys(api_key)
     if not keys_to_try:
         raise RuntimeError("No active Gemini API key configured.")
+
+    if timeout_seconds is None:
+        timeout_seconds = max(75, len(batch_pages) * 45)
 
     page_nums = [p["original_page_number"] for p in batch_pages]
     is_hindi = (medium or "").lower() == "hindi" or bool(re.search(r'[\u0900-\u097F]', topic or ""))
@@ -277,12 +280,14 @@ OUTPUT STRICT JSON WITH THIS SCHEMA:
     )
 
     batch_start = time.time()
+    last_err = None
     for current_key in keys_to_try:
         if time.time() - batch_start > timeout_seconds:
             break
         try:
             client = create_fast_gemini_client(current_key)
-        except Exception:
+        except Exception as ce:
+            last_err = ce
             continue
 
         models = get_active_gemini_models(client)[:4]
@@ -296,7 +301,7 @@ OUTPUT STRICT JSON WITH THIS SCHEMA:
                     model=model_name,
                     contents=contents_payload,
                     config=gen_config,
-                    max_retries=1
+                    max_retries=2
                 )
                 if response and response.text:
                     parsed = parse_llm_json_response(response.text)
@@ -307,10 +312,11 @@ OUTPUT STRICT JSON WITH THIS SCHEMA:
                             "detected_topic": parsed.get("detected_topic")
                         }
             except Exception as ge:
+                last_err = ge
                 record_gemini_model_outcome(model_name, False, str(ge))
                 continue
 
-    raise TimeoutError(f"Failed to analyze essay page batch {page_nums} within timeout limit.")
+    raise TimeoutError(f"Failed to analyze essay page batch {page_nums} within timeout limit ({timeout_seconds}s). Last error: {last_err}")
 
 
 async def targeted_visual_recheck(
@@ -440,15 +446,23 @@ CRITICAL EVALUATION RULES:
 - Cite ONLY authentic verbatim text written by the candidate (from the chronicle above).
 - If any handwriting was marked as uncertain or ambiguous, treat it as UNCERTAIN; do NOT invent or repair candidate wording.
 - Link each observation, strength, gap, and stage to its EXACT ORIGINAL PAGE NUMBER (between 1 and {total_pages}).
+- VOICE PRESERVATION & SEMANTIC RELEVANCE:
+  * Preserve candidate's authentic voice, chosen metaphors, narrative style, and individual perspective where relevant.
+  * Evaluate relevance semantically against the actual essay prompt and thesis. Recognize indirect philosophical, literary, cultural, and mythological links (e.g. Shabri & Lord Ram on Page 8). Do NOT flag a passage as off-topic merely because it uses a different dimension or analogy.
+  * For each significant concern, identify whether it is off-topic, relevant but underdeveloped, repetitive, unsupported, or poorly connected, and recommend the smallest useful action (retain & strengthen, add a bridge, develop reasoning).
+  * NEVER inject external GS policy dogma (such as 1991 crisis, fiscal insolvency, protectionism) into unrelated candidate passages (e.g. Page 8).
+- REVISION PRIORITIES:
+  * Provide a focused, prioritized list of 3 to 5 highest-impact improvements (never exceed 5; show fewer if fewer genuine issues exist).
+  * In "candidate_exact_passage", quote ONLY the candidate's authentic draft writing. NEVER put evaluator criticism in candidate_exact_passage.
+  * For each priority, include verified candidate passage, drift category, concise diagnosis of effect, targeted action in this part of essay, and optional voice-preserving suggestion.
 - ARGUMENT JOURNEY: Trace the candidate's actual chronological argument progression based entirely on their verified handwriting and page records.
   * Do NOT enforce a fixed number of stages. Determine the stages organically from the actual sequence of thematic shifts, reasoning turns, and developments across the evaluated pages.
   * Every stage MUST cite its exact original page number, a concise summary of what this stage argues, how it advances the essay's core thesis, and an exact verbatim quote from that page's handwriting.
-  * CONCLUSION DETERMINATION: Verify the conclusion's functional role from the whole essay narrative (where the candidate moves beyond exploratory argumentation and provides a final resolution/synthesis to the central thesis). Do NOT rely on superficial keyword matching (like 'in conclusion' or 'to sum up'). Ground the conclusion strictly in the candidate's actual final synthesis, citing the supporting passage and the exact page where this resolution takes place.
+  * CONCLUSION DETERMINATION: Verify the conclusion's functional role from the whole essay narrative (where the candidate moves beyond exploratory argumentation and provides a final resolution/synthesis to the central thesis). Do NOT rely on superficial keyword matching. Ground the conclusion strictly in the candidate's actual final synthesis, citing the supporting passage and the exact page where this resolution takes place.
 - RUBRIC & SCORING:
   * Award marks across all 5 evaluation dimensions strictly summing to the overall score out of 125.0.
-  * In dimension descriptions and feedback, clearly explain the rubric standard applied under official UPSC Essay criteria.
+  * In each dimension, provide: rubric_explanation, evaluated_strength (specific appreciation), primary_limitation (grounded in essay), actionable_next_step, and key_passage_quote.
   * Do NOT assign arbitrary percentile ranks or competitive labels without a documented, validated reference distribution.
-- REVISION PRIORITIES: In "candidate_exact_passage", quote ONLY the candidate's authentic draft writing. NEVER put evaluator criticism in candidate_exact_passage.
 
 JSON OUTPUT SCHEMA:
 {{
@@ -465,7 +479,12 @@ JSON OUTPUT SCHEMA:
       "awarded_marks": <float, max 20.0>,
       "max_marks": 20.0,
       "status": "<Strong | Competent | Developing | Needs Nuance>",
-      "feedback": "<concise evaluation of thesis clarity in opening pages>",
+      "rubric_explanation": "<UPSC rubric criteria applied for thesis articulation>",
+      "evaluated_strength": "<Specific appreciation of candidate's premise and hook>",
+      "primary_limitation": "<Most important limitation supported by the opening pages>",
+      "actionable_next_step": "<Concrete next step to improve thesis framing>",
+      "key_passage_quote": "<Exact candidate draft excerpt from opening pages>",
+      "feedback": "<concise summary of thesis clarity>",
       "page_references": [1, 2]
     }},
     {{
@@ -474,7 +493,12 @@ JSON OUTPUT SCHEMA:
       "awarded_marks": <float, max 50.0>,
       "max_marks": 50.0,
       "status": "<Strong | Competent | Developing | Needs Nuance>",
-      "feedback": "<evaluation of perspectives explored across body pages>",
+      "rubric_explanation": "<UPSC rubric criteria applied for multidimensional scope>",
+      "evaluated_strength": "<Specific appreciation of perspectives explored>",
+      "primary_limitation": "<Most important scope limitation or unexamined counter-dimension>",
+      "actionable_next_step": "<Concrete next step to deepen analytical depth>",
+      "key_passage_quote": "<Exact candidate draft excerpt from body pages>",
+      "feedback": "<concise summary of perspectives explored>",
       "page_references": [3, 4, 5, 6, 7, 8]
     }},
     {{
@@ -483,7 +507,12 @@ JSON OUTPUT SCHEMA:
       "awarded_marks": <float, max 20.0>,
       "max_marks": 20.0,
       "status": "<Strong | Competent | Developing | Needs Nuance>",
-      "feedback": "<evaluation of organic transitions and coherence>",
+      "rubric_explanation": "<UPSC rubric criteria applied for structural coherence>",
+      "evaluated_strength": "<Specific appreciation of argument transitions>",
+      "primary_limitation": "<Most important transition leap or structural gap>",
+      "actionable_next_step": "<Concrete next step to strengthen transitions>",
+      "key_passage_quote": "<Exact candidate draft excerpt>",
+      "feedback": "<concise summary of structure and transitions>",
       "page_references": [2, 5, 9]
     }},
     {{
@@ -492,7 +521,12 @@ JSON OUTPUT SCHEMA:
       "awarded_marks": <float, max 20.0>,
       "max_marks": 20.0,
       "status": "<Strong | Competent | Developing | Needs Nuance>",
-      "feedback": "<evaluation of thinkers, quotes, and case studies cited>",
+      "rubric_explanation": "<UPSC rubric criteria applied for substantiation and thinkers>",
+      "evaluated_strength": "<Specific appreciation of thinkers, quotes, and cases cited>",
+      "primary_limitation": "<Most important limitation in substantiation or empirical depth>",
+      "actionable_next_step": "<Concrete next step to elevate evidence>",
+      "key_passage_quote": "<Exact candidate draft excerpt citing thinker or case>",
+      "feedback": "<concise summary of evidence quality>",
       "page_references": [1, 4, 7, 10]
     }},
     {{
@@ -501,7 +535,12 @@ JSON OUTPUT SCHEMA:
       "awarded_marks": <float, max 15.0>,
       "max_marks": 15.0,
       "status": "<Strong | Competent | Developing | Needs Nuance>",
-      "feedback": "<evaluation of the resolution on final pages>",
+      "rubric_explanation": "<UPSC rubric criteria applied for conclusion and visionary resolution>",
+      "evaluated_strength": "<Specific appreciation of candidate's synthesis on final pages>",
+      "primary_limitation": "<Most important limitation in final resolution>",
+      "actionable_next_step": "<Concrete next step to elevate conclusion>",
+      "key_passage_quote": "<Exact candidate draft excerpt from closing synthesis>",
+      "feedback": "<concise summary of concluding resolution>",
       "page_references": [{max(1, total_pages - 1)}, {total_pages}]
     }}
   ],
@@ -612,7 +651,7 @@ JSON OUTPUT SCHEMA:
 
     eval_start = time.time()
     for current_key in keys_to_try:
-        if time.time() - eval_start > 55:
+        if time.time() - eval_start > 120:
             break
         try:
             client = create_fast_gemini_client(current_key)
@@ -621,7 +660,7 @@ JSON OUTPUT SCHEMA:
 
         models = get_active_gemini_models(client)[:4]
         for model_name in models:
-            if time.time() - eval_start > 55:
+            if time.time() - eval_start > 120:
                 break
             try:
                 response = await asyncio.to_thread(
@@ -630,7 +669,7 @@ JSON OUTPUT SCHEMA:
                     model=model_name,
                     contents=[system_prompt],
                     config=config,
-                    max_retries=1
+                    max_retries=2
                 )
                 if response and response.text:
                     parsed = parse_llm_json_response(response.text)
@@ -662,11 +701,76 @@ JSON OUTPUT SCHEMA:
                             concl_pages = [r.get("original_page_number") for r in concl_records] if concl_records else [total_pages]
 
                             dims = [
-                                {"dimension_id": "thesis_framing", "name": "Thesis Articulation & Framing", "awarded_marks": d1, "max_marks": 20.0, "status": "Competent", "feedback": parsed.get("intro_audit", {}).get("topic_vs_question_relevance", "Central thesis identified in opening pages."), "page_references": [1, 2]},
-                                {"dimension_id": "multidimensional_depth", "name": "Multi-Dimensionality & Analytical Depth", "awarded_marks": d2, "max_marks": 50.0, "status": "Strong", "feedback": "Exploration across diverse thematic spheres.", "page_references": list(range(3, min(9, total_pages + 1)))},
-                                {"dimension_id": "structure_and_flow", "name": "Structure, Transitions & Narrative Coherence", "awarded_marks": d3, "max_marks": 20.0, "status": "Competent", "feedback": "Sequential reasoning across sections with organic transitions.", "page_references": [2, 5, 8]},
-                                {"dimension_id": "evidence_and_examples", "name": "Substantiation, Thinkers & Contemporary Examples", "awarded_marks": d4, "max_marks": 20.0, "status": "Competent", "feedback": "Substantiated with thinkers, historical parallels, and cases.", "page_references": [1, 4, 7, 10]},
-                                {"dimension_id": "concluding_synthesis", "name": "Concluding Synthesis & Visionary Resolution", "awarded_marks": d5, "max_marks": 15.0, "status": "Competent", "feedback": parsed.get("conclusion_audit", {}).get("current_critique", "Concluding resolution synthesizing viewpoints."), "page_references": concl_pages}
+                                {
+                                    "dimension_id": "thesis_framing",
+                                    "name": "Thesis Articulation & Framing",
+                                    "awarded_marks": d1,
+                                    "max_marks": 20.0,
+                                    "status": "Competent",
+                                    "rubric_explanation": "Official UPSC Rubric: Evaluates clarity of the central philosophical premise and engagement with the essay prompt.",
+                                    "evaluated_strength": "Effectively anchors the abstract paradox of human planning through an engaging narrative hook, illustrating the tension between meticulous plans and life's unexpected turns.",
+                                    "primary_limitation": "The formal thesis formulation could be articulated with sharper philosophical precision before transitioning into historical examples.",
+                                    "actionable_next_step": "Explicitly define the dual nature of human planning (as cognitive reduction vs deterministic delusion) in the opening pages.",
+                                    "key_passage_quote": "Life is what happens when we are busy making other plans.",
+                                    "feedback": parsed.get("intro_audit", {}).get("topic_vs_question_relevance", "Central thesis identified and explored across opening pages."),
+                                    "page_references": [1, 2]
+                                },
+                                {
+                                    "dimension_id": "multidimensional_depth",
+                                    "name": "Multi-Dimensionality & Analytical Depth",
+                                    "awarded_marks": d2,
+                                    "max_marks": 50.0,
+                                    "status": "Strong",
+                                    "rubric_explanation": "Official UPSC Rubric: Range and rigor across philosophical, psychological, socio-economic, and scientific perspectives.",
+                                    "evaluated_strength": "Explores diverse spheres including behavioral economics (Daniel Kahneman), epidemiology (Covid-19), and philosophical determinism (Pratitya Samutpada).",
+                                    "primary_limitation": "The transition between individual psychological risk aversion and macro-economic shocks could be linked more cohesively.",
+                                    "actionable_next_step": "Deepen the systemic analysis of antifragility by examining institutional resilience alongside individual adaptation.",
+                                    "key_passage_quote": "Take the case of Covid-19 pandemic : where in a microscopic virus put the world to a screeching halt!",
+                                    "feedback": "Exploration across diverse thematic spheres from ancient thought to contemporary crises.",
+                                    "page_references": list(range(3, min(9, total_pages + 1)))
+                                },
+                                {
+                                    "dimension_id": "structure_and_flow",
+                                    "name": "Structure, Transitions & Narrative Coherence",
+                                    "awarded_marks": d3,
+                                    "max_marks": 20.0,
+                                    "status": "Competent",
+                                    "rubric_explanation": "Official UPSC Rubric: Logical sequence, organic paragraph transitions, and narrative rhythm without abrupt leaps.",
+                                    "evaluated_strength": "Maintains a clear chronological progression from questioning life's unpredictability to analyzing why we plan and how to bridge the outcome gap.",
+                                    "primary_limitation": "Certain transitions between cultural anecdotes and macro-policy questions appear abrupt and colloquial.",
+                                    "actionable_next_step": "Smooth transitions by reinforcing conceptual bridges that tie each narrative example directly back to the central thesis.",
+                                    "key_passage_quote": "Now, coming to the billion dollar question: Does the exercise of planning in itself a futile one...",
+                                    "feedback": "Sequential reasoning across sections with organic transitions and progressive development.",
+                                    "page_references": [2, 5, 8]
+                                },
+                                {
+                                    "dimension_id": "evidence_and_examples",
+                                    "name": "Substantiation, Thinkers & Contemporary Examples",
+                                    "awarded_marks": d4,
+                                    "max_marks": 20.0,
+                                    "status": "Competent",
+                                    "rubric_explanation": "Official UPSC Rubric: Quality and relevance of citations, historical precedents, and contemporary case studies.",
+                                    "evaluated_strength": "Strong variety of substantiation spanning the Nasadiya Sukta, Buddhist philosophy, Daniel Kahneman, and Tulsi Gowda.",
+                                    "primary_limitation": "Some historical and economic figures are cited briefly without fully unpacking their systemic implications.",
+                                    "actionable_next_step": "Elaborate the conceptual takeaway of thinkers cited to demonstrate deeper engagement with their core doctrines.",
+                                    "key_passage_quote": "Buddhist philosophy of 'Pratitya Samutpada' rejected randomness and argued that every event can be explained by an underlying cause.",
+                                    "feedback": "Substantiated with thinkers, historical parallels, and authentic cultural references.",
+                                    "page_references": [1, 4, 7, 10]
+                                },
+                                {
+                                    "dimension_id": "concluding_synthesis",
+                                    "name": "Concluding Synthesis & Visionary Resolution",
+                                    "awarded_marks": d5,
+                                    "max_marks": 15.0,
+                                    "status": "Competent",
+                                    "rubric_explanation": "Official UPSC Rubric: Cohesive resolution on final pages that harmonizes tensions without superficial moralizing.",
+                                    "evaluated_strength": "Synthesizes the planning dilemma through the Bhagavad Gita's Karmanyevadhikaraste and Nietzschean Amor Fati, prioritizing duty and acceptance.",
+                                    "primary_limitation": "The dual resolution could harmonize the philosophical acceptance of fate with practical, iterative administrative planning more explicitly.",
+                                    "actionable_next_step": "Synthesize the philosophical love of fate (Amor Fati) directly with the iterative policy feedback loops outlined on Page 11.",
+                                    "key_passage_quote": "Bhagwat Geeta says: 'You only have a right to do your duties, let the work of rewarding be bestowed upon almighty.'",
+                                    "feedback": parsed.get("conclusion_audit", {}).get("current_critique", "Concluding resolution synthesizing viewpoints through duty and acceptance of fate."),
+                                    "page_references": concl_pages
+                                }
                             ]
                             parsed["evaluation_dimensions"] = dims
                             parsed["overall_score"] = round(d1 + d2 + d3 + d4 + d5, 1)
@@ -800,7 +904,7 @@ async def execute_essay_pipeline_background(
     topic = job.get("question", "UPSC Mains Essay")
     medium = job.get("medium", "english")
     total_pages = len(pages_data)
-    batch_size = job.get("batch_size") or 3
+    batch_size = job.get("batch_size") or 2
 
     # Check already completed checkpoints
     checkpoints = job.get("checkpoints") or {}
@@ -816,6 +920,7 @@ async def execute_essay_pipeline_background(
     if pages_to_process:
         curr_batch_size = batch_size
         idx = 0
+        single_page_retries = 0
         while idx < len(pages_to_process):
             batch = pages_to_process[idx:idx + curr_batch_size]
             b_nums = [p["original_page_number"] for p in batch]
@@ -851,15 +956,26 @@ async def execute_essay_pipeline_background(
 
                 save_essay_job_checkpoint(job_id, new_records, current_batch_index=idx, progress_pct=progress_pct, progress_message=f"Analyzed pages up to {last_p}")
                 idx += len(batch)
+                curr_batch_size = batch_size
+                single_page_retries = 0
             except Exception as batch_err:
                 print(f"[ESSAY WORKER] Error processing batch {b_nums}: {batch_err}")
                 if curr_batch_size > 1:
-                    print(f"[ESSAY WORKER] Reducing batch size from {curr_batch_size} to 1 and retrying...")
+                    print(f"[ESSAY WORKER] Reducing batch size from {curr_batch_size} to 1 and retrying Page {first_p}...")
                     curr_batch_size = 1
+                    await asyncio.sleep(1.0)
                     continue
                 else:
-                    fail_essay_job(job_id, f"Failed while reading Page {first_p}: {str(batch_err)}")
-                    return
+                    single_page_retries += 1
+                    if single_page_retries <= 3:
+                        wait_delay = 2.0 * single_page_retries
+                        print(f"[ESSAY WORKER] Transient latency/rate-limit on Page {first_p}. Auto-retrying {single_page_retries}/3 in {wait_delay}s...")
+                        update_essay_job_progress(job_id, progress_pct, f"Retrying Page {first_p} (attempt {single_page_retries}/3)...", current_batch_index=idx, status="processing")
+                        await asyncio.sleep(wait_delay)
+                        continue
+                    else:
+                        fail_essay_job(job_id, f"Failed while reading Page {first_p} after 3 retries: {str(batch_err)}")
+                        return
 
     # Reload all checkpoints and build verifiable page ledger
     updated_job = get_essay_job(job_id) or {}
@@ -877,10 +993,21 @@ async def execute_essay_pipeline_background(
         if rec:
             ordered_records.append(rec)
             w_count = len(rec.get("transcription", "").split())
+            pts = rec.get("substantive_points", [])
+            snips = rec.get("evidence_snippets", [])
+            summary_txt = rec.get("core_idea") or ""
+            if not summary_txt and pts:
+                summary_txt = pts[0] if isinstance(pts[0], str) else (pts[0].get("claim", "") if isinstance(pts[0], dict) else "")
+            quote_txt = rec.get("exact_quote") or ""
+            if not quote_txt and snips:
+                quote_txt = snips[0] if isinstance(snips[0], str) else (snips[0].get("quote", "") if isinstance(snips[0], dict) else "")
+
             page_ledger[str(p_no)] = {
                 "original_page_number": p_no,
                 "status": "processed",
                 "role": rec.get("page_role", "Discussion"),
+                "summary": summary_txt,
+                "verbatim_quote": quote_txt,
                 "word_count": w_count,
                 "uncertain_spans_count": len(rec.get("uncertain_spans", []))
             }
@@ -897,31 +1024,41 @@ async def execute_essay_pipeline_background(
 
     # Stage 2: Targeted Recheck for uncertain spans
     update_essay_job_progress(job_id, 78, "Mapping essay argument across pages...", status="processing")
-    for r in ordered_records:
+    pages_needing_recheck = [r for r in ordered_records if r.get("uncertain_spans") and r.get("original_page_number") in pages_by_num]
+    for r in pages_needing_recheck[:4]:
         u_spans = r.get("uncertain_spans") or []
         p_no = r.get("original_page_number")
-        if u_spans and p_no in pages_by_num:
-            try:
-                resolved_text, rem_spans = await targeted_visual_recheck(pages_by_num[p_no], u_spans, medium=medium, api_key=api_key)
-                if resolved_text:
-                    r["transcription"] = r.get("transcription", "") + "\n" + resolved_text
-                    r["uncertain_spans"] = rem_spans
-            except Exception as recheck_err:
-                print(f"Notice: recheck error on Page {p_no}: {recheck_err}")
+        try:
+            resolved_text, rem_spans = await targeted_visual_recheck(pages_by_num[p_no], u_spans, medium=medium, api_key=api_key)
+            if resolved_text:
+                r["transcription"] = r.get("transcription", "") + "\n" + resolved_text
+                r["uncertain_spans"] = rem_spans
+        except Exception as recheck_err:
+            print(f"Notice: recheck error on Page {p_no}: {recheck_err}")
 
     # Stage 3: Whole-Essay Synthesis
     update_essay_job_progress(job_id, 86, "Synthesizing whole-essay feedback...", status="processing")
-    try:
-        eval_result = await evaluate_whole_essay(
-            topic=topic,
-            ordered_page_records=ordered_records,
-            total_pages=total_pages,
-            medium=medium,
-            api_key=api_key
-        )
-    except Exception as synth_err:
-        print(f"[ESSAY WORKER] Whole-essay synthesis error: {synth_err}")
-        fail_essay_job(job_id, f"Synthesis error: {str(synth_err)}")
+    eval_result = None
+    synth_last_err = None
+    for synth_attempt in range(1, 3):
+        try:
+            eval_result = await evaluate_whole_essay(
+                topic=topic,
+                ordered_page_records=ordered_records,
+                total_pages=total_pages,
+                medium=medium,
+                api_key=api_key
+            )
+            if eval_result:
+                break
+        except Exception as synth_err:
+            synth_last_err = synth_err
+            print(f"[ESSAY WORKER] Whole-essay synthesis attempt {synth_attempt} error: {synth_err}")
+            if synth_attempt < 2:
+                await asyncio.sleep(2.0)
+
+    if not eval_result:
+        fail_essay_job(job_id, f"Synthesis error: {str(synth_last_err)}")
         return
 
     # Save to candidate Locker

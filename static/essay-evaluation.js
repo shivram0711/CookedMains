@@ -245,9 +245,10 @@
       }
     }
 
-    // 3. Raw page number within valid range
-    if (typeof rawPage === 'number' && rawPage >= 1 && rawPage <= totalPages) {
-      return rawPage;
+    // 3. Raw page number within valid range (number or string)
+    const parsedRaw = parseInt(rawPage, 10);
+    if (!isNaN(parsedRaw) && parsedRaw >= 1 && parsedRaw <= totalPages) {
+      return parsedRaw;
     }
 
     return null;
@@ -646,6 +647,123 @@
   }
 
   /**
+   * Helper to aggregate complete, truthful evaluation info for a specific page.
+   * Tracks role, thematic contribution, verified candidate excerpt, and review status.
+   */
+  function getPageEvaluationInfo(evalData, pageNum, totalPages) {
+    const ledger = evalData && evalData.page_ledger;
+    let ledgerEntry = null;
+    if (ledger) {
+      ledgerEntry = ledger[String(pageNum)] || ledger[pageNum];
+      if (!ledgerEntry && Array.isArray(ledger)) {
+        ledgerEntry = ledger.find(l => (typeof l === 'object' && (l.original_page_number === pageNum || l.page === pageNum)));
+      }
+    }
+
+    // Argument journey stage for this page
+    let journeyStage = null;
+    if (evalData && Array.isArray(evalData.argument_journey)) {
+      journeyStage = evalData.argument_journey.find(stg => (stg.original_page_number === pageNum || stg.page === pageNum));
+    }
+
+    // Point by point audit item for this page
+    let auditItem = null;
+    if (evalData && Array.isArray(evalData.point_by_point_audit)) {
+      auditItem = evalData.point_by_point_audit.find(pt => (pt.page === pageNum));
+    }
+
+    // Annotations for this page
+    const annotations = (evalData && Array.isArray(evalData.visual_annotations))
+      ? evalData.visual_annotations.filter(a => (a.page || a.page_number || 1) === pageNum)
+      : [];
+
+    // Observations from body_audit
+    const observations = [];
+    if (evalData && evalData.body_audit && Array.isArray(evalData.body_audit.strengths)) {
+      evalData.body_audit.strengths.forEach(s => {
+        const pages = parsePageRange(s, totalPages);
+        if (pages.includes(pageNum)) {
+          observations.push({ text: s, isStrength: true });
+        }
+      });
+    }
+    if (evalData && evalData.body_audit && Array.isArray(evalData.body_audit.critical_gaps)) {
+      evalData.body_audit.critical_gaps.forEach(g => {
+        const pages = parsePageRange(g, totalPages);
+        if (pages.includes(pageNum)) {
+          observations.push({ text: g, isStrength: false });
+        }
+      });
+    }
+
+    // Revision priority on this page
+    let revisionPriority = null;
+    if (evalData && Array.isArray(evalData.revision_priorities)) {
+      revisionPriority = evalData.revision_priorities.find(p => (p.page === pageNum));
+    }
+
+    // Determine Role
+    const role = (ledgerEntry && ledgerEntry.role) ||
+                 (journeyStage && (journeyStage.page_role || journeyStage.stage_title)) ||
+                 (auditItem && (auditItem.badge || auditItem.title)) ||
+                 (pageNum === 1 ? 'Introduction & Opening Hook' :
+                  pageNum === totalPages ? 'Concluding Synthesis & Resolution' : 'Reasoning & Thematic Development');
+
+    // Determine Thematic Summary
+    const summary = (journeyStage && (journeyStage.concise_summary || journeyStage.what_stage_contributes)) ||
+                    (auditItem && (auditItem.evaluator_remark || auditItem.examiner_verdict)) ||
+                    (ledgerEntry && ledgerEntry.summary) ||
+                    '';
+
+    // Determine Verbatim Excerpt
+    const quote = (journeyStage && journeyStage.verbatim_quote) ||
+                  (auditItem && auditItem.what_you_wrote) ||
+                  (revisionPriority && revisionPriority.candidate_exact_passage) ||
+                  (ledgerEntry && ledgerEntry.verbatim_quote) ||
+                  '';
+
+    // Determine Truthful Review Status
+    let status = 'clean';
+    let statusText = 'Reviewed — no significant issue found';
+    let badgeClass = 'bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/20';
+    let dotChar = '✓';
+
+    if (ledgerEntry && ledgerEntry.status === 'failed') {
+      status = 'not_processed';
+      statusText = 'Not processed — explain why and provide retry or recovery';
+      badgeClass = 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20';
+      dotChar = '✕';
+    } else if (ledgerEntry && (ledgerEntry.uncertain_spans_count > 0 || ledgerEntry.status === 'uncertain')) {
+      status = 'uncertain';
+      statusText = 'Not fully reviewed — transcription or image uncertainty';
+      badgeClass = 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20';
+      dotChar = '⚠';
+    } else if (annotations.length > 0 || observations.length > 0 || (journeyStage && journeyStage.status === 'drift') || revisionPriority) {
+      status = 'substantive';
+      statusText = 'Reviewed — substantive observation available';
+      badgeClass = 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
+      dotChar = '●';
+    }
+
+    return {
+      pageNum,
+      status,
+      statusText,
+      badgeClass,
+      dotChar,
+      role,
+      summary,
+      quote,
+      annotations,
+      observations,
+      journeyStage,
+      auditItem,
+      revisionPriority,
+      wordCount: (ledgerEntry && ledgerEntry.word_count) || null
+    };
+  }
+
+  /**
    * Section 3: Topic Alignment Across Pages
    * Strictly bounded to actual uploaded pages. No phantom or fabricated pages.
    */
@@ -656,35 +774,7 @@
     // Aggregate page observations strictly within 1..totalPages
     const pageDataMap = {};
     for (let p = 1; p <= totalPages; p++) {
-      pageDataMap[p] = { annotations: [], observations: [] };
-    }
-
-    if (Array.isArray(evalData.visual_annotations)) {
-      evalData.visual_annotations.forEach(ann => {
-        const p = ann.page || ann.page_number || 1;
-        if (p >= 1 && p <= totalPages) {
-          pageDataMap[p].annotations.push(ann);
-        }
-      });
-    }
-
-    // Page-referenced observations from body_audit
-    if (evalData.body_audit && Array.isArray(evalData.body_audit.strengths)) {
-      evalData.body_audit.strengths.forEach(s => {
-        const pages = parsePageRange(s, totalPages);
-        pages.forEach(p => {
-          pageDataMap[p].observations.push({ text: s, isStrength: true });
-        });
-      });
-    }
-
-    if (evalData.body_audit && Array.isArray(evalData.body_audit.critical_gaps)) {
-      evalData.body_audit.critical_gaps.forEach(g => {
-        const pages = parsePageRange(g, totalPages);
-        pages.forEach(p => {
-          pageDataMap[p].observations.push({ text: g, isStrength: false });
-        });
-      });
+      pageDataMap[p] = getPageEvaluationInfo(evalData, p, totalPages);
     }
 
     const displayPages = Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -698,7 +788,7 @@
               <span>3. Topic Alignment Across Pages</span>
             </h2>
             <p class="text-[11px] text-slate-500 dark:text-slate-400">
-              Follow your argument's development page-by-page. Select any page to inspect observations.
+              Follow your argument's development page-by-page. Select any page to inspect observations and truthful review status.
             </p>
           </div>
           <span class="text-[10px] text-slate-400 font-mono">${totalPages} ${totalPages === 1 ? 'Page' : 'Pages'}</span>
@@ -707,11 +797,11 @@
         <!-- Horizontal Interactive Page Selector Strip -->
         <div class="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-100 dark:border-slate-800/80" role="tablist" aria-label="Essay Pages Alignment Selector">
           ${displayPages.map(pageNum => {
-            const hasData = (pageDataMap[pageNum].annotations.length > 0 || pageDataMap[pageNum].observations.length > 0);
+            const pInfo = pageDataMap[pageNum];
             const isCurrent = pageNum === essayState.currentPageIndex + 1;
             return `
               <button type="button" onclick="window.essaySelectAlignmentPage(${pageNum})" class="essay-page-strip-item px-3 py-1 rounded-lg text-xs font-mono font-medium border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:border-amber-500 whitespace-nowrap cursor-pointer ${isCurrent ? 'active' : ''}">
-                Pg ${pageNum} ${hasData ? '&bull;' : ''}
+                Pg ${pageNum} <span class="text-[10px] opacity-75">${pInfo.dotChar}</span>
               </button>
             `;
           }).join('')}
@@ -727,59 +817,115 @@
 
   /**
    * Helper to render details for a specific page in Section 3
+   * Never uses a generic catch-all; distinguishes clean verification from missing data.
    */
   function renderPageAlignmentDetails(pageNum, pageInfo) {
-    const anns = (pageInfo && Array.isArray(pageInfo.annotations)) ? pageInfo.annotations : [];
-    const obss = (pageInfo && Array.isArray(pageInfo.observations)) ? pageInfo.observations : [];
-
-    if (anns.length === 0 && obss.length === 0) {
-      return `
-        <div class="rounded-xl p-3 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs text-slate-500">
-          <span>Page ${pageNum}: No critical reasoning deviations or margin marks recorded on this page.</span>
-          <button type="button" onclick="window.essayJumpToPage(${pageNum})" class="text-xs font-semibold text-amber-600 dark:text-amber-400 hover:underline">
-            View Page ${pageNum} in Script &rarr;
-          </button>
-        </div>
-      `;
-    }
+    if (!pageInfo) return '';
 
     return `
-      <div class="space-y-2.5">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-slate-800 dark:text-slate-200">
-            Observations on Page ${pageNum}
-          </span>
+      <div class="space-y-3">
+        <!-- Page Header & Review Status Badge -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-slate-800 dark:text-slate-200">
+              Booklet Page ${pageNum}
+            </span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border ${pageInfo.badgeClass}">
+              ${escapeHTML(pageInfo.statusText)}
+            </span>
+          </div>
           <button type="button" onclick="window.essayJumpToPage(${pageNum})" class="text-xs font-semibold text-amber-600 dark:text-amber-400 hover:underline cursor-pointer flex items-center space-x-1">
             <i data-lucide="eye" class="w-3.5 h-3.5"></i>
-            <span>Jump to Page ${pageNum}</span>
+            <span>Jump to Page ${pageNum} in Script &rarr;</span>
           </button>
         </div>
 
-        ${pageInfo.observations.map(obs => `
-          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="font-semibold text-slate-900 dark:text-slate-100">
-                ${obs.isStrength ? 'Candidate Argument Developed' : 'Analytical Scope Gap'}
-              </span>
-              <span class="text-[10px] px-2 py-0.5 rounded ${obs.isStrength ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'}">
-                ${obs.isStrength ? 'Coherent' : 'Scope Limitation'}
-              </span>
-            </div>
-            <div class="text-slate-600 dark:text-slate-400 leading-relaxed pt-0.5">
-              ${formatMarkdownText(obs.text)}
-            </div>
+        <!-- Role & Thematic Contribution -->
+        <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-2">
+          <div class="flex items-center space-x-2 text-xs font-bold text-slate-800 dark:text-slate-200">
+            <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+            <span>Role in Essay:</span>
+            <span class="text-indigo-600 dark:text-indigo-400 font-semibold">${escapeHTML(pageInfo.role)}</span>
           </div>
-        `).join('')}
+          ${pageInfo.summary ? `
+            <div class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed pl-3.5 border-l-2 border-indigo-500/30">
+              <span class="font-bold text-slate-700 dark:text-slate-300">Thematic Contribution: </span>
+              ${formatMarkdownText(pageInfo.summary)}
+            </div>
+          ` : ''}
+          ${pageInfo.quote ? `
+            <div class="space-y-1 pt-1">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block pl-3.5">Verified Candidate Draft Excerpt (Page ${pageNum}):</span>
+              <div class="ml-3.5 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs font-serif italic text-slate-800 dark:text-slate-200 leading-relaxed">
+                &ldquo;${escapeHTML(pageInfo.quote)}&rdquo;
+              </div>
+            </div>
+          ` : ''}
+        </div>
 
-        ${pageInfo.annotations.map(ann => `
-          <div class="p-3 rounded-xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 space-y-1 text-xs">
-            <div class="flex items-center justify-between font-semibold text-amber-800 dark:text-amber-300">
-              <span>${escapeHTML(ann.tag || 'Examiner Script Margin Observation')}</span>
-              ${ann.marks_awarded ? `<span class="font-mono text-[10px]">${escapeHTML(ann.marks_awarded)}</span>` : ''}
-            </div>
-            <p class="text-slate-700 dark:text-slate-300">${formatMarkdownText(ann.remark || '')}</p>
+        <!-- Substantive Observations & Annotations (if present) -->
+        ${(pageInfo.observations && pageInfo.observations.length > 0) || (pageInfo.annotations && pageInfo.annotations.length > 0) ? `
+          <div class="space-y-2 pt-1">
+            <span class="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+              Examiner Margin &amp; Argument Findings:
+            </span>
+            ${pageInfo.observations.map(obs => `
+              <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1 text-xs">
+                <div class="flex items-center justify-between">
+                  <span class="font-semibold text-slate-900 dark:text-slate-100">
+                    ${obs.isStrength ? 'Candidate Argument Developed' : 'Analytical Scope Gap'}
+                  </span>
+                  <span class="text-[10px] px-2 py-0.5 rounded ${obs.isStrength ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'}">
+                    ${obs.isStrength ? 'Coherent' : 'Scope Limitation'}
+                  </span>
+                </div>
+                <div class="text-slate-600 dark:text-slate-400 leading-relaxed pt-0.5">
+                  ${formatMarkdownText(obs.text)}
+                </div>
+              </div>
+            `).join('')}
+
+            ${pageInfo.annotations.map(ann => `
+              <div class="p-3 rounded-xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 space-y-1 text-xs">
+                <div class="flex items-center justify-between font-semibold text-amber-800 dark:text-amber-300">
+                  <span>${escapeHTML(ann.tag || 'Examiner Margin Observation')}</span>
+                  ${ann.marks_awarded ? `<span class="font-mono text-[10px]">${escapeHTML(ann.marks_awarded)}</span>` : ''}
+                </div>
+                <p class="text-slate-700 dark:text-slate-300">${formatMarkdownText(ann.remark || '')}</p>
+              </div>
+            `).join('')}
           </div>
-        `).join('')}
+        ` : (pageInfo.status === 'clean' ? `
+          <div class="rounded-xl p-3 bg-sky-500/5 dark:bg-sky-500/10 border border-sky-500/20 text-xs text-sky-800 dark:text-sky-300 space-y-1">
+            <div class="flex items-center space-x-1.5 font-semibold">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5 text-sky-600 dark:text-sky-400"></i>
+              <span>Page Audit Verified</span>
+            </div>
+            <p class="leading-relaxed text-slate-600 dark:text-slate-400">
+              The candidate's argument on Page ${pageNum} progresses logically without critical reasoning drift or topical deviation. Ideas develop smoothly in alignment with the essay thesis.
+            </p>
+          </div>
+        ` : (pageInfo.status === 'uncertain' ? `
+          <div class="rounded-xl p-3 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-300 space-y-1">
+            <div class="flex items-center space-x-1.5 font-semibold">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400"></i>
+              <span>Transcription Uncertainty Flagged</span>
+            </div>
+            <p class="leading-relaxed text-slate-600 dark:text-slate-400">
+              Certain handwriting spans on Page ${pageNum} contain visual ambiguity. Review the original script directly using the jump link above.
+            </p>
+          </div>
+        ` : `
+          <div class="rounded-xl p-3 bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/20 text-xs text-rose-800 dark:text-rose-300 space-y-1">
+            <div class="flex items-center space-x-1.5 font-semibold">
+              <i data-lucide="x-circle" class="w-3.5 h-3.5 text-rose-600 dark:text-rose-400"></i>
+              <span>Page Processing Notice</span>
+            </div>
+            <p class="leading-relaxed text-slate-600 dark:text-slate-400">
+              This page could not be processed during synthesis. Please check document quality and reload.
+            </p>
+          </div>
+        `))}
       </div>
     `;
   }
@@ -805,9 +951,56 @@
           max: dim.max_marks,
           status: dim.status,
           content: `
-            <div class="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
-              <p>${formatMarkdownText(dim.feedback || '')}</p>
-              ${pagesStr ? `<div class="pt-1 flex items-center space-x-1.5"><span class="text-[10px] uppercase font-bold text-slate-400">Relevant Pages:</span> <div class="flex items-center space-x-1">${pagesStr}</div></div>` : ''}
+            <div class="space-y-2.5 text-xs text-slate-600 dark:text-slate-300">
+              ${dim.rubric_explanation ? `
+                <div class="p-2.5 rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 text-slate-700 dark:text-slate-300">
+                  <span class="font-bold text-[10px] uppercase text-slate-500 dark:text-slate-400 block mb-0.5">UPSC Evaluation Rubric Standard:</span>
+                  <p class="leading-relaxed">${escapeHTML(dim.rubric_explanation)}</p>
+                </div>
+              ` : ''}
+
+              ${dim.evaluated_strength ? `
+                <div class="p-2.5 rounded-lg bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 text-slate-700 dark:text-slate-300">
+                  <span class="font-bold text-[10px] uppercase text-emerald-700 dark:text-emerald-400 block mb-0.5 flex items-center space-x-1">
+                    <span>&check; Evaluated Strength:</span>
+                  </span>
+                  <p class="leading-relaxed">${formatMarkdownText(dim.evaluated_strength)}</p>
+                </div>
+              ` : (dim.feedback ? `<p class="leading-relaxed">${formatMarkdownText(dim.feedback)}</p>` : '')}
+
+              ${dim.primary_limitation ? `
+                <div class="p-2.5 rounded-lg bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/20 text-slate-700 dark:text-slate-300">
+                  <span class="font-bold text-[10px] uppercase text-rose-700 dark:text-rose-400 block mb-0.5 flex items-center space-x-1">
+                    <span>&bull; Primary Limitation:</span>
+                  </span>
+                  <p class="leading-relaxed">${formatMarkdownText(dim.primary_limitation)}</p>
+                </div>
+              ` : ''}
+
+              ${dim.actionable_next_step ? `
+                <div class="p-2.5 rounded-lg bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 text-slate-700 dark:text-slate-300">
+                  <span class="font-bold text-[10px] uppercase text-amber-700 dark:text-amber-400 block mb-0.5 flex items-center space-x-1">
+                    <span>&rarr; Actionable Next Step:</span>
+                  </span>
+                  <p class="leading-relaxed">${formatMarkdownText(dim.actionable_next_step)}</p>
+                </div>
+              ` : ''}
+
+              ${dim.key_passage_quote ? `
+                <div class="space-y-1 pt-0.5">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Verified Key Excerpt from Candidate Script:</span>
+                  <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-serif italic text-slate-800 dark:text-slate-200 leading-relaxed">
+                    &ldquo;${escapeHTML(dim.key_passage_quote)}&rdquo;
+                  </div>
+                </div>
+              ` : ''}
+
+              ${pagesStr ? `
+                <div class="pt-1 flex items-center space-x-1.5">
+                  <span class="text-[10px] uppercase font-bold text-slate-400">Relevant Pages:</span>
+                  <div class="flex items-center space-x-1">${pagesStr}</div>
+                </div>
+              ` : ''}
             </div>
           `
         });
@@ -1079,14 +1272,15 @@
     const priorities = [];
     const totalPages = essayState.activePages.length || 1;
 
-    // Prioritize dedicated revision_priorities schema
+    // Prioritize dedicated revision_priorities schema (capped at 3-5 items)
     if (Array.isArray(evalData.revision_priorities) && evalData.revision_priorities.length > 0) {
-      evalData.revision_priorities.forEach(prio => {
+      evalData.revision_priorities.slice(0, 5).forEach(prio => {
         const pNum = prio.page || null;
         const rawQuote = (prio.candidate_exact_passage || prio.quote || '').trim();
         const verifiedPage = verifyCandidatePage(rawQuote, pNum, prio.title, evalData.transcribed_text, totalPages);
         priorities.push({
           title: prio.title || 'Reinforcing Argument Transitions',
+          driftCategory: prio.drift_category || prio.category || 'Relevant but Underdeveloped Transition',
           candidatePassage: rawQuote,
           diagnosis: prio.evaluator_diagnosis || prio.weakness || '',
           guidance: prio.actionable_guidance || prio.why || '',
@@ -1102,6 +1296,7 @@
 
         priorities.push({
           title: naf.target_section || 'Reinforcing Argument Transitions',
+          driftCategory: 'Relevant but Underdeveloped Transition',
           candidatePassage: naf.student_draft_quote || '',
           diagnosis: naf.identified_gap || '',
           guidance: naf.mentor_why || '',
@@ -1112,7 +1307,7 @@
 
       // Fallback: Critical gaps from body audit (strictly labeled as Evaluator Diagnosis, NOT student wording)
       if (evalData.body_audit && Array.isArray(evalData.body_audit.critical_gaps)) {
-        evalData.body_audit.critical_gaps.slice(0, 2).forEach((gap, idx) => {
+        evalData.body_audit.critical_gaps.slice(0, 3).forEach((gap, idx) => {
           let cleanGap = gap;
           let title = `Analytical Revision ${idx + 2}`;
           const headerMatch = gap.match(/^\*\*([^*]+)\*\*:\s*(.*)/s);
@@ -1125,6 +1320,7 @@
 
           priorities.push({
             title: title,
+            driftCategory: 'Analytical Scope Nuance',
             candidatePassage: '',
             diagnosis: cleanGap,
             guidance: 'Preserves your perspective while addressing counterarguments examiners look for.',
@@ -1148,11 +1344,11 @@
               <span>6. Revision Priorities (Preserving Candidate Voice)</span>
             </h2>
             <p class="text-[11px] text-slate-500 dark:text-slate-400">
-              Actionable repairs to strengthen reasoning. Suggested alternatives are optional examples, not required dogmas.
+              Focused, high-impact revisions (3&ndash;5 max). Suggested alternatives are optional examples, not required dogmas.
             </p>
           </div>
           <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-            Voice Preserved
+            Voice Preserved (${priorities.length} ${priorities.length === 1 ? 'Priority' : 'Priorities'})
           </span>
         </div>
 
@@ -1162,7 +1358,7 @@
           <div class="space-y-1">
             <span class="font-bold block text-slate-900 dark:text-slate-100">Preserving Candidate Voice &amp; Individual Perspective:</span>
             <p class="leading-relaxed text-slate-700 dark:text-slate-300">
-              Evaluator revision suggestions are <strong>strictly optional illustrations</strong>, not mandatory formulas. You do not need to adopt heavy academic or abstract jargon (e.g. <em>&ldquo;epistemological heuristic&rdquo;</em>). Retain your authentic tone, direct phrasing, and personal arguments while strengthening the logical transitions between paragraphs.
+              Evaluator revision suggestions are <strong>strictly optional illustrations</strong>, not mandatory formulas. You do not need to adopt heavy academic or abstract jargon. Retain your authentic tone, direct phrasing, and personal arguments while strengthening the logical transitions between paragraphs.
             </p>
           </div>
         </div>
@@ -1170,16 +1366,22 @@
         <div class="space-y-3">
           ${priorities.map((prio, idx) => `
             <div class="p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-3">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center space-x-1.5">
-                  <span class="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-mono text-[10px] flex items-center justify-center font-bold">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center space-x-2">
+                  <span class="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-mono text-[10px] flex items-center justify-center font-bold">
                     ${idx + 1}
                   </span>
-                  <span>${escapeHTML(prio.title)}</span>
-                </span>
+                  <span class="text-xs font-bold text-slate-900 dark:text-slate-100">${escapeHTML(prio.title)}</span>
+                  ${prio.driftCategory ? `
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20">
+                      ${escapeHTML(prio.driftCategory)}
+                    </span>
+                  ` : ''}
+                </div>
                 ${prio.verifiedPage ? `
-                  <button type="button" onclick="window.essayJumpToPage(${prio.verifiedPage})" class="text-[10px] font-mono font-medium text-amber-600 dark:text-amber-400 hover:underline cursor-pointer">
-                    Page ${prio.verifiedPage} &rarr;
+                  <button type="button" onclick="window.essayJumpToPage(${prio.verifiedPage})" class="text-[10px] font-mono font-medium text-amber-600 dark:text-amber-400 hover:underline cursor-pointer flex items-center space-x-1">
+                    <span>Page ${prio.verifiedPage}</span>
+                    <i data-lucide="arrow-right" class="w-3 h-3"></i>
                   </button>
                 ` : ''}
               </div>
@@ -1546,29 +1748,11 @@
 
     const detailContainer = document.getElementById("essayPageAlignmentDetail");
     if (detailContainer && essayState.evalData) {
-      const pageObservations = [];
-      if (essayState.evalData.body_audit && Array.isArray(essayState.evalData.body_audit.strengths)) {
-        essayState.evalData.body_audit.strengths.forEach(s => {
-          const pages = parsePageRange(s, totalPages);
-          if (pages.includes(pageNum)) {
-            pageObservations.push({ text: s, isStrength: true });
-          }
-        });
-      }
-      if (essayState.evalData.body_audit && Array.isArray(essayState.evalData.body_audit.critical_gaps)) {
-        essayState.evalData.body_audit.critical_gaps.forEach(g => {
-          const pages = parsePageRange(g, totalPages);
-          if (pages.includes(pageNum)) {
-            pageObservations.push({ text: g, isStrength: false });
-          }
-        });
-      }
-
-      const pageInfo = {
-        annotations: (essayState.evalData.visual_annotations || []).filter(a => (a.page || a.page_number || 1) === pageNum),
-        observations: pageObservations
-      };
+      const pageInfo = getPageEvaluationInfo(essayState.evalData, pageNum, totalPages);
       detailContainer.innerHTML = renderPageAlignmentDetails(pageNum, pageInfo);
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
     }
   };
 

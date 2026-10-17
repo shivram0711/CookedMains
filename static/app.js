@@ -10447,6 +10447,8 @@ window.pollEssayJob = async function(jobId) {
   };
 
   let consecutiveErrors = 0;
+  let autoResumeAttempts = 0;
+  const MAX_AUTO_RESUME = 2;
   while (true) {
     try {
       const resp = await fetch(`/api/essay/status/${jobId}`);
@@ -10528,9 +10530,29 @@ window.pollEssayJob = async function(jobId) {
         await refreshLockerBadge();
         return data;
       } else if (job.status === "failed") {
-        localStorage.removeItem("active_essay_job_id");
         const errMsg = job.error || "Essay evaluation failed during processing.";
 
+        if (autoResumeAttempts < MAX_AUTO_RESUME) {
+          autoResumeAttempts++;
+          console.warn(`[Essay Pipeline] Transient pause detected (${errMsg}). Auto-resuming from checkpoint (attempt ${autoResumeAttempts}/${MAX_AUTO_RESUME})...`);
+          updateUIProgress(job.progress_pct || 60, "Optimizing connection & resuming evaluation...");
+          try {
+            await new Promise(r => setTimeout(r, 2000));
+            const retryResp = await fetch(`/api/essay/retry/${jobId}`, { method: "POST" });
+            const retryData = await retryResp.json();
+            if (retryResp.ok && retryData.job_id) {
+              jobId = retryData.job_id;
+              localStorage.setItem("active_essay_job_id", jobId);
+              consecutiveErrors = 0;
+              await new Promise(r => setTimeout(r, 1500));
+              continue;
+            }
+          } catch (autoErr) {
+            console.warn("[Essay Pipeline] Auto-resume network error:", autoErr);
+          }
+        }
+
+        localStorage.removeItem("active_essay_job_id");
         if (typeof window.showAppConfirm === "function") {
           window.showAppConfirm({
             title: "Essay Evaluation Interrupted",
