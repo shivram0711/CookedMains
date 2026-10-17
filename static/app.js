@@ -11522,121 +11522,7 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
       const rawTerm = String(termStr || "").trim();
       const tLow = rawTerm.toLowerCase();
 
-      // If existing how_to_use_one_line is already complete, grammatical, and not broken, preserve it!
-      if (existingHow && typeof existingHow === "string" && existingHow.length > 20) {
-        const trimmed = existingHow.trim();
-        const isBroken = /\b(?:of|in|to|for|with|by|from|comprising|under|and|the|a|an)\s*['".)\]]*$/i.test(trimmed) ||
-          /\(comprising pm\)/i.test(trimmed) ||
-          /\(control of\)/i.test(trimmed) ||
-          /\(vesting the superintendence/i.test(trimmed);
-        if (!isBroken && (trimmed.startsWith('"') || trimmed.startsWith("'")) && (trimmed.endsWith('"') || trimmed.endsWith("'"))) {
-          return trimmed;
-        }
-      }
-
-      const isElectionOrWatchdogQ = /\b(?:election|eci|election commission|election commissioner|electoral|watchdog|collegium|appointment|cbi|cag|lokpal)\b/i.test(qTextLow);
-      const isCitizenCharterQ = /\b(?:citizen'?s?\s*charter|sevottam|service delivery|citizen centric|नागरिक चार्टर|सिटिजन चार्टर|सेवोत्तम|लोक सेवा|प्रशासनिक सुधार)\b/i.test(qTextLow);
-
-      if (tLow.includes("arc") || tLow.includes("administrative reforms") || tLow.includes("प्रशासनिक सुधार")) {
-        if (isCitizenCharterQ) {
-          return isHindi
-            ? "\"**द्वितीय प्रशासनिक सुधार आयोग (2nd ARC 12वीं रिपोर्ट)** के अनुसार सिटिजन चार्टर को 7-सूत्रीय मॉडल, स्वतंत्र ऑडिट एवं सेवा में देरी पर वैधानिक क्षतिपूर्ति के साथ लागू करें।\""
-            : "\"Substantiate via **2nd ARC (12th Report: Citizen Centric Administration)** to institutionalize the 7-step model, periodic independent audits, and enforceable compensation for service delivery delays.\"";
-        }
-        if (isElectionOrWatchdogQ) {
-          return isHindi
-            ? "\"**द्वितीय प्रशासनिक सुधार आयोग (2nd ARC 4th Report)** के अनुसार निगरानी संस्थाओं की स्वायत्तता हेतु निष्पक्ष चयन समिति (पीएम, सीजेआई, लोकसभा स्पीकर, विपक्ष के नेता) का गठन करें।\""
-            : "\"Substantiate via **2nd ARC 4th Report** to recommend a broad collegium (PM, CJI, Speaker, LoP, Law Minister) to insulate watchdog bodies.\"";
-        }
-        return isHindi
-          ? "\"**द्वितीय प्रशासनिक सुधार आयोग (2nd ARC)** की अनुशंसाओं के अनुसार शासन में पारदर्शिता, समयबद्ध सेवा वितरण एवं नैतिक जवाबदेही सुनिश्चित करें।\""
-          : "\"Anchor under **2nd ARC Recommendations** to enforce institutional transparency, time-bound service delivery, and public integrity.\"";
-      }
-
-      if (tLow.includes("social audit") || tLow.includes("सामाजिक अंकेक्षण") || tLow.includes("जन अंकेक्षण")) {
-        return isHindi
-          ? "\"**सामाजिक अंकेक्षण (Social Audit)** को ग्राम सभा स्तर पर अनिवार्य बनाकर योजनाओं के क्रियान्वयन में प्रत्यक्ष जन-निगरानी एवं पारदर्शिता स्थापित करें।\""
-          : "\"Institutionalize **Social Audit** with Gram Sabha oversight to enforce participatory transparency and ground-level expenditure verification.\"";
-      }
-
-      if (tLow.includes("sevottam") || tLow.includes("सेवोत्तम")) {
-        return isHindi
-          ? "\"**सेवोत्तम मॉडल (Sevottam Framework)** के तीन घटकों (सिटिजन चार्टर, लोक शिकायत निवारण, सेवा वितरण क्षमता) को प्रशासनिक प्रक्रिया में समाहित करें।\""
-          : "\"Apply the **Sevottam Framework** (Citizen's Charter, Public Grievance Redress, and Service Delivery Capability) to systematically benchmark administrative delivery.\"";
-      }
-
-      // Domain-specific high-yield exam phrasing
-      if (tLow.includes("baranwal")) {
-        return "\"Cite **Anoop Baranwal (2023)** to mandate a balanced multi-party selection committee (PM, CJI, LoP) to safeguard institutional neutrality.\"";
-      }
-      if (tLow.includes("324") || tLow.includes("article 324")) {
-        return "\"Anchor under **Article 324** to vest independent superintendence, direction, and control of elections in an autonomous constitutional body.\"";
-      }
-      if (tLow.includes("goswami")) {
-        return "\"Recommend via **Dinesh Goswami Committee (1990)** to institutionalize a consultative multi-party selection collegium for electoral integrity.\"";
-      }
-      if (tLow.includes("255") || (tLow.includes("law commission") && tLow.includes("electoral"))) {
-        return "\"Cite **Law Commission 255th Report (2015)** to advocate equal constitutional removal safeguards and a 3-member collegium for all Election Commissioners.\"";
-      }
-      if (tLow.includes("tarkunde")) {
-        return "\"Cite **Tarkunde Committee (1975)** to mandate an independent selection panel of PM, CJI, and LoP to insulate election machinery.\"";
-      }
-      if (tLow.includes("thakur") || tLow.includes("jaya thakur")) {
-        return "\"Cite **Dr. Jaya Thakur (2024)** to challenge the exclusion of the CJI from the selection panel as violative of democratic autonomy.\"";
-      }
-      if (tLow.includes("frbm") || tLow.includes("n.k. singh") || tLow.includes("nk singh")) {
-        return "\"Anchor under **FRBM Review Committee (N.K. Singh)** to target general government debt-to-GDP of 60% with counter-cyclical fiscal flexibility.\"";
-      }
-      if (tLow.includes("kamath")) {
-        return "\"Cite **K.V. Kamath Committee** to apply 5 key financial ratios to restructure stressed sectoral debt portfolios.\"";
-      }
-      if (tLow.includes("plfs") || tLow.includes("periodic labour")) {
-        return "\"Cite **Periodic Labour Force Survey (NSO)** to benchmark the worker-population ratio and rising female labour force participation.\"";
-      }
-      if (tLow.includes("kunming") || tLow.includes("montreal")) {
-        return "\"Align with **Kunming-Montreal Global Biodiversity Framework** to operationalize Target 3 (30x30 Protected Areas) for ecological conservation.\"";
-      }
-      if (tLow.includes("ipcc") || tLow.includes("ar6")) {
-        return "\"Substantiate via **IPCC AR6** to advocate capping global warming at 1.5°C via deep decarbonization and resilient climate infrastructure.\"";
-      }
-      if (tLow.includes("nolan")) {
-        return "\"Anchor in **Nolan Committee Principles** to uphold objectivity, accountability, and integrity in public decision-making.\"";
-      }
-      if (tLow.includes("rawls")) {
-        return "\"Apply **John Rawls' Veil of Ignorance** to maximize institutional protections for the most vulnerable citizens (Maximin rule).\"";
-      }
-      if (tLow.includes("benioff")) {
-        return "\"Subducting plate friction along the **Wadati–Benioff zone** triggers deep-focus (300–700 km) quakes.\"";
-      }
-      if (tLow.includes("sendai")) {
-        return "\"Apply **Sendai Framework (Priority 4)** alongside NBC 2016 to operationalize Build Back Better in disaster-resilient infrastructure.\"";
-      }
-      if (tLow.includes("microzonation") || tLow.includes("zone v") || tLow.includes("seismic zon")) {
-        return "\"~59% of India lies in **BIS Seismic Zones II–V** (**Zone V**: Himalayas/Kutch), requiring **urban microzonation**.\"";
-      }
-      if (tLow.includes("liquefaction")) {
-        return "\"Address secondary geomorphic hazards including Tsunamis, chemical leaks, and **soil liquefaction** in alluvial floodplains.\"";
-      }
-      if (tLow.includes("elastic rebound") || tLow.includes("reid")) {
-        return "\"Explain fault-slip seismic shaking via **H.F. Reid's Elastic Rebound Theory** to substantiate mechanical crustal rupture.\"";
-      }
-      if (tLow.includes("buranji")) {
-        return "\"Anchor in **Buranjis** to draw on official royal chronicles that documented Assam's administrative history.\"";
-      }
-      if (tLow.includes("paik")) {
-        return "\"Cite **Paik & Khel System** to illustrate how rotational agrarian labor and defense were mobilized without monetary debt.\"";
-      }
-      if (tLow.includes("satra") || tLow.includes("sankardev")) {
-        return "\"**Sankardeva's Neo-Vaishnavite Satras & Namghars** forged an egalitarian Assamese social fabric.\"";
-      }
-      if (tLow.includes("saraighat") || tLow.includes("lachit")) {
-        return "\"Repulsed 17 Mughal campaigns, culminating in **Lachit Borphukan's 1671 Battle of Saraighat** naval victory.\"";
-      }
-      if (tLow.includes("charaideo") || tLow.includes("moidam")) {
-        return "\"Ahom royal mound-burials (**Charaideo Moidams**) were inscribed as a **UNESCO World Heritage Site (2024)**.\"";
-      }
-
-      // Dynamic complete sentence fallback (NO TRUNCATING MID-SENTENCE)
+      // Dynamic multi-template, subject-tailored sentence generator
       let shortGist = String(cleanCoreDef || "")
         .replace(/^✓[^:]*:\s*/i, "")
         .replace(/[*_"`]/g, "")
@@ -11647,9 +11533,58 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
         shortGist = words.slice(0, 14).join(" ");
       }
       shortGist = shortGist.replace(/\b(?:of|in|to|for|with|by|from|comprising|under|and|the|a|an)\s*$/i, "").trim().replace(/[,:;]$/, "");
-      return shortGist
-        ? `"Integrate **${rawTerm}** (${shortGist.toLowerCase()}) inline to strengthen systemic accountability and analytical precision."`
-        : `"Incorporate **${rawTerm}** inline to substantiate this core dimension."`;
+
+      const dynamicTemplates = {
+        HISTORY_CULTURE: isHindi ? [
+          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को शामिल कर ऐतिहासिक निरंतरता एवं सांस्कृतिक प्रामाणिकता को सुदृढ़ करें।"` : `"**${t}** को शामिल कर ऐतिहासिक साक्ष्य एवं सांस्कृतिक प्रामाणिकता को सुदृढ़ करें।"`,
+          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) का संदर्भ देकर कालानुक्रमिक प्रभाव एवं युगीन संदर्भ स्थापित करें।"` : `"**${t}** का संदर्भ देकर कालानुक्रमिक प्रभाव एवं युगीन संदर्भ स्थापित करें।"`,
+          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को रेखांकित कर स्थापत्य, साहित्यिक एवं सभ्यतागत संश्लेषण को पुष्ट करें।"` : `"**${t}** को रेखांकित कर स्थापत्य, साहित्यिक एवं सभ्यतागत संश्लेषण को पुष्ट करें।"`,
+          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को प्राथमिक ऐतिहासिक साक्ष्य के रूप में जोड़कर उत्तर को विशिष्ट बनाएं।"` : `"**${t}** को प्राथमिक ऐतिहासिक साक्ष्य के रूप में जोड़कर उत्तर को विशिष्ट बनाएं।"`
+        ] : [
+          (t, d) => d ? `"Cite **${t}** (${d.toLowerCase()}) to substantiate chronological continuity and historical authenticity."` : `"Cite **${t}** inline to substantiate chronological continuity and historical authenticity."`,
+          (t, d) => d ? `"Deploy **${t}** (${d.toLowerCase()}) to anchor primary textual and living civilizational traditions."` : `"Deploy **${t}** inline to anchor primary textual and living civilizational traditions."`,
+          (t, d) => d ? `"Anchor in **${t}** (${d.toLowerCase()}) to demonstrate socio-cultural synthesis and regional institutional legacy."` : `"Anchor in **${t}** inline to demonstrate socio-cultural synthesis and regional institutional legacy."`,
+          (t, d) => d ? `"Highlight **${t}** (${d.toLowerCase()}) as primary epigraphical/historical evidence to elevate analytical depth."` : `"Highlight **${t}** inline as primary historical evidence to elevate analytical depth."`
+        ],
+        PHYSICAL_GEOGRAPHY: isHindi ? [
+          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) का प्रयोग कर भौतिक-भौगोलिक क्रियाविधि एवं ऊर्जा बजट को स्पष्ट करें।"` : `"**${t}** का प्रयोग कर भौतिक-भौगोलिक क्रियाविधि एवं ऊर्जा बजट को स्पष्ट करें।"`,
+          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को शामिल कर स्थानिक सुभेद्यता एवं जलवायु प्रक्रियाओं को प्रमाणित करें।"` : `"**${t}** को शामिल कर स्थानिक सुभेद्यता एवं जलवायु प्रक्रियाओं को प्रमाणित करें।"`,
+          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) के माध्यम से भू-आकृतिक प्रभावों एवं वैज्ञानिक परिघटनाओं को विश्लेषित करें।"` : `"**${t}** के माध्यम से भू-आकृतिक प्रभावों एवं वैज्ञानिक परिघटनाओं को विश्लेषित करें।"`,
+          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को रेखाचित्र अथवा स्थानिक वितरण के साथ जोड़कर तकनीकी शुद्धता लाएं।"` : `"**${t}** को रेखाचित्र अथवा स्थानिक वितरण के साथ जोड़कर तकनीकी शुद्धता लाएं।"`
+        ] : [
+          (t, d) => d ? `"Explain via **${t}** (${d.toLowerCase()}) to elucidate the physical-geomorphic mechanism and thermal dynamics."` : `"Explain via **${t}** inline to elucidate the physical-geomorphic mechanism and thermal dynamics."`,
+          (t, d) => d ? `"Incorporate **${t}** (${d.toLowerCase()}) to substantiate spatial vulnerability gradients and regional hazard exposure."` : `"Incorporate **${t}** inline to substantiate spatial vulnerability gradients and regional hazard exposure."`,
+          (t, d) => d ? `"Deploy **${t}** (${d.toLowerCase()}) to illustrate thermodynamic forcing and geodynamic interactions."` : `"Deploy **${t}** inline to illustrate thermodynamic forcing and geodynamic interactions."`,
+          (t, d) => d ? `"Anchor in **${t}** (${d.toLowerCase()}) to benchmark scientific precision in spatial hazard mapping."` : `"Anchor in **${t}** inline to benchmark scientific precision in spatial hazard mapping."`
+        ],
+        PHILOSOPHY_ETHICS: isHindi ? [
+          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को लागू कर प्रशासनिक शुचिता एवं संवैधानिक नैतिकता को सुदृढ़ करें।"` : `"**${t}** को लागू कर प्रशासनिक शुचिता एवं संवैधानिक नैतिकता को सुदृढ़ करें।"`,
+          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) का संदर्भ देकर नैतिक दुविधा में विवेकपूर्ण निर्णय-प्रक्रिया को पुष्ट करें।"` : `"**${t}** का संदर्भ देकर नैतिक दुविधा में विवेकपूर्ण निर्णय-प्रक्रिया को पुष्ट करें।"`,
+          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को आधार बनाकर लोक सेवा मूल्यों एवं कर्तव्यनिष्ठ आचरण को स्पष्ट करें।"` : `"**${t}** को आधार बनाकर लोक सेवा मूल्यों एवं कर्तव्यनिष्ठ आचरण को स्पष्ट करें।"`,
+          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) के माध्यम से जनहित एवं संस्थागत विश्वसनीयता के संतुलन को निरूपित करें।"` : `"**${t}** के माध्यम से जनहित एवं संस्थागत विश्वसनीयता के संतुलन को निरूपित करें।"`
+        ] : [
+          (t, d) => d ? `"Apply **${t}** (${d.toLowerCase()}) to uphold administrative probity and constitutional morality in public decisions."` : `"Apply **${t}** inline to uphold administrative probity and constitutional morality in public decisions."`,
+          (t, d) => d ? `"Anchor in **${t}** (${d.toLowerCase()}) to navigate ethical dilemmas and balance competing stakeholder rights."` : `"Anchor in **${t}** inline to navigate ethical dilemmas and balance competing stakeholder rights."`,
+          (t, d) => d ? `"Deploy **${t}** (${d.toLowerCase()}) to ground public service values in fiduciary responsibility and character."` : `"Deploy **${t}** inline to ground public service values in fiduciary responsibility and character."`,
+          (t, d) => d ? `"Weave **${t}** (${d.toLowerCase()}) into the dilemma resolution to harmonize statutory duty with empathy."` : `"Weave **${t}** inline to harmonize statutory duty with empathy."`
+        ],
+        POLICY_GOVERNANCE_ECONOMY: isHindi ? [
+          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को शामिल कर नीतिगत प्रभावशीलता एवं जमीनी क्रियान्वयन को सुदृढ़ करें।"` : `"**${t}** को शामिल कर नीतिगत प्रभावशीलता एवं जमीनी क्रियान्वयन को सुदृढ़ करें।"`,
+          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) का हवाला देकर संस्थागत जवाबदेही एवं सांविधिक निगरानी को स्पष्ट करें।"` : `"**${t}** का हवाला देकर संस्थागत जवाबदेही एवं सांविधिक निगरानी को स्पष्ट करें।"`,
+          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को जोड़कर साक्ष्य-आधारित सुधार एवं जन-कल्याणकारी परिणामों को प्रमाणित करें।"` : `"**${t}** को जोड़कर साक्ष्य-आधारित सुधार एवं जन-कल्याणकारी परिणामों को प्रमाणित करें।"`,
+          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) के माध्यम से राजकोषीय कुशलता एवं सेवा वितरण तंत्र को सशक्त करें।"` : `"**${t}** के माध्यम से राजकोषीय कुशलता एवं सेवा वितरण तंत्र को सशक्त करें।"`
+        ] : [
+          (t, d) => d ? `"Incorporate **${t}** (${d.toLowerCase()}) to reinforce policy delivery metrics and grassroots institutional accountability."` : `"Incorporate **${t}** inline to reinforce policy delivery metrics and grassroots institutional accountability."`,
+          (t, d) => d ? `"Cite **${t}** (${d.toLowerCase()}) to ground systemic governance reforms in statutory oversight benchmarks."` : `"Cite **${t}** inline to ground systemic governance reforms in statutory oversight benchmarks."`,
+          (t, d) => d ? `"Deploy **${t}** (${d.toLowerCase()}) to substantiate fiscal sustainability and public expenditure efficiency."` : `"Deploy **${t}** inline to substantiate fiscal sustainability and public expenditure efficiency."`,
+          (t, d) => d ? `"Anchor in **${t}** (${d.toLowerCase()}) to bridge regulatory gaps and advance outcome-oriented implementation."` : `"Anchor in **${t}** inline to bridge regulatory gaps and advance outcome-oriented implementation."`
+        ]
+      };
+
+      const discKey = dynamicTemplates[discipline] ? discipline : "POLICY_GOVERNANCE_ECONOMY";
+      const tmplList = dynamicTemplates[discKey];
+      const fn = tmplList[idx % tmplList.length];
+      return fn(rawTerm, shortGist);
     };
 
     const qLow = String(evalData.detected_question || state.question || "").toLowerCase();
@@ -13149,18 +13084,21 @@ function renderEvaluation(evalData) {
       if (caRecommendedInsertion) caRecommendedInsertion.innerHTML = formatHighlightedText(resolvedInsertion);
     }
 
-    // Hide Official Reports / Committees / Way Forward box on History, Culture & Philosophy questions (zero content overburden!)
+    // Hide Official Reports / Committees / Way Forward box on History, Culture, Geography & Philosophy questions or when reports are generic boilerplate
     const rawReports = (caData.high_yield_data_reports || []).filter(rep => {
       if (currentDiscipline === "HISTORY_CULTURE") return false;
       if (currentDiscipline === "PHILOSOPHY_ETHICS") return false;
-      if (isEciQuestion && /multidimensional poverty|infrastructure index/i.test(String(rep))) return false;
-      return !/\b(?:north eastern council|\bnec\b|doner)\b/i.test(String(rep));
+      if (currentDiscipline === "PHYSICAL_GEOGRAPHY") return false;
+      const s = String(rep);
+      if (/official union ministry|statutory institutional benchmarks|national expert committee recommendations|empirical survey datasets|law commission recommendations and supreme court constitution bench|2nd arc ethics in governance guidelines on public trust/i.test(s)) return false;
+      if (isEciQuestion && /multidimensional poverty|infrastructure index/i.test(s)) return false;
+      return !/\b(?:north eastern council|\bnec\b|doner)\b/i.test(s);
     });
     const uniqueReports = rawReports.filter(rep => !isAlreadyInDeepEval(rep));
     const reportsToRender = uniqueReports.length > 0 ? uniqueReports : rawReports.slice(0, 2);
 
     if (caReportsCardBox && caDataList) {
-      if (reportsToRender.length === 0 || currentDiscipline === "HISTORY_CULTURE" || currentDiscipline === "PHILOSOPHY_ETHICS") {
+      if (reportsToRender.length === 0 || currentDiscipline === "HISTORY_CULTURE" || currentDiscipline === "PHILOSOPHY_ETHICS" || currentDiscipline === "PHYSICAL_GEOGRAPHY") {
         caReportsCardBox.classList.add("hidden");
         caDataList.innerHTML = "";
       } else {
@@ -15012,13 +14950,13 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     .trim();
 
   // Apply UPSC Ruled Paper aesthetic with refined design tokens
-  container.className = "space-y-3.5 upsc-booklet-paper p-5 sm:p-7 rounded-2xl border border-slate-800 text-xs text-slate-200 leading-relaxed font-serif";
+  container.className = "space-y-3.5 upsc-booklet-paper p-4 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-serif";
 
   function formatInlineModelText(str) {
     if (!str) return "";
     let s = str;
-    s = s.replace(/\*\*(.*?)\*\*/g, '<strong class="text-amber-300 dark:text-amber-300 font-bold font-sans">$1</strong>');
-    s = s.replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, '<em class="text-sky-300 dark:text-sky-300 font-serif">$1</em>');
+    s = s.replace(/\*\*(.*?)\*\*/g, '<strong class="text-blue-900 dark:text-amber-300 font-bold font-sans">$1</strong>');
+    s = s.replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, '<em class="text-sky-800 dark:text-sky-300 font-serif">$1</em>');
     return s;
   }
 
@@ -15039,7 +14977,7 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     // 1. Markdown Table (e.g. Distinction Matrices like Code of Conduct vs Code of Ethics)
     if (b.includes("|") && b.includes("---")) {
       const rows = b.split('\n').filter(r => r.trim().startsWith('|'));
-      let tableHtml = '<div class="my-3.5 overflow-x-auto rounded-xl border border-slate-700/80 shadow-md bg-slate-950/90"><table class="min-w-full text-xs border-collapse">';
+      let tableHtml = '<div class="my-3.5 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700/80 shadow-xs dark:shadow-md bg-white dark:bg-slate-950/90"><table class="min-w-full text-xs border-collapse">';
       let isHeader = true;
       rows.forEach((row) => {
         if (row.includes('---')) {
@@ -15049,13 +14987,13 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
         const cells = row.split('|').map(c => c.trim()).filter((c, i, a) => i > 0 && i < a.length - 1);
         if (cells.length === 0) return;
         if (isHeader) {
-          tableHtml += '<tr class="bg-amber-500/15 text-amber-300 font-bold border-b border-slate-700/80">';
-          cells.forEach(c => { tableHtml += `<th class="px-3.5 py-2.5 text-left border-r border-slate-800/80 last:border-r-0 font-sans tracking-wide">${formatModelBlock(c)}</th>`; });
+          tableHtml += '<tr class="bg-amber-500/10 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300 font-bold border-b border-slate-200 dark:border-slate-700/80">';
+          cells.forEach(c => { tableHtml += `<th class="px-3.5 py-2.5 text-left border-r border-slate-200 dark:border-slate-800/80 last:border-r-0 font-sans tracking-wide">${formatModelBlock(c)}</th>`; });
           tableHtml += '</tr>';
           isHeader = false;
         } else {
-          tableHtml += '<tr class="border-b border-slate-800/80 last:border-b-0 even:bg-slate-900/40 hover:bg-slate-800/50 transition-colors">';
-          cells.forEach(c => { tableHtml += `<td class="px-3.5 py-2.5 border-r border-slate-800/80 last:border-r-0 text-slate-200">${formatModelBlock(c)}</td>`; });
+          tableHtml += '<tr class="border-b border-slate-200 dark:border-slate-800/80 last:border-b-0 even:bg-slate-50/70 dark:even:bg-slate-900/40 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors">';
+          cells.forEach(c => { tableHtml += `<td class="px-3.5 py-2.5 border-r border-slate-200 dark:border-slate-800/80 last:border-r-0 text-slate-800 dark:text-slate-200">${formatModelBlock(c)}</td>`; });
           tableHtml += '</tr>';
         }
       });
@@ -15066,14 +15004,14 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
 
     // 2. Horizontal Separator (--- or ***)
     if (/^---+$/.test(b) || /^\*\*\*+$/.test(b)) {
-      html += `<div class="my-3.5 border-t border-slate-800/80"></div>`;
+      html += `<div class="my-3.5 border-t border-slate-200 dark:border-slate-800/80"></div>`;
       return;
     }
 
     // 3. Question Prompt Box
     if (/^(?:Q\.|Question[:\s])/i.test(b)) {
       html += `
-        <div class="p-3 sm:p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/25 text-blue-950 dark:text-blue-200 text-xs font-semibold font-sans flex items-start space-x-2.5 shadow-xs">
+        <div class="p-3 sm:p-3.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/25 text-blue-950 dark:text-blue-200 text-xs font-semibold font-sans flex items-start space-x-2.5 shadow-xs">
           <i data-lucide="help-circle" class="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"></i>
           <span>${formatModelBlock(b)}</span>
         </div>
@@ -15086,7 +15024,7 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
       let cleanBox = b.replace(/^(?:\*\*)?\[?(?:INITIAL\s+)?VALUE-ADD(?:ITION)?\s+BOX\]?(?:\*\*)?:?\s*/i, '');
       cleanBox = cleanBox.replace(/^(?:\*\*)?(?:Snapshot|At a Glance)[^:\n]*:?(?:\*\*)?\s*/i, '');
       html += `
-        <div class="topper-anchor-box my-3.5 p-3.5 sm:p-4 rounded-xl bg-blue-50/80 dark:bg-slate-950/90 border border-blue-200 dark:border-blue-500/40 shadow-sm dark:shadow-xl space-y-2">
+        <div class="topper-anchor-box my-3.5 p-3.5 sm:p-4 rounded-xl bg-blue-50/90 dark:bg-slate-950/90 border border-blue-200 dark:border-blue-500/40 shadow-xs dark:shadow-xl space-y-2">
           <div class="topper-anchor-title text-xs font-bold text-blue-900 dark:text-blue-300 uppercase tracking-wide flex items-center justify-between border-b border-blue-200 dark:border-blue-500/25 pb-1.5 font-sans">
             <span class="flex items-center space-x-1.5">
               <i data-lucide="layout-grid" class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400"></i>
@@ -15111,12 +15049,12 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     if (isFirstBlock) {
       introRendered = true;
       html += `
-        <div class="p-3.5 sm:p-4 rounded-xl bg-slate-900/70 border border-slate-800 border-l-3 border-l-blue-400/80 text-xs text-slate-200 leading-relaxed font-sans space-y-1.5 shadow-xs">
-          <div class="text-[10px] font-bold uppercase tracking-wider text-blue-400 flex items-center space-x-1.5 font-sans">
-            <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+        <div class="p-3.5 sm:p-4 rounded-xl bg-blue-50/90 dark:bg-slate-900/70 border border-blue-200 dark:border-slate-800 border-l-3 border-l-blue-600 dark:border-l-blue-400 text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-sans space-y-1.5 shadow-xs">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400 flex items-center space-x-1.5 font-sans">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400"></span>
             <span>${isHindi ? "प्रस्तावना (Context & Framing)" : "Context & Framing"}</span>
           </div>
-          <p class="text-slate-200 leading-relaxed">${formatInlineModelText(b)}</p>
+          <p class="text-slate-800 dark:text-slate-200 leading-relaxed">${formatInlineModelText(b)}</p>
         </div>
       `;
       return;
@@ -15132,12 +15070,12 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
       let concText = b.replace(/^(?:\*\*)?(?:Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead|निष्कर्ष|आगे\s*की\s*राह)(?:\*\*)?:?\s*/i, '');
       if (!concText) concText = b;
       html += `
-        <div class="mt-4 p-3.5 sm:p-4 rounded-xl bg-amber-500/5 border border-amber-500/25 border-l-3 border-l-amber-400/80 text-xs text-slate-200 leading-relaxed font-sans space-y-1.5 shadow-xs">
-          <div class="text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center space-x-1.5 font-sans">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+        <div class="mt-4 p-3.5 sm:p-4 rounded-xl bg-emerald-50/90 dark:bg-amber-500/5 border border-emerald-200 dark:border-amber-500/25 border-l-3 border-l-emerald-600 dark:border-l-amber-400 text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-sans space-y-1.5 shadow-xs">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-amber-400 flex items-center space-x-1.5 font-sans">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-amber-400"></span>
             <span>${isHindi ? "निष्कर्ष (Concluding Synthesis)" : "Concluding Synthesis"}</span>
           </div>
-          <p class="text-slate-200 leading-relaxed">${formatInlineModelText(concText.trim())}</p>
+          <p class="text-slate-800 dark:text-slate-200 leading-relaxed">${formatInlineModelText(concText.trim())}</p>
         </div>
       `;
       return;
@@ -15154,9 +15092,9 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
         hasHeadingAppeared = true;
         let cleanHeading = line.replace(/^#{1,6}\s*/, '').replace(/^\*\*|\*\*$/g, '').replace(/:$/, '').trim();
         html += `
-          <div class="mt-4.5 mb-2.5 pt-3 border-t border-slate-700/60 dark:border-slate-800/80 first:border-t-0 first:pt-0 first:mt-0 flex items-center space-x-2">
-            <span class="w-2.5 h-2.5 rounded-sm bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shrink-0"></span>
-            <h4 class="text-xs sm:text-[13px] font-bold text-amber-300 dark:text-amber-400 uppercase tracking-wider font-sans">${escapeHtml(cleanHeading)}</h4>
+          <div class="mt-4.5 mb-2.5 pt-3 border-t border-slate-200 dark:border-slate-800/80 first:border-t-0 first:pt-0 first:mt-0 flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-sm bg-gradient-to-br from-amber-500 to-amber-600 shadow-sm shrink-0"></span>
+            <h4 class="text-xs sm:text-[13px] font-extrabold text-blue-900 dark:text-amber-400 uppercase tracking-wider font-sans">${escapeHtml(cleanHeading)}</h4>
           </div>
         `;
         return;
@@ -15169,11 +15107,11 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
         const lead = (numMatch[2] || numMatch[3] || numMatch[4] || "").trim().replace(/^[:\s]+|[:\s]+$/g, '');
         const exp = numMatch[5].trim();
         html += `
-          <div class="my-2.5 p-3 sm:p-3.5 rounded-xl bg-slate-900/70 hover:bg-slate-900/95 border border-slate-800/90 border-l-3 border-l-amber-500/70 transition-all flex items-start space-x-3 shadow-xs">
-            <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-amber-500/20 text-amber-300 font-bold font-sans text-[11px] shrink-0 border border-amber-500/40 shadow-xs mt-0.5">${escapeHtml(num)}</span>
-            <div class="flex-1 text-slate-200 text-xs sm:text-[13px] leading-relaxed font-sans">
-              ${lead ? `<strong class="text-amber-300 font-bold mr-1.5 font-sans">${escapeHtml(lead)}:</strong>` : ''}
-              <span class="text-slate-200">${formatInlineModelText(exp)}</span>
+          <div class="my-2.5 p-3 sm:p-3.5 rounded-xl bg-white/95 dark:bg-slate-900/70 hover:bg-blue-50/50 dark:hover:bg-slate-900/95 border border-slate-200 dark:border-slate-800/90 border-l-3 border-l-amber-500 transition-all flex items-start space-x-3 shadow-xs">
+            <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-amber-500/15 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold font-sans text-[11px] shrink-0 border border-amber-500/30 dark:border-amber-500/40 shadow-xs mt-0.5">${escapeHtml(num)}</span>
+            <div class="flex-1 text-slate-800 dark:text-slate-200 text-xs sm:text-[13px] leading-relaxed font-sans">
+              ${lead ? `<strong class="text-blue-950 dark:text-amber-300 font-bold mr-1.5 font-sans">${escapeHtml(lead)}:</strong>` : ''}
+              <span class="text-slate-800 dark:text-slate-200">${formatInlineModelText(exp)}</span>
             </div>
           </div>
         `;
@@ -15186,10 +15124,10 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
         const num = simpleNumMatch[1];
         const exp = simpleNumMatch[2].trim();
         html += `
-          <div class="my-2.5 p-3 sm:p-3.5 rounded-xl bg-slate-900/70 hover:bg-slate-900/95 border border-slate-800/90 border-l-3 border-l-amber-500/70 transition-all flex items-start space-x-3 shadow-xs">
-            <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-amber-500/20 text-amber-300 font-bold font-sans text-[11px] shrink-0 border border-amber-500/40 shadow-xs mt-0.5">${escapeHtml(num)}</span>
-            <div class="flex-1 text-slate-200 text-xs sm:text-[13px] leading-relaxed font-sans">
-              <span class="text-slate-200">${formatInlineModelText(exp)}</span>
+          <div class="my-2.5 p-3 sm:p-3.5 rounded-xl bg-white/95 dark:bg-slate-900/70 hover:bg-blue-50/50 dark:hover:bg-slate-900/95 border border-slate-200 dark:border-slate-800/90 border-l-3 border-l-amber-500 transition-all flex items-start space-x-3 shadow-xs">
+            <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-amber-500/15 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold font-sans text-[11px] shrink-0 border border-amber-500/30 dark:border-amber-500/40 shadow-xs mt-0.5">${escapeHtml(num)}</span>
+            <div class="flex-1 text-slate-800 dark:text-slate-200 text-xs sm:text-[13px] leading-relaxed font-sans">
+              <span class="text-slate-800 dark:text-slate-200">${formatInlineModelText(exp)}</span>
             </div>
           </div>
         `;
@@ -15208,10 +15146,10 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
           bExp = bLeadMatch[3].trim();
         }
         html += `
-          <div class="my-1.5 p-2 sm:p-2.5 rounded-xl bg-slate-900/40 hover:bg-slate-900/70 border border-slate-800/50 transition-colors flex items-start space-x-2.5">
-            <span class="inline-block w-2 h-2 rounded-full bg-sky-400/80 shrink-0 mt-1.5 ml-1"></span>
-            <div class="flex-1 text-slate-200 text-xs leading-relaxed font-sans">
-              ${bLead ? `<strong class="text-sky-300 font-bold mr-1.5">${escapeHtml(bLead)}:</strong>` : ''}
+          <div class="my-1.5 p-2 sm:p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-900/40 hover:bg-white dark:hover:bg-slate-900/70 border border-slate-200 dark:border-slate-800/50 transition-colors flex items-start space-x-2.5">
+            <span class="inline-block w-2 h-2 rounded-full bg-blue-600 dark:bg-sky-400/80 shrink-0 mt-1.5 ml-1"></span>
+            <div class="flex-1 text-slate-800 dark:text-slate-200 text-xs leading-relaxed font-sans">
+              ${bLead ? `<strong class="text-blue-900 dark:text-sky-300 font-bold mr-1.5">${escapeHtml(bLead)}:</strong>` : ''}
               <span>${formatInlineModelText(bExp)}</span>
             </div>
           </div>
@@ -15220,7 +15158,7 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
       }
 
       // (e) Standard prose line/paragraph
-      html += `<div class="text-slate-200 leading-relaxed text-xs pl-3.5 border-l-2 border-slate-700/60 font-sans my-1">${formatInlineModelText(line)}</div>`;
+      html += `<div class="text-slate-700 dark:text-slate-300 leading-relaxed text-xs pl-3.5 border-l-2 border-slate-300 dark:border-slate-700/60 font-sans my-1">${formatInlineModelText(line)}</div>`;
     });
   });
 
@@ -15582,20 +15520,41 @@ function renderRadar(rubric, maxMarks, isPrintMode = false) {
     type: "radar",
     data: {
       labels: isHindi
-        ? ["प्रस्तावना (Intro)", "मुख्य मांग (Core Demand)", "मूल्य संवर्धन (Value Addition)", "प्रस्तुति (Presentation)", "निष्कर्ष (Conclusion)"]
-        : ["Introduction", "Core Demand", "Value Addition", "Presentation", "Conclusion"],
+        ? [
+            "प्रस्तावना",
+            ["मुख्य मांग", "(Core Demand)"],
+            ["मूल्य संवर्धन", "(Value Add)"],
+            ["प्रस्तुति", "(Presentation)"],
+            ["निष्कर्ष", "(Conclusion)"]
+          ]
+        : [
+            "Introduction",
+            ["Core", "Demand"],
+            ["Value", "Addition"],
+            "Presentation",
+            "Conclusion"
+          ],
       datasets
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: {
+          top: isPrintMode ? 4 : 8,
+          bottom: isPrintMode ? 4 : 6,
+          left: isPrintMode ? 8 : 16,
+          right: isPrintMode ? 8 : 16
+        }
+      },
       scales: {
         r: {
           angleLines: { color: gridColor },
           grid: { color: gridColor },
           pointLabels: {
             color: labelColor,
-            font: { size: isPrintMode ? 9 : 10, family: "Inter", weight: "700" }
+            font: { size: isPrintMode ? 8.5 : (typeof window !== "undefined" && window.innerWidth < 480 ? 8.5 : 9.5), family: "Inter", weight: "700" },
+            padding: isPrintMode ? 2 : 4
           },
           ticks: {
             display: false,
@@ -15610,8 +15569,8 @@ function renderRadar(rubric, maxMarks, isPrintMode = false) {
           labels: {
             color: labelColor,
             boxWidth: isPrintMode ? 8 : 10,
-            padding: isPrintMode ? 4 : 8,
-            font: { size: isPrintMode ? 8.5 : 10, weight: "600" }
+            padding: isPrintMode ? 4 : 6,
+            font: { size: isPrintMode ? 8.5 : 9.5, weight: "600" }
           }
         }
       }

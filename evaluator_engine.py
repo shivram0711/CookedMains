@@ -4885,7 +4885,47 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                     if len(words) > 14:
                         clean_def = " ".join(words[:14])
                     clean_def = re.sub(r'\b(?:of|in|to|for|with|by|from|comprising|under|and|the|a|an)\s*$', '', clean_def, flags=re.I).strip().rstrip(",;:")
-                    card["how_to_use_one_line"] = f"\"Integrate **{term_str}** ({clean_def.lower()}) inline to strengthen systemic accountability and answer depth.\""
+
+                    if is_history_culture:
+                        hist_templates = [
+                            f"\"Cite **{term_str}** ({clean_def.lower()}) to substantiate chronological continuity and historical authenticity.\"",
+                            f"\"Deploy **{term_str}** ({clean_def.lower()}) to anchor primary textual and living civilizational traditions.\"",
+                            f"\"Anchor in **{term_str}** ({clean_def.lower()}) to demonstrate socio-cultural synthesis and regional institutional legacy.\"",
+                            f"\"Highlight **{term_str}** ({clean_def.lower()}) as primary epigraphical/historical evidence to elevate analytical depth.\""
+                        ]
+                        card["how_to_use_one_line"] = hist_templates[idx_c % len(hist_templates)]
+                    elif is_geo:
+                        geo_templates = [
+                            f"\"Explain via **{term_str}** ({clean_def.lower()}) to elucidate the physical-geomorphic mechanism and thermal dynamics.\"",
+                            f"\"Incorporate **{term_str}** ({clean_def.lower()}) to substantiate spatial vulnerability gradients and regional hazard exposure.\"",
+                            f"\"Deploy **{term_str}** ({clean_def.lower()}) to illustrate thermodynamic forcing and geodynamic interactions.\"",
+                            f"\"Anchor in **{term_str}** ({clean_def.lower()}) to benchmark scientific precision in spatial hazard mapping.\""
+                        ]
+                        card["how_to_use_one_line"] = geo_templates[idx_c % len(geo_templates)]
+                    elif is_ethics:
+                        eth_templates = [
+                            f"\"Apply **{term_str}** ({clean_def.lower()}) to uphold administrative probity and constitutional morality in public decisions.\"",
+                            f"\"Anchor in **{term_str}** ({clean_def.lower()}) to navigate ethical dilemmas and balance competing stakeholder rights.\"",
+                            f"\"Deploy **{term_str}** ({clean_def.lower()}) to ground public service values in fiduciary responsibility and character.\"",
+                            f"\"Weave **{term_str}** ({clean_def.lower()}) into the dilemma resolution to harmonize statutory duty with empathy.\""
+                        ]
+                        card["how_to_use_one_line"] = eth_templates[idx_c % len(eth_templates)]
+                    elif is_econ:
+                        econ_templates = [
+                            f"\"Deploy **{term_str}** ({clean_def.lower()}) to substantiate fiscal sustainability and public expenditure efficiency.\"",
+                            f"\"Incorporate **{term_str}** ({clean_def.lower()}) to benchmark capital output ratio and supply-chain productivity.\"",
+                            f"\"Cite **{term_str}** ({clean_def.lower()}) to ground macro-economic stability in empirical sectoral indicators.\"",
+                            f"\"Anchor in **{term_str}** ({clean_def.lower()}) to demonstrate inclusive growth and target-driven budgetary delivery.\""
+                        ]
+                        card["how_to_use_one_line"] = econ_templates[idx_c % len(econ_templates)]
+                    else:
+                        gov_templates = [
+                            f"\"Incorporate **{term_str}** ({clean_def.lower()}) to reinforce policy delivery metrics and grassroots institutional accountability.\"",
+                            f"\"Cite **{term_str}** ({clean_def.lower()}) to ground systemic governance reforms in statutory oversight benchmarks.\"",
+                            f"\"Deploy **{term_str}** ({clean_def.lower()}) to substantiate institutional checks and balance of constitutional authority.\"",
+                            f"\"Anchor in **{term_str}** ({clean_def.lower()}) to bridge regulatory gaps and advance outcome-oriented implementation.\""
+                        ]
+                        card["how_to_use_one_line"] = gov_templates[idx_c % len(gov_templates)]
 
     # Normalize Actionable Value-Addition Checklist (Where to Write & How to Write)
     va_raw = data.get("value_add_checklist") or {}
@@ -5218,29 +5258,73 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                 }
             ]
 
-    # Sanitize High-Yield Data & Reports from generic leak
+    # Sanitize High-Yield Data & Reports from generic leak and irrelevant placeholders
     raw_reports = ca_va.get("high_yield_data_reports")
-    if not raw_reports or not isinstance(raw_reports, list) or any("multidimensional poverty" in str(r).lower() and is_eci_q for r in raw_reports):
+    cleaned_reps = []
+    if isinstance(raw_reports, list):
+        for r in raw_reports:
+            r_str = str(r).strip()
+            # Filter out generic placeholder boilerplate strings
+            if re.search(r'official union ministry|statutory institutional benchmarks|national expert committee recommendations|empirical survey datasets|law commission recommendations and supreme court constitution bench|2nd arc ethics in governance guidelines on public trust', r_str, re.I):
+                continue
+            if is_eci_q and re.search(r'multidimensional poverty|infrastructure index', r_str, re.I):
+                continue
+            if r_str:
+                cleaned_reps.append(r_str)
+
+    if not cleaned_reps:
+        q_text_ca = (final_question + " " + str(data.get("transcribed_text") or "")).lower()
         if is_eci_q:
-            ca_va["high_yield_data_reports"] = [
+            cleaned_reps = [
                 "Law Commission 255th Report on Electoral Reforms (2015) — Advocating independent selection collegium and equal removal protections under Art. 324(5).",
                 "2nd ARC 4th Report on Ethics in Governance — Institutional collegium framework to insulate constitutional watchdogs from executive dominance."
             ]
-        elif subj_meta["discipline"] == "POLITY_GOVERNANCE":
-            ca_va["high_yield_data_reports"] = [
-                "Law Commission recommendations and Supreme Court Constitution Bench jurisprudence on institutional autonomy.",
-                "2nd ARC Ethics in Governance guidelines on public trust and statutory independence."
+        elif re.search(r'\b(?:women|child|gender|posh|maternal|stunting|wasting|nfhs|pcpndt|shakti)\b', q_text_ca):
+            cleaned_reps = [
+                "National Family Health Survey (NFHS-5) — Data on sex ratio at birth, maternal anemia, and institutional deliveries.",
+                "Parliamentary Standing Committee on Empowerment of Women — Recommendations on fast-track special courts and grassroots safety infrastructure."
+            ]
+        elif re.search(r'\b(?:agri|farmer|msp|doubling|crop|irrigation|apmc|fpo)\b', q_text_ca):
+            cleaned_reps = [
+                "M.S. Swaminathan Commission (National Commission on Farmers) — 50% profit margin over comprehensive cost of production (C2+50%).",
+                "Ashok Dalwai Committee on Doubling Farmers' Income — Secondary agriculture, FPO aggregation, and agri-logistics infrastructure."
+            ]
+        elif re.search(r'\b(?:police|custod|fir|crpc|bns|smart police|investigation)\b', q_text_ca):
+            cleaned_reps = [
+                "Prakash Singh v. Union of India (2006) — 7 binding SC directives for State Security Commission, fixed tenure, and Police Complaints Authority.",
+                "2nd ARC 5th Report on Public Order — Separation of investigation from law and order duties."
+            ]
+        elif re.search(r'\b(?:bank|npa|ibc|bad loan|credit|rbi|financial inclusion)\b', q_text_ca):
+            cleaned_reps = [
+                "Narasimham Committee I & II — Prudential asset classification norms and banking sector structural reforms.",
+                "K.V. Kamath Committee — Sector-specific financial parameters for restructuring stressed corporate loan exposures."
+            ]
+        elif re.search(r'\b(?:data protection|privacy|cyber|ai|digital|dpdp)\b', q_text_ca):
+            cleaned_reps = [
+                "Justice B.N. Srikrishna Committee (2018) — Foundational framework for the Digital Personal Data Protection (DPDP) Act.",
+                "NITI Aayog National Strategy for Artificial Intelligence (#AIforAll) — Ethical principles and responsible AI governance."
+            ]
+        elif re.search(r'\b(?:panchayat|73rd|74th|urban local|municipal|gram sabha|devolution)\b', q_text_ca):
+            cleaned_reps = [
+                "2nd ARC 6th Report (Local Governance) — Devolution of 3Fs (Funds, Functions, Functionaries) and functional Activity Mapping.",
+                "15th Finance Commission Local Body Grants — Tied grants for rural sanitation, water management, and urban air quality."
+            ]
+        elif re.search(r'\b(?:federal|governor|inter-state|centre-state|article 356)\b', q_text_ca):
+            cleaned_reps = [
+                "Sarkaria Commission (1988) & Punchhi Commission (2010) — Safeguards on Governor appointment and restrained invocation of Article 356.",
+                "Inter-State Council (Article 263) — Institutionalized consultation on concurrent and federal policy subjects."
             ]
         elif subj_meta["discipline"] == "ECONOMY_DEVELOPMENT":
-            ca_va["high_yield_data_reports"] = [
+            cleaned_reps = [
                 "Economic Survey 2023-24 & Union Budget capital expenditure benchmarks.",
-                "FRBM Review Committee (N.K. Singh) debt-to-GDP targets and fiscal path."
+                "FRBM Review Committee (N.K. Singh) debt-to-GDP targets and counter-cyclical fiscal glide path."
             ]
+        elif subj_meta["discipline"] in ("HISTORY_CULTURE", "PHILOSOPHY_ETHICS", "PHYSICAL_GEOGRAPHY"):
+            cleaned_reps = []
         else:
-            ca_va["high_yield_data_reports"] = [
-                "Official Union Ministry policy guidelines and statutory institutional benchmarks.",
-                "National expert committee recommendations and empirical survey datasets."
-            ]
+            cleaned_reps = []
+
+    ca_va["high_yield_data_reports"] = cleaned_reps
 
     diag_rec = ca_va.get("diagram_recommendation")
     if not isinstance(diag_rec, dict) or not diag_rec.get("concept_title"):
