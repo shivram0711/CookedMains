@@ -4169,15 +4169,23 @@ def save_essay_job_checkpoint(
 def complete_essay_job(
     job_id: str,
     result_dict: Dict[str, Any],
-    eval_id: Optional[str] = None
+    eval_id: Optional[str] = None,
+    question: Optional[str] = None
 ) -> bool:
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("""
-        UPDATE essay_jobs
-        SET result_json = ?, eval_id = ?, status = 'completed', progress_pct = 100, progress_message = 'Essay evaluation complete!', completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-    """, (json.dumps(result_dict), eval_id, job_id))
+    if question:
+        cursor.execute("""
+            UPDATE essay_jobs
+            SET result_json = ?, eval_id = ?, question = ?, status = 'completed', progress_pct = 100, progress_message = 'Essay evaluation complete!', completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """, (json.dumps(result_dict), eval_id, question, job_id))
+    else:
+        cursor.execute("""
+            UPDATE essay_jobs
+            SET result_json = ?, eval_id = ?, status = 'completed', progress_pct = 100, progress_message = 'Essay evaluation complete!', completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """, (json.dumps(result_dict), eval_id, job_id))
     conn.commit()
     conn.close()
     return True

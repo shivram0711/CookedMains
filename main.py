@@ -2981,6 +2981,11 @@ async def get_essay_status(job_id: str):
     }
 
     if status == "completed" and result_data:
+        if "pages" not in result_data or not result_data["pages"]:
+            result_data["pages"] = previews
+        if "page_ledger" not in result_data:
+            result_data["page_ledger"] = job.get("page_ledger") or {}
+
         resp["result"] = {
             "source": "live_essay_pipeline",
             "eval_id": job.get("eval_id"),
@@ -2992,6 +2997,7 @@ async def get_essay_status(job_id: str):
             "detected_question": result_data.get("detected_question") or job.get("question"),
             "evaluation": result_data,
             "pages": previews,
+            "page_ledger": job.get("page_ledger") or result_data.get("page_ledger") or {},
             "is_rewrite": False
         }
 

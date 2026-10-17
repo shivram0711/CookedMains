@@ -40,6 +40,7 @@ const state = {
   dailyQuestion: null,
   activeStudioView: "landing"
 };
+window.state = state;
 
 // DOM Elements
 const paperTabs = document.querySelectorAll(".paper-tab");
@@ -10298,6 +10299,11 @@ window.runEvaluation = async function(allowAutoAligned = false) {
       }
     }
 
+    if (data.evaluation) {
+      data.evaluation.pages = data.pages || state.activePages;
+      if (data.page_ledger) data.evaluation.page_ledger = data.page_ledger;
+    }
+
     renderEvaluation(data.evaluation);
 
     if (state.activePages && state.activePages.length > 0) {
@@ -10484,6 +10490,10 @@ window.pollEssayJob = async function(jobId) {
         if (data.pages && data.pages.length > 0) {
           state.activePages = data.pages;
           state.originalPages = [...data.pages];
+        }
+        if (data.evaluation) {
+          data.evaluation.pages = data.pages || state.activePages;
+          if (data.page_ledger) data.evaluation.page_ledger = data.page_ledger;
         }
 
         renderEvaluation(data.evaluation);
@@ -11042,6 +11052,8 @@ window.classifyQuestionDiscipline = function(questionText, paper) {
 // 4. Semantic keyword bolding so multi-color highlighters/chips render automatically across light & dark themes
 window.normalizeAndEnrichBodyAudit = function(evalData) {
   if (!evalData || typeof evalData !== "object") return;
+  const paperCheck = String(evalData.paper || evalData.detected_paper || (typeof state !== "undefined" && state.paper) || "").toUpperCase();
+  if (evalData.is_essay || paperCheck === "ESSAY" || evalData.detected_paper === "Essay") return;
   if (!evalData.body_audit || typeof evalData.body_audit !== "object") {
     evalData.body_audit = {};
   }
@@ -11260,6 +11272,8 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
 // Guarantee Zero Contradiction against student's written points & simplify stiff academic jargon into clear, appreciative English
 function sanitizeAndSimplifyEvaluationFeedback(evalData) {
   if (!evalData || typeof evalData !== "object") return;
+  const paperCheck = String(evalData.paper || evalData.detected_paper || (typeof state !== "undefined" && state.paper) || "").toUpperCase();
+  if (evalData.is_essay || paperCheck === "ESSAY" || evalData.detected_paper === "Essay") return;
 
   const qText = String(evalData.question || evalData.detected_question || (typeof state !== "undefined" && state.question) || "").trim();
   const qLow = qText.toLowerCase();

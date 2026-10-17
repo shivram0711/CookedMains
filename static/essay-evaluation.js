@@ -48,13 +48,27 @@
   };
 
   /**
+   * Helper: Resolves genuine topic without displaying placeholder text
+   */
+  function resolveCleanTopic(evalData) {
+    const raw = evalData.detected_question || evalData.question || (window.state && window.state.question) || "";
+    if (!raw || /extract\s+question|printed\s+on\s+booklet|upsc\s+mains\s+essay/i.test(raw)) {
+      if (evalData.central_thesis && !/extract\s+question/i.test(evalData.central_thesis)) {
+        return evalData.central_thesis;
+      }
+      return "Essay Topic Unresolved (Verification Required)";
+    }
+    return raw;
+  }
+
+  /**
    * Main entry point for rendering an Essay Evaluation
    */
   window.renderEssayEvaluation = function (evalData) {
     if (!evalData) return;
     essayState.evalData = evalData;
 
-    // Resolve uploaded script pages (strictly prioritize submission payload)
+    // Resolve uploaded script pages (strictly prioritize submission payload and app state)
     if (Array.isArray(evalData.pages) && evalData.pages.length > 0) {
       essayState.activePages = [...evalData.pages];
     } else if (Array.isArray(evalData.page_images) && evalData.page_images.length > 0) {
@@ -69,6 +83,8 @@
     essayState.zoomLevel = 1.0;
     essayState.activeMobileView = 'analysis';
 
+    const cleanTopic = resolveCleanTopic(evalData);
+
     // Synchronize top studio action bar cleanly
     const topDiscipline = document.getElementById("studioBreadcrumbDiscipline");
     const topQuestion = document.getElementById("studioBreadcrumbQuestion");
@@ -77,7 +93,7 @@
     const topBand = document.getElementById("studioTopBand");
 
     if (topDiscipline) topDiscipline.textContent = evalData.detected_paper_display || "Essay Paper";
-    if (topQuestion) topQuestion.textContent = evalData.detected_question || (window.state && window.state.question) || "UPSC Mains Essay";
+    if (topQuestion) topQuestion.textContent = cleanTopic;
     if (topScore && evalData.overall_score !== undefined && evalData.overall_score !== null) {
       topScore.textContent = (parseFloat(evalData.overall_score) || 0.0).toFixed(1);
     }
@@ -102,7 +118,7 @@
    * Constructs the full layout HTML for the Essay Workspace
    */
   function buildEssayWorkspaceHTML(evalData) {
-    const topic = evalData.detected_question || evalData.question || (window.state && window.state.question) || "UPSC Mains Essay Topic";
+    const topic = resolveCleanTopic(evalData);
     const score = evalData.overall_score !== undefined && evalData.overall_score !== null ? parseFloat(evalData.overall_score) : null;
     const maxMarks = evalData.max_marks || (window.state && window.state.marks) || 125;
     const verdict = evalData.percentile_verdict || null;
@@ -421,36 +437,54 @@
       return true;
     }
 
-    // 1. Process candidate reasoning stages from point_by_point_audit
-    if (Array.isArray(evalData.point_by_point_audit) && evalData.point_by_point_audit.length > 0) {
+    // 1. Process candidate reasoning stages from argument_journey if present
+    if (Array.isArray(evalData.argument_journey) && evalData.argument_journey.length > 0) {
+      evalData.argument_journey.forEach((stg, idx) => {
+        const rawQuote = (stg.verbatim_quote || stg.claim || '').trim();
+        const rawPage = stg.original_page_number || stg.page || null;
+        const verifiedPage = verifyCandidatePage(rawQuote, rawPage, stg.stage_title, evalData.transcribed_text, totalPages);
+        const stageTitle = stg.stage_title || stg.stage || (rawPage ? `Stage on Page ${rawPage}` : `Reasoning Stage ${idx + 1}`);
+        const stageAnalysis = stg.what_stage_contributes || stg.concise_summary || stg.analysis || '';
+
+        journeyStages.push({
+          stage: stageTitle,
+          page: verifiedPage || rawPage,
+          claim: rawQuote,
+          isVerbatim: Boolean(rawQuote),
+          analysis: stageAnalysis,
+          status: stg.status === 'drift' ? 'drift' : 'strong',
+          statusLabel: stg.status_label || (stg.status === 'drift' ? 'Counter-Perspective' : 'Coherent Reasoning')
+        });
+      });
+    } else if (Array.isArray(evalData.point_by_point_audit) && evalData.point_by_point_audit.length > 0) {
       evalData.point_by_point_audit.forEach((pt, idx) => {
-        if (!pt || !pt.title) return;
+        if (!pt) return;
+        const stageTitle = pt.title || pt.stage || pt.badge || (pt.page ? `Reasoning Stage (Page ${pt.page})` : `Reasoning Stage ${idx + 1}`);
 
         // Verify entry is genuinely essay-specific: reject GS-shaped subparts or boilerplate
-        if (/^(part\s+[a-z]|sub-?part|demand\s+\d+|gs\d|question\s+\d|directive|qcab)/i.test(pt.title) ||
+        if (/^(part\s+[a-z]|sub-?part|demand\s+\d+|gs\d|question\s+\d|directive|qcab)/i.test(stageTitle) ||
             /^(part\s+[a-z]|sub-?part|demand\s+\d+|gs\d|qcab)/i.test(pt.badge || '')) {
           return;
         }
 
         // Filter out dedicated language / grammar / mechanical items from the reasoning journey
-        if (/^(grammar|grammatical precision|typograph|spelling|punctuation|language precision|mechanical slips)/i.test(pt.title) ||
-            /^(typographical slips|grammatical errors|punctuation slips)/i.test(pt.title)) {
+        if (/^(grammar|grammatical precision|typograph|spelling|punctuation|language precision|mechanical slips)/i.test(stageTitle)) {
           return;
         }
 
-        const rawQuote = (pt.what_you_wrote || '').trim();
+        const rawQuote = (pt.what_you_wrote || pt.claim || '').trim();
         const qKey = normalizeQuote(rawQuote);
         if (qKey && seenQuotes.has(qKey)) {
           return; // Skip duplicate stage
         }
         if (qKey) seenQuotes.add(qKey);
 
-        const verifiedPage = verifyCandidatePage(rawQuote, pt.page, pt.badge, evalData.transcribed_text, totalPages);
-        const cleanAnalysis = (pt.examiner_verdict || '').replace(/,?\s*though\s+spelling\s+errors?[^.]*\.?/gi, '').trim();
+        const verifiedPage = verifyCandidatePage(rawQuote, pt.page, pt.badge || stageTitle, evalData.transcribed_text, totalPages);
+        const cleanAnalysis = (pt.examiner_verdict || pt.evaluator_remark || pt.analysis || '').replace(/,?\s*though\s+spelling\s+errors?[^.]*\.?/gi, '').trim();
         const isVerbatim = isCandidateVerbatimQuote(rawQuote, evalData.transcribed_text);
 
         journeyStages.push({
-          stage: pt.title || `Reasoning Stage ${journeyStages.length + 1}`,
+          stage: stageTitle,
           page: verifiedPage,
           claim: rawQuote,
           isVerbatim: isVerbatim,
@@ -495,10 +529,11 @@
       });
     }
 
-    // 2. Concluding Synthesis: check if conclusion was already covered in point_by_point_audit
-    const hasConcludingStage = journeyStages.some(s => s.page === totalPages || /conclusion|synthesis|edison/i.test(s.stage));
+    // 2. Concluding Synthesis: check if conclusion was already covered in stages
+    const hasConcludingStage = journeyStages.some(s => (totalPages > 1 ? s.page >= totalPages - 1 : false) || /conclusion|synthesis|visionary/i.test(s.stage));
     if (!hasConcludingStage && evalData.conclusion_audit && (evalData.conclusion_audit.current_critique || evalData.conclusion_audit.conclusion_archetype)) {
       const isWeak = Boolean(evalData.conclusion_audit.failure_mode && !/none/i.test(evalData.conclusion_audit.failure_mode));
+      const conclPage = totalPages > 1 ? totalPages : 1;
 
       let concludingQuote = '';
       if (evalData.transcribed_text) {
@@ -516,7 +551,7 @@
       if (!qKey || !seenQuotes.has(qKey)) {
         journeyStages.push({
           stage: evalData.conclusion_audit.conclusion_archetype ? `Concluding Synthesis: ${evalData.conclusion_audit.conclusion_archetype}` : 'Concluding Synthesis',
-          page: totalPages,
+          page: conclPage,
           claim: concludingQuote,
           analysis: evalData.conclusion_audit.current_critique || '',
           status: isWeak ? 'drift' : 'strong',
@@ -755,174 +790,145 @@
   function buildSection4DimensionalAssessment(evalData) {
     const dimensions = [];
 
-    // 1. Thesis Interpretation & Framing (from intro_audit)
-    if (evalData.intro_audit && (evalData.intro_audit.current_critique || evalData.intro_audit.topic_vs_question_relevance)) {
-      dimensions.push({
-        title: 'Thesis Interpretation & Framing',
-        score: evalData.intro_audit.intro_score,
-        max: evalData.intro_audit.intro_max,
-        content: `
-          <div class="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
-            ${evalData.intro_audit.intro_archetype ? `<p><strong>Opening Structure:</strong> ${escapeHTML(evalData.intro_audit.intro_archetype)}</p>` : ''}
-            ${evalData.intro_audit.topic_vs_question_relevance ? `<p><strong>Topic Grounding:</strong> ${escapeHTML(evalData.intro_audit.topic_vs_question_relevance)}</p>` : ''}
-            ${evalData.intro_audit.current_critique ? `<p><strong>Evaluator Critique:</strong> ${escapeHTML(evalData.intro_audit.current_critique)}</p>` : ''}
-          </div>
-        `
-      });
-    }
+    // Prioritize dedicated 5-dimension rubric if returned by pipeline
+    if (Array.isArray(evalData.evaluation_dimensions) && evalData.evaluation_dimensions.length === 5) {
+      evalData.evaluation_dimensions.forEach(dim => {
+        const pagesStr = Array.isArray(dim.page_references) && dim.page_references.length > 0
+          ? dim.page_references.map(p => `<button type="button" onclick="window.essayJumpToPage(${p})" class="text-[10px] font-mono text-amber-600 dark:text-amber-400 hover:underline cursor-pointer">Page ${p}</button>`).join(', ')
+          : '';
 
-    // 2. Reasoning Depth & Analytical Rigor (from body_audit)
-    if (evalData.body_audit) {
-      const strengths = Array.isArray(evalData.body_audit.strengths) ? evalData.body_audit.strengths : [];
-      const allGaps = Array.isArray(evalData.body_audit.critical_gaps) ? evalData.body_audit.critical_gaps : [];
-      const substantiveGaps = allGaps.filter(g => !/grammar|typograph|slip|spelling|colloquial|language/i.test(g));
-      const languageGaps = allGaps.filter(g => /grammar|typograph|slip|spelling|colloquial|language/i.test(g));
-
-      if (strengths.length > 0 || substantiveGaps.length > 0) {
         dimensions.push({
-          title: 'Reasoning Depth & Analytical Rigor',
-          score: evalData.body_audit.body_score,
-          max: evalData.body_audit.body_max,
-          content: `
-            <div class="space-y-2 text-xs">
-              ${strengths.length > 0 ? `
-                <div class="space-y-1">
-                  <span class="font-bold text-emerald-700 dark:text-emerald-400 text-[11px] uppercase tracking-wider">&check; Strong Lines of Reasoning:</span>
-                  <ul class="list-disc pl-4 space-y-0.5 text-slate-700 dark:text-slate-300">
-                    ${strengths.map(s => `<li>${formatMarkdownText(s)}</li>`).join('')}
-                  </ul>
-                </div>
-              ` : ''}
-              ${substantiveGaps.length > 0 ? `
-                <div class="space-y-1 pt-1">
-                  <span class="font-bold text-rose-700 dark:text-rose-400 text-[11px] uppercase tracking-wider">&bull; Critical Gaps in Argument Scope:</span>
-                  <ul class="list-disc pl-4 space-y-0.5 text-slate-700 dark:text-slate-300">
-                    ${substantiveGaps.map(g => `<li>${formatMarkdownText(g)}</li>`).join('')}
-                  </ul>
-                </div>
-              ` : ''}
-            </div>
-          `
-        });
-      }
-
-      // Dedicated Expression & Language Precision dimension (moved from Argument Journey)
-      if (languageGaps.length > 0) {
-        dimensions.push({
-          title: 'Expression, Style & Language Precision',
+          title: dim.name,
+          score: dim.awarded_marks,
+          max: dim.max_marks,
+          status: dim.status,
           content: `
             <div class="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
-              <span class="font-bold text-slate-800 dark:text-slate-200 text-[11px] uppercase tracking-wider block">Language &amp; Mechanical Observations:</span>
-              <ul class="list-disc pl-4 space-y-1">
-                ${languageGaps.map(g => `<li>${formatMarkdownText(g)}</li>`).join('')}
-              </ul>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 pt-1">
-                Evaluator note: Typographical slips and colloquialisms are assessed here under expression and style; they do not alter the substantive validity of your argument journey.
-              </p>
+              <p>${formatMarkdownText(dim.feedback || '')}</p>
+              ${pagesStr ? `<div class="pt-1 flex items-center space-x-1.5"><span class="text-[10px] uppercase font-bold text-slate-400">Relevant Pages:</span> <div class="flex items-center space-x-1">${pagesStr}</div></div>` : ''}
             </div>
           `
         });
-      }
-    }
-
-    // 3. Multi-Dimensionality & Perspectives (from body_audit.missing_dimensions)
-    if (evalData.body_audit && Array.isArray(evalData.body_audit.missing_dimensions) && evalData.body_audit.missing_dimensions.length > 0) {
-      dimensions.push({
-        title: 'Thematic Dimensions & Perspectives',
-        content: `
-          <div class="space-y-1.5 text-xs">
-            <p class="text-slate-600 dark:text-slate-400">Dimensions that deepen perspective for this topic:</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-              ${evalData.body_audit.missing_dimensions.map(dim => `
-                <div class="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-                  ${formatMarkdownText(dim)}
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        `
       });
-    }
-
-    // 4. Evidence & Substantiation (from current_affairs_value_add or missing_keywords_cards)
-    if (evalData.current_affairs_value_add || Array.isArray(evalData.missing_keywords_cards)) {
-      const curEx = evalData.current_affairs_value_add;
-      const kwCards = Array.isArray(evalData.missing_keywords_cards) ? evalData.missing_keywords_cards.slice(0, 3) : [];
-      if ((curEx && curEx.current_example_insertion && curEx.current_example_insertion.recommended_insertion) || kwCards.length > 0) {
+    } else {
+      // 1. Thesis Interpretation & Framing (from intro_audit)
+      if (evalData.intro_audit && (evalData.intro_audit.current_critique || evalData.intro_audit.topic_vs_question_relevance)) {
         dimensions.push({
-          title: 'Evidence & Substantiation',
+          title: 'Thesis Interpretation & Framing',
+          score: evalData.intro_audit.intro_score,
+          max: evalData.intro_audit.intro_max,
           content: `
-            <div class="space-y-2 text-xs">
-              ${curEx && curEx.current_example_insertion && curEx.current_example_insertion.recommended_insertion ? `
-                <div class="p-2.5 rounded-lg bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20 text-slate-700 dark:text-slate-300 space-y-1">
-                  <span class="font-bold text-indigo-700 dark:text-indigo-400 text-[11px]">Substantiation Recommendation:</span>
-                  <p>${formatMarkdownText(curEx.current_example_insertion.recommended_insertion)}</p>
-                </div>
-              ` : ''}
-              ${kwCards.length > 0 ? `
-                <div class="space-y-1 pt-1">
-                  <span class="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">Key Concepts for Analytical Rigor:</span>
-                  <div class="flex flex-wrap gap-1.5">
-                    ${kwCards.map(c => `
-                      <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-mono text-[11px]">
-                        ${escapeHTML(c.term || '')}
-                      </span>
-                    `).join('')}
+            <div class="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
+              ${evalData.intro_audit.intro_archetype ? `<p><strong>Opening Structure:</strong> ${escapeHTML(evalData.intro_audit.intro_archetype)}</p>` : ''}
+              ${evalData.intro_audit.topic_vs_question_relevance ? `<p><strong>Topic Grounding:</strong> ${escapeHTML(evalData.intro_audit.topic_vs_question_relevance)}</p>` : ''}
+              ${evalData.intro_audit.current_critique ? `<p><strong>Evaluator Critique:</strong> ${escapeHTML(evalData.intro_audit.current_critique)}</p>` : ''}
+            </div>
+          `
+        });
+      }
+
+      // 2. Reasoning Depth & Analytical Rigor (from body_audit)
+      if (evalData.body_audit) {
+        const strengths = Array.isArray(evalData.body_audit.strengths) ? evalData.body_audit.strengths : [];
+        const allGaps = Array.isArray(evalData.body_audit.critical_gaps) ? evalData.body_audit.critical_gaps : [];
+        const substantiveGaps = allGaps.filter(g => !/grammar|typograph|slip|spelling|colloquial|language/i.test(g));
+        const languageGaps = allGaps.filter(g => /grammar|typograph|slip|spelling|colloquial|language/i.test(g));
+
+        if (strengths.length > 0 || substantiveGaps.length > 0) {
+          dimensions.push({
+            title: 'Reasoning Depth & Analytical Rigor',
+            score: evalData.body_audit.body_score,
+            max: evalData.body_audit.body_max,
+            content: `
+              <div class="space-y-2 text-xs">
+                ${strengths.length > 0 ? `
+                  <div class="space-y-1">
+                    <span class="font-bold text-emerald-700 dark:text-emerald-400 text-[11px] uppercase tracking-wider">&check; Strong Lines of Reasoning:</span>
+                    <ul class="list-disc pl-4 space-y-0.5 text-slate-700 dark:text-slate-300">
+                      ${strengths.map(s => `<li>${formatMarkdownText(s)}</li>`).join('')}
+                    </ul>
                   </div>
-                </div>
-              ` : ''}
+                ` : ''}
+                ${substantiveGaps.length > 0 ? `
+                  <div class="space-y-1 pt-1">
+                    <span class="font-bold text-rose-700 dark:text-rose-400 text-[11px] uppercase tracking-wider">&bull; Critical Gaps in Argument Scope:</span>
+                    <ul class="list-disc pl-4 space-y-0.5 text-slate-700 dark:text-slate-300">
+                      ${substantiveGaps.map(g => `<li>${formatMarkdownText(g)}</li>`).join('')}
+                    </ul>
+                  </div>
+                ` : ''}
+              </div>
+            `
+          });
+        }
+      }
+
+      // 3. Multi-Dimensionality & Perspectives (from body_audit.missing_dimensions)
+      if (evalData.body_audit && Array.isArray(evalData.body_audit.missing_dimensions) && evalData.body_audit.missing_dimensions.length > 0) {
+        dimensions.push({
+          title: 'Thematic Dimensions & Perspectives',
+          content: `
+            <div class="space-y-1.5 text-xs">
+              <p class="text-slate-600 dark:text-slate-400">Dimensions that deepen perspective for this topic:</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                ${evalData.body_audit.missing_dimensions.map(dim => `
+                  <div class="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                    ${formatMarkdownText(dim)}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `
+        });
+      }
+
+      // 4. Concluding Synthesis (from conclusion_audit)
+      if (evalData.conclusion_audit && (evalData.conclusion_audit.current_critique || evalData.conclusion_audit.conclusion_archetype)) {
+        dimensions.push({
+          title: evalData.conclusion_audit.conclusion_archetype ? `Conclusion: ${evalData.conclusion_audit.conclusion_archetype}` : 'Concluding Synthesis',
+          score: evalData.conclusion_audit.conclusion_score || evalData.conclusion_audit.score,
+          max: evalData.conclusion_audit.conclusion_max,
+          content: `
+            <div class="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
+              ${evalData.conclusion_audit.failure_mode && !/none/i.test(evalData.conclusion_audit.failure_mode) ? `<p><strong>Evaluator Observation:</strong> ${escapeHTML(evalData.conclusion_audit.failure_mode)}</p>` : ''}
+              ${evalData.conclusion_audit.current_critique ? `<p>${formatMarkdownText(evalData.conclusion_audit.current_critique)}</p>` : ''}
             </div>
           `
         });
       }
     }
 
-    // 5. Concluding Synthesis (from conclusion_audit) - no prescriptive "Civilizational Resolution" label!
-    if (evalData.conclusion_audit && (evalData.conclusion_audit.current_critique || evalData.conclusion_audit.conclusion_archetype)) {
-      const conclTitle = evalData.conclusion_audit.conclusion_archetype
-        ? `Conclusion: ${evalData.conclusion_audit.conclusion_archetype}`
-        : 'Concluding Synthesis';
-
-      dimensions.push({
-        title: conclTitle,
-        score: evalData.conclusion_audit.conclusion_score || evalData.conclusion_audit.score,
-        max: evalData.conclusion_audit.conclusion_max,
-        content: `
-          <div class="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
-            ${evalData.conclusion_audit.failure_mode && !/none/i.test(evalData.conclusion_audit.failure_mode) ? `<p><strong>Evaluator Observation:</strong> ${escapeHTML(evalData.conclusion_audit.failure_mode)}</p>` : ''}
-            ${evalData.conclusion_audit.current_critique ? `<p>${formatMarkdownText(evalData.conclusion_audit.current_critique)}</p>` : ''}
-          </div>
-        `
-      });
-    }
-
-    // 6. Word & Time Discipline (from upsc_exam_hall_discipline)
+    // Exam Hall Discipline: calculate from verified word count
     if (evalData.upsc_exam_hall_discipline) {
       const d = evalData.upsc_exam_hall_discipline;
+      const isWordCountAvail = d.estimated_word_count && d.estimated_word_count !== 'Unavailable' && d.estimated_word_count !== 'N/A';
+      const isTimeAvail = d.estimated_writing_time_mins && d.estimated_writing_time_mins !== 'Unavailable' && d.estimated_writing_time_mins !== 'N/A';
+
       dimensions.push({
         title: 'Word Count & Exam Discipline',
         content: `
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
             <div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
               <span class="text-[10px] text-slate-400 block uppercase">Word Count</span>
-              <span class="font-bold font-mono text-slate-800 dark:text-slate-200">${d.estimated_word_count || 'N/A'}w</span>
+              <span class="font-bold font-mono text-slate-800 dark:text-slate-200">${isWordCountAvail ? `${d.estimated_word_count}w` : 'Unavailable'}</span>
             </div>
             <div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
               <span class="text-[10px] text-slate-400 block uppercase">Limit Status</span>
-              <span class="font-bold text-slate-800 dark:text-slate-200">${escapeHTML(d.word_budget_status || 'Compliant')}</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200">${isWordCountAvail ? escapeHTML(d.word_budget_status || 'Compliant') : 'Unavailable'}</span>
             </div>
             <div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
               <span class="text-[10px] text-slate-400 block uppercase">Estimated Time</span>
-              <span class="font-bold font-mono text-slate-800 dark:text-slate-200">${d.estimated_writing_time_mins || 'N/A'}m</span>
+              <span class="font-bold font-mono text-slate-800 dark:text-slate-200">${isTimeAvail ? `${d.estimated_writing_time_mins}m` : 'Unavailable'}</span>
             </div>
             <div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
               <span class="text-[10px] text-slate-400 block uppercase">Margin Space</span>
-              <span class="font-bold text-slate-800 dark:text-slate-200">${escapeHTML(d.margin_discipline || 'Compliant')}</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200">${isWordCountAvail ? escapeHTML(d.margin_discipline || 'Maintained strictly') : 'Unavailable'}</span>
             </div>
           </div>
         `
       });
     }
+
 
     if (dimensions.length === 0) {
       return '';
@@ -937,10 +943,10 @@
               <span>4. Essay-Specific Assessment Dimensions</span>
             </h2>
             <p class="text-[11px] text-slate-500 dark:text-slate-400">
-              Evaluator feedback structured around authentic essay dimensions without forced GS rubrics.
+              Evaluated on the official 125-Mark UPSC Essay Rubric: Thesis Framing (20M) + Multidimensional Depth (50M) + Structure &amp; Transitions (20M) + Substantiation (20M) + Concluding Synthesis (15M).
             </p>
           </div>
-          <span class="text-[10px] text-slate-400 font-mono">${dimensions.length} Dimensions</span>
+          <span class="text-[10px] text-slate-400 font-mono font-semibold">125 Marks Rubric</span>
         </div>
 
         <div class="space-y-3">
@@ -953,9 +959,12 @@
                 </span>
                 <div class="flex items-center space-x-3">
                   ${dim.score !== undefined && dim.score !== null ? `
-                    <span class="font-mono text-xs font-bold text-amber-600 dark:text-amber-400">
-                      ${dim.score} ${dim.max ? `/ ${dim.max}` : ''}
-                    </span>
+                    <div class="flex items-center space-x-2">
+                      ${dim.status ? `<span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">${escapeHTML(dim.status)}</span>` : ''}
+                      <span class="font-mono text-xs font-bold text-amber-600 dark:text-amber-400">
+                        ${dim.score} ${dim.max ? `/ ${dim.max}` : ''}
+                      </span>
+                    </div>
                   ` : ''}
                   <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 group-open:rotate-180 transition-transform"></i>
                 </div>
@@ -1001,9 +1010,7 @@
         <div class="space-y-3">
           ${rawAnnotations.map((ann, i) => {
             const pageNum = Math.min(totalPages, Math.max(1, ann.page || ann.page_number || 1));
-            const remarkText = ann.remark || '';
-            
-            // Extract quotes or splits if formatted
+            const remarkText = ann.remark || ann.text || ann.evaluator_observation || '';
             let candidateText = ann.quote || '';
             let evaluatorObservation = remarkText;
 
@@ -1022,6 +1029,10 @@
               .join('\n')
               .trim();
 
+            if (!evaluatorObservation && !candidateText) {
+              return '';
+            }
+
             return `
               <div class="essay-annotation-card rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 p-3 sm:p-3.5 space-y-2.5 transition cursor-pointer" onclick="window.essayJumpToPageAndHighlight(${pageNum}, ${i})">
                 <div class="flex items-center justify-between gap-2">
@@ -1030,10 +1041,10 @@
                       Page ${pageNum}
                     </span>
                     <span class="text-xs font-bold text-slate-800 dark:text-slate-200">
-                      ${escapeHTML(ann.tag || 'Examiner Margin Note')}
+                      ${escapeHTML(ann.tag || ann.label || 'Examiner Margin Note')}
                     </span>
                   </div>
-                  <button type="button" class="text-[11px] font-semibold text-amber-600 dark:text-amber-400 hover:underline flex items-center space-x-1">
+                  <button type="button" class="text-[11px] font-semibold text-amber-600 dark:text-amber-400 hover:underline flex items-center space-x-1 cursor-pointer">
                     <span>Jump &rarr;</span>
                   </button>
                 </div>
@@ -1044,13 +1055,15 @@
                   </div>
                 ` : ''}
 
-                <div class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed space-y-1">
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Evaluator Observation</span>
-                  <div>${formatMarkdownText(evaluatorObservation)}</div>
-                </div>
+                ${evaluatorObservation ? `
+                  <div class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed space-y-1">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Evaluator Observation</span>
+                    <div>${formatMarkdownText(evaluatorObservation)}</div>
+                  </div>
+                ` : ''}
               </div>
             `;
-          }).join('')}
+          }).filter(Boolean).join('')}
         </div>
       </section>
     `;
@@ -1064,41 +1077,60 @@
     const priorities = [];
     const totalPages = essayState.activePages.length || 1;
 
-    // Next attempt focus
-    if (evalData.next_attempt_focus) {
-      const naf = evalData.next_attempt_focus;
-      const verifiedDraftPage = verifyCandidatePage(naf.student_draft_quote, null, naf.booklet_placement, evalData.transcribed_text, totalPages);
-
-      priorities.push({
-        title: naf.target_section || 'Reinforcing Argument Transitions',
-        weakness: naf.student_draft_quote || '',
-        verifiedPage: verifiedDraftPage,
-        optionalExample: naf.topper_transformation || '',
-        why: naf.mentor_why || ''
-      });
-    }
-
-    // Critical gaps from body audit
-    if (evalData.body_audit && Array.isArray(evalData.body_audit.critical_gaps)) {
-      evalData.body_audit.critical_gaps.slice(0, 2).forEach((gap, idx) => {
-        let cleanGap = gap;
-        let title = `Analytical Revision ${idx + 2}`;
-        const headerMatch = gap.match(/^\*\*([^*]+)\*\*:\s*(.*)/s);
-        if (headerMatch) {
-          title = headerMatch[1].replace(/\s*\(Pages?[^)]*\)/gi, '').trim();
-          cleanGap = headerMatch[2];
-        }
-
-        const verifiedGapPage = verifyCandidatePage(null, null, gap, evalData.transcribed_text, totalPages);
-
+    // Prioritize dedicated revision_priorities schema
+    if (Array.isArray(evalData.revision_priorities) && evalData.revision_priorities.length > 0) {
+      evalData.revision_priorities.forEach(prio => {
+        const pNum = prio.page || null;
+        const rawQuote = (prio.candidate_exact_passage || prio.quote || '').trim();
+        const verifiedPage = verifyCandidatePage(rawQuote, pNum, prio.title, evalData.transcribed_text, totalPages);
         priorities.push({
-          title: title,
-          weakness: cleanGap,
-          verifiedPage: verifiedGapPage,
-          optionalExample: '',
-          why: 'Preserves your perspective while addressing counterarguments examiners look for.'
+          title: prio.title || 'Reinforcing Argument Transitions',
+          candidatePassage: rawQuote,
+          diagnosis: prio.evaluator_diagnosis || prio.weakness || '',
+          guidance: prio.actionable_guidance || prio.why || '',
+          optionalExample: prio.optional_example_rewrite || prio.optionalExample || '',
+          verifiedPage: verifiedPage || pNum
         });
       });
+    } else {
+      // Fallback: Next attempt focus
+      if (evalData.next_attempt_focus) {
+        const naf = evalData.next_attempt_focus;
+        const verifiedDraftPage = verifyCandidatePage(naf.student_draft_quote, null, naf.booklet_placement, evalData.transcribed_text, totalPages);
+
+        priorities.push({
+          title: naf.target_section || 'Reinforcing Argument Transitions',
+          candidatePassage: naf.student_draft_quote || '',
+          diagnosis: naf.identified_gap || '',
+          guidance: naf.mentor_why || '',
+          optionalExample: naf.topper_transformation || naf.examiner_upgrade_sentence || '',
+          verifiedPage: verifiedDraftPage
+        });
+      }
+
+      // Fallback: Critical gaps from body audit (strictly labeled as Evaluator Diagnosis, NOT student wording)
+      if (evalData.body_audit && Array.isArray(evalData.body_audit.critical_gaps)) {
+        evalData.body_audit.critical_gaps.slice(0, 2).forEach((gap, idx) => {
+          let cleanGap = gap;
+          let title = `Analytical Revision ${idx + 2}`;
+          const headerMatch = gap.match(/^\*\*([^*]+)\*\*:\s*(.*)/s);
+          if (headerMatch) {
+            title = headerMatch[1].replace(/\s*\(Pages?[^)]*\)/gi, '').trim();
+            cleanGap = headerMatch[2];
+          }
+
+          const verifiedGapPage = verifyCandidatePage(null, null, gap, evalData.transcribed_text, totalPages);
+
+          priorities.push({
+            title: title,
+            candidatePassage: '',
+            diagnosis: cleanGap,
+            guidance: 'Preserves your perspective while addressing counterarguments examiners look for.',
+            optionalExample: '',
+            verifiedPage: verifiedGapPage
+          });
+        });
+      }
     }
 
     if (priorities.length === 0) {
@@ -1150,13 +1182,35 @@
                 ` : ''}
               </div>
 
-              ${prio.weakness ? `
+              ${prio.candidatePassage ? `
                 <div class="space-y-1">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
-                    Candidate's Original Draft Wording (Keep Your Voice &amp; Perspective)${prio.verifiedPage ? ` &bull; Page ${prio.verifiedPage}` : ''}:
+                    Candidate's Original Draft Wording (Exact Excerpt)${prio.verifiedPage ? ` &bull; Page ${prio.verifiedPage}` : ''}:
                   </span>
                   <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-serif italic text-slate-800 dark:text-slate-200 leading-relaxed">
-                    &ldquo;${escapeHTML(prio.weakness)}&rdquo;
+                    &ldquo;${escapeHTML(prio.candidatePassage)}&rdquo;
+                  </div>
+                </div>
+              ` : ''}
+
+              ${prio.diagnosis ? `
+                <div class="space-y-1">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 block">
+                    Evaluator Diagnosis &amp; Analytical Gap:
+                  </span>
+                  <div class="p-2.5 rounded-lg bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                    ${formatMarkdownText(prio.diagnosis)}
+                  </div>
+                </div>
+              ` : ''}
+
+              ${prio.guidance ? `
+                <div class="space-y-1">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 block">
+                    Actionable Guidance (Preserving Candidate Voice):
+                  </span>
+                  <div class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed pl-0.5">
+                    ${formatMarkdownText(prio.guidance)}
                   </div>
                 </div>
               ` : ''}
@@ -1173,12 +1227,6 @@
                   <p class="text-[10px] text-slate-500 dark:text-slate-400 pt-0.5">
                     Stylistic note: This phrasing is provided solely to demonstrate how conceptual depth can be signaled. Feel free to express this in your own natural vocabulary.
                   </p>
-                </div>
-              ` : ''}
-
-              ${prio.why ? `
-                <div class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed pl-0.5">
-                  <strong>Evaluator Rationale:</strong> ${escapeHTML(prio.why)}
                 </div>
               ` : ''}
             </div>
@@ -1258,10 +1306,15 @@
               <div id="essayAnnotationsLayer" class="absolute inset-0 pointer-events-none"></div>
             </div>
           ` : `
-            <div class="py-16 text-center text-xs text-slate-400 space-y-1">
-              <i data-lucide="file-question" class="w-8 h-8 mx-auto text-slate-300 dark:text-slate-600 mb-2"></i>
-              <p>Uploaded copy script is not accessible for direct visual display.</p>
-              <p class="text-[11px] text-slate-500">Evaluation analysis and line observations remain available.</p>
+            <div class="py-12 px-6 text-center text-xs text-slate-500 dark:text-slate-400 space-y-3">
+              <i data-lucide="file-warning" class="w-8 h-8 mx-auto text-amber-500 mb-2"></i>
+              <div class="space-y-1">
+                <p class="font-bold text-slate-800 dark:text-slate-200 text-sm">Uploaded Script Inaccessible</p>
+                <p class="text-[11px] text-slate-500">Booklet page images could not be loaded for visual display.</p>
+              </div>
+              <button type="button" onclick="window.location.reload()" class="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs transition cursor-pointer">
+                Reload Script
+              </button>
             </div>
           `}
         </div>
@@ -1312,8 +1365,17 @@
 
     allAnnotations.forEach((ann, globalIdx) => {
       if ((ann.page || ann.page_number || 1) === pageNum) {
-        const topY = ann.start_y_percent !== undefined ? ann.start_y_percent : (ann.approx_y_percent || 20);
-        const heightY = ann.end_y_percent !== undefined ? Math.max(8, ann.end_y_percent - topY) : 12;
+        let topY = ann.start_y_percent;
+        let heightY = ann.end_y_percent !== undefined ? Math.max(8, ann.end_y_percent - (topY || 0)) : 12;
+
+        if (topY === undefined) {
+          if (Array.isArray(ann.box_2d) && ann.box_2d.length === 4) {
+            topY = ann.box_2d[0] / 10.0;
+            heightY = Math.max(8, (ann.box_2d[2] - ann.box_2d[0]) / 10.0);
+          } else {
+            topY = ann.approx_y_percent || 20;
+          }
+        }
 
         const pin = document.createElement("div");
         pin.className = "essay-annotation-pin pointer-events-auto";

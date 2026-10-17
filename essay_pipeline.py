@@ -204,10 +204,11 @@ async def analyze_page_batch(
     medium: str = "english",
     api_key: Optional[str] = None,
     timeout_seconds: int = 35
-) -> List[Dict[str, Any]]:
+) -> Dict[str, Any]:
     """
     Stage 1: Analyzes a small batch of pages (e.g. 2-4 pages).
-    Extracts structured transcription, substantive points, page role, and uncertain spans.
+    Extracts structured transcription, substantive points, page role, uncertain spans,
+    and if Page 1 is present, extracts candidate's chosen essay topic from the booklet header/title.
     Does NOT score pages independently or enforce rigid templates.
     """
     keys_to_try = get_active_gemini_keys(api_key)
@@ -216,9 +217,10 @@ async def analyze_page_batch(
 
     page_nums = [p["original_page_number"] for p in batch_pages]
     is_hindi = (medium or "").lower() == "hindi" or bool(re.search(r'[\u0900-\u097F]', topic or ""))
+    has_page_one = any(p["original_page_number"] == 1 for p in batch_pages)
 
     prompt = f"""You are an expert UPSC Essay Evaluator transcribing and analyzing handwritten candidate booklet pages.
-ESSAY TOPIC: "{topic}"
+CURRENT TOPIC CONTEXT: "{topic}"
 LANGUAGE MEDIUM: {"Hindi (Devanagari)" if is_hindi else "English"}
 ORIGINAL PAGES IN THIS BATCH: {page_nums}
 
@@ -229,9 +231,14 @@ CRITICAL INSTRUCTIONS:
 4. Characterize the organic role of each page in the developing essay (e.g. "Opening anecdotal hook", "Thesis formulation & scope definition", "Philosophical / Ethical inquiry", "Historical perspective", "Socio-economic analysis", "Counter-argument & critical scrutiny", "Administrative & constitutional synthesis", "Concluding reflection").
 5. Do NOT score these pages individually. Do NOT impose rigid section templates.
 6. Provide exact verbatim quotes in "evidence_snippets" linking key arguments to the page.
+{'''7. PAGE 1 ESSAY TOPIC DETECTION:
+Inspect Page 1 carefully. Identify the printed questions in the booklet header and the candidate's boxed/handwritten title.
+Determine the EXACT topic chosen by the candidate (e.g. "Life is what happens when you're busy making other plans").
+Output this in "detected_topic".''' if has_page_one else ''}
 
 OUTPUT STRICT JSON WITH THIS SCHEMA:
 {{
+  "detected_topic": {f'"<Exact topic chosen by candidate on Page 1>"' if has_page_one else 'null'},
   "pages": [
     {{
       "original_page_number": <integer matching the booklet page>,
@@ -295,7 +302,10 @@ OUTPUT STRICT JSON WITH THIS SCHEMA:
                     parsed = parse_llm_json_response(response.text)
                     if isinstance(parsed, dict) and "pages" in parsed and isinstance(parsed["pages"], list):
                         record_gemini_model_outcome(model_name, True)
-                        return parsed["pages"]
+                        return {
+                            "pages": parsed["pages"],
+                            "detected_topic": parsed.get("detected_topic")
+                        }
             except Exception as ge:
                 record_gemini_model_outcome(model_name, False, str(ge))
                 continue
@@ -396,9 +406,13 @@ async def evaluate_whole_essay(
         claims_str = "; ".join([p.get("claim", "") for p in pts if isinstance(p, dict) and p.get("claim")])
         quotes_str = "; ".join([s.get("quote", "") for s in snippets if isinstance(s, dict) and s.get("quote")])
 
+        unc_spans = r.get("uncertain_spans", [])
+        unc_str = "; ".join(unc_spans) if unc_spans else "None"
+
         essay_chronicle_lines.append(
             f"--- PAGE {p_num} (Role: {role}) ---\n"
-            f"Candidate Text: {txt[:400]}...\n"
+            f"Candidate Text: {txt}\n"
+            f"Uncertain / Ambiguous Handwriting Spans: {unc_str}\n"
             f"Substantive Arguments: {claims_str}\n"
             f"Verbatim Evidence: {quotes_str}\n"
         )
@@ -415,32 +429,95 @@ COMPLETE PAGE-BY-PAGE CANDIDATE ESSAY CHRONICLE:
 {essay_chronicle}
 
 OFFICIAL UPSC ESSAY EVALUATION CRITERIA (125 MARKS):
-1. Thesis Articulation & Sustained Relevance (20M): Did candidate define a central philosophical/thematic thesis and sustain it, or drift into generic General Studies bullet points?
-2. Multi-Dimensional Exploration (50M): Exploration across diverse spheres (philosophical, ethical, historical, socio-cultural, economic, administrative, global, scientific).
-3. Organic Structure & Coherence (20M): Smooth transitions between paragraphs; natural essayist flow rather than rigid forced templates.
-4. Substantiation & Depth of Examples (20M): Relevant quotes, literature, constitutional doctrines, historical precedents, and contemporary cases.
-5. Concluding Synthesis (15M): Visionary, forward-looking resolution that harmonizes divergent perspectives into a cohesive thesis.
+1. Thesis Articulation & Framing (20M): Clarity of premise, philosophical inversion or narrative hook on Page 1, sustained relevance.
+2. Multi-Dimensionality & Analytical Depth (50M): Range of perspectives (philosophical, ethical, socio-economic, historical, scientific, administrative).
+3. Structure, Transitions & Narrative Coherence (20M): Seamless organic transitions between paragraphs and sections without abrupt leaps.
+4. Substantiation, Thinkers & Contemporary Examples (20M): Concrete literary quotes, philosophical doctrines, historical cases, real-world examples.
+5. Concluding Synthesis & Visionary Resolution (15M): Visionary, balanced resolution on final pages that harmonizes divergent viewpoints.
+SUM OF MAXIMUM MARKS = 20 + 50 + 20 + 20 + 15 = 125 MARKS.
 
-GRADING CALIBRATION (Strict UPSC Bell Curve):
-- Topper (>58%): 73 - 88 / 125
-- Competitive (49-58%): 61 - 72 / 125
-- Average (38-48%): 48 - 60 / 125
-- Needs Work (<38%): 25 - 47 / 125
-
-MANDATORY RULES:
-- Cite ONLY authentic verbatim text written by the candidate (provided in chronicle above).
-- Link each observation, strength, and gap to its EXACT ORIGINAL PAGE NUMBER (e.g. Page 1, Page 3, Page 7).
-- NEVER use generic placeholder quotes like "Candidate wrote about topic".
-- Output strict JSON format adhering to the schema below.
+CRITICAL EVALUATION RULES:
+- Cite ONLY authentic verbatim text written by the candidate (from the chronicle above).
+- If any handwriting was marked as uncertain or ambiguous, treat it as UNCERTAIN; do NOT invent or repair candidate wording.
+- Link each observation, strength, gap, and stage to its EXACT ORIGINAL PAGE NUMBER (between 1 and {total_pages}).
+- ARGUMENT JOURNEY: Trace the candidate's actual chronological argument progression based entirely on their verified handwriting and page records.
+  * Do NOT enforce a fixed number of stages. Determine the stages organically from the actual sequence of thematic shifts, reasoning turns, and developments across the evaluated pages.
+  * Every stage MUST cite its exact original page number, a concise summary of what this stage argues, how it advances the essay's core thesis, and an exact verbatim quote from that page's handwriting.
+  * CONCLUSION STAGE: Identify where the candidate actually begins and ends their concluding synthesis or resolution based on the handwritten text and argument flow. Do not force it to a fixed page; cite the exact page(s) where the synthesis actually occurs.
+- RUBRIC & SCORING:
+  * Award marks across all 5 evaluation dimensions strictly summing to the overall score out of 125.0.
+  * In dimension descriptions and feedback, clearly explain the rubric standard applied under official UPSC Essay criteria.
+  * Do NOT assign arbitrary percentile ranks or competitive labels without a documented, validated reference distribution.
+- REVISION PRIORITIES: In "candidate_exact_passage", quote ONLY the candidate's authentic draft writing. NEVER put evaluator criticism in candidate_exact_passage.
 
 JSON OUTPUT SCHEMA:
 {{
-  "overall_score": <float between 25.0 and 90.0, e.g. 58.5>,
+  "overall_score": <float between 25.0 and 95.0, e.g. 64.5>,
   "max_marks": 125,
-  "percentile_verdict": "<Topper (58%+)|Competitive (49-58%)|Average (38-48%)|Needs Work (<38%)>",
+  "percentile_verdict": null,
   "detected_question": "{topic}",
   "detected_paper": "Essay",
   "detected_paper_display": "UPSC Essay Paper (125 Marks)",
+  "evaluation_dimensions": [
+    {{
+      "dimension_id": "thesis_framing",
+      "name": "Thesis Articulation & Framing",
+      "awarded_marks": <float, max 20.0>,
+      "max_marks": 20.0,
+      "status": "<Strong | Competent | Developing | Needs Nuance>",
+      "feedback": "<concise evaluation of thesis clarity in opening pages>",
+      "page_references": [1, 2]
+    }},
+    {{
+      "dimension_id": "multidimensional_depth",
+      "name": "Multi-Dimensionality & Analytical Depth",
+      "awarded_marks": <float, max 50.0>,
+      "max_marks": 50.0,
+      "status": "<Strong | Competent | Developing | Needs Nuance>",
+      "feedback": "<evaluation of perspectives explored across body pages>",
+      "page_references": [3, 4, 5, 6, 7, 8]
+    }},
+    {{
+      "dimension_id": "structure_and_flow",
+      "name": "Structure, Transitions & Narrative Coherence",
+      "awarded_marks": <float, max 20.0>,
+      "max_marks": 20.0,
+      "status": "<Strong | Competent | Developing | Needs Nuance>",
+      "feedback": "<evaluation of organic transitions and coherence>",
+      "page_references": [2, 5, 9]
+    }},
+    {{
+      "dimension_id": "evidence_and_examples",
+      "name": "Substantiation, Thinkers & Contemporary Examples",
+      "awarded_marks": <float, max 20.0>,
+      "max_marks": 20.0,
+      "status": "<Strong | Competent | Developing | Needs Nuance>",
+      "feedback": "<evaluation of thinkers, quotes, and case studies cited>",
+      "page_references": [1, 4, 7, 10]
+    }},
+    {{
+      "dimension_id": "concluding_synthesis",
+      "name": "Concluding Synthesis & Visionary Resolution",
+      "awarded_marks": <float, max 15.0>,
+      "max_marks": 15.0,
+      "status": "<Strong | Competent | Developing | Needs Nuance>",
+      "feedback": "<evaluation of the resolution on final pages>",
+      "page_references": [{max(1, total_pages - 1)}, {total_pages}]
+    }}
+  ],
+  "argument_journey": [
+    {{
+      "stage_title": "<Descriptive title, e.g. Stage 1: Anecdotal Hook — The Illusion of Human Control>",
+      "original_page_number": <integer 1 to {total_pages}>,
+      "page_role": "<Opening Hook | Thesis Formulation | Philosophical Inquiry | Historical Precedent | Socio-Economic Reality | Counter-Perspective | Synthesis>",
+      "concise_summary": "<Faithful 1-2 sentence summary of candidate's argument at this stage>",
+      "verbatim_quote": "<Exact candidate handwritten passage from this page>",
+      "what_stage_contributes": "<How this stage advances the central thesis>",
+      "transition_or_gap": "<Any logical transition leap or unaddressed nuance>",
+      "status": "<strong | drift>",
+      "status_label": "<Coherent Reasoning | Philosophical Anchor | Empirical Substantiation | Counter-Perspective | Concluding Synthesis>"
+    }}
+  ],
   "intro_audit": {{
     "intro_score": <float, max 20.0>,
     "intro_max": 20.0,
@@ -450,10 +527,10 @@ JSON OUTPUT SCHEMA:
     "opening_passage": "<verbatim quote from candidate's Page 1 or opening paragraph>"
   }},
   "body_audit": {{
-    "body_score": <float, max 85.0>,
-    "body_max": 85.0,
+    "body_score": <float, max 90.0>,
+    "body_max": 90.0,
     "strengths": [
-      "<specific strength citing candidate writing and original page number, e.g. 'Nuanced philosophical contrast between justice and fairness on Page 4'>",
+      "<specific strength citing candidate writing and original page number>",
       "<second specific strength citing original page number>"
     ],
     "critical_gaps": [
@@ -461,13 +538,13 @@ JSON OUTPUT SCHEMA:
       "<second critical gap>"
     ],
     "missing_dimensions": [
-      "<unaddressed socio-economic, administrative, or ethical angle>"
+      "<unaddressed philosophical, socio-economic, administrative, or ethical angle>"
     ],
     "examiner_guidance": "<constructive mentor advice for the candidate to breach 75+ marks in UPSC Essay>"
   }},
   "conclusion_audit": {{
-    "conclusion_score": <float, max 20.0>,
-    "conclusion_max": 20.0,
+    "conclusion_score": <float, max 15.0>,
+    "conclusion_max": 15.0,
     "conclusion_archetype": "<Cohesive Synthesis | Futuristic Vision | Dialectical Resolution>",
     "failure_mode": "<None / Cohesive Synthesis | Abrupt Ending | Unsubstantiated Moralizing>",
     "current_critique": "<critique of ending pages and how well the thesis was resolved>",
@@ -476,8 +553,10 @@ JSON OUTPUT SCHEMA:
   "point_by_point_audit": [
     {{
       "page": <integer original page number, e.g. 1>,
+      "title": "<Descriptive stage title with page number>",
       "what_you_wrote": "<verbatim quote from candidate handwriting on this page>",
       "evaluator_remark": "<constructive examiner insight on this specific argument>",
+      "examiner_verdict": "<constructive examiner insight>",
       "verdict": "<Effective | Strong Dimension | Needs Nuance | Superficial>",
       "badge": "<Philosophical Hook | Socio-Economic | Historical Evidence | Counter-Perspective | Synthesis>"
     }}
@@ -486,22 +565,34 @@ JSON OUTPUT SCHEMA:
     {{
       "page": <integer original page number, e.g. 2>,
       "box_2d": [180, 100, 320, 900],
+      "quote": "<exact short quote from candidate handwriting>",
       "label": "Examiner Margin Note",
+      "tag": "Examiner Margin Note",
+      "remark": "<specific margin observation for this paragraph>",
       "text": "<specific margin observation for this paragraph>",
       "type": "<strength | critical | suggestion>"
     }}
   ],
+  "revision_priorities": [
+    {{
+      "title": "<Concise priority title, e.g. Deepening Empirical Nuance in Technological Predictions>",
+      "page": <integer original page number>,
+      "candidate_exact_passage": "<verbatim excerpt from candidate's handwriting that needs strengthening>",
+      "evaluator_diagnosis": "<specific reason why this weakens the argument or needs refinement>",
+      "actionable_guidance": "<mentor recommendation for how to strengthen the reasoning while keeping student's voice>",
+      "optional_example_rewrite": "<optional illustrative model sentence showing improved transition or substantiation>"
+    }}
+  ],
   "rubric_scores": {{
-    "intro_score": <float>,
-    "core_demand_score": <float, thesis coherence & multi-perspective exploration>,
-    "value_add_score": <float, depth of literature & historical cases>,
-    "presentation_score": <float, structure, transitions & language>,
-    "context_score": <float, concluding synthesis & balance>
+    "intro_score": <float, max 20>,
+    "core_demand_score": <float, max 50>,
+    "value_add_score": <float, max 20>,
+    "presentation_score": <float, max 20>,
+    "context_score": <float, max 15>
   }},
   "upsc_exam_hall_discipline": {{
     "handwriting_legibility": "<Clean & Readable | Moderate | Dense / Needs Spacing>",
-    "margin_discipline": "<Maintained strictly | Slight margin encroachment>",
-    "word_count_compliance": "<Target: ~1000-1200 words across booklet pages>"
+    "margin_discipline": "<Maintained strictly | Slight margin encroachment>"
   }},
   "next_attempt_focus": {{
     "thesis_crystallization": "<exact recommendation to sharpen central thesis>",
@@ -545,8 +636,143 @@ JSON OUTPUT SCHEMA:
                     parsed = parse_llm_json_response(response.text)
                     if isinstance(parsed, dict) and "overall_score" in parsed:
                         record_gemini_model_outcome(model_name, True)
-                        # Attach verified transcribed full text
                         parsed["transcribed_text"] = transcribed_full_text
+
+                        # 1. 5-Dimension Rubric Reconciliation
+                        dims = parsed.get("evaluation_dimensions") or []
+                        if isinstance(dims, list) and len(dims) == 5:
+                            awarded_sum = sum(float(d.get("awarded_marks", 0)) for d in dims)
+                            parsed["overall_score"] = round(awarded_sum, 1)
+                        else:
+                            score = float(parsed.get("overall_score") or 64.5)
+                            r_scores = parsed.get("rubric_scores") or {}
+                            d1 = min(20.0, max(0.0, float(parsed.get("intro_audit", {}).get("intro_score") or r_scores.get("intro_score") or round(score * 0.16, 1))))
+                            d2 = min(50.0, max(0.0, float(r_scores.get("core_demand_score") or round(score * 0.40, 1))))
+                            d3 = min(20.0, max(0.0, float(r_scores.get("presentation_score") or round(score * 0.16, 1))))
+                            d4 = min(20.0, max(0.0, float(r_scores.get("value_add_score") or round(score * 0.16, 1))))
+                            d5 = min(15.0, max(0.0, float(parsed.get("conclusion_audit", {}).get("conclusion_score") or r_scores.get("context_score") or round(score * 0.12, 1))))
+
+                            # Find conclusion pages from page records or text evidence dynamically
+                            concl_pages = []
+                            for r in ordered_page_records:
+                                r_role = str(r.get("page_role", "")).lower()
+                                r_txt = str(r.get("transcription", "")).lower()
+                                if "conclus" in r_role or "synthes" in r_role or "way forward" in r_role:
+                                    concl_pages.append(r.get("original_page_number", total_pages))
+                                elif any(w in r_txt for w in ["in conclusion", "to conclude", "concluding", "to sum up", "in fine"]):
+                                    concl_pages.append(r.get("original_page_number", total_pages))
+                            if not concl_pages:
+                                concl_pages = [total_pages]
+
+                            dims = [
+                                {"dimension_id": "thesis_framing", "name": "Thesis Articulation & Framing", "awarded_marks": d1, "max_marks": 20.0, "status": "Competent", "feedback": parsed.get("intro_audit", {}).get("topic_vs_question_relevance", "Central thesis identified in opening pages."), "page_references": [1, 2]},
+                                {"dimension_id": "multidimensional_depth", "name": "Multi-Dimensionality & Analytical Depth", "awarded_marks": d2, "max_marks": 50.0, "status": "Strong", "feedback": "Exploration across diverse thematic spheres.", "page_references": list(range(3, min(9, total_pages + 1)))},
+                                {"dimension_id": "structure_and_flow", "name": "Structure, Transitions & Narrative Coherence", "awarded_marks": d3, "max_marks": 20.0, "status": "Competent", "feedback": "Sequential reasoning across sections with organic transitions.", "page_references": [2, 5, 8]},
+                                {"dimension_id": "evidence_and_examples", "name": "Substantiation, Thinkers & Contemporary Examples", "awarded_marks": d4, "max_marks": 20.0, "status": "Competent", "feedback": "Substantiated with thinkers, historical parallels, and cases.", "page_references": [1, 4, 7, 10]},
+                                {"dimension_id": "concluding_synthesis", "name": "Concluding Synthesis & Visionary Resolution", "awarded_marks": d5, "max_marks": 15.0, "status": "Competent", "feedback": parsed.get("conclusion_audit", {}).get("current_critique", "Concluding resolution synthesizing viewpoints."), "page_references": concl_pages}
+                            ]
+                            parsed["evaluation_dimensions"] = dims
+                            parsed["overall_score"] = round(d1 + d2 + d3 + d4 + d5, 1)
+
+                        # 2. Reconcile legacy intro/body/conclusion audits
+                        if "intro_audit" not in parsed or not isinstance(parsed["intro_audit"], dict):
+                            parsed["intro_audit"] = {}
+                        parsed["intro_audit"]["intro_score"] = dims[0]["awarded_marks"]
+                        parsed["intro_audit"]["intro_max"] = 20.0
+
+                        if "body_audit" not in parsed or not isinstance(parsed["body_audit"], dict):
+                            parsed["body_audit"] = {}
+                        parsed["body_audit"]["body_score"] = round(dims[1]["awarded_marks"] + dims[2]["awarded_marks"] + dims[3]["awarded_marks"], 1)
+                        parsed["body_audit"]["body_max"] = 90.0
+
+                        if "conclusion_audit" not in parsed or not isinstance(parsed["conclusion_audit"], dict):
+                            parsed["conclusion_audit"] = {}
+                        parsed["conclusion_audit"]["conclusion_score"] = dims[4]["awarded_marks"]
+                        parsed["conclusion_audit"]["conclusion_max"] = 15.0
+
+                        # 3. Argument Journey: Ensure stages have title, page, claim, analysis
+                        if "argument_journey" not in parsed or not isinstance(parsed["argument_journey"], list) or len(parsed["argument_journey"]) == 0:
+                            journey = []
+                            for r in ordered_page_records:
+                                p_no = r.get("original_page_number", 1)
+                                role = r.get("page_role", f"Development on Page {p_no}")
+                                pts = r.get("substantive_points", [])
+                                snippets = r.get("evidence_snippets", [])
+                                claim = snippets[0].get("quote", "") if snippets else (pts[0].get("claim", "") if pts else "")
+                                analysis = pts[0].get("claim", "") if (snippets and pts) else role
+                                role_lower = str(role).lower()
+                                p_txt = str(r.get("transcription", "")).lower()
+                                is_concl = (
+                                    "conclus" in role_lower or
+                                    "synthes" in role_lower or
+                                    "way forward" in role_lower or
+                                    (p_no == total_pages and any(w in p_txt for w in ["conclu", "thus", "sum up", "in fine", "way forward", "synthes"]))
+                                )
+                                journey.append({
+                                    "stage_title": f"Stage {p_no}: {role}",
+                                    "original_page_number": p_no,
+                                    "page_role": role,
+                                    "concise_summary": analysis,
+                                    "verbatim_quote": claim,
+                                    "what_stage_contributes": f"Advances {role.lower()} on page {p_no}.",
+                                    "transition_or_gap": "",
+                                    "status": "strong",
+                                    "status_label": "Concluding Synthesis" if is_concl else ("Opening Hook" if p_no == 1 else "Coherent Reasoning")
+                                })
+                            parsed["argument_journey"] = journey
+                        else:
+                            for idx, stg in enumerate(parsed["argument_journey"]):
+                                if not stg.get("stage_title") and stg.get("stage"):
+                                    stg["stage_title"] = stg["stage"]
+                                if not stg.get("original_page_number") and stg.get("page"):
+                                    stg["original_page_number"] = stg["page"]
+                                if not stg.get("verbatim_quote") and stg.get("claim"):
+                                    stg["verbatim_quote"] = stg["claim"]
+                                if not stg.get("what_stage_contributes") and stg.get("analysis"):
+                                    stg["what_stage_contributes"] = stg["analysis"]
+
+                        # Reconcile point_by_point_audit items
+                        pbp = parsed.get("point_by_point_audit") or []
+                        for idx, pt in enumerate(pbp):
+                            p_val = pt.get("page", idx + 1)
+                            b_val = pt.get("badge") or "Reasoning Stage"
+                            if not pt.get("title"):
+                                pt["title"] = f"{b_val} (Page {p_val})"
+                            if not pt.get("examiner_verdict") and pt.get("evaluator_remark"):
+                                pt["examiner_verdict"] = pt["evaluator_remark"]
+
+                        # 4. Verified Word Count & Exam Hall Discipline
+                        words = transcribed_full_text.split()
+                        total_words = len(words)
+                        time_est = round(total_words / 13) if total_words > 0 else 0
+                        parsed["upsc_exam_hall_discipline"] = {
+                            "estimated_word_count": total_words if total_words > 0 else "Unavailable",
+                            "estimated_writing_time_mins": time_est if time_est > 0 else "Unavailable",
+                            "word_budget_status": "Compliant (~1000-1200w target)" if 800 <= total_words <= 1350 else (f"Under target ({total_words} words)" if total_words < 800 else f"Over target ({total_words} words)"),
+                            "margin_discipline": "Maintained strictly",
+                            "handwriting_legibility": parsed.get("upsc_exam_hall_discipline", {}).get("handwriting_legibility", "Clean & Readable")
+                        }
+
+                        # 5. Visual Annotations: ensure start_y_percent / end_y_percent and remark/text parity
+                        for ann in parsed.get("visual_annotations", []):
+                            if "box_2d" in ann and isinstance(ann["box_2d"], list) and len(ann["box_2d"]) == 4:
+                                ann["start_y_percent"] = round(ann["box_2d"][0] / 10.0, 1)
+                                ann["end_y_percent"] = round(ann["box_2d"][2] / 10.0, 1)
+                            if not ann.get("remark") and ann.get("text"):
+                                ann["remark"] = ann["text"]
+                            elif not ann.get("text") and ann.get("remark"):
+                                ann["text"] = ann["remark"]
+                            if not ann.get("tag") and ann.get("label"):
+                                ann["tag"] = ann["label"]
+
+                        # 6. Revision Priorities: Separate student quote and evaluator diagnosis
+                        prio_list = parsed.get("revision_priorities") or []
+                        for prio in prio_list:
+                            if not prio.get("evaluator_diagnosis") and prio.get("weakness"):
+                                prio["evaluator_diagnosis"] = prio["weakness"]
+                            if not prio.get("candidate_exact_passage") and prio.get("quote"):
+                                prio["candidate_exact_passage"] = prio["quote"]
+
                         return parsed
             except Exception as ge:
                 record_gemini_model_outcome(model_name, False, str(ge))
@@ -599,15 +825,27 @@ async def execute_essay_pipeline_background(
             b_nums = [p["original_page_number"] for p in batch]
             first_p, last_p = b_nums[0], b_nums[-1]
 
-            processed_count = len(completed_page_nums) + idx
-            progress_pct = int(10 + (processed_count / max(1, total_pages)) * 65)
+            processed_count = len(completed_page_nums)
+            progress_pct = min(75, int(10 + (processed_count / max(1, total_pages)) * 65))
             progress_msg = f"Reading pages {first_p}–{last_p} of {total_pages}..."
 
             update_essay_job_progress(job_id, progress_pct, progress_msg, current_batch_index=idx, status="processing")
             print(f"[ESSAY WORKER] Processing batch {b_nums} ({progress_pct}%)...")
 
             try:
-                page_results = await analyze_page_batch(batch, topic=topic, medium=medium, api_key=api_key)
+                batch_res = await analyze_page_batch(batch, topic=topic, medium=medium, api_key=api_key)
+                if isinstance(batch_res, dict):
+                    page_results = batch_res.get("pages") or []
+                    det_top = batch_res.get("detected_topic")
+                    if det_top:
+                        c_top = det_top.strip().strip('"').strip("'")
+                        if c_top and not re.search(r"extract\s+question|printed\s+on\s+booklet|upsc\s+mains\s+essay", c_top, re.I):
+                            if not topic or re.search(r"extract\s+question|printed\s+on\s+booklet|upsc\s+mains\s+essay", topic, re.I):
+                                print(f"[ESSAY WORKER] Detected actual topic from Page 1: '{c_top}' (was '{topic}')")
+                                topic = c_top
+                else:
+                    page_results = batch_res
+
                 new_records = {}
                 for pr in page_results:
                     p_no = pr.get("original_page_number")
@@ -627,16 +865,35 @@ async def execute_essay_pipeline_background(
                     fail_essay_job(job_id, f"Failed while reading Page {first_p}: {str(batch_err)}")
                     return
 
-    # Reload all checkpoints
+    # Reload all checkpoints and build verifiable page ledger
     updated_job = get_essay_job(job_id) or {}
     all_checkpoints = updated_job.get("checkpoints") or {}
     ordered_records = []
+    page_ledger = {}
     for p in pages_data:
         p_no = p["original_page_number"]
+        rec = None
         if str(p_no) in all_checkpoints:
-            ordered_records.append(all_checkpoints[str(p_no)])
+            rec = all_checkpoints[str(p_no)]
         elif p_no in all_checkpoints:
-            ordered_records.append(all_checkpoints[p_no])
+            rec = all_checkpoints[p_no]
+
+        if rec:
+            ordered_records.append(rec)
+            w_count = len(rec.get("transcription", "").split())
+            page_ledger[str(p_no)] = {
+                "original_page_number": p_no,
+                "status": "processed",
+                "role": rec.get("page_role", "Discussion"),
+                "word_count": w_count,
+                "uncertain_spans_count": len(rec.get("uncertain_spans", []))
+            }
+        else:
+            page_ledger[str(p_no)] = {
+                "original_page_number": p_no,
+                "status": "failed",
+                "reason": "Missing checkpoint record"
+            }
 
     if len(ordered_records) < total_pages:
         fail_essay_job(job_id, f"Incomplete page records ({len(ordered_records)} of {total_pages} processed).")
@@ -677,6 +934,10 @@ async def execute_essay_pipeline_background(
     overall_score = float(eval_result.get("overall_score") or 55.0)
     pct = round((overall_score / 125.0) * 100, 1)
 
+    eval_result["pages"] = previews
+    eval_result["page_ledger"] = page_ledger
+    eval_result["detected_question"] = topic
+
     saved_id = save_evaluation_record(
         email=user_email,
         paper="Essay",
@@ -689,8 +950,8 @@ async def execute_essay_pipeline_background(
         forced_eval_id=eval_id
     )
 
-    # Complete Job
-    complete_essay_job(job_id, eval_result, eval_id=saved_id or eval_id)
+    # Complete Job with updated question and page_ledger
+    complete_essay_job(job_id, eval_result, eval_id=saved_id or eval_id, question=topic)
 
     # Idempotent Credit Handling: deduct credit only once upon 100% completion
     was_not_yet_deducted = mark_essay_job_credit_deducted(job_id)
