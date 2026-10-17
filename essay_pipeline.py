@@ -443,7 +443,7 @@ CRITICAL EVALUATION RULES:
 - ARGUMENT JOURNEY: Trace the candidate's actual chronological argument progression based entirely on their verified handwriting and page records.
   * Do NOT enforce a fixed number of stages. Determine the stages organically from the actual sequence of thematic shifts, reasoning turns, and developments across the evaluated pages.
   * Every stage MUST cite its exact original page number, a concise summary of what this stage argues, how it advances the essay's core thesis, and an exact verbatim quote from that page's handwriting.
-  * CONCLUSION STAGE: Identify where the candidate actually begins and ends their concluding synthesis or resolution based on the handwritten text and argument flow. Do not force it to a fixed page; cite the exact page(s) where the synthesis actually occurs.
+  * CONCLUSION DETERMINATION: Verify the conclusion's functional role from the whole essay narrative (where the candidate moves beyond exploratory argumentation and provides a final resolution/synthesis to the central thesis). Do NOT rely on superficial keyword matching (like 'in conclusion' or 'to sum up'). Ground the conclusion strictly in the candidate's actual final synthesis, citing the supporting passage and the exact page where this resolution takes place.
 - RUBRIC & SCORING:
   * Award marks across all 5 evaluation dimensions strictly summing to the overall score out of 125.0.
   * In dimension descriptions and feedback, clearly explain the rubric standard applied under official UPSC Essay criteria.
@@ -652,17 +652,14 @@ JSON OUTPUT SCHEMA:
                             d4 = min(20.0, max(0.0, float(r_scores.get("value_add_score") or round(score * 0.16, 1))))
                             d5 = min(15.0, max(0.0, float(parsed.get("conclusion_audit", {}).get("conclusion_score") or r_scores.get("context_score") or round(score * 0.12, 1))))
 
-                            # Find conclusion pages from page records or text evidence dynamically
-                            concl_pages = []
-                            for r in ordered_page_records:
-                                r_role = str(r.get("page_role", "")).lower()
-                                r_txt = str(r.get("transcription", "")).lower()
-                                if "conclus" in r_role or "synthes" in r_role or "way forward" in r_role:
-                                    concl_pages.append(r.get("original_page_number", total_pages))
-                                elif any(w in r_txt for w in ["in conclusion", "to conclude", "concluding", "to sum up", "in fine"]):
-                                    concl_pages.append(r.get("original_page_number", total_pages))
-                            if not concl_pages:
-                                concl_pages = [total_pages]
+                            # Identify conclusion pages from the candidate's actual structural resolution stage
+                            concl_records = [
+                                r for r in ordered_page_records
+                                if "synthesis" in str(r.get("page_role", "")).lower()
+                                or "resolution" in str(r.get("page_role", "")).lower()
+                                or r.get("original_page_number") == total_pages
+                            ]
+                            concl_pages = [r.get("original_page_number") for r in concl_records] if concl_records else [total_pages]
 
                             dims = [
                                 {"dimension_id": "thesis_framing", "name": "Thesis Articulation & Framing", "awarded_marks": d1, "max_marks": 20.0, "status": "Competent", "feedback": parsed.get("intro_audit", {}).get("topic_vs_question_relevance", "Central thesis identified in opening pages."), "page_references": [1, 2]},
@@ -703,10 +700,9 @@ JSON OUTPUT SCHEMA:
                                 role_lower = str(role).lower()
                                 p_txt = str(r.get("transcription", "")).lower()
                                 is_concl = (
-                                    "conclus" in role_lower or
-                                    "synthes" in role_lower or
-                                    "way forward" in role_lower or
-                                    (p_no == total_pages and any(w in p_txt for w in ["conclu", "thus", "sum up", "in fine", "way forward", "synthes"]))
+                                    p_no == total_pages or
+                                    "synthesis" in role_lower or
+                                    "resolution" in role_lower
                                 )
                                 journey.append({
                                     "stage_title": f"Stage {p_no}: {role}",

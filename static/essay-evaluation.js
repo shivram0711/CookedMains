@@ -27,6 +27,7 @@
     zoomLevel: 1.0,
     activeMobileView: 'analysis' // 'analysis' or 'viewer'
   };
+  window.essayState = essayState;
 
   /**
    * Identifies whether the submission is an Essay paper
@@ -530,13 +531,14 @@
     }
 
     // 2. Concluding Synthesis: check if conclusion was already covered in stages
-    const hasConcludingStage = journeyStages.some(s => (totalPages > 1 ? s.page >= totalPages - 1 : false) || /conclusion|synthesis|visionary/i.test(s.stage));
+    const hasConcludingStage = journeyStages.some(s => s.statusLabel === 'Concluding Synthesis' || (s.stage && /concluding synthesis/i.test(s.stage)));
     if (!hasConcludingStage && evalData.conclusion_audit && (evalData.conclusion_audit.current_critique || evalData.conclusion_audit.conclusion_archetype)) {
       const isWeak = Boolean(evalData.conclusion_audit.failure_mode && !/none/i.test(evalData.conclusion_audit.failure_mode));
-      const conclPage = totalPages > 1 ? totalPages : 1;
+      const conclDim = Array.isArray(evalData.evaluation_dimensions) ? evalData.evaluation_dimensions.find(d => d.dimension_id === 'concluding_synthesis') : null;
+      const conclPage = (conclDim && Array.isArray(conclDim.page_references) && conclDim.page_references[0]) || (totalPages > 1 ? totalPages : 1);
 
-      let concludingQuote = '';
-      if (evalData.transcribed_text) {
+      let concludingQuote = evalData.conclusion_audit.supporting_passage || evalData.conclusion_audit.closing_passage || '';
+      if (!concludingQuote && evalData.transcribed_text) {
         const lastPage = evalData.transcribed_text.split(/\[Page\s*(\d+)\]/i);
         if (lastPage.length >= 3) {
           const lastPageText = lastPage[lastPage.length - 1].trim();
