@@ -1249,46 +1249,58 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
      * इसके स्थान पर अभ्यर्थी द्वारा उल्लिखित उस बिंदु की पुष्टि करें और उसकी सराहना करें: `✓ परीक्षार्थी ने 2nd ARC के सुझावों व 7-उपाय मॉडल का सटीक संदर्भ दिया।`
      * सुधार में केवल वही आयाम बताएं जो वास्तव में कॉपी में नहीं लिखे गए हैं (जैसे Right to Public Services विधिक ढांचा, सोशल ऑडिट मानक)।
 
-9. यथार्थवादी, सुगम एवं परीक्षा-हॉल टॉपर मॉडल उत्तर (STRUCTURED TOPPER MODEL ANSWER - NO FOMO, STRICT WORD BUDGET):
+9. यथार्थवादी, सुगम एवं परीक्षा-हॉल टॉपर मॉडल उत्तर (STRUCTURED TOPPER MODEL ANSWER - NO FOMO, STRICT WORD BUDGET & POINT DENSITY):
    - आयोग के वास्तविक परीक्षा हॉल मानकों का कड़ा पालन:
-     * 10-अंकीय प्रश्न (150 शब्द): लक्ष्य 130 से 160 शब्द (2 पृष्ठ भरने हेतु, कुल 5-8 ठोस बिंदु)।
-     * 15-अंकीय प्रश्न (250 शब्द): लक्ष्य 200 से 250 शब्द (3 पृष्ठ भरने हेतु, कुल 8-12 ठोस बिंदु)।
-     * 20-अंकीय प्रश्न (250-300 शब्द): लक्ष्य 250 से 300 शब्द (कुल 10-15 बिंदु, 3-4 उप-शीर्षक)।
-   - कोई लंबा, नीरस निबंध नहीं (NO UNSTRUCTURED ESSAY PARAGRAPHS):
-     * मॉडल उत्तर को स्पष्ट विषयगत उप-शीर्षकों (`### [उप-शीर्षक]`) और क्रमांकित बिंदुओं (`**1. [सार्थक लीड वाक्यांश]:** व्याख्या`) में व्यवस्थित करें।
-     * प्रत्येक बिंदु में 3 अनिवार्य तत्व होने चाहिए:
-       (1) सार्थक बोल्ड लीड वाक्यांश (2-4 शब्द)
-       (2) संक्षिप्त व सटीक 1-2 पंक्ति व्याख्या (कार्य-कारण तंत्र)
-       (3) ठोस साक्ष्य/डेटा/समिति/अनुच्छेद/ऐतिहासिक संधि अथवा शासक।
+     * 10-अंकीय प्रश्न: लक्ष्य 140 से 160 शब्द, न्यूनतम 10 विशिष्ट, प्रासंगिक मुख्य भाग बिंदु (Body Points)।
+     * 15-अंकीय प्रश्न: लक्ष्य 230 से 250 शब्द, न्यूनतम 15 विशिष्ट, प्रासंगिक मुख्य भाग बिंदु (Body Points)।
+     * प्रस्तावना व निष्कर्ष इन न्यूनतम मुख्य बिंदुओं में नहीं गिने जाएंगे।
+   - बिंदु की लंबाई एवं गुणवत्ता:
+     * प्रत्येक क्रमांकित बिंदु अत्यंत संक्षिप्त हो: लगभग 8-16 शब्दों में 1 स्पष्ट दावा/तर्क, जिसके साथ केवल मूल्यवर्धन करने वाला छोटा उदाहरण/तथ्य/वाद/डेटा जुड़ा हो।
+     * किसी एक बिंदु को लंबा पैराग्राफ न बनाएं! केवल संख्या पूरी करने हेतु निरर्थक, सतही या कृत्रिम विभाजन न करें।
+     * यदि प्रश्न की मांग स्वाभाविक रूप से इतने भिन्न बिंदुओं का समर्थन नहीं करती, तो कृत्रिम बिंदु न बनाएं, यथासंभव पूर्ण उत्तर दें।
+   - प्रश्न-चालित संरचना (QUESTION-LED HEADINGS):
+     * उप-शीर्षक सीधे प्रश्न के शब्दों, निर्देश (Discuss, Analyse, Critically Analyse, Examine) और उप-मांगों से निकालें।
+     * सभी उत्तरों पर "प्रस्तावना, उपलब्धियां, चुनौतियां, आगे की राह, निष्कर्ष" का निश्चित खांचा न थोपें। प्रश्न की वास्तविक मांग के अनुसार आयाम बनाएं।
+     * प्रश्न के सभी स्पष्ट भागों को संतुलित अनुपात में स्थान दें; किसी एक भाग को हावी न होने दें।
+   - स्थानीय उप-शीर्षकवार क्रमांकन (LOCAL PER-SECTION NUMBERING):
+     * प्रत्येक उप-शीर्षक के अंतर्गत क्रमांक 1 से पुनः प्रारंभ करें: पहले उप-शीर्षक के नीचे 1, 2, 3... फिर अगले उप-शीर्षक के नीचे पुनः 1, 2, 3...। संपूर्ण उत्तर में निरंतर 1 से 8 या 1 से 12 तक क्रमांकन न चलाएं!
    - प्रस्तावना व निष्कर्ष:
-     * प्रस्तावना (15-25 शब्द): संक्षिप्त संदर्भ, परिभाषा, ऐतिहासिक घटना या संवैधानिक आधार।
-     * निष्कर्ष (15-25 शब्द): प्रश्न की वास्तविक मांग के अनुरूप संतुलित निष्कर्ष। ऐतिहासिक या दार्शनिक प्रश्नों पर अप्रासंगिक आधुनिक नीतिगत सुधार न थोपें!
+     * प्रस्तावना (15-25 शब्द): संक्षिप्त संदर्भ, परिभाषा या संवैधानिक/विधिक आधार (अक्रमांकित)।
+     * निष्कर्ष (15-25 शब्द): प्रश्न की वास्तविक मांग के अनुरूप संतुलित अग्रगामी दृष्टि (अक्रमांकित)। ऐतिहासिक या सैद्धांतिक प्रश्नों पर अप्रासंगिक नीतिगत सुझाव न थोपें!
    - आरेख एवं तालिका नियम:
      * कोई कृत्रिम ASCII आरेख, बॉक्स या तीर वाले फ्लोचार्ट ('->') नहीं!
      * मार्कडाउन तालिका का प्रयोग केवल तभी करें जब प्रश्न में स्पष्ट रूप से तुलना या अंतर (जैसे आचार संहिता बनाम नीति संहिता) पूछा गया हो।
    - अभ्यर्थी-संवर्धित मॉडल उत्तर नियम (ADAPTIVE COMBINATION RULE):
-     * यदि अभ्यर्थी ने औसत या अच्छा उत्तर लिखा है (जिसमें 6 से 10 वैध बिंदु/तथ्य पहले से मौजूद हैं) ➔ अभ्यर्थी के सही बिंदुओं को सुरक्षित रखें, भाषा को परिष्कृत करें, और परीक्षक के उच्च-प्राप्तांक मूल्य-संवर्धन जोड़ें।
+     * यदि अभ्यर्थी ने औसत या अच्छा उत्तर लिखा है ➔ अभ्यर्थी के सही बिंदुओं को सुरक्षित रखें, भाषा को परिष्कृत करें, और परीक्षक के उच्च-प्राप्तांक मूल्य-संवर्धन जोड़ें।
      * यदि उत्तर कमजोर है ➔ आयोग के मानकों पर नए सिरे से पूर्ण टॉपर मॉडल उत्तर तैयार करें।
-   - भाषा: शुद्ध मानक अकादमिक हिंदी (UPSC Mains Standard)।
+   - भाषा: मानक, स्वाभाविक देवनागरी हिंदी। अंग्रेजी तकनीकी/प्रशासनिक शब्दावली को पहली बार कोष्ठक में लिखा जा सकता है। शब्द-दर-शब्द कृत्रिम अनुवाद से बचें।
 
-   मॉडल उत्तर का मानक प्रारूप (10-अंकीय इतिहास उदाहरण):
+   मॉडल उत्तर का मानक प्रारूप (10-अंकीय इतिहास उदाहरण - उप-शीर्षकवार स्थानीय क्रमांकन सहित):
    प्लासी का युद्ध (23 जून 1757) कोई सैन्य पराक्रम नहीं, बल्कि नवाब सिराजुद्दौला के विरुद्ध रॉबर्ट क्लाइव, मीर जाफर, जगत सेठ और राय दुर्लभ का एक सुनियोजित षड्यंत्र था, जिसने भारत में ब्रिटिश प्रभुत्व का मार्ग प्रशस्त किया।
 
-   ### 1. राजनीतिक परिणाम
+   ### राजनीतिक परिणाम
 
-   **1. कठपुतली शासन व संप्रभुता का हनन:** मीर जाफर को नवाब बनाकर वास्तविक संप्रभु सत्ता ईस्ट इंडिया कंपनी (EIC) के हाथों में केंद्रित हो गई और भारतीय शासकों की स्वायत्तता समाप्त हुई।
+   **1. कठपुतली शासन:** मीर जाफर को नवाब बनाकर वास्तविक संप्रभु सत्ता ईस्ट इंडिया कंपनी (EIC) के हाथों में केंद्रित हो गई।
 
-   **2. यूरोपीय प्रतिद्वंद्वियों का निष्कासन:** बंगाल से प्राप्त अपार संसाधनों के बल पर कंपनी ने वांडीवाश (1760) में फ्रांसीसियों और बेदरा (1759) में डचों को निर्णायक रूप से पराजित किया।
+   **2. यूरोपीय प्रतिद्वंद्वियों का निष्कासन:** बंगाल के संसाधनों से कंपनी ने वांडीवाश (1760) में फ्रांसीसियों और बेदरा (1759) में डचों को पराजित किया।
 
-   **3. अखिल भारतीय विजय का आधार:** इसने कंपनी को 'किंगमेकर' स्थापित किया, जिसकी स्वाभाविक परिणति बक्सर के युद्ध (1764) और इलाहाबाद की संधि (1765) में हुई।
+   **3. संप्रभुता का हनन:** नवाब की स्वतंत्र विदेश नीति व सैन्य अधिकार छीनकर EIC को सर्वोच्च राजनीतिक शक्ति बनाया गया।
 
-   ### 2. आर्थिक परिणाम
+   **4. साम्राज्य विस्तार का आधार:** इसने कंपनी को 'किंगमेकर' स्थापित कर बक्सर युद्ध (1764) व इलाहाबाद संधि (1765) की नींव रखी।
 
-   **4. धन की निकासी (Drain of Wealth):** कंपनी को भारी युद्ध हर्जाने (£22 लाख) और निजी उपहारों के कारण भारत में बुलियन का प्रवाह रुक गया और भारतीय राजस्व से ही निर्यात का वित्तपोषण शुरू हुआ।
+   **5. प्रशासनिक द्वैध शासन:** नवाब के पास बिना वित्त का उत्तरदायित्व और कंपनी के पास बिना उत्तरदायित्व की सत्ता रही।
 
-   **5. दस्तक का दुरुपयोग व स्थानीय व्यापार का पतन:** कंपनी अधिकारियों द्वारा शुल्क-मुक्त व्यापार (दस्तक) के दुरुपयोग ने बंगाल के स्थानीय व्यापारियों को बाजार से बाहर कर दिया।
+   ### आर्थिक परिणाम
 
-   **6. दस्तकारों का शोषण एवं वि-औद्योगीकरण:** गुमाश्तों द्वारा जबरन अनुबंध (दादनी प्रथा) से बुनकरों का शोषण हुआ, जिसने बंगाल के वस्त्र उद्योग को नष्ट कर 1770 के अकाल की नींव रखी।
+   **1. धन की निकासी (Drain of Wealth):** युद्ध हर्जाने (£22 लाख) व उपहारों से बुलियन प्रवाह रुका; भारतीय राजस्व से ही निर्यात वित्तपोषित हुआ।
+
+   **2. दस्तक का दुरुपयोग:** कंपनी अधिकारियों द्वारा शुल्क-मुक्त व्यापार परमिट (दस्तक) के निजी दुरुपयोग से स्थानीय व्यापारी बाजार से बाहर हुए।
+
+   **3. बुनकरों का शोषण:** दादनी प्रथा के अंतर्गत गुमाश्तों द्वारा कम दरों पर जबरन अनुबंध से बंगाल का समृद्ध वस्त्र उद्योग नष्ट हुआ।
+
+   **4. राजस्व का अत्यधिक दोहन:** इजारेदारी व्यवस्था से भू-राजस्व की मांग अत्यधिक बढ़ी, जिसने 1770 के भीषण बंगाल अकाल की पृष्ठभूमि रची।
+
+   **5. कच्चे माल का निर्यात:** भारत विनिर्मित वस्त्र निर्यातक से ब्रिटेन की औद्योगिक क्रांति हेतु कच्चा माल निर्यातक देश बन गया।
 
    प्लासी ने एक व्यापारिक कंपनी को क्षेत्रीय संप्रभु शक्ति में बदल दिया, जिसने आगामी दो शताब्दियों तक भारत के औपनिवेशिक शोषण की प्रशासनिक व वित्तीय आधारशिला रखी।
 
@@ -1568,7 +1580,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
     "examiner_advice": "आगामी उत्तरों में निर्देश की मांग के अनुसार पक्ष और विपक्ष के अनुपातिक संतुलन पर विशेष ध्यान दें।"
   }},
   "transcribed_text": "अभ्यर्थी द्वारा लिखी गई हस्तलिखित उत्तर-पुस्तिका का प्रामाणिक पाठ (प्रतिलेखन), जिसे [Page 1], [Page 2], [Page 3] चिह्नों द्वारा स्पष्ट रूप से विभाजित किया गया हो।",
-  "full_model_answer": "संपूर्ण यथार्थवादी यूपीएससी टॉपर मॉडल उत्तर (कड़ी शब्द सीमा: 10M हेतु 130-160 शब्द [कुल 5-8 बिंदु], 15M हेतु 200-250 शब्द [कुल 8-12 बिंदु], 20M हेतु 250-300 शब्द)। संरचना: (1) 15-25 शब्दों की मानक प्रस्तावना; (2) स्पष्ट विषयगत उप-शीर्षक ('### [उप-शीर्षक]'); (3) क्रमांकित बिंदु: '**1. [लीड वाक्यांश]:** 1-2 पंक्ति व्याख्या + ठोस साक्ष्य/डेटा/समिति'; (4) कोई ASCII आरेख या फ्लोचार्ट नहीं; तुलनात्मक प्रश्नों पर ही तालिका; (5) 15-25 शब्दों का प्रश्न-संरेखित निष्कर्ष। अभ्यर्थी-संवर्धित नियम: यदि अभ्यर्थी ने अच्छे बिंदु लिखे हैं, तो उन्हें सुरक्षित रखते हुए मूल्य-संवर्धन जोड़ें; अन्यथा नए सिरे से पूर्ण मॉडल उत्तर बनाएं। भाषा: मानक देवनागरी हिंदी।"
+  "full_model_answer": "संपूर्ण यथार्थवादी यूपीएससी टॉपर मॉडल उत्तर (कड़ी शब्द सीमा: 10M हेतु 140-160 शब्द [न्यूनतम 10 संक्षिप्त बिंदु], 15M हेतु 230-250 शब्द [न्यूनतम 15 संक्षिप्त बिंदु])। संरचना: (1) 15-25 शब्दों की मानक अप्रस्तावित/अक्रमांकित प्रस्तावना; (2) प्रश्न-चालित विषयगत उप-शीर्षक ('### [उप-शीर्षक]'); (3) उप-शीर्षकवार स्थानीय क्रमांकित बिंदु: प्रत्येक उप-शीर्षक के नीचे 1 से पुनः प्रारंभ करें ('**1. [लीड वाक्यांश]:** ~8-16 शब्दों का संक्षिप्त दावा/तर्क + लघु साक्ष्य'); (4) कोई ASCII आरेख या फ्लोचार्ट नहीं; तुलनात्मक प्रश्नों पर ही तालिका; (5) 15-25 शब्दों का अक्रमांकित प्रश्न-संरेखित निष्कर्ष। भाषा: मानक देवनागरी हिंदी।"
 }}
 """
     return prompt
@@ -1934,55 +1946,50 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
     - For GS4: Real-world ethical dilemmas (Puja Khedkar certificate forgery & disability benchmark misuse, RG Kar hospital workplace safety & medical ethics, ICICI-Videocon / Byju's corporate governance breakdowns, Deepfakes & AI algorithmic bias, Aadhaar starvation tragedies vs Swarochish Somavanshi IAS).
     - In "full_model_answer": Integrate at least ONE concrete contemporary example or recent Supreme Court judgment / policy initiative.
 
-11. CLEAN UPSC BOOKLET TYPOGRAPHY & STRUCTURED FORMAT (DYNAMIC STRUCTURE — NO UNIVERSAL TEMPLATE):
+11. CLEAN UPSC BOOKLET TYPOGRAPHY & STRUCTURED FORMAT (QUESTION-LED STRUCTURE — NO RIGID TEMPLATE):
     - In "full_model_answer": Generate a realistic, high-quality UPSC Mains answer that an aspirant could reasonably reproduce under examination conditions.
     - NEVER output dense academic essay paragraphs without headings or numbered points!
-    - Organize the answer using clean Markdown subheadings: `### [Thematic Subheading Echoing Demand]`
-    - Under each subheading, format arguments as distinct numbered points with a bold lead phrase:
-      `**1. Political significance:** A concise, direct explanation of the relevant argument.`
-      `**2. Economic consequences:** Explain the mechanism and its implications.`
-      `**3. Broader significance:** Connect the point to the question's wider historical or analytical context.`
-    - Each major point MUST contain:
-      1. A meaningful lead phrase or short heading (2 to 4 words).
-      2. A clear explanation, normally 1 to 3 sentences depending on complexity.
-      3. A relevant example, fact, statutory provision, or analytical link where it adds value.
-    - Avoid:
-      * Long paragraphs containing several unrelated arguments.
-      * Headings that merely repeat the question without organising the answer.
-      * Single-word points with no explanation.
-      * Repeated ideas disguised as separate points.
-      * Overly academic phrasing that obscures the argument.
-      * Generic content that could fit almost any question.
-      * Artificially expanding the answer to fill three pages.
+    - Organize the answer using clean Markdown subheadings derived directly from the actual question, its command word, and sub-demands: `### [Thematic Subheading Echoing Demand]`
+    - DO NOT force every answer into a fixed "Introduction, Achievements, Challenges, Way Forward, Conclusion" template.
+      * For "Discuss": Present relevant dimensions and analytical balance.
+      * For "Analyse": Explain relationships, drivers, and underlying causal mechanisms.
+      * For "Critically Analyse": Include strengths, structural limitations, and a reasoned judgement.
+      * For "Examine": Investigate the specified issue in depth. Adapt flexibly to actual wording.
+    - Cover every explicit part of the question. Divide points among demands in proportion to their importance; do not let one part dominate while another is barely addressed.
+    - Under each subheading, format arguments as distinct numbered points restarting numbering locally from 1:
+      `**1. Lead phrase:** Crisp claim in ~8-16 words + short fact/case/data only when it adds value.`
+      `**2. Lead phrase:** Crisp claim in ~8-16 words + concrete institutional/statutory evidence.`
+      `**3. Lead phrase:** Crisp claim in ~8-16 words.`
+      Then under the next subheading, RESTART numbering at 1:
+      `### [Second Subheading Echoing Second Demand]`
+      `**1. Lead phrase:** Crisp claim in ~8-16 words.`
+    - Keep each numbered point concise: normally ONE clear claim in roughly 8–16 words. Do not turn one point into a long paragraph. Do not meet the count with repeated, trivial, or artificially split points.
+    - If the question's demand cannot support the requested number of genuinely distinct points, do not invent or duplicate content; make the answer as complete as the question permits.
     - Introduction & Conclusion:
-      * Introduction (15–25 words): Concise definition, historical event, constitutional provision, or conceptual framing.
-      * Conclusion (15–25 words): Meaningful synthesis addressing the actual demand (significance, balanced judgement, or way forward). Do NOT force a policy recommendation into a historical or theoretical question!
+      * Introduction (15–25 words): Concise definition, conceptual framing, or constitutional/historical context. Brief, relevant, and UNNUMBERED.
+      * Conclusion (15–25 words): Meaningful synthesis addressing the actual demand (significance or balanced judgement). Brief, relevant, and UNNUMBERED. Do NOT force policy prescriptions onto historical/theoretical prompts!
     - Diagrams & Tables Rule:
       * Zero ASCII flowcharts, box diagrams, or text art (`[A] --> [B]`, `┌`, `─`).
-      * ONLY include a markdown table if the question explicitly asks for a comparison or distinction (such as Code of Conduct vs Code of Ethics).
+      * ONLY include a markdown table if the question explicitly asks for a comparison or distinction.
 
 12. MARKS-CALIBRATED WORD BUDGET & POINT DENSITY:
-    Enforce the 80-10-10 Rule (Body carries ~80% weightage; Intro and Conclusion carry ~10% each).
-    - FOR 10-MARKERS (Target: 130–160 words / 2 pages / ~7 min):
-      * Word limit: Exactly 130 to 160 words total (exam-hall feasible for 2 pages).
-      * Sub-part count: 2 thematic subheadings (`### Subheading`) aligned to the question demands.
-      * Point budget: 5 to 8 total structured points across the body (normally 3 to 4 points per sub-heading).
-      * Point structure: `**1. [Lead Phrase]:** 1-2 sentence explanation + concrete evidence/data/fact.`
-      * Intro: 1-2 sentences (~15–25 words).
-      * Conclusion: 1-2 sentences (~15–25 words).
-    - FOR 15-MARKERS (Target: 200–250 words / 3 pages / ~9-11 min):
-      * Word limit: Exactly 200 to 250 words total (exam-hall feasible for 3 pages).
-      * Sub-part count: 2 to 3 thematic subheadings (`### Subheading`) matched to the question prompt.
-      * Point budget: 8 to 12 total structured points across the body (normally 3 to 5 points per sub-heading).
-      * Point structure: `**1. [Lead Phrase]:** 1-2 sentence explanation + concrete evidence (Articles, cases, committees, economic data, or historical rulers/treaties).`
-      * Intro: 1-2 sentences (~20–25 words).
-      * Conclusion: 1-2 sentences (~20–25 words).
+    Enforce high point density without sacrificing brevity:
+    - FOR 10-MARKERS (Target: 140–160 words / 2 pages / ~7 min):
+      * Word limit: Exactly 140 to 160 words total.
+      * Body point budget: At least 10 distinct, relevant body points (e.g. 5 points under Subheading 1 + 5 points under Subheading 2).
+      * Intro and Conclusion DO NOT count toward the 10-point minimum.
+      * Each point: Concise 8–16 words with bold lead phrase.
+      * Local numbering: 1, 2, 3... under Subheading 1, then restart at 1, 2, 3... under Subheading 2.
+    - FOR 15-MARKERS (Target: 230–250 words / 3 pages / ~9-11 min):
+      * Word limit: Exactly 230 to 250 words total.
+      * Body point budget: At least 15 distinct, relevant body points divided proportionally across the question's sub-demands (e.g. 8 + 7 across 2 subheadings, or 5 + 5 + 5 across 3 subheadings).
+      * Intro and Conclusion DO NOT count toward the 15-point minimum.
+      * Each point: Concise 8–16 words with bold lead phrase.
+      * Local numbering: Restart at 1 under each respective body subheading.
     - FOR 20-MARKERS (Target: 250–300 words / 4 pages / ~14-15 min):
-      * Word limit: Exactly 250 to 300 words total.
-      * Sub-part count: 3 to 4 thematic subheadings.
-      * Point budget: 10 to 15 total structured points across the body.
+      * Word limit: Exactly 250 to 300 words total, minimum 16-18 distinct body points restarting at 1 under each section.
 
-    FEW-SHOT MODEL ANSWER BENCHMARK (10-MARKER HISTORY EXAMPLE):
+    FEW-SHOT MODEL ANSWER BENCHMARK (10-MARKER HISTORY EXAMPLE - 10 DISTINCT BODY POINTS & LOCAL NUMBERING):
     Q: "The Battle of Plassey (1757) was not a great battle but a great betrayal. Discuss the political and economic consequences of this battle for India. (10 marks, 150 words)"
     ---
     The Battle of Plassey (1757) was a political conspiracy engineered by Clive with Mir Jafar and Jagat Seth rather than a military conquest, inaugurating British hegemony in Bengal.
@@ -1991,19 +1998,27 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
 
     **1. Puppet Ruler Installed:** Mir Jafar was placed on the throne, transferring de facto sovereignty to the English East India Company (EIC).
 
-    **2. Elimination of Rivals:** Bengal revenues funded the defeat of French (Wandiwash, 1760) and Dutch rivals, consolidating British power.
+    **2. Elimination of European Rivals:** Bengal revenues funded the decisive defeat of French (Wandiwash, 1760) and Dutch (Bedara, 1759) forces.
 
-    **3. Imperial Trajectory:** Established the precedent of company kingmakers, leading directly to the Battle of Buxar (1764) and Diwani rights (1765).
+    **3. Loss of Regional Sovereignty:** Stripped the Nawab of independent foreign diplomacy and autonomous military command.
+
+    **4. Precedent for Imperial Expansion:** Established EIC as kingmakers, leading directly to the Battle of Buxar (1764) and Treaty of Allahabad (1765).
+
+    **5. Institutional Diarchy:** Created dual control where the Nawab held responsibility without finance, while the EIC wielded power without accountability.
 
     ### Economic Consequences
 
-    **4. Drain of Wealth:** Reversed bullion inflows into India; Bengal revenues financed British exports and territorial conquest.
+    **1. Drain of Wealth:** Reversed bullion inflows; Bengal revenues were mobilized to purchase Indian goods for export to Britain (£22 million indemnity).
 
-    **5. Ruin of Local Trade:** Blatant misuse of Dastaks (duty-free permits) by company officials wiped out indigenous merchants.
+    **2. Misuse of Dastaks:** EIC servants abused duty-free trade permits for private commerce, wiping out indigenous Bengali merchants.
 
-    **6. Artisan Distress:** Monopolistic coercion under the Dadni system exploited weavers, dismantling Bengal's textile economy and worsening famines.
+    **3. Coercion of Artisans:** Monopolistic exploitation under the Dadni system forced weavers into bonded contracts, dismantling Bengal's textile base.
 
-    Plassey transformed a commercial enterprise into a territorial ruler, laying the financial bedrock for India's colonization.
+    **4. Aggressive Land Revenue Extraction:** Maximized tax collection via farming syndicates (Ijaradari), creating structural vulnerability that triggered the catastrophic 1770 Bengal famine.
+
+    **5. Destructive De-industrialization:** Transformed India from the world's leading finished cotton exporter into an exporter of raw agricultural produce for British mills.
+
+    Plassey transformed a trading corporation into a territorial sovereign, establishing the fiscal and administrative scaffolding for two centuries of colonial extraction.
     ---
 
     CANDIDATE-ADAPTIVE COMBINATION LAW:
@@ -2656,7 +2671,7 @@ Generate strictly valid JSON matching this schema:
     ]
   }},
   "transcribed_text": "Readable transcription of candidate's actual written text, separated clearly by [Page 1], [Page 2], [Page 3] markers.",
-  "full_model_answer": "Complete authentic UPSC Topper Model Answer (STRICT WORD LIMIT: 130-160 words for 10M; 200-250 words for 15M; 250-300 words for 20M). Structure: (1) 15-25w focused Intro; (2) Thematic subheadings using '### [Thematic Subheading]' (echoing question demands); (3) Numbered points with bold lead phrases: '**1. [Lead Phrase]:** 1-2 sentence explanation + concrete evidence' (5-8 points for 10M, 8-12 points for 15M, 10-15 points for 20M); (4) NO ASCII diagrams or flowcharts; markdown table permitted ONLY if comparison is demanded; (5) 15-25w conclusion addressing actual demand (no forced policy recommendations on history/theory). ADAPTIVE RULE: Retain & elevate candidate's valid points if present; else generate topper blueprint from scratch. Must be exam-hall realistic and reproducible!",
+  "full_model_answer": "Complete authentic UPSC Topper Model Answer (STRICT WORD LIMIT: 140-160 words with at least 10 distinct body points for 10M; 230-250 words with at least 15 distinct body points for 15M). Structure: (1) 15-25w focused unnumbered Intro; (2) Question-derived thematic subheadings using '### [Thematic Subheading]' (echoing explicit question demands and command directives); (3) Distinct numbered points restarting at 1 under each subheading ('**1. [Lead Phrase]:** 8-16 word concise claim + short evidence/data'); (4) NO ASCII diagrams or flowcharts; markdown table permitted ONLY if comparison is demanded; (5) 15-25w unnumbered conclusion addressing actual demand. Must be exam-hall realistic and reproducible!",
   "jargon_buster": [
     {{
       "term": "Tautological",
@@ -3349,13 +3364,13 @@ def _structure_model_answer_if_unstructured(model_ans: str, is_hindi: bool = Fal
                 elif words:
                     lead = " ".join([w.capitalize() for w in words[:3]]).strip().rstrip('.,;:')
                 else:
-                    lead = f"Argument {point_counter}"
+                    lead = f"Point {len(sub_points) + 1}"
                 exp = clean_sent
                 if exp:
                     exp = exp[0].upper() + exp[1:]
 
-            sub_points.append(f"**{point_counter}. {lead}:** {exp}")
-            point_counter += 1
+            local_num = len(sub_points) + 1
+            sub_points.append(f"**{local_num}. {lead}:** {exp}")
 
         if sub_points:
             structured_body_parts.append(f"### {heading}\n\n" + "\n\n".join(sub_points))
@@ -3416,17 +3431,17 @@ def _ensure_topper_model_answer_quality(data: Dict[str, Any], max_marks: int = 1
 
     # Word limits and point targets
     if max_marks <= 10:
-        min_target_wc = 120
+        min_target_wc = 135
         target_words = 150
-        min_points = 5   # 5 to 8 points for 10M
+        min_points = 10  # At least 10 distinct body points for 10M
     elif max_marks == 15:
-        min_target_wc = 180
-        target_words = 225
-        min_points = 8   # 8 to 12 points for 15M
+        min_target_wc = 215
+        target_words = 240
+        min_points = 15  # At least 15 distinct body points for 15M
     else:
-        min_target_wc = 230
-        target_words = 275
-        min_points = 10  # 10 to 15 points for 20M
+        min_target_wc = 250
+        target_words = 285
+        min_points = 16  # At least 16 distinct body points for 20M
 
     # If the model answer is under-developed (e.g. < min_points or < min_target_wc words),
     # enrich it with examiner value-additions, critical gaps, or candidate valid points
@@ -3456,6 +3471,10 @@ def _ensure_topper_model_answer_quality(data: Dict[str, Any], max_marks: int = 1
                 exp = clean
             if not kw or not exp or len(exp) < 15:
                 return None
+            # Keep explanation concise (~8 to 16 words)
+            exp_words = exp.split()
+            if len(exp_words) > 18:
+                exp = " ".join(exp_words[:18]).rstrip(",;:") + "."
             return kw, exp
 
         enrichment_points = []
@@ -3505,10 +3524,8 @@ def _ensure_topper_model_answer_quality(data: Dict[str, Any], max_marks: int = 1
 
             if pts_to_add:
                 formatted_pts = []
-                cur_num = point_count + 1
                 for kw, exp in pts_to_add:
-                    formatted_pts.append(f"**{cur_num}. {kw}:** {exp}")
-                    cur_num += 1
+                    formatted_pts.append(f"**1. {kw}:** {exp}")
 
                 pts_block = "\n\n".join(formatted_pts)
                 if conc_match:
@@ -3523,6 +3540,75 @@ def _ensure_topper_model_answer_quality(data: Dict[str, Any], max_marks: int = 1
     model_ans = re.sub(r'(?:^[ \t]*[┌├│└─┼┤┴┬].*\n?)+', '', model_ans, flags=re.MULTILINE)
     model_ans = re.sub(r'(?:^[ \t]*\+[-=+]+\+[ \t]*\n?)+', '', model_ans, flags=re.MULTILINE)
     model_ans = re.sub(r'(?im)^\s*(?:\[?[A-Za-z0-9\s_-]*\]?\s*)?(?:Diagram|Schematic|Flowchart|Exam-Hall Flowchart)\s*:\s*.*$', '', model_ans)
+
+    # Renumber body points locally within each section (restart at 1 under each ### heading)
+    # Never number Introduction or Conclusion
+    ans_blocks = [b.strip() for b in re.split(r'\n\s*\n', model_ans) if b.strip()]
+    renumbered_blocks = []
+    current_sec_num = 0
+    in_conclusion = False
+
+    for b in ans_blocks:
+        b_lines = b.split('\n')
+        first_line = b_lines[0].strip()
+        is_conc = bool(re.search(r'(?i)^(?:###\s*)?(?:\*\*)?(?:Conclusion|Concluding\s*Synthesis|निष्कर्ष)(?:\*\*)?:?$', first_line))
+        if is_conc:
+            in_conclusion = True
+
+        is_heading = bool(
+            re.match(r'^#{1,6}\s+', first_line) or 
+            (re.match(r'^\*\*([^*\n]{3,65})\*\*:?$', first_line) and not in_conclusion and not re.match(r'^\*\*\s*\d+[\.\)]', first_line)) or
+            re.match(r'^(?:Context|Framing|Background|Significance|Challenges|Impact|Measures|Way Forward|Way Ahead|Key Dimensions)[:\s]*$', first_line, re.IGNORECASE)
+        )
+
+        if is_heading:
+            current_sec_num = 0  # Restart numbering under new body section
+
+        renumbered_lines = []
+        for line in b_lines:
+            l_str = line.strip()
+            # Check if this line is a heading
+            is_line_heading = bool(
+                re.match(r'^#{1,6}\s+', l_str) or 
+                (re.match(r'^\*\*([^*\n]{3,65})\*\*:?$', l_str) and not in_conclusion and not re.match(r'^\*\*\s*\d+[\.\)]', l_str)) or
+                re.match(r'^(?:Context|Framing|Background|Significance|Challenges|Impact|Measures|Way Forward|Way Ahead|Key Dimensions)[:\s]*$', l_str, re.IGNORECASE)
+            )
+            if is_line_heading:
+                current_sec_num = 0
+                renumbered_lines.append(line)
+                continue
+
+            # Check if line is a numbered point: e.g. **1. Lead:** Exp or 1. **Lead:** Exp or 1. Exp
+            num_m = re.match(r'^\s*(?:\*\*)?(\d+|[a-zA-Z])[\.\)]\s*(?:\*\*)?\s*(.*)$', l_str)
+            if not in_conclusion and num_m:
+                current_sec_num += 1
+                rest = num_m.group(2).strip()
+                lead_m = re.match(r'^(?:\*\*(.*?)\*\*:?|([^*:\n]{2,55}):)\s*(.*)$', rest)
+                if lead_m:
+                    lead = (lead_m.group(1) or lead_m.group(2) or "").strip().rstrip(':*')
+                    exp = lead_m.group(3).strip().lstrip(':*').strip()
+                elif ':' in rest and not rest.startswith(('http:', 'https:')):
+                    parts = rest.split(':', 1)
+                    if 1 <= len(parts[0].split()) <= 6:
+                        lead = parts[0].strip().strip('*')
+                        exp = parts[1].strip().strip('*')
+                    else:
+                        lead = ""
+                        exp = rest
+                else:
+                    lead = ""
+                    exp = rest
+
+                if lead:
+                    renumbered_lines.append(f"**{current_sec_num}. {lead}:** {exp}")
+                else:
+                    renumbered_lines.append(f"**{current_sec_num}.** {exp}")
+            else:
+                renumbered_lines.append(line)
+
+        renumbered_blocks.append("\n".join(renumbered_lines))
+
+    model_ans = "\n\n".join(renumbered_blocks)
     data["full_model_answer"] = model_ans.strip()
 
     # Calculate final word count and point count
@@ -3540,7 +3626,6 @@ def _ensure_topper_model_answer_quality(data: Dict[str, Any], max_marks: int = 1
         "badge_text": "✨ Topper Synthesis (Candidate Points Retained + High-Yield Dimensions)" if is_adaptive else "⭐ Structured UPSC Topper Model Answer",
         "badge_text_hindi": "✨ अभ्यर्थी-संवर्धित मॉडल उत्तर (मान्य बिंदु सुरक्षित + परीक्षक मूल्य-संवर्धन)" if is_adaptive else "⭐ सुव्यवस्थित टॉपर मॉडल उत्तर"
     }
-
 
 def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, question: str = "", paper: str = "", medium: str = "english") -> Dict[str, Any]:
     """

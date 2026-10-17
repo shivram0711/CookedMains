@@ -14923,15 +14923,15 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
   if (budgetBadge && timeBadge && benchBadge) {
     const wcSuffix = wordCount > 0 ? ` (${wordCount}w)` : "";
     if (mm === 10) {
-      budgetBadge.textContent = isHindi ? `लक्ष्य: ~130-160 शब्द (2 पृष्ठ, 5-8 बिंदु)${wcSuffix}` : `Target: ~130-160 Words (2 Pages, 5-8 Points)${wcSuffix}`;
+      budgetBadge.textContent = isHindi ? `लक्ष्य: ~140-160 शब्द (2 पृष्ठ, 10+ बिंदु)${wcSuffix}` : `Target: ~140-160 Words (2 Pages, 10+ Points)${wcSuffix}`;
       timeBadge.textContent = isHindi ? "समय: 7 मिनट" : "Time: 7 Mins";
       benchBadge.textContent = "6.0 / 10.0 (Top 1%)";
     } else if (mm === 15) {
-      budgetBadge.textContent = isHindi ? `लक्ष्य: ~200-250 शब्द (3 पृष्ठ, 8-12 बिंदु)${wcSuffix}` : `Target: ~200-250 Words (3 Pages, 8-12 Points)${wcSuffix}`;
+      budgetBadge.textContent = isHindi ? `लक्ष्य: ~230-250 शब्द (3 पृष्ठ, 15+ बिंदु)${wcSuffix}` : `Target: ~230-250 Words (3 Pages, 15+ Points)${wcSuffix}`;
       timeBadge.textContent = isHindi ? "समय: 11 मिनट" : "Time: 11 Mins";
       benchBadge.textContent = "9.5 / 15.0 (Top 1%)";
     } else if (mm === 20) {
-      budgetBadge.textContent = isHindi ? `लक्ष्य: ~250-300 शब्द (4 पृष्ठ, 10-15 बिंदु)${wcSuffix}` : `Target: ~250-300 Words (4 Pages, 10-15 Points)${wcSuffix}`;
+      budgetBadge.textContent = isHindi ? `लक्ष्य: ~250-300 शब्द (4 पृष्ठ, 16+ बिंदु)${wcSuffix}` : `Target: ~250-300 Words (4 Pages, 16+ Points)${wcSuffix}`;
       timeBadge.textContent = isHindi ? "समय: 14 मिनट" : "Time: 14 Mins";
       benchBadge.textContent = "13.0 / 20.0 (Top 1%)";
     } else {
@@ -14964,6 +14964,7 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
   let html = "";
   let introRendered = false;
   let hasHeadingAppeared = false;
+  let currentSectionPointNumber = 0;
 
   blocks.forEach((block, bIdx) => {
     let b = block.trim();
@@ -15045,7 +15046,7 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     if (rawLines.length === 0) return;
 
     // Check if block is the first paragraph (Introduction before any headings)
-    const isFirstBlock = (!introRendered && !hasHeadingAppeared && bIdx === 0 && !/^#{1,6}\s+/.test(rawLines[0]) && !/^\s*(?:\*\*)?\d+[\.\)]/.test(rawLines[0]));
+    const isFirstBlock = (!introRendered && !hasHeadingAppeared && !/^#{1,6}\s+/.test(rawLines[0]) && !/^\s*(?:\*\*)?\d+[\.\)]/.test(rawLines[0]));
     if (isFirstBlock) {
       introRendered = true;
       html += `
@@ -15061,9 +15062,10 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     }
 
     // Check if block is an explicit Conclusion paragraph
-    const isConclusionBlock = (
-      /^(?:(?:\*\*)?(?:Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead|निष्कर्ष|आगे\s*की\s*राह)(?:\*\*)?:?)/i.test(rawLines[0]) ||
-      (bIdx === blocks.length - 1 && hasHeadingAppeared && !/^#{1,6}\s+/.test(rawLines[0]) && !/^\s*(?:\*\*)?\d+[\.\)]/.test(rawLines[0]))
+    const hasNumberedPointsInBlock = rawLines.some(l => /^\s*(?:\*\*)?\d+[\.\)]/.test(l));
+    const isConclusionBlock = !hasNumberedPointsInBlock && (
+      /^(?:(?:\*\*)?(?:Conclusion|Concluding\s*Synthesis|निष्कर्ष)(?:\*\*)?:?)/i.test(rawLines[0]) ||
+      (bIdx === blocks.length - 1 && hasHeadingAppeared && !/^#{1,6}\s+/.test(rawLines[0]))
     );
 
     if (isConclusionBlock) {
@@ -15085,12 +15087,19 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     rawLines.forEach(line => {
       // (a) Section Heading: starts with ### or is a standalone bold title without explanation
       const isHashHeading = /^#{1,6}\s+(.*)$/.test(line);
-      const isBoldHeading = /^\*\*([^*:\n]{3,65})\*\*$/.test(line) && !line.includes(':');
-      const isNamedHeading = /^(?:Introduction|Conclusion|Way Forward|Way Ahead|प्रस्तावना|निष्कर्ष|आगे की राह):?$/i.test(line);
+      const isBoldHeading = /^\*\*([^*\n]{3,65})\*\*:?$/.test(line) && !/^\*\*\s*\d+[\.\)]/.test(line);
+      const isNamedHeading = /^(?:Introduction|Conclusion|Way Forward|Way Ahead|प्रस्तावना|निष्कर्ष|आगे की राह|Key Dimensions|Core Dimensions):?$/i.test(line);
 
       if (isHashHeading || isBoldHeading || isNamedHeading) {
         hasHeadingAppeared = true;
-        let cleanHeading = line.replace(/^#{1,6}\s*/, '').replace(/^\*\*|\*\*$/g, '').replace(/:$/, '').trim();
+        currentSectionPointNumber = 0; // Restart numbering under each section
+        let cleanHeading = line
+          .replace(/^#{1,6}\s*/, '')
+          .replace(/^\*\*/, '')
+          .replace(/\*\*:?$/, '')
+          .replace(/:$/, '')
+          .replace(/^(?:\d+|[A-Z])[\.\)]\s*/, '') // Remove accidental leading numbering in heading
+          .trim();
         html += `
           <div class="mt-4.5 mb-2.5 pt-3 border-t border-slate-200 dark:border-slate-800/80 first:border-t-0 first:pt-0 first:mt-0 flex items-center space-x-2">
             <span class="w-2.5 h-2.5 rounded-sm bg-gradient-to-br from-amber-500 to-amber-600 shadow-sm shrink-0"></span>
@@ -15100,33 +15109,33 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
         return;
       }
 
-      // (b) Numbered Point: e.g. "**1. Political Significance:** Explanation..." or "1. **Political:** ..."
-      const numMatch = line.match(/^\s*(?:\*\*)?(\d+|[a-zA-Z])[\.\)]\s*(?:\*\*)?\s*(?:(?:\*\*(.*?)\*\*:?|\*([^*]+)\*:?|([^:]{2,55}):))\s*(.*)$/);
+      // (b) Numbered Point: e.g. "**1. Political Significance:** Explanation..." or "1. **Political:** ..." or "1. Explanation..."
+      const numMatch = line.match(/^\s*(?:\*\*)?(\d+|[a-zA-Z])[\.\)]\s*(?:\*\*)?\s*(.*)$/);
       if (numMatch) {
-        const num = numMatch[1];
-        const lead = (numMatch[2] || numMatch[3] || numMatch[4] || "").trim().replace(/^[:\s]+|[:\s]+$/g, '');
-        const exp = numMatch[5].trim();
+        currentSectionPointNumber++;
+        const rawNum = numMatch[1];
+        const displayNum = /^\d+$/.test(rawNum) ? currentSectionPointNumber : rawNum;
+        const rest = numMatch[2].trim();
+
+        const leadMatch = rest.match(/^(?:\*\*(.*?)\*\*:?|([^*:\n]{2,55}):)\s*(.*)$/);
+        let lead = "";
+        let exp = rest;
+        if (leadMatch) {
+          lead = (leadMatch[1] || leadMatch[2] || "").trim().replace(/^[:\s*]+|[:\s*]+$/g, '');
+          exp = (leadMatch[3] || "").trim().replace(/^[:\s*]+/, '');
+        } else if (rest.includes(':') && !rest.startsWith('http')) {
+          const parts = rest.split(':');
+          if (parts[0].trim().split(/\s+/).length <= 6) {
+            lead = parts[0].trim().replace(/^\*+|\*+$/g, '');
+            exp = parts.slice(1).join(':').trim().replace(/^\*+|\*+$/g, '');
+          }
+        }
+
         html += `
           <div class="my-2.5 p-3 sm:p-3.5 rounded-xl bg-white/95 dark:bg-slate-900/70 hover:bg-blue-50/50 dark:hover:bg-slate-900/95 border border-slate-200 dark:border-slate-800/90 border-l-3 border-l-amber-500 transition-all flex items-start space-x-3 shadow-xs">
-            <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-amber-500/15 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold font-sans text-[11px] shrink-0 border border-amber-500/30 dark:border-amber-500/40 shadow-xs mt-0.5">${escapeHtml(num)}</span>
+            <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-amber-500/15 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold font-sans text-[11px] shrink-0 border border-amber-500/30 dark:border-amber-500/40 shadow-xs mt-0.5">${escapeHtml(displayNum)}</span>
             <div class="flex-1 text-slate-800 dark:text-slate-200 text-xs sm:text-[13px] leading-relaxed font-sans">
               ${lead ? `<strong class="text-blue-950 dark:text-amber-300 font-bold mr-1.5 font-sans">${escapeHtml(lead)}:</strong>` : ''}
-              <span class="text-slate-800 dark:text-slate-200">${formatInlineModelText(exp)}</span>
-            </div>
-          </div>
-        `;
-        return;
-      }
-
-      // (c) Simple Numbered Point without colon/bold lead: e.g. "1. Explanation..."
-      const simpleNumMatch = line.match(/^\s*(?:\*\*)?(\d+|[a-zA-Z])[\.\)]\s*(?:\*\*)?\s+(.*)$/);
-      if (simpleNumMatch) {
-        const num = simpleNumMatch[1];
-        const exp = simpleNumMatch[2].trim();
-        html += `
-          <div class="my-2.5 p-3 sm:p-3.5 rounded-xl bg-white/95 dark:bg-slate-900/70 hover:bg-blue-50/50 dark:hover:bg-slate-900/95 border border-slate-200 dark:border-slate-800/90 border-l-3 border-l-amber-500 transition-all flex items-start space-x-3 shadow-xs">
-            <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-amber-500/15 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold font-sans text-[11px] shrink-0 border border-amber-500/30 dark:border-amber-500/40 shadow-xs mt-0.5">${escapeHtml(num)}</span>
-            <div class="flex-1 text-slate-800 dark:text-slate-200 text-xs sm:text-[13px] leading-relaxed font-sans">
               <span class="text-slate-800 dark:text-slate-200">${formatInlineModelText(exp)}</span>
             </div>
           </div>
