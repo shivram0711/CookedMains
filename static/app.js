@@ -1985,6 +1985,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Attach mobile navigation & responsive controls
   setupMobileAndResponsiveListeners();
 
+  // Reconnect to any in-flight background essay evaluation job if page was refreshed
+  if (typeof window.checkActiveEssayJobOnLoad === "function") {
+    window.checkActiveEssayJobOnLoad();
+  }
+
   // URL Parameter auto-test runner for automated UI verification
   if (window.location.search.includes("autotest=1")) {
     setTimeout(async () => {
@@ -3887,11 +3892,13 @@ window.updateStagedStatusAndGuidance = function() {
   let targetPages = 2;
   if (marks === 15) targetPages = 3;
   else if (marks === 20) targetPages = 3;
-  else if (state.selectedPaperTab === "Essay") targetPages = 6;
+  else if (state.selectedPaperTab === "Essay" || state.paper === "Essay") targetPages = 10;
 
   // Staged Page Count Header
   if (stagedPageCount) {
-    if (totalCount < targetPages) {
+    if (state.selectedPaperTab === "Essay" || state.paper === "Essay") {
+      stagedPageCount.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 font-bold">✓ ${totalCount} Essay Page${totalCount > 1 ? 's' : ''} Staged</span> · <span class="text-amber-700/90 dark:text-amber-300/90 font-medium">125M UPSC Essay Booklet</span>`;
+    } else if (totalCount < targetPages) {
       stagedPageCount.innerHTML = `<span class="text-amber-600 dark:text-amber-400 font-bold">✓ ${totalCount} Page${totalCount > 1 ? 's' : ''} Staged</span> · <span class="text-amber-700/90 dark:text-amber-300/90 font-medium">Add Page ${totalCount + 1} for ${marks}M QCAB</span>`;
     } else {
       stagedPageCount.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 font-bold">✓ ${totalCount} of ${targetPages} Pages Staged</span> · <span class="text-emerald-600 dark:text-emerald-400 font-medium">Complete QCAB Booklet Ready</span>`;
@@ -3900,7 +3907,12 @@ window.updateStagedStatusAndGuidance = function() {
 
   // UPSC Multi-Page Guidance Notice
   if (stagedMultiPageNotice && stagedMultiPageHeader && stagedMultiPageSub) {
-    if (totalCount < targetPages) {
+    if (state.selectedPaperTab === "Essay" || state.paper === "Essay") {
+      stagedMultiPageNotice.className = "text-[11px] p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-slate-800 dark:text-slate-200 flex items-start gap-2";
+      stagedMultiPageHeader.className = "font-bold text-amber-700 dark:text-amber-400";
+      stagedMultiPageHeader.textContent = `UPSC Essay Paper Guidance (${totalCount} Pages Staged)`;
+      stagedMultiPageSub.textContent = `125M UPSC Essay typically spans 10–14 pages (1000–1200 words). If your uploaded booklet contains multiple essays or mock questions, confirm the page range below.`;
+    } else if (totalCount < targetPages) {
       stagedMultiPageNotice.className = "text-[11px] p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-slate-800 dark:text-slate-200 flex items-start gap-2";
       stagedMultiPageHeader.className = "font-bold text-amber-700 dark:text-amber-400";
       stagedMultiPageHeader.textContent = `UPSC ${marks}-Mark QCAB Guidance (${totalCount} of ${targetPages} Pages)`;
@@ -3916,6 +3928,43 @@ window.updateStagedStatusAndGuidance = function() {
   // Dynamic Camera button label
   if (btnStagedAddCameraText) {
     btnStagedAddCameraText.textContent = `+ Capture Page ${totalCount + 1} (Camera)`;
+  }
+
+  // Essay Page Range Selector Management
+  const essayPageRangeContainer = document.getElementById("essayPageRangeContainer");
+  const essayPageRangeTotalBadge = document.getElementById("essayPageRangeTotalBadge");
+  const essayPageRangeStart = document.getElementById("essayPageRangeStart");
+  const essayPageRangeEnd = document.getElementById("essayPageRangeEnd");
+  const btnSelectAllEssayPages = document.getElementById("btnSelectAllEssayPages");
+
+  if (essayPageRangeContainer) {
+    if (state.selectedPaperTab === "Essay" || state.paper === "Essay") {
+      essayPageRangeContainer.classList.remove("hidden");
+      if (essayPageRangeTotalBadge) essayPageRangeTotalBadge.textContent = `Total: ${totalCount} pages`;
+      if (essayPageRangeStart) essayPageRangeStart.max = totalCount;
+      if (essayPageRangeEnd) {
+        essayPageRangeEnd.max = totalCount;
+        if (!essayPageRangeEnd.dataset.userEdited) {
+          essayPageRangeEnd.value = totalCount;
+        }
+      }
+      if (btnSelectAllEssayPages) {
+        btnSelectAllEssayPages.onclick = () => {
+          if (essayPageRangeStart) essayPageRangeStart.value = 1;
+          if (essayPageRangeEnd) {
+            essayPageRangeEnd.value = totalCount;
+            delete essayPageRangeEnd.dataset.userEdited;
+          }
+        };
+      }
+      if (essayPageRangeEnd) {
+        essayPageRangeEnd.onchange = () => {
+          essayPageRangeEnd.dataset.userEdited = "true";
+        };
+      }
+    } else {
+      essayPageRangeContainer.classList.add("hidden");
+    }
   }
 
   if (window.lucide) lucide.createIcons();
@@ -10161,33 +10210,49 @@ window.runEvaluation = async function(allowAutoAligned = false) {
     }
   }
 
-  state.uploadedFiles.forEach(file => {
-    formData.append("files", file);
-  });
-
-  window.currentEvaluationController = new AbortController();
-
-  try {
-    const response = await fetch("/api/evaluate", {
-      method: "POST",
-      body: formData,
-      signal: window.currentEvaluationController.signal
+    state.uploadedFiles.forEach(file => {
+      formData.append("files", file);
     });
 
-    const parsed = await parseEvaluationResponse(response);
-    if (!parsed.ok) {
-      if (parsed.isQuotaExceeded || parsed.is402) {
-        alert(parsed.message);
-        return;
+    // Pass custom essay page range if user specified one
+    if (state.paper === "ESSAY" || state.selectedPaperTab === "Essay") {
+      const rStart = document.getElementById("essayPageRangeStart")?.value;
+      const rEnd = document.getElementById("essayPageRangeEnd")?.value;
+      if (rStart && rEnd) {
+        formData.append("page_range", `${rStart}-${rEnd}`);
       }
-      if (parsed.guardModal) {
-        window.showGuardModal(parsed.guardModal);
-        return;
-      }
-      throw new Error(parsed.message || "Evaluation failed.");
     }
 
-    const data = parsed.data;
+    window.currentEvaluationController = new AbortController();
+
+    try {
+      const response = await fetch("/api/evaluate", {
+        method: "POST",
+        body: formData,
+        signal: window.currentEvaluationController.signal
+      });
+
+      const parsed = await parseEvaluationResponse(response);
+      if (!parsed.ok) {
+        if (parsed.isQuotaExceeded || parsed.is402) {
+          alert(parsed.message);
+          return;
+        }
+        if (parsed.guardModal) {
+          window.showGuardModal(parsed.guardModal);
+          return;
+        }
+        throw new Error(parsed.message || "Evaluation failed.");
+      }
+
+      const data = parsed.data;
+
+      // Check if this is an asynchronous background essay job
+      if (data.is_async_job || (data.status === "processing" && data.job_id)) {
+        localStorage.setItem("active_essay_job_id", data.job_id);
+        await window.pollEssayJob(data.job_id);
+        return;
+      }
     if (data.eval_id) {
       state.currentEvalId = data.eval_id;
     }
@@ -10300,6 +10365,265 @@ window.runEvaluation = async function(allowAutoAligned = false) {
 };
 
 evaluateBtn.addEventListener("click", () => window.runEvaluation(false));
+
+// =========================================================================
+// ASYNC ESSAY EVALUATION PIPELINE CONTROLLER (POLLING, RETRY, RECOVERY)
+// =========================================================================
+
+window.pollEssayJob = async function(jobId) {
+  // Stop simulation timer so backend authoritative progress runs the UI
+  if (window.forensicProgressTimer) {
+    clearInterval(window.forensicProgressTimer);
+    window.forensicProgressTimer = null;
+  }
+  if (window.forensicStatusTimer) {
+    clearInterval(window.forensicStatusTimer);
+    window.forensicStatusTimer = null;
+  }
+
+  const loadingIndicator = document.getElementById("loadingIndicator");
+  if (loadingIndicator) loadingIndicator.classList.remove("hidden");
+
+  const bar = document.getElementById("forensicProgressBar");
+  const sBar = document.getElementById("studioForensicProgressBar");
+  const pct = document.getElementById("forensicProgressPercent");
+  const sPct = document.getElementById("studioForensicProgressPercent");
+  const step = document.getElementById("loadingStep");
+  const sStep = document.getElementById("studioLoadingStep");
+  const p1 = document.getElementById("stagePill1");
+  const sp1 = document.getElementById("studioStagePill1");
+  const p2 = document.getElementById("stagePill2");
+  const sp2 = document.getElementById("studioStagePill2");
+  const p3 = document.getElementById("stagePill3");
+  const sp3 = document.getElementById("studioStagePill3");
+  const p4 = document.getElementById("stagePill4");
+  const sp4 = document.getElementById("studioStagePill4");
+
+  const setPillState = (pill, pState, iconChar) => {
+    if (!pill) return;
+    pill.className = `stage-pill ${pState}`;
+    const icon = pill.querySelector(".stage-icon");
+    if (icon) icon.textContent = iconChar;
+  };
+
+  const updateUIProgress = (percent, message) => {
+    const formatted = `${Math.min(100, Math.max(0, Math.round(percent)))}%`;
+    if (bar) bar.style.width = formatted;
+    if (sBar) sBar.style.width = formatted;
+    if (pct) pct.textContent = formatted;
+    if (sPct) sPct.textContent = formatted;
+    if (message) {
+      if (step) step.textContent = message;
+      if (sStep) sStep.textContent = message;
+    }
+
+    if (percent < 35) {
+      setPillState(p1, "active", "●"); setPillState(sp1, "active", "●");
+      setPillState(p2, "", "○"); setPillState(sp2, "", "○");
+      setPillState(p3, "", "○"); setPillState(sp3, "", "○");
+      setPillState(p4, "", "○"); setPillState(sp4, "", "○");
+    } else if (percent < 70) {
+      setPillState(p1, "done", "✓"); setPillState(sp1, "done", "✓");
+      setPillState(p2, "active", "●"); setPillState(sp2, "active", "●");
+      setPillState(p3, "", "○"); setPillState(sp3, "", "○");
+      setPillState(p4, "", "○"); setPillState(sp4, "", "○");
+    } else if (percent < 90) {
+      setPillState(p1, "done", "✓"); setPillState(sp1, "done", "✓");
+      setPillState(p2, "done", "✓"); setPillState(sp2, "done", "✓");
+      setPillState(p3, "active", "●"); setPillState(sp3, "active", "●");
+      setPillState(p4, "", "○"); setPillState(sp4, "", "○");
+    } else {
+      setPillState(p1, "done", "✓"); setPillState(sp1, "done", "✓");
+      setPillState(p2, "done", "✓"); setPillState(sp2, "done", "✓");
+      setPillState(p3, "done", "✓"); setPillState(sp3, "done", "✓");
+      setPillState(p4, "active", "●"); setPillState(sp4, "active", "●");
+    }
+  };
+
+  let consecutiveErrors = 0;
+  while (true) {
+    try {
+      const resp = await fetch(`/api/essay/status/${jobId}`);
+      if (!resp.ok) {
+        throw new Error(`Status check HTTP ${resp.status}`);
+      }
+      consecutiveErrors = 0;
+      const job = await resp.json();
+
+      updateUIProgress(job.progress_pct || 15, job.progress_message || "Analyzing essay pages...");
+
+      if (job.status === "completed") {
+        localStorage.removeItem("active_essay_job_id");
+        updateUIProgress(100, "Essay evaluation complete!");
+        setPillState(p4, "done", "✓"); setPillState(sp4, "done", "✓");
+
+        const data = job.result;
+        if (!data || !data.evaluation) {
+          throw new Error("Evaluation result payload was empty.");
+        }
+
+        if (data.eval_id) state.currentEvalId = data.eval_id;
+        if (data.paper) {
+          state.paper = data.paper;
+          state.selectedPaperTab = data.paper;
+        }
+        if (data.max_marks) state.marks = data.max_marks;
+        if (data.detected_question) {
+          state.question = data.detected_question;
+          const qInput = document.getElementById("questionInput");
+          if (qInput) qInput.value = data.detected_question;
+        }
+        if (typeof updateStepProgression === "function") {
+          updateStepProgression();
+        }
+
+        state.activeCopyMode = "original";
+        state.originalEvaluation = data.evaluation;
+        state.rewrittenPages = [];
+        state.rewrittenEvaluation = null;
+        if (data.pages && data.pages.length > 0) {
+          state.activePages = data.pages;
+          state.originalPages = [...data.pages];
+        }
+
+        renderEvaluation(data.evaluation);
+
+        if (state.activePages && state.activePages.length > 0) {
+          state.currentPageIndex = 0;
+          updateViewer();
+        }
+
+        // Save to browser vault
+        if (state.user && state.user.email && typeof window.saveEvaluationToBrowserVault === "function") {
+          await window.saveEvaluationToBrowserVault(state.user.email, {
+            id: data.eval_id || state.currentEvalId,
+            eval_id: data.eval_id || state.currentEvalId,
+            paper: data.paper || state.paper,
+            max_marks: data.max_marks || state.marks,
+            question: data.detected_question || state.question,
+            overall_score: data.evaluation?.overall_score,
+            evaluation: data.evaluation,
+            pages: data.pages || state.activePages,
+            is_rewrite: false
+          });
+        }
+
+        // Sync user credits
+        if (data.user_credits !== undefined && state.user) {
+          state.user.credits = data.user_credits;
+          sessionStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+          localStorage.setItem("mainsmentor_user", JSON.stringify(state.user));
+          updateUserUI();
+        }
+        await refreshLockerBadge();
+        return data;
+      } else if (job.status === "failed") {
+        localStorage.removeItem("active_essay_job_id");
+        const errMsg = job.error || "Essay evaluation failed during processing.";
+
+        if (typeof window.showAppConfirm === "function") {
+          window.showAppConfirm({
+            title: "Essay Evaluation Interrupted",
+            message: `Evaluation stopped: ${errMsg}<br><br><strong>🛡️ Checkpoint Saved & 0 Credits Deducted:</strong> All pages analyzed before interruption are securely saved in cache. Resume now without re-analyzing completed pages?`,
+            confirmText: "Resume Evaluation",
+            cancelText: "Dismiss",
+            onConfirm: () => {
+              window.retryEssayJob(jobId);
+            }
+          });
+        } else {
+          alert(`Essay Evaluation Interrupted: ${errMsg}`);
+        }
+        throw new Error(errMsg);
+      }
+    } catch (pollErr) {
+      if (pollErr.message && pollErr.message.includes("Evaluation stopped:")) {
+        throw pollErr;
+      }
+      consecutiveErrors++;
+      console.warn(`Polling attempt failed (${consecutiveErrors}/10):`, pollErr);
+      if (consecutiveErrors >= 10) {
+        throw new Error("Lost connection to essay evaluation job. Please refresh or retry.");
+      }
+    }
+    await new Promise(r => setTimeout(r, 1500));
+  }
+};
+
+window.retryEssayJob = async function(jobId) {
+  const loadingIndicator = document.getElementById("loadingIndicator");
+  const evaluateBtn = document.getElementById("evaluateBtn");
+  const origBtnContent = evaluateBtn ? evaluateBtn.innerHTML : "";
+
+  if (loadingIndicator) loadingIndicator.classList.remove("hidden");
+  if (evaluateBtn) {
+    evaluateBtn.disabled = true;
+    evaluateBtn.classList.add("evaluate-btn-locked");
+    evaluateBtn.innerHTML = `
+      <span class="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
+      <span>Resuming Evaluation...</span>
+    `;
+  }
+  setSubjectAndMarksLocked(true);
+
+  try {
+    const resp = await fetch(`/api/essay/retry/${jobId}`, { method: "POST" });
+    const data = await resp.json();
+    if (!resp.ok) {
+      throw new Error(data.detail || data.message || "Failed to resume essay evaluation.");
+    }
+    await window.pollEssayJob(data.job_id);
+  } catch (err) {
+    if (typeof window.showAppNotice === "function") {
+      window.showAppNotice(`Resume failed: ${err.message}`, "Evaluation Notice", "error");
+    } else {
+      alert(`Resume failed: ${err.message}`);
+    }
+  } finally {
+    setSubjectAndMarksLocked(false);
+    stopForensicProgress();
+    if (evaluateBtn) {
+      evaluateBtn.disabled = false;
+      evaluateBtn.classList.remove("evaluate-btn-locked");
+      if (origBtnContent) evaluateBtn.innerHTML = origBtnContent;
+    }
+    if (loadingIndicator) loadingIndicator.classList.add("hidden");
+  }
+};
+
+window.checkActiveEssayJobOnLoad = async function() {
+  const activeJobId = localStorage.getItem("active_essay_job_id");
+  if (!activeJobId) return;
+  try {
+    const resp = await fetch(`/api/essay/status/${activeJobId}`);
+    if (!resp.ok) {
+      localStorage.removeItem("active_essay_job_id");
+      return;
+    }
+    const job = await resp.json();
+    if (job.status === "processing" || job.status === "pending") {
+      const loadingIndicator = document.getElementById("loadingIndicator");
+      if (loadingIndicator) loadingIndicator.classList.remove("hidden");
+      setSubjectAndMarksLocked(true);
+      window.pollEssayJob(activeJobId);
+    } else if (job.status === "completed") {
+      localStorage.removeItem("active_essay_job_id");
+      if (job.result && job.result.evaluation) {
+        renderEvaluation(job.result.evaluation);
+        if (job.result.pages && job.result.pages.length > 0) {
+          state.activePages = job.result.pages;
+          state.originalPages = [...job.result.pages];
+          state.currentPageIndex = 0;
+          updateViewer();
+        }
+      }
+    } else {
+      localStorage.removeItem("active_essay_job_id");
+    }
+  } catch (e) {
+    console.warn("Could not check active essay job on load:", e);
+  }
+};
 
 // Dynamic UPSC Percentile Scale Calibrated strictly by Max Marks
 function updateScoreBands(overallScore, maxMarks) {

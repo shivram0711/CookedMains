@@ -304,6 +304,35 @@ def _init_db_tables():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
+    # Dedicated Asynchronous Long-Document Essay Evaluation Jobs & Checkpoints table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS essay_jobs (
+            id TEXT PRIMARY KEY,
+            user_email TEXT NOT NULL,
+            question TEXT NOT NULL,
+            paper TEXT DEFAULT 'Essay',
+            max_marks INTEGER DEFAULT 125,
+            medium TEXT DEFAULT 'english',
+            total_pages INTEGER DEFAULT 0,
+            page_range TEXT,
+            selected_pages_json TEXT DEFAULT '[]',
+            batch_size INTEGER DEFAULT 3,
+            status TEXT DEFAULT 'queued',
+            progress_pct INTEGER DEFAULT 0,
+            progress_message TEXT DEFAULT 'Queued for essay evaluation...',
+            current_batch_index INTEGER DEFAULT 0,
+            checkpoints_json TEXT DEFAULT '{}',
+            result_json TEXT,
+            pages_json TEXT DEFAULT '[]',
+            error_message TEXT,
+            eval_id TEXT,
+            credits_deducted INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            completed_at TIMESTAMP
+        )
+    """)
     
     # Auto-clean legacy corrupted, placeholder, or unevaluated copies
     try:
@@ -4007,5 +4036,185 @@ def set_admin_setting(key: str, value: str) -> None:
     """, (key, value))
     conn.commit()
     conn.close()
+
+
+# -------------------------------------------------------------------------
+# ESSAY EVALUATION ASYNC JOBS & RESUMABLE CHECKPOINTING
+# -------------------------------------------------------------------------
+
+def create_essay_job(
+    job_id: str,
+    user_email: str,
+    question: str,
+    paper: str = "Essay",
+    max_marks: int = 125,
+    medium: str = "english",
+    total_pages: int = 0,
+    page_range: Optional[str] = None,
+    selected_pages: Optional[List[int]] = None,
+    batch_size: int = 3,
+    pages_previews: Optional[List[str]] = None
+) -> Dict[str, Any]:
+    conn = get_db()
+    cursor = conn.cursor()
+    sel_json = json.dumps(selected_pages or [])
+    pages_json = json.dumps(pages_previews or [])
+    cursor.execute("""
+        INSERT INTO essay_jobs (
+            id, user_email, question, paper, max_marks, medium,
+            total_pages, page_range, selected_pages_json, batch_size,
+            status, progress_pct, progress_message, current_batch_index,
+            checkpoints_json, pages_json, credits_deducted, created_at, updated_at
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?,
+            'queued', 0, 'Queued for essay evaluation...', 0,
+            '{}', ?, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        )
+    """, (
+        job_id, (user_email or "guest@cookedmains.in").strip().lower(),
+        question.strip(), paper, max_marks, medium,
+        total_pages, page_range or f"1-{total_pages}", sel_json, batch_size,
+        pages_json
+    ))
+    conn.commit()
+    cursor.execute("SELECT * FROM essay_jobs WHERE id = ?", (job_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else {}
+
+
+def get_essay_job(job_id: str) -> Optional[Dict[str, Any]]:
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM essay_jobs WHERE id = ?", (job_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    d = dict(row)
+    for field in ["selected_pages_json", "checkpoints_json", "result_json", "pages_json"]:
+        if d.get(field):
+            try:
+                d[field.replace("_json", "")] = json.loads(d[field])
+            except Exception:
+                d[field.replace("_json", "")] = None
+        else:
+            d[field.replace("_json", "")] = None
+    return d
+
+
+def update_essay_job_progress(
+    job_id: str,
+    progress_pct: int,
+    progress_message: str,
+    current_batch_index: Optional[int] = None,
+    status: Optional[str] = None
+) -> bool:
+    conn = get_db()
+    cursor = conn.cursor()
+    if current_batch_index is not None and status is not None:
+        cursor.execute("""
+            UPDATE essay_jobs
+            SET progress_pct = ?, progress_message = ?, current_batch_index = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """, (progress_pct, progress_message, current_batch_index, status, job_id))
+    elif current_batch_index is not None:
+        cursor.execute("""
+            UPDATE essay_jobs
+            SET progress_pct = ?, progress_message = ?, current_batch_index = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """, (progress_pct, progress_message, current_batch_index, job_id))
+    elif status is not None:
+        cursor.execute("""
+            UPDATE essay_jobs
+            SET progress_pct = ?, progress_message = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """, (progress_pct, progress_message, status, job_id))
+    else:
+        cursor.execute("""
+            UPDATE essay_jobs
+            SET progress_pct = ?, progress_message = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """, (progress_pct, progress_message, job_id))
+    conn.commit()
+    conn.close()
+    return True
+
+
+def save_essay_job_checkpoint(
+    job_id: str,
+    new_page_records: Dict[str, Any],
+    current_batch_index: int,
+    progress_pct: int,
+    progress_message: str
+) -> bool:
+    job = get_essay_job(job_id)
+    if not job:
+        return False
+    existing_checkpoints = job.get("checkpoints") or {}
+    existing_checkpoints.update(new_page_records)
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE essay_jobs
+        SET checkpoints_json = ?, current_batch_index = ?, progress_pct = ?, progress_message = ?, status = 'processing', updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    """, (json.dumps(existing_checkpoints), current_batch_index, progress_pct, progress_message, job_id))
+    conn.commit()
+    conn.close()
+    return True
+
+
+def complete_essay_job(
+    job_id: str,
+    result_dict: Dict[str, Any],
+    eval_id: Optional[str] = None
+) -> bool:
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE essay_jobs
+        SET result_json = ?, eval_id = ?, status = 'completed', progress_pct = 100, progress_message = 'Essay evaluation complete!', completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    """, (json.dumps(result_dict), eval_id, job_id))
+    conn.commit()
+    conn.close()
+    return True
+
+
+def fail_essay_job(
+    job_id: str,
+    error_message: str
+) -> bool:
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE essay_jobs
+        SET error_message = ?, status = 'failed', progress_message = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    """, (error_message, f"Evaluation halted: {error_message}", job_id))
+    conn.commit()
+    conn.close()
+    return True
+
+
+def mark_essay_job_credit_deducted(job_id: str) -> bool:
+    """
+    Atomically marks credits as deducted only if credits_deducted was 0.
+    Returns True if this call actually performed the deduction (0 -> 1).
+    Returns False if credits were already deducted previously, preventing double deductions.
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE essay_jobs
+        SET credits_deducted = 1, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ? AND credits_deducted = 0
+    """, (job_id,))
+    changed = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return changed
 
 

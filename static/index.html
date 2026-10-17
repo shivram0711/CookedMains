@@ -2777,6 +2777,33 @@
                   </div>
                 </div>
 
+                <!-- Essay Booklet Page Range Selector -->
+                <div id="essayPageRangeContainer" class="hidden p-3 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-amber-500/30 space-y-2">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                      <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                      <span>Essay Booklet Page Range</span>
+                    </span>
+                    <span id="essayPageRangeTotalBadge" class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">Total: 12 pages</span>
+                  </div>
+                  <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-snug">
+                    Confirm the page range for this essay (typically 10–14 pages for 125M).
+                  </p>
+                  <div class="flex items-center gap-2 pt-1">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-[11px] text-slate-500 font-medium">From:</span>
+                      <input type="number" id="essayPageRangeStart" min="1" value="1" class="w-14 px-2 py-1 text-center font-bold text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-amber-500">
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-[11px] text-slate-500 font-medium">To:</span>
+                      <input type="number" id="essayPageRangeEnd" min="1" value="12" class="w-14 px-2 py-1 text-center font-bold text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-amber-500">
+                    </div>
+                    <button type="button" id="btnSelectAllEssayPages" class="text-[10px] font-bold px-2 py-1 rounded-lg bg-amber-500/15 text-amber-700 dark:text-amber-400 hover:bg-amber-500/25 transition">
+                      All Pages
+                    </button>
+                  </div>
+                </div>
+
                 <!-- Dedicated Multi-Page Action Toolbar inside Staged Card using Native Labels -->
                 <div class="grid grid-cols-2 gap-2 pt-0.5" id="stagedAddButtonsGroup">
                   <label for="cameraFileInput" id="btnStagedAddCamera" class="py-2.5 px-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 active:scale-[0.98] text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer select-none">

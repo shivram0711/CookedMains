@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cooked Mains — Instagram AI Growth &amp; Analytics Command Center</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #06080d;
+      color: #f8fafc;
+    }
+    .font-editorial { font-family: 'Instrument Serif', Georgia, serif; }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/95 backdrop-blur-md px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-full bg-slate-900 border border-amber-500/40 p-0.5 overflow-hidden flex items-center justify-center shadow-md">
+        <img src="/static/brand_logo_dark.png" onerror="this.src='/static/android-chrome-192x192.png'" class="w-full h-full object-cover" alt="Logo" />
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-extrabold text-white tracking-tight text-sm">Cooked <span class="text-amber-500">Mains</span></span>
+          <span class="text-[9px] font-mono-code uppercase px-2 py-0.5 rounded bg-pink-500/10 text-pink-400 border border-pink-500/30">Instagram AI Growth Engine</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Meta Graph API Analytics • UPSC Virality Diagnostics • Audience Link Conversion</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2.5">
+      <a href="/static/social-ad-studio.html" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition flex items-center gap-1.5">
+        <i data-lucide="palette" class="w-3.5 h-3.5 text-amber-400"></i>
+        <span>Creative Ad Studio</span>
+      </a>
+      <button onclick="openConfigModal()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white shadow-lg shadow-pink-500/15 transition flex items-center gap-1.5">
+        <i data-lucide="key" class="w-3.5 h-3.5"></i>
+        <span id="connectBtnText">Connect Meta Graph API</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-8 space-y-6">
+
+    <!-- Hero Diagnostic Pitch -->
+    <div class="rounded-3xl bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border border-slate-800 p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
+      <div class="space-y-2 max-w-2xl">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/30 text-pink-400 text-xs font-mono-code font-bold">
+          <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span>
+          <span>OFFICIAL META GRAPH API INTEGRATION</span>
+        </div>
+        <h1 class="font-editorial text-3xl sm:text-4xl text-white">
+          Data-Driven Growth for <span class="text-amber-400 italic">Cooked Mains</span> on Instagram.
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+          In the UPSC niche, likes don't matter—<strong>Save Rate (bookmarks)</strong> and <strong>Study-Group Shares</strong> drive the algorithm. Connect your Meta API to get real-time post diagnostics, funnel tracking, and automated growth advice.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-2.5 w-full md:w-auto shrink-0">
+        <button onclick="refreshAnalytics()" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          <span>Run Live Account Diagnostic</span>
+        </button>
+        <button onclick="openConfigModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition flex items-center justify-center gap-2">
+          <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i>
+          <span>Setup / Update API Keys</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Performance Dashboard Grid -->
+    <div id="analyticsSection" class="space-y-6">
+      <!-- 4 Core Metric KPI Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1">
+          <div class="text-[10px] font-mono-code uppercase text-slate-400 font-bold flex items-center justify-between">
+            <span>AUDIENCE REACH</span>
+            <i data-lucide="users" class="w-3.5 h-3.5 text-sky-400"></i>
+          </div>
+          <div id="kpiReach" class="text-2xl font-extrabold font-mono-code text-white">--</div>
+          <div class="text-[10px] text-slate-400">Unique accounts reached</div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1">
+          <div class="text-[10px] font-mono-code uppercase text-slate-400 font-bold flex items-center justify-between">
+            <span>AVG SAVE RATE</span>
+            <i data-lucide="bookmark" class="w-3.5 h-3.5 text-amber-400"></i>
+          </div>
+          <div id="kpiSaveRate" class="text-2xl font-extrabold font-mono-code text-amber-400">--%</div>
+          <div class="text-[10px] text-slate-400">Benchmark: &gt; 3.0% = Viral UPSC Signal</div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1">
+          <div class="text-[10px] font-mono-code uppercase text-slate-400 font-bold flex items-center justify-between">
+            <span>AVG SHARE RATE</span>
+            <i data-lucide="send" class="w-3.5 h-3.5 text-emerald-400"></i>
+          </div>
+          <div id="kpiShareRate" class="text-2xl font-extrabold font-mono-code text-emerald-400">--%</div>
+          <div class="text-[10px] text-slate-400">Peer study-group circulation</div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1">
+          <div class="text-[10px] font-mono-code uppercase text-slate-400 font-bold flex items-center justify-between">
+            <span>BIO LINK CLICKS</span>
+            <i data-lucide="external-link" class="w-3.5 h-3.5 text-rose-400"></i>
+          </div>
+          <div id="kpiClicks" class="text-2xl font-extrabold font-mono-code text-rose-400">--</div>
+          <div class="text-[10px] text-slate-400">Conversions to cookedmains.com</div>
+        </div>
+      </div>
+
+      <!-- AI Action Plan & Recommendations Box -->
+      <div class="p-6 rounded-2xl bg-slate-900/95 border border-slate-800 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-xs font-mono-code uppercase font-bold text-amber-400 flex items-center gap-1.5">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            <span>AI Growth Diagnostic &amp; Action Plan</span>
+          </span>
+          <span id="diagnosticStatus" class="text-[10px] font-mono-code text-slate-400">Awaiting API Connection</span>
+        </div>
+        <div id="aiRecommendations" class="text-xs text-slate-300 space-y-2">
+          <p class="text-slate-400">Connect your Instagram account below to unlock automatic line-by-line post performance analysis, optimal posting times for UPSC aspirants (11 PM - 1 AM study sessions), and content suggestions.</p>
+        </div>
+      </div>
+
+      <!-- Recent Posts Audit Table -->
+      <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-extrabold text-white">Recent Posts &amp; Reels Performance</h2>
+          <span class="text-[10px] font-mono-code text-slate-400">Sorted by newest</span>
+        </div>
+        <div id="postsContainer" class="text-center py-8 text-xs text-slate-500">
+          No posts analyzed yet. Click <strong>"Connect Meta Graph API"</strong> or <strong>"Run Live Account Diagnostic"</strong>.
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Setup & Configuration Modal -->
+  <div id="configModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="max-w-xl w-full bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-5 shadow-2xl relative">
+      <button onclick="closeConfigModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="space-y-1">
+        <div class="text-[10px] font-mono-code uppercase text-pink-400 font-bold">API CONFIGURATION</div>
+        <h2 class="font-editorial text-2xl text-white">Connect Your Instagram Account</h2>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Follow the 3 quick steps below to generate your free Meta Graph API credentials:
+        </p>
+      </div>
+
+      <!-- Step by Step Guide -->
+      <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2.5 text-xs">
+        <div class="flex items-start gap-2">
+          <span class="w-5 h-5 rounded-full bg-amber-500 text-slate-950 font-mono-code text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+          <div>
+            <strong class="text-white">Professional Account:</strong> Ensure your Instagram account is switched to <em>Creator</em> or <em>Business</em> and connected to a Facebook Page.
+          </div>
+        </div>
+        <div class="flex items-start gap-2">
+          <span class="w-5 h-5 rounded-full bg-amber-500 text-slate-950 font-mono-code text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+          <div>
+            <strong class="text-white">Meta Developers:</strong> Visit <a href="https://developers.facebook.com" target="_blank" class="text-pink-400 underline font-semibold">developers.facebook.com</a> → Create an App (Type: <em>Business</em>).
+          </div>
+        </div>
+        <div class="flex items-start gap-2">
+          <span class="w-5 h-5 rounded-full bg-amber-500 text-slate-950 font-mono-code text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+          <div>
+            <strong class="text-white">Graph API Explorer:</strong> Go to Tools → <em>Graph API Explorer</em>. Select permissions: <code class="bg-slate-950 text-amber-300 px-1 rounded">instagram_basic</code>, <code class="bg-slate-950 text-amber-300 px-1 rounded">instagram_manage_insights</code>. Generate Token.
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Form -->
+      <div class="space-y-3.5">
+        <div>
+          <label class="block text-[11px] font-mono-code text-slate-300 uppercase font-bold mb-1">
+            Instagram Business Account ID
+          </label>
+          <input type="text" id="inputAccountId" placeholder="e.g. 17841400123456789" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-pink-500 font-mono-code" />
+          <span class="text-[10px] text-slate-500 mt-0.5 block">Found by querying <code class="text-slate-400">me/accounts?fields=instagram_business_account</code> in Graph Explorer.</span>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-mono-code text-slate-300 uppercase font-bold mb-1">
+            Page / Instagram Access Token
+          </label>
+          <textarea id="inputToken" rows="3" placeholder="EAAB..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-pink-500 font-mono-code"></textarea>
+          <span class="text-[10px] text-slate-500 mt-0.5 block">Stored securely in your local <code class="text-slate-400">.env</code> file. Never shared.</span>
+        </div>
+      </div>
+
+      <div id="modalStatus" class="hidden text-xs p-3 rounded-xl"></div>
+
+      <div class="flex items-center justify-end gap-2.5 pt-2">
+        <button onclick="closeConfigModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white">Cancel</button>
+        <button onclick="submitConfig()" id="saveConfigBtn" class="px-5 py-2.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 text-white shadow-lg shadow-pink-500/20">
+          Save &amp; Test Connection
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function openConfigModal() {
+      document.getElementById('configModal').classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('configModal').classList.add('hidden');
+    }
+
+    async function submitConfig() {
+      const accountId = document.getElementById('inputAccountId').value.trim();
+      const token = document.getElementById('inputToken').value.trim();
+      const statusBox = document.getElementById('modalStatus');
+      const btn = document.getElementById('saveConfigBtn');
+
+      if (!accountId || !token) {
+        statusBox.className = 'text-xs p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300';
+        statusBox.textContent = 'Please enter both the Instagram Account ID and the Access Token.';
+        statusBox.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Testing connection...';
+
+      try {
+        const res = await fetch('/api/instagram/configure', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ account_id: accountId, access_token: token })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.status === 'success') {
+          statusBox.className = 'text-xs p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300';
+          statusBox.textContent = `Connected! Verified Instagram account: @${data.account.username || accountId}`;
+          statusBox.classList.remove('hidden');
+          document.getElementById('connectBtnText').textContent = `Connected: @${data.account.username || 'Active'}`;
+          setTimeout(() => {
+            closeConfigModal();
+            refreshAnalytics();
+          }, 1200);
+        } else {
+          statusBox.className = 'text-xs p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300';
+          statusBox.textContent = data.detail || 'Connection test failed. Please verify token permissions.';
+          statusBox.classList.remove('hidden');
+        }
+      } catch (err) {
+        statusBox.className = 'text-xs p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300';
+        statusBox.textContent = 'Server error: ' + err.message;
+        statusBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save & Test Connection';
+      }
+    }
+
+    async function refreshAnalytics() {
+      const diagStatus = document.getElementById('diagnosticStatus');
+      diagStatus.textContent = 'Analyzing live metrics...';
+
+      try {
+        const res = await fetch('/api/instagram/analytics');
+        const data = await res.json();
+
+        if (data.error) {
+          diagStatus.textContent = 'API Not Configured';
+          openConfigModal();
+          return;
+        }
+
+        diagStatus.textContent = 'Live Synced';
+
+        // Update KPIs
+        const metrics = data.summary_metrics || {};
+        document.getElementById('kpiReach').textContent = (metrics.total_reach_analyzed || 0).toLocaleString();
+        document.getElementById('kpiSaveRate').textContent = (metrics.avg_save_rate_pct || 0) + '%';
+        document.getElementById('kpiShareRate').textContent = (metrics.avg_share_rate_pct || 0) + '%';
+        document.getElementById('kpiClicks').textContent = (metrics.total_saves || 0).toLocaleString();
+
+        // Update AI Recommendations
+        const recsBox = document.getElementById('aiRecommendations');
+        const recs = data.actionable_recommendations || [];
+        if (recs.length > 0) {
+          recsBox.innerHTML = recs.map(r => `
+            <div class="flex items-start gap-2 bg-slate-950 p-3 rounded-xl border border-slate-800">
+              <span class="text-amber-400 font-bold">💡</span>
+              <span class="text-slate-200">${r}</span>
+            </div>
+          `).join('');
+        }
+
+        // Render Posts
+        const postsContainer = document.getElementById('postsContainer');
+        const posts = data.recent_posts || [];
+        if (posts.length > 0) {
+          postsContainer.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              ${posts.map(p => `
+                <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-left">
+                  <div class="flex items-center justify-between">
+                    <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[9px] font-mono-code font-bold uppercase">${p.media_product_type || p.media_type}</span>
+                    <span class="text-[9px] font-mono-code ${p.kpis.save_rate_pct >= 3 ? 'text-emerald-400' : 'text-amber-400'} font-bold">${p.kpis.status}</span>
+                  </div>
+                  <p class="text-xs text-slate-300 line-clamp-2">${p.caption || 'No caption'}</p>
+                  <div class="grid grid-cols-4 gap-2 pt-2 border-t border-slate-800 text-[10px] font-mono-code">
+                    <div><span class="text-slate-500">Reach:</span> <strong class="text-white">${p.kpis.reach}</strong></div>
+                    <div><span class="text-slate-500">Saves:</span> <strong class="text-amber-400">${p.kpis.saved}</strong></div>
+                    <div><span class="text-slate-500">Shares:</span> <strong class="text-emerald-400">${p.kpis.shares}</strong></div>
+                    <div><span class="text-slate-500">Save%:</span> <strong class="text-pink-400">${p.kpis.save_rate_pct}%</strong></div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+      } catch (e) {
+        diagStatus.textContent = 'Fetch failed: ' + e.message;
+      }
+    }
+  </script>
+</body>
+</html>

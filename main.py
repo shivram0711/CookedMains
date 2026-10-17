@@ -1785,6 +1785,7 @@ def is_page_image_completely_blank(img: Any) -> bool:
 
 @app.post("/api/evaluate")
 async def evaluate_answer(
+    background_tasks: BackgroundTasks,
     question: str = Form(...),
     paper: str = Form("GS2"),
     max_marks: int = Form(10),
@@ -1799,6 +1800,7 @@ async def evaluate_answer(
     baseline_marks: Optional[int] = Form(None),
     baseline_evaluation_json: Optional[str] = Form(None),
     allow_auto_aligned: bool = Form(False),
+    page_range: Optional[str] = Form(None),
     files: List[UploadFile] = File(None)
 ):
     """
@@ -1898,6 +1900,83 @@ async def evaluate_answer(
 
         if not primary_content:
             raise HTTPException(status_code=400, detail="Please upload at least one handwritten answer image/page or select a sample copy.")
+
+        # DEDICATED ESSAY LONG-DOCUMENT PIPELINE BIFURCATION
+        # Completely eliminates the 80s server timeout by routing long essay booklets to batched background execution
+        is_essay_submission = (paper.strip().upper() == "ESSAY" or max_marks == 125)
+        if is_essay_submission and primary_content and not sample_id:
+            from essay_pipeline import ingest_essay_pdf, ingest_essay_images, execute_essay_pipeline_background
+            from storage import create_essay_job
+
+            eff_email = (user_email or "guest@cookedmains.in").strip().lower()
+
+            # Quota check
+            if user_email:
+                user = get_or_create_user(eff_email)
+                quota = get_user_daily_quota(eff_email)
+                if quota.get("daily_eval_remaining", 1) <= 0:
+                    return JSONResponse(
+                        status_code=429,
+                        content={
+                            "status": "quota_exhausted",
+                            "error_type": "daily_eval_quota_exhausted",
+                            "title": "Daily Free Evaluation Limit Reached (15 of 15 Copies Used Today)",
+                            "message": "You have utilized all free evaluations for today. Your daily allowance resets at midnight IST.",
+                            "credits_deducted": 0
+                        }
+                    )
+
+            if is_pdf:
+                ingest_res = ingest_essay_pdf(primary_content, page_range=page_range)
+            else:
+                raw_imgs = [primary_content]
+                if files and len(files) > 1:
+                    for f in files[1:]:
+                        ib = await f.read()
+                        if ib: raw_imgs.append(ib)
+                ingest_res = ingest_essay_images(raw_imgs, page_range=page_range)
+
+            p_data = ingest_res.get("pages") or []
+            if not p_data:
+                raise HTTPException(status_code=400, detail="No readable pages found in uploaded essay booklet.")
+
+            t_pdf_pages = ingest_res.get("total_pdf_pages", len(p_data))
+            sel_pages = ingest_res.get("selected_pages", [p["original_page_number"] for p in p_data])
+            prevs = ingest_res.get("previews_list") or [p["preview_b64"] for p in p_data]
+
+            job_id = f"essay_job_{int(time.time())}_{uuid.uuid4().hex[:6]}"
+            create_essay_job(
+                job_id=job_id,
+                user_email=eff_email,
+                question=question,
+                paper="Essay",
+                max_marks=125,
+                medium=medium or "english",
+                total_pages=t_pdf_pages,
+                page_range=page_range or f"1-{t_pdf_pages}",
+                selected_pages=sel_pages,
+                batch_size=3,
+                pages_previews=prevs
+            )
+
+            background_tasks.add_task(
+                execute_essay_pipeline_background,
+                job_id=job_id,
+                pages_data=p_data,
+                api_key=api_key
+            )
+
+            return {
+                "is_async_job": True,
+                "job_id": job_id,
+                "status": "processing",
+                "paper": "Essay",
+                "max_marks": 125,
+                "total_pages": len(p_data),
+                "selected_pages": sel_pages,
+                "page_range": page_range or f"1-{t_pdf_pages}",
+                "message": f"Essay evaluation queued ({len(p_data)} pages). Processing in background..."
+            }
 
         # Temporary feature flag: Rewrite & Re-evaluation disabled while refining core evaluation
         ENABLE_REWRITE_FEATURE = False
@@ -2764,10 +2843,211 @@ async def get_test_series(test_id: str):
         raise HTTPException(status_code=404, detail="Test series not found.")
     return res
 
-@app.get("/api/user/test-series")
-async def list_user_test_series(email: str = "aspirant@upsc.gov.in"):
-    """Returns past test series evaluated for the user."""
-    return get_user_test_series(email)
+# -------------------------------------------------------------------------
+# DEDICATED ASYNC LONG-DOCUMENT ESSAY EVALUATION ENDPOINTS
+# -------------------------------------------------------------------------
+
+@app.post("/api/essay/evaluate")
+async def evaluate_essay_async(
+    background_tasks: BackgroundTasks,
+    question: str = Form(...),
+    paper: str = Form("Essay"),
+    max_marks: int = Form(125),
+    medium: Optional[str] = Form("english"),
+    page_range: Optional[str] = Form(None),
+    user_email: Optional[str] = Form(None),
+    api_key: Optional[str] = Form(None),
+    files: List[UploadFile] = File(...)
+):
+    """
+    Accepts long essay booklets (PDF or images), splits into batched pages,
+    creates a resumable background evaluation job, and starts execution.
+    """
+    if not files or len(files) == 0 or files[0].filename == "":
+        raise HTTPException(status_code=400, detail="Please upload an essay answer booklet (PDF or image scans).")
+
+    eff_email = (user_email or "guest@cookedmains.in").strip().lower()
+
+    # Quota check
+    if user_email:
+        user = get_or_create_user(eff_email)
+        quota = get_user_daily_quota(eff_email)
+        if quota.get("daily_eval_remaining", 1) <= 0:
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "status": "quota_exhausted",
+                    "error_type": "daily_eval_quota_exhausted",
+                    "title": "Daily Free Evaluation Limit Reached (15 of 15 Copies Used Today)",
+                    "message": "You have utilized all free evaluations for today. Your daily allowance resets at midnight IST.",
+                    "credits_deducted": 0
+                }
+            )
+
+    # Ingest files
+    first_file = files[0]
+    content = await first_file.read()
+    filename = (first_file.filename or "").lower()
+    ctype = (first_file.content_type or "").lower()
+
+    is_pdf = filename.endswith(".pdf") or "pdf" in ctype or content[:4] == b"%PDF"
+
+    from essay_pipeline import ingest_essay_pdf, ingest_essay_images, execute_essay_pipeline_background
+
+    if is_pdf:
+        try:
+            ingest_result = ingest_essay_pdf(content, page_range=page_range)
+        except Exception as pe:
+            raise HTTPException(status_code=400, detail=f"Failed to process essay PDF: {str(pe)}")
+    else:
+        # Multi-image list
+        images_bytes = [content]
+        for f in files[1:]:
+            b = await f.read()
+            if b:
+                images_bytes.append(b)
+        try:
+            ingest_result = ingest_essay_images(images_bytes, page_range=page_range)
+        except Exception as ie:
+            raise HTTPException(status_code=400, detail=f"Failed to process essay images: {str(ie)}")
+
+    pages_data = ingest_result.get("pages") or []
+    if not pages_data:
+        raise HTTPException(status_code=400, detail="No readable pages found in uploaded booklet.")
+
+    total_pdf_pages = ingest_result.get("total_pdf_pages", len(pages_data))
+    selected_pages = ingest_result.get("selected_pages", [p["original_page_number"] for p in pages_data])
+    previews = ingest_result.get("previews_list") or [p["preview_b64"] for p in pages_data]
+
+    job_id = f"essay_job_{int(time.time())}_{uuid.uuid4().hex[:6]}"
+
+    from storage import create_essay_job
+    job_record = create_essay_job(
+        job_id=job_id,
+        user_email=eff_email,
+        question=question,
+        paper="Essay",
+        max_marks=max_marks or 125,
+        medium=medium or "english",
+        total_pages=total_pdf_pages,
+        page_range=page_range or f"1-{total_pdf_pages}",
+        selected_pages=selected_pages,
+        batch_size=3,
+        pages_previews=previews
+    )
+
+    background_tasks.add_task(
+        execute_essay_pipeline_background,
+        job_id=job_id,
+        pages_data=pages_data,
+        api_key=api_key
+    )
+
+    return {
+        "status": "processing",
+        "job_id": job_id,
+        "total_pdf_pages": total_pdf_pages,
+        "selected_pages_count": len(pages_data),
+        "selected_pages": selected_pages,
+        "page_range": page_range or f"1-{total_pdf_pages}",
+        "message": f"Successfully queued {len(pages_data)} pages for essay evaluation."
+    }
+
+
+@app.get("/api/essay/status/{job_id}")
+async def get_essay_status(job_id: str):
+    """
+    Returns live progress, checkpoint status, and final evaluation result.
+    """
+    from storage import get_essay_job
+    job = get_essay_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Essay job not found.")
+
+    status = job.get("status")
+    result_data = job.get("result")
+    previews = job.get("pages") or []
+
+    resp = {
+        "job_id": job_id,
+        "status": status,
+        "progress_pct": job.get("progress_pct", 0),
+        "progress_message": job.get("progress_message", "Processing..."),
+        "total_pages": job.get("total_pages", 0),
+        "selected_pages": job.get("selected_pages") or [],
+        "page_range": job.get("page_range"),
+        "error_message": job.get("error_message"),
+        "eval_id": job.get("eval_id")
+    }
+
+    if status == "completed" and result_data:
+        resp["result"] = {
+            "source": "live_essay_pipeline",
+            "eval_id": job.get("eval_id"),
+            "paper": "Essay",
+            "detected_paper": "Essay",
+            "detected_paper_display": "UPSC Essay Paper (125 Marks)",
+            "max_marks": job.get("max_marks", 125),
+            "question": job.get("question"),
+            "detected_question": result_data.get("detected_question") or job.get("question"),
+            "evaluation": result_data,
+            "pages": previews,
+            "is_rewrite": False
+        }
+
+    return resp
+
+
+@app.post("/api/essay/retry/{job_id}")
+async def retry_essay_evaluation(
+    background_tasks: BackgroundTasks,
+    job_id: str,
+    api_key: Optional[str] = Form(None)
+):
+    """
+    Resumes an interrupted or failed essay job from its latest saved checkpoints.
+    Idempotent: completed batches are not repeated.
+    """
+    from storage import get_essay_job, update_essay_job_progress
+    job = get_essay_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Essay job not found.")
+
+    if job.get("status") == "completed":
+        return {"status": "completed", "message": "Job is already completed.", "eval_id": job.get("eval_id")}
+
+    update_essay_job_progress(job_id, job.get("progress_pct", 10), "Resuming evaluation from saved checkpoint...", status="processing")
+
+    previews = job.get("pages") or []
+    selected_pages = job.get("selected_pages") or list(range(1, len(previews) + 1))
+
+    # Reconstruct pages_data from previews
+    pages_data = []
+    for idx, p_num in enumerate(selected_pages):
+        prev_b64 = previews[idx] if idx < len(previews) else ""
+        raw_b = b""
+        if prev_b64 and "," in prev_b64:
+            try:
+                raw_b = base64.b64decode(prev_b64.split(",", 1)[1])
+            except Exception:
+                raw_b = b""
+        pages_data.append({
+            "original_page_number": p_num,
+            "page_index": idx,
+            "preview_b64": prev_b64,
+            "analysis_bytes": raw_b
+        })
+
+    from essay_pipeline import execute_essay_pipeline_background
+    background_tasks.add_task(
+        execute_essay_pipeline_background,
+        job_id=job_id,
+        pages_data=pages_data,
+        api_key=api_key
+    )
+
+    return {"status": "processing", "job_id": job_id, "message": "Essay evaluation resumed from checkpoint."}
+
 
 if __name__ == "__main__":
     import uvicorn
