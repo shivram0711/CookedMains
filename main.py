@@ -1955,7 +1955,7 @@ async def evaluate_answer(
                 total_pages=t_pdf_pages,
                 page_range=page_range or f"1-{t_pdf_pages}",
                 selected_pages=sel_pages,
-                batch_size=3,
+                batch_size=2,
                 pages_previews=prevs
             )
 
@@ -2932,7 +2932,7 @@ async def evaluate_essay_async(
         total_pages=total_pdf_pages,
         page_range=page_range or f"1-{total_pdf_pages}",
         selected_pages=selected_pages,
-        batch_size=3,
+        batch_size=2,
         pages_previews=previews
     )
 

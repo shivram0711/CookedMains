@@ -10448,7 +10448,7 @@ window.pollEssayJob = async function(jobId) {
 
   let consecutiveErrors = 0;
   let autoResumeAttempts = 0;
-  const MAX_AUTO_RESUME = 2;
+  const MAX_AUTO_RESUME = 3;
   while (true) {
     try {
       const resp = await fetch(`/api/essay/status/${jobId}`);
@@ -10530,14 +10530,14 @@ window.pollEssayJob = async function(jobId) {
         await refreshLockerBadge();
         return data;
       } else if (job.status === "failed") {
-        const errMsg = job.error || "Essay evaluation failed during processing.";
+        const errMsg = job.error_message || job.error || "Essay evaluation failed during processing.";
 
         if (autoResumeAttempts < MAX_AUTO_RESUME) {
           autoResumeAttempts++;
           console.warn(`[Essay Pipeline] Transient pause detected (${errMsg}). Auto-resuming from checkpoint (attempt ${autoResumeAttempts}/${MAX_AUTO_RESUME})...`);
           updateUIProgress(job.progress_pct || 60, "Optimizing connection & resuming evaluation...");
           try {
-            await new Promise(r => setTimeout(r, 2000));
+            await new Promise(r => setTimeout(r, 2500));
             const retryResp = await fetch(`/api/essay/retry/${jobId}`, { method: "POST" });
             const retryData = await retryResp.json();
             if (retryResp.ok && retryData.job_id) {
@@ -10561,12 +10561,15 @@ window.pollEssayJob = async function(jobId) {
             cancelText: "Dismiss",
             onConfirm: () => {
               window.retryEssayJob(jobId);
+            },
+            onCancel: () => {
+              localStorage.removeItem("active_essay_job_id");
             }
           });
         } else {
           alert(`Essay Evaluation Interrupted: ${errMsg}`);
         }
-        throw new Error(errMsg);
+        return null;
       }
     } catch (pollErr) {
       if (pollErr.message && pollErr.message.includes("Evaluation stopped:")) {

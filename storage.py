@@ -4052,7 +4052,7 @@ def create_essay_job(
     total_pages: int = 0,
     page_range: Optional[str] = None,
     selected_pages: Optional[List[int]] = None,
-    batch_size: int = 3,
+    batch_size: int = 2,
     pages_previews: Optional[List[str]] = None
 ) -> Dict[str, Any]:
     conn = get_db()
@@ -4114,11 +4114,18 @@ def update_essay_job_progress(
     conn = get_db()
     cursor = conn.cursor()
     if current_batch_index is not None and status is not None:
-        cursor.execute("""
-            UPDATE essay_jobs
-            SET progress_pct = ?, progress_message = ?, current_batch_index = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-        """, (progress_pct, progress_message, current_batch_index, status, job_id))
+        if status == 'processing':
+            cursor.execute("""
+                UPDATE essay_jobs
+                SET progress_pct = ?, progress_message = ?, current_batch_index = ?, status = ?, error_message = NULL, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """, (progress_pct, progress_message, current_batch_index, status, job_id))
+        else:
+            cursor.execute("""
+                UPDATE essay_jobs
+                SET progress_pct = ?, progress_message = ?, current_batch_index = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """, (progress_pct, progress_message, current_batch_index, status, job_id))
     elif current_batch_index is not None:
         cursor.execute("""
             UPDATE essay_jobs
@@ -4126,11 +4133,18 @@ def update_essay_job_progress(
             WHERE id = ?
         """, (progress_pct, progress_message, current_batch_index, job_id))
     elif status is not None:
-        cursor.execute("""
-            UPDATE essay_jobs
-            SET progress_pct = ?, progress_message = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-        """, (progress_pct, progress_message, status, job_id))
+        if status == 'processing':
+            cursor.execute("""
+                UPDATE essay_jobs
+                SET progress_pct = ?, progress_message = ?, status = ?, error_message = NULL, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """, (progress_pct, progress_message, status, job_id))
+        else:
+            cursor.execute("""
+                UPDATE essay_jobs
+                SET progress_pct = ?, progress_message = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """, (progress_pct, progress_message, status, job_id))
     else:
         cursor.execute("""
             UPDATE essay_jobs
@@ -4158,7 +4172,7 @@ def save_essay_job_checkpoint(
     cursor = conn.cursor()
     cursor.execute("""
         UPDATE essay_jobs
-        SET checkpoints_json = ?, current_batch_index = ?, progress_pct = ?, progress_message = ?, status = 'processing', updated_at = CURRENT_TIMESTAMP
+        SET checkpoints_json = ?, current_batch_index = ?, progress_pct = ?, progress_message = ?, status = 'processing', error_message = NULL, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
     """, (json.dumps(existing_checkpoints), current_batch_index, progress_pct, progress_message, job_id))
     conn.commit()
@@ -4177,13 +4191,13 @@ def complete_essay_job(
     if question:
         cursor.execute("""
             UPDATE essay_jobs
-            SET result_json = ?, eval_id = ?, question = ?, status = 'completed', progress_pct = 100, progress_message = 'Essay evaluation complete!', completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+            SET result_json = ?, eval_id = ?, question = ?, status = 'completed', progress_pct = 100, progress_message = 'Essay evaluation complete!', error_message = NULL, completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         """, (json.dumps(result_dict), eval_id, question, job_id))
     else:
         cursor.execute("""
             UPDATE essay_jobs
-            SET result_json = ?, eval_id = ?, status = 'completed', progress_pct = 100, progress_message = 'Essay evaluation complete!', completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+            SET result_json = ?, eval_id = ?, status = 'completed', progress_pct = 100, progress_message = 'Essay evaluation complete!', error_message = NULL, completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         """, (json.dumps(result_dict), eval_id, job_id))
     conn.commit()

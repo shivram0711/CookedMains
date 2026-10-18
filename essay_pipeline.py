@@ -216,7 +216,7 @@ async def analyze_page_batch(
         raise RuntimeError("No active Gemini API key configured.")
 
     if timeout_seconds is None:
-        timeout_seconds = max(75, len(batch_pages) * 45)
+        timeout_seconds = max(90, len(batch_pages) * 60)
 
     page_nums = [p["original_page_number"] for p in batch_pages]
     is_hindi = (medium or "").lower() == "hindi" or bool(re.search(r'[\u0900-\u097F]', topic or ""))
@@ -268,7 +268,19 @@ OUTPUT STRICT JSON WITH THIS SCHEMA:
 
     multimodal_parts = []
     for p in batch_pages:
-        multimodal_parts.append(types.Part.from_bytes(data=p["analysis_bytes"], mime_type="image/jpeg"))
+        raw_bytes = p.get("analysis_bytes")
+        if not raw_bytes or len(raw_bytes) < 10:
+            prev = p.get("preview_b64", "")
+            if prev and "," in prev:
+                try:
+                    raw_bytes = base64.b64decode(prev.split(",", 1)[1])
+                except Exception:
+                    raw_bytes = b""
+        if raw_bytes and len(raw_bytes) >= 10:
+            multimodal_parts.append(types.Part.from_bytes(data=raw_bytes, mime_type="image/jpeg"))
+
+    if not multimodal_parts:
+        raise ValueError(f"No valid image bytes available for batch pages {page_nums}")
 
     contents_payload = multimodal_parts + [prompt]
 
@@ -290,7 +302,7 @@ OUTPUT STRICT JSON WITH THIS SCHEMA:
             last_err = ce
             continue
 
-        models = get_active_gemini_models(client)[:4]
+        models = get_active_gemini_models(client)[:6]
         for model_name in models:
             if time.time() - batch_start > timeout_seconds:
                 break
@@ -301,7 +313,7 @@ OUTPUT STRICT JSON WITH THIS SCHEMA:
                     model=model_name,
                     contents=contents_payload,
                     config=gen_config,
-                    max_retries=2
+                    max_retries=3
                 )
                 if response and response.text:
                     parsed = parse_llm_json_response(response.text)
@@ -963,18 +975,19 @@ async def execute_essay_pipeline_background(
                 if curr_batch_size > 1:
                     print(f"[ESSAY WORKER] Reducing batch size from {curr_batch_size} to 1 and retrying Page {first_p}...")
                     curr_batch_size = 1
-                    await asyncio.sleep(1.0)
+                    await asyncio.sleep(2.0)
                     continue
                 else:
                     single_page_retries += 1
-                    if single_page_retries <= 3:
-                        wait_delay = 2.0 * single_page_retries
-                        print(f"[ESSAY WORKER] Transient latency/rate-limit on Page {first_p}. Auto-retrying {single_page_retries}/3 in {wait_delay}s...")
-                        update_essay_job_progress(job_id, progress_pct, f"Retrying Page {first_p} (attempt {single_page_retries}/3)...", current_batch_index=idx, status="processing")
+                    max_single_retries = 6
+                    if single_page_retries <= max_single_retries:
+                        wait_delay = min(30.0, 3.0 * (1.6 ** (single_page_retries - 1)))
+                        print(f"[ESSAY WORKER] Transient latency/rate-limit on Page {first_p}. Auto-retrying {single_page_retries}/{max_single_retries} in {wait_delay:.1f}s...")
+                        update_essay_job_progress(job_id, progress_pct, f"Rate-limit resilience: Retrying Page {first_p} in {int(wait_delay)}s (attempt {single_page_retries}/{max_single_retries})...", current_batch_index=idx, status="processing")
                         await asyncio.sleep(wait_delay)
                         continue
                     else:
-                        fail_essay_job(job_id, f"Failed while reading Page {first_p} after 3 retries: {str(batch_err)}")
+                        fail_essay_job(job_id, f"Failed while reading Page {first_p} after {max_single_retries} retries: {str(batch_err)}")
                         return
 
     # Reload all checkpoints and build verifiable page ledger
@@ -1040,7 +1053,7 @@ async def execute_essay_pipeline_background(
     update_essay_job_progress(job_id, 86, "Synthesizing whole-essay feedback...", status="processing")
     eval_result = None
     synth_last_err = None
-    for synth_attempt in range(1, 3):
+    for synth_attempt in range(1, 4):
         try:
             eval_result = await evaluate_whole_essay(
                 topic=topic,
@@ -1054,8 +1067,8 @@ async def execute_essay_pipeline_background(
         except Exception as synth_err:
             synth_last_err = synth_err
             print(f"[ESSAY WORKER] Whole-essay synthesis attempt {synth_attempt} error: {synth_err}")
-            if synth_attempt < 2:
-                await asyncio.sleep(2.0)
+            if synth_attempt < 3:
+                await asyncio.sleep(3.0 * synth_attempt)
 
     if not eval_result:
         fail_essay_job(job_id, f"Synthesis error: {str(synth_last_err)}")
