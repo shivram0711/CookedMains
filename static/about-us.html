@@ -41,21 +41,22 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css?v=20261002_v10">
+  <link rel="stylesheet" href="/static/home-cinematic.css">
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-amber-500 selection:text-white transition-colors duration-200">
+<body class="bg-slate-50 dark:bg-[#07090E] text-slate-900 dark:text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-amber-500 selection:text-white transition-colors duration-200">
 
   <!-- Navigation Header -->
-  <header class="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md">
+  <header class="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-[#07090E]/90 backdrop-blur-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
       <div class="flex items-center space-x-3 shrink-0">
         <a href="/" class="flex items-center gap-2.5 group shrink-0 py-1" title="Cooked Mains — Home">
           <img src="/static/brand_logo_dark.png" alt="Cooked Mains Logo" class="brand-logo-dark h-10 sm:h-12 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
           <img src="/static/brand_logo_light.png" alt="Cooked Mains Logo" class="brand-logo-light h-10 sm:h-12 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
           <div class="flex flex-col justify-center">
-            <span class="text-sm sm:text-base md:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+            <span class="text-sm sm:text-base md:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight font-serif">
               Cooked <span class="text-amber-500">Mains</span>
             </span>
-            <span class="text-[9px] sm:text-[10px] font-bold tracking-wider text-amber-600 dark:text-amber-400 uppercase leading-none mt-0.5">
+            <span class="text-[9px] sm:text-[10px] font-bold tracking-wider text-amber-600 dark:text-amber-400 uppercase leading-none mt-0.5 font-mono">
               Let Me Cook
             </span>
           </div>
@@ -87,100 +88,122 @@
   <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-12">
     
     <!-- Hero Pitch -->
-    <div class="text-center space-y-4 max-w-3xl mx-auto">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-semibold">
-        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-        <span>Our Mission &amp; Purpose</span>
+    <div class="cinematic-page-hero text-center space-y-4 max-w-3xl mx-auto">
+      <div class="cinematic-eyebrow inline-flex">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping shrink-0"></span>
+        <span>Our Mission • Democratizing UPSC Answer Evaluation</span>
       </div>
       <h1 class="text-3xl sm:text-5xl font-extrabold text-slate-950 dark:text-white font-serif tracking-tight leading-tight">
-        Democratizing UPSC Mains Answer Evaluation for Every Aspirant
+        Ending the 14-Day Coaching Black Hole &amp; ₹50,000 Monopoly
       </h1>
-      <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
-        Cooked Mains was born out of a stark realization: the biggest barrier to clearing the UPSC Civil Services Examination is not access to study material, but the lack of fast, honest, and affordable answer evaluation.
+      <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed font-sans max-w-2xl mx-auto">
+        In 2026, an aspirant writing answers in a remote village deserves the exact same rigorous, line-by-line examiner critiques as someone paying lakhs in Old Rajinder Nagar. Cooked Mains was built to make that a reality — 100% free, daily.
       </p>
+
+      <!-- Trust Ribbon Pills -->
+      <div class="pt-3 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+        <span class="cinematic-stat-pill">
+          <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-500"></i>
+          <span>15 Free Copies Daily</span>
+        </span>
+        <span class="cinematic-stat-pill">
+          <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i>
+          <span>Sub-60s Turnaround</span>
+        </span>
+        <span class="cinematic-stat-pill">
+          <i data-lucide="award" class="w-3.5 h-3.5 text-amber-500"></i>
+          <span>Official 5-Dimension Rubrics</span>
+        </span>
+        <span class="cinematic-stat-pill">
+          <i data-lucide="book-open" class="w-3.5 h-3.5 text-sky-500"></i>
+          <span>12-Page Essays Supported</span>
+        </span>
+      </div>
     </div>
 
     <!-- The Problem We Saw vs The Solution We Built -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="p-6 sm:p-8 rounded-3xl bg-rose-500/5 border border-rose-500/20 space-y-4">
-        <div class="w-10 h-10 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold">
+      <!-- Old Coaching Monopoly -->
+      <div class="cinematic-glass-card p-6 sm:p-8 space-y-4 border-rose-500/25 dark:border-rose-500/20 bg-rose-500/5">
+        <div class="w-10 h-10 rounded-2xl bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold">
           <i data-lucide="alert-triangle" class="w-5 h-5"></i>
         </div>
         <h2 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 font-serif">The Old Coaching Monopoly</h2>
         <ul class="space-y-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed list-disc list-inside">
-          <li><strong>Exorbitant Costs:</strong> Mains test series routinely cost between ₹25,000 and ₹60,000, shutting out deserving self-study aspirants.</li>
-          <li><strong>10-14 Day Delays:</strong> By the time a student gets their copy back, they have already moved on to other subjects, ruining feedback loops.</li>
-          <li><strong>Generic Feedback:</strong> Clichéd remarks like "Improve handwriting" or "Read more current affairs" provide zero actionable insight.</li>
-          <li><strong>Inflated Grades:</strong> Artificial high scores that breed dangerous complacency before actual exam day.</li>
+          <li><strong>Exorbitant Costs:</strong> Mains test series routinely charge ₹25,000 to ₹60,000, excluding self-study candidates who cannot afford Delhi rents or costly institutes.</li>
+          <li><strong>14-Day Evaluation Delays:</strong> By the time a student gets their evaluated copy back, their thought process has shifted to another paper, ruining the critical feedback loop.</li>
+          <li><strong>Generic Clichés:</strong> Feedback reduced to rubber stamps like "Improve handwriting" or "Read more current affairs" without line-by-line diagnostic accountability.</li>
+          <li><strong>Inflated Complacency:</strong> Handing out fake 5.5/10 scores on mediocre answers creates dangerous overconfidence that breaks on actual exam day.</li>
         </ul>
       </div>
 
-      <div class="p-6 sm:p-8 rounded-3xl bg-emerald-500/5 border border-emerald-500/20 space-y-4">
-        <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+      <!-- The Cooked Mains Standard -->
+      <div class="cinematic-glass-card p-6 sm:p-8 space-y-4 border-emerald-500/30 dark:border-emerald-500/25 bg-emerald-500/5">
+        <div class="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
           <i data-lucide="check-circle-2" class="w-5 h-5"></i>
         </div>
         <h2 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 font-serif">The Cooked Mains Standard</h2>
         <ul class="space-y-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed list-disc list-inside">
-          <li><strong>100% Free Daily Access:</strong> 15 free evaluations every single day for all aspirants across India.</li>
-          <li><strong>Sub-30-Second Turnaround:</strong> Powered by cutting-edge Google Gemini 2.0 Multimodal Vision calibrated to UPSC examiner rubrics.</li>
-          <li><strong>Authentic Red-Pen Annotations:</strong> Line-by-line margin feedback directly on your handwritten answer script.</li>
-          <li><strong>Strict UPSC Bell Curve:</strong> Realistic scoring that holds you to ranker benchmarks and highlights missing dimensions.</li>
+          <li><strong>100% Free Daily Access:</strong> 15 free evaluations available every single day for every serious aspirant across the country.</li>
+          <li><strong>60-Second Forensic Turnaround:</strong> Powered by cutting-edge Multimodal Vision calibrated to senior UPSC faculty rubrics.</li>
+          <li><strong>Authentic Margin Notes:</strong> Line-by-line red-pen critiques directly beside your handwriting, showing exactly where marks were lost.</li>
+          <li><strong>Strict UPSC Bell Curve:</strong> Realistic marks calibrated to real cutoffs, complete with ranker model answers and revision prescriptions.</li>
         </ul>
       </div>
     </div>
 
     <!-- Core Values & Philosophy -->
-    <div class="p-6 sm:p-10 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+    <div class="cinematic-atlas-card p-6 sm:p-10 space-y-6">
       <div class="max-w-3xl space-y-2">
         <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white font-serif">
           Our Philosophy: "Let Me Cook"
         </h2>
         <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-          In Internet culture, "Let Him Cook" means giving someone the room, resources, and trust to show what they are capable of achieving. In the grueling marathon of UPSC CSE, self-study aspirants don't need spoon-feeding—they need an objective mirror that lets them practice relentlessly, experiment with answer structures, fail safely in mock drills, and reach top-score perfection.
+          In Internet culture, "Let Him Cook" means giving someone the trust, space, and tools to demonstrate what they are capable of achieving. In the grueling marathon of UPSC CSE, self-study aspirants don't need spoon-feeding or sugarcoated praise — they need an uncompromising, objective mirror that lets them practice relentlessly, dissect structural flaws, and reach rank-1 mastery.
         </p>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-2">
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-2">
+        <div class="directive-card-3d space-y-2">
           <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold text-xs">
             <i data-lucide="target" class="w-4 h-4"></i>
           </div>
-          <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">Zero-Hallucination OCR</h3>
+          <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 font-serif">Zero-Distortion Vision</h3>
           <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Trained on real exam handwriting, flowcharts, tables, and geopolitical maps without transcription distortions.
+            Trained on real exam cursive, speed-scrawls, micro-maps, Venn diagrams, and margin notes without OCR hallucinations.
           </p>
         </div>
 
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-2">
+        <div class="directive-card-3d space-y-2">
           <div class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center font-bold text-xs">
             <i data-lucide="award" class="w-4 h-4"></i>
           </div>
-          <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">6-Point Official Rubric</h3>
+          <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 font-serif">Official 5-Dimension Rubrics</h3>
           <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Rigorous evaluation across Directive Adherence, Structural Flow, Analytical Depth, Evidence, Visuals, and Time.
+            Audits your copy on Contextual Intro, Core Directive Fulfillment, Value Anchors, Presentation Schematics, and Forward Vision.
           </p>
         </div>
 
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-2">
+        <div class="directive-card-3d space-y-2">
           <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold text-xs">
             <i data-lucide="zap" class="w-4 h-4"></i>
           </div>
-          <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">Live Editorial Feeds</h3>
+          <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 font-serif">Daily Live Editorial Feeds</h3>
           <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Fresh daily practice challenges curated directly from The Hindu, Indian Express, and PIB with model answers.
+            Fresh daily practice challenges curated directly from The Hindu, Indian Express, and PIB with full syllabus mapping.
           </p>
         </div>
       </div>
     </div>
 
     <!-- Call to Action Banner -->
-    <div class="p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-amber-500/15 via-slate-100 to-amber-500/10 dark:from-amber-500/10 dark:via-slate-900 dark:to-amber-500/5 border border-amber-500/30 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
+    <div class="cinematic-glass-card p-6 sm:p-10 border-amber-500/35 bg-gradient-to-r from-amber-500/15 via-slate-100/50 to-amber-500/10 dark:from-amber-500/10 dark:via-slate-900/60 dark:to-amber-500/5 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
       <div class="space-y-1.5 text-left">
         <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-serif">
-          Join Thousands of Aspirants Transforming Their Mains Score
+          Join Thousands of Aspirants Transforming Their Mains Scores
         </h3>
         <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-          Upload your handwritten answer sheet right now and receive detailed faculty feedback in under 30 seconds.
+          Upload your handwritten answer sheet right now and receive detailed examiner feedback in under 60 seconds.
         </p>
       </div>
       <a href="/" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm shadow-md transition active:scale-95 flex items-center justify-center space-x-2 shrink-0">
