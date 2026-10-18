@@ -1,0 +1,7 @@
+{
+  "max_iterations": 10,
+  "test_command": "python -m unittest test_essay_regression.py test_essay_pipeline.py",
+  "task_file": ".planning/ACTIVE_TASK.md",
+  "auto_commit": false,
+  "sleep_between_iterations_seconds": 2
+}

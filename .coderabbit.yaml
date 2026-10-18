@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# CodeRabbit Configuration for CookedMains AI Evaluator
+
+language: "en-US"
+early_access: false
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  sequence_diagrams: true
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - "main"
+      - "master"
+
+  path_filters:
+    - "!*.db"
+    - "!*.sqlite3"
+    - "!*.png"
+    - "!*.jpg"
+    - "!*.jpeg"
+    - "!*.pdf"
+    - "!*.jsonl"
+    - "!*.txt"
+    - "!scratch/**"
+    - "!__pycache__/**"
+
+  path_instructions:
+    - path: "main.py"
+      instructions: |
+        CRITICAL REPO RULE: Under no circumstances alter or break Hindi or General Studies (GS1-GS4) evaluation processes. Ensure all changes to essay routes are strictly isolated. Verify all FastAPI routes validate input and use proper status codes.
+    - path: "evaluator_engine.py"
+      instructions: |
+        Preserve existing Gemini model outcome tracking, resilient rate-limit backoff logic, and prompt schemas for GS papers and Hindi evaluations.
+    - path: "essay_pipeline.py"
+      instructions: |
+        Verify that essay evaluation batch size stays <= 2, retry resilience handles transient 429 rate limits, checkpoints are saved idempotently, and original PDF page references are preserved.
+    - path: "storage.py"
+      instructions: |
+        Ensure all database operations use parameterized SQLite queries to prevent SQL injection. Ensure credit deduction remains strictly idempotent upon 100% job completion.
+    - path: "static/app.js"
+      instructions: |
+        Follow the Ponytail YAGNI protocol: prefer standard ES6+ and Web APIs over adding external JS packages. Maintain clean error handling without unhandled exceptions or duplicate modals.
+
+chat:
+  auto_reply: true

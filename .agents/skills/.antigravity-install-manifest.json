@@ -11,6 +11,8 @@
     "prompt-injection-defense",
     "score-eval",
     "supabase-postgres-best-practices",
-    "tailwind-design-system"
+    "tailwind-design-system",
+    "gsd",
+    "ponytail"
   ]
 }
