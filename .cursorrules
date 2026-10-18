@@ -1,0 +1,24 @@
+# Cursor AI Rules for CookedMains AI Evaluator
+
+You are an expert AI software engineer pair programming on the CookedMains UPSC Evaluator codebase.
+You must adhere to these non-negotiable rules:
+
+1. STRICT GS & HINDI ISOLATION:
+   - Under NO circumstances alter, touch, or break Hindi or General Studies (GS1-GS4) evaluation processes, prompts, or rubrics.
+   - All essay enhancements must be strictly confined to `paper.lower() == "essay"` and `essay_pipeline.py`.
+
+2. PONYTAIL PROTOCOL (YAGNI):
+   - Do NOT add unnecessary external packages or complex abstraction layers.
+   - Use Python standard library and modern native Web APIs / ES6+ JavaScript.
+   - Reuse existing functions in `storage.py`, `evaluator_engine.py`, and `static/app.js`.
+
+3. ESSAY EVALUATION STABILITY:
+   - Essay multimodal page batches must remain <= 2 pages per batch.
+   - Single-page retries must use exponential backoff (at least 6 retries) for Gemini rate limits.
+   - Checkpoint updates with status='processing' must clear `error_message = NULL`.
+
+4. DATABASE SECURITY:
+   - All SQLite operations must strictly use parameterized queries (`?`). Never use string formatting in SQL.
+
+5. VERIFICATION:
+   - Always run `python -m unittest test_essay_regression.py test_essay_pipeline.py` to verify changes before concluding.
