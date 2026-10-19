@@ -2717,37 +2717,43 @@ window.isEvaluationFullyCompleted = function(evalObj, questionText = "", maxMark
   const mm = Number(maxMarks || evalObj.max_marks || 10);
   if (mm > 0 && score > mm * 1.05) return false;
 
-  // 4. Handwritten text transcription validation
+  // 4. Handwritten text transcription validation (reject dummy template)
   const transcript = String(evalObj.transcribed_text || "").trim();
-  if (!transcript || transcript.length < 25) return false;
   const transLow = transcript.toLowerCase();
   if (transLow.includes("evaluated for: general studies mains question") || transLow.includes("उत्तर पुस्तिका: general studies mains question")) {
     return false;
   }
 
-  // 5. Examiner Overall Verdict validation
-  const examinerVerdict = String(evalObj.examiner_overall_verdict || "").trim();
-  if (!examinerVerdict || examinerVerdict.length < 20) return false;
+  // 5. Essay evaluation verification
+  const isEssay = Boolean(evalObj.is_essay || Array.isArray(evalObj.evaluation_dimensions) || evalObj.essay_topic || (mm === 125));
+  if (isEssay) {
+    const hasEssayRubric = (Array.isArray(evalObj.evaluation_dimensions) && evalObj.evaluation_dimensions.length > 0) ||
+      (evalObj.rubric_scores && typeof evalObj.rubric_scores === 'object') ||
+      (Array.isArray(evalObj.revision_priorities) && evalObj.revision_priorities.length > 0) ||
+      (Array.isArray(evalObj.point_by_point_audit) && evalObj.point_by_point_audit.length > 0) ||
+      (Array.isArray(evalObj.argument_journey) && evalObj.argument_journey.length > 0);
+    return Boolean(hasEssayRubric);
+  }
 
-  // 6. Rubric Scores validation
-  const rubric = evalObj.rubric_scores;
-  if (!rubric || typeof rubric !== "object") return false;
-  const hasSubstantiveRubric = ["core_demand_score", "intro_score", "body_score", "value_add_score", "presentation_score", "conclusion_score"].some(k => Number(rubric[k] || 0) > 0);
-  if (!hasSubstantiveRubric) return false;
-
-  // 7. Breakdown validation (sub-parts or page annotations or visual annotations)
-  const subParts = evalObj.sub_part_step_marking;
-  const pageEvals = evalObj.page_evaluations;
-  const visAnn = evalObj.visual_annotations;
-  const hasBreakdown = (
-    (Array.isArray(subParts) && subParts.length > 0) ||
-    (Array.isArray(pageEvals) && pageEvals.length > 0) ||
-    (Array.isArray(visAnn) && visAnn.length > 0) ||
-    (visAnn && typeof visAnn === "object" && Object.keys(visAnn).length > 0)
+  // 6. GS substantive AI evaluation structure validation (summary, rubric, or audits)
+  const hasSummary = Boolean(
+    String(evalObj.executive_summary || "").trim() ||
+    String(evalObj.examiner_overall_verdict || "").trim()
   );
-  if (!hasBreakdown) return false;
+  const rubric = evalObj.rubric_scores;
+  const hasSubstantiveRubric = Boolean(
+    rubric && typeof rubric === "object" &&
+    Object.keys(rubric).some(k => Number(rubric[k] || 0) > 0)
+  );
+  const hasBreakdown = Boolean(
+    (Array.isArray(evalObj.sub_part_step_marking) && evalObj.sub_part_step_marking.length > 0) ||
+    (Array.isArray(evalObj.page_evaluations) && evalObj.page_evaluations.length > 0) ||
+    (Array.isArray(evalObj.visual_annotations) && evalObj.visual_annotations.length > 0) ||
+    (Array.isArray(evalObj.point_by_point_audit) && evalObj.point_by_point_audit.length > 0) ||
+    (Array.isArray(evalObj.body_audit) && evalObj.body_audit.length > 0)
+  );
 
-  return true;
+  return Boolean(hasSummary || hasSubstantiveRubric || hasBreakdown);
 };
 
 window.saveEvaluationToBrowserVault = async function(email, rawRecord) {
@@ -18293,249 +18299,1168 @@ window.renderWeeklyLocker = function() {
 };
 
 // -------------------------------------------------------------
-// 3. Progress Tracker & Charts (Chart.js Integration)
+// 3. Progress Tracker & Charts (Authentic Evidence-Based Analytics)
 // -------------------------------------------------------------
 window.accountTrajectoryChartInstance = null;
 window.accountSubjectChartInstance = null;
 window.accountRadarChartInstance = null;
 
-window.renderPerformanceTracker = function() {
-  const history = state.lockerHistory || [];
-  const totalCopies = history.length;
-  
-  let totalPct = 0;
-  let peakPct = 0;
-  history.forEach(item => {
-    const score = Number(item.total_score || item.overall_score || 0);
-    const maxMarks = Number(item.max_marks || 10);
-    const pct = (maxMarks > 0) ? (score / maxMarks) * 100 : 0;
-    totalPct += pct;
-    if (pct > peakPct) peakPct = pct;
+state.trackerStream = state.trackerStream || 'ALL';
+state.trackerDateRange = state.trackerDateRange || 'ALL';
+state.trackerRadarFramework = state.trackerRadarFramework || 'ESSAY';
+state.trackerGuidanceTab = state.trackerGuidanceTab || 'ESSAY';
+
+window.setTrackerStreamFilter = function(stream) {
+  state.trackerStream = stream || 'ALL';
+  ['ALL', 'GS', 'ESSAY'].forEach(s => {
+    const btn = document.getElementById(`trackerStreamBtn_${s}`);
+    if (btn) {
+      const isAct = s === state.trackerStream;
+      btn.classList.toggle('active', isAct);
+      btn.classList.toggle('text-slate-900', isAct);
+      btn.classList.toggle('dark:text-white', isAct);
+      btn.classList.toggle('bg-white', isAct);
+      btn.classList.toggle('dark:bg-slate-700', isAct);
+      btn.classList.toggle('shadow-xs', isAct);
+      btn.classList.toggle('text-slate-600', !isAct);
+      btn.classList.toggle('dark:text-slate-400', !isAct);
+    }
   });
+  window.renderPerformanceTracker();
+};
 
-  const avgPct = totalCopies > 0 ? (totalPct / totalCopies) : 0;
-  const avgScoreMarks = ((avgPct / 100) * 10).toFixed(1);
-  const peakScoreMarks = ((peakPct / 100) * 10).toFixed(1);
+window.setTrackerDateFilter = function(range) {
+  state.trackerDateRange = range || 'ALL';
+  window.renderPerformanceTracker();
+};
 
-  const tcEl = document.getElementById("trackerTotalCopies");
-  if (tcEl) tcEl.textContent = totalCopies.toString();
-  const asEl = document.getElementById("trackerAvgScore");
-  if (asEl) asEl.textContent = totalCopies > 0 ? `${avgScoreMarks} / 10 (${avgPct.toFixed(0)}%)` : "5.4 / 10 (54%)";
-  const psEl = document.getElementById("trackerPeakScore");
-  if (psEl) psEl.textContent = totalCopies > 0 ? `${peakScoreMarks} / 10 (${peakPct.toFixed(0)}%)` : "7.0 / 10 (70%)";
-  const drEl = document.getElementById("trackerDirectiveRate");
-  if (drEl) drEl.textContent = totalCopies > 0 ? "78%" : "82%";
-
-  // Render Chart 1: Trajectory Line Chart
-  const trajCanvas = document.getElementById("accountTrackerTrajectoryCanvas");
-  if (trajCanvas && typeof Chart !== 'undefined') {
-    if (window.accountTrajectoryChartInstance) {
-      window.accountTrajectoryChartInstance.destroy();
-      window.accountTrajectoryChartInstance = null;
+window.setTrackerRadarFramework = function(fw) {
+  state.trackerRadarFramework = fw === 'GS' ? 'GS' : 'ESSAY';
+  ['ESSAY', 'GS'].forEach(f => {
+    const btn = document.getElementById(`radarFwBtn_${f}`);
+    if (btn) {
+      const isAct = f === state.trackerRadarFramework;
+      btn.classList.toggle('active', isAct);
+      btn.classList.toggle('text-slate-900', isAct);
+      btn.classList.toggle('dark:text-white', isAct);
+      btn.classList.toggle('bg-white', isAct);
+      btn.classList.toggle('dark:bg-slate-700', isAct);
+      btn.classList.toggle('shadow-xs', isAct);
+      btn.classList.toggle('text-slate-600', !isAct);
+      btn.classList.toggle('dark:text-slate-400', !isAct);
     }
+  });
+  window.renderTrackerRadarChart(window._trackerActiveHistory || state.lockerHistory || []);
+};
 
-    let labels = [];
-    let dataPoints = [];
-    if (totalCopies >= 2) {
-      const chronList = [...history].reverse();
-      labels = chronList.map((item, idx) => `Copy #${idx+1} (${item.paper || 'GS'})`);
-      dataPoints = chronList.map(item => {
-        const s = Number(item.total_score || item.overall_score || 0);
-        const m = Number(item.max_marks || 10);
-        return m > 0 ? Number(((s / m) * 100).toFixed(1)) : 50;
-      });
-    } else {
-      labels = ['Attempt 1 (Baseline)', 'Attempt 2 (Directives)', 'Attempt 3 (PESTLE Depth)', 'Attempt 4 (Diagrams)', 'Attempt 5 (Target)'];
-      dataPoints = totalCopies === 1 
-        ? [Number(((Number(history[0].total_score || 5) / Number(history[0].max_marks || 10)) * 100).toFixed(1)), 52, 58, 63, 68]
-        : [44, 50, 56, 62, 68];
+window.setTrackerGuidanceTab = function(tab) {
+  state.trackerGuidanceTab = tab === 'GS' ? 'GS' : 'ESSAY';
+  ['ESSAY', 'GS'].forEach(t => {
+    const btn = document.getElementById(`guidanceTabBtn_${t}`);
+    if (btn) {
+      const isAct = t === state.trackerGuidanceTab;
+      btn.classList.toggle('active', isAct);
+      btn.classList.toggle('text-slate-900', isAct);
+      btn.classList.toggle('dark:text-white', isAct);
+      btn.classList.toggle('bg-white', isAct);
+      btn.classList.toggle('dark:bg-slate-700', isAct);
+      btn.classList.toggle('shadow-xs', isAct);
+      btn.classList.toggle('text-slate-600', !isAct);
+      btn.classList.toggle('dark:text-slate-400', !isAct);
     }
+  });
+  window.renderTrackerGuidance(window._trackerActiveHistory || state.lockerHistory || []);
+};
 
-    window.accountTrajectoryChartInstance = new Chart(trajCanvas, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: 'Aspirant Score (%)',
-            data: dataPoints,
-            borderColor: '#f59e0b',
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
-            borderWidth: 3,
-            tension: 0.35,
-            pointRadius: 5,
-            pointBackgroundColor: '#f59e0b',
-            fill: true
-          },
-          {
-            label: '50% Mains Interview Benchmark',
-            data: labels.map(() => 50),
-            borderColor: '#64748b',
-            borderWidth: 2,
-            borderDash: [5, 5],
-            pointRadius: 0,
-            fill: false
-          },
-          {
-            label: '60% AIR Top 50 Standard',
-            data: labels.map(() => 60),
-            borderColor: '#10b981',
-            borderWidth: 2,
-            borderDash: [3, 3],
-            pointRadius: 0,
-            fill: false
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            min: 20,
-            max: 85,
-            ticks: { callback: v => v + "%", color: '#94a3b8' },
-            grid: { color: 'rgba(148, 163, 184, 0.1)' }
-          },
-          x: {
-            ticks: { color: '#94a3b8', font: { size: 10 } },
-            grid: { display: false }
-          }
-        },
-        plugins: {
-          legend: { position: 'top', labels: { boxWidth: 12, color: '#94a3b8', font: { size: 10 } } }
-        }
-      }
+function formatTrackerDate(ts) {
+  if (!ts) return '';
+  try {
+    const clean = String(ts).replace('T', ' ').split('.')[0];
+    const datePart = clean.split(' ')[0];
+    const p = datePart.split('-');
+    if (p.length === 3) {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const mIdx = parseInt(p[1], 10) - 1;
+      const month = months[mIdx] || p[1];
+      const day = parseInt(p[2], 10);
+      return `${month} ${day}`;
+    }
+  } catch(e) {}
+  return String(ts).slice(0, 10);
+}
+
+window.renderPerformanceTracker = async function() {
+  // 1. Ensure history is loaded if user is active
+  if ((!state.lockerHistory || state.lockerHistory.length === 0) && state.user && state.user.email) {
+    try {
+      const list = await window.fetchAndSyncUserLockerHistory(state.user.email);
+      state.lockerHistory = Array.isArray(list) ? list : [];
+    } catch (e) {}
+  }
+
+  const rawHistory = Array.isArray(state.lockerHistory) ? state.lockerHistory : [];
+  
+  // 2. Filter by date range (only supported date intervals)
+  let dateFilteredHistory = [...rawHistory];
+  if (state.trackerDateRange !== 'ALL') {
+    const nowMs = Date.now();
+    const daysLimit = state.trackerDateRange === '7D' ? 7 : 30;
+    const cutoffMs = nowMs - (daysLimit * 24 * 60 * 60 * 1000);
+    dateFilteredHistory = dateFilteredHistory.filter(item => {
+      const ts = item.created_at || item.evaluated_at || '';
+      if (!ts) return true;
+      const tMs = new Date(ts.replace(' ', 'T')).getTime();
+      return isNaN(tMs) || tMs >= cutoffMs;
     });
   }
 
-  // Render Chart 2: Subject Performance Bar Chart
-  const subjCanvas = document.getElementById("accountTrackerSubjectCanvas");
-  if (subjCanvas && typeof Chart !== 'undefined') {
-    if (window.accountSubjectChartInstance) {
-      window.accountSubjectChartInstance.destroy();
-      window.accountSubjectChartInstance = null;
-    }
+  window._trackerActiveHistory = dateFilteredHistory;
 
-    const papers = ['GS 1', 'GS 2', 'GS 3', 'GS 4', 'Essay', 'Optional'];
-    const paperAverages = papers.map(p => {
-      const pUpper = p.replace(/\s+/g, '').toUpperCase();
-      const matching = history.filter(item => (item.paper || '').replace(/\s+/g, '').toUpperCase() === pUpper);
-      if (matching.length > 0) {
-        const sum = matching.reduce((acc, curr) => {
-          const sc = Number(curr.total_score || curr.overall_score || 0);
-          const mm = Number(curr.max_marks || 10);
-          return acc + (mm > 0 ? (sc / mm) * 100 : 50);
-        }, 0);
-        return Number((sum / matching.length).toFixed(1));
+  // 3. Separate streams: GS vs Essay
+  const isGsPaper = (paper) => {
+    const p = String(paper || '').trim().toUpperCase();
+    return p.startsWith('GS') || p === 'GENERAL STUDIES' || p === 'ETHICS';
+  };
+  const isEssayPaper = (paper) => {
+    const p = String(paper || '').trim().toUpperCase();
+    return p === 'ESSAY' || p.includes('ESSAY');
+  };
+
+  const gsCopies = dateFilteredHistory.filter(item => isGsPaper(item.paper));
+  const essayCopies = dateFilteredHistory.filter(item => isEssayPaper(item.paper));
+  const totalCopies = dateFilteredHistory.length;
+
+  // 4. Update Summary Statistics
+  // Card 1: Total Copies & Sample Size Badge
+  const sampleBadge = document.getElementById("trackerSampleBadge");
+  if (sampleBadge) {
+    sampleBadge.textContent = `Sample: ${totalCopies} Copies (${state.trackerDateRange === 'ALL' ? 'All Time' : (state.trackerDateRange === '7D' ? 'Past 7 Days' : 'Past 30 Days')})`;
+  }
+  const tcEl = document.getElementById("trackerTotalCopies");
+  if (tcEl) tcEl.textContent = totalCopies.toString();
+  const cSub = document.getElementById("trackerCopiesSub");
+  if (cSub) {
+    cSub.textContent = `${gsCopies.length} GS • ${essayCopies.length} Essay${totalCopies - gsCopies.length - essayCopies.length > 0 ? ` • ${totalCopies - gsCopies.length - essayCopies.length} Other` : ''}`;
+  }
+
+  // Card 2: GS Practice Mean
+  const asEl = document.getElementById("trackerAvgScore");
+  const asSub = document.getElementById("trackerAvgSub");
+  if (asEl) {
+    if (gsCopies.length > 0) {
+      let gsSumMarks = 0;
+      let gsSumMax = 0;
+      let gsSumPct = 0;
+      gsCopies.forEach(item => {
+        const sc = Number(item.total_score || item.overall_score || 0);
+        const mm = Number(item.max_marks || (item.evaluation && item.evaluation.max_marks) || 10);
+        gsSumMarks += sc;
+        gsSumMax += mm;
+        gsSumPct += (mm > 0 ? (sc / mm) * 100 : 0);
+      });
+      const gsAvgSc = (gsSumMarks / gsCopies.length).toFixed(1);
+      const gsAvgMm = (gsSumMax / gsCopies.length).toFixed(1);
+      const gsAvgPct = (gsSumPct / gsCopies.length).toFixed(1);
+      asEl.textContent = `${gsAvgSc} / ${gsAvgMm} M (${gsAvgPct}%)`;
+      if (asSub) asSub.textContent = `Mean across ${gsCopies.length} GS evaluation${gsCopies.length > 1 ? 's' : ''}`;
+    } else {
+      asEl.textContent = "--";
+      if (asSub) asSub.textContent = "No GS practice copies evaluated yet";
+    }
+  }
+
+  // Card 3: Essay Practice Mean
+  const eaEl = document.getElementById("trackerEssayAvgScore");
+  const eaSub = document.getElementById("trackerEssaySub");
+  if (eaEl) {
+    if (essayCopies.length > 0) {
+      let esSumMarks = 0;
+      let esSumMax = 0;
+      let esSumPct = 0;
+      essayCopies.forEach(item => {
+        const sc = Number(item.total_score || item.overall_score || 0);
+        const mm = Number(item.max_marks || (item.evaluation && item.evaluation.max_marks) || 125);
+        esSumMarks += sc;
+        esSumMax += mm;
+        esSumPct += (mm > 0 ? (sc / mm) * 100 : 0);
+      });
+      const esAvgSc = (esSumMarks / essayCopies.length).toFixed(1);
+      const esAvgMm = (esSumMax / essayCopies.length).toFixed(0);
+      const esAvgPct = (esSumPct / essayCopies.length).toFixed(1);
+      eaEl.textContent = `${esAvgSc} / ${esAvgMm} M (${esAvgPct}%)`;
+      if (eaSub) eaSub.textContent = `Mean across ${essayCopies.length} Essay${essayCopies.length > 1 ? 's' : ''} (125M rubric)`;
+    } else {
+      eaEl.textContent = "--";
+      if (eaSub) eaSub.textContent = "No Essay copies evaluated yet";
+    }
+  }
+
+  // Card 4: Peak Performance
+  const psEl = document.getElementById("trackerPeakScore");
+  const psSub = document.getElementById("trackerPeakSub");
+  if (psEl) {
+    if (dateFilteredHistory.length > 0) {
+      let bestItem = null;
+      let bestPct = -1;
+      dateFilteredHistory.forEach(item => {
+        const sc = Number(item.total_score || item.overall_score || 0);
+        const mm = Number(item.max_marks || (item.evaluation && item.evaluation.max_marks) || 10);
+        const pct = mm > 0 ? (sc / mm) * 100 : 0;
+        if (pct > bestPct) {
+          bestPct = pct;
+          bestItem = item;
+        }
+      });
+      if (bestItem) {
+        const bestSc = Number(bestItem.total_score || bestItem.overall_score || 0).toFixed(1);
+        const bestMm = Number(bestItem.max_marks || (bestItem.evaluation && bestItem.evaluation.max_marks) || 10).toFixed(0);
+        psEl.textContent = `${bestSc} / ${bestMm} M (${bestPct.toFixed(1)}%)`;
+        if (psSub) {
+          const dateStr = formatTrackerDate(bestItem.created_at || bestItem.evaluated_at) || 'Recent';
+          psSub.textContent = `${bestItem.paper || 'Answer'} • ${dateStr}`;
+        }
       }
-      if (p === 'GS 1') return 52;
-      if (p === 'GS 2') return 56;
-      if (p === 'GS 3') return 48;
-      if (p === 'GS 4') return 60;
-      if (p === 'Essay') return 62;
-      return 55;
+    } else {
+      psEl.textContent = "--";
+      if (psSub) psSub.textContent = "Awaiting evaluated answers";
+    }
+  }
+
+  // Preserved ID trackerDirectiveRate (represented as authenticated audit scope)
+  const drEl = document.getElementById("trackerDirectiveRate");
+  if (drEl) {
+    drEl.textContent = totalCopies > 0 ? "100% Audited" : "--";
+  }
+
+  // 5. Render Chart 1: Trajectory
+  renderTrackerTrajectoryChart(dateFilteredHistory);
+
+  // 6. Render Chart 2: Subject Performance Bar Chart
+  renderTrackerSubjectChart(dateFilteredHistory);
+
+  // 7. Render Chart 3: Multi-Dimension Forensic Radar Chart
+  window.renderTrackerRadarChart(dateFilteredHistory);
+
+  // 8. Render Dynamic Guidance (Focus Areas & Evaluated Strengths)
+  window.renderTrackerGuidance(dateFilteredHistory);
+
+  if (window.lucide) {
+    try { lucide.createIcons(); } catch(e) {}
+  }
+};
+
+// =============================================================
+// Helper 1: Trajectory Line Chart
+// =============================================================
+function renderTrackerTrajectoryChart(history) {
+  const trajCanvas = document.getElementById("accountTrackerTrajectoryCanvas");
+  const emptyNotice = document.getElementById("accountTrackerTrajectoryEmpty");
+  const emptyMsg = document.getElementById("accountTrackerTrajectoryEmptyMsg");
+  if (!trajCanvas || typeof Chart === 'undefined') return;
+
+  if (window.accountTrajectoryChartInstance) {
+    window.accountTrajectoryChartInstance.destroy();
+    window.accountTrajectoryChartInstance = null;
+  }
+
+  // Filter by stream
+  let streamFiltered = [...history];
+  if (state.trackerStream === 'GS') {
+    streamFiltered = streamFiltered.filter(item => {
+      const p = String(item.paper || '').toUpperCase();
+      return p.startsWith('GS') || p.includes('GENERAL');
+    });
+  } else if (state.trackerStream === 'ESSAY') {
+    streamFiltered = streamFiltered.filter(item => {
+      const p = String(item.paper || '').toUpperCase();
+      return p === 'ESSAY' || p.includes('ESSAY');
+    });
+  }
+
+  // Check sample size constraint
+  if (streamFiltered.length < 2) {
+    if (emptyNotice) {
+      emptyNotice.classList.remove("hidden");
+      if (emptyMsg) {
+        const streamLabel = state.trackerStream === 'ALL' ? 'practice copies' : (state.trackerStream === 'GS' ? 'GS answers' : 'essays');
+        emptyMsg.textContent = streamFiltered.length === 1
+          ? `At least 2 evaluated copies are required in this category to calculate a score trajectory over time. Currently: 1 evaluated copy on record (${streamFiltered[0].paper || 'Copy'} • ${Number(streamFiltered[0].total_score||0).toFixed(1)}/${Number(streamFiltered[0].max_marks||10).toFixed(0)} M). Keep writing to unlock trajectory analytics.`
+          : `No evaluated ${streamLabel} found in this date window. Submit handwritten practice copies to track your progress over time.`;
+      }
+    }
+    return;
+  }
+
+  if (emptyNotice) emptyNotice.classList.add("hidden");
+
+  // Chronological sort: oldest to newest
+  const chronological = [...streamFiltered].sort((a, b) => {
+    const ta = String(a.created_at || a.evaluated_at || '');
+    const tb = String(b.created_at || b.evaluated_at || '');
+    return ta.localeCompare(tb);
+  });
+
+  const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isDark = document.documentElement.classList.contains('dark');
+  const gridColor = isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(203, 213, 225, 0.5)';
+  const tickColor = isDark ? '#94a3b8' : '#64748b';
+
+  // Build labels: Date or "Copy #N"
+  const labels = chronological.map((item, idx) => {
+    const d = formatTrackerDate(item.created_at || item.evaluated_at);
+    return `#${idx+1} ${item.paper || 'Copy'}${d ? ` (${d})` : ''}`;
+  });
+
+  const datasets = [];
+
+  if (state.trackerStream === 'ALL') {
+    // Two distinct series: GS vs Essay
+    const gsData = chronological.map(item => {
+      const p = String(item.paper || '').toUpperCase();
+      if (p.startsWith('GS') || p.includes('GENERAL')) {
+        const s = Number(item.total_score || item.overall_score || 0);
+        const m = Number(item.max_marks || 10);
+        return m > 0 ? Number(((s / m) * 100).toFixed(1)) : null;
+      }
+      return null;
     });
 
-    window.accountSubjectChartInstance = new Chart(subjCanvas, {
-      type: 'bar',
+    const essayData = chronological.map(item => {
+      const p = String(item.paper || '').toUpperCase();
+      if (p === 'ESSAY' || p.includes('ESSAY')) {
+        const s = Number(item.total_score || item.overall_score || 0);
+        const m = Number(item.max_marks || 125);
+        return m > 0 ? Number(((s / m) * 100).toFixed(1)) : null;
+      }
+      return null;
+    });
+
+    datasets.push({
+      label: 'GS Practice (% Score)',
+      data: gsData,
+      borderColor: '#f59e0b',
+      backgroundColor: 'rgba(245, 158, 11, 0.08)',
+      borderWidth: 2.5,
+      tension: 0.25,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      pointBackgroundColor: '#f59e0b',
+      spanGaps: true,
+      fill: false
+    });
+
+    datasets.push({
+      label: 'Essay Practice (% Score)',
+      data: essayData,
+      borderColor: '#10b981',
+      backgroundColor: 'rgba(16, 185, 129, 0.08)',
+      borderWidth: 2.5,
+      tension: 0.25,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      pointBackgroundColor: '#10b981',
+      spanGaps: true,
+      fill: false
+    });
+  } else {
+    // Single stream series
+    const singleData = chronological.map(item => {
+      const s = Number(item.total_score || item.overall_score || 0);
+      const m = Number(item.max_marks || (state.trackerStream === 'ESSAY' ? 125 : 10));
+      return m > 0 ? Number(((s / m) * 100).toFixed(1)) : null;
+    });
+
+    const isEssay = state.trackerStream === 'ESSAY';
+    datasets.push({
+      label: isEssay ? 'Essay Score (%)' : 'GS Score (%)',
+      data: singleData,
+      borderColor: isEssay ? '#10b981' : '#f59e0b',
+      backgroundColor: isEssay ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+      borderWidth: 2.5,
+      tension: 0.25,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      pointBackgroundColor: isEssay ? '#10b981' : '#f59e0b',
+      fill: true
+    });
+  }
+
+  window.accountTrajectoryChartInstance = new Chart(trajCanvas, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: prefersReducedMotion ? false : { duration: 400 },
+      layout: {
+        padding: { left: 8, right: 12, top: 10, bottom: 8 }
+      },
+      scales: {
+        y: {
+          min: 0,
+          max: 100,
+          ticks: {
+            callback: v => `${v}%`,
+            color: tickColor,
+            font: { size: 10 },
+            stepSize: 20
+          },
+          grid: { color: gridColor }
+        },
+        x: {
+          ticks: {
+            color: tickColor,
+            font: { size: 10 },
+            autoSkip: true,
+            maxRotation: 25,
+            minRotation: 0
+          },
+          grid: { display: false }
+        }
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            boxWidth: 10,
+            color: tickColor,
+            font: { size: 10.5 }
+          }
+        },
+        tooltip: {
+          backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          titleColor: isDark ? '#f8fafc' : '#0f172a',
+          bodyColor: isDark ? '#cbd5e1' : '#334155',
+          borderColor: isDark ? '#334155' : '#e2e8f0',
+          borderWidth: 1,
+          padding: 10,
+          boxPadding: 4,
+          callbacks: {
+            title: (items) => {
+              const idx = items[0].dataIndex;
+              const item = chronological[idx];
+              if (!item) return '';
+              const dateStr = item.created_at ? item.created_at.split(' ')[0] : 'Recent';
+              return `${item.paper || 'Practice Copy'} • Evaluated on ${dateStr}`;
+            },
+            label: (ctx) => {
+              if (ctx.parsed.y === null) return '';
+              const idx = ctx.dataIndex;
+              const item = chronological[idx];
+              if (!item) return '';
+              const s = Number(item.total_score || item.overall_score || 0).toFixed(1);
+              const m = Number(item.max_marks || (String(item.paper||'').toUpperCase()==='ESSAY' ? 125 : 10)).toFixed(0);
+              const pct = ctx.parsed.y.toFixed(1);
+              const q = String(item.question || item.question_title || '').trim();
+              const lines = [
+                `Marks Awarded: ${s} / ${m} M (${pct}%)`,
+                `Framework: ${m === '125' ? '125M UPSC Essay' : `${m}-Marker GS`}`
+              ];
+              if (q) {
+                const shortQ = q.length > 55 ? `${q.slice(0, 52)}...` : q;
+                lines.push(`Topic: "${shortQ}"`);
+              }
+              return lines;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// =============================================================
+// Helper 2: Subject-Wise Bar Chart
+// =============================================================
+function renderTrackerSubjectChart(history) {
+  const subjCanvas = document.getElementById("accountTrackerSubjectCanvas");
+  if (!subjCanvas || typeof Chart === 'undefined') return;
+
+  if (window.accountSubjectChartInstance) {
+    window.accountSubjectChartInstance.destroy();
+    window.accountSubjectChartInstance = null;
+  }
+
+  const papers = ['GS 1', 'GS 2', 'GS 3', 'GS 4', 'Essay', 'Optional'];
+  const paperStats = papers.map(p => {
+    const pNorm = p.replace(/\s+/g, '').toUpperCase();
+    const matching = history.filter(item => {
+      const itNorm = String(item.paper || '').replace(/\s+/g, '').toUpperCase();
+      return itNorm === pNorm;
+    });
+
+    if (matching.length > 0) {
+      let sumMarks = 0;
+      let sumMax = 0;
+      let sumPct = 0;
+      let minPct = 100;
+      let maxPct = 0;
+      matching.forEach(item => {
+        const sc = Number(item.total_score || item.overall_score || 0);
+        const mm = Number(item.max_marks || (p === 'Essay' ? 125 : 10));
+        const pct = mm > 0 ? (sc / mm) * 100 : 0;
+        sumMarks += sc;
+        sumMax += mm;
+        sumPct += pct;
+        if (pct < minPct) minPct = pct;
+        if (pct > maxPct) maxPct = pct;
+      });
+      return {
+        paper: p,
+        count: matching.length,
+        avgPct: Number((sumPct / matching.length).toFixed(1)),
+        avgMarks: Number((sumMarks / matching.length).toFixed(1)),
+        avgMax: Number((sumMax / matching.length).toFixed(0)),
+        minPct: Number(minPct.toFixed(1)),
+        maxPct: Number(maxPct.toFixed(1))
+      };
+    }
+    return {
+      paper: p,
+      count: 0,
+      avgPct: 0,
+      avgMarks: 0,
+      avgMax: p === 'Essay' ? 125 : 10,
+      minPct: 0,
+      maxPct: 0
+    };
+  });
+
+  const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isDark = document.documentElement.classList.contains('dark');
+  const gridColor = isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(203, 213, 225, 0.5)';
+  const tickColor = isDark ? '#94a3b8' : '#64748b';
+
+  const barColors = [
+    'rgba(245, 158, 11, 0.8)',  // GS 1 - Amber
+    'rgba(59, 130, 246, 0.8)',   // GS 2 - Blue
+    'rgba(16, 185, 129, 0.8)',  // GS 3 - Emerald
+    'rgba(168, 85, 247, 0.8)',  // GS 4 - Purple
+    'rgba(244, 63, 94, 0.8)',   // Essay - Rose
+    'rgba(20, 184, 166, 0.8)'   // Optional - Teal
+  ];
+
+  window.accountSubjectChartInstance = new Chart(subjCanvas, {
+    type: 'bar',
+    data: {
+      labels: papers,
+      datasets: [{
+        label: 'Mean Score (%)',
+        data: paperStats.map(s => s.avgPct),
+        backgroundColor: barColors,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: prefersReducedMotion ? false : { duration: 400 },
+      layout: {
+        padding: { left: 4, right: 8, top: 8, bottom: 4 }
+      },
+      scales: {
+        y: {
+          min: 0,
+          max: 100,
+          ticks: {
+            callback: v => `${v}%`,
+            color: tickColor,
+            font: { size: 10 },
+            stepSize: 25
+          },
+          grid: { color: gridColor }
+        },
+        x: {
+          ticks: {
+            color: tickColor,
+            font: { size: 10.5 }
+          },
+          grid: { display: false }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          titleColor: isDark ? '#f8fafc' : '#0f172a',
+          bodyColor: isDark ? '#cbd5e1' : '#334155',
+          borderColor: isDark ? '#334155' : '#e2e8f0',
+          borderWidth: 1,
+          padding: 10,
+          callbacks: {
+            title: (items) => {
+              const idx = items[0].dataIndex;
+              return `${papers[idx]} Performance Summary`;
+            },
+            label: (ctx) => {
+              const idx = ctx.dataIndex;
+              const s = paperStats[idx];
+              if (!s || s.count === 0) {
+                return [
+                  `Status: No practice copies evaluated yet`,
+                  `Submit an answer in ${papers[idx]} to record data`
+                ];
+              }
+              return [
+                `Evaluated Copies: ${s.count}`,
+                `Mean Marks: ${s.avgMarks} / ${s.avgMax} M (${s.avgPct}%)`,
+                `Score Range: ${s.minPct}% to ${s.maxPct}%`
+              ];
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// =============================================================
+// Helper 3: Multi-Dimension Forensic Radar Chart
+// =============================================================
+window.renderTrackerRadarChart = function(history) {
+  const radarCanvas = document.getElementById("accountTrackerRadarCanvas");
+  const emptyNotice = document.getElementById("accountTrackerRadarEmpty");
+  const emptyMsg = document.getElementById("accountTrackerRadarEmptyMsg");
+  if (!radarCanvas || typeof Chart === 'undefined') return;
+
+  if (window.accountRadarChartInstance) {
+    window.accountRadarChartInstance.destroy();
+    window.accountRadarChartInstance = null;
+  }
+
+  const isDark = document.documentElement.classList.contains('dark');
+  const tickColor = isDark ? '#94a3b8' : '#64748b';
+  const gridColor = isDark ? 'rgba(148, 163, 184, 0.15)' : 'rgba(203, 213, 225, 0.6)';
+  const angleColor = isDark ? 'rgba(148, 163, 184, 0.2)' : 'rgba(203, 213, 225, 0.8)';
+  const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (state.trackerRadarFramework === 'ESSAY') {
+    // 5 Official UPSC Essay Dimensions
+    const essayCopies = history.filter(item => String(item.paper || '').toUpperCase().includes('ESSAY'));
+    
+    // Aggregation maps
+    const dimTotals = {
+      thesis_framing: { name: 'Thesis Framing', earned: 0, max: 0, count: 0 },
+      structure_and_flow: { name: 'Structure & Flow', earned: 0, max: 0, count: 0 },
+      multidimensional_depth: { name: 'Analytical Depth', earned: 0, max: 0, count: 0 },
+      evidence_and_examples: { name: 'Substantiation', earned: 0, max: 0, count: 0 },
+      concluding_synthesis: { name: 'Concluding Synthesis', earned: 0, max: 0, count: 0 }
+    };
+
+    essayCopies.forEach(item => {
+      const ev = item.evaluation || item.evaluation_data || {};
+      const dims = ev.evaluation_dimensions;
+      if (Array.isArray(dims) && dims.length > 0) {
+        dims.forEach(d => {
+          const did = d.dimension_id;
+          if (dimTotals[did]) {
+            dimTotals[did].earned += Number(d.awarded_marks || 0);
+            dimTotals[did].max += Number(d.max_marks || 20);
+            dimTotals[did].count += 1;
+          }
+        });
+      } else if (ev.rubric_scores) {
+        // Fallback older essay rubric
+        const rs = ev.rubric_scores;
+        if (rs.intro_score) { dimTotals.thesis_framing.earned += Number(rs.intro_score); dimTotals.thesis_framing.max += 20; dimTotals.thesis_framing.count += 1; }
+        if (rs.core_demand_score) { dimTotals.multidimensional_depth.earned += Number(rs.core_demand_score); dimTotals.multidimensional_depth.max += 50; dimTotals.multidimensional_depth.count += 1; }
+        if (rs.presentation_score) { dimTotals.structure_and_flow.earned += Number(rs.presentation_score); dimTotals.structure_and_flow.max += 20; dimTotals.structure_and_flow.count += 1; }
+        if (rs.value_add_score) { dimTotals.evidence_and_examples.earned += Number(rs.value_add_score); dimTotals.evidence_and_examples.max += 20; dimTotals.evidence_and_examples.count += 1; }
+        if (rs.context_score) { dimTotals.concluding_synthesis.earned += Number(rs.context_score); dimTotals.concluding_synthesis.max += 15; dimTotals.concluding_synthesis.count += 1; }
+      }
+    });
+
+    const hasData = Object.values(dimTotals).some(d => d.count > 0);
+    if (!hasData) {
+      if (emptyNotice) {
+        emptyNotice.classList.remove("hidden");
+        if (emptyMsg) emptyMsg.textContent = "No evaluated essay copies found with dimension rubric scoring. Upload an essay to record competency dimensions.";
+      }
+      return;
+    }
+    if (emptyNotice) emptyNotice.classList.add("hidden");
+
+    const labels = Object.values(dimTotals).map(d => d.name);
+    const dataValues = Object.values(dimTotals).map(d => {
+      if (d.count === 0 || d.max === 0) return 0;
+      return Number(((d.earned / d.max) * 100).toFixed(1));
+    });
+
+    window.accountRadarChartInstance = new Chart(radarCanvas, {
+      type: 'radar',
       data: {
-        labels: papers,
+        labels: labels,
         datasets: [{
-          label: 'Average Score (%)',
-          data: paperAverages,
-          backgroundColor: [
-            'rgba(245, 158, 11, 0.75)',
-            'rgba(59, 130, 246, 0.75)',
-            'rgba(16, 185, 129, 0.75)',
-            'rgba(168, 85, 247, 0.75)',
-            'rgba(244, 63, 94, 0.75)',
-            'rgba(20, 184, 166, 0.75)'
-          ],
-          borderRadius: 6
+          label: 'Aspirant Mastery (% Mean)',
+          data: dataValues,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.2)',
+          borderWidth: 2,
+          pointBackgroundColor: '#10b981',
+          pointHoverRadius: 5
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        scales: {
-          y: {
-            min: 0,
-            max: 80,
-            ticks: { callback: v => v + "%", color: '#94a3b8' },
-            grid: { color: 'rgba(148, 163, 184, 0.1)' }
-          },
-          x: {
-            ticks: { color: '#94a3b8' },
-            grid: { display: false }
-          }
-        },
-        plugins: {
-          legend: { display: false }
-        }
-      }
-    });
-  }
-
-  // Render Chart 3: 6-Dimension Competency Radar Chart
-  const radarCanvas = document.getElementById("accountTrackerRadarCanvas");
-  if (radarCanvas && typeof Chart !== 'undefined') {
-    if (window.accountRadarChartInstance) {
-      window.accountRadarChartInstance.destroy();
-      window.accountRadarChartInstance = null;
-    }
-
-    window.accountRadarChartInstance = new Chart(radarCanvas, {
-      type: 'radar',
-      data: {
-        labels: [
-          'Directive Adherence',
-          'Intro & Punch',
-          'PESTLE Multi-Dimensionality',
-          'Diagrams & Flowcharts',
-          'Presentation & Headings',
-          'Way Forward & Synthesis'
-        ],
-        datasets: [
-          {
-            label: 'Candidate Current Level',
-            data: [74, 65, 58, 42, 78, 68],
-            borderColor: '#a855f7',
-            backgroundColor: 'rgba(168, 85, 247, 0.2)',
-            borderWidth: 2,
-            pointBackgroundColor: '#a855f7'
-          },
-          {
-            label: 'Top 50 Rank Topper Benchmark',
-            data: [85, 80, 85, 80, 85, 85],
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.05)',
-            borderWidth: 1.5,
-            borderDash: [4, 4],
-            pointBackgroundColor: '#10b981'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
+        animation: prefersReducedMotion ? false : { duration: 400 },
         scales: {
           r: {
             min: 0,
             max: 100,
-            ticks: { display: false, stepSize: 20 },
-            grid: { color: 'rgba(148, 163, 184, 0.15)' },
-            angleLines: { color: 'rgba(148, 163, 184, 0.2)' },
-            pointLabels: { color: '#94a3b8', font: { size: 9.5 } }
+            ticks: {
+              display: false,
+              stepSize: 20
+            },
+            grid: { color: gridColor },
+            angleLines: { color: angleColor },
+            pointLabels: {
+              color: tickColor,
+              font: { size: 9.5 }
+            }
           }
         },
         plugins: {
-          legend: { position: 'top', labels: { boxWidth: 10, color: '#94a3b8', font: { size: 9.5 } } }
+          legend: {
+            position: 'top',
+            labels: { boxWidth: 10, color: tickColor, font: { size: 10 } }
+          },
+          tooltip: {
+            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            titleColor: isDark ? '#f8fafc' : '#0f172a',
+            bodyColor: isDark ? '#cbd5e1' : '#334155',
+            borderColor: isDark ? '#334155' : '#e2e8f0',
+            borderWidth: 1,
+            padding: 9,
+            callbacks: {
+              title: (items) => items[0].label,
+              label: (ctx) => {
+                const keys = Object.keys(dimTotals);
+                const info = dimTotals[keys[ctx.dataIndex]];
+                if (!info || info.count === 0) return 'No evaluation data for this dimension';
+                const avgEarned = (info.earned / info.count).toFixed(1);
+                const avgMax = (info.max / info.count).toFixed(0);
+                return [
+                  `Mastery: ${ctx.parsed.r.toFixed(1)}%`,
+                  `Average Marks: ${avgEarned} / ${avgMax} M`,
+                  `Sample: ${info.count} evaluated essay${info.count > 1 ? 's' : ''}`
+                ];
+              }
+            }
+          }
+        }
+      }
+    });
+
+  } else {
+    // GS 5-Part Rubric Framework
+    const gsCopies = history.filter(item => {
+      const p = String(item.paper || '').toUpperCase();
+      return p.startsWith('GS') || p.includes('GENERAL');
+    });
+
+    const gsTotals = {
+      intro: { name: 'Introduction', earned: 0, max: 0, count: 0 },
+      core_demand: { name: 'Core Demand', earned: 0, max: 0, count: 0 },
+      value_add: { name: 'Value-Add / Schematics', earned: 0, max: 0, count: 0 },
+      presentation: { name: 'Presentation', earned: 0, max: 0, count: 0 },
+      conclusion: { name: 'Conclusion', earned: 0, max: 0, count: 0 }
+    };
+
+    gsCopies.forEach(item => {
+      const ev = item.evaluation || item.evaluation_data || {};
+      const rs = ev.rubric_scores || {};
+      ['intro', 'core_demand', 'value_add', 'presentation', 'conclusion'].forEach(k => {
+        if (rs[`${k}_score`] !== undefined) {
+          const sc = Number(rs[`${k}_score`] || 0);
+          const mx = Number(rs[`${k}_max`] || (k === 'core_demand' ? 5.0 : (k in ['intro', 'conclusion'] ? 2.0 : 1.5)));
+          gsTotals[k].earned += sc;
+          gsTotals[k].max += mx;
+          gsTotals[k].count += 1;
+        }
+      });
+    });
+
+    const hasData = Object.values(gsTotals).some(d => d.count > 0);
+    if (!hasData) {
+      if (emptyNotice) {
+        emptyNotice.classList.remove("hidden");
+        if (emptyMsg) emptyMsg.textContent = "No evaluated GS copies found with rubric breakdown. Submit a GS answer to populate this radar audit.";
+      }
+      return;
+    }
+    if (emptyNotice) emptyNotice.classList.add("hidden");
+
+    const labels = Object.values(gsTotals).map(d => d.name);
+    const dataValues = Object.values(gsTotals).map(d => {
+      if (d.count === 0 || d.max === 0) return 0;
+      return Number(((d.earned / d.max) * 100).toFixed(1));
+    });
+
+    window.accountRadarChartInstance = new Chart(radarCanvas, {
+      type: 'radar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'GS Rubric Competency (% Mean)',
+          data: dataValues,
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.2)',
+          borderWidth: 2,
+          pointBackgroundColor: '#f59e0b',
+          pointHoverRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: prefersReducedMotion ? false : { duration: 400 },
+        scales: {
+          r: {
+            min: 0,
+            max: 100,
+            ticks: {
+              display: false,
+              stepSize: 20
+            },
+            grid: { color: gridColor },
+            angleLines: { color: angleColor },
+            pointLabels: {
+              color: tickColor,
+              font: { size: 9.5 }
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { boxWidth: 10, color: tickColor, font: { size: 10 } }
+          },
+          tooltip: {
+            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            titleColor: isDark ? '#f8fafc' : '#0f172a',
+            bodyColor: isDark ? '#cbd5e1' : '#334155',
+            borderColor: isDark ? '#334155' : '#e2e8f0',
+            borderWidth: 1,
+            padding: 9,
+            callbacks: {
+              title: (items) => items[0].label,
+              label: (ctx) => {
+                const keys = Object.keys(gsTotals);
+                const info = gsTotals[keys[ctx.dataIndex]];
+                if (!info || info.count === 0) return 'No evaluation data for this dimension';
+                const avgEarned = (info.earned / info.count).toFixed(1);
+                const avgMax = (info.max / info.count).toFixed(1);
+                return [
+                  `Competency: ${ctx.parsed.r.toFixed(1)}%`,
+                  `Mean Marks: ${avgEarned} / ${avgMax} M`,
+                  `Sample: ${info.count} evaluated GS cop${info.count > 1 ? 'ies' : 'y'}`
+                ];
+              }
+            }
+          }
         }
       }
     });
   }
 };
+
+// =============================================================
+// Helper 4: Dynamic Evidence-Based Guidance Cards
+// =============================================================
+window.renderTrackerGuidance = function(history) {
+  const focusEl = document.getElementById("trackerFocusGuidance");
+  const strengthsEl = document.getElementById("trackerTargetsGuidance");
+  const focusBadge = document.getElementById("trackerFocusBadge");
+  const strengthsBadge = document.getElementById("trackerStrengthsBadge");
+  if (!focusEl || !strengthsEl) return;
+
+  focusEl.innerHTML = "";
+  strengthsEl.innerHTML = "";
+
+  if (state.trackerGuidanceTab === 'ESSAY') {
+    // ---------------------------------------------------------
+    // Essay Guidance: from evaluation_dimensions & revision_priorities
+    // ---------------------------------------------------------
+    const essayCopies = history.filter(item => String(item.paper || '').toUpperCase().includes('ESSAY'));
+    if (essayCopies.length === 0) {
+      focusEl.innerHTML = `
+        <div class="p-3 text-center text-slate-500 text-[11px]">
+          No essay evaluations found. Upload an essay copy to unlock forensic weakness audits and revision priorities.
+        </div>`;
+      strengthsEl.innerHTML = `
+        <div class="p-3 text-center text-slate-500 text-[11px]">
+          No essay evaluations found. Upload an essay copy to surface examiner-praised strengths.
+        </div>`;
+      if (focusBadge) focusBadge.textContent = "0 items";
+      if (strengthsBadge) strengthsBadge.textContent = "0 items";
+      return;
+    }
+
+    // A. Gather revision priorities & frequency count
+    const driftFreq = {};
+    const driftExamples = {};
+    essayCopies.forEach(item => {
+      const ev = item.evaluation || item.evaluation_data || {};
+      const revs = ev.revision_priorities;
+      if (Array.isArray(revs)) {
+        revs.forEach(r => {
+          const cat = String(r.drift_category || r.title || 'Revision Item').trim();
+          driftFreq[cat] = (driftFreq[cat] || 0) + 1;
+          if (!driftExamples[cat]) {
+            driftExamples[cat] = {
+              title: r.title || cat,
+              guidance: r.actionable_guidance || r.evaluator_diagnosis || '',
+              quote: r.candidate_exact_passage || '',
+              page: r.page,
+              copyDate: item.created_at ? item.created_at.split(' ')[0] : 'Recent'
+            };
+          }
+        });
+      }
+    });
+
+    // B. Gather dimension limitations & strengths
+    const dimLimits = [];
+    const dimStrengths = [];
+    essayCopies.forEach(item => {
+      const ev = item.evaluation || item.evaluation_data || {};
+      const dims = ev.evaluation_dimensions;
+      if (Array.isArray(dims)) {
+        dims.forEach(d => {
+          if (d.primary_limitation && dimLimits.length < 3) {
+            dimLimits.push({
+              dimName: d.name,
+              limitation: d.primary_limitation,
+              action: d.actionable_next_step,
+              copyDate: item.created_at ? item.created_at.split(' ')[0] : 'Recent'
+            });
+          }
+          if (d.evaluated_strength && dimStrengths.length < 4) {
+            dimStrengths.push({
+              dimName: d.name,
+              strength: d.evaluated_strength,
+              quote: d.key_passage_quote,
+              copyDate: item.created_at ? item.created_at.split(' ')[0] : 'Recent'
+            });
+          }
+        });
+      }
+    });
+
+    // Render Focus Areas
+    let focusCount = 0;
+    // 1. Repeated drift categories first
+    const sortedDrifts = Object.entries(driftFreq).sort((a, b) => b[1] - a[1]);
+    sortedDrifts.slice(0, 2).forEach(([cat, count]) => {
+      focusCount++;
+      const ex = driftExamples[cat] || {};
+      const isRepeated = count > 1;
+      const card = document.createElement("div");
+      card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-rose-500/25 space-y-1.5 shadow-2xs";
+      card.innerHTML = `
+        <div class="flex items-center justify-between gap-1.5">
+          <span class="font-bold text-rose-700 dark:text-rose-400 text-[11px]">${escapeHtml(ex.title || cat)}</span>
+          <span class="text-[9px] font-mono px-1.5 py-0.2 rounded ${isRepeated ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 font-bold' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}">
+            ${isRepeated ? `Repeated: ${count} Evaluations` : 'Single Observation'}
+          </span>
+        </div>
+        ${ex.quote ? `<p class="text-[10.5px] italic text-slate-500 dark:text-slate-400 line-clamp-2 border-l-2 border-rose-400/50 pl-2">"${escapeHtml(ex.quote)}"</p>` : ''}
+        <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">${escapeHtml(ex.guidance || 'Refine thematic continuity across paragraphs.')}</p>
+        <span class="block text-[9.5px] text-slate-400">Observed in Essay on ${escapeHtml(ex.copyDate)}</span>
+      `;
+      focusEl.appendChild(card);
+    });
+
+    // 2. Add dimension limitations if available
+    dimLimits.slice(0, 2).forEach(dl => {
+      focusCount++;
+      const card = document.createElement("div");
+      card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-amber-500/25 space-y-1.5 shadow-2xs";
+      card.innerHTML = `
+        <div class="flex items-center justify-between gap-1.5">
+          <span class="font-bold text-amber-700 dark:text-amber-400 text-[11px]">${escapeHtml(dl.dimName)} (Diagnostic Note)</span>
+          <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300">Dimension Priority</span>
+        </div>
+        <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">${escapeHtml(dl.limitation)}</p>
+        ${dl.action ? `<p class="text-[10.5px] text-emerald-700 dark:text-emerald-400 font-medium"><strong>Actionable Drill:</strong> ${escapeHtml(dl.action)}</p>` : ''}
+        <span class="block text-[9.5px] text-slate-400">Derived from evaluation on ${escapeHtml(dl.copyDate)}</span>
+      `;
+      focusEl.appendChild(card);
+    });
+
+    if (focusBadge) focusBadge.textContent = `${focusCount} item${focusCount !== 1 ? 's' : ''}`;
+
+    // Render Strengths
+    let strengthsCount = 0;
+    dimStrengths.slice(0, 3).forEach(ds => {
+      strengthsCount++;
+      const card = document.createElement("div");
+      card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-emerald-500/25 space-y-1.5 shadow-2xs";
+      card.innerHTML = `
+        <div class="flex items-center justify-between gap-1.5">
+          <span class="font-bold text-emerald-700 dark:text-emerald-400 text-[11px]">${escapeHtml(ds.dimName)} (Mastered Competency)</span>
+          <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">Evaluated Strength</span>
+        </div>
+        <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">${escapeHtml(ds.strength)}</p>
+        ${ds.quote ? `<p class="text-[10.5px] italic text-slate-500 dark:text-slate-400 border-l-2 border-emerald-400/50 pl-2 line-clamp-2">"${escapeHtml(ds.quote)}"</p>` : ''}
+        <span class="block text-[9.5px] text-slate-400">Observed in Essay on ${escapeHtml(ds.copyDate)}</span>
+      `;
+      strengthsEl.appendChild(card);
+    });
+
+    if (strengthsBadge) strengthsBadge.textContent = `${strengthsCount} item${strengthsCount !== 1 ? 's' : ''}`;
+
+  } else {
+    // ---------------------------------------------------------
+    // GS Guidance: from next_attempt_focus & rubric_scores
+    // ---------------------------------------------------------
+    const gsCopies = history.filter(item => {
+      const p = String(item.paper || '').toUpperCase();
+      return p.startsWith('GS') || p.includes('GENERAL');
+    });
+
+    if (gsCopies.length === 0) {
+      focusEl.innerHTML = `
+        <div class="p-3 text-center text-slate-500 text-[11px]">
+          No GS answer evaluations found. Submit a GS answer to receive evidence-based section focus and rubric diagnosis.
+        </div>`;
+      strengthsEl.innerHTML = `
+        <div class="p-3 text-center text-slate-500 text-[11px]">
+          No GS answer evaluations found. Submit a GS answer to highlight evaluated presentation strengths.
+        </div>`;
+      if (focusBadge) focusBadge.textContent = "0 items";
+      if (strengthsBadge) strengthsBadge.textContent = "0 items";
+      return;
+    }
+
+    let focusCount = 0;
+    let strengthsCount = 0;
+
+    // Extract next_attempt_focus items
+    gsCopies.forEach(item => {
+      const ev = item.evaluation || item.evaluation_data || {};
+      const naf = ev.next_attempt_focus;
+      if (naf && typeof naf === 'object' && naf.target_section && focusCount < 3) {
+        focusCount++;
+        const card = document.createElement("div");
+        card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-rose-500/25 space-y-1.5 shadow-2xs";
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-1.5">
+            <span class="font-bold text-rose-700 dark:text-rose-400 text-[11px]">${escapeHtml(naf.target_section)}</span>
+            <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-700 dark:text-rose-300 font-semibold">${item.paper || 'GS'} Focus</span>
+          </div>
+          ${naf.student_draft_quote ? `<p class="text-[10.5px] italic text-slate-500 dark:text-slate-400 line-clamp-2 border-l-2 border-rose-400/50 pl-2">Draft: "${escapeHtml(naf.student_draft_quote)}"</p>` : ''}
+          ${naf.topper_transformation ? `<p class="text-[11px] text-slate-700 dark:text-slate-300 leading-snug"><strong>Faculty Model Upgrade:</strong> ${escapeHtml(naf.topper_transformation.replace(/\*\*/g, ''))}</p>` : ''}
+          ${naf.mentor_why ? `<p class="text-[10.5px] text-amber-700 dark:text-amber-400 font-medium">${escapeHtml(naf.mentor_why)}</p>` : ''}
+          <span class="block text-[9.5px] text-slate-400">Identified in ${escapeHtml(item.paper || 'GS Answer')} on ${escapeHtml(item.created_at ? item.created_at.split(' ')[0] : 'Recent')}</span>
+        `;
+        focusEl.appendChild(card);
+      }
+    });
+
+    // Check lowest GS rubric dimension
+    const rubricAverages = {
+      intro: { name: 'Introduction Depth', sum: 0, count: 0 },
+      core_demand: { name: 'Core Demand Adherence', sum: 0, count: 0 },
+      value_add: { name: 'Value-Add (Schematics & Global Linkages)', sum: 0, count: 0 },
+      presentation: { name: 'Presentation & Micro-Hygiene', sum: 0, count: 0 },
+      conclusion: { name: 'Conclusion & Way Forward', sum: 0, count: 0 }
+    };
+
+    gsCopies.forEach(item => {
+      const ev = item.evaluation || item.evaluation_data || {};
+      const rs = ev.rubric_scores || {};
+      Object.keys(rubricAverages).forEach(k => {
+        if (rs[`${k}_score`] !== undefined) {
+          const sc = Number(rs[`${k}_score`]);
+          const mx = Number(rs[`${k}_max`] || (k === 'core_demand' ? 5 : 2));
+          rubricAverages[k].sum += (mx > 0 ? (sc / mx) * 100 : 0);
+          rubricAverages[k].count += 1;
+        }
+      });
+    });
+
+    const validRubrics = Object.entries(rubricAverages).filter(([_, v]) => v.count > 0);
+    validRubrics.sort((a, b) => (a[1].sum / a[1].count) - (b[1].sum / b[1].count));
+
+    if (validRubrics.length > 0 && focusCount < 3) {
+      const [worstKey, worstVal] = validRubrics[0];
+      const avgP = (worstVal.sum / worstVal.count).toFixed(1);
+      focusCount++;
+      const card = document.createElement("div");
+      card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-amber-500/25 space-y-1.5 shadow-2xs";
+      card.innerHTML = `
+        <div class="flex items-center justify-between gap-1.5">
+          <span class="font-bold text-amber-700 dark:text-amber-400 text-[11px]">${escapeHtml(worstVal.name)} (${avgP}% Average)</span>
+          <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300">Rubric Priority</span>
+        </div>
+        <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">This is currently your lowest-scoring rubric dimension across your GS practice answers. Ensure each future answer incorporates deliberate attention to this component.</p>
+        <span class="block text-[9.5px] text-slate-400">Calculated across ${worstVal.count} evaluated GS copies</span>
+      `;
+      focusEl.appendChild(card);
+    }
+
+    if (focusBadge) focusBadge.textContent = `${focusCount} item${focusCount !== 1 ? 's' : ''}`;
+
+    // Strengths for GS: highest scoring rubric area
+    if (validRubrics.length > 0) {
+      const [bestKey, bestVal] = validRubrics[validRubrics.length - 1];
+      const bestP = (bestVal.sum / bestVal.count).toFixed(1);
+      strengthsCount++;
+      const card = document.createElement("div");
+      card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-emerald-500/25 space-y-1.5 shadow-2xs";
+      card.innerHTML = `
+        <div class="flex items-center justify-between gap-1.5">
+          <span class="font-bold text-emerald-700 dark:text-emerald-400 text-[11px]">${escapeHtml(bestVal.name)} (${bestP}% Average)</span>
+          <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">Strongest Rubric</span>
+        </div>
+        <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">Consistent execution demonstrated in this dimension. Maintain this structural habit across both 10-markers and 15-markers.</p>
+        <span class="block text-[9.5px] text-slate-400">Calculated across ${bestVal.count} evaluated GS copies</span>
+      `;
+      strengthsEl.appendChild(card);
+    }
+
+    // Add point_by_point praise if present
+    gsCopies.forEach(item => {
+      const ev = item.evaluation || item.evaluation_data || {};
+      const audits = ev.point_by_point_audit;
+      if (Array.isArray(audits) && strengthsCount < 3) {
+        const praise = audits.find(a => (a.status || '').toLowerCase().includes('strong') || (a.status || '').toLowerCase().includes('good') || (a.score || 0) >= 1.0);
+        if (praise) {
+          strengthsCount++;
+          const card = document.createElement("div");
+          card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-emerald-500/25 space-y-1.5 shadow-2xs";
+          card.innerHTML = `
+            <div class="flex items-center justify-between gap-1.5">
+              <span class="font-bold text-emerald-700 dark:text-emerald-400 text-[11px]">Sub-part Execution (${item.paper || 'GS'})</span>
+              <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">Evaluator Observation</span>
+            </div>
+            <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">${escapeHtml(praise.observation || praise.feedback || praise.mentor_verdict || 'Clear sub-heading alignment with directive demand.')}</p>
+            <span class="block text-[9.5px] text-slate-400">Observed in evaluation on ${escapeHtml(item.created_at ? item.created_at.split(' ')[0] : 'Recent')}</span>
+          `;
+          strengthsEl.appendChild(card);
+        }
+      }
+    });
+
+    if (strengthsBadge) strengthsBadge.textContent = `${strengthsCount} item${strengthsCount !== 1 ? 's' : ''}`;
+  }
+};
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
 // -------------------------------------------------------------
 // 4. Feedback & Bug Report Controller
