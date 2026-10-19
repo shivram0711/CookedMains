@@ -2137,6 +2137,67 @@ function setActiveMobileNavTab(activeId) {
   });
 }
 
+window.openMobileEvaluate = function() {
+  setActiveMobileNavTab("mbNavEvaluate");
+  if (typeof window.closeAccountModal === "function") window.closeAccountModal();
+  if (typeof window.switchStudioState === "function") {
+    window.switchStudioState("intake", false);
+  } else {
+    const intakeDeck = document.getElementById("intakeDeck");
+    if (intakeDeck) {
+      intakeDeck.style.setProperty("display", "flex", "important");
+      intakeDeck.classList.remove("hidden");
+    }
+    const heroLandingSection = document.getElementById("heroLandingSection");
+    if (heroLandingSection) {
+      heroLandingSection.style.setProperty("display", "none", "important");
+      heroLandingSection.classList.add("hidden");
+    }
+  }
+  setTimeout(() => {
+    const step1 = document.getElementById("step1Wrapper") || document.getElementById("evaluationForm");
+    if (step1) {
+      step1.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, 60);
+};
+
+window.openMobileDailyTarget = function() {
+  setActiveMobileNavTab("mbNavDaily");
+  if (typeof window.closeAccountModal === "function") window.closeAccountModal();
+  if (typeof window.switchStudioState === "function") {
+    window.switchStudioState("intake", false);
+  } else {
+    const intakeDeck = document.getElementById("intakeDeck");
+    if (intakeDeck) {
+      intakeDeck.style.setProperty("display", "flex", "important");
+      intakeDeck.classList.remove("hidden");
+    }
+    const heroLandingSection = document.getElementById("heroLandingSection");
+    if (heroLandingSection) {
+      heroLandingSection.style.setProperty("display", "none", "important");
+      heroLandingSection.classList.add("hidden");
+    }
+  }
+  const daw = document.getElementById("dailyQuestionBanner");
+  if (daw) {
+    daw.classList.remove("hidden");
+    daw.style.removeProperty("display");
+  }
+  if (typeof window.setQuestionMode === "function") {
+    window.setQuestionMode("daily");
+  } else {
+    const qModeDailyBtn = document.getElementById("qModeDailyBtn");
+    if (qModeDailyBtn) qModeDailyBtn.click();
+  }
+  setTimeout(() => {
+    const target = document.getElementById("dailyQuestionBanner") || document.getElementById("step1Wrapper");
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, 60);
+};
+
 window.openMobileLocker = function() {
   setActiveMobileNavTab("mbNavLocker");
   if (typeof window.openAccountModal === "function") {
@@ -2162,24 +2223,17 @@ function setupMobileAndResponsiveListeners() {
   // 1. Mobile Bottom Navigation Bar (< 768px)
   const mbNavEvaluate = document.getElementById("mbNavEvaluate");
   if (mbNavEvaluate) {
-    mbNavEvaluate.addEventListener("click", () => {
-      setActiveMobileNavTab("mbNavEvaluate");
-      if (typeof window.closeAccountModal === "function") window.closeAccountModal();
-      const step1 = document.getElementById("step1Wrapper");
-      if (step1) step1.scrollIntoView({ behavior: "smooth", block: "start" });
+    mbNavEvaluate.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.openMobileEvaluate();
     });
   }
 
   const mbNavDaily = document.getElementById("mbNavDaily");
   if (mbNavDaily) {
-    mbNavDaily.addEventListener("click", () => {
-      setActiveMobileNavTab("mbNavDaily");
-      if (typeof window.closeAccountModal === "function") window.closeAccountModal();
-      const daw = document.getElementById("dailyQuestionBanner");
-      if (daw) {
-        daw.classList.remove("hidden");
-        daw.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+    mbNavDaily.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.openMobileDailyTarget();
     });
   }
 

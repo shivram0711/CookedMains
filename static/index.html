@@ -5250,11 +5250,11 @@
 
   <!-- Mobile Bottom Navigation Bar (< 768px) -->
   <nav id="mobileBottomNav" class="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-4 py-2 flex items-center justify-around shadow-2xl">
-    <button type="button" id="mbNavEvaluate" class="flex flex-col items-center gap-0.5 text-amber-600 dark:text-amber-400 transition cursor-pointer">
+    <button type="button" id="mbNavEvaluate" onclick="if(window.openMobileEvaluate){window.openMobileEvaluate();}" class="flex flex-col items-center gap-0.5 text-amber-600 dark:text-amber-400 transition cursor-pointer">
       <i data-lucide="pen-tool" class="w-4 h-4"></i>
       <span class="text-[10px] font-bold">Evaluate</span>
     </button>
-    <button type="button" id="mbNavDaily" class="flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-400 hover:text-amber-500 transition cursor-pointer">
+    <button type="button" id="mbNavDaily" onclick="if(window.openMobileDailyTarget){window.openMobileDailyTarget();}" class="flex flex-col items-center gap-0.5 text-slate-600 dark:text-slate-400 hover:text-amber-500 transition cursor-pointer">
       <i data-lucide="target" class="w-4 h-4"></i>
       <span class="text-[10px] font-medium">Daily Target</span>
     </button>
