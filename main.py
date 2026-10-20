@@ -2337,15 +2337,18 @@ async def evaluate_answer(
                         continue
 
                     active_models = get_active_gemini_models(client)
-                    models_to_try = active_models[:4] if active_models else [
+                    models_to_try = active_models[:6] if active_models else [
                         "gemini-3.5-flash-lite",
                         "gemini-flash-lite-latest",
-                        "gemini-flash-latest",
+                        "gemini-3.6-flash",
+                        "gemini-3.5-flash",
+                        "gemini-omni-flash-preview",
                         "gemini-3.7-flash",
                     ]
 
                     for model_name in models_to_try:
-                        if time.time() - eval_loop_start > 80:
+                        if time.time() - eval_loop_start > 85:
+                            print(f"[EVALUATOR] Overall loop approaching 85s timeout. Halting model attempts.")
                             break
                         try:
                             print(f"[EVALUATOR] Evaluating copy with model '{model_name}' (Key {key_idx+1}/{len(keys_to_try)})...")
@@ -2355,7 +2358,7 @@ async def evaluate_answer(
                                 model=model_name,
                                 contents=contents_payload,
                                 config=gen_config,
-                                max_retries=2
+                                max_retries=3
                             )
                             if response and response.text:
                                 raw_text = response.text
@@ -2372,12 +2375,15 @@ async def evaluate_answer(
                             print(f"[EVALUATOR NOTICE] Key {key_idx+1} on '{model_name}': {err_s[:150]}")
                             record_gemini_model_outcome(model_name, False, err_s)
                             err_low = err_s.lower()
-                            # If API key itself is invalid or out of quota, move to next key immediately
+                            # Terminal API key failure: key is revoked/invalid/forbidden -> try next key
                             if any(k_err in err_low for k_err in [
                                 "api_key_invalid", "invalid api key", "permission_denied",
-                                "resource_exhausted", "quota", "429"
+                                "unauthenticated", "forbidden"
                             ]):
+                                print(f"[EVALUATOR] Key {key_idx+1} is invalid/unauthorized. Skipping remaining models on this key.")
                                 break
+                            # For rate-limits (429, resource_exhausted, quota) or transient model errors (503, 504, unavailable, deadline):
+                            # DO NOT break out of the model loop! Continue to the next fallback model on this key so alternate models take over immediately.
                             continue
 
                     if evaluation_result:

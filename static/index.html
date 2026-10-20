@@ -5574,33 +5574,36 @@
           </div>
 
           <!-- ============================================== -->
-          <!-- TAB 4: PROGRESS TRACKER & GUIDANCE            -->
+          <!-- TAB 4: PROGRESS TRACKER & FORENSIC AUDIT       -->
           <!-- ============================================== -->
           <div id="accountPane_tracker" class="hidden space-y-6">
-            <!-- Tracker Header & Filter Controls -->
+            <!-- 1. Header & Active Filter Controls -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
               <div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
                   <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 font-serif flex items-center gap-1.5">
                     <i data-lucide="line-chart" class="w-4 h-4 text-amber-500"></i>
                     <span>Progress &amp; Forensic Tracker</span>
                   </h3>
-                  <span id="trackerSampleBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">Sample: 0 Copies</span>
+                  <span id="trackerSampleBadge" class="text-[10px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">Loading copies...</span>
                 </div>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Evidence-based practice analytics derived exclusively from your saved evaluations. Practice scores are diagnostic feedback, not UPSC score forecasts.</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Evidence-based personal progress review derived exclusively from your saved evaluations. Practice scores reflect diagnostic feedback, not UPSC score forecasts.</p>
               </div>
 
-              <!-- Stream Filter & Date Selector -->
+              <!-- Stream Filter Pills, Date Range Selector & Reset Button -->
               <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto shrink-0">
                 <div class="inline-flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80" role="tablist">
                   <button type="button" id="trackerStreamBtn_ALL" onclick="window.setTrackerStreamFilter('ALL')" class="tracker-stream-pill active px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer text-slate-900 dark:text-white bg-white dark:bg-slate-700 shadow-xs">
-                    All
+                    All Copies
                   </button>
                   <button type="button" id="trackerStreamBtn_GS" onclick="window.setTrackerStreamFilter('GS')" class="tracker-stream-pill px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200">
                     GS Papers
                   </button>
                   <button type="button" id="trackerStreamBtn_ESSAY" onclick="window.setTrackerStreamFilter('ESSAY')" class="tracker-stream-pill px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200">
                     Essay
+                  </button>
+                  <button type="button" id="trackerStreamBtn_OPTIONAL" onclick="window.setTrackerStreamFilter('OPTIONAL')" class="tracker-stream-pill px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200">
+                    Optional
                   </button>
                 </div>
 
@@ -5609,27 +5612,38 @@
                   <option value="30D">Past 30 Days</option>
                   <option value="7D">Past 7 Days</option>
                 </select>
+
+                <button type="button" id="trackerResetFilterBtn" onclick="window.resetTrackerFilters()" class="text-[11px] px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition cursor-pointer hidden flex items-center gap-1" title="Reset all category and date filters">
+                  <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+                  <span>Reset</span>
+                </button>
               </div>
             </div>
 
-            <!-- Summary Stats Row (Authentic Metrics, Separated Streams) -->
+            <!-- Active Filter Notification Bar (visible when filtering) -->
+            <div id="trackerFilterActiveBar" class="hidden items-center justify-between p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-800 dark:text-amber-300">
+              <span id="trackerFilterActiveMsg" class="font-medium">Active Filter Applied</span>
+              <button type="button" onclick="window.resetTrackerFilters()" class="underline font-bold text-[11px] hover:text-amber-950 dark:hover:text-white cursor-pointer">Reset to All Copies</button>
+            </div>
+
+            <!-- SECTION 1: Progress Snapshot (Top Metrics Cards) -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <!-- Card 1: Total Evaluated Copies -->
               <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                  <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Practice Copies</span>
+                  <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">Practice Copies</span>
                   <i data-lucide="file-check-2" class="w-3.5 h-3.5 text-slate-400"></i>
                 </div>
                 <div class="mt-2">
                   <span id="trackerTotalCopies" class="block text-xl font-bold font-mono text-slate-900 dark:text-white">0</span>
-                  <span id="trackerCopiesSub" class="block text-[10.5px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">0 GS • 0 Essay</span>
+                  <span id="trackerCopiesSub" class="block text-[10.5px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">0 GS · 0 Essay</span>
                 </div>
               </div>
 
               <!-- Card 2: GS Practice Mean -->
               <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                  <span class="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400">GS Practice Mean</span>
+                  <span class="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400 tracking-wider">GS Practice Mean</span>
                   <i data-lucide="pen-tool" class="w-3.5 h-3.5 text-amber-500"></i>
                 </div>
                 <div class="mt-2">
@@ -5641,19 +5655,19 @@
               <!-- Card 3: Essay Practice Mean -->
               <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                  <span class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">Essay Practice Mean</span>
+                  <span class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 tracking-wider">Essay Practice Mean</span>
                   <i data-lucide="book-open" class="w-3.5 h-3.5 text-emerald-500"></i>
                 </div>
                 <div class="mt-2">
                   <span id="trackerEssayAvgScore" class="block text-base sm:text-lg font-bold font-mono text-emerald-600 dark:text-emerald-400">--</span>
-                  <span id="trackerEssaySub" class="block text-[10.5px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">125-Mark Philosophical/GS Essays</span>
+                  <span id="trackerEssaySub" class="block text-[10.5px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">125-Mark Essays</span>
                 </div>
               </div>
 
               <!-- Card 4: Peak Performance -->
               <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                  <span class="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400">Peak Performance</span>
+                  <span class="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400 tracking-wider">Peak Performance</span>
                   <i data-lucide="award" class="w-3.5 h-3.5 text-blue-500"></i>
                 </div>
                 <div class="mt-2">
@@ -5665,103 +5679,47 @@
               </div>
             </div>
 
-            <!-- Chart 1: Score Trajectory Over Time -->
-            <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <!-- SECTION 2: What is Changing · Interactive Evaluation History & Timeline -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3.5">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-200 dark:border-slate-800">
                 <div>
                   <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 font-serif">
-                    <i data-lucide="trending-up" class="w-4 h-4 text-amber-500"></i>
-                    <span>Chronological Practice Trajectory</span>
+                    <i data-lucide="history" class="w-4 h-4 text-amber-500"></i>
+                    <span>What is Changing · Interactive Practice History</span>
                   </h4>
-                  <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Chronological score progression of evaluated drafts. GS and Essay streams are plotted on distinct scales to prevent distortion.</p>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Click any evaluated copy to review its complete annotated sheet, margins, and faculty rubrics.</p>
                 </div>
-                <div class="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 shrink-0">
-                  <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>GS Answers (%)</span>
-                  <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>Essays (%)</span>
+                <div class="flex items-center gap-2 text-[11px] self-start sm:self-auto shrink-0">
+                  <span id="trackerHistoryCountBadge" class="font-mono text-slate-500 dark:text-slate-400 font-semibold">0 copies</span>
+                  <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-200/70 dark:bg-slate-800 text-[10px] font-semibold">
+                    <button type="button" id="historySortBtn_RECENT" onclick="window.setTrackerHistorySort('RECENT')" class="px-2 py-0.5 rounded-md text-slate-900 dark:text-white bg-white dark:bg-slate-700 shadow-xs transition cursor-pointer">Latest First</button>
+                    <button type="button" id="historySortBtn_OLDEST" onclick="window.setTrackerHistorySort('OLDEST')" class="px-2 py-0.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition cursor-pointer">Chronological</button>
+                  </div>
                 </div>
               </div>
 
-              <!-- Trajectory Canvas Container -->
-              <div class="h-64 sm:h-72 w-full relative">
-                <canvas id="accountTrackerTrajectoryCanvas" class="w-full h-full"></canvas>
-                <!-- Insufficient Data State -->
-                <div id="accountTrackerTrajectoryEmpty" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-xs rounded-xl space-y-2">
-                  <div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500">
-                    <i data-lucide="info" class="w-5 h-5"></i>
-                  </div>
-                  <h5 class="text-xs font-bold text-slate-800 dark:text-slate-200">Insufficient Data for Trajectory</h5>
-                  <p id="accountTrackerTrajectoryEmptyMsg" class="text-[11px] text-slate-500 max-w-md">At least 2 evaluated copies are required in this category to calculate a score trajectory over time. Submit more practice answers to unlock trend analytics.</p>
-                </div>
+              <!-- History Timeline Cards Container -->
+              <div id="trackerRecentHistoryContainer" class="space-y-2.5 max-h-96 overflow-y-auto pr-1">
+                <!-- Dynamically populated via window.renderTrackerHistory() -->
               </div>
             </div>
 
-            <!-- Chart 2 & Chart 3 Side-by-Side on Desktop -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <!-- Subject-Wise Bar Chart -->
-              <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
-                <div>
-                  <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 font-serif">
-                    <i data-lucide="bar-chart-3" class="w-4 h-4 text-blue-500"></i>
-                    <span>Subject &amp; Paper Marks Distribution</span>
-                  </h4>
-                  <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Mean percentage and evaluation counts per paper. Unattempted papers are marked 'No Attempts Yet'.</p>
-                </div>
-                <div class="h-60 sm:h-64 w-full relative">
-                  <canvas id="accountTrackerSubjectCanvas" class="w-full h-full"></canvas>
-                </div>
-              </div>
-
-              <!-- Multi-Dimension Forensic Radar Chart -->
-              <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
-                <div class="flex items-center justify-between gap-2">
-                  <div>
-                    <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 font-serif">
-                      <i data-lucide="crosshair" class="w-4 h-4 text-purple-500"></i>
-                      <span>Forensic Competency Audit</span>
-                    </h4>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Mean score percentage across official evaluation dimensions.</p>
-                  </div>
-                  <!-- Framework toggle (Essay vs GS) -->
-                  <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-200/70 dark:bg-slate-800 text-[10px] font-semibold shrink-0">
-                    <button type="button" id="radarFwBtn_ESSAY" onclick="window.setTrackerRadarFramework('ESSAY')" class="radar-fw-pill active px-2 py-0.5 rounded-md text-slate-900 dark:text-white bg-white dark:bg-slate-700 shadow-xs transition">
-                      Essay
-                    </button>
-                    <button type="button" id="radarFwBtn_GS" onclick="window.setTrackerRadarFramework('GS')" class="radar-fw-pill px-2 py-0.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition">
-                      GS Papers
-                    </button>
-                  </div>
-                </div>
-
-                <div class="h-60 sm:h-64 w-full relative">
-                  <canvas id="accountTrackerRadarCanvas" class="w-full h-full"></canvas>
-                  <!-- Radar empty state -->
-                  <div id="accountTrackerRadarEmpty" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-xs rounded-xl space-y-2">
-                    <div class="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500">
-                      <i data-lucide="target" class="w-4 h-4"></i>
-                    </div>
-                    <h5 class="text-xs font-bold text-slate-800 dark:text-slate-200">No Dimension Data Yet</h5>
-                    <p id="accountTrackerRadarEmptyMsg" class="text-[11px] text-slate-500 max-w-xs">No evaluations with dimension scoring found for this framework.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Dynamic Evidence-Based Guidance: Where to Focus & Evaluated Strengths -->
+            <!-- SECTION 3: Evidence-Based Strengths & Recurring Focus Areas (Linked to Evaluations) -->
             <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-4">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200 dark:border-slate-800">
                 <div>
                   <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 font-serif">
                     <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
-                    <span>Evidence-Based Forensic Insights &amp; Recommendations</span>
+                    <span>Evidence-Based Strengths &amp; Recurring Focus Areas</span>
                   </h4>
-                  <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Synthesized strictly from faculty evaluations in your locker. Repeated patterns are tagged with evaluation frequencies.</p>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Synthesized strictly from saved evaluation records in your locker. Every insight links directly to its source copy.</p>
                 </div>
                 <!-- Framework toggle for insights -->
                 <div class="inline-flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 self-start sm:self-auto shrink-0">
-                  <button type="button" id="guidanceTabBtn_ESSAY" onclick="window.setTrackerGuidanceTab('ESSAY')" class="guidance-tab-pill active px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-900 dark:text-white bg-white dark:bg-slate-700 shadow-xs transition">
+                  <button type="button" id="guidanceTabBtn_ESSAY" onclick="window.setTrackerGuidanceTab('ESSAY')" class="guidance-tab-pill active px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-900 dark:text-white bg-white dark:bg-slate-700 shadow-xs transition cursor-pointer">
                     Essay Insights
                   </button>
-                  <button type="button" id="guidanceTabBtn_GS" onclick="window.setTrackerGuidanceTab('GS')" class="guidance-tab-pill px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition">
+                  <button type="button" id="guidanceTabBtn_GS" onclick="window.setTrackerGuidanceTab('GS')" class="guidance-tab-pill px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition cursor-pointer">
                     GS Insights
                   </button>
                 </div>
@@ -5769,7 +5727,7 @@
 
               <!-- Two Column Grid: Focus Areas vs Evaluated Strengths -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Column A: Focus Areas (Forensic Weaknesses & Revision Drift) -->
+                <!-- Column A: Focus Areas -->
                 <div class="p-4 rounded-xl bg-rose-500/5 dark:bg-rose-950/20 border border-rose-500/20 space-y-3">
                   <div class="flex items-center justify-between text-rose-600 dark:text-rose-400 font-bold text-xs">
                     <span class="flex items-center gap-1.5">
@@ -5779,11 +5737,11 @@
                     <span id="trackerFocusBadge" class="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-700 dark:text-rose-300">0 items</span>
                   </div>
                   <div id="trackerFocusGuidance" class="space-y-2.5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                    <!-- Populated dynamically with real examiner critiques -->
+                    <!-- Populated dynamically with real examiner critiques and review links -->
                   </div>
                 </div>
 
-                <!-- Column B: Evaluated Strengths & Mastered Habits -->
+                <!-- Column B: Evaluated Strengths -->
                 <div class="p-4 rounded-xl bg-emerald-500/5 dark:bg-emerald-950/20 border border-emerald-500/20 space-y-3">
                   <div class="flex items-center justify-between text-emerald-600 dark:text-emerald-400 font-bold text-xs">
                     <span class="flex items-center gap-1.5">
@@ -5793,8 +5751,80 @@
                     <span id="trackerStrengthsBadge" class="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">0 items</span>
                   </div>
                   <div id="trackerTargetsGuidance" class="space-y-2.5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                    <!-- Populated dynamically with real examiner praise -->
+                    <!-- Populated dynamically with real examiner commendations and review links -->
                   </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 4: Competency & Rubric Diagnostic Scorecard + Supplementary Charts -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-200 dark:border-slate-800">
+                <div>
+                  <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 font-serif">
+                    <i data-lucide="crosshair" class="w-4 h-4 text-purple-500"></i>
+                    <span>Competency &amp; Rubric Diagnostic Scorecard</span>
+                  </h4>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Component scores derived strictly from evaluation dimensions. Choose between Essay and GS frameworks.</p>
+                </div>
+                <!-- Framework selector for competency scorecard -->
+                <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-200/70 dark:bg-slate-800 text-[10px] font-semibold shrink-0">
+                  <button type="button" id="radarFwBtn_ESSAY" onclick="window.setTrackerRadarFramework('ESSAY')" class="radar-fw-pill active px-2 py-0.5 rounded-md text-slate-900 dark:text-white bg-white dark:bg-slate-700 shadow-xs transition cursor-pointer">
+                    Essay Dimensions
+                  </button>
+                  <button type="button" id="radarFwBtn_GS" onclick="window.setTrackerRadarFramework('GS')" class="radar-fw-pill px-2 py-0.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition cursor-pointer">
+                    GS Rubrics
+                  </button>
+                </div>
+              </div>
+
+              <!-- Interactive Competency Cards Grid -->
+              <div id="trackerCompetencyGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <!-- Dynamically populated scorecard cards with dimension progress bars -->
+              </div>
+
+              <!-- Supplementary Charts (Trajectory & Subject Breakdown) -->
+              <div class="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-4">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <!-- Chart A: Trajectory Over Time -->
+                  <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
+                        <i data-lucide="trending-up" class="w-3.5 h-3.5 text-amber-500"></i>
+                        <span>Chronological Trajectory</span>
+                      </span>
+                      <div class="flex items-center gap-2 text-[10px] text-slate-400">
+                        <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span>GS</span>
+                        <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Essay</span>
+                      </div>
+                    </div>
+                    <div class="h-48 sm:h-56 w-full relative">
+                      <canvas id="accountTrackerTrajectoryCanvas" class="w-full h-full"></canvas>
+                      <div id="accountTrackerTrajectoryEmpty" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-slate-50/90 dark:bg-slate-950/90 rounded-xl space-y-1">
+                        <i data-lucide="info" class="w-4 h-4 text-slate-400"></i>
+                        <p id="accountTrackerTrajectoryEmptyMsg" class="text-[11px] text-slate-500">Need at least 2 evaluated copies to render trajectory.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Chart B: Subject Distribution -->
+                  <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
+                        <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-blue-500"></i>
+                        <span>Subject &amp; Paper Marks Distribution</span>
+                      </span>
+                    </div>
+                    <div class="h-48 sm:h-56 w-full relative">
+                      <canvas id="accountTrackerSubjectCanvas" class="w-full h-full"></canvas>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Hidden Radar Elements for chart instance compatibility -->
+                <div class="hidden">
+                  <canvas id="accountTrackerRadarCanvas"></canvas>
+                  <div id="accountTrackerRadarEmpty"><p id="accountTrackerRadarEmptyMsg"></p></div>
                 </div>
               </div>
             </div>

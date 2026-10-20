@@ -7931,6 +7931,7 @@ _INACTIVE_GEMINI_MODELS: set = {
     "gemini-2.0-flash-lite",
     "gemini-2.5-flash",
     "gemini-2.5-flash-lite",
+    "gemini-flash-latest",
 }
 _DISCOVERED_GEMINI_MODELS_CACHE: List[str] = []
 _DISCOVERED_GEMINI_MODELS_TS: float = 0.0
@@ -8014,13 +8015,13 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
     # 3. Top production models priority (Verified live Google Gemini models with primary + instant rotation fallbacks)
     top_models_priority = [
-        "gemini-3.5-flash-lite",        # Primary fast active model (verified ~1.2s)
+        "gemini-3.5-flash-lite",        # Primary fast active model (verified ~1.0s)
         "gemini-flash-lite-latest",     # Instant active rotation fallback (verified ~0.8s)
-        "gemini-flash-latest",          # Active fallback (verified ~2.0s)
-        "gemini-3.7-flash",             # High-capacity active fallback (verified ~2.5s)
+        "gemini-3.6-flash",             # High-reliability active fallback (verified ~1.5s)
+        "gemini-3.5-flash",             # Active fallback
+        "gemini-omni-flash-preview",    # Fast preview fallback
+        "gemini-3.7-flash",             # High-capacity active fallback
         "gemini-3.8-flash",             # High-capacity active fallback
-        "gemini-3.1-flash-lite",        # Secondary fallback
-        "gemini-3.6-flash",             # Secondary fallback
     ]
     for tm in reversed(top_models_priority):
         if tm in ready_discovered:
@@ -8033,11 +8034,11 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
     static_priority = [
         "gemini-3.5-flash-lite",
         "gemini-flash-lite-latest",
-        "gemini-flash-latest",
+        "gemini-3.6-flash",
+        "gemini-3.5-flash",
+        "gemini-omni-flash-preview",
         "gemini-3.7-flash",
         "gemini-3.8-flash",
-        "gemini-3.1-flash-lite",
-        "gemini-3.6-flash",
     ]
     for m in static_priority:
         if m not in _INACTIVE_GEMINI_MODELS and m not in ordered:

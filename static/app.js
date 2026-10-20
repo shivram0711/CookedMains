@@ -1780,7 +1780,13 @@ window.showGuardModal = function(data) {
     if (compBox) compBox.classList.add("hidden");
   }
 
-  if (warningEl) warningEl.textContent = data.warning || "0 credits were deducted from your account.";
+  if (warningEl) {
+    if (data.error_type === "evaluator_busy") {
+      warningEl.textContent = "🛡️ Zero Credits Deducted: Your uploaded answer copy and daily evaluation limit are 100% intact. Click 'Retry Evaluation Now' to process immediately.";
+    } else {
+      warningEl.textContent = data.warning || "0 credits were deducted from your account.";
+    }
+  }
 
   const reuploadBtn = document.getElementById("guardReuploadBtn");
   if (reuploadBtn) {
@@ -1818,6 +1824,17 @@ window.showGuardModal = function(data) {
         window.closeGuardModal();
         window.clearPaperMarksAndAnswersheet(true);
       };
+    } else if (data.error_type === "evaluator_busy") {
+      reuploadBtn.innerHTML = `
+        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+        <span>Retry Evaluation Now</span>
+      `;
+      reuploadBtn.onclick = () => {
+        window.closeGuardModal();
+        if (typeof window.runEvaluation === "function") {
+          window.runEvaluation(true);
+        }
+      };
     } else {
       reuploadBtn.innerHTML = `
         <i data-lucide="upload" class="w-3.5 h-3.5"></i>
@@ -1854,6 +1871,16 @@ window.showGuardModal = function(data) {
       };
     } else if (data.error_type === "blank_sheet" && !state.isRewriteMode) {
       exitBtn.classList.add("hidden");
+    } else if (data.error_type === "evaluator_busy") {
+      exitBtn.classList.remove("hidden");
+      exitBtn.innerHTML = `
+        <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+        <span>Upload Different Copy</span>
+      `;
+      exitBtn.onclick = () => {
+        window.closeGuardModal();
+        window.clearPaperMarksAndAnswersheet(true);
+      };
     } else {
       exitBtn.classList.remove("hidden");
       exitBtn.innerHTML = `
@@ -1883,6 +1910,14 @@ window.showGuardModal = function(data) {
       cancelBtn.innerHTML = `
         <i data-lucide="x" class="w-3.5 h-3.5"></i>
         <span>Dismiss Alert</span>
+      `;
+      cancelBtn.onclick = () => {
+        window.closeGuardModal();
+      };
+    } else if (data.error_type === "evaluator_busy") {
+      cancelBtn.innerHTML = `
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+        <span>Keep Copy & Try Later</span>
       `;
       cancelBtn.onclick = () => {
         window.closeGuardModal();
@@ -18299,7 +18334,7 @@ window.renderWeeklyLocker = function() {
 };
 
 // -------------------------------------------------------------
-// 3. Progress Tracker & Charts (Authentic Evidence-Based Analytics)
+// 3. Progress Tracker & Forensic Audit (Authentic Evidence-Based Analytics)
 // -------------------------------------------------------------
 window.accountTrajectoryChartInstance = null;
 window.accountSubjectChartInstance = null;
@@ -18307,12 +18342,101 @@ window.accountRadarChartInstance = null;
 
 state.trackerStream = state.trackerStream || 'ALL';
 state.trackerDateRange = state.trackerDateRange || 'ALL';
+state.trackerHistorySort = state.trackerHistorySort || 'RECENT';
 state.trackerRadarFramework = state.trackerRadarFramework || 'ESSAY';
 state.trackerGuidanceTab = state.trackerGuidanceTab || 'ESSAY';
 
+// Universal evaluation classification helper
+window.classifyTrackerRecord = function(item) {
+  if (!item) return { type: 'unclassified', paperCode: 'UNCLASSIFIED', paperLabel: 'Unclassified', framework: 'UNKNOWN', isGs: false, isEssay: false, isOptional: false, maxMarks: 10, score: 0 };
+  const ev = item.evaluation || item.evaluation_data || {};
+  const rawPaper = String(item.paper || ev.paper || ev.detected_paper || '').trim();
+  const pUpper = rawPaper.toUpperCase();
+  const maxMarks = Number(item.max_marks ?? ev.max_marks ?? (item.total_marks || 0));
+  const totalScore = Number(item.total_score ?? item.overall_score ?? ev.overall_score ?? 0);
+  const hasEssayDims = Array.isArray(ev.evaluation_dimensions) && ev.evaluation_dimensions.length > 0;
+  const hasEssayRevs = Array.isArray(ev.revision_priorities) && ev.revision_priorities.length > 0;
+  const hasGsRubrics = Boolean(ev.rubric_scores && (ev.rubric_scores.intro_score !== undefined || ev.rubric_scores.core_demand_score !== undefined));
+  const hasGsSubParts = Array.isArray(ev.sub_part_step_marking) && ev.sub_part_step_marking.length > 0;
+
+  // 1. ESSAY DETECTION
+  if (pUpper.includes('ESSAY') || maxMarks >= 100 || hasEssayDims || hasEssayRevs) {
+    return {
+      type: 'essay',
+      paperCode: 'ESSAY',
+      paperLabel: 'Essay',
+      framework: 'ESSAY',
+      isGs: false,
+      isEssay: true,
+      isOptional: false,
+      maxMarks: maxMarks > 0 ? maxMarks : 125,
+      score: totalScore
+    };
+  }
+
+  // 2. GS PAPERS DETECTION
+  const gs1Matches = ['GS1', 'GS 1', 'GS-1', 'PAPER 1', 'PAPER-1', 'PAPER I', 'GENERAL STUDIES 1', 'GENERAL STUDIES I'];
+  const gs2Matches = ['GS2', 'GS 2', 'GS-2', 'PAPER 2', 'PAPER-2', 'PAPER II', 'GENERAL STUDIES 2', 'GENERAL STUDIES II', 'POLITY', 'GOVERNANCE'];
+  const gs3Matches = ['GS3', 'GS 3', 'GS-3', 'PAPER 3', 'PAPER-3', 'PAPER III', 'GENERAL STUDIES 3', 'GENERAL STUDIES III', 'ECONOMY', 'ENVIRONMENT', 'SECURITY'];
+  const gs4Matches = ['GS4', 'GS 4', 'GS-4', 'PAPER 4', 'PAPER-4', 'PAPER IV', 'GENERAL STUDIES 4', 'GENERAL STUDIES IV', 'ETHICS'];
+
+  let detectedGsPaper = null;
+  if (gs1Matches.some(m => pUpper.includes(m))) detectedGsPaper = 'GS1';
+  else if (gs2Matches.some(m => pUpper.includes(m))) detectedGsPaper = 'GS2';
+  else if (gs3Matches.some(m => pUpper.includes(m))) detectedGsPaper = 'GS3';
+  else if (gs4Matches.some(m => pUpper.includes(m))) detectedGsPaper = 'GS4';
+  else if (pUpper.startsWith('GS') || pUpper.includes('GENERAL') || hasGsRubrics || hasGsSubParts || (maxMarks > 0 && maxMarks <= 25)) {
+    detectedGsPaper = rawPaper ? rawPaper.toUpperCase() : 'GS';
+  }
+
+  if (detectedGsPaper) {
+    return {
+      type: 'gs',
+      paperCode: detectedGsPaper,
+      paperLabel: detectedGsPaper,
+      framework: 'GS',
+      isGs: true,
+      isEssay: false,
+      isOptional: false,
+      maxMarks: maxMarks > 0 ? maxMarks : 10,
+      score: totalScore
+    };
+  }
+
+  // 3. OPTIONAL SUBJECTS DETECTION
+  const optKeywords = ['OPTIONAL', 'PSIR', 'SOCIOLOGY', 'ANTHROPOLOGY', 'GEOGRAPHY', 'HISTORY', 'PUB AD', 'PUBLIC ADMINISTRATION', 'PHILOSOPHY', 'COMMERCE', 'MATHEMATICS', 'AGRICULTURE', 'LAW'];
+  if (optKeywords.some(k => pUpper.includes(k))) {
+    return {
+      type: 'optional',
+      paperCode: 'OPTIONAL',
+      paperLabel: rawPaper || 'Optional',
+      framework: 'OPTIONAL',
+      isGs: false,
+      isEssay: false,
+      isOptional: true,
+      maxMarks: maxMarks > 0 ? maxMarks : 15,
+      score: totalScore
+    };
+  }
+
+  // 4. UNCLASSIFIED RECORD
+  return {
+    type: 'unclassified',
+    paperCode: 'OTHER',
+    paperLabel: rawPaper || 'Unclassified Copy',
+    framework: 'UNKNOWN',
+    isGs: false,
+    isEssay: false,
+    isOptional: false,
+    maxMarks: maxMarks > 0 ? maxMarks : 10,
+    score: totalScore,
+    unclassifiedReason: `Unrecognized paper format ("${rawPaper || 'empty'}")`
+  };
+};
+
 window.setTrackerStreamFilter = function(stream) {
   state.trackerStream = stream || 'ALL';
-  ['ALL', 'GS', 'ESSAY'].forEach(s => {
+  ['ALL', 'GS', 'ESSAY', 'OPTIONAL'].forEach(s => {
     const btn = document.getElementById(`trackerStreamBtn_${s}`);
     if (btn) {
       const isAct = s === state.trackerStream;
@@ -18331,7 +18455,37 @@ window.setTrackerStreamFilter = function(stream) {
 
 window.setTrackerDateFilter = function(range) {
   state.trackerDateRange = range || 'ALL';
+  const sel = document.getElementById("trackerDateFilter");
+  if (sel && sel.value !== state.trackerDateRange) {
+    sel.value = state.trackerDateRange;
+  }
   window.renderPerformanceTracker();
+};
+
+window.resetTrackerFilters = function() {
+  state.trackerStream = 'ALL';
+  state.trackerDateRange = 'ALL';
+  const sel = document.getElementById("trackerDateFilter");
+  if (sel) sel.value = 'ALL';
+  window.setTrackerStreamFilter('ALL');
+};
+
+window.setTrackerHistorySort = function(sortOrder) {
+  state.trackerHistorySort = sortOrder === 'OLDEST' ? 'OLDEST' : 'RECENT';
+  const recentBtn = document.getElementById("historySortBtn_RECENT");
+  const oldestBtn = document.getElementById("historySortBtn_OLDEST");
+  if (recentBtn && oldestBtn) {
+    const isRecent = state.trackerHistorySort === 'RECENT';
+    recentBtn.className = isRecent
+      ? "px-2 py-0.5 rounded-md text-slate-900 dark:text-white bg-white dark:bg-slate-700 shadow-xs transition cursor-pointer"
+      : "px-2 py-0.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition cursor-pointer";
+    oldestBtn.className = !isRecent
+      ? "px-2 py-0.5 rounded-md text-slate-900 dark:text-white bg-white dark:bg-slate-700 shadow-xs transition cursor-pointer"
+      : "px-2 py-0.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition cursor-pointer";
+  }
+  if (window._trackerActiveList) {
+    window.renderTrackerHistory(window._trackerActiveList);
+  }
 };
 
 window.setTrackerRadarFramework = function(fw) {
@@ -18350,7 +18504,8 @@ window.setTrackerRadarFramework = function(fw) {
       btn.classList.toggle('dark:text-slate-400', !isAct);
     }
   });
-  window.renderTrackerRadarChart(window._trackerActiveHistory || state.lockerHistory || []);
+  window.renderTrackerCompetencyGrid(window._trackerActiveList || state.lockerHistory || []);
+  window.renderTrackerRadarChart(window._trackerActiveList || state.lockerHistory || []);
 };
 
 window.setTrackerGuidanceTab = function(tab) {
@@ -18369,7 +18524,7 @@ window.setTrackerGuidanceTab = function(tab) {
       btn.classList.toggle('dark:text-slate-400', !isAct);
     }
   });
-  window.renderTrackerGuidance(window._trackerActiveHistory || state.lockerHistory || []);
+  window.renderTrackerGuidance(window._trackerActiveList || state.lockerHistory || []);
 };
 
 function formatTrackerDate(ts) {
@@ -18391,15 +18546,30 @@ function formatTrackerDate(ts) {
 
 window.renderPerformanceTracker = async function() {
   // 1. Ensure history is loaded if user is active
-  if ((!state.lockerHistory || state.lockerHistory.length === 0) && state.user && state.user.email) {
+  const effectiveEmail = (state.user && state.user.email) ? state.user.email : (localStorage.getItem("cookedmains_user_email") || "");
+  if ((!state.lockerHistory || state.lockerHistory.length === 0) && effectiveEmail) {
     try {
-      const list = await window.fetchAndSyncUserLockerHistory(state.user.email);
-      state.lockerHistory = Array.isArray(list) ? list : [];
+      const list = await window.fetchAndSyncUserLockerHistory(effectiveEmail);
+      if (Array.isArray(list) && list.length > 0) {
+        state.lockerHistory = list;
+      }
     } catch (e) {}
   }
 
-  const rawHistory = Array.isArray(state.lockerHistory) ? state.lockerHistory : [];
-  
+  // Fallback to cached evaluations if state is empty
+  let rawHistory = Array.isArray(state.lockerHistory) ? [...state.lockerHistory] : [];
+  if (rawHistory.length === 0) {
+    try {
+      const cached = JSON.parse(localStorage.getItem("cookedmains_evaluation_cache") || "[]");
+      if (Array.isArray(cached) && cached.length > 0) rawHistory = cached;
+    } catch(e) {}
+  }
+
+  // Run classification on all records
+  rawHistory.forEach(item => {
+    item._c = window.classifyTrackerRecord(item);
+  });
+
   // 2. Filter by date range (only supported date intervals)
   let dateFilteredHistory = [...rawHistory];
   if (state.trackerDateRange !== 'ALL') {
@@ -18414,84 +18584,131 @@ window.renderPerformanceTracker = async function() {
     });
   }
 
-  window._trackerActiveHistory = dateFilteredHistory;
+  // 3. Filter by category / stream
+  let activeList = [...dateFilteredHistory];
+  if (state.trackerStream === 'GS') {
+    activeList = activeList.filter(i => i._c && i._c.isGs);
+  } else if (state.trackerStream === 'ESSAY') {
+    activeList = activeList.filter(i => i._c && i._c.isEssay);
+  } else if (state.trackerStream === 'OPTIONAL') {
+    activeList = activeList.filter(i => i._c && i._c.isOptional);
+  }
 
-  // 3. Separate streams: GS vs Essay
-  const isGsPaper = (paper) => {
-    const p = String(paper || '').trim().toUpperCase();
-    return p.startsWith('GS') || p === 'GENERAL STUDIES' || p === 'ETHICS';
-  };
-  const isEssayPaper = (paper) => {
-    const p = String(paper || '').trim().toUpperCase();
-    return p === 'ESSAY' || p.includes('ESSAY');
-  };
+  window._trackerActiveList = activeList;
+  window._trackerRawList = rawHistory;
 
-  const gsCopies = dateFilteredHistory.filter(item => isGsPaper(item.paper));
-  const essayCopies = dateFilteredHistory.filter(item => isEssayPaper(item.paper));
-  const totalCopies = dateFilteredHistory.length;
+  // Reconcile counts across the active filtered set
+  const activeGs = activeList.filter(i => i._c && i._c.isGs).length;
+  const activeEssay = activeList.filter(i => i._c && i._c.isEssay).length;
+  const activeOpt = activeList.filter(i => i._c && i._c.isOptional).length;
+  const activeUnclass = activeList.filter(i => i._c && i._c.type === 'unclassified').length;
+  const totalActive = activeList.length;
 
-  // 4. Update Summary Statistics
-  // Card 1: Total Copies & Sample Size Badge
+  // 4. Update Summary Statistics & Header Badge
+  // Header Badge (synchronously reflects active filters and exact count)
   const sampleBadge = document.getElementById("trackerSampleBadge");
   if (sampleBadge) {
-    sampleBadge.textContent = `Sample: ${totalCopies} Copies (${state.trackerDateRange === 'ALL' ? 'All Time' : (state.trackerDateRange === '7D' ? 'Past 7 Days' : 'Past 30 Days')})`;
+    const streamName = state.trackerStream === 'ALL' ? 'All Practice' : (state.trackerStream === 'GS' ? 'GS Papers' : (state.trackerStream === 'ESSAY' ? 'Essay' : 'Optional'));
+    const dateName = state.trackerDateRange === 'ALL' ? 'All Time' : (state.trackerDateRange === '7D' ? 'Past 7 Days' : 'Past 30 Days');
+    sampleBadge.textContent = `Sample: ${totalActive} Copies (${streamName} • ${dateName})`;
   }
+
+  // Active filter status banner
+  const filterBar = document.getElementById("trackerFilterActiveBar");
+  const filterMsg = document.getElementById("trackerFilterActiveMsg");
+  const filterCount = document.getElementById("trackerFilterActiveCount");
+  const isFiltered = (state.trackerStream !== 'ALL' || state.trackerDateRange !== 'ALL');
+  if (filterBar) {
+    if (isFiltered) {
+      filterBar.classList.remove("hidden");
+      filterBar.classList.add("flex");
+      if (filterMsg) {
+        const parts = [];
+        if (state.trackerStream !== 'ALL') parts.push(`Category: ${state.trackerStream === 'GS' ? 'General Studies' : (state.trackerStream === 'ESSAY' ? 'Essay' : 'Optional')}`);
+        if (state.trackerDateRange !== 'ALL') parts.push(`Timeframe: Last ${state.trackerDateRange === '7D' ? '7 days' : '30 days'}`);
+        filterMsg.textContent = parts.join(' | ');
+      }
+      if (filterCount) {
+        filterCount.textContent = `Showing ${totalActive} of ${rawHistory.length} total copies`;
+      }
+    } else {
+      filterBar.classList.add("hidden");
+      filterBar.classList.remove("flex");
+    }
+  }
+
+  // Card 1: Total Copies
   const tcEl = document.getElementById("trackerTotalCopies");
-  if (tcEl) tcEl.textContent = totalCopies.toString();
+  if (tcEl) tcEl.textContent = totalActive.toString();
   const cSub = document.getElementById("trackerCopiesSub");
   if (cSub) {
-    cSub.textContent = `${gsCopies.length} GS • ${essayCopies.length} Essay${totalCopies - gsCopies.length - essayCopies.length > 0 ? ` • ${totalCopies - gsCopies.length - essayCopies.length} Other` : ''}`;
+    if (totalActive === 0) {
+      cSub.textContent = rawHistory.length > 0 ? "No copies match active filters" : "No evaluated copies on record";
+    } else {
+      const parts = [];
+      parts.push(`${activeGs} GS`);
+      parts.push(`${activeEssay} Essay`);
+      if (activeOpt > 0) parts.push(`${activeOpt} Optional`);
+      if (activeUnclass > 0) parts.push(`${activeUnclass} Unclassified`);
+      cSub.textContent = parts.join(" • ");
+    }
   }
 
   // Card 2: GS Practice Mean
   const asEl = document.getElementById("trackerAvgScore");
   const asSub = document.getElementById("trackerAvgSub");
+  const gsInScope = activeList.filter(i => i._c && i._c.isGs);
   if (asEl) {
-    if (gsCopies.length > 0) {
+    if (gsInScope.length > 0) {
       let gsSumMarks = 0;
       let gsSumMax = 0;
-      let gsSumPct = 0;
-      gsCopies.forEach(item => {
-        const sc = Number(item.total_score || item.overall_score || 0);
-        const mm = Number(item.max_marks || (item.evaluation && item.evaluation.max_marks) || 10);
+      gsInScope.forEach(item => {
+        const sc = Number(item.total_score || item.overall_score || (item._c && item._c.score) || 0);
+        const mm = Number(item.max_marks || (item.evaluation && item.evaluation.max_marks) || (item._c && item._c.maxMarks) || 10);
         gsSumMarks += sc;
         gsSumMax += mm;
-        gsSumPct += (mm > 0 ? (sc / mm) * 100 : 0);
       });
-      const gsAvgSc = (gsSumMarks / gsCopies.length).toFixed(1);
-      const gsAvgMm = (gsSumMax / gsCopies.length).toFixed(1);
-      const gsAvgPct = (gsSumPct / gsCopies.length).toFixed(1);
+      const gsAvgSc = (gsSumMarks / gsInScope.length).toFixed(1);
+      const gsAvgMm = (gsSumMax / gsInScope.length).toFixed(1);
+      const gsAvgPct = gsSumMax > 0 ? ((gsSumMarks / gsSumMax) * 100).toFixed(1) : "0.0";
       asEl.textContent = `${gsAvgSc} / ${gsAvgMm} M (${gsAvgPct}%)`;
-      if (asSub) asSub.textContent = `Mean across ${gsCopies.length} GS evaluation${gsCopies.length > 1 ? 's' : ''}`;
+      if (asSub) asSub.textContent = `Mean across ${gsInScope.length} GS evaluation${gsInScope.length > 1 ? 's' : ''}`;
     } else {
       asEl.textContent = "--";
-      if (asSub) asSub.textContent = "No GS practice copies evaluated yet";
+      if (asSub) {
+        asSub.textContent = state.trackerStream === 'ESSAY'
+          ? "Excluded in Essay filter"
+          : (state.trackerStream === 'OPTIONAL' ? "Excluded in Optional filter" : "No GS evaluations in selection");
+      }
     }
   }
 
   // Card 3: Essay Practice Mean
   const eaEl = document.getElementById("trackerEssayAvgScore");
   const eaSub = document.getElementById("trackerEssaySub");
+  const essayInScope = activeList.filter(i => i._c && i._c.isEssay);
   if (eaEl) {
-    if (essayCopies.length > 0) {
+    if (essayInScope.length > 0) {
       let esSumMarks = 0;
       let esSumMax = 0;
-      let esSumPct = 0;
-      essayCopies.forEach(item => {
-        const sc = Number(item.total_score || item.overall_score || 0);
-        const mm = Number(item.max_marks || (item.evaluation && item.evaluation.max_marks) || 125);
+      essayInScope.forEach(item => {
+        const sc = Number(item.total_score || item.overall_score || (item._c && item._c.score) || 0);
+        const mm = Number(item.max_marks || (item.evaluation && item.evaluation.max_marks) || (item._c && item._c.maxMarks) || 125);
         esSumMarks += sc;
         esSumMax += mm;
-        esSumPct += (mm > 0 ? (sc / mm) * 100 : 0);
       });
-      const esAvgSc = (esSumMarks / essayCopies.length).toFixed(1);
-      const esAvgMm = (esSumMax / essayCopies.length).toFixed(0);
-      const esAvgPct = (esSumPct / essayCopies.length).toFixed(1);
+      const esAvgSc = (esSumMarks / essayInScope.length).toFixed(1);
+      const esAvgMm = (esSumMax / essayInScope.length).toFixed(0);
+      const esAvgPct = esSumMax > 0 ? ((esSumMarks / esSumMax) * 100).toFixed(1) : "0.0";
       eaEl.textContent = `${esAvgSc} / ${esAvgMm} M (${esAvgPct}%)`;
-      if (eaSub) eaSub.textContent = `Mean across ${essayCopies.length} Essay${essayCopies.length > 1 ? 's' : ''} (125M rubric)`;
+      if (eaSub) eaSub.textContent = `Mean across ${essayInScope.length} Essay${essayInScope.length > 1 ? 's' : ''} (125M rubric)`;
     } else {
       eaEl.textContent = "--";
-      if (eaSub) eaSub.textContent = "No Essay copies evaluated yet";
+      if (eaSub) {
+        eaSub.textContent = state.trackerStream === 'GS'
+          ? "Excluded in GS filter"
+          : (state.trackerStream === 'OPTIONAL' ? "Excluded in Optional filter" : "No Essay evaluations in selection");
+      }
     }
   }
 
@@ -18499,12 +18716,12 @@ window.renderPerformanceTracker = async function() {
   const psEl = document.getElementById("trackerPeakScore");
   const psSub = document.getElementById("trackerPeakSub");
   if (psEl) {
-    if (dateFilteredHistory.length > 0) {
+    if (activeList.length > 0) {
       let bestItem = null;
       let bestPct = -1;
-      dateFilteredHistory.forEach(item => {
-        const sc = Number(item.total_score || item.overall_score || 0);
-        const mm = Number(item.max_marks || (item.evaluation && item.evaluation.max_marks) || 10);
+      activeList.forEach(item => {
+        const sc = Number(item.total_score || item.overall_score || (item._c && item._c.score) || 0);
+        const mm = Number(item.max_marks || (item.evaluation && item.evaluation.max_marks) || (item._c && item._c.maxMarks) || 10);
         const pct = mm > 0 ? (sc / mm) * 100 : 0;
         if (pct > bestPct) {
           bestPct = pct;
@@ -18512,41 +18729,141 @@ window.renderPerformanceTracker = async function() {
         }
       });
       if (bestItem) {
-        const bestSc = Number(bestItem.total_score || bestItem.overall_score || 0).toFixed(1);
-        const bestMm = Number(bestItem.max_marks || (bestItem.evaluation && bestItem.evaluation.max_marks) || 10).toFixed(0);
+        const bestSc = Number(bestItem.total_score || bestItem.overall_score || (bestItem._c && bestItem._c.score) || 0).toFixed(1);
+        const bestMm = Number(bestItem.max_marks || (bestItem.evaluation && bestItem.evaluation.max_marks) || (bestItem._c && bestItem._c.maxMarks) || 10).toFixed(0);
         psEl.textContent = `${bestSc} / ${bestMm} M (${bestPct.toFixed(1)}%)`;
         if (psSub) {
           const dateStr = formatTrackerDate(bestItem.created_at || bestItem.evaluated_at) || 'Recent';
-          psSub.textContent = `${bestItem.paper || 'Answer'} • ${dateStr}`;
+          const label = (bestItem._c && bestItem._c.paperLabel) || bestItem.paper || 'Practice Copy';
+          psSub.textContent = `${label} • ${dateStr}`;
         }
       }
     } else {
       psEl.textContent = "--";
-      if (psSub) psSub.textContent = "Awaiting evaluated answers";
+      if (psSub) psSub.textContent = "No copies match active filters";
     }
   }
 
-  // Preserved ID trackerDirectiveRate (represented as authenticated audit scope)
+  // Preserved ID trackerDirectiveRate
   const drEl = document.getElementById("trackerDirectiveRate");
   if (drEl) {
-    drEl.textContent = totalCopies > 0 ? "100% Audited" : "--";
+    drEl.textContent = totalActive > 0 ? "100% Audited" : "--";
   }
 
-  // 5. Render Chart 1: Trajectory
-  renderTrackerTrajectoryChart(dateFilteredHistory);
+  // 5. Render What is Changing: Evaluation History Timeline
+  window.renderTrackerHistory(activeList);
 
-  // 6. Render Chart 2: Subject Performance Bar Chart
-  renderTrackerSubjectChart(dateFilteredHistory);
+  // 6. Render Evidence-Based Guidance (Focus Areas & Strengths)
+  window.renderTrackerGuidance(activeList);
 
-  // 7. Render Chart 3: Multi-Dimension Forensic Radar Chart
-  window.renderTrackerRadarChart(dateFilteredHistory);
+  // 7. Render Explorable Competency Scorecard Grid
+  window.renderTrackerCompetencyGrid(activeList);
 
-  // 8. Render Dynamic Guidance (Focus Areas & Evaluated Strengths)
-  window.renderTrackerGuidance(dateFilteredHistory);
+  // 8. Render Charts
+  renderTrackerTrajectoryChart(activeList);
+  renderTrackerSubjectChart(activeList);
+  window.renderTrackerRadarChart(activeList);
 
   if (window.lucide) {
     try { lucide.createIcons(); } catch(e) {}
   }
+};
+
+// =============================================================
+// Section 2: Interactive Evaluation History
+// =============================================================
+window.renderTrackerHistory = function(records) {
+  const container = document.getElementById("trackerRecentHistoryContainer");
+  const emptyEl = document.getElementById("trackerRecentHistoryEmpty");
+  const badgeEl = document.getElementById("trackerHistoryBadge");
+  if (!container) return;
+
+  const list = Array.isArray(records) ? [...records] : [];
+  if (badgeEl) badgeEl.textContent = `${list.length} Cop${list.length === 1 ? 'y' : 'ies'}`;
+
+  if (list.length === 0) {
+    container.innerHTML = "";
+    if (emptyEl) emptyEl.classList.remove("hidden");
+    return;
+  }
+  if (emptyEl) emptyEl.classList.add("hidden");
+
+  // Sort: default RECENT (newest first) or OLDEST (chronological)
+  const isOldest = state.trackerHistorySort === 'OLDEST';
+  list.sort((a, b) => {
+    const ta = String(a.created_at || a.evaluated_at || '');
+    const tb = String(b.created_at || b.evaluated_at || '');
+    return isOldest ? ta.localeCompare(tb) : tb.localeCompare(ta);
+  });
+
+  const cardsHtml = list.map((item, idx) => {
+    const c = item._c || window.classifyTrackerRecord(item);
+    const score = Number(item.total_score || item.overall_score || c.score || 0);
+    const maxMarks = Number(item.max_marks || (item.evaluation && item.evaluation.max_marks) || c.maxMarks || (c.isEssay ? 125 : 10));
+    const pct = maxMarks > 0 ? ((score / maxMarks) * 100).toFixed(1) : "0.0";
+    const dateStr = formatTrackerDate(item.created_at || item.evaluated_at) || 'Recent';
+    const evalId = item.id || item.eval_id || item.evaluation_id || '';
+    const qTitle = String(item.question || item.question_title || item.title || '').trim();
+    const hasRewrite = !!(item.rewrite_comparison || (item.evaluation && item.evaluation.rewrite_comparison));
+
+    // Badge styling based on framework
+    let badgeStyle = "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20";
+    if (c.isEssay) {
+      badgeStyle = "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20";
+    } else if (c.isOptional) {
+      badgeStyle = "bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-500/20";
+    } else if (c.type === 'unclassified') {
+      badgeStyle = "bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-500/20";
+    }
+
+    // Score pill styling
+    let scorePill = "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30";
+    if (Number(pct) < 35) {
+      scorePill = "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30";
+    } else if (Number(pct) < 50) {
+      scorePill = "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30";
+    }
+
+    return `
+      <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700 transition flex flex-col justify-between gap-2.5 shadow-2xs">
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${badgeStyle}">
+              ${escapeHtml(c.paperLabel)}
+            </span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold border ${scorePill}">
+              ${score.toFixed(1)} / ${maxMarks.toFixed(0)} M (${pct}%)
+            </span>
+          </div>
+          <div class="text-[10px] text-slate-400 flex items-center gap-1.5">
+            <span>📅 ${escapeHtml(dateStr)}</span>
+            <span>•</span>
+            <span>${c.isEssay ? '125M UPSC Essay' : `${maxMarks.toFixed(0)}-Marker GS`}</span>
+          </div>
+          <p class="text-[11px] text-slate-700 dark:text-slate-300 line-clamp-2 leading-relaxed">
+            ${qTitle ? `"${escapeHtml(qTitle)}"` : '<span class="italic text-slate-400">Handwritten answer copy</span>'}
+          </p>
+        </div>
+        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+          <button type="button"
+            onclick="if (window.viewSavedCopy) { window.viewSavedCopy('${escapeHtml(evalId)}'); } else { alert('Evaluation viewer ready'); }"
+            class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition cursor-pointer">
+            <span>Review Copy</span>
+            <span>↗</span>
+          </button>
+          ${hasRewrite ? `
+            <button type="button"
+              onclick="if (window.viewSavedCopy) { window.viewSavedCopy('${escapeHtml(evalId)}', true); }"
+              class="inline-flex items-center gap-1 text-[10px] font-medium text-amber-600 dark:text-amber-400 hover:text-amber-700 transition cursor-pointer">
+              <span>Rewrite View</span>
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  container.innerHTML = cardsHtml;
 };
 
 // =============================================================
@@ -18563,28 +18880,20 @@ function renderTrackerTrajectoryChart(history) {
     window.accountTrajectoryChartInstance = null;
   }
 
-  // Filter by stream
-  let streamFiltered = [...history];
-  if (state.trackerStream === 'GS') {
-    streamFiltered = streamFiltered.filter(item => {
-      const p = String(item.paper || '').toUpperCase();
-      return p.startsWith('GS') || p.includes('GENERAL');
-    });
-  } else if (state.trackerStream === 'ESSAY') {
-    streamFiltered = streamFiltered.filter(item => {
-      const p = String(item.paper || '').toUpperCase();
-      return p === 'ESSAY' || p.includes('ESSAY');
-    });
-  }
+  // Ensure classification on all items
+  const validHistory = (history || []).map(item => {
+    if (!item._c) item._c = window.classifyTrackerRecord(item);
+    return item;
+  });
 
   // Check sample size constraint
-  if (streamFiltered.length < 2) {
+  if (validHistory.length < 2) {
     if (emptyNotice) {
       emptyNotice.classList.remove("hidden");
       if (emptyMsg) {
-        const streamLabel = state.trackerStream === 'ALL' ? 'practice copies' : (state.trackerStream === 'GS' ? 'GS answers' : 'essays');
-        emptyMsg.textContent = streamFiltered.length === 1
-          ? `At least 2 evaluated copies are required in this category to calculate a score trajectory over time. Currently: 1 evaluated copy on record (${streamFiltered[0].paper || 'Copy'} • ${Number(streamFiltered[0].total_score||0).toFixed(1)}/${Number(streamFiltered[0].max_marks||10).toFixed(0)} M). Keep writing to unlock trajectory analytics.`
+        const streamLabel = state.trackerStream === 'ALL' ? 'practice copies' : (state.trackerStream === 'GS' ? 'GS answers' : (state.trackerStream === 'ESSAY' ? 'essays' : 'optional copies'));
+        emptyMsg.textContent = validHistory.length === 1
+          ? `At least 2 evaluated copies are required in this category to calculate a score trajectory over time. Currently: 1 evaluated copy on record (${validHistory[0]._c ? validHistory[0]._c.paperLabel : (validHistory[0].paper || 'Copy')} • ${Number(validHistory[0].total_score||validHistory[0].overall_score||0).toFixed(1)}/${Number(validHistory[0].max_marks||10).toFixed(0)} M). Submit another copy to unlock trajectory analytics.`
           : `No evaluated ${streamLabel} found in this date window. Submit handwritten practice copies to track your progress over time.`;
       }
     }
@@ -18594,7 +18903,7 @@ function renderTrackerTrajectoryChart(history) {
   if (emptyNotice) emptyNotice.classList.add("hidden");
 
   // Chronological sort: oldest to newest
-  const chronological = [...streamFiltered].sort((a, b) => {
+  const chronological = [...validHistory].sort((a, b) => {
     const ta = String(a.created_at || a.evaluated_at || '');
     const tb = String(b.created_at || b.evaluated_at || '');
     return ta.localeCompare(tb);
@@ -18608,79 +18917,111 @@ function renderTrackerTrajectoryChart(history) {
   // Build labels: Date or "Copy #N"
   const labels = chronological.map((item, idx) => {
     const d = formatTrackerDate(item.created_at || item.evaluated_at);
-    return `#${idx+1} ${item.paper || 'Copy'}${d ? ` (${d})` : ''}`;
+    const pLabel = item._c ? item._c.paperLabel : (item.paper || 'Copy');
+    return `#${idx+1} ${pLabel}${d ? ` (${d})` : ''}`;
   });
 
   const datasets = [];
 
   if (state.trackerStream === 'ALL') {
-    // Two distinct series: GS vs Essay
+    // Separate streams cleanly - do not merge GS and Essay into single points
     const gsData = chronological.map(item => {
-      const p = String(item.paper || '').toUpperCase();
-      if (p.startsWith('GS') || p.includes('GENERAL')) {
-        const s = Number(item.total_score || item.overall_score || 0);
-        const m = Number(item.max_marks || 10);
+      if (item._c && item._c.isGs) {
+        const s = Number(item.total_score || item.overall_score || item._c.score || 0);
+        const m = Number(item.max_marks || item._c.maxMarks || 10);
         return m > 0 ? Number(((s / m) * 100).toFixed(1)) : null;
       }
       return null;
     });
 
     const essayData = chronological.map(item => {
-      const p = String(item.paper || '').toUpperCase();
-      if (p === 'ESSAY' || p.includes('ESSAY')) {
-        const s = Number(item.total_score || item.overall_score || 0);
-        const m = Number(item.max_marks || 125);
+      if (item._c && item._c.isEssay) {
+        const s = Number(item.total_score || item.overall_score || item._c.score || 0);
+        const m = Number(item.max_marks || item._c.maxMarks || 125);
         return m > 0 ? Number(((s / m) * 100).toFixed(1)) : null;
       }
       return null;
     });
 
-    datasets.push({
-      label: 'GS Practice (% Score)',
-      data: gsData,
-      borderColor: '#f59e0b',
-      backgroundColor: 'rgba(245, 158, 11, 0.08)',
-      borderWidth: 2.5,
-      tension: 0.25,
-      pointRadius: 4,
-      pointHoverRadius: 6,
-      pointBackgroundColor: '#f59e0b',
-      spanGaps: true,
-      fill: false
+    const optData = chronological.map(item => {
+      if (item._c && item._c.isOptional) {
+        const s = Number(item.total_score || item.overall_score || item._c.score || 0);
+        const m = Number(item.max_marks || item._c.maxMarks || 15);
+        return m > 0 ? Number(((s / m) * 100).toFixed(1)) : null;
+      }
+      return null;
     });
 
-    datasets.push({
-      label: 'Essay Practice (% Score)',
-      data: essayData,
-      borderColor: '#10b981',
-      backgroundColor: 'rgba(16, 185, 129, 0.08)',
-      borderWidth: 2.5,
-      tension: 0.25,
-      pointRadius: 4,
-      pointHoverRadius: 6,
-      pointBackgroundColor: '#10b981',
-      spanGaps: true,
-      fill: false
-    });
+    if (gsData.some(v => v !== null)) {
+      datasets.push({
+        label: 'GS Practice (% Score)',
+        data: gsData,
+        borderColor: '#f59e0b',
+        backgroundColor: 'rgba(245, 158, 11, 0.08)',
+        borderWidth: 2.5,
+        tension: 0.25,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: '#f59e0b',
+        spanGaps: true,
+        fill: false
+      });
+    }
+
+    if (essayData.some(v => v !== null)) {
+      datasets.push({
+        label: 'Essay Practice (% Score)',
+        data: essayData,
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.08)',
+        borderWidth: 2.5,
+        tension: 0.25,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: '#10b981',
+        spanGaps: true,
+        fill: false
+      });
+    }
+
+    if (optData.some(v => v !== null)) {
+      datasets.push({
+        label: 'Optional Practice (% Score)',
+        data: optData,
+        borderColor: '#14b8a6',
+        backgroundColor: 'rgba(20, 184, 166, 0.08)',
+        borderWidth: 2.5,
+        tension: 0.25,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: '#14b8a6',
+        spanGaps: true,
+        fill: false
+      });
+    }
   } else {
     // Single stream series
     const singleData = chronological.map(item => {
-      const s = Number(item.total_score || item.overall_score || 0);
-      const m = Number(item.max_marks || (state.trackerStream === 'ESSAY' ? 125 : 10));
+      const s = Number(item.total_score || item.overall_score || (item._c && item._c.score) || 0);
+      const m = Number(item.max_marks || (item._c && item._c.maxMarks) || 10);
       return m > 0 ? Number(((s / m) * 100).toFixed(1)) : null;
     });
 
     const isEssay = state.trackerStream === 'ESSAY';
+    const isOpt = state.trackerStream === 'OPTIONAL';
+    const color = isEssay ? '#10b981' : (isOpt ? '#14b8a6' : '#f59e0b');
+    const label = isEssay ? 'Essay Score (%)' : (isOpt ? 'Optional Score (%)' : 'GS Score (%)');
+
     datasets.push({
-      label: isEssay ? 'Essay Score (%)' : 'GS Score (%)',
+      label: label,
       data: singleData,
-      borderColor: isEssay ? '#10b981' : '#f59e0b',
-      backgroundColor: isEssay ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+      borderColor: color,
+      backgroundColor: isEssay ? 'rgba(16, 185, 129, 0.1)' : (isOpt ? 'rgba(20, 184, 166, 0.1)' : 'rgba(245, 158, 11, 0.1)'),
       borderWidth: 2.5,
       tension: 0.25,
       pointRadius: 5,
       pointHoverRadius: 7,
-      pointBackgroundColor: isEssay ? '#10b981' : '#f59e0b',
+      pointBackgroundColor: color,
       fill: true
     });
   }
@@ -18745,15 +19086,16 @@ function renderTrackerTrajectoryChart(history) {
               const item = chronological[idx];
               if (!item) return '';
               const dateStr = item.created_at ? item.created_at.split(' ')[0] : 'Recent';
-              return `${item.paper || 'Practice Copy'} • Evaluated on ${dateStr}`;
+              const pLabel = item._c ? item._c.paperLabel : (item.paper || 'Practice Copy');
+              return `${pLabel} • Evaluated on ${dateStr}`;
             },
             label: (ctx) => {
               if (ctx.parsed.y === null) return '';
               const idx = ctx.dataIndex;
               const item = chronological[idx];
               if (!item) return '';
-              const s = Number(item.total_score || item.overall_score || 0).toFixed(1);
-              const m = Number(item.max_marks || (String(item.paper||'').toUpperCase()==='ESSAY' ? 125 : 10)).toFixed(0);
+              const s = Number(item.total_score || item.overall_score || (item._c && item._c.score) || 0).toFixed(1);
+              const m = Number(item.max_marks || (item._c && item._c.maxMarks) || 10).toFixed(0);
               const pct = ctx.parsed.y.toFixed(1);
               const q = String(item.question || item.question_title || '').trim();
               const lines = [
@@ -18785,34 +19127,41 @@ function renderTrackerSubjectChart(history) {
     window.accountSubjectChartInstance = null;
   }
 
-  const papers = ['GS 1', 'GS 2', 'GS 3', 'GS 4', 'Essay', 'Optional'];
-  const paperStats = papers.map(p => {
-    const pNorm = p.replace(/\s+/g, '').toUpperCase();
-    const matching = history.filter(item => {
-      const itNorm = String(item.paper || '').replace(/\s+/g, '').toUpperCase();
-      return itNorm === pNorm;
-    });
+  const validHistory = (history || []).map(item => {
+    if (!item._c) item._c = window.classifyTrackerRecord(item);
+    return item;
+  });
 
+  const categories = [
+    { label: 'GS 1', match: item => item._c && item._c.paperCode === 'GS1' },
+    { label: 'GS 2', match: item => item._c && item._c.paperCode === 'GS2' },
+    { label: 'GS 3', match: item => item._c && item._c.paperCode === 'GS3' },
+    { label: 'GS 4', match: item => item._c && item._c.paperCode === 'GS4' },
+    { label: 'Essay', match: item => item._c && item._c.isEssay },
+    { label: 'Optional', match: item => item._c && item._c.isOptional }
+  ];
+
+  const paperStats = categories.map(cat => {
+    const matching = validHistory.filter(cat.match);
     if (matching.length > 0) {
       let sumMarks = 0;
       let sumMax = 0;
-      let sumPct = 0;
       let minPct = 100;
       let maxPct = 0;
       matching.forEach(item => {
-        const sc = Number(item.total_score || item.overall_score || 0);
-        const mm = Number(item.max_marks || (p === 'Essay' ? 125 : 10));
+        const sc = Number(item.total_score || item.overall_score || (item._c && item._c.score) || 0);
+        const mm = Number(item.max_marks || (item._c && item._c.maxMarks) || 10);
         const pct = mm > 0 ? (sc / mm) * 100 : 0;
         sumMarks += sc;
         sumMax += mm;
-        sumPct += pct;
         if (pct < minPct) minPct = pct;
         if (pct > maxPct) maxPct = pct;
       });
+      const avgPct = sumMax > 0 ? Number(((sumMarks / sumMax) * 100).toFixed(1)) : 0;
       return {
-        paper: p,
+        paper: cat.label,
         count: matching.length,
-        avgPct: Number((sumPct / matching.length).toFixed(1)),
+        avgPct: avgPct,
         avgMarks: Number((sumMarks / matching.length).toFixed(1)),
         avgMax: Number((sumMax / matching.length).toFixed(0)),
         minPct: Number(minPct.toFixed(1)),
@@ -18820,11 +19169,11 @@ function renderTrackerSubjectChart(history) {
       };
     }
     return {
-      paper: p,
+      paper: cat.label,
       count: 0,
       avgPct: 0,
       avgMarks: 0,
-      avgMax: p === 'Essay' ? 125 : 10,
+      avgMax: cat.label === 'Essay' ? 125 : 10,
       minPct: 0,
       maxPct: 0
     };
@@ -18847,7 +19196,7 @@ function renderTrackerSubjectChart(history) {
   window.accountSubjectChartInstance = new Chart(subjCanvas, {
     type: 'bar',
     data: {
-      labels: papers,
+      labels: categories.map(c => c.label),
       datasets: [{
         label: 'Mean Score (%)',
         data: paperStats.map(s => s.avgPct),
@@ -18894,7 +19243,7 @@ function renderTrackerSubjectChart(history) {
           callbacks: {
             title: (items) => {
               const idx = items[0].dataIndex;
-              return `${papers[idx]} Performance Summary`;
+              return `${categories[idx].label} Performance Summary`;
             },
             label: (ctx) => {
               const idx = ctx.dataIndex;
@@ -18902,7 +19251,7 @@ function renderTrackerSubjectChart(history) {
               if (!s || s.count === 0) {
                 return [
                   `Status: No practice copies evaluated yet`,
-                  `Submit an answer in ${papers[idx]} to record data`
+                  `Submit an answer in ${categories[idx].label} to record data`
                 ];
               }
               return [
@@ -18919,7 +19268,156 @@ function renderTrackerSubjectChart(history) {
 }
 
 // =============================================================
-// Helper 3: Multi-Dimension Forensic Radar Chart
+// Helper 3: Explorable Competency Scorecard Grid
+// =============================================================
+window.renderTrackerCompetencyGrid = function(history) {
+  const container = document.getElementById("trackerCompetencyGrid");
+  if (!container) return;
+
+  const validHistory = (history || []).map(item => {
+    if (!item._c) item._c = window.classifyTrackerRecord(item);
+    return item;
+  });
+
+  if (state.trackerRadarFramework === 'ESSAY') {
+    // 5 Official UPSC Essay Dimensions
+    const essayCopies = validHistory.filter(i => i._c && i._c.isEssay);
+    const dimDefs = [
+      { id: 'thesis_framing', name: 'Thesis Framing & Directive Focus', maxMarks: 20 },
+      { id: 'structure_and_flow', name: 'Structure, Transitions & Flow', maxMarks: 20 },
+      { id: 'multidimensional_depth', name: 'Multidimensional Analytical Depth', maxMarks: 50 },
+      { id: 'evidence_and_examples', name: 'Substantiation & Evidence Quality', maxMarks: 20 },
+      { id: 'concluding_synthesis', name: 'Concluding Synthesis & Vision', maxMarks: 15 }
+    ];
+
+    const cardsHtml = dimDefs.map(def => {
+      let earnedSum = 0;
+      let count = 0;
+      essayCopies.forEach(item => {
+        const ev = item.evaluation || item.evaluation_data || {};
+        const dims = ev.evaluation_dimensions;
+        if (Array.isArray(dims)) {
+          const match = dims.find(d => d.dimension_id === def.id || (d.name && d.name.toLowerCase().includes(def.id.split('_')[0])));
+          if (match && match.awarded_marks !== undefined) {
+            earnedSum += Number(match.awarded_marks);
+            count++;
+          }
+        } else if (ev.rubric_scores) {
+          const rs = ev.rubric_scores;
+          if (def.id === 'thesis_framing' && rs.intro_score) { earnedSum += Number(rs.intro_score); count++; }
+          else if (def.id === 'multidimensional_depth' && rs.core_demand_score) { earnedSum += Number(rs.core_demand_score); count++; }
+          else if (def.id === 'structure_and_flow' && rs.presentation_score) { earnedSum += Number(rs.presentation_score); count++; }
+          else if (def.id === 'evidence_and_examples' && rs.value_add_score) { earnedSum += Number(rs.value_add_score); count++; }
+          else if (def.id === 'concluding_synthesis' && rs.context_score) { earnedSum += Number(rs.context_score); count++; }
+        }
+      });
+
+      const avgEarned = count > 0 ? (earnedSum / count) : 0;
+      const pct = def.maxMarks > 0 ? Math.min(100, Math.round((avgEarned / def.maxMarks) * 100)) : 0;
+
+      let pctColor = "text-emerald-600 dark:text-emerald-400";
+      let barColor = "bg-emerald-500";
+      if (count === 0) {
+        pctColor = "text-slate-400";
+        barColor = "bg-slate-300 dark:bg-slate-700";
+      } else if (pct < 35) {
+        pctColor = "text-rose-600 dark:text-rose-400";
+        barColor = "bg-rose-500";
+      } else if (pct < 50) {
+        pctColor = "text-amber-600 dark:text-amber-400";
+        barColor = "bg-amber-500";
+      }
+
+      return `
+        <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col justify-between gap-2 shadow-2xs">
+          <div>
+            <div class="flex items-center justify-between gap-1 mb-1">
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Dimension</span>
+              <span class="text-[11px] font-mono font-bold ${pctColor}">${count > 0 ? `${pct}%` : '--'}</span>
+            </div>
+            <h4 class="text-[11px] font-semibold text-slate-900 dark:text-white leading-snug line-clamp-2">${escapeHtml(def.name)}</h4>
+          </div>
+          <div class="space-y-1.5 pt-1">
+            <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full rounded-full ${barColor} transition-all duration-300" style="width: ${count > 0 ? pct : 0}%"></div>
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+              <span>${count > 0 ? `${avgEarned.toFixed(1)} / ${def.maxMarks} M` : 'No data'}</span>
+              <span>${count > 0 ? `${count} cop${count === 1 ? 'y' : 'ies'}` : '0 copies'}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    container.innerHTML = cardsHtml;
+  } else {
+    // GS 5-Part Rubric Framework
+    const gsCopies = validHistory.filter(i => i._c && i._c.isGs);
+    const rubDefs = [
+      { key: 'intro', name: 'Introduction Precision & Context', max: 2.0 },
+      { key: 'core_demand', name: 'Core Demand & Sub-parts', max: 5.0 },
+      { key: 'value_add', name: 'Value-Add (Schematics & Facts)', max: 1.5 },
+      { key: 'presentation', name: 'Presentation & Micro-Hygiene', max: 1.5 },
+      { key: 'conclusion', name: 'Conclusion & Way Forward', max: 2.0 }
+    ];
+
+    const cardsHtml = rubDefs.map(def => {
+      let earnedSum = 0;
+      let count = 0;
+      gsCopies.forEach(item => {
+        const ev = item.evaluation || item.evaluation_data || {};
+        const rs = ev.rubric_scores;
+        if (rs && rs[`${def.key}_score`] !== undefined) {
+          earnedSum += Number(rs[`${def.key}_score`]);
+          count++;
+        }
+      });
+
+      const avgEarned = count > 0 ? (earnedSum / count) : 0;
+      const pct = def.max > 0 ? Math.min(100, Math.round((avgEarned / def.max) * 100)) : 0;
+
+      let pctColor = "text-amber-600 dark:text-amber-400";
+      let barColor = "bg-amber-500";
+      if (count === 0) {
+        pctColor = "text-slate-400";
+        barColor = "bg-slate-300 dark:bg-slate-700";
+      } else if (pct < 35) {
+        pctColor = "text-rose-600 dark:text-rose-400";
+        barColor = "bg-rose-500";
+      } else if (pct >= 50) {
+        pctColor = "text-emerald-600 dark:text-emerald-400";
+        barColor = "bg-emerald-500";
+      }
+
+      return `
+        <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col justify-between gap-2 shadow-2xs">
+          <div>
+            <div class="flex items-center justify-between gap-1 mb-1">
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">GS Rubric</span>
+              <span class="text-[11px] font-mono font-bold ${pctColor}">${count > 0 ? `${pct}%` : '--'}</span>
+            </div>
+            <h4 class="text-[11px] font-semibold text-slate-900 dark:text-white leading-snug line-clamp-2">${escapeHtml(def.name)}</h4>
+          </div>
+          <div class="space-y-1.5 pt-1">
+            <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full rounded-full ${barColor} transition-all duration-300" style="width: ${count > 0 ? pct : 0}%"></div>
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+              <span>${count > 0 ? `${avgEarned.toFixed(1)} / ${def.max.toFixed(1)} M` : 'No data'}</span>
+              <span>${count > 0 ? `${count} cop${count === 1 ? 'y' : 'ies'}` : '0 copies'}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    container.innerHTML = cardsHtml;
+  }
+};
+
+// =============================================================
+// Helper 4: Multi-Dimension Forensic Radar Chart
 // =============================================================
 window.renderTrackerRadarChart = function(history) {
   const radarCanvas = document.getElementById("accountTrackerRadarCanvas");
@@ -18932,6 +19430,11 @@ window.renderTrackerRadarChart = function(history) {
     window.accountRadarChartInstance = null;
   }
 
+  const validHistory = (history || []).map(item => {
+    if (!item._c) item._c = window.classifyTrackerRecord(item);
+    return item;
+  });
+
   const isDark = document.documentElement.classList.contains('dark');
   const tickColor = isDark ? '#94a3b8' : '#64748b';
   const gridColor = isDark ? 'rgba(148, 163, 184, 0.15)' : 'rgba(203, 213, 225, 0.6)';
@@ -18939,10 +19442,7 @@ window.renderTrackerRadarChart = function(history) {
   const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   if (state.trackerRadarFramework === 'ESSAY') {
-    // 5 Official UPSC Essay Dimensions
-    const essayCopies = history.filter(item => String(item.paper || '').toUpperCase().includes('ESSAY'));
-    
-    // Aggregation maps
+    const essayCopies = validHistory.filter(i => i._c && i._c.isEssay);
     const dimTotals = {
       thesis_framing: { name: 'Thesis Framing', earned: 0, max: 0, count: 0 },
       structure_and_flow: { name: 'Structure & Flow', earned: 0, max: 0, count: 0 },
@@ -18964,7 +19464,6 @@ window.renderTrackerRadarChart = function(history) {
           }
         });
       } else if (ev.rubric_scores) {
-        // Fallback older essay rubric
         const rs = ev.rubric_scores;
         if (rs.intro_score) { dimTotals.thesis_framing.earned += Number(rs.intro_score); dimTotals.thesis_framing.max += 20; dimTotals.thesis_framing.count += 1; }
         if (rs.core_demand_score) { dimTotals.multidimensional_depth.earned += Number(rs.core_demand_score); dimTotals.multidimensional_depth.max += 50; dimTotals.multidimensional_depth.count += 1; }
@@ -18978,7 +19477,7 @@ window.renderTrackerRadarChart = function(history) {
     if (!hasData) {
       if (emptyNotice) {
         emptyNotice.classList.remove("hidden");
-        if (emptyMsg) emptyMsg.textContent = "No evaluated essay copies found with dimension rubric scoring. Upload an essay to record competency dimensions.";
+        if (emptyMsg) emptyMsg.textContent = "No evaluated essay copies found with dimension rubric scoring. Upload an essay copy to record competency dimensions.";
       }
       return;
     }
@@ -19058,11 +19557,7 @@ window.renderTrackerRadarChart = function(history) {
 
   } else {
     // GS 5-Part Rubric Framework
-    const gsCopies = history.filter(item => {
-      const p = String(item.paper || '').toUpperCase();
-      return p.startsWith('GS') || p.includes('GENERAL');
-    });
-
+    const gsCopies = validHistory.filter(i => i._c && i._c.isGs);
     const gsTotals = {
       intro: { name: 'Introduction', earned: 0, max: 0, count: 0 },
       core_demand: { name: 'Core Demand', earned: 0, max: 0, count: 0 },
@@ -19182,11 +19677,16 @@ window.renderTrackerGuidance = function(history) {
   focusEl.innerHTML = "";
   strengthsEl.innerHTML = "";
 
+  const validHistory = (history || []).map(item => {
+    if (!item._c) item._c = window.classifyTrackerRecord(item);
+    return item;
+  });
+
   if (state.trackerGuidanceTab === 'ESSAY') {
     // ---------------------------------------------------------
     // Essay Guidance: from evaluation_dimensions & revision_priorities
     // ---------------------------------------------------------
-    const essayCopies = history.filter(item => String(item.paper || '').toUpperCase().includes('ESSAY'));
+    const essayCopies = validHistory.filter(i => i._c && i._c.isEssay);
     if (essayCopies.length === 0) {
       focusEl.innerHTML = `
         <div class="p-3 text-center text-slate-500 text-[11px]">
@@ -19207,6 +19707,7 @@ window.renderTrackerGuidance = function(history) {
     essayCopies.forEach(item => {
       const ev = item.evaluation || item.evaluation_data || {};
       const revs = ev.revision_priorities;
+      const copyId = item.id || item.eval_id || item.evaluation_id || '';
       if (Array.isArray(revs)) {
         revs.forEach(r => {
           const cat = String(r.drift_category || r.title || 'Revision Item').trim();
@@ -19217,7 +19718,8 @@ window.renderTrackerGuidance = function(history) {
               guidance: r.actionable_guidance || r.evaluator_diagnosis || '',
               quote: r.candidate_exact_passage || '',
               page: r.page,
-              copyDate: item.created_at ? item.created_at.split(' ')[0] : 'Recent'
+              copyId: copyId,
+              copyDate: formatTrackerDate(item.created_at || item.evaluated_at) || 'Recent'
             };
           }
         });
@@ -19230,6 +19732,8 @@ window.renderTrackerGuidance = function(history) {
     essayCopies.forEach(item => {
       const ev = item.evaluation || item.evaluation_data || {};
       const dims = ev.evaluation_dimensions;
+      const copyId = item.id || item.eval_id || item.evaluation_id || '';
+      const cDate = formatTrackerDate(item.created_at || item.evaluated_at) || 'Recent';
       if (Array.isArray(dims)) {
         dims.forEach(d => {
           if (d.primary_limitation && dimLimits.length < 3) {
@@ -19237,7 +19741,8 @@ window.renderTrackerGuidance = function(history) {
               dimName: d.name,
               limitation: d.primary_limitation,
               action: d.actionable_next_step,
-              copyDate: item.created_at ? item.created_at.split(' ')[0] : 'Recent'
+              copyId: copyId,
+              copyDate: cDate
             });
           }
           if (d.evaluated_strength && dimStrengths.length < 4) {
@@ -19245,7 +19750,8 @@ window.renderTrackerGuidance = function(history) {
               dimName: d.name,
               strength: d.evaluated_strength,
               quote: d.key_passage_quote,
-              copyDate: item.created_at ? item.created_at.split(' ')[0] : 'Recent'
+              copyId: copyId,
+              copyDate: cDate
             });
           }
         });
@@ -19256,22 +19762,29 @@ window.renderTrackerGuidance = function(history) {
     let focusCount = 0;
     // 1. Repeated drift categories first
     const sortedDrifts = Object.entries(driftFreq).sort((a, b) => b[1] - a[1]);
-    sortedDrifts.slice(0, 2).forEach(([cat, count]) => {
+    sortedDrifts.slice(0, 3).forEach(([cat, count]) => {
       focusCount++;
       const ex = driftExamples[cat] || {};
       const isRepeated = count > 1;
       const card = document.createElement("div");
-      card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-rose-500/25 space-y-1.5 shadow-2xs";
+      card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-rose-500/25 space-y-2 shadow-2xs";
       card.innerHTML = `
-        <div class="flex items-center justify-between gap-1.5">
+        <div class="flex items-center justify-between gap-1.5 flex-wrap">
           <span class="font-bold text-rose-700 dark:text-rose-400 text-[11px]">${escapeHtml(ex.title || cat)}</span>
-          <span class="text-[9px] font-mono px-1.5 py-0.2 rounded ${isRepeated ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 font-bold' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}">
-            ${isRepeated ? `Repeated: ${count} Evaluations` : 'Single Observation'}
+          <span class="text-[9px] font-mono px-1.5 py-0.5 rounded ${isRepeated ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300 font-bold' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}">
+            ${isRepeated ? `Repeated in ${count} Evaluations` : 'Single Observation'}
           </span>
         </div>
         ${ex.quote ? `<p class="text-[10.5px] italic text-slate-500 dark:text-slate-400 line-clamp-2 border-l-2 border-rose-400/50 pl-2">"${escapeHtml(ex.quote)}"</p>` : ''}
         <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">${escapeHtml(ex.guidance || 'Refine thematic continuity across paragraphs.')}</p>
-        <span class="block text-[9.5px] text-slate-400">Observed in Essay on ${escapeHtml(ex.copyDate)}</span>
+        <div class="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-[10px]">
+          <span class="text-slate-400">Observed: ${escapeHtml(ex.copyDate)}</span>
+          ${ex.copyId ? `
+            <button type="button" onclick="if (window.viewSavedCopy) window.viewSavedCopy('${escapeHtml(ex.copyId)}');" class="font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 transition cursor-pointer">
+              Review Source Copy ↗
+            </button>
+          ` : ''}
+        </div>
       `;
       focusEl.appendChild(card);
     });
@@ -19280,15 +19793,22 @@ window.renderTrackerGuidance = function(history) {
     dimLimits.slice(0, 2).forEach(dl => {
       focusCount++;
       const card = document.createElement("div");
-      card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-amber-500/25 space-y-1.5 shadow-2xs";
+      card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-amber-500/25 space-y-2 shadow-2xs";
       card.innerHTML = `
-        <div class="flex items-center justify-between gap-1.5">
+        <div class="flex items-center justify-between gap-1.5 flex-wrap">
           <span class="font-bold text-amber-700 dark:text-amber-400 text-[11px]">${escapeHtml(dl.dimName)} (Diagnostic Note)</span>
-          <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300">Dimension Priority</span>
+          <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300">Dimension Priority</span>
         </div>
         <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">${escapeHtml(dl.limitation)}</p>
         ${dl.action ? `<p class="text-[10.5px] text-emerald-700 dark:text-emerald-400 font-medium"><strong>Actionable Drill:</strong> ${escapeHtml(dl.action)}</p>` : ''}
-        <span class="block text-[9.5px] text-slate-400">Derived from evaluation on ${escapeHtml(dl.copyDate)}</span>
+        <div class="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-[10px]">
+          <span class="text-slate-400">Observed: ${escapeHtml(dl.copyDate)}</span>
+          ${dl.copyId ? `
+            <button type="button" onclick="if (window.viewSavedCopy) window.viewSavedCopy('${escapeHtml(dl.copyId)}');" class="font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-700 transition cursor-pointer">
+              Review Source Copy ↗
+            </button>
+          ` : ''}
+        </div>
       `;
       focusEl.appendChild(card);
     });
@@ -19300,15 +19820,22 @@ window.renderTrackerGuidance = function(history) {
     dimStrengths.slice(0, 3).forEach(ds => {
       strengthsCount++;
       const card = document.createElement("div");
-      card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-emerald-500/25 space-y-1.5 shadow-2xs";
+      card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-emerald-500/25 space-y-2 shadow-2xs";
       card.innerHTML = `
-        <div class="flex items-center justify-between gap-1.5">
+        <div class="flex items-center justify-between gap-1.5 flex-wrap">
           <span class="font-bold text-emerald-700 dark:text-emerald-400 text-[11px]">${escapeHtml(ds.dimName)} (Mastered Competency)</span>
-          <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">Evaluated Strength</span>
+          <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">Evaluated Strength</span>
         </div>
         <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">${escapeHtml(ds.strength)}</p>
         ${ds.quote ? `<p class="text-[10.5px] italic text-slate-500 dark:text-slate-400 border-l-2 border-emerald-400/50 pl-2 line-clamp-2">"${escapeHtml(ds.quote)}"</p>` : ''}
-        <span class="block text-[9.5px] text-slate-400">Observed in Essay on ${escapeHtml(ds.copyDate)}</span>
+        <div class="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-[10px]">
+          <span class="text-slate-400">Observed: ${escapeHtml(ds.copyDate)}</span>
+          ${ds.copyId ? `
+            <button type="button" onclick="if (window.viewSavedCopy) window.viewSavedCopy('${escapeHtml(ds.copyId)}');" class="font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition cursor-pointer">
+              Review Source Copy ↗
+            </button>
+          ` : ''}
+        </div>
       `;
       strengthsEl.appendChild(card);
     });
@@ -19319,11 +19846,7 @@ window.renderTrackerGuidance = function(history) {
     // ---------------------------------------------------------
     // GS Guidance: from next_attempt_focus & rubric_scores
     // ---------------------------------------------------------
-    const gsCopies = history.filter(item => {
-      const p = String(item.paper || '').toUpperCase();
-      return p.startsWith('GS') || p.includes('GENERAL');
-    });
-
+    const gsCopies = validHistory.filter(i => i._c && i._c.isGs);
     if (gsCopies.length === 0) {
       focusEl.innerHTML = `
         <div class="p-3 text-center text-slate-500 text-[11px]">
@@ -19345,19 +19868,28 @@ window.renderTrackerGuidance = function(history) {
     gsCopies.forEach(item => {
       const ev = item.evaluation || item.evaluation_data || {};
       const naf = ev.next_attempt_focus;
+      const copyId = item.id || item.eval_id || item.evaluation_id || '';
+      const cDate = formatTrackerDate(item.created_at || item.evaluated_at) || 'Recent';
       if (naf && typeof naf === 'object' && naf.target_section && focusCount < 3) {
         focusCount++;
         const card = document.createElement("div");
-        card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-rose-500/25 space-y-1.5 shadow-2xs";
+        card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-rose-500/25 space-y-2 shadow-2xs";
         card.innerHTML = `
-          <div class="flex items-center justify-between gap-1.5">
+          <div class="flex items-center justify-between gap-1.5 flex-wrap">
             <span class="font-bold text-rose-700 dark:text-rose-400 text-[11px]">${escapeHtml(naf.target_section)}</span>
-            <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-700 dark:text-rose-300 font-semibold">${item.paper || 'GS'} Focus</span>
+            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-700 dark:text-rose-300 font-semibold">${item._c ? item._c.paperLabel : (item.paper || 'GS')} Focus</span>
           </div>
           ${naf.student_draft_quote ? `<p class="text-[10.5px] italic text-slate-500 dark:text-slate-400 line-clamp-2 border-l-2 border-rose-400/50 pl-2">Draft: "${escapeHtml(naf.student_draft_quote)}"</p>` : ''}
           ${naf.topper_transformation ? `<p class="text-[11px] text-slate-700 dark:text-slate-300 leading-snug"><strong>Faculty Model Upgrade:</strong> ${escapeHtml(naf.topper_transformation.replace(/\*\*/g, ''))}</p>` : ''}
           ${naf.mentor_why ? `<p class="text-[10.5px] text-amber-700 dark:text-amber-400 font-medium">${escapeHtml(naf.mentor_why)}</p>` : ''}
-          <span class="block text-[9.5px] text-slate-400">Identified in ${escapeHtml(item.paper || 'GS Answer')} on ${escapeHtml(item.created_at ? item.created_at.split(' ')[0] : 'Recent')}</span>
+          <div class="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-[10px]">
+            <span class="text-slate-400">Observed: ${escapeHtml(cDate)}</span>
+            ${copyId ? `
+              <button type="button" onclick="if (window.viewSavedCopy) window.viewSavedCopy('${escapeHtml(copyId)}');" class="font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 transition cursor-pointer">
+                Review Source Copy ↗
+              </button>
+            ` : ''}
+          </div>
         `;
         focusEl.appendChild(card);
       }
@@ -19378,7 +19910,7 @@ window.renderTrackerGuidance = function(history) {
       Object.keys(rubricAverages).forEach(k => {
         if (rs[`${k}_score`] !== undefined) {
           const sc = Number(rs[`${k}_score`]);
-          const mx = Number(rs[`${k}_max`] || (k === 'core_demand' ? 5 : 2));
+          const mx = Number(rs[`${k}_max`] || (k === 'core_demand' ? 5 : (k in ['intro', 'conclusion'] ? 2 : 1.5)));
           rubricAverages[k].sum += (mx > 0 ? (sc / mx) * 100 : 0);
           rubricAverages[k].count += 1;
         }
@@ -19393,11 +19925,11 @@ window.renderTrackerGuidance = function(history) {
       const avgP = (worstVal.sum / worstVal.count).toFixed(1);
       focusCount++;
       const card = document.createElement("div");
-      card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-amber-500/25 space-y-1.5 shadow-2xs";
+      card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-amber-500/25 space-y-2 shadow-2xs";
       card.innerHTML = `
-        <div class="flex items-center justify-between gap-1.5">
+        <div class="flex items-center justify-between gap-1.5 flex-wrap">
           <span class="font-bold text-amber-700 dark:text-amber-400 text-[11px]">${escapeHtml(worstVal.name)} (${avgP}% Average)</span>
-          <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300">Rubric Priority</span>
+          <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300">Rubric Priority</span>
         </div>
         <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">This is currently your lowest-scoring rubric dimension across your GS practice answers. Ensure each future answer incorporates deliberate attention to this component.</p>
         <span class="block text-[9.5px] text-slate-400">Calculated across ${worstVal.count} evaluated GS copies</span>
@@ -19413,11 +19945,11 @@ window.renderTrackerGuidance = function(history) {
       const bestP = (bestVal.sum / bestVal.count).toFixed(1);
       strengthsCount++;
       const card = document.createElement("div");
-      card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-emerald-500/25 space-y-1.5 shadow-2xs";
+      card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-emerald-500/25 space-y-2 shadow-2xs";
       card.innerHTML = `
-        <div class="flex items-center justify-between gap-1.5">
+        <div class="flex items-center justify-between gap-1.5 flex-wrap">
           <span class="font-bold text-emerald-700 dark:text-emerald-400 text-[11px]">${escapeHtml(bestVal.name)} (${bestP}% Average)</span>
-          <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">Strongest Rubric</span>
+          <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">Strongest Rubric</span>
         </div>
         <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">Consistent execution demonstrated in this dimension. Maintain this structural habit across both 10-markers and 15-markers.</p>
         <span class="block text-[9.5px] text-slate-400">Calculated across ${bestVal.count} evaluated GS copies</span>
@@ -19429,19 +19961,28 @@ window.renderTrackerGuidance = function(history) {
     gsCopies.forEach(item => {
       const ev = item.evaluation || item.evaluation_data || {};
       const audits = ev.point_by_point_audit;
+      const copyId = item.id || item.eval_id || item.evaluation_id || '';
+      const cDate = formatTrackerDate(item.created_at || item.evaluated_at) || 'Recent';
       if (Array.isArray(audits) && strengthsCount < 3) {
         const praise = audits.find(a => (a.status || '').toLowerCase().includes('strong') || (a.status || '').toLowerCase().includes('good') || (a.score || 0) >= 1.0);
         if (praise) {
           strengthsCount++;
           const card = document.createElement("div");
-          card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-emerald-500/25 space-y-1.5 shadow-2xs";
+          card.className = "p-3 rounded-xl bg-white dark:bg-slate-900 border border-emerald-500/25 space-y-2 shadow-2xs";
           card.innerHTML = `
-            <div class="flex items-center justify-between gap-1.5">
-              <span class="font-bold text-emerald-700 dark:text-emerald-400 text-[11px]">Sub-part Execution (${item.paper || 'GS'})</span>
-              <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">Evaluator Observation</span>
+            <div class="flex items-center justify-between gap-1.5 flex-wrap">
+              <span class="font-bold text-emerald-700 dark:text-emerald-400 text-[11px]">Sub-part Execution (${item._c ? item._c.paperLabel : (item.paper || 'GS')})</span>
+              <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">Evaluator Observation</span>
             </div>
             <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">${escapeHtml(praise.observation || praise.feedback || praise.mentor_verdict || 'Clear sub-heading alignment with directive demand.')}</p>
-            <span class="block text-[9.5px] text-slate-400">Observed in evaluation on ${escapeHtml(item.created_at ? item.created_at.split(' ')[0] : 'Recent')}</span>
+            <div class="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-[10px]">
+              <span class="text-slate-400">Observed: ${escapeHtml(cDate)}</span>
+              ${copyId ? `
+                <button type="button" onclick="if (window.viewSavedCopy) window.viewSavedCopy('${escapeHtml(copyId)}');" class="font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition cursor-pointer">
+                  Review Source Copy ↗
+                </button>
+              ` : ''}
+            </div>
           `;
           strengthsEl.appendChild(card);
         }
