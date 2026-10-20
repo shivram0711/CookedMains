@@ -1783,6 +1783,9 @@ def is_page_image_completely_blank(img: Any) -> bool:
     except Exception:
         return False
 
+# Server-side concurrency guard: strictly one evaluation in progress at a time to prevent quota / rate-limit saturation
+_SERVER_EVAL_SEMAPHORE = asyncio.Semaphore(1)
+
 @app.post("/api/evaluate")
 async def evaluate_answer(
     background_tasks: BackgroundTasks,
@@ -2270,139 +2273,160 @@ async def evaluate_answer(
                 print(f"[CANONICAL LOCK - PRE-LLM] Matched identical/similar handwritten script across accounts -> Score: {evaluation_result.get('overall_score')}/{max_marks}")
 
         if evaluation_result is None:
-            keys_to_try = get_active_gemini_keys(api_key)
-            prev_eval_dict = prev_record.get("evaluation") if (prev_record and is_rewrite and isinstance(prev_record.get("evaluation"), dict)) else None
-            prev_q = None
-            if is_rewrite:
-                cand_q = (prev_eval_dict.get("detected_question") if prev_eval_dict else None) or (prev_record.get("question") if prev_record else None) or baseline_question
-                if cand_q and "extract question printed" not in cand_q.lower():
-                    prev_q = cand_q
-            detected_paper = detect_academic_discipline(question, paper)
-            directive_info = detect_directive(question, medium=medium)
+            async with _SERVER_EVAL_SEMAPHORE:
+                keys_to_try = get_active_gemini_keys(api_key)
+                prev_eval_dict = prev_record.get("evaluation") if (prev_record and is_rewrite and isinstance(prev_record.get("evaluation"), dict)) else None
+                prev_q = None
+                if is_rewrite:
+                    cand_q = (prev_eval_dict.get("detected_question") if prev_eval_dict else None) or (prev_record.get("question") if prev_record else None) or baseline_question
+                    if cand_q and "extract question printed" not in cand_q.lower():
+                        prev_q = cand_q
+                detected_paper = detect_academic_discipline(question, paper)
+                directive_info = detect_directive(question, medium=medium)
 
-            if not keys_to_try:
-                return JSONResponse(
-                    status_code=503,
-                    content={
-                        "status": "service_unavailable",
-                        "error_type": "evaluator_busy",
-                        "title": "Evaluator Server Notice",
-                        "message": "AI evaluation nodes are currently initializing. Please try again in 30 seconds.",
-                        "warning": "🛡️ Zero Credits Deducted: Your daily evaluation limit is 100% intact.",
-                        "action_hint": "Please click 'Evaluate Copy' in a moment.",
-                        "credits_deducted": 0
-                    }
-                )
-            else:
-                current_affairs_context = await get_dynamic_grounded_context(question, detected_paper)
-                evaluator_prompt_text = build_evaluation_prompt(
-                    question=question,
-                    paper_key=detected_paper,
-                    max_marks=max_marks,
-                    directive_info=directive_info,
-                    previous_question=prev_q,
-                    current_affairs_context=current_affairs_context,
-                    previous_evaluation=prev_eval_dict,
-                    medium=medium
-                )
-
-                gen_config = types.GenerateContentConfig(
-                    temperature=0.0,
-                    top_p=1.0,
-                    top_k=1,
-                    seed=20260925,
-                    response_mime_type="application/json"
-                )
-
-                from evaluator_engine import (
-                    create_fast_gemini_client,
-                    get_active_gemini_models,
-                    record_gemini_model_outcome,
-                    execute_gemini_with_resilience,
-                )
-
-                contents_payload = (multimodal_parts + [evaluator_prompt_text]) if multimodal_parts else [evaluator_prompt_text]
-                eval_loop_start = time.time()
-                print(f"[EVALUATOR] Starting evaluation with {len(keys_to_try)} keys, {len(multimodal_parts)} uploaded pages.")
-
-                # Evaluate using active Gemini models with automatic instant failover if a model experiences 503 demand spike
-                for key_idx, current_key in enumerate(keys_to_try):
-                    if time.time() - eval_loop_start > 80:
-                        print(f"[EVALUATOR] Overall evaluation timeout reached (80s). Halting loop.")
-                        break
-                    try:
-                        client = create_fast_gemini_client(current_key)
-                    except Exception as ce:
-                        print(f"[EVALUATOR] Client creation failed for key {key_idx+1}: {ce}")
-                        continue
-
-                    active_models = get_active_gemini_models(client)
-                    models_to_try = active_models[:6] if active_models else [
-                        "gemini-3.5-flash-lite",
-                        "gemini-flash-lite-latest",
-                        "gemini-3.6-flash",
-                        "gemini-3.5-flash",
-                        "gemini-omni-flash-preview",
-                        "gemini-3.7-flash",
-                    ]
-
-                    for model_name in models_to_try:
-                        if time.time() - eval_loop_start > 85:
-                            print(f"[EVALUATOR] Overall loop approaching 85s timeout. Halting model attempts.")
-                            break
-                        try:
-                            print(f"[EVALUATOR] Evaluating copy with model '{model_name}' (Key {key_idx+1}/{len(keys_to_try)})...")
-                            response = await asyncio.to_thread(
-                                execute_gemini_with_resilience,
-                                client=client,
-                                model=model_name,
-                                contents=contents_payload,
-                                config=gen_config,
-                                max_retries=3
-                            )
-                            if response and response.text:
-                                raw_text = response.text
-                                parsed_eval = parse_llm_json_response(raw_text)
-                                if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
-                                    print(f"[EVALUATOR SUCCESS] Evaluated in {round(time.time() - eval_loop_start, 1)}s with '{model_name}'! Score: {parsed_eval.get('overall_score')}")
-                                    record_gemini_model_outcome(model_name, True)
-                                    if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
-                                        parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
-                                    evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper, medium=medium)
-                                    break
-                        except Exception as ge:
-                            err_s = str(ge)
-                            print(f"[EVALUATOR NOTICE] Key {key_idx+1} on '{model_name}': {err_s[:150]}")
-                            record_gemini_model_outcome(model_name, False, err_s)
-                            err_low = err_s.lower()
-                            # Terminal API key failure: key is revoked/invalid/forbidden -> try next key
-                            if any(k_err in err_low for k_err in [
-                                "api_key_invalid", "invalid api key", "permission_denied",
-                                "unauthenticated", "forbidden"
-                            ]):
-                                print(f"[EVALUATOR] Key {key_idx+1} is invalid/unauthorized. Skipping remaining models on this key.")
-                                break
-                            # For rate-limits (429, resource_exhausted, quota) or transient model errors (503, 504, unavailable, deadline):
-                            # DO NOT break out of the model loop! Continue to the next fallback model on this key so alternate models take over immediately.
-                            continue
-
-                    if evaluation_result:
-                        break
-
-                if not evaluation_result:
-                    print("[EVALUATOR ENGINE] Gemini models could not complete evaluation across active keys — returning clean guard notice.")
+                if not keys_to_try:
                     return JSONResponse(
                         status_code=503,
                         content={
                             "status": "service_unavailable",
                             "error_type": "evaluator_busy",
-                            "title": "Evaluator Node Notice",
-                            "message": "AI evaluator models are currently experiencing high traffic or quota saturation across available keys. To protect evaluation authenticity, generic estimates are not provided.",
+                            "title": "Evaluator Server Notice",
+                            "message": "AI evaluation nodes are currently initializing. Please try again in 30 seconds.",
                             "warning": "🛡️ Zero Credits Deducted: Your daily evaluation limit is 100% intact.",
-                            "action_hint": "Please click 'Evaluate Copy' again in a few moments, or enter your personal Gemini API key in Settings for immediate dedicated access.",
+                            "action_hint": "Please click 'Evaluate Copy' in a moment.",
                             "credits_deducted": 0
                         }
                     )
+                else:
+                    current_affairs_context = await get_dynamic_grounded_context(question, detected_paper)
+                    evaluator_prompt_text = build_evaluation_prompt(
+                        question=question,
+                        paper_key=detected_paper,
+                        max_marks=max_marks,
+                        directive_info=directive_info,
+                        previous_question=prev_q,
+                        current_affairs_context=current_affairs_context,
+                        previous_evaluation=prev_eval_dict,
+                        medium=medium
+                    )
+
+                    gen_config = types.GenerateContentConfig(
+                        temperature=0.0,
+                        top_p=1.0,
+                        top_k=1,
+                        seed=20260925,
+                        response_mime_type="application/json"
+                    )
+
+                    from evaluator_engine import (
+                        create_fast_gemini_client,
+                        get_active_gemini_models,
+                        record_gemini_model_outcome,
+                        execute_gemini_with_resilience,
+                        record_gemini_key_cooldown,
+                    )
+
+                    contents_payload = (multimodal_parts + [evaluator_prompt_text]) if multimodal_parts else [evaluator_prompt_text]
+                    eval_loop_start = time.time()
+                    print(f"[EVALUATOR] Starting evaluation with {len(keys_to_try)} keys, {len(multimodal_parts)} uploaded pages.")
+
+                    # Evaluate using active Gemini models with automatic instant rotation across keys/projects
+                    for key_idx, current_key in enumerate(keys_to_try):
+                        if time.time() - eval_loop_start > 80:
+                            print(f"[EVALUATOR] Overall evaluation timeout reached (80s). Halting loop.")
+                            break
+                        try:
+                            client = create_fast_gemini_client(current_key)
+                        except Exception as ce:
+                            print(f"[EVALUATOR] Client creation failed for key {key_idx+1}: {ce}")
+                            continue
+
+                        active_models = get_active_gemini_models(client)
+                        models_to_try = active_models[:6] if active_models else [
+                            "gemini-3.5-flash-lite",
+                            "gemini-flash-lite-latest",
+                            "gemini-3.6-flash",
+                            "gemini-3.5-flash",
+                            "gemini-omni-flash-preview",
+                            "gemini-3.7-flash",
+                        ]
+
+                        for model_name in models_to_try:
+                            if time.time() - eval_loop_start > 85:
+                                print(f"[EVALUATOR] Overall loop approaching 85s timeout. Halting model attempts.")
+                                break
+                            try:
+                                print(f"[EVALUATOR] Evaluating copy with model '{model_name}' (Key {key_idx+1}/{len(keys_to_try)})...")
+                                response = await asyncio.to_thread(
+                                    execute_gemini_with_resilience,
+                                    client=client,
+                                    model=model_name,
+                                    contents=contents_payload,
+                                    config=gen_config,
+                                    max_retries=3
+                                )
+                                if response and response.text:
+                                    raw_text = response.text
+                                    parsed_eval = parse_llm_json_response(raw_text)
+                                    if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
+                                        print(f"[EVALUATOR SUCCESS] Evaluated in {round(time.time() - eval_loop_start, 1)}s with '{model_name}'! Score: {parsed_eval.get('overall_score')}")
+                                        record_gemini_model_outcome(model_name, True)
+                                        if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
+                                            parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
+                                        evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper, medium=medium)
+                                        break
+                            except Exception as ge:
+                                err_s = str(ge)
+                                print(f"[EVALUATOR NOTICE] Key {key_idx+1} on '{model_name}': {err_s[:150]}")
+                                record_gemini_model_outcome(model_name, False, err_s)
+                                err_low = err_s.lower()
+
+                                # 1. Terminal API key failure: key is revoked/invalid/forbidden -> skip to next key
+                                if any(k_err in err_low for k_err in [
+                                    "api_key_invalid", "invalid api key", "permission_denied",
+                                    "unauthenticated", "forbidden"
+                                ]):
+                                    print(f"[EVALUATOR] Key {key_idx+1} is invalid/unauthorized. Skipping remaining models on this key.")
+                                    break
+
+                                # 2. Rate-limits (429, resource_exhausted, quota):
+                                is_quota_hit = any(k_err in err_low for k_err in [
+                                    "429", "resource_exhausted", "quota", "rate limit", "too many requests"
+                                ])
+                                if is_quota_hit:
+                                    record_gemini_key_cooldown(current_key, 60.0)
+                                    # If separate configured projects / alternate keys are available, failover immediately!
+                                    if len(keys_to_try) > 1 and key_idx < len(keys_to_try) - 1:
+                                        print(f"[EVALUATOR] Key {key_idx+1} hit quota limit. Instantly rotating to alternate project key...")
+                                        break
+                                    # If this is the only key, pause with bounded delay to avoid firing rapid bursts
+                                    await asyncio.sleep(2.0)
+                                    continue
+
+                                # 3. Transient provider load errors (503, 504, unavailable, deadline):
+                                if any(k_err in err_low for k_err in ["503", "504", "unavailable", "deadline"]):
+                                    await asyncio.sleep(1.5)
+                                    continue
+
+                                continue
+
+                        if evaluation_result:
+                            break
+
+                    if not evaluation_result:
+                        print("[EVALUATOR ENGINE] Gemini models could not complete evaluation across active keys — returning clean guard notice.")
+                        return JSONResponse(
+                            status_code=503,
+                            content={
+                                "status": "service_unavailable",
+                                "error_type": "evaluator_busy",
+                                "title": "Evaluator Node Notice",
+                                "message": "AI evaluator models are currently experiencing high traffic or quota saturation across available keys. To protect evaluation authenticity, generic estimates are not provided.",
+                                "warning": "🛡️ Zero Credits Deducted: Your daily evaluation limit is 100% intact.",
+                                "action_hint": "Please click 'Evaluate Copy' again in a few moments, or enter your personal Gemini API key in Settings for immediate dedicated access.",
+                                "credits_deducted": 0
+                            }
+                        )
 
         # AI Vision Blank Sheet Verification Check
         is_ai_blank = bool(evaluation_result.get("is_blank_sheet")) or (

@@ -7663,9 +7663,31 @@ async def get_dynamic_grounded_context(question: str, paper: str) -> str:
 
     return "\n".join(context_parts)
 
-_GEMINI_EVAL_SEMAPHORE = asyncio.Semaphore(6)
+_GEMINI_EVAL_SEMAPHORE = asyncio.Semaphore(1)
 
 _KEY_RR_COUNTER = 0
+_KEY_COOLDOWNS: Dict[str, float] = {}
+
+def _hash_key_safe(key: str) -> str:
+    """Returns a short non-reversible SHA-256 hash prefix for safe internal key tracking without logging key text."""
+    if not key:
+        return ""
+    import hashlib
+    return hashlib.sha256(key.strip().encode("utf-8")).hexdigest()[:12]
+
+def record_gemini_key_cooldown(key: str, duration: float = 60.0) -> None:
+    """Safely records a 60-second quota cooldown for a specific API key without ever storing or logging the key itself."""
+    if not key:
+        return
+    k_id = _hash_key_safe(key)
+    _KEY_COOLDOWNS[k_id] = time.time() + duration
+
+def is_gemini_key_cooling_down(key: str) -> bool:
+    """Checks whether a key is currently within its 60-second quota cooldown period."""
+    if not key:
+        return False
+    k_id = _hash_key_safe(key)
+    return time.time() < _KEY_COOLDOWNS.get(k_id, 0.0)
 
 
 def get_active_gemini_keys(user_api_key: Optional[str] = None) -> List[str]:
@@ -7675,6 +7697,7 @@ def get_active_gemini_keys(user_api_key: Optional[str] = None) -> List[str]:
     2. Collects all server environment keys: GEMINI_API_KEY, GOOGLE_API_KEY, GEMINI_API_KEY_1..50,
        plus any environment variable containing GEMINI and KEY or GOOGLE and KEY.
     3. Rotates server keys in round-robin order for even load distribution across accounts.
+    4. Prioritizes keys that are NOT currently in a 60-second quota cooldown.
     """
     global _KEY_RR_COUNTER
     server_keys: List[str] = []
@@ -7695,6 +7718,11 @@ def get_active_gemini_keys(user_api_key: Optional[str] = None) -> List[str]:
         _KEY_RR_COUNTER += 1
         server_keys = server_keys[start_idx:] + server_keys[:start_idx]
 
+    # Prioritize keys not currently in 60s quota cooldown
+    ready_server_keys = [k for k in server_keys if not is_gemini_key_cooling_down(k)]
+    cooling_server_keys = [k for k in server_keys if is_gemini_key_cooling_down(k)]
+    sorted_server_keys = ready_server_keys + cooling_server_keys
+
     keys_to_try: List[str] = []
     # If the user supplied their personal key, put it first for instant throughput
     if user_api_key and user_api_key.strip():
@@ -7703,7 +7731,7 @@ def get_active_gemini_keys(user_api_key: Optional[str] = None) -> List[str]:
             if clean_u and len(clean_u) > 15 and clean_u not in keys_to_try:
                 keys_to_try.append(clean_u)
 
-    for sk in server_keys:
+    for sk in sorted_server_keys:
         if sk not in keys_to_try:
             keys_to_try.append(sk)
 
@@ -7957,11 +7985,10 @@ def record_gemini_model_outcome(model_name: str, success: bool, error_str: str =
             _LAST_WORKING_GEMINI_MODEL = None
         _DISCOVERED_GEMINI_MODELS_TS = 0.0
     elif any(tok in err_low for tok in [
-        "503", "unavailable", "high demand", "overloaded",
-        "429", "resource_exhausted", "quota", "rate limit", "too many requests"
+        "503", "unavailable", "high demand", "overloaded"
     ]):
-        # Model is experiencing high traffic/load: rotate to alternative active models seamlessly without stalling
-        _BUSY_MODEL_COOLDOWNS[clean_name] = time.time() + 45
+        # Model is experiencing high traffic/concurrency on provider side: rotate to alternative active models seamlessly
+        _BUSY_MODEL_COOLDOWNS[clean_name] = time.time() + 30
         if _LAST_WORKING_GEMINI_MODEL == clean_name:
             _LAST_WORKING_GEMINI_MODEL = None
 
