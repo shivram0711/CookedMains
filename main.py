@@ -254,7 +254,7 @@ async def get_model_health(all_keys: int = 0):
             k_res = {"slot": i + 1, "key": masked, "status": "unknown"}
             t0 = time.time()
             try:
-                c = create_fast_gemini_client(k, timeout_ms=5000)
+                c = create_fast_gemini_client(k, timeout_ms=15000)
                 resp = c.models.generate_content(
                     model="gemini-3.5-flash-lite",
                     contents="Ping. Respond with one word: OK"
