@@ -2363,18 +2363,24 @@ async def evaluate_answer(
                     eval_loop_start = time.time()
                     print(f"[EVALUATOR] Starting evaluation with {len(keys_to_try)} keys, {len(multimodal_parts)} uploaded pages.")
 
+                    # Multi-key resilience: when multiple keys across projects are configured,
+                    # failover instantly across keys (0ms in-key retry delay) rather than repeatedly retrying an exhausted key
+                    eff_retries = 1 if len(keys_to_try) > 1 else 2
+                    fast_quota_exit = (len(keys_to_try) > 1)
+
                     # Evaluate using active Gemini models with automatic instant rotation across keys/projects
                     for key_idx, current_key in enumerate(keys_to_try):
-                        if time.time() - eval_loop_start > 80:
-                            print(f"[EVALUATOR] Overall evaluation timeout reached (80s). Halting loop.")
+                        if time.time() - eval_loop_start > 85:
+                            print(f"[EVALUATOR] Overall evaluation timeout reached (85s). Halting loop.")
                             break
                         try:
-                            client = create_fast_gemini_client(current_key)
+                            client = create_fast_gemini_client(current_key, timeout_ms=65000)
                         except Exception as ce:
                             print(f"[EVALUATOR] Client creation failed for key {key_idx+1}: {ce}")
                             continue
 
                         active_models = get_active_gemini_models(client)
+                        # Retain full candidate model set (top 6) to preserve output quality across GS English, GS Hindi, and Essay evaluations
                         models_to_try = active_models[:6] if active_models else [
                             "gemini-3.5-flash-lite",
                             "gemini-flash-lite-latest",
@@ -2385,8 +2391,8 @@ async def evaluate_answer(
                         ]
 
                         for model_name in models_to_try:
-                            if time.time() - eval_loop_start > 85:
-                                print(f"[EVALUATOR] Overall loop approaching 85s timeout. Halting model attempts.")
+                            if time.time() - eval_loop_start > 90:
+                                print(f"[EVALUATOR] Overall loop approaching 90s timeout. Halting model attempts.")
                                 break
                             try:
                                 print(f"[EVALUATOR] Evaluating copy with model '{model_name}' (Key {key_idx+1}/{len(keys_to_try)})...")
@@ -2396,7 +2402,8 @@ async def evaluate_answer(
                                     model=model_name,
                                     contents=contents_payload,
                                     config=gen_config,
-                                    max_retries=3
+                                    max_retries=eff_retries,
+                                    fast_fail_on_quota=fast_quota_exit
                                 )
                                 if response and response.text:
                                     raw_text = response.text
@@ -2433,11 +2440,15 @@ async def evaluate_answer(
                                         print(f"[EVALUATOR] Key {key_idx+1} hit quota limit. Instantly rotating to alternate project key...")
                                         break
                                     # If this is the only key, pause with bounded delay to avoid firing rapid bursts
-                                    await asyncio.sleep(2.0)
+                                    await asyncio.sleep(1.5)
                                     continue
 
-                                # 3. Transient provider load errors (503, 504, unavailable, deadline):
-                                if any(k_err in err_low for k_err in ["503", "504", "unavailable", "deadline"]):
+                                # 3. Transient provider load errors (503, 504, unavailable, deadline, timeout):
+                                if any(k_err in err_low for k_err in ["503", "504", "unavailable", "deadline", "timeout"]):
+                                    record_gemini_key_cooldown(current_key, 30.0)
+                                    if len(keys_to_try) > 1 and key_idx < len(keys_to_try) - 1:
+                                        print(f"[EVALUATOR] Key {key_idx+1} encountered transient provider error/timeout. Rotating immediately to alternate key...")
+                                        break
                                     await asyncio.sleep(1.5)
                                     continue
 

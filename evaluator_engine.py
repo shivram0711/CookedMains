@@ -8082,10 +8082,10 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
     return ordered
 
 
-def create_fast_gemini_client(api_key: str) -> Any:
-    """Creates a genai.Client with a 60-second timeout so full vision evaluation across multiple handwritten pages completes reliably without premature cutoff."""
+def create_fast_gemini_client(api_key: str, timeout_ms: int = 65000) -> Any:
+    """Creates a genai.Client with a 65-second timeout so full vision evaluations across multiple handwritten pages complete reliably without premature cutoff."""
     try:
-        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=60000))
+        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=timeout_ms))
     except Exception:
         return genai.Client(api_key=api_key)
 
@@ -8148,7 +8148,8 @@ def execute_gemini_with_resilience(
     config: Any = None,
     max_retries: int = 3,
     base_delay: float = 1.0,
-    max_delay: float = 8.0
+    max_delay: float = 8.0,
+    fast_fail_on_quota: bool = False
 ) -> Any:
     """
     Executes client.models.generate_content with bounded exponential backoff,
@@ -8176,6 +8177,11 @@ def execute_gemini_with_resilience(
                 "invalid argument", "bad request", "model not found"
             ])
             if is_terminal:
+                raise e
+
+            # If fast_fail_on_quota is enabled, do not burn retry delays on a quota-exhausted project/key
+            is_quota_err = any(term in err_low for term in ["429", "resource_exhausted", "quota", "too many requests"])
+            if fast_fail_on_quota and is_quota_err:
                 raise e
 
             # Retryable error check
