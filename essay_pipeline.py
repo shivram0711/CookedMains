@@ -12,7 +12,18 @@ Features:
 
 import os
 import io
+import gc
 import re
+
+def release_process_memory():
+    """Forces immediate Python garbage collection and trims glibc arenas back to Linux OS cgroups."""
+    gc.collect()
+    try:
+        import ctypes
+        libc = ctypes.CDLL("libc.so.6")
+        libc.malloc_trim(0)
+    except Exception:
+        pass
 import json
 import uuid
 import time
@@ -100,43 +111,51 @@ def ingest_essay_pdf(
     Preserves original 1-based page numbers.
     """
     pdf = pdfium.PdfDocument(pdf_bytes)
-    total_pdf_pages = len(pdf)
+    try:
+        total_pdf_pages = len(pdf)
+        selected_page_numbers = parse_page_range(total_pdf_pages, page_range)
+        pages_data = []
+        previews_list = []
 
-    selected_page_numbers = parse_page_range(total_pdf_pages, page_range)
-    pages_data = []
-    previews_list = []
+        for idx, page_num in enumerate(selected_page_numbers):
+            # pypdfium2 is 0-indexed
+            pdf_page = pdf.get_page(page_num - 1)
 
-    for idx, page_num in enumerate(selected_page_numbers):
-        # pypdfium2 is 0-indexed
-        pdf_page = pdf.get_page(page_num - 1)
+            # 1. Preview render (for booklet UI) - capped at 1080px to save RAM
+            pil_preview = pdf_page.render(scale=min(preview_scale, 1.1)).to_pil().convert("RGB")
+            if max(pil_preview.size) > 1080:
+                pil_preview.thumbnail((1080, 1080))
+            prev_buf = io.BytesIO()
+            pil_preview.save(prev_buf, format="JPEG", quality=72)
+            prev_bytes = prev_buf.getvalue()
+            prev_b64 = f"data:image/jpeg;base64,{base64.b64encode(prev_bytes).decode('utf-8')}"
+            previews_list.append(prev_b64)
 
-        # 1. Preview render (for booklet UI)
-        pil_preview = pdf_page.render(scale=preview_scale).to_pil().convert("RGB")
-        if max(pil_preview.size) > 1200:
-            pil_preview.thumbnail((1200, 1200))
-        prev_buf = io.BytesIO()
-        pil_preview.save(prev_buf, format="JPEG", quality=75)
-        prev_bytes = prev_buf.getvalue()
-        prev_b64 = f"data:image/jpeg;base64,{base64.b64encode(prev_bytes).decode('utf-8')}"
-        previews_list.append(prev_b64)
+            # 2. Analysis render (optimized payload for vision LLM) - 960px
+            pil_analysis = pdf_page.render(scale=min(analysis_scale, 0.95)).to_pil().convert("RGB")
+            if max(pil_analysis.size) > 960:
+                pil_analysis.thumbnail((960, 960))
+            ana_buf = io.BytesIO()
+            pil_analysis.save(ana_buf, format="JPEG", quality=68)
+            ana_bytes = ana_buf.getvalue()
 
-        # 2. Analysis render (optimized payload for vision LLM)
-        pil_analysis = pdf_page.render(scale=analysis_scale).to_pil().convert("RGB")
-        if max(pil_analysis.size) > 1024:
-            pil_analysis.thumbnail((1024, 1024))
-        ana_buf = io.BytesIO()
-        pil_analysis.save(ana_buf, format="JPEG", quality=70)
-        ana_bytes = ana_buf.getvalue()
+            pages_data.append({
+                "original_page_number": page_num,
+                "page_index": idx,
+                "preview_b64": prev_b64,
+                "analysis_bytes": ana_bytes,
+            })
 
-        pages_data.append({
-            "original_page_number": page_num,
-            "page_index": idx,
-            "preview_b64": prev_b64,
-            "analysis_bytes": ana_bytes,
-        })
+            pil_preview.close()
+            pil_analysis.close()
+            del pil_preview
+            del pil_analysis
+            del prev_buf
+            del ana_buf
+    finally:
+        pdf.close()
 
-        del pil_preview
-        del pil_analysis
+    release_process_memory()
 
     return {
         "total_pdf_pages": total_pdf_pages,
@@ -167,20 +186,20 @@ def ingest_essay_images(
 
         # Preview
         prev_copy = pil_img.copy()
-        if max(prev_copy.size) > 1200:
-            prev_copy.thumbnail((1200, 1200))
+        if max(prev_copy.size) > 1080:
+            prev_copy.thumbnail((1080, 1080))
         pbuf = io.BytesIO()
-        prev_copy.save(pbuf, format="JPEG", quality=75)
+        prev_copy.save(pbuf, format="JPEG", quality=72)
         p_bytes = pbuf.getvalue()
         p_b64 = f"data:image/jpeg;base64,{base64.b64encode(p_bytes).decode('utf-8')}"
         previews_list.append(p_b64)
 
         # Analysis
         ana_copy = pil_img.copy()
-        if max(ana_copy.size) > 1024:
-            ana_copy.thumbnail((1024, 1024))
+        if max(ana_copy.size) > 960:
+            ana_copy.thumbnail((960, 960))
         abuf = io.BytesIO()
-        ana_copy.save(abuf, format="JPEG", quality=70)
+        ana_copy.save(abuf, format="JPEG", quality=68)
         a_bytes = abuf.getvalue()
 
         pages_data.append({
@@ -189,6 +208,17 @@ def ingest_essay_images(
             "preview_b64": p_b64,
             "analysis_bytes": a_bytes,
         })
+
+        pil_img.close()
+        prev_copy.close()
+        ana_copy.close()
+        del pil_img
+        del prev_copy
+        del ana_copy
+        del pbuf
+        del abuf
+
+    release_process_memory()
 
     return {
         "total_pdf_pages": total_images,
@@ -967,6 +997,7 @@ async def execute_essay_pipeline_background(
                         completed_page_nums.add(int(p_no))
 
                 save_essay_job_checkpoint(job_id, new_records, current_batch_index=idx, progress_pct=progress_pct, progress_message=f"Analyzed pages up to {last_p}")
+                release_process_memory()
                 idx += len(batch)
                 curr_batch_size = batch_size
                 single_page_retries = 0

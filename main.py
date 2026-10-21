@@ -10,7 +10,18 @@ except ImportError:
 
 import os
 import io
+import gc
 import re
+
+def release_process_memory():
+    """Forces immediate Python garbage collection and trims glibc arenas back to Linux OS cgroups."""
+    gc.collect()
+    try:
+        import ctypes
+        libc = ctypes.CDLL("libc.so.6")
+        libc.malloc_trim(0)
+    except Exception:
+        pass
 import json
 import copy
 import time
@@ -419,14 +430,23 @@ async def render_preview(request: Request, files: List[UploadFile] = File(defaul
                 try:
                     import pypdfium2 as pdfium
                     pdf = pdfium.PdfDocument(content)
-                    for page in pdf:
-                        pil_img = page.render(scale=1.2).to_pil().convert("RGB")
-                        if HAS_PIL and Image:
-                            pil_img.thumbnail((1400, 1400))
-                        buf = io.BytesIO()
-                        pil_img.save(buf, format="JPEG", quality=75, optimize=True)
-                        b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-                        previews.append(f"data:image/jpeg;base64,{b64}")
+                    try:
+                        # Cap preview to maximum 25 pages to prevent unbounded OOM spikes on 512MB instances
+                        for p_idx, page in enumerate(pdf):
+                            if p_idx >= 25:
+                                break
+                            pil_img = page.render(scale=1.0).to_pil().convert("RGB")
+                            if HAS_PIL and Image and max(pil_img.size) > 960:
+                                pil_img.thumbnail((960, 960))
+                            buf = io.BytesIO()
+                            pil_img.save(buf, format="JPEG", quality=68, optimize=True)
+                            b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+                            previews.append(f"data:image/jpeg;base64,{b64}")
+                            pil_img.close()
+                            del pil_img
+                            del buf
+                    finally:
+                        pdf.close()
                 except Exception as e:
                     print("PDF preview notice:", e)
             else:
@@ -451,6 +471,7 @@ async def render_preview(request: Request, files: List[UploadFile] = File(defaul
                     print("Image preview error:", e)
         except Exception as e:
             print("Preview file read error:", e)
+    release_process_memory()
     return {"pages": previews, "num_pages": len(previews)}
 
 @app.get("/api/taxonomies")
@@ -1855,18 +1876,26 @@ async def evaluate_answer(
                     try:
                         import pypdfium2 as pdfium
                         pdf = pdfium.PdfDocument(content)
-                        for page in pdf:
-                            pil_img = page.render(scale=1.4).to_pil().convert("RGB")
-                            if max(pil_img.size) > 1024:
-                                pil_img.thumbnail((1024, 1024))
-                            buf = io.BytesIO()
-                            pil_img.save(buf, format="JPEG", quality=70)
-                            jpeg_bytes = buf.getvalue()
-                            b64 = base64.b64encode(jpeg_bytes).decode("utf-8")
-                            uploaded_page_previews.append(f"data:image/jpeg;base64,{b64}")
-                            multimodal_parts.append(types.Part.from_bytes(data=jpeg_bytes, mime_type="image/jpeg"))
-                            pdf_pages_added += 1
-                            del pil_img
+                        try:
+                            # Standard GS answers are 2-4 pages (cap at 15 to prevent memory explosion)
+                            for p_idx, page in enumerate(pdf):
+                                if p_idx >= 15:
+                                    break
+                                pil_img = page.render(scale=1.1).to_pil().convert("RGB")
+                                if max(pil_img.size) > 1024:
+                                    pil_img.thumbnail((1024, 1024))
+                                buf = io.BytesIO()
+                                pil_img.save(buf, format="JPEG", quality=70)
+                                jpeg_bytes = buf.getvalue()
+                                b64 = base64.b64encode(jpeg_bytes).decode("utf-8")
+                                uploaded_page_previews.append(f"data:image/jpeg;base64,{b64}")
+                                multimodal_parts.append(types.Part.from_bytes(data=jpeg_bytes, mime_type="image/jpeg"))
+                                pdf_pages_added += 1
+                                pil_img.close()
+                                del pil_img
+                                del buf
+                        finally:
+                            pdf.close()
                     except Exception as pe:
                         print(f"Notice: PDF page preview generation error: {pe}")
                     if pdf_pages_added == 0:
@@ -1888,6 +1917,9 @@ async def evaluate_answer(
                         b64 = base64.b64encode(jpeg_bytes).decode("utf-8")
                         uploaded_page_previews.append(f"data:image/jpeg;base64,{b64}")
                         multimodal_parts.append(types.Part.from_bytes(data=jpeg_bytes, mime_type="image/jpeg"))
+                        pil_img.close()
+                        del pil_img
+                        del buf
                     except Exception as img_err:
                         print(f"Notice: PIL image normalization fallback ({img_err})")
                         try:
@@ -1900,6 +1932,7 @@ async def evaluate_answer(
 
             if file_hashes:
                 submission_hash = hashlib.sha256("".join(file_hashes).encode("utf-8")).hexdigest()
+            release_process_memory()
 
         if not primary_content:
             raise HTTPException(status_code=400, detail="Please upload at least one handwritten answer image/page or select a sample copy.")

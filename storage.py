@@ -5,6 +5,7 @@ import uuid
 import re
 import base64
 import io
+import gc
 import copy
 import time
 from datetime import datetime, timezone, timedelta
@@ -2233,14 +2234,22 @@ def segment_qcab_pdf(pdf_bytes: bytes) -> List[Dict[str, Any]]:
             import pypdfium2 as pdfium
             import io
             pdf = pdfium.PdfDocument(pdf_bytes)
-            total_pages = len(pdf)
-            for page in pdf:
-                pil_img = page.render(scale=1.2).to_pil().convert("RGB")
-                buf = io.BytesIO()
-                pil_img.save(buf, format="JPEG", quality=75)
-                img_b64 = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode("utf-8")
-                rendered_pages.append(img_b64)
-                del pil_img
+            try:
+                total_pages = len(pdf)
+                for page in pdf:
+                    pil_img = page.render(scale=1.0).to_pil().convert("RGB")
+                    if max(pil_img.size) > 1024:
+                        pil_img.thumbnail((1024, 1024))
+                    buf = io.BytesIO()
+                    pil_img.save(buf, format="JPEG", quality=70)
+                    img_b64 = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode("utf-8")
+                    rendered_pages.append(img_b64)
+                    pil_img.close()
+                    del pil_img
+                    del buf
+            finally:
+                pdf.close()
+            gc.collect()
     except Exception as e:
         print(f"Notice: PDF segmentation error: {e}")
         return []
