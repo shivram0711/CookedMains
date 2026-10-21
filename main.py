@@ -228,6 +228,11 @@ async def trigger_supabase_keepalive():
     res = await asyncio.to_thread(_execute_supabase_activity_ping)
     return {"status": "ok", "supabase_keepalive": res}
 
+@app.get("/api/admin/eval-trace")
+async def get_eval_trace():
+    """Returns the forensic execution trace of recent evaluation attempts (safe key labels, models, exact errors, latencies)."""
+    return {"count": len(_LAST_EVAL_TRACE), "recent_attempts": _LAST_EVAL_TRACE[-50:]}
+
 @app.get("/api/admin/model-health")
 async def get_model_health(all_keys: int = 0):
     """Live diagnostic endpoint for administrator to verify Gemini API keys, active models, and real response latency."""
@@ -1836,6 +1841,7 @@ def is_page_image_completely_blank(img: Any) -> bool:
 
 # Server-side concurrency guard: strictly one evaluation in progress at a time to prevent quota / rate-limit saturation
 _SERVER_EVAL_SEMAPHORE = asyncio.Semaphore(1)
+_LAST_EVAL_TRACE: list = []
 
 @app.post("/api/evaluate")
 async def evaluate_answer(
@@ -2440,6 +2446,15 @@ async def evaluate_answer(
                                     parsed_eval = parse_llm_json_response(raw_text)
                                     if isinstance(parsed_eval, dict) and len(parsed_eval) > 0:
                                         print(f"[EVALUATOR SUCCESS] Evaluated in {round(time.time() - eval_loop_start, 1)}s with '{model_name}'! Score: {parsed_eval.get('overall_score')}")
+                                        _LAST_EVAL_TRACE.append({
+                                            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                                            "status": "success",
+                                            "key_slot": key_idx + 1,
+                                            "key_masked": f"{current_key[:6]}...{current_key[-4:]}" if len(current_key) > 10 else "***",
+                                            "model": model_name,
+                                            "score": parsed_eval.get("overall_score"),
+                                            "elapsed": round(time.time() - eval_loop_start, 2)
+                                        })
                                         record_gemini_model_outcome(model_name, True)
                                         if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
                                             parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
@@ -2448,6 +2463,14 @@ async def evaluate_answer(
                             except Exception as ge:
                                 err_s = str(ge)
                                 print(f"[EVALUATOR NOTICE] Key {key_idx+1} on '{model_name}': {err_s[:150]}")
+                                _LAST_EVAL_TRACE.append({
+                                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                                    "key_slot": key_idx + 1,
+                                    "key_masked": f"{current_key[:6]}...{current_key[-4:]}" if len(current_key) > 10 else "***",
+                                    "model": model_name,
+                                    "error": err_s[:250],
+                                    "elapsed": round(time.time() - eval_loop_start, 2)
+                                })
                                 record_gemini_model_outcome(model_name, False, err_s)
                                 err_low = err_s.lower()
 
