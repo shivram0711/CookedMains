@@ -14118,6 +14118,134 @@ function renderBatch1ExaminerMastery(evalData) {
     `;
   }).join("");
 
+
+  // --- 1. POPULATE PRIORITIZED FEEDBACK & VALIDATION AUDIT (RULES 8 & 9) ---
+  const pfContainer = document.getElementById("prioritizedFeedbackContainer");
+  const pfListEl = document.getElementById("prioritizedFeedbackList");
+  const vaBadgeEl = document.getElementById("validationAuditBadge");
+
+  if (vaBadgeEl) {
+    const hasUncertainty = Boolean(evalData.uncertainty_flags && evalData.uncertainty_flags.length > 0);
+    if (hasUncertainty) {
+      vaBadgeEl.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1 shrink-0 self-start sm:self-auto";
+      vaBadgeEl.innerHTML = `<i data-lucide="alert-circle" class="w-3 h-3 text-amber-400"></i><span>${isHindi ? "अनिश्चितता दर्ज" : "Uncertainty Flagged"}</span>`;
+    } else {
+      vaBadgeEl.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shrink-0 self-start sm:self-auto";
+      vaBadgeEl.innerHTML = `<i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i><span>${isHindi ? "सत्यापित अंकेक्षण" : "Verified Audit"}</span>`;
+    }
+  }
+
+  if (pfListEl) {
+    let pItems = Array.isArray(evalData.prioritized_feedback) && evalData.prioritized_feedback.length > 0
+      ? evalData.prioritized_feedback
+      : [];
+
+    if (pItems.length === 0 && Array.isArray(evalData.evidence_ledger) && evalData.evidence_ledger.length > 0) {
+      pItems = [...evalData.evidence_ledger]
+        .sort((a, b) => (parseFloat(b.deduction_amount || (b.layer_a_max_marks - b.layer_a_marks_awarded)) || 0) - (parseFloat(a.deduction_amount || (a.layer_a_max_marks - a.layer_a_marks_awarded)) || 0))
+        .slice(0, 3)
+        .map((it, idx) => ({
+          priority_rank: idx + 1,
+          demand_title: it.demand_title || it.criterion_name || `Demand ${idx + 1}`,
+          what_was_done_well: it.candidate_evidence ? `You established "${it.candidate_evidence.slice(0, 80)}..."` : (it.what_the_evidence_demonstrates || "Addressed baseline topic context."),
+          what_materially_limits_marks: it.what_remains_weak_or_missing || it.specific_deduction_reason || "Lacked complete causal sequence and empirical substantiation.",
+          actionable_exam_hall_fix: it.actionable_improvement || "Write 2 crisp sentences mapping the causal sequence directly under this heading.",
+          potential_mark_recovery: `+${(parseFloat(it.deduction_amount) || (it.layer_a_max_marks - it.layer_a_marks_awarded) || 1.0).toFixed(1)}M`
+        }));
+    }
+
+    if (pItems.length > 0) {
+      if (pfContainer) pfContainer.classList.remove("hidden");
+      pfListEl.innerHTML = pItems.map(p => `
+        <div class="p-3.5 rounded-xl bg-slate-900/95 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-amber-500/20 text-amber-300 text-[10px] flex items-center justify-center font-mono">#${p.priority_rank}</span>
+              <span>${escapeHtml(p.demand_title)}</span>
+            </span>
+            <span class="text-[10.5px] font-mono font-extrabold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+              ${isHindi ? "संभावित सुधार:" : "Potential Recovery:"} ${p.potential_mark_recovery || "+1.0M"}
+            </span>
+          </div>
+          <div class="space-y-1.5 text-xs text-slate-300 leading-relaxed">
+            <p><strong class="text-emerald-400">✓ ${isHindi ? "आपने जो लिखा (साक्ष्य):" : "What You Demonstrated (Evidence):"}</strong> ${formatHighlightedText(p.what_was_done_well)}</p>
+            <p><strong class="text-rose-400">⚠️ ${isHindi ? "अंक सीमित करने वाला मुख्य कारण:" : "What Materially Limits Marks:"}</strong> ${formatHighlightedText(p.what_materially_limits_marks)}</p>
+            <div class="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-200 text-xs">
+              <strong>✍️ ${isHindi ? "परीक्षा-कक्ष में त्वरित सुधार (समय व शब्द सीमा के भीतर):" : "Exam-Hall Fix (Within Word Budget):"}</strong> ${formatHighlightedText(p.actionable_exam_hall_fix)}
+            </div>
+          </div>
+        </div>
+      `).join("");
+    } else if (pfContainer) {
+      pfContainer.classList.add("hidden");
+    }
+  }
+
+  // --- 2. POPULATE UNIFIED EVIDENCE LEDGER (RULES 2 & 5) ---
+  const elGrid = document.getElementById("evidenceLedgerGrid");
+  if (elGrid) {
+    let ledgerItems = Array.isArray(evalData.evidence_ledger) && evalData.evidence_ledger.length > 0
+      ? evalData.evidence_ledger
+      : [];
+
+    if (ledgerItems.length === 0 && Array.isArray(evalData.sub_part_step_marking)) {
+      ledgerItems = evalData.sub_part_step_marking.map((st, idx) => ({
+        demand_title: st.step_label || `Demand ${idx + 1}`,
+        criterion_name: st.step_label || `Demand ${idx + 1}`,
+        candidate_evidence: st.quoted_written || "",
+        what_the_evidence_demonstrates: st.analysis || "Candidate addressed baseline demand.",
+        what_remains_weak_or_missing: st.gap || "Missing causal depth.",
+        actionable_improvement: st.step_up_lever || "Substantiate with specific case reference.",
+        awarded_marks: parseFloat(st.awarded || 0),
+        max_marks: parseFloat(st.max || 2),
+        deduction_amount: Math.max(0, (parseFloat(st.max || 2) - parseFloat(st.awarded || 0))).toFixed(1),
+        demand_status: st.demand_status || "Partially Fulfilled"
+      }));
+    }
+
+    if (ledgerItems.length > 0) {
+      elGrid.innerHTML = ledgerItems.map((item, idx) => {
+        const aw = typeof item.awarded_marks === "number" ? item.awarded_marks : parseFloat(item.layer_a_marks_awarded || 0);
+        const mx = typeof item.max_marks === "number" ? item.max_marks : parseFloat(item.layer_a_max_marks || 2);
+        const ratio = aw / Math.max(0.01, mx);
+        const statusText = item.demand_status || (ratio >= 0.65 ? (isHindi ? "मांग पूर्ण" : "Demand Fulfilled") : aw > 0.05 ? (isHindi ? "आंशिक पूर्ण" : "Partially Fulfilled") : (isHindi ? "मांग छूटी हुई" : "Demand Missed"));
+        const badgeColor = ratio >= 0.65
+          ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+          : aw > 0.05
+            ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
+            : "bg-rose-500/15 text-rose-300 border-rose-500/30";
+
+        const evQuote = item.candidate_evidence
+          ? `<div class="p-2 rounded bg-slate-900/90 border border-slate-800 text-[11.5px] text-slate-300"><span class="font-bold text-emerald-400">📝 ${isHindi ? "अभ्यर्थी का साक्ष्य:" : "Candidate Evidence:"}</span> <em>"${escapeHtml(item.candidate_evidence)}"</em></div>`
+          : "";
+
+        return `
+          <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/90 space-y-2 text-xs">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
+              <span class="font-extrabold text-slate-200 text-xs sm:text-[13px] flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded bg-slate-800 text-slate-300 text-[10px] font-bold flex items-center justify-center">${idx + 1}</span>
+                <span>${escapeHtml(item.demand_title || item.criterion_name)}</span>
+              </span>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded border ${badgeColor}">${statusText}</span>
+                <span class="text-xs font-mono font-extrabold px-2.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                  +${aw.toFixed(1)} / ${mx.toFixed(1)}M
+                </span>
+              </div>
+            </div>
+            ${evQuote}
+            <div class="space-y-1.5 text-slate-300 leading-relaxed">
+              <p><strong class="text-sky-400">🔍 ${isHindi ? "साक्ष्य क्या दर्शाता है (Layer A):" : "What Evidence Demonstrates (Layer A):"}</strong> ${formatHighlightedText(item.what_the_evidence_demonstrates || item.assessment_of_evidence || "")}</p>
+              ${item.what_remains_weak_or_missing ? `<p><strong class="text-rose-400">✗ ${isHindi ? "अंक कटौती का कारण:" : "Reason for Mark Deduction:"}</strong> ${formatHighlightedText(item.what_remains_weak_or_missing)}</p>` : ""}
+              ${item.actionable_improvement ? `<p><strong class="text-amber-400">✎ ${isHindi ? "मेंटर परामर्श (Layer B):" : "Mentor Coaching (Layer B):"}</strong> ${formatHighlightedText(item.actionable_improvement)}</p>` : ""}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+  }
+
+
   // 2. Point-by-Point Handwritten Audit (Zero Overlap, Full Readability)
   let pointRows = [];
   if (Array.isArray(evalData.point_by_point_audit) && evalData.point_by_point_audit.length >= 2) {
