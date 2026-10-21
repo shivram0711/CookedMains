@@ -229,7 +229,7 @@ async def trigger_supabase_keepalive():
     return {"status": "ok", "supabase_keepalive": res}
 
 @app.get("/api/admin/model-health")
-async def get_model_health():
+async def get_model_health(all_keys: int = 0):
     """Live diagnostic endpoint for administrator to verify Gemini API keys, active models, and real response latency."""
     keys = get_active_gemini_keys()
     if not keys:
@@ -246,6 +246,36 @@ async def get_model_health():
     test_results = []
     overall_working = False
     active_champion = None
+
+    if all_keys == 1:
+        key_diagnostics = []
+        for i, k in enumerate(keys):
+            masked = f"{k[:6]}...{k[-4:]}" if len(k) > 10 else f"Key_{i+1}"
+            k_res = {"slot": i + 1, "key": masked, "status": "unknown"}
+            t0 = time.time()
+            try:
+                c = create_fast_gemini_client(k, timeout_ms=5000)
+                resp = c.models.generate_content(
+                    model="gemini-3.5-flash-lite",
+                    contents="Ping. Respond with one word: OK"
+                )
+                lat = round(time.time() - t0, 2)
+                if resp and resp.text:
+                    k_res["status"] = "active"
+                    k_res["latency_seconds"] = lat
+                    k_res["response"] = resp.text.strip()[:20]
+                    overall_working = True
+            except Exception as e:
+                k_res["status"] = "failed"
+                k_res["latency_seconds"] = round(time.time() - t0, 2)
+                k_res["error"] = str(e)[:120]
+            key_diagnostics.append(k_res)
+
+        return {
+            "status": "healthy" if overall_working else "issues_detected",
+            "active_keys_count": len(keys),
+            "keys_report": key_diagnostics
+        }
 
     for m in test_models:
         t0 = time.time()
