@@ -392,33 +392,60 @@ def separate_bilingual_question(question_text: str, target_medium: str = "englis
     dev_chars = len(re.findall(r'[\u0900-\u097F]', q_raw))
     lat_chars = len(re.findall(r'[a-zA-Z]', q_raw))
     
-    # If single-script only, return as-is
+    # If single-script only, clean any leading orphaned punctuation/header artifacts before returning
     if dev_chars == 0 or lat_chars == 0:
+        if target_medium == "english" and lat_chars > 0:
+            cleaned = re.sub(r'^[?\s\(\)\/\d\:\-\.]*(?=(?:[A-Z]|Q\d))', '', q_raw).strip()
+            return cleaned if len(cleaned) >= 15 else q_raw
         return q_raw
         
     lines = [line.strip() for line in q_raw.splitlines() if line.strip()]
     
     if target_medium == "english":
+        # Check if text is separated by '/' (standard bilingual QCAB header format)
+        if ' / ' in q_raw or ' /' in q_raw or '/ ' in q_raw:
+            parts = [p.strip() for p in re.split(r'\s*\/\s*', q_raw) if p.strip()]
+            eng_parts = [p for p in parts if len(re.findall(r'[a-zA-Z]', p)) > 15 and len(re.findall(r'[a-zA-Z]', p)) >= len(re.findall(r'[\u0900-\u097F]', p))]
+            if eng_parts:
+                candidate = eng_parts[0]
+                candidate = re.sub(r'^[?\s\(\)\/\d\:\-\.]*(?=(?:[A-Z]|Q\d))', '', candidate).strip()
+                if len(candidate) >= 15:
+                    return candidate
+
         eng_lines = []
         for l in lines:
             l_dev = len(re.findall(r'[\u0900-\u097F]', l))
             l_lat = len(re.findall(r'[a-zA-Z]', l))
             if l_dev == 0 or l_lat >= l_dev:
                 clean_l = re.sub(r'[\u0900-\u097F]+', '', l).strip()
+                clean_l = re.sub(r'^[?\s\(\)\/\d\:\-\.]*(?=(?:[A-Z]|Q\d))', '', clean_l).strip()
                 if clean_l and len(clean_l) > 2:
                     eng_lines.append(clean_l)
         result = " ".join(eng_lines).strip()
+        result = re.sub(r'^[?\s\(\)\/\d\:\-\.]*(?=(?:[A-Z]|Q\d))', '', result).strip()
         if len(result) >= 20:
             return re.sub(r'\s{2,}', ' ', result)
         cleaned = re.sub(r'[\u0900-\u097F]+', '', q_raw).strip()
+        cleaned = re.sub(r'^[?\s\(\)\/\d\:\-\.]*(?=(?:[A-Z]|Q\d))', '', cleaned).strip()
         return re.sub(r'\s{2,}', ' ', cleaned) if len(cleaned) >= 15 else q_raw
     else:
+        if ' / ' in q_raw or ' /' in q_raw or '/ ' in q_raw:
+            parts = [p.strip() for p in re.split(r'\s*\/\s*', q_raw) if p.strip()]
+            hin_parts = [p for p in parts if len(re.findall(r'[\u0900-\u097F]', p)) > 15 and len(re.findall(r'[\u0900-\u097F]', p)) >= len(re.findall(r'[a-zA-Z]', p))]
+            if hin_parts:
+                return hin_parts[0]
+
         hin_lines = []
         for l in lines:
             l_dev = len(re.findall(r'[\u0900-\u097F]', l))
             l_lat = len(re.findall(r'[a-zA-Z]', l))
-            if l_lat == 0 or l_dev >= l_lat:
-                hin_lines.append(l)
+            if l_dev > 0:
+                if l_lat == 0:
+                    hin_lines.append(l)
+                elif l_dev >= l_lat:
+                    # Strip trailing/inline English translation from dual-language line
+                    clean_hin = re.sub(r'\s*\/\s*[a-zA-Z].*$', '', l).strip()
+                    hin_lines.append(clean_hin if clean_hin else l)
         result = " ".join(hin_lines).strip()
         if len(result) >= 20:
             return re.sub(r'\s{2,}', ' ', result)
@@ -721,8 +748,9 @@ def infer_paper_from_question_content(question_text: str) -> Optional[str]:
     gs1_signals = [
         "art and culture", "temple architecture", "temple", "sculpture", "ancient india", "medieval india", "mughal", "gupta", "mauryan", "chola", "cholas",
         "freedom struggle", "1857", "swadeshi", "gandhi", "non-cooperation", "quit india", "subhash chandra bose", "colonial rule",
-        "geomorphology", "plate tectonics", "earthquake", "volcano", "cyclone", "monsoon", "el nino", "la nina", "ocean current",
-        "secularism in india", "communalism", "regionalism", "caste system", "caste", "urbanization issues"
+        "geomorphology", "plate tectonics", "earthquake", "volcano", "volcanic", "caldera", "calderas", "cyclone", "monsoon", "el nino", "la nina", "ocean current",
+        "secularism in india", "communalism", "regionalism", "caste system", "caste", "urbanization issues",
+        "scenic beauty", "geomorphic", "landform", "landforms", "magma", "lava", "crater", "pyroclastic", "geomorph"
     ]
     gs1_score = sum(2 if has_phrase(text, w) else 0 for w in gs1_signals)
 
@@ -1033,7 +1061,7 @@ def detect_pyq_trend(question_text: str, discipline: str = "") -> str:
         return "Foundational Constitutional Doctrine • Tested in CSE Mains 2019, 2020, 2022, 2023"
     if any(k in text for k in ["heatwave", "cyclone", "earthquake", "disaster", "ndma", "sendai", "landslide", "urban flood"]):
         return "Annual Disaster Vulnerability Track • Tested in CSE Mains 2016, 2018, 2021, 2024"
-    if any(k in text for k in ["monsoon", "el nino", "la nina", "plate tectonics", "volcano", "insolation", "tsunami"]):
+    if any(k in text for k in ["monsoon", "el nino", "la nina", "plate tectonics", "volcan", "caldera", "geomorph", "insolation", "tsunami", "landform"]):
         return "Physical Geography Core • Repeated in CSE Mains 2017, 2020, 2022"
     if any(k in text for k in ["self-help group", "shg", "civil society", "ngo", "citizen charter", "social audit"]):
         return "Civil Society & Governance Tool • Tested in CSE Mains 2017, 2019, 2021, 2023"
@@ -1043,8 +1071,8 @@ def detect_pyq_trend(question_text: str, discipline: str = "") -> str:
         return "GS-3 Macroeconomic Pillar • Tested in CSE Mains 2019, 2021, 2023, 2024"
     if any(k in text for k in ["renewable energy", "solar", "cop", "climate change", "panchamrit", "biodiversity"]):
         return "Global Climate & Energy Mandate • Tested in CSE Mains 2018, 2021, 2023, 2024"
-    if any(k in text for k in ["cyber", "artificial intelligence", "ai", "semiconductor", "space", "deep tech", "5g"]):
-        return "Emerging Technology & Sovereignty • Tested in CSE Mains 2020, 2022, 2023, 2024"
+    if any(re.search(r'\b' + re.escape(k) + r'\b', text) for k in ["cyber", "artificial intelligence", "ai", "semiconductor", "space", "deep tech", "5g"]):
+        return "Emerging Technology & Sovereignty • Tested in CSE Mains 2020, 2022, 2023, 2024" 
     if any(k in text for k in ["internal security", "border", "terrorism", "left-wing", "lwe", "money laundering"]):
         return "Sovereign Defense & Internal Security • Tested in CSE Mains 2017, 2019, 2021, 2023"
     if any(k in text for k in ["temple", "sculpture", "architecture", "bhakti", "sufi", "heritage", "chola", "maurya", "ahom"]):
@@ -1790,6 +1818,10 @@ Every UPSC Mains paper and micro-subject has its own distinct soul, technical le
   * History & Art/Culture DNA: Evaluate for chronological periodization, architectural/artistic vocabulary (Nagara vs Dravida, Tribhanga, Pietra Dura), primary sources/inscriptions/numismatics, ideological currents (Moderates, Extremists, Subaltern, Bhakti-Sufi synthesis), and cause-effect-consequence analysis (penalize mere storytelling).
   * Indian Society DNA: Evaluate for sociological concepts (Sanskritization, Secularization, Care Economy, Demographic Dividend, Urbanization-Induced Alienation, Regionalism vs Communalism, Melting Pot vs Salad Bowl), empirical baselines (NFHS-5, PLFS, Census), and constitutional social harmony.
   * Geography & Resources DNA: Evaluate for physical/geomorphic processes (Coriolis force, Albedo, ITCZ, Plate Tectonics, Thermohaline circulation, Western Disturbances), spatial location accuracy, **hand-drawn India/World sketch maps or cross-section diagrams**, and contemporary flashpoints (GLOFs, Wayanad landslides, Urban Heat Islands).
+    CRITICAL MANDATE: On Physical Geography questions, NEVER demand, invent, or penalize for statutory provisions, constitutional articles, or administrative committees! Ground feedback purely in Earth science and spatial evidence.
+  * STRICT EVIDENCE CITATION & ZERO HALLUCINATED EXAMPLES:
+    - Every compliment, mark award, or critical deduction must cite candidate handwriting and page numbers: (Page X: "quote").
+    - Quote ONLY examples that the candidate actually wrote on their answer sheet. NEVER credit or praise unwritten examples (e.g. if candidate cited South American caldera lakes and Iceland, evaluate those; DO NOT credit or praise Lake Toba or Yellowstone if absent from the script).
 - IF GS-2 (CONSTITUTION, POLITY, GOVERNANCE, SOCIAL JUSTICE & INTERNATIONAL RELATIONS):
   * Constitution & Polity DNA: Evaluate for exact Constitutional Articles, Doctrines (Basic Structure, Pith & Substance, Colourable Legislation, Harmonious Construction, Constitutional Morality, Separation of Powers vs Checks & Balances), Supreme Court Constitution Bench rulings, and Sarkaria / Punchhi / NCRWC / Law Commission reports.
   * Governance & Social Justice DNA: Evaluate for institutional delivery mechanisms (Sevottam Model, Citizen Charters, Social Audit, Digital Public Infrastructure - Aadhaar/UPI/ONDC, 3Fs of 73rd/74th Amendments), Amartya Sen's Capability Approach, NEP 2020, POSHAN 2.0, and 2nd ARC recommendations.
@@ -2855,15 +2887,15 @@ def detect_question_discipline(question_str: str, paper_str: str) -> str:
         return "PHILOSOPHY_ETHICS"
 
     # 3. Physical Geography (including geomorphology, climatology, oceanography)
-    if any(k in q_low for k in [
-        "volcano", "geomorph", "earthquake", "cyclone", "plate tectonic", "climate", "soil", "ocean",
+    if any(m in p_up for m in ["GS1", "GS-1", "GS 1", "GEO"]) or any(k in q_low for k in [
+        "volcan", "caldera", "magma", "lava", "pyroclastic", "geomorph", "earthquake", "cyclone", "plate tectonic", "climate", "soil", "ocean",
         "monsoon", "temperature", "insolation", "heat budget", "atmosphere", "isotherm", "pressure belt",
         "planetary wind", "landmass", "land-sea", "continentality", "weather", "drainage", "river",
         "glacier", "topography", "rainfall", "precipitation", "coriolis", "lapse rate", "albedo",
         "tsunami", "karst", "air mass", "frontogenesis", "jet stream", "coral reef", "continental drift",
-        "seafloor spreading", "el nino", "la nina", "inversion of temperature"
+        "seafloor spreading", "el nino", "la nina", "inversion of temperature", "scenic beauty", "landform"
     ]):
-        return "PHYSICAL_GEOGRAPHY"
+        return "PHYSICAL_GEOGRAPHY" 
 
     # 4. Polity & Governance (GS-2)
     if any(m in p_up for m in ["GS2", "GS-2", "GS 2", "POLITY"]) or any(k in q_low for k in [
@@ -5003,14 +5035,22 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                             f"\"Anchor in **{term_str}** ({clean_def.lower()}) to demonstrate inclusive growth and target-driven budgetary delivery.\""
                         ]
                         card["how_to_use_one_line"] = econ_templates[idx_c % len(econ_templates)]
-                    else:
+                    elif is_polity:
                         gov_templates = [
-                            f"\"Incorporate **{term_str}** ({clean_def.lower()}) to reinforce policy delivery metrics and grassroots institutional accountability.\"",
-                            f"\"Cite **{term_str}** ({clean_def.lower()}) to ground systemic governance reforms in statutory oversight benchmarks.\"",
-                            f"\"Deploy **{term_str}** ({clean_def.lower()}) to substantiate institutional checks and balance of constitutional authority.\"",
-                            f"\"Anchor in **{term_str}** ({clean_def.lower()}) to bridge regulatory gaps and advance outcome-oriented implementation.\""
+                            f'"Incorporate **{term_str}** ({clean_def.lower()}) to reinforce policy delivery metrics and institutional accountability."',
+                            f'"Cite **{term_str}** ({clean_def.lower()}) to ground systemic governance reforms in statutory oversight benchmarks."',
+                            f'"Deploy **{term_str}** ({clean_def.lower()}) to substantiate institutional checks and balance of constitutional authority."',
+                            f'"Anchor in **{term_str}** ({clean_def.lower()}) to bridge regulatory gaps and advance outcome-oriented implementation."'
                         ]
                         card["how_to_use_one_line"] = gov_templates[idx_c % len(gov_templates)]
+                    else:
+                        gen_templates = [
+                            f'"Incorporate **{term_str}** ({clean_def.lower()}) to substantiate analytical precision and core question demands."',
+                            f'"Cite **{term_str}** ({clean_def.lower()}) to ground arguments in authoritative domain frameworks."',
+                            f'"Deploy **{term_str}** ({clean_def.lower()}) to illustrate causal mechanisms and substantive evidence."',
+                            f'"Anchor in **{term_str}** ({clean_def.lower()}) to bridge thematic gaps and provide a balanced multidimensional evaluation."'
+                        ]
+                        card["how_to_use_one_line"] = gen_templates[idx_c % len(gen_templates)]
 
     # Normalize Actionable Value-Addition Checklist (Where to Write & How to Write)
     va_raw = data.get("value_add_checklist") or {}
@@ -5118,7 +5158,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         data["value_add_checklist"] = {
             "category_1": {
                 "title": def_cat1_title,
-                "items": normalize_items_list(legacy_c1, "Page 2 under core analytical sub-heading", "Policy / Constitutional anchor")
+                "items": normalize_items_list(legacy_c1, "Page 2 under core analytical sub-heading", "Domain-specific conceptual anchor" if not is_polity else "Policy / Constitutional anchor")
             },
             "category_2": {
                 "title": def_cat2_title,
@@ -5637,6 +5677,71 @@ def _normalize_exam_hall_discipline_and_micro_marking(data: Dict[str, Any], max_
         data["full_model_answer"] = model_ans
 
 
+def get_canonical_demand_status(awarded: float, max_marks: float, is_hindi: bool = False) -> str:
+    """
+    Canonical 3-state criterion demand status rule across backend and frontend:
+    - awarded <= 0.05: Demand Missed
+    - awarded >= max_marks * 0.65: Demand Fulfilled / Demand Met
+    - otherwise: Partially Fulfilled / Partially Met
+    """
+    aw = float(awarded or 0.0)
+    mx = float(max_marks or 0.0)
+    if aw <= 0.05:
+        return "✗ मांग अधूरी (Demand Missed)" if is_hindi else "Demand Missed"
+    elif mx > 0 and (aw / mx) >= 0.65:
+        return "✓ मांग पूर्ण (Demand Met)" if is_hindi else "Demand Fulfilled"
+    else:
+        return "⚠️ आंशिक पूर्ण (Partially Met)" if is_hindi else "Partially Fulfilled"
+
+
+def get_canonical_score_band(overall_score: float, max_marks: int = 10, is_hindi: bool = False) -> str:
+    """
+    Canonical 4-tier product score bands matching UI range definitions:
+    10M: Needs Work (<=3.0), Average (3.1-4.2), Competitive (4.3-5.4), Topper (5.5+)
+    15M: Needs Work (<=4.5), Average (4.6-6.2), Competitive (6.3-8.2), Topper (8.3+)
+    20M: Needs Work (<=6.0), Average (6.1-8.4), Competitive (8.5-11.0), Topper (11.1+)
+    125M: Needs Work (<=47), Average (48-60), Competitive (61-72), Topper (73+)
+    """
+    s = round(float(overall_score or 0.0), 2)
+    mm = int(max_marks or 10)
+    if mm == 10:
+        if s <= 3.0:
+            return "सुधार आवश्यक (<30%)" if is_hindi else "Needs Work (<30%)"
+        elif s <= 4.2:
+            return "औसत (31-42%)" if is_hindi else "Average (31-42%)"
+        elif s <= 5.4:
+            return "प्रतिस्पर्धी (43-54%)" if is_hindi else "Competitive (43-54%)"
+        else:
+            return "शीर्ष (55%+)" if is_hindi else "Topper (55%+)"
+    elif mm == 15:
+        if s <= 4.5:
+            return "सुधार आवश्यक (<30%)" if is_hindi else "Needs Work (<30%)"
+        elif s <= 6.2:
+            return "औसत (31-42%)" if is_hindi else "Average (31-42%)"
+        elif s <= 8.2:
+            return "प्रतिस्पर्धी (43-54%)" if is_hindi else "Competitive (43-54%)"
+        else:
+            return "शीर्ष (55%+)" if is_hindi else "Topper (55%+)"
+    elif mm == 20:
+        if s <= 6.0:
+            return "सुधार आवश्यक (<30%)" if is_hindi else "Needs Work (<30%)"
+        elif s <= 8.4:
+            return "औसत (31-42%)" if is_hindi else "Average (31-42%)"
+        elif s <= 11.0:
+            return "प्रतिस्पर्धी (43-54%)" if is_hindi else "Competitive (43-54%)"
+        else:
+            return "शीर्ष (55%+)" if is_hindi else "Topper (55%+)"
+    else:  # 125M Essay
+        if s <= 47.0:
+            return "सुधार आवश्यक (<38%)" if is_hindi else "Needs Work (<38%)"
+        elif s <= 60.0:
+            return "औसत (38-48%)" if is_hindi else "Average (38-48%)"
+        elif s <= 72.0:
+            return "प्रतिस्पर्धी (49-58%)" if is_hindi else "Competitive (49-58%)"
+        else:
+            return "शीर्ष (58%+)" if is_hindi else "Topper (58%+)"
+
+
 def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10, is_hindi: bool = False) -> None:
     """
     Guarantees mathematically locked Batch 1 Examiner Mastery metrics.
@@ -5651,6 +5756,11 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
         return
 
     overall_score = float(data.get("overall_score", 0.0) or 0.0)
+    # Synchronize product score band & percentile verdict
+    canon_band = get_canonical_score_band(overall_score, max_marks, is_hindi=is_hindi)
+    data["score_band"] = canon_band
+    data["percentile_verdict"] = canon_band
+
     rubric = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
 
     if max_marks == 10:
@@ -5722,33 +5832,53 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                 raw_body_maxes.append(0.0)
                 raw_body_aws.append(0.0)
 
+        # Pull intro and conclusion definitions directly from existing steps if present
+        if isinstance(existing_steps[0], dict):
+            if "max" in existing_steps[0]:
+                intro_max = float(existing_steps[0].get("max") or intro_max)
+            if "awarded" in existing_steps[0]:
+                intro_aw = float(existing_steps[0].get("awarded") or 0.0)
+        if isinstance(existing_steps[-1], dict):
+            if "max" in existing_steps[-1]:
+                conc_max = float(existing_steps[-1].get("max") or conc_max)
+            if "awarded" in existing_steps[-1]:
+                conc_aw = float(existing_steps[-1].get("awarded") or 0.0)
+
+        total_body_max = max(1.0, round((max_marks - intro_max - conc_max) * 4) / 4)
+        total_body_aw = max(0.0, round((overall_score - intro_aw - conc_aw) * 4) / 4)
+
         sum_raw_b_max = sum(raw_body_maxes)
         sum_raw_b_aw = sum(raw_body_aws)
         has_dynamic_weights = (sum_raw_b_max > 0.1 and all(m > 0 for m in raw_body_maxes))
 
-        body_max_list = []
-        body_aw_list = []
-        rem_m = total_body_max
-        rem_aw = total_body_aw
-        for b_idx in range(num_body):
-            if b_idx == num_body - 1:
-                final_m = max(0.5, round(rem_m * 4) / 4)
-                final_aw = max(0.0, min(final_m, round(rem_aw * 4) / 4))
-                body_max_list.append(final_m)
-                body_aw_list.append(final_aw)
-            else:
-                if has_dynamic_weights:
-                    ratio_m = raw_body_maxes[b_idx] / sum_raw_b_max
-                    m_val = max(0.5, round((total_body_max * ratio_m) * 4) / 4)
-                    ratio_aw = (raw_body_aws[b_idx] / sum_raw_b_aw) if sum_raw_b_aw > 0 else ratio_m
-                    aw_val = min(m_val, max(0.0, round((total_body_aw * ratio_aw) * 4) / 4))
+        # If incoming body steps are already mathematically exact, preserve them verbatim
+        if abs(sum_raw_b_max - total_body_max) < 0.05 and abs(sum_raw_b_aw - total_body_aw) < 0.05:
+            body_max_list = [float(m) for m in raw_body_maxes]
+            body_aw_list = [float(a) for a in raw_body_aws]
+        else:
+            body_max_list = []
+            body_aw_list = []
+            rem_m = total_body_max
+            rem_aw = total_body_aw
+            for b_idx in range(num_body):
+                if b_idx == num_body - 1:
+                    final_m = max(0.5, round(rem_m * 4) / 4)
+                    final_aw = max(0.0, min(final_m, round(rem_aw * 4) / 4))
+                    body_max_list.append(final_m)
+                    body_aw_list.append(final_aw)
                 else:
-                    m_val = max(1.0, round((total_body_max / num_body) * 4) / 4)
-                    aw_val = min(m_val, max(0.0, round((total_body_aw / num_body) * 4) / 4))
-                body_max_list.append(m_val)
-                body_aw_list.append(aw_val)
-                rem_m = max(0.5, rem_m - m_val)
-                rem_aw = max(0.0, rem_aw - aw_val)
+                    if has_dynamic_weights:
+                        ratio_m = raw_body_maxes[b_idx] / sum_raw_b_max
+                        m_val = max(0.5, round((total_body_max * ratio_m) * 4) / 4)
+                        ratio_aw = (raw_body_aws[b_idx] / sum_raw_b_aw) if sum_raw_b_aw > 0 else ratio_m
+                        aw_val = min(m_val, max(0.0, round((total_body_aw * ratio_aw) * 4) / 4))
+                    else:
+                        m_val = max(1.0, round((total_body_max / num_body) * 4) / 4)
+                        aw_val = min(m_val, max(0.0, round((total_body_aw / num_body) * 4) / 4))
+                    body_max_list.append(m_val)
+                    body_aw_list.append(aw_val)
+                    rem_m = max(0.5, rem_m - m_val)
+                    rem_aw = max(0.0, rem_aw - aw_val)
 
         q_ctx = str(data.get("detected_question") or data.get("question") or "")
         wf_demanded = _is_way_forward_demanded_by_question(q_ctx)
@@ -5818,6 +5948,7 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                     item["sub_heading"] = raw_sh_clean
                 item["max"] = body_max_list[body_idx] if body_idx < len(body_max_list) else 2.0
                 item["awarded"] = body_aw_list[body_idx] if body_idx < len(body_aw_list) else 1.0
+            item["demand_status"] = get_canonical_demand_status(item.get("awarded"), item.get("max"), is_hindi=is_hindi)
             assigned_steps.append(item)
         data["sub_part_step_marking"] = assigned_steps
 
@@ -5827,7 +5958,7 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                 "part_name": st.get("step_label", ""),
                 "max_marks": float(st.get("max", 0.0) or 0.0),
                 "marks_awarded": float(st.get("awarded", 0.0) or 0.0),
-                "demand_status": st.get("demand_status") or ("Demand Fulfilled" if float(st.get("awarded", 0.0) or 0.0) >= float(st.get("max", 0.0) or 0.0) * 0.5 else "Partially Fulfilled"),
+                "demand_status": get_canonical_demand_status(st.get("awarded"), st.get("max"), is_hindi=is_hindi),
                 "analysis": st.get("sub_heading", ""),
                 "scoring_rationale": st.get("quoted_written", "")
             }
@@ -6019,13 +6150,16 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
             "quoted_written": str(conc_audit.get("current_critique") or conc_def_note),
             "step_up_lever": str(conc_audit.get("model_conclusion_rewrite") or conc_def_lever)
         })
+        for st in gen_steps:
+            if isinstance(st, dict):
+                st["demand_status"] = get_canonical_demand_status(st.get("awarded"), st.get("max"), is_hindi=is_hindi)
         data["sub_part_step_marking"] = gen_steps
         data["subpart_marks_breakdown"] = [
             {
                 "part_name": st.get("step_label", ""),
                 "max_marks": float(st.get("max", 0.0) or 0.0),
                 "marks_awarded": float(st.get("awarded", 0.0) or 0.0),
-                "demand_status": st.get("demand_status") or ("Demand Fulfilled" if float(st.get("awarded", 0.0) or 0.0) >= float(st.get("max", 0.0) or 0.0) * 0.5 else "Partially Fulfilled"),
+                "demand_status": get_canonical_demand_status(st.get("awarded"), st.get("max"), is_hindi=is_hindi),
                 "analysis": st.get("sub_heading", ""),
                 "scoring_rationale": st.get("quoted_written", "")
             }
@@ -6891,9 +7025,18 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             if "concl" in lbl or "synthesis" in lbl or "concl" in sh or "synthesis" in sh:
                 st["awarded"] = assigned_conc
                 st["max"] = c_max
+                st["demand_status"] = get_canonical_demand_status(assigned_conc, c_max, is_hindi=is_hindi)
                 st["quoted_written"] = c_audit.get("current_critique") or st.get("quoted_written")
                 st["step_up_lever"] = domain_conc
         data["sub_part_step_marking"] = sub_steps
+        if isinstance(data.get("subpart_marks_breakdown"), list):
+            for sb in data["subpart_marks_breakdown"]:
+                pn = str(sb.get("part_name") or "").lower()
+                an = str(sb.get("analysis") or "").lower()
+                if "concl" in pn or "synthesis" in pn or "concl" in an or "synthesis" in an:
+                    sb["marks_awarded"] = assigned_conc
+                    sb["max_marks"] = c_max
+                    sb["demand_status"] = get_canonical_demand_status(assigned_conc, c_max, is_hindi=is_hindi)
 
 
     if data.get("executive_summary"):
@@ -7725,7 +7868,7 @@ def get_active_gemini_keys(user_api_key: Optional[str] = None) -> List[str]:
 
     keys_to_try: List[str] = []
     # If the user supplied their personal key, put it first for instant throughput
-    if user_api_key and user_api_key.strip():
+    if isinstance(user_api_key, str) and user_api_key.strip():
         for k_part in re.split(r"[,;\s\n]+", user_api_key):
             clean_u = k_part.strip()
             if clean_u and len(clean_u) > 15 and clean_u not in keys_to_try:

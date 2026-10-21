@@ -5507,8 +5507,11 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
       }
       note = String(aiBodySteps[i].quoted_written || "");
     }
-    // Prefer authentic handwritten tag from visual annotations if step label is generic or placeholder
-    if ((!title || title.length < 4 || /^(?:मुख्य भाग\s*[-—]\s*आयाम\s*[a-z0-9]?|part\s*[a-z0-9]|question dimension)/i.test(title)) && bodyAnns[i] && bodyAnns[i].tag) {
+    // Prefer authentic handwritten tag from visual annotations only if step label is missing AND annotation is not a page margin sticker
+    if ((!title || title.length < 4 || /^(?:मुख्य भाग\s*[-—]\s*आयाम\s*[a-z0-9]?|part\s*[a-z0-9]|question dimension)/i.test(title))) {
+      if (aiBodySteps[i] && aiBodySteps[i].sub_heading && aiBodySteps[i].sub_heading.length >= 8 && !window.isMetaPlaceholderText(aiBodySteps[i].sub_heading)) {
+        title = aiBodySteps[i].sub_heading.replace(/^(?:part\s*[a-z0-9]\s*[-—:]\s*|what the question demands:\s*)/i, "").trim();
+      } else if (bodyAnns[i] && bodyAnns[i].tag && !/schematic diagram|empirical examples|margin/i.test(bodyAnns[i].tag)) {
       let rawTag = String(bodyAnns[i].tag).replace(/^(?:body|मुख्य भाग):\s*/i, "").trim();
       rawTag = rawTag.replace(/^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*|भाग\s*[a-z0-9]\s*[-—:]\s*)+/gi, "").trim();
       rawTag = rawTag.replace(/\[(?:अभ्यर्थी का )?[^\]]+\]/g, "").trim();
@@ -5517,6 +5520,7 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
       }
       if (!note && bodyAnns[i].remark && !window.isMetaPlaceholderText(bodyAnns[i].remark)) {
         note = String(bodyAnns[i].remark).trim();
+      }
       }
     } else if (!title && bodyAnns[i] && bodyAnns[i].tag) {
       let rawTag = String(bodyAnns[i].tag).replace(/^(?:body|मुख्य भाग):\s*/i, "").trim();
@@ -5682,8 +5686,8 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
 
     const pctVal = maxArr[i] > 0 ? (scoreArr[i] / maxArr[i]) : 0.5;
     const statusTag = isHindi
-      ? (pctVal >= 0.55 ? "✓ मांग पूर्ण (Demand Met)" : "⚠️ आंशिक पूर्ण (Partially Met)")
-      : (pctVal >= 0.55 ? "✓ Demand Fulfilled" : "⚠️ Partially Fulfilled");
+      ? (scoreArr[i] <= 0.05 ? "✗ मांग अधूरी (Demand Missed)" : pctVal >= 0.65 ? "✓ मांग पूर्ण (Demand Met)" : "⚠️ आंशिक पूर्ण (Partially Met)")
+      : (scoreArr[i] <= 0.05 ? "✗ Demand Missed" : pctVal >= 0.65 ? "✓ Demand Fulfilled" : "⚠️ Partially Fulfilled");
     const assignedPage = numBodyParts === 1 ? 1 : (numBodyParts === 2 ? (i === 0 ? 1 : 2) : (i + 1));
 
     bodyParts.push({
@@ -5734,8 +5738,16 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
       max: concMax,
       marksStr: `+${concScore.toFixed(1)} / ${concMax.toFixed(1)}`,
       statement: isIncomplete
-        ? (isHindi ? "प्रश्न की मुख्य मांग: 60 सेकंड में 2-पंक्ति का अग्रगामी निष्कर्ष संस्थागत या नीतिगत सुधारों से जोड़कर लिखना अनिवार्य है।" : "What the Question Demands: Reserve 60 seconds to write a crisp closing synthesis linking to key statutory reforms.")
-        : (isHindi ? "प्रश्न की मुख्य मांग: उत्तर के केंद्रीय तर्क को संवैधानिक आदर्श, नीतिगत सुधार या समिति अनुशंसा से जोड़ते हुए 2-पंक्ति का संश्लेषित समाधान प्रस्तुत करना।" : "What the Question Demands: A crisp 2-line synthesis tying the core argument to a constitutional principle, statutory reform, or committee benchmark."),
+        ? (isHindi ? "प्रश्न की मुख्य मांग: 60 सेकंड में 2-पंक्ति का अग्रगामी निष्कर्ष विषय के केंद्रीय महत्व से जोड़कर लिखना अनिवार्य है।" : "What the Question Demands: Reserve 60 seconds to write a crisp closing synthesis linking to core themes.")
+        : (isHindi
+          ? (/\b(?:volcan|caldera|geomorph|earthquake|plate|rock|glacier|climate|ocean|river)\b/i.test(qL) ? "प्रश्न की मुख्य मांग: भू-आकृतिक प्रक्रियाओं, पारिस्थितिकीय महत्व तथा क्षेत्रीय सौंदर्य के समेकन के साथ 2-पंक्ति का संश्लेषित समापन।"
+            : /\b(?:ahom|chola|maurya|gupta|mughal|temple|architecture|art|culture|heritage|freedom)\b/i.test(qL) ? "प्रश्न की मुख्य मांग: ऐतिहासिक निरंतरता, सांस्कृतिक प्रासंगिकता तथा सभ्यतागत प्रभाव को जोड़ते हुए 2-पंक्ति का संश्लेषित समापन।"
+            : /\b(?:ethics|moral|probity|integrity|attitude|virtue|utilitarian|dilemma)\b/i.test(qL) ? "प्रश्न की मुख्य मांग: नैतिक सिद्धांतों, प्रशासनिक शुचिता तथा लोक सेवा मूल्यों को जोड़ते हुए 2-पंक्ति का संश्लेषित समाधान।"
+            : "प्रश्न की मुख्य मांग: उत्तर के केंद्रीय तर्क को नीतिगत सुधार, व्यावहारिक समाधान या प्रासंगिक मानक से जोड़ते हुए 2-पंक्ति का संश्लेषित समाधान।")
+          : (/\b(?:volcan|caldera|geomorph|earthquake|plate|rock|glacier|climate|ocean|river)\b/i.test(qL) ? "What the Question Demands: A crisp 2-line synthesis tying geomorphic processes to ecological and scenic landscape significance."
+            : /\b(?:ahom|chola|maurya|gupta|mughal|temple|architecture|art|culture|heritage|freedom)\b/i.test(qL) ? "What the Question Demands: A crisp 2-line synthesis contextualizing historical legacy and civilizational continuity."
+            : /\b(?:ethics|moral|probity|integrity|attitude|virtue|utilitarian|dilemma)\b/i.test(qL) ? "What the Question Demands: A crisp 2-line ethical synthesis anchoring administrative probity and constitutional morality."
+            : "What the Question Demands: A crisp 2-line forward-looking synthesis tying the core argument to actionable solutions or policy benchmarks.")),
       page: totalPages
     }
   };
@@ -11158,7 +11170,7 @@ window.classifyQuestionDiscipline = function(questionText, paper) {
   const isPhilosophyEthics = (p.includes("GS4") || /\b(?:socrates|plato|aristotle|kant|categorical imperative|rawls|utilitarian|deontolog|virtue ethics|moral philosophy|ethical dilemma|conscience|probity|emotional intelligence|attitude|aptitude|quotations?|moral thinker|nolan|integrity|compassion|code of ethics|code of conduct|civil service values?)\b/i.test(q));
   if (isPhilosophyEthics) return "PHILOSOPHY_ETHICS";
 
-  const isPhysicalGeo = /\b(?:volcano|geomorph|earthquake|plate tectonic|tsunami|glacier|karst|monsoon|ocean current|salinity|air mass|frontogenesis|jet stream|coral reef|continental drift|seafloor spreading|temperature|insolation|heat budget|atmosphere|isotherm|pressure belt|planetary winds?|land-sea|continentality|lapse rate|coriolis|albedo|drainage|river system|topography|rainfall|precipitation|inversion of temp)\b/i.test(q);
+  const isPhysicalGeo = (p.includes("GS1") && /\b(?:volcan|caldera|geomorph|earthquake|plate|rock|mountain|lake|river)\b/i.test(q)) || /\b(?:volcan\w*|caldera\w*|geomorph\w*|earthquake\w*|plate\s+tectonic\w*|tsunami\w*|glacier\w*|karst\w*|monsoon\w*|ocean\s+current\w*|salinity|air\s+mass\w*|frontogenesis|jet\s+stream\w*|coral\s+reef\w*|continental\s+drift|seafloor\s+spreading|temperature|insolation|heat\s+budget|atmosphere|isotherm\w*|pressure\s+belt\w*|planetary\s+winds?|land-sea|continentality|lapse\s+rate|coriolis|albedo|drainage|river\s+system\w*|topography|rainfall|precipitation|inversion\s+of\s+temp\w*|scenic\s+beauty|landform\w*|magma\w*|lava\w*)\b/i.test(q);
   if (isPhysicalGeo) return "PHYSICAL_GEOGRAPHY";
 
   return "POLICY_GOVERNANCE_ECONOMY";
@@ -11195,10 +11207,14 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
       ? String(body.critical_gaps[0]).replace(/^[✎✗×•\s\-]+/, "").split(":")[0].replace(/\*\*/g, "")
       : (isHindi ? "गहन वैचारिक एवं आधिकारिक संदर्भ" : "deeper domain-specific conceptual and empirical anchors");
 
+    const isPhysicalGeo = /\b(?:volcan|caldera|geomorph|earthquake|plate|rock|glacier|climate|ocean|river)\b/i.test(String(evalData.detected_question || state.question || ""));
+    const isHistoryCulture = /\b(?:ahom|chola|maurya|gupta|mughal|temple|architecture|art|culture|heritage|freedom)\b/i.test(String(evalData.detected_question || state.question || ""));
+    const isPhilosophyEthics = /\b(?:ethics|moral|probity|integrity|attitude|virtue|utilitarian|dilemma)\b/i.test(String(evalData.detected_question || state.question || ""));
+    const benchStr = isPhysicalGeo ? "geomorphic mechanisms and spatial case studies" : isHistoryCulture ? "primary historical sources and chronological evidence" : isPhilosophyEthics ? "applied administrative ethics and value frameworks" : "official benchmarks and empirical evidence";
     if (isHindi) {
-      body.overall_assessment = `मुख्य भाग (Body) में आपने **${topStr}** प्रस्तुत कर **${bScore.toFixed(1)} / ${bMax.toFixed(1)} अंक** प्राप्त किए हैं। अगले **+1.5 से +2.5 अंक** के स्तर तक पहुँचने के लिए **${topGap}** पर विशेष ध्यान दें और आधिकारिक संदर्भों से पुष्ट करें।`;
+      body.overall_assessment = `मुख्य भाग (Body) में आपने **${topStr}** प्रस्तुत कर **${bScore.toFixed(1)} / ${bMax.toFixed(1)} अंक** प्राप्त किए हैं। आगे सुधार के लिए **${topGap}** पर विशेष ध्यान दें और प्रासंगिक उदाहरणों से पुष्ट करें।`;
     } else {
-      body.overall_assessment = `Your Body section scored **${bScore.toFixed(1)} / ${bMax.toFixed(1)}M** by demonstrating **${topStr}** with relevant diagrams and factual examples. To unlock the next **+1.5 to +2.5M** score band, focus on **${topGap}** and substantiate with official statutory benchmarks.`;
+      body.overall_assessment = `Your Body section scored **${bScore.toFixed(1)} / ${bMax.toFixed(1)}M** by demonstrating **${topStr}** with relevant points. To elevate your score, focus on **${topGap}** and substantiate with ${benchStr}.`;
     }
   }
 
@@ -13988,8 +14004,8 @@ function renderBatch1ExaminerMastery(evalData) {
 
   const buildPureMarksAllocationNote = (rawCritique, score, max, isIntroSection) => {
     const statusPrefix = isHindi
-      ? (score >= max - 0.1 ? "**✓ मांग पूर्ण (Demand Met)**" : score >= max * 0.5 ? "**⚠️ आंशिक पूर्ण (Partially Met)**" : "**✗ मांग अधूरी (Demand Missed)**")
-      : (score >= max - 0.1 ? "**✓ Demand Fulfilled**" : score >= max * 0.5 ? "**⚠️ Partially Fulfilled**" : "**✗ Demand Missed**");
+      ? (score >= max * 0.65 ? "**✓ मांग पूर्ण (Demand Met)**" : score > 0.05 ? "**⚠️ आंशिक पूर्ण (Partially Met)**" : "**✗ मांग अधूरी (Demand Missed)**")
+      : (score >= max * 0.65 ? "**✓ Demand Fulfilled**" : score > 0.05 ? "**⚠️ Partially Fulfilled**" : "**✗ Demand Missed**");
     const deducted = Math.max(0, max - score).toFixed(1);
 
     if (isEarthquakeStepCopy) {
@@ -14028,18 +14044,18 @@ function renderBatch1ExaminerMastery(evalData) {
 
     if (firstSentence && firstSentence.length > 12) {
       const deductionTail = parseFloat(deducted) > 0.05
-        ? (isHindi ? ` (वैधानिक/अवधारणात्मक संदर्भ हेतु **${deducted} अंक** रोके गए — *विस्तृत मूल्यांकन* टैब देखें)।` : ` (**${deducted}M** held back for missing statutory/conceptual anchor — see *Deep Evaluation* tab).`)
+        ? (isHindi ? ` (अतिरिक्त गहराई व तकनीकी विस्तार हेतु **${deducted} अंक** रोके गए — *विस्तृत मूल्यांकन* टैब देखें)।` : ` (**${deducted}M** held back for technical depth / analytical precision — see *Deep Evaluation* tab).`)
         : "";
       return `${statusPrefix} (**+${score.toFixed(1)}M**): ${firstSentence.replace(/\.$/, "")}.${deductionTail}`;
     }
     if (isHindi) {
       return isIntroSection
-        ? `${statusPrefix} (**+${score.toFixed(1)}M**): आरंभिक अवधारणात्मक परिभाषा पर **+${score.toFixed(1)} अंक** मिले; आधारभूत डेटा/वैधानिक संदर्भ के अभाव में **${deducted} अंक** रोके गए।`
-        : `${statusPrefix} (**+${score.toFixed(1)}M**): अंतिम संश्लेषित निष्कर्ष पर **+${score.toFixed(1)} अंक** मिले; नीतिगत ढांचे/समिति अनुशंसा के अभाव में **${deducted} अंक** रोके गए।`;
+        ? `${statusPrefix} (**+${score.toFixed(1)}M**): आरंभिक अवधारणात्मक परिभाषा पर **+${score.toFixed(1)} अंक** मिले; पूर्ण तकनीकी विस्तार के अभाव में **${deducted} अंक** रोके गए।`
+        : `${statusPrefix} (**+${score.toFixed(1)}M**): अंतिम संश्लेषित निष्कर्ष पर **+${score.toFixed(1)} अंक** मिले; समग्र अग्रगामी परिप्रेक्ष्य के अभाव में **${deducted} अंक** रोके गए।`;
     }
     return isIntroSection
-      ? `${statusPrefix} (**+${score.toFixed(1)}M**): Awarded **+${score.toFixed(1)}M** on opening conceptual definition; **${deducted}M** held back for baseline data/mechanism anchor.`
-      : `${statusPrefix} (**+${score.toFixed(1)}M**): Awarded **+${score.toFixed(1)}M** on closing synthesis; **${deducted}M** held back for statutory/framework anchor.`;
+      ? `${statusPrefix} (**+${score.toFixed(1)}M**): Awarded **+${score.toFixed(1)}M** on opening conceptual definition; **${deducted}M** held back for complete technical depth.`
+      : `${statusPrefix} (**+${score.toFixed(1)}M**): Awarded **+${score.toFixed(1)}M** on closing synthesis; **${deducted}M** held back for comprehensive forward linkage.`;
   };
 
   const concNumber = bodySubParts.length + 2;
@@ -14074,9 +14090,9 @@ function renderBatch1ExaminerMastery(evalData) {
   stepListEl.innerHTML = stepItems.map(item => {
     const pct = item.max > 0 ? Math.min(100, Math.round((item.score / item.max) * 100)) : 0;
     const barColor = pct >= 60 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-rose-500";
-    const demandBadgeHtml = pct >= 60
+    const demandBadgeHtml = pct >= 65
       ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shrink-0">${isHindi ? "✓ मांग पूर्ण (Demand Met)" : "✓ Demand Fulfilled"}</span>`
-      : pct >= 35
+      : item.score > 0.05
         ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shrink-0">${isHindi ? "⚠️ आंशिक पूर्ण (Partially Met)" : "⚠️ Partially Fulfilled"}</span>`
         : `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 shrink-0">${isHindi ? "✗ मांग अधूरी (Demand Missed)" : "✗ Demand Missed"}</span>`;
     const statementHtml = item.statement

@@ -198,7 +198,8 @@ async def _self_keep_alive_loop():
 
 @app.on_event("startup")
 async def _startup_keep_alive():
-    asyncio.create_task(_self_keep_alive_loop())
+    if not os.environ.get("TESTING"):
+        asyncio.create_task(_self_keep_alive_loop())
 
 @app.get("/health")
 @app.head("/health")
@@ -656,6 +657,7 @@ async def api_upsc_blank_sheet(
     # Clean question text: strip any pre-existing trailing marks/words notation so it is not duplicated
     import re
     clean_question = re.sub(r'\s*\(\s*\d+\s*Marks[^\)]*\)\s*$', '', question.strip(), flags=re.IGNORECASE)
+    clean_question = re.sub(r'^[?\s\(\)\/\d\:\-\.]*(?=(?:[A-Z]|Q\d))', '', clean_question).strip()
 
     pages_html = ""
     for p in range(1, pages_count + 1):
