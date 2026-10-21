@@ -424,5 +424,163 @@ class TestEvaluationUpgrade(unittest.TestCase):
         self.assertEqual(get_canonical_score_band(73.0, 125), "Topper (58%+)")
 
 
+
+    def test_evidence_ledger_5_tuple_structure_and_depth(self):
+        """
+        Verifies Screenshot 3: Unified Evidence Ledger with 5-tuple record
+        <candidate_evidence, what_the_evidence_demonstrates, what_remains_weak_or_missing, actionable_improvement, scoring_consequence>
+        and proportional vocabulary calibration.
+        """
+        q_text = "How are volcanic calderas formed? Briefly describe their contribution towards scenic beauty. (15 Marks, 250 Words)"
+        raw_eval = {
+            "overall_score": 4.5,
+            "max_marks": 15,
+            "detected_question": q_text,
+            "detected_paper": "GS1",
+            "medium": "english",
+            "evidence_ledger": [
+                {
+                    "demand_title": "1. Introduction (Context & Baseline Hook)",
+                    "candidate_evidence": "Defined volcanic calderas as large circular depressions.",
+                    "what_the_evidence_demonstrates": "Candidate proves conceptual grasp of caldera as structural depression.",
+                    "what_remains_weak_or_missing": "Did not specify scale differentiation from normal craters.",
+                    "actionable_improvement": "Specify diameter (>1km) and collapse origin.",
+                    "layer_a_marks_awarded": 1.5,
+                    "layer_a_max_marks": 2.0
+                },
+                {
+                    "demand_title": "2. Part A — Formation Process",
+                    "candidate_evidence": "Covered chamber emptying and roof subsidence.",
+                    "what_the_evidence_demonstrates": "Identified magma evacuation and ground subsidence.",
+                    "what_remains_weak_or_missing": "Missed ring-fracture collapse mechanics and explosive vs non-explosive types.",
+                    "actionable_improvement": "Sequence: rapid magma withdrawal -> loss of roof support -> ring-fault subsidence.",
+                    "layer_a_marks_awarded": 1.0,
+                    "layer_a_max_marks": 5.5
+                },
+                {
+                    "demand_title": "3. Part B — Scenic Beauty",
+                    "candidate_evidence": "Described crater lakes and mountain views (Ojos caldera lake, Iceland).",
+                    "what_the_evidence_demonstrates": "Provided authentic spatial examples of volcanic lakes.",
+                    "what_remains_weak_or_missing": "Omitted hydrothermal hot springs and caldera geomorphology.",
+                    "actionable_improvement": "Incorporate oligotrophic lake clarity, geothermal tourism, and caldera parks.",
+                    "layer_a_marks_awarded": 1.0,
+                    "layer_a_max_marks": 5.5
+                },
+                {
+                    "demand_title": "4. Conclusion (Closing Synthesis)",
+                    "candidate_evidence": "Synthesized violent origin with tranquil landscapes left behind.",
+                    "what_the_evidence_demonstrates": "Balanced concluding observation connecting destruction and ecological tranquility.",
+                    "what_remains_weak_or_missing": "Lacked forward-looking geo-conservation perspective.",
+                    "actionable_improvement": "Highlight UNESCO Global Geoparks framework.",
+                    "layer_a_marks_awarded": 1.0,
+                    "layer_a_max_marks": 2.0
+                }
+            ]
+        }
+
+        normalized = normalize_evaluation_data(raw_eval, max_marks=15, question=q_text, paper="GS1")
+
+        # 1. Evidence Ledger presence & length
+        ledger = normalized.get("evidence_ledger")
+        self.assertIsInstance(ledger, list)
+        self.assertEqual(len(ledger), 4)
+
+        # 2. 5-tuple fields validation
+        for entry in ledger:
+            self.assertIn("demand_title", entry)
+            self.assertIn("candidate_evidence", entry)
+            self.assertIn("what_the_evidence_demonstrates", entry)
+            self.assertIn("what_remains_weak_or_missing", entry)
+            self.assertIn("actionable_improvement", entry)
+            self.assertIn("layer_a_marks_awarded", entry)
+            self.assertIn("layer_a_max_marks", entry)
+            self.assertIn("demand_status", entry)
+            self.assertIn("evidence_depth", entry)
+
+        # 3. Arithmetic reconciliation
+        sum_awarded = sum(float(e["layer_a_marks_awarded"]) for e in ledger)
+        sum_max = sum(float(e["layer_a_max_marks"]) for e in ledger)
+        self.assertEqual(sum_awarded, 4.5, "Evidence ledger marks must sum to overall score")
+        self.assertEqual(sum_max, 15.0, "Evidence ledger maxima must sum to 15.0")
+
+        # 4. Proportional Vocabulary Calibration
+        self.assertEqual(ledger[0]["evidence_depth"], "correctly explained") # 1.5/2.0 = 75%
+        self.assertEqual(ledger[1]["evidence_depth"], "partly explained")    # 1.0/5.5 = 18% (> 0.05M)
+        self.assertEqual(ledger[2]["evidence_depth"], "partly explained")    # 1.0/5.5 = 18% (> 0.05M)
+        self.assertEqual(ledger[3]["evidence_depth"], "partly explained")    # 1.0/2.0 = 50% (< 65%)
+
+    def test_20m_case_study_and_optional_evaluation_math(self):
+        """
+        Verifies 20-mark questions (GS4 Section B case studies and optional papers):
+        - Max marks sum strictly to 20.0M
+        - Evaluates multi-part demands
+        - Reconciles evidence ledger and score band
+        """
+        case_study_q = (
+            "You are the District Magistrate of an aspirational district. A major chemical plant accident occurs. "
+            "Examine: (a) Immediate emergency actions, (b) Administrative inquiries, (c) Long-term industrial safety reforms. (20 Marks, 250 Words)"
+        )
+        raw_20m = {
+            "overall_score": 9.5,
+            "max_marks": 20,
+            "detected_question": case_study_q,
+            "detected_paper": "GS4",
+            "sub_part_step_marking": [
+                {"step_label": "1. Intro: Crisis Context & Ethical Stakes", "awarded": 1.5, "max": 2.5, "quoted_written": "Prioritized human life over industrial property."},
+                {"step_label": "2. Sub-Part (a): Immediate Emergency Actions", "awarded": 3.0, "max": 5.5, "quoted_written": "Deployed NDRF and evacuated 5km perimeter."},
+                {"step_label": "3. Sub-Part (b): Administrative Inquiry & SOP", "awarded": 2.5, "max": 5.0, "quoted_written": "Constituted multi-departmental magistrate inquiry."},
+                {"step_label": "4. Sub-Part (c): Long-Term Safety Reforms", "awarded": 1.5, "max": 4.5, "quoted_written": "Mandated digital sensor integration and hazardous chemical audits."},
+                {"step_label": "5. Conclusion: Constitutional Morality", "awarded": 1.0, "max": 2.5, "quoted_written": "Balanced industrial growth with right to clean life under Art 21."}
+            ]
+        }
+
+        normalized = normalize_evaluation_data(raw_20m, max_marks=20, question=case_study_q, paper="GS4")
+        ledger = normalized.get("evidence_ledger")
+        self.assertIsInstance(ledger, list)
+
+        # 20M Denominator Law
+        sum_max = sum(float(e["layer_a_max_marks"]) for e in ledger)
+        sum_awarded = sum(float(e["layer_a_marks_awarded"]) for e in ledger)
+        self.assertEqual(sum_max, 20.0, "20-marker maxima must sum to 20.0M")
+        self.assertEqual(sum_awarded, 9.5, "20-marker awarded marks must sum to overall score 9.5M")
+
+        # 20M Score Band: 9.5 / 20 is in Competitive (8.5 - 11.0)
+        self.assertEqual(normalized.get("score_band"), "Competitive (43-54%)")
+
+    def test_hindi_evidence_ledger_devanagari_fidelity(self):
+        """
+        Verifies that Hindi medium evaluation copies produce authentic Devanagari evidence ledger
+        with calibrated depth vocabulary and Devanagari statuses.
+        """
+        hindi_q = "ज्वालामुखी काल्डेरा का निर्माण कैसे होता है? क्षेत्रीय सौंदर्य में इसके योगदान का वर्णन कीजिए। (15 अंक, 250 शब्द)"
+        raw_hi = {
+            "overall_score": 6.5,
+            "max_marks": 15,
+            "detected_question": hindi_q,
+            "detected_paper": "GS1",
+            "medium": "hindi",
+            "is_hindi": True,
+            "sub_part_step_marking": [
+                {"step_label": "1. प्रस्तावना एवं संदर्भ", "awarded": 1.5, "max": 2.0, "quoted_written": "काल्डेरा को विशाल अवसाद के रूप में परिभाषित किया।"},
+                {"step_label": "2. मुख्य भाग — आयाम A", "awarded": 2.5, "max": 5.5, "quoted_written": "मैग्मा कक्ष के रिक्त होने व छत के धंसने का उल्लेख।"},
+                {"step_label": "3. मुख्य भाग — आयाम B", "awarded": 1.5, "max": 5.5, "quoted_written": "क्रेटर झीलों व प्राकृतिक पर्यटन का उल्लेख।"},
+                {"step_label": "4. निष्कर्ष एवं आगे की राह", "awarded": 1.0, "max": 2.0, "quoted_written": "संतुलित व अग्रगामी समापन।"}
+            ]
+        }
+
+        normalized = normalize_evaluation_data(raw_hi, max_marks=15, question=hindi_q, paper="GS1")
+        ledger = normalized.get("evidence_ledger")
+        self.assertIsInstance(ledger, list)
+        self.assertEqual(len(ledger), 4)
+
+        # Verify Devanagari depth labels
+        self.assertIn("सही व्याख्या", ledger[0]["evidence_depth"]) # 1.5 / 2.0 = 75%
+        self.assertIn("आंशिक व्याख्या", ledger[1]["evidence_depth"]) # 2.5 / 5.5 = 45%
+
+        # Verify Devanagari status tags
+        self.assertIn("मांग पूर्ण", ledger[0]["demand_status"])
+        self.assertIn("आंशिक पूर्ण", ledger[1]["demand_status"])
+
+
 if __name__ == "__main__":
     unittest.main()

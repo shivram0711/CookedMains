@@ -1145,15 +1145,23 @@ def build_hindi_evaluation_prompt(
     # Denominators strictly based on max_marks
     if max_marks == 10:
         intro_d, body_d, conc_d = 1.5, 7.0, 1.5
+        sample_score = 4.0
+        sample_intro_aw, sample_body_aw, sample_conc_aw = 1.0, 2.5, 0.5
         rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 1.5, 4.5, 1.5, 1.0, 1.5
     elif max_marks == 15:
         intro_d, body_d, conc_d = 2.0, 11.0, 2.0
+        sample_score = 6.5
+        sample_intro_aw, sample_body_aw, sample_conc_aw = 1.5, 4.0, 1.0
         rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 2.0, 7.0, 2.5, 1.5, 2.0
     elif max_marks == 20:
         intro_d, body_d, conc_d = 2.5, 15.0, 2.5
+        sample_score = 8.5
+        sample_intro_aw, sample_body_aw, sample_conc_aw = 1.5, 5.5, 1.5
         rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 2.5, 9.5, 3.5, 2.0, 2.5
     else:  # Essay 125M
         intro_d, body_d, conc_d = 20.0, 85.0, 20.0
+        sample_score = 55.0
+        sample_intro_aw, sample_body_aw, sample_conc_aw = 10.0, 38.0, 7.0
         rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 20.0, 50.0, 20.0, 15.0, 20.0
 
     ca_block = f"CURRENT AFFAIRS CONTEXT (समसामयिक संदर्भ):\n{current_affairs_context}\n" if current_affairs_context else ""
@@ -1183,6 +1191,38 @@ IDEAL BALANCE: {directive_info.get('ideal_balance', 'प्रस्तावन
 {ca_block}
 
 NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के विश्लेषण पर आधारित स्वर्णिम नियम):
+
+सटीक मूल्यांकन की 7-चरणीय कार्यप्रणाली (THE 7-STAGE PRECISE EVALUATION MECHANISM):
+परीक्षक के रूप में आपका मूल्यांकन 7 स्पष्ट चरणों में संचालित होगा:
+- चरण 1 — प्रश्न को समझना (Understand Question): निर्देश शब्द, विषय, अंक, शब्द सीमा, प्रत्यक्ष उप-मांगें एवं अंतर्निहित क्षेत्र।
+- चरण 2 — वास्तविक उत्तर का अध्ययन (Read Actual Answer): हस्तलेख, आरेख, उदाहरण, शीर्षक व पृष्ठ-वार साक्ष्य।
+- चरण 3 — प्रश्न-विशिष्ट रूब्रिक का निर्माण (Build Specific Rubric): अनिवार्य अवधारणाएं, तर्कसंगत दृष्टिकोण, अपेक्षित विश्लेषण।
+- चरण 4 — साक्ष्य का मांग से मिलान (Match Evidence to Demands): अभ्यर्थी ने वास्तव में क्या लिखा, क्या सिद्ध किया और क्या छूटा।
+- चरण 5 — घटक-वार अंक आवंटन (Award Criterion Marks): आंशिक अंक, अवधारणात्मक सटीकता व विषयगत प्रासंगिकता।
+- चरण 6 — स्वतंत्र गुणवत्ता परीक्षण (Run Independent Quality Checks): अंतर्विरोधों, अकारण प्रशंसा, दोहरे अंकन व गणना की जांच।
+- चरण 7 — व्यावहारिक प्रतिपुष्टि एवं मॉडल उत्तर (Generate Actionable Feedback): अंक, साक्ष्य, सुधार प्राथमिकताएं व प्रासंगिक मॉडल उत्तर।
+
+अंकन (LAYER A) बनाम परामर्श (LAYER B) का स्पष्ट पृथक्करण:
+- स्तर A — परीक्षक अंकन (Layer A — Examiner Mark):
+  * प्रश्न की वास्तविक मांगों का निर्धारण करें।
+  * केवल अभ्यर्थी द्वारा लिखे गए वास्तविक उत्तर का परीक्षण करें।
+  * तथ्यात्मक त्रुटियों, कमियों और वास्तविक शक्तियों की पहचान करें।
+  * अभ्यर्थी ने जो लिखा है केवल उसी पर अंक दें। जो नहीं लिखा उस पर कभी अंक न दें।
+  * अंक केवल प्रश्न की अनिवार्य मांगें छूटने पर ही काटें।
+- स्तर B — शिक्षक परामर्श (Layer B — Mentor Coach):
+  * सबसे महत्वपूर्ण कमी को सुधारने का व्यावहारिक उपाय बताएं।
+  * प्रश्न के दायरे में रहते हुए प्रासंगिक उदाहरण सुझाएं।
+  * आरेख की संस्तुति केवल तभी करें जब वह उस विशिष्ट प्रश्न के उत्तर को संवर्धित करे।
+  * शब्द सीमा के अनुरूप एक व्यावहारिक मॉडल उत्तर या अंश प्रस्तुत करें।
+  * कड़ा नियम: स्तर B में शिक्षक द्वारा सुझाए गए वैकल्पिक मूल्य-संवर्धन (जैसे कोई अतिरिक्त आरेख या रिपोर्ट) के अभाव में स्तर A में अभ्यर्थी के अंक कभी न काटें!
+
+आनुपातिक भाषा एवं अकारण प्रशंसा निषेध (PROPORTIONAL EVIDENCE VOCABULARY):
+- अभ्यर्थी के वास्तविक साक्ष्य के अनुपात में ही मूल्यांकन शब्दावली का प्रयोग करें:
+  * 'सुदृढ़ प्रमाण सहित' (Well-Substantiated - 80-100% अंक): पूर्ण कार्य-कारण तंत्र व ठोस साक्ष्य।
+  * 'सही व्याख्या' (Correctly Explained - 65-79% अंक): सही अवधारणा व विश्लेषण।
+  * 'आंशिक व्याख्या' (Partly Explained - 31-64% अंक): अवधारणा की समझ किंतु तंत्र या आयाम अपूर्ण।
+  * 'केवल उल्लेख' (Mentioned - 10-30% अंक): सतही उल्लेख, कारण-कार्य संबंध अनुपस्थित।
+  * 'अनुपस्थित' (Omitted - <= 0.05 अंक): प्रश्न की मांग का पूर्ण अभाव।
 
 1. गतिशील प्रश्न व्याख्या एवं मूल्यांकन योजना (DYNAMIC QUESTION UNDERSTANDING & EVALUATION PLAN):
    - उत्तर-पुस्तिका का मूल्यांकन करने से पूर्व, प्रश्न की वास्तविक मांग का गहन विश्लेषण करें:
@@ -1396,6 +1436,54 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
     "pyq_trend_frequency": "विगत वर्षों में इस विषय की पुनरावृत्ति प्रवृत्ति",
     "directive_action_rule": "इस निर्देश शब्द हेतु परीक्षा हॉल नियम"
   }},
+  // एकीकृत साक्ष्य खाता (THE UNIFIED EVIDENCE LEDGER - 5-TUPLE RECORD):
+  // मूल्यांकन के सभी अंक, बिंदुवार समीक्षा और विस्तृत फीडबैक इसी एकीकृत साक्ष्य खाते से संचालित होंगे:
+  "evidence_ledger": [
+    {{
+      "demand_title": "1. प्रस्तावना एवं संदर्भ (Intro & Context)",
+      "candidate_evidence": "उत्तर-पुस्तिका से प्रारंभिक पंक्तियों अथवा आरेख का वास्तविक उद्धरण",
+      "what_the_evidence_demonstrates": "अभ्यर्थी ने प्रारंभिक अवधारणा और विषय-संदर्भ को पहचाना है",
+      "what_remains_weak_or_missing": "गहन तकनीकी परिभाषा अथवा आधिकारिक मानक संदर्भ का अभाव",
+      "actionable_improvement": "प्रथम पंक्ति में आधिकारिक परिभाषा, मानक सूचकांक या संवैधानिक संदर्भ जोड़ें",
+      "evidence_depth": "आंशिक व्याख्या", // 'केवल उल्लेख' | 'आंशिक व्याख्या' | 'सही व्याख्या' | 'सुदृढ़ प्रमाण सहित' | 'अनुपस्थित'
+      "layer_a_marks_awarded": 1.0,
+      "layer_a_max_marks": {intro_d},
+      "demand_status": "⚠️ आंशिक पूर्ण (Partially Met)"
+    }},
+    {{
+      "demand_title": "2. मुख्य भाग — आयाम A (प्राथमिक विश्लेषणात्मक मांग)",
+      "candidate_evidence": "अभ्यर्थी द्वारा आयाम A हेतु लिखे गए वास्तविक बिंदुओं का उद्धरण",
+      "what_the_evidence_demonstrates": "प्राथमिक कारकों और व्यवस्था का तार्किक निरूपण किया",
+      "what_remains_weak_or_missing": "अंतर्निहित कार्य-कारण तंत्र (Mechanism) अथवा प्रक्रियात्मक गहराई अपूर्ण",
+      "actionable_improvement": "क्रमबद्ध स्पष्टीकरण: कारण ➔ संचरण माध्यम ➔ प्रत्यक्ष प्रभाव",
+      "evidence_depth": "सही व्याख्या",
+      "layer_a_marks_awarded": {round(body_d * 0.25, 1)},
+      "layer_a_max_marks": {round(body_d * 0.5, 1)},
+      "demand_status": "✓ मांग पूर्ण (Demand Met)"
+    }},
+    {{
+      "demand_title": "3. मुख्य भाग — आयाम B (द्वितीयक मांग व प्रभाव)",
+      "candidate_evidence": "अभ्यर्थी द्वारा द्वितीयक उप-भाग हेतु लिखे गए बिंदुओं का उद्धरण",
+      "what_the_evidence_demonstrates": "बहुआयामी प्रभावों व व्यावहारिक चुनौतियों की पहचान की",
+      "what_remains_weak_or_missing": "विशिष्ट आधिकारिक आंकड़ों या ठोस केस स्टडी का अभाव",
+      "actionable_improvement": "तर्क को 1 ठोस उदाहरण अथवा संस्थागत रिपोर्ट से पुष्ट करें",
+      "evidence_depth": "आंशिक व्याख्या",
+      "layer_a_marks_awarded": {round(body_d * 0.25, 1)},
+      "layer_a_max_marks": {round(body_d * 0.5, 1)},
+      "demand_status": "⚠️ आंशिक पूर्ण (Partially Met)"
+    }},
+    {{
+      "demand_title": "4. निष्कर्ष एवं आगे की राह (Conclusion)",
+      "candidate_evidence": "अभ्यर्थी की अंतिम समापन पंक्तियों का प्रामाणिक सारांश",
+      "what_the_evidence_demonstrates": "मुख्य तर्कों को संतुलित दृष्टि के साथ संश्लेषित किया",
+      "what_remains_weak_or_missing": "व्यापक संस्थागत या संवैधानिक अग्रगामी दृष्टि का अभाव",
+      "actionable_improvement": "निष्कर्ष को केंद्रीय संस्थागत व्यवस्था या संवैधानिक मूल्य से जोड़ें",
+      "evidence_depth": "आंशिक व्याख्या",
+      "layer_a_marks_awarded": 0.5,
+      "layer_a_max_marks": {conc_d},
+      "demand_status": "⚠️ आंशिक पूर्ण (Partially Met)"
+    }}
+  ],
   "sub_part_step_marking": [
     {{
       "step_label": "1. प्रस्तावना एवं संदर्भ (Intro & Context)",
@@ -1589,6 +1677,54 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "is_positive": true
     }}
   ],
+  // THE UNIFIED EVIDENCE LEDGER (FOUNDATIONAL 5-TUPLE RECORD FOR EVERY DEMAND):
+  // Drives marks, point-by-point audit, and detailed feedback from a single unified evidence source.
+  "evidence_ledger": [
+    {{
+      "demand_title": "1. Introduction / Conceptual Definition",
+      "candidate_evidence": "Verbatim quote of the opening lines / diagram written on the sheet",
+      "what_the_evidence_demonstrates": "Candidate recognizes the baseline concept and context",
+      "what_remains_weak_or_missing": "Missing rigorous technical definition or authoritative anchor",
+      "actionable_improvement": "Anchor line 1 with precise academic definition and core parameter",
+      "evidence_depth": "partly explained", // 'mentioned' | 'partly explained' | 'correctly explained' | 'well-substantiated' | 'omitted'
+      "layer_a_marks_awarded": {sample_intro_aw:.2f},
+      "layer_a_max_marks": {intro_d:.1f},
+      "demand_status": "Partially Fulfilled"
+    }},
+    {{
+      "demand_title": "2. Part A — Primary Analytical Demand",
+      "candidate_evidence": "Verbatim quote of candidate's points / diagrams written for Sub-Part 1",
+      "what_the_evidence_demonstrates": "Demonstrated sound understanding of primary drivers / mechanisms",
+      "what_remains_weak_or_missing": "Omitted underlying causal chain or structural factor",
+      "actionable_improvement": "Sequence the explanation: Cause -> Transmission Channel -> Direct Consequence",
+      "evidence_depth": "correctly explained",
+      "layer_a_marks_awarded": {round(sample_body_aw * 0.40, 2):.2f},
+      "layer_a_max_marks": {round(body_d * 0.40, 1):.1f},
+      "demand_status": "Demand Fulfilled"
+    }},
+    {{
+      "demand_title": "3. Part B — Secondary Analytical Demand",
+      "candidate_evidence": "Verbatim quote of candidate's points written for Sub-Part 2",
+      "what_the_evidence_demonstrates": "Identified key multidimensional impacts or vulnerabilities",
+      "what_remains_weak_or_missing": "Lacked specific empirical data, institutional frameworks, or case examples",
+      "actionable_improvement": "Support argument with 1 concrete case study or official metric",
+      "evidence_depth": "partly explained",
+      "layer_a_marks_awarded": {round(sample_body_aw * 0.35, 2):.2f},
+      "layer_a_max_marks": {round(body_d * 0.35, 1):.1f},
+      "demand_status": "Demand Fulfilled"
+    }},
+    {{
+      "demand_title": "4. Conclusion (Closing Synthesis)",
+      "candidate_evidence": "Verbatim quote of candidate's final closing lines",
+      "what_the_evidence_demonstrates": "Synthesized the argument into a balanced concluding observation",
+      "what_remains_weak_or_missing": "Lacked forward-looking institutional synthesis or constitutional principle",
+      "actionable_improvement": "Tie closing argument to sustainable long-term governance or constitutional value",
+      "evidence_depth": "partly explained",
+      "layer_a_marks_awarded": {sample_conc_aw:.2f},
+      "layer_a_max_marks": {conc_d:.1f},
+      "demand_status": "Partially Fulfilled"
+    }}
+  ],
   "rubric_scores": {{
     "intro_score": 1.0,
     "intro_max": {rubric_i_max},
@@ -1766,10 +1902,28 @@ ROLE DUALITY (CRITICAL):
    - For all long-form narrative explanations, reduce verbosity by 50% compared to typical academic critiques. Prioritize brevity, crispness, and punchy takeaways.
    - Give direct, memorable advice ("Solid premise!", "Watch out for this quote trap:", "Plug this exact sentence in your revision notes:").
 
+THE 7-STAGE PRECISE EVALUATION MECHANISM (INTERNAL REASONING VS. STUDENT-FACING REPORT):
+You must execute your evaluation across 7 distinct analytical stages:
+- Stage 1 — Understand the Question: Directive, subject, marks, word limit, explicit demands, and implied scope.
+- Stage 2 — Read the Actual Answer: Inspect OCR text, handwriting uncertainty, diagrams, examples, headings, and page boundaries.
+- Stage 3 — Build a Question-Specific Rubric: Essential concepts, valid approaches, expected reasoning, and optional value additions.
+- Stage 4 — Match Evidence to Demands: What the candidate actually wrote, what it demonstrates, and what remains weak or missing.
+- Stage 5 — Award Criterion-Level Marks: Partial credit, conceptual accuracy, depth, and relevance strictly anchored to evidence.
+- Stage 6 — Run Independent Quality Checks: Eliminate contradictions, unsupported praise, duplicate credit, and arithmetic discrepancies.
+- Stage 7 — Generate Actionable Feedback: Score, evidence, missing demands, precise corrections, improvement priorities, and an exam-length model answer.
+* CRUCIAL DISTINCTION: Internal evaluator reasoning must be rigorous, evidence-driven, and checked; student-facing feedback must be concise, readable, and constructive.
+
 CORE EVALUATION PRINCIPLES (DYNAMIC QUESTION UNDERSTANDING & CANONICAL SCORING RECORD):
 1. DYNAMIC QUESTION INTERPRETATION & EVALUATION PLAN (NO RIGID TEMPLATE):
    - Before evaluating candidate handwriting, formulate an internal question-specific evaluation plan:
      * Syllabus Micro-Topic: Pinpoint the official syllabus theme and core tension.
+     * Subject-Specific Demands:
+       - Physical Geography: Process, cause-and-effect sequence, diagrams, spatial and case examples. (Zero governance boilerplate).
+       - Polity: Constitutional text, legal principles, institutional mechanisms, Supreme Court rulings.
+       - Economy: Economic mechanisms, data, policy trade-offs, structural reasoning.
+       - History: Chronological sequence, causation, contextual factors, historiography.
+       - Ethics: Ethical stakes, values in tension, actors, options, justified decisions.
+       - International Relations: Strategic interests, geopolitics, agreements, state actors, competition and cooperation.
      * Directive Nuance & Command Word:
        - 'Discuss': Address core dimensions with balanced causal explanation and mechanisms.
        - 'Examine': Investigate underlying mechanisms, implications, and systemic constraints.
@@ -1782,6 +1936,30 @@ CORE EVALUATION PRINCIPLES (DYNAMIC QUESTION UNDERSTANDING & CANONICAL SCORING R
      * Explicit Sub-Demands vs Implied Requirements: Deconstruct the prompt into its actual analytical parts (e.g. Demand 1: Economic Costs; Demand 2: Social Costs; Demand 3: Mitigation / Policy).
      * Essential Core Content vs Optional Value Additions: Distinguish what is mandatory to answer the prompt from supplementary additions. Never force irrelevant constitutional articles, committee reports, or diagrams onto topics where they do not naturally belong.
      * Accept Valid Alternative Approaches: Give full credit to well-reasoned alternative arguments, regional perspectives, or frameworks even if they differ from standard coaching model answers.
+
+1.5. SEPARATE MARKING (LAYER A) FROM COACHING (LAYER B):
+   - Layer A — Examiner Marking:
+     * Identify exact question demands.
+     * Read only the submitted writing.
+     * Match writing to evidence-driven criteria.
+     * Identify factual errors, omissions, and relevant strengths.
+     * Award definite marks ONLY for content the candidate actually wrote. Deduct marks only for missing required demands.
+   - Layer B — Mentor Coaching:
+     * Explain how to improve the most consequential shortcoming.
+     * Suggest relevant examples strictly within the question's scope.
+     * Recommend a diagram ONLY if it would genuinely enhance this specific question.
+     * Give a practical model or model excerpt at the appropriate exam length.
+     * Prioritize 2 or 3 high-impact changes rather than overwhelming the student.
+     * MANDATORY LAW: Adding an optional idea or diagram suggested by the coach in Layer B must NEVER be treated as something the candidate was required to include in Layer A! Never deduct marks for omitting optional coaching suggestions.
+
+1.6. PROPORTIONAL EVIDENCE VOCABULARY (ZERO UNJUSTIFIED PRAISE):
+   - Make feedback strength strictly proportional to the evidence. Distinguish:
+     * 'well-substantiated' (80-100% of criterion max): Thorough explanation with complete causal mechanisms and valid evidence.
+     * 'correctly explained' (65-79% of criterion max): Correct concept and reasoning; minor scope for technical refinement.
+     * 'partly explained' (31-64% of criterion max): Basic concept recognized but causal mechanisms or sub-parts incomplete.
+     * 'mentioned' (10-30% of criterion max): Cursory, superficial naming without mechanism.
+     * 'omitted' (<= 0.05M): Unaddressed in the submission.
+   - Forbid gratuitous cheerleading ("strong conceptual grasp", "successfully integrated") when the text is merely a partial attempt.
 
 2. ONE CANONICAL SCORING RECORD (MATHEMATICAL SUM LAW):
    - Every score in this evaluation must derive from a single unified source of truth:
@@ -3682,12 +3860,18 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
     is_econ = (discipline == "ECONOMY_DEVELOPMENT")
 
     # Comprehensive, robust Hindi vs English medium separation:
+    eff_medium = data.get("medium") if data.get("medium") in ("hindi", "english") else medium
+    if data.get("is_hindi") is True:
+        eff_medium = "hindi"
     resolved_med, is_hindi = resolve_evaluation_medium(
-        medium_param=medium or data.get("medium"),
+        medium_param=eff_medium,
         transcribed_text=str(data.get("transcribed_text") or ""),
         question_text=resolved_q,
         fallback_medium="english"
     )
+    if data.get("is_hindi") is True:
+        is_hindi = True
+        resolved_med = "hindi"
     data["is_hindi"] = is_hindi
     data["medium"] = resolved_med
 
@@ -6165,6 +6349,88 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
             }
             for st in gen_steps if isinstance(st, dict)
         ]
+
+    # 1.5. Unified Evidence Ledger Normalization & Synthesis (Screenshot 3 Architecture)
+    # A single 5-tuple record for every question demand:
+    # <candidate_evidence, what_the_evidence_demonstrates, what_remains_weak_or_missing, actionable_improvement, scoring_consequence>
+    raw_ledger = data.get("evidence_ledger")
+    norm_ledger = []
+    final_steps = data.get("sub_part_step_marking", [])
+
+    if isinstance(raw_ledger, list) and len(raw_ledger) >= 2:
+        for idx, item in enumerate(raw_ledger):
+            if isinstance(item, dict):
+                st_match = final_steps[idx] if idx < len(final_steps) and isinstance(final_steps[idx], dict) else {}
+                aw = float(item.get("layer_a_marks_awarded") or item.get("awarded") or st_match.get("awarded") or 0.0)
+                mx = float(item.get("layer_a_max_marks") or item.get("max") or st_match.get("max") or 2.0)
+                status = get_canonical_demand_status(aw, mx, is_hindi=is_hindi)
+
+                p_ratio = aw / max(0.01, mx)
+                if p_ratio >= 0.80:
+                    depth = "सुदृढ़ प्रमाण सहित (Well-Substantiated)" if is_hindi else "well-substantiated"
+                elif p_ratio >= 0.65:
+                    depth = "सही व्याख्या (Correctly Explained)" if is_hindi else "correctly explained"
+                elif p_ratio > 0.05:
+                    depth = "आंशिक व्याख्या (Partly Explained)" if is_hindi else "partly explained"
+                else:
+                    depth = "केवल उल्लेख / अनुपस्थित (Mentioned / Omitted)" if is_hindi else "mentioned / omitted"
+
+                norm_ledger.append({
+                    "demand_title": str(item.get("demand_title") or st_match.get("step_label") or f"Demand {idx+1}"),
+                    "candidate_evidence": str(item.get("candidate_evidence") or st_match.get("quoted_written") or ""),
+                    "what_the_evidence_demonstrates": str(item.get("what_the_evidence_demonstrates") or (st_match.get("analysis") if isinstance(st_match, dict) else "")),
+                    "what_remains_weak_or_missing": str(item.get("what_remains_weak_or_missing") or ""),
+                    "actionable_improvement": str(item.get("actionable_improvement") or st_match.get("step_up_lever") or ""),
+                    "evidence_depth": depth,
+                    "layer_a_marks_awarded": aw,
+                    "layer_a_max_marks": mx,
+                    "demand_status": status
+                })
+
+    if len(norm_ledger) < 2:
+        norm_ledger = []
+        for s_idx, st in enumerate(final_steps):
+            if isinstance(st, dict):
+                aw = float(st.get("awarded", 0.0) or 0.0)
+                mx = float(st.get("max", 2.0) or 2.0)
+                status = get_canonical_demand_status(aw, mx, is_hindi=is_hindi)
+                p_ratio = aw / max(0.01, mx)
+                if p_ratio >= 0.80:
+                    depth = "सुदृढ़ प्रमाण सहित (Well-Substantiated)" if is_hindi else "well-substantiated"
+                elif p_ratio >= 0.65:
+                    depth = "सही व्याख्या (Correctly Explained)" if is_hindi else "correctly explained"
+                elif p_ratio > 0.05:
+                    depth = "आंशिक व्याख्या (Partly Explained)" if is_hindi else "partly explained"
+                else:
+                    depth = "केवल उल्लेख / अनुपस्थित (Mentioned / Omitted)" if is_hindi else "mentioned / omitted"
+
+                quoted = str(st.get("quoted_written") or "")
+                lever = str(st.get("step_up_lever") or "")
+
+                if s_idx == 0:
+                    demonstrates = "अभ्यर्थी ने आरंभिक अवधारणा और विषय-संदर्भ को रेखांकित किया।" if is_hindi else "Candidate identified opening premise and baseline conceptual scope."
+                    missing = "गहन तकनीकी परिभाषा अथवा आधिकारिक मानक संदर्भ का अभाव।" if is_hindi else "Lacked technical depth or authoritative baseline anchor."
+                elif s_idx == len(final_steps) - 1:
+                    demonstrates = "अभ्यर्थी ने मुख्य तर्कों को संतुलित निष्कर्ष के साथ संश्लेषित किया।" if is_hindi else "Candidate synthesized core arguments into a closing resolution."
+                    missing = "व्यापक संस्थागत या संवैधानिक अग्रगामी दृष्टि का अभाव।" if is_hindi else "Lacked forward-looking institutional synthesis or constitutional anchor."
+                else:
+                    sub_h = st.get("sub_heading", "इस आयाम" if is_hindi else "this dimension")
+                    demonstrates = f"अभ्यर्थी ने {sub_h} के मुख्य पहलुओं को संबोधित किया।" if is_hindi else f"Candidate engaged with key facets of {sub_h}."
+                    missing = "कार्य-कारण तंत्र (causal mechanisms) और विस्तृत साक्ष्यों का अभाव।" if is_hindi else "Missing deeper causal mechanisms, precise data, or case substantiation."
+
+                norm_ledger.append({
+                    "demand_title": str(st.get("step_label") or f"Demand {s_idx+1}"),
+                    "candidate_evidence": quoted,
+                    "what_the_evidence_demonstrates": demonstrates,
+                    "what_remains_weak_or_missing": missing,
+                    "actionable_improvement": lever or ("तर्कों को 1 ठोस साक्ष्य अथवा प्रक्रियात्मक तंत्र से पुष्ट करें।" if is_hindi else "Substantiate arguments with concrete causal sequence or official case reference."),
+                    "evidence_depth": depth,
+                    "layer_a_marks_awarded": aw,
+                    "layer_a_max_marks": mx,
+                    "demand_status": status
+                })
+
+    data["evidence_ledger"] = norm_ledger
 
     # 2. Strict Mathematical Calibration & Authentic Extraction for point_by_point_audit (Image 2 style)
     existing_pbp = data.get("point_by_point_audit")
