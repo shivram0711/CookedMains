@@ -582,5 +582,139 @@ class TestEvaluationUpgrade(unittest.TestCase):
         self.assertIn("आंशिक पूर्ण", ledger[1]["demand_status"])
 
 
+    def test_evidence_grounded_9_rules_caldera_case(self):
+        """
+        Validates Rules 1-9 on Caldera Physical Geography 15M case:
+        - Strict evidence grounding (no governance boilerplate)
+        - 3-tier demand architecture (Tier 1 essential, Tier 2 dimensions, Tier 3 optional enrichment)
+        - Tier 3 optional enrichment non-penalty (deduction_applied is False)
+        - Auditable criteria math (max, awarded, deduction, evidence, assessment, deduction reason)
+        - Demonstrated quality scoring (depth levels)
+        - Prioritized feedback ordered by mark recovery
+        - Release validation audit
+        """
+        raw_eval = {
+            "overall_score": 4.5,
+            "max_marks": 15,
+            "detected_question": "What are calderas? Discuss their formation and contribution to scenic beauty.",
+            "detected_paper": "GS1",
+            "transcribed_text": "Calderas are large volcanic depressions formed when a magma chamber empties. The roof collapses into the empty chamber creating a bowl. Caldera lakes and mountain views attract tourists.",
+            "sub_part_step_marking": [
+                {"step_label": "1. Introduction (Context & Baseline Hook)", "awarded": 1.5, "max": 2.0, "quoted_written": "Calderas are large volcanic depressions formed when a magma chamber empties."},
+                {"step_label": "2. Part A — Formation Process", "awarded": 1.0, "max": 5.5, "quoted_written": "The roof collapses into the empty chamber creating a bowl."},
+                {"step_label": "3. Part B — Contribution to Scenic Beauty", "awarded": 1.0, "max": 5.5, "quoted_written": "Caldera lakes and mountain views attract tourists."},
+                {"step_label": "4. Conclusion (Closing Synthesis)", "awarded": 1.0, "max": 2.0, "quoted_written": "Calderas form unique landscapes with tourism potential."}
+            ],
+            "missing_keywords_cards": [
+                {"term": "Ring-Fault Subsidence", "domain_or_thinker": "Geomorphic Mechanism", "definition": "Structural collapse along ring fractures."},
+                {"term": "Oligotrophic Caldera Lakes", "domain_or_thinker": "Scenic Landform", "definition": "Deep, nutrient-poor, vivid blue crater waters."}
+            ]
+        }
+
+        normalized = normalize_evaluation_data(raw_eval, max_marks=15, question=raw_eval["detected_question"], paper="GS1")
+
+        # 1. Auditable Score Card (Rule 5)
+        ledger = normalized.get("evidence_ledger")
+        self.assertIsInstance(ledger, list)
+        self.assertEqual(len(ledger), 4)
+        total_awarded = sum(item["awarded_marks"] for item in ledger)
+        total_max = sum(item["max_marks"] for item in ledger)
+        self.assertAlmostEqual(total_awarded, 4.5, places=2)
+        self.assertAlmostEqual(total_max, 15.0, places=2)
+
+        for item in ledger:
+            self.assertIn("criterion_name", item)
+            self.assertIn("awarded_marks", item)
+            self.assertIn("max_marks", item)
+            self.assertIn("deduction_amount", item)
+            self.assertIn("candidate_evidence", item)
+            self.assertIn("assessment_of_evidence", item)
+            self.assertIn("specific_deduction_reason", item)
+            self.assertEqual(item["deduction_amount"], round(item["max_marks"] - item["awarded_marks"], 2))
+
+        # 2. Three-Tier Demand Architecture (Rule 2)
+        tiers = normalized.get("demand_tiers")
+        self.assertIsInstance(tiers, dict)
+        self.assertIn("tier_1_essential_demands", tiers)
+        self.assertIn("tier_2_useful_dimensions", tiers)
+        self.assertIn("tier_3_optional_enrichment", tiers)
+        self.assertEqual(len(tiers["tier_1_essential_demands"]), 4)
+
+        # Rule 2 Non-penalty check: Tier 3 optional enrichment must NEVER have deduction applied
+        for opt in tiers["tier_3_optional_enrichment"]:
+            self.assertFalse(opt["deduction_applied"])
+
+        # 3. Prioritized Feedback (Rule 8)
+        prioritized = normalized.get("prioritized_feedback")
+        self.assertIsInstance(prioritized, list)
+        self.assertGreaterEqual(len(prioritized), 2)
+        self.assertLessEqual(len(prioritized), 3)
+
+        # First priority must be the highest mark loss bottleneck (Part A or Part B with 4.5M loss)
+        self.assertIn(prioritized[0]["potential_mark_recovery"], ["+4.5M", "+4.5"])
+        for pf in prioritized:
+            self.assertIn("priority_rank", pf)
+            self.assertIn("what_was_done_well", pf)
+            self.assertIn("what_materially_limits_marks", pf)
+            self.assertIn("actionable_exam_hall_fix", pf)
+            self.assertIn("potential_mark_recovery", pf)
+
+        # 4. Release Validation Audit (Rule 9 & 7)
+        va = normalized.get("validation_audit")
+        self.assertIsInstance(va, dict)
+        self.assertTrue(va["reconciliation_passed"])
+        self.assertTrue(va["evidence_grounding_verified"])
+        self.assertTrue(va["duplicate_credit_prevented"])
+        self.assertEqual(va["status"], "verified")
+
+    def test_hindi_evidence_grounded_9_rules(self):
+        """
+        Validates Rules 1-9 for Hindi medium evaluation:
+        - Authentic Devanagari demand tiers
+        - Devanagari prioritized feedback with exam-hall fixes
+        - Validation audit in Hindi context
+        """
+        hindi_q = "काल्डेरा क्या हैं? उनके निर्माण और दृश्य सौंदर्य में योगदान पर चर्चा कीजिए।"
+        raw_hi = {
+            "overall_score": 5.0,
+            "max_marks": 15,
+            "detected_question": hindi_q,
+            "detected_paper": "GS1",
+            "medium": "hindi",
+            "is_hindi": True,
+            "transcribed_text": "काल्डेरा ज्वालामुखी अवसाद हैं। जब मैग्मा कक्ष खाली होता है तो छत धंस जाती है।",
+            "sub_part_step_marking": [
+                {"step_label": "1. प्रस्तावना", "awarded": 1.5, "max": 2.0, "quoted_written": "काल्डेरा ज्वालामुखी अवसाद हैं।"},
+                {"step_label": "2. मुख्य भाग — निर्माण प्रक्रिया", "awarded": 1.5, "max": 5.5, "quoted_written": "जब मैग्मा कक्ष खाली होता है तो छत धंस जाती है।"},
+                {"step_label": "3. मुख्य भाग — दृश्य सौंदर्य", "awarded": 1.0, "max": 5.5, "quoted_written": "झीलें और प्राकृतिक पर्यटन।"},
+                {"step_label": "4. निष्कर्ष", "awarded": 1.0, "max": 2.0, "quoted_written": "भू-पर्यटन व संतुलन।"}
+            ],
+            "missing_keywords_cards": [
+                {"term": "वलय भ्रंश अवतलन (Ring-Fault Subsidence)", "domain_or_thinker": "भू-आकृतिक तंत्र", "definition": "वलय भ्रंशों के सहारे विशाल धंसाव।"}
+            ]
+        }
+
+        normalized = normalize_evaluation_data(raw_hi, max_marks=15, question=hindi_q, paper="GS1")
+
+        # Devanagari Demand Tiers
+        dt = normalized.get("demand_tiers")
+        self.assertIsInstance(dt, dict)
+        self.assertEqual(len(dt["tier_1_essential_demands"]), 4)
+        for opt in dt["tier_3_optional_enrichment"]:
+            self.assertFalse(opt["deduction_applied"])
+
+        # Devanagari Prioritized Feedback
+        pf = normalized.get("prioritized_feedback")
+        self.assertIsInstance(pf, list)
+        self.assertGreaterEqual(len(pf), 2)
+        # Check Devanagari exam-hall fix
+        self.assertTrue(any("मिनट" in p["actionable_exam_hall_fix"] or "शब्द" in p["actionable_exam_hall_fix"] for p in pf))
+
+        # Release Validation Audit
+        va = normalized.get("validation_audit")
+        self.assertIsInstance(va, dict)
+        self.assertTrue(va["reconciliation_passed"])
+
+
 if __name__ == "__main__":
     unittest.main()
