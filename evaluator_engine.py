@@ -8,7 +8,7 @@ import random
 import urllib.request
 import asyncio
 from datetime import datetime, timezone, timedelta
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple, Set, Union
 try:
     from PIL import Image
     HAS_PIL = True
