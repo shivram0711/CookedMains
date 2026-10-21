@@ -716,5 +716,745 @@ class TestEvaluationUpgrade(unittest.TestCase):
         self.assertTrue(va["reconciliation_passed"])
 
 
+class TestSection8EvaluationMatrix(unittest.TestCase):
+    """
+    Direct verification of the 16 Section 8 Evaluation Upgrade Test Matrix cases:
+    Resolves Failure Classes A-E:
+      A: Blended evaluation categories
+      B: Generic or overlapping rubrics
+      C: Unsupported scoring & depth differentiation
+      D: Misused credit & anti-duplication
+      E: Poor calibration, uncertainty disclosure & friendly teaching feedback
+    """
+
+    def test_case_01_10m_gs_mention_vs_explanation(self):
+        """
+        Case 1: 10-mark GS question
+        Fixture: Short answer naming several causes, explaining only some.
+        Checks: Rubric fits 10 marks; explanation earns more than bare mention;
+                missing explanation is identified with evidence.
+        """
+        q = "Examine the causes of groundwater depletion in north-western India. (150 Words, 10 Marks)"
+        raw_eval = {
+            "overall_score": 3.75,
+            "max_marks": 10,
+            "detected_question": q,
+            "detected_paper": "GS1",
+            "transcribed_text": "Groundwater is depleting due to over-extraction, tubewells, and subsidized electricity. Subsidized electricity eliminates marginal pumping cost, incentivizing farmers to pump water recklessly for water-intensive paddy.",
+            "evidence_ledger": [
+                {
+                    "demand_title": "1. Introduction: Groundwater Stress Status",
+                    "candidate_evidence": "Groundwater is depleting rapidly in north-western India.",
+                    "what_the_evidence_demonstrates": "Identified regional groundwater depletion.",
+                    "what_remains_weak_or_missing": "Missing quantitative baseline (e.g. CGWB Stage of Extraction >100%).",
+                    "actionable_improvement": "Cite CGWB extraction ratio in Punjab/Haryana (>160%).",
+                    "layer_a_marks_awarded": 0.75,
+                    "layer_a_max_marks": 1.5,
+                    "evidence_depth": "partly explained"
+                },
+                {
+                    "demand_title": "2. Cause A: Subsidized Power (Explained)",
+                    "candidate_evidence": "Subsidized electricity eliminates marginal pumping cost, incentivizing farmers to pump water recklessly for water-intensive paddy.",
+                    "what_the_evidence_demonstrates": "Demonstrated complete causal mechanism: free power -> zero marginal cost -> excessive extraction for paddy.",
+                    "what_remains_weak_or_missing": "Could mention direct feeder segregation or solar solarization (KUSUM).",
+                    "actionable_improvement": "Link power subsidy reform to smart meters.",
+                    "layer_a_marks_awarded": 2.25,
+                    "layer_a_max_marks": 3.5,
+                    "evidence_depth": "correctly explained"
+                },
+                {
+                    "demand_title": "3. Cause B: Tubewell Density & Cropping Pattern (Bare Mention)",
+                    "candidate_evidence": "Groundwater is depleting due to over-extraction, tubewells.",
+                    "what_the_evidence_demonstrates": "Bare mention of tubewells and over-extraction without hydro-geological explanation.",
+                    "what_remains_weak_or_missing": "Lacks explanation of Green Revolution cropping shift, MSP bias, and deep aquifer depletion.",
+                    "actionable_improvement": "Explain mechanism: MSP distortion created monoculture of summer paddy.",
+                    "layer_a_marks_awarded": 0.50,
+                    "layer_a_max_marks": 3.5,
+                    "evidence_depth": "bare mention"
+                },
+                {
+                    "demand_title": "4. Conclusion: Sustainable Water Governance",
+                    "candidate_evidence": "Need crop diversification away from paddy.",
+                    "what_the_evidence_demonstrates": "Suggested crop diversification.",
+                    "what_remains_weak_or_missing": "Lacks policy framework (e.g. Mihir Shah Committee).",
+                    "actionable_improvement": "Anchor to Mihir Shah Committee or Atal Bhujal Yojana.",
+                    "layer_a_marks_awarded": 0.25,
+                    "layer_a_max_marks": 1.5,
+                    "evidence_depth": "mentioned / omitted"
+                }
+            ]
+        }
+
+        norm = normalize_evaluation_data(raw_eval, max_marks=10, question=q, paper="GS1")
+        ledger = norm["evidence_ledger"]
+
+        # Check 1: Rubric fits 10 marks exactly
+        total_max = sum(float(it["max_marks"]) for it in ledger)
+        self.assertEqual(total_max, 10.0, "Rubric max marks must equal 10.0")
+
+        # Check 2: Explanation earns significantly more than bare mention
+        explained_part = ledger[1]  # Subsidized Power
+        mentioned_part = ledger[2]  # Tubewells bare mention
+        self.assertEqual(explained_part["max_marks"], mentioned_part["max_marks"])
+        self.assertGreater(
+            explained_part["awarded_marks"],
+            mentioned_part["awarded_marks"] * 2.0,
+            "Developed explanation must earn substantially more marks than a bare mention on identical max marks"
+        )
+
+        # Check 3: Missing explanation is identified with exact evidence
+        self.assertIn("bare mention", mentioned_part["what_the_evidence_demonstrates"].lower())
+        self.assertIn("tubewells", mentioned_part["candidate_evidence"].lower())
+
+    def test_case_02_15m_analytical_critically_examine(self):
+        """
+        Case 2: 15-mark analytical question
+        Fixture: Response to 'critically examine' with strengths but no limitations/judgment.
+        Checks: Directive recognized; missing critical treatment affects relevant criterion;
+                no unrelated fixed checklist appears.
+        """
+        q = "Critically examine the role of the Insolvency and Bankruptcy Code (IBC) in resolving stressed assets. (250 Words, 15 Marks)"
+        dir_info = detect_directive(q)
+        self.assertIn("Critically Examine", dir_info["directive"])
+
+        raw_eval = {
+            "overall_score": 5.0,
+            "max_marks": 15,
+            "detected_question": q,
+            "detected_paper": "GS3",
+            "transcribed_text": "IBC has unified insolvency resolution and reduced recovery time from 4 years to 1.5 years. It shifted control from debtor to creditor.",
+            "evidence_ledger": [
+                {
+                    "demand_title": "1. Introduction: IBC 2016 Legislative Shift",
+                    "candidate_evidence": "IBC has unified insolvency resolution and shifted control from debtor to creditor.",
+                    "what_the_evidence_demonstrates": "Identified creditor-in-control model.",
+                    "what_remains_weak_or_missing": "Missing pre-IBC comparison (SICA, DRT, SARFAESI).",
+                    "actionable_improvement": "Contrast with pre-IBC SARFAESI regime.",
+                    "layer_a_marks_awarded": 1.5,
+                    "layer_a_max_marks": 2.5
+                },
+                {
+                    "demand_title": "2. Dimension A: Achievements & Efficacy (Covered)",
+                    "candidate_evidence": "Reduced recovery time from 4 years to 1.5 years.",
+                    "what_the_evidence_demonstrates": "Captured behavioral shift and time reduction.",
+                    "what_remains_weak_or_missing": "Add data on recovery rate improvements.",
+                    "actionable_improvement": "Cite RBI Report on recovery metrics.",
+                    "layer_a_marks_awarded": 3.0,
+                    "layer_a_max_marks": 5.0
+                },
+                {
+                    "demand_title": "3. Dimension B: Critical Limitations & Structural Gaps (Omitted by Candidate)",
+                    "candidate_evidence": "No supporting evidence found in the readable submission.",
+                    "what_the_evidence_demonstrates": "Candidate omitted counter-arguments and systemic limitations.",
+                    "what_remains_weak_or_missing": "Failed to critically examine deep haircuts (>70%), NCLT vacancy delays exceeding 330-day statutory limit, and low liquidation recovery.",
+                    "actionable_improvement": "Dedicate a balanced 4-point section to average haircuts (70%) and NCLT capacity bottlenecks.",
+                    "layer_a_marks_awarded": 0.0,
+                    "layer_a_max_marks": 5.5
+                },
+                {
+                    "demand_title": "4. Conclusion: Way Forward & Reasoned Synthesis",
+                    "candidate_evidence": "IBC is a landmark reform for Indian banking.",
+                    "what_the_evidence_demonstrates": "Positive closing statement.",
+                    "what_remains_weak_or_missing": "Lacks balanced synthesis resolving the critical bottlenecks.",
+                    "actionable_improvement": "Synthesize: Cross-border insolvency framework and pre-packaged insolvency expansion.",
+                    "layer_a_marks_awarded": 0.5,
+                    "layer_a_max_marks": 2.0
+                }
+            ]
+        }
+
+        norm = normalize_evaluation_data(raw_eval, max_marks=15, question=q, paper="GS3")
+        ledger = norm["evidence_ledger"]
+
+        # Critical limitations dimension was unaddressed: must be Demand Missed with 0 marks
+        crit_part = ledger[2]
+        self.assertEqual(crit_part["awarded_marks"], 0.0)
+        self.assertEqual(crit_part["demand_status"], "Demand Missed")
+        self.assertIn("haircut", crit_part["what_remains_weak_or_missing"].lower())
+
+        # No unrelated physical geography or GS1 checklist should contaminate GS3 IBC question
+        tiers = norm.get("demand_tiers", {})
+        for opt in tiers.get("tier_3_optional_enrichment", []):
+            item_text = str(opt.get("enrichment_item") or "").lower()
+            self.assertNotIn("caldera", item_text)
+            self.assertNotIn("volcan", item_text)
+
+    def test_case_03_multipart_question_omission(self):
+        """
+        Case 3: Multi-part question
+        Fixture: Answer fully covers Clause 1 and omits Clause 2.
+        Checks: Both core demands appear separately; omission is visible and affects score appropriately.
+        """
+        q = "Analyze the socio-economic impacts of sea-level rise on Indian coastal communities. Suggest community-centric adaptation strategies. (250 Words, 15 Marks)"
+        raw_eval = {
+            "overall_score": 4.5,
+            "max_marks": 15,
+            "detected_question": q,
+            "detected_paper": "GS3",
+            "transcribed_text": "Sea level rise causes saltwater intrusion into coastal aquifers, inundates agricultural lands in Sundarbans, and displaces fishing communities.",
+            "evidence_ledger": [
+                {
+                    "demand_title": "1. Introduction: Coastal Vulnerability Scope",
+                    "candidate_evidence": "Sea level rise is threatening Indian coastline and fishing communities.",
+                    "what_the_evidence_demonstrates": "Framed coastline vulnerability.",
+                    "what_remains_weak_or_missing": "Missing scale: 7,516 km coastline and IPCC SROCC report.",
+                    "actionable_improvement": "Quote IPCC Special Report on the Ocean and Cryosphere.",
+                    "layer_a_marks_awarded": 1.0,
+                    "layer_a_max_marks": 2.0
+                },
+                {
+                    "demand_title": "2. Clause 1: Socio-Economic Impacts on Coastal Communities",
+                    "candidate_evidence": "Saltwater intrusion into coastal aquifers, inundates agricultural lands in Sundarbans, and displaces fishing communities.",
+                    "what_the_evidence_demonstrates": "Identified drinking water salinity, loss of agriculture, and livelihood displacement in Sundarbans.",
+                    "what_remains_weak_or_missing": "Missing gender impacts and loss of coastal mangrove buffers.",
+                    "actionable_improvement": "Categorize impacts: Economic (fisheries), Social (climate refugees), Ecological.",
+                    "layer_a_marks_awarded": 3.0,
+                    "layer_a_max_marks": 5.5
+                },
+                {
+                    "demand_title": "3. Clause 2: Community-Centric Adaptation Strategies",
+                    "candidate_evidence": "No supporting evidence found in the readable submission.",
+                    "what_the_evidence_demonstrates": "Clause completely omitted by candidate.",
+                    "what_remains_weak_or_missing": "Did not suggest community adaptation strategies (e.g. mangrove bio-shields, saline-tolerant crops like Pokkali rice, cyclone shelters).",
+                    "actionable_improvement": "Provide 3 community-centric strategies: Bio-shield restoration, Pokkali saline rice cultivation, community disaster management committees.",
+                    "layer_a_marks_awarded": 0.0,
+                    "layer_a_max_marks": 5.5
+                },
+                {
+                    "demand_title": "4. Conclusion: Resilient Coastal Future",
+                    "candidate_evidence": "Integrated coastal zone management is necessary.",
+                    "what_the_evidence_demonstrates": "Brief concluding note.",
+                    "what_remains_weak_or_missing": "Missing Sendai Framework or ICZMP reference.",
+                    "actionable_improvement": "Anchor to Mission LiFE and Sendai Framework Target G.",
+                    "layer_a_marks_awarded": 0.5,
+                    "layer_a_max_marks": 2.0
+                }
+            ]
+        }
+
+        norm = normalize_evaluation_data(raw_eval, max_marks=15, question=q, paper="GS3")
+        ledger = norm["evidence_ledger"]
+
+        # Both core clauses appear distinctly
+        self.assertEqual(len(ledger), 4)
+        c1 = ledger[1]
+        c2 = ledger[2]
+        self.assertEqual(c1["demand_title"], "2. Clause 1: Socio-Economic Impacts on Coastal Communities")
+        self.assertEqual(c2["demand_title"], "3. Clause 2: Community-Centric Adaptation Strategies")
+
+        # Clause 1 was credited; Clause 2 was omitted and marked Demand Missed
+        self.assertGreater(c1["awarded_marks"], 0.0)
+        self.assertEqual(c2["awarded_marks"], 0.0)
+        self.assertEqual(c2["demand_status"], "Demand Missed")
+
+    def test_case_04_optional_subject_discipline(self):
+        """
+        Case 4: Optional subject
+        Fixture: Discipline-specific response (PSIR/Sociology/Physics).
+        Checks: Criteria reflect the discipline; generic GS-style requirements are not imposed.
+        """
+        psir_q = "Critically analyze Plato's concept of the Philosopher King in the context of his Theory of Justice. (20 Marks)"
+        disc = detect_question_discipline(psir_q, "Optional-PSIR")
+        self.assertEqual(disc, "OPTIONAL_DISCIPLINE", "Optional paper must be detected as OPTIONAL_DISCIPLINE")
+
+        # Also check with paper parameter indicating Optional
+        soc_disc = detect_question_discipline("Discuss Durkheim's concept of anomie and social solidarity.", "Optional-Sociology")
+        self.assertEqual(soc_disc, "OPTIONAL_DISCIPLINE")
+
+        # Verify that generic GS Polity requirements (Article 280, 2nd ARC) are not imposed
+        raw_opt = {
+            "overall_score": 10.0,
+            "max_marks": 20,
+            "detected_question": psir_q,
+            "detected_paper": "Optional-PSIR",
+            "evidence_ledger": [
+                {"demand_title": "1. Theory of Forms & Knowledge vs Opinion", "candidate_evidence": "Plato distinguishes Episteme from Doxa in Republic.", "layer_a_marks_awarded": 2.5, "layer_a_max_marks": 5.0},
+                {"demand_title": "2. Philosopher King & Reason Dominance", "candidate_evidence": "Rule of reason personified; dialectical knowledge of the Idea of Good.", "layer_a_marks_awarded": 4.0, "layer_a_max_marks": 7.0},
+                {"demand_title": "3. Critical Evaluation (Popper's Open Society Critique)", "candidate_evidence": "Karl Popper critiques it as blueprint for totalitarianism.", "layer_a_marks_awarded": 2.5, "layer_a_max_marks": 5.0},
+                {"demand_title": "4. Conclusion: Ideal vs Nocturnal Council", "candidate_evidence": "Evolution from Republic's ideal ruler to Laws' constitutional council.", "layer_a_marks_awarded": 1.0, "layer_a_max_marks": 3.0}
+            ]
+        }
+        norm = normalize_evaluation_data(raw_opt, max_marks=20, question=psir_q, paper="Optional-PSIR")
+        self.assertEqual(sum(it["max_marks"] for it in norm["evidence_ledger"]), 20.0)
+
+    def test_case_05_ethics_case_study_anti_duplication(self):
+        """
+        Case 5: Ethics case study
+        Fixture: Case study with stakeholders, competing values, options, and recommended action.
+        Checks: Rubric reflects actual demands; overlapping criteria do not award the same reasoning twice.
+        """
+        case_q = (
+            "You are the Municipal Commissioner of a historic city. A severe fire outbreak occurs in an unauthorized commercial complex. "
+            "Examine the ethical dilemmas, evaluate options available to you, and suggest your course of action. (20 Marks)"
+        )
+        raw_case = {
+            "overall_score": 10.5,
+            "max_marks": 20,
+            "detected_question": case_q,
+            "detected_paper": "GS4",
+            "evidence_ledger": [
+                {"demand_title": "1. Stakeholders & Ethical Dilemmas", "candidate_evidence": "Public safety vs commercial livelihoods; legal compliance vs economic expediency.", "layer_a_marks_awarded": 2.5, "layer_a_max_marks": 4.0},
+                {"demand_title": "2. Evaluation of Options (Merits & Demerits)", "candidate_evidence": "Option 1: Demolish all illegal structures immediately. Option 2: Regularize with penal fines.", "layer_a_marks_awarded": 3.5, "layer_a_max_marks": 6.0},
+                {"demand_title": "3. Proposed Course of Action", "candidate_evidence": "Phased sealing of non-compliant buildings with mandatory fire safety retrofitting and magistrate inquiry.", "layer_a_marks_awarded": 3.0, "layer_a_max_marks": 6.0},
+                {"demand_title": "4. Ethical Justification & Long-term Governance", "candidate_evidence": "Public interest stewardship and preventive administrative integrity.", "layer_a_marks_awarded": 1.5, "layer_a_max_marks": 4.0}
+            ]
+        }
+        norm = normalize_evaluation_data(raw_case, max_marks=20, question=case_q, paper="GS4")
+        self.assertEqual(sum(it["max_marks"] for it in norm["evidence_ledger"]), 20.0)
+        self.assertEqual(sum(it["awarded_marks"] for it in norm["evidence_ledger"]), 10.5)
+
+    def test_case_06_hindi_answer_fidelity(self):
+        """
+        Case 6: Hindi answer
+        Fixture: Hindi response with relevant points and explanatory gap.
+        Checks: Assessed in Hindi; Devanagari evidence preserved; not penalized for being Hindi.
+        """
+        hindi_q = "भारत में भूजल संकट के कारणों का परीक्षण कीजिए। (150 शब्द, 10 अंक)"
+        hindi_text = "उत्तर-पश्चिमी भारत में भूजल का दोहन तीव्र गति से हो रहा है। अत्यधिक नलकूपों और मुफ्त बिजली ने जल स्तर को गिरा दिया है।"
+        raw_hindi = {
+            "overall_score": 4.0,
+            "max_marks": 10,
+            "detected_question": hindi_q,
+            "detected_paper": "GS1",
+            "medium": "hindi",
+            "is_hindi": True,
+            "transcribed_text": hindi_text,
+            "evidence_ledger": [
+                {
+                    "demand_title": "1. प्रस्तावना: भूजल संकट की स्थिति",
+                    "candidate_evidence": "उत्तर-पश्चिमी भारत में भूजल का दोहन तीव्र गति से हो रहा है।",
+                    "what_the_evidence_demonstrates": "संकट की प्राथमिक पहचान।",
+                    "what_remains_weak_or_missing": "आधिकारिक डेटा का अभाव।",
+                    "actionable_improvement": "केंद्रीय भूजल बोर्ड की रिपोर्ट का संदर्भ दें।",
+                    "layer_a_marks_awarded": 1.0,
+                    "layer_a_max_marks": 1.5
+                },
+                {
+                    "demand_title": "2. मुख्य कारण: नलकूप एवं बिजली सब्सिडी",
+                    "candidate_evidence": "अत्यधिक नलकूपों और मुफ्त बिजली ने जल स्तर को गिरा दिया है।",
+                    "what_the_evidence_demonstrates": "बिजली सब्सिडी और नलकूपों के प्रभाव को रेखांकित किया।",
+                    "what_remains_weak_or_missing": "धान की फसल के आर्थिक कारकों का विस्तृत विवरण नहीं।",
+                    "actionable_improvement": "एमएसपी तथा फसल विविधीकरण से जोड़ें।",
+                    "layer_a_marks_awarded": 2.0,
+                    "layer_a_max_marks": 4.5
+                },
+                {
+                    "demand_title": "3. अन्य कारक एवं नीतिगत विफलता",
+                    "candidate_evidence": "No supporting evidence found in the readable submission.",
+                    "what_the_evidence_demonstrates": "अभ्यर्थी द्वारा अन्य आयाम नहीं लिखे गए।",
+                    "what_remains_weak_or_missing": "वर्षा जल संचयन तथा जलभृत पुनर्भरण पर चर्चा का अभाव।",
+                    "actionable_improvement": "अटल भूजल योजना का उल्लेख करें।",
+                    "layer_a_marks_awarded": 0.0,
+                    "layer_a_max_marks": 2.5
+                },
+                {
+                    "demand_title": "4. निष्कर्ष एवं समाधान",
+                    "candidate_evidence": "टिकाऊ जल प्रबंधन आवश्यक है।",
+                    "what_the_evidence_demonstrates": "संक्षिप्त समापन।",
+                    "what_remains_weak_or_missing": "दीर्घकालिक सुधारों का अभाव।",
+                    "actionable_improvement": "मिहिर शाह समिति की सिफारिशों का उल्लेख करें।",
+                    "layer_a_marks_awarded": 1.0,
+                    "layer_a_max_marks": 1.5
+                }
+            ]
+        }
+        norm = normalize_evaluation_data(raw_hindi, max_marks=10, question=hindi_q, paper="GS1")
+        ledger = norm["evidence_ledger"]
+        self.assertEqual(len(ledger), 4)
+        self.assertIn("प्रस्तावना", ledger[0]["demand_title"])
+        # Check Devanagari evidence preservation
+        self.assertIn("उत्तर-पश्चिमी", ledger[0]["candidate_evidence"])
+        self.assertEqual(sum(it["max_marks"] for it in ledger), 10.0)
+
+    def test_case_07_strong_answer_with_relevant_addition(self):
+        """
+        Case 7: Strong answer with relevant addition
+        Fixture: Relevant constitutional provision/case law supporting argument.
+        Checks: Addition supports relevant criterion; receives no separate automatic bonus beyond criterion max.
+        """
+        q = "Discuss the significance of the Basic Structure Doctrine in maintaining constitutional equilibrium. (150 Words, 10 Marks)"
+        raw_eval = {
+            "overall_score": 6.5,
+            "max_marks": 10,
+            "detected_question": q,
+            "detected_paper": "GS2",
+            "evidence_ledger": [
+                {
+                    "demand_title": "1. Introduction: Origin & Genesis",
+                    "candidate_evidence": "Propounded in Kesavananda Bharati (1973), reviewing Golaknath judgment.",
+                    "what_the_evidence_demonstrates": "Accurate landmark citation.",
+                    "what_remains_weak_or_missing": "Minor historical detail.",
+                    "actionable_improvement": "Mention 13-judge bench size.",
+                    "layer_a_marks_awarded": 1.25,
+                    "layer_a_max_marks": 1.5
+                },
+                {
+                    "demand_title": "2. Analytical Demand: Safeguard Against Legislative Hegemony",
+                    "candidate_evidence": "Restrained constituent power under Art 368; Indira Gandhi v. Raj Narain struck down 39th Amendment to protect judicial review.",
+                    "what_the_evidence_demonstrates": "Supported argument with Indira Gandhi v. Raj Narain case and Art 368 limitation.",
+                    "what_remains_weak_or_missing": "Minerva Mills balance of Fundamental Rights and DPSP.",
+                    "actionable_improvement": "Add Minerva Mills (1980) golden triangle citation.",
+                    "layer_a_marks_awarded": 4.25,
+                    "layer_a_max_marks": 5.5
+                },
+                {
+                    "demand_title": "3. Directive Balance: Criticisms & Counter-Perspective",
+                    "candidate_evidence": "Critics argue it lacks explicit textual foundation and enables judicial overreach.",
+                    "what_the_evidence_demonstrates": "Addressed legitimate counter-arguments.",
+                    "what_remains_weak_or_missing": "NJAC verdict reference.",
+                    "actionable_improvement": "Cite NJAC (4th Judges Case) as modern debate point.",
+                    "layer_a_marks_awarded": 1.0,
+                    "layer_a_max_marks": 3.0
+                }
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=10, question=q, paper="GS2")
+        ledger = norm["evidence_ledger"]
+        # Core criterion with strong case law should be well scored but strictly <= max_marks
+        self.assertLessEqual(ledger[1]["awarded_marks"], ledger[1]["max_marks"])
+        self.assertEqual(sum(it["max_marks"] for it in ledger), 10.0)
+
+    def test_case_08_irrelevant_extra_material_fluency_guard(self):
+        """
+        Case 8: Irrelevant extra material
+        Fixture: Polished answer with a long off-topic example.
+        Checks: Irrelevant content does not improve score and receives zero credit toward core demand.
+        """
+        q = "Explain the mechanism of cloudbursts in the Himalayan region. (150 Words, 10 Marks)"
+        # Candidate writes fluently about the history of the Indian Space Research Organisation (ISRO)
+        raw_eval = {
+            "overall_score": 1.5,
+            "max_marks": 10,
+            "detected_question": q,
+            "detected_paper": "GS1",
+            "transcribed_text": "Cloudburst is sudden heavy rainfall. ISRO was founded by Vikram Sarabhai in 1969 and has launched Chandrayaan and Mangalyaan showcasing India's scientific glory.",
+            "evidence_ledger": [
+                {
+                    "demand_title": "1. Definition of Cloudburst",
+                    "candidate_evidence": "Cloudburst is sudden heavy rainfall.",
+                    "what_the_evidence_demonstrates": "Elementary definition without IMD benchmark (>100mm/hr over 20-30 sq km).",
+                    "what_remains_weak_or_missing": "Omitted IMD standard quantitative definition.",
+                    "actionable_improvement": "State IMD criterion: >=100 mm rain in 1 hour over ~20-30 sq km.",
+                    "layer_a_marks_awarded": 0.5,
+                    "layer_a_max_marks": 2.0
+                },
+                {
+                    "demand_title": "2. Orographic & Atmospheric Mechanism",
+                    "candidate_evidence": "No supporting evidence found in the readable submission.",
+                    "what_the_evidence_demonstrates": "Candidate omitted orographic lifting, moisture funneling, and cumulonimbus vertical development. Wrote off-topic material on ISRO satellites.",
+                    "what_remains_weak_or_missing": "Complete omission of thermodynamic mechanisms (steep valleys, thermal updrafts).",
+                    "actionable_improvement": "Diagram showing steep valley funnelling moist monsoon air into cumulonimbus cell.",
+                    "layer_a_marks_awarded": 0.0,
+                    "layer_a_max_marks": 6.0
+                },
+                {
+                    "demand_title": "3. Disaster Mitigation & Early Warning",
+                    "candidate_evidence": "ISRO has launched Chandrayaan and Mangalyaan.",
+                    "what_the_evidence_demonstrates": "Off-topic mention of lunar/planetary missions with no connection to Himalayan Doppler Weather Radars.",
+                    "what_remains_weak_or_missing": "Lacks Doppler Weather Radars (DWR) and automated weather stations.",
+                    "actionable_improvement": "Link space tech directly to INSAT-3DR and X-band Doppler radars.",
+                    "layer_a_marks_awarded": 0.5,
+                    "layer_a_max_marks": 2.0
+                }
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=10, question=q, paper="GS1")
+        ledger = norm["evidence_ledger"]
+        # Orographic mechanism has no valid evidence: 0 marks
+        self.assertEqual(ledger[1]["awarded_marks"], 0.0)
+        self.assertEqual(ledger[1]["demand_status"], "Demand Missed")
+
+    def test_case_09_repeated_point_deduplication(self):
+        """
+        Case 9: Repeated point
+        Fixture: Same argument restated in multiple sections.
+        Checks: Repetition does not earn duplicate credit; anti-duplication catches repeat.
+        """
+        raw_eval = {
+            "overall_score": 4.0,
+            "max_marks": 10,
+            "detected_question": "Discuss measures to tackle rural poverty in India. (10 Marks)",
+            "detected_paper": "GS3",
+            "evidence_ledger": [
+                {
+                    "demand_title": "1. Wage Employment",
+                    "candidate_evidence": "MGNREGA provides 100 days of guaranteed wage employment to rural households.",
+                    "what_the_evidence_demonstrates": "Credited under wage employment safety net.",
+                    "what_remains_weak_or_missing": "Missing wage delay challenges.",
+                    "actionable_improvement": "Mention DBT and NeFMS reform.",
+                    "layer_a_marks_awarded": 2.0,
+                    "layer_a_max_marks": 4.0
+                },
+                {
+                    "demand_title": "2. Livelihood Diversification",
+                    "candidate_evidence": "MGNREGA provides 100 days of guaranteed wage employment to rural households.",
+                    "what_the_evidence_demonstrates": "Candidate repeated the identical point from section 1.",
+                    "what_remains_weak_or_missing": "Omitted SHG-bank linkage (NRLM/Deendayal Antyodaya).",
+                    "actionable_improvement": "Focus on NRLM, micro-enterprises, and dairy co-operatives.",
+                    "layer_a_marks_awarded": 2.0,
+                    "layer_a_max_marks": 4.0
+                },
+                {
+                    "demand_title": "3. Conclusion",
+                    "candidate_evidence": "Rural poverty requires holistic social protection.",
+                    "what_the_evidence_demonstrates": "Closing vision.",
+                    "what_remains_weak_or_missing": "None.",
+                    "actionable_improvement": "None.",
+                    "layer_a_marks_awarded": 1.0,
+                    "layer_a_max_marks": 2.0
+                }
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=10, question="Discuss rural poverty", paper="GS3")
+        ledger = norm["evidence_ledger"]
+        # The second identical entry must have been penalized or capped by anti-duplication
+        second_entry = ledger[1]
+        self.assertIn("repeated point", second_entry["assessment_of_evidence"].lower())
+        self.assertLessEqual(second_entry["awarded_marks"], 0.5)
+
+    def test_case_10_clear_factual_error_correction(self):
+        """
+        Case 10: Clear factual error
+        Fixture: Response contains a confidently stated, verifiably incorrect fact.
+        Checks: Exact claim is identified, corrected cautiously, and treated consistently.
+        """
+        raw_eval = {
+            "overall_score": 4.0,
+            "max_marks": 10,
+            "detected_question": "Discuss the emergency provisions in the Indian Constitution.",
+            "detected_paper": "GS2",
+            "transcribed_text": "Article 356 provides for Financial Emergency whenever the financial stability of India is threatened.",
+            "fatal_blunders_alert": {
+                "has_blunder": True,
+                "title": "Constitutional Attribution Check",
+                "attribution_error": "Candidate attributed Financial Emergency to Article 356 (which actually deals with President's Rule in States). Financial Emergency is governed by Article 360.",
+                "disciplinary_leak": ""
+            }
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=10, question="Emergency provisions", paper="GS2")
+        blunder = norm.get("fatal_blunders_alert", {})
+        self.assertTrue(blunder.get("has_blunder"))
+        self.assertIn("356", blunder.get("attribution_error"))
+        self.assertIn("360", blunder.get("attribution_error"))
+
+    def test_case_11_unverifiable_current_claim_caution(self):
+        """
+        Case 11: Unverifiable current claim
+        Fixture: Response uses a current statistic not verifiable from available context.
+        Checks: Evaluator notes uncertainty in uncertainty_flags rather than declaring false.
+        """
+        raw_eval = {
+            "overall_score": 4.5,
+            "max_marks": 10,
+            "detected_question": "Examine the status of secondary education in India.",
+            "detected_paper": "GS2",
+            "transcribed_text": "In secondary schools, [unverified] 89.4% of all rural institutions completely shut down during 2025 due to lack of budget.",
+            "sub_part_step_marking": [
+                {"step_label": "1. Intro", "awarded": 1.0, "max": 2.0, "quoted_written": "Secondary schooling context."},
+                {"step_label": "2. Main Body", "awarded": 2.5, "max": 6.0, "quoted_written": "Budget allocations and enrollment."},
+                {"step_label": "3. Conclusion", "awarded": 1.0, "max": 2.0, "quoted_written": "Way forward."}
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=10, question="Status of secondary education", paper="GS2")
+        flags = norm.get("uncertainty_flags", [])
+        self.assertTrue(any(f.get("type") == "unverifiable_claim_caution" for f in flags))
+
+    def test_case_12_ocr_uncertainty_handling(self):
+        """
+        Case 12: OCR uncertainty
+        Fixture: Low-quality scan with partly unreadable text.
+        Checks: Unreadable content is not confidently treated as absent; uncertainty is disclosed.
+        """
+        raw_eval = {
+            "overall_score": 4.5,
+            "max_marks": 10,
+            "detected_question": "Explain plate tectonic mechanisms.",
+            "detected_paper": "GS1",
+            "transcribed_text": "Plate tectonics involves lithospheric plates moving over asthenosphere due to [illegible] convection currents.",
+            "ocr_confidence": 0.52,
+            "sub_part_step_marking": [
+                {"step_label": "1. Intro", "awarded": 1.0, "max": 2.0, "quoted_written": "Plate motion."},
+                {"step_label": "2. Body", "awarded": 2.5, "max": 6.0, "quoted_written": "Convection currents."},
+                {"step_label": "3. Conclusion", "awarded": 1.0, "max": 2.0, "quoted_written": "Global seismicity."}
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=10, question="Plate tectonics", paper="GS1")
+        flags = norm.get("uncertainty_flags", [])
+        # Both handwriting ambiguity and low OCR confidence should be flagged
+        flag_types = [f.get("type") for f in flags]
+        self.assertIn("handwriting_ambiguity", flag_types)
+        self.assertIn("low_ocr_confidence", flag_types)
+        # Validation audit status must reflect uncertainty
+        va = norm.get("validation_audit", {})
+        self.assertEqual(va.get("status"), "flagged_for_uncertainty")
+
+    def test_case_13_off_topic_answer(self):
+        """
+        Case 13: Off-topic answer
+        Fixture: Fluent response addresses a neighboring/different issue.
+        Checks: Relevance and core-demand coverage control score; fluency does not inflate it.
+        """
+        q = "Evaluate the role of Green Hydrogen in decarbonizing heavy industry in India. (250 Words, 15 Marks)"
+        # Candidate writes fluently about Rooftop Solar PV panels instead of Green Hydrogen in heavy industry
+        raw_eval = {
+            "overall_score": 2.0,
+            "max_marks": 15,
+            "detected_question": q,
+            "detected_paper": "GS3",
+            "transcribed_text": "Solar energy is vital for India's energy security. PM Surya Ghar Muft Bijli Yojana provides rooftop solar subsidies to 1 crore households, reducing discom distribution losses.",
+            "evidence_ledger": [
+                {
+                    "demand_title": "1. Definition & Potential of Green Hydrogen",
+                    "candidate_evidence": "No supporting evidence found in the readable submission.",
+                    "what_the_evidence_demonstrates": "Candidate wrote about solar rooftop subsidies instead of green hydrogen electrolysis.",
+                    "what_remains_weak_or_missing": "Complete omission of green hydrogen (electrolysis of water via renewables).",
+                    "actionable_improvement": "Define green hydrogen and its role in steel/fertilizer hard-to-abate sectors.",
+                    "layer_a_marks_awarded": 0.0,
+                    "layer_a_max_marks": 3.0
+                },
+                {
+                    "demand_title": "2. Application to Heavy Industry Decarbonization",
+                    "candidate_evidence": "No supporting evidence found in the readable submission.",
+                    "what_the_evidence_demonstrates": "Off-topic: discussed residential rooftop solar PV instead of heavy industries (refineries, steel, cement).",
+                    "what_remains_weak_or_missing": "Missed DRI steelmaking, ammonia feedstock replacement, and National Green Hydrogen Mission targets.",
+                    "actionable_improvement": "Explain hydrogen replacement of coking coal in blast furnaces.",
+                    "layer_a_marks_awarded": 0.0,
+                    "layer_a_max_marks": 7.0
+                },
+                {
+                    "demand_title": "3. Challenges & Enabling Infrastructure",
+                    "candidate_evidence": "Solar energy reduces discom distribution losses.",
+                    "what_the_evidence_demonstrates": "Peripheral mention of renewable power transmission.",
+                    "what_remains_weak_or_missing": "Electrolyzer manufacturing capex, round-the-clock power, and water intensity.",
+                    "actionable_improvement": "Highlight high electrolyzer stack costs ($800/kW) and pipeline transport logistics.",
+                    "layer_a_marks_awarded": 1.0,
+                    "layer_a_max_marks": 3.5
+                },
+                {
+                    "demand_title": "4. Conclusion: Mission Alignment",
+                    "candidate_evidence": "India must become energy independent.",
+                    "what_the_evidence_demonstrates": "Generic aspiration.",
+                    "what_remains_weak_or_missing": "National Green Hydrogen Mission 5 MMT target by 2030.",
+                    "actionable_improvement": "Anchor to National Green Hydrogen Mission 2030 goals.",
+                    "layer_a_marks_awarded": 1.0,
+                    "layer_a_max_marks": 1.5
+                }
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=15, question=q, paper="GS3")
+        ledger = norm["evidence_ledger"]
+        # Core demand was completely omitted due to off-topic response
+        self.assertEqual(ledger[0]["awarded_marks"], 0.0)
+        self.assertEqual(ledger[1]["awarded_marks"], 0.0)
+        # Score is strictly bounded (< 30% of total)
+        self.assertLessEqual(norm["overall_score"], 4.5)
+        self.assertEqual(norm["score_band"], "Needs Work (<30%)")
+
+    def test_case_14_essay_holistic_evaluation(self):
+        """
+        Case 14: Essay paper submission
+        Fixture: Essay with clear thesis but uneven development.
+        Checks: Evaluation is holistic and essay-appropriate; does not reuse short GS checklist.
+        """
+        essay_q = "Life is what happens when you're busy making other plans."
+        prompt = build_evaluation_prompt(
+            question=essay_q,
+            paper_key="Essay",
+            max_marks=125,
+            directive_info={"directive": "Essay", "details": "Holistic thematic reflection.", "ideal_balance": "Philosophical depth"}
+        )
+        self.assertIn("125", prompt)
+        self.assertIn("Essay", prompt)
+
+        raw_essay = {
+            "overall_score": 58.0,
+            "max_marks": 125,
+            "detected_question": essay_q,
+            "detected_paper": "Essay",
+            "sub_part_step_marking": [
+                {"step_label": "1. Introduction & Philosophical Hook", "awarded": 12.0, "max": 20.0, "quoted_written": "Metaphorical opening on fate vs human agency."},
+                {"step_label": "2. Temporal Dimension (Historical & Contemporary Trajectory)", "awarded": 18.0, "max": 35.0, "quoted_written": "Historical unpredictability from Ashoka to modern pandemic."},
+                {"step_label": "3. Spatial & Multi-Disciplinary Analysis", "awarded": 16.0, "max": 35.0, "quoted_written": "Societal and technological serendipity."},
+                {"step_label": "4. Philosophical Synthesis & Visionary Conclusion", "awarded": 12.0, "max": 35.0, "quoted_written": "Closing reflection on mindful living and stoic resilience."}
+            ]
+        }
+        norm = normalize_evaluation_data(raw_essay, max_marks=125, question=essay_q, paper="Essay")
+        self.assertEqual(norm["max_marks"], 125)
+        self.assertEqual(sum(it["max_marks"] for it in norm["evidence_ledger"]), 125.0)
+
+    def test_case_15_score_integrity_arithmetic(self):
+        """
+        Case 15: Score integrity across 10, 15, and 20 mark questions
+        Checks: Criterion totals equal maximum; no criterion exceeds cap; reported total equals criterion sum.
+        """
+        for marks_val in [10, 15, 20]:
+            sample_score = marks_val * 0.45
+            raw = {
+                "overall_score": sample_score,
+                "max_marks": marks_val,
+                "detected_question": f"Standard {marks_val}M Question",
+                "detected_paper": "GS2",
+                "sub_part_step_marking": [
+                    {"step_label": "1. Intro", "awarded": round(marks_val * 0.10, 2), "max": round(marks_val * 0.15, 2), "quoted_written": "Intro quote."},
+                    {"step_label": "2. Part A", "awarded": round(marks_val * 0.20, 2), "max": round(marks_val * 0.45, 2), "quoted_written": "Part A quote."},
+                    {"step_label": "3. Part B", "awarded": round(marks_val * 0.10, 2), "max": round(marks_val * 0.25, 2), "quoted_written": "Part B quote."},
+                    {"step_label": "4. Conclusion", "awarded": round(marks_val * 0.05, 2), "max": round(marks_val * 0.15, 2), "quoted_written": "Conclusion quote."}
+                ]
+            }
+            norm = normalize_evaluation_data(raw, max_marks=marks_val, question="Test Question", paper="GS2")
+            ledger = norm["evidence_ledger"]
+
+            # Sum of max marks must equal marks_val exactly
+            sum_max = sum(it["max_marks"] for it in ledger)
+            self.assertAlmostEqual(sum_max, float(marks_val), places=1)
+
+            # Sum of awarded marks must equal overall_score
+            sum_aw = sum(it["awarded_marks"] for it in ledger)
+            self.assertAlmostEqual(sum_aw, norm["overall_score"], places=1)
+
+            # No individual criterion exceeds its maximum
+            for it in ledger:
+                self.assertLessEqual(it["awarded_marks"], it["max_marks"])
+                self.assertGreaterEqual(it["awarded_marks"], 0.0)
+
+    def test_case_16_contract_regression(self):
+        """
+        Case 16: Contract regression
+        Checks: All required public API keys, types, and persistence payloads continue to work as before.
+        """
+        raw = {
+            "overall_score": 5.0,
+            "max_marks": 15,
+            "detected_question": "Explain the significance of the Preamble.",
+            "detected_paper": "GS2",
+            "full_model_answer": "### Significance of the Preamble\n**1. Identity Card:** N.A. Palkhivala described it as the identity card of the Constitution.\n**2. Source of Authority:** We, the People indicates sovereign power resides in citizens.",
+            "sub_part_step_marking": [
+                {"step_label": "1. Intro", "awarded": 1.0, "max": 2.0, "quoted_written": "Preamble is intro."},
+                {"step_label": "2. Part A", "awarded": 3.0, "max": 11.0, "quoted_written": "Key values explained."},
+                {"step_label": "3. Conclusion", "awarded": 1.0, "max": 2.0, "quoted_written": "Kesavananda Bharati holding."}
+            ]
+        }
+        norm = normalize_evaluation_data(raw, max_marks=15, question="Significance of Preamble", paper="GS2")
+
+        required_keys = [
+            "overall_score",
+            "max_marks",
+            "score_band",
+            "evidence_ledger",
+            "demand_tiers",
+            "prioritized_feedback",
+            "validation_audit",
+            "sub_part_step_marking",
+            "full_model_answer"
+        ]
+        for key in required_keys:
+            self.assertIn(key, norm, f"Normalized data must retain public contract key: {key}")
+
+        self.assertIsInstance(norm["evidence_ledger"], list)
+        self.assertIsInstance(norm["demand_tiers"], dict)
+        self.assertIsInstance(norm["prioritized_feedback"], list)
+        self.assertIsInstance(norm["validation_audit"], dict)
+        self.assertIsInstance(norm["full_model_answer"], str)
+
 if __name__ == "__main__":
     unittest.main()

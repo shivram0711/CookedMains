@@ -3081,10 +3081,22 @@ Return strictly a single valid JSON object starting with {{ and ending with }}. 
 def detect_question_discipline(question_str: str, paper_str: str) -> str:
     """
     Accurately classifies question into subject disciplines:
-    HISTORY_CULTURE, PHYSICAL_GEOGRAPHY, PHILOSOPHY_ETHICS, POLITY_GOVERNANCE, ECONOMY_DEVELOPMENT, GENERAL
+    OPTIONAL_DISCIPLINE, HISTORY_CULTURE, PHYSICAL_GEOGRAPHY, PHILOSOPHY_ETHICS, POLITY_GOVERNANCE, ECONOMY_DEVELOPMENT, GENERAL
     """
     q_low = str(question_str or "").lower()
     p_up = str(paper_str or "").upper()
+
+    # 0. Optional Subject or Disciplinary Paper
+    if any(m in p_up for m in [
+        "OPTIONAL", "PSIR", "SOCIOLOGY", "ANTHROPOLOGY", "PUBAD", "PUBLIC ADMINISTRATION",
+        "MATHEMATICS", "PHYSICS", "CHEMISTRY", "COMMERCE", "BOTANY", "ZOOLOGY",
+        "GEOGRAPHY OPTIONAL", "HISTORY OPTIONAL"
+    ]) or any(k in q_low for k in [
+        "hamiltonian", "schrodinger", "dirac equation", "nash equilibrium", "pareto optimal",
+        "weberian bureaucracy", "structural functionalism", "habermas", "gramsci hegemony",
+        "bourdieu", "foucault"
+    ]):
+        return "OPTIONAL_DISCIPLINE"
 
     # 1. History & Art/Culture (including Indian philosophy, architecture, literature, dynasties)
     if any(k in q_low for k in [
@@ -5779,24 +5791,31 @@ def _normalize_demand_tiers(data: Dict[str, Any], max_marks: int = 10, is_hindi:
 
     # 3. Tier 3: Optional Enrichment (CRITICAL: deduction_applied = False)
     tier_3 = []
+    tag_prefix = "[Optional Value Addition — Suggestion Only] "
     if isinstance(raw_tiers, dict) and isinstance(raw_tiers.get("tier_3_optional_enrichment"), list) and len(raw_tiers["tier_3_optional_enrichment"]) > 0:
         for o_item in raw_tiers["tier_3_optional_enrichment"]:
             if isinstance(o_item, dict):
+                sugg = str(o_item.get("coaching_suggestion") or o_item.get("definition") or "").strip()
+                if sugg and not o_item.get("is_present", False) and not sugg.startswith("[Optional"):
+                    sugg = f"{tag_prefix}{sugg}"
                 tier_3.append({
                     "enrichment_item": str(o_item.get("enrichment_item") or o_item.get("term") or "Value Addition"),
                     "category": str(o_item.get("category") or "Coaching Suggestion"),
                     "is_present": bool(o_item.get("is_present", False)),
-                    "coaching_suggestion": str(o_item.get("coaching_suggestion") or o_item.get("definition") or ""),
+                    "coaching_suggestion": sugg,
                     "deduction_applied": False  # RULE 2 HARD GUARANTEE
                 })
     else:
         for card in kw_cards[:4]:
             if isinstance(card, dict) and card.get("term"):
+                raw_c = str(card.get("definition") or card.get("how_to_use_one_line") or "").strip()
+                if raw_c and not raw_c.startswith("[Optional"):
+                    raw_c = f"{tag_prefix}{raw_c}"
                 tier_3.append({
                     "enrichment_item": str(card.get("term")),
                     "category": str(card.get("domain_or_thinker") or "Authority Anchor"),
                     "is_present": False,
-                    "coaching_suggestion": str(card.get("definition") or card.get("how_to_use_one_line") or ""),
+                    "coaching_suggestion": raw_c,
                     "deduction_applied": False  # RULE 2 HARD GUARANTEE
                 })
 
@@ -5832,6 +5851,31 @@ def _prevent_duplicate_credit(data: Dict[str, Any]) -> None:
                     item["what_you_wrote"] = item.get("what_you_wrote", "").replace('"', "").replace("'", "") + " (distinct analytical facet)"
                 elif clean_q:
                     seen_quotes.add(clean_q)
+
+    # Prevent duplicate credit across evidence ledger criteria
+    ledger = data.get("evidence_ledger")
+    if isinstance(ledger, list):
+        seen_ev = set()
+        for idx, entry in enumerate(ledger):
+            if isinstance(entry, dict):
+                ev_str = str(entry.get("candidate_evidence") or "").strip().lower()
+                clean_ev = re.sub(r'[^a-z0-9]+', '', ev_str)[:60]
+                if clean_ev and clean_ev in seen_ev:
+                    is_hi = bool(data.get("is_hindi"))
+                    entry["assessment_of_evidence"] = (
+                        "Repeated point: The same conceptual argument was already credited under an earlier section. "
+                        "To maximize marks within the word limit, introduce a distinct dimension rather than repeating."
+                        if not is_hi else
+                        "दोहराव: यह तर्क पूर्व में ही मूल्यांकित किया जा चुका है; पुनरावृत्ति के स्थान पर नवीन आयाम प्रस्तुत करें।"
+                    )
+                    entry["what_the_evidence_demonstrates"] = entry["assessment_of_evidence"]
+                    mx_val = float(entry.get("max_marks", 2.0))
+                    entry["awarded_marks"] = min(float(entry.get("awarded_marks", 0.0) or 0.0), 0.25)
+                    entry["layer_a_marks_awarded"] = entry["awarded_marks"]
+                    entry["deduction_amount"] = round(max(0.0, mx_val - entry["awarded_marks"]), 2)
+                    entry["demand_status"] = get_canonical_demand_status(entry["awarded_marks"], mx_val, is_hindi=is_hi)
+                elif clean_ev:
+                    seen_ev.add(clean_ev)
 
 
 def _normalize_prioritized_feedback(data: Dict[str, Any], max_marks: int = 10, is_hindi: bool = False) -> None:
@@ -5897,7 +5941,46 @@ def _run_release_validation_and_consistency(data: Dict[str, Any], max_marks: int
     steps = data.get("sub_part_step_marking", [])
     ledger = data.get("evidence_ledger", [])
 
-    # 1. Mathematical reconciliation: sum of steps and ledger awarded must equal overall_score
+    # 1. Mathematical reconciliation: synchronize steps and ledger
+    if ledger and not data.get("sub_part_step_marking"):
+        steps = []
+        for idx, item in enumerate(ledger):
+            steps.append({
+                "step_label": str(item.get("demand_title") or f"Demand {idx+1}"),
+                "sub_heading": str(item.get("demand_title") or f"Demand {idx+1}"),
+                "awarded": float(item.get("awarded_marks") or item.get("layer_a_marks_awarded") or 0.0),
+                "max": float(item.get("max_marks") or item.get("layer_a_max_marks") or 2.0),
+                "quoted_written": str(item.get("candidate_evidence") or "")
+            })
+        data["sub_part_step_marking"] = steps
+
+    # 1.1 Programmatic Evidence Grounding Check (Failure Class C):
+    # If candidate evidence is empty or missing, cap awarded marks to 0.05M
+    ledger_marks_adjusted = False
+    for idx, item in enumerate(ledger):
+        if isinstance(item, dict):
+            c_ev = str(item.get("candidate_evidence") or "").strip()
+            is_ev_missing = (not c_ev) or (c_ev.lower() in [
+                "none", "nil", "n/a", "no evidence", "absent", "omitted",
+                "no supporting evidence found in the readable submission.",
+                "पठनीय उत्तर में कोई पुष्टिकारक साक्ष्य नहीं मिला।"
+            ])
+            if is_ev_missing:
+                item["candidate_evidence"] = "पठनीय उत्तर में कोई पुष्टिकारक साक्ष्य नहीं मिला।" if is_hindi else "No supporting evidence found in the readable submission."
+                if float(item.get("awarded_marks", 0.0) or 0.0) > 0.05:
+                    item["awarded_marks"] = 0.0
+                    item["layer_a_marks_awarded"] = 0.0
+                    item["deduction_amount"] = float(item.get("max_marks", 2.0))
+                    item["demand_status"] = get_canonical_demand_status(0.0, float(item.get("max_marks", 2.0)), is_hindi=is_hindi)
+                    item["specific_deduction_reason"] = (
+                        "No supporting evidence found in candidate submission for this core demand."
+                        if not is_hindi else
+                        "अभ्यर्थी के उत्तर में इस मुख्य मांग के लिए कोई पुष्टिकारक साक्ष्य नहीं मिला।"
+                    )
+                    if idx < len(steps) and isinstance(steps[idx], dict):
+                        steps[idx]["awarded"] = 0.0
+                    ledger_marks_adjusted = True
+
     if steps:
         step_aw_sum = round(sum(float(st.get("awarded", 0.0) or 0.0) for st in steps if isinstance(st, dict)), 2)
         if abs(step_aw_sum - overall_score) > 0.05 and len(steps) > 0:
@@ -5905,17 +5988,34 @@ def _run_release_validation_and_consistency(data: Dict[str, Any], max_marks: int
             last_st = steps[-1]
             last_st["awarded"] = max(0.0, min(float(last_st.get("max", 2.0)), round(float(last_st.get("awarded", 1.0)) + delta, 2)))
 
-    # Reconcile evidence_ledger marks with steps
-    for idx, item in enumerate(ledger):
-        if idx < len(steps) and isinstance(steps[idx], dict):
-            item["layer_a_marks_awarded"] = float(steps[idx].get("awarded", 0.0))
-            item["layer_a_max_marks"] = float(steps[idx].get("max", 2.0))
-            item["awarded_marks"] = item["layer_a_marks_awarded"]
-            item["max_marks"] = item["layer_a_max_marks"]
+    # Reconcile evidence_ledger marks with steps: preserve ledger-level deductions and adjustments
+    if ledger and steps and len(ledger) == len(steps):
+        for idx, item in enumerate(ledger):
+            if "awarded_marks" in item and item["awarded_marks"] is not None:
+                steps[idx]["awarded"] = float(item["awarded_marks"])
+                steps[idx]["max"] = float(item.get("max_marks", steps[idx].get("max", 2.0)))
+            else:
+                item["awarded_marks"] = float(steps[idx].get("awarded", 0.0))
+                item["max_marks"] = float(steps[idx].get("max", 2.0))
+            item["layer_a_marks_awarded"] = item["awarded_marks"]
+            item["layer_a_max_marks"] = item["max_marks"]
             item["deduction_amount"] = round(max(0.0, item["max_marks"] - item["awarded_marks"]), 2)
             item["demand_status"] = get_canonical_demand_status(item["awarded_marks"], item["max_marks"], is_hindi=is_hindi)
+    elif ledger:
+        for idx, item in enumerate(ledger):
+            aw_val = float(item.get("awarded_marks") or item.get("layer_a_marks_awarded") or 0.0)
+            mx_val = float(item.get("max_marks") or item.get("layer_a_max_marks") or 2.0)
+            item["awarded_marks"] = aw_val
+            item["max_marks"] = mx_val
+            item["layer_a_marks_awarded"] = aw_val
+            item["layer_a_max_marks"] = mx_val
+            item["deduction_amount"] = round(max(0.0, mx_val - aw_val), 2)
+            item["demand_status"] = get_canonical_demand_status(aw_val, mx_val, is_hindi=is_hindi)
 
-    # 2. Check for OCR & handwriting uncertainty
+    if ledger:
+        data["overall_score"] = round(sum(float(it.get("awarded_marks", 0.0) or 0.0) for it in ledger if isinstance(it, dict)), 2)
+
+    # 2. Check for OCR & handwriting uncertainty and unverifiable claims
     trans_text = str(data.get("transcribed_text") or "").lower()
     uncertainty_flags = []
     if any(m in trans_text for m in ["[illegible]", "[unclear]", "???", "unreadable", "blur"]):
@@ -5927,6 +6027,11 @@ def _run_release_validation_and_consistency(data: Dict[str, Any], max_marks: int
         uncertainty_flags.append({
             "type": "low_ocr_confidence",
             "message": "Low OCR scan confidence detected; uncertainty flagged." if not is_hindi else "कम ओसीआर स्पष्टता दर्ज की गई; अनिश्चितता का अंकन किया गया।"
+        })
+    if any(m in trans_text for m in ["[unverified]", "[citation needed]", "unverifiable claim", "disputed statistic", "data uncertainty", "unverified statistic"]):
+        uncertainty_flags.append({
+            "type": "unverifiable_claim_caution",
+            "message": "Candidate cited current statistics or claims that could not be independently verified from context; flagged with uncertainty rather than penalizing or declaring false." if not is_hindi else "अभ्यर्थी द्वारा उद्धृत आंकड़े संदर्भ से सीधे सत्यापित नहीं किए जा सके; असत्य मानने के बजाय अनिश्चितता दर्ज की गई।"
         })
     data["uncertainty_flags"] = uncertainty_flags
 
