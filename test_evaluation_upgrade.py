@@ -1873,5 +1873,66 @@ class TestGS2Demo8GroundTruthRegression(unittest.TestCase):
         self.assertNotIn("Article 50", conc)
         self.assertTrue(any(term in conc for term in ["NFSA", "Article 47", "SDG-2", "POSHAN", "Millets", "Shree Anna"]))
 
+
+class TestUPSCInterdisciplinarySyllabusOverlap(unittest.TestCase):
+    """
+    Tests UPSC Mains Interdisciplinary Syllabus Overlap Matrix:
+    Confirms questions with cross-subject touchpoints (e.g. RPA & Electoral Ethics,
+    Corporate Governance & Ethics, Constitutional Rights & Preventive Detention,
+    Historical Thinkers & Moral Philosophies) are recognized as academically compatible
+    and never falsely blocked as intake mismatches.
+    """
+
+    def setUp(self):
+        from evaluator_engine import is_paper_compatible, infer_paper_from_question_content
+        self.is_paper_compatible = is_paper_compatible
+        self.infer_paper_from_question_content = infer_paper_from_question_content
+
+    def test_rpa_electoral_ethics_classified_as_gs2(self):
+        """Question 14 (RPA, right to contest, electoral ethics, lifetime ban) must resolve to GS2."""
+        q = "Examine the tension between the right to contest elections and the need to uphold electoral ethics under the Representation of the People Act. Should there be a lifetime ban on convicted criminals? (Answer in 250 words) 15"
+        inferred = self.infer_paper_from_question_content(q)
+        self.assertEqual(inferred, "GS2")
+
+    def test_gs2_gs4_electoral_ethics_compatibility(self):
+        """Confirm GS2 and GS4 are compatible for electoral ethics and RPA questions."""
+        q = "Examine the tension between the right to contest elections and the need to uphold electoral ethics under the Representation of the People Act. Should there be a lifetime ban on convicted criminals? (Answer in 250 words) 15"
+        self.assertTrue(self.is_paper_compatible("GS2", "GS4", q))
+        self.assertTrue(self.is_paper_compatible("GS4", "GS2", q))
+        self.assertTrue(self.is_paper_compatible("GS2", "GS2", q))
+
+    def test_gs2_gs4_probity_and_anticorruption_compatibility(self):
+        """Confirm Lokpal, POCA, and RTI are compatible across GS2 (Governance) and GS4 (Probity)."""
+        q1 = "Analyze the effectiveness of the Lokpal and Lokayuktas Act in curbing corruption and restoring probity in public governance."
+        self.assertTrue(self.is_paper_compatible("GS2", "GS4", q1))
+        self.assertTrue(self.is_paper_compatible("GS4", "GS2", q1))
+
+        q2 = "Right to Information is not merely a statutory right but a touchstone of transparent and ethical governance. Discuss."
+        self.assertTrue(self.is_paper_compatible("GS2", "GS4", q2))
+        self.assertTrue(self.is_paper_compatible("GS4", "GS2", q2))
+
+    def test_gs3_gs4_corporate_and_environmental_ethics_compatibility(self):
+        """Confirm CSR, corporate governance, and climate justice are compatible across GS3 and GS4."""
+        q_csr = "Critically examine Corporate Social Responsibility (CSR) under Section 135 of the Companies Act as a tool for ethical business conduct."
+        self.assertTrue(self.is_paper_compatible("GS3", "GS4", q_csr))
+        self.assertTrue(self.is_paper_compatible("GS4", "GS3", q_csr))
+
+        q_env = "Climate justice and intergenerational equity must guide global decarbonization goals. Discuss."
+        self.assertTrue(self.is_paper_compatible("GS3", "GS4", q_env))
+        self.assertTrue(self.is_paper_compatible("GS4", "GS3", q_env))
+
+    def test_gs1_gs4_moral_thinkers_compatibility(self):
+        """Confirm philosophical/moral ideas of Gandhi and Ambedkar are compatible across GS1 and GS4."""
+        q_gandhi = "Mahatma Gandhi's concept of Trusteeship offers a moral alternative to unbridled capitalism. Elucidate."
+        self.assertTrue(self.is_paper_compatible("GS1", "GS4", q_gandhi))
+        self.assertTrue(self.is_paper_compatible("GS4", "GS1", q_gandhi))
+
+    def test_genuine_mismatch_strictly_blocked(self):
+        """Confirm genuine subject mismatches (e.g. Volcanic Calderas in GS4) remain strictly blocked."""
+        q_geo = "Explain the process of formation of volcanic calderas. How do they contribute to geothermal energy?"
+        self.assertFalse(self.is_paper_compatible("GS4", "GS1", q_geo))
+        self.assertFalse(self.is_paper_compatible("GS4", "GS2", q_geo))
+
 if __name__ == "__main__":
+
     unittest.main()

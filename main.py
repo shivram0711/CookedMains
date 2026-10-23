@@ -2664,13 +2664,23 @@ async def evaluate_answer(
                 paper_mismatch = True
                 true_detected_paper = inferred_p
 
+        # If papers are academically compatible under the UPSC Interdisciplinary Overlap Matrix,
+        # clear any raw model mismatch flags so valid cross-disciplinary answers evaluate seamlessly!
+        if is_paper_compatible(paper, detected_p, final_question) and is_paper_compatible(paper, inferred_p, final_question):
+            paper_mismatch = False
+            true_detected_paper = paper
+            if isinstance(evaluation_result, dict):
+                evaluation_result["is_intake_mismatch"] = False
+                evaluation_result["mismatch_details"] = ""
+                evaluation_result["detected_paper"] = paper
+
         marks_mismatch = False
         true_detected_marks = req_m_int
         if det_m_int and det_m_int in [10, 15, 20] and det_m_int != req_m_int:
             marks_mismatch = True
             true_detected_marks = det_m_int
 
-        intake_flag = bool(evaluation_result.get("is_intake_mismatch", False))
+        intake_flag = bool(evaluation_result.get("is_intake_mismatch", False)) and (paper_mismatch or marks_mismatch)
 
         if not is_rewrite and not allow_auto_aligned and (paper_mismatch or marks_mismatch or intake_flag):
             # DO NOT CONSUME CREDITS, DO NOT SAVE MISMATCHED EVALUATION!

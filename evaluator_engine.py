@@ -734,6 +734,66 @@ def is_paper_compatible(selected_paper: str, detected_or_inferred_paper: str, qu
         if question_text and has_any_phrase(question_text.lower(), ["caste", "sanskritization", "modernization", "stratification", "tribal", "family", "religion"]):
             return True
 
+    # 6. GS2 <-> GS4 Overlap (Governance, Probity, Ethics in Public Life, Electoral Reforms):
+    #    - Representation of the People Act, criminalisation of politics, lifetime ban on convicted criminals, electoral ethics/reforms
+    #    - Probity in governance, code of ethics vs code of conduct, citizen charters, Sevottam model, social audits
+    #    - Anti-corruption framework: Prevention of Corruption Act (POCA), Lokpal, Lokayuktas, CVC, CBI, Whistleblowers Act
+    #    - Right to Information (RTI Act 2005) vs Official Secrets Act, transparency, public interest disclosure
+    #    - Constitutional morality, rule of law, judicial ethics, judicial accountability, contempt of court
+    #    - Civil service values, administrative neutrality vs commitment, 2nd ARC Report 4 ("Ethics in Governance"), Mission Karmayogi
+    gs2_gs4_overlap_keywords = [
+        "representation of the people act", "representation of the people", "representation of people act", "rpa",
+        "electoral ethics", "electoral reforms", "electoral reform", "right to contest", "criminalisation of politics",
+        "criminalization of politics", "convicted criminals", "convicted politicians", "lifetime ban",
+        "lily thomas", "jan chawkidar", "public interest foundation", "association for democratic reforms", "adr",
+        "electoral bonds", "political funding", "model code of conduct", "disqualification",
+        "probity in governance", "probity", "code of conduct", "code of ethics", "ethical governance",
+        "anti-corruption", "prevention of corruption", "poca", "lokpal", "lokayukta", "lokayuktas",
+        "central vigilance commission", "cvc", "whistleblower", "whistleblowers", "whistleblowing",
+        "right to information", "rti act", "rti", "official secrets act", "citizen's charter", "citizens charter",
+        "sevottam", "social audit", "social audits", "constitutional morality", "judicial ethics", "judicial accountability",
+        "civil service values", "civil services values", "public service values", "integrity in governance",
+        "conflict of interest", "ethics in governance", "2nd arc", "second arc", "mission karmayogi",
+        "lok प्रतिनिधित्व अधिनियम", "चुनावी नैतिकता"
+    ]
+    if (s_norm in ["GS2", "GS4"]) and (d_norm in ["GS2", "GS4"]):
+        if question_text and has_any_phrase(question_text.lower(), gs2_gs4_overlap_keywords):
+            return True
+
+    # 7. GS3 <-> GS4 Overlap (Corporate Governance, Business Ethics, Climate Justice, Tech Ethics):
+    #    - Corporate Social Responsibility (CSR, Sec 135 Companies Act), corporate fraud (Satyam), fair business practices
+    #    - Environmental ethics, climate justice, polluter pays principle, intergenerational equity, deep ecology
+    #    - Technology & AI ethics, algorithmic bias, biotechnology ethics (CRISPR/gene editing), data privacy (DPDPA)
+    #    - Money laundering (PMLA), black money, shell companies, fugitive economic offenders
+    gs3_gs4_overlap_keywords = [
+        "corporate governance", "corporate social responsibility", "csr", "section 135", "companies act",
+        "business ethics", "insider trading", "corporate fraud", "corporate crime", "satyam",
+        "environmental ethics", "climate justice", "polluter pays", "intergenerational equity", "deep ecology",
+        "ai ethics", "artificial intelligence ethics", "algorithmic bias", "biotechnology ethics", "bioethics",
+        "crispr", "gene editing", "data ethics", "data privacy", "surveillance capitalism",
+        "money laundering", "black money", "tax evasion", "illicit financial flows", "fugitive economic offenders"
+    ]
+    if (s_norm in ["GS3", "GS4"]) and (d_norm in ["GS3", "GS4"]):
+        if question_text and has_any_phrase(question_text.lower(), gs3_gs4_overlap_keywords):
+            return True
+
+    # 8. GS1 <-> GS4 Overlap (Moral Thinkers, Historical Role Models & Reform Traditions):
+    #    - Ethical philosophies of historical thinkers: Gandhi (Trusteeship, Satyagraha, Sarvodaya), Ambedkar, Vivekananda,
+    #      Buddha, Mahavira, Ashoka, Kautilya (Raja Dharma), Bhakti-Sufi moral humanism (Kabir, Nanak), Tagore
+    gs1_gs4_overlap_keywords = [
+        "gandhi", "gandhian", "satyagraha", "sarvodaya", "trusteeship", "seven sins",
+        "buddha", "buddhism", "jainism", "ashoka", "dhamma", "kautilya", "arthashastra", "raja dharma", "yogakshema",
+        "ambedkar", "social morality", "annihilation of caste", "tagore", "vivekananda", "raja ram mohan roy",
+        "kabir", "guru nanak", "moral values", "ethical philosophy", "thinkers and philosophers"
+    ]
+    if (s_norm in ["GS1", "GS4"]) and (d_norm in ["GS1", "GS4"]):
+        if question_text and has_any_phrase(question_text.lower(), gs1_gs4_overlap_keywords):
+            return True
+
+    # 9. Optional-PubAd <-> GS2 / GS4
+    if ("OPTIONALPUBAD" in (s_norm, d_norm)) and (s_norm in ["GS2", "GS4", "OPTIONALPUBAD"]) and (d_norm in ["GS2", "GS4", "OPTIONALPUBAD"]):
+        return True
+
     return False
 
 def infer_paper_from_question_content(question_text: str) -> Optional[str]:
@@ -768,6 +828,8 @@ def infer_paper_from_question_content(question_text: str) -> Optional[str]:
         "civil service", "civil services", "mission karmayogi", "karmayogi", "governance", "transparency", "accountability", "citizen charter",
         "2nd arc", "second arc", "rti act", "judiciary", "supreme court", "collegium", "judicial review", "judicial activism", "due process", "procedure established by law",
         "parliament", "lok sabha", "rajya sabha", "standing committee", "anti-defection", "10th schedule", "election commission", "rpa", "simultaneous elections",
+        "representation of the people act", "representation of the people", "representation of people act", "right to contest", "criminalisation of politics", "criminalization of politics",
+        "convicted criminals", "convicted politicians", "lifetime ban", "electoral reforms", "electoral reform", "electoral bonds", "political funding", "model code of conduct", "lily thomas", "jan chawkidar", "association for democratic reforms", "adr",
         "social justice", "vulnerable sections", "welfare schemes", "poverty alleviation", "social empowerment",
         "bilateral", "foreign policy", "international relations", "unsc", "quad", "brics", "sco", "indo-pacific"
     ]
@@ -798,6 +860,9 @@ def infer_paper_from_question_content(question_text: str) -> Optional[str]:
     # If question is fundamentally about democratic balance, civil liberties, or constitutional safeguards:
     if has_any_phrase(text, ["freedom of speech", "speech and expression", "democratic ethos", "vibrant democracy", "civil liberties", "fundamental rights", "article 19", "article 21", "article 22"]):
         gs2_score += 4
+    # If question is fundamentally about statutory electoral laws, RPA, or disqualification of legislators:
+    if has_any_phrase(text, ["representation of the people act", "representation of the people", "rpa", "right to contest", "convicted criminals", "lifetime ban", "criminalisation of politics", "election commission"]):
+        gs2_score += 6
     # If question is fundamentally about operational warfare, terror financing, or border defense:
     if has_any_phrase(text, ["terror financing", "cyber warfare", "border management", "cross-border", "coastal defense", "insurgency tactics"]):
         gs3_score += 4
@@ -1939,7 +2004,15 @@ MANDATORY CURRENT AFFAIRS VALUE-ADDITION INSTRUCTIONS:
 - If the uploaded sheet is a pre-printed UPSC Question-Cum-Answer-Booklet (QCAB) or standard mock test booklet, THE PRINTED QUESTION ON THE BOOKLET IS THE AUTHORITATIVE GROUND TRUTH!
 - Extract the verbatim question into "detected_question".
 - Inspect any printed marks weightage (10 Marks / 15 Marks / 20 Marks) printed beside the question and output it as integer "detected_marks".
-- Identify the true academic GS Paper (GS1, GS2, GS3, GS4, Essay, or Optional) based on the question prompt. If the question belongs to a different subject than the selected "{paper_key}" (e.g. Forest Rights Act belongs to GS2 Social Justice, not GS3) or has different marks than {max_marks}, set "is_intake_mismatch": true and explain in "mismatch_details".
+- Identify the true academic GS Paper (GS1, GS2, GS3, GS4, Essay, or Optional) based on the question prompt.
+- UPSC SYLLABUS INTERDISCIPLINARY OVERLAP MATRIX (CRITICAL LAW):
+  * UPSC Mains questions routinely interconnect syllabus areas across papers.
+  * GS2 <-> GS4 Overlap: Representation of the People Act (RPA), electoral ethics/reforms, criminalisation of politics, probity in governance, anti-corruption (Lokpal, CVC, POCA), RTI, codes of conduct/ethics, 2nd ARC Report 4 ("Ethics in Governance"), constitutional morality.
+  * GS3 <-> GS4 Overlap: Corporate governance, CSR, business ethics, climate justice, environmental ethics, AI ethics, bioethics, data privacy.
+  * GS1 <-> GS4 Overlap: Moral & ethical philosophies of historical thinkers (Gandhi, Ambedkar, Vivekananda, Buddha, Ashoka, Kautilya).
+  * GS1 <-> GS2 Overlap: Secularism, communalism, regionalism, caste, women empowerment, vulnerable sections, social justice.
+  * GS2 <-> GS3 Overlap: Security laws vs fundamental rights (UAPA, NSA, PMLA, AFSPA vs Art 19/21/22), fiscal federalism, disaster management, Forest Rights Act.
+  If the question falls under any of these legitimate UPSC interdisciplinary overlap areas and is compatible with the selected "{paper_key}", DO NOT flag a mismatch! Set "is_intake_mismatch": false, and calibrate evaluation to the selected paper's disciplinary perspective.
 """
 
     return f"""You are an expert UPSC Mains Evaluator & Mentor evaluating an authentic candidate answer copy.
