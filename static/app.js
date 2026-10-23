@@ -7184,26 +7184,22 @@ function renderAnnotationsOverlay() {
         const hasMultipleCandHeadings = candHeadingsOnFinalPage.length >= 2;
         const qText = String(evalData.detected_question || evalData.question || "");
         const transText = String(evalData.transcribed_text || "");
-        const isWfDemanded = /\b(?:way\s+forward|mitigat|suggest\s+measures|remed|roadmap|policy\s+response|solutions?|what\s+steps|how\s+to\s+address)\b/i.test(qText);
+        const isWfDemanded = /\b(?:way\s+forward|suggest\s+reform|reform\s+strateg|mitigat|suggest\s+measures|remed|roadmap|policy\s+response|solutions?|what\s+steps|how\s+to\s+address)\b/i.test(qText);
         const hasCandidateWf = /\b(?:way\s*forward|way\s*ahead|measures\s*needed|mitigation|solutions?|suggestions?|reforms?|आगे\s*की\s*राह|समाधान|सुझाव)\b/i.test(finalPgTranscript || transText);
 
-        const rawBodyTagStr = (rawBody && rawBody.tag) ? String(rawBody.tag).replace(/^body:\s*/i, "").trim() : "";
-        const combinedTagParts = rawBodyTagStr.split(/\s*(?:&|\band\b|\/)\s*/i).map(s => s.trim()).filter(Boolean);
-        const hasTwoDistinctSubheadingsInTag = (
-          combinedTagParts.length >= 2 &&
-          /challenge|issue|constraint|limitation|factor|problem|चुनौत/i.test(combinedTagParts[0]) &&
-          /way\s*forward|way\s*ahead|measure|solution|reform|strateg|आगे\s*की\s*राह|समाधान/i.test(combinedTagParts[1])
-        );
+        const rawBodyTagStr = (rawBody && rawBody.tag) ? String(rawBody.tag).toLowerCase() : "";
+        const hasTwoDistinctSubheadingsInTag = rawBodyTagStr.includes("and") || rawBodyTagStr.includes("&") || rawBodyTagStr.includes("+");
         const hasMultipleBodyAnnsOnFinalPage = rawBodyAnns.length >= 2;
+        const isHeadingAlreadyWf = candHeadingsOnFinalPage.length === 1 && /\b(?:way\s*forward|reform|reforms|solutions?)\b/i.test(candHeadingsOnFinalPage[0].text || '');
 
         // On both 10-markers and 15-markers, render 3 sections on final page if candidate authored multiple headings
         // OR if candidate authored a heading + way forward / multiple body annotations exist
-        const shouldRenderThreeSectionsOnFinalPage = !isHeatwaveCopy && (
+        const shouldRenderThreeSectionsOnFinalPage = !isHeatwaveCopy && !isHeadingAlreadyWf && (
           hasMultipleBodyAnnsOnFinalPage ||
           hasTwoDistinctSubheadingsInTag ||
           hasMultipleCandHeadings ||
-          (candHeadingsOnFinalPage.length >= 1 && hasCandidateWf) ||
-          ((totalPages > 2 || evalData.max_marks > 10) && hasCandidateWf)
+          (candHeadingsOnFinalPage.length >= 2 && hasCandidateWf) ||
+          ((totalPages > 2 || evalData.max_marks > 10) && hasCandidateWf && candHeadingsOnFinalPage.length >= 2)
         );
 
         const finalConcRemark = buildDynamicConcRemark(concRemCandidate);
@@ -9641,9 +9637,6 @@ function deriveAdaptiveCardHeading(sec, quote, evalData, currentPg, totalPages) 
   if (sec.zone === "conclusion" || sec.zone === "concl") {
     const hasCandWf = /\b(?:way\s*forward|way\s*ahead|measures\s*needed|mitigation|solutions?|suggestions?|reforms?|आगे\s*की\s*राह|समाधान|सुझाव)\b/i.test(safeQuote + " " + qClean);
     const isWfDemanded = /\b(?:way\s+forward|mitigat|suggest\s+measures|remed|roadmap|policy\s+response|solutions?|what\s+steps|how\s+to\s+address)\b/i.test(qClean);
-    if (hasCandWf || isWfDemanded) {
-      return isHindi ? "समाधान एवं आगे की राह" : "WAY FORWARD & SYNTHESIS";
-    }
     const qDirectiveSuffix = qDirective ? ` (${qDirective})` : "";
     return isHindi ? "निष्कर्ष एवं मूल्यांकन" : `CONCLUSION & SYNTHESIS${qDirectiveSuffix}`;
   }

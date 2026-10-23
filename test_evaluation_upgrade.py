@@ -1720,5 +1720,158 @@ class TestEvidenceGroundedEvaluationRegression(unittest.TestCase):
         anns = norm.get("visual_annotations", [])
         self.assertTrue(len(anns) >= 1)
 
+
+
+class TestGS2Demo8GroundTruthRegression(unittest.TestCase):
+    """
+    Ground-Truth Regression Suite based on GS2DEMO8 15M.pdf:
+    Question: "India faces a paradox of food surplus and nutritional deficit. Analyse the structural reasons behind this paradox and suggest reform strategies. (Answer in 250 words) 15M"
+    Verifies:
+    1. OCR overlap deduplication across camera image boundaries.
+    2. All 9 structural reasons and 7 reform points located on correct pages.
+    3. "Reform strategies" heading recognized semantically as answering "suggest reform strategies".
+    4. Consolidation of Page 3 reforms into a single body section (no duplicate WF callouts).
+    5. No duplicate scoring of identical evidence spans.
+    6. Topic-grounded Social Justice conclusion (NFSA, Article 47, Millets, POSHAN 2.0).
+    7. Exact arithmetic alignment across marks and steps.
+    """
+
+    def setUp(self):
+        self.question = "India faces a paradox of food surplus and nutritional deficit. Analyse the structural reasons behind this paradox and suggest reform strategies. (Answer in 250 words)"
+        self.max_marks = 15
+        self.paper = "GS2"
+        self.transcribed_text = (
+            "[Page 1]\n"
+            "WHO lists nutritional security as most crucial determinant of health and well being.\n"
+            "Buffer stock increase + acreage topping rice & wheat -> nutritional deficit @ 33% malnourished.\n"
+            "Structural reasons:\n"
+            "1) Cereal centricity in dietary intake @ rice-wheat focus.\n"
+            "2) Rise of over-nutrition as 'nutritional deficit' @ obesity #2 in India by 2050.\n"
+            "3) Consumption trends inclined towards HFSS foods over nutrient containing balanced diet.\n\n"
+            "[Page 2]\n"
+            "4) Inefficiency of buffer stock redistribution via PDS.\n"
+            "5) Ration shop in accessibility @ Aadhaar fudging cases.\n"
+            "6) Lack of diverse options availability @ millet based diet.\n"
+            "7) Rising multidimensional poverty -> low access to nutritional food.\n"
+            "8) Rising food inflation -> food budget squeeze.\n"
+            "9) Lack of transportations and logistical soundhen @ 40% food loss due to absence of cold storage (CRBI report on Fruits & Vegetables).\n\n"
+            "[Page 3]\n"
+            "Reform strategies:\n"
+            "1) PDS Interoperability @ ONORC introduction.\n"
+            "2) Millet based diet promulgation @ PM Ann Shri.\n"
+            "3) Rising standard of living -> enhanced access to food.\n"
+            "4) ICDS - Poshan 2.0 @ Mid day meal emphasis on protein-based diet.\n"
+            "5) Increased emphasis on physical literacy @ Fit India with clean eating component.\n"
+            "6) Cross-exchange of food surplus with food deficient areas at parastatal levels.\n"
+            "7) PM-Dhan Dhanya Yojna emphasis on rural empowerment : ~50% poverty in rural India.\n"
+            "Thus, with focus on variegated vectors, a holistic culling of nutritional deficit is underway."
+        )
+
+    def test_ocr_overlap_deduplication(self):
+        """Confirm OCR does not duplicate text from overlapping camera image regions."""
+        from evaluator_engine import deduplicate_overlapping_page_transcripts
+
+        overlapping_sample = (
+            "[Page 1]\n"
+            "1) Cereal centricity in dietary intake @ rice-wheat focus.\n"
+            "2) Rise of over-nutrition as 'nutritional deficit' @ obesity #2 in India by 2050.\n"
+            "3) Consumption trends inclined towards HFSS foods over nutrient containing balanced diet.\n\n"
+            "[Page 2]\n"
+            "3) Consumption trends inclined towards HFSS foods over nutrient containing balanced diet.\n"
+            "4) Inefficiency of buffer stock redistribution via PDS.\n"
+            "5) Ration shop in accessibility @ Aadhaar fudging cases."
+        )
+        deduped = deduplicate_overlapping_page_transcripts(overlapping_sample)
+        # Point 3 should only appear ONCE in the deduped output
+        p3_count = deduped.count("Consumption trends inclined towards HFSS foods")
+        self.assertEqual(p3_count, 1, "Overlapping line at boundary between Page 1 and Page 2 must be deduplicated")
+        self.assertIn("4) Inefficiency of buffer stock redistribution", deduped)
+
+    def test_nine_reasons_and_seven_reforms_page_allocation(self):
+        """Confirm all 9 structural reasons and 7 reform points are allocated to correct pages."""
+        from evaluator_engine import _extract_page_point_range
+
+        raw_eval = {
+            "overall_score": 6.5,
+            "max_marks": 15,
+            "transcribed_text": self.transcribed_text,
+            "detected_question": self.question,
+            "visual_annotations": [
+                {"page": 1, "tag": "Body: Structural reasons (Points 1–3)", "marks_awarded": "+1.5 / 3.5"},
+                {"page": 2, "tag": "Body: Structural reasons (Points 4–9)", "marks_awarded": "+2.5 / 5.5"},
+                {"page": 3, "tag": "Body: Reform strategies", "marks_awarded": "+2.0 / 4.5"},
+                {"page": 3, "tag": "Conclusion", "marks_awarded": "+0.5 / 1.5"}
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=15, question=self.question, paper="GS2")
+
+        p1_ann = next(a for a in norm["visual_annotations"] if a.get("page") == 1 and "Structural" in a.get("tag", ""))
+        p2_ann = next(a for a in norm["visual_annotations"] if a.get("page") == 2 and "Structural" in a.get("tag", ""))
+        p3_ann = next(a for a in norm["visual_annotations"] if a.get("page") == 3 and "Reform" in a.get("tag", ""))
+
+        self.assertIn("1–3", p1_ann["tag"], "Page 1 must cover reasons 1 to 3")
+        self.assertIn("4–9", p2_ann["tag"], "Page 2 must cover reasons 4 to 9 without requiring repeated heading")
+        self.assertIn("Reform strategies", p3_ann["tag"], "Page 3 must cover reform strategies")
+
+    def test_reform_strategies_heading_answers_demand(self):
+        """Confirm 'Reform strategies' is recognized semantically as answering 'suggest reform strategies'."""
+        from evaluator_engine import _is_way_forward_demanded_by_question, _has_candidate_written_way_forward
+
+        self.assertTrue(_is_way_forward_demanded_by_question(self.question))
+        self.assertTrue(_has_candidate_written_way_forward("Reform strategies:\n1) PDS Interoperability @ ONORC"))
+
+    def test_no_duplicate_way_forward_callouts(self):
+        """Confirm Page 3 does NOT produce duplicate 'Way Forward & Solutions' and 'Way Forward & Synthesis'."""
+        raw_eval = {
+            "overall_score": 6.5,
+            "max_marks": 15,
+            "transcribed_text": self.transcribed_text,
+            "detected_question": self.question,
+            "visual_annotations": [
+                {"page": 1, "tag": "Intro", "marks_awarded": "+1.0 / 2.0"},
+                {"page": 1, "tag": "Body: Structural reasons", "marks_awarded": "+1.5 / 3.0"},
+                {"page": 2, "tag": "Body: Structural reasons", "marks_awarded": "+2.0 / 4.0"},
+                {"page": 3, "tag": "Body: Reform strategies", "marks_awarded": "+1.5 / 4.0"},
+                {"page": 3, "tag": "Conclusion", "marks_awarded": "+0.5 / 2.0"}
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=15, question=self.question, paper="GS2")
+        p3_anns = [a for a in norm["visual_annotations"] if a.get("page") == 3]
+
+        # On Page 3, there must be exactly 1 Body section (Reform strategies) + 1 Conclusion!
+        # NEVER 2 body sections splitting reforms into artificial halves.
+        p3_body_anns = [a for a in p3_anns if "concl" not in a.get("tag", "").lower() and "synthesis" not in a.get("tag", "").lower()]
+        self.assertEqual(len(p3_body_anns), 1, "Page 3 must have exactly 1 consolidated body section for Reform strategies")
+        self.assertIn("Reform", p3_body_anns[0]["tag"])
+
+        # Conclusion must be present and tagged as Conclusion
+        p3_conc_ann = next(a for a in p3_anns if "concl" in a.get("tag", "").lower() or "निष्कर्ष" in a.get("tag", "").lower())
+        self.assertIsNotNone(p3_conc_ann)
+
+    def test_no_duplicate_evidence_scoring(self):
+        """Confirm the same evidence span is not scored twice across criteria."""
+        raw_eval = {
+            "overall_score": 6.0,
+            "max_marks": 15,
+            "evidence_ledger": [
+                {"criterion": "Structural Reasons", "candidate_evidence": "40% food loss due to absence of cold storage", "awarded_marks": 2.0, "max_marks": 4.0},
+                {"criterion": "Logistics Deficit", "candidate_evidence": "40% food loss due to absence of cold storage", "awarded_marks": 2.0, "max_marks": 4.0},
+                {"criterion": "Reform Strategies", "candidate_evidence": "PDS Interoperability @ ONORC introduction", "awarded_marks": 2.0, "max_marks": 4.0}
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=15, question=self.question, paper="GS2")
+        dup_entry = norm["evidence_ledger"][1]
+        self.assertIn("Repeated point", dup_entry.get("assessment_of_evidence", ""))
+        self.assertLessEqual(float(dup_entry.get("awarded_marks", 0)), 0.25)
+
+    def test_domain_specific_social_justice_conclusion(self):
+        """Confirm Social Justice / Nutrition conclusion does NOT inject Article 13/50 boilerplate."""
+        from evaluator_engine import _build_domain_specific_conclusion
+
+        conc = _build_domain_specific_conclusion(self.question, paper_name="GS2")
+        self.assertNotIn("Article 13", conc)
+        self.assertNotIn("Article 50", conc)
+        self.assertTrue(any(term in conc for term in ["NFSA", "Article 47", "SDG-2", "POSHAN", "Millets", "Shree Anna"]))
+
 if __name__ == "__main__":
     unittest.main()

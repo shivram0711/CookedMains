@@ -3436,7 +3436,7 @@ def _has_meta_placeholder(txt: str) -> bool:
 def _is_way_forward_demanded_by_question(q_text: str) -> bool:
     q_low = str(q_text or "").lower()
     return bool(re.search(
-        r'\b(?:mitigat\w*|measures|solutions|steps\s+to|suggest\s+steps|remedial|remed\w*|how\s+to\s+address|way\s+forward|way\s+ahead|strategies\s+to|policy\s+interventions|policy\s+roadmap|action\s+plan)\b',
+        r'\b(?:mitigat\w*|measures|solutions?|steps\s+to|suggest\s+steps|remedial|remed\w*|how\s+to\s+address|way\s+forward|way\s+ahead|strategies\s+to|suggest\s+reform|reform\s*strateg\w*|policy\s+interventions?|policy\s+roadmap|action\s+plan|reforms?|remedies|suggestions?|सुधार|उपाय|आगे\s*की\s*राह|समाधान)\b',
         q_low
     ))
 
@@ -3444,9 +3444,50 @@ def _is_way_forward_demanded_by_question(q_text: str) -> bool:
 def _has_candidate_written_way_forward(pg_text: str) -> bool:
     t_low = str(pg_text or "").lower()
     return bool(re.search(
-        r'\b(?:way\s+forward|way\s+ahead|measures\s+needed|solutions|reforms\s+needed|mitigation\s+measures|steps\s+needed|strategies\s+to\s+overcome)\b',
+        r'\b(?:way\s+forward|way\s+ahead|measures\s+needed|solutions?|reforms?\s+needed|reform\s*strateg\w*|reforms?|mitigation\s+measures|steps\s+needed|strategies\s+to\s+overcome|action\s+plan|recommendations?|सुझाव|आगे\s*की\s*राह|समाधान)\b',
         t_low
     ))
+
+
+def deduplicate_overlapping_page_transcripts(raw_trans: str) -> str:
+    """
+    Deduplicates overlapping lines captured across adjacent page boundaries
+    (e.g. from camera photos of overlapping sheet sections or OCR boundary drift).
+    """
+    if not raw_trans or "[Page" not in raw_trans:
+        return raw_trans
+    parts = re.split(r'(\[Page\s*\d+\])', raw_trans, flags=re.IGNORECASE)
+    if len(parts) < 3:
+        return raw_trans
+    pages = []
+    i = 1
+    while i < len(parts):
+        marker = parts[i]
+        txt = parts[i+1] if i + 1 < len(parts) else ""
+        pages.append((marker, txt))
+        i += 2
+    deduped_pages = []
+    prev_lines = []
+    def norm_line(l):
+        return re.sub(r'[^a-z0-9]+', '', l.lower())
+    for idx, (marker, txt) in enumerate(pages):
+        raw_lines = [l.strip() for l in txt.splitlines() if l.strip()]
+        if idx > 0 and prev_lines and raw_lines:
+            max_check = min(5, len(prev_lines), len(raw_lines))
+            overlap_count = 0
+            for k in range(max_check, 0, -1):
+                prev_tail = [norm_line(l) for l in prev_lines[-k:]]
+                curr_head = [norm_line(l) for l in raw_lines[:k]]
+                if prev_tail and curr_head and len(prev_tail) == len(curr_head):
+                    matches = sum(1 for a, b in zip(prev_tail, curr_head) if a == b or (len(a) > 10 and (a in b or b in a)))
+                    if matches == len(prev_tail):
+                        overlap_count = k
+                        break
+            if overlap_count > 0:
+                raw_lines = raw_lines[overlap_count:]
+        prev_lines = [l for l in raw_lines if len(norm_line(l)) >= 10]
+        deduped_pages.append(f"{marker}\n" + "\n".join(raw_lines).strip())
+    return "\n\n".join(deduped_pages).strip()
 
 
 def _extract_candidate_headings_with_positions(raw_pg_trans: str) -> list:
@@ -4003,6 +4044,9 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
             resolved_q = clean_q_hi
             q_lower = resolved_q.lower()
 
+    # Deduplicate overlapping page boundary lines in transcribed_text
+    if data.get("transcribed_text"):
+        data["transcribed_text"] = deduplicate_overlapping_page_transcripts(str(data["transcribed_text"]))
     trans_corpus = str(data.get("transcribed_text") or "").lower()
     has_dates_in_transcript = bool(re.search(r'\b(?:\d{3,4}(?:s|\s*(?:ad|bc|bce|ce))?|\d{1,2}(?:th|st|nd|rd)\s*century)\b', trans_corpus))
 
@@ -4180,14 +4224,14 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         def _is_way_forward_demanded_by_question(q_text: str) -> bool:
             q_low = str(q_text or "").lower()
             return bool(re.search(
-                r'\b(?:mitigat\w*|measures|solutions|steps\s+to|suggest\s+steps|remedial|remed\w*|how\s+to\s+address|way\s+forward|way\s+ahead|strategies\s+to|policy\s+interventions|policy\s+roadmap|action\s+plan)\b',
+                r'\b(?:mitigat\w*|measures|solutions?|steps\s+to|suggest\s+steps|remedial|remed\w*|how\s+to\s+address|way\s+forward|way\s+ahead|strategies\s+to|suggest\s+reform|reform\s*strateg\w*|policy\s+interventions?|policy\s+roadmap|action\s+plan|reforms?|remedies|suggestions?|सुधार|उपाय|आगे\s*की\s*राह|समाधान)\b',
                 q_low
             ))
 
         def _has_candidate_written_way_forward(pg_text: str) -> bool:
             t_low = str(pg_text or "").lower()
             return bool(re.search(
-                r'\b(?:way\s+forward|way\s+ahead|measures\s+needed|solutions|reforms\s+needed|mitigation\s+measures|steps\s+needed|strategies\s+to\s+overcome)\b',
+                r'\b(?:way\s+forward|way\s+ahead|measures\s+needed|solutions?|reforms?\s+needed|reform\s*strateg\w*|reforms?|mitigation\s+measures|steps\s+needed|strategies\s+to\s+overcome|action\s+plan|recommendations?|सुझाव|आगे\s*की\s*राह|समाधान)\b',
                 t_low
             ))
 
@@ -4704,9 +4748,11 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                         if body_ann_p1:
                             body_ann_p1["tag"] = target_body_tag
                             body_ann_p1["start_y_percent"] = max(38.0, h0_y - 3.0)
-                            if float(body_ann_p1.get("end_y_percent", 88.0) or 88.0) <= body_ann_p1["start_y_percent"] + 10.0:
-                                body_ann_p1["end_y_percent"] = 88.0
-                            body_ann_p1["approx_y_percent"] = int(round((body_ann_p1["start_y_percent"] + float(body_ann_p1["end_y_percent"])) / 2))
+                            end_y = float(body_ann_p1.get("end_y_percent", 88.0) or 88.0)
+                            if end_y <= body_ann_p1["start_y_percent"] + 10.0:
+                                end_y = 88.0
+                            body_ann_p1["end_y_percent"] = end_y
+                            body_ann_p1["approx_y_percent"] = int(round((body_ann_p1["start_y_percent"] + end_y) / 2))
                             pg_anns = [a for a in pg_anns if a is intro_ann_p1 or a is body_ann_p1 or a.get("type") == "info"]
                         else:
                             body_ann_p1 = {
@@ -4826,9 +4872,11 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                     has_statutory_act = bool(re.search(r'\b(?:act\s+\d{4}|statutory|model\s+contract\s+farming|disaster\s+management\s+act)\b', pg_trans))
                     _, _, p_final_pt_str = _extract_page_point_range(raw_pg_trans_final, is_hindi)
 
-                    # Only split final page body into 2 sections if candidate authored >= 2 distinct headings
-                    # OR candidate authored a heading + explicit way forward / statutory act
-                    cand_has_two_distinct_sections = (len(cand_page_headings) >= 2) or (len(cand_page_headings) >= 1 and (has_written_wf or has_statutory_act)) or has_written_wf
+                    # If candidate authored 1 heading that is ALREADY the reform/way-forward section (e.g. 'Reform strategies'),
+                    # do NOT split it into two artificial sub-sections! It is a single unified reform section.
+                    is_h0_already_wf = bool(cand_page_headings and re.search(r'\b(?:way\s+forward|way\s+ahead|reform|solution|measure|mitigat|suggestion|आगे\s*की\s*राह|सुझाव|समाधान)\b', cand_page_headings[0]['text'], re.IGNORECASE))
+
+                    cand_has_two_distinct_sections = (len(cand_page_headings) >= 2) or (len(cand_page_headings) == 1 and not is_h0_already_wf and (has_written_wf or has_statutory_act))
                     allow_final_body_split = cand_has_two_distinct_sections
 
                     # Extract closing prose line from pg_trans (e.g. "It can be seen that...", "Thus ethical ideas...")
@@ -7191,6 +7239,17 @@ def _build_domain_specific_conclusion(question_text: str, paper_name: str, exist
         return (
             "Coupling **multi-agency intelligence telemetry (MAC/NATGRID)** with **community-oriented policing** and **state-of-the-art cyber defense grids** "
             "is vital to safeguard national sovereignty against hybrid, multi-domain asymmetric threats."
+        )
+    if any(k in q_low for k in ["nutrition", "food surplus", "hunger", "starvation", "malnutrition", "food security", "poshan", "pds", "nfsa", "stunting", "wasting", "anaemia"]):
+        return (
+            "Aligning the **National Food Security Act (NFSA 2013)** with **crop diversification (Shree Anna / Millets)**, "
+            "**targeted social audits**, and decentralized **POSHAN 2.0 telemetry** is essential to resolve the structural paradox "
+            "and achieve **SDG-2 (Zero Hunger & Nutritional Security) under Article 47**."
+        )
+    if any(k in q_low for k in ["health", "education", "poverty", "vulnerable", "social justice", "welfare", "human resource"]):
+        return (
+            "Converging **statutory welfare guarantees** with **outcome-linked fiscal delivery** and **last-mile social audits** "
+            "is vital to uphold substantive equality under **Article 21 and the DPSP welfare mandate (Article 38/47)**."
         )
     if "GS2" in p_up and any(k in q_low for k in ["bilateral", "foreign", "international", "unsc", "quad", "brics", "diplomacy", "treaty", "indo-pacific"]):
         return (
