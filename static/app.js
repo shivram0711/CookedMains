@@ -10976,17 +10976,36 @@ function syncRubricAndMarginScores(evalData) {
   } else if (maxMarks === 20) {
     rIntroMax = 2.5; rCoreMax = 9.5; rValMax = 3.5; rPresMax = 2.0; rConcMax = 2.5;
   }
-  const rBodyMax = rCoreMax + rValMax + rPresMax;
-
   if (!evalData.rubric_scores || typeof evalData.rubric_scores !== "object") {
     evalData.rubric_scores = {};
   }
   const rubric = evalData.rubric_scores;
-  rubric.intro_max = rIntroMax;
-  rubric.core_demand_max = rCoreMax;
-  rubric.value_add_max = rValMax;
-  rubric.presentation_max = rPresMax;
-  rubric.conclusion_max = rConcMax;
+  if (rubric.intro_max && parseFloat(rubric.intro_max) > 0) {
+    rIntroMax = parseFloat(rubric.intro_max);
+  } else {
+    rubric.intro_max = rIntroMax;
+  }
+  if (rubric.core_demand_max && parseFloat(rubric.core_demand_max) > 0) {
+    rCoreMax = parseFloat(rubric.core_demand_max);
+  } else {
+    rubric.core_demand_max = rCoreMax;
+  }
+  if (rubric.value_add_max && parseFloat(rubric.value_add_max) > 0) {
+    rValMax = parseFloat(rubric.value_add_max);
+  } else {
+    rubric.value_add_max = rValMax;
+  }
+  if (rubric.presentation_max && parseFloat(rubric.presentation_max) > 0) {
+    rPresMax = parseFloat(rubric.presentation_max);
+  } else {
+    rubric.presentation_max = rPresMax;
+  }
+  if (rubric.conclusion_max && parseFloat(rubric.conclusion_max) > 0) {
+    rConcMax = parseFloat(rubric.conclusion_max);
+  } else {
+    rubric.conclusion_max = rConcMax;
+  }
+  const rBodyMax = rCoreMax + rValMax + rPresMax;
 
   const parseAwarded = (marksStr) => {
     const m = String(marksStr || "").match(/([0-9]+(?:\.[0-9]+)?)/);
@@ -11001,8 +11020,9 @@ function syncRubricAndMarginScores(evalData) {
 
   let concAnn = [...anns].reverse().find(a => {
     const t = String(a.tag || "").toLowerCase();
-    return t.includes("conclusion") || t.includes("synthesis") || t.includes("finish") || t.includes("way forward");
-  }) || (anns.length > 1 ? anns[anns.length - 1] : null);
+    const isWF = t.includes("way forward") || t.includes("solutions") || t.includes("reforms") || t.includes("measures") || t.includes("सुझाव") || t.includes("आगे की राह");
+    return !isWF && (t.includes("conclusion") || t.includes("synthesis") || t.includes("finish") || t.includes("निष्कर्ष") || t.includes("closing"));
+  }) || null;
 
   let introAw = introAnn ? parseAwarded(introAnn.marks_awarded) : NaN;
   if (isNaN(introAw)) {
@@ -14059,33 +14079,57 @@ function renderBatch1ExaminerMastery(evalData) {
   };
 
   const concNumber = bodySubParts.length + 2;
-  const stepItems = [
-    {
-      heading: scheme.intro.heading,
-      statement: scheme.intro.statement,
-      score: scheme.intro.score,
-      max: scheme.intro.max,
-      note: buildPureMarksAllocationNote(
-        evalData.intro_audit && evalData.intro_audit.current_critique,
-        scheme.intro.score,
-        scheme.intro.max,
-        true
-      )
-    },
-    ...bodySubParts,
-    {
-      heading: scheme.conclusion.heading,
-      statement: scheme.conclusion.statement,
-      score: scheme.conclusion.score,
-      max: scheme.conclusion.max,
-      note: buildPureMarksAllocationNote(
-        evalData.conclusion_audit && evalData.conclusion_audit.current_critique,
-        scheme.conclusion.score,
-        scheme.conclusion.max,
-        false
-      )
-    }
-  ];
+  let stepItems = [];
+  const rawSubParts = Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : [];
+  if (rawSubParts.length >= 2) {
+    stepItems = rawSubParts.map((st, sIdx) => {
+      const sAw = parseFloat(st.awarded != null ? st.awarded : st.marks_awarded) || 0.0;
+      const sMx = parseFloat(st.max != null ? st.max : st.max_marks) || 1.0;
+      const sLabel = String(st.step_label || st.part_name || `Step ${sIdx + 1}`);
+      const sHeading = String(st.sub_heading || st.analysis || "");
+      const sQuote = String(st.quoted_written || st.scoring_rationale || st.step_up_lever || "");
+      const isIntro = /intro|premise|प्रस्तावना/i.test(sLabel);
+      const isConc = /concl|synthesis|निष्कर्ष/i.test(sLabel);
+      const sNote = (isIntro || isConc) && !sQuote.includes("**")
+        ? buildPureMarksAllocationNote(sQuote, sAw, sMx, isIntro)
+        : sQuote;
+      return {
+        heading: sLabel,
+        statement: sHeading,
+        score: sAw,
+        max: sMx,
+        note: sNote
+      };
+    });
+  } else {
+    stepItems = [
+      {
+        heading: scheme.intro.heading,
+        statement: scheme.intro.statement,
+        score: scheme.intro.score,
+        max: scheme.intro.max,
+        note: buildPureMarksAllocationNote(
+          evalData.intro_audit && evalData.intro_audit.current_critique,
+          scheme.intro.score,
+          scheme.intro.max,
+          true
+        )
+      },
+      ...bodySubParts,
+      {
+        heading: scheme.conclusion.heading,
+        statement: scheme.conclusion.statement,
+        score: scheme.conclusion.score,
+        max: scheme.conclusion.max,
+        note: buildPureMarksAllocationNote(
+          evalData.conclusion_audit && evalData.conclusion_audit.current_critique,
+          scheme.conclusion.score,
+          scheme.conclusion.max,
+          false
+        )
+      }
+    ];
+  }
 
   stepListEl.innerHTML = stepItems.map(item => {
     const pct = item.max > 0 ? Math.min(100, Math.round((item.score / item.max) * 100)) : 0;

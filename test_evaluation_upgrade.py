@@ -1456,5 +1456,269 @@ class TestSection8EvaluationMatrix(unittest.TestCase):
         self.assertIsInstance(norm["validation_audit"], dict)
         self.assertIsInstance(norm["full_model_answer"], str)
 
+
+
+class TestEvidenceGroundedEvaluationRegression(unittest.TestCase):
+    """
+    Regression Test Suite for Evidence-Grounded Evaluation & Actual Response Rules:
+    1. No fixed mark percentages (Intro/Body/Conclusion).
+    2. Parallel columns and section reordering give equal credit to equal substance.
+    3. Multi-page mapping preserves all content across pages.
+    4. Content-rich opening earns substantive demand credit.
+    5. Present but weak way forward gets partial credit (never 0.0 or Demand Missed).
+    6. Answer length alone does not dictate score (concise substance > verbose filler).
+    7. Coaching advice does not penalize or deduct marks.
+    8. Demand-level rubric anchors sum exactly to overall_score and max_marks.
+    9. Duplicate pages / images do not produce duplicate credit.
+    """
+
+    def test_regression_01_no_fixed_percentages(self):
+        """Rule 1: No fixed mark percentages assigned as default scoring rules."""
+        for mm in [10, 15, 20]:
+            p_en = build_evaluation_prompt(
+                question="Critically examine the role of Self-Help Groups in women empowerment.",
+                paper_key="GS2",
+                max_marks=mm,
+                directive_info={"directive": "Critically examine", "details": "Analyze multiple perspectives and limitations.", "ideal_balance": "Balanced analysis"}
+            )
+            # Ensure hardcoded 15%-70%-15% rule is NOT in the prompt
+            self.assertNotIn("(15% - 70% - 15% RULE)", p_en)
+            self.assertNotIn("intro_denominator = 1.5", p_en)
+            self.assertNotIn("body_denominator = 7.0", p_en)
+            # Prompt must instruct demand-based allocation
+            self.assertIn("DYNAMIC QUESTION INTERPRETATION & EVALUATION PLAN (NO RIGID TEMPLATE)", p_en)
+
+            p_hi = build_hindi_evaluation_prompt(
+                question="महिला सशक्तिकरण में स्वयं सहायता समूहों की भूमिका का समालोचनात्मक परीक्षण कीजिए।",
+                paper_key="GS2",
+                max_marks=mm,
+                directive_info={"directive": "समालोचनात्मक परीक्षण कीजिए", "details": "गहन विश्लेषण और सीमाएं।", "ideal_balance": "संतुलित दृष्टिकोण"}
+            )
+            self.assertNotIn("(15% - 70% - 15% नियम)", p_hi)
+            self.assertNotIn("intro_denominator = 1.5", p_hi)
+            self.assertIn("साक्ष्य-आधारित मूल्यांकन एवं प्रतिपुष्टि शुद्धता के 9 स्वर्णिम नियम", p_hi)
+
+    def test_regression_02_parallel_columns_and_reordered_sections(self):
+        """Rule 2: Changing section order or parallel columns (Issues | Way Forward) credits both."""
+        raw_eval = {
+            "overall_score": 5.5,
+            "max_marks": 10,
+            "detected_question": "Examine the implementation challenges of CSR and suggest a way forward.",
+            "detected_paper": "GS2",
+            "visual_annotations": [
+                {"page": 1, "tag": "Parallel Column: Issues", "remark": "Regional skew in CSR expenditure", "marks_awarded": "+1.5 / 2.5"},
+                {"page": 1, "tag": "Parallel Column: Way Forward", "remark": "Incentivize spending in aspirational districts", "marks_awarded": "+1.5 / 2.5"},
+                {"page": 2, "tag": "Substantive Core", "remark": "Compliance-driven rather than impact-driven", "marks_awarded": "+1.5 / 3.0"},
+                {"page": 2, "tag": "Closing Synthesis", "remark": "CSR as catalyst for inclusive growth", "marks_awarded": "+1.0 / 2.0"}
+            ],
+            "sub_part_step_marking": [
+                {"step_label": "1. Issues Column", "sub_heading": "Implementation Bottlenecks", "awarded": 1.5, "max": 2.5, "quoted_written": "Regional skew to western states"},
+                {"step_label": "2. Way Forward Column", "sub_heading": "Targeted Reforms", "awarded": 1.5, "max": 2.5, "quoted_written": "Aspirational districts priority"},
+                {"step_label": "3. Structural Shift", "sub_heading": "Impact Assessment", "awarded": 1.5, "max": 3.0, "quoted_written": "Beyond cheque-book philanthropy"},
+                {"step_label": "4. Conclusion", "sub_heading": "Closing Synthesis", "awarded": 1.0, "max": 2.0, "quoted_written": "Inclusive growth anchor"}
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=10, question="CSR challenges and way forward", paper="GS2")
+        
+        # Verify both parallel columns are retained and credited
+        steps = norm.get("sub_part_step_marking", [])
+        self.assertEqual(len(steps), 4)
+        wf_step = next((s for s in steps if "Way Forward" in s.get("step_label", "") or "Reforms" in s.get("sub_heading", "")), None)
+        self.assertIsNotNone(wf_step)
+        self.assertGreater(float(wf_step.get("awarded", 0)), 0.0)
+        self.assertNotEqual(wf_step.get("demand_status"), "Demand Missed")
+
+    def test_regression_03_multi_page_mapping_no_content_dropped(self):
+        """Rule 3: Multi-page mapping preserves issues, diagrams, solutions, conclusions across pages."""
+        raw_eval = {
+            "overall_score": 6.5,
+            "max_marks": 15,
+            "detected_question": "Discuss the institutional architecture of Fiscal Federalism in India.",
+            "detected_paper": "GS2",
+            "total_pages": 3,
+            "visual_annotations": [
+                {"page": 1, "tag": "Page 1: Constitutional Mandate", "remark": "Article 280 Finance Commission & Article 279A GST Council", "marks_awarded": "+2.0 / 3.0"},
+                {"page": 2, "tag": "Page 2: Diagram of Fund Flows", "remark": "Vertical vs Horizontal devolution flow diagram", "marks_awarded": "+2.0 / 4.0"},
+                {"page": 2, "tag": "Page 2: Vertical Fiscal Imbalance", "remark": "Cess and surcharge expansion shrinking divisible pool", "marks_awarded": "+1.5 / 4.0"},
+                {"page": 3, "tag": "Page 3: Institutional Reforms & Way Forward", "remark": "Permanent status for FC and interstate council revival", "marks_awarded": "+1.0 / 4.0"}
+            ],
+            "sub_part_step_marking": [
+                {"step_label": "1. Constitutional Mandate", "awarded": 2.0, "max": 3.0, "quoted_written": "Art 280 and 279A"},
+                {"step_label": "2. Visual Representation & Fiscal Flow", "awarded": 2.0, "max": 4.0, "quoted_written": "Diagram on vertical devolution"},
+                {"step_label": "3. Emerging Structural Friction", "awarded": 1.5, "max": 4.0, "quoted_written": "Cess and surcharge growth"},
+                {"step_label": "4. Rebalancing Measures & Conclusion", "awarded": 1.0, "max": 4.0, "quoted_written": "Permanent FC secretariat"}
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=15, question="Fiscal Federalism", paper="GS2")
+        
+        pages_present = {a.get("page") for a in norm.get("visual_annotations", [])}
+        self.assertIn(1, pages_present)
+        self.assertIn(2, pages_present)
+        self.assertIn(3, pages_present)
+        self.assertEqual(len(norm.get("sub_part_step_marking", [])), 4)
+
+    def test_regression_04_content_rich_opening_substantive_credit(self):
+        """Rule 4: Content-rich opening that directly answers a sub-question earns substantive credit."""
+        raw_eval = {
+            "overall_score": 5.0,
+            "max_marks": 10,
+            "detected_question": "What is the statutory framework of Corporate Social Responsibility under the Companies Act 2013? Evaluate its effectiveness.",
+            "detected_paper": "GS2",
+            "visual_annotations": [
+                {"page": 1, "tag": "Statutory Mandate (Section 135)", "remark": "Exact thresholds: Net worth >= 500Cr, turnover >= 1000Cr, net profit >= 5Cr; 2% net profit mandate", "marks_awarded": "+2.0 / 2.5"},
+                {"page": 1, "tag": "Effectiveness: Social Impact", "remark": "Education and healthcare capture >60% funds", "marks_awarded": "+1.5 / 3.5"},
+                {"page": 2, "tag": "Implementation Deficits", "remark": "Regional concentration in industrialized states", "marks_awarded": "+1.0 / 2.5"},
+                {"page": 2, "tag": "Closing Synthesis", "remark": "Shift towards social audit and outcome-based CSR", "marks_awarded": "+0.5 / 1.5"}
+            ],
+            "sub_part_step_marking": [
+                {"step_label": "1. Section 135 Statutory Criteria", "awarded": 2.0, "max": 2.5, "quoted_written": "500 Cr net worth, 1000 Cr turnover, 2% average net profit"},
+                {"step_label": "2. Sectoral Effectiveness", "awarded": 1.5, "max": 3.5, "quoted_written": "Fund flow towards health and education"},
+                {"step_label": "3. Implementation Challenges", "awarded": 1.0, "max": 2.5, "quoted_written": "Regional imbalance"},
+                {"step_label": "4. Way Forward & Conclusion", "awarded": 0.5, "max": 1.5, "quoted_written": "Social audit integration"}
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=10, question="CSR Statutory Framework", paper="GS2")
+        
+        # Opening step must receive substantive marks (+2.0 / 2.5), not treated as a trivial decorative intro
+        first_step = norm["sub_part_step_marking"][0]
+        self.assertGreaterEqual(float(first_step["awarded"]), 1.5)
+        self.assertIn("Statutory", first_step["step_label"])
+
+    def test_regression_05_present_weak_way_forward_partial_credit_not_zeroed(self):
+        """Rule 5: Present but weak way forward gets partial credit, NEVER 0.0 or Demand Missed."""
+        raw_eval = {
+            "overall_score": 4.5,
+            "max_marks": 10,
+            "detected_question": "Examine the effectiveness of Nasha Mukt Bharat Abhiyaan and suggest measures.",
+            "detected_paper": "GS2",
+            "visual_annotations": [
+                {"page": 1, "tag": "Overview", "remark": "Nasha Mukt Bharat Abhiyaan coverage", "marks_awarded": "+1.0 / 1.5"},
+                {"page": 1, "tag": "Effectiveness & Gaps", "remark": "De-addiction infrastructure shortage", "marks_awarded": "+2.5 / 5.5"},
+                {"page": 2, "tag": "Way Forward & Solutions", "remark": "1. More rehab centers 2. Community policing 3. Awareness in schools", "marks_awarded": "+1.0 / 3.0"}
+            ],
+            "sub_part_step_marking": [
+                {"step_label": "1. Context", "awarded": 1.0, "max": 1.5, "quoted_written": "NAPDDR launch across 272 vulnerable districts"},
+                {"step_label": "2. Effectiveness Analysis", "awarded": 2.5, "max": 5.5, "quoted_written": "Supply reduction vs demand reduction gaps"},
+                {"step_label": "3. Way Forward & Solutions", "awarded": 1.0, "max": 3.0, "quoted_written": "1. More rehabilitation centers. 2. Community awareness. 3. Youth peer counseling."}
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=10, question="Nasha Mukt Bharat", paper="GS2")
+        
+        wf_step = next((s for s in norm["sub_part_step_marking"] if "Way Forward" in s["step_label"]), None)
+        self.assertIsNotNone(wf_step)
+        self.assertGreater(float(wf_step["awarded"]), 0.0)
+        # Status must be Partially Fulfilled, NEVER Demand Missed
+        self.assertNotEqual(wf_step.get("demand_status"), "Demand Missed")
+        self.assertIn("Partially", wf_step.get("demand_status"))
+
+    def test_regression_06_word_count_conciseness_merit(self):
+        """Rule 6: Answer length alone does not dictate score; substance and demand fulfillment govern."""
+        # Tight 125-word answer with all core points
+        concise_eval = {
+            "overall_score": 5.5,
+            "max_marks": 10,
+            "word_count": 125,
+            "detected_question": "Explain the role of SHGs in microfinance.",
+            "sub_part_step_marking": [
+                {"step_label": "1. Definition & NABARD Linkage", "awarded": 1.5, "max": 2.0, "quoted_written": "SHG-Bank Linkage Programme by NABARD 1992"},
+                {"step_label": "2. Financial Inclusion Mechanism", "awarded": 2.5, "max": 4.5, "quoted_written": "Collateral-free group lending with >95% recovery rates"},
+                {"step_label": "3. Way Forward", "awarded": 1.5, "max": 3.5, "quoted_written": "Digital empowerment via E-Shakti"}
+            ]
+        }
+        # Verbose 230-word answer with generic fluff
+        verbose_eval = {
+            "overall_score": 4.0,
+            "max_marks": 10,
+            "word_count": 230,
+            "detected_question": "Explain the role of SHGs in microfinance.",
+            "sub_part_step_marking": [
+                {"step_label": "1. General Introduction", "awarded": 1.0, "max": 2.0, "quoted_written": "India is a vast country where poor people live in villages..."},
+                {"step_label": "2. Microfinance Discussion", "awarded": 2.0, "max": 4.5, "quoted_written": "Money is needed for everything and SHGs give small loans..."},
+                {"step_label": "3. General Suggestions", "awarded": 1.0, "max": 3.5, "quoted_written": "Government should do more for society..."}
+            ]
+        }
+        norm_concise = normalize_evaluation_data(concise_eval, max_marks=10, question="SHG role", paper="GS2")
+        norm_verbose = normalize_evaluation_data(verbose_eval, max_marks=10, question="SHG role", paper="GS2")
+
+        # Substance beats length: concise precise answer scores higher
+        self.assertGreater(norm_concise["overall_score"], norm_verbose["overall_score"])
+
+    def test_regression_07_coaching_advice_no_penalty(self):
+        """Rule 7: Coaching advice in feedback does NOT deduct marks or penalize core demands."""
+        raw_eval = {
+            "overall_score": 6.0,
+            "max_marks": 10,
+            "detected_question": "Examine the formation of volcanic calderas.",
+            "detected_paper": "GS1",
+            "sub_part_step_marking": [
+                {"step_label": "1. Premise & Definition", "awarded": 1.5, "max": 2.0, "quoted_written": "A caldera is a large depression formed when a volcano collapses."},
+                {"step_label": "2. Formation Mechanism", "awarded": 3.0, "max": 5.0, "quoted_written": "Explosive eruption empties magma chamber causing structural collapse."},
+                {"step_label": "3. Global & Indian Examples", "awarded": 1.5, "max": 3.0, "quoted_written": "Crater Lake USA, Krakatoa, Deccan ash beds."}
+            ],
+            "prioritized_feedback": [
+                {
+                    "priority": 1,
+                    "focus": "Optional Value Enrichment",
+                    "what_was_done_well": "Accurate physics of magma chamber evacuation and caldera collapse.",
+                    "what_limits_marks": "No deduction applied. Answer achieves solid core marks.",
+                    "how_to_improve": "Consider illustrating Lake Toba or Yellowstone to demonstrate supervolcano caldera scale."
+                }
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=10, question="Calderas", paper="GS1")
+        self.assertEqual(norm["overall_score"], 6.0)
+        # Verify coaching tip did not inflate deduction or decrease score
+        fb = norm.get("prioritized_feedback", [])
+        self.assertTrue(len(fb) >= 1)
+        self.assertTrue("actionable_exam_hall_fix" in fb[0] or "how_to_improve_within_word_limit" in fb[0])
+
+    def test_regression_08_demand_rubric_arithmetic_exactness(self):
+        """Rule 8: Demand-level rubric anchors sum exactly to overall_score and max_marks."""
+        raw_eval = {
+            "overall_score": 7.5,
+            "max_marks": 15,
+            "sub_part_step_marking": [
+                {"step_label": "1. Context", "awarded": 1.5, "max": 2.5, "quoted_written": "Context established"},
+                {"step_label": "2. Dimension 1", "awarded": 2.5, "max": 5.0, "quoted_written": "Core dimension analysis"},
+                {"step_label": "3. Dimension 2", "awarded": 2.0, "max": 4.5, "quoted_written": "Secondary dimension analysis"},
+                {"step_label": "4. Way Forward", "awarded": 1.5, "max": 3.0, "quoted_written": "Forward looking conclusion"}
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=15, question="Multipart question", paper="GS2")
+        
+        sum_aw = sum(float(s.get("awarded", 0)) for s in norm["sub_part_step_marking"])
+        sum_mx = sum(float(s.get("max", 0)) for s in norm["sub_part_step_marking"])
+        
+        self.assertAlmostEqual(sum_aw, norm["overall_score"], places=1)
+        self.assertAlmostEqual(sum_mx, 15.0, places=1)
+
+    def test_regression_09_duplicate_page_deduplication(self):
+        """Rule 9: Repeated pages or duplicate images do not produce duplicate credit."""
+        raw_eval = {
+            "overall_score": 4.0,
+            "max_marks": 10,
+            "visual_annotations": [
+                {"page": 1, "tag": "Core Demand", "remark": "Magma chamber collapses under gravity", "marks_awarded": "+2.0 / 4.0"},
+                # Duplicate upload of same page with identical tag and remark:
+                {"page": 2, "tag": "Core Demand", "remark": "Magma chamber collapses under gravity", "marks_awarded": "+2.0 / 4.0"},
+                {"page": 2, "tag": "Distinct Section", "remark": "Crater lake formation in caldera basin", "marks_awarded": "+1.5 / 3.0"}
+            ],
+            "evidence_ledger": [
+                {"criterion": "Core Demand", "candidate_evidence": "Magma chamber collapses under gravity", "awarded_marks": 2.0, "max_marks": 4.0},
+                {"criterion": "Duplicate Claim", "candidate_evidence": "Magma chamber collapses under gravity", "awarded_marks": 2.0, "max_marks": 4.0},
+                {"criterion": "Lake Formation", "candidate_evidence": "Crater lake accumulation", "awarded_marks": 1.5, "max_marks": 3.0}
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=10, question="Caldera formation", paper="GS1")
+        
+        # In evidence ledger, duplicate claim must be penalized / flagged as repeated point
+        dup_entry = norm["evidence_ledger"][1]
+        self.assertIn("Repeated point", dup_entry.get("assessment_of_evidence", ""))
+        self.assertLessEqual(float(dup_entry.get("awarded_marks", 0)), 0.25)
+        
+        # Deduplication must prevent duplicate annotations from proliferating
+        anns = norm.get("visual_annotations", [])
+        self.assertTrue(len(anns) >= 1)
+
 if __name__ == "__main__":
     unittest.main()

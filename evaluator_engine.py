@@ -33,100 +33,120 @@ if os.path.exists(_env_path):
 # Directives Taxonomy for UPSC Mains
 DIRECTIVES = {
     "critically examine": {
-        "meaning": "Probe both achievements and systemic lacunae; conclude with balanced synthesis.",
-        "ideal_balance": "50% arguments in favor, 40% counter-arguments/challenges, 10% balanced synthesis."
+        "meaning": "Probe both achievements/merits and systemic lacunae/limitations; synthesize with a reasoned, evidence-based judgment. Weight sections dynamically based on the specific question topic rather than a rigid 50/50 split.",
+        "ideal_balance": "Dialectical scrutiny examining both positive dimensions and ground constraints in proportion to the subject matter, culminating in a balanced synthesis."
     },
     "critically analyse": {
-        "meaning": "Break issue into constituent parts, assess positives and negatives, synthesize balanced judgment.",
-        "ideal_balance": "Balanced dialectical approach (Thesis, Anti-thesis, Synthesis)."
+        "meaning": "Break issue into constituent parts, assess positives and systemic limitations, and synthesize a balanced judgment based on demonstrated evidence.",
+        "ideal_balance": "Dialectical breakdown examining core mechanisms, structural challenges, and constructive forward synthesis."
     },
     "critically analyze": {
-        "meaning": "Break issue into constituent parts, assess positives and negatives, synthesize balanced judgment.",
-        "ideal_balance": "Balanced dialectical approach (Thesis, Anti-thesis, Synthesis)."
+        "meaning": "Break issue into constituent parts, assess positives and systemic limitations, and synthesize a balanced judgment based on demonstrated evidence.",
+        "ideal_balance": "Dialectical breakdown examining core mechanisms, structural challenges, and constructive forward synthesis."
     },
     "critically discuss": {
-        "meaning": "Dialectical multi-dimensional analysis weighing arguments, counter-arguments, and synthesis.",
-        "ideal_balance": "45% core arguments, 40% systemic critique/challenges, 15% constructive synthesis."
+        "meaning": "Multi-dimensional analysis exploring perspectives, counter-arguments, and synthesis without applying rigid percentage formulas.",
+        "ideal_balance": "Multi-dimensional depth exploring core arguments, operational bottlenecks, and stakeholder implications."
     },
     "write a critical note": {
         "meaning": "Dialectical breakdown: probe genesis, systemic utility, critical shortcomings/concerns, and constructive reforms.",
-        "ideal_balance": "45% core context & merits, 45% critical challenges & institutional lacunae, 10% balanced reform synthesis."
+        "ideal_balance": "Substantive coverage of context and mechanisms, critical evaluation of institutional lacunae, and actionable reforms."
     },
     "critical note": {
         "meaning": "Dialectical breakdown: probe genesis, systemic utility, critical shortcomings/concerns, and constructive reforms.",
-        "ideal_balance": "45% core context & merits, 45% critical challenges & institutional lacunae, 10% balanced reform synthesis."
+        "ideal_balance": "Substantive coverage of context and mechanisms, critical evaluation of institutional lacunae, and actionable reforms."
     },
     "write a note": {
         "meaning": "Provide a comprehensive, multi-dimensional overview detailing origins, core significance, contemporary status, and future outlook.",
-        "ideal_balance": "60% conceptual core & mechanisms, 30% challenges & significance, 10% forward-looking summary."
+        "ideal_balance": "Thorough coverage of conceptual mechanisms, significance, and contemporary developments appropriate to question demands."
     },
     "short note": {
         "meaning": "Crisp, information-dense overview covering definitions, key mechanisms, relevance, and contemporary issues.",
-        "ideal_balance": "60% conceptual core & mechanisms, 30% challenges & significance, 10% forward-looking summary."
+        "ideal_balance": "Precise conceptual overview, operational mechanisms, and contemporary significance."
     },
     "elucidate": {
         "meaning": "Clarify concept using lucid explanations, facts, and concrete case studies.",
-        "ideal_balance": "70% explanatory depth with clear examples, 20% relevance/impact, 10% crisp conclusion."
+        "ideal_balance": "Clear explanatory depth substantiated with concrete real-world examples, case studies, and contextual relevance."
     },
     "elaborate": {
         "meaning": "Expansive multi-dimensional coverage across syllabus and stakeholder frameworks with empirical evidence.",
         "ideal_balance": "Multi-dimensional depth with clear thematic sub-headings and concrete case examples."
     },
     "discuss": {
-        "meaning": "Explore multiple dimensions (PESTLE: Political, Economic, Social, Technological, Legal, Environmental).",
-        "ideal_balance": "Wide multi-dimensional coverage with clear thematic sub-headings."
+        "meaning": "Explore multiple dimensions (e.g. Political, Economic, Social, Technological, Legal, Environmental) appropriate to the specific question topic.",
+        "ideal_balance": "Wide multi-dimensional coverage with clear thematic sub-headings and balanced analysis."
     },
     "evaluate": {
-        "meaning": "Assess value or effectiveness against stated objectives or constitutional ideals with explicit verdict.",
-        "ideal_balance": "Criteria-based assessment, outcomes vs intent, definitive conclusion."
+        "meaning": "Assess value or effectiveness against stated objectives or constitutional ideals with an explicit verdict.",
+        "ideal_balance": "Criteria-based assessment measuring outcomes against intent, supported by evidence and a definitive conclusion."
     },
     "examine": {
-        "meaning": "Look closely into facts, causes, and structural remedies without hyper-criticism.",
-        "ideal_balance": "Cause-and-effect analysis, structural factors, pragmatic solutions."
+        "meaning": "Look closely into facts, causes, operational factors, and structural remedies without hyper-criticism.",
+        "ideal_balance": "Cause-and-effect analysis, structural factors, and pragmatic solutions proportionate to question demands."
+    },
+    "how effective": {
+        "meaning": "Evaluate concrete outcomes against objectives using empirical indicators, institutional evidence, and ground challenges, followed by a clear qualitative verdict. Listing measures alone does not establish effectiveness.",
+        "ideal_balance": "Evidence-grounded assessment of outcomes vs intended goals, highlighting structural gaps, real-world impacts, and pragmatic recommendations."
+    },
+    "examine the role": {
+        "meaning": "Focus directly on operational mechanisms, constitutional/statutory roles, and demonstrated impact; constraints or a way forward are relevant when the question or answer contextually makes them so.",
+        "ideal_balance": "Core focus on operational and institutional mechanisms and their contribution; address challenges or reforms in proportion to question demands."
+    },
+    "causes and consequences": {
+        "meaning": "Systematically delineate underlying drivers/triggers and multifaceted direct and indirect repercussions across social, economic, political, or environmental dimensions.",
+        "ideal_balance": "Proportionate examination of root causes and multi-dimensional consequences, tied together with evidence."
+    },
+    "to what extent": {
+        "meaning": "Provide a nuanced evaluation assessing the degree or boundary conditions of a claim or policy success, avoiding binary yes/no answers.",
+        "ideal_balance": "Substantiated thesis measuring the scope of validity, supported by empirical milestones and clear boundary conditions."
+    },
+    "suggest measures": {
+        "meaning": "Deliver concrete, actionable, stakeholder-specific policy, institutional, and administrative interventions to resolve identified bottlenecks.",
+        "ideal_balance": "Targeted, actionable reforms anchored in committee reports, best practices, and constitutional values."
     },
     "give your opinion": {
-        "meaning": "Take an explicit, unambiguous stance in the first 3 lines; substantiate with constitutional/logical arguments and conclude constructively.",
-        "ideal_balance": "Definitive upfront thesis (15%), evidence-backed core argumentation (70%), forward-looking synthesis (15%)."
+        "meaning": "Take an explicit, unambiguous stance in the opening; substantiate with constitutional/logical arguments and conclude constructively.",
+        "ideal_balance": "Definitive upfront thesis, evidence-backed argumentation across dimensions, and a forward-looking synthesis."
     },
     "in your opinion": {
-        "meaning": "Take an explicit, unambiguous stance in the first 3 lines; substantiate with constitutional/logical arguments and conclude constructively.",
-        "ideal_balance": "Definitive upfront thesis (15%), evidence-backed core argumentation (70%), forward-looking synthesis (15%)."
+        "meaning": "Take an explicit, unambiguous stance in the opening; substantiate with constitutional/logical arguments and conclude constructively.",
+        "ideal_balance": "Definitive upfront thesis, evidence-backed argumentation across dimensions, and a forward-looking synthesis."
     },
     "comment": {
-        "meaning": "Express personal perspective based on logic, constitutional principles, and facts.",
-        "ideal_balance": "Reasoned arguments taking a clear, substantiated stand."
+        "meaning": "Express reasoned perspective based on logic, constitutional principles, and facts.",
+        "ideal_balance": "Reasoned arguments taking a clear, substantiated stand on the core proposition."
     },
     "substantiate": {
         "meaning": "Back every core argument with empirical evidence, statutory provisions, landmark judgments, committee reports, or concrete case studies; penalize unbacked assertions.",
-        "ideal_balance": "40% core thesis arguments, 50% concrete empirical/institutional substantiation, 10% balanced forward vision."
+        "ideal_balance": "Core thesis supported by concrete empirical, legal, or institutional substantiation and forward vision."
     },
     "do you agree": {
         "meaning": "Take an explicit reasoned stance in the opening, substantiate with solid arguments, acknowledge counter-perspectives and operational challenges, and conclude with a nuanced synthesis.",
-        "ideal_balance": "15% upfront stance & context, 50% arguments in favor, 25% counter-perspectives & ground challenges, 10% constructive synthesis."
+        "ideal_balance": "Upfront stance, robust supporting arguments, operational challenges/counter-perspectives, and constructive synthesis."
     },
     "illustrate": {
         "meaning": "Clarify and prove the concept using concrete real-world examples, diagrams, sketch maps, and case studies.",
-        "ideal_balance": "65% explanatory mechanism with diagrams/maps, 25% real-world case studies, 10% forward-looking conclusion."
+        "ideal_balance": "Explanatory mechanisms supported by diagrams/maps and real-world case studies."
     },
     "assess": {
         "meaning": "Measure performance or outcomes against stated policy goals, benchmark criteria, or constitutional standards, concluding with a clear qualitative or quantitative verdict.",
-        "ideal_balance": "30% criteria & achievements, 45% limitations & implementation gaps, 25% verdict & reform roadmap."
+        "ideal_balance": "Criteria-based evaluation of achievements, limitations, implementation gaps, and a clear verdict."
     },
     "compare and contrast": {
         "meaning": "Systematic juxtaposition highlighting both similarities (convergence) and differences (divergence), ideally using a structured comparison framework or table.",
-        "ideal_balance": "20% foundational concepts, 60% structured comparative analysis (tabular/thematic), 20% contextual relevance & conclusion."
+        "ideal_balance": "Foundational concepts followed by structured comparative analysis (tabular/thematic) and contextual relevance."
     },
     "distinguish": {
         "meaning": "Clearly differentiate concepts based on definitions, operational mechanisms, legal/institutional status, and practical implications.",
-        "ideal_balance": "25% definitions, 60% tabular/thematic differentiation criteria, 15% contemporary relevance."
+        "ideal_balance": "Precise conceptual definitions and structured thematic differentiation criteria."
     },
     "analyse": {
         "meaning": "Break down the issue into component dimensions, examine interlinkages, and synthesize cause-and-effect relationships with evidence.",
-        "ideal_balance": "Systematic multi-dimensional breakdown (45% analytical mechanisms, 40% practical implications, 15% constructive synthesis)."
+        "ideal_balance": "Systematic multi-dimensional breakdown of analytical mechanisms, practical implications, and constructive synthesis."
     },
     "analyze": {
         "meaning": "Break down the issue into component dimensions, examine interlinkages, and synthesize cause-and-effect relationships with evidence.",
-        "ideal_balance": "Systematic multi-dimensional breakdown (45% analytical mechanisms, 40% practical implications, 15% constructive synthesis)."
+        "ideal_balance": "Systematic multi-dimensional breakdown of analytical mechanisms, practical implications, and constructive synthesis."
     }
 }
 
@@ -240,47 +260,67 @@ PAPER_TAXONOMIES = {
 HINDI_DIRECTIVES = {
     "विश्लेषण कीजिए": {
         "meaning": "मुद्दे को उसके प्रमुख घटकों में विभाजित कर कारणों, प्रभावों एवं अंतर-संबंधों का साक्ष्य-सहित परीक्षण करें।",
-        "ideal_balance": "व्यवस्थित बहुआयामी विश्लेषण (45% अवधारणात्मक तंत्र, 40% व्यावहारिक निहितार्थ, 15% संतुलित समन्वय)।"
+        "ideal_balance": "अवधारणात्मक तंत्र, व्यावहारिक निहितार्थ और संतुलित समन्वय का व्यवस्थित बहुआयामी विश्लेषण।"
     },
     "आलोचनात्मक विश्लेषण कीजिए": {
         "meaning": "पक्ष (Thesis), विपक्ष/सीमाएं (Anti-thesis) और समन्वित संतुलित समाधान (Synthesis) प्रस्तुत करें।",
-        "ideal_balance": "संतुलित द्वंद्वात्मक दृष्टिकोण (पक्ष 45%, विपक्ष 40%, समाधान 15%)।"
+        "ideal_balance": "सकारात्मक पक्षों और व्यवस्थागत सीमाओं की द्वंद्वात्मक पड़ताल तथा यथार्थवादी समाधान।"
     },
     "समालोचनात्मक विश्लेषण कीजिए": {
         "meaning": "सकारात्मक एवं नकारात्मक पक्षों का निष्पक्ष परीक्षण कर संतुलित निष्कर्ष दें।",
-        "ideal_balance": "पक्ष 45%, विपक्ष 40%, आगे की राह 15%।"
+        "ideal_balance": "सकारात्मक पहलुओं, संरचनात्मक चुनौतियों और आगे की राह का संतुलित परीक्षण।"
     },
     "आलोचनात्मक मूल्यांकन कीजिए": {
         "meaning": "संवैधानिक या नीतिगत मानकों के आधार पर उपलब्धियों और विचलनों का वस्तुनिष्ठ आकलन करें।",
-        "ideal_balance": "मानक-आधारित समीक्षा, पक्ष 45%, विपक्ष 40%, समाधान 15%।"
+        "ideal_balance": "मानक-आधारित समीक्षा, उपलब्धियों व सीमाओं का वस्तुनिष्ठ आकलन और सुधारात्मक दृष्टिकोण।"
     },
     "समालोचनात्मक मूल्यांकन कीजिए": {
         "meaning": "गुण-दोषों का सम्यक विश्लेषण कर स्पष्ट सुधारात्मक दृष्टिकोण प्रस्तुत करें।",
-        "ideal_balance": "सकारात्मक पक्ष 45%, सीमाएं 40%, नीतिगत समाधान 15%।"
+        "ideal_balance": "सकारात्मक पक्ष, क्रियान्वयन की सीमाएं और नीतिगत समाधान का समन्वित विश्लेषण।"
     },
     "आलोचनात्मक टिप्पणी लिखिए": {
         "meaning": "उपलब्धियों और व्यवस्थागत कमियों दोनों की पड़ताल कर संतुलित सुधारपरक दृष्टिकोण प्रस्तुत करें।",
-        "ideal_balance": "पक्ष 45%, कमियां 45%, आगे की राह 10%।"
+        "ideal_balance": "मूल विषयवस्तु के गुण-दोषों की पड़ताल और सुधारपरक दृष्टिकोण।"
     },
     "आलोचनात्मक टिप्पणी": {
         "meaning": "उपलब्धियों और व्यवस्थागत कमियों दोनों की पड़ताल कर संतुलित सुधारपरक दृष्टिकोण प्रस्तुत करें।",
-        "ideal_balance": "पक्ष 45%, कमियां 45%, आगे की राह 10%।"
+        "ideal_balance": "मूल विषयवस्तु के गुण-दोषों की पड़ताल और सुधारपरक दृष्टिकोण।"
     },
     "समीक्षा कीजिए": {
         "meaning": "उपलब्धियों और व्यवस्थागत कमियों दोनों की गहन पड़ताल करें और संतुलित समाधान दें।",
-        "ideal_balance": "तथ्यात्मक अन्वेषण (50% पक्ष, 40% चुनौतियां, 10% निष्कर्ष)।"
+        "ideal_balance": "तथ्यों और जमीनी वास्तविकताओं के आधार पर उपलब्धियों और चुनौतियों की समीक्षा।"
     },
     "परीक्षण कीजिए": {
         "meaning": "तथ्यों, कारणों एवं संरचनात्मक उपायों की सूक्ष्मता से निष्पक्ष पड़ताल करें।",
         "ideal_balance": "कारण-प्रभाव विश्लेषण और व्यावहारिक समाधान।"
     },
+    "कितना प्रभावी": {
+        "meaning": "नीति या योजना के घोषित लक्ष्यों के सापेक्ष वास्तविक परिणामों, जमीनी सीमाओं और स्पष्ट निष्कर्ष का परीक्षण करें। केवल योजनाओं को सूचीबद्ध करने से प्रभावशीलता सिद्ध नहीं होती।",
+        "ideal_balance": "लक्ष्यों बनाम परिणामों का साक्ष्य-आधारित मूल्यांकन, क्रियान्वयन की कमियां और अग्रगामी समाधान।"
+    },
+    "भूमिका का परीक्षण कीजिए": {
+        "meaning": "संवैधानिक/संस्थागत भूमिका और कार्यप्रणाली पर सीधा ध्यान केंद्रित करें; कमियां या सुधार तभी उठाएं जब प्रश्न या उत्तर इसकी मांग करे।",
+        "ideal_balance": "संस्थागत भूमिका, कार्यप्रणाली और प्रभावशीलता का प्रत्यक्ष विश्लेषण।"
+    },
+    "कारण और परिणाम": {
+        "meaning": "मूल कारणों और प्रत्यक्ष/अप्रत्यक्ष बहुआयामी परिणामों का साक्ष्य सहित बिंदुवार विश्लेषण करें।",
+        "ideal_balance": "कारणों और बहुआयामी प्रभावों का आनुपातिक एवं प्रामाणिक विश्लेषण।"
+    },
+    "किस सीमा तक": {
+        "meaning": "दावे या नीतिगत सफलता की सीमाओं और शर्तों का साक्ष्य-सहित सूक्ष्म मूल्यांकन करें।",
+        "ideal_balance": "मानदंडों के आधार पर वैधता की सीमा का साक्ष्य-पुष्ट निर्धारण।"
+    },
+    "उपाय सुझाइए": {
+        "meaning": "पहचानी गई समस्याओं के समाधान हेतु ठोस, व्यावहारिक और संस्थागत उपाय प्रस्तुत करें।",
+        "ideal_balance": "समिति रिपोर्टों, सर्वोत्तम प्रथाओं और प्रशासनिक सुधारों पर आधारित कार्ययोजना।"
+    },
     "स्पष्ट कीजिए": {
         "meaning": "अवधारणा को सरल भाषा, प्रामाणिक तथ्यों और उदाहरणों से सुस्पष्ट करें।",
-        "ideal_balance": "70% विश्लेषणात्मक व्याख्या, 20% उदाहरण/केस स्टडी, 10% निष्कर्ष।"
+        "ideal_balance": "अवधारणात्मक व्याख्या, प्रामाणिक उदाहरण/केस स्टडी और समकालीन प्रासंगिकता।"
     },
     "सोदाहरण समझाइए": {
         "meaning": "प्रत्येक प्रमुख तर्क को ठोस वास्तविक उदाहरणों (उदा०), केस स्टडी या आरेख से प्रमाणित करें।",
-        "ideal_balance": "60% अवधारणात्मक समझ, 30% प्रामाणिक उदाहरण (उदा०), 10% आगे की राह।"
+        "ideal_balance": "अवधारणात्मक स्पष्टता को प्रामाणिक उदाहरणों और व्यावहारिक केस स्टडी से पुष्ट करना।"
     },
     "सविस्तार वर्णन कीजिए": {
         "meaning": "विभिन्न आयामों और हितधारकों के संदर्भ में व्यापक और बिंदुवार विवरण दें।",
@@ -288,7 +328,7 @@ HINDI_DIRECTIVES = {
     },
     "चर्चा कीजिए": {
         "meaning": "मुद्दे के सभी आयामों (सामाजिक, आर्थिक, राजनीतिक, विधिक, तकनीकी) की बिंदुवार पड़ताल करें।",
-        "ideal_balance": "व्यापक बहुआयामी दृष्टिकोण (PESTLE ढांचा)।"
+        "ideal_balance": "विषय के अनुरूप बहुआयामी संतुलित पड़ताल (PESTLE दृष्टिकोण)।"
     },
     "मूल्यांकन कीजिए": {
         "meaning": "उद्देश्यों या संवैधानिक आदर्शों के विरुद्ध प्रभावशीलता या परिणामों का स्पष्ट आकलन करें।",
@@ -296,11 +336,11 @@ HINDI_DIRECTIVES = {
     },
     "टिप्पणी कीजिए": {
         "meaning": "तर्क, संवैधानिक सिद्धांतों और तथ्यों के आधार पर अपना पुष्ट दृष्टिकोण रखें।",
-        "ideal_balance": "स्पष्ट एवं पुष्ट तर्कों के साथ संतुलन।"
+        "ideal_balance": "स्पष्ट एवं पुष्ट तर्कों के साथ संतुलित दृष्टिकोण।"
     },
     "तुलना कीजिए": {
         "meaning": "समानताओं और भिन्नताओं का व्यवस्थित तुलनात्मक ढांचा या तालिका प्रस्तुत करें।",
-        "ideal_balance": "संरचित तुलनात्मक विश्लेषण (तालिका/बिंदुवार)।"
+        "ideal_balance": "संरचित तुलनात्मक विश्लेषण (तालिका/बिंदुवार) और प्रासंगिकता।"
     },
     "अंतर स्पष्ट कीजिए": {
         "meaning": "परिभाषाओं, संस्थागत स्थिति और व्यावहारिक प्रभावों के आधार पर स्पष्ट भेद करें।",
@@ -308,7 +348,7 @@ HINDI_DIRECTIVES = {
     },
     "क्या आप सहमत हैं": {
         "meaning": "आरंभ में स्पष्ट तार्किक रुख लें, पक्ष में ठोस तर्क दें, प्रति-तर्कों को पहचानें और संतुलित समन्वय करें।",
-        "ideal_balance": "प्रारंभिक रुख, मुख्य तर्क, व्यावहारिक चुनौतियां और अग्रगामी समाधान।"
+        "ideal_balance": "स्पष्ट आरंभिक रुख, मजबूत समर्थक तर्क, व्यावहारिक चुनौतियां और समन्वयकारी समापन।"
     }
 }
 
@@ -1142,27 +1182,32 @@ def build_hindi_evaluation_prompt(
     question, _, _ = sanitize_against_prompt_injection(question, field_name="hindi_question")
     detected_paper = detect_academic_discipline(question, paper_key)
 
-    # Denominators strictly based on max_marks
-    if max_marks == 10:
-        intro_d, body_d, conc_d = 1.5, 7.0, 1.5
-        sample_score = 4.0
-        sample_intro_aw, sample_body_aw, sample_conc_aw = 1.0, 2.5, 0.5
-        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 1.5, 4.5, 1.5, 1.0, 1.5
-    elif max_marks == 15:
-        intro_d, body_d, conc_d = 2.0, 11.0, 2.0
-        sample_score = 6.5
-        sample_intro_aw, sample_body_aw, sample_conc_aw = 1.5, 4.0, 1.0
-        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 2.0, 7.0, 2.5, 1.5, 2.0
-    elif max_marks == 20:
-        intro_d, body_d, conc_d = 2.5, 15.0, 2.5
-        sample_score = 8.5
-        sample_intro_aw, sample_body_aw, sample_conc_aw = 1.5, 5.5, 1.5
-        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 2.5, 9.5, 3.5, 2.0, 2.5
-    else:  # Essay 125M
-        intro_d, body_d, conc_d = 20.0, 85.0, 20.0
-        sample_score = 55.0
-        sample_intro_aw, sample_body_aw, sample_conc_aw = 10.0, 38.0, 7.0
-        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 20.0, 50.0, 20.0, 15.0, 20.0
+    # Question-specific dynamic demand allocations (no fixed percentage templates)
+    sample_score = round(max_marks * 0.42, 1)
+    d1_m = round(max_marks * 0.20, 1)
+    d2_m = round(max_marks * 0.40, 1)
+    d3_m = round(max_marks * 0.25, 1)
+    d4_m = round(max_marks - d1_m - d2_m - d3_m, 1)
+    d1_aw = round(sample_score * 0.25, 1)
+    d2_aw = round(sample_score * 0.40, 1)
+    d3_aw = round(sample_score * 0.20, 1)
+    d4_aw = round(sample_score - d1_aw - d2_aw - d3_aw, 1)
+    sample_intro_aw = d1_aw
+    sample_body_aw = round(d2_aw + d3_aw, 1)
+    sample_conc_aw = d4_aw
+    rubric_i_max = d1_m
+    rubric_c_max = d2_m
+    rubric_v_max = d3_m
+    rubric_p_max = round(d4_m * 0.5, 1)
+    rubric_co_max = round(d4_m - rubric_p_max, 1)
+    d1_m = round(max_marks * 0.20, 1)
+    d2_m = round(max_marks * 0.40, 1)
+    d3_m = round(max_marks * 0.25, 1)
+    d4_m = round(max_marks - d1_m - d2_m - d3_m, 1)
+    d1_aw = round(sample_score * 0.25, 1)
+    d2_aw = round(sample_score * 0.40, 1)
+    d3_aw = round(sample_score * 0.20, 1)
+    d4_aw = round(sample_score - d1_aw - d2_aw - d3_aw, 1)
 
     ca_block = f"CURRENT AFFAIRS CONTEXT (समसामयिक संदर्भ):\n{current_affairs_context}\n" if current_affairs_context else ""
 
@@ -1462,7 +1507,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "actionable_improvement": "प्रथम पंक्ति में आधिकारिक परिभाषा, मानक सूचकांक या संवैधानिक संदर्भ जोड़ें",
       "evidence_depth": "आंशिक व्याख्या", // 'केवल उल्लेख' | 'आंशिक व्याख्या' | 'सही व्याख्या' | 'सुदृढ़ प्रमाण सहित' | 'अनुपस्थित'
       "layer_a_marks_awarded": 1.0,
-      "layer_a_max_marks": {intro_d},
+      "layer_a_max_marks": {d1_m},
       "demand_status": "⚠️ आंशिक पूर्ण (Partially Met)"
     }},
     {{
@@ -1472,8 +1517,8 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "what_remains_weak_or_missing": "अंतर्निहित कार्य-कारण तंत्र (Mechanism) अथवा प्रक्रियात्मक गहराई अपूर्ण",
       "actionable_improvement": "क्रमबद्ध स्पष्टीकरण: कारण ➔ संचरण माध्यम ➔ प्रत्यक्ष प्रभाव",
       "evidence_depth": "सही व्याख्या",
-      "layer_a_marks_awarded": {round(body_d * 0.25, 1)},
-      "layer_a_max_marks": {round(body_d * 0.5, 1)},
+      "layer_a_marks_awarded": {d2_aw},
+      "layer_a_max_marks": {d2_m},
       "demand_status": "✓ मांग पूर्ण (Demand Met)"
     }},
     {{
@@ -1483,8 +1528,8 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "what_remains_weak_or_missing": "विशिष्ट आधिकारिक आंकड़ों या ठोस केस स्टडी का अभाव",
       "actionable_improvement": "तर्क को 1 ठोस उदाहरण अथवा संस्थागत रिपोर्ट से पुष्ट करें",
       "evidence_depth": "आंशिक व्याख्या",
-      "layer_a_marks_awarded": {round(body_d * 0.25, 1)},
-      "layer_a_max_marks": {round(body_d * 0.5, 1)},
+      "layer_a_marks_awarded": {d2_aw},
+      "layer_a_max_marks": {d2_m},
       "demand_status": "⚠️ आंशिक पूर्ण (Partially Met)"
     }},
     {{
@@ -1495,7 +1540,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "actionable_improvement": "निष्कर्ष को केंद्रीय संस्थागत व्यवस्था या संवैधानिक मूल्य से जोड़ें",
       "evidence_depth": "आंशिक व्याख्या",
       "layer_a_marks_awarded": 0.5,
-      "layer_a_max_marks": {conc_d},
+      "layer_a_max_marks": {d4_m},
       "demand_status": "⚠️ आंशिक पूर्ण (Partially Met)"
     }}
   ],
@@ -1505,23 +1550,23 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "sub_heading": "प्रारंभिक विषय-परिचय एवं अवधारणात्मक आधार",
       "demand_status": "मांग आंशिक रूप से पूर्ण",
       "awarded": 1.0,
-      "max": {intro_d},
+      "max": {d1_m},
       "quoted_written": "अभ्यर्थी द्वारा लिखी गई प्रस्तावना का प्रामाणिक उद्धरण।"
     }},
     {{
       "step_label": "2. मुख्य भाग — आयाम A (प्राथमिक विश्लेषणात्मक मांग)",
       "sub_heading": "प्रश्न की पहली प्रमुख मांग का विश्लेषण (कारण-कार्य तंत्र)",
       "demand_status": "मांग पूर्णतः संतुष्ट",
-      "awarded": {round(body_d * 0.25, 1)},
-      "max": {round(body_d * 0.5, 1)},
+      "awarded": {d2_aw},
+      "max": {d2_m},
       "quoted_written": "✓ अभ्यर्थी ने इन बिंदुओं व तथ्यों का उल्लेख किया।"
     }},
     {{
       "step_label": "3. मुख्य भाग — आयाम B (द्वितीयक मांग / चुनौतियाँ)",
       "sub_heading": "प्रश्न की दूसरी मांग अथवा बहुआयामी प्रभावों का परीक्षण",
       "demand_status": "मांग आंशिक रूप से पूर्ण",
-      "awarded": {round(body_d * 0.25, 1)},
-      "max": {round(body_d * 0.5, 1)},
+      "awarded": {d2_aw},
+      "max": {d2_m},
       "quoted_written": "अभ्यर्थी द्वारा प्रस्तुत तर्कों व साक्ष्यों का परीक्षण।"
     }},
     {{
@@ -1529,14 +1574,14 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "sub_heading": "अग्रगामी समाधान एवं संस्थागत समन्वय",
       "demand_status": "मांग पूर्णतः संतुष्ट",
       "awarded": 0.5,
-      "max": {conc_d},
+      "max": {d4_m},
       "quoted_written": "अभ्यर्थी के अंतिम निष्कर्ष का सारांश।"
     }}
   ],
   "subpart_marks_breakdown": [
     {{
       "part_name": "1. प्रस्तावना / अवधारणात्मक आधार",
-      "max_marks": {intro_d},
+      "max_marks": {d1_m},
       "marks_awarded": 1.0,
       "demand_status": "मांग आंशिक रूप से पूर्ण",
       "analysis": "अभ्यर्थी की प्रस्तावना का संक्षिप्त वस्तुनिष्ठ विश्लेषण।",
@@ -1544,23 +1589,23 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
     }},
     {{
       "part_name": "2. मुख्य भाग — आयाम A",
-      "max_marks": {round(body_d * 0.5, 1)},
-      "marks_awarded": {round(body_d * 0.25, 1)},
+      "max_marks": {d2_m},
+      "marks_awarded": {d2_aw},
       "demand_status": "मांग पूर्णतः संतुष्ट",
       "analysis": "अभ्यर्थी द्वारा प्रस्तुत बिंदुओं और उदाहरणों का तथ्यात्मक मूल्यांकन।",
       "scoring_rationale": "तार्किक प्रवाह व साक्ष्यों के आधार पर अंक दिए गए।"
     }},
     {{
       "part_name": "3. मुख्य भाग — आयाम B",
-      "max_marks": {round(body_d * 0.5, 1)},
-      "marks_awarded": {round(body_d * 0.25, 1)},
+      "max_marks": {d2_m},
+      "marks_awarded": {d2_aw},
       "demand_status": "मांग आंशिक रूप से पूर्ण",
       "analysis": "चुनौतियों व संवैधानिक आयामों की गहराई का परीक्षण।",
       "scoring_rationale": "मुख्य आयाम शामिल किंतु संस्थागत सुधारों की आवश्यकता।"
     }},
     {{
       "part_name": "4. निष्कर्ष / आगे की राह",
-      "max_marks": {conc_d},
+      "max_marks": {d4_m},
       "marks_awarded": 0.5,
       "demand_status": "मांग पूर्णतः संतुष्ट",
       "analysis": "अंतिम निष्कर्ष की अग्रगामी दृष्टि का परीक्षण।",
@@ -1569,7 +1614,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
   ],
   "intro_audit": {{
     "intro_score": 1.0,
-    "intro_max": {intro_d},
+    "intro_max": {d1_m},
     "intro_archetype": "संवैधानिक / विधिक आधार", // परिभाषा-आधारित, संवैधानिक / विधिक आधार, समसामयिक संदर्भ, डेटा / रिपोर्ट-आधारित, समस्या / व्यवधान-आधारित, विरोधाभास / तनाव-आधारित, थीसिस / तर्क-आधारित, तुलनात्मक ढांचा, ऐतिहासिक / विकासवादी, नीतिशास्त्रीय / दार्शनिक
     "topic_vs_question_relevance": "सीधे प्रश्न के केंद्रीय संस्थागत तनाव को लक्षित करता है",
     "current_critique": "अभ्यर्थी की प्रस्तावना की निष्पक्ष समीक्षा।",
@@ -1577,7 +1622,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
   }},
   "body_audit": {{
     "body_score": 2.5,
-    "body_max": {body_d},
+    "body_max": {round(max_marks - d1_m - d4_m, 1)},
     "strengths": [
       "सकारात्मक बिंदु 1: प्रामाणिक शब्दावली और तार्किक प्रवाह।",
       "सकारात्मक बिंदु 2: प्रासंगिक उदाहरण का समावेश।"
@@ -1594,7 +1639,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
   }},
   "conclusion_audit": {{
     "conclusion_score": 0.5,
-    "conclusion_max": {conc_d},
+    "conclusion_max": {d4_m},
     "conclusion_archetype": "संतुलित संश्लेषण", // निर्णयात्मक निष्कर्ष, संतुलित संश्लेषण, मुख्य व्याख्यात्मक सारांश, वे-फॉरवर्ड संश्लेषण, नैतिक / मानकीय, भविष्योन्मुखी
     "failure_mode": "कोई नहीं (संतुलित)", // पुनरावृत्ति सारांश, जेनेरिक आशावाद, जबरन उद्धरण, नया अप्रमाणित तर्क, अत्यधिक नीतिगत नुस्खेबाजी, कोई नहीं (संतुलित)
     "current_critique": "अभ्यर्थी के निष्कर्ष की समीक्षा (क्या यह सामान्य है या दूरदर्शी)।",
@@ -1626,7 +1671,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "tag": "प्रस्तावना (भूमिका)",
       "start_y_percent": 24,
       "end_y_percent": 38,
-      "marks_awarded": "+1.0 / {intro_d}",
+      "marks_awarded": "+1.0 / {d1_m}",
       "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"शुचिता केवल वित्तीय ईमानदारी नहीं, बल्कि समग्र लोक सेवा आचरण है...\" — सटीक Conceptual Baseline के साथ प्रभावी शुरुआत।\\n✎ **सुधार**: प्रथम पंक्ति में 2nd ARC (Ethics in Governance) या Nolan Principles का औपचारिक संदर्भ जोड़ें।"
     }},
     {{
@@ -1634,7 +1679,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "tag": "Body: शुचिता से सामाजिक-आर्थिक विकास",
       "start_y_percent": 42,
       "end_y_percent": 88,
-      "marks_awarded": "+1.5 / {round(body_d * 0.5, 1)}",
+      "marks_awarded": "+1.5 / {d2_m}",
       "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"पारदर्शिता से योजनाओं का लीकेज रुकता है और DBT प्रभावी होता है...\" — बिंदुवार संरचना व DBT उदाहरण का सटीक उपयोग।\\n✎ **सुधार**: Inclusive Growth के संदर्भ में अंत्योदय और NITI Aayog के Aspirational Districts का आंकड़ा जोड़ें।"
     }},
     {{
@@ -1642,7 +1687,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "tag": "Body: चुनौतियाँ व Celebrity कल्चर (Venn Diagram)",
       "start_y_percent": 10,
       "end_y_percent": 68,
-      "marks_awarded": "+1.5 / {round(body_d * 0.5, 1)}",
+      "marks_awarded": "+1.5 / {d2_m}",
       "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"सोशल मीडिया पर आत्म-प्रचार से निष्पक्षता प्रभावित होती है...\" — जमीनी चुनौतियों व Venn Diagram का उत्कृष्ट प्रयोग।\\n✎ **सुधार**: सिविल सेवा आचरण नियमावली (Conduct Rules 1964) एवं संस्थागत जवाबदेही (Institutional Accountability) का उल्लेख करें।"
     }},
     {{
@@ -1650,7 +1695,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "tag": "निष्कर्ष (आगे की राह)",
       "start_y_percent": 70,
       "end_y_percent": 86,
-      "marks_awarded": "+0.5 / {conc_d}",
+      "marks_awarded": "+0.5 / {d4_m}",
       "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"अतः शुचिता और नैतिक नेतृत्व से ही अंत्योदय का लक्ष्य साकार होगा...\" — उत्तर का संतुलित समापन।\\n✎ **सुधार**: सामान्य समापन के स्थान पर आगे की राह (Way Forward) में 1 ठोस संस्थागत सुधार (जैसे Mission Karmayogi या 3-Phase SOP) जोड़ें।"
     }}
   ],
@@ -1703,7 +1748,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "actionable_improvement": "Anchor line 1 with precise academic definition and core parameter",
       "evidence_depth": "partly explained", // 'mentioned' | 'partly explained' | 'correctly explained' | 'well-substantiated' | 'omitted'
       "layer_a_marks_awarded": {sample_intro_aw:.2f},
-      "layer_a_max_marks": {intro_d:.1f},
+      "layer_a_max_marks": {d1_m:.1f},
       "demand_status": "Partially Fulfilled"
     }},
     {{
@@ -1714,7 +1759,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "actionable_improvement": "Sequence the explanation: Cause -> Transmission Channel -> Direct Consequence",
       "evidence_depth": "correctly explained",
       "layer_a_marks_awarded": {round(sample_body_aw * 0.40, 2):.2f},
-      "layer_a_max_marks": {round(body_d * 0.40, 1):.1f},
+      "layer_a_max_marks": {d2_m:.1f},
       "demand_status": "Demand Fulfilled"
     }},
     {{
@@ -1725,7 +1770,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "actionable_improvement": "Support argument with 1 concrete case study or official metric",
       "evidence_depth": "partly explained",
       "layer_a_marks_awarded": {round(sample_body_aw * 0.35, 2):.2f},
-      "layer_a_max_marks": {round(body_d * 0.35, 1):.1f},
+      "layer_a_max_marks": {d3_m:.1f},
       "demand_status": "Demand Fulfilled"
     }},
     {{
@@ -1736,7 +1781,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "actionable_improvement": "Tie closing argument to sustainable long-term governance or constitutional value",
       "evidence_depth": "partly explained",
       "layer_a_marks_awarded": {sample_conc_aw:.2f},
-      "layer_a_max_marks": {conc_d:.1f},
+      "layer_a_max_marks": {d4_m:.1f},
       "demand_status": "Partially Fulfilled"
     }}
   ],
@@ -1797,27 +1842,24 @@ def build_evaluation_prompt(
     detected_paper = detect_academic_discipline(question, paper_key)
     taxonomy = PAPER_TAXONOMIES.get(detected_paper, PAPER_TAXONOMIES.get("GS2"))
     
-    # Precise mathematical denominators based on max_marks (100% synchronized between Margin Cards & Analytical Rubric)
-    if max_marks == 10:
-        intro_d, body_d, conc_d = 1.5, 7.0, 1.5
-        sample_score = 4.0
-        sample_intro_aw, sample_body_aw, sample_conc_aw = 1.0, 2.5, 0.5
-        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 1.5, 4.5, 1.5, 1.0, 1.5
-    elif max_marks == 15:
-        intro_d, body_d, conc_d = 2.0, 11.0, 2.0
-        sample_score = 6.5
-        sample_intro_aw, sample_body_aw, sample_conc_aw = 1.5, 4.0, 1.0
-        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 2.0, 7.0, 2.5, 1.5, 2.0
-    elif max_marks == 20:
-        intro_d, body_d, conc_d = 2.5, 15.0, 2.5
-        sample_score = 8.5
-        sample_intro_aw, sample_body_aw, sample_conc_aw = 1.5, 5.5, 1.5
-        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 2.5, 9.5, 3.5, 2.0, 2.5
-    else: # Essay 125M
-        intro_d, body_d, conc_d = 20.0, 85.0, 20.0
-        sample_score = 55.0
-        sample_intro_aw, sample_body_aw, sample_conc_aw = 10.0, 38.0, 7.0
-        rubric_i_max, rubric_c_max, rubric_v_max, rubric_p_max, rubric_co_max = 20.0, 50.0, 20.0, 15.0, 20.0
+    # Question-specific dynamic demand allocations (no fixed percentage templates)
+    sample_score = round(max_marks * 0.42, 1)
+    d1_m = round(max_marks * 0.20, 1)
+    d2_m = round(max_marks * 0.40, 1)
+    d3_m = round(max_marks * 0.25, 1)
+    d4_m = round(max_marks - d1_m - d2_m - d3_m, 1)
+    d1_aw = round(sample_score * 0.25, 1)
+    d2_aw = round(sample_score * 0.40, 1)
+    d3_aw = round(sample_score * 0.20, 1)
+    d4_aw = round(sample_score - d1_aw - d2_aw - d3_aw, 1)
+    sample_intro_aw = d1_aw
+    sample_body_aw = round(d2_aw + d3_aw, 1)
+    sample_conc_aw = d4_aw
+    rubric_i_max = d1_m
+    rubric_c_max = d2_m
+    rubric_v_max = d3_m
+    rubric_p_max = round(d4_m * 0.5, 1)
+    rubric_co_max = round(d4_m - rubric_p_max, 1)
     
     rewrite_check_instructions = ""
     if previous_question:
@@ -2102,12 +2144,26 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
      * Set "percentile_verdict": "Unattempted / Blank Copy"
      * Set "transcribed_text": ""
 
-1. MATHEMATICAL DISTRIBUTION LAW (DENOMINATOR SUM MUST EQUAL EXACTLY {max_marks}.0):
-   - In "visual_annotations", assign section marks awarded formatted as "+AWARDED / DENOMINATOR".
-   - The sum of ALL DENOMINATORS across the entire copy MUST STRICTLY EQUAL {max_marks}.0!
-     For {max_marks}M: Intro denominator = {intro_d}, Body denominator = {body_d}, Conclusion denominator = {conc_d}.
-     Sum: {intro_d} + {body_d} + {conc_d} = {max_marks}.0. NEVER output an incomplete total (e.g. 8.0 out of 10 is STRICTLY FORBIDDEN)!
-   - The sum of ALL AWARDED MARKS (numerators) across visual_annotations MUST STRICTLY EQUAL "overall_score".
+1. QUESTION DEMAND-DRIVEN MARKING LAW (DENOMINATOR SUM MUST EQUAL EXACTLY {max_marks}.0):
+   - NO FIXED INTRO/BODY/CONCLUSION PERCENTAGES: Strictly eliminate fixed percentage templates (such as 15% Intro - 70% Body - 15% Conclusion). Do NOT force every answer into a standardized outline.
+   - Set criterion maxima directly from the question's explicit and implied demands before grading:
+     * Allocate marks to substantive demands in proportion to their weight in the question.
+     * The sum of ALL criterion maxima (denominators) across all steps and visual annotations MUST STRICTLY EQUAL {max_marks}.0!
+     * The sum of ALL AWARDED MARKS (numerators) across steps and visual annotations MUST STRICTLY EQUAL "overall_score".
+   - AWARD MARKS SOLELY FOR DEMONSTRATED QUALITY & REASONING, NOT SECTION HEADINGS:
+     * A content-rich opening that directly addresses a core question demand (e.g. citing Section 135 Companies Act, constitutional articles, or foundational definitions) must earn substantive credit for that demand.
+     * A concise, 1-2 sentence conclusion or synthesis is completely sufficient if it answers the task; NEVER penalize brevity or dock marks for lacking an extensive concluding section.
+     * Diagrams, sketch maps, and flowcharts support relevant substantive criteria; do not create an artificial deduction if a diagram was not explicitly asked.
+   - MULTI-COLUMN & SPATIAL ARCHITECTURE RECOGNITION:
+     * Candidates often write in parallel columns (e.g. "Issues / Challenges" on the left and "Way Forward / Solutions" on the right), or use flowcharts and boxed callouts. Trace and evaluate BOTH columns as integral parts of the answer.
+     * NEVER flatten a multi-column answer into text in a way that ignores side-by-side content or treats it as absent.
+     * If a candidate includes a "Way Forward" or solutions section (whether side-by-side with issues, as bullet points, arrows, or near the end), evaluate it on its substantive merits and award marks under the relevant solutions demand.
+     * STRICTLY PROHIBITED: Awarding 0.0 or "Demand Missed" to a present way forward, or mislabeling it as an unwritten conclusion!
+   - DEDUPLICATION & PAGE OVERLAP PROCTORING:
+     * If duplicated or overlapping page images are uploaded, verify that points from repeated material are credited only once.
+   - EXAMINER SCORING VS COACHING FEEDBACK:
+     * Examiner marks reflect ONLY what is written in the student's answer.
+     * Actionable coaching suggestions and model answer enrichment are for student learning, NOT hidden deductions from the candidate's score.
 
 2. ZERO IRRELEVANT VALUE ADDITIONS (DO NOT OVERBURDEN ASPIRANTS):
    - Discipline-Specific Relevance: NEVER force Indian constitutional articles, Supreme Court rulings, or Indian administrative commissions into a Western Political Thought, Philosophy, or Optional question (like PSIR on Plato/Aristotle/Easton/Bismarck) unless the question explicitly asks for Indian constitutional context!
@@ -2173,10 +2229,10 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
 
 9. GS-4 ETHICS TOPPER MASTER BENCHMARK (SYNTHESIZED FROM MASTERCLASSES & AIR-1 SHAKTI DUBEY, AIR-1 SHRUTI SHARMA, AIR-1 ADITYA SRIVASTAVA, AIR-2 GARIMA LOHIA, AIR-6 VISHAKHA YADAV):
    If detected_paper is "GS4":
-   - CORE DEMAND & SPATIAL ARCHITECTURE (15% - 70% - 15% RULE):
-     * Introduction (15% / 3-4 lines max): Must directly hit the key ethical concept or context. Never exceed 5 lines. Never introduce a quote with another quote.
-     * Body (70%): Multi-dimensional levels (Individual -> Interpersonal -> Institutional -> Societal -> Global).
-     * Conclusion (15% / 2-3 lines): Must provide a clear Prescription or Inference, concluding with a 2nd ARC recommendation, Gandhian maxim, or forward-looking vision.
+   - CORE DEMAND & SPATIAL ARCHITECTURE (QUESTION DEMAND-DRIVEN ALLOCATION):
+     * Opening / Ethical Premise: Directly engage the key ethical concept, dilemma, or constitutional principle without unnecessary filler.
+     * Multi-Dimensional Exploration: Address the question's explicit demands across relevant stakeholder levels (Individual, Institutional, Societal, Global).
+     * Actionable Resolution / Synthesis: Provide a clear administrative prescription or inference, concluding with a 2nd ARC recommendation, Gandhian maxim, or forward-looking vision.
    - ARGUMENTATION & THE KEE MODEL (KEYWORD -> EXPLANATION -> EXAMPLE):
      * Enforce the KEE structure: State the ethical Keyword/Principle -> Provide a 1-2 sentence logical Explanation (the "why") -> Support with real Example/Evidence.
      * ANTI-KEYWORD DUMPING PENALTY: Heavily penalize answers that treat Ethics as a raw jargon checklist (e.g. "a civil servant must have probity, integrity, empathy, and objectivity"). Arguments must ALWAYS precede examples.
@@ -2704,7 +2760,7 @@ Generate strictly valid JSON matching this schema:
       "sub_heading": "Conceptual Definition, Constitutional/Statutory Anchor or Contemporary Context",
       "demand_status": "Partially Fulfilled",
       "awarded": {sample_intro_aw:.2f},
-      "max": {intro_d:.1f},
+      "max": {d1_m:.1f},
       "quoted_written": "Awarded marks for [exact opening hook written]; [X]M held back for [missing technical/statutory anchor]."
     }},
     {{
@@ -2712,7 +2768,7 @@ Generate strictly valid JSON matching this schema:
       "sub_heading": "Explain what Sub-Part 1 actually demands (NEVER copy-paste the raw question sentence)",
       "demand_status": "Demand Fulfilled",
       "awarded": {round(sample_body_aw * 0.40, 2):.2f},
-      "max": {round(body_d * 0.40, 1):.1f},
+      "max": {d2_m:.1f},
       "quoted_written": "✓ Demand Met: Candidate addressed [exact points/articles/diagrams written on sheet]."
     }},
     {{
@@ -2720,7 +2776,7 @@ Generate strictly valid JSON matching this schema:
       "sub_heading": "Explain what Sub-Part 2 actually demands (e.g. Enforcement Mechanism / Multidimensional Effects)",
       "demand_status": "Demand Fulfilled",
       "awarded": {round(sample_body_aw * 0.35, 2):.2f},
-      "max": {round(body_d * 0.35, 1):.1f},
+      "max": {d3_m:.1f},
       "quoted_written": "✓ Demand Met: Candidate substantiated with [exact case laws / data / points written]."
     }},
     {{
@@ -2728,7 +2784,7 @@ Generate strictly valid JSON matching this schema:
       "sub_heading": "Explain what Sub-Part 3 actually demands (e.g. Sectoral Impacts, Institutional Safeguards, or Comparative Dimension)",
       "demand_status": "Partially Fulfilled",
       "awarded": {round(sample_body_aw - round(sample_body_aw * 0.40, 2) - round(sample_body_aw * 0.35, 2), 2):.2f},
-      "max": {round(body_d - round(body_d * 0.40, 1) - round(body_d * 0.35, 1), 1):.1f},
+      "max": {d4_m:.1f},
       "quoted_written": "⚠️ Partially Met: Covered [points written]; [X]M held back for omitting [missing dimension]."
     }},
     {{
@@ -2736,14 +2792,14 @@ Generate strictly valid JSON matching this schema:
       "sub_heading": "Topic-Specific Institutional, Constitutional or Policy Synthesis",
       "demand_status": "Demand Fulfilled",
       "awarded": {sample_conc_aw:.2f},
-      "max": {conc_d:.1f},
+      "max": {d4_m:.1f},
       "quoted_written": "Awarded marks for [exact closing line summary]."
     }}
   ],
   "subpart_marks_breakdown": [
     {{
       "part_name": "1. Introduction (Context & Baseline Hook)",
-      "max_marks": {intro_d:.1f},
+      "max_marks": {d1_m:.1f},
       "marks_awarded": {sample_intro_aw:.2f},
       "demand_status": "Partially Fulfilled",
       "analysis": "Opening premise and conceptual anchor evaluation.",
@@ -2751,7 +2807,7 @@ Generate strictly valid JSON matching this schema:
     }},
     {{
       "part_name": "2. Part A — Primary Analytical Demand",
-      "max_marks": {round(body_d * 0.40, 1):.1f},
+      "max_marks": {d2_m:.1f},
       "marks_awarded": {round(sample_body_aw * 0.40, 2):.2f},
       "demand_status": "Demand Fulfilled",
       "analysis": "Evaluation of primary question demand and causal mechanisms.",
@@ -2759,7 +2815,7 @@ Generate strictly valid JSON matching this schema:
     }},
     {{
       "part_name": "3. Part B — Secondary Analytical Demand",
-      "max_marks": {round(body_d * 0.35, 1):.1f},
+      "max_marks": {d3_m:.1f},
       "marks_awarded": {round(sample_body_aw * 0.35, 2):.2f},
       "demand_status": "Demand Fulfilled",
       "analysis": "Evaluation of secondary question demand and multidimensional effects.",
@@ -2767,7 +2823,7 @@ Generate strictly valid JSON matching this schema:
     }},
     {{
       "part_name": "4. Conclusion (Closing Synthesis)",
-      "max_marks": {conc_d:.1f},
+      "max_marks": {d4_m:.1f},
       "marks_awarded": {sample_conc_aw:.2f},
       "demand_status": "Demand Fulfilled",
       "analysis": "Closing synthesis and forward-looking linkage.",
@@ -3018,9 +3074,9 @@ Generate strictly valid JSON matching this schema:
     //    - Follow with 1 concise, specific upgrade citing the exact missing constitutional article, landmark case law, official committee recommendation, or empirical metric.
     // 8. SYNCHRONIZED MARKS CEILING:
     //    - The marks awarded on each visual annotation MUST strictly equal its sub-part allocation from sub_part_step_marking!
-    //    - For Page 1 Intro: "+{sample_intro_aw:.1f} / {intro_d:.1f}"
+    //    - For Sub-Part 1: "+{d1_aw:.1f} / {d1_m:.1f}"
     //    - For Body Sub-Parts: allocate the body ceiling across distinct sub-parts so the sum of all body annotations equals the body ceiling!
-    //    - For Conclusion: "+{sample_conc_aw:.1f} / {conc_d:.1f}". Conclusion MUST ONLY be on the FINAL page!
+    //    - For Synthesis / Final Demand: "+{d4_aw:.1f} / {d4_m:.1f}"
     // 9. THEMATIC INTEGRITY (NEVER SWAP TAGS AND QUOTES ACROSS SECTIONS):
     //    - The candidate's handwritten quote in every annotation card MUST 100% semantically match the tag of that card!
     //    - If Annotation 1 is tagged with the upper theme, its quote MUST come from the upper region.
@@ -3039,7 +3095,7 @@ Generate strictly valid JSON matching this schema:
       "end_y_percent": 42,
       "tag": "Intro: Context & Conceptual Definition",
       "type": "tick",
-      "marks_awarded": "+{sample_intro_aw:.1f} / {intro_d:.1f}",
+      "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
       "remark": "✓ **Direct Premise**: Opened directly with *\"[Extract 10-18 words verbatim from candidate's handwritten opening paragraph]\"*, framing the core thesis.\n✎ **Opening Upgrade**: [Provide 1 discipline-specific elevation tailored strictly to this question topic, e.g. for History cite contemporary socio-religious debates or key thinkers; for Polity cite constitutional articles; for Geography cite physical drivers]."
     }},
     {{
@@ -3049,7 +3105,7 @@ Generate strictly valid JSON matching this schema:
       "end_y_percent": 88,
       "tag": "Body: [Candidate's Actual Written Sub-Heading 1]",
       "type": "tick",
-      "marks_awarded": "+{round(sample_body_aw * 0.40, 1):.1f} / {round(body_d * 0.40, 1):.1f}",
+      "marks_awarded": "+{d2_aw:.1f} / {d2_m:.1f}",
       "remark": "✓ **Core Argumentation**: Articulated *\"[Extract verbatim handwritten sentence from candidate's first body section]\"*.\n✎ **Substantive Elevation**: [Provide 1 concrete upgrade relevant strictly to this subject, e.g. for History cite specific reform movements, organizations, or historical figures; for Economy cite data/schemes; for Ethics cite moral principles]."
     }},
     {{
@@ -3059,7 +3115,7 @@ Generate strictly valid JSON matching this schema:
       "end_y_percent": 68,
       "tag": "Body: [Candidate's Actual Written Sub-Heading 2]",
       "type": "tick",
-      "marks_awarded": "+{round(sample_body_aw * 0.35, 1):.1f} / {round(body_d * 0.35, 1):.1f}",
+      "marks_awarded": "+{d3_aw:.1f} / {d3_m:.1f}",
       "remark": "✓ **Analytical Dimension**: Examined *\"[Extract verbatim handwritten sentence from candidate's second page handwriting]\"*.\n✎ **Substantive Elevation**: [Provide 1 concrete upgrade relevant strictly to this subject and dimension]."
     }},
     {{
@@ -3069,7 +3125,7 @@ Generate strictly valid JSON matching this schema:
       "end_y_percent": 86,
       "tag": "Conclusion: Closing Synthesis",
       "type": "suggestion",
-      "marks_awarded": "+{sample_conc_aw:.1f} / {conc_d:.1f}",
+      "marks_awarded": "+{d4_aw:.1f} / {d4_m:.1f}",
       "remark": "✓ **Closing Synthesis**: Concluded with *\"[Extract verbatim handwritten closing sentence from student's conclusion]\"*.\n✎ **Topper Finish**: [Provide 1 forward-looking subject-appropriate finish connecting to long-term impact or enduring significance]."
     }}
   ]
@@ -5421,14 +5477,42 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
     if not isinstance(rubric, dict):
         rubric = {}
 
-    if max_marks == 10:
-        canon_i_max, canon_c_max, canon_v_max, canon_p_max, canon_co_max = 1.5, 4.5, 1.5, 1.0, 1.5
-    elif max_marks == 15:
-        canon_i_max, canon_c_max, canon_v_max, canon_p_max, canon_co_max = 2.0, 7.0, 2.5, 1.5, 2.0
-    elif max_marks == 20:
-        canon_i_max, canon_c_max, canon_v_max, canon_p_max, canon_co_max = 2.5, 9.5, 3.5, 2.0, 2.5
+    overall_score = float(data.get("overall_score", 0.0) or 0.0)
+    steps = data.get("sub_part_step_marking") if isinstance(data.get("sub_part_step_marking"), list) else []
+
+    # Check if demand-based sub_part_step_marking is already available
+    intro_step = next((s for s in steps if isinstance(s, dict) and any(k in str(s.get("step_label", "")).lower() for k in ["intro", "premise", "context", "प्रस्तावना"])), None)
+    conc_step = next((s for s in reversed(steps) if isinstance(s, dict) and any(k in str(s.get("step_label", "")).lower() for k in ["conclusion", "synthesis", "निष्कर्ष", "closing"]) and not any(wf in str(s.get("step_label", "")).lower() for wf in ["way forward", "solutions", "reforms", "measures", "आगे की राह", "सुझाव"])), None)
+
+    if intro_step:
+        canon_i_max = float(intro_step.get("max", 0.0) or 0.0)
+        intro_aw = float(intro_step.get("awarded", 0.0) or 0.0)
     else:
-        canon_i_max, canon_c_max, canon_v_max, canon_p_max, canon_co_max = 20.0, 50.0, 20.0, 15.0, 20.0
+        canon_i_max = float(rubric.get("intro_max") or (1.5 if max_marks == 10 else (2.0 if max_marks == 15 else (2.5 if max_marks == 20 else 20.0))))
+        intro_aw = float(rubric.get("intro_score", round(overall_score * 0.15, 2)) or 0.0)
+
+    if conc_step:
+        canon_co_max = float(conc_step.get("max", 0.0) or 0.0)
+        conc_aw = float(conc_step.get("awarded", 0.0) or 0.0)
+    else:
+        canon_co_max = float(rubric.get("conclusion_max") or (1.5 if max_marks == 10 else (2.0 if max_marks == 15 else (2.5 if max_marks == 20 else 20.0))))
+        conc_aw = float(rubric.get("conclusion_score", round(overall_score * 0.12, 2)) or 0.0)
+
+    body_target_den = round(max(1.0, max_marks - canon_i_max - canon_co_max), 1)
+
+    # Core demand, value addition, presentation allocations
+    if max_marks == 10:
+        canon_c_max = round(body_target_den * 0.65, 1)
+        canon_v_max = round(body_target_den * 0.20, 1)
+        canon_p_max = round(body_target_den - canon_c_max - canon_v_max, 1)
+    elif max_marks == 15:
+        canon_c_max = round(body_target_den * 0.65, 1)
+        canon_v_max = round(body_target_den * 0.20, 1)
+        canon_p_max = round(body_target_den - canon_c_max - canon_v_max, 1)
+    else:
+        canon_c_max = round(body_target_den * 0.65, 1)
+        canon_v_max = round(body_target_den * 0.20, 1)
+        canon_p_max = round(body_target_den - canon_c_max - canon_v_max, 1)
 
     rubric["intro_max"] = canon_i_max
     rubric["core_demand_max"] = canon_c_max
@@ -5436,13 +5520,9 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
     rubric["presentation_max"] = canon_p_max
     rubric["conclusion_max"] = canon_co_max
 
-    # Extract exact awarded marks & denominators from visual_annotations so Margin Cards and Right-Panel Rubric NEVER disagree
+    # Extract exact awarded marks & denominators from visual_annotations
     graded_anns = [a for a in (data.get("visual_annotations") or []) if a.get("marks_awarded") and str(a.get("type", "")).lower() != "info"]
     if graded_anns:
-        first_ann = graded_anns[0]
-        last_ann = graded_anns[-1] if len(graded_anns) > 1 else None
-        mid_anns = graded_anns[1:-1] if len(graded_anns) > 2 else []
-
         def _parse_aw_den(ann_obj, def_aw, def_den):
             if not ann_obj:
                 return def_aw, def_den
@@ -5451,47 +5531,57 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                 return float(m_match.group(1)), float(m_match.group(2))
             return def_aw, def_den
 
-        intro_aw, intro_den = _parse_aw_den(first_ann, float(rubric.get("intro_score", 1.0)), canon_i_max)
-        conc_aw, conc_den = _parse_aw_den(last_ann, float(rubric.get("conclusion_score", 0.5)), canon_co_max)
+        # Match Intro annotation ONLY if tag actually indicates intro/premise
+        intro_ann = next((a for a in graded_anns if any(k in str(a.get("tag", "")).lower() for k in ["intro", "premise", "context", "definition", "प्रस्तावना"])), None)
+        # Match Conclusion annotation ONLY if tag indicates conclusion AND NOT way forward / solutions
+        conc_ann = next((a for a in reversed(graded_anns) if any(k in str(a.get("tag", "")).lower() for k in ["conclusion", "synthesis", "निष्कर्ष", "closing"]) and not any(wf in str(a.get("tag", "")).lower() for wf in ["way forward", "solutions", "reforms", "measures", "आगे की राह", "सुझाव"])), None)
 
-        # Force first annotation (Intro) and last annotation (Conclusion) denominators to match canonical rubric max
-        intro_aw = min(canon_i_max, max(0.0, round(intro_aw * 2) / 2))
-        conc_aw = min(canon_co_max, max(0.0, round(conc_aw * 2) / 2))
+        if intro_ann:
+            parsed_i_aw, _ = _parse_aw_den(intro_ann, intro_aw, canon_i_max)
+            intro_aw = min(canon_i_max, max(0.0, round(parsed_i_aw * 2) / 2))
+            intro_ann["marks_awarded"] = f"+{intro_aw:.1f} / {canon_i_max:.1f}"
+
+        if conc_ann:
+            parsed_c_aw, _ = _parse_aw_den(conc_ann, conc_aw, canon_co_max)
+            conc_aw = min(canon_co_max, max(0.0, round(parsed_c_aw * 2) / 2))
+            conc_ann["marks_awarded"] = f"+{conc_aw:.1f} / {canon_co_max:.1f}"
+
         if intro_aw + conc_aw > overall_score:
             conc_aw = max(0.0, round((overall_score - intro_aw) * 2) / 2)
+            if conc_ann:
+                conc_ann["marks_awarded"] = f"+{conc_aw:.1f} / {canon_co_max:.1f}"
 
-        body_target_aw = max(0.0, round((overall_score - intro_aw - conc_aw) * 2) / 2)
-        body_target_den = round(max_marks - canon_i_max - canon_co_max, 1)
+        body_target_aw = max(0.0, round((overall_score - (intro_aw if intro_ann else 0.0) - (conc_aw if conc_ann else 0.0)) * 2) / 2)
 
-        first_ann["marks_awarded"] = f"+{intro_aw:.1f} / {canon_i_max:.1f}"
-        if last_ann:
-            last_ann["marks_awarded"] = f"+{conc_aw:.1f} / {canon_co_max:.1f}"
+        # Normalize body annotations (including Way Forward!)
+        body_anns = [a for a in graded_anns if a is not intro_ann and a is not conc_ann]
+        if body_anns:
+            raw_b_aws = [_parse_aw_den(ba, 1.0, 3.0)[0] for ba in body_anns]
+            raw_b_dens = [_parse_aw_den(ba, 1.0, 3.0)[1] for ba in body_anns]
+            sum_b_aws = sum(raw_b_aws)
+            sum_b_dens = sum(raw_b_dens)
 
-        if mid_anns:
-            raw_mid_aws = [_parse_aw_den(ma, 1.0, 3.0)[0] for ma in mid_anns]
-            sum_mid_aws = sum(raw_mid_aws)
             curr_b_den = 0.0
             curr_b_aw = 0.0
-            for idx_m, ma in enumerate(mid_anns):
-                if idx_m == len(mid_anns) - 1:
-                    m_den = round(body_target_den - curr_b_den, 1)
+            for idx_m, ba in enumerate(body_anns):
+                if idx_m == len(body_anns) - 1:
+                    m_den = round(max(0.5, body_target_den - curr_b_den), 1)
                     m_aw = max(0.0, min(m_den, round(body_target_aw - curr_b_aw, 1)))
                 else:
-                    m_den = round((body_target_den / len(mid_anns)) * 2) / 2
+                    prop_d = (raw_b_dens[idx_m] / sum_b_dens) if sum_b_dens > 0 else (1.0 / len(body_anns))
+                    m_den = round(max(0.5, body_target_den * prop_d) * 2) / 2
                     curr_b_den += m_den
-                    prop = (raw_mid_aws[idx_m] / sum_mid_aws) if sum_mid_aws > 0 else (1.0 / len(mid_anns))
-                    m_aw = max(0.0, min(m_den, round(body_target_aw * prop * 2) / 2))
+                    prop_a = (raw_b_aws[idx_m] / sum_b_aws) if sum_b_aws > 0 else prop_d
+                    m_aw = max(0.0, min(m_den, round(body_target_aw * prop_a * 2) / 2))
                     curr_b_aw += m_aw
-                ma["marks_awarded"] = f"+{m_aw:.1f} / {m_den:.1f}"
+                ba["marks_awarded"] = f"+{m_aw:.1f} / {m_den:.1f}"
 
-        # Lock rubric Intro and Conclusion scores to the exact Margin Card Intro and Conclusion scores!
-        rubric["intro_score"] = intro_aw
-        rubric["conclusion_score"] = conc_aw
+        rubric["intro_score"] = intro_aw if intro_ann else 0.0
+        rubric["conclusion_score"] = conc_aw if conc_ann else 0.0
 
-        # Distribute body_target_aw across Core Demand, Value Addition, and Presentation
-        raw_c = max(0.25, float(rubric.get("core_demand_score", body_target_aw * 0.6)))
-        raw_v = max(0.25, float(rubric.get("value_add_score", body_target_aw * 0.2)))
-        raw_p = max(0.25, float(rubric.get("presentation_score", body_target_aw * 0.2)))
+        raw_c = max(0.25, float(rubric.get("core_demand_score", body_target_aw * 0.65)))
+        raw_v = max(0.25, float(rubric.get("value_add_score", body_target_aw * 0.20)))
+        raw_p = max(0.25, float(rubric.get("presentation_score", body_target_aw * 0.15)))
         raw_body_sum = raw_c + raw_v + raw_p
         if body_target_aw <= 0:
             rubric["core_demand_score"] = 0.0
@@ -5851,6 +5941,25 @@ def _prevent_duplicate_credit(data: Dict[str, Any]) -> None:
                     item["what_you_wrote"] = item.get("what_you_wrote", "").replace('"', "").replace("'", "") + " (distinct analytical facet)"
                 elif clean_q:
                     seen_quotes.add(clean_q)
+
+    # Prevent duplicate credit across visual annotations (e.g. duplicate page uploads)
+    anns = data.get("visual_annotations")
+    if isinstance(anns, list):
+        seen_ann = set()
+        deduped_anns = []
+        for a in anns:
+            if isinstance(a, dict):
+                tag = str(a.get("tag") or "").strip().lower()
+                rem = re.sub(r'[^a-z0-9]+', '', str(a.get("remark") or "").lower())[:40]
+                key = (tag, rem)
+                if key[0] and key[1] and key in seen_ann:
+                    continue
+                if key[0] and key[1]:
+                    seen_ann.add(key)
+                deduped_anns.append(a)
+            else:
+                deduped_anns.append(a)
+        data["visual_annotations"] = deduped_anns
 
     # Prevent duplicate credit across evidence ledger criteria
     ledger = data.get("evidence_ledger")
@@ -6385,154 +6494,190 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
 
     if isinstance(existing_steps, list) and len(existing_steps) >= 3:
         num_steps = len(existing_steps)
-        num_body = max(1, num_steps - 2)
-        total_body_max = max(1.0, round((max_marks - intro_max - conc_max) * 4) / 4)
-        total_body_aw = max(0.0, round((overall_score - intro_aw - conc_aw) * 4) / 4)
+        sum_all_max = sum(float(s.get("max", 0.0) or 0.0) for s in existing_steps if isinstance(s, dict))
+        sum_all_aw = sum(float(s.get("awarded", 0.0) or 0.0) for s in existing_steps if isinstance(s, dict))
 
-        # Calculate individual body part ceilings and awards proportionally, respecting dynamic weights if provided
-        raw_body_maxes = []
-        raw_body_aws = []
-        for b_idx in range(num_body):
-            step_idx = 1 + b_idx
-            if step_idx < len(existing_steps) - 1 and isinstance(existing_steps[step_idx], dict):
-                raw_body_maxes.append(float(existing_steps[step_idx].get("max") or 0.0))
-                raw_body_aws.append(float(existing_steps[step_idx].get("awarded") or 0.0))
-            else:
-                raw_body_maxes.append(0.0)
-                raw_body_aws.append(0.0)
+        # Check if existing steps are already demand-based and mathematically sound
+        if abs(sum_all_max - max_marks) < 0.25 and abs(sum_all_aw - overall_score) < 0.25:
+            assigned_steps = []
+            for idx, item in enumerate(existing_steps):
+                if not isinstance(item, dict):
+                    continue
+                step_obj = dict(item)
+                s_aw = float(step_obj.get("awarded", 0.0) or 0.0)
+                s_mx = float(step_obj.get("max", 0.0) or 0.0)
+                step_obj["awarded"] = s_aw
+                step_obj["max"] = s_mx
+                step_obj["demand_status"] = get_canonical_demand_status(s_aw, s_mx, is_hindi=is_hindi)
+                assigned_steps.append(step_obj)
 
-        # Pull intro and conclusion definitions directly from existing steps if present
-        if isinstance(existing_steps[0], dict):
-            if "max" in existing_steps[0]:
-                intro_max = float(existing_steps[0].get("max") or intro_max)
-            if "awarded" in existing_steps[0]:
-                intro_aw = float(existing_steps[0].get("awarded") or 0.0)
-        if isinstance(existing_steps[-1], dict):
-            if "max" in existing_steps[-1]:
-                conc_max = float(existing_steps[-1].get("max") or conc_max)
-            if "awarded" in existing_steps[-1]:
-                conc_aw = float(existing_steps[-1].get("awarded") or 0.0)
-
-        total_body_max = max(1.0, round((max_marks - intro_max - conc_max) * 4) / 4)
-        total_body_aw = max(0.0, round((overall_score - intro_aw - conc_aw) * 4) / 4)
-
-        sum_raw_b_max = sum(raw_body_maxes)
-        sum_raw_b_aw = sum(raw_body_aws)
-        has_dynamic_weights = (sum_raw_b_max > 0.1 and all(m > 0 for m in raw_body_maxes))
-
-        # If incoming body steps are already mathematically exact, preserve them verbatim
-        if abs(sum_raw_b_max - total_body_max) < 0.05 and abs(sum_raw_b_aw - total_body_aw) < 0.05:
-            body_max_list = [float(m) for m in raw_body_maxes]
-            body_aw_list = [float(a) for a in raw_body_aws]
+            data["sub_part_step_marking"] = assigned_steps
+            data["subpart_marks_breakdown"] = [
+                {
+                    "part_name": st.get("step_label", ""),
+                    "max_marks": float(st.get("max", 0.0) or 0.0),
+                    "marks_awarded": float(st.get("awarded", 0.0) or 0.0),
+                    "demand_status": get_canonical_demand_status(st.get("awarded"), st.get("max"), is_hindi=is_hindi),
+                    "analysis": st.get("sub_heading", ""),
+                    "scoring_rationale": st.get("quoted_written", "")
+                }
+                for st in assigned_steps if isinstance(st, dict)
+            ]
         else:
-            body_max_list = []
-            body_aw_list = []
-            rem_m = total_body_max
-            rem_aw = total_body_aw
+            num_body = max(1, num_steps - 2)
+            total_body_max = max(1.0, round((max_marks - intro_max - conc_max) * 4) / 4)
+            total_body_aw = max(0.0, round((overall_score - intro_aw - conc_aw) * 4) / 4)
+
+            # Calculate individual body part ceilings and awards proportionally
+            raw_body_maxes = []
+            raw_body_aws = []
             for b_idx in range(num_body):
-                if b_idx == num_body - 1:
-                    final_m = max(0.5, round(rem_m * 4) / 4)
-                    final_aw = max(0.0, min(final_m, round(rem_aw * 4) / 4))
-                    body_max_list.append(final_m)
-                    body_aw_list.append(final_aw)
+                step_idx = 1 + b_idx
+                if step_idx < len(existing_steps) - 1 and isinstance(existing_steps[step_idx], dict):
+                    raw_body_maxes.append(float(existing_steps[step_idx].get("max") or 0.0))
+                    raw_body_aws.append(float(existing_steps[step_idx].get("awarded") or 0.0))
                 else:
-                    if has_dynamic_weights:
-                        ratio_m = raw_body_maxes[b_idx] / sum_raw_b_max
-                        m_val = max(0.5, round((total_body_max * ratio_m) * 4) / 4)
-                        ratio_aw = (raw_body_aws[b_idx] / sum_raw_b_aw) if sum_raw_b_aw > 0 else ratio_m
-                        aw_val = min(m_val, max(0.0, round((total_body_aw * ratio_aw) * 4) / 4))
-                    else:
-                        m_val = max(1.0, round((total_body_max / num_body) * 4) / 4)
-                        aw_val = min(m_val, max(0.0, round((total_body_aw / num_body) * 4) / 4))
-                    body_max_list.append(m_val)
-                    body_aw_list.append(aw_val)
-                    rem_m = max(0.5, rem_m - m_val)
-                    rem_aw = max(0.0, rem_aw - aw_val)
+                    raw_body_maxes.append(0.0)
+                    raw_body_aws.append(0.0)
 
-        q_ctx = str(data.get("detected_question") or data.get("question") or "")
-        wf_demanded = _is_way_forward_demanded_by_question(q_ctx)
-        wf_written = _has_candidate_written_way_forward(str(data.get("transcribed_text") or ""))
+            if isinstance(existing_steps[0], dict):
+                if "max" in existing_steps[0]:
+                    intro_max = float(existing_steps[0].get("max") or intro_max)
+                if "awarded" in existing_steps[0]:
+                    intro_aw = float(existing_steps[0].get("awarded") or 0.0)
+            if isinstance(existing_steps[-1], dict):
+                if "max" in existing_steps[-1]:
+                    conc_max = float(existing_steps[-1].get("max") or conc_max)
+                if "awarded" in existing_steps[-1]:
+                    conc_aw = float(existing_steps[-1].get("awarded") or 0.0)
 
-        assigned_steps = []
-        for idx in range(num_steps):
-            item = existing_steps[idx] if isinstance(existing_steps[idx], dict) else {}
-            if idx == 0:
-                raw_sl = str(item.get("step_label") or "")
-                raw_sh = str(item.get("sub_heading") or "")
-                if is_hindi:
-                    item["step_label"] = raw_sl if (raw_sl and (is_devanagari_text(raw_sl) or len(raw_sl) >= 4)) else "1. प्रस्तावना एवं संदर्भ (Intro & Context)"
-                    item["sub_heading"] = raw_sh if (raw_sh and (is_devanagari_text(raw_sh) or len(raw_sh) >= 6)) else "प्रारंभिक विषय-परिचय एवं अवधारणात्मक आधार"
-                else:
-                    item["step_label"] = "1. INTRO & CONTEXT" if (not raw_sl or is_devanagari_text(raw_sl)) else raw_sl
-                    item["sub_heading"] = "Opening Premise & Conceptual Anchor" if (not raw_sh or is_devanagari_text(raw_sh)) else raw_sh
-                item["max"] = intro_max
-                item["awarded"] = intro_aw
-            elif idx == num_steps - 1:
-                raw_sl = str(item.get("step_label") or "")
-                raw_sh = str(item.get("sub_heading") or "")
-                if is_hindi:
-                    item["step_label"] = raw_sl if (raw_sl and (is_devanagari_text(raw_sl) or len(raw_sl) >= 4)) else f"{num_steps}. निष्कर्ष एवं आगे की राह (Conclusion & Way Forward)"
-                    item["sub_heading"] = raw_sh if (raw_sh and (is_devanagari_text(raw_sh) or len(raw_sh) >= 6)) else "अग्रगामी समाधान एवं संस्थागत समन्वय"
-                else:
-                    item["step_label"] = f"{num_steps}. CONCLUSION & SYNTHESIS" if (not raw_sl or is_devanagari_text(raw_sl)) else raw_sl
-                    item["sub_heading"] = "Closing Vision & Institutional Forward Linkage" if (not raw_sh or is_devanagari_text(raw_sh)) else raw_sh
-                item["max"] = conc_max
-                item["awarded"] = conc_aw
+            total_body_max = max(1.0, round((max_marks - intro_max - conc_max) * 4) / 4)
+            total_body_aw = max(0.0, round((overall_score - intro_aw - conc_aw) * 4) / 4)
+
+            sum_raw_b_max = sum(raw_body_maxes)
+            sum_raw_b_aw = sum(raw_body_aws)
+            has_dynamic_weights = (sum_raw_b_max > 0.1 and all(m > 0 for m in raw_body_maxes))
+
+            if abs(sum_raw_b_max - total_body_max) < 0.05 and abs(sum_raw_b_aw - total_body_aw) < 0.05:
+                body_max_list = [float(m) for m in raw_body_maxes]
+                body_aw_list = [float(a) for a in raw_body_aws]
             else:
-                body_idx = idx - 1
-                part_letter = chr(65 + body_idx)
-                raw_sl = str(item.get("step_label") or "").strip()
-                clean_sl = re.sub(r'^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*|भाग\s*[a-z0-9]\s*[-—:]\s*|मुख्य भाग\s*[-—:]\s*)+', '', raw_sl, flags=re.IGNORECASE).strip()
-                clean_sl = re.sub(r'\[(?:अभ्यर्थी का )?[^\]]+\]', '', clean_sl).strip()
-                if is_hindi:
-                    # Allow authentic Hinglish, Devanagari, and English technical terms in Hindi answer sheet headings
-                    item["step_label"] = f"{idx + 1}. मुख्य भाग — {clean_sl}" if (clean_sl and len(clean_sl) >= 3 and not re.match(r'^(?:आयाम\s*[a-z0-9]|dimension\s*[a-z0-9])$', clean_sl, re.I)) else f"{idx + 1}. मुख्य भाग — आयाम {part_letter}"
-                else:
-                    if is_devanagari_text(clean_sl):
-                        clean_sl = re.sub(r'[\u0900-\u097F]+', '', clean_sl).strip()
-                    item["step_label"] = f"{idx + 1}. Part {part_letter} — {clean_sl}" if (clean_sl and len(clean_sl) > 3) else f"{idx + 1}. Part {part_letter} — Question Dimension {part_letter}"
-                raw_sh = str(item.get("sub_heading") or "")
-                raw_sh_clean = re.sub(r'\[(?:अभ्यर्थी का )?[^\]]+\]', '', raw_sh).strip()
-                need_default_sh = (
-                    not raw_sh_clean or
-                    "explain what" in raw_sh_clean.lower() or
-                    (not is_hindi and is_devanagari_text(raw_sh_clean))
-                )
-                if need_default_sh:
-                    if is_hindi:
-                        if body_idx == 0:
-                            item["sub_heading"] = "मुख्य मांग का विश्लेषण एवं प्राथमिक कारक"
-                        elif body_idx == 1:
-                            item["sub_heading"] = "बहुआयामी प्रभाव एवं क्षेत्रीय/हितधारक चुनौतियां"
-                        else:
-                            item["sub_heading"] = "नीतिगत हस्तक्षेप एवं सांविधिक सुधार" if (wf_demanded or wf_written) else "संरचनात्मक प्रभाव एवं संस्थागत मूल्यांकन"
+                body_max_list = []
+                body_aw_list = []
+                rem_m = total_body_max
+                rem_aw = total_body_aw
+                for b_idx in range(num_body):
+                    if b_idx == num_body - 1:
+                        final_m = max(0.5, round(rem_m * 4) / 4)
+                        final_aw = max(0.0, min(final_m, round(rem_aw * 4) / 4))
+                        body_max_list.append(final_m)
+                        body_aw_list.append(final_aw)
                     else:
-                        if body_idx == 0:
-                            item["sub_heading"] = "Core Analytical Demand & Structural Drivers"
-                        elif body_idx == 1:
-                            item["sub_heading"] = "Multidimensional Impacts & Ground Vulnerabilities"
+                        if has_dynamic_weights:
+                            ratio_m = raw_body_maxes[b_idx] / sum_raw_b_max
+                            m_val = max(0.5, round((total_body_max * ratio_m) * 4) / 4)
+                            ratio_aw = (raw_body_aws[b_idx] / sum_raw_b_aw) if sum_raw_b_aw > 0 else ratio_m
+                            aw_val = min(m_val, max(0.0, round((total_body_aw * ratio_aw) * 4) / 4))
                         else:
-                            item["sub_heading"] = "Actionable Policy Interventions & Regulatory Safeguards" if (wf_demanded or wf_written) else "Structural Implications & Institutional Analysis"
-                else:
-                    item["sub_heading"] = raw_sh_clean
-                item["max"] = body_max_list[body_idx] if body_idx < len(body_max_list) else 2.0
-                item["awarded"] = body_aw_list[body_idx] if body_idx < len(body_aw_list) else 1.0
-            item["demand_status"] = get_canonical_demand_status(item.get("awarded"), item.get("max"), is_hindi=is_hindi)
-            assigned_steps.append(item)
-        data["sub_part_step_marking"] = assigned_steps
+                            m_val = max(1.0, round((total_body_max / num_body) * 4) / 4)
+                            aw_val = min(m_val, max(0.0, round((total_body_aw / num_body) * 4) / 4))
+                        body_max_list.append(m_val)
+                        body_aw_list.append(aw_val)
+                        rem_m = max(0.5, rem_m - m_val)
+                        rem_aw = max(0.0, rem_aw - aw_val)
 
-        # Synchronize subpart_marks_breakdown (Phase 3.1 & Phase 4)
-        data["subpart_marks_breakdown"] = [
-            {
-                "part_name": st.get("step_label", ""),
-                "max_marks": float(st.get("max", 0.0) or 0.0),
-                "marks_awarded": float(st.get("awarded", 0.0) or 0.0),
-                "demand_status": get_canonical_demand_status(st.get("awarded"), st.get("max"), is_hindi=is_hindi),
-                "analysis": st.get("sub_heading", ""),
-                "scoring_rationale": st.get("quoted_written", "")
-            }
-            for st in assigned_steps if isinstance(st, dict)
-        ]
+            q_ctx = str(data.get("detected_question") or data.get("question") or "")
+            wf_demanded = _is_way_forward_demanded_by_question(q_ctx)
+            wf_written = _has_candidate_written_way_forward(str(data.get("transcribed_text") or ""))
+
+            assigned_steps = []
+            for idx in range(num_steps):
+                item = existing_steps[idx] if isinstance(existing_steps[idx], dict) else {}
+                if idx == 0:
+                    raw_sl = str(item.get("step_label") or "")
+                    raw_sh = str(item.get("sub_heading") or "")
+                    if is_hindi:
+                        item["step_label"] = raw_sl if (raw_sl and (is_devanagari_text(raw_sl) or len(raw_sl) >= 4)) else "1. प्रस्तावना एवं संदर्भ (Intro & Context)"
+                        item["sub_heading"] = raw_sh if (raw_sh and (is_devanagari_text(raw_sh) or len(raw_sh) >= 6)) else "प्रारंभिक विषय-परिचय एवं अवधारणात्मक आधार"
+                    else:
+                        item["step_label"] = "1. INTRO & CONTEXT" if (not raw_sl or is_devanagari_text(raw_sl)) else raw_sl
+                        item["sub_heading"] = "Opening Premise & Conceptual Anchor" if (not raw_sh or is_devanagari_text(raw_sh)) else raw_sh
+                    item["max"] = intro_max
+                    item["awarded"] = intro_aw
+                elif idx == num_steps - 1:
+                    raw_sl = str(item.get("step_label") or "")
+                    raw_sh = str(item.get("sub_heading") or "")
+                    # Only treat final step as conclusion if it is NOT a way forward or substantive demand
+                    is_wf_step = any(w in raw_sl.lower() or w in raw_sh.lower() for w in ["way forward", "solutions", "reforms", "measures", "आगे की राह", "सुझाव"])
+                    if is_hindi:
+                        if is_wf_step:
+                            item["step_label"] = raw_sl if raw_sl else f"{num_steps}. आगे की राह एवं नीतिगत सुधार"
+                            item["sub_heading"] = raw_sh if raw_sh else "व्यावहारिक समाधान एवं अग्रगामी कदम"
+                        else:
+                            item["step_label"] = raw_sl if (raw_sl and (is_devanagari_text(raw_sl) or len(raw_sl) >= 4)) else f"{num_steps}. निष्कर्ष एवं आगे की राह (Conclusion & Way Forward)"
+                            item["sub_heading"] = raw_sh if (raw_sh and (is_devanagari_text(raw_sh) or len(raw_sh) >= 6)) else "अग्रगामी समाधान एवं संस्थागत समन्वय"
+                    else:
+                        if is_wf_step:
+                            item["step_label"] = raw_sl if raw_sl else f"{num_steps}. WAY FORWARD & POLICY REFORMS"
+                            item["sub_heading"] = raw_sh if raw_sh else "Actionable Solutions & Institutional Reforms"
+                        else:
+                            item["step_label"] = f"{num_steps}. CONCLUSION & SYNTHESIS" if (not raw_sl or is_devanagari_text(raw_sl)) else raw_sl
+                            item["sub_heading"] = "Closing Vision & Institutional Forward Linkage" if (not raw_sh or is_devanagari_text(raw_sh)) else raw_sh
+                    item["max"] = conc_max
+                    item["awarded"] = conc_aw
+                else:
+                    body_idx = idx - 1
+                    part_letter = chr(65 + body_idx)
+                    raw_sl = str(item.get("step_label") or "").strip()
+                    clean_sl = re.sub(r'^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*|भाग\s*[a-z0-9]\s*[-—:]\s*|मुख्य भाग\s*[-—:]\s*)+', '', raw_sl, flags=re.IGNORECASE).strip()
+                    clean_sl = re.sub(r'\[(?:अभ्यर्थी का )?[^\]]+\]', '', clean_sl).strip()
+                    if is_hindi:
+                        item["step_label"] = f"{idx + 1}. मुख्य भाग — {clean_sl}" if (clean_sl and len(clean_sl) >= 3 and not re.match(r'^(?:आयाम\s*[a-z0-9]|dimension\s*[a-z0-9])$', clean_sl, re.I)) else f"{idx + 1}. मुख्य भाग — आयाम {part_letter}"
+                    else:
+                        if is_devanagari_text(clean_sl):
+                            clean_sl = re.sub(r'[\u0900-\u097F]+', '', clean_sl).strip()
+                        item["step_label"] = f"{idx + 1}. Part {part_letter} — {clean_sl}" if (clean_sl and len(clean_sl) > 3) else f"{idx + 1}. Part {part_letter} — Question Dimension {part_letter}"
+                    raw_sh = str(item.get("sub_heading") or "")
+                    raw_sh_clean = re.sub(r'\[(?:अभ्यर्थी का )?[^\]]+\]', '', raw_sh).strip()
+                    need_default_sh = (
+                        not raw_sh_clean or
+                        "explain what" in raw_sh_clean.lower() or
+                        (not is_hindi and is_devanagari_text(raw_sh_clean))
+                    )
+                    if need_default_sh:
+                        if is_hindi:
+                            if body_idx == 0:
+                                item["sub_heading"] = "मुख्य मांग का विश्लेषण एवं प्राथमिक कारक"
+                            elif body_idx == 1:
+                                item["sub_heading"] = "बहुआयामी प्रभाव एवं क्षेत्रीय/हितधारक चुनौतियां"
+                            else:
+                                item["sub_heading"] = "नीतिगत हस्तक्षेप एवं सांविधिक सुधार" if (wf_demanded or wf_written) else "संरचनात्मक प्रभाव एवं संस्थागत मूल्यांकन"
+                        else:
+                            if body_idx == 0:
+                                item["sub_heading"] = "Core Analytical Demand & Structural Drivers"
+                            elif body_idx == 1:
+                                item["sub_heading"] = "Multidimensional Impacts & Ground Vulnerabilities"
+                            else:
+                                item["sub_heading"] = "Actionable Policy Interventions & Regulatory Safeguards" if (wf_demanded or wf_written) else "Structural Implications & Institutional Analysis"
+                    else:
+                        item["sub_heading"] = raw_sh_clean
+                    item["max"] = body_max_list[body_idx] if body_idx < len(body_max_list) else 2.0
+                    item["awarded"] = body_aw_list[body_idx] if body_idx < len(body_aw_list) else 1.0
+                item["demand_status"] = get_canonical_demand_status(item.get("awarded"), item.get("max"), is_hindi=is_hindi)
+                assigned_steps.append(item)
+            data["sub_part_step_marking"] = assigned_steps
+
+            data["subpart_marks_breakdown"] = [
+                {
+                    "part_name": st.get("step_label", ""),
+                    "max_marks": float(st.get("max", 0.0) or 0.0),
+                    "marks_awarded": float(st.get("awarded", 0.0) or 0.0),
+                    "demand_status": get_canonical_demand_status(st.get("awarded"), st.get("max"), is_hindi=is_hindi),
+                    "analysis": st.get("sub_heading", ""),
+                    "scoring_rationale": st.get("quoted_written", "")
+                }
+                for st in assigned_steps if isinstance(st, dict)
+            ]
     else:
         # For 10-markers (max_marks == 10 or total_pages <= 2), strictly default to 2 body parts (Intro + Part A + Part B + Conclusion)
         total_p = int(data.get("total_pages", 0) or 0)
