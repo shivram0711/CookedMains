@@ -4215,7 +4215,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         # Extract page-specific transcript for accurate attribution
         def _get_page_transcript(page_num: int) -> str:
             raw_t = str(data.get("transcribed_text") or "")
-            parts = re.split(r'\[Page\s*(\d+)\]', raw_t, flags=re.IGNORECASE)
+            parts = re.split(r'\[(?:Page|\u092a\u0943\u0937\u094d\u0920)\s*(\d+)\]', raw_t, flags=re.IGNORECASE)
             for i in range(1, len(parts), 2):
                 if int(parts[i]) == page_num and i + 1 < len(parts):
                     return parts[i + 1]
@@ -4649,7 +4649,11 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                         used_margin_bullets.add(_norm_sig(ln))
 
         primary_cand_heading = ""
-        max_pg = max([int(a.get("page", 1) or 1) for a in annotations], default=1)
+        trans_page_matches = [int(p) for p in re.findall(r'\[(?:Page|\u092a\u0943\u0937\u094d\u0920)\s*(\d+)\]', str(data.get("transcribed_text") or ""), flags=re.IGNORECASE)]
+        img_page_count = len(data.get("images") or data.get("pages") or [])
+        explicit_tot_pages = int(data.get("total_pages") or 0)
+        ann_pages = [int(a.get("page", 1) or 1) for a in annotations]
+        max_pg = max([1] + ann_pages + trans_page_matches + ([img_page_count] if img_page_count > 0 else []) + ([explicit_tot_pages] if explicit_tot_pages > 0 else []))
         if max_pg == 1:
             for idx_a, ann in enumerate(annotations):
                 if "intro" not in str(ann.get("tag", "")).lower() and "concl" not in str(ann.get("tag", "")).lower():
@@ -4874,7 +4878,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
 
                     # If candidate authored 1 heading that is ALREADY the reform/way-forward section (e.g. 'Reform strategies'),
                     # do NOT split it into two artificial sub-sections! It is a single unified reform section.
-                    is_h0_already_wf = bool(cand_page_headings and re.search(r'\b(?:way\s+forward|way\s+ahead|reform|solution|measure|mitigat|suggestion|आगे\s*की\s*राह|सुझाव|समाधान)\b', cand_page_headings[0]['text'], re.IGNORECASE))
+                    h0_y = float(cand_page_headings[0].get('approx_y', 10.0)) if cand_page_headings else 10.0
+                    is_h0_already_wf = bool(cand_page_headings and h0_y < 35.0 and re.search(r'\b(?:way\s+forward|way\s+ahead|reform|solution|measure|mitigat|suggestion|आगे\s*की\s*राह|सुझाव|समाधान)\b', cand_page_headings[0]['text'], re.IGNORECASE))
 
                     cand_has_two_distinct_sections = (len(cand_page_headings) >= 2) or (len(cand_page_headings) == 1 and not is_h0_already_wf and (has_written_wf or has_statutory_act))
                     allow_final_body_split = cand_has_two_distinct_sections
@@ -5021,6 +5026,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                 _heal_cross_attributed_page_annotations(pg_subset)
                 _enforce_clean_vertical_separation(pg_subset)
             data["visual_annotations"] = annotations
+            data["total_pages"] = max(int(data.get("total_pages", 0) or 0), max_pg)
 
         total_awarded = 0.0
         total_den = 0.0

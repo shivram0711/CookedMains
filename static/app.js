@@ -7190,7 +7190,7 @@ function renderAnnotationsOverlay() {
         const rawBodyTagStr = (rawBody && rawBody.tag) ? String(rawBody.tag).toLowerCase() : "";
         const hasTwoDistinctSubheadingsInTag = rawBodyTagStr.includes("and") || rawBodyTagStr.includes("&") || rawBodyTagStr.includes("+");
         const hasMultipleBodyAnnsOnFinalPage = rawBodyAnns.length >= 2;
-        const isHeadingAlreadyWf = candHeadingsOnFinalPage.length === 1 && /\b(?:way\s*forward|reform|reforms|solutions?)\b/i.test(candHeadingsOnFinalPage[0].text || '');
+        const isHeadingAlreadyWf = candHeadingsOnFinalPage.length === 1 && (candHeadingsOnFinalPage[0].approxY || 10) < 35 && /\b(?:way\s*forward|reform|reforms|solutions?)\b/i.test(candHeadingsOnFinalPage[0].text || '');
 
         // On both 10-markers and 15-markers, render 3 sections on final page if candidate authored multiple headings
         // OR if candidate authored a heading + way forward / multiple body annotations exist
