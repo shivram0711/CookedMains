@@ -1265,6 +1265,81 @@ def build_hindi_evaluation_prompt(
     rubric_v_max = d3_m
     rubric_p_max = round(d4_m * 0.5, 1)
     rubric_co_max = round(d4_m - rubric_p_max, 1)
+
+    if max_marks >= 15:
+        hindi_prompt_visual_annotations_example = f'''    {{{{
+      "page_number": 1,
+      "tag": "प्रस्तावना (भूमिका)",
+      "start_y_percent": 24,
+      "end_y_percent": 38,
+      "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
+      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — सटीक Conceptual Baseline के साथ प्रभावी शुरुआत।\\n✎ **सुधार**: 1 विषय-सटीक संवर्धन जोड़ें।"
+    }}}},
+    {{{{
+      "page_number": 1,
+      "tag": "Body: [प्रथम उप-शीर्षक]",
+      "start_y_percent": 42,
+      "end_y_percent": 88,
+      "marks_awarded": "+{d2_aw:.1f} / {d2_m:.1f}",
+      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — बिंदुवार संरचना का सटीक उपयोग।\\n✎ **सुधार**: प्रासंगिक समिति/आंकड़े का उल्लेख करें।"
+    }}}},
+    {{{{
+      "page_number": 2,
+      "tag": "Body: [द्वितीय उप-शीर्षक / मुख्य विश्लेषण]",
+      "start_y_percent": 10,
+      "end_y_percent": 88,
+      "marks_awarded": "+{d3_aw:.1f} / {d3_m:.1f}",
+      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — बहु-आयामी विश्लेषण।\\n✎ **सुधार**: ठोस उदाहरण एवं संवैधानिक प्रावधान जोड़ें।"
+    }}}},
+    {{{{
+      "page_number": 3,
+      "tag": "Body: [तृतीय उप-शीर्षक / सुधार रणनीतियाँ]",
+      "start_y_percent": 10,
+      "end_y_percent": 68,
+      "marks_awarded": "+{round(d4_aw * 0.55, 1):.1f} / {round(d4_m * 0.55, 1):.1f}",
+      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — व्यावहारिक सुधार रणनीति।\\n✎ **सुधार**: नीतिगत ढांचा व कार्यान्वयन रोडमैप जोड़ें।"
+    }}}},
+    {{{{
+      "page_number": 3,
+      "tag": "निष्कर्ष (आगे की राह)",
+      "start_y_percent": 70,
+      "end_y_percent": 86,
+      "marks_awarded": "+{round(d4_aw * 0.45, 1):.1f} / {round(d4_m * 0.45, 1):.1f}",
+      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — उत्तर का संतुलित समापन।\\n✎ **सुधार**: आगे की राह में 1 ठोस संस्थागत सुधार जोड़ें।"
+    }}}}'''
+    else:
+        hindi_prompt_visual_annotations_example = f'''    {{{{
+      "page_number": 1,
+      "tag": "प्रस्तावना (भूमिका)",
+      "start_y_percent": 24,
+      "end_y_percent": 38,
+      "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
+      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — सटीक Conceptual Baseline के साथ प्रभावी शुरुआत।\\n✎ **सुधार**: 1 विषय-सटीक संवर्धन जोड़ें।"
+    }}}},
+    {{{{
+      "page_number": 1,
+      "tag": "Body: [प्रथम उप-शीर्षक]",
+      "start_y_percent": 42,
+      "end_y_percent": 88,
+      "marks_awarded": "+{d2_aw:.1f} / {d2_m:.1f}",
+      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — बिंदुवार संरचना का सटीक उपयोग।\\n✎ **सुधार**: प्रासंगिक समिति/आंकड़े का उल्लेख करें।"
+    }}}},
+    {{{{
+      "page_number": 2,
+      "tag": "Body: [द्वितीय उप-शीर्षक]",
+      "start_y_percent": 10,
+      "end_y_percent": 68,
+      "marks_awarded": "+{d3_aw:.1f} / {d3_m:.1f}",
+      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — बहु-आयामी विश्लेषण।\\n✎ **सुधार**: ठोस उदाहरण एवं संवैधानिक प्रावधान जोड़ें।"
+    }}}},
+    {{{{
+      "page_number": 2,
+      "tag": "निष्कर्ष (आगे की राह)",
+      "start_y_percent": 70,
+      "end_y_percent": 86,
+      "marks_awarded": "+{d4_aw:.1f} / {d4_m:.1f}",
+      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — उत्तर का संतुलित समापन।\\n✎ **सुधार**: आगे की राह में 1 ठोस संस्थागत सुधार जोड़ें।"
+    }}}}'''
     d1_m = round(max_marks * 0.20, 1)
     d2_m = round(max_marks * 0.40, 1)
     d3_m = round(max_marks * 0.25, 1)
@@ -1731,38 +1806,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
     }}
   ],
   "visual_annotations": [
-    {{
-      "page_number": 1,
-      "tag": "प्रस्तावना (भूमिका)",
-      "start_y_percent": 24,
-      "end_y_percent": 38,
-      "marks_awarded": "+1.0 / {d1_m}",
-      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"शुचिता केवल वित्तीय ईमानदारी नहीं, बल्कि समग्र लोक सेवा आचरण है...\" — सटीक Conceptual Baseline के साथ प्रभावी शुरुआत।\\n✎ **सुधार**: प्रथम पंक्ति में 2nd ARC (Ethics in Governance) या Nolan Principles का औपचारिक संदर्भ जोड़ें।"
-    }},
-    {{
-      "page_number": 1,
-      "tag": "Body: शुचिता से सामाजिक-आर्थिक विकास",
-      "start_y_percent": 42,
-      "end_y_percent": 88,
-      "marks_awarded": "+1.5 / {d2_m}",
-      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"पारदर्शिता से योजनाओं का लीकेज रुकता है और DBT प्रभावी होता है...\" — बिंदुवार संरचना व DBT उदाहरण का सटीक उपयोग।\\n✎ **सुधार**: Inclusive Growth के संदर्भ में अंत्योदय और NITI Aayog के Aspirational Districts का आंकड़ा जोड़ें।"
-    }},
-    {{
-      "page_number": 2,
-      "tag": "Body: चुनौतियाँ व Celebrity कल्चर (Venn Diagram)",
-      "start_y_percent": 10,
-      "end_y_percent": 68,
-      "marks_awarded": "+1.5 / {d2_m}",
-      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"सोशल मीडिया पर आत्म-प्रचार से निष्पक्षता प्रभावित होती है...\" — जमीनी चुनौतियों व Venn Diagram का उत्कृष्ट प्रयोग।\\n✎ **सुधार**: सिविल सेवा आचरण नियमावली (Conduct Rules 1964) एवं संस्थागत जवाबदेही (Institutional Accountability) का उल्लेख करें।"
-    }},
-    {{
-      "page_number": 2,
-      "tag": "निष्कर्ष (आगे की राह)",
-      "start_y_percent": 70,
-      "end_y_percent": 86,
-      "marks_awarded": "+0.5 / {d4_m}",
-      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"अतः शुचिता और नैतिक नेतृत्व से ही अंत्योदय का लक्ष्य साकार होगा...\" — उत्तर का संतुलित समापन।\\n✎ **सुधार**: सामान्य समापन के स्थान पर आगे की राह (Way Forward) में 1 ठोस संस्थागत सुधार (जैसे Mission Karmayogi या 3-Phase SOP) जोड़ें।"
-    }}
+{hindi_prompt_visual_annotations_example}
   ],
   "point_by_point_audit": [
     {{
@@ -1925,6 +1969,99 @@ def build_evaluation_prompt(
     rubric_v_max = d3_m
     rubric_p_max = round(d4_m * 0.5, 1)
     rubric_co_max = round(d4_m - rubric_p_max, 1)
+
+    if max_marks >= 15:
+        eng_prompt_visual_annotations_example = f'''    {{{{
+      "page": 1,
+      "approx_y_percent": 30,
+      "start_y_percent": 24,
+      "end_y_percent": 42,
+      "tag": "Intro: Context & Conceptual Definition",
+      "type": "tick",
+      "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
+      "remark": "✓ **Direct Premise**: Opened directly with *\"[Extract 10-18 words verbatim from candidate's handwritten opening paragraph]\"*, framing the core thesis.\\n✎ **Opening Upgrade**: [Provide 1 discipline-specific elevation tailored strictly to this question topic]."
+    }}}},
+    {{{{
+      "page": 1,
+      "approx_y_percent": 68,
+      "start_y_percent": 44,
+      "end_y_percent": 88,
+      "tag": "Body: [Candidate's Actual Written Sub-Heading 1]",
+      "type": "tick",
+      "marks_awarded": "+{d2_aw:.1f} / {d2_m:.1f}",
+      "remark": "✓ **Core Argumentation**: Articulated *\"[Extract verbatim handwritten sentence from candidate's first body section]\"*.\\n✎ **Substantive Elevation**: [Provide 1 concrete upgrade relevant strictly to this subject]."
+    }}}},
+    {{{{
+      "page": 2,
+      "approx_y_percent": 50,
+      "start_y_percent": 8,
+      "end_y_percent": 88,
+      "tag": "Body: [Candidate's Actual Written Sub-Heading 2 (Page 2 Analysis)]",
+      "type": "tick",
+      "marks_awarded": "+{d3_aw:.1f} / {d3_m:.1f}",
+      "remark": "✓ **Analytical Dimension**: Examined *\"[Extract verbatim handwritten sentence from candidate's second page handwriting]\"*.\\n✎ **Substantive Elevation**: [Provide 1 concrete upgrade relevant strictly to this subject and dimension]."
+    }}}},
+    {{{{
+      "page": 3,
+      "approx_y_percent": 40,
+      "start_y_percent": 8,
+      "end_y_percent": 68,
+      "tag": "Body: [Candidate's Actual Written Sub-Heading 3 / Reform Strategies]",
+      "type": "tick",
+      "marks_awarded": "+{round(d4_aw * 0.55, 1):.1f} / {round(d4_m * 0.55, 1):.1f}",
+      "remark": "✓ **Reform & Strategic Solutions**: Evaluated *\"[Extract verbatim handwritten sentence from candidate's third page handwriting / reforms]\"*.\\n✎ **Policy Elevation**: [Provide 1 concrete actionable policy or institutional reform]."
+    }}}},
+    {{{{
+      "page": 3,
+      "approx_y_percent": 76,
+      "start_y_percent": 70,
+      "end_y_percent": 86,
+      "tag": "Conclusion: Closing Synthesis",
+      "type": "suggestion",
+      "marks_awarded": "+{round(d4_aw * 0.45, 1):.1f} / {round(d4_m * 0.45, 1):.1f}",
+      "remark": "✓ **Closing Synthesis**: Concluded with *\"[Extract verbatim handwritten closing sentence from student's conclusion on Page 3]\"*.\\n✎ **Topper Finish**: [Provide 1 forward-looking subject-appropriate finish connecting to long-term impact]."
+    }}}}'''
+    else:
+        eng_prompt_visual_annotations_example = f'''    {{{{
+      "page": 1,
+      "approx_y_percent": 30,
+      "start_y_percent": 24,
+      "end_y_percent": 42,
+      "tag": "Intro: Context & Conceptual Definition",
+      "type": "tick",
+      "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
+      "remark": "✓ **Direct Premise**: Opened directly with *\"[Extract 10-18 words verbatim from candidate's handwritten opening paragraph]\"*, framing the core thesis.\\n✎ **Opening Upgrade**: [Provide 1 discipline-specific elevation tailored strictly to this question topic]."
+    }}}},
+    {{{{
+      "page": 1,
+      "approx_y_percent": 68,
+      "start_y_percent": 44,
+      "end_y_percent": 88,
+      "tag": "Body: [Candidate's Actual Written Sub-Heading 1]",
+      "type": "tick",
+      "marks_awarded": "+{d2_aw:.1f} / {d2_m:.1f}",
+      "remark": "✓ **Core Argumentation**: Articulated *\"[Extract verbatim handwritten sentence from candidate's first body section]\"*.\\n✎ **Substantive Elevation**: [Provide 1 concrete upgrade relevant strictly to this subject]."
+    }}}},
+    {{{{
+      "page": 2,
+      "approx_y_percent": 40,
+      "start_y_percent": 8,
+      "end_y_percent": 68,
+      "tag": "Body: [Candidate's Actual Written Sub-Heading 2]",
+      "type": "tick",
+      "marks_awarded": "+{d3_aw:.1f} / {d3_m:.1f}",
+      "remark": "✓ **Analytical Dimension**: Examined *\"[Extract verbatim handwritten sentence from candidate's second page handwriting]\"*.\\n✎ **Substantive Elevation**: [Provide 1 concrete upgrade relevant strictly to this subject and dimension]."
+    }}}},
+    {{{{
+      "page": 2,
+      "approx_y_percent": 74,
+      "start_y_percent": 70,
+      "end_y_percent": 86,
+      "tag": "Conclusion: Closing Synthesis",
+      "type": "suggestion",
+      "marks_awarded": "+{d4_aw:.1f} / {d4_m:.1f}",
+      "remark": "✓ **Closing Synthesis**: Concluded with *\"[Extract verbatim handwritten closing sentence from student's conclusion]\"*.\\n✎ **Topper Finish**: [Provide 1 forward-looking subject-appropriate finish connecting to long-term impact]."
+    }}}}'''
     
     rewrite_check_instructions = ""
     if previous_question:
@@ -3161,46 +3298,7 @@ Generate strictly valid JSON matching this schema:
     // - Card 2 & 3 (Body): Quote candidate's ACTUAL handwritten points/arguments on that page in *"..."*. The feedback must be strictly subject-specific (History: historical actors, reform movements, social debates, primary texts; Geography: geomorphic processes, climate mechanisms, spatial distribution; Polity: constitutional provisions, institutional mechanisms; Ethics: ethical theories, thinkers, dilemmas). NEVER give case laws/committee recommendations on History questions!
     // - Card 4 (Conclusion on Final Page): Quote candidate's ACTUAL concluding sentence in *"..."* from the bottom of their answer. Provide subject-tailored elevation.
     // ZERO STATIC PHRASES ALLOWED: NEVER copy "Opened by defining the core concept", "Articulated key mechanisms", "Evaluated practical implications", "establishing direct analytical context", "addressing primary question dimension", "demonstrating multidimensional coverage", or "Back argument with 1 concrete empirical metric, committee recommendation, or case law".
-    {{
-      "page": 1,
-      "approx_y_percent": 30,
-      "start_y_percent": 24,
-      "end_y_percent": 42,
-      "tag": "Intro: Context & Conceptual Definition",
-      "type": "tick",
-      "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
-      "remark": "✓ **Direct Premise**: Opened directly with *\"[Extract 10-18 words verbatim from candidate's handwritten opening paragraph]\"*, framing the core thesis.\n✎ **Opening Upgrade**: [Provide 1 discipline-specific elevation tailored strictly to this question topic, e.g. for History cite contemporary socio-religious debates or key thinkers; for Polity cite constitutional articles; for Geography cite physical drivers]."
-    }},
-    {{
-      "page": 1,
-      "approx_y_percent": 68,
-      "start_y_percent": 44,
-      "end_y_percent": 88,
-      "tag": "Body: [Candidate's Actual Written Sub-Heading 1]",
-      "type": "tick",
-      "marks_awarded": "+{d2_aw:.1f} / {d2_m:.1f}",
-      "remark": "✓ **Core Argumentation**: Articulated *\"[Extract verbatim handwritten sentence from candidate's first body section]\"*.\n✎ **Substantive Elevation**: [Provide 1 concrete upgrade relevant strictly to this subject, e.g. for History cite specific reform movements, organizations, or historical figures; for Economy cite data/schemes; for Ethics cite moral principles]."
-    }},
-    {{
-      "page": 2,
-      "approx_y_percent": 40,
-      "start_y_percent": 8,
-      "end_y_percent": 68,
-      "tag": "Body: [Candidate's Actual Written Sub-Heading 2]",
-      "type": "tick",
-      "marks_awarded": "+{d3_aw:.1f} / {d3_m:.1f}",
-      "remark": "✓ **Analytical Dimension**: Examined *\"[Extract verbatim handwritten sentence from candidate's second page handwriting]\"*.\n✎ **Substantive Elevation**: [Provide 1 concrete upgrade relevant strictly to this subject and dimension]."
-    }},
-    {{
-      "page": 2,
-      "approx_y_percent": 74,
-      "start_y_percent": 70,
-      "end_y_percent": 86,
-      "tag": "Conclusion: Closing Synthesis",
-      "type": "suggestion",
-      "marks_awarded": "+{d4_aw:.1f} / {d4_m:.1f}",
-      "remark": "✓ **Closing Synthesis**: Concluded with *\"[Extract verbatim handwritten closing sentence from student's conclusion]\"*.\n✎ **Topper Finish**: [Provide 1 forward-looking subject-appropriate finish connecting to long-term impact or enduring significance]."
-    }}
+{eng_prompt_visual_annotations_example}
   ]
 }}
 

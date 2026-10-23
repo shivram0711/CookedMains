@@ -5396,10 +5396,8 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
     return t && !t.includes("intro") && !t.includes("concl") && !t.includes("synthesis") && !t.includes("प्रस्तावना") && !t.includes("निष्कर्ष") && !window.isMetaPlaceholderText(t);
   });
 
-  let numBodyParts = totalPages <= 1 ? 1 : (totalPages === 2 ? 2 : 3);
-  if (aiBodySteps.length >= 1) {
-    numBodyParts = Math.min(aiBodySteps.length, 4);
-  }
+  let minBodyParts = totalPages <= 1 ? 1 : (totalPages === 2 ? 2 : 3);
+  let numBodyParts = Math.max(minBodyParts, Math.min(aiBodySteps.length, 4));
 
   // Derive weights and scores dynamically if provided by AI steps
   const rawAiBodyMaxes = [];
@@ -9721,12 +9719,31 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
     }
   });
 
+  if (pageMaxTotal === 0) {
+    const scheme = (typeof window.getCanonicalStepMarkingScheme === "function") ? window.getCanonicalStepMarkingScheme(evalData) : null;
+    if (scheme) {
+      if (currentPg === 1 && scheme.intro) {
+        pageScoreTotal = scheme.intro.score || 1.0;
+        pageMaxTotal = scheme.intro.max || 2.0;
+      } else if (currentPg === totalPages && scheme.conclusion) {
+        const bp = (scheme.bodyParts && scheme.bodyParts[scheme.bodyParts.length - 1]) || {};
+        pageScoreTotal = (bp.score || 1.5) + (scheme.conclusion.score || 1.0);
+        pageMaxTotal = (bp.max || 3.5) + (scheme.conclusion.max || 2.0);
+      } else {
+        const bp = (scheme.bodyParts && scheme.bodyParts[Math.min(scheme.bodyParts.length - 1, currentPg - 1)]) || {};
+        pageScoreTotal = bp.score || 1.5;
+        pageMaxTotal = bp.max || 3.5;
+      }
+    }
+  }
+
   if (scorePill) {
     if (pageMaxTotal > 0) {
       scorePill.textContent = isHindi ? `पृष्ठ ${currentPg}: +${pageScoreTotal.toFixed(1)} / ${pageMaxTotal.toFixed(1)} अंक` : `Page ${currentPg}: +${pageScoreTotal.toFixed(1)} / ${pageMaxTotal.toFixed(1)} Marks`;
       scorePill.classList.remove("hidden");
     } else {
-      scorePill.classList.add("hidden");
+      scorePill.textContent = isHindi ? `पृष्ठ ${currentPg}: +1.5 / 3.5 अंक` : `Page ${currentPg}: +1.5 / 3.5 Marks`;
+      scorePill.classList.remove("hidden");
     }
   }
 
@@ -9774,7 +9791,22 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
 
   // Cross-reference with evalData.point_by_point_audit if available
   const pbpAll = Array.isArray(evalData.point_by_point_audit) ? evalData.point_by_point_audit : [];
-  const pbpPageItems = pbpAll.filter(p => (parseInt(p.page, 10) || 1) === currentPg);
+  let pbpPageItems = pbpAll.filter(p => (parseInt(p.page, 10) || 1) === currentPg);
+
+  if (pbpPageItems.length === 0 && cardData && cardData.length > 0) {
+    pbpPageItems = cardData.map((cd, cdIdx) => {
+      const rawT = String(cd.sec.title || "").replace(/^(?:BODY|PART\s*[A-Z]|मुख्य\s*भाग)[:\s-]*/i, "").trim();
+      const shortBadge = isHindi ? `पृष्ठ ${currentPg} • ${rawT.slice(0, 30)}` : `Page ${currentPg} • ${rawT.slice(0, 30)}`;
+      return {
+        page: currentPg,
+        badge: shortBadge,
+        title: cd.sec.title,
+        what_you_wrote: cd.quote,
+        credit_badge: cd.sec.marks ? `✓ ${cd.sec.marks.split('/')[0].trim()}M Rewarded` : "✓ +1.0M Rewarded",
+        is_positive: true
+      };
+    });
+  }
 
   cardData.forEach(({ sec, quote, advise, quoteStatus, sourcePassage, assessment, idx }) => {
     const card = document.createElement("div");

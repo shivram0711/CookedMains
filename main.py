@@ -2460,7 +2460,13 @@ async def evaluate_answer(
                                         record_gemini_model_outcome(model_name, True)
                                         if "directive_compliance" in parsed_eval and not parsed_eval["directive_compliance"].get("directive"):
                                             parsed_eval["directive_compliance"]["directive"] = directive_info["directive"]
+                                        actual_page_count = len(uploaded_page_previews) if uploaded_page_previews else (len(multimodal_parts) if multimodal_parts else 1)
+                                        parsed_eval["pages"] = uploaded_page_previews
+                                        parsed_eval["total_pages"] = max(actual_page_count, int(parsed_eval.get("total_pages") or 0))
                                         evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper, medium=medium)
+                                        if isinstance(evaluation_result, dict) and actual_page_count > 0:
+                                            evaluation_result["total_pages"] = max(actual_page_count, int(evaluation_result.get("total_pages") or 0))
+                                            evaluation_result["pages"] = uploaded_page_previews
                                         break
                             except Exception as ge:
                                 err_s = str(ge)
