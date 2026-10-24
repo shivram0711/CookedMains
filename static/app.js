@@ -5810,8 +5810,8 @@ function renderAnnotationsOverlay() {
 
   if (marginContainer) marginContainer.innerHTML = "";
   if (guideLayer) guideLayer.innerHTML = "";
-  if (gutterRibbon) gutterRibbon.innerHTML = "";
-  if (laserBeam) laserBeam.style.opacity = "0";
+  if (gutterRibbon) { gutterRibbon.innerHTML = ""; gutterRibbon.classList.add("hidden"); gutterRibbon.style.display = "none"; }
+  if (laserBeam) { laserBeam.style.opacity = "0"; laserBeam.classList.add("hidden"); laserBeam.style.display = "none"; }
   if (mobileDrawer) mobileDrawer.classList.add("hidden");
   if (desktopAuditSection) desktopAuditSection.classList.add("hidden");
   if (desktopCardsContainer) desktopCardsContainer.innerHTML = "";
@@ -8073,120 +8073,24 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
   if (guideLayer) guideLayer.innerHTML = "";
   if (marginContainer) marginContainer.innerHTML = "";
 
-  // Render Smart Gutter Ribbon & Synchronized Focus System
-  if (gutterRibbon && sections && sections.length > 0) {
-    gutterRibbon.classList.remove("hidden");
-    gutterRibbon.style.display = "";
+  // Hide Smart Gutter Ribbon & Laser Focus Beam per user specification (removed marks allocation from margin)
+  if (gutterRibbon) {
     gutterRibbon.innerHTML = "";
+    gutterRibbon.classList.add("hidden");
+    gutterRibbon.style.display = "none";
+  }
+  if (laserBeam) {
+    laserBeam.style.opacity = "0";
+    laserBeam.classList.add("hidden");
+    laserBeam.style.display = "none";
+  }
+
+  if (sections && sections.length > 0) {
     ensureSectionsQuoteAudit(sections, currentPg);
 
     // Store active sections globally for focus interaction and mobile drawer
     window._activeGutterSections = sections;
     window._currentMobileGutterIndex = 0;
-
-    const N = sections.length;
-    // Step 1: Initial raw vertical centers
-    sections.forEach((sec, idx) => {
-      const clampedStart = Math.max(5.0, Math.min(88.0, sec.startYPercent || (10.0 + idx * (80.0 / Math.max(1, N)))));
-      const clampedEnd = Math.max(clampedStart + 8.0, Math.min(94.0, sec.endYPercent || (clampedStart + 18.0)));
-      sec._yPct = (clampedStart + clampedEnd) / 2;
-    });
-
-    // Step 2: Strict Anti-Collision & Vertical Relaxation Pass
-    // Ensures adjacent pins maintain at least 6.5% vertical clearance (~36-40px), preventing bubble collisions
-    const MIN_PIN_GAP = 6.5;
-    for (let i = 1; i < sections.length; i++) {
-      if (sections[i]._yPct < sections[i - 1]._yPct + MIN_PIN_GAP) {
-        sections[i]._yPct = sections[i - 1]._yPct + MIN_PIN_GAP;
-      }
-    }
-    if (sections.length > 0 && sections[sections.length - 1]._yPct > 91.0) {
-      sections[sections.length - 1]._yPct = 91.0;
-      for (let i = sections.length - 2; i >= 0; i--) {
-        if (sections[i]._yPct > sections[i + 1]._yPct - MIN_PIN_GAP) {
-          sections[i]._yPct = sections[i + 1]._yPct - MIN_PIN_GAP;
-        }
-      }
-    }
-    sections.forEach(sec => {
-      sec._yPct = Math.max(8.0, Math.min(92.0, Math.round(sec._yPct * 10) / 10));
-    });
-
-    // Step 3: Render non-overlapping pins
-    sections.forEach((sec, idx) => {
-      // Determine score label to display in the pin (e.g. "+1.5", "+1", "+0.5", "0.0")
-      let pinText = sec.icon || "✓";
-      const mMatch = String(sec.marks || "").match(/\+?(\d+(?:\.\d+)?)/);
-      if (mMatch) {
-        const val = parseFloat(mMatch[1]);
-        pinText = val === 0 ? "0.0" : ("+" + (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)));
-      }
-
-      // Pin color scheme based on evaluator rubric score
-      let pinClass = "gutter-pin-success";
-      let scoreColor = "text-emerald-400";
-      if (!sec.isTick || sec.icon === "✎" || (sec.marks && sec.marks.includes("0.0"))) {
-        if (sec.marks && sec.marks.includes("0.0")) {
-          pinClass = "gutter-pin-danger";
-          scoreColor = "text-rose-400";
-        } else {
-          pinClass = "gutter-pin-warning";
-          scoreColor = "text-amber-400";
-        }
-      }
-
-      // Wrapper container positioned at exact vertical percentage along handwriting line
-      const pinWrapper = document.createElement("div");
-      pinWrapper.className = "gutter-pin-wrapper group absolute w-full flex justify-center";
-      pinWrapper.style.top = `${sec._yPct}%`;
-      pinWrapper.style.transform = "translateY(-50%)";
-
-      // Circular micro-pin
-      const pinBtn = document.createElement("button");
-      pinBtn.type = "button";
-      pinBtn.id = `gutterPin_${idx}`;
-      pinBtn.className = `gutter-pin ${pinClass}`;
-      pinBtn.setAttribute("data-pin-idx", idx);
-      pinBtn.title = `${sec.title} (Awarded: ${sec.marks})`;
-      pinBtn.innerHTML = `<span class="font-mono text-[9px] font-black">${pinText}</span>`;
-
-      // Non-intrusive floating tooltip showing exact marks and section title on hover
-      const tooltip = document.createElement("div");
-      tooltip.className = "gutter-pin-tooltip pointer-events-none absolute right-full mr-2 top-1/2 -translate-y-1/2 bg-slate-900/95 dark:bg-slate-950 text-white text-[10px] font-sans px-2.5 py-1 rounded-lg border border-slate-700 shadow-2xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-30 flex items-center gap-1.5";
-      tooltip.innerHTML = `
-        <span class="font-bold font-mono ${scoreColor}">${escapeHtml(sec.marks)}</span>
-        <span class="text-slate-400">&bull;</span>
-        <span class="font-semibold text-slate-200">${escapeHtml(sec.title)}</span>
-      `;
-
-      pinWrapper.appendChild(pinBtn);
-      pinWrapper.appendChild(tooltip);
-      gutterRibbon.appendChild(pinWrapper);
-
-      // Event listeners for synchronized focus beam
-      pinBtn.addEventListener("mouseenter", () => {
-        window.focusGutterPointOnPage(idx, sec._yPct, sec.marks, sec, false);
-      });
-
-      pinBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        window.focusGutterPointOnPage(idx, sec._yPct, sec.marks, sec, true);
-        window.renderMobileDrawerPoint(idx);
-      });
-    });
-
-    // Handle mouse leaving the image area (fades laser beam if not pinned)
-    const subWrapper = document.getElementById("pageImageSubWrapper");
-    if (subWrapper && !subWrapper.__gutterLeaveListener) {
-      subWrapper.__gutterLeaveListener = true;
-      subWrapper.addEventListener("mouseleave", () => {
-        if (!window._pinnedGutterPoint && window._pinnedGutterPoint !== 0) {
-          const beam = document.getElementById("gutterLaserBeam");
-          if (beam) beam.style.opacity = "0";
-          document.querySelectorAll(".gutter-pin").forEach(p => p.classList.remove("active"));
-        }
-      });
-    }
 
     // Populate mobile thumb-card drawer (< 1024px)
     if (mobileDrawer) {
@@ -8199,8 +8103,6 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
       window.renderDesktopAuditCards(sections, currentPg, totalPages);
     }
   } else {
-    if (gutterRibbon) gutterRibbon.innerHTML = "";
-    if (laserBeam) laserBeam.style.opacity = "0";
     if (mobileDrawer) mobileDrawer.classList.add("hidden");
     const desktopAuditSection = document.getElementById("desktopExaminerAuditContainer");
     if (desktopAuditSection) desktopAuditSection.classList.add("hidden");

@@ -842,19 +842,11 @@ html.dark .keyword-action span {
    SMART GUTTER RIBBON & SYNCHRONIZED FOCUS BEAM
    ========================================================================= */
 #smartGutterRibbon {
-  display: flex !important;
-  flex-direction: column;
-  align-items: center;
-  overflow: visible !important;
-  position: relative;
-  background: #FAF8F5;
-  border-left: 1.5px solid #E2E8F0;
-  box-sizing: border-box;
+  display: none !important;
 }
 
 html.dark #smartGutterRibbon {
-  background: #090D16 !important;
-  border-left: 1.5px solid #1E293B !important;
+  display: none !important;
 }
 
 .gutter-pin {
