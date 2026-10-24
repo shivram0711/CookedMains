@@ -3402,7 +3402,7 @@ async def scan_instagram_reels_for_comments():
                 continue
             
             c_url = f"https://graph.facebook.com/v19.0/{mid}/comments"
-            c_res = requests.get(c_url, params={"fields": "id,text,username,timestamp", "limit": 25, "access_token": token})
+            c_res = requests.get(c_url, params={"fields": "id,text,username,timestamp,replies{id,username}", "limit": 25, "access_token": token})
             comments = c_res.json().get("data", [])
 
             for c in comments:
@@ -3412,6 +3412,13 @@ async def scan_instagram_reels_for_comments():
                 if user.lower() == "cookedmains":
                     continue
                 scanned_comments += 1
+
+                # Check if cookedmains has already replied to this comment on Instagram
+                existing_replies = c.get("replies", {}).get("data", [])
+                has_our_reply = any(rep.get("username", "").lower() == "cookedmains" for rep in existing_replies)
+                if has_our_reply:
+                    already_logged_ids.add(cid)
+                    continue
 
                 # If comment matches rules
                 if check_comment_match(text, rules):
