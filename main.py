@@ -2406,7 +2406,8 @@ async def evaluate_answer(
                         top_p=1.0,
                         top_k=1,
                         seed=20260925,
-                        response_mime_type="application/json"
+                        response_mime_type="application/json",
+                        max_output_tokens=8192
                     )
 
                     from evaluator_engine import (
@@ -2439,11 +2440,12 @@ async def evaluate_answer(
 
                         active_models = get_active_gemini_models(client)
                         # Retain full candidate model set (top 6) to preserve output quality across GS English, GS Hindi, and Essay evaluations
-                        models_to_try = active_models[:6] if active_models else [
+                        models_to_try = active_models[:7] if active_models else [
                             "gemini-3.5-flash-lite",
                             "gemini-flash-lite-latest",
                             "gemini-3.6-flash",
                             "gemini-3.5-flash",
+                            "gemini-3.8-flash",
                             "gemini-omni-flash-preview",
                             "gemini-3.7-flash",
                         ]

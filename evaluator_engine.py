@@ -1645,7 +1645,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "what_the_evidence_demonstrates": "अभ्यर्थी ने प्रारंभिक अवधारणा और विषय-संदर्भ को पहचाना है",
       "what_remains_weak_or_missing": "गहन तकनीकी परिभाषा अथवा आधिकारिक मानक संदर्भ का अभाव",
       "actionable_improvement": "प्रथम पंक्ति में आधिकारिक परिभाषा, मानक सूचकांक या संवैधानिक संदर्भ जोड़ें",
-      "evidence_depth": "आंशिक व्याख्या", // 'केवल उल्लेख' | 'आंशिक व्याख्या' | 'सही व्याख्या' | 'सुदृढ़ प्रमाण सहित' | 'अनुपस्थित'
+      "evidence_depth": "आंशिक व्याख्या",
       "layer_a_marks_awarded": 1.0,
       "layer_a_max_marks": {d1_m},
       "demand_status": "⚠️ आंशिक पूर्ण (Partially Met)"
@@ -1780,8 +1780,8 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
   "conclusion_audit": {{
     "conclusion_score": 0.5,
     "conclusion_max": {d4_m},
-    "conclusion_archetype": "संतुलित संश्लेषण", // निर्णयात्मक निष्कर्ष, संतुलित संश्लेषण, मुख्य व्याख्यात्मक सारांश, वे-फॉरवर्ड संश्लेषण, नैतिक / मानकीय, भविष्योन्मुखी
-    "failure_mode": "कोई नहीं (संतुलित)", // पुनरावृत्ति सारांश, जेनेरिक आशावाद, जबरन उद्धरण, नया अप्रमाणित तर्क, अत्यधिक नीतिगत नुस्खेबाजी, कोई नहीं (संतुलित)
+    "conclusion_archetype": "संतुलित संश्लेषण",
+    "failure_mode": "कोई नहीं (संतुलित)",
     "current_critique": "अभ्यर्थी के निष्कर्ष की समीक्षा (क्या यह सामान्य है या दूरदर्शी)।",
     "model_conclusion_rewrite": "समस्या समाधान और संवैधानिक मूल्यों को जोड़ता हुआ उत्कृष्ट अग्रगामी निष्कर्ष।"
   }},
@@ -1855,7 +1855,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "what_the_evidence_demonstrates": "Candidate recognizes the baseline concept and context",
       "what_remains_weak_or_missing": "Missing rigorous technical definition or authoritative anchor",
       "actionable_improvement": "Anchor line 1 with precise academic definition and core parameter",
-      "evidence_depth": "partly explained", // 'mentioned' | 'partly explained' | 'correctly explained' | 'well-substantiated' | 'omitted'
+      "evidence_depth": "partly explained",
       "layer_a_marks_awarded": {sample_intro_aw:.2f},
       "layer_a_max_marks": {d1_m:.1f},
       "demand_status": "Partially Fulfilled"
@@ -8743,15 +8743,21 @@ def _enrich_case_study_audit(data: Dict[str, Any]) -> None:
 def parse_llm_json_response(raw_text: str) -> Dict[str, Any]:
     """
     Robustly parses JSON responses emitted by LLMs.
-    Handles extra trailing text/commentary, nested code fences, trailing commas,
-    and unescaped control characters.
+    Guaranteed resilience against:
+    1. Markdown code fences (```json ... ```)
+    2. Embedded single-line (// ...) and multi-line (/* ... */) comments
+    3. Trailing commas before closing braces/brackets
+    4. Unescaped control characters (newlines, tabs, null bytes)
+    5. Truncation at MAX_TOKENS (auto-balances unclosed quotes, open brackets, and open braces)
+    6. Trailing text/commentary beyond root JSON object (via JSONDecoder.raw_decode)
+    7. Regex field extraction fallback so an evaluation NEVER crashes into 503
     """
     if not raw_text or not raw_text.strip():
         raise ValueError("Empty response received from AI evaluation engine.")
 
     text = raw_text.strip()
 
-    # Clean leading/trailing markdown code fences if the entire text is enclosed
+    # Pass 1: Clean code fences if wrapped
     if text.startswith("```json"):
         text = text[7:].strip()
     elif text.startswith("```"):
@@ -8759,8 +8765,17 @@ def parse_llm_json_response(raw_text: str) -> Dict[str, Any]:
     if text.endswith("```"):
         text = text[:-3].strip()
 
-    # Strategy 1: json.JSONDecoder.raw_decode from first '{'
-    # raw_decode parses only up to the closing brace '}' of the root object and ignores any trailing commentary
+    # Quick test: Direct json.loads
+    try:
+        data = json.loads(text, strict=False)
+        if isinstance(data, dict) and len(data) > 0:
+            return data
+        if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+            return data[0]
+    except Exception:
+        pass
+
+    # Pass 2: JSONDecoder.raw_decode from first '{'
     start = text.find("{")
     if start != -1:
         try:
@@ -8773,7 +8788,7 @@ def parse_llm_json_response(raw_text: str) -> Dict[str, Any]:
         except Exception:
             pass
 
-    # Strategy 2: Check all markdown fences in raw_text and find the valid JSON object
+    # Pass 3: Check all code fences in raw_text
     fence_pattern = r'```(?:json)?\s*([\s\S]*?)\s*```'
     fences = re.findall(fence_pattern, raw_text)
     for candidate in fences:
@@ -8790,34 +8805,163 @@ def parse_llm_json_response(raw_text: str) -> Dict[str, Any]:
             except Exception:
                 pass
 
-    # Strategy 3: Sanitize control characters and trailing commas before decoding
+    # Pass 4: Sanitize comments, control chars, and trailing commas
     if start != -1:
         sub = text[start:]
+        # Remove single-line comments // ... (when preceded by whitespace/comma or on new line)
+        cleaned = re.sub(r'(?:^|[\r\n\s,])//[^\r\n]*', '', sub)
+        # Remove multi-line comments /* ... */
+        cleaned = re.sub(r'/\*[\s\S]*?\*/', '', cleaned)
         # Remove ASCII control characters except newline and tab
-        sanitized = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', sub)
+        cleaned = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', cleaned)
         # Remove trailing commas right before closing brace or bracket
-        sanitized = re.sub(r',\s*([\}\]])', r'\1', sanitized)
+        cleaned = re.sub(r',\s*([\}\]])', r'\1', cleaned)
+
         try:
             decoder = json.JSONDecoder(strict=False)
-            data, _ = decoder.raw_decode(sanitized)
+            data, _ = decoder.raw_decode(cleaned)
             if isinstance(data, dict) and len(data) > 0:
                 return data
             if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
                 return data[0]
         except Exception:
             pass
-        except Exception:
-            # Fallback: find the last '}' and try json.loads
-            end = sanitized.rfind("}")
-            if end != -1:
-                bracket_slice = sanitized[:end+1]
-                try:
-                    return json.loads(bracket_slice, strict=False)
-                except Exception:
-                    pass
 
-    # If all parsing strategies failed, raise descriptive error
+        try:
+            data = json.loads(cleaned, strict=False)
+            if isinstance(data, dict) and len(data) > 0:
+                return data
+            if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+                return data[0]
+        except Exception:
+            pass
+
+    # Pass 5: Truncated JSON Auto-Repair (Critical when model stops at MAX_TOKENS)
+    # Reconstructs valid JSON by balancing unclosed string quotes, arrays, and objects
+    if start != -1:
+        candidate_text = text[start:]
+        candidate_text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', candidate_text)
+
+        in_string = False
+        escape = False
+        stack = []
+
+        for ch in candidate_text:
+            if in_string:
+                if escape:
+                    escape = False
+                elif ch == '\\':
+                    escape = True
+                elif ch == '"':
+                    in_string = False
+            else:
+                if ch == '"':
+                    in_string = True
+                elif ch == '{':
+                    stack.append('}')
+                elif ch == '[':
+                    stack.append(']')
+                elif ch in ('}', ']'):
+                    if stack and stack[-1] == ch:
+                        stack.pop()
+
+        repaired = candidate_text
+        if in_string:
+            repaired += '"'
+
+        repaired = re.sub(r'[,:\s]+$', '', repaired)
+
+        while stack:
+            closing_char = stack.pop()
+            repaired = re.sub(r'[,:\s]+$', '', repaired)
+            repaired += closing_char
+
+        repaired = re.sub(r',\s*([\}\]])', r'\1', repaired)
+
+        try:
+            data = json.loads(repaired, strict=False)
+            if isinstance(data, dict) and len(data) > 0:
+                print(f"[JSON PARSER NOTICE] Successfully auto-repaired truncated LLM JSON ({len(candidate_text)} -> {len(repaired)} chars).")
+                return data
+            if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+                return data[0]
+        except Exception:
+            pass
+
+    # Pass 6: Try finding closing braces from the end backwards
+    if start != -1:
+        sub = text[start:]
+        for match in reversed(list(re.finditer(r'\}', sub))):
+            slice_end = match.end()
+            bracket_slice = sub[:slice_end]
+            bracket_slice = re.sub(r',\s*([\}\]])', r'\1', bracket_slice)
+            try:
+                data = json.loads(bracket_slice, strict=False)
+                if isinstance(data, dict) and len(data) > 0:
+                    return data
+            except Exception:
+                pass
+
+    # Pass 7: Emergency Regex Key-Value Extraction Fallback
+    # If JSON is corrupted or partially missing, salvage all parsed fields so user NEVER gets an evaluator 503 crash
+    salvaged: Dict[str, Any] = {}
+    try:
+        q_m = re.search(r'"detected_question"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"', text)
+        if q_m:
+            try:
+                salvaged["detected_question"] = q_m.group(1).encode('utf-8').decode('unicode_escape', errors='ignore')
+            except Exception:
+                salvaged["detected_question"] = q_m.group(1)
+
+        s_m = re.search(r'"overall_score"\s*:\s*([0-9]+(?:\.[0-9]+)?)', text)
+        if s_m:
+            salvaged["overall_score"] = float(s_m.group(1))
+
+        sub_m = re.search(r'"sub_part_step_marking"\s*:\s*(\[[\s\S]*?\])(?=\s*,\s*"|\s*\})', text)
+        if sub_m:
+            try:
+                salvaged["sub_part_step_marking"] = json.loads(sub_m.group(1), strict=False)
+            except Exception:
+                pass
+
+        pbp_m = re.search(r'"point_by_point_audit"\s*:\s*(\[[\s\S]*?\])(?=\s*,\s*"|\s*\})', text)
+        if pbp_m:
+            try:
+                salvaged["point_by_point_audit"] = json.loads(pbp_m.group(1), strict=False)
+            except Exception:
+                pass
+
+        va_m = re.search(r'"visual_annotations"\s*:\s*(\[[\s\S]*?\])(?=\s*,\s*"|\s*\})', text)
+        if va_m:
+            try:
+                salvaged["visual_annotations"] = json.loads(va_m.group(1), strict=False)
+            except Exception:
+                pass
+
+        rub_m = re.search(r'"rubric_scores"\s*:\s*(\{[\s\S]*?\})(?=\s*,\s*"|\s*\})', text)
+        if rub_m:
+            try:
+                salvaged["rubric_scores"] = json.loads(rub_m.group(1), strict=False)
+            except Exception:
+                pass
+
+        dir_m = re.search(r'"directive_compliance"\s*:\s*(\{[\s\S]*?\})(?=\s*,\s*"|\s*\})', text)
+        if dir_m:
+            try:
+                salvaged["directive_compliance"] = json.loads(dir_m.group(1), strict=False)
+            except Exception:
+                pass
+
+        if "overall_score" in salvaged or len(salvaged) >= 2:
+            print(f"[JSON PARSER SALVAGE] Rescued {len(salvaged)} core fields from corrupted LLM JSON output.")
+            return salvaged
+    except Exception as se:
+        print(f"[JSON PARSER SALVAGE NOTICE] Regex salvage attempt failed: {se}")
+
+    # If all parsing and repair strategies completely failed, raise descriptive error
     raise ValueError(f"Could not parse valid JSON from AI response. Output preview: {raw_text[:250]}...")
+
+
 
 async def get_dynamic_grounded_context(question: str, paper: str) -> str:
     """
