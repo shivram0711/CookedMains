@@ -196,10 +196,30 @@ async def _self_keep_alive_loop():
             pass
         await asyncio.sleep(600)  # Every 10 minutes
 
+async def _instagram_auto_comment_poller():
+    """
+    24/7 Background worker: Continuously monitors recent Reels every 35 seconds.
+    When any aspirant comments (e.g. 'MAINS'), automatically dispatches
+    the DM with https://cookedmains.com and posts a public confirmation reply.
+    Replaces ManyChat with zero limits and 100% free uptime.
+    """
+    await asyncio.sleep(5)
+    while True:
+        try:
+            from instagram_dm_bot import load_rules
+            rules = load_rules()
+            if rules.get("enabled", True):
+                await scan_instagram_reels_for_comments()
+        except Exception as e:
+            pass
+        await asyncio.sleep(35)
+
+
 @app.on_event("startup")
 async def _startup_keep_alive():
     if not os.environ.get("TESTING"):
         asyncio.create_task(_self_keep_alive_loop())
+        asyncio.create_task(_instagram_auto_comment_poller())
 
 @app.get("/health")
 @app.head("/health")
@@ -3198,6 +3218,240 @@ async def retry_essay_evaluation(
     )
 
     return {"status": "processing", "job_id": job_id, "message": "Essay evaluation resumed from checkpoint."}
+
+
+# =====================================================================
+# 📸 INSTAGRAM GRAPH API & COMMENT-TO-DM AUTOMATION ENDPOINTS
+# =====================================================================
+
+@app.get("/api/instagram/analytics")
+async def get_instagram_analytics():
+    """Fetches real-time Instagram Graph API growth analytics & diagnostic report."""
+    from instagram_analytics import InstagramGrowthEngine
+    engine = InstagramGrowthEngine()
+    return engine.generate_growth_report()
+
+@app.post("/api/instagram/configure")
+async def configure_instagram(payload: dict):
+    """Saves Instagram credentials to .env and tests connection."""
+    account_id = payload.get("account_id", "").strip()
+    access_token = payload.get("access_token", "").strip()
+    
+    if not account_id or not access_token:
+        raise HTTPException(status_code=400, detail="Both account_id and access_token are required.")
+        
+    env_file = os.path.join(os.path.dirname(__file__), ".env")
+    lines = []
+    if os.path.exists(env_file):
+        with open(env_file, "r", encoding="utf-8") as f:
+            lines = [l for l in f.readlines() if not l.startswith("INSTAGRAM_")]
+            
+    lines.append(f"\nINSTAGRAM_ACCOUNT_ID={account_id}\n")
+    lines.append(f"INSTAGRAM_ACCESS_TOKEN={access_token}\n")
+    
+    with open(env_file, "w", encoding="utf-8") as f:
+        f.writelines(lines)
+        
+    os.environ["INSTAGRAM_ACCOUNT_ID"] = account_id
+    os.environ["INSTAGRAM_ACCESS_TOKEN"] = access_token
+    
+    from instagram_analytics import InstagramGrowthEngine
+    engine = InstagramGrowthEngine(account_id, access_token)
+    test_res = engine.get_account_overview()
+    
+    return {
+        "status": "success",
+        "message": "Instagram Graph API configured successfully!",
+        "account": test_res
+    }
+
+@app.get("/api/instagram/webhook")
+async def verify_instagram_webhook(request: Request):
+    """
+    Official Meta Webhook Handshake Verification.
+    Validates hub.verify_token and returns hub.challenge as required by Meta.
+    """
+    params = request.query_params
+    mode = params.get("hub.mode")
+    token = params.get("hub.verify_token")
+    challenge = params.get("hub.challenge")
+    
+    expected_token = os.getenv("INSTAGRAM_WEBHOOK_VERIFY_TOKEN", "cookedmains_dm_secret")
+    
+    if mode == "subscribe" and token == expected_token:
+        print(f"[IG-WEBHOOK] Webhook verified successfully by Meta! Challenge: {challenge}")
+        from fastapi.responses import PlainTextResponse
+        return PlainTextResponse(content=challenge)
+    
+    print(f"[IG-WEBHOOK] Webhook verification mismatch: received {token}, expected {expected_token}")
+    raise HTTPException(status_code=403, detail="Verification token mismatch.")
+
+@app.post("/api/instagram/webhook")
+async def receive_instagram_webhook(request: Request, background_tasks: BackgroundTasks):
+    """
+    Listens for live comment events on Reels/Posts and triggers Comment-to-DM auto-replies.
+    """
+    try:
+        body_bytes = await request.body()
+        data = json.loads(body_bytes.decode("utf-8")) if body_bytes else {}
+    except Exception as e:
+        return {"status": "error", "message": f"Malformed payload: {e}"}
+
+    from instagram_dm_bot import process_incoming_comment_webhook
+    # Run in background so Meta webhook call returns 200 OK within 2 seconds
+    background_tasks.add_task(process_incoming_comment_webhook, data)
+    return {"status": "received"}
+
+@app.get("/api/instagram/dm-rules")
+async def get_instagram_dm_rules():
+    """Returns active Comment-to-DM triggers, message templates, and logs."""
+    from instagram_dm_bot import load_rules
+    return load_rules()
+
+@app.post("/api/instagram/dm-rules")
+async def update_instagram_dm_rules(payload: dict):
+    """Updates trigger keywords, automated DM message, and public replies."""
+    from instagram_dm_bot import load_rules, save_rules
+    current = load_rules()
+    for key in ["enabled", "trigger_keywords", "match_any_comment", "dm_message", "public_reply_enabled", "public_reply_templates"]:
+        if key in payload:
+            current[key] = payload[key]
+    save_rules(current)
+    return {"status": "success", "rules": current}
+
+@app.post("/api/instagram/simulate-comment")
+async def simulate_comment_to_dm(payload: dict):
+    """
+    Testing sandbox: Simulates an aspirant commenting on a Reel to test DM text,
+    keyword matching, and public response without needing a live Meta webhook.
+    """
+    comment_text = payload.get("comment_text", "MAINS").strip()
+    username = payload.get("username", "aspirant_delhi").strip()
+    
+    from instagram_dm_bot import load_rules, check_comment_match
+    rules = load_rules()
+    
+    matched = check_comment_match(comment_text, rules)
+    formatted_dm = rules.get("dm_message", "").replace("{username}", username)
+    import random
+    public_replies = rules.get("public_reply_templates", [])
+    public_reply = random.choice(public_replies) if public_replies else "Sent link to your DM! 📩"
+    
+    return {
+        "status": "success",
+        "comment_text": comment_text,
+        "username": username,
+        "matched": matched,
+        "would_send_dm": matched and rules.get("enabled", True),
+        "dm_preview": formatted_dm if matched else None,
+        "public_reply_preview": public_reply if matched and rules.get("public_reply_enabled", True) else None
+    }
+
+
+@app.post("/api/instagram/scan-reels")
+async def scan_instagram_reels_for_comments():
+    """
+    On-demand scanner: Fetches comments on recent Reels, checks for trigger keywords,
+    and dispatches automated DMs and public replies.
+    """
+    import os
+    import requests
+    from datetime import datetime
+    from instagram_dm_bot import load_rules, save_rules, check_comment_match, send_private_reply_to_comment, send_public_reply_to_comment
+    import random
+
+    env_file = os.path.join(os.path.dirname(__file__), ".env")
+    token = os.getenv("INSTAGRAM_ACCESS_TOKEN", "")
+    account_id = os.getenv("INSTAGRAM_ACCOUNT_ID", "17841425940719242")
+    if os.path.exists(env_file):
+        with open(env_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("INSTAGRAM_ACCESS_TOKEN="):
+                    token = line.split("=", 1)[1].strip()
+                elif line.startswith("INSTAGRAM_ACCOUNT_ID="):
+                    account_id = line.split("=", 1)[1].strip()
+
+    if not token or not account_id:
+        return {"status": "error", "message": "Instagram token or account ID not configured"}
+
+    rules = load_rules()
+    logs = rules.get("logs", [])
+    already_logged_ids = {l.get("comment_id") for l in logs if l.get("comment_id")}
+
+    try:
+        # Fetch latest 5 media items
+        media_url = f"https://graph.facebook.com/v19.0/{account_id}/media"
+        m_res = requests.get(media_url, params={"fields": "id,caption,media_type,permalink,comments_count", "limit": 5, "access_token": token})
+        media_items = m_res.json().get("data", [])
+        
+        scanned_comments = 0
+        dm_dispatched = 0
+        results = []
+
+        for m in media_items:
+            mid = m["id"]
+            if m.get("comments_count", 0) == 0:
+                continue
+            
+            c_url = f"https://graph.facebook.com/v19.0/{mid}/comments"
+            c_res = requests.get(c_url, params={"fields": "id,text,username,timestamp", "limit": 25, "access_token": token})
+            comments = c_res.json().get("data", [])
+
+            for c in comments:
+                cid = c["id"]
+                user = c.get("username", "")
+                text = c.get("text", "")
+                if user.lower() == "cookedmains":
+                    continue
+                scanned_comments += 1
+
+                # If comment matches rules
+                if check_comment_match(text, rules):
+                    # Check if already processed
+                    if cid in already_logged_ids:
+                        continue
+
+                    dm_text = rules.get("dm_message", "").replace("{username}", user)
+                    dm_res = send_private_reply_to_comment(cid, dm_text, access_token=token, account_id=account_id)
+                    
+                    status = "sent" if "error" not in dm_res else f"failed ({dm_res['error'].get('message', 'error')})"
+                    if "already has a reply" in str(dm_res):
+                        status = "already_replied"
+                    elif "error" not in dm_res:
+                        dm_dispatched += 1
+
+                    # Public reply if configured and DM sent
+                    pub_status = None
+                    if rules.get("public_reply_enabled", True) and "already has a reply" not in str(dm_res):
+                        templates = rules.get("public_reply_templates", [])
+                        if templates:
+                            pub_text = random.choice(templates).replace("{username}", user)
+                            send_public_reply_to_comment(cid, pub_text, access_token=token)
+                            pub_status = "sent"
+
+                    log_entry = {
+                        "comment_id": cid,
+                        "username": user,
+                        "comment_text": text,
+                        "dm_status": status,
+                        "public_reply": pub_status,
+                        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    }
+                    logs.insert(0, log_entry)
+                    already_logged_ids.add(cid)
+                    results.append(log_entry)
+
+        rules["logs"] = logs[:100]
+        save_rules(rules)
+        return {
+            "status": "success",
+            "scanned_comments": scanned_comments,
+            "new_dms_dispatched": dm_dispatched,
+            "processed": results
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 
 if __name__ == "__main__":

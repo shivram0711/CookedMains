@@ -1,0 +1,467 @@
+{
+  "enabled": true,
+  "trigger_keywords": [
+    "Mains",
+    "Main",
+    "Pdf",
+    "Upsc",
+    "Link",
+    "Evaluate",
+    "Check",
+    "Free",
+    "Cooked",
+    "Best",
+    "Website",
+    "Site",
+    "Score",
+    "Answer"
+  ],
+  "match_any_comment": true,
+  "dm_message": "Hey aspirant! 👋\n\nReady to improve your UPSC Mains answer writing?\n\nTry Cooked Mains AI to evaluate your handwritten answers and identify mistakes, missing dimensions and areas for improvement.\n\nStart your evaluation here 👇\n\nhttps://cookedmains.com",
+  "public_reply_enabled": true,
+  "public_reply_templates": [
+    "Hey @{username}! 🚀 Here is your instant access to 15 FREE UPSC Mains evaluations: 👉 https://cookedmains.com or simply click on bio link"
+  ],
+  "logs": [
+    {
+      "comment_id": "18135247375654753",
+      "username": "bunny_b2_",
+      "comment_text": "🙌",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:45:01"
+    },
+    {
+      "comment_id": "17960962584251974",
+      "username": "l8d_esports.1811",
+      "comment_text": "🔥🔥",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:44:55"
+    },
+    {
+      "comment_id": "18097581566114199",
+      "username": "shivram_.1811",
+      "comment_text": "Great",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 18:44:50"
+    },
+    {
+      "comment_id": "18434815837197688",
+      "username": "vish.nukanna52",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:41:33"
+    },
+    {
+      "comment_id": "18097580894111847",
+      "username": "_priya_.1118",
+      "comment_text": "Link 🙌",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:36:13"
+    },
+    {
+      "comment_id": "18125436446513737",
+      "username": "___aman__muni___",
+      "comment_text": "Best for practice 💪🔥",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:31:38"
+    },
+    {
+      "comment_id": "18121844915067371",
+      "username": "___aman__muni___",
+      "comment_text": "Best site 🙌",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:31:33"
+    },
+    {
+      "comment_id": "18009494864990866",
+      "username": "___aman__muni___",
+      "comment_text": "Very useful and trusted site 🙌🙌🔥",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:31:26"
+    },
+    {
+      "comment_id": "17915923254468224",
+      "username": "shivram_.1811",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 18:31:18"
+    },
+    {
+      "comment_id": "17923837068442667",
+      "username": "viratteja25",
+      "comment_text": "mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 18:31:17"
+    },
+    {
+      "comment_id": "18144308170662077",
+      "username": "im_kj_bharath",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:31:16"
+    },
+    {
+      "comment_id": "18635059099050757",
+      "username": "_priya_.1118",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:31:11"
+    },
+    {
+      "comment_id": "17940149661387438",
+      "username": "mr.tony_________",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:31:05"
+    },
+    {
+      "comment_id": "18113923010151184",
+      "username": "private_1420",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:30:59"
+    },
+    {
+      "comment_id": "17953886760292468",
+      "username": "iasca1929",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:30:54"
+    },
+    {
+      "comment_id": "18117409831799117",
+      "username": "karthi_7b",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:30:49"
+    },
+    {
+      "comment_id": "17933325228412022",
+      "username": "prasadprasad0101",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:30:45"
+    },
+    {
+      "comment_id": "18093073541689317",
+      "username": "naruto.51800",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:30:38"
+    },
+    {
+      "comment_id": "18210077686368753",
+      "username": "sidd_belagavi__0112",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:30:32"
+    },
+    {
+      "comment_id": "18234674902324802",
+      "username": "ka_v_iya2",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:30:27"
+    },
+    {
+      "comment_id": "18113394917155954",
+      "username": "aartimounica",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:30:21"
+    },
+    {
+      "comment_id": "18118266257067066",
+      "username": "subhasish_babuni_01",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:30:16"
+    },
+    {
+      "comment_id": "18109675229353362",
+      "username": "thiss_11.12",
+      "comment_text": "Meanwhile legends with @upscwithsourabhjain sir 😍🙌🏻",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:30:11"
+    },
+    {
+      "comment_id": "18098409818388573",
+      "username": "kamalsagarjillapogu",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:30:06"
+    },
+    {
+      "comment_id": "18571668523077976",
+      "username": "__fake__id_2001",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:30:00"
+    },
+    {
+      "comment_id": "18076464383723894",
+      "username": "lavanya_precious",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:29:55"
+    },
+    {
+      "comment_id": "18090642725663121",
+      "username": "saijagadeesh__",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:29:48"
+    },
+    {
+      "comment_id": "18131154028682915",
+      "username": "aspirant_57",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:29:43"
+    },
+    {
+      "comment_id": "17918781732459468",
+      "username": "mt230493",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:29:37"
+    },
+    {
+      "comment_id": "18113118242336172",
+      "username": "l8d_esports.1811",
+      "comment_text": "Best🙌",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 18:29:32"
+    },
+    {
+      "comment_id": "18118991794792910",
+      "username": "sharath256657",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 12:57:50"
+    },
+    {
+      "comment_id": "18133917685751039",
+      "username": "hanu_roy_333",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 12:53:52"
+    },
+    {
+      "comment_id": "18146992780586791",
+      "username": "hanu_roy_333",
+      "comment_text": "Main",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 12:53:08"
+    },
+    {
+      "comment_id": "18112051853522306",
+      "username": "shivram_.1811",
+      "comment_text": "Mains",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 12:50:25"
+    },
+    {
+      "comment_id": "18121282232016853",
+      "username": "tamil_arasan_200112",
+      "comment_text": "Main",
+      "dm_status": "failed (Invalid parameter)",
+      "public_reply": "sent",
+      "timestamp": "2026-10-24 12:47:36"
+    },
+    {
+      "comment_id": "18021119222930743",
+      "username": "saaiiiiiiii_06",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:47:28"
+    },
+    {
+      "comment_id": "18111311363184462",
+      "username": "surya_gourozz",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:47:27"
+    },
+    {
+      "comment_id": "18083987336340539",
+      "username": "l8d_esports.1811",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:32"
+    },
+    {
+      "comment_id": "18035679425893679",
+      "username": "bm_spoorthi",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:31"
+    },
+    {
+      "comment_id": "17935915125403585",
+      "username": "yadhukrishna_n",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:30"
+    },
+    {
+      "comment_id": "18455330833123731",
+      "username": "sahilfemina27",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:29"
+    },
+    {
+      "comment_id": "18105468836005006",
+      "username": "c_r_a_z_y_boy3",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:28"
+    },
+    {
+      "comment_id": "18452220001193001",
+      "username": "optimax_323",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:27"
+    },
+    {
+      "comment_id": "17983911926906310",
+      "username": "anuanshu_444",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:25"
+    },
+    {
+      "comment_id": "18098054204392109",
+      "username": "naveencharlie72._follow",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:25"
+    },
+    {
+      "comment_id": "17914866876484064",
+      "username": "yaniv__007",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:23"
+    },
+    {
+      "comment_id": "17981954847134537",
+      "username": "_one_love_22_14",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:22"
+    },
+    {
+      "comment_id": "17873052081641149",
+      "username": "_akshaya_21__",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:21"
+    },
+    {
+      "comment_id": "18478572985116669",
+      "username": "study__sphere_",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:20"
+    },
+    {
+      "comment_id": "17988882996080914",
+      "username": "suryateja_0797",
+      "comment_text": "mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:19"
+    },
+    {
+      "comment_id": "18000992871031134",
+      "username": "gignesh_kondreddy_",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:18"
+    },
+    {
+      "comment_id": "18641529373053202",
+      "username": "viveksah64",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:17"
+    },
+    {
+      "comment_id": "18071402282783487",
+      "username": "_abhivirat_18",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:16"
+    },
+    {
+      "comment_id": "17967671073203212",
+      "username": "avengers_113014",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:15"
+    },
+    {
+      "comment_id": "17974274597947957",
+      "username": "nameisram1",
+      "comment_text": "Mains",
+      "dm_status": "already_replied",
+      "public_reply": null,
+      "timestamp": "2026-10-24 12:05:14"
+    }
+  ]
+}
