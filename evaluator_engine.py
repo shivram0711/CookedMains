@@ -7275,6 +7275,14 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
         data["point_by_point_audit"] = pbp_generated
     else:
         # Existing point_by_point_audit: calibrate marks and badges
+        # Ensure multi-page copies distribute cards to all pages (Page 1, 2, and 3)
+        if total_pages_val >= 3 and len(existing_pbp) >= 3:
+            has_p3 = any(int(it.get("page", 0)) == total_pages_val for it in existing_pbp if isinstance(it, dict))
+            if not has_p3:
+                existing_pbp[-1]["page"] = total_pages_val
+                if len(existing_pbp) >= 4 and not any(int(it.get("page", 0)) == 2 for it in existing_pbp if isinstance(it, dict)):
+                    existing_pbp[1]["page"] = 2
+
         for idx, item in enumerate(existing_pbp):
             if not isinstance(item, dict):
                 continue
@@ -7290,6 +7298,15 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                 if not t:
                     t = f"Page {item['page']} Argument #{idx + 1}" if not is_hindi else f"पृष्ठ {item['page']} मुख्य तर्क #{idx + 1}"
             item["title"] = t
+
+            p_curr = int(item.get("page", 1))
+            badge_prefix = f"पृष्ठ {p_curr} • " if is_hindi else f"Page {p_curr} • "
+            raw_badge = str(item.get("badge", "")).strip()
+            clean_badge_suffix = re.sub(r'^(?:Page|पृष्ठ)\s*\d+\s*[•·-]\s*', '', raw_badge).strip()
+            if clean_badge_suffix:
+                item["badge"] = f"{badge_prefix}{clean_badge_suffix}"
+            elif not raw_badge:
+                item["badge"] = f"{badge_prefix}{t[:24]}"
 
             c_badge = str(item.get("credit_badge", "")).strip()
             if not re.search(r'\+\d+(?:\.\d+)?M', c_badge):

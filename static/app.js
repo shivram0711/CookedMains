@@ -4612,6 +4612,45 @@ nextPageBtn.addEventListener("click", () => {
   }
 });
 
+// Global navigation for Point-by-Point Handwritten Audit (Prev / Next buttons)
+window.navAuditPage = function(delta) {
+  if (delta > 0) {
+    const nextBtn = document.getElementById("nextPageBtn");
+    if (nextBtn && !nextBtn.disabled && typeof nextBtn.click === "function") {
+      nextBtn.click();
+      return;
+    }
+  } else if (delta < 0) {
+    const prevBtn = document.getElementById("prevPageBtn");
+    if (prevBtn && !prevBtn.disabled && typeof prevBtn.click === "function") {
+      prevBtn.click();
+      return;
+    }
+  }
+
+  // Fallback direct state update
+  const totalPages = (typeof state !== "undefined" && state.activePages && state.activePages.length) || (typeof state !== "undefined" && state.totalPages) || 1;
+  const currentIdx = (typeof state !== "undefined" && state.currentPageIndex !== undefined) ? state.currentPageIndex : 0;
+  const targetIdx = Math.max(0, Math.min(totalPages - 1, currentIdx + delta));
+  if (targetIdx !== currentIdx && typeof state !== "undefined") {
+    state.currentPageIndex = targetIdx;
+    if (typeof updateViewer === "function") updateViewer();
+    if (typeof renderPreviewStrip === "function") renderPreviewStrip();
+    if (typeof renderAnnotationsOverlay === "function") renderAnnotationsOverlay();
+  }
+};
+
+window.selectPage = function(targetIdx) {
+  const totalPages = (typeof state !== "undefined" && state.activePages && state.activePages.length) || (typeof state !== "undefined" && state.totalPages) || 1;
+  const clampedIdx = Math.max(0, Math.min(totalPages - 1, targetIdx));
+  if (typeof state !== "undefined") {
+    state.currentPageIndex = clampedIdx;
+    if (typeof updateViewer === "function") updateViewer();
+    if (typeof renderPreviewStrip === "function") renderPreviewStrip();
+    if (typeof renderAnnotationsOverlay === "function") renderAnnotationsOverlay();
+  }
+};
+
 // Navigate and highlight specific evaluation sections in Deep Evaluation tab when clicking 'View Full Evaluation in Right Section →'
 window.viewFullEvaluationSection = function(sectionKey) {
   // Switch to Tab 2: Deep Evaluation ('multipliers') where Section-by-Section Forensic Audit resides,
@@ -7194,6 +7233,9 @@ function renderAnnotationsOverlay() {
 
         const rawBodyTagStr = (rawBody && rawBody.tag) ? String(rawBody.tag).toLowerCase() : "";
         const hasTwoDistinctSubheadingsInTag = rawBodyTagStr.includes("and") || rawBodyTagStr.includes("&") || rawBodyTagStr.includes("+");
+        const combinedTagParts = hasTwoDistinctSubheadingsInTag
+          ? (rawBody && rawBody.tag ? String(rawBody.tag).replace(/^body:\s*/i, "").split(/\s+(?:and|&|\+)\s+/i).map(s => s.trim()).filter(Boolean) : [])
+          : [];
         const hasMultipleBodyAnnsOnFinalPage = rawBodyAnns.length >= 2;
         const isHeadingAlreadyWf = candHeadingsOnFinalPage.length === 1 && (candHeadingsOnFinalPage[0].approxY || 10) < 35 && /\b(?:way\s*forward|reform|reforms|solutions?)\b/i.test(candHeadingsOnFinalPage[0].text || '');
 
@@ -9706,15 +9748,31 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
     return;
   }
 
+  const evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
+  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
+
   if (!sections || sections.length === 0) {
-    auditSection.classList.add("hidden");
-    return;
+    const pbpAll = Array.isArray(evalData.point_by_point_audit) ? evalData.point_by_point_audit : [];
+    const pbpForPg = pbpAll.filter(p => (parseInt(p.page, 10) || 1) === currentPg);
+    if (pbpForPg.length > 0) {
+      sections = pbpForPg.map((p, idx) => ({
+        zone: currentPg === totalPages ? "conclusion" : "body",
+        title: p.title || `Point ${idx + 1}`,
+        marks: p.credit_badge || "+1.0 / 2.0",
+        quote: p.what_you_wrote || "",
+        advise: p.examiner_verdict || "",
+        bodyHtml: p.examiner_verdict || "",
+        cardIndex: idx,
+        page: currentPg,
+        _yPct: 20 + idx * 30
+      }));
+    } else {
+      auditSection.classList.add("hidden");
+      return;
+    }
   }
 
   auditSection.classList.remove("hidden");
-
-  const evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
-  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
 
   if (subHeading) {
     subHeading.textContent = isHindi ? "2. हस्तलिखित उत्तर का बिंदुवार मूल्यांकन" : "2. Point-by-Point Handwritten Audit";
@@ -9771,7 +9829,21 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
 
   container.innerHTML = "";
 
-  const cardData = ensureSectionsQuoteAudit(sections, currentPg);
+  let cardData = [];
+  try {
+    cardData = ensureSectionsQuoteAudit(sections, currentPg);
+  } catch (err) {
+    console.warn("ensureSectionsQuoteAudit warning:", err);
+    cardData = sections.map((sec, idx) => ({
+      sec,
+      quote: sec.quote || sec.bodyHtml || "",
+      advise: sec.advise || "",
+      quoteStatus: "verified",
+      sourcePassage: "",
+      assessment: sec.assessment || {},
+      idx
+    }));
+  }
 
   // Cross-card validation: heal swapped quotes between cards on this page
   if (cardData.length >= 2) {
