@@ -3198,13 +3198,13 @@
                         <div id="annotationsGuideLayer" class="absolute inset-0 pointer-events-none hidden" style="display: none !important;"></div>
 
                         <!-- Horizontal Laser Focus Beam (Illuminates exact handwriting passage within column) -->
-                        <div id="gutterLaserBeam" class="hidden" style="display: none !important;">
+                        <div id="gutterLaserBeam" class="absolute left-[16%] right-[16%] w-[68%] rounded-lg bg-amber-500/15 border border-amber-400/50 pointer-events-none transition-all duration-300 opacity-0 flex items-center justify-end pr-2 z-20">
                           <span id="gutterLaserLabel" class="text-[9.5px] font-bold font-mono px-2 py-0.5 rounded bg-amber-500 text-black shadow-md">FOCUSED POINT</span>
                         </div>
                       </div>
 
                       <!-- Smart Gutter Ribbon (Slim 36px wide on desktop/tablet, strictly alongside paper without touching writing) -->
-                      <div id="smartGutterRibbon" class="hidden" style="display: none !important;">
+                      <div id="smartGutterRibbon" class="w-9 sm:w-11 bg-slate-900/95 border-l border-slate-800 flex flex-col items-center py-3 shrink-0 select-none relative z-10">
                         <!-- Dynamic Gutter Score Pins Rendered by renderAnnotationsOverlay() -->
                       </div>
                     </div>
@@ -3242,7 +3242,7 @@
             </div>
 
           </div>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center">Interactive candidate copy view. Inspect your handwritten answer sheet alongside point-by-point evaluation.</p>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center">Interactive candidate copy view. Hover or tap any point pin in the gutter to illuminate handwriting and inspect line-by-line marks.</p>
         </div>
 
         <!-- PC & Tablet: Point-by-Point Handwritten Audit Section below answersheet -->
