@@ -3198,13 +3198,13 @@
                         <div id="annotationsGuideLayer" class="absolute inset-0 pointer-events-none hidden" style="display: none !important;"></div>
 
                         <!-- Horizontal Laser Focus Beam (Illuminates exact handwriting passage within column) -->
-                        <div id="gutterLaserBeam" class="absolute left-[16%] right-[16%] w-[68%] rounded-lg bg-amber-500/15 border border-amber-400/50 pointer-events-none transition-all duration-300 opacity-0 flex items-center justify-end pr-2 z-20">
+                        <div id="gutterLaserBeam" class="hidden" style="display: none !important;">
                           <span id="gutterLaserLabel" class="text-[9.5px] font-bold font-mono px-2 py-0.5 rounded bg-amber-500 text-black shadow-md">FOCUSED POINT</span>
                         </div>
                       </div>
 
                       <!-- Smart Gutter Ribbon (Slim 36px wide on desktop/tablet, strictly alongside paper without touching writing) -->
-                      <div id="smartGutterRibbon" class="w-9 sm:w-11 bg-slate-900/95 border-l border-slate-800 flex flex-col items-center py-3 shrink-0 select-none relative z-10">
+                      <div id="smartGutterRibbon" class="hidden" style="display: none !important;">
                         <!-- Dynamic Gutter Score Pins Rendered by renderAnnotationsOverlay() -->
                       </div>
                     </div>
@@ -3242,7 +3242,7 @@
             </div>
 
           </div>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center">Interactive candidate copy view. Hover or tap any point pin in the gutter to illuminate handwriting and inspect line-by-line marks.</p>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center">Interactive candidate copy view. Inspect your handwritten answer sheet alongside point-by-point evaluation.</p>
         </div>
 
         <!-- PC & Tablet: Point-by-Point Handwritten Audit Section below answersheet -->
@@ -3255,7 +3255,15 @@
                 <h4 id="desktopAuditHeader" class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Which Exact Points Fetched Marks vs. Scope to Upgrade</h4>
               </div>
             </div>
-            <span id="desktopAuditScorePill" class="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/25 whitespace-nowrap">Page 1: +3.0 / 5.0 Marks</span>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button id="desktopAuditPrevBtn" type="button" onclick="window.navAuditPage(-1)" title="Previous Page" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold cursor-pointer border border-slate-300 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1">
+                &larr; Prev
+              </button>
+              <span id="desktopAuditScorePill" class="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/25 whitespace-nowrap">Page 1: +3.0 / 5.0 Marks</span>
+              <button id="desktopAuditNextBtn" type="button" onclick="window.navAuditPage(1)" title="Next Page" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold cursor-pointer border border-slate-300 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1">
+                Next &rarr;
+              </button>
+            </div>
           </div>
 
           <div id="desktopAuditCardsContainer" class="space-y-3 max-h-[620px] overflow-y-auto custom-scrollbar pr-1">

@@ -1933,6 +1933,28 @@ class TestUPSCInterdisciplinarySyllabusOverlap(unittest.TestCase):
         self.assertFalse(self.is_paper_compatible("GS4", "GS1", q_geo))
         self.assertFalse(self.is_paper_compatible("GS4", "GS2", q_geo))
 
+    def test_exact_step_marks_sum_unrounded(self):
+        """Image 3 Regression Test: Confirm that when subpart step marks sum to 5.7/15, overall_score is exactly 5.7 without roundoff."""
+        raw_eval = {
+            "overall_score": 5.5,
+            "max_marks": 15,
+            "sub_part_step_marking": [
+                {"step_label": "1. Introduction (Panchamrit Pledge & Context)", "awarded": 1.2, "max": 2.5, "sub_heading": "Target Baseline", "quoted_written": "India's Panchamrit pledge seeks to make India segments its energy with 45% coming from renewables."},
+                {"step_label": "2. Economic Costs of Transition", "awarded": 2.5, "max": 6.5, "sub_heading": "Funding & Infra", "quoted_written": "Coal-powered economy's switch requires provisioning of funding; infrastructural demands, technological burdens."},
+                {"step_label": "3. Social Costs of Transition", "awarded": 1.0, "max": 3.0, "sub_heading": "Livelihood Loss", "quoted_written": "Adoption rigidity, loss of livelihood in coal TPPs, encumbered tribal forests."},
+                {"step_label": "4. Presentation & Structure", "awarded": 0.5, "max": 1.5, "sub_heading": "Diagrammatic Mapping", "quoted_written": "Clear subheadings (Economic costs, Social costs) and structural flowcharts."},
+                {"step_label": "5. Conclusion", "awarded": 0.5, "max": 1.5, "sub_heading": "Synthesis", "quoted_written": "Synthesis of transition trade-offs."}
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=15, question="Discuss the economic and social costs associated with the transition from coal to green energy in India.", paper="GS3")
+        # Sum is 1.2 + 2.5 + 1.0 + 0.5 + 0.5 = 5.7
+        self.assertEqual(norm["overall_score"], 5.7)
+        self.assertEqual(norm["total_score"], 5.7)
+        steps = norm.get("sub_part_step_marking", [])
+        self.assertEqual(len(steps), 5)
+        sum_steps = sum(float(s.get("awarded", 0)) for s in steps)
+        self.assertAlmostEqual(sum_steps, 5.7, places=1)
+
 if __name__ == "__main__":
 
     unittest.main()

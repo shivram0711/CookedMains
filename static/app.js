@@ -5318,7 +5318,14 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
   const isHindi = window.isHindiEvaluation(evalData);
   const rubric = evalData.rubric_scores || {};
   const maxMarks = parseFloat(evalData.max_marks || (typeof state !== "undefined" && state.marks) || 15.0);
-  const overallScore = parseFloat(evalData.overall_score || 0.0);
+  const canonSubParts = Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : [];
+  let canonStepSum = 0.0;
+  if (canonSubParts.length >= 2) {
+    canonStepSum = canonSubParts.reduce((acc, st) => acc + (parseFloat(st.awarded != null ? st.awarded : st.marks_awarded) || 0.0), 0.0);
+  }
+  const overallScore = canonStepSum > 0 ? Math.round(canonStepSum * 10) / 10 : (Math.round((parseFloat(evalData.overall_score) || 0.0) * 10) / 10);
+  evalData.overall_score = overallScore;
+  evalData.total_score = overallScore;
 
   // Default UPSC Marks ceilings
   const defIntroMax = maxMarks === 10 ? 1.5 : (maxMarks === 15 ? 2.0 : 2.5);
@@ -8024,13 +8031,22 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
   if (guideLayer) guideLayer.innerHTML = "";
   if (marginContainer) marginContainer.innerHTML = "";
 
-  // Render Smart Gutter Ribbon & Synchronized Focus System
-  if (gutterRibbon && sections && sections.length > 0) {
+  // Margin annotation marks allocation mechanism removed per user request
+  if (gutterRibbon) {
+    gutterRibbon.innerHTML = "";
+    gutterRibbon.classList.add("hidden");
+    gutterRibbon.style.display = "none";
+  }
+
+  // Render Point-by-Point Audit and sections without margin gutter marks
+  if (sections && sections.length > 0) {
     ensureSectionsQuoteAudit(sections, currentPg);
 
-    gutterRibbon.innerHTML = `
-      <div class="text-[7.5px] font-mono text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest my-1 select-none text-center">PTS</div>
-    `;
+    if (gutterRibbon) {
+      gutterRibbon.innerHTML = "";
+      gutterRibbon.classList.add("hidden");
+      gutterRibbon.style.display = "none";
+    }
 
     // Store active sections globally for focus interaction and mobile drawer
     window._activeGutterSections = sections;
@@ -9747,6 +9763,12 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
     }
   }
 
+  // Update Section Prev and Next Button Disabled States
+  const auditPrevBtn = document.getElementById("desktopAuditPrevBtn");
+  const auditNextBtn = document.getElementById("desktopAuditNextBtn");
+  if (auditPrevBtn) auditPrevBtn.disabled = (currentPg <= 1);
+  if (auditNextBtn) auditNextBtn.disabled = (currentPg >= totalPages);
+
   container.innerHTML = "";
 
   const cardData = ensureSectionsQuoteAudit(sections, currentPg);
@@ -9898,7 +9920,17 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
       }
     }
 
-    const quotePrefix = isHindi ? "परीक्षार्थी का उत्तर" : "Candidate's Writing";
+    const quotePrefix = isHindi ? "अभ्यर्थी का हस्तलिखित उत्तर (Aspirant's Writing)" : "Candidate's Handwritten Point";
+    const feedbackHeader = isHindi
+      ? (isPositive ? "मूल्यांकन एवं अंकन विश्लेषण (Evaluator Feedback)" : "मूल्यांकन एवं सुधार का दायरा (Scope to Upgrade)")
+      : (isPositive ? "Examiner Feedback & Score Rationale" : "Examiner Feedback & Scope to Upgrade");
+    const feedbackIcon = isPositive ? "✓" : "➔";
+    const feedbackBoxClass = isPositive
+      ? "bg-emerald-500/10 dark:bg-emerald-950/40 border-emerald-500/30 text-emerald-950 dark:text-emerald-100"
+      : "bg-amber-500/10 dark:bg-amber-950/40 border-amber-500/30 text-amber-950 dark:text-amber-100";
+    const feedbackTitleColor = isPositive
+      ? "text-emerald-700 dark:text-emerald-300"
+      : "text-amber-700 dark:text-amber-300";
 
     card.innerHTML = `
       <div class="w-full flex flex-wrap items-center justify-between gap-1.5 min-w-0">
@@ -9912,9 +9944,28 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
       <div class="w-full text-xs font-extrabold text-slate-900 dark:text-slate-100 leading-snug break-words">
         ${escapeHtml(headingTitle)}
       </div>
-      <p class="w-full text-xs text-slate-700 dark:text-slate-300 leading-relaxed break-words font-sans">
-        <strong class="text-slate-900 dark:text-white">${quotePrefix}:</strong> "${escapeHtml(whatYouWrote)}" &mdash; ${typeof formatHighlightedText === "function" ? formatHighlightedText(verdict) : escapeHtml(verdict)}
-      </p>
+
+      <!-- 1. What Candidate Wrote (Quoted in Dedicated Slate Container) -->
+      <div class="w-full rounded-lg bg-slate-100/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-2.5 space-y-1">
+        <div class="text-[10px] uppercase font-bold tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+          <span class="text-xs">✍️</span>
+          <span>${escapeHtml(quotePrefix)}:</span>
+        </div>
+        <p class="text-xs text-slate-800 dark:text-slate-200 italic font-medium leading-relaxed break-words font-sans">
+          &ldquo;${escapeHtml(whatYouWrote)}&rdquo;
+        </p>
+      </div>
+
+      <!-- 2. Website / Examiner Feedback (Highlighted with Distinct Color Scheme) -->
+      <div class="w-full rounded-lg border p-2.5 space-y-1 ${feedbackBoxClass}">
+        <div class="text-[10.5px] uppercase font-extrabold tracking-wide flex items-center gap-1.5 ${feedbackTitleColor}">
+          <span class="font-bold">${feedbackIcon}</span>
+          <span>${escapeHtml(feedbackHeader)}:</span>
+        </div>
+        <div class="text-xs font-sans leading-relaxed break-words font-normal">
+          ${typeof formatHighlightedText === "function" ? formatHighlightedText(verdict) : escapeHtml(verdict)}
+        </div>
+      </div>
     `;
 
     card.addEventListener("mouseenter", () => {
@@ -10991,8 +11042,16 @@ function syncRubricAndMarginScores(evalData) {
     }
   }
   const maxMarks = parseInt(evalData.max_marks || state.marks || 10, 10);
-  const overallScore = Math.round((parseFloat(evalData.overall_score) || 0.0) * 2) / 2;
+  const rawSubPartsSync = Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : [];
+  let calculatedSubpartSum = 0.0;
+  if (rawSubPartsSync.length >= 2) {
+    calculatedSubpartSum = rawSubPartsSync.reduce((acc, st) => acc + (parseFloat(st.awarded != null ? st.awarded : st.marks_awarded) || 0.0), 0.0);
+  }
+  const overallScore = calculatedSubpartSum > 0
+    ? Math.round(calculatedSubpartSum * 10) / 10
+    : Math.round((parseFloat(evalData.overall_score) || 0.0) * 10) / 10;
   evalData.overall_score = overallScore;
+  evalData.total_score = overallScore;
 
   // Canonical rubric denominators identical across Margin Cards and Right-Panel Analytical Rubric
   let rIntroMax = 1.5, rCoreMax = 4.5, rValMax = 1.5, rPresMax = 1.0, rConcMax = 1.5;
@@ -14156,6 +14215,31 @@ function renderBatch1ExaminerMastery(evalData) {
     ];
   }
 
+  // Calculate precise sum of all sub-part step marks (Image 3 fix)
+  const exactStepSum = stepItems.reduce((acc, it) => acc + (parseFloat(it.score) || 0.0), 0.0);
+  const exactStepMax = stepItems.reduce((acc, it) => acc + (parseFloat(it.max) || 0.0), 0.0);
+  const matchedTotalScore = exactStepSum > 0 ? Math.round(exactStepSum * 10) / 10 : overallScore;
+  const matchedTotalMax = exactStepMax > 0 ? Math.round(exactStepMax * 10) / 10 : maxMarks;
+
+  evalData.overall_score = matchedTotalScore;
+  evalData.total_score = matchedTotalScore;
+
+  if (totalBadgeEl) {
+    totalBadgeEl.textContent = isHindi
+      ? `चरणबद्ध कुल अंक: +${matchedTotalScore.toFixed(1)} / ${matchedTotalMax.toFixed(1)}M`
+      : `Step-Marked Total: +${matchedTotalScore.toFixed(1)} / ${matchedTotalMax.toFixed(1)}M`;
+  }
+
+  // Synchronize matching precise total marks across all headers and score displays (No rounding discrepancies)
+  const resultScoreEl = document.getElementById("resultScore");
+  if (resultScoreEl) resultScoreEl.textContent = matchedTotalScore.toFixed(1);
+  const topScoreEl = document.getElementById("studioTopScore");
+  if (topScoreEl) topScoreEl.textContent = matchedTotalScore.toFixed(1);
+  const printOverallScoreEl = document.getElementById("printOverallScore");
+  if (printOverallScoreEl) printOverallScoreEl.textContent = `${matchedTotalScore.toFixed(1)} / ${matchedTotalMax.toFixed(1)} Marks`;
+  const printAnalyticalScoreEl = document.getElementById("printAnalyticalScore");
+  if (printAnalyticalScoreEl) printAnalyticalScoreEl.textContent = `Total: ${matchedTotalScore.toFixed(1)} / ${matchedTotalMax.toFixed(1)}`;
+
   stepListEl.innerHTML = stepItems.map(item => {
     const pct = item.max > 0 ? Math.min(100, Math.round((item.score / item.max) * 100)) : 0;
     const barColor = pct >= 60 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-rose-500";
@@ -14321,6 +14405,18 @@ function renderBatch1ExaminerMastery(evalData) {
       }
     }
   }
+
+  window.navAuditPage = function(delta) {
+    const totalPages = (state.activePages && state.activePages.length) || (state.totalPages) || 1;
+    const currentIdx = (typeof state !== "undefined" && state.currentPageIndex !== undefined) ? state.currentPageIndex : 0;
+    const targetIdx = Math.max(0, Math.min(totalPages - 1, currentIdx + delta));
+    if (targetIdx !== currentIdx) {
+      state.currentPageIndex = targetIdx;
+      if (typeof updateViewer === "function") updateViewer();
+      if (typeof renderPreviewStrip === "function") renderPreviewStrip();
+      if (typeof renderAnnotationsOverlay === "function") renderAnnotationsOverlay();
+    }
+  };
 
   window.jumpToAnswerSheetPage = function(pageNumber) {
     const totalPages = (state.activePages && state.activePages.length) || 1;

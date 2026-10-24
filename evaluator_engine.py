@@ -6316,11 +6316,11 @@ def _run_release_validation_and_consistency(data: Dict[str, Any], max_marks: int
                     ledger_marks_adjusted = True
 
     if steps:
-        step_aw_sum = round(sum(float(st.get("awarded", 0.0) or 0.0) for st in steps if isinstance(st, dict)), 2)
-        if abs(step_aw_sum - overall_score) > 0.05 and len(steps) > 0:
-            delta = round(overall_score - step_aw_sum, 2)
-            last_st = steps[-1]
-            last_st["awarded"] = max(0.0, min(float(last_st.get("max", 2.0)), round(float(last_st.get("awarded", 1.0)) + delta, 2)))
+        step_aw_sum = round(sum(float(st.get("awarded", 0.0) or 0.0) for st in steps if isinstance(st, dict)), 1)
+        if step_aw_sum > 0:
+            data["overall_score"] = step_aw_sum
+            data["total_score"] = step_aw_sum
+            overall_score = step_aw_sum
 
     # Reconcile evidence_ledger marks with steps: preserve ledger-level deductions and adjustments
     if ledger and steps and len(ledger) == len(steps):
@@ -6737,6 +6737,10 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                 assigned_steps.append(step_obj)
 
             data["sub_part_step_marking"] = assigned_steps
+            sum_assigned_aw = round(sum(float(st.get("awarded", 0.0) or 0.0) for st in assigned_steps if isinstance(st, dict)), 1)
+            if sum_assigned_aw > 0:
+                data["overall_score"] = sum_assigned_aw
+                data["total_score"] = sum_assigned_aw
             data["subpart_marks_breakdown"] = [
                 {
                     "part_name": st.get("step_label", ""),
@@ -6891,6 +6895,10 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                 item["demand_status"] = get_canonical_demand_status(item.get("awarded"), item.get("max"), is_hindi=is_hindi)
                 assigned_steps.append(item)
             data["sub_part_step_marking"] = assigned_steps
+            sum_assigned_aw = round(sum(float(st.get("awarded", 0.0) or 0.0) for st in assigned_steps if isinstance(st, dict)), 1)
+            if sum_assigned_aw > 0:
+                data["overall_score"] = sum_assigned_aw
+                data["total_score"] = sum_assigned_aw
 
             data["subpart_marks_breakdown"] = [
                 {
