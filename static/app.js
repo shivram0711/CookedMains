@@ -11358,13 +11358,16 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
       clean = clean.replace(/^(\*\*[^*]+)(\*\*)/, `$1 (${targetPg})$2`);
     }
 
-    // Ensure deep elaboration: avoid 5-10 word fragments in the Deep Evaluation section
+    // Strip repetitive robotic boilerplate statement
+    clean = clean.replace(/\s*(?:Your structured presentation of this dimension demonstrated strong conceptual grasp, fulfilling examiner expectations and securing primary demand marks\.?|This demonstrated clear conceptual grounding and secured core demand marks\.?|आपका यह बिंदुवार एवं संरचित प्रस्तुतीकरण सुदृढ़ अवधारणात्मक समझ को दर्शाता है तथा मुख्य मांग के अनुरूप अंक अर्जित करता है।?|इस प्रस्तुति ने सुदृढ़ अवधारणात्मक आधार स्थापित कर मुख्य मांग के अंक अर्जित किए।?)/gi, "").trim();
+
+    // If body part is an ultra-short fragment (< 6 words), optionally enrich with genuine candidate points or verdict
     const colonPos = clean.indexOf(":");
     if (colonPos > 0) {
       const headerPart = clean.slice(0, colonPos + 1);
-      let bodyPart = clean.slice(colonPos + 1).trim();
+      const bodyPart = clean.slice(colonPos + 1).trim();
       const bodyWords = bodyPart.split(/\s+/).filter(Boolean);
-      if (bodyWords.length < 22) {
+      if (bodyWords.length < 6) {
         const cleanHdrLow = headerPart.toLowerCase().replace(/[*_#`()]/g, "");
         const matchedPbp = pbpList.find(pbp => {
           if (!pbp || !pbp.is_positive || !pbp.title) return false;
@@ -11372,24 +11375,13 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
           return cleanHdrLow.split(/\s+/).some(w => w.length > 4 && pbpTLow.includes(w));
         });
         if (matchedPbp) {
-          const whatW = String(matchedPbp.what_you_wrote || "").trim();
           const verdW = String(matchedPbp.examiner_verdict || "").trim();
-          const cleanCandPts = cleanConceptsString(whatW);
-          if (cleanCandPts && !bodyPart.toLowerCase().includes(cleanCandPts.slice(0, 20).toLowerCase())) {
-            clean = isHindi
-              ? `${headerPart} आपने उत्तर-पुस्तिका में **${cleanCandPts}** का उल्लेख कर इस आयाम को स्पष्ट रूप से निरूपित किया है। ${bodyPart} इस प्रस्तुति ने सुदृढ़ अवधारणात्मक आधार स्थापित कर मुख्य मांग के अंक अर्जित किए।`
-              : `${headerPart} You clearly articulated this on your sheet by citing **${cleanCandPts}**. ${bodyPart} This demonstrated clear conceptual grounding and secured core demand marks.`;
-          } else if (verdW && !bodyPart.toLowerCase().includes(verdW.slice(0, 20).toLowerCase())) {
-            clean = `${headerPart} ${bodyPart} ${verdW}`;
-          } else {
-            clean = isHindi
-              ? `${headerPart} ${bodyPart} आपका यह बिंदुवार एवं संरचित प्रस्तुतीकरण सुदृढ़ अवधारणात्मक समझ को दर्शाता है तथा मुख्य मांग के अनुरूप अंक अर्जित करता है।`
-              : `${headerPart} ${bodyPart} Your structured presentation of this dimension demonstrated strong conceptual grasp, fulfilling examiner expectations and securing primary demand marks.`;
+          const whatW = String(matchedPbp.what_you_wrote || "").trim();
+          if (verdW && !bodyPart.toLowerCase().includes(verdW.slice(0, 20).toLowerCase())) {
+            clean = `${headerPart} ${bodyPart} ${verdW}`.trim();
+          } else if (whatW) {
+            clean = `${headerPart} ${bodyPart} (${isHindi ? "उत्तर संदर्भ" : "Ref"}: "${whatW.slice(0, 80)}")`.trim();
           }
-        } else {
-          clean = isHindi
-            ? `${headerPart} ${bodyPart} आपका यह बिंदुवार एवं संरचित प्रस्तुतीकरण सुदृढ़ अवधारणात्मक समझ को दर्शाता है तथा मुख्य मांग के अनुरूप अंक अर्जित करता है।`
-            : `${headerPart} ${bodyPart} Your structured presentation of this dimension demonstrated strong conceptual grasp, fulfilling examiner expectations and securing primary demand marks.`;
         }
       }
     }

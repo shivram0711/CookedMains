@@ -7600,12 +7600,20 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                 tgt_pg = "Page 1" if idx == 0 else ("Page 1–2" if idx == 1 else ("Page 2" if idx == 2 else "Page 2–3"))
             clean = re.sub(r'^(\*\*[^*]+)(\*\*)', rf'\1 ({tgt_pg})\2', clean)
 
-        # Ensure deep elaboration: avoid 5-10 word fragments in the Deep Evaluation section
+        # Strip repetitive robotic boilerplate statement
+        clean = re.sub(
+            r'\s*(?:Your structured presentation of this dimension demonstrated strong conceptual grasp, fulfilling examiner expectations and securing primary demand marks\.?|This demonstrated clear conceptual grounding and secured core demand marks\.?|आपका यह बिंदुवार एवं संरचित प्रस्तुतीकरण सुदृढ़ अवधारणात्मक समझ को दर्शाता है तथा मुख्य मांग के अनुरूप अंक अर्जित करता है।?|इस प्रस्तुति ने सुदृढ़ अवधारणात्मक आधार स्थापित कर मुख्य मांग के अंक अर्जित किए।?)',
+            '',
+            clean,
+            flags=re.IGNORECASE
+        ).strip()
+
+        # If body part is an ultra-short fragment (< 6 words), optionally enrich with genuine candidate points or verdict
         colon_pos = clean.find(":")
         if colon_pos > 0:
             header_part = clean[:colon_pos + 1]
             body_part = clean[colon_pos + 1:].strip()
-            if len(body_part.split()) < 22:
+            if len(body_part.split()) < 6:
                 matched_pbp = None
                 clean_hdr_low = header_part.lower().replace("*", "")
                 for pbp in pbp_list:
@@ -7617,26 +7625,10 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                 if matched_pbp:
                     what_w = str(matched_pbp.get("what_you_wrote") or "").strip()
                     verd_w = str(matched_pbp.get("examiner_verdict") or "").strip()
-                    clean_cand_pts = _clean_concepts_string(what_w)
-                    if is_hindi:
-                        if clean_cand_pts and clean_cand_pts.lower() not in body_part.lower():
-                            clean = f"{header_part} आपने उत्तर-पुस्तिका में **{clean_cand_pts}** का उल्लेख कर इस आयाम को स्पष्ट रूप से निरूपित किया है। {body_part} यह सुदृढ़ अवधारणात्मक समझ को दर्शाता है तथा मुख्य मांग के अनुसार अंक दिलाता है।"
-                        elif verd_w and verd_w.lower() not in body_part.lower():
-                            clean = f"{header_part} {body_part} {verd_w}"
-                        else:
-                            clean = f"{header_part} {body_part} आपका यह बिंदुवार एवं संरचित प्रस्तुतीकरण सुदृढ़ अवधारणात्मक समझ को दर्शाता है तथा मुख्य मांग के अनुरूप अंक अर्जित करता है।"
-                    else:
-                        if clean_cand_pts and clean_cand_pts.lower() not in body_part.lower():
-                            clean = f"{header_part} You clearly articulated this on your sheet by citing **{clean_cand_pts}**. {body_part} This demonstrated clear conceptual grounding and secured core demand marks."
-                        elif verd_w and verd_w.lower() not in body_part.lower():
-                            clean = f"{header_part} {body_part} {verd_w}"
-                        else:
-                            clean = f"{header_part} {body_part} Your structured presentation of this dimension demonstrated strong conceptual grasp, fulfilling examiner expectations and securing primary demand marks."
-                else:
-                    if is_hindi:
-                        clean = f"{header_part} {body_part} आपका यह बिंदुवार एवं संरचित प्रस्तुतीकरण सुदृढ़ अवधारणात्मक समझ को दर्शाता है तथा मुख्य मांग के अनुरूप अंक अर्जित करता है।"
-                    else:
-                        clean = f"{header_part} {body_part} Your structured presentation of this dimension demonstrated strong conceptual grasp, fulfilling examiner expectations and securing primary demand marks."
+                    if verd_w and verd_w.lower() not in body_part.lower():
+                        clean = f"{header_part} {body_part} {verd_w}".strip()
+                    elif what_w:
+                        clean = f"{header_part} {body_part} ({'उत्तर संदर्भ' if is_hindi else 'Ref'}: \"{what_w[:80]}\")".strip()
 
         formatted_strengths.append(clean)
 

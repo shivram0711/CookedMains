@@ -1955,6 +1955,25 @@ class TestUPSCInterdisciplinarySyllabusOverlap(unittest.TestCase):
         sum_steps = sum(float(s.get("awarded", 0)) for s in steps)
         self.assertAlmostEqual(sum_steps, 5.7, places=1)
 
+    def test_no_repetitive_body_strengths_boilerplate(self):
+        """Confirm that body_audit strengths never contain repetitive boilerplate sentences."""
+        raw_eval = {
+            "overall_score": 6.0,
+            "max_marks": 15,
+            "body_audit": {
+                "strengths": [
+                    "**Panchamrit Baseline & Thermal Dependency**: You clearly contrasted India's 45% renewable energy target with current coal predominance (>50%), establishing an authentic policy baseline. Your structured presentation of this dimension demonstrated strong conceptual grasp, fulfilling examiner expectations and securing primary demand marks.",
+                    "**Technological & Infrastructural Hurdles**: You highlighted the technological burden of retrofitting systems."
+                ]
+            }
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=15, question="Discuss the economic and social costs associated with the transition from coal to green energy in India.", paper="GS3")
+        strengths = norm.get("body_audit", {}).get("strengths", [])
+        self.assertGreaterEqual(len(strengths), 2)
+        for s in strengths:
+            self.assertNotIn("Your structured presentation of this dimension", s)
+            self.assertNotIn("fulfilling examiner expectations", s)
+
 if __name__ == "__main__":
 
     unittest.main()
