@@ -463,5 +463,10 @@
       "public_reply": null,
       "timestamp": "2026-10-24 12:05:14"
     }
-  ]
+  ],
+  "target_reel_ids": [
+    "18094002416667541",
+    "18607963645064651"
+  ],
+  "limit_to_last_2_reels": true
 }

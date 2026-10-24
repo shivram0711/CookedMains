@@ -3380,10 +3380,15 @@ async def scan_instagram_reels_for_comments():
     already_logged_ids = {l.get("comment_id") for l in logs if l.get("comment_id")}
 
     try:
-        # Fetch latest 5 media items
+        # Fetch latest media items
         media_url = f"https://graph.facebook.com/v19.0/{account_id}/media"
-        m_res = requests.get(media_url, params={"fields": "id,caption,media_type,permalink,comments_count", "limit": 5, "access_token": token})
-        media_items = m_res.json().get("data", [])
+        m_res = requests.get(media_url, params={"fields": "id,caption,media_type,media_product_type,permalink,comments_count", "limit": 6, "access_token": token})
+        all_media = m_res.json().get("data", [])
+        
+        # Filter strictly to the last 2 Reels only (never touch other posts/reels)
+        target_ids = set(rules.get("target_reel_ids", ["18094002416667541", "18607963645064651"]))
+        reels_only = [m for m in all_media if m["id"] in target_ids or m.get("media_type") == "VIDEO" or m.get("media_product_type") == "REELS"]
+        media_items = reels_only[:2]
         
         scanned_comments = 0
         dm_dispatched = 0
