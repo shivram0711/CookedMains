@@ -3488,6 +3488,21 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
         except Exception as ee:
             print(f"Notice: Supabase fetch evals for sync notice: {ee}")
 
+        # If Supabase has zero users and zero evaluations, auto-seed it from current local database
+        if len(user_rows) == 0 and len(eval_rows) == 0:
+            try:
+                push_res = push_sqlite_to_supabase()
+                print(f'[SUPABASE AUTO-SEED] Cloud was empty, seeded from SQLite: {push_res}')
+                try:
+                    res_u = supabase.table('evaluations').select('id, user_id, evaluation_json, created_at').eq('question_title', '__USER_ACCOUNT_PROFILE__').order('created_at', desc=True).limit(300).execute()
+                    if res_u and res_u.data: user_rows = res_u.data
+                    res_e = supabase.table('evaluations').select('id, user_id, question_title, file_url, total_marks, evaluation_json, created_at').neq('question_title', '__USER_ACCOUNT_PROFILE__').order('created_at', desc=True).limit(80).execute()
+                    if res_e and res_e.data: eval_rows = res_e.data
+                except Exception:
+                    pass
+            except Exception as se_err:
+                print(f'Auto-seed Supabase notice: {se_err}')
+
         user_id_to_email: Dict[str, str] = {}
         email_to_user_id: Dict[str, str] = {}
         parsed_users: List[Dict[str, Any]] = []
