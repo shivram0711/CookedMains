@@ -10,6 +10,18 @@ let cachedFeedbacks = [];
 let feedbackFilterStatus = "all";
 let activeCreditCadetEmail = null;
 
+function getAdminAuthHeaders() {
+  const token = adminToken || localStorage.getItem("mainsmentor_admin_token") || "";
+  const headers = {
+    "Content-Type": "application/json"
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+    headers["X-Admin-Token"] = token;
+  }
+  return headers;
+}
+
 function safeCreateIcons() {
   try {
     if (typeof lucide !== "undefined" && lucide && typeof lucide.createIcons === "function") {
