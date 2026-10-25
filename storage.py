@@ -89,6 +89,8 @@ def get_db():
         pass
     return conn
 
+_LIVE_PRESENCE_MAP: Dict[str, Dict[str, Any]] = {}
+
 def perform_clean_slate_reset(force: bool = False) -> Dict[str, Any]:
     """
     PERMANENT DATA VAULT SAFEGUARD:
@@ -160,10 +162,16 @@ def _seed_vault_if_empty(cursor) -> None:
                     act.get("action_type"), act.get("title"), act.get("detail"), act.get("eval_id") or ""
                 ))
 
-        cursor.execute("SELECT COUNT(*) FROM user_sessions")
-        sess_count = cursor.fetchone()[0]
-        seed_sess = data.get("user_sessions") or []
-        if sess_count < len(seed_sess):
+        cursor.execute("SELECT COUNT(*) FROM user_sessions WHERE is_authenticated = 1")
+        authed_sess_count = cursor.fetchone()[0]
+        raw_seed_sess = data.get("user_sessions") or []
+        seed_sess = [
+            s for s in raw_seed_sess
+            if (s.get("is_authenticated") or 0) == 1
+            or (s.get("user_email") and "@" in s.get("user_email") and s.get("user_email") != "guest@cookedmains.in")
+            or (int(s.get("evaluations_count") or 0) > 0)
+        ]
+        if authed_sess_count < len(seed_sess):
             for s in seed_sess:
                 cursor.execute("""
                     INSERT OR IGNORE INTO user_sessions (
@@ -220,11 +228,96 @@ def purge_all_dummy_and_demo_accounts() -> Dict[str, Any]:
     logger.warning("SAFETY LOCK: purge_all_dummy_and_demo_accounts invoked but neutralized.")
     return {"status": "disabled", "message": "Purge permanently deactivated.", "purged": {"evaluations": 0, "activity_logs": 0, "user_sessions": 0, "users": 0}}
 
+
+def cleanup_expired_guest_sessions(max_age_hours: float = 12.0) -> Dict[str, Any]:
+    """
+    Deletes ephemeral visitor sessions of unauthenticated guests who just came to
+    the landing page and bounced without logging in, evaluating copies, or submitting feedback,
+    once their session is older than max_age_hours (default 12 hours).
+
+    STRICT PERMANENT RETENTION GUARANTEES:
+    - All registered/logged-in aspirants (in users table) are KEPT PERMANENTLY.
+    - All evaluated copies (in evaluations table) are KEPT PERMANENTLY.
+    - All feedback submissions (in feedback table) are KEPT PERMANENTLY.
+    - All transactions and credit records are KEPT PERMANENTLY.
+    - All activity logs of users, evaluations, and feedbacks are KEPT PERMANENTLY.
+    - Never delete or erase genuine aspirant records or activities.
+    """
+    try:
+        ist_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
+        cutoff_dt = ist_now - timedelta(hours=max_age_hours)
+        cutoff_ist = cutoff_dt.strftime("%Y-%m-%d %H:%M:%S")
+
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Step 1: Delete only expired, unauthenticated bounce sessions (>12h old)
+        cursor.execute("""
+            DELETE FROM user_sessions
+            WHERE (is_authenticated = 0 OR is_authenticated IS NULL)
+              AND (evaluations_count = 0 OR evaluations_count IS NULL)
+              AND (
+                  (last_active_at IS NOT NULL AND last_active_at != '' AND last_active_at < ?)
+                  OR ((last_active_at IS NULL OR last_active_at = '') AND started_at < ?)
+              )
+              AND LOWER(user_email) NOT IN (SELECT LOWER(email) FROM users WHERE email IS NOT NULL AND email != '')
+              AND LOWER(user_email) NOT IN (SELECT LOWER(user_email) FROM evaluations WHERE user_email IS NOT NULL AND user_email != '')
+              AND LOWER(user_email) NOT IN (SELECT LOWER(user_email) FROM feedback WHERE user_email IS NOT NULL AND user_email != '')
+              AND LOWER(user_email) NOT IN (SELECT LOWER(user_email) FROM transactions WHERE user_email IS NOT NULL AND user_email != '')
+              AND (recent_actions IS NULL OR (recent_actions NOT LIKE '%"eval_id": "%' AND recent_actions NOT LIKE '%"is_eval": true%'))
+        """, (cutoff_ist, cutoff_ist))
+        deleted_sessions = cursor.rowcount
+
+        # Step 2: Clean stray unauthenticated landing bounce activity logs older than 12h (if any exist)
+        cursor.execute("""
+            DELETE FROM activity_logs
+            WHERE action_type NOT IN ('copy_evaluated', 'feedback_submitted', 'admin_action')
+              AND (created_at IS NOT NULL AND created_at != '' AND created_at < ?)
+              AND (eval_id IS NULL OR eval_id = '')
+              AND LOWER(user_email) IN ('guest@cookedmains.in', 'guest aspirant', 'guest (unauthenticated)', 'guest', '')
+              AND LOWER(user_email) NOT IN (SELECT LOWER(email) FROM users WHERE email IS NOT NULL AND email != '')
+              AND LOWER(user_email) NOT IN (SELECT LOWER(user_email) FROM evaluations WHERE user_email IS NOT NULL AND user_email != '')
+              AND LOWER(user_email) NOT IN (SELECT LOWER(user_email) FROM feedback WHERE user_email IS NOT NULL AND user_email != '')
+        """, (cutoff_ist,))
+        deleted_logs = cursor.rowcount
+
+        conn.commit()
+        conn.close()
+
+        # Step 3: Evict stale guest entries (> 12h) from in-memory presence map
+        now_ts = time.time()
+        cutoff_ts = now_ts - (max_age_hours * 3600)
+        stale_guest_keys = [
+            k for k, v in list(_LIVE_PRESENCE_MAP.items())
+            if (k.startswith("guest_") or not v.get("is_authenticated"))
+            and float(v.get("last_seen_ts", 0)) < cutoff_ts
+        ]
+        for k in stale_guest_keys:
+            _LIVE_PRESENCE_MAP.pop(k, None)
+
+        if deleted_sessions > 0 or deleted_logs > 0:
+            logger.info(
+                f"[TELEMETRY] Cleaned {deleted_sessions} bounce sessions and {deleted_logs} bounce logs older than {max_age_hours}h. "
+                f"All logged-in aspirants, evaluations, and feedbacks preserved permanently."
+            )
+
+        return {
+            "status": "success",
+            "deleted_sessions": deleted_sessions,
+            "deleted_logs": deleted_logs,
+            "cutoff_ist": cutoff_ist
+        }
+    except Exception as e:
+        logger.error(f"[TELEMETRY RETENTION ERROR] {e}")
+        return {"status": "error", "error": str(e), "deleted_sessions": 0, "deleted_logs": 0}
+
+
 def init_db():
     """Initializes SQLite tables for users, single evaluations, and full 20-question test series. Never wipes existing data."""
     try:
         _init_db_tables()
         purge_all_dummy_and_demo_accounts()
+        cleanup_expired_guest_sessions(12.0)
     except Exception as _db_err:
         print(f"Notice: init_db safe notice: {_db_err}")
 
@@ -3167,6 +3260,10 @@ def log_platform_activity(
 
 def get_admin_session_history(limit: int = 50) -> List[Dict[str, Any]]:
     """Returns chronological history of user sessions: who visited, what they did, and how long they stayed."""
+    try:
+        cleanup_expired_guest_sessions(12.0)
+    except Exception:
+        pass
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""

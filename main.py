@@ -104,6 +104,7 @@ from storage import (
     reset_user_daily_quota_admin, delete_feedback_admin,
     sync_supabase_to_sqlite, is_created_today_ist,
     get_admin_session_history, purge_all_dummy_and_demo_accounts,
+    cleanup_expired_guest_sessions,
     push_sqlite_to_supabase
 )
 import copy
@@ -193,6 +194,9 @@ async def _self_keep_alive_loop():
 
             # 3. Synchronize any fresh Supabase cloud records into local SQLite
             await asyncio.to_thread(sync_supabase_to_sqlite, False)
+
+            # 4. Auto-clean expired unauthenticated guest bounce sessions (>12h old)
+            await asyncio.to_thread(cleanup_expired_guest_sessions, 12.0)
         except Exception:
             pass
         await asyncio.sleep(600)  # Every 10 minutes
@@ -218,6 +222,10 @@ async def _instagram_auto_comment_poller():
 
 @app.on_event("startup")
 async def _startup_keep_alive():
+    try:
+        cleanup_expired_guest_sessions(12.0)
+    except Exception as _ce:
+        print(f"Startup bounce session cleanup notice: {_ce}")
     if not os.environ.get("TESTING"):
         asyncio.create_task(_self_keep_alive_loop())
         asyncio.create_task(_instagram_auto_comment_poller())
@@ -1690,6 +1698,13 @@ async def api_admin_clear_dummy_data():
     """Permanently purges all dummy/demo/autofilled accounts and mock history."""
     res = await asyncio.to_thread(purge_all_dummy_and_demo_accounts)
     return {"status": "success", "message": "All dummy and demo accounts purged permanently.", "purged": res}
+
+
+@app.post("/api/admin/cleanup-expired-guests")
+async def api_admin_cleanup_expired_guests(auth: bool = Depends(verify_admin_token)):
+    """Deletes unauthenticated bounce visitor sessions older than 12 hours. Keeps all registered, evaluated, and feedback records permanently."""
+    res = await asyncio.to_thread(cleanup_expired_guest_sessions, 12.0)
+    return res
 
 @app.get("/api/admin/sessions")
 async def api_admin_sessions(limit: int = 300, auth: bool = Depends(verify_admin_token)):
