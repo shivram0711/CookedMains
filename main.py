@@ -103,7 +103,8 @@ from storage import (
     get_admin_evaluations_feed, get_admin_evaluations_stats, get_admin_activity_stream,
     reset_user_daily_quota_admin, delete_feedback_admin,
     sync_supabase_to_sqlite, is_created_today_ist,
-    get_admin_session_history, purge_all_dummy_and_demo_accounts
+    get_admin_session_history, purge_all_dummy_and_demo_accounts,
+    push_sqlite_to_supabase
 )
 import copy
 from news_ingestion import ingest_all_feeds, get_top_editorial_articles
@@ -1625,6 +1626,13 @@ async def api_presence_heartbeat(request: Request):
         current_view=data.get("current_view") or "Browsing Platform",
         session_id=data.get("session_id")
     )
+
+@app.post("/api/admin/push-to-supabase")
+@app.get("/api/admin/push-to-supabase")
+async def api_admin_push_to_supabase():
+    """Pushes all genuine users and evaluated answer copies from local SQLite into remote Supabase cloud."""
+    res = await asyncio.to_thread(push_sqlite_to_supabase)
+    return res
 
 @app.post("/api/admin/sync")
 @app.get("/api/admin/sync")

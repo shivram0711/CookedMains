@@ -3651,6 +3651,140 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
             pass
 
 
+
+def push_sqlite_to_supabase() -> Dict[str, Any]:
+    """
+    Pushes all genuine registered aspirants and evaluated answer sheets from local SQLite
+    into remote Supabase cloud table ('evaluations').
+    """
+    global supabase
+    if not supabase:
+        supabase_url = os.environ.get("SUPABASE_URL", "").strip() or "https://uivzorhuqsdiaarlmbhv.supabase.co"
+        supabase_key = (
+            os.environ.get("SUPABASE_KEY", "").strip()
+            or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+            or os.environ.get("SUPABASE_ANON_KEY", "").strip()
+        )
+        if supabase_url and supabase_key:
+            try:
+                supabase = create_client(supabase_url, supabase_key)
+            except Exception as _e:
+                return {
+                    "status": "error",
+                    "message": f"Supabase client initialization failed: {_e}. Make sure SUPABASE_KEY is set in environment."
+                }
+        else:
+            return {
+                "status": "error",
+                "message": "SUPABASE_KEY is not configured in the server environment. Add SUPABASE_KEY in your Render dashboard environment variables to enable remote syncing."
+            }
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # 1. Genuine Aspirants
+    cursor.execute("""
+        SELECT id, email, name, avatar, free_credits, is_pro, free_rewrites,
+               target_year, optional_subject, plan_tier, created_at
+        FROM users
+        WHERE email NOT LIKE '%mock%'
+          AND email NOT LIKE '%test%'
+          AND email NOT LIKE '%candidate%'
+          AND email != 'aspirant@cookedmains.com'
+    """)
+    users = [dict(r) for r in cursor.fetchall()]
+
+    pushed_users = 0
+    for u in users:
+        try:
+            profile_payload = {
+                "_is_account_profile": True,
+                "id": u["id"],
+                "email": u["email"],
+                "name": u["name"],
+                "avatar": u["avatar"],
+                "free_credits": u["free_credits"],
+                "is_pro": u["is_pro"],
+                "free_rewrites": u["free_rewrites"],
+                "target_year": u["target_year"],
+                "optional_subject": u["optional_subject"],
+                "plan_tier": u["plan_tier"],
+                "created_at": u["created_at"]
+            }
+            existing = supabase.table("evaluations").select("id").eq("user_id", u["id"]).eq("question_title", "__USER_ACCOUNT_PROFILE__").execute()
+            if existing and existing.data and len(existing.data) > 0:
+                supabase.table("evaluations").update({
+                    "evaluation_json": profile_payload
+                }).eq("id", existing.data[0]["id"]).execute()
+            else:
+                supabase.table("evaluations").insert({
+                    "user_id": u["id"],
+                    "question_title": "__USER_ACCOUNT_PROFILE__",
+                    "file_url": "",
+                    "total_marks": 0,
+                    "evaluation_json": profile_payload
+                }).execute()
+            pushed_users += 1
+        except Exception as ue:
+            print(f"Notice: pushing user {u['email']} to Supabase failed: {ue}")
+
+    # 2. Genuine Evaluations
+    cursor.execute("""
+        SELECT id, user_id, user_email, created_at, paper, max_marks, question,
+               overall_score, percentage, evaluation_json, pages_json, file_url
+        FROM evaluations
+        WHERE user_email NOT LIKE '%mock%'
+          AND user_email NOT LIKE '%test%'
+          AND user_email NOT LIKE '%candidate%'
+          AND user_email != 'aspirant@cookedmains.com'
+    """)
+    evals = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+
+    pushed_evals = 0
+    for ev in evals:
+        try:
+            eval_data = {}
+            if ev.get("evaluation_json"):
+                try:
+                    eval_data = json.loads(ev["evaluation_json"])
+                except Exception:
+                    eval_data = {}
+            
+            pages_list = []
+            if ev.get("pages_json"):
+                try:
+                    pages_list = json.loads(ev["pages_json"])
+                except Exception:
+                    pages_list = []
+
+            compact_pages = _compact_pages_for_cloud_json(pages_list)
+            slim_eval = dict(eval_data)
+            slim_eval["_meta_pages"] = compact_pages
+            slim_eval["_meta_user_email"] = ev.get("user_email")
+            slim_eval["_meta_eval_id"] = ev.get("id")
+
+            existing_eval = supabase.table("evaluations").select("id").eq("user_id", ev["user_id"]).eq("question_title", ev["question"]).execute()
+            if not (existing_eval and existing_eval.data and len(existing_eval.data) > 0):
+                insert_supabase_evaluation(
+                    user_id=ev["user_id"],
+                    question_title=ev["question"],
+                    file_url=ev.get("file_url") or "",
+                    total_marks=int(ev.get("max_marks") or 10),
+                    result_json=slim_eval
+                )
+                pushed_evals += 1
+        except Exception as ee:
+            print(f"Notice: pushing evaluation {ev.get('id')} to Supabase failed: {ee}")
+
+    return {
+        "status": "success",
+        "pushed_users": pushed_users,
+        "pushed_evaluations": pushed_evals,
+        "message": f"Successfully pushed {pushed_users} aspirants and {pushed_evals} evaluations to Supabase cloud."
+    }
+
+
 def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
     try:
         sync_supabase_to_sqlite(force=force_sync)
