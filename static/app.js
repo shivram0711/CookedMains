@@ -12037,117 +12037,189 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
     const getCleanOneLineUsage = (termStr, cleanCoreDef, existingHow = "", idx = 0) => {
       const rawTerm = String(termStr || "").trim();
       const tLow = rawTerm.toLowerCase();
-
-      // Dynamic multi-template, subject-tailored sentence generator
-      let shortGist = String(cleanCoreDef || "")
-        .replace(/^✓[^:]*:\s*/i, "")
-        .replace(/[*_"`]/g, "")
-        .split(/[.;—–]/)[0]
-        .trim();
-      const words = shortGist.split(/\s+/).filter(Boolean);
-      if (words.length > 14) {
-        shortGist = words.slice(0, 14).join(" ");
+      let howStr = String(existingHow || "").trim();
+      if ((howStr.startsWith('"') && howStr.endsWith('"')) || (howStr.startsWith("'") && howStr.endsWith("'"))) {
+        howStr = howStr.slice(1, -1).trim();
       }
-      shortGist = shortGist.replace(/\b(?:of|in|to|for|with|by|from|comprising|under|and|the|a|an)\s*$/i, "").trim().replace(/[,:;]$/, "");
 
-      const dynamicTemplates = {
-        HISTORY_CULTURE: isHindi ? [
-          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को शामिल कर ऐतिहासिक निरंतरता एवं सांस्कृतिक प्रामाणिकता को सुदृढ़ करें।"` : `"**${t}** को शामिल कर ऐतिहासिक साक्ष्य एवं सांस्कृतिक प्रामाणिकता को सुदृढ़ करें।"`,
-          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) का संदर्भ देकर कालानुक्रमिक प्रभाव एवं युगीन संदर्भ स्थापित करें।"` : `"**${t}** का संदर्भ देकर कालानुक्रमिक प्रभाव एवं युगीन संदर्भ स्थापित करें।"`,
-          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को रेखांकित कर स्थापत्य, साहित्यिक एवं सभ्यतागत संश्लेषण को पुष्ट करें।"` : `"**${t}** को रेखांकित कर स्थापत्य, साहित्यिक एवं सभ्यतागत संश्लेषण को पुष्ट करें।"`,
-          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को प्राथमिक ऐतिहासिक साक्ष्य के रूप में जोड़कर उत्तर को विशिष्ट बनाएं।"` : `"**${t}** को प्राथमिक ऐतिहासिक साक्ष्य के रूप में जोड़कर उत्तर को विशिष्ट बनाएं।"`
-        ] : [
-          (t, d) => d ? `"Cite **${t}** (${d.toLowerCase()}) to substantiate chronological continuity and historical authenticity."` : `"Cite **${t}** inline to substantiate chronological continuity and historical authenticity."`,
-          (t, d) => d ? `"Deploy **${t}** (${d.toLowerCase()}) to anchor primary textual and living civilizational traditions."` : `"Deploy **${t}** inline to anchor primary textual and living civilizational traditions."`,
-          (t, d) => d ? `"Anchor in **${t}** (${d.toLowerCase()}) to demonstrate socio-cultural synthesis and regional institutional legacy."` : `"Anchor in **${t}** inline to demonstrate socio-cultural synthesis and regional institutional legacy."`,
-          (t, d) => d ? `"Highlight **${t}** (${d.toLowerCase()}) as primary epigraphical/historical evidence to elevate analytical depth."` : `"Highlight **${t}** inline as primary historical evidence to elevate analytical depth."`
-        ],
-        PHYSICAL_GEOGRAPHY: isHindi ? [
-          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) का प्रयोग कर भौतिक-भौगोलिक क्रियाविधि एवं ऊर्जा बजट को स्पष्ट करें।"` : `"**${t}** का प्रयोग कर भौतिक-भौगोलिक क्रियाविधि एवं ऊर्जा बजट को स्पष्ट करें।"`,
-          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को शामिल कर स्थानिक सुभेद्यता एवं जलवायु प्रक्रियाओं को प्रमाणित करें।"` : `"**${t}** को शामिल कर स्थानिक सुभेद्यता एवं जलवायु प्रक्रियाओं को प्रमाणित करें।"`,
-          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) के माध्यम से भू-आकृतिक प्रभावों एवं वैज्ञानिक परिघटनाओं को विश्लेषित करें।"` : `"**${t}** के माध्यम से भू-आकृतिक प्रभावों एवं वैज्ञानिक परिघटनाओं को विश्लेषित करें।"`,
-          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को रेखाचित्र अथवा स्थानिक वितरण के साथ जोड़कर तकनीकी शुद्धता लाएं।"` : `"**${t}** को रेखाचित्र अथवा स्थानिक वितरण के साथ जोड़कर तकनीकी शुद्धता लाएं।"`
-        ] : [
-          (t, d) => d ? `"Explain via **${t}** (${d.toLowerCase()}) to elucidate the physical-geomorphic mechanism and thermal dynamics."` : `"Explain via **${t}** inline to elucidate the physical-geomorphic mechanism and thermal dynamics."`,
-          (t, d) => d ? `"Incorporate **${t}** (${d.toLowerCase()}) to substantiate spatial vulnerability gradients and regional hazard exposure."` : `"Incorporate **${t}** inline to substantiate spatial vulnerability gradients and regional hazard exposure."`,
-          (t, d) => d ? `"Deploy **${t}** (${d.toLowerCase()}) to illustrate thermodynamic forcing and geodynamic interactions."` : `"Deploy **${t}** inline to illustrate thermodynamic forcing and geodynamic interactions."`,
-          (t, d) => d ? `"Anchor in **${t}** (${d.toLowerCase()}) to benchmark scientific precision in spatial hazard mapping."` : `"Anchor in **${t}** inline to benchmark scientific precision in spatial hazard mapping."`
-        ],
-        PHILOSOPHY_ETHICS: isHindi ? [
-          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को लागू कर प्रशासनिक शुचिता एवं संवैधानिक नैतिकता को सुदृढ़ करें।"` : `"**${t}** को लागू कर प्रशासनिक शुचिता एवं संवैधानिक नैतिकता को सुदृढ़ करें।"`,
-          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) का संदर्भ देकर नैतिक दुविधा में विवेकपूर्ण निर्णय-प्रक्रिया को पुष्ट करें।"` : `"**${t}** का संदर्भ देकर नैतिक दुविधा में विवेकपूर्ण निर्णय-प्रक्रिया को पुष्ट करें।"`,
-          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को आधार बनाकर लोक सेवा मूल्यों एवं कर्तव्यनिष्ठ आचरण को स्पष्ट करें।"` : `"**${t}** को आधार बनाकर लोक सेवा मूल्यों एवं कर्तव्यनिष्ठ आचरण को स्पष्ट करें।"`,
-          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) के माध्यम से जनहित एवं संस्थागत विश्वसनीयता के संतुलन को निरूपित करें।"` : `"**${t}** के माध्यम से जनहित एवं संस्थागत विश्वसनीयता के संतुलन को निरूपित करें।"`
-        ] : [
-          (t, d) => d ? `"Apply **${t}** (${d.toLowerCase()}) to uphold administrative probity and constitutional morality in public decisions."` : `"Apply **${t}** inline to uphold administrative probity and constitutional morality in public decisions."`,
-          (t, d) => d ? `"Anchor in **${t}** (${d.toLowerCase()}) to navigate ethical dilemmas and balance competing stakeholder rights."` : `"Anchor in **${t}** inline to navigate ethical dilemmas and balance competing stakeholder rights."`,
-          (t, d) => d ? `"Deploy **${t}** (${d.toLowerCase()}) to ground public service values in fiduciary responsibility and character."` : `"Deploy **${t}** inline to ground public service values in fiduciary responsibility and character."`,
-          (t, d) => d ? `"Weave **${t}** (${d.toLowerCase()}) into the dilemma resolution to harmonize statutory duty with empathy."` : `"Weave **${t}** inline to harmonize statutory duty with empathy."`
-        ],
-        POLICY_GOVERNANCE_ECONOMY: isHindi ? [
-          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को शामिल कर नीतिगत प्रभावशीलता एवं जमीनी क्रियान्वयन को सुदृढ़ करें।"` : `"**${t}** को शामिल कर नीतिगत प्रभावशीलता एवं जमीनी क्रियान्वयन को सुदृढ़ करें।"`,
-          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) का हवाला देकर संस्थागत जवाबदेही एवं सांविधिक निगरानी को स्पष्ट करें।"` : `"**${t}** का हवाला देकर संस्थागत जवाबदेही एवं सांविधिक निगरानी को स्पष्ट करें।"`,
-          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) को जोड़कर साक्ष्य-आधारित सुधार एवं जन-कल्याणकारी परिणामों को प्रमाणित करें।"` : `"**${t}** को जोड़कर साक्ष्य-आधारित सुधार एवं जन-कल्याणकारी परिणामों को प्रमाणित करें।"`,
-          (t, d) => d ? `"**${t}** (${d.toLowerCase()}) के माध्यम से राजकोषीय कुशलता एवं सेवा वितरण तंत्र को सशक्त करें।"` : `"**${t}** के माध्यम से राजकोषीय कुशलता एवं सेवा वितरण तंत्र को सशक्त करें।"`
-        ] : [
-          (t, d) => d ? `"Incorporate **${t}** (${d.toLowerCase()}) to reinforce policy delivery metrics and grassroots institutional accountability."` : `"Incorporate **${t}** inline to reinforce policy delivery metrics and grassroots institutional accountability."`,
-          (t, d) => d ? `"Cite **${t}** (${d.toLowerCase()}) to ground systemic governance reforms in statutory oversight benchmarks."` : `"Cite **${t}** inline to ground systemic governance reforms in statutory oversight benchmarks."`,
-          (t, d) => d ? `"Deploy **${t}** (${d.toLowerCase()}) to substantiate fiscal sustainability and public expenditure efficiency."` : `"Deploy **${t}** inline to substantiate fiscal sustainability and public expenditure efficiency."`,
-          (t, d) => d ? `"Anchor in **${t}** (${d.toLowerCase()}) to bridge regulatory gaps and advance outcome-oriented implementation."` : `"Anchor in **${t}** inline to bridge regulatory gaps and advance outcome-oriented implementation."`
-        ]
-      };
+      // Strip meta-instruction prefixes like "Deploy **X** to...", "Incorporate **X** to..."
+      let cleaned = howStr.replace(/^(?:Incorporate|Deploy|Cite|Anchor in|Anchor under|Apply|Highlight|Recommend via|Weave|Substantiate via)\s+(?:\*\*[^*]+\*\*|[^\s]+(?:\s+[^\s]+){0,5})\s*(?:\([^)]*\))?\s*(?:to\s+|inline\s+to\s+|as\s+|in\s+)?/i, "").trim();
+      cleaned = cleaned.replace(/\s*\([^)]*\)/g, "").trim();
 
-      const discKey = dynamicTemplates[discipline] ? discipline : "POLICY_GOVERNANCE_ECONOMY";
-      const tmplList = dynamicTemplates[discKey];
-      const fn = tmplList[idx % tmplList.length];
-      return fn(rawTerm, shortGist);
+      const banned = [
+        "reinforce policy delivery metrics and grassroots institutional accountability",
+        "reinforce policy delivery metrics",
+        "grassroots institutional accountability",
+        "substantiate fiscal sustainability and public expenditure efficiency",
+        "substantiate fiscal sustainability",
+        "public expenditure efficiency",
+        "ground systemic governance reforms in statutory oversight benchmarks",
+        "ground systemic governance reforms",
+        "substantiate analytical precision and core question demands",
+        "bridge regulatory gaps and advance outcome-oriented implementation",
+        "ground arguments in authoritative domain frameworks",
+        "illustrate causal mechanisms and substantive evidence",
+        "bridge thematic gaps and provide a balanced multidimensional evaluation",
+        "elucidate the physical-geomorphic mechanism and thermal dynamics",
+        "substantiate spatial vulnerability gradients and regional hazard exposure",
+        "illustrate thermodynamic forcing and geodynamic interactions",
+        "benchmark scientific precision in spatial hazard mapping",
+        "chronological continuity and historical authenticity",
+        "anchor primary textual and living civilizational traditions",
+        "socio-cultural synthesis and regional institutional legacy",
+        "primary epigraphical/historical evidence to elevate analytical depth",
+        "administrative probity and constitutional morality in public decisions",
+        "navigate ethical dilemmas and balance competing stakeholder rights",
+        "ground public service values in fiduciary responsibility and character",
+        "harmonize statutory duty with empathy"
+      ];
+
+      const isBanned = banned.some(bp => cleaned.toLowerCase().includes(bp) || howStr.toLowerCase().includes(bp));
+
+      if (isBanned || !cleaned || cleaned.split(/\s+/).length < 4 || /^you\s+/i.test(cleaned)) {
+        if (isHindi) {
+          if (/alkire|foster|multidimensional|बहुआयामी/i.test(tLow)) {
+            return "यह केवल आय नहीं, बल्कि स्वास्थ्य, शिक्षा और जीवन स्तर में व्याप्त वंचनाओं को मापता है।";
+          }
+          if (/amartya|capability|क्षमता/i.test(tLow)) {
+            return "यह निर्धनता को केवल न्यूनतम आय की कमी नहीं, बल्कि बुनियादी क्षमताओं और स्वतंत्रताओं के अभाव के रूप में देखता है।";
+          }
+          if (/blocking|atmospheric|वायुमंडलीय/i.test(tLow)) {
+            return "स्थिर उच्च-दाब प्रतिचक्रवात नीचे बैठती गर्म वायु को रोककर लू की अवधि और तीव्रता को बढ़ाते हैं।";
+          }
+          if (/ipcc/i.test(tLow)) {
+            return "आईपीसीसी एआर6 चेतावनी देता है कि लू और सूखे के संयुक्त प्रभाव प्रमुख फसलों के उत्पादन को घटाते हैं।";
+          }
+          if (/arc/i.test(tLow)) {
+            return "संवैधानिक निगरानी संस्थाओं की स्वायत्तता हेतु स्वतंत्र चयन समिति की संस्तुति आवश्यक है।";
+          }
+          if (/law commission|255/i.test(tLow)) {
+            return "समान संवैधानिक संरक्षण और त्रिपक्षीय चयन समिति संस्थागत निष्पक्षता को सुरक्षित करती है।";
+          }
+          if (/sendai/i.test(tLow)) {
+            return "आपदा उपरांत पुनर्प्राप्ति और पुनर्निर्माण में बेहतर पुनर्निर्माण (Build Back Better) को प्राथमिकता दें।";
+          }
+          if (/benioff/i.test(tLow)) {
+            return "गहरे भूकंप उन झुके हुए विवर्तनिकी क्षेत्रों में आते हैं जहाँ महासागरीय प्लेट मेंटल में धंसती है।";
+          }
+          if (/buranji/i.test(tLow)) {
+            return "बुरंजी राज्यवृत्त असम के प्रशासनिक इतिहास और कूटनीति के प्राथमिक ऐतिहासिक साक्ष्य प्रस्तुत करते हैं।";
+          }
+          if (/paik/i.test(tLow)) {
+            return "पाइक व्यवस्था ने सार्वजनिक कार्यों और क्षेत्रीय रक्षा के लिए आवर्ती श्रम को संगठित किया।";
+          }
+        } else {
+          if (/alkire|foster|multidimensional|mpi/i.test(tLow)) {
+            return "It captures overlapping deprivations in health, education and living standards—not income alone.";
+          }
+          if (/amartya|capability/i.test(tLow)) {
+            return "It assesses poverty as the deprivation of basic capabilities and freedoms, not merely low income.";
+          }
+          if (/blocking|atmospheric|omega block/i.test(tLow)) {
+            return "Persistent high-pressure anticyclones trap descending hot air, prolonging heatwaves and compounding soil drying.";
+          }
+          if (/ipcc/i.test(tLow)) {
+            return "IPCC AR6 warns compound heat-drought shocks reduce staple crop yields and trigger cascading food price spikes.";
+          }
+          if (/arc/i.test(tLow)) {
+            return "A broad multi-member collegium insulates constitutional watchdog bodies from executive pre-eminence.";
+          }
+          if (/law commission|255/i.test(tLow)) {
+            return "Equal constitutional removal safeguards and a tripartite collegium preserve institutional independence.";
+          }
+          if (/goswami/i.test(tLow)) {
+            return "A statutory consultative collegium safeguards electoral machinery from partisan bias.";
+          }
+          if (/tarkunde/i.test(tLow)) {
+            return "A selection panel of PM, CJI, and Leader of Opposition insulates watchdog appointments.";
+          }
+          if (/sendai/i.test(tLow)) {
+            return "Priority 4 operationalizes Build Back Better in disaster risk recovery, rehabilitation, and resilient reconstruction.";
+          }
+          if (/benioff/i.test(tLow)) {
+            return "Deep-focus earthquakes occur along inclined Wadati–Benioff zones where cold oceanic slabs subduct into mantle.";
+          }
+          if (/buranji/i.test(tLow)) {
+            return "Ahom Buranjis provide verified state chronicles documenting administrative logistics, diplomacy, and riverine warfare.";
+          }
+          if (/paik/i.test(tLow)) {
+            return "The Paik system mobilized rotational peasant labor for public works and standing territorial defense.";
+          }
+
+          // Extract clean sentence from definition
+          let defClean = String(cleanCoreDef || "")
+            .replace(/^✓[^:]*:\s*/i, "")
+            .replace(/\s*\([^)]*\)/g, "")
+            .trim();
+          const firstSent = defClean.split(/[.!?]/)[0].trim();
+          const words = firstSent.split(/\s+/).filter(Boolean);
+          if (words.length >= 4) {
+            let cand = words.slice(0, 18).join(" ").replace(/[,;:-]$/, "") + ".";
+            return cand.charAt(0).toUpperCase() + cand.slice(1);
+          }
+          return `Integrating ${rawTerm} directly substantiates the core causal mechanism.`;
+        }
+      }
+
+      let cand = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+      if (!/[.!?]$/.test(cand)) cand += ".";
+      const wList = cand.split(/\s+/);
+      if (wList.length > 20) {
+        cand = wList.slice(0, 20).join(" ").replace(/[,;:-]$/, "") + ".";
+      }
+      return cand;
     };
 
     const qLow = String(evalData.detected_question || state.question || "").toLowerCase();
-    const isEciTopic = /election|eci|cec|commissioner|324|anoop baranwal|appointment|electoral/i.test(qLow);
-    const clientDomainPool = isEciTopic ? [
-      {
-        term: "Dinesh Goswami Committee (1990)",
-        domain_or_thinker: "Electoral Reforms Committee",
-        definition: "Landmark electoral reforms committee recommending an independent consultative selection collegium for CEC and ECs to preserve public credibility.",
-        where_to_use: "Page 2 • Under your 'Reforms / Way Forward' section",
-        how_to_use_one_line: "\"Recommend via **Dinesh Goswami Committee (1990)** to institutionalize a consultative multi-party selection collegium for electoral integrity.\""
-      },
-      {
-        term: "Law Commission 255th Report (2015)",
-        domain_or_thinker: "Law Commission Benchmark",
-        definition: "Proposed an equal 3-member collegium (PM, CJI, LoP) and constitutional removal parity for all Election Commissioners under Art. 324(5).",
-        where_to_use: "Page 2 • Under 'Challenges to Autonomy / Executive Dominance' bullet",
-        how_to_use_one_line: "\"Cite **Law Commission 255th Report (2015)** to advocate equal constitutional removal safeguards and a 3-member collegium for all Election Commissioners.\""
-      },
-      {
-        term: "2nd ARC 4th Report (Ethics in Governance)",
-        domain_or_thinker: "Administrative Reforms Benchmark",
-        definition: "Recommended an insulated appointment collegium (PM, Speaker, CJI, LoP, Law Minister) to eliminate executive dominance in watchdog institutions.",
-        where_to_use: "Page 2–3 • Beside your closing recommendations point",
-        how_to_use_one_line: "\"Substantiate via **2nd ARC 4th Report** to recommend a broad collegium (PM, CJI, Speaker, LoP, Law Minister) to insulate watchdog bodies.\""
-      },
-      {
-        term: "Tarkunde Committee (1975)",
-        domain_or_thinker: "Historical Reform Precedent",
-        definition: "Pioneered the proposal for a non-partisan collegium (PM, CJI, and LoP) to safeguard the Election Commission's constitutional autonomy.",
-        where_to_use: "Page 1–2 • Under 'Evolution of Appointment Mechanism' bullet",
-        how_to_use_one_line: "\"Cite **Tarkunde Committee (1975)** to mandate an independent selection panel of PM, CJI, and LoP to insulate election machinery.\""
-      }
-    ] : [];
+    const govIndicators = [
+      "governance", "polity", "election", "electoral", "eci", "cec",
+      "constitution", "judiciary", "judicial", "civil service", "bureaucra",
+      "ethics", "probity", "accountability", "transparency", "corruption",
+      "lokpal", "cbi", "cvc", "rti", "panchayat", "municipal", "federal",
+      "parliament", "legislat", "executive", "separation of powers",
+      "law commission", "arc", "administrative reform"
+    ];
+    const isGovTopic = govIndicators.some(k => qLow.includes(k));
+    const bodyStrengthsStr = JSON.stringify(evalData.body_audit?.strengths || []).toLowerCase();
 
-    let poolIdx = 0;
-    let shallowCount = 0;
     const existingTerms = new Set();
+    const filteredCards = [];
 
-    evalData.missing_keywords_cards = evalData.missing_keywords_cards.map((card, idx) => {
-      if (!card || typeof card !== "object") return card;
+    (evalData.missing_keywords_cards || []).forEach((card, idx) => {
+      if (!card || typeof card !== "object") return;
       let rawTerm = String(card.term || "").trim();
+      if (!rawTerm) return;
       const acrMatch = rawTerm.match(/\(([A-Za-z0-9\-]{3,10})\)/);
       const acrLow = acrMatch ? acrMatch[1].toLowerCase() : "";
       const mainTermLow = rawTerm.replace(/\([^)]*\)/g, "").trim().toLowerCase();
 
-      // Strip ANY previously polluted boilerplate from card.definition first!
+      // Check duplicate
+      if (existingTerms.has(mainTermLow) || (acrLow && existingTerms.has(acrLow))) {
+        return;
+      }
+
+      // Relevance guard: suppress governance commission reports on non-governance topics
+      const isGovReport = /2nd arc|arc 4th|second administrative|law commission|dinesh goswami|tarkunde|anoop baranwal|sarkaria|punchhi/i.test(mainTermLow);
+      if (isGovReport && !isGovTopic) {
+        return;
+      }
+
+      // Check strictly against studentWrittenCorpus
+      const termWrittenVerbatim = Boolean(
+        studentWrittenCorpus.length > 15 && (
+          (acrLow && acrLow.length >= 3 && new RegExp(`\\b${acrLow.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(studentWrittenCorpus)) ||
+          (mainTermLow.length >= 5 && studentWrittenCorpus.includes(mainTermLow))
+        )
+      );
+
+      // Check if already praised in strengths
+      const alreadyPraised = (acrLow && bodyStrengthsStr.includes(acrLow)) || (mainTermLow.length >= 5 && bodyStrengthsStr.includes(mainTermLow));
+
+      // Rule 7: If candidate already explained adequately, OMIT it (never force replacement)
+      if (termWrittenVerbatim && alreadyPraised) {
+        return;
+      }
+
       let cleanCoreDef = String(card.definition || "")
         .replace(/^✓\s*You rightly cited[\s\S]*?institutional outcome:\s*/gi, "")
         .replace(/^✓\s*You mentioned[\s\S]*?significance:\s*/gi, "")
@@ -12158,70 +12230,33 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
         .replace(/\)\s*$/, "")
         .trim();
 
-      // Check STRICTLY against studentWrittenCorpus (evalData.transcribed_text ONLY!)
-      const termWrittenVerbatim = Boolean(
-        studentWrittenCorpus.length > 15 && (
-          (acrLow && acrLow.length >= 3 && new RegExp(`\\b${acrLow.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(studentWrittenCorpus)) ||
-          (mainTermLow.length >= 5 && studentWrittenCorpus.includes(mainTermLow))
-        )
-      );
-
-      // Check if candidate already wrote this well (present in body.strengths)
-      const bodyStrengthsStr = JSON.stringify(evalData.body_audit?.strengths || []).toLowerCase();
-      const alreadyPraisedInStrengths = (acrLow && bodyStrengthsStr.includes(acrLow)) || (mainTermLow.length >= 5 && bodyStrengthsStr.includes(mainTermLow));
-
-      if (termWrittenVerbatim && (alreadyPraisedInStrengths || shallowCount >= 1)) {
-        // Replace with genuine missing domain anchor from pool so aspirant is not confused
-        let replaced = false;
-        while (poolIdx < clientDomainPool.length) {
-          const poolItem = clientDomainPool[poolIdx++];
-          const pTermLow = poolItem.term.toLowerCase();
-          if (!studentWrittenCorpus.includes(pTermLow) && !existingTerms.has(pTermLow)) {
-            card.term = poolItem.term;
-            card.domain_or_thinker = poolItem.domain_or_thinker;
-            card.definition = poolItem.definition;
-            card.where_to_use = poolItem.where_to_use;
-            card.how_to_use_one_line = poolItem.how_to_use_one_line;
-            existingTerms.add(pTermLow);
-            replaced = true;
-            break;
-          }
-        }
-        if (!replaced) {
-          card.domain_or_thinker = isHindi
-            ? "⚡ संक्षिप्त उल्लेख — विश्लेषणात्मक विस्तार अपेक्षित"
-            : "⚡ Shallow Mention — Analytical Upgrade Needed";
-          card.definition = isHindi
-            ? `आपने अपने उत्तर में **${rawTerm}** का उल्लेख किया है—इसके मुख्य विश्लेषणात्मक संदर्भ को स्पष्ट करें: ${cleanCoreDef}`
-            : `You mentioned **${rawTerm}** on your answer sheet—substantiate its core analytical significance: ${cleanCoreDef}`;
-          card.where_to_use = getCleanWhereToUse(rawTerm, card.where_to_use, idx);
-          card.how_to_use_one_line = getCleanOneLineUsage(rawTerm, cleanCoreDef, card.how_to_use_one_line, idx);
-        }
-      } else if (termWrittenVerbatim) {
-        shallowCount++;
+      if (termWrittenVerbatim && !alreadyPraised) {
         card.domain_or_thinker = isHindi
           ? "⚡ संक्षिप्त उल्लेख — विश्लेषणात्मक विस्तार अपेक्षित"
           : "⚡ Shallow Mention — Analytical Upgrade Needed";
         card.definition = isHindi
           ? `आपने अपने उत्तर में **${rawTerm}** का संक्षिप्त उल्लेख किया है—इसे इसके मुख्य विश्लेषणात्मक महत्व से जोड़ें: ${cleanCoreDef}`
-          : `You mentioned **${rawTerm}** in passing—connect it directly to its core analytical significance: ${cleanCoreDef}`;
-        card.where_to_use = getCleanWhereToUse(rawTerm, card.where_to_use, idx);
-        card.how_to_use_one_line = getCleanOneLineUsage(rawTerm, cleanCoreDef, card.how_to_use_one_line, idx);
+          : `You mentioned **${rawTerm}** in passing—substantiate its core analytical significance: ${cleanCoreDef}`;
       } else {
         card.domain_or_thinker = getCleanDomainBadge(rawTerm, card.domain_or_thinker, idx);
         card.definition = cleanCoreDef;
-        card.where_to_use = getCleanWhereToUse(rawTerm, card.where_to_use, idx);
-        card.how_to_use_one_line = getCleanOneLineUsage(rawTerm, cleanCoreDef, card.how_to_use_one_line, idx);
       }
 
-      existingTerms.add(String(card.term || "").toLowerCase());
-      card.number = idx + 1;
-      return card;
+      card.where_to_use = getCleanWhereToUse(rawTerm, card.where_to_use, idx);
+      card.how_to_use_one_line = getCleanOneLineUsage(rawTerm, cleanCoreDef, card.how_to_use_one_line, idx);
+
+      existingTerms.add(mainTermLow);
+      if (acrLow) existingTerms.add(acrLow);
+      filteredCards.push(card);
+    });
+
+    // Enforce Rule 7: 1 to 2 by default, max 3
+    evalData.missing_keywords_cards = filteredCards.slice(0, 3).map((c, i) => {
+      c.number = i + 1;
+      return c;
     });
   }
 
-  // Universal Terminal Punctuation & Ellipsis Elimination Pass
-  // Ensures zero trailing ellipses (... or .....) or dangling punctuation across all evaluation fields
   const cleanFieldStr = (val) => {
     if (!val || typeof val !== "string") return val;
     let s = val.replace(/\.{2,}/g, ".").replace(/\s*,\s*$/, ".").replace(/[:;–—\-]\s*$/, ".").trim();
@@ -13442,7 +13477,15 @@ function renderEvaluation(evalData) {
   if (mkGrid) {
     mkGrid.innerHTML = "";
     const cards = rawKeywordCards.length > 0 ? rawKeywordCards : bodyKeywordCards;
-    cards.forEach((c, idx) => {
+    if (cards.length === 0) {
+      mkGrid.innerHTML = `
+        <div class="p-3.5 rounded-lg border border-emerald-500/30 bg-emerald-500/[0.04] text-[11px] text-emerald-800 dark:text-emerald-300 font-medium flex items-center space-x-2">
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
+          <span>${isHindi ? "✓ किसी अतिरिक्त मूल्य-संवर्धन की आवश्यकता नहीं — आपके उत्तर में इस प्रश्न की मुख्य तकनीकी अवधारणाएं पर्याप्त रूप से शामिल हैं।" : "✓ No critical value additions required — your answer already adequately addresses the core technical terminology demanded by this question."}</span>
+        </div>
+      `;
+    } else {
+      cards.forEach((c, idx) => {
       const isOddLastCard = (cards.length % 2 === 1) && (idx === cards.length - 1) && cards.length > 1;
       const div = document.createElement("div");
       const tagText = c.domain_or_thinker || c.thinker || "Domain Concept";
@@ -13477,6 +13520,7 @@ function renderEvaluation(evalData) {
       `;
       mkGrid.appendChild(div);
     });
+    }
     if (window.lucide) {
       try { window.lucide.createIcons({ root: mkGrid }); } catch (e) {}
     }

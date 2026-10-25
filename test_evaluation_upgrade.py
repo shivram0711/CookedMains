@@ -1974,6 +1974,277 @@ class TestUPSCInterdisciplinarySyllabusOverlap(unittest.TestCase):
             self.assertNotIn("Your structured presentation of this dimension", s)
             self.assertNotIn("fulfilling examiner expectations", s)
 
+    def test_value_addition_heatwaves_and_food_security_regression(self):
+        """
+        Regression Case: Heatwaves and global food security.
+        - Suppress 2nd ARC and Law Commission on non-governance questions.
+        - Atmospheric blocking mechanism is concise (<20 words) and explains physical dynamic.
+        - IPCC food-security point is concise (<20 words) and addresses crop/food shocks.
+        - Completely ban boilerplate ('grassroots institutional accountability', 'fiscal sustainability', etc.).
+        - Card quota is <= 3 (no forced 4 dummy cards).
+        """
+        raw_eval = {
+            "overall_score": 5.5,
+            "max_marks": 15,
+            "detected_question": "Analyze the causes behind rising frequency and intensity of heatwaves across the globe and examine their implications on global food security.",
+            "detected_paper": "GS1",
+            "subject_discipline": "GEOGRAPHY_DISASTER",
+            "transcribed_text": "Heatwaves are rising due to climate change and El Nino. Atmospheric blocking also occurs. Crop yields drop in agricultural belts.",
+            "body_audit": {
+                "strengths": [
+                    "You correctly noted the link between rising temperatures, El Nino events, and agricultural yield decline."
+                ]
+            },
+            "missing_keywords_cards": [
+                {
+                    "number": 1,
+                    "term": "Atmospheric Blocking (Omega Blocks)",
+                    "domain_or_thinker": "Climatological Dynamic",
+                    "definition": "Persistent high-pressure anticyclones trap descending hot air, prolonging heatwave duration and surface desiccation.",
+                    "where_to_use": "Page 1 • Under your 'Causes of Heatwaves' sub-heading",
+                    "how_to_use_one_line": "Deploy **Atmospheric Blocking** (persistent high-pressure systems) to reinforce policy delivery metrics and grassroots institutional accountability."
+                },
+                {
+                    "number": 2,
+                    "term": "IPCC AR6 Working Group II",
+                    "domain_or_thinker": "Climate Impact Benchmark",
+                    "definition": "Reports that compound heat-drought events trigger synchronous crop failures in global breadbasket regions.",
+                    "where_to_use": "Page 2 • Under food security impacts",
+                    "how_to_use_one_line": "Incorporate **IPCC AR6** (compound climate shocks) to substantiate fiscal sustainability and public expenditure efficiency."
+                },
+                {
+                    "number": 3,
+                    "term": "2nd ARC 4th Report (Ethics in Governance)",
+                    "domain_or_thinker": "Administrative Reforms Benchmark",
+                    "definition": "Official reform benchmark outlining codes of ethics and institutional safeguards.",
+                    "where_to_use": "Page 2 • Under institutional reform",
+                    "how_to_use_one_line": "Substantiate via 2nd ARC to recommend independent collegium structures."
+                },
+                {
+                    "number": 4,
+                    "term": "Law Commission 255th Report (2015)",
+                    "domain_or_thinker": "Statutory Commission Benchmark",
+                    "definition": "Proposed equal 3-member collegium for election commissioners.",
+                    "where_to_use": "Page 3 • Closing recommendation",
+                    "how_to_use_one_line": "Cite Law Commission 255th Report to reinforce statutory insulation."
+                }
+            ]
+        }
+        norm = normalize_evaluation_data(
+            raw_eval,
+            max_marks=15,
+            question="Analyze the causes behind rising frequency and intensity of heatwaves across the globe and examine their implications on global food security.",
+            paper="GS1"
+        )
+        cards = norm.get("missing_keywords_cards", [])
+
+        # 1. Quota: Maximum 3 cards, never forced 4
+        self.assertLessEqual(len(cards), 3)
+
+        # 2. Question Fit: 2nd ARC and Law Commission must be strictly filtered out of heatwave evaluation
+        terms = [str(c.get("term", "")).lower() for c in cards]
+        for t in terms:
+            self.assertNotIn("2nd arc", t)
+            self.assertNotIn("law commission", t)
+
+        # 3. Usage wording: Banned boilerplate phrases must be 100% absent
+        banned = [
+            "reinforce policy delivery metrics",
+            "grassroots institutional accountability",
+            "substantiate fiscal sustainability",
+            "public expenditure efficiency",
+            "deploy **",
+            "incorporate **"
+        ]
+        for c in cards:
+            usage = str(c.get("how_to_use_one_line", ""))
+            for b in banned:
+                self.assertNotIn(b, usage.lower())
+            # Must be a concise insertion sentence under 20 words
+            words = usage.split()
+            self.assertLessEqual(len(words), 20)
+            self.assertTrue(usage.endswith((".", "!", "?")))
+
+        # 4. Check specific atmospheric blocking and IPCC insertion quality
+        blocking_card = next((c for c in cards if "blocking" in str(c.get("term", "")).lower()), None)
+        self.assertIsNotNone(blocking_card)
+        self.assertIn("anticyclone", blocking_card["how_to_use_one_line"].lower())
+
+    def test_value_addition_poverty_and_capabilities_regression(self):
+        """
+        Regression Case: Multidimensional poverty, health, and capability approach.
+        - Alkire-Foster insertion must explain deprivation dimensions without jumping to accountability filler.
+        - Capability approach must connect capabilities to the question's concern without fiscal efficiency boilerplate.
+        - Zero governance contamination.
+        - Every insertion <= 20 words.
+        """
+        raw_eval = {
+            "overall_score": 4.5,
+            "max_marks": 10,
+            "detected_question": "Discuss the multidimensional nature of poverty and examine how the capability approach broadens our understanding of human deprivations.",
+            "detected_paper": "GS2",
+            "subject_discipline": "SOCIAL_JUSTICE_SOCIETY",
+            "transcribed_text": "Poverty in India has traditionally been measured through consumption expenditure like Tendulkar committee. But poverty also has health and nutrition dimensions.",
+            "body_audit": {
+                "strengths": [
+                    "You accurately noted the shift from consumption expenditure metrics to broader deprivation indicators."
+                ]
+            },
+            "missing_keywords_cards": [
+                {
+                    "number": 1,
+                    "term": "Alkire-Foster Method (Global MPI)",
+                    "domain_or_thinker": "Multidimensional Measurement",
+                    "definition": "Dual-cutoff counting methodology capturing overlapping deprivations across health, education, and living standards.",
+                    "where_to_use": "Page 1 • Beside Tendulkar committee consumption line",
+                    "how_to_use_one_line": "Incorporate **Alkire-Foster Method** to reinforce policy delivery metrics and grassroots institutional accountability."
+                },
+                {
+                    "number": 2,
+                    "term": "Amartya Sen's Capability Approach",
+                    "domain_or_thinker": "Development Philosophy",
+                    "definition": "Conceptualizes poverty as capability deprivation that restricts human agency and substantial freedoms.",
+                    "where_to_use": "Page 2 • Under 'Capability Framework' section",
+                    "how_to_use_one_line": "Deploy **Capability Approach** to substantiate fiscal sustainability and public expenditure efficiency."
+                },
+                {
+                    "number": 3,
+                    "term": "Law Commission 255th Report (2015)",
+                    "domain_or_thinker": "Statutory Commission Benchmark",
+                    "definition": "Proposed election commissioner selection collegium.",
+                    "where_to_use": "Page 2 • Under governance",
+                    "how_to_use_one_line": "Cite Law Commission to ground systemic governance reforms."
+                }
+            ]
+        }
+        norm = normalize_evaluation_data(
+            raw_eval,
+            max_marks=10,
+            question="Discuss the multidimensional nature of poverty and examine how the capability approach broadens our understanding of human deprivations.",
+            paper="GS2"
+        )
+        cards = norm.get("missing_keywords_cards", [])
+
+        # 1. Zero Law Commission report on poverty question
+        terms = [str(c.get("term", "")).lower() for c in cards]
+        self.assertFalse(any("law commission" in t for t in terms))
+
+        # 2. Alkire-Foster insertion must be concise and explain deprivation dimensions
+        af_card = next((c for c in cards if "alkire" in str(c.get("term", "")).lower()), None)
+        self.assertIsNotNone(af_card)
+        af_usage = af_card["how_to_use_one_line"]
+        self.assertIn("deprivation", af_usage.lower())
+        self.assertNotIn("accountability", af_usage.lower())
+        self.assertLessEqual(len(af_usage.split()), 20)
+
+        # 3. Amartya Sen insertion must explain capabilities and freedoms
+        sen_card = next((c for c in cards if "sen" in str(c.get("term", "")).lower() or "capability" in str(c.get("term", "")).lower()), None)
+        self.assertIsNotNone(sen_card)
+        sen_usage = sen_card["how_to_use_one_line"]
+        self.assertIn("capabilit", sen_usage.lower())
+        self.assertNotIn("fiscal", sen_usage.lower())
+        self.assertLessEqual(len(sen_usage.split()), 20)
+
+    def test_value_addition_governance_contrast_case(self):
+        """
+        Contrast Case: Question demanding electoral reform / ethics in governance.
+        - Confirm 2nd ARC and Law Commission 255th Report ARE ELIGIBLE when demanded by question!
+        - Usage line is clean, direct insertion without meta-prefixes ('Deploy X to...').
+        - Length <= 20 words.
+        """
+        raw_eval = {
+            "overall_score": 6.5,
+            "max_marks": 15,
+            "detected_question": "Critically analyze the existing appointment procedure of the Election Commission of India. How do recommendations of the 2nd ARC and Law Commission address executive dominance?",
+            "detected_paper": "GS2",
+            "subject_discipline": "POLITY_GOVERNANCE",
+            "transcribed_text": "The ECI appointments under Article 324 have faced scrutiny over executive supremacy. The Supreme Court in Anoop Baranwal mandated a collegium.",
+            "body_audit": {
+                "strengths": [
+                    "You correctly cited the Anoop Baranwal (2023) verdict and Article 324(2) provisions on executive appointment."
+                ]
+            },
+            "missing_keywords_cards": [
+                {
+                    "number": 1,
+                    "term": "Law Commission 255th Report (2015)",
+                    "domain_or_thinker": "Statutory Commission Benchmark",
+                    "definition": "Proposed an equal 3-member collegium (PM, CJI, LoP) and constitutional removal parity for all Election Commissioners under Art. 324(5).",
+                    "where_to_use": "Page 2 • Under 'Challenges to Autonomy / Executive Dominance' bullet",
+                    "how_to_use_one_line": "Cite **Law Commission 255th Report (2015)** to advocate equal constitutional removal safeguards and a 3-member collegium for all Election Commissioners."
+                },
+                {
+                    "number": 2,
+                    "term": "2nd ARC 4th Report (Ethics in Governance)",
+                    "domain_or_thinker": "Administrative Reforms Benchmark",
+                    "definition": "Recommended an insulated appointment collegium (PM, Speaker, CJI, LoP, Law Minister) to eliminate executive dominance in watchdog institutions.",
+                    "where_to_use": "Page 2–3 • Beside your closing recommendations point",
+                    "how_to_use_one_line": "Substantiate via **2nd ARC 4th Report** to recommend a broad collegium (PM, CJI, Speaker, LoP, Law Minister) to insulate watchdog bodies."
+                }
+            ]
+        }
+        norm = normalize_evaluation_data(
+            raw_eval,
+            max_marks=15,
+            question="Critically analyze the existing appointment procedure of the Election Commission of India. How do recommendations of the 2nd ARC and Law Commission address executive dominance?",
+            paper="GS2"
+        )
+        cards = norm.get("missing_keywords_cards", [])
+
+        # Both governance reports MUST be preserved because the question specifically demanded them!
+        terms = [str(c.get("term", "")).lower() for c in cards]
+        self.assertTrue(any("law commission" in t for t in terms))
+        self.assertTrue(any("arc" in t for t in terms))
+
+        for c in cards:
+            usage = str(c.get("how_to_use_one_line", ""))
+            self.assertFalse(usage.lower().startswith("cite **"))
+            self.assertFalse(usage.lower().startswith("substantiate via"))
+            self.assertLessEqual(len(usage.split()), 20)
+            self.assertTrue(usage.endswith((".", "!", "?")))
+
+    def test_value_addition_omits_adequately_explained_concepts(self):
+        """
+        Answer Fit & Omission:
+        If a student already explained a concept adequately (in transcribed_text and body_audit.strengths),
+        it must be OMITTED (not replaced with synthetic fallback cards).
+        """
+        raw_eval = {
+            "overall_score": 7.0,
+            "max_marks": 10,
+            "detected_question": "Explain the causes and distribution of deep-focus earthquakes along convergent boundaries.",
+            "detected_paper": "GS1",
+            "subject_discipline": "GEOGRAPHY_DISASTER",
+            "transcribed_text": "Deep focus earthquakes occur along the Wadati-Benioff zone where the cold oceanic slab subducts beneath the continental plate into the asthenosphere, causing seismicity down to 700km depth.",
+            "body_audit": {
+                "strengths": [
+                    "You demonstrated strong geophysical precision by accurately detailing the Wadati-Benioff zone subduction dynamics and the 700km focal depth threshold."
+                ]
+            },
+            "missing_keywords_cards": [
+                {
+                    "number": 1,
+                    "term": "Wadati-Benioff Zone",
+                    "domain_or_thinker": "Subduction Seismology",
+                    "definition": "Seismic zone tracing subducting slab interfaces down to 700km.",
+                    "where_to_use": "Page 1 • Beside subduction point",
+                    "how_to_use_one_line": "Deep-focus earthquakes occur along inclined Wadati–Benioff zones."
+                }
+            ]
+        }
+        norm = normalize_evaluation_data(
+            raw_eval,
+            max_marks=10,
+            question="Explain the causes and distribution of deep-focus earthquakes along convergent boundaries.",
+            paper="GS1"
+        )
+        cards = norm.get("missing_keywords_cards", [])
+        # Since the student already explained Wadati-Benioff thoroughly and received praise, it must be omitted!
+        terms = [str(c.get("term", "")).lower() for c in cards]
+        self.assertFalse(any("benioff" in t for t in terms))
+        # Zero cards is completely appropriate and expected
+        self.assertEqual(len(cards), 0)
+
 if __name__ == "__main__":
 
     unittest.main()

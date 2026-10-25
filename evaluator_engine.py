@@ -2401,8 +2401,17 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
      * 'mentor_why': Explain why this fetches marks (e.g. "+0.5 to +1.0M jump: connects theory to real triggers instead of passive listing").
      * 'booklet_placement': Exactly where to write or substitute this in the booklet (e.g. "Replace point #2 on Page 1").
 
-6. 4-CARD HIGH-YIELD MISSING KEYWORDS TOOLKIT:
-   - Provide exactly 4 numbered cards ('missing_keywords_cards') containing crucial technical terms/thinkers with 1-line definitions and where to plug them.
+6. HIGH-YIELD VALUE ADDITION (1 TO 3 TARGETED CARDS, NEVER MORE THAN 3):
+   - Provide 1 to 2 (maximum 3, or [] if already fully covered) targeted cards ('missing_keywords_cards').
+   - SELECTION CRITERIA (MANDATORY):
+     1. Question fit: It directly supports a demand in THIS question. NEVER recommend governance/administrative commissions (e.g. 2nd ARC, Law Commission, Sarkaria, Punchhi) on questions about heatwaves, food security, poverty, environment, or culture unless the question explicitly asks for governance/administrative analysis!
+     2. Answer fit & omission: Addresses an evidenced omission or underdeveloped point in candidate's answer. If the candidate already explained a concept adequately, OMIT it completely.
+     3. Marginal benefit: Adds a concrete causal mechanism, empirical metric, or verified precedent that elevates marks.
+     4. Source-to-claim fit: If a report, scholar, framework, statistic, or institution is named, the claim about it must be accurate and relevant.
+     5. Concise insertion wording ('how_to_use_one_line'): Provide the EXACT, exam-ready insertion sentence itself (ONE CLEAR SENTENCE, UNDER 20 WORDS, plain language).
+        - STRICT BAN on meta-instructions: NEVER write "Deploy [concept] to...", "Incorporate [report] to...", "Cite [source] to...", or "Anchor under [term] to...".
+        - STRICT BAN on generic filler: NEVER write "reinforce policy delivery metrics", "grassroots institutional accountability", "fiscal sustainability and public expenditure efficiency", or "ground systemic governance reforms" unless directly demanded by the prompt.
+        - NEVER repeat the card's definition in parentheticals.
 
 7. MICRO-HYGIENE (SPELLING & PRESENTATION):
    - Catch misspelled technical terms (e.g. Nicomachean, Temperance) in 'micro_hygiene'.
@@ -2887,49 +2896,29 @@ Generate strictly valid JSON matching this schema:
   "keyword_toolkit_title": "Core Scientific Concepts & Technical Vocabulary (Missing Keywords)", // DYNAMIC title tailored to question's paper and domain: e.g. "Core Scientific Concepts & Technical Vocabulary" for Geo/Env/S&T; "Constitutional Articles, Doctrines & Judgments" for Polity/Law; "Economic Concepts, Policy Frameworks & Metrics" for Economy; "Essential Thinkers, Philosophies & Ethical Frameworks" for Ethics/Optional; "Historical Sources, Eras & Historiographical Concepts" for History. NEVER output "Thinker" for physical geography, science, or general questions!
   "missing_keywords_cards": [
     // CRITICAL MANDATE FOR missing_keywords_cards (APPLIES TO EVERY QUESTION):
-    // 1. GENUINELY MISSED HIGH-YIELD ANCHORS ONLY: The Missing Keywords Toolkit MUST provide high-yield keywords, committees, commissions, doctrines, or empirical metrics that the candidate DID NOT WRITE in their copy and whose omission caused mark reduction!
-    //    STRICT BAN ON ECHOING WRITTEN TERMS: If the candidate already wrote a term/case well (e.g., Anoop Baranwal or Article 324), DO NOT put it here! It is already praised in body_audit.strengths. Aspirants find it confusing and useless when told to add what they already wrote.
-    //    Instead, give genuine missing high-yield anchors (e.g., for ECI appointments: Dinesh Goswami Committee 1990, 2nd ARC 4th Report, Law Commission 255th Report 2015, Tarkunde Committee 1975).
-    //    ONLY IF a candidate mentioned a keyword extremely shallowly (e.g. name-dropped without any analytical depth) AND that depth was demanded by the question, you may badge it as "⚡ Shallow Mention — Analytical Upgrade Needed" and state the exact missing analytical link. At least 3 of the 4 cards MUST be completely unwritten, high-yield missing concepts!
-    // 2. DISTINCT BADGES: Each of the 4 cards MUST have a DIFFERENT, specific 2–3 word "domain_or_thinker" badge (e.g. "Electoral Reforms Committee", "Supreme Court Doctrine", "Constitutional Article", "Institutional Standard"). NEVER repeat the same badge across cards!
-    // 3. EXACT ANSWER-SHEET LOCATION ("where_to_use"): Specify the EXACT Page Number and the candidate's ACTUAL handwritten sub-heading or bullet point where this keyword plugs in (e.g., "Page 2 • Inside your '[Candidate's Exact Sub-Heading]' bullet #2"). NEVER write vague lines like "Use in Body section"!
-    // 4. COMPLETE 1-LINE SPACE-SAVING USAGE ("how_to_use_one_line"): Provide a complete, grammatically sound, exam-ready 12–18 word inline phrase showing how the candidate can weave this keyword into their existing sentence in ONE SINGLE LINE without wasting extra space.
-    //    STRICT SYNTAX RULE: Must be a COMPLETE sentence ending with a period inside the quote. NEVER truncate mid-phrase or end on dangling prepositions like 'of', 'in', 'comprising', 'to', 'for', 'and'!
+    // 1. DYNAMIC QUOTA: Provide 1 to 2 targeted cards by default, NEVER MORE THAN 3. Output [] if the candidate has already covered the core technical demands adequately.
+    // 2. QUESTION & SUBJECT RELEVANCE: Every recommendation must directly answer this question's demand. DO NOT suggest governance reports (e.g., 2nd ARC, Law Commission) unless the question explicitly asks for governance/electoral analysis.
+    // 3. ANSWER FIT: Address an evidenced omission or underdeveloped point. If the candidate explained a concept adequately, OMIT it. If named shallowly, provide its causal mechanism.
+    // 4. "where_to_use": Ground in the candidate's actual handwritten sub-heading, bullet, or paragraph (e.g., "Page 1 • Inside your '[Exact Sub-Heading]' bullet"). Do not invent headings.
+    // 5. "how_to_use_one_line": The EXACT insertion sentence itself—under 20 words, plain language, ending with a period.
+    //    NO meta-instructions ("Deploy X to...", "Incorporate X to..."). NO boilerplate ("reinforce policy delivery metrics", "fiscal sustainability").
     {{
       "number": 1,
-      "term": "Exact Missing Domain Keyword / Committee / Article #1",
+      "term": "Exact Missing Domain Keyword / Mechanism / Metric #1",
       "thinker": "Specific Sub-Domain Badge #1",
       "domain_or_thinker": "Specific Sub-Domain Badge #1",
-      "definition": "Concise 1-sentence explanation of why this missing keyword/committee elevates analytical depth for this exact question.",
-      "where_to_use": "Page 1 • Inside your '[Exact Sub-Heading / Bullet Written on Page 1]' point",
-      "how_to_use_one_line": "\"Anchor under **Keyword #1**: '...to operationalize independent oversight and guarantee institutional neutrality.'\""
+      "definition": "Why this missing keyword elevates analytical depth for this question's specific demand.",
+      "where_to_use": "Page 1 • Inside your '[Exact Sub-Heading / Paragraph]' point",
+      "how_to_use_one_line": "Exact 1-line exam-ready insertion sentence under 20 words explaining the mechanism."
     }},
     {{
       "number": 2,
-      "term": "Exact Missing Domain Keyword / Landmark Report / Precedent #2",
+      "term": "Exact Missing Domain Landmark / Benchmark #2 (Optional - include only if marginal benefit exists)",
       "thinker": "Specific Sub-Domain Badge #2",
       "domain_or_thinker": "Specific Sub-Domain Badge #2",
-      "definition": "Concise 1-sentence explanation of how this concept/report substantiates the second demand.",
-      "where_to_use": "Page 2 • Under your '[Exact Sub-Heading / Diagram Written on Page 2]' section",
-      "how_to_use_one_line": "\"Cite **Keyword #2**: '...mandating a balanced multi-party selection collegium to prevent executive pre-eminence.'\""
-    }},
-    {{
-      "number": 3,
-      "term": "Exact Missing Empirical Metric / Statutory Benchmark #3",
-      "thinker": "Specific Sub-Domain Badge #3",
-      "domain_or_thinker": "Specific Sub-Domain Badge #3",
-      "definition": "Concise 1-sentence quantitative or statutory benchmark proving the scale/mechanism.",
-      "where_to_use": "Page 2–3 • Alongside your '[Exact Impact / Vulnerability Bullet Written]' point",
-      "how_to_use_one_line": "\"Substantiate via **Keyword #3**: '...reinforcing structural autonomy through equal constitutional removal protections.'\""
-    }},
-    {{
-      "number": 4,
-      "term": "Exact Missing Standard / Milestone / Framework #4",
-      "thinker": "Discipline-Specific Badge #4 (e.g. 'Living Heritage Milestone' for History, 'Global DRR Standard' for Geography, 'Constitutional Reform' for Polity)",
-      "domain_or_thinker": "Discipline-Specific Badge #4",
-      "definition": "Concise 1-sentence explanation. NEVER force modern administrative policy/committee onto ancient history, culture, or physical geography!",
-      "where_to_use": "Final Page • Attach to the end of your closing '[Exact Closing / Mitigation Line Written]'",
-      "how_to_use_one_line": "\"Recommend via **Keyword #4**: Institutionalize statutory checks to insulate democratic institutions from partisan bias.\""
+      "definition": "How this concept/metric addresses an evidenced gap in the candidate's answer.",
+      "where_to_use": "Page 2 • Under your '[Exact Sub-Heading / Paragraph]' section",
+      "how_to_use_one_line": "Exact 1-line exam-ready insertion sentence under 20 words."
     }}
   ],
   "micro_hygiene": {{
@@ -5402,178 +5391,186 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         else:
             data["keyword_toolkit_title"] = "High-Yield Domain Concepts & Keywords (Missing Keywords)"
 
-    # Normalize missing_keywords_cards with distinct badges, exact Page & Sub-Heading placement, and 1-line space-saving usage
-    if "missing_keywords_cards" not in data or not isinstance(data.get("missing_keywords_cards"), list) or len(data["missing_keywords_cards"]) == 0:
-        data["missing_keywords_cards"] = [
-            {"number": 1, "term": "Core Statutory / Theoretical Anchor", "domain_or_thinker": "Foundational Anchor", "definition": "Key domain principle directly establishing the opening thesis.", "where_to_use": "Page 1 • Plug inline inside your opening Body sub-heading", "how_to_use_one_line": "\"Add as a 4-word bracket inside your first bullet to ground the core thesis.\""},
-            {"number": 2, "term": "Empirical / Official Index Metric", "domain_or_thinker": "Empirical Benchmark", "definition": "Official survey or report statistic proving the scale of the issue.", "where_to_use": "Page 1–2 • Pair inline with your primary cause/impact point", "how_to_use_one_line": "\"Weave inline into your impact bullet to substantiate scale in one line.\""},
-            {"number": 3, "term": "Judicial / Scientific / Historical Precedent", "domain_or_thinker": "Core Precedent", "definition": "Landmark precedent, mechanism, or spatial zonation required for analytical depth.", "where_to_use": "Page 2 • Under your secondary analysis / diagram section", "how_to_use_one_line": "\"Cite inline beside your existing example without taking an extra line.\""},
-            {"number": 4, "term": "Committee / Global Framework Standard", "domain_or_thinker": "Reform Standard", "definition": "Authoritative institutional or international framework anchoring the solution.", "where_to_use": "Final Page • Attach to the end of your closing mitigation/reform sentence", "how_to_use_one_line": "\"...attach to the end of your closing line to anchor institutional reform.\""}
-        ]
+    # Normalize missing_keywords_cards with distinct badges, exact Page & Sub-Heading placement, and clean 1-line insertion usage
+    q_low_norm = str(data.get("detected_question") or "").lower()
+    gov_indicators = [
+        "governance", "polity", "election", "electoral", "eci", "cec",
+        "constitution", "judiciary", "judicial", "civil service", "bureaucra",
+        "ethics", "probity", "accountability", "transparency", "corruption",
+        "lokpal", "cbi", "cvc", "rti", "panchayat", "municipal", "federal",
+        "parliament", "legislat", "executive", "separation of powers",
+        "law commission", "arc", "administrative reform"
+    ]
+    q_has_gov = any(k in q_low_norm for k in gov_indicators)
+
+    raw_cards = data.get("missing_keywords_cards")
+    if not isinstance(raw_cards, list):
+        data["missing_keywords_cards"] = []
     else:
-        used_badges = set()
-        if is_history_culture:
-            fallback_badges = [
-                "Historiographical Doctrine",
-                "Textual & Epigraphical Source",
-                "Cultural & Philosophical Tradition",
-                "Archaeological & Living Heritage"
-            ]
-        elif is_geo:
-            fallback_badges = [
-                "Climatological & Spatial Mechanism",
-                "Thermal & Atmospheric Dynamic",
-                "Geomorphic Model & Process",
-                "Global Convention & DRR Standard"
-            ]
-        elif is_ethics:
-            fallback_badges = [
-                "Deontological / Moral Doctrine",
-                "Virtue Ethics & Character Anchor",
-                "Public Probity Framework",
-                "Applied Administrative Ethics"
-            ]
-        elif is_polity:
-            fallback_badges = [
-                "Constitutional Article / Provision",
-                "Landmark Judicial Doctrine",
-                "Statutory & Institutional Anchor",
-                "Administrative Committee Reform"
-            ]
-        else:
-            fallback_badges = [
-                "Core Concept & Mechanism",
-                "Empirical & Sectoral Metric",
-                "Institutional Framework",
-                "Policy & Governance Benchmark"
-            ]
         pbp_list = data.get("point_by_point_audit") if isinstance(data.get("point_by_point_audit"), list) else []
-        for idx_c, card in enumerate(data["missing_keywords_cards"]):
+        strengths_blob = " ".join(str(s).lower() for s in (data.get("body_audit", {}).get("strengths") or []))
+        pos_corpus_norm = str(data.get("transcribed_text") or "").lower()
+
+        filtered_cards = []
+        seen_terms = set()
+
+        for card in raw_cards:
             if not isinstance(card, dict):
                 continue
-            term_c = str(card.get("term") or "").lower()
+            t_str = str(card.get("term") or "").strip()
+            if not t_str:
+                continue
+            t_low = t_str.lower()
+            t_clean = re.sub(r'\([^)]*\)', '', t_low).strip()
+            acr_m = re.search(r'\(([A-Za-z0-9\-]{3,10})\)', t_str)
+            acr_low = acr_m.group(1).lower() if acr_m else ""
+
+            # Check for duplicate
+            if t_clean in seen_terms or (acr_low and acr_low in seen_terms):
+                continue
+
+            # Question-Demand Relevance Guard: Reject governance commissions on non-governance topics
+            is_gov_source = any(gk in t_low for gk in ["2nd arc", "arc 4th", "second administrative", "law commission", "dinesh goswami", "tarkunde", "anoop baranwal", "sarkaria", "punchhi"])
+            if is_gov_source and not q_has_gov:
+                continue
+
+            # Candidate Evidence & Omission Guard: If candidate already explained it adequately, omit it
+            already_explained = (acr_low and acr_low in strengths_blob) or (len(t_clean) >= 5 and t_clean in strengths_blob)
+            if already_explained:
+                continue
+
+            seen_terms.add(t_clean)
+            if acr_low:
+                seen_terms.add(acr_low)
+            filtered_cards.append(card)
+
+        # Cap at maximum 3 cards (Rule 7: No forced quota, 1-2 ideal, max 3)
+        data["missing_keywords_cards"] = filtered_cards[:3]
+
+        used_badges = set()
+        fallback_badges = (
+            ["Historiographical Doctrine", "Textual & Epigraphical Source", "Cultural & Philosophical Tradition"] if is_history_culture else
+            ["Climatological & Spatial Mechanism", "Thermal & Atmospheric Dynamic", "Global Convention & DRR Standard"] if is_geo else
+            ["Deontological / Moral Doctrine", "Virtue Ethics & Character Anchor", "Public Probity Framework"] if is_ethics else
+            ["Constitutional Article / Provision", "Landmark Judicial Doctrine", "Statutory & Institutional Anchor"] if is_polity else
+            ["Core Concept & Mechanism", "Empirical & Sectoral Metric", "Institutional Framework"]
+        )
+
+        for idx_c, card in enumerate(data["missing_keywords_cards"]):
+            term_str = str(card.get("term") or "Keyword").strip()
+            term_l = term_str.lower()
             raw_dot = str(card.get("domain_or_thinker") or card.get("thinker") or "").strip()
             if not raw_dot or raw_dot.lower() in used_badges or raw_dot.lower() in ("domain concept", "geomorphic & scientific concept", "historical & cultural anchor"):
                 raw_dot = fallback_badges[idx_c % len(fallback_badges)]
-            
-            # Prevent cross-subject tagging on cultural/philosophical and geography terms
-            if (is_history_culture or "cultural" in term_c or "philosophy" in term_c or "advaita" in term_c or "bhakti" in term_c or "synthesis" in term_c) and ("committee" in raw_dot.lower() or "policy" in raw_dot.lower()):
-                raw_dot = "Cultural & Philosophical Tradition"
-            elif (is_geo or "temperature" in term_c or "insolation" in term_c) and ("committee" in raw_dot.lower() or "policy" in raw_dot.lower() or "constitutional" in raw_dot.lower()):
-                raw_dot = "Climatological & Spatial Mechanism"
-
             if len(raw_dot) > 36:
                 raw_dot = re.sub(r'\s+\S*$', '', raw_dot[:36]).strip()
             used_badges.add(raw_dot.lower())
             card["domain_or_thinker"] = raw_dot
 
+            # Placement: Ground in candidate's actual handwritten sub-heading/page
             raw_where = str(card.get("where_to_use") or "").strip()
             if not raw_where or len(raw_where) < 18 or "use in body section" in raw_where.lower() or "integrate into the relevant" in raw_where.lower():
                 if idx_c < len(pbp_list) and isinstance(pbp_list[idx_c], dict) and pbp_list[idx_c].get("title"):
                     pg_n = pbp_list[idx_c].get("page", idx_c + 1)
                     short_t = str(pbp_list[idx_c].get("title", "")).split(":")[0].strip()[:44]
-                    card["where_to_use"] = f"Page {pg_n} • Inside your '{short_t}' sub-heading"
+                    card["where_to_use"] = f"Page {pg_n} • Inside your '{short_t}' point"
                 else:
                     slot_wheres = [
-                        "Page 1 • Attach inline inside your opening Body sub-heading",
-                        "Page 1–2 • Under your primary mechanism / diagram section",
-                        "Page 2 • Alongside your sectoral / regional impact bullet",
-                        "Final Page • Attach to the end of your closing mitigation/reform line"
+                        "Page 1 • Inside your opening Body sub-heading or cause paragraph",
+                        "Page 1–2 • Beside your primary causal mechanism or diagram",
+                        "Page 2 • Inside your regional or sectoral impact point",
+                        "Final Page • In your concluding mitigation or solution paragraph"
                     ]
                     card["where_to_use"] = slot_wheres[idx_c % len(slot_wheres)]
 
+            # Clean 1-Line Space-Saving Usage: Exam-ready insertion sentence under 20 words
             raw_how = str(card.get("how_to_use_one_line") or "").strip()
-            term_str = str(card.get("term") or "Keyword").strip()
-            term_l = term_str.lower()
-            
-            # Check if raw_how is missing, broken slice, or ends with dangling preposition
-            is_broken = (
-                not raw_how or 
-                len(raw_how) < 18 or 
-                bool(re.search(r'\b(?:of|in|to|for|with|by|from|comprising|under|and|the|a|an|pm|control\s+of)\s*[\'.")\]]*$', raw_how, re.I)) or
-                bool(re.search(r'\(mandated\s+a\s+committee|\(vesting\s+the\s+superintendence', raw_how, re.I)) or
-                ("..." in raw_how and len(raw_how.split()) < 10)
-            )
-            
-            if is_broken:
-                if "baranwal" in term_l:
-                    card["how_to_use_one_line"] = f"\"Cite **{term_str}** to mandate a balanced multi-party selection committee (PM, CJI, LoP) to safeguard institutional neutrality.\""
-                elif "324" in term_l or "article" in term_l:
-                    card["how_to_use_one_line"] = f"\"Anchor under **{term_str}** to vest independent superintendence, direction, and control of elections in an autonomous constitutional body.\""
-                elif "goswami" in term_l:
-                    card["how_to_use_one_line"] = f"\"Recommend via **{term_str}** to institutionalize a consultative multi-party selection collegium for electoral integrity.\""
-                elif "255" in term_l or "law commission" in term_l:
-                    card["how_to_use_one_line"] = f"\"Cite **{term_str}** to advocate equal constitutional removal safeguards and a 3-member collegium for all Election Commissioners.\""
+            if (raw_how.startswith('"') and raw_how.endswith('"')) or (raw_how.startswith("'") and raw_how.endswith("'")):
+                raw_how = raw_how[1:-1].strip()
+
+            # Strip meta-instruction wrapper if present
+            cleaned_how = re.sub(
+                r'^(?:Incorporate|Deploy|Cite|Anchor in|Anchor under|Apply|Highlight|Recommend via|Weave|Substantiate via)\s+(?:\*\*[^*]+\*\*|[^\s]+(?:\s+[^\s]+){0,5})\s*(?:\([^)]*\))?\s*(?:to\s+|inline\s+to\s+|as\s+|in\s+)?',
+                '',
+                raw_how,
+                flags=re.IGNORECASE
+            ).strip()
+            cleaned_how = re.sub(r'\s*\([^)]*\)', '', cleaned_how).strip()
+
+            # Banned boilerplate phrases
+            banned_phrases = [
+                "reinforce policy delivery metrics and grassroots institutional accountability",
+                "reinforce policy delivery metrics",
+                "grassroots institutional accountability",
+                "substantiate fiscal sustainability and public expenditure efficiency",
+                "substantiate fiscal sustainability",
+                "public expenditure efficiency",
+                "ground systemic governance reforms in statutory oversight benchmarks",
+                "ground systemic governance reforms",
+                "substantiate analytical precision and core question demands",
+                "bridge regulatory gaps and advance outcome-oriented implementation",
+                "ground arguments in authoritative domain frameworks",
+                "illustrate causal mechanisms and substantive evidence",
+                "bridge thematic gaps and provide a balanced multidimensional evaluation",
+                "elucidate the physical-geomorphic mechanism and thermal dynamics",
+                "substantiate spatial vulnerability gradients and regional hazard exposure",
+                "illustrate thermodynamic forcing and geodynamic interactions",
+                "benchmark scientific precision in spatial hazard mapping",
+                "chronological continuity and historical authenticity",
+                "anchor primary textual and living civilizational traditions",
+                "socio-cultural synthesis and regional institutional legacy",
+                "primary epigraphical/historical evidence to elevate analytical depth",
+                "administrative probity and constitutional morality in public decisions",
+                "navigate ethical dilemmas and balance competing stakeholder rights",
+                "ground public service values in fiduciary responsibility and character",
+                "harmonize statutory duty with empathy"
+            ]
+            is_contaminated = any(bp in cleaned_how.lower() for bp in banned_phrases) or any(bp in raw_how.lower() for bp in banned_phrases[:10])
+
+            if is_contaminated or not cleaned_how or len(cleaned_how.split()) < 4 or cleaned_how.lower().startswith("you "):
+                if "alkire" in term_l or "foster" in term_l or "multidimensional" in term_l or "mpi" in term_l:
+                    card["how_to_use_one_line"] = "It captures overlapping deprivations in health, education and living standards—not income alone."
+                elif "amartya" in term_l or "capability" in term_l:
+                    card["how_to_use_one_line"] = "It assesses poverty as the deprivation of basic capabilities and freedoms, not merely low income."
+                elif "blocking" in term_l or "atmospheric" in term_l or "omega block" in term_l:
+                    card["how_to_use_one_line"] = "Persistent high-pressure anticyclones trap descending hot air, prolonging heatwaves and compounding soil drying."
+                elif "ipcc" in term_l:
+                    card["how_to_use_one_line"] = "IPCC AR6 warns compound heat-drought shocks reduce staple crop yields and trigger cascading food price spikes."
                 elif "arc" in term_l:
-                    card["how_to_use_one_line"] = f"\"Substantiate via **{term_str}** to recommend a broad collegium (PM, CJI, Speaker, LoP, Law Minister) to insulate watchdog bodies.\""
+                    card["how_to_use_one_line"] = "A broad multi-member collegium insulates constitutional watchdog bodies from executive pre-eminence."
+                elif "law commission" in term_l or "255" in term_l:
+                    card["how_to_use_one_line"] = "Equal constitutional removal safeguards and a tripartite collegium preserve institutional independence."
+                elif "goswami" in term_l:
+                    card["how_to_use_one_line"] = "A statutory consultative collegium safeguards electoral machinery from partisan bias."
                 elif "tarkunde" in term_l:
-                    card["how_to_use_one_line"] = f"\"Cite **{term_str}** to mandate an independent selection panel of PM, CJI, and LoP to insulate election machinery.\""
-                elif "thakur" in term_l:
-                    card["how_to_use_one_line"] = f"\"Cite **{term_str}** to challenge the exclusion of the CJI from the selection panel as violative of democratic autonomy.\""
+                    card["how_to_use_one_line"] = "A selection panel of PM, CJI, and Leader of Opposition insulates watchdog appointments."
                 elif "sendai" in term_l:
-                    card["how_to_use_one_line"] = f"\"Apply **{term_str}** to operationalize Build Back Better in disaster risk mitigation and resilient infrastructure.\""
+                    card["how_to_use_one_line"] = "Priority 4 operationalizes Build Back Better in disaster risk recovery, rehabilitation, and resilient reconstruction."
                 elif "benioff" in term_l:
-                    card["how_to_use_one_line"] = f"\"Anchor in **{term_str}** to explain where deep plate subduction releases high-magnitude seismic strain.\""
+                    card["how_to_use_one_line"] = "Deep-focus earthquakes occur along inclined Wadati–Benioff zones where cold oceanic slabs subduct into mantle."
                 elif "buranji" in term_l:
-                    card["how_to_use_one_line"] = f"\"Anchor in **{term_str}** to draw on official royal chronicles that documented Assam's administrative history.\""
+                    card["how_to_use_one_line"] = "Ahom Buranjis provide verified state chronicles documenting administrative logistics, diplomacy, and riverine warfare."
                 elif "paik" in term_l:
-                    card["how_to_use_one_line"] = f"\"Cite **{term_str}** to illustrate how rotational agrarian labor and defense were mobilized without monetary debt.\""
+                    card["how_to_use_one_line"] = "The Paik system mobilized rotational peasant labor for public works and standing territorial defense."
                 else:
                     def_clause = str(card.get("definition") or "").split(".")[0].strip()
                     clean_def = re.sub(r'^(?:✓\s*[^:]*:\s*|.*?significance:\s*)', '', def_clause).strip()
+                    clean_def = re.sub(r'\s*\([^)]*\)', '', clean_def).strip()
                     words = clean_def.split()
-                    if len(words) > 14:
-                        clean_def = " ".join(words[:14])
-                    clean_def = re.sub(r'\b(?:of|in|to|for|with|by|from|comprising|under|and|the|a|an)\s*$', '', clean_def, flags=re.I).strip().rstrip(",;:")
-
-                    if is_history_culture:
-                        hist_templates = [
-                            f"\"Cite **{term_str}** ({clean_def.lower()}) to substantiate chronological continuity and historical authenticity.\"",
-                            f"\"Deploy **{term_str}** ({clean_def.lower()}) to anchor primary textual and living civilizational traditions.\"",
-                            f"\"Anchor in **{term_str}** ({clean_def.lower()}) to demonstrate socio-cultural synthesis and regional institutional legacy.\"",
-                            f"\"Highlight **{term_str}** ({clean_def.lower()}) as primary epigraphical/historical evidence to elevate analytical depth.\""
-                        ]
-                        card["how_to_use_one_line"] = hist_templates[idx_c % len(hist_templates)]
-                    elif is_geo:
-                        geo_templates = [
-                            f"\"Explain via **{term_str}** ({clean_def.lower()}) to elucidate the physical-geomorphic mechanism and thermal dynamics.\"",
-                            f"\"Incorporate **{term_str}** ({clean_def.lower()}) to substantiate spatial vulnerability gradients and regional hazard exposure.\"",
-                            f"\"Deploy **{term_str}** ({clean_def.lower()}) to illustrate thermodynamic forcing and geodynamic interactions.\"",
-                            f"\"Anchor in **{term_str}** ({clean_def.lower()}) to benchmark scientific precision in spatial hazard mapping.\""
-                        ]
-                        card["how_to_use_one_line"] = geo_templates[idx_c % len(geo_templates)]
-                    elif is_ethics:
-                        eth_templates = [
-                            f"\"Apply **{term_str}** ({clean_def.lower()}) to uphold administrative probity and constitutional morality in public decisions.\"",
-                            f"\"Anchor in **{term_str}** ({clean_def.lower()}) to navigate ethical dilemmas and balance competing stakeholder rights.\"",
-                            f"\"Deploy **{term_str}** ({clean_def.lower()}) to ground public service values in fiduciary responsibility and character.\"",
-                            f"\"Weave **{term_str}** ({clean_def.lower()}) into the dilemma resolution to harmonize statutory duty with empathy.\""
-                        ]
-                        card["how_to_use_one_line"] = eth_templates[idx_c % len(eth_templates)]
-                    elif is_econ:
-                        econ_templates = [
-                            f"\"Deploy **{term_str}** ({clean_def.lower()}) to substantiate fiscal sustainability and public expenditure efficiency.\"",
-                            f"\"Incorporate **{term_str}** ({clean_def.lower()}) to benchmark capital output ratio and supply-chain productivity.\"",
-                            f"\"Cite **{term_str}** ({clean_def.lower()}) to ground macro-economic stability in empirical sectoral indicators.\"",
-                            f"\"Anchor in **{term_str}** ({clean_def.lower()}) to demonstrate inclusive growth and target-driven budgetary delivery.\""
-                        ]
-                        card["how_to_use_one_line"] = econ_templates[idx_c % len(econ_templates)]
-                    elif is_polity:
-                        gov_templates = [
-                            f'"Incorporate **{term_str}** ({clean_def.lower()}) to reinforce policy delivery metrics and institutional accountability."',
-                            f'"Cite **{term_str}** ({clean_def.lower()}) to ground systemic governance reforms in statutory oversight benchmarks."',
-                            f'"Deploy **{term_str}** ({clean_def.lower()}) to substantiate institutional checks and balance of constitutional authority."',
-                            f'"Anchor in **{term_str}** ({clean_def.lower()}) to bridge regulatory gaps and advance outcome-oriented implementation."'
-                        ]
-                        card["how_to_use_one_line"] = gov_templates[idx_c % len(gov_templates)]
+                    if words:
+                        cand_s = " ".join(words[:18]).rstrip(',;:-') + "."
+                        cand_s = cand_s[0].upper() + cand_s[1:]
+                        card["how_to_use_one_line"] = cand_s
                     else:
-                        gen_templates = [
-                            f'"Incorporate **{term_str}** ({clean_def.lower()}) to substantiate analytical precision and core question demands."',
-                            f'"Cite **{term_str}** ({clean_def.lower()}) to ground arguments in authoritative domain frameworks."',
-                            f'"Deploy **{term_str}** ({clean_def.lower()}) to illustrate causal mechanisms and substantive evidence."',
-                            f'"Anchor in **{term_str}** ({clean_def.lower()}) to bridge thematic gaps and provide a balanced multidimensional evaluation."'
-                        ]
-                        card["how_to_use_one_line"] = gen_templates[idx_c % len(gen_templates)]
+                        card["how_to_use_one_line"] = f"Integrating {term_str} grounds the argument in verified domain evidence."
+            else:
+                cand = cleaned_how[0].upper() + cleaned_how[1:]
+                if not cand.endswith(('.', '!', '?')):
+                    cand += '.'
+                c_words = cand.split()
+                if len(c_words) > 20:
+                    cand = " ".join(c_words[:20]).rstrip(',;:-') + "."
+                card["how_to_use_one_line"] = cand
 
     # Normalize Actionable Value-Addition Checklist (Where to Write & How to Write)
     va_raw = data.get("value_add_checklist") or {}
@@ -8323,186 +8320,64 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             "recommended_insertion": "✓ Great use of **ANRF** on Page 3! In Point ⑥ on Page 2, replace 'Small by choice' with **Lack of Assured Domestic Public Procurement** and plug in **iDEX (Innovations for Defence Excellence)** + **MeitY TIDE 2.0** showing how Government acts as the first anchor buyer for indigenous deep-tech products."
         }
     elif isinstance(data.get("missing_keywords_cards"), list):
-        q_low = str(data.get("detected_question") or "").lower()
-        is_eci_topic = any(k in q_low for k in ["election", "eci", "cec", "commissioner", "324", "anoop baranwal", "appointment", "electoral"])
-        discipline = str(data.get("subject_discipline") or "POLITY_GOVERNANCE")
-        
-        # High-yield genuine missing domain anchor repositories
-        domain_anchors_pool = []
-        if is_eci_topic:
-            domain_anchors_pool = [
-                {
-                    "term": "Dinesh Goswami Committee (1990)",
-                    "domain_or_thinker": "Electoral Reforms Committee",
-                    "definition": "Landmark electoral reforms committee recommending an independent consultative selection collegium for CEC and ECs to preserve public credibility.",
-                    "where_to_use": "Page 2 • Under your 'Reforms / Way Forward' section",
-                    "how_to_use_one_line": "\"Recommend via **Dinesh Goswami Committee (1990)** to institutionalize a consultative multi-party selection collegium for electoral integrity.\""
-                },
-                {
-                    "term": "Law Commission 255th Report (2015)",
-                    "domain_or_thinker": "Law Commission Benchmark",
-                    "definition": "Proposed an equal 3-member collegium (PM, CJI, LoP) and constitutional removal parity for all Election Commissioners under Art. 324(5).",
-                    "where_to_use": "Page 2 • Under 'Challenges to Autonomy / Executive Dominance' bullet",
-                    "how_to_use_one_line": "\"Cite **Law Commission 255th Report (2015)** to advocate equal constitutional removal safeguards and a 3-member collegium for all Election Commissioners.\""
-                },
-                {
-                    "term": "2nd ARC 4th Report (Ethics in Governance)",
-                    "domain_or_thinker": "Administrative Reforms Benchmark",
-                    "definition": "Recommended an insulated appointment collegium (PM, Speaker, CJI, LoP, Law Minister) to eliminate executive dominance in watchdog institutions.",
-                    "where_to_use": "Page 2–3 • Beside your closing recommendations point",
-                    "how_to_use_one_line": "\"Substantiate via **2nd ARC 4th Report** to recommend a broad collegium (PM, CJI, Speaker, LoP, Law Minister) to insulate watchdog bodies.\""
-                },
-                {
-                    "term": "Tarkunde Committee (1975)",
-                    "domain_or_thinker": "Historical Reform Precedent",
-                    "definition": "Pioneered the proposal for a non-partisan collegium (PM, CJI, and LoP) to safeguard the Election Commission's constitutional autonomy.",
-                    "where_to_use": "Page 1–2 • Under 'Evolution of Appointment Mechanism' bullet",
-                    "how_to_use_one_line": "\"Cite **Tarkunde Committee (1975)** to mandate an independent selection panel of PM, CJI, and LoP to insulate election machinery.\""
-                }
-            ]
-        elif discipline == "ECONOMY_DEVELOPMENT":
-            domain_anchors_pool = [
-                {
-                    "term": "FRBM Review Committee (N.K. Singh, 2017)",
-                    "domain_or_thinker": "Fiscal Architecture",
-                    "definition": "Targeting a general government debt-to-GDP ratio of 60% with counter-cyclical escape clauses for macroeconomic stabilization.",
-                    "where_to_use": "Page 2 • Under your fiscal policy / investment sub-heading",
-                    "how_to_use_one_line": "\"Anchor under **FRBM Review Committee (N.K. Singh)** to target general government debt-to-GDP of 60% with counter-cyclical fiscal flexibility.\""
-                },
-                {
-                    "term": "K.V. Kamath Committee (2020)",
-                    "domain_or_thinker": "Banking & Debt Resolution",
-                    "definition": "Established 5 specific financial threshold ratios (Total Debt/EBITDA, DSCR, Current Ratio) for systemic corporate debt restructuring.",
-                    "where_to_use": "Page 2 • Under banking stress / NPAs bullet",
-                    "how_to_use_one_line": "\"Cite **K.V. Kamath Committee** to apply 5 key financial ratios to restructure stressed sectoral debt portfolios.\""
-                }
-            ]
-        elif discipline == "GEOGRAPHY_DISASTER":
-            domain_anchors_pool = [
-                {
-                    "term": "Wadati–Benioff Zone",
-                    "domain_or_thinker": "Subduction Seismology",
-                    "definition": "Seismic zone tracing subducting lithospheric slab interfaces, triggering deep-focus earthquakes (300-700 km).",
-                    "where_to_use": "Page 1–2 • Under your subduction / plate tectonics mechanism",
-                    "how_to_use_one_line": "\"Anchor in **Wadati–Benioff Zone** to explain where deep plate subduction releases high-magnitude seismic strain.\""
-                },
-                {
-                    "term": "Sendai Framework for DRR (Priority 4)",
-                    "domain_or_thinker": "Global DRR Standard",
-                    "definition": "Global standard operationalizing 'Build Back Better' in hazard recovery, spatial planning, and resilient reconstruction.",
-                    "where_to_use": "Page 2 • Under your disaster mitigation sub-heading",
-                    "how_to_use_one_line": "\"Apply **Sendai Framework (Priority 4)** to operationalize Build Back Better in hazard mitigation and resilient infrastructure.\""
-                }
-            ]
-        elif discipline == "HISTORY_CULTURE":
-            domain_anchors_pool = [
-                {
-                    "term": "Buranjis (State Chronicles)",
-                    "domain_or_thinker": "Primary Historiographical Source",
-                    "definition": "Official royal chronicles in Tai and Assamese documenting statecraft, administrative structures, and foreign relations.",
-                    "where_to_use": "Page 1 • Beside your historical sources / administration opening",
-                    "how_to_use_one_line": "\"Anchor in **Buranjis** to draw on official royal chronicles that documented Assam's administrative history.\""
-                },
-                {
-                    "term": "Paik & Khel System",
-                    "domain_or_thinker": "Agrarian-Military Structure",
-                    "definition": "Rotational military-agrarian mobilization system that sustained standing territorial defense without monetary debt.",
-                    "where_to_use": "Page 2 • Under your administrative organization section",
-                    "how_to_use_one_line": "\"Cite **Paik & Khel System** to illustrate how rotational agrarian labor and defense were mobilized without monetary debt.\""
-                }
-            ]
-        else:
-            domain_anchors_pool = [
-                {
-                    "term": "2nd ARC 4th Report (Ethics in Governance)",
-                    "domain_or_thinker": "Administrative Reforms",
-                    "definition": "Official reform benchmark outlining codes of ethics and institutional safeguards to insulate watchdog bodies from executive overreach.",
-                    "where_to_use": "Page 2 • Under your core governance challenge section",
-                    "how_to_use_one_line": "\"Substantiate via **2nd ARC 4th Report** to recommend independent collegium structures to preserve institutional autonomy.\""
-                },
-                {
-                    "term": "Law Commission 255th Report (2015)",
-                    "domain_or_thinker": "Statutory Commission Benchmark",
-                    "definition": "Comprehensive commission recommendations addressing institutional autonomy, regulatory independence, and constitutional checks and balances.",
-                    "where_to_use": "Page 2 • Beside your institutional reform point",
-                    "how_to_use_one_line": "\"Anchor in **Law Commission 255th Report** to reinforce statutory insulation and procedural neutrality.\""
-                }
-            ]
+        q_low_san = str(data.get("detected_question") or "").lower()
+        gov_indicators_san = [
+            "governance", "polity", "election", "electoral", "eci", "cec",
+            "constitution", "judiciary", "judicial", "civil service", "bureaucra",
+            "ethics", "probity", "accountability", "transparency", "corruption",
+            "lokpal", "cbi", "cvc", "rti", "panchayat", "municipal", "federal",
+            "parliament", "legislat", "executive", "separation of powers",
+            "law commission", "arc", "administrative reform"
+        ]
+        q_demands_gov = any(k in q_low_san for k in gov_indicators_san)
+        strengths_list = [str(s).lower() for s in (data.get("body_audit", {}).get("strengths") or [])]
 
-        pool_idx = 0
-        shallow_count = 0
-        existing_terms = set()
+        sanitized_cards = []
+        seen_t = set()
 
-        for idx, card in enumerate(data["missing_keywords_cards"]):
+        for card in data["missing_keywords_cards"]:
             if not isinstance(card, dict):
                 continue
-            raw_term = str(card.get("term") or "").strip()
-            acr_m = re.search(r"\(([A-Za-z0-9\-]{3,10})\)", raw_term)
+            r_term = str(card.get("term") or "").strip()
+            if not r_term:
+                continue
+            r_low = r_term.lower()
+            m_low = re.sub(r'\([^)]*\)', '', r_low).strip()
+            acr_m = re.search(r'\(([A-Za-z0-9\-]{3,10})\)', r_term)
             acr_low = acr_m.group(1).lower() if acr_m else ""
-            main_low = re.sub(r"\([^)]*\)", "", raw_term).strip().lower()
-            term_written = (acr_low and acr_low in positive_corpus) or (len(main_low) >= 5 and main_low in positive_corpus)
-            def_nums = re.findall(r"\d+(?:\.\d+)?%", str(card.get("definition") or ""))
-            wrote_num_without_kw = (not term_written) and any(n.split(".")[0] in positive_corpus for n in def_nums)
 
-            # Check if term was already written well and praised in body_audit strengths
-            already_praised = any(main_low in str(s).lower() or (acr_low and acr_low in str(s).lower()) for s in (data.get("body_audit", {}).get("strengths") or []))
+            # Suppress duplicate cards
+            if m_low in seen_t or (acr_low and acr_low in seen_t):
+                continue
 
-            if term_written and already_praised:
-                # Do NOT crowd the Missing Keywords Toolkit with concepts the student already wrote well!
-                # Replace with an unused genuine missing domain anchor from the pool
-                replacement_found = False
-                while pool_idx < len(domain_anchors_pool):
-                    cand_pool = domain_anchors_pool[pool_idx]
-                    pool_idx += 1
-                    cand_term_low = cand_pool["term"].lower()
-                    if cand_term_low not in positive_corpus and cand_term_low not in existing_terms:
-                        card["term"] = cand_pool["term"]
-                        card["domain_or_thinker"] = cand_pool["domain_or_thinker"]
-                        card["definition"] = cand_pool["definition"]
-                        card["where_to_use"] = cand_pool["where_to_use"]
-                        card["how_to_use_one_line"] = cand_pool["how_to_use_one_line"]
-                        existing_terms.add(cand_term_low)
-                        replacement_found = True
-                        break
-                if not replacement_found:
-                    # If pool exhausted, badge as upgrade
-                    card["domain_or_thinker"] = "⚡ Shallow Mention — Analytical Upgrade Needed"
-                    clean_def = re.sub(r'^(?:✓\s*[^:]*:\s*|.*?significance:\s*)', '', str(card.get("definition") or "")).strip()
-                    card["definition"] = f"You cited **{raw_term}** on your answer sheet—substantiate its core analytical link: {clean_def}"
-                    card["where_to_use"] = f"Build directly on your existing {acr_m.group(1) if acr_m else raw_term} point on your answer sheet."
-            elif term_written:
-                if shallow_count < 1:
-                    shallow_count += 1
-                    card["domain_or_thinker"] = "⚡ Shallow Mention — Analytical Upgrade Needed"
-                    clean_def = re.sub(r'^(?:✓\s*[^:]*:\s*|.*?significance:\s*)', '', str(card.get("definition") or "")).strip()
-                    card["definition"] = f"You cited **{raw_term}** in passing—substantiate its core analytical application: {clean_def}"
-                    card["where_to_use"] = f"Build directly on your existing {acr_m.group(1) if acr_m else raw_term} point on your answer sheet."
-                else:
-                    # Limit shallow mentions to 1 card max; replace other with genuine missing anchor
-                    replacement_found = False
-                    while pool_idx < len(domain_anchors_pool):
-                        cand_pool = domain_anchors_pool[pool_idx]
-                        pool_idx += 1
-                        cand_term_low = cand_pool["term"].lower()
-                        if cand_term_low not in positive_corpus and cand_term_low not in existing_terms:
-                            card["term"] = cand_pool["term"]
-                            card["domain_or_thinker"] = cand_pool["domain_or_thinker"]
-                            card["definition"] = cand_pool["definition"]
-                            card["where_to_use"] = cand_pool["where_to_use"]
-                            card["how_to_use_one_line"] = cand_pool["how_to_use_one_line"]
-                            existing_terms.add(cand_term_low)
-                            replacement_found = True
-                            break
-                    if not replacement_found:
-                        card["domain_or_thinker"] = "⚡ Shallow Mention — Analytical Upgrade Needed"
-            elif wrote_num_without_kw:
-                card["domain_or_thinker"] = "Statement → Keyword Upgrade"
-                raw_def_clean = re.sub(r'^✓\s*You already wrote this data/concept[\s\S]*?\(\s*', '', str(card.get("definition") or ""), flags=re.I).rstrip(')').strip()
-                card["definition"] = f"✓ You already wrote this data/concept in your answer! Instead of writing a long descriptive statement, write the exact UPSC keyword **{raw_term}** in its place to save words and fetch instant marks. ({raw_def_clean})"
-                card["where_to_use"] = f"Replace your descriptive sentence with the exact keyword '{acr_m.group(1) if acr_m else raw_term}'."
+            # Question Fit: Suppress governance commission reports on non-governance topics
+            is_gov_report = any(gk in r_low for gk in ["2nd arc", "arc 4th", "second administrative", "law commission", "dinesh goswami", "tarkunde", "anoop baranwal", "sarkaria", "punchhi"])
+            if is_gov_report and not q_demands_gov:
+                continue
 
-            existing_terms.add(str(card.get("term") or "").lower())
-            card["number"] = idx + 1
+            # Answer Fit & Marginal Benefit: If already written AND praised in strengths, omit it
+            already_explained_well = any(m_low in s or (acr_low and acr_low in s) for s in strengths_list)
+            term_in_corpus = (acr_low and acr_low in positive_corpus) or (len(m_low) >= 5 and m_low in positive_corpus)
+            if term_in_corpus and already_explained_well:
+                # Omit completely per Rule 7 (do NOT replace with unrelated governance reports!)
+                continue
+
+            # If shallowly mentioned in corpus without adequate explanation, badge it as shallow mention
+            if term_in_corpus and not already_explained_well:
+                card["domain_or_thinker"] = "⚡ Shallow Mention — Analytical Upgrade Needed"
+                clean_def = re.sub(r'^(?:✓\s*[^:]*:\s*|.*?significance:\s*)', '', str(card.get("definition") or "")).strip()
+                clean_def = re.sub(r'\s*\([^)]*\)', '', clean_def).strip()
+                card["definition"] = f"You mentioned **{r_term}** in passing—substantiate its core analytical significance: {clean_def}"
+
+            seen_t.add(m_low)
+            if acr_low:
+                seen_t.add(acr_low)
+            sanitized_cards.append(card)
+
+        # Quota: 1 to 2 by default, max 3
+        data["missing_keywords_cards"] = sanitized_cards[:3]
+        for idx_c, card in enumerate(data["missing_keywords_cards"]):
+            card["number"] = idx_c + 1
 
     # Enrich GS-4 Case Study evaluation (decision making, character audit, and best alternative options)
     _enrich_case_study_audit(data)
