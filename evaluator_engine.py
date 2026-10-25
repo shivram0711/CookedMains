@@ -3056,7 +3056,7 @@ Generate strictly valid JSON matching this schema:
       "title": "Exact Lower-Page Sub-Heading / Arguments on Page 2",
       "what_you_wrote": "Verbatim quote of the candidate's points 3-4 on Page 2",
       "examiner_verdict": "Pinpoint where the point was generic and give the exact topper keyword/metric to add",
-      "credit_badge": "➔ +0.75M Scope",
+      "credit_badge": "✎ +0.75M Partial Credit",
       "is_positive": false
     }},
     {{
@@ -7365,7 +7365,7 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                 credit_badge = f"✓ +{aw:.1f}M अंक मिले" if is_pos else f"✎ +{aw:.1f}M सुधार का दायरा"
             else:
                 badge_loc = f"Page {p_num} • {short_tag}"
-                credit_badge = f"✓ +{aw:.1f}M Rewarded" if ratio >= 0.6 else (f"✓ +{aw:.1f}M Credit" if is_pos else f"➔ +{aw:.1f}M Scope")
+                credit_badge = f"✓ +{aw:.1f}M Rewarded" if ratio >= 0.6 else (f"✓ +{aw:.1f}M Credit" if is_pos else (f"✎ +{aw:.1f}M Partial Credit" if aw > 0 else "➔ Room to Upgrade"))
 
             qw = str(st.get("quoted_written", "")).strip()
             if not qw or _has_meta_placeholder(qw):
@@ -7436,7 +7436,7 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                 if is_hindi:
                     item["credit_badge"] = f"✓ +{aw:.1f}M अंक मिले" if is_pos else f"✎ +{aw:.1f}M सुधार का दायरा"
                 else:
-                    item["credit_badge"] = f"✓ +{aw:.1f}M Rewarded" if is_pos else f"➔ +{aw:.1f}M Scope"
+                    item["credit_badge"] = f"✓ +{aw:.1f}M Rewarded" if is_pos else (f"✎ +{aw:.1f}M Partial Credit" if aw > 0 else "➔ Room to Upgrade")
 
     # Ensure model answer adheres to strict word budget and adaptive synthesis
     _ensure_topper_model_answer_quality(data, max_marks=max_marks, is_hindi=is_hindi)

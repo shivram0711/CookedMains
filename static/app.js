@@ -5010,6 +5010,115 @@ function formatHighlightedText(text) {
   return s;
 }
 
+function formatEvaluatorCardParagraph(quotePrefix, whatYouWrote, verdict, isPositive) {
+  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(typeof state !== "undefined" ? state.currentEvaluation : null);
+  let cleanQuote = String(whatYouWrote || "").replace(/^["'“‘]+|["'”’]+$/g, "").trim();
+  let rawVerdict = String(verdict || "").trim();
+
+  if (rawVerdict.includes("—") || rawVerdict.includes("–")) {
+    const dashChar = rawVerdict.includes("—") ? "—" : "–";
+    const parts = rawVerdict.split(dashChar);
+    if (parts.length >= 2) {
+      const candidatePart = parts[0].replace(/\*\*[^*]+\*\*:\s*/i, "").trim();
+      if (!cleanQuote || candidatePart.startsWith("“") || candidatePart.startsWith('"')) {
+        cleanQuote = cleanQuote || candidatePart.replace(/^["'“‘]+|["'”’]+$/g, "").trim();
+        rawVerdict = parts.slice(1).join(dashChar).trim();
+      }
+    }
+  }
+
+  if (!rawVerdict) {
+    return `
+      <div class="text-[11.5px] text-slate-300 dark:text-slate-200 leading-snug">
+        <strong class="font-bold text-slate-100 dark:text-white uppercase tracking-wider text-[10.5px] opacity-90">${escapeHtml(quotePrefix)}:</strong> &ldquo;${escapeHtml(cleanQuote)}&rdquo;
+      </div>
+    `;
+  }
+
+  const protectedText = rawVerdict
+    .replace(/\b(e\.g|i\.e|etc|vs|dr|mr|mrs|prof|fig|no|p|pg|bis|ndma|niti)\./gi, "$1{{DOT}}")
+    .replace(/(\(\+[0-9.]+\s*M)\./gi, "$1{{DOT}}");
+
+  const rawSentences = protectedText.split(/(?<=[.?!।])\s+/);
+  const sentences = rawSentences.map(s => s.replace(/\{\{DOT\}\}/g, ".").trim()).filter(Boolean);
+
+  const feedbackKeywordsRegex = /\b(omit|omitted|missing|missed|gap|lacuna|require|requires|need|needs|needed|add|adding|include|including|incorporate|integrate|substantiate|substantiating|anchor|anchoring|cite|citing|correct|correcting|replace|replacing|however|instead|lacks|lacked|expand|expanding|strengthen|strengthening|recommend|recommended|upgrade|upgrading|advice|tip|ensure|avoid|always|budget|could have|should have|factual fix|limitation|limitations|unwritten|not attempted|slip|caution|weak|superficial|generic|incomplete|inaccurate)\b/i;
+  const hindiFeedbackRegex = /(सुझाव|कमी|सुधार|जोड़ें|समाहित|शामिल|उल्लेख नहीं|आवश्यकता|चाहिए|कमी रह गई|विस्तार करें|अधूरा|त्रुटि|दोष)/i;
+
+  const rewardKeywordsRegex = /\b(earns credit|earned credit|earns|awarded|rewarded|credit|relevant|synthesizes|synthesized|commendable|well-structured|sound|spot-on|good|strong|neat|accurately|addresses|addressed|aligns|matches the directive|matching the directive|substantiated demand|substantiates demand|effective|cogent|perspicacious|perceptive|lucid|comprehensive|analytical depth|balanced perspective)\b/i;
+  const hindiRewardRegex = /(सराहनीय|अंक मिले|सटीक|प्रभावी|उचित|प्रशंसा|संतुलित|उत्कृष्ट|पुष्ट किया)/i;
+
+  const rewardSentences = [];
+  const feedbackSentences = [];
+
+  sentences.forEach((sent, sIdx) => {
+    const isFeedback = feedbackKeywordsRegex.test(sent) || hindiFeedbackRegex.test(sent);
+    const isReward = rewardKeywordsRegex.test(sent) || hindiRewardRegex.test(sent);
+
+    if (isFeedback && !isReward) {
+      feedbackSentences.push(sent);
+    } else if (isReward && !isFeedback) {
+      rewardSentences.push(sent);
+    } else if (isFeedback && isReward) {
+      if (/^(omit|missing|however|instead|needs|requires|add|correct|replace|lacks|substantiate|anchor|cite)\b/i.test(sent)) {
+        feedbackSentences.push(sent);
+      } else {
+        rewardSentences.push(sent);
+      }
+    } else {
+      if (sIdx === 0 && isPositive !== false) {
+        rewardSentences.push(sent);
+      } else if (isPositive === false) {
+        feedbackSentences.push(sent);
+      } else {
+        rewardSentences.push(sent);
+      }
+    }
+  });
+
+  const formattedReward = rewardSentences.map(s => typeof formatHighlightedText === "function" ? formatHighlightedText(s) : escapeHtml(s)).join(" ");
+  const formattedFeedback = feedbackSentences.map(s => typeof formatHighlightedText === "function" ? formatHighlightedText(s) : escapeHtml(s)).join(" ");
+
+  let contentHtml = "";
+
+  if (cleanQuote) {
+    contentHtml += `
+      <div class="text-[11.5px] text-slate-300 dark:text-slate-200 leading-snug mb-1">
+        <strong class="font-bold text-slate-100 dark:text-white uppercase tracking-wider text-[10.5px] opacity-90">${escapeHtml(quotePrefix)}:</strong> <span class="italic text-slate-200 dark:text-slate-100">&ldquo;${escapeHtml(cleanQuote)}&rdquo;</span>
+      </div>
+    `;
+  }
+
+  if (formattedReward && formattedFeedback) {
+    contentHtml += `
+      <div class="pt-1 space-y-1.5 text-xs leading-relaxed font-sans">
+        <div class="text-emerald-700 dark:text-emerald-300 font-medium">
+          <span class="inline-flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold mr-1 text-[11px]">✓</span>${formattedReward}
+        </div>
+        <div class="text-amber-700 dark:text-amber-300 font-medium">
+          <span class="inline-flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold mr-1 text-[11px]">💡</span><strong class="text-amber-800 dark:text-amber-200 font-bold">${isHindi ? "सुधार का दायरा:" : "Examiner Feedback:"}</strong> ${formattedFeedback}
+        </div>
+      </div>
+    `;
+  } else if (formattedReward) {
+    contentHtml += `
+      <div class="pt-1 text-xs leading-relaxed font-sans text-emerald-700 dark:text-emerald-300 font-medium">
+        <span class="inline-flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold mr-1 text-[11px]">✓</span>${formattedReward}
+      </div>
+    `;
+  } else if (formattedFeedback) {
+    contentHtml += `
+      <div class="pt-1 text-xs leading-relaxed font-sans text-amber-700 dark:text-amber-300 font-medium">
+        <span class="inline-flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold mr-1 text-[11px]">💡</span><strong class="text-amber-800 dark:text-amber-200 font-bold">${isHindi ? "सुधार का दायरा:" : "Examiner Feedback:"}</strong> ${formattedFeedback}
+      </div>
+    `;
+  }
+
+  return contentHtml;
+}
+window.formatEvaluatorCardParagraph = formatEvaluatorCardParagraph;
+
+
 // Universal Viewport-Clamped Floating Tooltip Manager (#globalJargonPortal on document.body)
 // Guarantees that hover (*) glossary tooltips NEVER get clipped by overflow:hidden cards, margin columns, or screen edges
 (function initGlobalJargonPortal() {
@@ -9841,13 +9950,15 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
     } else {
       const ratio = maxVal > 0 ? (awardedVal / maxVal) : 0.5;
       if (isHindi) {
-        creditBadgeText = ratio >= 0.4 ? `✓ +${awardedVal.toFixed(1)}M अंक मिले` : `✎ +${awardedVal.toFixed(1)}M सुधार का दायरा`;
+        creditBadgeText = ratio >= 0.4 ? `✓ +${awardedVal.toFixed(1)}M अंक मिले` : (awardedVal > 0 ? `✎ +${awardedVal.toFixed(1)}M आंशिक अंक` : `➔ सुधार का दायरा`);
       } else {
-        creditBadgeText = ratio >= 0.6 ? `✓ +${awardedVal.toFixed(1)}M Rewarded` : (ratio >= 0.4 ? `✓ +${awardedVal.toFixed(1)}M Credit` : `➔ +${awardedVal.toFixed(1)}M Scope`);
+        creditBadgeText = ratio >= 0.6 ? `✓ +${awardedVal.toFixed(1)}M Rewarded` : (ratio >= 0.4 ? `✓ +${awardedVal.toFixed(1)}M Credit` : (awardedVal > 0 ? `✎ +${awardedVal.toFixed(1)}M Partial Credit` : `➔ Room to Upgrade`));
       }
     }
 
-    const badgeStyle = isPositive
+    creditBadgeText = String(creditBadgeText || "").replace(/➔?\s*\+?([0-9.]+\s*M)\s*Scope/i, "✎ +$1 Partial Credit");
+    const isPartialCredit = /Partial/i.test(creditBadgeText) || /आंशिक/i.test(creditBadgeText);
+    const badgeStyle = (isPositive && !isPartialCredit)
       ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
       : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30";
 
@@ -9909,9 +10020,7 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
       <div class="w-full text-xs font-extrabold text-slate-900 dark:text-slate-100 leading-snug break-words">
         ${escapeHtml(headingTitle)}
       </div>
-      <p class="w-full text-xs text-slate-700 dark:text-slate-300 leading-relaxed break-words font-sans">
-        <strong class="text-slate-900 dark:text-white">${quotePrefix}:</strong> &ldquo;${escapeHtml(whatYouWrote)}&rdquo; &mdash; ${typeof formatHighlightedText === "function" ? formatHighlightedText(verdict) : escapeHtml(verdict)}
-      </p>
+      ${formatEvaluatorCardParagraph(quotePrefix, whatYouWrote, verdict, isPositive)}
     `;
 
     card.addEventListener("mouseenter", () => {
@@ -10088,7 +10197,7 @@ window.renderMobileDrawerPoint = function(index) {
     if (isHindi) {
       creditBadgeText = ratio >= 0.4 ? `✓ +${awardedVal.toFixed(1)}M अंक मिले` : `✎ +${awardedVal.toFixed(1)}M सुधार का दायरा`;
     } else {
-      creditBadgeText = ratio >= 0.6 ? `✓ +${awardedVal.toFixed(1)}M Rewarded` : (ratio >= 0.4 ? `✓ +${awardedVal.toFixed(1)}M Credit` : `➔ +${awardedVal.toFixed(1)}M Scope`);
+      creditBadgeText = ratio >= 0.6 ? `✓ +${awardedVal.toFixed(1)}M Rewarded` : (ratio >= 0.4 ? `✓ +${awardedVal.toFixed(1)}M Credit` : (awardedVal > 0 ? `✎ +${awardedVal.toFixed(1)}M Partial Credit` : `➔ Room to Upgrade`));
     }
   }
 
@@ -10105,6 +10214,8 @@ window.renderMobileDrawerPoint = function(index) {
     headingTitle = String(sec.title || "").replace(/^(?:BODY|PART\s*[A-Z]|मुख्य\s*भाग)[:\s-]*/i, "").trim();
   }
 
+  creditBadgeText = String(creditBadgeText || "").replace(/➔?\s*\+?([0-9.]+\s*M)\s*Scope/i, "✎ +$1 Partial Credit");
+  const isPartialCredit = /Partial/i.test(creditBadgeText) || /आंशिक/i.test(creditBadgeText);
   const audit = sec._quoteAudit || (typeof getCardQuoteAndElevate === "function" ? getCardQuoteAndElevate(sec, null) : {});
   let whatYouWrote = (matchedPbp && matchedPbp.what_you_wrote && !window.isMetaPlaceholderText(matchedPbp.what_you_wrote))
     ? matchedPbp.what_you_wrote
@@ -10141,9 +10252,7 @@ window.renderMobileDrawerPoint = function(index) {
       <div class="text-xs font-extrabold text-slate-900 dark:text-white leading-snug break-words">
         ${escapeHtml(headingTitle)}
       </div>
-      <p class="text-[11.5px] text-slate-700 dark:text-slate-300 leading-relaxed font-sans break-words">
-        <strong class="text-slate-900 dark:text-white">${quotePrefix}:</strong> "${escapeHtml(whatYouWrote)}" &mdash; ${typeof formatHighlightedText === "function" ? formatHighlightedText(verdict) : escapeHtml(verdict)}
-      </p>
+      ${formatEvaluatorCardParagraph(quotePrefix, whatYouWrote, verdict, isPositive)}
     </div>
   `;
 
@@ -14225,7 +14334,7 @@ function renderBatch1ExaminerMastery(evalData) {
         if (isHindi) {
           creditBadge = isPos ? `✓ +${sc.toFixed(1)}M अंक मिले` : `✎ +${sc.toFixed(1)}M सुधार का दायरा`;
         } else {
-          creditBadge = isPos ? `✓ +${sc.toFixed(1)}M Credit` : `➔ +${sc.toFixed(1)}M Scope`;
+          creditBadge = isPos ? `✓ +${sc.toFixed(1)}M Credit` : `✎ +${sc.toFixed(1)}M Partial Credit`;
         }
       }
 
@@ -14298,7 +14407,7 @@ function renderBatch1ExaminerMastery(evalData) {
         page: pgNum,
         loc: isHindi ? `पृष्ठ ${pgNum} • सुधार बिंदु #${idx + 1}` : `Page ${pgNum} • Upgrade Lever #${idx + 1}`,
         pointTitle,
-        badge: isHindi ? `✎ +${sc.toFixed(1)}M सुधार का दायरा` : `➔ +${sc.toFixed(1)}M Scope`,
+        badge: isHindi ? `✎ +${sc.toFixed(1)}M आंशिक अंक` : `✎ +${sc.toFixed(1)}M Partial Credit`,
         isPositive: false,
         detail: cleanG
       });
