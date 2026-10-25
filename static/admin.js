@@ -1056,65 +1056,122 @@ async function inspectCopy(evalId) {
       <p class="text-xs text-slate-200 leading-relaxed">${escapeHtml(execSummary)}</p>
     `;
 
-    // 3. Step Marking & Marks Arithmetic (New!)
+    // 3. Step Marking & Marks Arithmetic (Supports GS sub-parts & UPSC Essay Dimensions)
     const stepMarkingEl = document.getElementById("inspectStepMarking");
     if (stepMarkingEl) {
-      const steps = ev.sub_part_step_marking || ev.subpart_marks_breakdown || [];
-      if (steps.length > 0) {
-        stepMarkingEl.innerHTML = steps.map((s, idx) => {
-          const label = s.step_label || s.part_name || `Sub-Part ${idx + 1}`;
-          const subHeading = s.sub_heading || s.analysis || "";
-          const awarded = s.awarded !== undefined ? s.awarded : (s.marks_awarded !== undefined ? s.marks_awarded : 0);
-          const max = s.max !== undefined ? s.max : (s.max_marks !== undefined ? s.max_marks : 0);
-          const status = s.demand_status || "";
-          const quote = s.quoted_written || "";
-          return `
-            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
-              <div class="flex items-center justify-between gap-2">
-                <span class="font-bold text-amber-300">${escapeHtml(label)}</span>
-                <span class="font-mono font-extrabold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 text-[11px] shrink-0">
-                  +${Number(awarded).toFixed(1)} / ${Number(max).toFixed(1)}M
-                </span>
+      if (ev.evaluation_dimensions && ev.evaluation_dimensions.length > 0) {
+        stepMarkingEl.innerHTML = `
+          <div class="mb-2 text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center justify-between">
+            <span>UPSC Essay 5-Pillar Rubric Breakdown</span>
+            <span class="text-[10px] text-amber-400/80 font-mono">Total: ${maxMarks}M</span>
+          </div>
+          <div class="space-y-2">
+            ${ev.evaluation_dimensions.map(d => `
+              <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-bold text-amber-300 text-xs">${escapeHtml(d.name || d.dimension_id)}</span>
+                  <span class="font-mono font-extrabold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 text-[11px] shrink-0">
+                    +${Number(d.awarded_marks || 0).toFixed(1)} / ${Number(d.max_marks || 0).toFixed(1)}M
+                  </span>
+                </div>
+                ${d.status ? `<span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono font-bold">${escapeHtml(d.status)}</span>` : ""}
+                ${d.feedback ? `<p class="text-[11px] text-slate-300 mt-1 leading-relaxed">${escapeHtml(d.feedback)}</p>` : ""}
               </div>
-              ${subHeading ? `<p class="text-[11px] text-slate-300">${escapeHtml(subHeading)}</p>` : ""}
-              ${status ? `<span class="inline-block text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-mono">${escapeHtml(status)}</span>` : ""}
-              ${quote ? `<p class="text-[10.5px] text-slate-400 italic bg-slate-950 p-1.5 rounded border border-slate-800/80">"${escapeHtml(quote)}"</p>` : ""}
-            </div>
-          `;
-        }).join("");
+            `).join("")}
+          </div>
+        `;
       } else {
-        stepMarkingEl.innerHTML = `<p class="text-slate-500 text-xs">No sub-part breakdown recorded.</p>`;
+        const steps = ev.sub_part_step_marking || ev.subpart_marks_breakdown || [];
+        if (steps.length > 0) {
+          stepMarkingEl.innerHTML = steps.map((s, idx) => {
+            const label = s.step_label || s.part_name || `Sub-Part ${idx + 1}`;
+            const subHeading = s.sub_heading || s.analysis || "";
+            const awarded = s.awarded !== undefined ? s.awarded : (s.marks_awarded !== undefined ? s.marks_awarded : 0);
+            const max = s.max !== undefined ? s.max : (s.max_marks !== undefined ? s.max_marks : 0);
+            const status = s.demand_status || "";
+            const quote = s.quoted_written || "";
+            return `
+              <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-bold text-amber-300">${escapeHtml(label)}</span>
+                  <span class="font-mono font-extrabold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 text-[11px] shrink-0">
+                    +${Number(awarded).toFixed(1)} / ${Number(max).toFixed(1)}M
+                  </span>
+                </div>
+                ${subHeading ? `<p class="text-[11px] text-slate-300">${escapeHtml(subHeading)}</p>` : ""}
+                ${status ? `<span class="inline-block text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-mono">${escapeHtml(status)}</span>` : ""}
+                ${quote ? `<p class="text-[10.5px] text-slate-400 italic bg-slate-950 p-1.5 rounded border border-slate-800/80">"${escapeHtml(quote)}"</p>` : ""}
+              </div>
+            `;
+          }).join("");
+        } else {
+          stepMarkingEl.innerHTML = `<p class="text-slate-500 text-xs">No sub-part breakdown recorded.</p>`;
+        }
       }
     }
 
-    // 4. Point-by-Point Handwritten Audit (New!)
+    // 4. Point-by-Point Handwritten Audit (Supports Essay Argument Flow & GS Audits)
     const pbpContainer = document.getElementById("inspectPointByPointAudit");
     if (pbpContainer) {
-      const pbp = ev.point_by_point_audit || [];
-      if (pbp.length > 0) {
-        pbpContainer.innerHTML = pbp.map((p, idx) => `
-          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
-            <div class="flex items-center justify-between gap-2">
-              <span class="px-2 py-0.5 rounded bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 font-bold font-mono text-[10.5px]">
-                ${escapeHtml(p.badge || `Page ${p.page || idx + 1}`)}
-              </span>
-              ${p.credit_badge ? `<span class="text-[11px] font-extrabold text-emerald-400">${escapeHtml(p.credit_badge)}</span>` : ""}
-            </div>
-            <div class="text-xs font-bold text-white">${escapeHtml(p.title || `Section ${idx + 1}`)}</div>
-            ${p.what_you_wrote ? `
-              <div class="text-[11px] text-slate-300 bg-slate-950 p-2 rounded-lg border border-slate-800">
-                <span class="text-amber-400 font-semibold">Candidate wrote:</span> &ldquo;${escapeHtml(p.what_you_wrote)}&rdquo;
+      if (ev.argument_journey && ev.argument_journey.length > 0) {
+        pbpContainer.innerHTML = `
+          <div class="mb-2 text-[11px] font-bold text-indigo-400 uppercase tracking-wider">Essay Argument Journey & Flow</div>
+          <div class="space-y-2">
+            ${ev.argument_journey.map((st, idx) => `
+              <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="px-2 py-0.5 rounded bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 font-bold font-mono text-[10.5px]">
+                    ${escapeHtml(st.page_role || `Stage ${idx + 1}`)}
+                  </span>
+                  ${st.status_label ? `<span class="text-[11px] font-bold text-amber-400 font-mono">${escapeHtml(st.status_label)}</span>` : ""}
+                </div>
+                <div class="text-xs font-bold text-white">${escapeHtml(st.stage_title || `Stage ${idx + 1}`)}</div>
+                ${st.concise_summary ? `
+                  <div class="text-[11px] text-slate-300 leading-relaxed">
+                    <span class="text-amber-400 font-semibold">Summary:</span> ${escapeHtml(st.concise_summary)}
+                  </div>
+                ` : ""}
+                ${st.verbatim_quote && st.verbatim_quote !== "..." ? `
+                  <div class="text-[10.5px] text-slate-400 italic bg-slate-950 p-2 rounded border border-slate-800">
+                    &ldquo;${escapeHtml(st.verbatim_quote)}&rdquo;
+                  </div>
+                ` : ""}
+                ${st.transition_or_gap ? `
+                  <div class="text-[10.5px] text-slate-400">
+                    <span class="text-rose-400 font-semibold">Transition/Gap:</span> ${escapeHtml(st.transition_or_gap)}
+                  </div>
+                ` : ""}
               </div>
-            ` : ""}
-            ${p.examiner_verdict ? `
-              <div class="text-[11px] text-slate-300 leading-relaxed">
-                <span class="text-emerald-400 font-semibold">Examiner Feedback:</span> ${escapeHtml(p.examiner_verdict)}
-              </div>
-            ` : ""}
+            `).join("")}
           </div>
-        `).join("");
+        `;
       } else {
-        pbpContainer.innerHTML = `<p class="text-slate-500 text-xs">No point-by-point audit recorded.</p>`;
+        const pbp = ev.point_by_point_audit || [];
+        if (pbp.length > 0) {
+          pbpContainer.innerHTML = pbp.map((p, idx) => `
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="px-2 py-0.5 rounded bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 font-bold font-mono text-[10.5px]">
+                  ${escapeHtml(p.badge || `Page ${p.page || idx + 1}`)}
+                </span>
+                ${p.credit_badge ? `<span class="text-[11px] font-extrabold text-emerald-400">${escapeHtml(p.credit_badge)}</span>` : ""}
+              </div>
+              <div class="text-xs font-bold text-white">${escapeHtml(p.title || `Section ${idx + 1}`)}</div>
+              ${p.what_you_wrote ? `
+                <div class="text-[11px] text-slate-300 bg-slate-950 p-2 rounded-lg border border-slate-800">
+                  <span class="text-amber-400 font-semibold">Candidate wrote:</span> &ldquo;${escapeHtml(p.what_you_wrote)}&rdquo;
+                </div>
+              ` : ""}
+              ${p.examiner_verdict ? `
+                <div class="text-[11px] text-slate-300 leading-relaxed">
+                  <span class="text-emerald-400 font-semibold">Examiner Feedback:</span> ${escapeHtml(p.examiner_verdict)}
+                </div>
+              ` : ""}
+            </div>
+          `).join("");
+        } else {
+          pbpContainer.innerHTML = `<p class="text-slate-500 text-xs">No point-by-point audit recorded.</p>`;
+        }
       }
     }
 
@@ -1161,12 +1218,32 @@ async function inspectCopy(evalId) {
       ? `<ul class="space-y-1.5">${strengthsHtml}${gapsHtml}${dimsHtml}</ul>`
       : `<p class="text-slate-500 text-xs">No specific strengths/gaps recorded.</p>`;
 
-    // 7. Rubric Scores Breakdown (New!)
+    // 7. Rubric Scores Breakdown (Supports GS Rubrics & Essay Intro/Body/Conclusion Audits)
     const rubricEl = document.getElementById("inspectRubricScores");
     if (rubricEl) {
       const rub = ev.rubric_scores || {};
       const rubKeys = Object.keys(rub);
-      if (rubKeys.length > 0) {
+      const introA = ev.intro_audit;
+      const bodyA = ev.body_audit;
+      const concA = ev.conclusion_audit;
+      if (introA || bodyA || concA) {
+        rubricEl.innerHTML = `
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center font-mono">
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
+              <span class="text-[10px] text-slate-400 block uppercase font-bold">Intro (${escapeHtml(introA?.intro_archetype || "Hook")})</span>
+              <span class="text-sm font-bold text-amber-300">${introA?.intro_score ?? 0} / ${introA?.intro_max ?? 20}M</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
+              <span class="text-[10px] text-slate-400 block uppercase font-bold">Essay Body &amp; Argument Depth</span>
+              <span class="text-sm font-bold text-amber-300">${bodyA?.body_score ?? 0} / ${bodyA?.body_max ?? 90}M</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
+              <span class="text-[10px] text-slate-400 block uppercase font-bold">Conclusion (${escapeHtml(concA?.conclusion_archetype || "Synthesis")})</span>
+              <span class="text-sm font-bold text-amber-300">${concA?.conclusion_score ?? 0} / ${concA?.conclusion_max ?? 15}M</span>
+            </div>
+          </div>
+        `;
+      } else if (rubKeys.length > 0) {
         rubricEl.innerHTML = `
           <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center font-mono">
             <div class="p-2 rounded bg-slate-900 border border-slate-800">
