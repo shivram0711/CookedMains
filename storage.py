@@ -8,6 +8,9 @@ import io
 import gc
 import copy
 import time
+import logging
+
+logger = logging.getLogger("storage")
 from datetime import datetime, timezone, timedelta
 import tempfile
 from typing import Optional, Dict, Any, List, Tuple, Set, Union

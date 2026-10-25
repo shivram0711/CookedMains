@@ -28,7 +28,7 @@ import time
 import hashlib
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Any, Dict, Tuple, Set, Union
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request, BackgroundTasks, Response
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request, BackgroundTasks, Response, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 import base64
@@ -249,6 +249,29 @@ async def trigger_supabase_keepalive():
     """On-demand endpoint to immediately wake/ping Supabase database & storage."""
     res = await asyncio.to_thread(_execute_supabase_activity_ping)
     return {"status": "ok", "supabase_keepalive": res}
+
+
+def get_master_admin_password() -> str:
+    from storage import get_admin_setting
+    return os.environ.get("ADMIN_PASSWORD") or get_admin_setting("admin_pin", "Admin@MainsMentor2026")
+
+async def verify_admin_token(request: Request):
+    auth_header = request.headers.get("Authorization", "")
+    token = ""
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:].strip()
+    elif "admin_token" in request.cookies:
+        token = request.cookies.get("admin_token", "").strip()
+    elif "token" in request.query_params:
+        token = request.query_params.get("token", "").strip()
+    x_token = request.headers.get("X-Admin-Token", "").strip()
+    
+    master_pin = get_master_admin_password()
+    expected_token = hashlib.sha256(f"mainsmentor_admin_{master_pin}".encode()).hexdigest()
+    
+    if (token and (token == expected_token or token == master_pin)) or (x_token and (x_token == expected_token or x_token == master_pin)):
+        return True
+    raise HTTPException(status_code=401, detail="Unauthorized admin access.")
 
 @app.get("/api/admin/eval-trace")
 async def get_eval_trace(auth: bool = Depends(verify_admin_token)):
