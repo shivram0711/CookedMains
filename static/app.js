@@ -15434,6 +15434,8 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
   if (hiddenPre) hiddenPre.textContent = fullText || "";
   if (!container) return;
 
+  const isHindi = (state.evaluationLanguage === "hindi" || /[\u0900-\u097F]/.test(fullText || ""));
+
   if (!fullText) {
     container.innerHTML = `
       <div class="p-8 text-center rounded-2xl border border-dashed border-slate-700/80 bg-slate-900/40 my-3 space-y-2.5">
@@ -15464,7 +15466,6 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
     .trim();
   const wordCount = cleanForCount ? cleanForCount.split(/\s+/).filter(Boolean).length : 0;
 
-  const isHindi = (state.evaluationLanguage === "hindi" || /[\u0900-\u097F]/.test(fullText));
   const evalData = state.currentEvaluation || {};
   const meta = evalData.model_answer_meta || {};
   const isAdaptive = (meta.is_adaptive !== undefined)
