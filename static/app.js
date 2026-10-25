@@ -13720,26 +13720,66 @@ function renderEvaluation(evalData) {
       }
     }
 
-    const diagProfile = window.computeDiagramRelevanceProfile(evalData);
-    const caDiagTitle = document.getElementById("caDiagramTitle");
-    const caDiagStructure = document.getElementById("caDiagramStructure");
-    const caDiagTip = document.getElementById("caDiagramTip");
-    const diagHeadingLabel = document.getElementById("diagramCardHeadingLabel");
+    // Dynamic Diagram & Space Audit Rendering
+    const diagRec = (caData && caData.diagram_recommendation) || (evalData && evalData.diagram_recommendation) || {};
+    const diagTitleEl = document.getElementById("caDiagramTitle");
     const diagBadge = document.getElementById("diagramRelevanceBadge");
-    const diagAdviceBox = document.getElementById("diagramSpaceAdviceBox");
+    const diagHeadingLabel = document.getElementById("diagramCardHeadingLabel");
+    const diagPreviewSection = document.getElementById("diagramPreviewSection");
+    const diagPreviewContainer = document.getElementById("diagramPreviewContainer");
+    const diagNotRecBox = document.getElementById("diagramNotRecommendedBox");
+    const diagNotRecReason = document.getElementById("diagramNotRecReason");
+    const diagWhyText = document.getElementById("diagramWhyText");
+    const diagDrawTipText = document.getElementById("diagramDrawTipText");
+    const diagPlacementText = document.getElementById("diagramPlacementText");
 
-    if (diagHeadingLabel) diagHeadingLabel.textContent = diagProfile.headingLabel;
+    const isRec = diagRec.is_recommended !== false && (
+      (Array.isArray(diagRec.nodes) && diagRec.nodes.length > 0) ||
+      (Array.isArray(diagRec.comparison_columns) && diagRec.comparison_columns.length > 0) ||
+      Boolean(diagRec.title)
+    );
+
+    if (diagHeadingLabel) {
+      diagHeadingLabel.textContent = isHindi ? "परीक्षा-कक्ष आरेख एवं स्थान प्रबंधन:" : "Exam-Hall Diagram & Space Audit:";
+    }
+    if (diagTitleEl) {
+      diagTitleEl.textContent = isRec ? (diagRec.title || (isHindi ? "परीक्षा-कक्ष दृश्य प्रारूप" : "Exam-Hall Visual Blueprint")) : "";
+    }
+
     if (diagBadge) {
-      diagBadge.textContent = diagProfile.badgeText;
-      diagBadge.className = diagProfile.badgeClass;
+      if (isRec) {
+        diagBadge.textContent = isHindi ? "दृश्य मान-संवर्धन अनुशंसित" : "Visual Value-Add";
+        diagBadge.className = "text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
+      } else {
+        diagBadge.textContent = isHindi ? "आरेख अनुशंसित नहीं (स्थान बचाएं)" : "Visual Not Recommended";
+        diagBadge.className = "text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
+      }
     }
-    if (diagAdviceBox) {
-      diagAdviceBox.innerHTML = `<strong class="font-extrabold text-slate-900 dark:text-white">${diagProfile.adviceTitle}:</strong> ${diagProfile.spaceAdvice}`;
-      diagAdviceBox.className = diagProfile.adviceBoxClass;
+
+    if (isRec) {
+      if (diagPreviewSection) diagPreviewSection.classList.remove("hidden");
+      if (diagNotRecBox) diagNotRecBox.classList.add("hidden");
+      if (diagPreviewContainer && typeof window.renderDiagramPreview === "function") {
+        window.renderDiagramPreview(diagPreviewContainer, diagRec, isHindi);
+      }
+      if (diagWhyText) {
+        diagWhyText.textContent = diagRec.why_it_helps || (isHindi ? "यह प्रश्न की मुख्य मांग को दृश्य रूप से स्पष्ट करता है।" : "Directly clarifies the core causal stages demanded by the question.");
+      }
+      if (diagDrawTipText) {
+        diagDrawTipText.textContent = diagRec.exam_sketch_tip || (isHindi ? "45 सेकंड में 3 बॉक्स बनाकर तीरों से जोड़ें।" : "Draw 3 simple boxes linked by arrows in ~45 seconds.");
+      }
+      if (diagPlacementText) {
+        diagPlacementText.textContent = diagRec.placement || (isHindi ? "पृष्ठ 1 • मुख्य कारण-प्रभाव पैराग्राफ के साथ" : "Page 1 • Beside your core causal mechanism paragraph");
+      }
+    } else {
+      if (diagPreviewSection) diagPreviewSection.classList.add("hidden");
+      if (diagNotRecBox) diagNotRecBox.classList.remove("hidden");
+      if (diagNotRecReason) {
+        diagNotRecReason.textContent = diagRec.not_recommended_reason || (isHindi
+          ? "यह प्रश्न सघन सैद्धांतिक विश्लेषण की मांग करता है। यहाँ कृत्रिम बॉक्स आरेख के स्थान पर स्पष्ट उप-शीर्षकों एवं रेखांकित प्रावधानों पर ध्यान केंद्रित करना अधिक फलदायी है।"
+          : "This topic demands dense doctrinal argumentation and textual precision; an artificial box diagram would displace necessary substantiated points.");
+      }
     }
-    if (caDiagTitle) caDiagTitle.textContent = diagProfile.conceptTitle;
-    if (caDiagStructure) caDiagStructure.textContent = diagProfile.structureText;
-    if (caDiagTip) caDiagTip.textContent = `★ ${diagProfile.sketchTip}`;
   } else if (caCard) {
     caCard.classList.add("hidden");
   }
@@ -13785,11 +13825,10 @@ function renderEvaluation(evalData) {
     verdictLabel.textContent = `Total: ${evalData.overall_score.toFixed(1)} / ${mm}`;
   }
 
-  // Visual Flowchart Container (Dynamic Space-Aware Rendering)
+  // Legacy Visual Flowchart Container fallback
   const flowEl = document.getElementById("visualFlowchartContainer");
   if (flowEl) {
-    const diagProfile = window.computeDiagramRelevanceProfile(evalData);
-    flowEl.textContent = diagProfile.visualBlueprint;
+    flowEl.textContent = "";
   }
 
   // Show 24-Hour Free Rewrite Challenge Card or Completed Card
@@ -15365,6 +15404,192 @@ function renderValueAddCategories(vaData, paper, question, seenPhrasesSet, keywo
 }
 
 // Dynamic Diagram Relevance & Exam-Hall Space-Management Engine
+
+// ============================================================================
+// Rendered Diagram Preview Generator (Responsive DOM/SVG Visuals)
+// ============================================================================
+window.renderDiagramPreview = function(container, diagData, isHindi) {
+  if (!container || !diagData) return;
+  const diagType = String(diagData.diagram_type || "process").toLowerCase();
+  const nodes = Array.isArray(diagData.nodes) ? diagData.nodes : [];
+  const compCols = Array.isArray(diagData.comparison_columns) ? diagData.comparison_columns : [];
+
+  let html = "";
+
+  // 1. COMPARISON LAYOUT (Two side-by-side comparative column cards)
+  if (diagType === "comparison" && compCols.length >= 2) {
+    html = `
+      <div class="space-y-2.5">
+        <div class="flex items-center justify-between px-0.5">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+            ${isHindi ? "तुलनात्मक विश्लेषण प्रारूप (2-स्तंभ तालिका)" : "Comparative Dimension Matrix (2-Column Exam Blueprint)"}
+          </span>
+          <span class="text-[9.5px] font-semibold text-slate-400 dark:text-slate-500">${isHindi ? "35 सेकंड में बनाएं" : "Draw in ~35s"}</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          ${compCols.slice(0, 2).map((col, cIdx) => `
+            <div class="p-3.5 rounded-xl ${cIdx === 0 ? 'bg-amber-50/60 dark:bg-amber-950/25 border-amber-200/90 dark:border-amber-500/30' : 'bg-sky-50/60 dark:bg-sky-950/25 border-sky-200/90 dark:border-sky-500/30'} border flex flex-col justify-between space-y-2.5 shadow-2xs">
+              <div class="flex items-center justify-between pb-2 border-b ${cIdx === 0 ? 'border-amber-200 dark:border-amber-500/30' : 'border-sky-200 dark:border-sky-500/30'}">
+                <span class="text-xs font-bold ${cIdx === 0 ? 'text-amber-950 dark:text-amber-200' : 'text-sky-950 dark:text-sky-200'}">${escapeHtml(col.header || (isHindi ? "आयाम " + (cIdx+1) : "Dimension " + (cIdx+1)))}</span>
+                <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full ${cIdx === 0 ? 'bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30' : 'bg-sky-500/20 text-sky-800 dark:text-sky-300 border border-sky-500/30'}">
+                  ${cIdx === 0 ? (isHindi ? "स्तंभ क" : "Column A") : (isHindi ? "स्तंभ ख" : "Column B")}
+                </span>
+              </div>
+              <ul class="space-y-2 text-[11px] leading-relaxed text-slate-700 dark:text-slate-300">
+                ${(col.points || []).map(pt => `
+                  <li class="flex items-start gap-2">
+                    <span class="${cIdx === 0 ? 'text-amber-600 dark:text-amber-400' : 'text-sky-600 dark:text-sky-400'} font-bold shrink-0 mt-0.5">▪</span>
+                    <span class="font-medium">${escapeHtml(pt)}</span>
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  // 2. CYCLE LAYOUT (Connected loop with feedback indicators)
+  else if (diagType === "cycle" && nodes.length >= 3) {
+    html = `
+      <div class="space-y-2.5">
+        <div class="flex items-center justify-between px-0.5">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+            ${isHindi ? "चक्रीय प्रतिपुष्टि प्रवाह" : "Closed-Loop Feedback Cycle"}
+          </span>
+          <span class="text-[9.5px] font-semibold text-slate-400 dark:text-slate-500">${nodes.length} Stages • ${isHindi ? "चक्रीय आरेख" : "Circular Flow"}</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-${Math.min(nodes.length, 4)} gap-2.5">
+          ${nodes.map((n, idx) => `
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 shadow-2xs flex flex-col justify-between relative overflow-hidden">
+              <div class="absolute -right-2 -bottom-2 text-slate-200/40 dark:text-slate-700/20 font-black text-4xl select-none pointer-events-none">${idx + 1}</div>
+              <div>
+                <div class="flex items-center justify-between gap-1 mb-1.5">
+                  <span class="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">${escapeHtml(n.badge || ('Stage ' + (idx + 1)))}</span>
+                  <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500">➔ ${(idx + 1) % nodes.length + 1}</span>
+                </div>
+                <h5 class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-snug">${escapeHtml(n.label || '')}</h5>
+              </div>
+              ${n.subtext ? `<p class="text-[10.5px] text-slate-600 dark:text-slate-300 leading-snug mt-1.5 relative z-10">${escapeHtml(n.subtext)}</p>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  // 3. TIMELINE LAYOUT (Chronological milestone progression)
+  else if (diagType === "timeline" && nodes.length >= 2) {
+    html = `
+      <div class="space-y-2.5">
+        <div class="flex items-center justify-between px-0.5">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-sky-700 dark:text-sky-400 flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            ${isHindi ? "कालानुक्रमिक विकास क्रम" : "Chronological Evolution Timeline"}
+          </span>
+          <span class="text-[9.5px] font-semibold text-slate-400 dark:text-slate-500">${nodes.length} Milestones</span>
+        </div>
+        <div class="relative pl-6 sm:pl-0 sm:grid sm:grid-cols-${Math.min(nodes.length, 4)} sm:gap-2.5 space-y-3 sm:space-y-0">
+          <div class="sm:hidden absolute left-2.5 top-2 bottom-2 w-0.5 bg-sky-200 dark:bg-sky-800"></div>
+          ${nodes.map((n, idx) => `
+            <div class="relative p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 shadow-2xs flex flex-col justify-between">
+              <div class="sm:hidden absolute -left-5 top-3.5 w-3 h-3 rounded-full bg-sky-500 border-2 border-white dark:border-slate-900"></div>
+              <div>
+                <div class="flex items-center justify-between gap-1 mb-1.5">
+                  <span class="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30">${escapeHtml(n.badge || ('Phase ' + (idx + 1)))}</span>
+                  <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500">M${idx + 1}</span>
+                </div>
+                <h5 class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-snug">${escapeHtml(n.label || '')}</h5>
+              </div>
+              ${n.subtext ? `<p class="text-[10.5px] text-slate-600 dark:text-slate-300 leading-snug mt-1.5">${escapeHtml(n.subtext)}</p>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  // 4. HIERARCHY / SYSTEM TIER LAYOUT
+  else if (diagType === "hierarchy" && nodes.length >= 2) {
+    html = `
+      <div class="space-y-2.5">
+        <div class="flex items-center justify-between px-0.5">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+            ${isHindi ? "स्तरीकृत संस्थागत / संरचनात्मक ढाँचा" : "Tiered Governance / Institutional Hierarchy"}
+          </span>
+          <span class="text-[9.5px] font-semibold text-slate-400 dark:text-slate-500">${nodes.length} Tiers</span>
+        </div>
+        <div class="space-y-2">
+          ${nodes.map((n, idx) => `
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5">
+              <div class="flex items-center gap-2">
+                <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 shrink-0">Tier ${idx + 1}</span>
+                <h5 class="text-xs font-bold text-slate-900 dark:text-slate-100">${escapeHtml(n.label || '')}</h5>
+              </div>
+              ${n.subtext ? `<p class="text-[10.5px] text-slate-600 dark:text-slate-300 sm:text-right font-medium">${escapeHtml(n.subtext)}</p>` : ''}
+            </div>
+            ${idx < nodes.length - 1 ? `
+              <div class="flex justify-center text-indigo-400 dark:text-indigo-500 my-0.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"/></svg>
+              </div>
+            ` : ''}
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  // 5. PROCESS / FLOW LAYOUT (Default: Horizontal sequential flow cards with SVG chevrons)
+  else {
+    const displayNodes = nodes.length > 0 ? nodes : [
+      { step: 1, label: "Foundational Driver", subtext: "Initial causal trigger or mandate", badge: "Trigger" },
+      { step: 2, label: "Core Mechanism", subtext: "Structural transmission channel", badge: "Mechanism" },
+      { step: 3, label: "Measurable Impact", subtext: "Tangible outcome on target outcome", badge: "Outcome" }
+    ];
+
+    html = `
+      <div class="space-y-2.5">
+        <div class="flex items-center justify-between px-0.5">
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+            ${isHindi ? "कारण-प्रभाव एवं क्रियाविधि प्रवाह" : "Causal Mechanism & Process Sequence"}
+          </span>
+          <span class="text-[9.5px] font-semibold text-slate-400 dark:text-slate-500">${displayNodes.length} Stages • ${isHindi ? "45 सेकंड आरेख" : "45s Flow"}</span>
+        </div>
+        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 md:gap-1.5">
+          ${displayNodes.map((n, idx) => `
+            <div class="flex-1 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 shadow-2xs flex flex-col justify-between space-y-1.5">
+              <div>
+                <div class="flex items-center justify-between gap-1 mb-1">
+                  <span class="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">${escapeHtml(n.badge || ('Stage ' + (idx + 1)))}</span>
+                  <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500">#${idx + 1}</span>
+                </div>
+                <h5 class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-snug">${escapeHtml(n.label || '')}</h5>
+              </div>
+              ${n.subtext ? `<p class="text-[10.5px] text-slate-600 dark:text-slate-300 leading-snug pt-0.5">${escapeHtml(n.subtext)}</p>` : ''}
+            </div>
+            ${idx < displayNodes.length - 1 ? `
+              <!-- Desktop Right Arrow -->
+              <div class="hidden md:flex items-center justify-center shrink-0 text-amber-500 dark:text-amber-400 px-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+              </div>
+              <!-- Mobile Down Arrow -->
+              <div class="flex md:hidden items-center justify-center py-0.5 text-amber-500 dark:text-amber-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"/></svg>
+              </div>
+            ` : ''}
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+  if (window.lucide) {
+    try { window.lucide.createIcons({ root: container }); } catch (e) {}
+  }
+};
+
 window.computeDiagramRelevanceProfile = function(evalData) {
   const data = evalData || state.currentEvaluation || {};
   const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(data);

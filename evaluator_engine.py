@@ -2799,7 +2799,12 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
     - ZERO REPETITIVE OR GENERIC FILLER ACROSS ALL SECTIONS:
       * **Section 1 (`subpart_marks_breakdown` & `executive_summary`)**: Never write generic praise like `"Good attempt with structured points"`. Always quote the exact sub-part demand of the question, the exact points/examples written on the candidate's sheet, and the exact marks awarded out of the sub-part maximum.
       * **Section 2 (`intro_audit`)**: Supply a `model_intro_rewrite` that opens with an authentic definition, constitutional article, statutory anchor, or official survey metric specific to THAT exact question (never a generic paraphrase of the prompt).
-      * **Section 3 (`body_audit`, `missing_keywords_cards`, `value_add_checklist`, `current_affairs_value_add`)**: Every recommended keyword, committee report, judgment, or scheme MUST belong 100% to the sub-topic of the question (e.g., APEDA/MIDH/Dalwai Committee for Horticulture; NSO/CWS-US/SCES/ILO for PLFS; ANRF/TRL-9/NDTSP/GFR-173 for Deep-Tech; Art 13/50/Kesavananda/NJAC for Judicial Review). Never reuse the same default schemes, committees, or case laws across unrelated questions.
+      * **Section 3 (`body_audit`, `missing_keywords_cards`, `value_add_checklist`, `current_affairs_value_add`)**: Every recommended keyword, committee report, judgment, or scheme MUST belong 100% to the sub-topic of the question.
+      * **Diagram Recommendation in `current_affairs_value_add`**:
+        - Recommend a visual preview (`is_recommended: true`) ONLY when a visual genuinely clarifies a physical/geomorphic process, institutional mechanism, economic supply chain, chronological timeline, or conceptual comparison demanded by the prompt.
+        - If the question is abstract, doctrinal, philosophical, or ethical and a diagram would be a forced gimmick, set `is_recommended: false` and state clearly why textual depth is preferred in `not_recommended_reason`.
+        - NEVER reuse fixed generic boilerplate (such as "Constitutional Mandate -> Institutional Bottleneck -> Way Forward" or "Institutional Framework -> Implementation Challenges -> Reform Synthesis").
+        - Provide structured `nodes` (with `label`, `subtext`, and `badge`) or `comparison_columns` tailored 100% to this exact question.
       * **Section 4 (`conclusion_audit` & `full_model_answer` closing)**: `conclusion_audit.model_conclusion_rewrite` MUST ALWAYS MATCH AND BE THE EXACT CONCLUSION OF YOUR `full_model_answer`! Ensure 100% thematic and structural alignment between this rewrite and the model answer's conclusion. Both MUST synthesize the specific institutional, constitutional, or policy mechanism of THAT question—never output generic boilerplate (such as repeating "Harmonizing constitutional morality with institutional accountability (2nd ARC)") and never end every answer with a mechanical `"Viksit Bharat @2047"` or `"by 2047"` catchphrase.
       * **Keyword Definitions & Tooltips**: Every definition in `missing_keywords_cards` and `jargon_buster` MUST be a complete, grammatically closed sentence ending with a full stop. NEVER cut off mid-sentence or output incomplete fragments.
 
@@ -3231,11 +3236,39 @@ Generate strictly valid JSON matching this schema:
       "Subject-matched institutional reports, committee benchmarks, or statutory reports tailored specifically to this question topic (e.g., Law Commission 255th Report / Dinesh Goswami Committee for ECI; FRBM Review Committee for Fiscal Policy; NITI Aayog State Health Index for Healthcare)."
     ],
     "diagram_recommendation": {{
-      "relevance_verdict": "HIGH_ROI", // Must be one of: "HIGH_ROI", "COMPACT_2_LINE", "NOT_NEEDED_SAVE_SPACE", or "ALREADY_DRAWN"
-      "space_utilization_advice": "Honest 1-2 line exam-hall space advice explaining whether to draw a full diagram, use a 2-line arrow flow, or skip the diagram to save space for written points.",
-      "concept_title": "3-Tier Hub-and-Spoke Implementation Matrix",
-      "structure": "Policy Hub -> State Agile Coordination -> Panchayati Grassroots Execution",
-      "exam_hall_sketch_tip": "Draw a neat 30-second flow or skip if space is tight."
+      "is_recommended": true, // Set to true ONLY if a visual (process flow, comparison, cycle, timeline, or causal hierarchy) genuinely clarifies the question's core demands or student's answer gaps; set to false if topic is abstract/doctrinal/legal and a diagram would be a forced gimmick.
+      "not_recommended_reason": "Brief 1-sentence explanation of why no diagram is recommended here. Empty string '' if is_recommended is true.",
+      "diagram_type": "process", // One of: "process" | "flow" | "cycle" | "timeline" | "comparison" | "hierarchy"
+      "title": "Exact Question-Specific Visual Title (e.g. 'Omega Block Atmospheric Trap Mechanism' or 'Strategic Disinvestment vs. Asset Monetisation')",
+      "why_it_helps": "One short, question-specific sentence tied to the core demand explaining why this visual clarifies the analysis.",
+      "exam_sketch_tip": "One practical instruction naming what to draw and what to label by hand in 45 seconds (e.g. 'Draw 3 horizontal boxes linked by right arrows; label Box 1 High-Pressure Ridge, Box 2 Subsidence, Box 3 Ground Baking').",
+      "placement": "Page 1 • Beside your '[Specific Handwritten Sub-Heading]' bullet",
+      "demand_or_evidence": "Specific question demand or candidate gap this visual clarifies",
+      "nodes": [
+        {{
+          "step": 1,
+          "label": "Anticyclonic High Pressure",
+          "subtext": "Stationary mid-tropospheric ridge",
+          "badge": "Trigger"
+        }},
+        {{
+          "step": 2,
+          "label": "Adiabatic Compression",
+          "subtext": "Descending dry air warms dynamically",
+          "badge": "Transmission"
+        }},
+        {{
+          "step": 3,
+          "label": "Soil Moisture Baking",
+          "subtext": "Heat persists with zero cloud formation",
+          "badge": "Impact"
+        }}
+      ],
+      "comparison_columns": [
+        // Populate ONLY if diagram_type == 'comparison':
+        // {{ "header": "Strategic Disinvestment", "points": ["Transfer of ownership & management", "State equity drops below 50%"] }},
+        // {{ "header": "Asset Monetisation (NMP)", "points": ["State retains core ownership", "Leasing operational concession rights"] }}
+      ]
     }}
   }},
   "visual_annotations": [
@@ -6128,13 +6161,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
 
     ca_va["high_yield_data_reports"] = cleaned_reps
 
-    diag_rec = ca_va.get("diagram_recommendation")
-    if not isinstance(diag_rec, dict) or not diag_rec.get("concept_title"):
-        ca_va["diagram_recommendation"] = {
-            "concept_title": "Multi-Dimensional Analytical Flowchart",
-            "structure": "Institutional Framework -> Implementation Challenges -> Reform Synthesis",
-            "exam_hall_sketch_tip": "Draw a clean 45-second 3-stage linear pipeline to visually capture structural depth."
-        }
+    _normalize_diagram_recommendation(data, final_question, effective_paper, is_hindi=is_hindi)
     data["current_affairs_value_add"] = ca_va
     data["detected_paper"] = subj_meta["paper_code"]
     data["detected_paper_display"] = subj_meta["full_display"]
@@ -9567,4 +9594,251 @@ def execute_gemini_with_resilience(
     if last_err:
         raise last_err
 
+
+
+
+def _normalize_diagram_recommendation(data: Dict[str, Any], final_question: str, effective_paper: str, is_hindi: bool = False) -> None:
+    """
+    Normalizes the Diagram & Space Audit structured data:
+    1. Determines whether a visual materially helps (is_recommended: bool).
+       - True for visual topics (processes, cycles, timelines, comparisons, causal flows).
+       - False for purely abstract/philosophical topics, or if candidate already drew a visual.
+    2. Purges any banned generic boilerplate (such as 'Constitutional Mandate -> Institutional Bottleneck -> Way Forward').
+    3. Normalizes diagram_type in ['process', 'flow', 'cycle', 'timeline', 'comparison', 'hierarchy'].
+    4. Guarantees structured nodes with label and subtext, or comparison_columns.
+    5. Provides actionable exam_sketch_tip and question-specific why_it_helps.
+    6. Decoupled from scoring; never promises guaranteed marks.
+    """
+    ca_va = data.get("current_affairs_value_add")
+    if not isinstance(ca_va, dict):
+        ca_va = {}
+        data["current_affairs_value_add"] = ca_va
+
+    diag_rec = ca_va.get("diagram_recommendation")
+    if not isinstance(diag_rec, dict):
+        diag_rec = data.get("diagram_recommendation") if isinstance(data.get("diagram_recommendation"), dict) else {}
+
+    q_lower = str(final_question or data.get("detected_question") or "").lower()
+    p_upper = str(effective_paper or data.get("detected_paper") or "").upper()
+    trans_corpus = str(data.get("transcribed_text") or "").lower()
+
+    # Check if candidate already drew a visual on their sheet
+    already_drawn = bool(re.search(r'\[(?:flowchart|diagram|map|sketch)|flowchart\s+drawn|diagram\s+drawn|schematic\s+drawn', trans_corpus))
+
+    # Detect abstract / philosophical topics where a diagram is an unhelpful forced gimmick
+    is_abstract = (
+        p_upper == "ESSAY" or "ESSAY" in p_upper or
+        any(k in q_lower for k in [
+            "contemplation of our passions", "wisdom finds its source", "categorical imperative",
+            "basic structure", "constitutional morality", "doctrine of severability",
+            "satya and ahimsa", "virtue ethics", "moral attitude", "philosophical quote"
+        ])
+    )
+
+    # Detect topics with natural visual payoff
+    is_visual_demand = any(k in q_lower for k in [
+        "heatwave", "heat wave", "blocking", "monsoon", "caldera", "volcano", "earthquake",
+        "cyclone", "tectonic", "river", "drainage", "glacier", "soil", "climate", "el nino",
+        "disinvestment", "monetisation", "monetization", "supply chain", "logistics", "semiconductor",
+        "plassey", "buxar", "revolt", "timeline", "evolution of", "stages of", "process of",
+        "compare", "distinguish", "difference between", "versus", "vs", "ndma", "disaster management"
+    ])
+
+    # Determine is_recommended
+    is_rec = diag_rec.get("is_recommended")
+    if is_rec is None:
+        if already_drawn:
+            is_rec = False
+        elif diag_rec.get("relevance_verdict") in ["NOT_NEEDED_SAVE_SPACE", "ALREADY_DRAWN"]:
+            is_rec = False
+        elif is_abstract and not is_visual_demand:
+            is_rec = False
+        else:
+            is_rec = True
+
+    # If already drawn, explain that diagram is already present
+    if already_drawn:
+        is_rec = False
+        not_rec_reason = (
+            "आपने अपनी उत्तर-पुस्तिका में पहले से ही आरेख/फ़्लोचार्ट बनाया हुआ है। सीमित पुस्तिका स्थान के कुशल प्रबंधन हेतु दूसरा आरेख न बनाएं ताकि मुख्य विश्लेषणात्मक बिंदु प्रभावित न हों।"
+            if is_hindi else
+            "You already included a diagram/flowchart in your answer sheet. To manage limited page space, avoid drawing a second visual that crowds out written arguments."
+        )
+    elif not is_rec:
+        not_rec_reason = str(diag_rec.get("not_recommended_reason") or "").strip()
+        if not not_rec_reason or len(not_rec_reason) < 15:
+            not_rec_reason = (
+                "यह प्रश्न मुख्य रूप से सघन सैद्धांतिक एवं विधिक विश्लेषण की मांग करता है। यहाँ कृत्रिम बॉक्स आरेख बनाने के स्थान पर स्पष्ट उप-शीर्षकों एवं रेखांकित प्रावधानों पर ध्यान केंद्रित करना अधिक फलदायी है।"
+                if is_hindi else
+                "This topic demands dense doctrinal argumentation and textual precision; an artificial box diagram would displace necessary substantiated points."
+            )
+    else:
+        not_rec_reason = ""
+
+    # Clean title
+    raw_title = str(diag_rec.get("title") or diag_rec.get("concept_title") or "").strip()
+    banned_titles = ["multi-dimensional analytical flowchart", "constitutional mandate", "core analytical flow", "3-tier hub-and-spoke implementation matrix"]
+    if not raw_title or any(bt in raw_title.lower() for bt in banned_titles):
+        if "heatwave" in q_lower or "heat wave" in q_lower:
+            raw_title = "Omega Block Atmospheric Trap Mechanism" if not is_hindi else "ओमेगा ब्लॉक वातावरणीय अवरोध तंत्र"
+        elif "caldera" in q_lower:
+            raw_title = "Volcanic Caldera Magmatic Evacuation & Collapse" if not is_hindi else "ज्वालामुखीय काल्डेरा मैग्मा कक्ष रिक्तता एवं धंसाव"
+        elif "disinvestment" in q_lower or "pse" in q_lower:
+            raw_title = "Strategic Disinvestment vs. Asset Monetisation Framework" if not is_hindi else "रणनीतिक विनिवेश बनाम परिसंपत्ति मुद्रीकरण रूपरेखा"
+        elif "plassey" in q_lower:
+            raw_title = "Plassey Subversion & Territorial Annexation Sequence" if not is_hindi else "प्लासी का युद्ध: राजनीतिक षड्यंत्र एवं क्षेत्रीय विस्तार क्रम"
+        else:
+            first_words = " ".join(final_question.split()[:5])
+            raw_title = f"Causal Mechanism Flow: {first_words}" if not is_hindi else f"कारण-प्रभाव फ़्लो: {first_words}"
+
+    # Determine diagram_type
+    diag_type = str(diag_rec.get("diagram_type") or "").strip().lower()
+    if diag_type not in ["process", "flow", "cycle", "timeline", "comparison", "hierarchy"]:
+        if any(ck in q_lower for ck in ["compare", "distinguish", "versus", "vs", "difference between"]):
+            diag_type = "comparison"
+        elif any(cy in q_lower for cy in ["cycle", "feedback", "circulation", "carbon cycle", "water cycle"]):
+            diag_type = "cycle"
+        elif any(tm in q_lower for tm in ["timeline", "evolution", "chronolog", "historical growth"]):
+            diag_type = "timeline"
+        elif any(hr in q_lower for hr in ["hierarchy", "tier", "structure of", "administrative setup"]):
+            diag_type = "hierarchy"
+        else:
+            diag_type = "process"
+
+    # Clean why_it_helps
+    why = str(diag_rec.get("why_it_helps") or "").strip()
+    if not why or len(why) < 15 or "reinforce policy" in why.lower():
+        if "heatwave" in q_lower:
+            why = "Visually illustrates the thermodynamic blocking preventing convective heat dispersion." if not is_hindi else "यह वातावरणीय अवरोध तंत्र को स्पष्ट करता है जो संवहनीय ऊष्मा के प्रसार को रोकता है।"
+        elif "disinvestment" in q_lower:
+            why = "Clarifies the structural boundary between strategic CPSE privatization and non-dilutive asset monetization." if not is_hindi else "यह रणनीतिक विनिवेश एवं परिसंपत्ति मुद्रीकरण के मध्य संरचनात्मक अंतर को स्पष्ट करता है।"
+        elif "caldera" in q_lower:
+            why = "Sequences the summit roof collapse following rapid subterranean magma chamber drainage." if not is_hindi else "यह मैग्मा कक्ष के तेजी से खाली होने के बाद ज्वालामुखीय गुंबद के धंसने के क्रम को दर्शाता है।"
+        else:
+            why = f"Directly illustrates the causal stages demanded by the question to enhance analytical clarity." if not is_hindi else f"यह प्रश्न द्वारा अपेक्षित मुख्य चरणों को दृश्य रूप से स्पष्ट कर विश्लेषणात्मक गहराई प्रदान करता है।"
+
+    # Clean exam_sketch_tip
+    tip = str(diag_rec.get("exam_sketch_tip") or "").strip()
+    if not tip or len(tip) < 15 or "draw a clean 45-second 3-stage linear pipeline" in tip.lower():
+        if diag_type == "comparison":
+            tip = "Draw a simple 2-column comparative box with 3 bullet rows in under 45 seconds." if not is_hindi else "45 सेकंड में 2 स्तंभों वाली तुलनात्मक तालिका बनाएं जिसमें मुख्य अंतर रेखांकित हों।"
+        elif diag_type == "cycle":
+            tip = "Draw 4 stage boxes linked by curved clockwise arrows with a center loop label." if not is_hindi else "घड़ी की सुई की दिशा में 4 बॉक्स बनाएं और तीरों द्वारा चक्रीय प्रवाह दर्शाएं।"
+        elif diag_type == "timeline":
+            tip = "Draw a single horizontal line with 3 milestone circles and key dates above and below." if not is_hindi else "एक क्षैतिज रेखा खींचकर उस पर 3 प्रमुख वर्ष और घटनाएं अंकित करें।"
+        else:
+            tip = "Draw 3 to 4 horizontal boxes linked by right arrows (->); label trigger, mechanism, and impact." if not is_hindi else "दाएं तीर (->) से जुड़े 3-4 क्षैतिज बॉक्स बनाएं: कारण, प्रक्रिया और परिणाम अंकित करें।"
+
+    # Clean placement
+    placement = str(diag_rec.get("placement") or "").strip()
+    if not placement or len(placement) < 10:
+        pbp = data.get("point_by_point_audit") or []
+        if isinstance(pbp, list) and len(pbp) >= 2 and isinstance(pbp[1], dict) and pbp[1].get("title"):
+            pg = pbp[1].get("page", 1)
+            t_title = str(pbp[1].get("title")).split(":")[0][:35]
+            placement = f"Page {pg} • Inside your '{t_title}' section" if not is_hindi else f"पृष्ठ {pg} • आपके '{t_title}' उप-शीर्षक के अंतर्गत"
+        else:
+            placement = "Page 1 • Beside your core causal mechanism paragraph" if not is_hindi else "पृष्ठ 1 • मुख्य कारण-प्रभाव पैराग्राफ के साथ"
+
+    # Clean nodes & comparison columns
+    raw_nodes = diag_rec.get("nodes")
+    clean_nodes = []
+    if isinstance(raw_nodes, list) and len(raw_nodes) > 0:
+        for idx_n, n in enumerate(raw_nodes):
+            if isinstance(n, dict) and n.get("label"):
+                lbl = str(n.get("label")).strip()
+                if not any(bp in lbl.lower() for bp in ["constitutional mandate", "institutional bottleneck", "way forward", "trigger / mandate"]):
+                    clean_nodes.append({
+                        "step": idx_n + 1,
+                        "label": lbl,
+                        "subtext": str(n.get("subtext") or "").strip()[:80],
+                        "badge": str(n.get("badge") or f"Stage {idx_n+1}").strip()[:20]
+                    })
+
+    # If nodes is empty, try parsing structure string or derive from topic
+    if not clean_nodes and is_rec and diag_type != "comparison":
+        raw_struct = str(diag_rec.get("structure") or "").strip()
+        parts = [p.replace("[", "").replace("]", "").strip() for p in re.split(r'->|──>|→|\|', raw_struct) if len(p.strip()) > 2]
+        banned_parts = ["constitutional mandate", "institutional bottleneck", "way forward", "institutional framework", "implementation challenges", "reform synthesis"]
+        if parts and not any(bp in " ".join(parts).lower() for bp in banned_parts):
+            for idx_p, p_item in enumerate(parts[:4]):
+                clean_nodes.append({
+                    "step": idx_p + 1,
+                    "label": p_item,
+                    "subtext": "",
+                    "badge": f"Stage {idx_p + 1}"
+                })
+        else:
+            # Fallback nodes specific to question discipline
+            if "heatwave" in q_lower:
+                clean_nodes = [
+                    {"step": 1, "label": "Anticyclonic High Pressure" if not is_hindi else "प्रतिचक्रवाती उच्च दबाव", "subtext": "Stationary mid-tropospheric ridge" if not is_hindi else "मध्य-क्षोभमंडलीय अवरोधी कटक", "badge": "Trigger" if not is_hindi else "आरंभिक कारण"},
+                    {"step": 2, "label": "Adiabatic Subsidence" if not is_hindi else "रुद्धोष्म संपीड़न एवं अवतलन", "subtext": "Descending dry air warms dynamically" if not is_hindi else "नीचे उतरती शुष्क हवा का तापन", "badge": "Mechanism" if not is_hindi else "क्रियाविधि"},
+                    {"step": 3, "label": "Soil Moisture Deficit" if not is_hindi else "मृदा आर्द्रता ह्रास", "subtext": "Surface baking with zero cloud formation" if not is_hindi else "बादल रहित आकाश व अत्यधिक तपन", "badge": "Impact" if not is_hindi else "परिणाम"}
+                ]
+            elif "disinvestment" in q_lower or "pse" in q_lower:
+                clean_nodes = [
+                    {"step": 1, "label": "Strategic Sector Audit" if not is_hindi else "रणनीतिक क्षेत्र वर्गीकरण", "subtext": "Retaining bare minimum CPSE presence" if not is_hindi else "न्यूनतम सरकारी उपस्थिति का निर्धारण", "badge": "Policy" if not is_hindi else "नीतिगत आधार"},
+                    {"step": 2, "label": "Competitive Bidding" if not is_hindi else "पारदर्शी एवं प्रतिस्पर्धी बोली", "subtext": "DIPAM-guided valuation & transfer" if not is_hindi else "डीपम द्वारा मूल्यांकन व हस्तांतरण", "badge": "Execution" if not is_hindi else "क्रियान्वयन"},
+                    {"step": 3, "label": "Capex Recycling" if not is_hindi else "पूंजीगत परिसंपत्ति पुनर्निवेश", "subtext": "Non-debt proceeds fund infrastructure" if not is_hindi else "प्राप्तियां अवसंरचना विकास में प्रयुक्त", "badge": "Outcome" if not is_hindi else "अंतिम परिणाम"}
+                ]
+            elif "caldera" in q_lower:
+                clean_nodes = [
+                    {"step": 1, "label": "Magmatic Reservoir Evacuation" if not is_hindi else "मैग्मा कक्ष का तीव्र निकास", "subtext": "Catastrophic eruption drains subterranean magma" if not is_hindi else "विस्फोट से भूमिगत मैग्मा रिक्त", "badge": "Stage 1" if not is_hindi else "चरण 1"},
+                    {"step": 2, "label": "Unsupported Summit Collapse" if not is_hindi else "ज्वालामुखीय गुंबद का धंसाव", "subtext": "Overlying roof collapses along ring fractures" if not is_hindi else "वृत्ताकार भ्रंशों के सहारे छत का गिरना", "badge": "Stage 2" if not is_hindi else "चरण 2"},
+                    {"step": 3, "label": "Hydrothermal Crater Lake" if not is_hindi else "काल्डेरा झील निर्माण", "subtext": "Meteoric water fills deep volcanic depression" if not is_hindi else "वर्षा जल भरने से सुरम्य झील का निर्माण", "badge": "Stage 3" if not is_hindi else "चरण 3"}
+                ]
+            else:
+                clean_nodes = [
+                    {"step": 1, "label": "Foundational Driver" if not is_hindi else "प्राथमिक कारण", "subtext": "Initial causal factor or policy trigger", "badge": "Trigger" if not is_hindi else "आरंभ"},
+                    {"step": 2, "label": "Structural Mechanism" if not is_hindi else "संरचनात्मक प्रक्रिया", "subtext": "Core transmission channel", "badge": "Mechanism" if not is_hindi else "क्रियाविधि"},
+                    {"step": 3, "label": "Measurable Impact" if not is_hindi else "मापने योग्य परिणाम", "subtext": "Outcome on target stakeholders", "badge": "Outcome" if not is_hindi else "परिणाम"}
+                ]
+
+    # Clean comparison columns
+    raw_cols = diag_rec.get("comparison_columns")
+    clean_cols = []
+    if diag_type == "comparison":
+        if isinstance(raw_cols, list) and len(raw_cols) >= 2:
+            for c in raw_cols[:2]:
+                if isinstance(c, dict) and c.get("header"):
+                    pts = [str(p).strip() for p in (c.get("points") or []) if str(p).strip()]
+                    clean_cols.append({"header": str(c.get("header")).strip()[:40], "points": pts[:4]})
+        if not clean_cols:
+            if "disinvestment" in q_lower or "monetisation" in q_lower or "monetization" in q_lower:
+                clean_cols = [
+                    {
+                        "header": "Strategic Disinvestment" if not is_hindi else "रणनीतिक विनिवेश",
+                        "points": [
+                            "Permanent transfer of state equity & control" if not is_hindi else "स्वामित्व एवं प्रबंधन का स्थायी हस्तांतरण",
+                            "State equity diluted below 50%" if not is_hindi else "सरकारी हिस्सेदारी 50% से नीचे घटाई जाती है",
+                            "Proceeds deposited in Consolidated Fund / NIF" if not is_hindi else "प्राप्तियां भारत की संचित निधि में जाती हैं"
+                        ]
+                    },
+                    {
+                        "header": "National Monetisation (NMP)" if not is_hindi else "राष्ट्रीय मुद्रीकरण पाइपलाइन (NMP)",
+                        "points": [
+                            "Underlying asset ownership retained by state" if not is_hindi else "परिसंपत्ति का मुख्य स्वामित्व सरकार के पास रहता है",
+                            "Only brownfield operational rights leased" if not is_hindi else "केवल परिचालन अधिकार सीमित अवधि हेतु लीज पर",
+                            "Pre-determined concession revenue reinvested in capex" if not is_hindi else "प्राप्त राजस्व का पुनः नई अवसंरचना में निवेश"
+                        ]
+                    }
+                ]
+
+    # Construct final validated diagram_recommendation dictionary
+    normalized_diag = {
+        "is_recommended": is_rec,
+        "not_recommended_reason": not_rec_reason,
+        "diagram_type": diag_type if is_rec else "none",
+        "title": raw_title if is_rec else "",
+        "why_it_helps": why if is_rec else "",
+        "exam_sketch_tip": tip if is_rec else "",
+        "placement": placement if is_rec else "",
+        "demand_or_evidence": str(diag_rec.get("demand_or_evidence") or "Question analytical demand").strip(),
+        "nodes": clean_nodes if is_rec and diag_type != "comparison" else [],
+        "comparison_columns": clean_cols if is_rec and diag_type == "comparison" else []
+    }
+
+    ca_va["diagram_recommendation"] = normalized_diag
+    data["diagram_recommendation"] = normalized_diag
 
