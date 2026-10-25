@@ -12035,153 +12035,25 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
     };
 
     const getCleanOneLineUsage = (termStr, cleanCoreDef, existingHow = "", idx = 0) => {
-      const rawTerm = String(termStr || "").trim();
-      const tLow = rawTerm.toLowerCase();
       let howStr = String(existingHow || "").trim();
       if ((howStr.startsWith('"') && howStr.endsWith('"')) || (howStr.startsWith("'") && howStr.endsWith("'"))) {
         howStr = howStr.slice(1, -1).trim();
       }
 
-      // Strip meta-instruction prefixes like "Deploy **X** to...", "Incorporate **X** to..."
+      // Strip meta-instruction wrapper if present, without synthesizing new factual assertions
       let cleaned = howStr.replace(/^(?:Incorporate|Deploy|Cite|Anchor in|Anchor under|Apply|Highlight|Recommend via|Weave|Substantiate via)\s+(?:\*\*[^*]+\*\*|[^\s]+(?:\s+[^\s]+){0,5})\s*(?:\([^)]*\))?\s*(?:to\s+|inline\s+to\s+|as\s+|in\s+)?/i, "").trim();
       cleaned = cleaned.replace(/\s*\([^)]*\)/g, "").trim();
 
-      const banned = [
-        "reinforce policy delivery metrics and grassroots institutional accountability",
-        "reinforce policy delivery metrics",
-        "grassroots institutional accountability",
-        "substantiate fiscal sustainability and public expenditure efficiency",
-        "substantiate fiscal sustainability",
-        "public expenditure efficiency",
-        "ground systemic governance reforms in statutory oversight benchmarks",
-        "ground systemic governance reforms",
-        "substantiate analytical precision and core question demands",
-        "bridge regulatory gaps and advance outcome-oriented implementation",
-        "ground arguments in authoritative domain frameworks",
-        "illustrate causal mechanisms and substantive evidence",
-        "bridge thematic gaps and provide a balanced multidimensional evaluation",
-        "elucidate the physical-geomorphic mechanism and thermal dynamics",
-        "substantiate spatial vulnerability gradients and regional hazard exposure",
-        "illustrate thermodynamic forcing and geodynamic interactions",
-        "benchmark scientific precision in spatial hazard mapping",
-        "chronological continuity and historical authenticity",
-        "anchor primary textual and living civilizational traditions",
-        "socio-cultural synthesis and regional institutional legacy",
-        "primary epigraphical/historical evidence to elevate analytical depth",
-        "administrative probity and constitutional morality in public decisions",
-        "navigate ethical dilemmas and balance competing stakeholder rights",
-        "ground public service values in fiduciary responsibility and character",
-        "harmonize statutory duty with empathy"
-      ];
-
-      const isBanned = banned.some(bp => cleaned.toLowerCase().includes(bp) || howStr.toLowerCase().includes(bp));
-
-      if (isBanned || !cleaned || cleaned.split(/\s+/).length < 4 || /^you\s+/i.test(cleaned)) {
-        if (isHindi) {
-          if (/alkire|foster|multidimensional|बहुआयामी/i.test(tLow)) {
-            return "यह केवल आय नहीं, बल्कि स्वास्थ्य, शिक्षा और जीवन स्तर में व्याप्त वंचनाओं को मापता है।";
-          }
-          if (/amartya|capability|क्षमता/i.test(tLow)) {
-            return "यह निर्धनता को केवल न्यूनतम आय की कमी नहीं, बल्कि बुनियादी क्षमताओं और स्वतंत्रताओं के अभाव के रूप में देखता है।";
-          }
-          if (/blocking|atmospheric|वायुमंडलीय/i.test(tLow)) {
-            return "स्थिर उच्च-दाब प्रतिचक्रवात नीचे बैठती गर्म वायु को रोककर लू की अवधि और तीव्रता को बढ़ाते हैं।";
-          }
-          if (/ipcc/i.test(tLow)) {
-            return "आईपीसीसी एआर6 चेतावनी देता है कि लू और सूखे के संयुक्त प्रभाव प्रमुख फसलों के उत्पादन को घटाते हैं।";
-          }
-          if (/arc/i.test(tLow)) {
-            return "संवैधानिक निगरानी संस्थाओं की स्वायत्तता हेतु स्वतंत्र चयन समिति की संस्तुति आवश्यक है।";
-          }
-          if (/law commission|255/i.test(tLow)) {
-            return "समान संवैधानिक संरक्षण और त्रिपक्षीय चयन समिति संस्थागत निष्पक्षता को सुरक्षित करती है।";
-          }
-          if (/sendai/i.test(tLow)) {
-            return "आपदा उपरांत पुनर्प्राप्ति और पुनर्निर्माण में बेहतर पुनर्निर्माण (Build Back Better) को प्राथमिकता दें।";
-          }
-          if (/benioff/i.test(tLow)) {
-            return "गहरे भूकंप उन झुके हुए विवर्तनिकी क्षेत्रों में आते हैं जहाँ महासागरीय प्लेट मेंटल में धंसती है।";
-          }
-          if (/buranji/i.test(tLow)) {
-            return "बुरंजी राज्यवृत्त असम के प्रशासनिक इतिहास और कूटनीति के प्राथमिक ऐतिहासिक साक्ष्य प्रस्तुत करते हैं।";
-          }
-          if (/paik/i.test(tLow)) {
-            return "पाइक व्यवस्था ने सार्वजनिक कार्यों और क्षेत्रीय रक्षा के लिए आवर्ती श्रम को संगठित किया।";
-          }
-        } else {
-          if (/alkire|foster|multidimensional|mpi/i.test(tLow)) {
-            return "It captures overlapping deprivations in health, education and living standards—not income alone.";
-          }
-          if (/amartya|capability/i.test(tLow)) {
-            return "It assesses poverty as the deprivation of basic capabilities and freedoms, not merely low income.";
-          }
-          if (/blocking|atmospheric|omega block/i.test(tLow)) {
-            return "Persistent high-pressure anticyclones trap descending hot air, prolonging heatwaves and compounding soil drying.";
-          }
-          if (/ipcc/i.test(tLow)) {
-            return "IPCC AR6 warns compound heat-drought shocks reduce staple crop yields and trigger cascading food price spikes.";
-          }
-          if (/arc/i.test(tLow)) {
-            return "A broad multi-member collegium insulates constitutional watchdog bodies from executive pre-eminence.";
-          }
-          if (/law commission|255/i.test(tLow)) {
-            return "Equal constitutional removal safeguards and a tripartite collegium preserve institutional independence.";
-          }
-          if (/goswami/i.test(tLow)) {
-            return "A statutory consultative collegium safeguards electoral machinery from partisan bias.";
-          }
-          if (/tarkunde/i.test(tLow)) {
-            return "A selection panel of PM, CJI, and Leader of Opposition insulates watchdog appointments.";
-          }
-          if (/sendai/i.test(tLow)) {
-            return "Priority 4 operationalizes Build Back Better in disaster risk recovery, rehabilitation, and resilient reconstruction.";
-          }
-          if (/benioff/i.test(tLow)) {
-            return "Deep-focus earthquakes occur along inclined Wadati–Benioff zones where cold oceanic slabs subduct into mantle.";
-          }
-          if (/buranji/i.test(tLow)) {
-            return "Ahom Buranjis provide verified state chronicles documenting administrative logistics, diplomacy, and riverine warfare.";
-          }
-          if (/paik/i.test(tLow)) {
-            return "The Paik system mobilized rotational peasant labor for public works and standing territorial defense.";
-          }
-
-          // Extract clean sentence from definition
-          let defClean = String(cleanCoreDef || "")
-            .replace(/^✓[^:]*:\s*/i, "")
-            .replace(/\s*\([^)]*\)/g, "")
-            .trim();
-          const firstSent = defClean.split(/[.!?]/)[0].trim();
-          const words = firstSent.split(/\s+/).filter(Boolean);
-          if (words.length >= 4) {
-            let cand = words.slice(0, 18).join(" ").replace(/[,;:-]$/, "") + ".";
-            return cand.charAt(0).toUpperCase() + cand.slice(1);
-          }
-          return `Integrating ${rawTerm} directly substantiates the core causal mechanism.`;
-        }
+      if (!cleaned) {
+        return "";
       }
 
       let cand = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
       if (!/[.!?]$/.test(cand)) cand += ".";
-      const wList = cand.split(/\s+/);
-      if (wList.length > 20) {
-        cand = wList.slice(0, 20).join(" ").replace(/[,;:-]$/, "") + ".";
-      }
       return cand;
     };
 
-    const qLow = String(evalData.detected_question || state.question || "").toLowerCase();
-    const govIndicators = [
-      "governance", "polity", "election", "electoral", "eci", "cec",
-      "constitution", "judiciary", "judicial", "civil service", "bureaucra",
-      "ethics", "probity", "accountability", "transparency", "corruption",
-      "lokpal", "cbi", "cvc", "rti", "panchayat", "municipal", "federal",
-      "parliament", "legislat", "executive", "separation of powers",
-      "law commission", "arc", "administrative reform"
-    ];
-    const isGovTopic = govIndicators.some(k => qLow.includes(k));
     const bodyStrengthsStr = JSON.stringify(evalData.body_audit?.strengths || []).toLowerCase();
-
     const existingTerms = new Set();
     const filteredCards = [];
 
@@ -12193,14 +12065,9 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
       const acrLow = acrMatch ? acrMatch[1].toLowerCase() : "";
       const mainTermLow = rawTerm.replace(/\([^)]*\)/g, "").trim().toLowerCase();
 
-      // Check duplicate
-      if (existingTerms.has(mainTermLow) || (acrLow && existingTerms.has(acrLow))) {
-        return;
-      }
-
-      // Relevance guard: suppress governance commission reports on non-governance topics
-      const isGovReport = /2nd arc|arc 4th|second administrative|law commission|dinesh goswami|tarkunde|anoop baranwal|sarkaria|punchhi/i.test(mainTermLow);
-      if (isGovReport && !isGovTopic) {
+      // Suppress duplicate cards
+      const termKey = acrLow && acrLow.length >= 3 ? acrLow : mainTermLow;
+      if (existingTerms.has(termKey)) {
         return;
       }
 
@@ -12212,10 +12079,8 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
         )
       );
 
-      // Check if already praised in strengths
+      // Check if candidate already adequately explained this point
       const alreadyPraised = (acrLow && bodyStrengthsStr.includes(acrLow)) || (mainTermLow.length >= 5 && bodyStrengthsStr.includes(mainTermLow));
-
-      // Rule 7: If candidate already explained adequately, OMIT it (never force replacement)
       if (termWrittenVerbatim && alreadyPraised) {
         return;
       }
@@ -12229,6 +12094,24 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
         .replace(/^✓\s*You already wrote[\s\S]*?\(\s*/i, "")
         .replace(/\)\s*$/, "")
         .trim();
+
+      // Normalize action_type: "Correct", "Replace", "Add", "Expand", "Strengthen"
+      let act = String(card.action_type || "").trim();
+      if (!act) {
+        if (card.target_point) {
+          act = "Replace";
+        } else if (termWrittenVerbatim) {
+          act = "Expand";
+        } else {
+          act = "Add";
+        }
+      }
+      card.action_type = act;
+
+      // Normalize priority
+      if (!card.priority) {
+        card.priority = (act === "Correct" || act === "Replace" || idx < 2) ? "High Priority" : "Medium Priority";
+      }
 
       if (termWrittenVerbatim && !alreadyPraised) {
         card.domain_or_thinker = isHindi
@@ -12245,13 +12128,13 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
       card.where_to_use = getCleanWhereToUse(rawTerm, card.where_to_use, idx);
       card.how_to_use_one_line = getCleanOneLineUsage(rawTerm, cleanCoreDef, card.how_to_use_one_line, idx);
 
-      existingTerms.add(mainTermLow);
-      if (acrLow) existingTerms.add(acrLow);
+      existingTerms.add(termKey);
       filteredCards.push(card);
     });
 
-    // Enforce Rule 7: 1 to 2 by default, max 3
-    evalData.missing_keywords_cards = filteredCards.slice(0, 3).map((c, i) => {
+    // Dynamic Priority Sorting (NO FIXED CAP - select all distinct valid suggestions)
+    filteredCards.sort((a, b) => (a.priority === "High Priority" ? 0 : 1) - (b.priority === "High Priority" ? 0 : 1));
+    evalData.missing_keywords_cards = filteredCards.map((c, i) => {
       c.number = i + 1;
       return c;
     });
@@ -13477,49 +13360,102 @@ function renderEvaluation(evalData) {
   if (mkGrid) {
     mkGrid.innerHTML = "";
     const cards = rawKeywordCards.length > 0 ? rawKeywordCards : bodyKeywordCards;
+    
+    // Check whether evaluation independently confirms adequate coverage
+    const isCoreAdequatelyCovered = Boolean(
+      evalData.rubric_scores &&
+      typeof evalData.rubric_scores.core_demand_score === "number" &&
+      typeof evalData.rubric_scores.core_demand_max === "number" &&
+      evalData.rubric_scores.core_demand_max > 0 &&
+      (evalData.rubric_scores.core_demand_score / evalData.rubric_scores.core_demand_max >= 0.75)
+    );
+
     if (cards.length === 0) {
+      const emptyMsg = isCoreAdequatelyCovered
+        ? (isHindi ? "✓ कोर तकनीकी मांगें उत्तर में पर्याप्त रूप से शामिल हैं।" : "✓ Core question demands adequately addressed on your answer sheet.")
+        : (isHindi ? "इस प्रारूप के लिए कोई अतिरिक्त सत्यापित सुझाव आवश्यक नहीं पाए गए।" : "No additional verified suggestions identified for this draft.");
       mkGrid.innerHTML = `
-        <div class="p-3.5 rounded-lg border border-emerald-500/30 bg-emerald-500/[0.04] text-[11px] text-emerald-800 dark:text-emerald-300 font-medium flex items-center space-x-2">
-          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
-          <span>${isHindi ? "✓ किसी अतिरिक्त मूल्य-संवर्धन की आवश्यकता नहीं — आपके उत्तर में इस प्रश्न की मुख्य तकनीकी अवधारणाएं पर्याप्त रूप से शामिल हैं।" : "✓ No critical value additions required — your answer already adequately addresses the core technical terminology demanded by this question."}</span>
+        <div class="p-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 text-[11px] text-slate-700 dark:text-slate-300 font-medium flex items-center space-x-2">
+          <i data-lucide="info" class="w-4 h-4 text-slate-500 shrink-0"></i>
+          <span>${emptyMsg}</span>
         </div>
       `;
     } else {
       cards.forEach((c, idx) => {
-      const isOddLastCard = (cards.length % 2 === 1) && (idx === cards.length - 1) && cards.length > 1;
-      const div = document.createElement("div");
-      const tagText = c.domain_or_thinker || c.thinker || "Domain Concept";
-      const isUpgradeCard = /Keyword Upgrade|Written/i.test(tagText);
-      const baseClass = isUpgradeCard
-        ? "keyword-card space-y-1.5 ring-1 ring-emerald-500/40 bg-emerald-500/[0.04]"
-        : "keyword-card space-y-1.5";
-      div.className = isOddLastCard ? `${baseClass} va-cat-card-full-span sm:col-span-2 md:col-span-2` : baseClass;
-      const tagBadgeClass = isUpgradeCard
-        ? "text-[9.5px] self-start px-2 py-0.5 rounded font-bold mt-0.5 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 whitespace-normal break-words"
-        : "keyword-tag text-[9.5px] self-start px-2 py-0.5 rounded font-semibold mt-0.5 whitespace-normal break-words";
-      const oneLineHtml = c.how_to_use_one_line
-        ? `<div class="mt-1.5 px-2.5 py-1.5 rounded-md bg-amber-50/90 dark:bg-amber-950/25 border border-amber-300/70 dark:border-amber-500/30 text-[10.5px] leading-snug font-sans">
-             <span class="font-extrabold text-amber-800 dark:text-amber-400 uppercase tracking-wide text-[9.5px] block mb-0.5">${isHindi ? "✍️ 1-पंक्ति में प्रयोग (Space-Saving Usage):" : "✍️ 1-Line Space-Saving Usage:"}</span>
-             <span class="text-slate-800 dark:text-slate-200 font-medium break-words">${formatHighlightedText(c.how_to_use_one_line)}</span>
-           </div>`
-        : "";
-      div.innerHTML = `
-        <div class="flex flex-wrap items-start justify-between gap-1.5 sm:gap-2">
-          <div class="flex items-start space-x-2 flex-1 min-w-[130px]">
-            <span class="w-5 h-5 shrink-0 rounded-full ${isUpgradeCard ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40' : 'bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/40'} border text-[10px] font-extrabold flex items-center justify-center mt-0.5">${idx + 1}</span>
-            <span class="keyword-term font-bold text-xs leading-snug text-slate-900 dark:text-slate-100 break-words">${escapeHtml(c.term)}</span>
+        const div = document.createElement("div");
+        const actionType = String(c.action_type || "Add").trim();
+        const priority = String(c.priority || "High Priority").trim();
+        const isHighPriority = priority.toLowerCase().includes("high");
+
+        // Action badge styling
+        const actionBadges = {
+          Correct: {
+            label: isHindi ? "⚠️ सुधारें (Correct)" : "⚠️ Correct",
+            cls: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
+            promptLabel: isHindi ? "✍️ संशोधित वाक्य (Corrected Text):" : "✍️ Corrected Sentence:"
+          },
+          Replace: {
+            label: isHindi ? "🔄 प्रतिस्थापित करें (Replace)" : "🔄 Replace",
+            cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
+            promptLabel: isHindi ? "✍️ प्रतिस्थापन वाक्य (Proposed Replacement):" : "✍️ Proposed Replacement Sentence:"
+          },
+          Expand: {
+            label: isHindi ? "⚡ विस्तार दें (Expand)" : "⚡ Expand",
+            cls: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30",
+            promptLabel: isHindi ? "✍️ विश्लेषणात्मक विस्तार (Mechanism Insertion):" : "✍️ Analytical Mechanism Insertion:"
+          },
+          Strengthen: {
+            label: isHindi ? "💎 सुदृढ़ करें (Strengthen)" : "💎 Strengthen",
+            cls: "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30",
+            promptLabel: isHindi ? "✍️ साक्ष्य / प्रमाण वाक्य (Evidence Insertion):" : "✍️ Evidence Insertion Sentence:"
+          },
+          Add: {
+            label: isHindi ? "➕ जोड़ें (Add)" : "➕ Add",
+            cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
+            promptLabel: isHindi ? "✍️ 1-पंक्ति में प्रयोग (Space-Saving Usage):" : "✍️ 1-Line Space-Saving Usage:"
+          }
+        };
+
+        const actConf = actionBadges[actionType] || actionBadges.Add;
+        const tagText = c.domain_or_thinker || c.thinker || "Domain Concept";
+
+        const targetHtml = c.target_point ? `
+          <div class="mt-1 px-2 py-1 rounded bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-[10px] text-slate-700 dark:text-slate-300 leading-snug">
+            <span class="font-bold text-slate-900 dark:text-slate-100">${isHindi ? "लक्षित कमजोर/त्रुटिपूर्ण अंश:" : "Targeted Draft Point:"}</span>
+            <span class="italic">"${escapeHtml(c.target_point)}"</span>
           </div>
-          <span class="${tagBadgeClass}" title="${escapeHtml(tagText)}">${escapeHtml(tagText)}</span>
-        </div>
-        <p class="keyword-desc text-[11px] leading-relaxed font-sans text-slate-700 dark:text-slate-300 mt-1 break-words">${formatHighlightedText(c.definition)}</p>
-        <div class="keyword-action pt-1.5 border-t border-slate-200 dark:border-slate-700/60 flex items-start space-x-1.5 text-[10.5px] font-semibold text-emerald-700 dark:text-emerald-400">
-          <i data-lucide="map-pin" class="w-3.5 h-3.5 shrink-0 mt-0.5 text-emerald-700 dark:text-emerald-400"></i>
-          <span class="break-words"><strong>${isHindi ? "कहाँ जोड़ें (Where to Plug In):" : "Where to Plug In:"}</strong> ${escapeHtml(c.where_to_use || (isHindi ? 'मुख्य भाग के संबंधित बिंदु में शामिल करें' : 'Plug into relevant Body bullet'))}</span>
-        </div>
-        ${oneLineHtml}
-      `;
-      mkGrid.appendChild(div);
-    });
+        ` : "";
+
+        const oneLineHtml = c.how_to_use_one_line ? `
+          <div class="mt-1.5 px-2.5 py-1.5 rounded-md bg-amber-50/90 dark:bg-amber-950/25 border border-amber-300/70 dark:border-amber-500/30 text-[10.5px] leading-snug font-sans">
+            <span class="font-extrabold text-amber-800 dark:text-amber-400 uppercase tracking-wide text-[9.5px] block mb-0.5">${actConf.promptLabel}</span>
+            <span class="text-slate-800 dark:text-slate-200 font-medium break-words">${formatHighlightedText(c.how_to_use_one_line)}</span>
+          </div>
+        ` : "";
+
+        div.className = "keyword-card space-y-1.5 p-3 rounded-lg border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900 shadow-sm";
+        div.innerHTML = `
+          <div class="flex flex-wrap items-start justify-between gap-1.5 sm:gap-2">
+            <div class="flex items-start space-x-2 flex-1 min-w-[130px]">
+              <span class="w-5 h-5 shrink-0 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 text-[10px] font-extrabold flex items-center justify-center mt-0.5">${idx + 1}</span>
+              <div>
+                <span class="keyword-term font-bold text-xs leading-snug text-slate-900 dark:text-slate-100 break-words">${escapeHtml(c.term)}</span>
+                <span class="ml-1.5 text-[9px] px-1.5 py-0.2 rounded font-bold border ${actConf.cls}">${actConf.label}</span>
+                ${isHighPriority ? `<span class="ml-1 text-[8.5px] px-1 py-0.2 rounded font-extrabold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">${isHindi ? "उच्च प्राथमिकता" : "High Priority"}</span>` : ""}
+              </div>
+            </div>
+            <span class="keyword-tag text-[9.5px] px-2 py-0.5 rounded font-semibold whitespace-normal break-words" title="${escapeHtml(tagText)}">${escapeHtml(tagText)}</span>
+          </div>
+          ${targetHtml}
+          <p class="keyword-desc text-[11px] leading-relaxed font-sans text-slate-700 dark:text-slate-300 mt-1 break-words">${formatHighlightedText(c.definition)}</p>
+          <div class="keyword-action pt-1.5 border-t border-slate-200 dark:border-slate-700/60 flex items-start space-x-1.5 text-[10.5px] font-semibold text-emerald-700 dark:text-emerald-400">
+            <i data-lucide="map-pin" class="w-3.5 h-3.5 shrink-0 mt-0.5 text-emerald-700 dark:text-emerald-400"></i>
+            <span class="break-words"><strong>${isHindi ? "कहाँ प्रयोग करें (Where to Plug In):" : "Where to Plug In:"}</strong> ${escapeHtml(c.where_to_use || (isHindi ? 'मुख्य भाग के संबंधित बिंदु में शामिल करें' : 'Plug into relevant Body bullet'))}</span>
+          </div>
+          ${oneLineHtml}
+        `;
+        mkGrid.appendChild(div);
+      });
     }
     if (window.lucide) {
       try { window.lucide.createIcons({ root: mkGrid }); } catch (e) {}

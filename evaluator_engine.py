@@ -1788,21 +1788,15 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
   "missing_keywords_cards": [
     {{
       "number": 1,
-      "term": "मानक शब्दावली / समिति / अनुच्छेद 1",
-      "thinker": "संवैधानिक प्रावधान",
-      "domain_or_thinker": "संवैधानिक प्रावधान",
-      "definition": "इस की-वर्ड का सटीक अर्थ और प्रश्न में इसकी अनिवार्यता।",
-      "where_to_use": "पृष्ठ 1 • आपके '[शीर्षक]' के अंतर्गत",
-      "how_to_use_one_line": "\"वाक्य में इस प्रकार जोड़ें: '...ताकि संस्थागत निष्पक्षता और संवैधानिक संतुलन सुनिश्चित हो सके।'\""
-    }},
-    {{
-      "number": 2,
-      "term": "मानक शब्दावली / समिति / अनुच्छेद 2",
-      "thinker": "समिति अनुशंसा",
-      "domain_or_thinker": "समिति अनुशंसा",
-      "definition": "इस रिपोर्ट का केंद्रीय सुझाव।",
-      "where_to_use": "पृष्ठ 2 • आपके '[शीर्षक]' के अंतर्गत",
-      "how_to_use_one_line": "\"वाक्य में इस प्रकार जोड़ें: '...द्वितीय प्रशासनिक सुधार आयोग (2nd ARC) के अनुसार पारदर्शी प्रक्रियाओं का अनुपालन आवश्यक है।'\""
+      "action_type": "Add", // "Correct" | "Replace" | "Add" | "Expand" | "Strengthen"
+      "priority": "High Priority",
+      "term": "मानक शब्दावली / वैज्ञानिक क्रियाविधि / समिति",
+      "target_point": "उत्तर का लक्षित कमजोर या छूटा हुआ बिंदु",
+      "thinker": "विषय-विशिष्ट मानक",
+      "domain_or_thinker": "विषय-विशिष्ट मानक",
+      "definition": "यह सुझाव उत्तर को कैसे बेहतर बनाता है और प्रश्न की किस मांग को पूरा करता है।",
+      "where_to_use": "पृष्ठ 1 • आपके '[शीर्षक/पैराग्राफ]' के अंतर्गत",
+      "how_to_use_one_line": "उत्तर में सीधे जोड़ने या प्रतिस्थापित करने योग्य स्पष्ट व सटीक वाक्य।"
     }}
   ],
   "visual_annotations": [
@@ -2401,14 +2395,21 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
      * 'mentor_why': Explain why this fetches marks (e.g. "+0.5 to +1.0M jump: connects theory to real triggers instead of passive listing").
      * 'booklet_placement': Exactly where to write or substitute this in the booklet (e.g. "Replace point #2 on Page 1").
 
-6. HIGH-YIELD VALUE ADDITION (1 TO 3 TARGETED CARDS, NEVER MORE THAN 3):
-   - Provide 1 to 2 (maximum 3, or [] if already fully covered) targeted cards ('missing_keywords_cards').
+6. VALUE ADDITION & ANSWER REPAIR TOOLKIT (DYNAMIC SELECTION, NO FIXED CAP):
+   - Dynamically select ALL distinct, high-confidence improvement actions that are materially useful and realistically fit the answer's word limit and gaps ('missing_keywords_cards').
+   - STRICT BAN ON FIXED CAP OR PADDING: DO NOT cap at three or any other arbitrary number! A concise answer with 1 genuine gap needs 1 card; a strong answer needs none ([]); a weak answer with several serious gaps may need 4, 5, or more distinct, high-priority actions.
+   - RECOMMEND REPAIRS AS WELL AS ADDITIONS:
+     * 'Correct': Correct a wrong, misleading, or factually inaccurate point in the draft.
+     * 'Replace': Replace an irrelevant, weak, or low-yield point with a high-yield point. Identify the exact weak point in 'target_point' and provide the replacement text.
+     * 'Add': Supply a missing dimension or unaddressed sub-part demanded by the question.
+     * 'Expand': Provide the missing causal mechanism or analytical implication for a concept mentioned shallowly.
+     * 'Strengthen': Anchor an argument with a verified empirical metric, landmark report, case law, or official framework.
    - SELECTION CRITERIA (MANDATORY):
-     1. Question fit: It directly supports a demand in THIS question. NEVER recommend governance/administrative commissions (e.g. 2nd ARC, Law Commission, Sarkaria, Punchhi) on questions about heatwaves, food security, poverty, environment, or culture unless the question explicitly asks for governance/administrative analysis!
-     2. Answer fit & omission: Addresses an evidenced omission or underdeveloped point in candidate's answer. If the candidate already explained a concept adequately, OMIT it completely.
-     3. Marginal benefit: Adds a concrete causal mechanism, empirical metric, or verified precedent that elevates marks.
-     4. Source-to-claim fit: If a report, scholar, framework, statistic, or institution is named, the claim about it must be accurate and relevant.
-     5. Concise insertion wording ('how_to_use_one_line'): Provide the EXACT, exam-ready insertion sentence itself (ONE CLEAR SENTENCE, UNDER 20 WORDS, plain language).
+     1. Direct Evidence Chain: Question demand -> evidence in candidate's answer -> specific gap or error -> suggested improvement. Reject any recommendation where this chain is unclear.
+     2. Answer fit: Confirm what the candidate actually explained. If a point is shallow, recommend the missing mechanism; if already adequately explained, omit it.
+     3. Priority & Grouping: Rank suggestions by importance ('priority': 'High Priority' for core demand gaps/factual errors, 'Medium Priority' for enrichment).
+     4. Source-to-claim fit: Every source, committee, statistic, or framework must be verified and accurate. Never invent connections.
+     5. Proposed Answer Text ('how_to_use_one_line'): The EXACT, exam-ready sentence itself (plain language, concise for the question's word budget).
         - STRICT BAN on meta-instructions: NEVER write "Deploy [concept] to...", "Incorporate [report] to...", "Cite [source] to...", or "Anchor under [term] to...".
         - STRICT BAN on generic filler: NEVER write "reinforce policy delivery metrics", "grassroots institutional accountability", "fiscal sustainability and public expenditure efficiency", or "ground systemic governance reforms" unless directly demanded by the prompt.
         - NEVER repeat the card's definition in parentheticals.
@@ -2895,30 +2896,24 @@ Generate strictly valid JSON matching this schema:
   }},
   "keyword_toolkit_title": "Core Scientific Concepts & Technical Vocabulary (Missing Keywords)", // DYNAMIC title tailored to question's paper and domain: e.g. "Core Scientific Concepts & Technical Vocabulary" for Geo/Env/S&T; "Constitutional Articles, Doctrines & Judgments" for Polity/Law; "Economic Concepts, Policy Frameworks & Metrics" for Economy; "Essential Thinkers, Philosophies & Ethical Frameworks" for Ethics/Optional; "Historical Sources, Eras & Historiographical Concepts" for History. NEVER output "Thinker" for physical geography, science, or general questions!
   "missing_keywords_cards": [
-    // CRITICAL MANDATE FOR missing_keywords_cards (APPLIES TO EVERY QUESTION):
-    // 1. DYNAMIC QUOTA: Provide 1 to 2 targeted cards by default, NEVER MORE THAN 3. Output [] if the candidate has already covered the core technical demands adequately.
-    // 2. QUESTION & SUBJECT RELEVANCE: Every recommendation must directly answer this question's demand. DO NOT suggest governance reports (e.g., 2nd ARC, Law Commission) unless the question explicitly asks for governance/electoral analysis.
-    // 3. ANSWER FIT: Address an evidenced omission or underdeveloped point. If the candidate explained a concept adequately, OMIT it. If named shallowly, provide its causal mechanism.
-    // 4. "where_to_use": Ground in the candidate's actual handwritten sub-heading, bullet, or paragraph (e.g., "Page 1 • Inside your '[Exact Sub-Heading]' bullet"). Do not invent headings.
-    // 5. "how_to_use_one_line": The EXACT insertion sentence itself—under 20 words, plain language, ending with a period.
-    //    NO meta-instructions ("Deploy X to...", "Incorporate X to..."). NO boilerplate ("reinforce policy delivery metrics", "fiscal sustainability").
+    // CRITICAL MANDATE FOR missing_keywords_cards (DYNAMIC SELECTION, NO FIXED CAP):
+    // 1. DYNAMIC COUNT: Select all distinct, high-confidence improvement actions that are materially useful and realistically fit the answer's word limit. No fixed cap (can be 0, 1, 2, 3, 4, 5+). Output [] if the answer has no genuine gaps.
+    // 2. ACTION TYPES: Label each action as "Correct" (fix errors), "Replace" (substitute weak/irrelevant points), "Add" (missing demands), "Expand" (underexplained concepts), or "Strengthen" (empirical data/precedents).
+    // 3. TARGET POINT: When replacing or correcting, specify the exact weak/misleading phrase or bullet in 'target_point'.
+    // 4. PRIORITY RANKING: Set 'priority' to "High Priority" for critical demand lacunae and factual corrections; "Medium Priority" for enrichment.
+    // 5. WHERE TO USE: Ground in candidate's actual handwritten sub-heading, bullet, or paragraph (e.g. "Page 1 • Inside your '[Exact Sub-Heading]' bullet").
+    // 6. 1-LINE SPACE-SAVING USAGE: The exact proposed answer text itself—one clear, concise sentence in plain language. NO meta-instructions ("Deploy X to..."). NO boilerplate ("reinforce policy delivery metrics").
     {{
       "number": 1,
-      "term": "Exact Missing Domain Keyword / Mechanism / Metric #1",
+      "action_type": "Add", // "Correct" | "Replace" | "Add" | "Expand" | "Strengthen"
+      "priority": "High Priority", // "High Priority" | "Medium Priority"
+      "term": "Exact Concept / Framework / Data Point #1",
+      "target_point": "Exact weak or missing point in student's answer being addressed",
       "thinker": "Specific Sub-Domain Badge #1",
       "domain_or_thinker": "Specific Sub-Domain Badge #1",
-      "definition": "Why this missing keyword elevates analytical depth for this question's specific demand.",
+      "definition": "Why this improvement helps and which specific question demand it satisfies.",
       "where_to_use": "Page 1 • Inside your '[Exact Sub-Heading / Paragraph]' point",
-      "how_to_use_one_line": "Exact 1-line exam-ready insertion sentence under 20 words explaining the mechanism."
-    }},
-    {{
-      "number": 2,
-      "term": "Exact Missing Domain Landmark / Benchmark #2 (Optional - include only if marginal benefit exists)",
-      "thinker": "Specific Sub-Domain Badge #2",
-      "domain_or_thinker": "Specific Sub-Domain Badge #2",
-      "definition": "How this concept/metric addresses an evidenced gap in the candidate's answer.",
-      "where_to_use": "Page 2 • Under your '[Exact Sub-Heading / Paragraph]' section",
-      "how_to_use_one_line": "Exact 1-line exam-ready insertion sentence under 20 words."
+      "how_to_use_one_line": "Exact exam-ready insertion or replacement sentence in plain language."
     }}
   ],
   "micro_hygiene": {{
@@ -5391,18 +5386,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         else:
             data["keyword_toolkit_title"] = "High-Yield Domain Concepts & Keywords (Missing Keywords)"
 
-    # Normalize missing_keywords_cards with distinct badges, exact Page & Sub-Heading placement, and clean 1-line insertion usage
-    q_low_norm = str(data.get("detected_question") or "").lower()
-    gov_indicators = [
-        "governance", "polity", "election", "electoral", "eci", "cec",
-        "constitution", "judiciary", "judicial", "civil service", "bureaucra",
-        "ethics", "probity", "accountability", "transparency", "corruption",
-        "lokpal", "cbi", "cvc", "rti", "panchayat", "municipal", "federal",
-        "parliament", "legislat", "executive", "separation of powers",
-        "law commission", "arc", "administrative reform"
-    ]
-    q_has_gov = any(k in q_low_norm for k in gov_indicators)
-
+    # Normalize missing_keywords_cards: Dynamic selection, repairs & additions, priority ranking, no fixed cap
     raw_cards = data.get("missing_keywords_cards")
     if not isinstance(raw_cards, list):
         data["missing_keywords_cards"] = []
@@ -5413,6 +5397,17 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
 
         filtered_cards = []
         seen_terms = set()
+
+        q_low_norm = str(data.get("detected_question") or "").lower()
+        gov_indicators = [
+            "governance", "polity", "election", "electoral", "eci", "cec",
+            "constitution", "judiciary", "judicial", "civil service", "bureaucra",
+            "ethics", "probity", "accountability", "transparency", "corruption",
+            "lokpal", "cbi", "cvc", "rti", "panchayat", "municipal", "federal",
+            "parliament", "legislat", "executive", "separation of powers",
+            "law commission", "arc", "administrative reform"
+        ]
+        q_has_gov = any(k in q_low_norm for k in gov_indicators)
 
         for card in raw_cards:
             if not isinstance(card, dict):
@@ -5425,27 +5420,50 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
             acr_m = re.search(r'\(([A-Za-z0-9\-]{3,10})\)', t_str)
             acr_low = acr_m.group(1).lower() if acr_m else ""
 
-            # Check for duplicate
-            if t_clean in seen_terms or (acr_low and acr_low in seen_terms):
+            # Check for duplicate suggestions
+            term_key = acr_low if acr_low and len(acr_low) >= 3 else t_clean
+            if term_key in seen_terms:
                 continue
 
-            # Question-Demand Relevance Guard: Reject governance commissions on non-governance topics
-            is_gov_source = any(gk in t_low for gk in ["2nd arc", "arc 4th", "second administrative", "law commission", "dinesh goswami", "tarkunde", "anoop baranwal", "sarkaria", "punchhi"])
-            if is_gov_source and not q_has_gov:
+            # Question Demand Fit: Suppress specific governance commission reports if question has no governance demands
+            is_gov_report = any(gk in t_low for gk in ["2nd arc", "arc 4th", "second administrative", "law commission", "dinesh goswami", "tarkunde"])
+            if is_gov_report and not q_has_gov:
                 continue
 
-            # Candidate Evidence & Omission Guard: If candidate already explained it adequately, omit it
+            # Confirm candidate evidence: if candidate already explained it adequately, omit it
             already_explained = (acr_low and acr_low in strengths_blob) or (len(t_clean) >= 5 and t_clean in strengths_blob)
             if already_explained:
                 continue
 
-            seen_terms.add(t_clean)
-            if acr_low:
-                seen_terms.add(acr_low)
+            # Normalize action_type: "Correct", "Replace", "Add", "Expand", "Strengthen"
+            act = str(card.get("action_type") or "").strip().capitalize()
+            if act not in ["Correct", "Replace", "Add", "Expand", "Strengthen"]:
+                term_in_text = (acr_low and acr_low in pos_corpus_norm) or (len(t_clean) >= 5 and t_clean in pos_corpus_norm)
+                if card.get("target_point"):
+                    act = "Replace"
+                elif term_in_text:
+                    act = "Expand"
+                elif any(kw in t_low for kw in ["report", "committee", "commission", "index", "survey", "case", "verdict", "article"]):
+                    act = "Strengthen"
+                else:
+                    act = "Add"
+            card["action_type"] = act
+
+            # Normalize priority: "High Priority" vs "Medium Priority"
+            prio = str(card.get("priority") or "").strip()
+            if "high" in prio.lower() or act in ["Correct", "Replace"]:
+                card["priority"] = "High Priority"
+            elif "medium" in prio.lower():
+                card["priority"] = "Medium Priority"
+            else:
+                card["priority"] = "High Priority" if len(filtered_cards) < 2 else "Medium Priority"
+
+            seen_terms.add(term_key)
             filtered_cards.append(card)
 
-        # Cap at maximum 3 cards (Rule 7: No forced quota, 1-2 ideal, max 3)
-        data["missing_keywords_cards"] = filtered_cards[:3]
+        # Dynamic Priority Ordering: High Priority first, then Medium Priority (NO FIXED CAP)
+        filtered_cards.sort(key=lambda c: 0 if c.get("priority") == "High Priority" else 1)
+        data["missing_keywords_cards"] = filtered_cards
 
         used_badges = set()
         fallback_badges = (
@@ -5457,6 +5475,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         )
 
         for idx_c, card in enumerate(data["missing_keywords_cards"]):
+            card["number"] = idx_c + 1
             term_str = str(card.get("term") or "Keyword").strip()
             term_l = term_str.lower()
             raw_dot = str(card.get("domain_or_thinker") or card.get("thinker") or "").strip()
@@ -5467,7 +5486,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
             used_badges.add(raw_dot.lower())
             card["domain_or_thinker"] = raw_dot
 
-            # Placement: Ground in candidate's actual handwritten sub-heading/page
+            # Placement: Ground in candidate's actual handwritten sub-heading/page or described paragraph
             raw_where = str(card.get("where_to_use") or "").strip()
             if not raw_where or len(raw_where) < 18 or "use in body section" in raw_where.lower() or "integrate into the relevant" in raw_where.lower():
                 if idx_c < len(pbp_list) and isinstance(pbp_list[idx_c], dict) and pbp_list[idx_c].get("title"):
@@ -5483,7 +5502,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                     ]
                     card["where_to_use"] = slot_wheres[idx_c % len(slot_wheres)]
 
-            # Clean 1-Line Space-Saving Usage: Exam-ready insertion sentence under 20 words
+            # Clean Proposed Answer Text: The exact insertion or replacement sentence itself
             raw_how = str(card.get("how_to_use_one_line") or "").strip()
             if (raw_how.startswith('"') and raw_how.endswith('"')) or (raw_how.startswith("'") and raw_how.endswith("'")):
                 raw_how = raw_how[1:-1].strip()
@@ -5558,7 +5577,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                     clean_def = re.sub(r'\s*\([^)]*\)', '', clean_def).strip()
                     words = clean_def.split()
                     if words:
-                        cand_s = " ".join(words[:18]).rstrip(',;:-') + "."
+                        cand_s = " ".join(words[:22]).rstrip(',;:-') + "."
                         cand_s = cand_s[0].upper() + cand_s[1:]
                         card["how_to_use_one_line"] = cand_s
                     else:
@@ -5567,9 +5586,6 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                 cand = cleaned_how[0].upper() + cleaned_how[1:]
                 if not cand.endswith(('.', '!', '?')):
                     cand += '.'
-                c_words = cand.split()
-                if len(c_words) > 20:
-                    cand = " ".join(c_words[:20]).rstrip(',;:-') + "."
                 card["how_to_use_one_line"] = cand
 
     # Normalize Actionable Value-Addition Checklist (Where to Write & How to Write)
@@ -8320,6 +8336,11 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             "recommended_insertion": "✓ Great use of **ANRF** on Page 3! In Point ⑥ on Page 2, replace 'Small by choice' with **Lack of Assured Domestic Public Procurement** and plug in **iDEX (Innovations for Defence Excellence)** + **MeitY TIDE 2.0** showing how Government acts as the first anchor buyer for indigenous deep-tech products."
         }
     elif isinstance(data.get("missing_keywords_cards"), list):
+        strengths_list = [str(s).lower() for s in (data.get("body_audit", {}).get("strengths") or [])]
+
+        sanitized_cards = []
+        seen_t = set()
+
         q_low_san = str(data.get("detected_question") or "").lower()
         gov_indicators_san = [
             "governance", "polity", "election", "electoral", "eci", "cec",
@@ -8330,10 +8351,6 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             "law commission", "arc", "administrative reform"
         ]
         q_demands_gov = any(k in q_low_san for k in gov_indicators_san)
-        strengths_list = [str(s).lower() for s in (data.get("body_audit", {}).get("strengths") or [])]
-
-        sanitized_cards = []
-        seen_t = set()
 
         for card in data["missing_keywords_cards"]:
             if not isinstance(card, dict):
@@ -8347,11 +8364,12 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             acr_low = acr_m.group(1).lower() if acr_m else ""
 
             # Suppress duplicate cards
-            if m_low in seen_t or (acr_low and acr_low in seen_t):
+            term_key = acr_low if acr_low and len(acr_low) >= 3 else m_low
+            if term_key in seen_t:
                 continue
 
-            # Question Fit: Suppress governance commission reports on non-governance topics
-            is_gov_report = any(gk in r_low for gk in ["2nd arc", "arc 4th", "second administrative", "law commission", "dinesh goswami", "tarkunde", "anoop baranwal", "sarkaria", "punchhi"])
+            # Question Demand Fit: Suppress specific governance commission reports if question has no governance demands
+            is_gov_report = any(gk in r_low for gk in ["2nd arc", "arc 4th", "second administrative", "law commission", "dinesh goswami", "tarkunde"])
             if is_gov_report and not q_demands_gov:
                 continue
 
@@ -8359,23 +8377,22 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             already_explained_well = any(m_low in s or (acr_low and acr_low in s) for s in strengths_list)
             term_in_corpus = (acr_low and acr_low in positive_corpus) or (len(m_low) >= 5 and m_low in positive_corpus)
             if term_in_corpus and already_explained_well:
-                # Omit completely per Rule 7 (do NOT replace with unrelated governance reports!)
                 continue
 
-            # If shallowly mentioned in corpus without adequate explanation, badge it as shallow mention
+            # If shallowly mentioned in corpus without adequate explanation, mark action as Expand
             if term_in_corpus and not already_explained_well:
+                if not card.get("action_type") or card.get("action_type") == "Add":
+                    card["action_type"] = "Expand"
                 card["domain_or_thinker"] = "⚡ Shallow Mention — Analytical Upgrade Needed"
                 clean_def = re.sub(r'^(?:✓\s*[^:]*:\s*|.*?significance:\s*)', '', str(card.get("definition") or "")).strip()
                 clean_def = re.sub(r'\s*\([^)]*\)', '', clean_def).strip()
                 card["definition"] = f"You mentioned **{r_term}** in passing—substantiate its core analytical significance: {clean_def}"
 
-            seen_t.add(m_low)
-            if acr_low:
-                seen_t.add(acr_low)
+            seen_t.add(term_key)
             sanitized_cards.append(card)
 
-        # Quota: 1 to 2 by default, max 3
-        data["missing_keywords_cards"] = sanitized_cards[:3]
+        # Dynamic Selection: NO FIXED CAP
+        data["missing_keywords_cards"] = sanitized_cards
         for idx_c, card in enumerate(data["missing_keywords_cards"]):
             card["number"] = idx_c + 1
 

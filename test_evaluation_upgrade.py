@@ -2038,8 +2038,8 @@ class TestUPSCInterdisciplinarySyllabusOverlap(unittest.TestCase):
         )
         cards = norm.get("missing_keywords_cards", [])
 
-        # 1. Quota: Maximum 3 cards, never forced 4
-        self.assertLessEqual(len(cards), 3)
+        # 1. Dynamic selection: verified cards preserved without arbitrary 3-cap
+        self.assertGreaterEqual(len(cards), 1)
 
         # 2. Question Fit: 2nd ARC and Law Commission must be strictly filtered out of heatwave evaluation
         terms = [str(c.get("term", "")).lower() for c in cards]
@@ -2244,6 +2244,184 @@ class TestUPSCInterdisciplinarySyllabusOverlap(unittest.TestCase):
         self.assertFalse(any("benioff" in t for t in terms))
         # Zero cards is completely appropriate and expected
         self.assertEqual(len(cards), 0)
+
+    def test_value_addition_dynamic_count_more_than_three(self):
+        """
+        Regression Case: Answer with several serious gaps.
+        Verify that when an answer warrants 5 distinct, high-priority improvement actions,
+        all 5 are returned dynamically WITHOUT ANY ARBITRARY TRUNCATION OR 3-CARD CAP.
+        """
+        raw_eval = {
+            "overall_score": 4.0,
+            "max_marks": 15,
+            "detected_question": "Examine the multi-dimensional impacts of climate change on coastal ecosystems, fisheries, and littoral communities in India. Suggest sustainable adaptation strategies.",
+            "detected_paper": "GS3",
+            "transcribed_text": "Climate change affects sea levels. Fishermen face loss of livelihoods. Government has coastal regulations.",
+            "body_audit": {
+                "strengths": [
+                    "You correctly identified sea level rise as a driver of livelihood vulnerability."
+                ]
+            },
+            "missing_keywords_cards": [
+                {
+                    "number": 1,
+                    "action_type": "Add",
+                    "priority": "High Priority",
+                    "term": "Ocean Acidification & Coral Bleaching",
+                    "domain_or_thinker": "Marine Biogeochemistry",
+                    "definition": "Decreased seawater pH and thermal stress decimating calcifying reef ecosystems like Gulf of Mannar.",
+                    "where_to_use": "Page 1 • Under coastal ecosystem degradation",
+                    "how_to_use_one_line": "Rising sea surface temperatures accelerate widespread bleaching across coral reefs in Lakshadweep and Gulf of Mannar."
+                },
+                {
+                    "number": 2,
+                    "action_type": "Add",
+                    "priority": "High Priority",
+                    "term": "Mangrove Restoration (MISHTI Initiative)",
+                    "domain_or_thinker": "Nature-Based Adaptation",
+                    "definition": "Dedicated mission to restore shoreline bio-shields and stabilize fragile estuarine mudflats.",
+                    "where_to_use": "Page 2 • Under adaptation strategies",
+                    "how_to_use_one_line": "The MISHTI initiative operationalizes mangrove afforestation as living seawalls to attenuate storm-surge kinetic energy."
+                },
+                {
+                    "number": 3,
+                    "action_type": "Expand",
+                    "priority": "High Priority",
+                    "term": "CRZ Notification 2019 Zonation",
+                    "domain_or_thinker": "Statutory Coastal Regulation",
+                    "definition": "Demarcates ecologically sensitive CRZ-I zones to regulate high-density commercial construction.",
+                    "where_to_use": "Page 2 • Under regulatory framework",
+                    "how_to_use_one_line": "CRZ 2019 norms delineate No Development Zones within 50 meters of high tide line to prevent foreshore erosion."
+                },
+                {
+                    "number": 4,
+                    "action_type": "Add",
+                    "priority": "High Priority",
+                    "term": "Marine Spatial Planning (MSP)",
+                    "domain_or_thinker": "Littoral Resource Allocation",
+                    "definition": "Integrates artisanal fishing rights, port logistics, and marine biodiversity protection.",
+                    "where_to_use": "Page 3 • Under spatial planning reforms",
+                    "how_to_use_one_line": "Marine Spatial Planning balances conflicting coastal resource demands between industrial shipping and traditional fishing."
+                },
+                {
+                    "number": 5,
+                    "action_type": "Strengthen",
+                    "priority": "Medium Priority",
+                    "term": "Pradhan Mantri Matsya Sampada Yojana (PMMSY)",
+                    "domain_or_thinker": "Blue Economy Social Security",
+                    "definition": "Provides deep-sea fishing vessel subsidies and weather safety beacons for artisanal fishers.",
+                    "where_to_use": "Page 3 • Beside fisherfolk social security",
+                    "how_to_use_one_line": "PMMSY extends insurance coverage and subsidized NavIC transponders to insulate fishers during extreme weather events."
+                }
+            ]
+        }
+        norm = normalize_evaluation_data(
+            raw_eval,
+            max_marks=15,
+            question="Examine the multi-dimensional impacts of climate change on coastal ecosystems, fisheries, and littoral communities in India. Suggest sustainable adaptation strategies.",
+            paper="GS3"
+        )
+        cards = norm.get("missing_keywords_cards", [])
+
+        # CRITICAL TEST: Must preserve all 5 distinct improvement actions without being truncated to 3!
+        self.assertEqual(len(cards), 5, "Dynamic selection must return all 5 valid improvement cards without a 3-card cap!")
+        terms = [c["term"] for c in cards]
+        self.assertIn("Ocean Acidification & Coral Bleaching", terms)
+        self.assertIn("Mangrove Restoration (MISHTI Initiative)", terms)
+        self.assertIn("CRZ Notification 2019 Zonation", terms)
+        self.assertIn("Marine Spatial Planning (MSP)", terms)
+        self.assertIn("Pradhan Mantri Matsya Sampada Yojana (PMMSY)", terms)
+
+        # Confirm priority ranking: High Priority items appear before Medium Priority items
+        priorities = [c.get("priority") for c in cards]
+        self.assertEqual(priorities[:4], ["High Priority", "High Priority", "High Priority", "High Priority"])
+        self.assertEqual(priorities[4], "Medium Priority")
+
+    def test_value_addition_repairs_correct_and_replace(self):
+        """
+        Regression Case: Answer with wrong or weak/irrelevant points.
+        Verify that the system generates 'Correct' and 'Replace' improvement actions,
+        identifying the targeted draft point and providing the replacement text.
+        """
+        raw_eval = {
+            "overall_score": 5.0,
+            "max_marks": 10,
+            "detected_question": "Explain the difference between economic growth and economic development. How does HDI capture development?",
+            "detected_paper": "GS3",
+            "transcribed_text": "Economic growth means increase in GDP. HDI was developed by Tendulkar committee and measures calories.",
+            "missing_keywords_cards": [
+                {
+                    "number": 1,
+                    "action_type": "Correct",
+                    "priority": "High Priority",
+                    "term": "Mahbub ul Haq & Amartya Sen (UNDP HDI)",
+                    "target_point": "HDI was developed by Tendulkar committee and measures calories",
+                    "domain_or_thinker": "Development Paradigm",
+                    "definition": "Corrects the factual error: HDI was formulated by Mahbub ul Haq and Amartya Sen for UNDP, not the Tendulkar poverty committee.",
+                    "where_to_use": "Page 1 • Replace your sentence on HDI formulation",
+                    "how_to_use_one_line": "HDI was designed by Mahbub ul Haq and Amartya Sen for UNDP to measure human capabilities beyond pure GDP."
+                },
+                {
+                    "number": 2,
+                    "action_type": "Replace",
+                    "priority": "High Priority",
+                    "term": "Three Geometric Dimensions of HDI",
+                    "target_point": "measures calories",
+                    "domain_or_thinker": "Composite Index Methodology",
+                    "definition": "Replaces the irrelevant calorie metric with HDI's three dimensional indices.",
+                    "where_to_use": "Page 1 • Replace 'measures calories' with HDI indicators",
+                    "how_to_use_one_line": "HDI aggregates longevity (life expectancy), knowledge (mean and expected schooling), and decent living standards (GNI per capita)."
+                }
+            ]
+        }
+        norm = normalize_evaluation_data(
+            raw_eval,
+            max_marks=10,
+            question="Explain the difference between economic growth and economic development. How does HDI capture development?",
+            paper="GS3"
+        )
+        cards = norm.get("missing_keywords_cards", [])
+        self.assertEqual(len(cards), 2)
+        
+        # Verify action types
+        action_types = [c.get("action_type") for c in cards]
+        self.assertIn("Correct", action_types)
+        self.assertIn("Replace", action_types)
+
+        # Verify target points are preserved
+        correct_card = next(c for c in cards if c.get("action_type") == "Correct")
+        self.assertIn("Tendulkar committee", correct_card.get("target_point", ""))
+        self.assertIn("Mahbub ul Haq", correct_card.get("how_to_use_one_line", ""))
+
+        replace_card = next(c for c in cards if c.get("action_type") == "Replace")
+        self.assertIn("calories", replace_card.get("target_point", ""))
+
+    def test_value_addition_strong_answer_zero_or_few_suggestions(self):
+        """
+        Regression Case: Strong answer with no genuine gaps.
+        Verify that a strong answer returns empty list [] without forced padding or dummy cards.
+        """
+        raw_eval = {
+            "overall_score": 8.0,
+            "max_marks": 10,
+            "detected_question": "Explain the significance of the 73rd Constitutional Amendment Act in empowering rural local governments.",
+            "detected_paper": "GS2",
+            "transcribed_text": "The 73rd CAA inserted Part IX and 11th Schedule with 29 subjects. It mandated Article 243D reservations for women (one-third), Article 243I State Finance Commissions for fiscal devolution, and Article 243K State Election Commissions for timely elections. Gram Sabhas under Article 243A provide grassroots democracy.",
+            "body_audit": {
+                "strengths": [
+                    "You comprehensively covered Articles 243A to 243K, fiscal devolution via SFCs, and women's political empowerment under 243D."
+                ]
+            },
+            "missing_keywords_cards": []
+        }
+        norm = normalize_evaluation_data(
+            raw_eval,
+            max_marks=10,
+            question="Explain the significance of the 73rd Constitutional Amendment Act in empowering rural local governments.",
+            paper="GS2"
+        )
+        cards = norm.get("missing_keywords_cards", [])
+        self.assertEqual(len(cards), 0, "A strong answer with no genuine gaps should return 0 cards without padding!")
 
 if __name__ == "__main__":
 
