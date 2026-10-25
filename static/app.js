@@ -12280,6 +12280,193 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
 }
 
 // Render the Full Evaluation Scorecard
+function renderRelevantConceptsKeywords(evalData) {
+  const section = document.getElementById("relevantConceptsSection");
+  if (!section) return;
+
+  const rawList = Array.isArray(evalData.relevant_concepts_keywords) ? evalData.relevant_concepts_keywords : [];
+  if (rawList.length === 0) {
+    section.classList.add("hidden");
+    return;
+  }
+  section.classList.remove("hidden");
+
+  const isHindi = Boolean(evalData.is_hindi || (evalData.medium && String(evalData.medium).toLowerCase().includes("hindi")));
+
+  // Localized headers
+  const rcTitle = document.getElementById("relevantConceptsTitle");
+  const rcSubtitle = document.getElementById("relevantConceptsSubtitle");
+  if (rcTitle && isHindi) rcTitle.textContent = "प्रश्न-विशिष्ट प्रासंगिक अवधारणाएं एवं पारिभाषिक शब्दावली";
+  if (rcSubtitle && isHindi) rcSubtitle.textContent = "प्रश्न की मांग से व्युत्पन्न अवधारणाएं • आपकी उत्तर-पुस्तिका के आधार पर वर्गीकृत";
+
+  // Calculate counts
+  let countUsed = 0;
+  let countShallow = 0;
+  let countAdditions = 0;
+
+  rawList.forEach(item => {
+    const st = String(item.status || "potential_addition").toLowerCase();
+    if (st === "used_effectively") countUsed++;
+    else if (st === "underexplained") countShallow++;
+    else countAdditions++;
+  });
+
+  const countBadge = document.getElementById("relevantConceptsCountBadge");
+  if (countBadge) {
+    countBadge.textContent = `${rawList.length} ${isHindi ? "अवधारणाएं" : "Concepts Analyzed"}`;
+  }
+
+  const elAll = document.getElementById("rcCountAll");
+  const elUsed = document.getElementById("rcCountUsed");
+  const elShallow = document.getElementById("rcCountShallow");
+  const elAdditions = document.getElementById("rcCountAdditions");
+  if (elAll) elAll.textContent = rawList.length;
+  if (elUsed) elUsed.textContent = countUsed;
+  if (elShallow) elShallow.textContent = countShallow;
+  if (elAdditions) elAdditions.textContent = countAdditions;
+
+  const grid = document.getElementById("relevantConceptsGrid");
+  if (!grid) return;
+
+  let activeFilter = "all";
+
+  const renderCards = (filter) => {
+    grid.innerHTML = "";
+    const filtered = filter === "all" ? rawList : rawList.filter(item => {
+      const st = String(item.status || "potential_addition").toLowerCase();
+      return st === filter;
+    });
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `
+        <div class="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-xs text-slate-500 dark:text-slate-400 text-center">
+          ${isHindi ? "इस श्रेणी में कोई अवधारणा नहीं है।" : "No concepts in this filter category."}
+        </div>
+      `;
+      return;
+    }
+
+    filtered.forEach((item, idx) => {
+      const card = document.createElement("div");
+      const status = String(item.status || "potential_addition").toLowerCase();
+      const conceptName = String(item.concept || "").trim();
+      const demandDim = String(item.demand_dimension || "Core Analytical Demand").trim();
+      const meaning = String(item.meaning_in_context || "").trim();
+      const studentEvidence = String(item.student_evidence || "").trim();
+      const howToUse = String(item.how_to_use || "").trim();
+      const isOptional = Boolean(item.is_optional_enrichment);
+
+      let statusBadge = "";
+      let cardBorder = "border-slate-200 dark:border-slate-800";
+      let cardBg = "bg-slate-50/70 dark:bg-slate-950/60";
+
+      if (status === "used_effectively") {
+        statusBadge = `
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+            <span>✓</span> <span>${isHindi ? "प्रभावी प्रयोग" : "Used Effectively"}</span>
+          </span>
+        `;
+        cardBorder = "border-emerald-500/30 dark:border-emerald-500/25";
+        cardBg = "bg-emerald-500/[0.02] dark:bg-emerald-950/[0.08]";
+      } else if (status === "underexplained") {
+        statusBadge = `
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 flex items-center gap-1">
+            <span>✎</span> <span>${isHindi ? "सतही उल्लेख" : "Mentioned but Shallow"}</span>
+          </span>
+        `;
+        cardBorder = "border-amber-500/30 dark:border-amber-500/25";
+        cardBg = "bg-amber-500/[0.02] dark:bg-amber-950/[0.08]";
+      } else {
+        statusBadge = `
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${isOptional ? "bg-teal-500/15 text-teal-700 dark:text-teal-300 border-teal-500/30" : "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30"} flex items-center gap-1">
+            <span>${isOptional ? "💡" : "+"}</span> <span>${isOptional ? (isHindi ? "ऐच्छिक संवर्धन" : "Optional Enrichment") : (isHindi ? "संभावित संवर्धन" : "Potential Addition")}</span>
+          </span>
+        `;
+        cardBorder = isOptional ? "border-teal-500/30" : "border-sky-500/30 dark:border-sky-500/25";
+        cardBg = isOptional ? "bg-teal-500/[0.02]" : "bg-sky-500/[0.02] dark:bg-sky-950/[0.08]";
+      }
+
+      card.className = `p-3 rounded-xl border ${cardBorder} ${cardBg} space-y-2 transition-all hover:shadow-sm`;
+      card.id = `rc-card-${idx}`;
+
+      let evidenceHtml = "";
+      if (status === "used_effectively" && studentEvidence) {
+        evidenceHtml = `
+          <div class="p-2 rounded-lg bg-emerald-500/10 dark:bg-emerald-950/30 border border-emerald-500/20 text-[11px] leading-relaxed">
+            <span class="text-[9.5px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 block mb-0.5">
+              ✓ ${isHindi ? "आपकी कॉपी से उद्धरण (सटीक या समकक्ष भावार्थ):" : "What you wrote (Direct or Paraphrased Usage):"}
+            </span>
+            <p class="text-slate-800 dark:text-slate-200 italic font-serif">"${escapeHtml(studentEvidence)}"</p>
+          </div>
+        `;
+      } else if (status === "underexplained") {
+        evidenceHtml = `
+          ${studentEvidence ? `
+            <div class="p-2 rounded-lg bg-amber-500/10 dark:bg-amber-950/30 border border-amber-500/20 text-[11px] leading-relaxed">
+              <span class="text-[9.5px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 block mb-0.5">
+                ✎ ${isHindi ? "आपकी कॉपी से उद्धरण (अपूर्ण या सतही):" : "What you wrote (Shallow mention or missing mechanism):"}
+              </span>
+              <p class="text-slate-800 dark:text-slate-200 italic font-serif">"${escapeHtml(studentEvidence)}"</p>
+            </div>
+          ` : ""}
+          ${howToUse ? `
+            <div class="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-300/60 dark:border-amber-500/30 text-[11px] leading-relaxed">
+              <span class="text-[9.5px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-400 block mb-0.5">
+                ✍️ ${isHindi ? "विश्लेषणात्मक विस्तार सुझाव (How to Sharpen):" : "How to unpack the mechanism:"}
+              </span>
+              <p class="text-slate-800 dark:text-slate-200 font-medium">${escapeHtml(howToUse)}</p>
+            </div>
+          ` : ""}
+        `;
+      } else if (howToUse) {
+        evidenceHtml = `
+          <div class="p-2 rounded-lg bg-sky-50 dark:bg-sky-950/20 border border-sky-300/60 dark:border-sky-500/30 text-[11px] leading-relaxed">
+            <span class="text-[9.5px] font-bold uppercase tracking-wider text-sky-800 dark:text-sky-400 block mb-0.5">
+              ✍️ ${isHindi ? "1-पंक्ति में प्रयोग (Space-Saving Usage):" : "1-Line Space-Saving Usage:"}
+            </span>
+            <p class="text-slate-800 dark:text-slate-200 font-medium">${escapeHtml(howToUse)}</p>
+          </div>
+        `;
+      }
+
+      card.innerHTML = `
+        <div class="flex flex-wrap items-center justify-between gap-1.5 border-b border-slate-200/60 dark:border-slate-800/60 pb-1.5">
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-bold text-slate-900 dark:text-slate-100">${escapeHtml(conceptName)}</span>
+            <span class="text-[9.5px] font-medium px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-400">${escapeHtml(demandDim)}</span>
+          </div>
+          <div>${statusBadge}</div>
+        </div>
+        <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">${escapeHtml(meaning)}</p>
+        ${evidenceHtml}
+      `;
+
+      grid.appendChild(card);
+    });
+
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
+      window.lucide.createIcons();
+    }
+  };
+
+  // Wire filter buttons
+  const buttons = section.querySelectorAll(".rc-filter-btn");
+  buttons.forEach(btn => {
+    btn.onclick = () => {
+      activeFilter = btn.getAttribute("data-filter") || "all";
+      buttons.forEach(b => {
+        b.className = "rc-filter-btn px-2.5 py-1 rounded-md text-[10.5px] font-semibold transition-colors bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700";
+      });
+      btn.className = "rc-filter-btn px-2.5 py-1 rounded-md text-[10.5px] font-semibold transition-colors bg-sky-600 text-white";
+      renderCards(activeFilter);
+    };
+  });
+
+  // Initial render
+  renderCards("all");
+}
+
+
 function renderEvaluation(evalData) {
   window.renderEvaluation = renderEvaluation;
   if (typeof window.sanitizeRepetitiveConclusionCliches === "function") {
@@ -12974,13 +13161,47 @@ function renderEvaluation(evalData) {
       }
     }
 
-    candidateTerms.slice(0, 5).forEach(kw => {
-      const chip = document.createElement("span");
-      chip.className = "inline-flex items-center gap-1 text-[10.5px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium cursor-help hover:border-amber-400 dark:hover:border-amber-500 transition-colors";
-      chip.title = kw.meaning;
-      chip.innerHTML = `<span class="font-bold text-slate-900 dark:text-slate-100">${escapeHtml(kw.term)}</span> <span class="text-[9px] text-amber-500 font-mono">ℹ</span>`;
-      glossaryChipsContainer.appendChild(chip);
-    });
+    // Prioritize Question-Specific Relevant Concepts & Keywords
+    const rkList = Array.isArray(evalData.relevant_concepts_keywords) ? evalData.relevant_concepts_keywords : [];
+    if (rkList.length > 0) {
+      rkList.forEach(rc => {
+        const st = String(rc.status || "").toLowerCase();
+        let dotColor = "text-sky-500";
+        let dotIcon = "+";
+        let chipBg = "bg-sky-50/70 dark:bg-sky-950/30 border-sky-200 dark:border-sky-800/60";
+        if (st === "used_effectively") {
+          dotColor = "text-emerald-500";
+          dotIcon = "✓";
+          chipBg = "bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/60";
+        } else if (st === "underexplained") {
+          dotColor = "text-amber-500";
+          dotIcon = "✎";
+          chipBg = "bg-amber-50/70 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/60";
+        }
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = `inline-flex items-center gap-1 text-[10.5px] px-2 py-0.5 rounded-md ${chipBg} text-slate-700 dark:text-slate-300 font-medium cursor-pointer hover:scale-105 transition-transform`;
+        chip.title = `${rc.concept}: ${rc.meaning_in_context || "Click to view concept evaluation"}`;
+        chip.innerHTML = `<span class="font-bold text-slate-900 dark:text-slate-100">${escapeHtml(rc.concept)}</span> <span class="text-[9px] ${dotColor} font-bold">${dotIcon}</span>`;
+        chip.onclick = () => {
+          const sec = document.getElementById("relevantConceptsSection");
+          if (sec) {
+            sec.scrollIntoView({ behavior: "smooth", block: "start" });
+            sec.classList.add("ring-2", "ring-sky-500");
+            setTimeout(() => sec.classList.remove("ring-2", "ring-sky-500"), 2000);
+          }
+        };
+        glossaryChipsContainer.appendChild(chip);
+      });
+    } else {
+      candidateTerms.slice(0, 5).forEach(kw => {
+        const chip = document.createElement("span");
+        chip.className = "inline-flex items-center gap-1 text-[10.5px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium cursor-help hover:border-amber-400 dark:hover:border-amber-500 transition-colors";
+        chip.title = kw.meaning;
+        chip.innerHTML = `<span class="font-bold text-slate-900 dark:text-slate-100">${escapeHtml(kw.term)}</span> <span class="text-[9px] text-amber-500 font-mono">ℹ</span>`;
+        glossaryChipsContainer.appendChild(chip);
+      });
+    }
   }
 
   // Print layout sync
@@ -13459,6 +13680,9 @@ function renderEvaluation(evalData) {
 
   // 2. Next Attempt Focus Data (merged into Body Value Addition Topper Plug-In if needed; hidden in Rewrite Workshop)
   const na = evalData.next_attempt_focus;
+
+  // 2.5 Question-Specific Relevant Concepts & Keywords Section
+  renderRelevantConceptsKeywords(evalData);
 
   // 3. Dynamic High-Yield Missing Keywords & Concepts Toolkit (Strictly for Body Section)
   const mkTitle = document.getElementById("missingKeywordsHeading");

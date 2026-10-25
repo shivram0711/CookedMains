@@ -1888,6 +1888,17 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "demand_status": "Partially Fulfilled"
     }}
   ],
+  "relevant_concepts_keywords": [
+    {{
+      "concept": "प्रासंगिक अवधारणा / पारिभाषिक शब्दावली का नाम",
+      "demand_dimension": "प्रश्न की विशिष्ट मांग / उप-भाग",
+      "meaning_in_context": "इस प्रश्न के संदर्भ में इस अवधारणा का सटीक अर्थ",
+      "status": "used_effectively", // "used_effectively" | "underexplained" | "potential_addition"
+      "student_evidence": "अभ्यर्थी की कॉपी से उद्धृत साक्ष्य (यदि लागू हो, अन्यथा खाली स्ट्रिंग '')",
+      "how_to_use": "उत्तर में इस अवधारणा को समाहित करने हेतु 1 सरल, स्पष्ट व प्रभावी वाक्य",
+      "is_optional_enrichment": false
+    }}
+  ],
   "rubric_scores": {{
     "intro_score": 1.0,
     "intro_max": {rubric_i_max},
@@ -2855,6 +2866,29 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
                * Show them exactly how to structure and expand these points across Page 1, Page 2, and Page 3 so they know how to write a full 3-page, 250-word answer in their next attempt.
         - **IF the candidate's copy is fully written across all required pages**: Do NOT apply this under-written penalty; evaluate standard content depth normally.
 
+26. QUESTION-SPECIFIC "RELEVANT CONCEPTS & KEYWORDS" (DYNAMIC, GROUNDED, DECOUPLED FROM SCORING):
+    - **A. Dynamic Derivation Across All Papers & Disciplines**:
+      * Derive concepts dynamically from the question's explicit directive, subject, scope, and analytical demands.
+      * GS-1 (History/Geo/Society): Historical sources/institutions, geomorphic/climatological processes, sociological structures.
+      * GS-2 (Polity/Gov/IR): Constitutional articles, judicial doctrines, institutional accountability, bilateral/multilateral frameworks.
+      * GS-3 (Economy/S&T/Env/Security): Macroeconomic metrics, scientific mechanisms, technological architectures, defense doctrines.
+      * GS-4 (Ethics): Moral philosophies, ethical dilemmas, Nolan principles, administrative probity frameworks.
+      * Essay: Suggest theme-specific lenses, conceptual distinctions, or philosophical tensions (e.g. 'Structural Inequality vs. Agency', 'Deontological Duty vs. Utilitarian Impact') that deepen thesis and argumentation—NEVER narrow specialist jargon!
+      * Optionals: Discipline-specific academic terminology (e.g. PSIR: Subaltern realism, Gramscian hegemony; Sociology: Habitus, Anomie, Cultural capital; Geography: Geostrophic balance, Central Place Theory).
+    - **B. Strict Topic Isolation (Zero Cross-Topic Contamination)**:
+      * Concepts MUST strictly belong to this question's domain. NEVER contaminate one topic with another (e.g. cybersecurity concepts like "zero trust" or "secure-by-design" ONLY appear for cybersecurity prompts—NEVER for heatwaves, history, or agriculture).
+      * Governance reports (e.g. 2nd ARC) appear ONLY if the question explicitly demands governance/administrative analysis.
+    - **C. Three-Tier Status Classification Based on Candidate's Actual Script**:
+      * `used_effectively`: Candidate either named the concept directly OR expressed its core analytical substance clearly using alternative words/paraphrase. MUST quote candidate's handwritten text in `student_evidence`!
+      * `underexplained`: Candidate mentioned or named the concept, but left it shallow, unelaborated, or misapplied without explaining the mechanism. MUST quote candidate's handwritten text in `student_evidence`!
+      * `potential_addition`: Fills a genuine demand gap in the candidate's answer; provides `how_to_use` with 1 clear, ready-to-use sentence in plain language. `student_evidence` is empty string "".
+    - **D. Paraphrase & Semantic Equivalence Recognition (Non-Mechanical)**:
+      * NEVER label a concept as missing if the student expressed the underlying idea clearly using different words. Give full credit by marking as `used_effectively` and quoting the paraphrased sentence in `student_evidence`.
+    - **E. Decoupled from Scoring**:
+      * Concepts are an analytical feedback and learning tool. Marks evaluate substantive reasoning and evidence, NEVER mechanical keyword counts. Do NOT deduct marks for missing concepts or award marks purely for keyword presence.
+    - **F. Bilingual Equivalence**:
+      * Recognize both English and Hindi conceptual equivalents (e.g. "शून्य विश्वास वास्तुकला", "अद्वैत वेदांत", "संवैधानिक नैतिकता").
+
 Generate strictly valid JSON matching this schema:
 {{
   "detected_question": "Exact question read from booklet header or provided by user",
@@ -2902,6 +2936,24 @@ Generate strictly valid JSON matching this schema:
     "is_mathematically_verified": true
   }},
   "keyword_toolkit_title": "Core Scientific Concepts & Technical Vocabulary (Missing Keywords)", // DYNAMIC title tailored to question's paper and domain: e.g. "Core Scientific Concepts & Technical Vocabulary" for Geo/Env/S&T; "Constitutional Articles, Doctrines & Judgments" for Polity/Law; "Economic Concepts, Policy Frameworks & Metrics" for Economy; "Essential Thinkers, Philosophies & Ethical Frameworks" for Ethics/Optional; "Historical Sources, Eras & Historiographical Concepts" for History. NEVER output "Thinker" for physical geography, science, or general questions!
+  "relevant_concepts_keywords": [
+    // CRITICAL MANDATE FOR relevant_concepts_keywords (QUESTION-SPECIFIC, DYNAMIC, DECOUPLED FROM SCORING):
+    // 1. DYNAMIC CONCEPTS: Derive concepts dynamically from the question's specific directive, subject, scope, and demands across all GS papers, Essay, and Optional subjects.
+    // 2. ZERO CROSS-TOPIC CONTAMINATION: Concepts MUST strictly belong to this question's domain (e.g. "zero trust" or "secure-by-design" only for cybersecurity; NEVER for heatwaves, history, or agriculture).
+    // 3. THREE-TIER STATUS: "used_effectively" (used well or paraphrased accurately with quoted student_evidence), "underexplained" (mentioned without causal depth with quoted student_evidence), or "potential_addition" (fills a genuine demand gap; provides 1-line how_to_use; student_evidence is "").
+    // 4. PARAPHRASE RECOGNITION: NEVER label a concept missing if the student expressed the underlying idea clearly in different words. Give credit as "used_effectively".
+    // 5. ESSAY & OPTIONALS: For Essay, provide theme-specific lenses/tensions. For Optionals, provide discipline-specific terminology.
+    // 6. SCORING DECOUPLING: Concepts are an analytical aid; marks evaluate substantive reasoning, never keyword counts.
+    {{
+      "concept": "Name of Concept / Keyword / Analytical Lens",
+      "demand_dimension": "Demand Sub-Part (e.g. Causal Drivers of Heatwave Persistence)",
+      "meaning_in_context": "What this concept means specifically in the context of this question.",
+      "status": "used_effectively", // "used_effectively" | "underexplained" | "potential_addition"
+      "student_evidence": "Verbatim quote from candidate's handwritten script demonstrating usage or attempt (or empty string if potential_addition)",
+      "how_to_use": "One clear, simple, ready-to-use sentence showing how to integrate or sharpen this concept in the answer.",
+      "is_optional_enrichment": false
+    }}
+  ],
   "missing_keywords_cards": [
     // CRITICAL MANDATE FOR missing_keywords_cards (DYNAMIC SELECTION, NO FIXED CAP):
     // 1. DYNAMIC COUNT: Select all distinct, high-confidence improvement actions that are materially useful and realistically fit the answer's word limit. No fixed cap (can be 0, 1, 2, 3, 4, 5+). Output [] if the answer has no genuine gaps.
@@ -6158,6 +6210,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
 
     # 10. Rules 1-9: Demand Tiers, Anti-Duplication, Prioritized Feedback & Release Validation
     _normalize_demand_tiers(data, max_marks=max_marks, is_hindi=is_hindi)
+    _normalize_relevant_concepts_keywords(data, max_marks=max_marks, is_hindi=is_hindi)
     _prevent_duplicate_credit(data)
     _normalize_prioritized_feedback(data, max_marks=max_marks, is_hindi=is_hindi)
     _run_release_validation_and_consistency(data, max_marks=max_marks, is_hindi=is_hindi)
@@ -9567,4 +9620,365 @@ def execute_gemini_with_resilience(
     if last_err:
         raise last_err
 
+
+
+
+def _normalize_relevant_concepts_keywords(data: Dict[str, Any], max_marks: int = 10, is_hindi: bool = False) -> None:
+    """
+    Normalizes Question-Specific 'Relevant Concepts & Keywords':
+    1. Derives dynamic concepts from question demands, paper, and discipline across GS1-4, Essay, Optionals.
+    2. Strict topic isolation: purges cross-topic contamination (e.g. Zero Trust only for cyber; never heatwaves/history).
+    3. Three-tier classification:
+       - 'used_effectively': Accurately explained or expressed via clear paraphrase/semantic equivalence, with quoted student_evidence.
+       - 'underexplained': Mentioned without causal depth or misapplied, with quoted student_evidence.
+       - 'potential_addition': Fills a genuine demand gap; provides 1-line how_to_use.
+    4. Anti-duplication: Strips concepts marked 'used_effectively' from missing_keywords_cards.
+    5. Scoring decoupling: Preserves overall_score and rubric_scores without alterations.
+    """
+    if not isinstance(data, dict):
+        return
+
+    q_raw = str(data.get("detected_question") or "").strip()
+    q_lower = q_raw.lower()
+    p_raw = str(data.get("detected_paper") or "").strip()
+    p_upper = p_raw.upper()
+    disc = str(data.get("subject_discipline") or detect_question_discipline(q_raw, p_raw)).strip().upper()
+    trans_corpus = str(data.get("transcribed_text") or "").strip()
+    trans_lower = trans_corpus.lower()
+    strengths_blob = " ".join(str(s).lower() for s in (data.get("body_audit", {}).get("strengths") or []))
+
+    is_cyber = any(k in q_lower for k in ["cyber", "cii", "critical information", "ransomware", "zero trust", "information infrastructure", "it act", "data protection"])
+    is_heatwave = any(k in q_lower for k in ["heatwave", "heat wave", "extreme heat", "thermal", "atmospheric blocking", "omega block", "wet-bulb", "wet bulb"])
+    is_caldera = any(k in q_lower for k in ["caldera", "volcanic caldera", "crater lake", "magma chamber"])
+    is_plassey = any(k in q_lower for k in ["plassey", "siraj", "clive", "mir jafar", "alinagar", "colonial rule in bengal", "24 parganas"])
+    is_eci = any(k in q_lower for k in ["election commission", "eci", "cec", "anoop baranwal", "article 324", "electoral"])
+    is_essay = (p_upper == "ESSAY" or "ESSAY" in p_upper or data.get("is_essay") is True or any(k in q_lower for k in ["contemplation of our passions", "wisdom finds its source", "philosophical quote"]))
+    is_psir = ("PSIR" in p_upper or "POLITICAL SCIENCE" in p_upper or any(k in q_lower for k in ["gramsci", "hegemony", "subaltern realism", "historic bloc", "machiavelli", "morgenthau", "realism vs"]))
+    is_sociology = ("SOCIOLOGY" in p_upper or any(k in q_lower for k in ["habitus", "bourdieu", "anomie", "durkheim", "social stratification", "sanskritization"]))
+
+    # Canonical high-yield concept banks for core themes
+    concept_bank = []
+    if is_cyber:
+        concept_bank = [
+            {
+                "concept": "Zero Trust Architecture (शून्य विश्वास वास्तुकला)" if is_hindi else "Zero Trust Architecture",
+                "demand_dimension": "Cyber Resilience & Authentication",
+                "meaning_in_context": "A security model requiring continuous verification of every transaction and identity regardless of network perimeter.",
+                "paraphrases": ["continuous verification", "never trust", "always verify", "least privilege", "micro-segmentation", "continuous authentication", "least-privilege", "शून्य विश्वास", "सदा सत्यापित", "प्रत्येक लेनदेन को प्रमाणित"],
+                "shallow_triggers": ["zero trust", "शून्य विश्वास"],
+                "how_to_use": "It enforces continuous authentication and least-privilege verification across every network endpoint and device." if not is_hindi else "यह प्रत्येक नेटवर्क एंडपॉइंट और डिवाइस पर सतत प्रमाणीकरण व न्यूनतम-विशेषाधिकार सत्यापन लागू करता है।"
+            },
+            {
+                "concept": "Critical Information Infrastructure (CII)" if not is_hindi else "महत्वपूर्ण सूचना अवसंरचना (CII)",
+                "demand_dimension": "Asset Categorization & Vulnerability",
+                "meaning_in_context": "Essential computer systems whose incapacitation would have debilitating impact on national security, economy, or public health (Sec 70A IT Act).",
+                "paraphrases": ["section 70a", "critical infrastructure", "scada", "nciiipc", "essential digital assets", "debilitating impact", "महत्वपूर्ण सूचना अवसंरचना", "धारा 70ए"],
+                "shallow_triggers": ["cii", "critical information infrastructure"],
+                "how_to_use": "It designates critical digital assets under Section 70A IT Act to safeguard sovereign public services against hostile incapacitation." if not is_hindi else "यह संप्रभु लोक सेवाओं को शत्रुतापूर्ण हमलों से बचाने हेतु आईटी अधिनियम की धारा 70ए के तहत महत्वपूर्ण संपत्तियों को नामित करता है।"
+            },
+            {
+                "concept": "Defense-in-Depth & Air-Gapping" if not is_hindi else "गहन बहुस्तरीय सुरक्षा एवं एयर-गैपिंग (Defense-in-Depth)",
+                "demand_dimension": "Layered Physical & Logical Isolation",
+                "meaning_in_context": "Physical and logical segregation of operational technology (OT/SCADA) from the public internet.",
+                "paraphrases": ["layered defense", "air gap", "air-gapping", "isolated network", "segmentation", "ot/scada isolation", "बहुस्तरीय सुरक्षा", "एयर-गैपिंग"],
+                "shallow_triggers": ["air gap", "defense in depth"],
+                "how_to_use": "Physically and logically air-gap operational SCADA control systems to prevent cascading lateral threat propagation." if not is_hindi else "कैस्केडिंग खतरों के प्रसार को रोकने हेतु परिचालन SCADA नियंत्रण प्रणालियों को तार्किक व भौतिक रूप से पृथक (एयर-गैप) किया जाता है।"
+            }
+        ]
+    elif is_heatwave:
+        concept_bank = [
+            {
+                "concept": "Atmospheric Blocking (Omega Block)" if not is_hindi else "वातावरणीय अवरोध (ओमेगा ब्लॉक)",
+                "demand_dimension": "Persistent Synoptic Drivers",
+                "meaning_in_context": "Stationary high-pressure anticyclones that divert jet streams and trap descending hot dry air over Northwest India.",
+                "paraphrases": ["omega block", "persistent anticyclone", "stationary ridge", "trapped warm air", "blocking pattern", "subsiding air", "प्रतिचक्रवात", "अवरोधी प्रतिचक्रवात", "गर्म हवा का फंसना"],
+                "shallow_triggers": ["omega block", "blocking", "ओमेगा ब्लॉक"],
+                "how_to_use": "Persistent stationary anticyclones trap descending hot air, compounding surface soil drying and prolonging heatwave spells." if not is_hindi else "स्थिर प्रतिचक्रवात अवरोधी तंत्र नीचे उतरती गर्म हवा को रोक लेते हैं, जिससे मृदा शुष्कता और लू की अवधि बढ़ जाती है।"
+            },
+            {
+                "concept": "Wet-Bulb Temperature Threshold" if not is_hindi else "वेट-बल्ब तापमान सीमा (Wet-Bulb Threshold)",
+                "demand_dimension": "Human Survivability & Heat Index",
+                "meaning_in_context": "Combined thermodynamic measure of heat and humidity exceeding the 35°C human physiological cooling threshold.",
+                "paraphrases": ["wet bulb", "wet-bulb", "humidity threshold", "cooling threshold", "physiological limit", "evaporative cooling", "वेट-बल्ब", "आर्द्रता सीमा"],
+                "shallow_triggers": ["wet bulb", "वेट बल्ब"],
+                "how_to_use": "IPCC AR6 warns that compound heat-humidity events approaching the 35°C wet-bulb limit overwhelm human evaporative cooling." if not is_hindi else "आईपीसीसी रिपोर्ट चेतावनी देती है कि 35°C वेट-बल्ब सीमा के निकट पहुँचने वाली आर्द्र-ऊष्मा मानव वाष्पीकरणीय शीतलन को बाधित कर देती है।"
+            },
+            {
+                "concept": "Urban Heat Island (UHI) Dynamic" if not is_hindi else "शहरी ऊष्मा द्वीप प्रभाव (Urban Heat Island)",
+                "demand_dimension": "Localized Anthropogenic Amplification",
+                "meaning_in_context": "Microclimatic thermal amplification where concrete surfaces, low albedo, and lack of vegetation trap daytime insolation.",
+                "paraphrases": ["urban heat island", "uhi", "concrete albedo", "lack of vegetation", "nighttime re-radiation", "शहरी ऊष्मा द्वीप"],
+                "shallow_triggers": ["urban heat island", "uhi"],
+                "how_to_use": "Concrete structures and low surface albedo absorb diurnal insolation, preventing nocturnal radiative cooling in dense urban clusters." if not is_hindi else "कंक्रीट संरचनाएं और निम्न परावर्तन दिन की सौर ऊर्जा को अवशोषित कर लेते हैं, जिससे रात्रि में शीतलन अवरुद्ध हो जाता है।"
+            }
+        ]
+    elif is_caldera:
+        concept_bank = [
+            {
+                "concept": "Magma Chamber Evacuation & Structural Roof Collapse" if not is_hindi else "मैग्मा कक्ष रिक्तता एवं संरचनात्मक ढहना (Caldera Collapse)",
+                "demand_dimension": "Geomorphic Collapse Mechanism",
+                "meaning_in_context": "Catastrophic subterranean drainage of magma leaving the volcanic roof unsupported, resulting in ring-fault subsidence.",
+                "paraphrases": ["roof collapse", "emptied magma chamber", "evacuation of magma", "magma drainage", "ring fault", "subsidence", "मैग्मा कक्ष का रिक्त होना", "गुंबद का ढहना"],
+                "shallow_triggers": ["roof collapse", "collapse"],
+                "how_to_use": "Rapid subterranean magma drainage leaves the summit volcanic roof unsupported, precipitating ring-fracture collapse into a wide depression." if not is_hindi else "मैग्मा कक्ष के तेजी से रिक्त होने से शिखर का गुंबद असहाय होकर वृत्ताकार भ्रंशों के सहारे विशाल गर्त में धंस जाता है।"
+            },
+            {
+                "concept": "Crater Lake Hydrothermal Synthesis" if not is_hindi else "काल्डेरा झील एवं हाइड्रोथर्मल जलभरण",
+                "demand_dimension": "Scenic & Microclimatic Landscape",
+                "meaning_in_context": "Accumulation of meteoric water in the impermeable volcanic depression creating pristine crater lakes with unique geothermal ecosystems.",
+                "paraphrases": ["crater lake", "meteoric water", "lake formation", "pristine water", "hydrothermal", "काल्डेरा झील", "प्राकृतिक सुंदरता"],
+                "shallow_triggers": ["crater lake", "lake"],
+                "how_to_use": "Meteoric water accumulation within impermeable collapse calderas forms deep volcanic lakes, creating serene high-altitude eco-tourism landscapes." if not is_hindi else "जल-अभेद्य काल्डेरा गर्तों में वर्षा जल का संचयन गहरी ज्वालामुखीय झीलों का निर्माण करता है जो प्राकृतिक सौंदर्य और इको-पर्यटन को बढ़ावा देती हैं।"
+            }
+        ]
+    elif is_plassey:
+        concept_bank = [
+            {
+                "concept": "Treaty of Alinagar & Clandestine Conspiracy" if not is_hindi else "अलीनगर की संधि एवं गुप्त षड्यंत्र",
+                "demand_dimension": "Pre-Battle Diplomatic Subversion",
+                "meaning_in_context": "Pre-battle pact and clandestine alliance negotiated by Robert Clive with Mir Jafar, Rai Durlabh, and Jagat Seths.",
+                "paraphrases": ["alinagar", "mir jafar", "jagat seth", "secret treaty", "clandestine conspiracy", "rai durlabh", "treachery", "अलीनगर की संधि", "मीर जाफर", "जगत सेठ"],
+                "shallow_triggers": ["mir jafar", "alinagar"],
+                "how_to_use": "The clandestine Treaty of Alinagar subverted Siraj-ud-Daula's command hierarchy before combat commenced at Plassey." if not is_hindi else "अलीनगर की संधि और गुप्त समझौते ने प्लासी के युद्ध से पूर्व ही नवाब की सैन्य कमान व्यवस्था को पंगु बना दिया।"
+            },
+            {
+                "concept": "Dastak Misuse & Sovereign Revenue Hegemony" if not is_hindi else "दस्तक का दुरुपयोग एवं दीवानी राजस्व संप्रभुता",
+                "demand_dimension": "Economic & Territorial Consolidation",
+                "meaning_in_context": "Transition from fraudulent duty-free trade pass abuse to formal territorial control and revenue extraction in Bengal.",
+                "paraphrases": ["dastak", "duty free pass", "revenue extraction", "24 parganas", "territorial base", "diwani", "दस्तक का दुरुपयोग", "24 परगना"],
+                "shallow_triggers": ["dastak", "24 parganas"],
+                "how_to_use": "Acquisition of 24 Parganas and subsequent Diwani rights transformed a commercial trading monopoly into a sovereign colonial state." if not is_hindi else "24 परगना की जमींदारी और कालांतर में दीवानी अधिकारों ने एक व्यापारिक कंपनी को संप्रभु क्षेत्रीय शक्ति में बदल दिया।"
+            }
+        ]
+    elif is_essay:
+        concept_bank = [
+            {
+                "concept": "Structural Determinism vs. Human Agency" if not is_hindi else "संरचनात्मक निर्धारणवाद बनाम मानवीय स्वायत्तता",
+                "demand_dimension": "Philosophical Thesis Lens",
+                "meaning_in_context": "The tension between external material/social conditioning and the deliberative capacity of individuals to shape destiny.",
+                "paraphrases": ["agency vs determinism", "human agency", "structural conditioning", "free will", "self-mastery", "मानवीय स्वायत्तता", "स्वतंत्र संकल्प"],
+                "shallow_triggers": ["agency", "determinism"],
+                "how_to_use": "Balancing structural constraints with human agency demonstrates that wisdom lies in exercising moral freedom within circumstance." if not is_hindi else "संरचनात्मक बाधाओं और मानवीय स्वायत्तता का संतुलन दर्शाता है कि विवेक परिस्थितियों के भीतर नैतिक स्वतंत्रता के प्रयोग में निहित है।"
+            },
+            {
+                "concept": "Instrumental Utility vs. Intrinsic Human Value" if not is_hindi else "साधनात्मक उपयोगिता बनाम आंतरिक मानवीय मूल्य",
+                "demand_dimension": "Ethical & Humanistic Perspective",
+                "meaning_in_context": "Critique of commodifying human passions and talents solely for economic output versus valuing human flourishing as an end in itself.",
+                "paraphrases": ["means and ends", "intrinsic value", "instrumental utility", "human flourishing", "kantian kingdom of ends", "आंतरिक मूल्य", "साधन साध्य"],
+                "shallow_triggers": ["utility", "intrinsic value"],
+                "how_to_use": "Cultivating passions as intrinsic avenues for human flourishing insulates personal purpose against hollow instrumental commercialization." if not is_hindi else "मानवीय संवेदनाओं को केवल भौतिक साधन न मानकर आंतरिक विकास का माध्यम बनाना जीवन को सार्थकता प्रदान करता है।"
+            },
+            {
+                "concept": "Stoic Equanimity & Emotional Self-Regulation" if not is_hindi else "स्टोइक समभाव एवं भावनात्मक आत्म-नियमन",
+                "demand_dimension": "Psychological & Contemplative Synthesis",
+                "meaning_in_context": "Channeling turbulent visceral passions through contemplative reflection into enduring creative and ethical actions.",
+                "paraphrases": ["stoic", "equanimity", "emotional intelligence", "self-regulation", "contemplation", "समभाव", "आत्म-नियमन", "संवेग प्रबंधन"],
+                "shallow_triggers": ["stoic", "equanimity"],
+                "how_to_use": "Contemplative reflection transforms unguided emotional impulse into disciplined stoic resolve and empathetic leadership." if not is_hindi else "संवेगों का आत्म-चिंतनशील नियमन क्षणिक आवेग को सुदृढ़ नैतिक संकल्प और विवेकपूर्ण नेतृत्व में परिवर्तित कर देता है।"
+            }
+        ]
+    elif is_psir:
+        concept_bank = [
+            {
+                "concept": "Gramscian Cultural Hegemony & Historic Bloc" if not is_hindi else "ग्राम्शी की सांस्कृतिक आधिपत्य अवधारणा एवं ऐतिहासिक गुट",
+                "demand_dimension": "Doctrinal IR & State Theory",
+                "meaning_in_context": "Sovereign power exercised not through coercion alone, but via manufactured ideological consent across civil society institutions.",
+                "paraphrases": ["hegemony", "consent", "civil society", "historic bloc", "manufactured consent", "organic intellectual", "सांस्कृतिक आधिपत्य", "सहमति का निर्माण"],
+                "shallow_triggers": ["hegemony", "gramsci"],
+                "how_to_use": "Ruling classes maintain supremacy by establishing ideological consensus through civil society institutions rather than overt military coercion alone." if not is_hindi else "शासक वर्ग केवल सैन्य बल के स्थान पर नागरिक समाज की संस्थाओं के माध्यम से वैचारिक सहमति निर्मित कर अपना आधिपत्य बनाए रखता है।"
+            },
+            {
+                "concept": "Subaltern Realism & Structural Dependence" if not is_hindi else "सबाल्टर्न यथार्थवाद एवं संरचनात्मक निर्भरता",
+                "demand_dimension": "Global South Theoretical Lens",
+                "meaning_in_context": "Mohammed Ayoob's framework prioritizing internal regime security, institutional fragility, and external economic vulnerability in post-colonial states.",
+                "paraphrases": ["subaltern realism", "mohammed ayoob", "internal security dilemma", "regime security", "structural dependence", "सबाल्टर्न यथार्थवाद"],
+                "shallow_triggers": ["subaltern realism", "ayoob"],
+                "how_to_use": "Subaltern realism reveals that Global South security dilemmas stem primarily from internal institutional fragility rather than interstate system anarchy." if not is_hindi else "सबाल्टर्न यथार्थवाद यह स्पष्ट करता है कि तीसरी दुनिया के देशों की सुरक्षा चुनौतियाँ बाह्य अराजकता से अधिक आंतरिक संस्थागत दुर्बलताओं से उत्पन्न होती हैं।"
+            }
+        ]
+    elif is_sociology:
+        concept_bank = [
+            {
+                "concept": "Bourdieu's Habitus & Cultural Capital" if not is_hindi else "बूर्दिए का हैबिटस एवं सांस्कृतिक पूंजी",
+                "demand_dimension": "Sociological Reproduction Lens",
+                "meaning_in_context": "Deeply ingrained dispositions and cultural knowledge that perpetuate social class hierarchies across generations.",
+                "paraphrases": ["habitus", "cultural capital", "bourdieu", "social reproduction", "symbolic violence", "हैबिटस", "सांस्कृतिक पूंजी"],
+                "shallow_triggers": ["habitus", "cultural capital"],
+                "how_to_use": "Habitus conditions social actors to unconsciously reproduce class inequalities through inherited linguistic and educational cultural capital." if not is_hindi else "हैबिटस सामाजिक कार्यकर्ताओं को विरासत में मिली भाषाई व सांस्कृतिक पूंजी के माध्यम से वर्ग असमानताओं को अनजाने में दोहराने हेतु अनुकूलित करता है।"
+            },
+            {
+                "concept": "Durkheimian Anomie & Collective Conscience" if not is_hindi else "दुर्खीम का विसंगति सिद्धांत (Anomie) एवं सामूहिक चेतना",
+                "demand_dimension": "Structural Functionalism",
+                "meaning_in_context": "Breakdown of societal norms and moral regulation during rapid economic transformation or organic differentiation.",
+                "paraphrases": ["anomie", "collective conscience", "normlessness", "organic solidarity", "durkheim", "एनोमी", "सामूहिक चेतना", "मानकहीनता"],
+                "shallow_triggers": ["anomie", "durkheim"],
+                "how_to_use": "Rapid urbanization and economic dislocation erode collective conscience, creating anomie where traditional moral guardrails collapse." if not is_hindi else "तीव्र आर्थिक संक्रमण और अनियंत्रित आधुनिकीकरण सामूहिक चेतना को कमजोर कर समाज में विसंगति (एनोमी) और भटकाव उत्पन्न करते हैं।"
+            }
+        ]
+
+    # Combine provided concepts with canonical concept bank
+    raw_concepts = data.get("relevant_concepts_keywords")
+    items = []
+    if isinstance(raw_concepts, list) and len(raw_concepts) > 0:
+        for rc in raw_concepts:
+            if isinstance(rc, dict) and rc.get("concept"):
+                items.append(rc)
+
+    # If items are empty or lack domain grounding, populate from concept_bank
+    if not items and concept_bank:
+        items = copy.deepcopy(concept_bank)
+    elif concept_bank:
+        # Augment existing items if they don't cover core demands
+        existing_names = [str(it.get("concept", "")).lower() for it in items]
+        for cb in concept_bank:
+            if not any(cb["concept"].lower() in en or en in cb["concept"].lower() for en in existing_names):
+                items.append(copy.deepcopy(cb))
+
+    # Strict Topic Isolation Purge
+    sanitized_items = []
+    for it in items:
+        c_name = str(it.get("concept") or "").lower()
+        # Drop cybersecurity concepts from non-cyber questions
+        if any(ck in c_name for ck in ["zero trust", "air gap", "critical information", "ransomware"]) and not is_cyber:
+            continue
+        # Drop heatwave concepts from non-heatwave questions
+        if any(hk in c_name for hk in ["omega block", "atmospheric blocking", "wet bulb", "urban heat island"]) and not is_heatwave:
+            continue
+        # Drop history concepts from non-history questions
+        if any(pk in c_name for pk in ["plassey", "mir jafar", "alinagar", "dastak"]) and not is_plassey:
+            continue
+        # Drop PSIR/Soc jargon from non-optional general questions
+        if ("habitus" in c_name or "anomie" in c_name) and not is_sociology:
+            continue
+        if ("subaltern realism" in c_name or "gramsci" in c_name) and not is_psir:
+            continue
+        sanitized_items.append(it)
+
+    if not sanitized_items and concept_bank:
+        sanitized_items = copy.deepcopy(concept_bank)
+
+    # Evaluate Candidate's Actual Script for each concept
+    # Extract candidate sentences for evidence quoting
+    raw_sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+|\r?\n+', trans_corpus) if len(s.strip()) >= 3]
+
+    used_effectively_concepts = set()
+
+    for it in sanitized_items:
+        c_title = str(it.get("concept") or "").strip()
+        c_lower = c_title.lower()
+        c_clean = re.sub(r'\([^)]*\)', '', c_lower).strip()
+
+        paraphrases = it.get("paraphrases") or []
+        if not paraphrases:
+            paraphrases = [c_clean] if len(c_clean) > 3 else []
+            # Extract key words
+            words = [w for w in c_clean.split() if len(w) > 3 and w not in ["architecture", "concept", "framework", "theory"]]
+            if len(words) >= 2:
+                paraphrases.append(" ".join(words))
+
+        # Check candidate transcript for concept name or paraphrase matches
+        matching_sentence = ""
+        matched_trigger = ""
+
+        # First check explicit concept name
+        for s in raw_sentences:
+            s_low = s.lower()
+            if c_clean in s_low or (len(c_clean) > 8 and any(w in s_low for w in c_clean.split() if len(w) > 4)):
+                matching_sentence = s
+                matched_trigger = c_clean
+                break
+
+        # Next check semantic paraphrase triggers if not found
+        if not matching_sentence:
+            for trig in paraphrases:
+                t_trig = trig.lower().strip()
+                if not t_trig or len(t_trig) < 4:
+                    continue
+                for s in raw_sentences:
+                    if t_trig in s.lower():
+                        matching_sentence = s
+                        matched_trigger = t_trig
+                        break
+                if matching_sentence:
+                    break
+
+        # Check erroneous / misapplied usage
+        # E.g. claiming Zero Trust means "trusting citizens" or category mismatch
+        is_misapplied = False
+        if matching_sentence:
+            ms_low = matching_sentence.lower()
+            if "zero trust" in c_lower and any(err in ms_low for err in ["trusting citizen", "trusting people", "trusting public", "not download malware from"]):
+                is_misapplied = True
+
+        # Classify status based on candidate depth
+        if matching_sentence and not is_misapplied:
+            # Check if mention is shallow / bare bullet list
+            is_shallow_bullet = (
+                re.match(r'^\s*(?:\d+[\.\)]|[-•*])\s*[A-Za-z\s]{3,30}$', matching_sentence) or
+                len(matching_sentence.split()) <= 6 or
+                (not any(cw in matching_sentence.lower() for cw in ["because", "as", "enforce", "requir", "prevent", "verif", "safeguard", "due to", "lead to", "result", "कारण", "प्रमाणित", "लागू", "सुनिश्चित"]))
+            )
+
+            # Check if mentioned in strengths or contains causal reasoning
+            has_causal_depth = (
+                (c_clean in strengths_blob or matched_trigger in strengths_blob) or
+                (len(matching_sentence.split()) >= 8 and any(cw in matching_sentence.lower() for cw in ["because", "as", "enforce", "requir", "prevent", "verif", "safeguard", "due to", "lead to", "result", "through", "across", "rather than", "कारण", "प्रमाणित", "लागू", "सुनिश्चित", "संतुलन"]))
+            )
+
+            if is_shallow_bullet or not has_causal_depth:
+                it["status"] = "underexplained"
+                it["student_evidence"] = matching_sentence
+                if not it.get("how_to_use"):
+                    it["how_to_use"] = f"Unpack the analytical mechanism of {c_title} rather than mentioning it as a standalone bullet."
+            else:
+                it["status"] = "used_effectively"
+                it["student_evidence"] = matching_sentence
+                used_effectively_concepts.add(c_clean)
+                used_effectively_concepts.add(c_lower)
+                # Also add acronym or key tokens
+                ac_match = re.search(r'\(([A-Za-z0-9\-]{2,10})\)', c_title)
+                if ac_match:
+                    used_effectively_concepts.add(ac_match.group(1).lower())
+        else:
+            it["status"] = "potential_addition"
+            it["student_evidence"] = ""
+            if not it.get("how_to_use"):
+                it["how_to_use"] = f"Integrate {c_title} into your core analysis to provide concrete structural precision."
+
+        # Ensure valid demand dimension and meaning
+        if not it.get("demand_dimension"):
+            it["demand_dimension"] = "Core Analytical Demand"
+        if not it.get("meaning_in_context"):
+            it["meaning_in_context"] = f"Foundational analytical concept directly evaluating the core demand of this {p_raw or 'UPSC'} question."
+        it["is_optional_enrichment"] = bool(it.get("is_optional_enrichment", False))
+
+    data["relevant_concepts_keywords"] = sanitized_items
+
+    # 4. Anti-Duplication with Value Addition (missing_keywords_cards)
+    # A concept that the candidate has ALREADY used effectively must NOT appear in missing_keywords_cards!
+    raw_va_cards = data.get("missing_keywords_cards")
+    if isinstance(raw_va_cards, list) and len(raw_va_cards) > 0 and used_effectively_concepts:
+        cleaned_va = []
+        for card in raw_va_cards:
+            if not isinstance(card, dict):
+                continue
+            term_str = str(card.get("term") or "").lower().strip()
+            term_clean = re.sub(r'\([^)]*\)', '', term_str).strip()
+            ac_m = re.search(r'\(([A-Za-z0-9\-]{2,10})\)', term_str)
+            ac_str = ac_m.group(1).lower() if ac_m else ""
+
+            is_dup = (
+                term_str in used_effectively_concepts or
+                term_clean in used_effectively_concepts or
+                (ac_str and ac_str in used_effectively_concepts) or
+                any(u in term_str for u in used_effectively_concepts if len(u) >= 5) or
+                any(term_clean in u for u in used_effectively_concepts if len(term_clean) >= 5)
+            )
+            if not is_dup:
+                cleaned_va.append(card)
+
+        # If stripping duplicates leaves it empty, provide an optional enrichment card
+        data["missing_keywords_cards"] = cleaned_va
+        if len(cleaned_va) == 0:
+            _ensure_at_least_one_value_addition(data, is_hindi=is_hindi)
 

@@ -4024,6 +4024,57 @@
                     </div>
                   </div>
 
+                  <!-- Question-Specific Relevant Concepts & Keywords Feature -->
+                  <div id="relevantConceptsSection" class="space-y-3 p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                      <div class="flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded-lg bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
+                          <i data-lucide="tags" class="w-3.5 h-3.5"></i>
+                        </span>
+                        <div>
+                          <h5 id="relevantConceptsTitle" class="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                            Relevant Concepts &amp; Keywords
+                          </h5>
+                          <p id="relevantConceptsSubtitle" class="text-[10px] text-slate-500 dark:text-slate-400">
+                            Question-derived concepts evaluated against your handwritten answer
+                          </p>
+                        </div>
+                      </div>
+                      <span id="relevantConceptsCountBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                        Dynamic Selection
+                      </span>
+                    </div>
+
+                    <!-- UPSC Assessment Principle Disclaimer Banner -->
+                    <div class="p-2.5 rounded-lg bg-indigo-50/70 dark:bg-indigo-950/20 border border-indigo-200/70 dark:border-indigo-500/20 text-[11px] leading-relaxed text-indigo-900 dark:text-indigo-200 flex items-start space-x-2">
+                      <i data-lucide="scale" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5"></i>
+                      <span>
+                        <strong class="font-semibold text-indigo-950 dark:text-indigo-100">UPSC Evaluation Principle:</strong> Marks evaluate substantive reasoning, depth of analysis, and factual evidence—never mechanical keyword counting. Clear paraphrases receive full credit.
+                      </span>
+                    </div>
+
+                    <!-- Filter Tabs -->
+                    <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                      <button type="button" id="rcFilterAll" class="rc-filter-btn px-2.5 py-1 rounded-md text-[10.5px] font-semibold transition-colors bg-sky-600 text-white" data-filter="all">
+                        All (<span id="rcCountAll">0</span>)
+                      </button>
+                      <button type="button" id="rcFilterUsed" class="rc-filter-btn px-2.5 py-1 rounded-md text-[10.5px] font-semibold transition-colors bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200 dark:border-slate-700" data-filter="used_effectively">
+                        ✓ Used Effectively (<span id="rcCountUsed">0</span>)
+                      </button>
+                      <button type="button" id="rcFilterShallow" class="rc-filter-btn px-2.5 py-1 rounded-md text-[10.5px] font-semibold transition-colors bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 border border-slate-200 dark:border-slate-700" data-filter="underexplained">
+                        ✎ Mentioned but Shallow (<span id="rcCountShallow">0</span>)
+                      </button>
+                      <button type="button" id="rcFilterAdditions" class="rc-filter-btn px-2.5 py-1 rounded-md text-[10.5px] font-semibold transition-colors bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-sky-950/40 border border-slate-200 dark:border-slate-700" data-filter="potential_addition">
+                        + Potential Additions (<span id="rcCountAdditions">0</span>)
+                      </button>
+                    </div>
+
+                    <!-- Cards Grid -->
+                    <div id="relevantConceptsGrid" class="grid grid-cols-1 gap-2.5 pt-1">
+                      <!-- Rendered by renderRelevantConceptsKeywords() in app.js -->
+                    </div>
+                  </div>
+
                   <!-- High-Yield Keywords, Constitutional Articles & Doctrines for Body -->
                   <div id="missingKeywordsSection" class="space-y-2.5">
                     <div class="flex flex-wrap items-center justify-between gap-2">
