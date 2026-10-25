@@ -885,13 +885,18 @@ async function inspectCopy(evalId) {
     const ev = rec.evaluation || rec.evaluation_data || {};
     const pages = rec.pages || rec.page_images || ev._meta_pages || [];
 
-    document.getElementById("inspectPaperBadge").textContent = `${rec.paper || ev.detected_paper || "GS"} • ${rec.max_marks || ev.max_marks || 15} Marks`;
-    document.getElementById("inspectUserBadge").textContent = rec.user_email || "Aspirant";
-    document.getElementById("inspectDateBadge").textContent = rec.created_at || "";
-    document.getElementById("inspectQuestionTitle").textContent = rec.question || ev.detected_question || "UPSC Mains Answer Copy";
-    document.getElementById("inspectScoreValue").textContent = `${Number(rec.overall_score ?? ev.overall_score ?? 0).toFixed(1)} / ${rec.max_marks || ev.max_marks || 15}`;
-    document.getElementById("inspectExecSummary").textContent = ev.executive_summary || "No executive summary recorded.";
+    // Header Meta
+    const paper = rec.paper || ev.detected_paper || ev.detected_paper_display || "GS";
+    const maxMarks = rec.max_marks || ev.max_marks || ev.detected_marks || 15;
+    const score = Number(rec.overall_score ?? ev.overall_score ?? 0).toFixed(1);
 
+    document.getElementById("inspectPaperBadge").textContent = `${paper} • ${maxMarks} Marks`;
+    document.getElementById("inspectUserBadge").textContent = rec.user_email || ev._meta_user_email || "Aspirant";
+    document.getElementById("inspectDateBadge").textContent = rec.created_at || ev.created_at || "";
+    document.getElementById("inspectQuestionTitle").textContent = rec.question || ev.detected_question || "UPSC Mains Answer Copy";
+    document.getElementById("inspectScoreValue").textContent = `${score} / ${maxMarks}`;
+
+    // 1. Pages (Left Column)
     const pagesHtml = pages.length > 0
       ? pages.map((p, idx) => `
           <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950 space-y-1 group">
@@ -905,24 +910,182 @@ async function inspectCopy(evalId) {
       : `<div class="p-6 rounded-xl bg-slate-950 border border-slate-800 text-slate-500 text-xs text-center">No page preview image stored for this record.</div>`;
     document.getElementById("inspectPagesContainer").innerHTML = pagesHtml;
 
-    const anns = ev.page_annotations || [];
-    document.getElementById("inspectAnnotationsList").innerHTML = anns.length > 0
-      ? anns.map(a => `
-          <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 flex items-start justify-between gap-2">
-            <div>
-              <span class="font-bold text-amber-300">[P${a.page || 1} • ${escapeHtml(a.type || "Note")}]</span>
-              <span class="text-slate-200 ml-1">${escapeHtml(a.text || a.comment || "")}</span>
-            </div>
-            ${a.sub_Part_score ? `<span class="font-mono text-emerald-400 font-bold shrink-0">${escapeHtml(String(a.sub_Part_score))}</span>` : ""}
-          </div>
-        `).join("")
-      : `<p class="text-slate-500">No margin annotations recorded.</p>`;
-
-    const strengths = (ev.strengths || []).map(s => `<li class="text-emerald-300">✓ ${escapeHtml(s)}</li>`).join("");
-    const gaps = (ev.weaknesses || []).map(w => `<li class="text-rose-300">⚠ ${escapeHtml(w)}</li>`).join("");
-    document.getElementById("inspectStrengthsWeaknesses").innerHTML = `
-      <ul class="space-y-1">${strengths}${gaps}</ul>
+    // 2. Executive Summary & Verdict
+    const execSummary = ev.executive_summary || ev.examiner_overall_verdict || (ev.body_audit && ev.body_audit.overall_assessment) || "No executive summary recorded.";
+    const verdict = ev.percentile_verdict || ev.score_band || "";
+    document.getElementById("inspectExecSummary").innerHTML = `
+      ${verdict ? `<div class="inline-block px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-bold font-mono text-[10.5px] mb-2">${escapeHtml(verdict)}</div>` : ""}
+      <p class="text-xs text-slate-200 leading-relaxed">${escapeHtml(execSummary)}</p>
     `;
+
+    // 3. Step Marking & Marks Arithmetic (New!)
+    const stepMarkingEl = document.getElementById("inspectStepMarking");
+    if (stepMarkingEl) {
+      const steps = ev.sub_part_step_marking || ev.subpart_marks_breakdown || [];
+      if (steps.length > 0) {
+        stepMarkingEl.innerHTML = steps.map((s, idx) => {
+          const label = s.step_label || s.part_name || `Sub-Part ${idx + 1}`;
+          const subHeading = s.sub_heading || s.analysis || "";
+          const awarded = s.awarded !== undefined ? s.awarded : (s.marks_awarded !== undefined ? s.marks_awarded : 0);
+          const max = s.max !== undefined ? s.max : (s.max_marks !== undefined ? s.max_marks : 0);
+          const status = s.demand_status || "";
+          const quote = s.quoted_written || "";
+          return `
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-bold text-amber-300">${escapeHtml(label)}</span>
+                <span class="font-mono font-extrabold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 text-[11px] shrink-0">
+                  +${Number(awarded).toFixed(1)} / ${Number(max).toFixed(1)}M
+                </span>
+              </div>
+              ${subHeading ? `<p class="text-[11px] text-slate-300">${escapeHtml(subHeading)}</p>` : ""}
+              ${status ? `<span class="inline-block text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-mono">${escapeHtml(status)}</span>` : ""}
+              ${quote ? `<p class="text-[10.5px] text-slate-400 italic bg-slate-950 p-1.5 rounded border border-slate-800/80">"${escapeHtml(quote)}"</p>` : ""}
+            </div>
+          `;
+        }).join("");
+      } else {
+        stepMarkingEl.innerHTML = `<p class="text-slate-500 text-xs">No sub-part breakdown recorded.</p>`;
+      }
+    }
+
+    // 4. Point-by-Point Handwritten Audit (New!)
+    const pbpContainer = document.getElementById("inspectPointByPointAudit");
+    if (pbpContainer) {
+      const pbp = ev.point_by_point_audit || [];
+      if (pbp.length > 0) {
+        pbpContainer.innerHTML = pbp.map((p, idx) => `
+          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="px-2 py-0.5 rounded bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 font-bold font-mono text-[10.5px]">
+                ${escapeHtml(p.badge || `Page ${p.page || idx + 1}`)}
+              </span>
+              ${p.credit_badge ? `<span class="text-[11px] font-extrabold text-emerald-400">${escapeHtml(p.credit_badge)}</span>` : ""}
+            </div>
+            <div class="text-xs font-bold text-white">${escapeHtml(p.title || `Section ${idx + 1}`)}</div>
+            ${p.what_you_wrote ? `
+              <div class="text-[11px] text-slate-300 bg-slate-950 p-2 rounded-lg border border-slate-800">
+                <span class="text-amber-400 font-semibold">Candidate wrote:</span> &ldquo;${escapeHtml(p.what_you_wrote)}&rdquo;
+              </div>
+            ` : ""}
+            ${p.examiner_verdict ? `
+              <div class="text-[11px] text-slate-300 leading-relaxed">
+                <span class="text-emerald-400 font-semibold">Examiner Feedback:</span> ${escapeHtml(p.examiner_verdict)}
+              </div>
+            ` : ""}
+          </div>
+        `).join("");
+      } else {
+        pbpContainer.innerHTML = `<p class="text-slate-500 text-xs">No point-by-point audit recorded.</p>`;
+      }
+    }
+
+    // 5. Page-by-Page Margin Remarks (Supports visual_annotations & legacy page_annotations)
+    const rawAnns = (ev.visual_annotations && ev.visual_annotations.length > 0)
+      ? ev.visual_annotations
+      : (ev.page_annotations || []);
+    
+    document.getElementById("inspectAnnotationsList").innerHTML = rawAnns.length > 0
+      ? rawAnns.map((a, idx) => {
+          const pg = a.page || a.page_number || (idx + 1);
+          const tag = a.tag || a.type || "Annotation";
+          const marks = a.marks_awarded || (a.sub_Part_score ? `+${a.sub_Part_score}M` : "");
+          const remark = a.remark || a.text || a.comment || "";
+          return `
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-bold text-amber-300 font-mono text-[11px]">[Page ${pg} • ${escapeHtml(tag)}]</span>
+                ${marks ? `<span class="font-mono text-emerald-400 font-bold text-xs shrink-0 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">${escapeHtml(String(marks))}</span>` : ""}
+              </div>
+              <p class="text-slate-200 text-[11px] leading-relaxed whitespace-pre-line">${escapeHtml(remark)}</p>
+            </div>
+          `;
+        }).join("")
+      : `<p class="text-slate-500 text-xs">No margin annotations recorded.</p>`;
+
+    // 6. Strengths & Critical Gaps
+    const bodyAudit = ev.body_audit || {};
+    const strengthsArr = (Array.isArray(bodyAudit.strengths) && bodyAudit.strengths.length > 0)
+      ? bodyAudit.strengths
+      : ((ev.swot_analysis && ev.swot_analysis.strengths) || ev.strengths || []);
+    
+    const gapsArr = (Array.isArray(bodyAudit.critical_gaps) && bodyAudit.critical_gaps.length > 0)
+      ? bodyAudit.critical_gaps
+      : ((ev.swot_analysis && ev.swot_analysis.weaknesses) || ev.weaknesses || []);
+
+    const missingDimsArr = Array.isArray(bodyAudit.missing_dimensions) ? bodyAudit.missing_dimensions : [];
+
+    const strengthsHtml = strengthsArr.map(s => `<li class="text-emerald-300">✓ ${escapeHtml(s)}</li>`).join("");
+    const gapsHtml = gapsArr.map(w => `<li class="text-rose-300">⚠ ${escapeHtml(w)}</li>`).join("");
+    const dimsHtml = missingDimsArr.map(d => `<li class="text-amber-300">➔ ${escapeHtml(d)}</li>`).join("");
+
+    document.getElementById("inspectStrengthsWeaknesses").innerHTML = (strengthsHtml || gapsHtml || dimsHtml)
+      ? `<ul class="space-y-1.5">${strengthsHtml}${gapsHtml}${dimsHtml}</ul>`
+      : `<p class="text-slate-500 text-xs">No specific strengths/gaps recorded.</p>`;
+
+    // 7. Rubric Scores Breakdown (New!)
+    const rubricEl = document.getElementById("inspectRubricScores");
+    if (rubricEl) {
+      const rub = ev.rubric_scores || {};
+      const rubKeys = Object.keys(rub);
+      if (rubKeys.length > 0) {
+        rubricEl.innerHTML = `
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center font-mono">
+            <div class="p-2 rounded bg-slate-900 border border-slate-800">
+              <span class="text-[10px] text-slate-400 block">Intro</span>
+              <span class="text-xs font-bold text-amber-300">${rub.intro_score ?? 0} / ${rub.intro_max ?? 0}</span>
+            </div>
+            <div class="p-2 rounded bg-slate-900 border border-slate-800">
+              <span class="text-[10px] text-slate-400 block">Core Demand</span>
+              <span class="text-xs font-bold text-amber-300">${rub.core_demand_score ?? 0} / ${rub.core_demand_max ?? 0}</span>
+            </div>
+            <div class="p-2 rounded bg-slate-900 border border-slate-800">
+              <span class="text-[10px] text-slate-400 block">Value Add</span>
+              <span class="text-xs font-bold text-amber-300">${rub.value_add_score ?? 0} / ${rub.value_add_max ?? 0}</span>
+            </div>
+            <div class="p-2 rounded bg-slate-900 border border-slate-800">
+              <span class="text-[10px] text-slate-400 block">Presentation</span>
+              <span class="text-xs font-bold text-amber-300">${rub.presentation_score ?? 0} / ${rub.presentation_max ?? 0}</span>
+            </div>
+            <div class="p-2 rounded bg-slate-900 border border-slate-800">
+              <span class="text-[10px] text-slate-400 block">Conclusion</span>
+              <span class="text-xs font-bold text-amber-300">${rub.conclusion_score ?? 0} / ${rub.conclusion_max ?? 0}</span>
+            </div>
+          </div>
+        `;
+      } else {
+        rubricEl.innerHTML = `<p class="text-slate-500 text-xs">No rubric scores recorded.</p>`;
+      }
+    }
+
+    // 8. Topper Model Answer (New!)
+    const modelAnsEl = document.getElementById("inspectModelAnswer");
+    if (modelAnsEl) {
+      if (ev.full_model_answer) {
+        modelAnsEl.innerHTML = `
+          <div class="text-xs text-slate-200 leading-relaxed whitespace-pre-line font-serif bg-slate-900/80 p-3 rounded-lg border border-slate-800 max-h-60 overflow-y-auto">
+            ${escapeHtml(ev.full_model_answer)}
+          </div>
+        `;
+      } else {
+        modelAnsEl.innerHTML = `<p class="text-slate-500 text-xs">No model answer stored.</p>`;
+      }
+    }
+
+    // 9. Transcribed Candidate Handwriting (New!)
+    const transEl = document.getElementById("inspectTranscribedText");
+    if (transEl) {
+      if (ev.transcribed_text) {
+        transEl.innerHTML = `
+          <div class="text-xs text-slate-300 font-mono bg-slate-950 p-3 rounded-lg border border-slate-800 max-h-48 overflow-y-auto whitespace-pre-line">
+            ${escapeHtml(ev.transcribed_text)}
+          </div>
+        `;
+      } else {
+        transEl.innerHTML = `<p class="text-slate-500 text-xs">No transcription stored.</p>`;
+      }
+    }
+
     safeCreateIcons();
   } catch (e) {
     document.getElementById("inspectQuestionTitle").textContent = `Error: ${e.message}`;
