@@ -392,13 +392,17 @@ async function loadAdminSessions() {
   const tbody = document.getElementById("sessionHistoryTableBody");
   if (!tbody) return;
   try {
-    const res = await fetch("/api/admin/sessions?limit=50");
+    const res = await fetch("/api/admin/sessions?limit=300");
     if (!res.ok) throw new Error("Could not load session history");
     const sessions = await res.json();
     cachedSessions = sessions || [];
 
     const cntEl = document.getElementById("sessCountAll");
     if (cntEl) cntEl.textContent = cachedSessions.length;
+
+    const evalsCount = cachedSessions.filter(s => Number(s.evaluations_count || 0) > 0).length;
+    const cntEvalsEl = document.getElementById("sessCountEvals");
+    if (cntEvalsEl) cntEvalsEl.textContent = evalsCount;
 
     const diagSess = document.getElementById("diagSessions");
     if (diagSess) diagSess.textContent = cachedSessions.length;
@@ -858,6 +862,10 @@ async function loadAdminEvaluationsStats() {
       const el = document.getElementById(`countSubj_${s}`);
       if (el) el.textContent = `(${bySubj[s] || 0})`;
     });
+    const tabBadge = document.getElementById("statEvaluationsTabBadge");
+    if (tabBadge && data.total !== undefined) {
+      tabBadge.textContent = `${data.total}`;
+    }
   } catch (e) {
     console.warn("Could not load eval stats", e);
   }

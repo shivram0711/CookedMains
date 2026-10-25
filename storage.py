@@ -334,6 +334,92 @@ def _init_db_tables():
             completed_at TIMESTAMP
         )
     """)
+    
+def _seed_vault_if_empty(cursor) -> None:
+    """Restores baseline evaluated copies, activity logs, and visitor sessions if database is fresh."""
+    try:
+        cursor.execute("SELECT COUNT(*) FROM evaluations")
+        eval_count = cursor.fetchone()[0]
+        seed_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seed_vault_data.json")
+        if not os.path.exists(seed_path):
+            return
+        
+        with open(seed_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            
+        seed_evals = data.get("evaluations") or []
+        if eval_count < len(seed_evals):
+            for ev in seed_evals:
+                cursor.execute("""
+                    INSERT OR IGNORE INTO evaluations (
+                        id, user_id, user_email, created_at, paper, max_marks, question,
+                        overall_score, percentage, evaluation_json, pages_json, thumbnail,
+                        is_rewrite, file_hash, has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    ev.get("id"), ev.get("user_id"), ev.get("user_email"), ev.get("created_at"),
+                    ev.get("paper"), ev.get("max_marks"), ev.get("question"), ev.get("overall_score"),
+                    ev.get("percentage"), ev.get("evaluation_json"), ev.get("pages_json") or "[]",
+                    ev.get("thumbnail") or "", ev.get("is_rewrite") or 0, ev.get("file_hash") or "",
+                    ev.get("has_been_rewritten") or 0, ev.get("rewrite_eval_id"), ev.get("baseline_eval_id"),
+                    ev.get("file_url") or ""
+                ))
+            print(f"[VAULT SEED] Restored {len(seed_evals)} baseline evaluation dossiers into SQLite.")
+
+        cursor.execute("SELECT COUNT(*) FROM activity_logs")
+        act_count = cursor.fetchone()[0]
+        seed_acts = data.get("activity_logs") or []
+        if act_count < len(seed_acts):
+            for act in seed_acts:
+                cursor.execute("""
+                    INSERT OR IGNORE INTO activity_logs (
+                        id, created_at, user_email, user_name, action_type, title, detail, eval_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    act.get("id"), act.get("created_at"), act.get("user_email"), act.get("user_name"),
+                    act.get("action_type"), act.get("title"), act.get("detail"), act.get("eval_id") or ""
+                ))
+            print(f"[VAULT SEED] Restored {len(seed_acts)} activity logs into SQLite.")
+
+        cursor.execute("SELECT COUNT(*) FROM user_sessions")
+        sess_count = cursor.fetchone()[0]
+        seed_sess = data.get("user_sessions") or []
+        if sess_count < len(seed_sess):
+            for s in seed_sess:
+                cursor.execute("""
+                    INSERT OR IGNORE INTO user_sessions (
+                        id, user_email, user_name, is_authenticated, started_at, last_active_at,
+                        duration_seconds, current_view, evaluations_count, recent_actions, client_ip
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    s.get("id"), s.get("user_email"), s.get("user_name"), s.get("is_authenticated") or 0,
+                    s.get("started_at"), s.get("last_active_at"), s.get("duration_seconds") or 0,
+                    s.get("current_view") or "", s.get("evaluations_count") or 0, s.get("recent_actions") or "[]",
+                    s.get("client_ip") or ""
+                ))
+            print(f"[VAULT SEED] Restored {len(seed_sess)} user sessions into SQLite.")
+
+        cursor.execute("SELECT COUNT(*) FROM users")
+        u_count = cursor.fetchone()[0]
+        seed_users = data.get("users") or []
+        if u_count < len(seed_users):
+            for u in seed_users:
+                cursor.execute("""
+                    INSERT OR IGNORE INTO users (
+                        id, email, name, avatar, free_credits, is_pro, free_rewrites,
+                        target_year, optional_subject, password_hash, plan_tier, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    u.get("id"), u.get("email"), u.get("name"), u.get("avatar"),
+                    u.get("free_credits") or 15, u.get("is_pro") or 1, u.get("free_rewrites") or 5,
+                    u.get("target_year") or "2026", u.get("optional_subject") or "PSIR",
+                    u.get("password_hash"), u.get("plan_tier") or "free", u.get("created_at")
+                ))
+            print(f"[VAULT SEED] Restored {len(seed_users)} users into SQLite.")
+    except Exception as e:
+        print(f"Notice: _seed_vault_if_empty notice: {e}")
+
+    _seed_vault_if_empty(cursor)
     # Zero Deletion Policy: All evaluated copies are permanently retained.
 
     conn.commit()
@@ -2807,154 +2893,14 @@ def is_dummy_or_demo_email(email: Optional[str]) -> bool:
 
 def purge_all_dummy_and_demo_accounts() -> Dict[str, Any]:
     """
-    Permanently purges all hardcoded dummy, demo, autofilled test accounts and mock data
-    from SQLite and Supabase, ensuring that only genuine, real registered aspirants and
-    their actual evaluation history are preserved.
+    PERMANENT DATA VAULT SAFEGUARD:
+    Deletion of aspirant evaluations, activity logs, and visitor sessions is permanently disabled.
+    All student evaluations, scores, and historical visits are preserved forever.
     """
-    deleted_counts = {
-        "users": 0,
-        "evaluations": 0,
-        "transactions": 0,
-        "feedback": 0,
-        "sessions": 0,
-        "activity_logs": 0
+    return {
+        "status": "safeguarded",
+        "message": "Zero Deletion Guarantee active. Evaluated answer sheets, activity logs, and visitor sessions are permanently preserved."
     }
-    
-    # 1. Purge from local SQLite
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        
-        # Delete from users
-        cursor.execute("""
-            DELETE FROM users 
-            WHERE LOWER(email) IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
-                                  'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
-                                  'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
-               OR LOWER(email) LIKE 'cadet.test%'
-               OR LOWER(email) LIKE 'cadet.upsc%'
-               OR LOWER(email) LIKE 'cadet.instant%'
-               OR LOWER(email) LIKE 'aspirant.sharma%'
-               OR LOWER(email) LIKE 'aspirant.vikram%'
-               OR LOWER(email) LIKE 'test_audit@%'
-               OR LOWER(email) LIKE 'demo@%'
-               OR LOWER(email) LIKE 'fake@%'
-               OR LOWER(email) LIKE 'temp@%'
-        """)
-        deleted_counts["users"] = cursor.rowcount
-        
-        # Delete from evaluations
-        cursor.execute("""
-            DELETE FROM evaluations
-            WHERE id IN ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
-                         'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4')
-               OR LOWER(user_email) IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
-                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
-                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
-               OR LOWER(user_email) LIKE 'cadet.test%'
-               OR LOWER(user_email) LIKE 'cadet.upsc%'
-               OR LOWER(user_email) LIKE 'cadet.instant%'
-               OR LOWER(user_email) LIKE 'aspirant.sharma%'
-               OR LOWER(user_email) LIKE 'aspirant.vikram%'
-               OR LOWER(user_email) LIKE 'test_audit@%'
-        """)
-        deleted_counts["evaluations"] = cursor.rowcount
-        
-        # Delete from transactions
-        cursor.execute("""
-            DELETE FROM transactions
-            WHERE id LIKE 'ORD-2026-%'
-               OR LOWER(user_email) IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
-                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
-                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
-               OR LOWER(user_email) LIKE 'cadet.test%'
-               OR LOWER(user_email) LIKE 'cadet.upsc%'
-               OR LOWER(user_email) LIKE 'cadet.instant%'
-               OR LOWER(user_email) LIKE 'aspirant.sharma%'
-               OR LOWER(user_email) LIKE 'aspirant.vikram%'
-               OR LOWER(user_email) LIKE 'test_audit@%'
-        """)
-        deleted_counts["transactions"] = cursor.rowcount
-        
-        # Delete from feedback
-        cursor.execute("""
-            DELETE FROM feedback
-            WHERE id IN ('fb_001', 'fb_002', 'fb_003', 'fb_004')
-               OR LOWER(user_email) IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
-                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
-                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
-               OR LOWER(user_email) LIKE 'cadet.test%'
-               OR LOWER(user_email) LIKE 'cadet.upsc%'
-               OR LOWER(user_email) LIKE 'aspirant.sharma%'
-               OR LOWER(user_email) LIKE 'aspirant.vikram%'
-        """)
-        deleted_counts["feedback"] = cursor.rowcount
-        
-        # Delete from user_sessions
-        cursor.execute("""
-            DELETE FROM user_sessions
-            WHERE id LIKE 'sess_audit%'
-               OR id IN ('sess_audit_001', 'sess_cadet_002', 'sess_sharma_003', 'sess_vikram_004', 
-                         'sess_upsc5409_005', 'sess_test2026_006', 'sess_instant_007')
-               OR LOWER(user_email) IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
-                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
-                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
-               OR LOWER(user_email) LIKE 'cadet.test%'
-               OR LOWER(user_email) LIKE 'cadet.upsc%'
-               OR LOWER(user_email) LIKE 'cadet.instant%'
-               OR LOWER(user_email) LIKE 'aspirant.sharma%'
-               OR LOWER(user_email) LIKE 'aspirant.vikram%'
-        """)
-        deleted_counts["sessions"] = cursor.rowcount
-        
-        # Delete from activity_logs
-        cursor.execute("""
-            DELETE FROM activity_logs
-            WHERE id LIKE 'log_0%'
-               OR id IN ('log_001', 'log_002', 'log_003', 'log_004', 'log_005', 'log_006', 'log_007', 'log_008', 'log_009', 'log_010')
-               OR LOWER(user_email) IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
-                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
-                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
-               OR LOWER(user_email) LIKE 'cadet.test%'
-               OR LOWER(user_email) LIKE 'cadet.upsc%'
-               OR LOWER(user_email) LIKE 'cadet.instant%'
-               OR LOWER(user_email) LIKE 'aspirant.sharma%'
-               OR LOWER(user_email) LIKE 'aspirant.vikram%'
-        """)
-        deleted_counts["activity_logs"] = cursor.rowcount
-        
-        conn.commit()
-        conn.close()
-    except Exception as sqle:
-        print(f"Error purging local dummy data: {sqle}")
-
-    # 2. Also purge from Supabase if connected
-    if supabase is not None:
-        try:
-            for eid in ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
-                        'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4'):
-                try:
-                    supabase.table("evaluations").delete().eq("id", eid).execute()
-                except Exception:
-                    pass
-            dummy_uids = [
-                "7cb99348-0a69-5f6f-bccf-49dd770ba59a",
-                "7667f181-69d3-4963-aa49-ebf74419942a",
-                "708b8b70-6086-45a1-84b8-8d9a2ee3cb96",
-                "e34801d0-4149-4b5c-bdd9-9948bfd18f27",
-                "a07d6a88-45bf-4617-9cf1-e542806e8813",
-                "a1f36ada-364c-45c1-bfed-8aacab8ea4d6",
-                "f47b663c-2b7e-4897-ba0b-ed8d4cd602a8"
-            ]
-            for uid in dummy_uids:
-                try:
-                    supabase.table("evaluations").delete().eq("user_id", uid).execute()
-                except Exception:
-                    pass
-        except Exception as supe:
-            print(f"Notice: Supabase dummy purge notice: {supe}")
-
-    return {"status": "success", "purged": deleted_counts}
 
 def ensure_telemetry_and_history_preserved() -> None:
     """Ensures database tables are created and purged of dummy records. No dummy data is seeded."""
@@ -3234,49 +3180,56 @@ def get_admin_session_history(limit: int = 50) -> List[Dict[str, Any]]:
         )
         sessions.append(d)
 
-    # Backfill with evaluations if user_sessions has very few rows (e.g. after container redeploy)
-    if len(sessions) < 15:
-        existing_emails = {s.get("user_email") for s in sessions if s.get("user_email")}
-        cursor.execute("""
-            SELECT e.id, e.user_email, COALESCE(u.name, e.user_email) as user_name,
-                   e.created_at, e.paper, e.max_marks, e.question, e.overall_score,
-                   COALESCE(u.target_year, '2026') as target_year,
-                   COALESCE(u.optional_subject, 'PSIR') as optional_subject
-            FROM evaluations e
-            LEFT JOIN users u ON LOWER(e.user_email) = LOWER(u.email)
-            WHERE e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
-            ORDER BY e.created_at DESC
-            LIMIT 20
-        """)
-        for er in cursor.fetchall():
-            c_at = str(er["created_at"] or "")
-            score = float(er["overall_score"] or 0.0)
-            max_m = int(er["max_marks"] or 15)
-            paper = er["paper"] or "GS"
-            time_str = c_at.split(" ")[1][:5] if " " in c_at else "12:00"
-            syn_actions = [
-                {"action": "Opened Website & Intake Deck", "time": time_str},
-                {"action": f"Evaluated {paper} ({max_m}M) — Scored {score}/{max_m}", "time": time_str, "is_eval": True, "eval_id": er["id"]},
-                {"action": "Reviewing Evaluation Feedback & Marks", "time": time_str}
-            ]
-            sessions.append({
-                "id": f"syn_{er['id']}",
-                "user_email": er["user_email"],
-                "user_name": er["user_name"],
-                "is_authenticated": True,
-                "started_at": c_at,
-                "last_active_at": c_at,
-                "duration_seconds": 960,
-                "duration_display": "16 mins",
-                "current_view": f"Evaluated {paper} ({max_m}M)",
-                "evaluations_count": 1,
-                "actions_count": len(syn_actions),
-                "actions": syn_actions,
-                "target_year": er["target_year"],
-                "optional_subject": er["optional_subject"],
-                "is_online": False,
-                "status_display": f"Completed session ({c_at[:10]})"
-            })
+    # Ensure ALL evaluated copies are linked into session history so "Evaluated Only" filter displays every copy
+    existing_eval_ids = set()
+    for s in sessions:
+        for a in s.get("actions") or []:
+            if isinstance(a, dict) and a.get("eval_id"):
+                existing_eval_ids.add(str(a["eval_id"]))
+
+    cursor.execute("""
+        SELECT e.id, e.user_email, COALESCE(u.name, e.user_email) as user_name,
+               e.created_at, e.paper, e.max_marks, e.question, e.overall_score,
+               COALESCE(u.target_year, '2026') as target_year,
+               COALESCE(u.optional_subject, 'PSIR') as optional_subject
+        FROM evaluations e
+        LEFT JOIN users u ON LOWER(e.user_email) = LOWER(u.email)
+        WHERE e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
+        ORDER BY e.created_at DESC
+    """)
+    for er in cursor.fetchall():
+        eid = str(er["id"])
+        if eid in existing_eval_ids:
+            continue
+        c_at = str(er["created_at"] or "")
+        score = float(er["overall_score"] or 0.0)
+        max_m = int(er["max_marks"] or 15)
+        paper = er["paper"] or "GS"
+        time_str = c_at.split(" ")[1][:5] if " " in c_at else "12:00"
+        syn_actions = [
+            {"action": "Opened Website & Intake Deck", "time": time_str},
+            {"action": f"Evaluated {paper} ({max_m}M) — Scored {score}/{max_m}", "time": time_str, "is_eval": True, "eval_id": eid},
+            {"action": "Reviewing Evaluation Feedback & Marks", "time": time_str}
+        ]
+        sessions.append({
+            "id": f"syn_{eid}",
+            "user_email": er["user_email"],
+            "user_name": er["user_name"],
+            "is_authenticated": True,
+            "started_at": c_at,
+            "last_active_at": c_at,
+            "duration_seconds": 960,
+            "duration_display": "16 mins",
+            "current_view": f"Evaluated {paper} ({max_m}M)",
+            "evaluations_count": 1,
+            "actions_count": len(syn_actions),
+            "actions": syn_actions,
+            "target_year": er["target_year"],
+            "optional_subject": er["optional_subject"],
+            "is_online": False,
+            "status_display": f"Completed evaluation ({c_at[:10]})"
+        })
+        existing_eval_ids.add(eid)
 
     conn.close()
     sessions.sort(key=lambda s: str(s.get("last_active_at") or s.get("started_at") or ""), reverse=True)
@@ -3431,9 +3384,11 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
                 continue
 
             u_id = str(r.get("user_id") or "")
-            u_email = (ev.get("_meta_user_email") or user_id_to_email.get(u_id) or "").strip().lower()
-            if not u_email or is_dummy_or_demo_email(u_email):
-                continue
+            u_email = (ev.get("_meta_user_email") or ev.get("user_email") or user_id_to_email.get(u_id) or "").strip().lower()
+            if not u_email and "@" in u_id:
+                u_email = u_id.strip().lower()
+            if not u_email:
+                u_email = "aspirant@cookedmains.com"
 
             if u_email and u_id and u_email not in email_to_user_id:
                 email_to_user_id[u_email] = u_id

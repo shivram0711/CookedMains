@@ -195,7 +195,7 @@
       </button>
       <button onclick="switchTab('evaluations')" id="tabBtn_evaluations" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white">
         <i data-lucide="file-check-2" class="w-4 h-4"></i>
-        <span>3. Answer Copies Inspector</span>
+        <span>3. Answer Copies Inspector</span> <span id="statEvaluationsTabBadge" class="ml-1 px-1.5 py-0.5 text-[10px] bg-amber-500/20 text-amber-300 rounded font-mono font-bold"></span>
       </button>
       <button onclick="switchTab('feedback')" id="tabBtn_feedback" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white">
         <i data-lucide="message-square" class="w-4 h-4"></i>
@@ -265,7 +265,7 @@
           <div class="flex flex-wrap items-center gap-2">
             <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 gap-1">
               <button onclick="setSessionFilter('all')" id="sessFilter_all" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500 text-slate-950 transition">All (<span id="sessCountAll">0</span>)</button>
-              <button onclick="setSessionFilter('evals')" id="sessFilter_evals" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-900 text-slate-400 hover:text-white transition">📝 Evaluated Only</button>
+              <button onclick="setSessionFilter('evals')" id="sessFilter_evals" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-900 text-slate-400 hover:text-white transition">📝 Evaluated Only (<span id="sessCountEvals">0</span>)</button>
               <button onclick="setSessionFilter('today')" id="sessFilter_today" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-900 text-slate-400 hover:text-white transition">Today</button>
             </div>
             <input type="text" id="sessionSearchInput" oninput="filterSessionsList()" placeholder="Search visit history..."

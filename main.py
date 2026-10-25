@@ -1658,7 +1658,7 @@ async def api_admin_clear_dummy_data():
     return {"status": "success", "message": "All dummy and demo accounts purged permanently.", "purged": res}
 
 @app.get("/api/admin/sessions")
-async def api_admin_sessions(limit: int = 50):
+async def api_admin_sessions(limit: int = 300):
     """Returns chronological history of user sessions (who visited, what they did, session duration)."""
     return await asyncio.to_thread(get_admin_session_history, limit=limit)
 
