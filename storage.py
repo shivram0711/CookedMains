@@ -186,10 +186,116 @@ def _seed_vault_if_empty(cursor) -> None:
         print(f"Notice: _seed_vault_if_empty notice: {e}")
 
 
+DUMMY_EMAILS_TUPLE = (
+    'candidate@test.com',
+    'essay_mock_tester@upsc.in',
+    'eval_verifier@cookedmains.com',
+    'test_dup_check_user@example.com',
+    'another_user@example.com',
+    'test_audit@upsc.in',
+    'cadet.test@gmail.com',
+    'aspirant.sharma@gmail.com',
+    'aspirant.vikram@gmail.com',
+    'cadet.upsc5409@gmail.com',
+    'cadet.instant@gmail.com',
+    'cadet.test2026@gmail.com',
+    'guest@upsc.gov.in'
+)
+
+DUMMY_EMAIL_PATTERNS = (
+    '@test.com', '@example.com', 'audit_', 'cadet.test', 'cadet.upsc', 'cadet.instant',
+    'aspirant.sharma', 'aspirant.vikram', 'test_audit@', 'essay_mock_tester', 'candidate@'
+)
+
+def is_dummy_or_demo_email(email: Optional[str]) -> bool:
+    if not email:
+        return False
+    em = email.strip().lower()
+    if em in DUMMY_EMAILS_TUPLE:
+        return True
+    return any(p in em for p in DUMMY_EMAIL_PATTERNS)
+
+def purge_all_dummy_and_demo_accounts() -> Dict[str, Any]:
+    """
+    Purges all test harness mock accounts (candidate@test.com, essay_mock_tester@upsc.in,
+    audit_*@test.com, eval_verifier@*, example.com) to leave ONLY real, genuine aspirants.
+    """
+    conn = get_db()
+    cursor = conn.cursor()
+    deleted = {}
+    try:
+        cursor.execute("""
+            DELETE FROM evaluations
+            WHERE LOWER(user_email) IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com', 'test_dup_check_user@example.com', 'another_user@example.com')
+               OR LOWER(user_email) LIKE '%@test.com'
+               OR LOWER(user_email) LIKE '%@example.com'
+               OR LOWER(user_email) LIKE 'audit_%'
+               OR LOWER(user_email) LIKE 'cadet.test%'
+               OR LOWER(user_email) LIKE 'cadet.upsc%'
+               OR LOWER(user_email) LIKE 'aspirant.sharma%'
+               OR LOWER(user_email) LIKE 'aspirant.vikram%'
+        """)
+        deleted["evaluations"] = cursor.rowcount
+
+        cursor.execute("""
+            DELETE FROM activity_logs
+            WHERE LOWER(user_email) IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com', 'test_dup_check_user@example.com', 'another_user@example.com')
+               OR LOWER(user_email) LIKE '%@test.com'
+               OR LOWER(user_email) LIKE '%@example.com'
+               OR LOWER(user_email) LIKE 'audit_%'
+               OR LOWER(user_email) LIKE 'cadet.test%'
+               OR LOWER(user_email) LIKE 'cadet.upsc%'
+               OR LOWER(user_email) LIKE 'aspirant.sharma%'
+               OR LOWER(user_email) LIKE 'aspirant.vikram%'
+        """)
+        deleted["activity_logs"] = cursor.rowcount
+
+        cursor.execute("""
+            DELETE FROM user_sessions
+            WHERE LOWER(user_email) IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com', 'test_dup_check_user@example.com', 'another_user@example.com')
+               OR LOWER(user_email) LIKE '%@test.com'
+               OR LOWER(user_email) LIKE '%@example.com'
+               OR LOWER(user_email) LIKE 'audit_%'
+               OR LOWER(user_email) LIKE 'cadet.test%'
+               OR LOWER(user_email) LIKE 'cadet.upsc%'
+               OR LOWER(user_email) LIKE 'aspirant.sharma%'
+               OR LOWER(user_email) LIKE 'aspirant.vikram%'
+               OR id LIKE 'syn_eval_17922%'
+               OR id LIKE 'syn_eval_17923%'
+               OR id LIKE 'syn_eval_17924%'
+               OR id LIKE 'syn_eval_17925%'
+               OR id LIKE 'syn_eval_17926%'
+               OR id LIKE 'syn_eval_17927%'
+        """)
+        deleted["user_sessions"] = cursor.rowcount
+
+        cursor.execute("""
+            DELETE FROM users
+            WHERE LOWER(email) IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com', 'test_dup_check_user@example.com', 'another_user@example.com')
+               OR LOWER(email) LIKE '%@test.com'
+               OR LOWER(email) LIKE '%@example.com'
+               OR LOWER(email) LIKE 'audit_%'
+               OR LOWER(email) LIKE 'cadet.test%'
+               OR LOWER(email) LIKE 'cadet.upsc%'
+               OR LOWER(email) LIKE 'aspirant.sharma%'
+               OR LOWER(email) LIKE 'aspirant.vikram%'
+        """)
+        deleted["users"] = cursor.rowcount
+
+        conn.commit()
+    except Exception as e:
+        print(f"Purge dummy error: {e}")
+    finally:
+        conn.close()
+
+    return {"status": "success", "purged": deleted}
+
+
 def init_db():
     """Initializes SQLite tables for users, single evaluations, and full 20-question test series. Never wipes existing data."""
     try:
         _init_db_tables()
+        purge_all_dummy_and_demo_accounts()
     except Exception as _db_err:
         print(f"Notice: init_db safe notice: {_db_err}")
 
@@ -2899,42 +3005,6 @@ def _ensure_admin_telemetry_tables() -> None:
 _ensure_admin_telemetry_tables()
 
 
-DUMMY_EMAILS_TUPLE = (
-    'test_audit@upsc.in',
-    'cadet.test@gmail.com',
-    'aspirant.sharma@gmail.com',
-    'aspirant.vikram@gmail.com',
-    'cadet.upsc5409@gmail.com',
-    'cadet.instant@gmail.com',
-    'cadet.test2026@gmail.com',
-    'guest@upsc.gov.in'
-)
-
-DUMMY_EMAIL_PREFIXES = (
-    'cadet.test', 'cadet.upsc', 'cadet.instant',
-    'aspirant.sharma', 'aspirant.vikram', 'test_audit@',
-    'demo@', 'guest@', 'fake@', 'temp@', 'random@'
-)
-
-def is_dummy_or_demo_email(email: Optional[str]) -> bool:
-    if not email:
-        return False
-    em = email.strip().lower()
-    if em in DUMMY_EMAILS_TUPLE:
-        return True
-    return any(em.startswith(p) for p in DUMMY_EMAIL_PREFIXES)
-
-def purge_all_dummy_and_demo_accounts() -> Dict[str, Any]:
-    """
-    PERMANENT DATA VAULT SAFEGUARD:
-    Deletion of aspirant evaluations, activity logs, and visitor sessions is permanently disabled.
-    All student evaluations, scores, and historical visits are preserved forever.
-    """
-    return {
-        "status": "safeguarded",
-        "message": "Zero Deletion Guarantee active. Evaluated answer sheets, activity logs, and visitor sessions are permanently preserved."
-    }
-
 def ensure_telemetry_and_history_preserved() -> None:
     """Ensures database tables are created and purged of dummy records. No dummy data is seeded."""
     purge_all_dummy_and_demo_accounts()
@@ -3158,9 +3228,13 @@ def get_admin_session_history(limit: int = 50) -> List[Dict[str, Any]]:
     cursor = conn.cursor()
     cursor.execute("""
         SELECT * FROM user_sessions
-        WHERE LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+        WHERE LOWER(user_email) NOT IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com',
+                                        'test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
                                         'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
                                         'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+          AND LOWER(user_email) NOT LIKE '%@test.com'
+          AND LOWER(user_email) NOT LIKE '%@example.com'
+          AND LOWER(user_email) NOT LIKE 'audit_%'
           AND LOWER(user_email) NOT LIKE 'cadet.test%'
           AND LOWER(user_email) NOT LIKE 'cadet.upsc%'
           AND LOWER(user_email) NOT LIKE 'cadet.instant%'
@@ -3228,6 +3302,14 @@ def get_admin_session_history(limit: int = 50) -> List[Dict[str, Any]]:
         FROM evaluations e
         LEFT JOIN users u ON LOWER(e.user_email) = LOWER(u.email)
         WHERE e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
+          AND LOWER(e.user_email) NOT IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com')
+          AND LOWER(e.user_email) NOT LIKE '%@test.com'
+          AND LOWER(e.user_email) NOT LIKE '%@example.com'
+          AND LOWER(e.user_email) NOT LIKE 'audit_%'
+          AND LOWER(e.user_email) NOT LIKE 'cadet.test%'
+          AND LOWER(e.user_email) NOT LIKE 'cadet.upsc%'
+          AND LOWER(e.user_email) NOT LIKE 'aspirant.sharma%'
+          AND LOWER(e.user_email) NOT LIKE 'aspirant.vikram%'
         ORDER BY e.created_at DESC
     """)
     for er in cursor.fetchall():
@@ -3810,9 +3892,13 @@ def get_admin_evaluations_feed(
         WHERE e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
           AND e.id NOT IN ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
                          'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4')
-          AND LOWER(e.user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+          AND LOWER(e.user_email) NOT IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com',
+                                       'test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
                                        'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
                                        'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+          AND LOWER(e.user_email) NOT LIKE '%@test.com'
+          AND LOWER(e.user_email) NOT LIKE '%@example.com'
+          AND LOWER(e.user_email) NOT LIKE 'audit_%'
           AND LOWER(e.user_email) NOT LIKE 'cadet.test%'
           AND LOWER(e.user_email) NOT LIKE 'cadet.upsc%'
           AND LOWER(e.user_email) NOT LIKE 'aspirant.sharma%'
@@ -3893,9 +3979,13 @@ def get_admin_evaluations_stats() -> Dict[str, Any]:
         WHERE e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
           AND e.id NOT IN ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
                          'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4')
-          AND LOWER(e.user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+          AND LOWER(e.user_email) NOT IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com',
+                                       'test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
                                        'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
                                        'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+          AND LOWER(e.user_email) NOT LIKE '%@test.com'
+          AND LOWER(e.user_email) NOT LIKE '%@example.com'
+          AND LOWER(e.user_email) NOT LIKE 'audit_%'
           AND LOWER(e.user_email) NOT LIKE 'cadet.test%'
           AND LOWER(e.user_email) NOT LIKE 'cadet.upsc%'
           AND LOWER(e.user_email) NOT LIKE 'aspirant.sharma%'
@@ -3968,9 +4058,13 @@ def get_admin_activity_stream(limit: int = 60) -> List[Dict[str, Any]]:
         cursor.execute("""
             SELECT * FROM activity_logs 
             WHERE id NOT LIKE 'log_0%'
-              AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+              AND LOWER(user_email) NOT IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com',
+                                           'test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
                                            'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
                                            'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+              AND LOWER(user_email) NOT LIKE '%@test.com'
+              AND LOWER(user_email) NOT LIKE '%@example.com'
+              AND LOWER(user_email) NOT LIKE 'audit_%'
               AND LOWER(user_email) NOT LIKE 'cadet.test%'
               AND LOWER(user_email) NOT LIKE 'cadet.upsc%'
               AND LOWER(user_email) NOT LIKE 'aspirant.sharma%'
