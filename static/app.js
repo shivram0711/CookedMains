@@ -13371,13 +13371,10 @@ function renderEvaluation(evalData) {
     );
 
     if (cards.length === 0) {
-      const emptyMsg = isCoreAdequatelyCovered
-        ? (isHindi ? "✓ कोर तकनीकी मांगें उत्तर में पर्याप्त रूप से शामिल हैं।" : "✓ Core question demands adequately addressed on your answer sheet.")
-        : (isHindi ? "इस प्रारूप के लिए कोई अतिरिक्त सत्यापित सुझाव आवश्यक नहीं पाए गए।" : "No additional verified suggestions identified for this draft.");
       mkGrid.innerHTML = `
-        <div class="p-3.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 text-[11px] text-slate-700 dark:text-slate-300 font-medium flex items-center space-x-2">
-          <i data-lucide="info" class="w-4 h-4 text-slate-500 shrink-0"></i>
-          <span>${emptyMsg}</span>
+        <div class="p-3.5 rounded-lg border border-amber-500/30 bg-amber-500/[0.04] text-[11px] text-amber-800 dark:text-amber-300 font-medium flex items-center space-x-2">
+          <i data-lucide="alert-circle" class="w-4 h-4 text-amber-600 shrink-0"></i>
+          <span>${isHindi ? "सुझाव विवरण लोड नहीं हो सका — कृपया पुनः प्रयास करें।" : "Improvement suggestions could not be generated for this draft — please retry."}</span>
         </div>
       `;
     } else {
@@ -13389,6 +13386,11 @@ function renderEvaluation(evalData) {
 
         // Action badge styling
         const actionBadges = {
+          Enrich: {
+            label: isHindi ? "💡 ऐच्छिक संवर्धन (Optional)" : "💡 Optional Enrichment",
+            cls: "bg-teal-500/15 text-teal-700 dark:text-teal-300 border-teal-500/30",
+            promptLabel: isHindi ? "✍️ ऐच्छिक विश्लेषणात्मक संवर्धन:" : "✍️ Optional Analytical Upgrade:"
+          },
           Correct: {
             label: isHindi ? "⚠️ सुधारें (Correct)" : "⚠️ Correct",
             cls: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
@@ -13441,7 +13443,7 @@ function renderEvaluation(evalData) {
               <div>
                 <span class="keyword-term font-bold text-xs leading-snug text-slate-900 dark:text-slate-100 break-words">${escapeHtml(c.term)}</span>
                 <span class="ml-1.5 text-[9px] px-1.5 py-0.2 rounded font-bold border ${actConf.cls}">${actConf.label}</span>
-                ${isHighPriority ? `<span class="ml-1 text-[8.5px] px-1 py-0.2 rounded font-extrabold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">${isHindi ? "उच्च प्राथमिकता" : "High Priority"}</span>` : ""}
+                ${isHighPriority ? `<span class="ml-1 text-[8.5px] px-1 py-0.2 rounded font-extrabold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">${isHindi ? "उच्च प्राथमिकता" : "High Priority"}</span>` : (priority.toLowerCase().includes("optional") ? `<span class="ml-1 text-[8.5px] px-1 py-0.2 rounded font-extrabold bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">${isHindi ? "ऐच्छिक संवर्धन" : "Optional Upgrade"}</span>` : "")}
               </div>
             </div>
             <span class="keyword-tag text-[9.5px] px-2 py-0.5 rounded font-semibold whitespace-normal break-words" title="${escapeHtml(tagText)}">${escapeHtml(tagText)}</span>

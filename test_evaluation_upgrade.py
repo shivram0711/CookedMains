@@ -2241,9 +2241,13 @@ class TestUPSCInterdisciplinarySyllabusOverlap(unittest.TestCase):
         cards = norm.get("missing_keywords_cards", [])
         # Since the student already explained Wadati-Benioff thoroughly and received praise, it must be omitted!
         terms = [str(c.get("term", "")).lower() for c in cards]
-        self.assertFalse(any("benioff" in t for t in terms))
-        # Zero cards is completely appropriate and expected
-        self.assertEqual(len(cards), 0)
+        self.assertFalse(any("benioff" in t for t in terms), "Adequately explained term must be omitted from recommendations")
+        # Every completed evaluation must provide at least one improvement action (an optional enrichment for strong coverage)
+        self.assertGreaterEqual(len(cards), 1, "Must provide at least one optional enrichment card rather than returning 0")
+        opt_card = cards[0]
+        self.assertEqual(opt_card.get("action_type"), "Enrich")
+        self.assertEqual(opt_card.get("priority"), "Optional Enrichment")
+        self.assertIn("No major omission was identified in this evaluation. Optional upgrade:", opt_card.get("definition", ""))
 
     def test_value_addition_dynamic_count_more_than_three(self):
         """
@@ -2396,10 +2400,15 @@ class TestUPSCInterdisciplinarySyllabusOverlap(unittest.TestCase):
         replace_card = next(c for c in cards if c.get("action_type") == "Replace")
         self.assertIn("calories", replace_card.get("target_point", ""))
 
-    def test_value_addition_strong_answer_zero_or_few_suggestions(self):
+    def test_value_addition_strong_answer_at_least_one_optional_enrichment(self):
         """
-        Regression Case: Strong answer with no genuine gaps.
-        Verify that a strong answer returns empty list [] without forced padding or dummy cards.
+        Regression Case: Strong answer with no major omissions.
+        Verify that:
+        - Result includes at least one relevant, clearly optional enhancement (action_type: 'Enrich').
+        - The enhancement is not mislabeled as a missing requirement or used to change the score.
+        - Definition opens with 'No major omission was identified in this evaluation. Optional upgrade: ...'
+        - Score is decoupled and unchanged (8.0/10).
+        - No claim of perfection or full coverage is derived from absence of critical omissions.
         """
         raw_eval = {
             "overall_score": 8.0,
@@ -2421,7 +2430,16 @@ class TestUPSCInterdisciplinarySyllabusOverlap(unittest.TestCase):
             paper="GS2"
         )
         cards = norm.get("missing_keywords_cards", [])
-        self.assertEqual(len(cards), 0, "A strong answer with no genuine gaps should return 0 cards without padding!")
+        self.assertGreaterEqual(len(cards), 1, "Strong answer must receive at least 1 optional enrichment card rather than 0")
+
+        enrich_card = cards[0]
+        self.assertEqual(enrich_card.get("action_type"), "Enrich", "Must be marked as Enrich")
+        self.assertEqual(enrich_card.get("priority"), "Optional Enrichment", "Must be marked as Optional Enrichment")
+        self.assertIn("No major omission was identified in this evaluation. Optional upgrade:", enrich_card.get("definition", ""))
+        self.assertIn("Activity Mapping", enrich_card.get("term", ""))
+
+        # Verify scoring decoupling: overall_score remains exactly 8.0
+        self.assertEqual(norm["overall_score"], 8.0)
 
 if __name__ == "__main__":
 

@@ -2395,20 +2395,27 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
      * 'mentor_why': Explain why this fetches marks (e.g. "+0.5 to +1.0M jump: connects theory to real triggers instead of passive listing").
      * 'booklet_placement': Exactly where to write or substitute this in the booklet (e.g. "Replace point #2 on Page 1").
 
-6. VALUE ADDITION & ANSWER REPAIR TOOLKIT (DYNAMIC SELECTION, NO FIXED CAP):
-   - Dynamically select ALL distinct, high-confidence improvement actions that are materially useful and realistically fit the answer's word limit and gaps ('missing_keywords_cards').
-   - STRICT BAN ON FIXED CAP OR PADDING: DO NOT cap at three or any other arbitrary number! A concise answer with 1 genuine gap needs 1 card; a strong answer needs none ([]); a weak answer with several serious gaps may need 4, 5, or more distinct, high-priority actions.
+6. VALUE ADDITION & ANSWER REPAIR TOOLKIT (AT LEAST 1 PERSONALIZED SUGGESTION PER EVALUATION):
+   - For EVERY completed evaluation, provide AT LEAST 1 personalized, relevant improvement action ('missing_keywords_cards'). NEVER output an empty list []!
+   - SEPARATION OF EVALUATION FROM COACHING (NO ANSWER IS 'PERFECT'):
+     * When the answer has important gaps or errors: Prioritize 'Correct', 'Replace', 'Add', or 'Expand' actions addressing those issues directly ('priority': 'High Priority').
+     * When the answer has no major omission: Provide at least one 'Enrich' (optional enrichment) action ('action_type': 'Enrich', 'priority': 'Optional Enrichment') that sharpens the answer with a relevant analytical link, counter-perspective, nuanced framing, or comparative example.
+     * Clearly badge optional enrichment: The 'definition' must state: "No major omission was identified in this evaluation. Optional upgrade: [analytical refinement / comparative nuance]". NEVER imply that the candidate was required to include it or that its absence caused a deduction.
+   - DYNAMIC COUNT (NO FIXED CAP):
+     * If an answer warrants 4, 5, or more distinct improvements, include all of them!
+     * If an answer has 1 gap or is strong, provide 1 or 2 targeted suggestions.
    - RECOMMEND REPAIRS AS WELL AS ADDITIONS:
      * 'Correct': Correct a wrong, misleading, or factually inaccurate point in the draft.
      * 'Replace': Replace an irrelevant, weak, or low-yield point with a high-yield point. Identify the exact weak point in 'target_point' and provide the replacement text.
      * 'Add': Supply a missing dimension or unaddressed sub-part demanded by the question.
      * 'Expand': Provide the missing causal mechanism or analytical implication for a concept mentioned shallowly.
      * 'Strengthen': Anchor an argument with a verified empirical metric, landmark report, case law, or official framework.
+     * 'Enrich': Provide an optional high-level analytical refinement, comparative perspective, or forward-looking angle for an answer with no major omissions.
    - SELECTION CRITERIA (MANDATORY):
      1. Direct Evidence Chain: Question demand -> evidence in candidate's answer -> specific gap or error -> suggested improvement. Reject any recommendation where this chain is unclear.
-     2. Answer fit: Confirm what the candidate actually explained. If a point is shallow, recommend the missing mechanism; if already adequately explained, omit it.
-     3. Priority & Grouping: Rank suggestions by importance ('priority': 'High Priority' for core demand gaps/factual errors, 'Medium Priority' for enrichment).
-     4. Source-to-claim fit: Every source, committee, statistic, or framework must be verified and accurate. Never invent connections.
+     2. Answer fit: Confirm what the candidate actually explained. If a point is shallow, recommend the missing mechanism; if already adequately explained, do not repeat it.
+     3. Priority & Grouping: Rank suggestions by importance ('High Priority' -> 'Medium Priority' -> 'Optional Enrichment').
+     4. Source-to-claim fit: Every source, committee, statistic, or framework must be verified and accurate. If unverified, use an analytical refinement instead of fabricating.
      5. Proposed Answer Text ('how_to_use_one_line'): The EXACT, exam-ready sentence itself (plain language, concise for the question's word budget).
         - STRICT BAN on meta-instructions: NEVER write "Deploy [concept] to...", "Incorporate [report] to...", "Cite [source] to...", or "Anchor under [term] to...".
         - STRICT BAN on generic filler: NEVER write "reinforce policy delivery metrics", "grassroots institutional accountability", "fiscal sustainability and public expenditure efficiency", or "ground systemic governance reforms" unless directly demanded by the prompt.
@@ -4147,6 +4154,105 @@ def _ensure_topper_model_answer_quality(data: Dict[str, Any], max_marks: int = 1
         "badge_text_hindi": "✨ अभ्यर्थी-संवर्धित मॉडल उत्तर (मान्य बिंदु सुरक्षित + परीक्षक मूल्य-संवर्धन)" if is_adaptive else "⭐ सुव्यवस्थित टॉपर मॉडल उत्तर"
     }
 
+def _ensure_at_least_one_value_addition(data: Dict[str, Any], is_hindi: bool = False) -> None:
+    """
+    Guarantees that every completed evaluation has at least one personalized improvement suggestion.
+    For strong answers with no major omissions, provides an explicit 'Optional Enrichment' card
+    clearly badged as non-deductive, preventing any false claims of perfection or 'nothing to improve'.
+    """
+    if not isinstance(data, dict):
+        return
+
+    cards = data.get("missing_keywords_cards")
+    if isinstance(cards, list) and len(cards) > 0:
+        return
+
+    q_str = str(data.get("detected_question") or "").strip()
+    q_low = q_str.lower()
+    missing_dims = data.get("body_audit", {}).get("missing_dimensions") or []
+
+    enrichment_term = ""
+    enrichment_def = ""
+    enrichment_how = ""
+    enrichment_where = ""
+
+    # Option A: Extract from missing_dimensions if a substantive forward-looking or comparative angle exists
+    for dim in missing_dims:
+        dim_str = str(dim).strip()
+        if dim_str and len(dim_str) > 10 and not any(w in dim_str.lower() for w in ["none", "nil", "no missing", "well covered"]):
+            parts = re.split(r'[:—–-]\s*', dim_str, 1)
+            enrichment_term = re.sub(r'[*_"]', '', parts[0]).strip()[:50]
+            desc = parts[1].strip() if len(parts) > 1 else dim_str
+            enrichment_def = (
+                f"इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: {desc}" if is_hindi else
+                f"No major omission was identified in this evaluation. Optional upgrade: {desc}"
+            )
+            enrichment_where = (
+                "अंतिम पृष्ठ • निष्कर्ष अथवा समाधान के अंतिम पैराग्राफ में जोड़ें" if is_hindi else
+                "Final Page • In your concluding evaluation or forward-looking synthesis"
+            )
+            enrichment_how = (
+                f"{enrichment_term} को अग्रगामी दृष्टिकोण के रूप में शामिल करने से उत्तर का विश्लेषणात्मक फलक विस्तृत होता है।" if is_hindi else
+                f"Integrating {enrichment_term} provides an advanced forward-looking dimension to substantiate long-term policy efficacy."
+            )
+            break
+
+    # Option B: Question-discipline specific analytical link
+    if not enrichment_term:
+        if any(k in q_low for k in ["73rd", "panchayat", "local govern", "pri", "rural local"]):
+            enrichment_term = "Activity Mapping & 3Fs Devolution Matrix" if not is_hindi else "एक्टिविटी मैपिंग एवं 3F हस्तांतरण ढांचा"
+            enrichment_def = (
+                "No major omission was identified in this evaluation. Optional upgrade: Articulate clear activity mapping across 3Fs (Funds, Functions, Functionaries) to insulate Panchayats from bureaucratic encroachment." if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: पंचायतों को नौकरशाही के हस्तक्षेप से बचाने के लिए 3F (Funds, Functions, Functionaries) की स्पष्ट एक्टिविटी मैपिंग को रेखांकित करें।"
+            )
+            enrichment_where = "Page 2 • Under fiscal devolution and operational challenges" if not is_hindi else "पृष्ठ 2 • वित्तीय हस्तांतरण एवं प्रशासनिक चुनौतियों के अंतर्गत"
+            enrichment_how = "Clear activity mapping across Funds, Functions, and Functionaries prevents bureaucratic usurpation of PRIs' 11th Schedule jurisdiction." if not is_hindi else "फंड, फंक्शन और फंक्शनरी की स्पष्ट मैपिंग पंचायतों के संवैधानिक अधिकारों को सुरक्षित करती है।"
+        elif any(k in q_low for k in ["heatwave", "food security", "climate", "temperature"]):
+            enrichment_term = "Compound Climate Risk & Synchronous Crop Shock Framework" if not is_hindi else "संयुक्त जलवायु जोखिम एवं समकालिक फसल क्षति ढांचा"
+            enrichment_def = (
+                "No major omission was identified in this evaluation. Optional upgrade: Contrast single-hazard heatwaves with compound heat-drought events that trigger synchronous breadbasket production failures." if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: एकल लू की तुलना में संयुक्त लू-सूखा घटनाओं को रेखांकित करें जो समकालिक फसल विफलता को जन्म देती हैं।"
+            )
+            enrichment_where = "Page 2 • Under global food security vulnerabilities" if not is_hindi else "पृष्ठ 2 • वैश्विक खाद्य सुरक्षा सुभेद्यता के अंतर्गत"
+            enrichment_how = "Compound heat-drought events exponentially amplify crop desiccation compared to standalone temperature spikes." if not is_hindi else "संयुक्त लू और सूखा अकेले तापमान वृद्धि की तुलना में फसल क्षति को कई गुना बढ़ा देते हैं।"
+        elif any(k in q_low for k in ["poverty", "inequality", "deprivation", "capability"]):
+            enrichment_term = "Intersecting Deprivation Matrix (Social-Spatial Overlap)" if not is_hindi else "परस्पर जुड़ी वंचनाओं का सामाजिक-स्थानिक मैट्रिक्स"
+            enrichment_def = (
+                "No major omission was identified in this evaluation. Optional upgrade: Link multidimensional poverty to spatial remote-district marginalization and marginalized social identities." if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: बहुआयामी निर्धनता को दूरस्थ क्षेत्रीय और सामाजिक पहचान के अंतर्संबंधों से जोड़कर देखें।"
+            )
+            enrichment_where = "Page 2 • Beside multidimensional deprivation indicators" if not is_hindi else "पृष्ठ 2 • बहुआयामी वंचना संकेतकों के साथ"
+            enrichment_how = "Deprivations cluster disproportionately along intersecting axes of spatial remoteness and marginalized social identity." if not is_hindi else "वंचनाएं स्थानिक दूरी और सामाजिक हाशियाकरण के अंतर्संबंधों पर अधिक केंद्रित होती हैं।"
+        elif any(k in q_low for k in ["earthquake", "seismic", "wadati", "benioff", "convergent", "plate tectonics"]):
+            enrichment_term = "Dehydration Embrittlement & Slab Detachment Dynamics" if not is_hindi else "निर्जलीकरण भंगुरता एवं स्लैब पृथक्करण गतिकी"
+            enrichment_def = (
+                "No major omission was identified in this evaluation. Optional upgrade: Explain how high-pressure dehydration embrittlement of hydrous minerals enables brittle fracture seismicity beyond 300km depth." if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: स्पष्ट करें कि 300 किमी से अधिक गहराई पर जलयोजित खनिजों का निर्जलीकरण भंगुरता फ्रैक्चर कैसे संभव बनाता है।"
+            )
+            enrichment_where = "Page 2 • Under mantle transition zone dynamics" if not is_hindi else "पृष्ठ 2 • मेंटल संक्रमण क्षेत्र गतिकी के अंतर्गत"
+            enrichment_how = "Dehydration embrittlement of hydrous serpentinites releases pore fluid pressures, triggering brittle seismic rupture deep within the subducting lithosphere." if not is_hindi else "जलयोजित खनिजों से तरल पदार्थ मुक्त होने पर अत्यधिक गहराई में भी भंगुर भूकंपीय विखंडन संभव होता है।"
+        else:
+            enrichment_term = "Institutional Inter-Linkage & Implementation Matrix" if not is_hindi else "संस्थागत अंतर्संबंध एवं क्रियान्वयन ढांचा"
+            enrichment_def = (
+                "No major omission was identified in this evaluation. Optional upgrade: Pair the primary statutory mechanism with an inter-departmental accountability feedback loop." if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: मुख्य वैधानिक तंत्र को अंतर-विभागीय जवाबदेही तंत्र से जोड़ें।"
+            )
+            enrichment_where = "Final Page • Attach to your closing policy synthesis" if not is_hindi else "अंतिम पृष्ठ • अपने नीतिगत निष्कर्ष के साथ जोड़ें"
+            enrichment_how = "Institutionalizing inter-departmental coordination ensures statutory mandates translate into measurable ground delivery." if not is_hindi else "अंतर-विभागीय समन्वय को संस्थागत रूप देने से वैधानिक प्रावधान जमीनी स्तर पर प्रभावी होते हैं।"
+
+    data["missing_keywords_cards"] = [
+        {
+            "number": 1,
+            "action_type": "Enrich",
+            "priority": "Optional Enrichment",
+            "term": enrichment_term,
+            "domain_or_thinker": "Optional Analytical Enrichment" if not is_hindi else "ऐच्छिक विश्लेषणात्मक संवर्धन",
+            "definition": enrichment_def,
+            "where_to_use": enrichment_where,
+            "how_to_use_one_line": enrichment_how
+        }
+    ]
+
 def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, question: str = "", paper: str = "", medium: str = "english") -> Dict[str, Any]:
     """
     Enforces 100% mathematical consistency (denominators sum to max_marks, numerators sum to overall_score).
@@ -5474,6 +5580,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
             ["Core Concept & Mechanism", "Empirical & Sectoral Metric", "Institutional Framework"]
         )
 
+        _ensure_at_least_one_value_addition(data, is_hindi=is_hindi)
         for idx_c, card in enumerate(data["missing_keywords_cards"]):
             card["number"] = idx_c + 1
             term_str = str(card.get("term") or "Keyword").strip()
@@ -8393,6 +8500,7 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
 
         # Dynamic Selection: NO FIXED CAP
         data["missing_keywords_cards"] = sanitized_cards
+        _ensure_at_least_one_value_addition(data, is_hindi=is_hindi)
         for idx_c, card in enumerate(data["missing_keywords_cards"]):
             card["number"] = idx_c + 1
 
