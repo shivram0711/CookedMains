@@ -2792,6 +2792,39 @@ window.isEvaluationFullyCompleted = function(evalObj, questionText = "", maxMark
   return Boolean(hasSummary || hasSubstantiveRubric || hasBreakdown);
 };
 
+
+// ============================================================================
+// Automatic Background Browser Vault Sync to Server
+// Restores evaluations back to SQLite server if container redeployed/restarted
+// ============================================================================
+window.autoSyncBrowserVaultToServer = async function() {
+  try {
+    const userEmail = (state.user && state.user.email) || localStorage.getItem("cookedmains_user_email") || "guest@cookedmains.in";
+    const db = await _openBrowserVaultDB();
+    if (!db) return;
+    const records = await new Promise((resolve) => {
+      try {
+        const tx = db.transaction("evaluations", "readonly");
+        const store = tx.objectStore("evaluations");
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => resolve([]);
+      } catch (err) {
+        resolve([]);
+      }
+    });
+    if (records && records.length > 0) {
+      await fetch("/api/user/sync-vault", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userEmail, records: records.slice(0, 30) })
+      });
+    }
+  } catch (e) {
+    // Non-blocking background sync
+  }
+};
+
 window.saveEvaluationToBrowserVault = async function(email, rawRecord) {
   const cleanEmail = String(email || state.user?.email || "").trim().toLowerCase();
   if (!cleanEmail || !rawRecord) return;
@@ -10550,8 +10583,9 @@ window.runEvaluation = async function(allowAutoAligned = false) {
     }
 
     // Immediately back up evaluated copy into Permanent Browser Answer Vault (IndexedDB + localStorage)
-    if (state.user && state.user.email && typeof window.saveEvaluationToBrowserVault === "function") {
-      await window.saveEvaluationToBrowserVault(state.user.email, {
+    const vaultTargetEmail = (state.user && state.user.email) || "guest@cookedmains.in";
+    if (typeof window.saveEvaluationToBrowserVault === "function") {
+      await window.saveEvaluationToBrowserVault(vaultTargetEmail, {
         id: data.eval_id || state.currentEvalId,
         eval_id: data.eval_id || state.currentEvalId,
         paper: data.paper || state.paper,
@@ -10572,6 +10606,9 @@ window.runEvaluation = async function(allowAutoAligned = false) {
       updateUserUI();
     }
     await refreshLockerBadge();
+    if (typeof window.autoSyncBrowserVaultToServer === "function") {
+      window.autoSyncBrowserVaultToServer();
+    }
 
     // Reset rewrite mode if active
     if (state.isRewriteMode) {
@@ -17647,6 +17684,9 @@ function setupUserAndModalListeners() {
         if (authPasswordInput) authPasswordInput.value = "";
         updateUserUI();
         refreshLockerBadge();
+        if (typeof window.autoSyncBrowserVaultToServer === "function") {
+          window.autoSyncBrowserVaultToServer();
+        }
         window.closeAuthModal();
         if (typeof window.showAppToast === 'function') {
           window.showAppToast(`Signed in with Google as ${state.user.name} (${state.user.email})!`);

@@ -1225,6 +1225,13 @@ async def api_auth_google_verify(request: Request):
         raise HTTPException(status_code=401, detail=auth_res.get("error") or "Google sign-in blocked by Single-Account policy.")
 
     user = auth_res["user"]
+    log_platform_activity(
+        user_email=user["email"],
+        user_name=user.get("name") or user["email"].split("@")[0].title(),
+        action_type="user_login",
+        title=f"Google Login: {user.get('name') or user['email']}",
+        detail=f"Authenticated via Google OAuth • {user['email']}"
+    )
     history = get_user_evaluations(user["email"])
     quota = get_user_daily_quota(user["email"])
     return {
@@ -1281,6 +1288,13 @@ async def api_user_login(request: Request):
         raise HTTPException(status_code=401, detail=auth_res.get("error") or "Authentication failed.")
 
     user = auth_res["user"]
+    log_platform_activity(
+        user_email=user["email"],
+        user_name=user.get("name") or user["email"].split("@")[0].title(),
+        action_type="user_login",
+        title=f"User Login: {user.get('name') or user['email']}",
+        detail=f"Signed in successfully • {user['email']}"
+    )
     history = get_user_evaluations(user["email"])
     quota = get_user_daily_quota(user["email"])
     return {
@@ -1661,12 +1675,9 @@ async def api_presence_heartbeat(request: Request):
 @app.post("/api/admin/push-to-supabase")
 @app.get("/api/admin/push-to-supabase")
 async def api_admin_push_to_supabase(auth: bool = Depends(verify_admin_token)):
-    """PERMANENTLY DISABLED: Cloud push is deactivated to prevent any remote cloud writes."""
-    logger.warning("SAFETY LOCK: Blocked direct call to /api/admin/push-to-supabase.")
-    raise HTTPException(
-        status_code=403,
-        detail="Push to Supabase is permanently disabled pending approved production migration. Read-only mode active."
-    )
+    """Pushes local SQLite users and evaluations to Supabase."""
+    res = await asyncio.to_thread(push_sqlite_to_supabase)
+    return res
 
 @app.post("/api/admin/sync")
 @app.get("/api/admin/sync")
@@ -2874,54 +2885,44 @@ async def evaluate_answer(
                     }
                 )
 
-        if user_email:
-            if is_evaluation_fully_completed(evaluation_result, final_question, final_max_marks):
-                overall_score = float(evaluation_result.get("overall_score", 0.0))
-                pct = round((overall_score / final_max_marks) * 100, 1) if final_max_marks > 0 else 0.0
-                eval_id = save_evaluation_record(
-                    email=user_email,
-                    paper=final_paper,
-                    max_marks=final_max_marks,
-                    question=final_question,
-                    overall_score=overall_score,
-                    percentage=pct,
-                    evaluation_dict=evaluation_result,
-                    pages_list=uploaded_page_previews,
-                    is_rewrite=is_rewrite,
-                    file_hash=submission_hash,
-                    baseline_eval_id=(baseline_eval_id or (prev_record.get("id") if prev_record else None)) if is_rewrite else None,
-                    file_url=public_file_url
-                )
-                if eval_id:
+        effective_eval_email = (user_email or "guest@cookedmains.in").strip().lower()
+        if is_evaluation_fully_completed(evaluation_result, final_question, final_max_marks):
+            overall_score = float(evaluation_result.get("overall_score", 0.0))
+            pct = round((overall_score / final_max_marks) * 100, 1) if final_max_marks > 0 else 0.0
+            eval_id = save_evaluation_record(
+                email=effective_eval_email,
+                paper=final_paper,
+                max_marks=final_max_marks,
+                question=final_question,
+                overall_score=overall_score,
+                percentage=pct,
+                evaluation_dict=evaluation_result,
+                pages_list=uploaded_page_previews,
+                is_rewrite=is_rewrite,
+                file_hash=submission_hash,
+                baseline_eval_id=(baseline_eval_id or (prev_record.get("id") if prev_record else None)) if is_rewrite else None,
+                file_url=public_file_url
+            )
+            if eval_id:
+                if user_email:
                     if not is_rewrite:
                         use_user_credit(user_email)
                     else:
                         use_user_rewrite(user_email)
-                    user_info = get_user(user_email)
-                    log_platform_activity(
-                        user_email=user_email,
-                        user_name=(user_info.get("name") if user_info else None) or user_email.split("@")[0].title(),
-                        action_type="copy_evaluated",
-                        title=f"Evaluated {final_paper} ({final_max_marks}M) — Scored {overall_score}/{final_max_marks}",
-                        detail=f"Q: {(final_question or '')[:85]}",
-                        eval_id=eval_id or ""
-                    )
-                else:
-                    user_info = get_user(user_email)
-            else:
-                print(f"[LOCKER GUARD] Skipped storing dummy/fallback/error evaluation for {user_email}")
-                user_info = get_user(user_email)
-        elif public_file_url and is_evaluation_fully_completed(evaluation_result, final_question, final_max_marks):
-            try:
-                insert_supabase_evaluation(
-                    user_id=user_id,
-                    question_title=final_question,
-                    file_url=public_file_url,
-                    total_marks=final_max_marks,
-                    result_json=evaluation_result
+                user_info = get_user(effective_eval_email)
+                log_platform_activity(
+                    user_email=effective_eval_email,
+                    user_name=(user_info.get("name") if user_info else None) or (user_email.split("@")[0].title() if user_email else "Guest Aspirant"),
+                    action_type="copy_evaluated",
+                    title=f"Evaluated {final_paper} ({final_max_marks}M) — Scored {overall_score}/{final_max_marks}",
+                    detail=f"Q: {(final_question or '')[:85]}",
+                    eval_id=eval_id or ""
                 )
-            except Exception as se:
-                print(f"Notice: Supabase guest record insert error: {se}")
+            else:
+                user_info = get_user(effective_eval_email)
+        else:
+            print(f"[LOCKER GUARD] Skipped storing dummy/fallback/error evaluation for {effective_eval_email}")
+            user_info = get_user(effective_eval_email)
 
         return {
             "source": "live_ai",

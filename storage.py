@@ -65,6 +65,18 @@ def _resolve_db_path() -> str:
         except Exception:
             pass
 
+    # Auto-detect standard Render Persistent Disk mounts (/var/data, /data, /mnt/data)
+    for mount_cand in ["/var/data", "/data", "/mnt/data"]:
+        if os.path.exists(mount_cand) and os.path.isdir(mount_cand):
+            try:
+                test_file = os.path.join(mount_cand, ".perm_test")
+                with open(test_file, "w") as f:
+                    f.write("1")
+                os.remove(test_file)
+                return os.path.join(mount_cand, "evaluations.db")
+            except Exception:
+                pass
+
     try:
         local_dir = os.path.dirname(os.path.abspath(__file__))
         test_file = os.path.join(local_dir, ".perm_test")
@@ -1865,6 +1877,14 @@ def restore_evaluations_to_vault(email: str, records: List[Dict[str, Any]]) -> D
         )
         if rid:
             existing_by_id[rid] = rec
+        log_platform_activity(
+            user_email=clean_email,
+            user_name=clean_email.split("@")[0].title(),
+            action_type="copy_evaluated",
+            title=f"Evaluated {paper} ({max_marks}M) — Scored {overall_score}/{max_marks}",
+            detail=f"Restored from Vault • Q: {question[:85]}",
+            eval_id=rid or ""
+        )
         restored_count += 1
     return {"restored": restored_count}
 
@@ -3428,18 +3448,364 @@ def is_created_today_ist(ts_str: Optional[str]) -> bool:
 
 def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
     """
-    PERMANENT SAFETY LOCK: Cloud sync into local SQLite is deactivated.
-    Guarantees no local records can be overwritten, updated, or replaced.
+    Synchronizes persistent user accounts, profiles, and evaluated answer sheets from Supabase
+    into local SQLite with automatic deduplication, debounce caching (45s), non-blocking lock, and zero latency.
     """
-    logger.warning("SAFETY LOCK: sync_supabase_to_sqlite invoked but neutralized.")
-    return {"status": "disabled", "message": "Cloud synchronization deactivated. Zero records written."}
+    global _last_supabase_sync_ts
+    now = time.time()
+    if not force and (now - _last_supabase_sync_ts < 45.0):
+        return {"status": "skipped", "reason": "debounce_active", "age_seconds": round(now - _last_supabase_sync_ts, 1)}
+
+    if supabase is None:
+        return {"status": "skipped", "reason": "supabase_not_initialized"}
+
+    if not _supabase_sync_lock.acquire(blocking=False):
+        return {"status": "skipped", "reason": "sync_in_progress"}
+
+    synced_users_count = 0
+    synced_evals_count = 0
+
+    try:
+        # 1. Fetch user accounts from Supabase (__USER_ACCOUNT_PROFILE__)
+        user_rows = []
+        try:
+            res_u = supabase.table("evaluations").select(
+                "id, user_id, evaluation_json, created_at"
+            ).eq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(300).execute()
+            if res_u and res_u.data:
+                user_rows = res_u.data
+        except Exception as ue:
+            print(f"Notice: Supabase fetch users for sync notice: {ue}")
+
+        # 2. Fetch recent answer evaluations from Supabase
+        eval_rows = []
+        try:
+            res_e = supabase.table("evaluations").select(
+                "id, user_id, question_title, file_url, total_marks, evaluation_json, created_at"
+            ).neq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(80).execute()
+            if res_e and res_e.data:
+                eval_rows = res_e.data
+        except Exception as ee:
+            print(f"Notice: Supabase fetch evals for sync notice: {ee}")
+
+        user_id_to_email: Dict[str, str] = {}
+        email_to_user_id: Dict[str, str] = {}
+        parsed_users: List[Dict[str, Any]] = []
+
+        for r in user_rows:
+            ev = r.get("evaluation_json") or {}
+            if isinstance(ev, str):
+                try:
+                    ev = json.loads(ev)
+                except Exception:
+                    ev = {}
+            if ev.get("_is_system_marker"):
+                continue
+
+            email = canonicalize_email(ev.get("email") or "")
+            if not email or "@" not in email or is_dummy_or_demo_email(email):
+                continue
+
+            det_id = str(r.get("user_id") or ev.get("id") or get_deterministic_user_id(email))
+            user_id_to_email[det_id] = email
+            email_to_user_id[email] = det_id
+
+            name = (ev.get("name") or email.split("@")[0].title()).strip()
+            avatar = ev.get("avatar") or f"https://api.dicebear.com/7.x/bottts/svg?seed={email}"
+            free_credits = int(ev.get("free_credits") if ev.get("free_credits") is not None else 15)
+            free_rewrites = int(ev.get("free_rewrites") if ev.get("free_rewrites") is not None else 5)
+            is_pro = int(ev.get("is_pro") if ev.get("is_pro") is not None else 1)
+            target_year = str(ev.get("target_year") or "2026")
+            optional_subj = str(ev.get("optional_subject") or "PSIR")
+            pw_hash = ev.get("password_hash") or None
+            plan_tier = str(ev.get("plan_tier") or "free")
+            meta_device_id = str(ev.get("_meta_device_id") or "").strip()
+            created_at = str(r.get("created_at") or ev.get("created_at") or datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"))
+
+            parsed_users.append({
+                "id": det_id,
+                "email": email,
+                "name": name,
+                "avatar": avatar,
+                "free_credits": free_credits,
+                "is_pro": is_pro,
+                "free_rewrites": free_rewrites,
+                "target_year": target_year,
+                "optional_subject": optional_subj,
+                "password_hash": pw_hash,
+                "plan_tier": plan_tier,
+                "device_id": meta_device_id,
+                "created_at": created_at
+            })
+
+        parsed_evals: List[Dict[str, Any]] = []
+        for r in eval_rows:
+            q_title = str(r.get("question_title") or "").strip()
+            if q_title.startswith("__"):
+                continue
+            ev = r.get("evaluation_json") or {}
+            if isinstance(ev, str):
+                try:
+                    ev = json.loads(ev)
+                except Exception:
+                    ev = {}
+            if ev.get("_is_account_profile") or ev.get("_is_system_marker"):
+                continue
+
+            eval_id = str(r.get("id") or "")
+            if not eval_id or eval_id in ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4'):
+                continue
+
+            u_id = str(r.get("user_id") or "")
+            u_email = user_id_to_email.get(u_id) or ev.get("_meta_user_email") or ev.get("user_email") or ""
+            u_email = canonicalize_email(u_email) if u_email else ""
+            if not u_email:
+                u_email = "aspirant@cookedmains.in"
+            if is_dummy_or_demo_email(u_email):
+                continue
+
+            score = float(ev.get("overall_score") or 0.0)
+            max_marks = int(r.get("total_marks") or ev.get("_meta_max_marks") or ev.get("max_marks") or 10)
+            pct = round((score / max_marks) * 100, 1) if max_marks > 0 else 0.0
+            paper = str(ev.get("_meta_paper") or ev.get("detected_paper") or "GS")
+            file_url = str(r.get("file_url") or "")
+            meta_pages = ev.get("_meta_pages") or ([file_url] if file_url else [])
+            thumbnail = str(ev.get("_meta_thumbnail") or (meta_pages[0] if meta_pages else file_url))
+            is_rewrite = int(ev.get("_meta_is_rewrite") or 0)
+            file_hash = ev.get("_meta_file_hash")
+            baseline_eval_id = ev.get("_meta_baseline_eval_id")
+
+            authentic_ts = _resolve_authentic_created_at(
+                eval_id=eval_id,
+                evaluation_dict=ev,
+                forced_created_at=str(r.get("created_at") or ""),
+                question_text=q_title
+            )
+
+            parsed_evals.append({
+                "id": eval_id,
+                "user_id": u_id or (email_to_user_id.get(u_email) or get_deterministic_user_id(u_email)),
+                "user_email": u_email,
+                "created_at": authentic_ts,
+                "paper": paper,
+                "max_marks": max_marks,
+                "question": q_title or "UPSC Mains Answer Copy",
+                "overall_score": score,
+                "percentage": pct,
+                "evaluation_json": json.dumps(ev),
+                "pages_json": json.dumps(meta_pages),
+                "thumbnail": thumbnail,
+                "is_rewrite": is_rewrite,
+                "file_hash": file_hash,
+                "baseline_eval_id": baseline_eval_id,
+                "file_url": file_url
+            })
+
+        # 3. Batch apply to local SQLite DB
+        conn = get_db()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT id, email, free_credits, is_pro, free_rewrites FROM users")
+        existing_users_map = {row["email"].lower(): dict(row) for row in cursor.fetchall()}
+
+        for u in parsed_users:
+            em = u["email"].lower()
+            if em in existing_users_map:
+                cursor.execute("""
+                    UPDATE users SET
+                        id = ?,
+                        name = COALESCE(?, name),
+                        avatar = COALESCE(?, avatar),
+                        free_credits = MAX(free_credits, ?),
+                        is_pro = MAX(is_pro, ?),
+                        free_rewrites = MAX(free_rewrites, ?),
+                        target_year = COALESCE(?, target_year),
+                        optional_subject = COALESCE(?, optional_subject),
+                        password_hash = COALESCE(?, password_hash),
+                        plan_tier = COALESCE(?, plan_tier),
+                        device_id = COALESCE(?, device_id)
+                    WHERE LOWER(email) = ?
+                """, (
+                    u["id"], u["name"], u["avatar"], u["free_credits"], u["is_pro"],
+                    u["free_rewrites"], u["target_year"], u["optional_subject"],
+                    u["password_hash"], u["plan_tier"], u["device_id"], em
+                ))
+            else:
+                cursor.execute("""
+                    INSERT INTO users (
+                        id, email, name, avatar, free_credits, is_pro, free_rewrites,
+                        target_year, optional_subject, password_hash, plan_tier, device_id, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    u["id"], u["email"], u["name"], u["avatar"], u["free_credits"], u["is_pro"],
+                    u["free_rewrites"], u["target_year"], u["optional_subject"],
+                    u["password_hash"], u["plan_tier"], u["device_id"], u["created_at"]
+                ))
+            synced_users_count += 1
+
+        for ev in parsed_evals:
+            cursor.execute("""
+                INSERT OR REPLACE INTO evaluations (
+                    id, user_id, user_email, created_at, paper, max_marks, question,
+                    overall_score, percentage, evaluation_json, pages_json, thumbnail,
+                    is_rewrite, file_hash, has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                ev["id"], ev["user_id"], ev["user_email"], ev["created_at"], ev["paper"],
+                ev["max_marks"], ev["question"], ev["overall_score"], ev["percentage"],
+                ev["evaluation_json"], ev["pages_json"], ev["thumbnail"], ev["is_rewrite"],
+                ev["file_hash"], 0, None, ev["baseline_eval_id"], ev["file_url"]
+            ))
+            synced_evals_count += 1
+
+        conn.commit()
+        conn.close()
+
+        _last_supabase_sync_ts = time.time()
+        return {
+            "status": "success",
+            "synced_users": synced_users_count,
+            "synced_evaluations": synced_evals_count,
+            "timestamp": _last_supabase_sync_ts
+        }
+    except Exception as e:
+        print(f"Notice: sync_supabase_to_sqlite error: {e}")
+        return {"status": "error", "error": str(e)}
+    finally:
+        try:
+            _supabase_sync_lock.release()
+        except Exception:
+            pass
 
 def push_sqlite_to_supabase() -> Dict[str, Any]:
     """
-    PERMANENT SAFETY LOCK: Cloud push operations are completely deactivated.
+    Pushes all genuine registered aspirants and evaluated answer sheets from local SQLite
+    into remote Supabase cloud table ('evaluations').
     """
-    logger.warning("SAFETY LOCK: push_sqlite_to_supabase invoked but neutralized.")
-    return {"status": "disabled", "message": "Cloud push deactivated. Zero records written."}
+    global supabase
+    if not supabase:
+        supabase_url = os.environ.get("SUPABASE_URL", "").strip() or "https://uivzorhuqsdiaarlmbhv.supabase.co"
+        supabase_key = (
+            os.environ.get("SUPABASE_KEY", "").strip()
+            or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+            or os.environ.get("SUPABASE_ANON_KEY", "").strip()
+        )
+        if supabase_url and supabase_key:
+            try:
+                supabase = create_client(supabase_url, supabase_key)
+            except Exception as _e:
+                return {
+                    "status": "error",
+                    "message": f"Supabase client initialization failed: {_e}. Make sure SUPABASE_KEY is set in environment."
+                }
+        else:
+            return {
+                "status": "error",
+                "message": "SUPABASE_KEY is not configured in the server environment. Add SUPABASE_KEY in your Render dashboard environment variables to enable remote syncing."
+            }
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, email, name, avatar, free_credits, is_pro, free_rewrites,
+               target_year, optional_subject, plan_tier, created_at
+        FROM users
+        WHERE email NOT LIKE '%mock%'
+          AND email NOT LIKE '%test%'
+          AND email NOT LIKE '%candidate%'
+          AND email != 'aspirant@cookedmains.com'
+    """)
+    users = [dict(r) for r in cursor.fetchall()]
+
+    pushed_users = 0
+    for u in users:
+        try:
+            profile_payload = {
+                "_is_account_profile": True,
+                "id": u["id"],
+                "email": u["email"],
+                "name": u["name"],
+                "avatar": u["avatar"],
+                "free_credits": u["free_credits"],
+                "is_pro": u["is_pro"],
+                "free_rewrites": u["free_rewrites"],
+                "target_year": u["target_year"],
+                "optional_subject": u["optional_subject"],
+                "plan_tier": u["plan_tier"],
+                "created_at": u["created_at"]
+            }
+            existing = supabase.table("evaluations").select("id").eq("user_id", u["id"]).eq("question_title", "__USER_ACCOUNT_PROFILE__").execute()
+            if existing and existing.data and len(existing.data) > 0:
+                supabase.table("evaluations").update({
+                    "evaluation_json": profile_payload
+                }).eq("id", existing.data[0]["id"]).execute()
+            else:
+                supabase.table("evaluations").insert({
+                    "user_id": u["id"],
+                    "question_title": "__USER_ACCOUNT_PROFILE__",
+                    "file_url": "",
+                    "total_marks": 0,
+                    "evaluation_json": profile_payload
+                }).execute()
+            pushed_users += 1
+        except Exception as ue:
+            print(f"Notice: pushing user {u['email']} to Supabase failed: {ue}")
+
+    cursor.execute("""
+        SELECT id, user_id, user_email, created_at, paper, max_marks, question,
+               overall_score, percentage, evaluation_json, pages_json, file_url
+        FROM evaluations
+        WHERE user_email NOT LIKE '%mock%'
+          AND user_email NOT LIKE '%test%'
+          AND user_email NOT LIKE '%candidate%'
+          AND user_email != 'aspirant@cookedmains.com'
+    """)
+    evals = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+
+    pushed_evals = 0
+    for ev in evals:
+        try:
+            eval_data = {}
+            if ev.get("evaluation_json"):
+                try:
+                    eval_data = json.loads(ev["evaluation_json"])
+                except Exception:
+                    eval_data = {}
+            
+            pages_list = []
+            if ev.get("pages_json"):
+                try:
+                    pages_list = json.loads(ev["pages_json"])
+                except Exception:
+                    pages_list = []
+
+            compact_pages = _compact_pages_for_cloud_json(pages_list)
+            slim_eval = dict(eval_data)
+            slim_eval["_meta_pages"] = compact_pages
+            slim_eval["_meta_user_email"] = ev.get("user_email")
+            slim_eval["_meta_eval_id"] = ev.get("id")
+
+            existing_eval = supabase.table("evaluations").select("id").eq("user_id", ev["user_id"]).eq("question_title", ev["question"]).execute()
+            if not (existing_eval and existing_eval.data and len(existing_eval.data) > 0):
+                insert_supabase_evaluation(
+                    user_id=ev["user_id"],
+                    question_title=ev["question"],
+                    file_url=ev.get("file_url") or "",
+                    total_marks=int(ev.get("max_marks") or 10),
+                    result_json=slim_eval
+                )
+                pushed_evals += 1
+        except Exception as ee:
+            print(f"Notice: pushing evaluation {ev.get('id')} to Supabase failed: {ee}")
+
+    return {
+        "status": "success",
+        "pushed_users": pushed_users,
+        "pushed_evaluations": pushed_evals,
+        "message": f"Successfully pushed {pushed_users} aspirants and {pushed_evals} evaluations to Supabase cloud."
+    }
 
 def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
     try:
