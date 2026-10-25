@@ -251,12 +251,12 @@ async def trigger_supabase_keepalive():
     return {"status": "ok", "supabase_keepalive": res}
 
 @app.get("/api/admin/eval-trace")
-async def get_eval_trace():
+async def get_eval_trace(auth: bool = Depends(verify_admin_token)):
     """Returns the forensic execution trace of recent evaluation attempts (safe key labels, models, exact errors, latencies)."""
     return {"count": len(_LAST_EVAL_TRACE), "recent_attempts": _LAST_EVAL_TRACE[-50:]}
 
 @app.get("/api/admin/model-health")
-async def get_model_health(all_keys: int = 0):
+async def get_model_health(all_keys: int = 0, auth: bool = Depends(verify_admin_token)):
     """Live diagnostic endpoint for administrator to verify Gemini API keys, active models, and real response latency."""
     keys = get_active_gemini_keys()
     if not keys:
@@ -1345,7 +1345,7 @@ async def api_submit_feedback(request: Request):
     return {"status": "success", "message": "Feedback received. Thank you for helping us improve Cooked Mains!"}
 
 @app.post("/api/admin/factory-reset")
-async def api_admin_factory_reset():
+async def api_admin_factory_reset(auth: bool = Depends(verify_admin_token)):
     """Strictly disabled to protect data integrity and ensure zero deletion."""
     return {
         "status": "disabled",
@@ -1605,7 +1605,7 @@ async def api_admin_login(request: Request):
     except Exception:
         data = {}
     pin = (data.get("pin") or "").strip()
-    master_pin = os.environ.get("ADMIN_PASSWORD") or get_admin_setting("admin_pin", "Admin@MainsMentor2026")
+    master_pin = get_master_admin_password()
     
     if pin == master_pin:
         # Simple hashed token for admin session
@@ -1629,10 +1629,13 @@ async def api_presence_heartbeat(request: Request):
 
 @app.post("/api/admin/push-to-supabase")
 @app.get("/api/admin/push-to-supabase")
-async def api_admin_push_to_supabase():
-    """Pushes all genuine users and evaluated answer copies from local SQLite into remote Supabase cloud."""
-    res = await asyncio.to_thread(push_sqlite_to_supabase)
-    return res
+async def api_admin_push_to_supabase(auth: bool = Depends(verify_admin_token)):
+    """PERMANENTLY DISABLED: Cloud push is deactivated to prevent any remote cloud writes."""
+    logger.warning("SAFETY LOCK: Blocked direct call to /api/admin/push-to-supabase.")
+    raise HTTPException(
+        status_code=403,
+        detail="Push to Supabase is permanently disabled pending approved production migration. Read-only mode active."
+    )
 
 @app.post("/api/admin/sync")
 @app.get("/api/admin/sync")
@@ -1642,13 +1645,13 @@ async def api_admin_sync():
     return {"status": "success", "sync_result": res}
 
 @app.get("/api/admin/stats")
-async def api_admin_stats(sync: Optional[int] = 0):
+async def api_admin_stats(sync: Optional[int] = 0, auth: bool = Depends(verify_admin_token)):
     """Returns overview platform analytics for the admin dashboard."""
     force_sync = bool(sync == 1)
     return await asyncio.to_thread(get_admin_dashboard_stats, force_sync)
 
 @app.get("/api/admin/activity")
-async def api_admin_activity(limit: int = 60):
+async def api_admin_activity(limit: int = 60, auth: bool = Depends(verify_admin_token)):
     """Returns real-time chronological activity stream across the platform."""
     return await asyncio.to_thread(get_admin_activity_stream, limit=limit)
 
@@ -1666,7 +1669,7 @@ async def api_admin_clear_dummy_data():
     return {"status": "success", "message": "All dummy and demo accounts purged permanently.", "purged": res}
 
 @app.get("/api/admin/sessions")
-async def api_admin_sessions(limit: int = 300):
+async def api_admin_sessions(limit: int = 300, auth: bool = Depends(verify_admin_token)):
     """Returns chronological history of user sessions (who visited, what they did, session duration)."""
     try:
         return await asyncio.to_thread(get_admin_session_history, limit=limit)
@@ -1683,7 +1686,8 @@ async def api_admin_evaluations(
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     sort_by: Optional[str] = "date_desc",
-    limit: int = 500
+    limit: int = 500,
+    auth: bool = Depends(verify_admin_token)
 ):
     """Returns evaluations across all aspirants categorized by subject, date, and keyword."""
     return await asyncio.to_thread(
@@ -1692,12 +1696,12 @@ async def api_admin_evaluations(
     )
 
 @app.get("/api/admin/evaluations/stats")
-async def api_admin_evaluations_stats():
+async def api_admin_evaluations_stats(auth: bool = Depends(verify_admin_token)):
     """Returns aggregated live evaluation count statistics categorized by subject and date."""
     return await asyncio.to_thread(get_admin_evaluations_stats)
 
 @app.get("/api/admin/evaluation/{eval_id}")
-async def api_admin_get_evaluation(eval_id: str):
+async def api_admin_get_evaluation(eval_id: str, auth: bool = Depends(verify_admin_token)):
     """Returns the full evaluation dossier + handwritten pages for owner inspection."""
     rec = await asyncio.to_thread(get_evaluation_by_id, eval_id)
     if not rec:
@@ -1705,12 +1709,12 @@ async def api_admin_get_evaluation(eval_id: str):
     return rec
 
 @app.get("/api/admin/aspirants")
-async def api_admin_aspirants(search: Optional[str] = None):
+async def api_admin_aspirants(search: Optional[str] = None, auth: bool = Depends(verify_admin_token)):
     """Returns list of registered aspirants with live status and daily credit usage."""
     return await asyncio.to_thread(get_all_aspirants_admin, search)
 
 @app.post("/api/admin/aspirant/reset-daily")
-async def api_admin_reset_daily(request: Request):
+async def api_admin_reset_daily(request: Request, auth: bool = Depends(verify_admin_token)):
     """Resets an aspirant's daily credit quota and restores 15 evaluations."""
     try:
         data = await request.json()
@@ -1747,7 +1751,7 @@ async def api_admin_update_credits(request: Request):
     return {"status": "success", "user": user}
 
 @app.get("/api/admin/transactions")
-async def api_admin_transactions(status: Optional[str] = None):
+async def api_admin_transactions(status: Optional[str] = None, auth: bool = Depends(verify_admin_token)):
     """Returns submitted UPI transactions."""
     return get_all_transactions(status)
 
@@ -1800,7 +1804,7 @@ async def api_admin_resolve_feedback(feedback_id: str, request: Request):
     return {"status": "success", "is_resolved": 1 if resolved else 0}
 
 @app.delete("/api/admin/feedback/{feedback_id}")
-async def api_admin_delete_feedback(feedback_id: str):
+async def api_admin_delete_feedback(feedback_id: str, auth: bool = Depends(verify_admin_token)):
     """Safely resolves feedback entry to guarantee permanent data retention."""
     from storage import resolve_feedback_admin
     await asyncio.to_thread(resolve_feedback_admin, feedback_id, True)
@@ -1824,7 +1828,7 @@ async def api_admin_set_upi(request: Request):
     return {"status": "success", "admin_upi_id": upi_id}
 
 @app.post("/api/admin/settings/password")
-async def api_admin_set_password(request: Request):
+async def api_admin_set_password(request: Request, auth: bool = Depends(verify_admin_token)):
     """Updates the admin master password in database."""
     try:
         data = await request.json()

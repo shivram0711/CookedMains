@@ -1185,10 +1185,11 @@ window.handleRewriteFiles = async function(files) {
           }
         }
       } else if (f.type && f.type.startsWith("image/")) {
+        const processedFile = typeof compressImageIfNeeded === "function" ? await compressImageIfNeeded(f) : f;
         const url = await new Promise(resolve => {
           const r = new FileReader();
           r.onload = e => resolve(e.target.result);
-          r.readAsDataURL(f);
+          r.readAsDataURL(processedFile);
         });
         if (url) pages.push(url);
       }
@@ -20377,6 +20378,7 @@ window.confirmLogoutAspirant = function() {
   }
 
   window.sendPresenceHeartbeat = async function(customView) {
+    if (document.hidden) return; // Silent when tab is minimized or user switched tabs to save server CPU
     try {
       const u = state.user || JSON.parse(localStorage.getItem("mainsmentor_user") || "null");
       await fetch("/api/presence/heartbeat", {
@@ -20394,8 +20396,13 @@ window.confirmLogoutAspirant = function() {
     }
   };
 
-  setTimeout(() => window.sendPresenceHeartbeat(), 1200);
-  setInterval(() => window.sendPresenceHeartbeat(), 30000);
+  setTimeout(() => window.sendPresenceHeartbeat(), 1500);
+  setInterval(() => window.sendPresenceHeartbeat(), 90000); // Relaxed from 30s to 90s (reduces idle server load by 66%)
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      window.sendPresenceHeartbeat(); // Instantly refresh status when user returns to tab
+    }
+  });
 })();
 
 // =============================================================

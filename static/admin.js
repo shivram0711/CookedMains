@@ -196,7 +196,7 @@ async function pushLocalToCloud() {
 // -------------------------------------------------------------
 async function loadAdminStats(forceSync = false) {
   try {
-    const res = await fetch(`/api/admin/stats?sync=${forceSync ? 1 : 0}`);
+    const res = await fetch("/api/admin/stats", { headers: getAdminAuthHeaders() });
     if (!res.ok) return;
     const stats = await res.json();
 
@@ -310,7 +310,7 @@ async function loadAdminActivity() {
   const container = document.getElementById("activityStreamContainer");
   if (!container) return;
   try {
-    const res = await fetch("/api/admin/activity?limit=60");
+    const res = await fetch("/api/admin/activity?limit=60", { headers: getAdminAuthHeaders() });
     if (!res.ok) return;
     const events = await res.json();
 
@@ -410,7 +410,7 @@ async function loadAdminSessions() {
   const tbody = document.getElementById("sessionHistoryTableBody");
   if (!tbody) return;
   try {
-    const res = await fetch("/api/admin/sessions?limit=300");
+    const res = await fetch("/api/admin/sessions?limit=300", { headers: getAdminAuthHeaders() });
     if (!res.ok) throw new Error("Could not load session history");
     const sessions = await res.json();
     cachedSessions = sessions || [];
@@ -607,7 +607,7 @@ async function loadAspirants() {
   const query = searchInput ? searchInput.value.trim() : "";
 
   try {
-    const res = await fetch(`/api/admin/aspirants?search=${encodeURIComponent(query)}`);
+    const res = await fetch(`/api/admin/aspirants?search=${encodeURIComponent(query)}`, { headers: getAdminAuthHeaders() });
     if (!res.ok) throw new Error("Could not fetch aspirants");
     const aspirants = await res.json();
     cachedAspirants = aspirants || [];
@@ -727,7 +727,7 @@ async function resetDailyQuota(email) {
   try {
     const res = await fetch("/api/admin/aspirant/reset-daily", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAdminAuthHeaders(),
       body: JSON.stringify({ email })
     });
     if (!res.ok) throw new Error("Failed to reset quota");
@@ -779,7 +779,7 @@ async function applyCreditAdjustment() {
   try {
     const res = await fetch("/api/admin/aspirant/credits", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAdminAuthHeaders(),
       body: JSON.stringify({
         email: activeCreditCadetEmail,
         delta_credits: deltaCredits,
@@ -872,7 +872,7 @@ function clearEvalFilter() {
 
 async function loadAdminEvaluationsStats() {
   try {
-    const res = await fetch("/api/admin/evaluations/stats");
+    const res = await fetch("/api/admin/evaluations/stats", { headers: getAdminAuthHeaders() });
     if (!res.ok) return;
     const data = await res.json();
     const bySubj = data.by_subject || {};
@@ -914,7 +914,7 @@ async function loadAdminEvaluations() {
       if (dateTo) queryParams.set("date_to", dateTo);
     }
 
-    const res = await fetch(`/api/admin/evaluations?${queryParams.toString()}`);
+    const res = await fetch(`/api/admin/evaluations?${queryParams.toString()}`, { headers: getAdminAuthHeaders() });
     if (!res.ok) throw new Error("Could not load evaluations");
     const evals = await res.json();
 
@@ -988,7 +988,7 @@ async function inspectCopy(evalId) {
   document.getElementById("inspectPagesContainer").innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">Loading candidate's handwritten pages...</div>`;
 
   try {
-    const res = await fetch(`/api/admin/evaluation/${encodeURIComponent(evalId)}`);
+    const res = await fetch(`/api/admin/evaluation/${encodeURIComponent(evalId)}`, { headers: getAdminAuthHeaders() });
     if (!res.ok) throw new Error("Evaluation copy not found");
     const rec = await res.json();
     const ev = rec.evaluation || rec.evaluation_data || {};
@@ -1335,7 +1335,7 @@ async function loadAdminFeedbacks() {
   if (!container) return;
 
   try {
-    const res = await fetch("/api/admin/feedbacks");
+    const res = await fetch("/api/admin/feedbacks", { headers: getAdminAuthHeaders() });
     if (!res.ok) throw new Error("Could not load feedbacks");
     const list = await res.json();
     cachedFeedbacks = list || [];
@@ -1419,7 +1419,7 @@ async function resolveFeedback(feedbackId, resolved) {
   try {
     const res = await fetch(`/api/admin/feedback/${encodeURIComponent(feedbackId)}/resolve`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAdminAuthHeaders(),
       body: JSON.stringify({ resolved: Boolean(resolved) })
     });
     if (!res.ok) throw new Error("Could not update feedback status");
@@ -1443,7 +1443,7 @@ async function loadAdminTransactions() {
   const status = statusSel ? statusSel.value : "all";
 
   try {
-    const res = await fetch(`/api/admin/transactions?status=${encodeURIComponent(status)}`);
+    const res = await fetch(`/api/admin/transactions?status=${encodeURIComponent(status)}`, { headers: getAdminAuthHeaders() });
     if (!res.ok) throw new Error("Could not load transactions");
     const txs = await res.json();
 
@@ -1507,7 +1507,7 @@ async function approveTransaction(txId) {
   try {
     const res = await fetch("/api/admin/transaction/approve", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAdminAuthHeaders(),
       body: JSON.stringify({ tx_id: txId, notes: "Approved by Founder via Command Center" })
     });
     const data = await res.json();
@@ -1527,7 +1527,7 @@ async function rejectTransaction(txId) {
   try {
     const res = await fetch("/api/admin/transaction/reject", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAdminAuthHeaders(),
       body: JSON.stringify({ tx_id: txId, notes: reason })
     });
     if (!res.ok) throw new Error("Rejection failed");
@@ -1543,7 +1543,7 @@ async function rejectTransaction(txId) {
 // -------------------------------------------------------------
 async function loadAdminSettings() {
   try {
-    const res = await fetch("/api/admin/settings");
+    const res = await fetch("/api/admin/settings", { headers: getAdminAuthHeaders() });
     if (!res.ok) return;
     const data = await res.json();
     const upiInp = document.getElementById("settingsUpiIdInput");
@@ -1562,7 +1562,7 @@ async function updateAdminUpiId(e) {
   try {
     const res = await fetch("/api/admin/settings/upi", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAdminAuthHeaders(),
       body: JSON.stringify({ upi_id: upiId })
     });
     const data = await res.json();
@@ -1599,7 +1599,7 @@ async function changeAdminPassword(e) {
   try {
     const res = await fetch("/api/admin/settings/password", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAdminAuthHeaders(),
       body: JSON.stringify({ current_pin: currentPin, new_pin: newPin })
     });
     const data = await res.json();
