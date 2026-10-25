@@ -974,7 +974,22 @@ async function inspectCopy(evalId) {
     if (!res.ok) throw new Error("Evaluation copy not found");
     const rec = await res.json();
     const ev = rec.evaluation || rec.evaluation_data || {};
-    const pages = rec.pages || rec.page_images || ev._meta_pages || [];
+    let pages = rec.pages || rec.page_images || ev._meta_pages || [];
+    if (typeof pages === "string") {
+      try { pages = JSON.parse(pages); } catch(e) { pages = [pages]; }
+    }
+    if (!Array.isArray(pages) || pages.length === 0) {
+      if (rec.pages_json) {
+        try { pages = JSON.parse(rec.pages_json); } catch(e){}
+      }
+    }
+    if (!Array.isArray(pages) || pages.length === 0) {
+      if (rec.file_url) pages = [rec.file_url];
+      else if (rec.thumbnail) pages = [rec.thumbnail];
+      else if (ev._meta_thumbnail) pages = [ev._meta_thumbnail];
+      else if (ev.file_url) pages = [ev.file_url];
+    }
+    pages = (pages || []).filter(p => p && typeof p === "string" && p.trim().length > 5);
 
     // Header Meta
     const paper = rec.paper || ev.detected_paper || ev.detected_paper_display || "GS";
@@ -989,15 +1004,29 @@ async function inspectCopy(evalId) {
 
     // 1. Pages (Left Column)
     const pagesHtml = pages.length > 0
-      ? pages.map((p, idx) => `
-          <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950 space-y-1 group">
-            <div class="px-3 py-1.5 bg-slate-900 border-b border-slate-800 text-[11px] font-mono font-bold text-amber-300 flex items-center justify-between">
-              <span>Page ${idx + 1} of ${pages.length}</span>
-              <button onclick="openImageZoom('${p}')" class="text-[10px] text-amber-400 hover:underline cursor-pointer">🔍 Click to Enlarge</button>
+      ? pages.map((p, idx) => {
+          const isPdf = p.toLowerCase().includes('.pdf');
+          if (isPdf) {
+            return `
+              <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950 space-y-2 p-3">
+                <div class="flex items-center justify-between text-[11px] font-mono font-bold text-amber-300">
+                  <span>Candidate Answer Sheet (PDF)</span>
+                  <a href="${p}" target="_blank" class="px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 text-[10px] font-bold">Open Full PDF ↗</a>
+                </div>
+                <iframe src="${p}" class="w-full h-[520px] rounded-lg border border-slate-800 bg-white"></iframe>
+              </div>
+            `;
+          }
+          return `
+            <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950 space-y-1 group">
+              <div class="px-3 py-1.5 bg-slate-900 border-b border-slate-800 text-[11px] font-mono font-bold text-amber-300 flex items-center justify-between">
+                <span>Page ${idx + 1} of ${pages.length}</span>
+                <button onclick="openImageZoom('${p}')" class="text-[10px] text-amber-400 hover:underline cursor-pointer">🔍 Click to Enlarge</button>
+              </div>
+              <img src="${p}" alt="Page ${idx + 1}" onclick="openImageZoom('${p}')" class="w-full h-auto object-contain cursor-zoom-in group-hover:opacity-95 transition" onerror="this.parentElement.innerHTML='<div class="p-4 text-center text-xs text-slate-500">Image preview unavailable</div>'">
             </div>
-            <img src="${p}" alt="Page ${idx + 1}" onclick="openImageZoom('${p}')" class="w-full h-auto object-contain cursor-zoom-in group-hover:opacity-95 transition">
-          </div>
-        `).join("")
+          `;
+        }).join("")
       : `<div class="p-6 rounded-xl bg-slate-950 border border-slate-800 text-slate-500 text-xs text-center">No page preview image stored for this record.</div>`;
     document.getElementById("inspectPagesContainer").innerHTML = pagesHtml;
 

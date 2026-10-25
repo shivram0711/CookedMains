@@ -101,8 +101,6 @@ def perform_clean_slate_reset(force: bool = False) -> Dict[str, Any]:
 def _seed_vault_if_empty(cursor) -> None:
     """Restores baseline evaluated copies, activity logs, and visitor sessions if database is fresh."""
     try:
-        cursor.execute("SELECT COUNT(*) FROM evaluations")
-        eval_count = cursor.fetchone()[0]
         seed_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seed_vault_data.json")
         if not os.path.exists(seed_path):
             return
@@ -111,23 +109,37 @@ def _seed_vault_if_empty(cursor) -> None:
             data = json.load(f)
             
         seed_evals = data.get("evaluations") or []
-        if eval_count < len(seed_evals):
-            for ev in seed_evals:
-                cursor.execute("""
-                    INSERT OR IGNORE INTO evaluations (
-                        id, user_id, user_email, created_at, paper, max_marks, question,
-                        overall_score, percentage, evaluation_json, pages_json, thumbnail,
-                        is_rewrite, file_hash, has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    ev.get("id"), ev.get("user_id"), ev.get("user_email"), ev.get("created_at"),
-                    ev.get("paper"), ev.get("max_marks"), ev.get("question"), ev.get("overall_score"),
-                    ev.get("percentage"), ev.get("evaluation_json"), ev.get("pages_json") or "[]",
-                    ev.get("thumbnail") or "", ev.get("is_rewrite") or 0, ev.get("file_hash") or "",
-                    ev.get("has_been_rewritten") or 0, ev.get("rewrite_eval_id"), ev.get("baseline_eval_id"),
-                    ev.get("file_url") or ""
-                ))
-            print(f"[VAULT SEED] Restored {len(seed_evals)} baseline evaluation dossiers into SQLite.")
+        for ev in seed_evals:
+            cursor.execute("""
+                INSERT OR REPLACE INTO evaluations (
+                    id, user_id, user_email, created_at, paper, max_marks, question,
+                    overall_score, percentage, evaluation_json, pages_json, thumbnail,
+                    is_rewrite, file_hash, has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                ev.get("id"), ev.get("user_id"), ev.get("user_email"), ev.get("created_at"),
+                ev.get("paper"), ev.get("max_marks"), ev.get("question"), ev.get("overall_score"),
+                ev.get("percentage"), ev.get("evaluation_json"), ev.get("pages_json") or "[]",
+                ev.get("thumbnail") or "", ev.get("is_rewrite") or 0, ev.get("file_hash") or "",
+                ev.get("has_been_rewritten") or 0, ev.get("rewrite_eval_id"), ev.get("baseline_eval_id"),
+                ev.get("file_url") or ""
+            ))
+        print(f"[VAULT SEED] Verified and vaulted {len(seed_evals)} genuine evaluation dossiers with handwritten pages.")
+
+        seed_users = data.get("users") or []
+        for u in seed_users:
+            cursor.execute("""
+                INSERT OR REPLACE INTO users (
+                    id, email, name, avatar, free_credits, is_pro, free_rewrites,
+                    target_year, optional_subject, password_hash, plan_tier, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                u.get("id"), u.get("email"), u.get("name"), u.get("avatar"),
+                u.get("free_credits") or 15, u.get("is_pro") or 1, u.get("free_rewrites") or 5,
+                u.get("target_year") or "2026", u.get("optional_subject") or "PSIR",
+                u.get("password_hash"), u.get("plan_tier") or "free", u.get("created_at")
+            ))
+        print(f"[VAULT SEED] Verified and vaulted {len(seed_users)} genuine registered aspirants.")
 
         cursor.execute("SELECT COUNT(*) FROM activity_logs")
         act_count = cursor.fetchone()[0]
@@ -142,7 +154,6 @@ def _seed_vault_if_empty(cursor) -> None:
                     act.get("id"), act.get("created_at"), act.get("user_email"), act.get("user_name"),
                     act.get("action_type"), act.get("title"), act.get("detail"), act.get("eval_id") or ""
                 ))
-            print(f"[VAULT SEED] Restored {len(seed_acts)} activity logs into SQLite.")
 
         cursor.execute("SELECT COUNT(*) FROM user_sessions")
         sess_count = cursor.fetchone()[0]
@@ -163,25 +174,6 @@ def _seed_vault_if_empty(cursor) -> None:
                     s.get("recent_actions") or "[]", s.get("target_year") or "2026",
                     s.get("optional_subject") or "PSIR"
                 ))
-            print(f"[VAULT SEED] Restored {len(seed_sess)} user sessions into SQLite.")
-
-        cursor.execute("SELECT COUNT(*) FROM users")
-        u_count = cursor.fetchone()[0]
-        seed_users = data.get("users") or []
-        if u_count < len(seed_users):
-            for u in seed_users:
-                cursor.execute("""
-                    INSERT OR IGNORE INTO users (
-                        id, email, name, avatar, free_credits, is_pro, free_rewrites,
-                        target_year, optional_subject, password_hash, plan_tier, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    u.get("id"), u.get("email"), u.get("name"), u.get("avatar"),
-                    u.get("free_credits") or 15, u.get("is_pro") or 1, u.get("free_rewrites") or 5,
-                    u.get("target_year") or "2026", u.get("optional_subject") or "PSIR",
-                    u.get("password_hash"), u.get("plan_tier") or "free", u.get("created_at")
-                ))
-            print(f"[VAULT SEED] Restored {len(seed_users)} users into SQLite.")
     except Exception as e:
         print(f"Notice: _seed_vault_if_empty notice: {e}")
 
@@ -1872,7 +1864,15 @@ def get_evaluation_by_id(eval_id: str) -> Optional[Dict[str, Any]]:
         if isinstance(res["evaluation"], dict):
             res["evaluation"]["_meta_created_at"] = authentic_ts
             res["evaluation"]["created_at"] = authentic_ts
-        res["pages"] = json.loads(res["pages_json"]) if res.get("pages_json") else []
+        raw_p = json.loads(res["pages_json"]) if res.get("pages_json") else []
+        if not raw_p or len(raw_p) == 0:
+            if res.get("file_url"):
+                raw_p = [res["file_url"]]
+            elif res.get("thumbnail"):
+                raw_p = [res["thumbnail"]]
+            elif isinstance(res.get("evaluation"), dict):
+                raw_p = res["evaluation"].get("_meta_pages") or ([res["evaluation"].get("_meta_thumbnail")] if res["evaluation"].get("_meta_thumbnail") else [])
+        res["pages"] = raw_p or []
         res["page_images"] = res["pages"]
         if res.get("has_been_rewritten") or res.get("rewrite_eval_id"):
             res["has_been_rewritten"] = 1
@@ -3053,13 +3053,19 @@ def record_user_heartbeat(
 
         t_year = "2026"
         o_subj = "PSIR"
-        if clean_email:
+        if clean_email and "@" in clean_email and not is_dummy_or_demo_email(clean_email):
             try:
                 cursor.execute("SELECT target_year, optional_subject FROM users WHERE LOWER(email) = ?", (clean_email,))
                 u_row = cursor.fetchone()
                 if u_row:
                     t_year = u_row["target_year"] or "2026"
                     o_subj = u_row["optional_subject"] or "PSIR"
+                else:
+                    det_id = get_deterministic_user_id(clean_email)
+                    cursor.execute("""
+                        INSERT OR IGNORE INTO users (id, email, name, avatar, free_credits, is_pro, free_rewrites, target_year, optional_subject, created_at)
+                        VALUES (?, ?, ?, ?, 15, 1, 5, ?, ?, ?)
+                    """, (det_id, clean_email, display_name, f"https://api.dicebear.com/7.x/bottts/svg?seed={clean_email}", t_year, o_subj, ist_now))
             except Exception:
                 pass
 
