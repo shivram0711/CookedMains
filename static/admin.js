@@ -810,25 +810,90 @@ function debounceEvalFilter() {
   }, 250);
 }
 
+let currentEvalSubject = "all";
+
+function setEvalSubjectFilter(subj) {
+  currentEvalSubject = subj;
+  document.querySelectorAll(".eval-subj-pill").forEach(p => {
+    if (p.getAttribute("data-subject") === subj) {
+      p.className = "eval-subj-pill px-3 py-1 rounded-xl font-bold bg-amber-500 text-slate-950 transition";
+    } else {
+      p.className = "eval-subj-pill px-3 py-1 rounded-xl font-semibold bg-slate-800 text-slate-400 hover:text-white transition";
+    }
+  });
+  loadAdminEvaluations();
+}
+
+function onEvalDateFilterChange() {
+  const df = document.getElementById("evalDateFilter")?.value || "all";
+  const customBox = document.getElementById("evalCustomDateRange");
+  if (customBox) {
+    if (df === "custom") {
+      customBox.classList.remove("hidden");
+    } else {
+      customBox.classList.add("hidden");
+    }
+  }
+  loadAdminEvaluations();
+}
+
+function clearEvalFilter() {
+  if (document.getElementById("evalEmailFilterInput")) document.getElementById("evalEmailFilterInput").value = "";
+  if (document.getElementById("evalDateFilter")) document.getElementById("evalDateFilter").value = "all";
+  if (document.getElementById("evalSortBy")) document.getElementById("evalSortBy").value = "date_desc";
+  if (document.getElementById("evalDateFrom")) document.getElementById("evalDateFrom").value = "";
+  if (document.getElementById("evalDateTo")) document.getElementById("evalDateTo").value = "";
+  const customBox = document.getElementById("evalCustomDateRange");
+  if (customBox) customBox.classList.add("hidden");
+  setEvalSubjectFilter("all");
+}
+
+async function loadAdminEvaluationsStats() {
+  try {
+    const res = await fetch("/api/admin/evaluations/stats");
+    if (!res.ok) return;
+    const data = await res.json();
+    const bySubj = data.by_subject || {};
+    ["all", "GS1", "GS2", "GS3", "GS4", "Essay", "Optional"].forEach(s => {
+      const el = document.getElementById(`countSubj_${s}`);
+      if (el) el.textContent = `(${bySubj[s] || 0})`;
+    });
+  } catch (e) {
+    console.warn("Could not load eval stats", e);
+  }
+}
+
 async function loadAdminEvaluations() {
   const tbody = document.getElementById("evaluationsTableBody");
   if (!tbody) return;
+
+  loadAdminEvaluationsStats();
+
   const filterVal = (document.getElementById("evalEmailFilterInput")?.value || "").trim();
-  const paperVal = (document.getElementById("evalPaperFilter")?.value || "all").trim();
+  const dateVal = (document.getElementById("evalDateFilter")?.value || "all").trim();
+  const sortVal = (document.getElementById("evalSortBy")?.value || "date_desc").trim();
+  const dateFrom = (document.getElementById("evalDateFrom")?.value || "").trim();
+  const dateTo = (document.getElementById("evalDateTo")?.value || "").trim();
 
   try {
     const queryParams = new URLSearchParams({
-      limit: "100"
+      limit: "500",
+      sort_by: sortVal
     });
     if (filterVal) queryParams.set("search", filterVal);
-    if (paperVal && paperVal !== "all") queryParams.set("paper", paperVal);
+    if (currentEvalSubject && currentEvalSubject !== "all") queryParams.set("paper", currentEvalSubject);
+    if (dateVal && dateVal !== "all" && dateVal !== "custom") queryParams.set("date_filter", dateVal);
+    if (dateVal === "custom") {
+      if (dateFrom) queryParams.set("date_from", dateFrom);
+      if (dateTo) queryParams.set("date_to", dateTo);
+    }
 
     const res = await fetch(`/api/admin/evaluations?${queryParams.toString()}`);
     if (!res.ok) throw new Error("Could not load evaluations");
     const evals = await res.json();
 
     if (!evals || evals.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">No evaluated answer copies found.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">No evaluated answer copies found for current filters.</td></tr>`;
       return;
     }
 
@@ -836,19 +901,37 @@ async function loadAdminEvaluations() {
       const score = Number(ev.overall_score || 0).toFixed(1);
       const maxM = Number(ev.max_marks || 15);
       const pct = Number(ev.percentage || 0).toFixed(1);
+
+      // Subject badge color
+      const pUp = (ev.paper || "GS").toUpperCase();
+      let badgeCls = "bg-slate-800 text-amber-300 border-slate-700";
+      if (pUp.includes("GS1") || pUp.includes("GS-1")) {
+        badgeCls = "bg-blue-500/15 text-blue-300 border-blue-500/30";
+      } else if (pUp.includes("GS2") || pUp.includes("GS-2")) {
+        badgeCls = "bg-purple-500/15 text-purple-300 border-purple-500/30";
+      } else if (pUp.includes("GS3") || pUp.includes("GS-3")) {
+        badgeCls = "bg-amber-500/15 text-amber-300 border-amber-500/30";
+      } else if (pUp.includes("GS4") || pUp.includes("GS-4")) {
+        badgeCls = "bg-rose-500/15 text-rose-300 border-rose-500/30";
+      } else if (pUp.includes("ESSAY")) {
+        badgeCls = "bg-emerald-500/15 text-emerald-300 border-emerald-500/30";
+      } else {
+        badgeCls = "bg-indigo-500/15 text-indigo-300 border-indigo-500/30";
+      }
+
       return `
         <tr class="hover:bg-slate-800/40 transition">
           <td class="p-3.5 font-mono text-[11px] text-slate-300 whitespace-nowrap">
             ${escapeHtml(ev.created_at || "")}
           </td>
+          <td class="p-3.5 whitespace-nowrap">
+            <span class="px-2.5 py-1 rounded-lg border font-mono font-bold text-xs ${badgeCls}">
+              ${escapeHtml(ev.paper || "GS")} • ${maxM}M
+            </span>
+          </td>
           <td class="p-3.5">
             <div class="font-bold text-white text-xs">${escapeHtml(ev.user_name || "Aspirant")}</div>
             <div class="font-mono text-[11px] text-amber-400 select-all">${escapeHtml(ev.user_email || "")}</div>
-          </td>
-          <td class="p-3.5 whitespace-nowrap">
-            <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-amber-300 border border-slate-700 font-mono font-bold text-xs">
-              ${escapeHtml(ev.paper || "GS")} • ${maxM}M
-            </span>
           </td>
           <td class="p-3.5 max-w-md">
             <p class="text-xs text-slate-200 font-serif line-clamp-2" title="${escapeHtml(ev.question || '')}">${escapeHtml(ev.question || "UPSC Mains Answer Copy")}</p>

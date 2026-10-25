@@ -100,7 +100,7 @@ from storage import (
     find_duplicate_evaluation_in_user_account,
     restore_evaluations_to_vault,
     record_user_heartbeat, log_platform_activity,
-    get_admin_evaluations_feed, get_admin_activity_stream,
+    get_admin_evaluations_feed, get_admin_evaluations_stats, get_admin_activity_stream,
     reset_user_daily_quota_admin, delete_feedback_admin,
     sync_supabase_to_sqlite, is_created_today_ist,
     get_admin_session_history, purge_all_dummy_and_demo_accounts
@@ -1667,10 +1667,22 @@ async def api_admin_evaluations(
     email: Optional[str] = None,
     paper: Optional[str] = None,
     search: Optional[str] = None,
-    limit: int = 100
+    date_filter: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    sort_by: Optional[str] = "date_desc",
+    limit: int = 500
 ):
-    """Returns recent evaluations across all aspirants (or filtered by email, paper, search keyword)."""
-    return await asyncio.to_thread(get_admin_evaluations_feed, email, paper, search, limit)
+    """Returns evaluations across all aspirants categorized by subject, date, and keyword."""
+    return await asyncio.to_thread(
+        get_admin_evaluations_feed,
+        email, paper, search, date_filter, date_from, date_to, sort_by, limit
+    )
+
+@app.get("/api/admin/evaluations/stats")
+async def api_admin_evaluations_stats():
+    """Returns aggregated live evaluation count statistics categorized by subject and date."""
+    return await asyncio.to_thread(get_admin_evaluations_stats)
 
 @app.get("/api/admin/evaluation/{eval_id}")
 async def api_admin_get_evaluation(eval_id: str):

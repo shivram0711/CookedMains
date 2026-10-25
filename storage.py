@@ -334,18 +334,7 @@ def _init_db_tables():
             completed_at TIMESTAMP
         )
     """)
-    
-    # Auto-clean legacy corrupted, placeholder, or unevaluated copies
-    try:
-        cursor.execute("""
-            DELETE FROM evaluations
-            WHERE LOWER(question) IN ('general studies mains question', 'upsc mains question', 'upsc mains answer')
-               OR LOWER(question) LIKE '%general studies mains question%'
-               OR LOWER(question) LIKE '%extract question printed%'
-               OR overall_score <= 0
-        """)
-    except Exception:
-        pass
+    # Zero Deletion Policy: All evaluated copies are permanently retained.
 
     conn.commit()
     conn.close()
@@ -3812,9 +3801,16 @@ def get_admin_evaluations_feed(
     email_filter: Optional[str] = None,
     paper_filter: Optional[str] = None,
     search: Optional[str] = None,
-    limit: int = 60
+    date_filter: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    sort_by: Optional[str] = "date_desc",
+    limit: int = 500
 ) -> List[Dict[str, Any]]:
-    """Returns recent evaluations across all aspirants (or filtered by email, paper, keyword) for the Owner Inspector."""
+    """
+    Returns evaluations across all aspirants categorized by subject, date, and keyword.
+    Zero Deletion Guarantee: All evaluated copies are permanently preserved.
+    """
     conn = get_db()
     cursor = conn.cursor()
     sql = """
@@ -3838,19 +3834,140 @@ def get_admin_evaluations_feed(
     if email_filter and email_filter.strip():
         sql += " AND LOWER(e.user_email) LIKE ?"
         params.append(f"%{email_filter.strip().lower()}%")
+
+    # Subject Categorization
     if paper_filter and paper_filter.strip() and paper_filter.strip().lower() != 'all':
-        sql += " AND LOWER(e.paper) = ?"
-        params.append(paper_filter.strip().lower())
+        pf = paper_filter.strip().lower()
+        if pf == 'optional':
+            sql += " AND (LOWER(e.paper) LIKE 'optional%' OR LOWER(e.paper) NOT IN ('gs1', 'gs2', 'gs3', 'gs4', 'essay', 'gs-1', 'gs-2', 'gs-3', 'gs-4'))"
+        elif pf in ('gs1', 'gs-1'):
+            sql += " AND LOWER(e.paper) IN ('gs1', 'gs-1')"
+        elif pf in ('gs2', 'gs-2'):
+            sql += " AND LOWER(e.paper) IN ('gs2', 'gs-2')"
+        elif pf in ('gs3', 'gs-3'):
+            sql += " AND LOWER(e.paper) IN ('gs3', 'gs-3')"
+        elif pf in ('gs4', 'gs-4'):
+            sql += " AND LOWER(e.paper) IN ('gs4', 'gs-4')"
+        elif pf == 'essay':
+            sql += " AND LOWER(e.paper) = 'essay'"
+        else:
+            sql += " AND LOWER(e.paper) LIKE ?"
+            params.append(f"%{pf}%")
+
+    # Date & Time Categorization
+    if date_filter and date_filter.strip() and date_filter.strip().lower() != 'all':
+        df = date_filter.strip().lower()
+        if df == 'today':
+            sql += " AND DATE(e.created_at) = DATE('now', 'localtime')"
+        elif df == 'yesterday':
+            sql += " AND DATE(e.created_at) = DATE('now', '-1 day', 'localtime')"
+        elif df == 'week':
+            sql += " AND e.created_at >= DATETIME('now', '-7 days', 'localtime')"
+        elif df == 'month':
+            sql += " AND e.created_at >= DATETIME('now', '-30 days', 'localtime')"
+
+    if date_from and date_from.strip():
+        sql += " AND DATE(e.created_at) >= DATE(?)"
+        params.append(date_from.strip())
+
+    if date_to and date_to.strip():
+        sql += " AND DATE(e.created_at) <= DATE(?)"
+        params.append(date_to.strip())
+
     if search and search.strip():
         term = f"%{search.strip().lower()}%"
         sql += " AND (LOWER(e.question) LIKE ? OR LOWER(e.user_email) LIKE ? OR LOWER(COALESCE(u.name, '')) LIKE ?)"
         params.extend([term, term, term])
-    sql += " ORDER BY e.created_at DESC LIMIT ?"
+
+    # Sort Order
+    if sort_by == 'date_asc':
+        sql += " ORDER BY e.created_at ASC"
+    elif sort_by == 'score_desc':
+        sql += " ORDER BY e.overall_score DESC, e.created_at DESC"
+    elif sort_by == 'score_asc':
+        sql += " ORDER BY e.overall_score ASC, e.created_at DESC"
+    else:
+        sql += " ORDER BY e.created_at DESC"
+
+    sql += " LIMIT ?"
     params.append(int(limit))
     cursor.execute(sql, params)
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+def get_admin_evaluations_stats() -> Dict[str, Any]:
+    """Returns aggregated evaluation counts grouped by subject category and date ranges."""
+    conn = get_db()
+    cursor = conn.cursor()
+    base_where = """
+        WHERE e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
+          AND e.id NOT IN ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
+                         'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4')
+          AND LOWER(e.user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+          AND LOWER(e.user_email) NOT LIKE 'cadet.test%'
+          AND LOWER(e.user_email) NOT LIKE 'cadet.upsc%'
+          AND LOWER(e.user_email) NOT LIKE 'aspirant.sharma%'
+          AND LOWER(e.user_email) NOT LIKE 'aspirant.vikram%'
+    """
+    stats: Dict[str, Any] = {
+        "total": 0,
+        "by_subject": {
+            "all": 0,
+            "GS1": 0,
+            "GS2": 0,
+            "GS3": 0,
+            "GS4": 0,
+            "Essay": 0,
+            "Optional": 0
+        },
+        "by_date": {
+            "today": 0,
+            "yesterday": 0,
+            "this_week": 0,
+            "this_month": 0
+        }
+    }
+    try:
+        cursor.execute(f"SELECT COUNT(*), e.paper FROM evaluations e {base_where} GROUP BY e.paper")
+        rows = cursor.fetchall()
+        for cnt, paper in rows:
+            stats["total"] += cnt
+            p_up = (paper or "").upper()
+            if "GS1" in p_up or "GS-1" in p_up:
+                stats["by_subject"]["GS1"] += cnt
+            elif "GS2" in p_up or "GS-2" in p_up:
+                stats["by_subject"]["GS2"] += cnt
+            elif "GS3" in p_up or "GS-3" in p_up:
+                stats["by_subject"]["GS3"] += cnt
+            elif "GS4" in p_up or "GS-4" in p_up:
+                stats["by_subject"]["GS4"] += cnt
+            elif "ESSAY" in p_up:
+                stats["by_subject"]["Essay"] += cnt
+            else:
+                stats["by_subject"]["Optional"] += cnt
+        stats["by_subject"]["all"] = stats["total"]
+
+        cursor.execute(f"SELECT COUNT(*) FROM evaluations e {base_where} AND DATE(e.created_at) = DATE('now', 'localtime')")
+        stats["by_date"]["today"] = (cursor.fetchone() or [0])[0]
+
+        cursor.execute(f"SELECT COUNT(*) FROM evaluations e {base_where} AND DATE(e.created_at) = DATE('now', '-1 day', 'localtime')")
+        stats["by_date"]["yesterday"] = (cursor.fetchone() or [0])[0]
+
+        cursor.execute(f"SELECT COUNT(*) FROM evaluations e {base_where} AND e.created_at >= DATETIME('now', '-7 days', 'localtime')")
+        stats["by_date"]["this_week"] = (cursor.fetchone() or [0])[0]
+
+        cursor.execute(f"SELECT COUNT(*) FROM evaluations e {base_where} AND e.created_at >= DATETIME('now', '-30 days', 'localtime')")
+        stats["by_date"]["this_month"] = (cursor.fetchone() or [0])[0]
+    except Exception as e:
+        print(f"Notice: get_admin_evaluations_stats error: {e}")
+    finally:
+        conn.close()
+
+    return stats
 
 
 def get_admin_activity_stream(limit: int = 60) -> List[Dict[str, Any]]:
