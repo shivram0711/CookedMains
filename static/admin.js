@@ -173,6 +173,24 @@ async function forceSyncCloud() {
   }
 }
 
+async function pushLocalToCloud() {
+  const btn = document.getElementById("btnPushToCloud");
+  if (btn) btn.innerHTML = "<span>Uploading...</span>";
+  try {
+    const res = await fetch("/api/admin/push-to-supabase", { method: "POST" });
+    const data = await res.json();
+    if (data.status === "success") {
+      alert(data.message || `Successfully synced ${data.pushed_users} users and ${data.pushed_evaluations} evaluations to Supabase!`);
+    } else {
+      alert("Notice: " + (data.message || data.error || JSON.stringify(data)));
+    }
+  } catch (err) {
+    alert("Push error: " + err.message);
+  } finally {
+    if (btn) btn.innerHTML = "<span>Upload to Cloud</span>";
+  }
+}
+
 // -------------------------------------------------------------
 // TAB 1: LIVE RADAR & OVERVIEW STATS
 // -------------------------------------------------------------
