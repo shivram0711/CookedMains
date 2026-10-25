@@ -1660,7 +1660,11 @@ async def api_admin_clear_dummy_data():
 @app.get("/api/admin/sessions")
 async def api_admin_sessions(limit: int = 300):
     """Returns chronological history of user sessions (who visited, what they did, session duration)."""
-    return await asyncio.to_thread(get_admin_session_history, limit=limit)
+    try:
+        return await asyncio.to_thread(get_admin_session_history, limit=limit)
+    except Exception as e:
+        print(f"Error in api_admin_sessions: {e}")
+        return []
 
 @app.get("/api/admin/evaluations")
 async def api_admin_evaluations(

@@ -98,6 +98,94 @@ def perform_clean_slate_reset(force: bool = False) -> Dict[str, Any]:
     }
 
 
+def _seed_vault_if_empty(cursor) -> None:
+    """Restores baseline evaluated copies, activity logs, and visitor sessions if database is fresh."""
+    try:
+        cursor.execute("SELECT COUNT(*) FROM evaluations")
+        eval_count = cursor.fetchone()[0]
+        seed_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seed_vault_data.json")
+        if not os.path.exists(seed_path):
+            return
+        
+        with open(seed_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            
+        seed_evals = data.get("evaluations") or []
+        if eval_count < len(seed_evals):
+            for ev in seed_evals:
+                cursor.execute("""
+                    INSERT OR IGNORE INTO evaluations (
+                        id, user_id, user_email, created_at, paper, max_marks, question,
+                        overall_score, percentage, evaluation_json, pages_json, thumbnail,
+                        is_rewrite, file_hash, has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    ev.get("id"), ev.get("user_id"), ev.get("user_email"), ev.get("created_at"),
+                    ev.get("paper"), ev.get("max_marks"), ev.get("question"), ev.get("overall_score"),
+                    ev.get("percentage"), ev.get("evaluation_json"), ev.get("pages_json") or "[]",
+                    ev.get("thumbnail") or "", ev.get("is_rewrite") or 0, ev.get("file_hash") or "",
+                    ev.get("has_been_rewritten") or 0, ev.get("rewrite_eval_id"), ev.get("baseline_eval_id"),
+                    ev.get("file_url") or ""
+                ))
+            print(f"[VAULT SEED] Restored {len(seed_evals)} baseline evaluation dossiers into SQLite.")
+
+        cursor.execute("SELECT COUNT(*) FROM activity_logs")
+        act_count = cursor.fetchone()[0]
+        seed_acts = data.get("activity_logs") or []
+        if act_count < len(seed_acts):
+            for act in seed_acts:
+                cursor.execute("""
+                    INSERT OR IGNORE INTO activity_logs (
+                        id, created_at, user_email, user_name, action_type, title, detail, eval_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    act.get("id"), act.get("created_at"), act.get("user_email"), act.get("user_name"),
+                    act.get("action_type"), act.get("title"), act.get("detail"), act.get("eval_id") or ""
+                ))
+            print(f"[VAULT SEED] Restored {len(seed_acts)} activity logs into SQLite.")
+
+        cursor.execute("SELECT COUNT(*) FROM user_sessions")
+        sess_count = cursor.fetchone()[0]
+        seed_sess = data.get("user_sessions") or []
+        if sess_count < len(seed_sess):
+            for s in seed_sess:
+                cursor.execute("""
+                    INSERT OR IGNORE INTO user_sessions (
+                        id, user_email, user_name, is_authenticated, started_at, last_active_at,
+                        duration_seconds, current_view, evaluations_count, actions_count, recent_actions,
+                        target_year, optional_subject
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    s.get("id"), s.get("user_email") or "Guest", s.get("user_name") or "Aspirant",
+                    s.get("is_authenticated") or 0, s.get("started_at"), s.get("last_active_at"),
+                    s.get("duration_seconds") or 0, s.get("current_view") or "",
+                    s.get("evaluations_count") or 0, s.get("actions_count") or 1,
+                    s.get("recent_actions") or "[]", s.get("target_year") or "2026",
+                    s.get("optional_subject") or "PSIR"
+                ))
+            print(f"[VAULT SEED] Restored {len(seed_sess)} user sessions into SQLite.")
+
+        cursor.execute("SELECT COUNT(*) FROM users")
+        u_count = cursor.fetchone()[0]
+        seed_users = data.get("users") or []
+        if u_count < len(seed_users):
+            for u in seed_users:
+                cursor.execute("""
+                    INSERT OR IGNORE INTO users (
+                        id, email, name, avatar, free_credits, is_pro, free_rewrites,
+                        target_year, optional_subject, password_hash, plan_tier, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    u.get("id"), u.get("email"), u.get("name"), u.get("avatar"),
+                    u.get("free_credits") or 15, u.get("is_pro") or 1, u.get("free_rewrites") or 5,
+                    u.get("target_year") or "2026", u.get("optional_subject") or "PSIR",
+                    u.get("password_hash"), u.get("plan_tier") or "free", u.get("created_at")
+                ))
+            print(f"[VAULT SEED] Restored {len(seed_users)} users into SQLite.")
+    except Exception as e:
+        print(f"Notice: _seed_vault_if_empty notice: {e}")
+
+
 def init_db():
     """Initializes SQLite tables for users, single evaluations, and full 20-question test series. Never wipes existing data."""
     try:
@@ -335,93 +423,38 @@ def _init_db_tables():
         )
     """)
     
-def _seed_vault_if_empty(cursor) -> None:
-    """Restores baseline evaluated copies, activity logs, and visitor sessions if database is fresh."""
-    try:
-        cursor.execute("SELECT COUNT(*) FROM evaluations")
-        eval_count = cursor.fetchone()[0]
-        seed_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seed_vault_data.json")
-        if not os.path.exists(seed_path):
-            return
-        
-        with open(seed_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            
-        seed_evals = data.get("evaluations") or []
-        if eval_count < len(seed_evals):
-            for ev in seed_evals:
-                cursor.execute("""
-                    INSERT OR IGNORE INTO evaluations (
-                        id, user_id, user_email, created_at, paper, max_marks, question,
-                        overall_score, percentage, evaluation_json, pages_json, thumbnail,
-                        is_rewrite, file_hash, has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    ev.get("id"), ev.get("user_id"), ev.get("user_email"), ev.get("created_at"),
-                    ev.get("paper"), ev.get("max_marks"), ev.get("question"), ev.get("overall_score"),
-                    ev.get("percentage"), ev.get("evaluation_json"), ev.get("pages_json") or "[]",
-                    ev.get("thumbnail") or "", ev.get("is_rewrite") or 0, ev.get("file_hash") or "",
-                    ev.get("has_been_rewritten") or 0, ev.get("rewrite_eval_id"), ev.get("baseline_eval_id"),
-                    ev.get("file_url") or ""
-                ))
-            print(f"[VAULT SEED] Restored {len(seed_evals)} baseline evaluation dossiers into SQLite.")
-
-        cursor.execute("SELECT COUNT(*) FROM activity_logs")
-        act_count = cursor.fetchone()[0]
-        seed_acts = data.get("activity_logs") or []
-        if act_count < len(seed_acts):
-            for act in seed_acts:
-                cursor.execute("""
-                    INSERT OR IGNORE INTO activity_logs (
-                        id, created_at, user_email, user_name, action_type, title, detail, eval_id
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    act.get("id"), act.get("created_at"), act.get("user_email"), act.get("user_name"),
-                    act.get("action_type"), act.get("title"), act.get("detail"), act.get("eval_id") or ""
-                ))
-            print(f"[VAULT SEED] Restored {len(seed_acts)} activity logs into SQLite.")
-
-        cursor.execute("SELECT COUNT(*) FROM user_sessions")
-        sess_count = cursor.fetchone()[0]
-        seed_sess = data.get("user_sessions") or []
-        if sess_count < len(seed_sess):
-            for s in seed_sess:
-                cursor.execute("""
-                    INSERT OR IGNORE INTO user_sessions (
-                        id, user_email, user_name, is_authenticated, started_at, last_active_at,
-                        duration_seconds, current_view, evaluations_count, recent_actions, client_ip
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    s.get("id"), s.get("user_email"), s.get("user_name"), s.get("is_authenticated") or 0,
-                    s.get("started_at"), s.get("last_active_at"), s.get("duration_seconds") or 0,
-                    s.get("current_view") or "", s.get("evaluations_count") or 0, s.get("recent_actions") or "[]",
-                    s.get("client_ip") or ""
-                ))
-            print(f"[VAULT SEED] Restored {len(seed_sess)} user sessions into SQLite.")
-
-        cursor.execute("SELECT COUNT(*) FROM users")
-        u_count = cursor.fetchone()[0]
-        seed_users = data.get("users") or []
-        if u_count < len(seed_users):
-            for u in seed_users:
-                cursor.execute("""
-                    INSERT OR IGNORE INTO users (
-                        id, email, name, avatar, free_credits, is_pro, free_rewrites,
-                        target_year, optional_subject, password_hash, plan_tier, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    u.get("id"), u.get("email"), u.get("name"), u.get("avatar"),
-                    u.get("free_credits") or 15, u.get("is_pro") or 1, u.get("free_rewrites") or 5,
-                    u.get("target_year") or "2026", u.get("optional_subject") or "PSIR",
-                    u.get("password_hash"), u.get("plan_tier") or "free", u.get("created_at")
-                ))
-            print(f"[VAULT SEED] Restored {len(seed_users)} users into SQLite.")
-    except Exception as e:
-        print(f"Notice: _seed_vault_if_empty notice: {e}")
+    # Telemetry & Activity Tables
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS activity_logs (
+            id TEXT PRIMARY KEY,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            user_email TEXT,
+            user_name TEXT,
+            action_type TEXT,
+            title TEXT,
+            detail TEXT,
+            eval_id TEXT
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS user_sessions (
+            id TEXT PRIMARY KEY,
+            user_email TEXT NOT NULL,
+            user_name TEXT,
+            is_authenticated INTEGER DEFAULT 0,
+            started_at TEXT NOT NULL,
+            last_active_at TEXT NOT NULL,
+            duration_seconds INTEGER DEFAULT 0,
+            current_view TEXT,
+            evaluations_count INTEGER DEFAULT 0,
+            actions_count INTEGER DEFAULT 1,
+            recent_actions TEXT DEFAULT '[]',
+            target_year TEXT DEFAULT '2026',
+            optional_subject TEXT DEFAULT 'PSIR'
+        )
+    """)
 
     _seed_vault_if_empty(cursor)
-    # Zero Deletion Policy: All evaluated copies are permanently retained.
-
     conn.commit()
     conn.close()
 
