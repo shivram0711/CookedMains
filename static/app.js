@@ -9798,6 +9798,8 @@ window.ensureSectionsQuoteAudit = ensureSectionsQuoteAudit;
 
 // Global helper: Render Point-by-Point Handwritten Audit cards in blank area below answersheet on PC & Tablet (Image 2 style)
 window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
+  // Section removed from website per user brief; feedback transferred to Deep Evaluation
+  return;
   const container = document.getElementById("desktopAuditCardsContainer");
   const header = document.getElementById("desktopAuditHeader");
   const subHeading = document.getElementById("desktopAuditSubHeading");
@@ -12385,7 +12387,124 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
 }
 
 // Render the Full Evaluation Scorecard
+
+// Transfers evaluation feedback from point_by_point_audit cards into Deep Evaluation
+// (Intro feedback -> Intro Audit, Body Positive -> Body Strengths, Body Levers -> Body Upgrade Levers, Conclusion -> Conclusion Audit)
+// Strictly omits candidate handwritten quotes and ensures strict cross-section deduplication without changing feedback wording.
+window.transferPointAuditToDeepEvaluation = function(evalData) {
+  if (!evalData || typeof evalData !== "object") return;
+  const pbpList = Array.isArray(evalData.point_by_point_audit) ? evalData.point_by_point_audit : [];
+  if (pbpList.length === 0) return;
+
+  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
+  const totalPages = (typeof state !== "undefined" && state.activePages && state.activePages.length) || evalData.total_pages || 2;
+  const totalCards = pbpList.length;
+
+  if (!evalData.intro_audit || typeof evalData.intro_audit !== "object") evalData.intro_audit = {};
+  if (!evalData.body_audit || typeof evalData.body_audit !== "object") evalData.body_audit = {};
+  if (!evalData.conclusion_audit || typeof evalData.conclusion_audit !== "object") evalData.conclusion_audit = {};
+
+  const body = evalData.body_audit;
+  const intro = evalData.intro_audit;
+  const conc = evalData.conclusion_audit;
+
+  const cleanQuotes = (str) => {
+    return String(str || "")
+      .replace(/\s*\((?:Ref|उत्तर संदर्भ|उत्तर)\s*:\s*[^)]+\)/gi, "")
+      .replace(/^[✓✔✎✗×•★⭐\s\-]+/g, "")
+      .trim();
+  };
+
+  const normalizeForMatch = (str) => {
+    return String(str || "")
+      .replace(/[^a-zA-Z0-9\u0900-\u097F]/g, "")
+      .toLowerCase();
+  };
+
+  const isDuplicate = (candidate, corpus) => {
+    const cNorm = normalizeForMatch(candidate);
+    if (cNorm.length < 15) return false;
+    const corpNorm = normalizeForMatch(corpus);
+    return corpNorm.includes(cNorm) || (cNorm.length >= 28 && corpNorm.includes(cNorm.slice(0, 28)));
+  };
+
+  const isItemDuplicate = (title, verdict, list) => {
+    const vNorm = normalizeForMatch(verdict);
+    const tNorm = normalizeForMatch(title);
+    for (const item of list) {
+      const iNorm = normalizeForMatch(item);
+      if (vNorm.length >= 20 && (iNorm.includes(vNorm) || vNorm.includes(iNorm) || (vNorm.length >= 28 && iNorm.includes(vNorm.slice(0, 28))))) {
+        return true;
+      }
+      if (tNorm.length >= 12 && iNorm.includes(tNorm) && vNorm.length >= 15 && iNorm.includes(vNorm.slice(0, 15))) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  let existingStrengths = (Array.isArray(body.strengths) ? body.strengths : []).map(cleanQuotes).filter(Boolean);
+  let existingGaps = (Array.isArray(body.critical_gaps) ? body.critical_gaps : []).map(cleanQuotes).filter(Boolean);
+  let introCrit = cleanQuotes(intro.current_critique || "");
+  let concCrit = cleanQuotes(conc.current_critique || "");
+
+  pbpList.forEach((pbp, idx) => {
+    if (!pbp || typeof pbp !== "object") return;
+    const rawVerdict = pbp.examiner_verdict || "";
+    const verdict = cleanQuotes(rawVerdict);
+    if (!verdict || (typeof window.isMetaPlaceholderText === "function" && window.isMetaPlaceholderText(verdict))) return;
+
+    const pNum = parseInt(pbp.page, 10) || 1;
+    let rawTitle = String(pbp.title || "").replace(/[*_#`]/g, "").trim();
+    rawTitle = rawTitle.replace(/^(?:point\s*\d+|part\s*[a-z0-9]|step\s*\d+)\s*[-—:]\s*/i, "").trim();
+    if (!rawTitle || (typeof window.isMetaPlaceholderText === "function" && window.isMetaPlaceholderText(rawTitle)) || rawTitle.length < 3) {
+      rawTitle = isHindi ? `पृष्ठ ${pNum} विश्लेषण` : `Page ${pNum} Analysis`;
+    }
+
+    const titleBadge = (rawTitle + " " + String(pbp.badge || "")).toLowerCase();
+    const isIntro = /\b(?:intro|introduction|premise|opening|प्रस्तावना|भूमिका|आरंभ)\b/i.test(titleBadge) || (
+      idx === 0 && pNum === 1 && totalCards >= 3 && !/\b(?:body|part\s*[b-z]|dimension\s*[2-9])\b/i.test(titleBadge)
+    );
+    const isConc = /\b(?:concl|conclusion|synthesis|closing|way\s*forward\s*&?\s*concl|निष्कर्ष|उपसंहार)\b/i.test(titleBadge) || (
+      idx === totalCards - 1 && pNum >= totalPages && totalCards >= 3 && /\b(?:concl|conclusion|synthesis|closing|way\s*forward|way\s*ahead|आगे\s*की\s*राह|निष्कर्ष|उपसंहार)\b/i.test(titleBadge)
+    );
+
+    if (isIntro) {
+      if (!isDuplicate(verdict, introCrit)) {
+        introCrit = introCrit ? `${introCrit}<br>• **${rawTitle}**: ${verdict}` : `**${rawTitle}**: ${verdict}`;
+      }
+    } else if (isConc) {
+      if (!isDuplicate(verdict, concCrit)) {
+        concCrit = concCrit ? `${concCrit}<br>• **${rawTitle}**: ${verdict}` : `**${rawTitle}**: ${verdict}`;
+      }
+    } else {
+      const pageTag = isHindi ? `पृष्ठ ${pNum}` : `Page ${pNum}`;
+      const entry = `**${rawTitle} (${pageTag})**: ${verdict}`;
+      const isPos = pbp.is_positive !== false;
+
+      if (isPos) {
+        if (!isItemDuplicate(rawTitle, verdict, existingStrengths)) {
+          existingStrengths.push(entry);
+        }
+      } else {
+        if (!isItemDuplicate(rawTitle, verdict, existingGaps)) {
+          existingGaps.push(entry);
+        }
+      }
+    }
+  });
+
+  intro.current_critique = introCrit;
+  conc.current_critique = concCrit;
+  body.strengths = existingStrengths;
+  body.critical_gaps = existingGaps;
+};
+
+
 function renderEvaluation(evalData) {
+  if (typeof window.transferPointAuditToDeepEvaluation === "function") {
+    window.transferPointAuditToDeepEvaluation(evalData);
+  }
   window.renderEvaluation = renderEvaluation;
   if (typeof window.sanitizeRepetitiveConclusionCliches === "function") {
     window.sanitizeRepetitiveConclusionCliches(
@@ -13429,7 +13548,7 @@ function renderEvaluation(evalData) {
   strengthsEl.innerHTML = "";
   (body.strengths || []).forEach(s => {
     registerInDeepEval(s);
-    const cleanS = String(s || '').replace(/^[✓✔•★⭐\s\-]+/, '').trim();
+    const cleanS = String(s || '').replace(/^[✓✔•★⭐\s\-]+/, '').replace(/\s*\((?:Ref|उत्तर संदर्भ|उत्तर)\s*:\s*[^)]+\)/gi, '').trim();
     const li = document.createElement("li");
     li.className = "flex items-start space-x-2";
     li.innerHTML = `<span class="text-emerald-500 dark:text-emerald-400 font-bold shrink-0 mt-0.5">✓</span><span class="leading-relaxed flex-1">${formatHighlightedText(cleanS)}</span>`;
@@ -13440,7 +13559,7 @@ function renderEvaluation(evalData) {
   gapsEl.innerHTML = "";
   (body.critical_gaps || []).forEach(g => {
     registerInDeepEval(g);
-    const cleanG = String(g || '').replace(/^[✎✗×•\s\-]+/, '').trim();
+    const cleanG = String(g || '').replace(/^[✎✗×•\s\-]+/, '').replace(/\s*\((?:Ref|उत्तर संदर्भ|उत्तर)\s*:\s*[^)]+\)/gi, '').trim();
     const li = document.createElement("li");
     li.className = "flex items-start space-x-2";
     li.innerHTML = `<span class="text-amber-500 dark:text-amber-400 font-bold shrink-0 mt-0.5">✎</span><span class="leading-relaxed flex-1">${formatHighlightedText(cleanG)}</span>`;
@@ -15011,7 +15130,7 @@ function populatePrintDossier(evalData) {
       ? bodyAudit.strengths
       : ["Structured subheadings dividing autonomy erosion and Way Ahead."];
     strengths.slice(0, 3).forEach(s => {
-      const cleanS = String(s || '').replace(/^[✓✔•★⭐\s\-]+/, '').trim();
+      const cleanS = String(s || '').replace(/^[✓✔•★⭐\s\-]+/, '').replace(/\s*\((?:Ref|उत्तर संदर्भ|उत्तर)\s*:\s*[^)]+\)/gi, '').trim();
       const li = document.createElement("li");
       li.className = "flex items-start space-x-1";
       li.innerHTML = `<span class="text-emerald-600 font-bold shrink-0">✓</span><span>${formatHighlightedText(cleanS)}</span>`;

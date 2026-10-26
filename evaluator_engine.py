@@ -6289,6 +6289,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
     _prevent_duplicate_credit(data)
     _normalize_prioritized_feedback(data, max_marks=max_marks, is_hindi=is_hindi)
     _run_release_validation_and_consistency(data, max_marks=max_marks, is_hindi=is_hindi)
+    transfer_point_audit_to_deep_evaluation(data, is_hindi=is_hindi)
 
     # Enforce 100% strict mathematical reconciliation across overall score, sub-part steps, and rubric scores
     _enforce_canonical_mathematical_reconciliation(data, max_marks=max_marks, is_hindi=is_hindi)
@@ -7960,12 +7961,11 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                             matched_pbp = pbp
                             break
                 if matched_pbp:
-                    what_w = str(matched_pbp.get("what_you_wrote") or "").strip()
                     verd_w = str(matched_pbp.get("examiner_verdict") or "").strip()
                     if verd_w and verd_w.lower() not in body_part.lower():
                         clean = f"{header_part} {body_part} {verd_w}".strip()
-                    elif what_w:
-                        clean = f"{header_part} {body_part} ({'उत्तर संदर्भ' if is_hindi else 'Ref'}: \"{what_w[:80]}\")".strip()
+                    else:
+                        clean = f"{header_part} {body_part}".strip()
 
         formatted_strengths.append(clean)
 
@@ -7978,9 +7978,8 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                 t_clean = re.sub(r'[*_#`]', '', str(pbp.get("title"))).strip()
                 if not any(t_clean.lower()[:15] in fs.lower() for fs in formatted_strengths):
                     pg_num = pbp.get("page", 2)
-                    what = f"{pbp.get('what_you_wrote')}. " if pbp.get("what_you_wrote") else ""
                     verd = str(pbp.get("examiner_verdict") or "Substantiated demand with structured points.")
-                    formatted_strengths.append(f"**{t_clean} (Page {pg_num})**: {what}{verd}")
+                    formatted_strengths.append(f"**{t_clean} (Page {pg_num})**: {verd}")
 
     if formatted_strengths:
         body_audit["strengths"] = formatted_strengths[:6]
@@ -8735,9 +8734,143 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
     # Enrich GS-4 Case Study evaluation (decision making, character audit, and best alternative options)
     _enrich_case_study_audit(data)
 
+    # Transfer all page feedback points from point_by_point_audit to Deep Evaluation
+    transfer_point_audit_to_deep_evaluation(data, is_hindi=is_hindi)
 
 
 
+
+
+
+
+def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool = False) -> None:
+    """
+    Transfers evaluation feedback from each page's point_by_point_audit cards into
+    the relevant sections of Deep Evaluation:
+    - Intro feedback -> intro_audit.current_critique
+    - Body positive feedback (what was written well / fetched marks) -> body_audit.strengths
+    - Body scope to upgrade / levers (what to integrate) -> body_audit.critical_gaps
+    - Conclusion feedback -> conclusion_audit.current_critique
+
+    Rules:
+    1. Candidate handwritten points (what_you_wrote or candidate quotes) are strictly EXCLUDED.
+    2. Wordings and sentences of the feedback are preserved without alteration.
+    3. Strict deduplication ensures no duplicate sentences or identical points across sections.
+    4. No relevant feedback is omitted.
+    """
+    if not isinstance(data, dict):
+        return
+
+    pbp_list = data.get("point_by_point_audit")
+    if not isinstance(pbp_list, list) or not pbp_list:
+        return
+
+    total_pages = max(1, int(data.get("total_pages", 0) or len(data.get("processed_pages", [])) or 2))
+    total_cards = len(pbp_list)
+
+    intro_audit = data.get("intro_audit") if isinstance(data.get("intro_audit"), dict) else {}
+    body_audit = data.get("body_audit") if isinstance(data.get("body_audit"), dict) else {}
+    conclusion_audit = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
+
+    raw_strengths = body_audit.get("strengths") if isinstance(body_audit.get("strengths"), list) else []
+    raw_gaps = body_audit.get("critical_gaps") if isinstance(body_audit.get("critical_gaps"), list) else []
+
+    def _strip_candidate_quotes(txt: str) -> str:
+        s = str(txt or "").strip()
+        # Strip (Ref: "...") or (उत्तर संदर्भ: "...")
+        s = re.sub(r'\s*\((?:Ref|उत्तर संदर्भ|उत्तर)\s*:\s*["\'][^"\']*["\']\)', '', s, flags=re.IGNORECASE)
+        s = re.sub(r'\s*\((?:Ref|उत्तर संदर्भ|उत्तर)\s*:\s*[^)]+\)', '', s, flags=re.IGNORECASE)
+        # Strip leading "Candidate's Writing: ..." or "What You Wrote: ..."
+        s = re.sub(r'(?i)^\s*(?:\*\*)?(?:what\s+you\s+wrote|candidate\'?s?\s+writing|अभ्यर्थी\s+का\s+उत्तर|अभ्यर्थी\s+ने\s+लिखा)(?:\*\*)?\s*[:—\-]\s*(?:"[^"]*"|\'[^\']*\'|[^\n—]+)\s*[—\-:]*\s*', '', s)
+        # Strip leading bullet icons
+        s = re.sub(r'^[✓✔✎✗×•★⭐\s\-]+', '', s).strip()
+        return s
+
+    existing_strengths = [_strip_candidate_quotes(s) for s in raw_strengths if s and not _has_meta_placeholder(str(s))]
+    existing_gaps = [_strip_candidate_quotes(g) for g in raw_gaps if g and not _has_meta_placeholder(str(g))]
+
+    def _normalize_for_match(text: str) -> str:
+        return re.sub(r'[^a-zA-Z0-9\u0900-\u097F]', '', str(text or '').lower())
+
+    def _is_duplicate_sentence(candidate_sent: str, target_corpus: str) -> bool:
+        c_norm = _normalize_for_match(candidate_sent)
+        if len(c_norm) < 15:
+            return False
+        t_norm = _normalize_for_match(target_corpus)
+        return c_norm in t_norm or (len(c_norm) >= 28 and c_norm[:28] in t_norm)
+
+    def _is_item_duplicate(item_title: str, item_verdict: str, existing_list: List[str]) -> bool:
+        v_norm = _normalize_for_match(item_verdict)
+        t_norm = _normalize_for_match(item_title)
+        for ex in existing_list:
+            ex_norm = _normalize_for_match(ex)
+            if len(v_norm) >= 20 and (v_norm in ex_norm or ex_norm in v_norm or v_norm[:28] in ex_norm):
+                return True
+            if len(t_norm) >= 12 and t_norm in ex_norm and len(v_norm) >= 15 and v_norm[:15] in ex_norm:
+                return True
+        return False
+
+    intro_crit = _strip_candidate_quotes(str(intro_audit.get("current_critique") or "").strip())
+    conc_crit = _strip_candidate_quotes(str(conclusion_audit.get("current_critique") or "").strip())
+
+    for idx, pbp in enumerate(pbp_list):
+        if not isinstance(pbp, dict):
+            continue
+
+        raw_title = str(pbp.get("title") or "").strip()
+        raw_badge = str(pbp.get("badge") or "").strip()
+        p_num = int(pbp.get("page", 1) or 1)
+        raw_verdict = str(pbp.get("examiner_verdict") or "").strip()
+        verdict = _strip_candidate_quotes(raw_verdict)
+        if not verdict or _has_meta_placeholder(verdict):
+            continue
+
+        clean_title = re.sub(r'[*_#`]', '', raw_title).strip()
+        clean_title = re.sub(r'^(?:point\s*\d+|part\s*[a-z0-9]|step\s*\d+)\s*[-—:]\s*', '', clean_title, flags=re.IGNORECASE).strip()
+        if not clean_title or _has_meta_placeholder(clean_title) or len(clean_title) < 3:
+            clean_title = f"पृष्ठ {p_num} विश्लेषण" if is_hindi else f"Page {p_num} Analysis"
+
+        is_pos = bool(pbp.get("is_positive", True))
+
+        title_badge_low = (clean_title + " " + raw_badge).lower()
+        is_intro = bool(re.search(r'\b(?:intro|introduction|premise|opening|प्रस्तावना|भूमिका|आरंभ)\b', title_badge_low)) or (
+            idx == 0 and p_num == 1 and total_cards >= 3 and not re.search(r'\b(?:body|part\s*[b-z]|dimension\s*[2-9])\b', title_badge_low)
+        )
+        is_conc = bool(re.search(r'\b(?:concl|conclusion|synthesis|closing|way\s*forward\s*&?\s*concl|निष्कर्ष|उपसंहार)\b', title_badge_low)) or (
+            idx == total_cards - 1 and p_num >= total_pages and total_cards >= 3 and bool(re.search(r'\b(?:concl|conclusion|synthesis|closing|way\s*forward|way\s*ahead|निष्कर्ष|उपसंहार|आगे\s*की\s*राह)\b', title_badge_low))
+        )
+
+        if is_intro:
+            if not _is_duplicate_sentence(verdict, intro_crit):
+                if not intro_crit:
+                    intro_crit = f"**{clean_title}**: {verdict}"
+                else:
+                    intro_crit = f"{intro_crit}<br>• **{clean_title}**: {verdict}"
+        elif is_conc:
+            if not _is_duplicate_sentence(verdict, conc_crit):
+                if not conc_crit:
+                    conc_crit = f"**{clean_title}**: {verdict}"
+                else:
+                    conc_crit = f"{conc_crit}<br>• **{clean_title}**: {verdict}"
+        else:
+            page_tag = f"पृष्ठ {p_num}" if is_hindi else f"Page {p_num}"
+            formatted_entry = f"**{clean_title} ({page_tag})**: {verdict}"
+
+            if is_pos:
+                if not _is_item_duplicate(clean_title, verdict, existing_strengths):
+                    existing_strengths.append(formatted_entry)
+            else:
+                if not _is_item_duplicate(clean_title, verdict, existing_gaps):
+                    existing_gaps.append(formatted_entry)
+
+    intro_audit["current_critique"] = intro_crit
+    conclusion_audit["current_critique"] = conc_crit
+    body_audit["strengths"] = existing_strengths
+    body_audit["critical_gaps"] = existing_gaps
+
+    data["intro_audit"] = intro_audit
+    data["body_audit"] = body_audit
+    data["conclusion_audit"] = conclusion_audit
 
 
 def _enforce_canonical_mathematical_reconciliation(data: Dict[str, Any], max_marks: Optional[int] = None, is_hindi: bool = False) -> None:

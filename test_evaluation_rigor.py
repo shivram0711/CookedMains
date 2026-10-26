@@ -373,5 +373,111 @@ class TestEvaluationRigor(unittest.TestCase):
         norm = normalize_evaluation_data(raw_eval, max_marks=10)
         self.assertEqual(norm.get("body_audit", {}).get("missing_dimensions", []), [])
 
+    def test_transfer_point_audit_to_deep_evaluation_without_handwriting(self):
+        """16. Transfer page feedback to Intro, Body Strengths, Body Gaps, and Conclusion without candidate handwriting."""
+        from evaluator_engine import transfer_point_audit_to_deep_evaluation
+        
+        sample_data = {
+            "total_pages": 3,
+            "point_by_point_audit": [
+                {
+                    "page": 1,
+                    "badge": "Page 1 • Intro & Premise",
+                    "title": "Opening Premise & Statutory Context",
+                    "what_you_wrote": "The Comptroller and Auditor General is appointed under Article 148 to inspect accounts.",
+                    "examiner_verdict": "Clear constitutional anchor citing Article 148; integrate Article 151 audit reporting procedure for completeness.",
+                    "is_positive": True
+                },
+                {
+                    "page": 2,
+                    "badge": "Page 2 • Substantive Body Analysis",
+                    "title": "Financial Accountability & PAC Linkage",
+                    "what_you_wrote": "CAG acts as the friend, philosopher and guide to the Public Accounts Committee.",
+                    "examiner_verdict": "Substantiated relationship with the Public Accounts Committee and legislative oversight.",
+                    "is_positive": True
+                },
+                {
+                    "page": 2,
+                    "badge": "Page 2 • Upgrade Scope",
+                    "title": "Propriety Audit vs Regulatory Compliance",
+                    "what_you_wrote": "CAG only checks rules and vouchers without discretion.",
+                    "examiner_verdict": "Differentiate regularity compliance audit from performance/propriety audit to demonstrate systemic insight.",
+                    "is_positive": False
+                },
+                {
+                    "page": 3,
+                    "badge": "Page 3 • Closing Synthesis",
+                    "title": "Concluding Synthesis & Global Best Practices",
+                    "what_you_wrote": "Thus CAG is very important for democracy and financial control in India.",
+                    "examiner_verdict": "Synthesized institutional autonomy with INTOSAI auditing standards for durable fiscal governance.",
+                    "is_positive": True
+                }
+            ],
+            "intro_audit": {"current_critique": "Solid conceptual opening."},
+            "body_audit": {"strengths": [], "critical_gaps": []},
+            "conclusion_audit": {"current_critique": "Balanced final summary."}
+        }
+
+        transfer_point_audit_to_deep_evaluation(sample_data, is_hindi=False)
+
+        # 1. Verify Intro received intro verdict
+        self.assertIn("integrate Article 151 audit reporting procedure", sample_data["intro_audit"]["current_critique"])
+        self.assertNotIn("The Comptroller and Auditor General is appointed under Article 148", sample_data["intro_audit"]["current_critique"])
+
+        # 2. Verify Body Strengths received positive body verdict
+        strengths = sample_data["body_audit"]["strengths"]
+        self.assertEqual(len(strengths), 1)
+        self.assertIn("Financial Accountability & PAC Linkage", strengths[0])
+        self.assertIn("Substantiated relationship with the Public Accounts Committee", strengths[0])
+        self.assertNotIn("CAG acts as the friend, philosopher and guide", strengths[0])
+
+        # 3. Verify Body Critical Gaps received upgrade lever
+        gaps = sample_data["body_audit"]["critical_gaps"]
+        self.assertEqual(len(gaps), 1)
+        self.assertIn("Propriety Audit vs Regulatory Compliance", gaps[0])
+        self.assertIn("Differentiate regularity compliance audit from performance/propriety audit", gaps[0])
+        self.assertNotIn("CAG only checks rules and vouchers", gaps[0])
+
+        # 4. Verify Conclusion received conclusion verdict
+        self.assertIn("Synthesized institutional autonomy with INTOSAI auditing standards", sample_data["conclusion_audit"]["current_critique"])
+        self.assertNotIn("Thus CAG is very important for democracy", sample_data["conclusion_audit"]["current_critique"])
+
+    def test_transfer_point_audit_deduplication(self):
+        """17. Transfer logic strictly prevents duplicate entries in Strengths, Gaps, Intro, and Conclusion."""
+        from evaluator_engine import transfer_point_audit_to_deep_evaluation
+
+        sample_data = {
+            "total_pages": 2,
+            "point_by_point_audit": [
+                {
+                    "page": 1,
+                    "title": "Core Mechanism",
+                    "examiner_verdict": "Effective use of 3Cs framework (Convergence, Collaboration, Competition).",
+                    "is_positive": True
+                }
+            ],
+            "body_audit": {
+                "strengths": [
+                    "**3Cs Strategy (Page 1)**: Effective use of 3Cs framework (Convergence, Collaboration, Competition)."
+                ],
+                "critical_gaps": []
+            }
+        }
+
+        transfer_point_audit_to_deep_evaluation(sample_data, is_hindi=False)
+        strengths = sample_data["body_audit"]["strengths"]
+        # Must not duplicate the 3Cs framework strength
+        self.assertEqual(len(strengths), 1)
+
+    def test_desktop_audit_container_removed_from_html(self):
+        """18. The Which Exact Points Fetched Marks section is completely removed from index.html."""
+        with open("static/index.html", "r", encoding="utf-8") as f:
+            html = f.read()
+
+        self.assertNotIn("desktopExaminerAuditContainer", html)
+        self.assertNotIn("desktopAuditCardsContainer", html)
+        self.assertNotIn("Which Exact Points Fetched Marks vs. Scope to Upgrade", html)
+
 if __name__ == "__main__":
     unittest.main()
+
