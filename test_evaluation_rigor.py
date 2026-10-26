@@ -12,6 +12,7 @@ from evaluator_engine import (
     normalize_evaluation_data,
     _normalize_batch1_examiner_mastery,
     _ensure_at_least_one_value_addition,
+    _build_domain_specific_conclusion,
     _has_meta_placeholder,
     detect_academic_discipline,
     detect_directive
@@ -88,7 +89,7 @@ class TestEvaluationRigor(unittest.TestCase):
         self.assertNotIn("Statutory", card.get("term", ""))
 
     def test_point_by_point_audit_card_reconciliation(self):
-        """6. Point-by-point audit cards store awarded, max, and matching badge."""
+        """6. Point-by-point audit cards store awarded, max, and matching badge without repetitive praise."""
         mock_data = {
             "overall_score": 5.5,
             "max_marks": 15,
@@ -143,11 +144,11 @@ class TestEvaluationRigor(unittest.TestCase):
             self.assertIn("max", card)
             self.assertIn("marks", card)
             self.assertIn("credit_badge", card)
-            # Ensure credit_badge contains / max
             self.assertIn("/", card["credit_badge"])
-            # Ensure title is never placeholder
             self.assertNotIn("BODY & CORE & DEMAND", card["title"])
             self.assertNotIn("& CORE & DEMAND", card["title"])
+            # Ensure "Effective analytical coverage." is NOT repeated on every card
+            self.assertNotIn("Effective analytical coverage.", card.get("examiner_verdict", ""))
 
     def test_hindi_prompt_dynamic_allocations(self):
         """7. Dedicated Hindi evaluation prompt maintains dynamic demand allocations."""
@@ -194,6 +195,80 @@ class TestEvaluationRigor(unittest.TestCase):
         self.assertEqual(detect_academic_discipline("Ocean currents and atmospheric cells", "GS1"), "GS1")
         self.assertEqual(detect_academic_discipline("Judicial review and basic structure doctrine", "GS2"), "GS2")
         self.assertEqual(detect_academic_discipline("Emotional intelligence in civil services", "GS4"), "GS4")
+
+    def test_revolt_1857_conclusion_feedback_relevance(self):
+        """11. Regression test: 1857 Revolt 10-marker conclusion feedback must be question-specific."""
+        q_1857 = "British response to the revolt of 1857 did more than restoring colonial control; it prolonged the longevity of British imperialism in India. Examine. (10 marks, 150 words)"
+        
+        # Test domain conclusion generator
+        domain_conc = _build_domain_specific_conclusion(q_1857, "GS1")
+        
+        # Must NOT contain generic geography/society cliches
+        self.assertNotIn("spatial equity", domain_conc.lower())
+        self.assertNotIn("community-led resilience", domain_conc.lower())
+        self.assertNotIn("constitutional fraternity", domain_conc.lower())
+        
+        # Must contain modern Indian history synthesis
+        self.assertTrue(any(w in domain_conc.lower() for w in ["1857", "colonial", "imperial", "nationalist", "congress", "longevity"]))
+
+        # Test evaluation normalization on 1857 candidate answer
+        cand_eval = {
+            "overall_score": 4.5,
+            "max_marks": 10,
+            "detected_question": q_1857,
+            "paper": "GS1",
+            "total_pages": 2,
+            "transcribed_text": (
+                "The revolt of 1857 was described by VD Savarkar as the first War of Indian Independence.\n"
+                "Act for Better Government of India 1858, End of Company Rule, End of Mughal Nobility.\n"
+                "Reorganisation of army based on martial races, strategic positions, sowing seeds of discontent.\n"
+                "Thus, Revolt of 1857 led to thorough reorganization of the setup of British, and also considered the progenitor of Indian National Congress of 1885."
+            ),
+            "sub_part_step_marking": [
+                {"step_label": "1. Introduction", "sub_heading": "Historical Context", "awarded": 1.0, "max": 1.0, "quoted_written": "The revolt of 1857 was described by VD Savarkar..."},
+                {"step_label": "2. Restoring Colonial Control", "sub_heading": "Crown Rule & 1858 Act", "awarded": 1.8, "max": 4.2, "quoted_written": "Act for Better Government of India 1858..."},
+                {"step_label": "3. Prolonging Longevity", "sub_heading": "Army Reorganisation & Martial Races", "awarded": 1.2, "max": 4.2, "quoted_written": "Reorganisation of army based on martial races..."},
+                {"step_label": "4. Conclusion", "sub_heading": "Progenitor of INC 1885", "awarded": 0.5, "max": 0.6, "quoted_written": "Thus, Revolt of 1857 led to thorough reorganization..."}
+            ],
+            "conclusion_audit": {
+                "score": 0.5,
+                "current_critique": "Concluded with thorough reorganization and progenitor of INC 1885."
+            }
+        }
+        
+        norm = normalize_evaluation_data(cand_eval, max_marks=10)
+        c_audit = norm.get("conclusion_audit", {})
+        rewrite = c_audit.get("model_conclusion_rewrite", "")
+        
+        self.assertNotIn("spatial equity", rewrite.lower())
+        self.assertNotIn("community-led resilience", rewrite.lower())
+        
+        # Verify conclusion max does not exceed 1.5 in a 10-marker
+        rubric = norm.get("rubric_scores", {})
+        self.assertLessEqual(float(rubric.get("conclusion_max", 1.0)), 1.5)
+        
+        # Verify point_by_point_audit cards do NOT repeat "Effective analytical coverage."
+        pbp = norm.get("point_by_point_audit", [])
+        for p in pbp:
+            self.assertNotIn("Effective analytical coverage.", p.get("examiner_verdict", ""))
+
+    def test_no_disproportionate_conclusion_weighting_10marker(self):
+        """12. 10-markers never allocate a fixed 2.0 or 2.5 marks to conclusion."""
+        eval_data = {
+            "overall_score": 4.0,
+            "max_marks": 10,
+            "detected_question": "Explain the causes of the 1857 revolt.",
+            "sub_part_step_marking": [
+                {"step_label": "1. Intro", "awarded": 1.0, "max": 1.0},
+                {"step_label": "2. Causes", "awarded": 2.5, "max": 8.0},
+                {"step_label": "3. Conclusion", "awarded": 0.5, "max": 1.0}
+            ]
+        }
+        norm = normalize_evaluation_data(eval_data, max_marks=10)
+        rubric = norm.get("rubric_scores", {})
+        c_max = float(rubric.get("conclusion_max", 1.0))
+        self.assertLessEqual(c_max, 1.5)
+        self.assertNotEqual(c_max, 2.5)
 
 if __name__ == "__main__":
     unittest.main()

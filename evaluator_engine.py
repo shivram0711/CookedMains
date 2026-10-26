@@ -7480,14 +7480,27 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                     qw = "संरचित बिंदुओं के साथ प्रश्न के मुख्य आयाम को संबोधित किया।" if is_hindi else "Addressed substantive question dimensions with structured handwriting."
 
             lever = str(st.get("step_up_lever", "")).strip()
-            if lever and not _has_meta_placeholder(lever):
-                verdict = f"{'विषय का प्रभावी विश्लेषण।' if is_hindi else 'Effective analytical coverage.'} {lever}"
-            else:
-                if s_idx < len(gaps) and not _has_meta_placeholder(str(gaps[s_idx])):
-                    verdict = f"{'विषय का प्रभावी विश्लेषण।' if is_hindi else 'Effective analytical coverage.'} {str(gaps[s_idx])}"
-                else:
-                    verdict = "यूपीएससी मूल्यांकन मानकों के अनुरूप प्रभावी प्रस्तुति।" if is_hindi else "Evaluated candidate's handwritten point with UPSC benchmarks."
+            st_rem = str(st.get("evaluator_remark") or st.get("remark") or "").strip()
+            if not st_rem or _has_meta_placeholder(st_rem):
+                if s_idx < len(strengths) and not _has_meta_placeholder(str(strengths[s_idx])):
+                    st_rem = str(strengths[s_idx]).strip()
 
+            if is_pos:
+                if st_rem and lever and lever != st_rem:
+                    verdict = f"{st_rem} {lever}".strip()
+                elif st_rem:
+                    verdict = st_rem
+                elif lever and not _has_meta_placeholder(lever):
+                    verdict = lever
+                else:
+                    verdict = f"प्रश्नानुसार {clean_title} का संतुलित विश्लेषण।" if is_hindi else f"Addressed {clean_title} with question-relevant evidence."
+            else:
+                if lever and not _has_meta_placeholder(lever):
+                    verdict = lever
+                elif s_idx < len(gaps) and not _has_meta_placeholder(str(gaps[s_idx])):
+                    verdict = str(gaps[s_idx]).strip()
+                else:
+                    verdict = "विश्लेषण को ठोस साक्ष्यों एवं संस्थागत संदर्भों से सुदृढ़ करें।" if is_hindi else f"Strengthen analysis of {clean_title} with specific evidence and institutional anchors."
             pbp_generated.append({
                 "page": p_num,
                 "badge": badge_loc,
@@ -7590,6 +7603,25 @@ def _build_domain_specific_conclusion(question_text: str, paper_name: str, exist
     p_up = str(paper_name or "").upper()
 
     if is_hindi:
+        if any(k in q_low for k in ["1857", "विद्रोह", "ब्रिटिश", "उपनिवेश", "साम्राज्यवाद", "स्वतंत्रता संग्राम", "राष्ट्रीय आंदोलन", "कांग्रेस", "कंपनी"]):
+            return (
+                "यद्यपि 1857 के पश्चात प्रशासनिक एवं सैन्य पुनर्गठन ने औपनिवेशिक नियंत्रण को दीर्घायु प्रदान की, "
+                "किंतु इसने संस्थागत अंतर्विरोधों को जन्म देकर संगठित राष्ट्रीय चेतना (1885 कांग्रेस) को उत्प्रेरित किया, जिसने अंततः साम्राज्य के पतन की नींव रखी।"
+            )
+        if any(k in q_low for k in ["इतिहास", "कला", "संस्कृति", "मौर्य", "चोल", "अशोक", "भक्ति", "सूफी", "विरासत", "वास्तुकला"]):
+            return (
+                "ऐतिहासिक साक्ष्यों एवं सांस्कृतिक निरंतरता का यह संश्लेषण न केवल भारतीय सभ्यता के विकासात्मक स्वरूप को रेखांकित करता है, "
+                "बल्कि आधुनिक राष्ट्र-निर्माण और संवैधानिक बंधुत्व को भी समृद्ध आधार प्रदान करता है।"
+            )
+        if any(k in q_low for k in ["भूगोल", "भूकंप", "चक्रवात", "मानसून", "आपदा", "प्लेट", "संसाधन", "नदी"]):
+            return (
+                "सेंदाई फ्रेमवर्क (2015-2030) के अनुरूप स्थानिक योजना, पूर्व-चेतावनी प्रणाली तथा जलवायु-अनुकूल अवसंरचना का समन्वय "
+                "आपदा जोखिम न्यूनीकरण एवं सतत क्षेत्रीय विकास सुनिश्चित करने हेतु अनिवार्य है।"
+            )
+        if any(k in q_low for k in ["समाज", "जाति", "महिला", "शहरीकरण", "जनसंख्या", "विविधता", "धर्मनिरपेक्ष"]):
+            return (
+                "समावेशी जन-भागीदारी एवं प्रगतिशील विधिक संरक्षणों का समन्वय संवैधानिक बंधुत्व तथा वास्तविक सामाजिक न्याय की प्राप्ति को सशक्त बनाता है।"
+            )
         if "GS4" in p_up or "ETHICS" in p_up or any(k in q_low for k in ["नैतिक", "सत्यनिष्ठा", "मूल्य"]):
             return (
                 "प्रशासनिक निर्णयों को **संवैधानिक नैतिकता**, **नोलन समिति के सिद्धांतों (सत्यनिष्ठा, निष्पक्षता, जवाबदेही)** "
@@ -7610,6 +7642,37 @@ def _build_domain_specific_conclusion(question_text: str, paper_name: str, exist
             "नीतिगत संकल्प को टिकाऊ एवं समावेशी संरचनात्मक परिवर्तन में रूपांतरित करेगा।"
         )
 
+    # English discipline & question-specific synthesis:
+    # 1. Modern Indian History / British Colonialism / 1857 Revolt / Freedom Struggle
+    if any(k in q_low for k in ["1857", "revolt", "colonial", "imperialism", "british rule", "british response", "viceroy", "company's rule", "crown rule", "peel commission", "freedom struggle", "nationalist", "nationalism", "national movement", "congress", "inc", "swadeshi", "gandhian", "non-cooperation", "civil disobedience", "quit india", "partition", "drain of wealth", "dalhousie", "curzon"]):
+        return (
+            "While post-1857 administrative and military restructuring prolonged British imperial longevity in the short term, "
+            "it deepened institutional contradictions and catalyzed organized political consciousness—ironically nurturing "
+            "the nationalist movement (culminating in the Indian National Congress of 1885) that ultimately dismantled colonial rule."
+        )
+
+    # 2. Ancient & Medieval History / Art, Architecture & Culture
+    if any(k in q_low for k in ["ancient", "medieval", "maurya", "ashoka", "gupta", "chola", "vijayanagar", "mughal", "delhi sultanate", "bhakti", "sufi", "indus valley", "harappa", "vedic", "buddhism", "jainism", "temple", "sculpture", "art", "heritage"]):
+        return (
+            "Synthesizing institutional statecraft with living cultural continuity highlights the resilient evolution "
+            "of Indian civilization, providing timeless insights for contemporary composite nationhood and democratic fraternity."
+        )
+
+    # 3. Geography / Physical Earth / Disaster Mitigation
+    if any(k in q_low for k in ["geography", "mineral", "resource", "water", "river", "glacier", "soil", "forest", "drainage", "monsoon", "plate", "earthquake", "cyclone", "volcano", "climate", "disaster", "hazard", "urban heat", "landslide", "tsunami"]):
+        return (
+            "Integrating spatial resource mapping, climate-resilient engineering, and early-warning telemetry under the "
+            "**Sendai Framework (2015–2030)** and **NDMA Guidelines** is imperative to transition vulnerable ecologies from risk exposure to sustainable resilience."
+        )
+
+    # 4. Indian Society & Demographics
+    if any(k in q_low for k in ["society", "caste", "women", "gender", "patriarchy", "urbanization", "population", "demographic", "secularism", "communalism", "regionalism", "diversity", "social integration", "elderly"]):
+        return (
+            "Harmonizing community-driven affirmative action with robust legal-institutional safeguards upholds substantive equality "
+            "and constitutional fraternity under **Articles 14, 15, and 21**, driving inclusive structural social transformation."
+        )
+
+    # Specific Polity & Governance topics
     if any(k in q_low for k in ["election", "eci", "cec", "commissioner", "324", "anoop baranwal", "appointment", "electoral"]):
         return (
             "Insulating the **Election Commission of India under Article 324** through an independent consultative collegium and "
@@ -7644,16 +7707,6 @@ def _build_domain_specific_conclusion(question_text: str, paper_name: str, exist
         return (
             "Fast-tracking special MP/MLA courts alongside statutory **inner-party democracy (Law Commission 255th Report)** and **state funding reforms (Indrajit Gupta Committee)** "
             "is essential to cleanse the legislature and uphold the **purity of the ballot under Article 324**."
-        )
-    if "GS1" in p_up and any(k in q_low for k in ["earthquake", "cyclone", "volcano", "plate", "climate", "monsoon", "disaster", "hazard", "urban heat", "landslide", "tsunami"]):
-        return (
-            "Integrating **seismic microzonation**, **NDMA early warning guidelines**, and **climate-resilient infrastructure** "
-            "under the **Sendai Framework (2015–2030)** ensures that hazard-prone regions transition from disaster vulnerability to structural resilience."
-        )
-    if "GS1" in p_up and any(k in q_low for k in ["history", "art", "culture", "ahom", "chola", "maurya", "temple", "heritage", "movement"]):
-        return (
-            "Synthesizing **epigraphical and archival evidence** with **living cultural continuity** ensures that India's "
-            "rich civilizational heritage continues to nurture national identity and constitutional fraternity."
         )
     if "GS3" in p_up and any(k in q_low for k in ["economy", "gdp", "fiscal", "inflation", "manufacturing", "semiconductor", "msme", "trade", "investment", "tax"]):
         return (
@@ -7698,15 +7751,13 @@ def _build_domain_specific_conclusion(question_text: str, paper_name: str, exist
         )
     if "GS1" in p_up:
         return (
-            "Synthesizing **community-led resilience**, **spatial equity**, and **composite cultural preservation** ensures sustainable social transformation "
-            "rooted in constitutional fraternity."
+            "Aligning rigorous evidence-based inquiry with institutional safeguards and inclusive grassroots participation "
+            "is essential to balance historical continuity, spatial equity, and sustainable socio-economic progress."
         )
     return (
         "Integrating **evidence-based institutional reforms**, **last-mile capacity building**, and **outcome-linked fiscal governance** "
         "will translate policy intent into durable, equitable structural transformation."
     )
-
-
 def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False) -> None:
     """
     Guarantees that:
@@ -8091,8 +8142,10 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
     trans_low = str(data.get("transcribed_text") or "").lower()
     tail_text = trans_low[-400:] if len(trans_low) > 400 else trans_low
     rubric_d = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
-    def_c_max = 1.5 if mm_eval == 10 else 2.0
+    def_c_max = 1.0 if mm_eval == 10 else 1.5
     c_max = float(rubric_d.get("conclusion_max", def_c_max) or def_c_max)
+    if mm_eval == 10 and c_max > 1.5:
+        c_max = 1.0
 
     # 1. Inspect existing evaluation signals (Gemini multimodal, sub_part_step_marking, visual annotations, conclusion_audit)
     sub_steps = data.get("sub_part_step_marking") or []

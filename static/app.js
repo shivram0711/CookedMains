@@ -2953,16 +2953,25 @@ window.sanitizeRepetitiveConclusionCliches = function(evalObj, questionText, pap
   const existingConc = String(conc.model_conclusion_rewrite || "").toLowerCase();
 
   let domainConc = "";
-  if (pStr.includes("GS2") || pStr.includes("POLITY")) {
+  if (/(?:1857|revolt|colonial|imperialism|british rule|viceroy|company's rule|crown rule|peel commission|freedom struggle|nationalist|nationalism|national movement|congress|inc\b|swadeshi|gandhian|drain of wealth)/i.test(qStr)) {
+    domainConc = "While post-1857 administrative and military restructuring prolonged British imperial longevity in the short term, it deepened institutional contradictions and catalyzed organized political consciousness—ironically nurturing the nationalist movement (culminating in the Indian National Congress of 1885) that ultimately dismantled colonial rule.";
+  } else if (/(?:ancient|medieval|maurya|ashoka|gupta|chola|vijayanagar|mughal|sultanate|bhakti|sufi|harappa|vedic|buddhism|jainism|heritage|art|culture)/i.test(qStr)) {
+    domainConc = "Synthesizing institutional statecraft with living cultural continuity highlights the resilient evolution of Indian civilization, providing timeless insights for contemporary composite nationhood and democratic fraternity.";
+  } else if (/(?:geography|mineral|resource|water|river|glacier|soil|forest|monsoon|plate|earthquake|cyclone|volcano|disaster|hazard)/i.test(qStr)) {
+    domainConc = "Integrating spatial resource mapping, climate-resilient engineering, and early-warning telemetry under the **Sendai Framework (2015–2030)** and **NDMA Guidelines** is imperative to transition vulnerable ecologies from risk exposure to sustainable resilience.";
+  } else if (/(?:society|caste|women|gender|patriarchy|urbanization|population|demographic|secularism|communalism|regionalism|diversity)/i.test(qStr)) {
+    domainConc = "Harmonizing community-driven affirmative action with robust legal-institutional safeguards upholds substantive equality and constitutional fraternity under **Articles 14, 15, and 21**, driving inclusive structural social transformation.";
+  } else if (pStr.includes("GS2") || pStr.includes("POLITY")) {
     domainConc = "Harmonizing **constitutional morality** with **institutional accountability (2nd ARC)** ensures that democratic governance delivers both **substantive justice** and **cooperative federalism**.";
   } else if (pStr.includes("GS4") || pStr.includes("ETHICS")) {
     domainConc = "Anchoring public administration in **Nishkama Karma**, **2nd ARC 'Ethics in Governance' norms**, and **Gandhian Antyodaya** transforms civil servants from mere rule-enforcers into **compassionate trustees of public welfare**.";
   } else if (pStr.includes("GS1")) {
-    domainConc = "Synthesizing **community-led resilience**, **spatial equity**, and **sustainable resource management** ensures balanced regional development.";
+    domainConc = "Aligning rigorous evidence-based inquiry with institutional safeguards and inclusive grassroots participation is essential to balance historical continuity, spatial equity, and sustainable socio-economic progress.";
   } else {
     domainConc = "Integrating **evidence-based institutional reforms**, **last-mile capacity building**, and **outcome-linked fiscal governance** will translate policy intent into durable structural transformation.";
   }
 
+  const isOldGenericCliche = /community-led\s*resilience|spatial\s*equity|composite\s*cultural\s*preservation/i.test(existingConc);
   if (!conc.model_conclusion_rewrite || /viksit\s*bharat|@\s*2047|by\s*2047/i.test(existingConc)) {
     conc.model_conclusion_rewrite = domainConc;
     evalObj.conclusion_audit = conc;
@@ -5060,6 +5069,12 @@ function formatEvaluatorCardParagraph(quotePrefix, whatYouWrote, verdict, isPosi
     }
   }
 
+  // Strip repetitive generic praise prefixes so cards state authentic evidence directly
+  rawVerdict = rawVerdict
+    .replace(/^(?:[✓✔]\s*)?(?:Effective analytical coverage\.?\s*)+/gi, "")
+    .replace(/^(?:[✓✔]\s*)?(?:विषय का प्रभावी विश्लेषण।?\s*)+/gi, "")
+    .trim();
+
   if (!rawVerdict) {
     return `
       <div class="text-[11.5px] text-slate-300 dark:text-slate-200 leading-snug">
@@ -5510,8 +5525,8 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
   evalData.total_score = overallScore;
 
   // Default UPSC Marks ceilings
-  const defIntroMax = maxMarks === 10 ? 1.5 : (maxMarks === 15 ? 2.0 : 2.5);
-  const defConcMax = maxMarks === 10 ? 1.5 : (maxMarks === 15 ? 2.0 : 2.5);
+  const defIntroMax = maxMarks === 10 ? 1.0 : (maxMarks === 15 ? 1.5 : 2.0);
+  const defConcMax = maxMarks === 10 ? 1.0 : (maxMarks === 15 ? 1.5 : 2.0);
   const introMax = parseFloat(rubric.intro_max) || defIntroMax;
   const concMax = parseFloat(rubric.conclusion_max) || defConcMax;
 
@@ -9822,37 +9837,68 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
       : `Which Exact Points Fetched Marks vs. Scope to Upgrade (Page ${currentPg} of ${totalPages})`;
   }
 
+  // Cross-reference with evalData.point_by_point_audit to compute exact card-reconciled page totals
+  const pbpAllPre = Array.isArray(evalData.point_by_point_audit) ? evalData.point_by_point_audit : [];
+  const pbpPageItemsPre = pbpAllPre.filter(p => (parseInt(p.page, 10) || 1) === currentPg);
+
   let pageScoreTotal = 0;
   let pageMaxTotal = 0;
-  sections.forEach(sec => {
-    if (sec.awarded !== null && sec.awarded !== undefined && sec.max !== null && sec.max !== undefined && !isNaN(sec.awarded) && !isNaN(sec.max)) {
-      pageScoreTotal += parseFloat(sec.awarded);
-      pageMaxTotal += parseFloat(sec.max);
-    } else {
-      const match = String(sec.marks || sec.credit_badge || "").match(/([0-9]+(?:\.[0-9]+)?)\s*(?:\/|\bout\s+of\b)\s*([0-9]+(?:\.[0-9]+)?)/i);
-      if (match) {
-        pageScoreTotal += parseFloat(match[1]);
-        pageMaxTotal += parseFloat(match[2]);
+
+  if (pbpPageItemsPre.length > 0) {
+    // Derive exact sum from the actual point-by-point cards displayed on this page
+    pbpPageItemsPre.forEach(p => {
+      let aw = null;
+      let mx = null;
+      if (p.awarded !== undefined && p.awarded !== null && p.max !== undefined && p.max !== null && !isNaN(p.awarded) && !isNaN(p.max)) {
+        aw = parseFloat(p.awarded);
+        mx = parseFloat(p.max);
       } else {
-        const singleMatch = String(sec.marks || sec.credit_badge || "").match(/(?:\+|\b)([0-9]+(?:\.[0-9]+)?)\s*M\b/i);
-        if (singleMatch) {
-          pageScoreTotal += parseFloat(singleMatch[1]);
-          pageMaxTotal += Math.max(parseFloat(singleMatch[1]), 2.0);
+        const bMatch = String(p.credit_badge || p.marks || "").match(/([0-9]+(?:\.[0-9]+)?)\s*(?:\/|\bout\s+of\b)\s*([0-9]+(?:\.[0-9]+)?)/i);
+        if (bMatch) {
+          aw = parseFloat(bMatch[1]);
+          mx = parseFloat(bMatch[2]);
+        } else {
+          const sMatch = String(p.credit_badge || p.marks || "").match(/(?:\+|\b)([0-9]+(?:\.[0-9]+)?)\s*M\b/i);
+          if (sMatch) {
+            aw = parseFloat(sMatch[1]);
+            mx = Math.max(parseFloat(sMatch[1]), 1.0);
+          }
         }
       }
-    }
-  });
+      if (aw !== null && !isNaN(aw)) pageScoreTotal += aw;
+      if (mx !== null && !isNaN(mx)) pageMaxTotal += mx;
+    });
+  } else {
+    sections.forEach(sec => {
+      if (sec.awarded !== null && sec.awarded !== undefined && sec.max !== null && sec.max !== undefined && !isNaN(sec.awarded) && !isNaN(sec.max)) {
+        pageScoreTotal += parseFloat(sec.awarded);
+        pageMaxTotal += parseFloat(sec.max);
+      } else {
+        const match = String(sec.marks || sec.credit_badge || "").match(/([0-9]+(?:\.[0-9]+)?)\s*(?:\/|\bout\s+of\b)\s*([0-9]+(?:\.[0-9]+)?)/i);
+        if (match) {
+          pageScoreTotal += parseFloat(match[1]);
+          pageMaxTotal += parseFloat(match[2]);
+        } else {
+          const singleMatch = String(sec.marks || sec.credit_badge || "").match(/(?:\+|\b)([0-9]+(?:\.[0-9]+)?)\s*M\b/i);
+          if (singleMatch) {
+            pageScoreTotal += parseFloat(singleMatch[1]);
+            pageMaxTotal += Math.max(parseFloat(singleMatch[1]), 2.0);
+          }
+        }
+      }
+    });
+  }
 
   if (pageMaxTotal === 0) {
     const scheme = (typeof window.getCanonicalStepMarkingScheme === "function") ? window.getCanonicalStepMarkingScheme(evalData) : null;
     if (scheme) {
       if (currentPg === 1 && scheme.intro) {
         pageScoreTotal = scheme.intro.score || 1.0;
-        pageMaxTotal = scheme.intro.max || 2.0;
+        pageMaxTotal = scheme.intro.max || 1.5;
       } else if (currentPg === totalPages && scheme.conclusion) {
         const bp = (scheme.bodyParts && scheme.bodyParts[scheme.bodyParts.length - 1]) || {};
-        pageScoreTotal = (bp.score || 1.5) + (scheme.conclusion.score || 1.0);
-        pageMaxTotal = (bp.max || 3.5) + (scheme.conclusion.max || 2.0);
+        pageScoreTotal = (bp.score || 1.5) + (scheme.conclusion.score || 0.5);
+        pageMaxTotal = (bp.max || 3.5) + (scheme.conclusion.max || 1.0);
       } else {
         const bp = (scheme.bodyParts && scheme.bodyParts[Math.min(scheme.bodyParts.length - 1, currentPg - 1)]) || {};
         pageScoreTotal = bp.score || 1.5;
@@ -9871,7 +9917,6 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
     }
   }
 
-  // Update Section Prev and Next Button Disabled States
   const auditPrevBtn = document.getElementById("desktopAuditPrevBtn");
   const auditNextBtn = document.getElementById("desktopAuditNextBtn");
   if (auditPrevBtn) auditPrevBtn.disabled = (currentPg <= 1);
