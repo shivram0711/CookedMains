@@ -14101,14 +14101,14 @@ function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
     }
   }
   if (tDelta) {
-    if (timeDelta > 0.1) {
-      tDelta.textContent = `-${timeDelta.toFixed(1)}m Deficit`;
+    if (timeDelta > 0.5) {
+      tDelta.textContent = `~${estTime}m est. (${timeDelta.toFixed(1)}m over)`;
       tDelta.className = "font-bold text-rose-600 dark:text-rose-400";
-    } else if (timeDelta < -0.1) {
-      tDelta.textContent = `+${Math.abs(timeDelta).toFixed(1)}m Surplus`;
+    } else if (timeDelta < -0.5) {
+      tDelta.textContent = `~${estTime}m est. (${Math.abs(timeDelta).toFixed(1)}m reserve)`;
       tDelta.className = "font-bold text-emerald-600 dark:text-emerald-400";
     } else {
-      tDelta.textContent = "On Pace (0m)";
+      tDelta.textContent = `~${estTime}m est. (Target ~${allottedMins}m)`;
       tDelta.className = "font-bold text-emerald-600 dark:text-emerald-400";
     }
   }
@@ -14137,9 +14137,9 @@ function renderUPSCExamHallDisciplineAndMicroMarking(evalData) {
       warnText.innerHTML = formatHighlightedText(enrichExamHallDiagnosis(discData.time_penalty_warning));
     } else if (timeDelta >= 2.0) {
       warnText.innerHTML = formatHighlightedText(
-        `Writing **~${wordCount} words** took **~${estTime} mins** against the strict **${allottedMins}-minute ceiling**. ` +
-        `This surplus **${timeDelta.toFixed(1)} minutes** is directly stolen from final questions (**Q19/Q20**), guaranteeing incomplete answers or lost **10–15 marks**. ` +
-        `In UPSC Mains, completing **all 20 questions** in **140–150 words** beats over-writing on early questions.`
+        `Writing **~${wordCount} words** significantly exceeds the **${prescribedLimit}-word budget**. ` +
+        `Under exam pacing (~${allottedMins} mins target), prioritize concise points to avoid time crunches on later questions (**Q19/Q20**). ` +
+        `In UPSC Mains, completing **all 20 questions** in balanced **${Math.round(prescribedLimit * 0.9)}–${prescribedLimit} words** maximizes aggregate marks.`
       );
     } else if (wordPct < 75) {
       warnText.innerHTML = formatHighlightedText(

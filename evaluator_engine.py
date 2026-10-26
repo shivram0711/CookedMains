@@ -3484,6 +3484,11 @@ def _build_domain_specific_intro(question_text: str, paper_name: str, existing_t
                 "लोक प्रशासन में नैतिकता प्रशासनिक निर्णयों को **संवैधानिक नैतिकता (Constitutional Morality)** और "
                 "**नोलन समिति के 7 सिद्धांतों** से जोड़ती है, जिससे लोक सेवक सत्यनिष्ठा, निष्पक्षता और सहानुभूति के साथ जनहित को प्राथमिकता दे सकें।"
             )
+        if any(k in q_low for k in ["जिला योजना समिति", "dpc", "243zd", "विकेंद्रीकृत नियोजन", "district planning committee"]):
+            return (
+                "**अनुच्छेद 243ZD** (74वां संविधान संशोधन अधिनियम) के तहत परिकल्पित **जिला योजना समिति (DPC)** का मुख्य कार्य "
+                "पंचायतों एवं नगरपालिकाओं द्वारा तैयार की गई विकास योजनाओं को समेकित कर जिले हेतु एक समग्र प्रारूप विकास योजना तैयार करना है।"
+            )
         if "GS2" in p_up or "POLITY" in p_up or any(k in q_low for k in ["संविधान", "न्यायपालिका", "अधिकार", "संसद", "आयोग", "राज्यपाल", "निर्वाचन"]):
             return (
                 "भारत में संवैधानिक अभिशासन शक्तियों के पृथक्करण और संस्थागत संतुलन पर आधारित है, जो **संवैधानिक नैतिकता** "
@@ -3502,6 +3507,12 @@ def _build_domain_specific_intro(question_text: str, paper_name: str, existing_t
             f"संवैधानिक मूल्यों के अनुरूप परिणामोन्मुखी शासन सुनिश्चित करता है।"
         )
 
+    if any(k in q_low for k in ["district planning committee", "dpc", "243zd", "grassroots-level planning", "grassroots level planning"]):
+        return (
+            "Envisioned under **Article 243ZD** (74th Constitutional Amendment Act), the **District Planning Committee (DPC)** "
+            "serves as the constitutional linchpin to consolidate draft development plans prepared by Panchayats and Municipalities "
+            "into a holistic district-level plan for balanced spatial and socio-economic development."
+        )
     if "aspirational" in q_low or ("good governance" in q_low and "district" in q_low):
         return (
             "Launched in 2018 by **NITI Aayog** across 112 underdeveloped districts, the **Aspirational Districts Programme (ADP)** operationalizes the **3Cs strategy** "
@@ -4292,7 +4303,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
     Embeds the diagram inside the model answer and eliminates cross-subject hallucinations and cross-page margin duplication.
     Guarantees authentic Hindi medium evaluation if input question/text or medium is Hindi/Devanagari.
     """
-    overall_score = float(data.get("overall_score", 4.0 if max_marks == 10 else 6.5))
+    raw_os = data.get("overall_score")
+    overall_score = float(raw_os) if (raw_os is not None and raw_os != "") else 0.0
     data["overall_score"] = round(overall_score, 1)
     data["max_marks"] = max_marks
 
@@ -6189,6 +6201,9 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
     _normalize_prioritized_feedback(data, max_marks=max_marks, is_hindi=is_hindi)
     _run_release_validation_and_consistency(data, max_marks=max_marks, is_hindi=is_hindi)
 
+    # Enforce 100% strict mathematical reconciliation across overall score, sub-part steps, and rubric scores
+    _enforce_canonical_mathematical_reconciliation(data, max_marks=max_marks, is_hindi=is_hindi)
+
     return data
 
 
@@ -6418,7 +6433,8 @@ def _run_release_validation_and_consistency(data: Dict[str, Any], max_marks: int
     - Check internal consistency and flag uncertainty rather than inventing certainty.
     - Validate before release: verify evidence links, reconciliation, and absence of contradictions.
     """
-    overall_score = float(data.get("overall_score", 4.0 if max_marks == 10 else 6.5))
+    raw_val_sc = data.get("overall_score")
+    overall_score = float(raw_val_sc) if (raw_val_sc is not None and raw_val_sc != "") else 0.0
     steps = data.get("sub_part_step_marking", [])
     ledger = data.get("evidence_ledger", [])
 
@@ -6543,7 +6559,8 @@ def _normalize_exam_hall_discipline_and_micro_marking(data: Dict[str, Any], max_
     if not isinstance(data, dict):
         return
 
-    overall_score = float(data.get("overall_score", 4.0 if max_marks == 10 else 6.5) or (4.0 if max_marks == 10 else 6.5))
+    raw_disc_sc = data.get("overall_score")
+    overall_score = float(raw_disc_sc) if (raw_disc_sc is not None and raw_disc_sc != "") else 0.0
     rubric = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
 
     # 1. Word Count & Time Pacing Analysis
@@ -6582,16 +6599,16 @@ def _normalize_exam_hall_discipline_and_micro_marking(data: Dict[str, Any], max_
         if is_hindi:
             word_status = f"सीमा से अधिक (+{word_pct - 100}%)"
             hall_warning = (
-                f"लगभग **{cand_word_count} शब्द** लिखने में लगभग **{est_writing_time} मिनट** लगे, जबकि निर्धारित समय सीमा **{allotted_mins} मिनट** है। "
-                f"यह अतिरिक्त **{time_diff} मिनट** अंतिम प्रश्नों (**Q19/Q20**) के समय से कटेंगे, जिससे **10–15 अंकों** का नुकसान हो सकता है। "
-                f"UPSC मुख्य परीक्षा में सभी 20 प्रश्नों को संतुलित **140–150 शब्दों** में हल करना शुरुआती प्रश्नों में अधिक लिखने से कहीं अधिक अंक दिलाता है।"
+                f"लगभग **{cand_word_count} शब्द** निर्धारित सीमा (**{prescribed_limit} शब्द**) से अधिक हैं। "
+                f"UPSC मुख्य परीक्षा में अत्यधिक विस्तार से अंतिम प्रश्नों (**Q19/Q20**) के लिए समय कम पड़ सकता है। "
+                f"सभी 20 प्रश्नों को संतुलित रूप से पूरा करने हेतु मुख्य बिंदुओं को संक्षिप्त व सुस्पष्ट रखें।"
             )
         else:
             word_status = f"Over Limit (+{word_pct - 100}%)"
             hall_warning = (
-                f"Writing **~{cand_word_count} words** requires **~{est_writing_time} mins** against the strict **{allotted_mins}-minute ceiling**. "
-                f"This surplus **{time_diff} minutes** is directly stolen from final questions (**Q19/Q20**), guaranteeing incomplete answers or lost **10–15 marks**. "
-                f"In UPSC Mains, completing **all 20 questions** in **140–150 words** beats over-writing on early questions."
+                f"Writing **~{cand_word_count} words** significantly exceeds the **{prescribed_limit}-word guideline**. "
+                f"Under UPSC exam pacing (~{int(allotted_mins)} mins target), excessive word length risks compressing time for final questions (**Q19/Q20**). "
+                f"Prioritize concise, high-density points to ensure all 20 questions can be attempted comfortably."
             )
     elif cand_word_count > prescribed_limit * 1.10:
         risk_level = "MODERATE_RISK"
@@ -8251,10 +8268,8 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
         data["executive_summary"] = simplify_and_decontradict(data["executive_summary"], is_gap=False)
 
     is_aspirational_districts = bool(
-        re.search(r'(?i)\baspirational\s+(?:district|block)', q_str) or
-        re.search(r'(?i)\baspirational\s+(?:district|block)', positive_corpus) or
-        "template for good governance" in positive_corpus or
-        "plugging loopholes" in positive_corpus
+        data.get("is_sample_copy") and
+        re.search(r'(?i)\baspirational\s+districts?\s+programme\b', q_str)
     )
 
     if is_aspirational_districts:
@@ -8300,8 +8315,8 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
         }
 
         is_exact_sample_copy = bool(
-            data.get("is_sample_copy") or
-            (("under moud" in positive_corpus or "moud" in positive_corpus) and "plugging loopholes" in positive_corpus and ("spider" in positive_corpus or "radial" in positive_corpus or "telehealth" in positive_corpus))
+            data.get("is_sample_copy") and
+            re.search(r'(?i)\baspirational\s+districts?\s+programme\b', q_str)
         )
 
         if is_exact_sample_copy:
@@ -8533,6 +8548,145 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
 
     # Enrich GS-4 Case Study evaluation (decision making, character audit, and best alternative options)
     _enrich_case_study_audit(data)
+
+
+
+
+
+
+def _enforce_canonical_mathematical_reconciliation(data: Dict[str, Any], max_marks: Optional[int] = None, is_hindi: bool = False) -> None:
+    """
+    Mathematical Reconciler (Audit & Integrity Protocol):
+    - Detects and reports arithmetic inconsistencies; DOES NOT invent, inflate, or redistribute marks.
+    - Zero score or unattempted answer remains 0.0 (never defaulted to 4.0/6.5, never clamped to 0.5).
+    - Sub-part criteria scores are preserved exactly as evaluated from evidence.
+    - If overall score differs from the sum of evaluated criteria, reports the discrepancy and ensures
+      overall_score truthfully equals the exact evidence-based sum of student's criterion marks.
+    - Inconsistencies are recorded in data['arithmetic_inconsistencies'] and data['validation_audit'].
+    """
+    if not isinstance(data, dict):
+        return
+    if max_marks is None:
+        max_marks = int(data.get("max_marks", 10) or 10)
+
+    max_m = float(max_marks)
+    raw_overall = data.get("overall_score")
+    inconsistencies = []
+
+    # 1. Reconcile sub_part_step_marking (without mark invention or redistribution)
+    steps = data.get("sub_part_step_marking")
+    has_steps = isinstance(steps, list) and len(steps) >= 2
+
+    if has_steps:
+        # Preserve exact evidence-grounded criteria marks
+        for s in steps:
+            if isinstance(s, dict):
+                mx_val = s.get("max")
+                s["max"] = round(float(mx_val if (mx_val is not None and mx_val != "") else 2.0), 1)
+                aw_val = s.get("awarded")
+                s["awarded"] = round(float(aw_val if (aw_val is not None and aw_val != "") else 0.0), 1)
+
+        sum_aw = round(sum(float(s.get("awarded", 0.0)) for s in steps if isinstance(s, dict)), 1)
+        sum_max = round(sum(float(s.get("max", 0.0)) for s in steps if isinstance(s, dict)), 1)
+
+        # Check for stated overall score vs criteria sum discrepancy
+        if raw_overall is not None and raw_overall != "":
+            stated_sc = round(float(raw_overall), 1)
+            diff_aw = round(stated_sc - sum_aw, 1)
+            if abs(diff_aw) > 0.001:
+                inconsistencies.append({
+                    "type": "subtotal_overall_mismatch",
+                    "stated_overall": stated_sc,
+                    "criterion_sum": sum_aw,
+                    "difference": diff_aw,
+                    "message": f"Subtotal of evaluated criteria ({sum_aw}) differs from stated overall score ({stated_sc}) by {diff_aw:+0.1f}M."
+                })
+            # The true grounded overall score is the direct sum of evaluated criteria (do not redistribute!)
+            overall_score = sum_aw
+        else:
+            # If overall score was missing, derive it directly from evaluated criteria sum (can be 0.0)
+            overall_score = sum_aw
+
+        # Check denominator consistency
+        diff_max = round(max_m - sum_max, 1)
+        if abs(diff_max) > 0.001:
+            inconsistencies.append({
+                "type": "denominator_mismatch",
+                "max_marks_stated": max_m,
+                "step_max_sum": sum_max,
+                "difference": diff_max,
+                "message": f"Sum of step maxima ({sum_max}) differs from question max marks ({max_m})."
+            })
+
+        # Update canonical demand status for each step based on its authentic score
+        for s in steps:
+            if isinstance(s, dict):
+                s["demand_status"] = get_canonical_demand_status(s.get("awarded"), s.get("max"), is_hindi=is_hindi)
+
+        data["sub_part_step_marking"] = steps
+        data["subpart_marks_breakdown"] = [
+            {
+                "part_name": st.get("step_label", ""),
+                "max_marks": float(st.get("max", 0.0) or 0.0),
+                "marks_awarded": float(st.get("awarded", 0.0) or 0.0),
+                "demand_status": get_canonical_demand_status(st.get("awarded"), st.get("max"), is_hindi=is_hindi),
+                "analysis": st.get("sub_heading", ""),
+                "scoring_rationale": st.get("quoted_written", "")
+            }
+            for st in steps if isinstance(st, dict)
+        ]
+    else:
+        # No step breakdown: preserve raw_overall or 0.0 (NO default to 4.0/6.5, NO clamping to 0.5)
+        if raw_overall is not None and raw_overall != "":
+            overall_score = round(max(0.0, min(max_m, float(raw_overall))), 1)
+        else:
+            overall_score = 0.0
+
+    data["overall_score"] = overall_score
+    data["total_score"] = overall_score
+    data["max_marks"] = int(max_marks)
+
+    # 2. Reconcile rubric_scores (detect discrepancies without arbitrary redistribution)
+    rubric = data.get("rubric_scores")
+    if isinstance(rubric, dict) and rubric:
+        comp_keys = ["intro", "core_demand", "value_add", "presentation", "conclusion"]
+        for k in comp_keys:
+            if f"{k}_max" in rubric and rubric[f"{k}_max"] is not None:
+                rubric[f"{k}_max"] = round(float(rubric[f"{k}_max"]), 1)
+            if f"{k}_score" in rubric and rubric[f"{k}_score"] is not None:
+                rubric[f"{k}_score"] = round(float(rubric[f"{k}_score"]), 1)
+
+        present_scores = [rubric.get(f"{k}_score") for k in comp_keys if rubric.get(f"{k}_score") is not None]
+        if len(present_scores) == len(comp_keys):
+            sum_r_sc = round(sum(float(sc) for sc in present_scores), 1)
+            diff_r_sc = round(overall_score - sum_r_sc, 1)
+            if abs(diff_r_sc) > 0.001:
+                inconsistencies.append({
+                    "type": "rubric_overall_mismatch",
+                    "overall_score": overall_score,
+                    "rubric_sum": sum_r_sc,
+                    "difference": diff_r_sc,
+                    "message": f"Sum of rubric scores ({sum_r_sc}) differs from overall score ({overall_score}) by {diff_r_sc:+0.1f}M."
+                })
+
+        rubric["total_score"] = overall_score
+        rubric["total_max"] = int(max_marks)
+        data["rubric_scores"] = rubric
+
+    # 3. Report detected inconsistencies transparently
+    if inconsistencies:
+        data["arithmetic_inconsistencies"] = inconsistencies
+        if not isinstance(data.get("validation_audit"), dict):
+            data["validation_audit"] = {}
+        data["validation_audit"]["arithmetic_inconsistencies_detected"] = len(inconsistencies)
+        data["validation_audit"]["reconciliation_report"] = inconsistencies
+        data["validation_audit"]["reconciliation_passed"] = False
+    else:
+        data["arithmetic_inconsistencies"] = []
+        if isinstance(data.get("validation_audit"), dict):
+            data["validation_audit"]["arithmetic_inconsistencies_detected"] = 0
+            data["validation_audit"]["reconciliation_passed"] = True
+
 
 
 def _enrich_case_study_audit(data: Dict[str, Any]) -> None:
