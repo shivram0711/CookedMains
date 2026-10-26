@@ -2741,9 +2741,14 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
         - STRICT PROHIBITION: NEVER write as long paragraphs!
         - MUST output **3 to 4 distinct, structured upgrade points** (25 to 40 words each):
           `**[Clear Actionable Title] (Page X)**: In-depth guidance explaining what was generic or incomplete with exact domain-specific terminology, data, or frameworks to add.`
-      * `body_audit.missing_dimensions`:
-        - MUST output **3 to 4 analytical dimensions**:
-          `**[Dimension Title]**: Clear, concrete explanation of the unexplored institutional, statutory, spatial, empirical, or ethical angle.`
+      * `body_audit.missing_dimensions` (UNCOVERED CORE DEMANDS):
+        - Output ONLY genuine, question-specific analytical dimensions that the candidate actually missed and that are required by this exact question.
+        - Strict 3-Point Validation Test:
+          1. Does this dimension address an explicit or clearly implied demand of this exact question?
+          2. Did the candidate genuinely omit or under-explore it in their handwritten script?
+          3. Would adding it materially improve the answer within UPSC word/mark limits?
+        - STRICT BAN ON REUSABLE CATALOGUE LABELS: NEVER use generic boilerplate such as "Institutional & Statutory Anchor", "Empirical Metric & Regional Disaggregation", or "Forward-Looking Implementation Strategy" unless that exact dimension is an explicit question demand and demonstrably missing.
+        - NO ARTIFICIAL COUNT PADDING: If the candidate covered all primary dimensions, return an empty list [] or only 1-2 genuine gaps. Never force 3-4 items if not needed!`
     - C. USE SIMPLE, CLEAR, EASY-TO-UNDERSTAND ENGLISH (ZERO HEAVY JARGON):
       * Write every evaluation remark in plain, natural English that any aspirant can understand in 3 seconds.
       * STRICTLY AVOID dense, robotic phrases such as `"Addressed limitations superficially without citing institutional friction"`, `"underweighting separation of powers constraints"`, `"epistemic tautology"`, `"dichotomy"`, `"substantiation"`.
@@ -3130,9 +3135,8 @@ Generate strictly valid JSON matching this schema:
       "**[Actionable Upgrade 3] (Page 3)**: In-depth explanation of what was generic or incomplete with exact terminology/data to add"
     ],
     "missing_dimensions": [
-      "**[Institutional / Statutory Dimension]**: Concrete explanation of missed perspective",
-      "**[Empirical / Spatial Dimension]**: Concrete explanation of missed perspective",
-      "**[Socio-Economic / Multi-Stakeholder Dimension]**: Concrete explanation of missed perspective"
+      "**[Question-Specific Core Gap 1]**: Concrete explanation of omitted demand relevant to this prompt",
+      "**[Question-Specific Core Gap 2]**: Concrete explanation of omitted demand relevant to this prompt"
     ]
   }},
   "value_add_checklist": {{
@@ -4059,10 +4063,47 @@ def _ensure_topper_model_answer_quality(data: Dict[str, Any], max_marks: int = 1
 
     # If the model answer is under-developed (e.g. < min_points or < min_target_wc words),
     # enrich it with examiner value-additions, critical gaps, or candidate valid points
+        # 1. Identify and cleanly extract Conclusion from model_ans so it is never displaced or placed between points
+    conc_match = re.search(
+        r'(?i)(?:^|\n)\s*(?:(?:#{1,6}\s*)?(?:\*\*)?(?:Conclusion\s*(?:&|/|\+)?\s*Way\s*Forward|Way\s*Forward\s*(?:&|/|\+)?\s*Conclusion|Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead|निष्कर्ष|आगे\s*की\s*राह)(?:\*\*)?[:\s]*)\n*([\s\S]+)$',
+        model_ans
+    )
+
+    body_text = ""
+    conc_text = ""
+
+    if conc_match:
+        body_text = model_ans[:conc_match.start()].strip()
+        conc_text = conc_match.group(1).strip()
+    else:
+        # Check if the final non-empty block is an unnumbered conclusion paragraph
+        blocks_pre = [b.strip() for b in re.split(r'\n\s*\n', model_ans) if b.strip()]
+        if len(blocks_pre) >= 2:
+            last_b = blocks_pre[-1]
+            is_last_point = bool(re.match(r'^\s*(?:[-*•]|\(?\d+[\.\)]|\*\*\d+[\.\)]|\*\*[a-zA-Z]\))\s+', last_b))
+            is_last_table = '|' in last_b and '---' in last_b
+            is_last_heading = bool(re.match(r'^#{1,6}\s+', last_b))
+            if not is_last_point and not is_last_table and not is_last_heading and len(last_b.split()) >= 12:
+                body_text = "\n\n".join(blocks_pre[:-1]).strip()
+                conc_text = last_b.strip()
+            else:
+                body_text = model_ans.strip()
+        else:
+            body_text = model_ans.strip()
+
+    # If no conclusion text was detected from model_ans, check conclusion_audit
+    if not conc_text:
+        c_rewrite = str(data.get("conclusion_audit", {}).get("model_conclusion_rewrite") or "").strip()
+        is_bad_rewrite = bool(re.search(r'(?i)(?:you\s+categorized|you\s+authored|you\s+wrote|what\s+you\s+wrote|candidate\'s\s+writing|pages?\s*\d+|presentation\s*note|viksit\s*bharat|@\s*2047|by\s*2047)', c_rewrite))
+        if c_rewrite and not is_bad_rewrite and len(c_rewrite) >= 20:
+            conc_text = c_rewrite
+
+    # Clean conc_text of accidental leading markers or headers
+    conc_text = re.sub(r'^(?:(?:#{1,6}\s*)?(?:\*\*)?(?:Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead|निष्कर्ष|आगे\s*की\s*राह)(?:\*\*)?[:\s]*)\n*', '', conc_text, flags=re.IGNORECASE).strip()
+    conc_text = re.sub(r'^\s*(?:[-*•]|\(?\d+[\.\)]|\*\*\d+[\.\)]|\*\*[a-zA-Z]\))\s*', '', conc_text).strip()
+
+    # 2. Enrich model answer body ONLY if under-developed, using factual checklist items (NEVER student feedback/critique cards!)
     if current_wc < min_target_wc or point_count < min_points:
-        b_audit = data.get("body_audit") if isinstance(data.get("body_audit"), dict) else {}
-        strengths = b_audit.get("strengths") or []
-        gaps = b_audit.get("critical_gaps") or b_audit.get("missing_dimensions") or []
         val_checklist = data.get("value_add_checklist") or []
 
         def _sanitize_enrichment_candidate(raw_str: str) -> Optional[Tuple[str, str]]:
@@ -4070,7 +4111,10 @@ def _ensure_topper_model_answer_quality(data: Dict[str, Any], max_marks: int = 1
                 return None
             if any(marker in raw_str.lower() for marker in ["diagram", "flowchart", "schematic", "आरेख", "->", "──>", "+---", "┌──"]):
                 return None
-            if any(critique in raw_str for critique in ["(Page ", "Lacks specific", "Omitted specific", "Did not discuss", "Candidate wrote", "परीक्षार्थी ने लिखा", "what you wrote", "What You Wrote"]):
+            # Strictly reject student feedback/evaluation phrases!
+            if re.search(r'(?i)\b(?:you\s+categorized|you\s+authored|you\s+wrote|what\s+you\s+wrote|candidate\'s\s+writing|pages?\s*\d+|presentation\s*note|upgrade\s*lever|verified\s*strength|examiner|feedback|verdict|critique|evaluat(?:ed|ion))\b', raw_str):
+                return None
+            if any(critique in raw_str for critique in ["(Page", "(Pages", "Lacks specific", "Omitted specific", "Did not discuss", "Candidate wrote", "परीक्षार्थी ने लिखा", "what you wrote", "What You Wrote", "You authored", "You categorized"]):
                 return None
             clean = re.sub(r'^\s*[-*•]\s*', '', raw_str).strip()
             clean = re.sub(r'^(?:Missing|Lacked|Add|Incorporate|छूटा|कमी|Effective|Strong|Good|सराहनीय|सकारात्मक|Address)\s*', '', clean, flags=re.IGNORECASE).strip()
@@ -4092,7 +4136,6 @@ def _ensure_topper_model_answer_quality(data: Dict[str, Any], max_marks: int = 1
             return kw, exp
 
         enrichment_points = []
-
         if isinstance(val_checklist, list):
             for cat in val_checklist:
                 if isinstance(cat, dict):
@@ -4104,50 +4147,30 @@ def _ensure_topper_model_answer_quality(data: Dict[str, Any], max_marks: int = 1
                             cand = _sanitize_enrichment_candidate(f"{term}: {how}")
                             if cand:
                                 kw, exp = cand
-                                if kw.lower() not in model_ans.lower():
+                                if kw.lower() not in body_text.lower():
                                     enrichment_points.append((kw, exp))
                         elif isinstance(it, str):
                             cand = _sanitize_enrichment_candidate(it)
                             if cand:
                                 kw, exp = cand
-                                if kw.lower() not in model_ans.lower():
+                                if kw.lower() not in body_text.lower():
                                     enrichment_points.append((kw, exp))
 
-        if isinstance(gaps, list):
-            for gap in gaps:
-                if isinstance(gap, str):
-                    cand = _sanitize_enrichment_candidate(gap)
-                    if cand:
-                        kw, exp = cand
-                        if kw.lower() not in model_ans.lower():
-                            enrichment_points.append((kw, exp))
-
-        if is_adaptive and isinstance(strengths, list):
-            for st in strengths:
-                if isinstance(st, str):
-                    cand = _sanitize_enrichment_candidate(st)
-                    if cand:
-                        kw, exp = cand
-                        if kw.lower() not in model_ans.lower():
-                            enrichment_points.append((kw, exp))
-
         if enrichment_points:
-            conc_match = re.search(r'(?i)(\n\s*(?:###\s*)?\*\*(?:Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead|निष्कर्ष|आगे\s*की\s*राह)\*\*[\s\S]*$)', model_ans)
             needed_pts = max(2, min_points - point_count)
             pts_to_add = enrichment_points[:needed_pts]
-
             if pts_to_add:
                 formatted_pts = []
                 for kw, exp in pts_to_add:
                     formatted_pts.append(f"**1. {kw}:** {exp}")
-
                 pts_block = "\n\n".join(formatted_pts)
-                if conc_match:
-                    intro_and_body = model_ans[:conc_match.start()].rstrip()
-                    conc_part = model_ans[conc_match.start():].lstrip()
-                    model_ans = f"{intro_and_body}\n\n{pts_block}\n\n{conc_part}"
-                else:
-                    model_ans = f"{model_ans}\n\n{pts_block}"
+                body_text = f"{body_text}\n\n{pts_block}"
+
+    # Reassemble: Body points followed by the standard Conclusion section at the very end
+    if conc_text:
+        model_ans = f"{body_text}\n\n### Concluding Synthesis\n{conc_text}"
+    else:
+        model_ans = body_text
 
     # Final strip of any stray diagrams or flowchart lines
     model_ans = re.sub(r'\[EXAM-HALL.*?\][\s\S]*?(?=\n\s*\n\s*[A-Za-z*#\u0900-\u097F]|$)', '', model_ans, flags=re.IGNORECASE)
@@ -4225,6 +4248,12 @@ def _ensure_topper_model_answer_quality(data: Dict[str, Any], max_marks: int = 1
     model_ans = "\n\n".join(renumbered_blocks)
     data["full_model_answer"] = model_ans.strip()
 
+    # Synchronize conclusion_audit model_conclusion_rewrite with authentic model conclusion
+    if conc_text:
+        if not isinstance(data.get("conclusion_audit"), dict):
+            data["conclusion_audit"] = {}
+        data["conclusion_audit"]["model_conclusion_rewrite"] = conc_text
+
     # Calculate final word count and point count
     clean_final = re.sub(r'\[EXAM-HALL.*?\][\s\S]*?(?=\n\s*\n\s*[A-Za-z*#\u0900-\u097F]|$)', '', data["full_model_answer"], flags=re.IGNORECASE)
     clean_final = re.sub(r'(?:^[ \t]*[┌├│└─┼┤┴┬].*\n?)+', '', clean_final, flags=re.MULTILINE)
@@ -4267,7 +4296,7 @@ def _ensure_at_least_one_value_addition(data: Dict[str, Any], is_hindi: bool = F
     for dim in missing_dims:
         dim_str = str(dim).strip()
         if dim_str and len(dim_str) > 10 and not any(w in dim_str.lower() for w in ["none", "nil", "no missing", "well covered", "thoroughly analyzed", "all substantive", "well addressed", "no major"]):
-            parts = re.split(r'[:—–-]\s*', dim_str, 1)
+            parts = re.split(r'[:—–-]\s*', dim_str, maxsplit=1)
             enrichment_term = re.sub(r'[*_"]', '', parts[0]).strip()[:50]
             desc = parts[1].strip() if len(parts) > 1 else dim_str
             enrichment_def = (
@@ -7570,30 +7599,42 @@ def extract_model_answer_conclusion(model_ans: str) -> str:
     text = model_ans.strip()
     text = re.sub(r'\[EXAM-HALL.*?\]', '', text, flags=re.IGNORECASE)
     text = re.sub(r'(?:^[┌├│└+|-].*\n?){3,}', '', text, flags=re.MULTILINE)
+
+    def _is_feedback_or_numbered(str_val: str) -> bool:
+        if not str_val:
+            return True
+        if re.search(r'(?i)\b(?:you\s+categorized|you\s+authored|you\s+wrote|what\s+you\s+wrote|candidate\'s\s+writing|pages?\s*\d+|presentation\s*note|upgrade\s*lever|verified\s*strength)\b', str_val):
+            return True
+        if re.match(r'^\s*(?:\*\*)?(?:\d+|[a-zA-Z])[\.\)]\s+', str_val):
+            return True
+        return False
+
     patterns = [
-        r'(?i)\*\*(?:Conclusion\s*(?:&|/|\+)?\s*Way\s*Forward|Way\s*Forward\s*(?:&|/|\+)?\s*Conclusion|Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead)\*\*[:\s]*([\s\S]+)$',
-        r'(?i)(?:^|\n)(?:Conclusion\s*(?:&|/|\+)?\s*Way\s*Forward|Way\s*Forward\s*(?:&|/|\+)?\s*Conclusion|Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead)[:\s]+([\s\S]+)$'
+        r'(?i)(?:^|\n)\s*(?:(?:#{1,6}\s*)?(?:\*\*)?(?:Conclusion\s*(?:&|/|\+)?\s*Way\s*Forward|Way\s*Forward\s*(?:&|/|\+)?\s*Conclusion|Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead|निष्कर्ष|आगे\s*की\s*राह)(?:\*\*)?[:\s]*)\n*([\s\S]+)$',
+        r'(?i)(?:^|\n)(?:Conclusion\s*(?:&|/|\+)?\s*Way\s*Forward|Way\s*Forward\s*(?:&|/|\+)?\s*Conclusion|Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead|निष्कर्ष)[:\s]+([\s\S]+)$'
     ]
     for p in patterns:
         m = re.search(p, text)
         if m:
             cand = m.group(1).strip()
-            sub_m = re.search(r'(?i)\*\*(?:Conclusion|Concluding\s*Synthesis)\*\*[:\s]*([\s\S]+)$', cand)
+            sub_m = re.search(r'(?i)(?:###\s*)?\*\*(?:Conclusion|Concluding\s*Synthesis)\*\*[:\s]*([\s\S]+)$', cand)
             if sub_m:
                 cand = sub_m.group(1).strip()
-            cand_lines = [l.strip() for l in cand.split('\n') if l.strip() and not l.strip().startswith('+') and not l.strip().startswith('|') and not l.strip().startswith('[')]
+            cand_lines = [l.strip() for l in cand.split('\n') if l.strip() and not l.strip().startswith('+') and not l.strip().startswith('|') and not l.strip().startswith('[') and not l.strip().startswith('#')]
             if cand_lines:
                 joined = " ".join(cand_lines)
                 joined = re.sub(r'^(?:[-*•–—]|\d+[\.\)])\s*', '', joined).strip()
-                if len(joined) >= 20:
+                if len(joined) >= 20 and not _is_feedback_or_numbered(joined):
                     return joined
     blocks = [b.strip() for b in text.split('\n\n') if b.strip()]
     for block in reversed(blocks):
         if any(marker in block for marker in ["+---", "┌──", "|", "[EXAM-HALL"]):
             continue
-        clean_b = re.sub(r'^(?:\*\*[^*]+\*\*[:\s]*|[-*•–—]\s*|\d+[\.\)]\s*)', '', block).strip()
+        if _is_feedback_or_numbered(block):
+            continue
+        clean_b = re.sub(r'^(?:#{1,6}\s*|\*\*[^*]+\*\*[:\s]*|[-*•–—]\s*|\d+[\.\)]\s*)', '', block).strip()
         clean_b = " ".join(clean_b.split())
-        if len(clean_b) >= 25 and len(clean_b.split()) >= 5:
+        if len(clean_b) >= 25 and len(clean_b.split()) >= 5 and not _is_feedback_or_numbered(clean_b):
             return clean_b
     return ""
 
@@ -7988,6 +8029,37 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                         formatted_gaps.append(f"**{t_clean} (Page {pg_num})**: {verd}")
 
         body_audit["critical_gaps"] = formatted_gaps[:4]
+
+    # 2B. Sanitize missing_dimensions: filter out generic catalogue boilerplate,
+    # verify omissions against positive corpus, and de-duplicate.
+    raw_missing_dims = body_audit.get("missing_dimensions")
+    if isinstance(raw_missing_dims, list):
+        def _is_catalogue_boilerplate(dim_str: str) -> bool:
+            return bool(re.search(
+                r'(?i)(?:institutional\s*&\s*statutory\s*anchor|empirical\s*metric\s*&\s*regional\s*disaggregation|'
+                r'forward-looking\s*implementation\s*strategy|संस्थागत\s*एवं\s*विधिक\s*आधार|प्रामाणिक\s*साक्ष्य\s*एवं\s*क्षेत्रीय\s*विभाजन|'
+                r'अग्रगामी\s*क्रियान्वयन\s*रणनीति|official\s*committee\s*recommendations|authoritative\s*surveys,\s*baseline\s*percentages|'
+                r'systemic\s*operational\s*bottlenecks)',
+                str(dim_str or "")
+            ))
+
+        clean_missing_dims = []
+        for dim in raw_missing_dims:
+            if not dim or not isinstance(dim, str):
+                continue
+            if _is_catalogue_boilerplate(dim):
+                continue
+            
+            # Check if candidate already covered this substantive dimension
+            explanation_part = dim.split(":", 1)[1] if ":" in dim else dim
+            content_words = [w for w in re.findall(r'[a-zA-Z]{4,}', explanation_part.lower()) if w not in {"with", "that", "this", "from", "their", "more", "such", "than", "have", "been", "into", "also"}]
+            matched_words = [w for w in content_words if w[:5] in positive_corpus]
+            if len(content_words) >= 4 and len(matched_words) >= 4:
+                continue
+            
+            clean_missing_dims.append(dim.strip())
+
+        body_audit["missing_dimensions"] = clean_missing_dims[:3]
         data["body_audit"] = body_audit
 
     # 3. Overall Body Assessment synthesis
@@ -8084,11 +8156,12 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
     # Priority: Topper Model Answer conclusion > dynamic question conclusion > fallback (strictly respecting evaluation medium)
     raw_model_conc = str(c_audit.get("model_conclusion_rewrite") or "").strip()
     is_raw_stuck = bool(re.search(r'(?i)(viksit\s*bharat|@\s*2047|by\s*2047|Harmonizing.*?constitutional morality.*?2nd ARC)', raw_model_conc))
+    is_raw_feedback = bool(re.search(r'(?i)\b(?:you\s+categorized|you\s+authored|you\s+wrote|what\s+you\s+wrote|candidate\'s\s+writing|pages?\s*\d+|presentation\s*note)\b', raw_model_conc))
 
     if not is_hindi:
         if topper_conc and len(topper_conc) >= 25 and not is_devanagari_text(topper_conc):
             effective_conc = topper_conc
-        elif raw_model_conc and not is_raw_stuck and len(raw_model_conc) >= 25 and not is_devanagari_text(raw_model_conc):
+        elif raw_model_conc and not is_raw_stuck and not is_raw_feedback and len(raw_model_conc) >= 25 and not is_devanagari_text(raw_model_conc):
             effective_conc = raw_model_conc
         else:
             effective_conc = domain_conc

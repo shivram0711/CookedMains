@@ -270,5 +270,108 @@ class TestEvaluationRigor(unittest.TestCase):
         self.assertLessEqual(c_max, 1.5)
         self.assertNotEqual(c_max, 2.5)
 
+    def test_image1_image2_model_conclusion_at_end_and_no_feedback_in_conclusion_box(self):
+        """13. Regression test: Model conclusion is at very end under ### Concluding Synthesis, and conclusion box never shows student feedback (Image 1 & 2)."""
+        from evaluator_engine import _ensure_topper_model_answer_quality, extract_model_answer_conclusion
+        
+        sample_eval = {
+            "max_marks": 15,
+            "detected_question": "Assess the role of foreign travelers in reconstructing the history of medieval India. (15 marks, 250 words)",
+            "paper": "GS1",
+            "full_model_answer": (
+                "### Role in Socio-Political Understanding\n"
+                "**1. Court Politics & Administration:** Bernier detailed the Mughal state machinery, crown ownership of land, and court etiquette under Aurangzeb.\n"
+                "**2. Economic Life & Urban Centers:** Tavernier documented diamond mines and inland trade networks connecting Agra with Surat.\n"
+                "**3. Social Customs:** Ibn Battuta recorded judicial practices, postal systems (Uluq & Dawa), and women's position.\n\n"
+                "While European travelogues provide invaluable empirical data on medieval India, historical objectivity requires triangulating these external observations with indigenous Persian, Sanskrit, epigraphic, and archaeological sources."
+            ),
+            "body_audit": {
+                "strengths": [
+                    "Multidimensional Thematic Breakdown (Pages 1-2): You categorized accounts across diverse pillars including peopled polity, royal absolutism, cultural segregation, and architectural patronage.",
+                    "Specific Textual Citations (Pages 1-3): Enhance academic rigor by citing specific texts."
+                ],
+                "critical_gaps": [
+                    "Structural Presentation Note: You authored the entire body under a single heading ('Role in shaping understanding'). While your point-wise coverage is."
+                ]
+            },
+            "conclusion_audit": {
+                "model_conclusion_rewrite": "While European travelogues provide invaluable empirical data on medieval India, historical objectivity requires triangulating these external observations with indigenous Persian, Sanskrit, epigraphic, and archaeological sources."
+            }
+        }
+        
+        _ensure_topper_model_answer_quality(sample_eval, max_marks=15)
+        
+        fma = sample_eval["full_model_answer"]
+        
+        # 1. Verify conclusion is at the very end with ### Concluding Synthesis
+        self.assertIn("### Concluding Synthesis", fma)
+        conc_idx = fma.find("### Concluding Synthesis")
+        after_conc = fma[conc_idx:]
+        self.assertIn("While European travelogues provide invaluable empirical data", after_conc)
+        
+        # 2. Verify no candidate feedback or critique was injected after or inside the model answer
+        self.assertNotIn("You categorized accounts across diverse pillars", fma)
+        self.assertNotIn("You authored the entire body", fma)
+        self.assertNotIn("Multidimensional Thematic Breakdown", fma)
+        self.assertNotIn("Structural Presentation Note", fma)
+        
+        # 3. Verify extracted conclusion is the authentic travelogues conclusion, NOT candidate feedback
+        extracted = extract_model_answer_conclusion(fma)
+        self.assertIn("While European travelogues provide invaluable empirical data", extracted)
+        self.assertNotIn("You categorized", extracted)
+        
+        # 4. Verify conclusion_audit model_conclusion_rewrite is the authentic conclusion
+        self.assertIn("While European travelogues provide invaluable empirical data", sample_eval["conclusion_audit"]["model_conclusion_rewrite"])
+        self.assertNotIn("You categorized", sample_eval["conclusion_audit"]["model_conclusion_rewrite"])
+
+    def test_image3_missing_dimensions_omits_catalogue_boilerplate(self):
+        """14. Regression test: Missing dimensions retains genuine on-demand items and strips institutional/empirical boilerplate (Image 3)."""
+        raw_eval = {
+            "max_marks": 15,
+            "detected_question": "Assess the role of foreign travelers in reconstructing the history of medieval India. (15 marks, 250 words)",
+            "paper": "GS1",
+            "overall_score": 7.0,
+            "transcribed_text": "Foreign travelers like Bernier and Ibn Battuta gave detailed accounts of medieval society and polity in India.",
+            "body_audit": {
+                "missing_dimensions": [
+                    "**Socio-Religious Synthesis**: Contribution of travelers in documenting Bhakti-Sufi syncretism and temple economies (e.g., Domingo Paes on Vijayanagara festivities).",
+                    "**Methodological Triangulation**: Comparing foreign accounts with indigenous epigraphic and Persian/Sanskrit literary sources.",
+                    "**Institutional & Statutory Anchor**: Ground arguments in official committee recommendations, constitutional mandates, or national statutory frameworks.",
+                    "**Empirical Metric & Regional Disaggregation**: Back qualitative points with authoritative surveys, baseline percentages, and spatial vulnerability distributions."
+                ]
+            }
+        }
+        
+        norm = normalize_evaluation_data(raw_eval, max_marks=15)
+        clean_dims = norm.get("body_audit", {}).get("missing_dimensions", [])
+        
+        # Must retain question-specific dimensions
+        dims_text = " ".join(clean_dims)
+        self.assertIn("Socio-Religious Synthesis", dims_text)
+        self.assertIn("Methodological Triangulation", dims_text)
+        
+        # Must strictly omit generic catalogue boilerplate
+        self.assertNotIn("Institutional & Statutory Anchor", dims_text)
+        self.assertNotIn("Empirical Metric & Regional Disaggregation", dims_text)
+        self.assertNotIn("official committee recommendations", dims_text)
+        self.assertNotIn("authoritative surveys", dims_text)
+        
+        # Count should reflect genuine dimensions only (<= 2 here)
+        self.assertEqual(len(clean_dims), 2)
+
+    def test_missing_dimensions_can_be_empty_without_forced_padding(self):
+        """15. Candidate covering all core demands produces empty missing_dimensions list without padding."""
+        raw_eval = {
+            "max_marks": 10,
+            "detected_question": "Examine the constitutional role of the Comptroller and Auditor General.",
+            "paper": "GS2",
+            "transcribed_text": "CAG under Article 148 ensures legislative accountability of the executive through financial audits.",
+            "body_audit": {
+                "missing_dimensions": []
+            }
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=10)
+        self.assertEqual(norm.get("body_audit", {}).get("missing_dimensions", []), [])
+
 if __name__ == "__main__":
     unittest.main()

@@ -2972,7 +2972,8 @@ window.sanitizeRepetitiveConclusionCliches = function(evalObj, questionText, pap
   }
 
   const isOldGenericCliche = /community-led\s*resilience|spatial\s*equity|composite\s*cultural\s*preservation/i.test(existingConc);
-  if (!conc.model_conclusion_rewrite || /viksit\s*bharat|@\s*2047|by\s*2047/i.test(existingConc)) {
+  const isFeedbackConc = /(?:you\s+categorized|you\s+authored|you\s+wrote|what\s+you\s+wrote|candidate's\s+writing|page\s*\d+|pages\s*\d+|presentation\s*note)/i.test(existingConc);
+  if (!conc.model_conclusion_rewrite || /viksit\s*bharat|@\s*2047|by\s*2047/i.test(existingConc) || isFeedbackConc) {
     conc.model_conclusion_rewrite = domainConc;
     evalObj.conclusion_audit = conc;
   }
@@ -8408,22 +8409,30 @@ function extractConclusionFromModelAnswer(fullModelAnswer) {
   text = text.replace(/\[EXAM-HALL.*?\]/gi, "");
   text = text.replace(/(?:^[┌├│└+|-].*\n?){3,}/gm, "");
 
+  const isFeedbackText = (str) => {
+    return /(?:you\s+categorized|you\s+authored|you\s+wrote|what\s+you\s+wrote|candidate's\s+writing|page\s*\d+|pages\s*\d+|presentation\s*note|upgrade\s*lever|verified\s*strength)/i.test(str);
+  };
+
+  const isNumberedPoint = (str) => {
+    return /^\s*(?:\*\*)?(?:\d+|[a-zA-Z])[\.\)]\s+/.test(str);
+  };
+
   const patterns = [
-    /\*\*(?:Conclusion\s*(?:&|\/|\+)?\s*Way\s*Forward|Way\s*Forward\s*(?:&|\/|\+)?\s*Conclusion|Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead)\*\*[:\s]*([\s\S]+)$/i,
-    /(?:^|\n)(?:Conclusion\s*(?:&|\/|\+)?\s*Way\s*Forward|Way\s*Forward\s*(?:&|\/|\+)?\s*Conclusion|Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead)[:\s]+([\s\S]+)$/i
+    /(?:^|\n)\s*(?:(?:#{1,6}\s*)?(?:\*\*)?(?:Conclusion\s*(?:&|\/|\+)?\s*Way\s*Forward|Way\s*Forward\s*(?:&|\/|\+)?\s*Conclusion|Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead|निष्कर्ष|आगे\s*की\s*राह)(?:\*\*)?[:\s]*)\n*([\s\S]+)$/i,
+    /(?:^|\n)(?:Conclusion\s*(?:&|\/|\+)?\s*Way\s*Forward|Way\s*Forward\s*(?:&|\/|\+)?\s*Conclusion|Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead|निष्कर्ष)[:\s]+([\s\S]+)$/i
   ];
   for (const p of patterns) {
     const m = text.match(p);
     if (m && m[1]) {
       let cand = m[1].trim();
-      const subM = cand.match(/\*\*(?:Conclusion|Concluding\s*Synthesis)\*\*[:\s]*([\s\S]+)$/i);
+      const subM = cand.match(/(?:###\s*)?\*\*(?:Conclusion|Concluding\s*Synthesis)\*\*[:\s]*([\s\S]+)$/i);
       if (subM && subM[1]) cand = subM[1].trim();
       const candLines = cand.split("\n")
         .map(l => l.trim())
-        .filter(l => l && !l.startsWith("+") && !l.startsWith("|") && !l.startsWith("["));
+        .filter(l => l && !l.startsWith("+") && !l.startsWith("|") && !l.startsWith("[") && !l.startsWith("#"));
       if (candLines.length > 0) {
         let joined = candLines.join(" ").replace(/^(?:[-*•–—]|\d+[\.\)])\s*/, "").trim();
-        if (joined.length >= 20) return joined;
+        if (joined.length >= 20 && !isFeedbackText(joined) && !isNumberedPoint(joined)) return joined;
       }
     }
   }
@@ -8434,9 +8443,12 @@ function extractConclusionFromModelAnswer(fullModelAnswer) {
     if (block.includes("+---") || block.includes("┌──") || block.includes("|") || block.includes("[EXAM-HALL")) {
       continue;
     }
-    let clean = block.replace(/^(?:\*\*[^*]+\*\*[:\s]*|[-*•–—]\s*|\d+[\.\)]\s*)/, "").trim();
+    if (isNumberedPoint(block) || isFeedbackText(block)) {
+      continue;
+    }
+    let clean = block.replace(/^(?:#{1,6}\s*|\*\*[^*]+\*\*[:\s]*|[-*•–—]\s*|\d+[\.\)]\s*)/, "").trim();
     clean = clean.replace(/\s+/g, " ");
-    if (clean.length >= 25 && clean.split(" ").length >= 5) {
+    if (clean.length >= 25 && clean.split(" ").length >= 5 && !isFeedbackText(clean) && !isNumberedPoint(clean)) {
       return clean;
     }
   }
@@ -11636,20 +11648,14 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
 
   body.critical_gaps = formattedGaps.slice(0, 4);
 
-  // 4. Ensure missing dimensions has 3 to 4 analytical items (discipline-aware, zero statutory anchors on physical geo)
-  if (!Array.isArray(body.missing_dimensions) || body.missing_dimensions.length < 3) {
-    const qTxtCheck = String(evalData.question || evalData.detected_question || (typeof state !== "undefined" && state.question) || "").toLowerCase();
-    const isPhysicalGeo = /geography|ocean|climate|current|wind|circulation|plate\s*tectonic|geomorphic|monsoon|cyclone/i.test(qTxtCheck);
-    const fallbackDims = isHindi ? [
-      isPhysicalGeo ? "**भौतिक प्रक्रिया एवं युग्मन (Physical Mechanism)**: समुद्री धाराओं एवं वायुमंडलीय परिसंचरण के त्रि-कोशिकीय युग्मन तथा वैश्विक मानचित्रण को स्पष्ट करें।" : "**संस्थागत एवं विधिक आधार (Institutional Anchor)**: तर्कों को आधिकारिक समिति अनुशंसाओं, संवैधानिक अधिदेशों या राष्ट्रीय विधिक रूपरेखाओं से पुष्ट करें।",
-      isPhysicalGeo ? "**अनुभवजन्य साक्ष्य एवं क्षेत्रीय प्रभाव (Empirical & Regional Impacts)**: तटीय जलवायु, समुद्री पारिस्थितिकी एवं मत्स्य क्षेत्रों पर विशिष्ट प्रभावों को साक्ष्यों सहित प्रस्तुत करें।" : "**प्रामाणिक साक्ष्य एवं क्षेत्रीय विभाजन (Empirical Metric)**: गुणात्मक बिंदुओं को आधिकारिक सर्वेक्षणों, नीति आयोग रिपोर्टों या डेटा से समर्थित करें।",
-      "**अग्रगामी क्रियान्वयन रणनीति (Implementation Strategy)**: प्रशासनिक, ढांचागत या तकनीकी समाधान प्रस्तुत कर व्यवस्थागत बाधाओं को दूर करने की कार्ययोजना दें।"
-    ] : [
-      isPhysicalGeo ? "**Physical Mechanism & Global Coupling**: Clarify the tri-cellular atmospheric coupling with wind-driven gyres and deep thermohaline density gradients." : "**Institutional & Statutory Anchor**: Ground arguments in official committee recommendations, constitutional mandates, or national statutory frameworks.",
-      isPhysicalGeo ? "**Empirical Evidence & Regional Micro-Case Studies**: Substantiate climatic impacts (coastal desiccation, marine upwelling) and economic activities (pelagic fisheries, navigation corridors) with specific geographic examples." : "**Empirical Metric & Regional Disaggregation**: Back qualitative points with authoritative surveys, baseline percentages, and spatial vulnerability distributions.",
-      "**Forward-Looking Implementation Strategy**: Provide concrete administrative, infrastructural, or technological mechanisms to bridge systemic operational bottlenecks."
-    ];
-    body.missing_dimensions = (body.missing_dimensions || []).concat(fallbackDims).slice(0, 4);
+  // 4. Clean missing dimensions: strictly filter out generic catalogue boilerplate
+  if (Array.isArray(body.missing_dimensions)) {
+    const isGenericBoilerplate = (txt) => {
+      return /(?:institutional\s*&\s*statutory\s*anchor|empirical\s*metric\s*&\s*regional\s*disaggregation|forward-looking\s*implementation\s*strategy|संस्थागत\s*एवं\s*विधिक\s*आधार|प्रामाणिक\s*साक्ष्य\s*एवं\s*क्षेत्रीय\s*विभाजन|अग्रगामी\s*क्रियान्वयन\s*रणनीति|official\s*committee\s*recommendations|authoritative\s*surveys,\s*baseline\s*percentages|systemic\s*operational\s*bottlenecks)/i.test(String(txt || ""));
+    };
+    body.missing_dimensions = body.missing_dimensions.filter(d => d && !isGenericBoilerplate(d)).slice(0, 3);
+  } else {
+    body.missing_dimensions = [];
   }
 
   evalData.body_audit = body;
@@ -13441,17 +13447,27 @@ function renderEvaluation(evalData) {
     gapsEl.appendChild(li);
   });
 
+  const missingDimCardBox = document.getElementById("bodyMissingDimensionsCardBox");
   const missingDimEl = document.getElementById("bodyMissingDimensionsList");
-  missingDimEl.innerHTML = "";
-  const uniqueMissingDims = (body.missing_dimensions || []).filter(d => !isAlreadyInDeepEval(d));
-  const dimsToRender = uniqueMissingDims.length > 0 ? uniqueMissingDims : (body.missing_dimensions || []).slice(0, 4);
-  dimsToRender.forEach(d => {
-    registerInDeepEval(d);
-    const li = document.createElement("li");
-    li.className = "leading-relaxed";
-    li.innerHTML = formatHighlightedText(d);
-    missingDimEl.appendChild(li);
-  });
+  if (missingDimEl) {
+    missingDimEl.innerHTML = "";
+    const isGenericBoilerplate = (txt) => {
+      return /(?:institutional\s*&\s*statutory\s*anchor|empirical\s*metric\s*&\s*regional\s*disaggregation|forward-looking\s*implementation\s*strategy|संस्थागत\s*एवं\s*विधिक\s*आधार|प्रामाणिक\s*साक्ष्य\s*एवं\s*क्षेत्रीय\s*विभाजन|अग्रगामी\s*क्रियान्वयन\s*रणनीति|official\s*committee\s*recommendations|authoritative\s*surveys,\s*baseline\s*percentages|systemic\s*operational\s*bottlenecks)/i.test(String(txt || ""));
+    };
+    const uniqueMissingDims = (body.missing_dimensions || []).filter(d => d && !isGenericBoilerplate(d) && !isAlreadyInDeepEval(d));
+    if (uniqueMissingDims.length > 0) {
+      if (missingDimCardBox) missingDimCardBox.classList.remove("hidden");
+      uniqueMissingDims.forEach(d => {
+        registerInDeepEval(d);
+        const li = document.createElement("li");
+        li.className = "leading-relaxed";
+        li.innerHTML = formatHighlightedText(d);
+        missingDimEl.appendChild(li);
+      });
+    } else {
+      if (missingDimCardBox) missingDimCardBox.classList.add("hidden");
+    }
+  }
 
   // Pre-register bodyKeywordCards (both term and definition stems) so value_add_checklist and caDataReportsList never repeat them
   bodyKeywordCards.forEach(c => {
@@ -13513,16 +13529,19 @@ function renderEvaluation(evalData) {
       modelConcHeadLbl.textContent = isHindi ? "✍️ लिखने का आदर्श प्रारूप (टॉपर मॉडल उत्तर के अनुसार):" : "✍️ How to Write (Matched with Topper Model Answer):";
     }
 
-    // Always synchronize with the actual conclusion of the Topper Model Answer!
-    let topperConc = window.extractConclusionFromModelAnswer ? window.extractConclusionFromModelAnswer(evalData.full_model_answer) : "";
-    let modelConc = topperConc;
+    // Select the best authentic question-specific model conclusion (rejecting feedback & boilerplate)
+    const isFeedback = (txt) => /(?:you\s+categorized|you\s+authored|you\s+wrote|what\s+you\s+wrote|candidate's\s+writing|page\s*\d+|pages\s*\d+|presentation\s*note)/i.test(String(txt || ""));
+    const isStuck = (txt) => /Harmonizing.*?constitutional morality.*?2nd ARC/i.test(String(txt || ""));
 
-    // If full_model_answer extraction did not yield text, check conc.model_conclusion_rewrite (excluding stuck boilerplate)
-    const isStuckBoilerplate = /Harmonizing.*?constitutional morality.*?2nd ARC/i.test(conc.model_conclusion_rewrite || "");
-    if (!modelConc && conc.model_conclusion_rewrite && !isStuckBoilerplate && String(conc.model_conclusion_rewrite).trim().length >= 20) {
-      modelConc = String(conc.model_conclusion_rewrite).trim();
-    }
-    if (!modelConc || modelConc === '""' || modelConc.length < 20) {
+    let topperConc = window.extractConclusionFromModelAnswer ? window.extractConclusionFromModelAnswer(evalData.full_model_answer) : "";
+    let rawConc = String(conc.model_conclusion_rewrite || "").trim();
+
+    let modelConc = "";
+    if (topperConc && !isFeedback(topperConc) && !isStuck(topperConc) && topperConc.length >= 20) {
+      modelConc = topperConc;
+    } else if (rawConc && !isFeedback(rawConc) && !isStuck(rawConc) && rawConc.length >= 20) {
+      modelConc = rawConc;
+    } else {
       modelConc = window.buildDomainModelConclusion ? window.buildDomainModelConclusion(evalData) : "Integrating evidence-based institutional reforms and last-mile capacity building will translate policy intent into durable outcomes.";
     }
     document.getElementById("modelConclusionText").innerHTML = `"${formatHighlightedText(modelConc)}"`;
@@ -16064,13 +16083,14 @@ function renderModelAnswer(fullText, diagramVisual, maxMarks) {
 
     // Check if block is an explicit Conclusion paragraph
     const hasNumberedPointsInBlock = rawLines.some(l => /^\s*(?:\*\*)?\d+[\.\)]/.test(l));
+    const isExplicitConclusionHeading = /^(?:#{1,6}\s*)?(?:\*\*)?(?:Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead|निष्कर्ष|आगे\s*की\s*राह)(?:\*\*)?:?/i.test(rawLines[0]);
     const isConclusionBlock = !hasNumberedPointsInBlock && (
-      /^(?:(?:\*\*)?(?:Conclusion|Concluding\s*Synthesis|निष्कर्ष)(?:\*\*)?:?)/i.test(rawLines[0]) ||
+      isExplicitConclusionHeading ||
       (bIdx === blocks.length - 1 && hasHeadingAppeared && !/^#{1,6}\s+/.test(rawLines[0]))
     );
 
     if (isConclusionBlock) {
-      let concText = b.replace(/^(?:\*\*)?(?:Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead|निष्कर्ष|आगे\s*की\s*राह)(?:\*\*)?:?\s*/i, '');
+      let concText = b.replace(/^(?:#{1,6}\s*)?(?:\*\*)?(?:Conclusion|Concluding\s*Synthesis|Way\s*Forward|Way\s*Ahead|निष्कर्ष|आगे\s*की\s*राह)(?:\*\*)?:?\s*/i, '');
       if (!concText) concText = b;
       html += `
         <div class="mt-4 p-3.5 sm:p-4 rounded-xl bg-emerald-50/90 dark:bg-amber-500/5 border border-emerald-200 dark:border-amber-500/25 border-l-3 border-l-emerald-600 dark:border-l-amber-400 text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-sans space-y-1.5 shadow-xs">
