@@ -3454,10 +3454,14 @@ async def scan_instagram_reels_for_comments():
         m_res = requests.get(media_url, params={"fields": "id,caption,media_type,media_product_type,permalink,comments_count", "limit": 6, "access_token": token})
         all_media = m_res.json().get("data", [])
         
-        # Filter strictly to the last 2 Reels only (never touch other posts/reels)
-        target_ids = set(rules.get("target_reel_ids", ["18094002416667541", "18607963645064651"]))
-        reels_only = [m for m in all_media if m["id"] in target_ids or m.get("media_type") == "VIDEO" or m.get("media_product_type") == "REELS"]
-        media_items = reels_only[:2]
+        # Filter strictly to recent Reels (always automatically includes your newest Reel)
+        reels_only = [m for m in all_media if m.get('media_type') == 'VIDEO' or m.get('media_product_type') == 'REELS']
+        target_ids = set(rules.get('target_reel_ids', []))
+        if target_ids and reels_only:
+            # Match any configured target reel ID OR the brand-new latest reel
+            media_items = [m for m in reels_only if m['id'] in target_ids or m['id'] == reels_only[0]['id']][:4]
+        else:
+            media_items = reels_only[:3]
         
         scanned_comments = 0
         dm_dispatched = 0
