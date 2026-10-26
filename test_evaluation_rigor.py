@@ -562,6 +562,143 @@ class TestEvaluationRigor(unittest.TestCase):
             html = f.read()
         self.assertIn('id="studioTopBar" class="relative', html)
 
+    def test_deconstruct_question_demands_heatwave_proportional_allocations(self):
+        """22. Heatwave 15-marker deconstructs into 3 distinct demands with balanced 4.0M allocations."""
+        from evaluator_engine import deconstruct_question_demands
+        q = "The frequency and intensity of heatwaves, particularly in urban centres, have increased in recent years. Describe the various causes and effects of heatwaves. What policies and frameworks have been adopted in India towards extreme heat risk management? (15 Marks, 250 Words)"
+        demands_meta = deconstruct_question_demands(q, max_marks=15)
+        self.assertEqual(demands_meta["num_body"], 3)
+        self.assertEqual(demands_meta["intro_max"], 1.5)
+        self.assertEqual(demands_meta["conc_max"], 1.5)
+        self.assertEqual(demands_meta["part_maxes"], [4.0, 4.0, 4.0])
+        # Sum of step maxes must equal 15.0 exactly
+        total_sum = demands_meta["intro_max"] + sum(demands_meta["part_maxes"]) + demands_meta["conc_max"]
+        self.assertEqual(total_sum, 15.0)
+
+    def test_audit_and_heal_cross_page_demands_regression_case(self):
+        """23. Heatwave regression case: evaluates Page 3 policies, scrubs false cut-off claims, and reconciles 15M."""
+        from evaluator_engine import audit_and_heal_cross_page_demands
+
+        q = "Describe the various causes and effects of heatwaves. What policies and frameworks have been adopted in India towards extreme heat risk management?"
+        sample_data = {
+            "detected_question": q,
+            "max_marks": 15,
+            "total_pages": 3,
+            "transcribed_text": (
+                "[Page 1]\n"
+                "Recently, in the summer of 2025, North India particularly cities like New Delhi, Lucknow, Jaipur, Patna experienced heat waves.\n"
+                "Causes of heat waves: 1. High-pressure system (Heat dome effect), 2. Anthropogenic factors, 3. Urban Heat island due to asphalt construction.\n\n"
+                "[Page 2]\n"
+                "[Effects of heatwaves]\n"
+                "1) Increase in maximum temperature: Plain above 40C, Hilly above 30C.\n"
+                "2) Loss of life due to heat stroke. 3) Threat to livestock. 4) Failure of crops -> food insecurity.\n"
+                "5) Increased pressure on water leading to decrease in water table.\n"
+                "Therefore, various policies are adopted in India for effective management of\n\n"
+                "[Page 3]\n"
+                "extreme risk of heat :\n"
+                "1) Role of IMD in early warning system.\n"
+                "2) Promoting Green city through 'Nagar Vans'.\n"
+                "3) Ensuring 'whole of society' approach: [Mitigation] Biophilic design, [Preparedness] Climate-resilient lifestyle, [Response] Virtual meet to escape going out.\n"
+                "4) Proactive role of governance in harnessing digital technology.\n"
+                "The increased frequency of heatwaves demand categorisation as 'disaster' in India."
+            ),
+            "executive_summary": "However, the second major demand regarding India's policies and frameworks is entirely unaddressed due to the answer cutting off.",
+            "overall_score": 4.4,
+            "sub_part_step_marking": [
+                {"step_label": "1. Introduction (Context & Baseline Hook)", "max": 1.5, "awarded": 1.0, "quoted_written": "Recent heatwave incidence in North Indian cities"},
+                {"step_label": "2. Part A — Causes of Heatwaves", "max": 5.8, "awarded": 2.5, "quoted_written": "High pressure system, heat dome, anthropogenic factors & UHI"},
+                {"step_label": "3. Part B — Effects of Heatwaves", "max": 5.8, "awarded": 0.5, "quoted_written": "Temperature thresholds, health loss, crop failure"},
+                {"step_label": "4. Part C — Policies & Frameworks in India", "max": 1.5, "awarded": 0.0, "demand_status": "Demand Missed", "quoted_written": "Answer cuts off before detailing policy frameworks."},
+                {"step_label": "5. Conclusion (Closing Synthesis)", "max": 0.4, "awarded": 0.4, "demand_status": "Demand Fulfilled", "quoted_written": "Closing Synthesis Evaluated: The candidate's response ended abruptly mid-sentence, preventing a complete conclusion."}
+            ],
+            "body_audit": {
+                "strengths": [
+                    "**Visual Heat Dome Schematic (Page 1)**: Illustrated synoptic weather mechanism.",
+                    "**Urban Heat Island Factor (Page 1)**: Identified asphalt thermal trap.",
+                    "**Impact Thresholds (Page 2)**: Distinguished plain (>40°C) and hilly (>30°C) thresholds."
+                ],
+                "critical_gaps": [
+                    "Missing Policy Framework (Page 2): The answer cuts off before discussing NDMA Guidelines or Heat Action Plans (HAPs).",
+                    "Incomplete Conclusion (Page 2): The final sentence is left hanging without a proper synthesis or institutional roadmap.",
+                    "Effects of heatwaves and truncated policy sentence (Page 2): Good listing of temperature thresholds and impacts, but the answer abruptly stops without detailing India's policies."
+                ]
+            },
+            "conclusion_audit": {
+                "score": 0.4,
+                "current_critique": "The candidate's response ended abruptly mid-sentence, preventing a complete conclusion."
+            },
+            "rubric_scores": {
+                "intro_score": 1.0, "intro_max": 1.5,
+                "core_demand_score": 3.0, "core_demand_max": 9.0,
+                "value_add_score": 0.0, "value_add_max": 2.0,
+                "presentation_score": 0.0, "presentation_max": 1.0,
+                "conclusion_score": 0.4, "conclusion_max": 0.4
+            }
+        }
+
+        audit_and_heal_cross_page_demands(sample_data, q, max_marks=15, is_hindi=False)
+
+        # 1. Part C must NOT be 0.0 / Demand Missed
+        steps = sample_data["sub_part_step_marking"]
+        self.assertEqual(len(steps), 5)
+        part_c = steps[3]
+        self.assertGreaterEqual(part_c["awarded"], 1.5)
+        self.assertEqual(part_c["max"], 4.0)
+        self.assertNotEqual(part_c["demand_status"], "Demand Missed")
+        self.assertIn("Page 3", part_c["quoted_written"])
+        self.assertIn("IMD early warning", part_c["quoted_written"])
+
+        # 2. Re-balanced step maxima: Intro 1.5, Part A 4.0, Part B 4.0, Part C 4.0, Conc 1.5
+        self.assertEqual([s["max"] for s in steps], [1.5, 4.0, 4.0, 4.0, 1.5])
+        self.assertEqual(sum(s["max"] for s in steps), 15.0)
+
+        # 3. Overall score matches sum of awarded marks
+        self.assertEqual(sample_data["overall_score"], sum(s["awarded"] for s in steps))
+
+        # 4. False cut-off statements scrubbed from executive_summary and critical_gaps
+        self.assertNotIn("cutting off", sample_data["executive_summary"].lower())
+        for g in sample_data["body_audit"]["critical_gaps"]:
+            self.assertNotIn("cuts off", g.lower())
+            self.assertNotIn("abruptly stops", g.lower())
+            self.assertNotIn("truncated policy", g.lower())
+
+        # 5. Page 3 points present in strengths
+        self.assertTrue(any("Page 3" in s and "Nagar Van" in s for s in sample_data["body_audit"]["strengths"]))
+
+        # 6. Conclusion evaluated consistently on actual closing statement without mid-sentence claims
+        conc_crit = sample_data["conclusion_audit"]["current_critique"]
+        self.assertNotIn("ended abruptly mid-sentence", conc_crit)
+        self.assertIn("Disaster Classification", conc_crit)
+        self.assertIn("Disaster Management Act, 2005", conc_crit)
+
+    def test_no_headings_gating_content_scoring_across_gs(self):
+        """24. Missing or informal headings do not gate content scoring or trigger zero marks."""
+        from evaluator_engine import audit_and_heal_cross_page_demands
+
+        q = "Describe the various causes and effects of heatwaves. What policies and frameworks have been adopted in India towards extreme heat risk management?"
+        # Candidate writes without boxed heading [Policies and Frameworks], just informal label
+        data = {
+            "detected_question": q,
+            "max_marks": 15,
+            "total_pages": 3,
+            "transcribed_text": "[Page 3]\nextreme risk of heat :\n1) Role of IMD in early warning system.\n2) Nagar Vans urban forestry.\n3) Whole of society mitigation.\nThe increased frequency of heatwaves demand categorisation as 'disaster' in India.",
+            "sub_part_step_marking": [
+                {"step_label": "1. Intro", "max": 1.5, "awarded": 1.0},
+                {"step_label": "2. Part A", "max": 4.0, "awarded": 2.5},
+                {"step_label": "3. Part B", "max": 4.0, "awarded": 1.0},
+                {"step_label": "4. Part C", "max": 4.0, "awarded": 0.0, "demand_status": "Demand Missed"},
+                {"step_label": "5. Conclusion", "max": 1.5, "awarded": 0.5}
+            ],
+            "body_audit": {"strengths": [], "critical_gaps": []},
+            "conclusion_audit": {},
+            "rubric_scores": {}
+        }
+        audit_and_heal_cross_page_demands(data, q, max_marks=15)
+        # Content on Page 3 must be scored and credited despite missing formal heading
+        part_c = data["sub_part_step_marking"][3]
+        self.assertGreater(part_c["awarded"], 0.0)
+        self.assertEqual(part_c["demand_status"], "Partially Fulfilled")
+
 if __name__ == "__main__":
     unittest.main()
 
