@@ -208,7 +208,7 @@ async function pushLocalToCloud() {
 // -------------------------------------------------------------
 async function loadAdminStats(forceSync = false) {
   try {
-    const res = await fetch("/api/admin/stats", { headers: getAdminAuthHeaders() });
+    const res = await fetch("/api/admin/stats" + (forceSync ? "?sync=1" : ""), { headers: getAdminAuthHeaders(), cache: "no-store" });
     if (!res.ok) return;
     const stats = await res.json();
 
@@ -322,7 +322,7 @@ async function loadAdminActivity() {
   const container = document.getElementById("activityStreamContainer");
   if (!container) return;
   try {
-    const res = await fetch("/api/admin/activity?limit=60", { headers: getAdminAuthHeaders() });
+    const res = await fetch("/api/admin/activity?limit=60", { headers: getAdminAuthHeaders(), cache: "no-store" });
     if (!res.ok) return;
     const events = await res.json();
 
@@ -884,7 +884,7 @@ function clearEvalFilter() {
 
 async function loadAdminEvaluationsStats() {
   try {
-    const res = await fetch("/api/admin/evaluations/stats", { headers: getAdminAuthHeaders() });
+    const res = await fetch("/api/admin/evaluations/stats", { headers: getAdminAuthHeaders(), cache: "no-store" });
     if (!res.ok) return;
     const data = await res.json();
     const bySubj = data.by_subject || {};
@@ -926,7 +926,7 @@ async function loadAdminEvaluations() {
       if (dateTo) queryParams.set("date_to", dateTo);
     }
 
-    const res = await fetch(`/api/admin/evaluations?${queryParams.toString()}`, { headers: getAdminAuthHeaders() });
+    const res = await fetch(`/api/admin/evaluations?${queryParams.toString()}`, { headers: getAdminAuthHeaders(), cache: "no-store" });
     if (!res.ok) throw new Error("Could not load evaluations");
     const evals = await res.json();
 

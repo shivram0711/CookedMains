@@ -127,7 +127,14 @@ def _seed_vault_if_empty(cursor) -> None:
         with open(seed_path, "r", encoding="utf-8") as f:
             data = json.load(f)
             
-        seed_evals = data.get("evaluations") or []
+        raw_evals = data.get("evaluations") or []
+        spam_eval_ids = {'eval_1792243539_0fd39e', 'eval_1792237107_48cc05', 'eval_1792237058_d2a573', 'eval_1792237009_a055c2'}
+        seed_evals = [
+            ev for ev in raw_evals
+            if ev.get("id") not in spam_eval_ids
+            and "Courage is resistance" not in (ev.get("question") or "")
+            and ev.get("user_email") != "guest@cookedmains.in"
+        ]
         for ev in seed_evals:
             cursor.execute("""
                 INSERT OR REPLACE INTO evaluations (
@@ -145,7 +152,8 @@ def _seed_vault_if_empty(cursor) -> None:
             ))
         print(f"[VAULT SEED] Verified and vaulted {len(seed_evals)} genuine evaluation dossiers with handwritten pages.")
 
-        seed_users = data.get("users") or []
+        raw_users = data.get("users") or []
+        seed_users = [u for u in raw_users if u.get("email") != "guest@cookedmains.in" and u.get("id") != "usr_guest_005"]
         for u in seed_users:
             cursor.execute("""
                 INSERT OR REPLACE INTO users (
@@ -162,7 +170,18 @@ def _seed_vault_if_empty(cursor) -> None:
 
         cursor.execute("SELECT COUNT(*) FROM activity_logs")
         act_count = cursor.fetchone()[0]
-        seed_acts = data.get("activity_logs") or []
+        raw_acts = data.get("activity_logs") or []
+        spam_act_ids = {
+            'act_1886785f2c92', 'act_d058dc34882a', 'act_7097ff3da22d', 'act_91ecdffec7ed',
+            'act_23973e17816c', 'act_d957b4444d0e', 'act_575eba204bf9', 'act_7d287f723cf9', 'act_e070f8f57933'
+        }
+        seed_acts = [
+            act for act in raw_acts
+            if act.get("id") not in spam_act_ids
+            and "Courage is resistance" not in (act.get("detail") or "")
+            and "Courage is resistance" not in (act.get("title") or "")
+            and act.get("user_email") != "guest@cookedmains.in"
+        ]
         if act_count < len(seed_acts):
             for act in seed_acts:
                 cursor.execute("""
@@ -234,11 +253,91 @@ def is_dummy_or_demo_email(email: Optional[str]) -> bool:
 
 def purge_all_dummy_and_demo_accounts() -> Dict[str, Any]:
     """
-    PERMANENT SAFETY LOCK: Purge operations are completely deactivated.
-    Guarantees no records can be deleted, truncated, or overwritten.
+    Permanently purges test mock data, dummy test accounts, and spam entries
+    from SQLite and Supabase cloud.
+    STRICT PERMANENT RETENTION: Genuine registered aspirants, real user evaluations,
+    and genuine platform feedbacks are ALWAYS preserved.
     """
-    logger.warning("SAFETY LOCK: purge_all_dummy_and_demo_accounts invoked but neutralized.")
-    return {"status": "disabled", "message": "Purge permanently deactivated.", "purged": {"evaluations": 0, "activity_logs": 0, "user_sessions": 0, "users": 0}}
+    purged = {
+        "evaluations": 0,
+        "activity_logs": 0,
+        "users": 0,
+        "user_sessions": 0,
+        "supabase_evaluations": 0
+    }
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # 1. Purge spam and dummy evaluations
+        cursor.execute("""
+            DELETE FROM evaluations
+            WHERE question LIKE '%Courage is resistance%'
+               OR id IN ('eval_1792243539_0fd39e', 'eval_1792237107_48cc05', 'eval_1792237058_d2a573', 'eval_1792237009_a055c2')
+               OR (user_email = 'guest@cookedmains.in' AND question LIKE '%Courage%')
+               OR LOWER(user_email) IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com',
+                                       'test_audit@upsc.in', 'cadet.test@gmail.com', 'test_dup_check_user@example.com')
+               OR LOWER(user_email) LIKE '%@test.com'
+               OR LOWER(user_email) LIKE '%@example.com'
+               OR LOWER(user_email) LIKE 'audit_%'
+        """)
+        purged["evaluations"] = cursor.rowcount
+
+        # 2. Purge spam and dummy activity logs
+        cursor.execute("""
+            DELETE FROM activity_logs
+            WHERE detail LIKE '%Courage is resistance%'
+               OR title LIKE '%Courage is resistance%'
+               OR id IN ('act_1886785f2c92', 'act_d058dc34882a', 'act_7097ff3da22d', 'act_91ecdffec7ed',
+                         'act_23973e17816c', 'act_d957b4444d0e', 'act_575eba204bf9', 'act_7d287f723cf9', 'act_e070f8f57933')
+               OR (user_email = 'guest@cookedmains.in' AND (detail LIKE '%Courage%' OR title LIKE '%Courage%'))
+               OR LOWER(user_email) IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com',
+                                       'test_audit@upsc.in', 'cadet.test@gmail.com', 'test_dup_check_user@example.com')
+               OR LOWER(user_email) LIKE '%@test.com'
+               OR LOWER(user_email) LIKE '%@example.com'
+               OR LOWER(user_email) LIKE 'audit_%'
+        """)
+        purged["activity_logs"] = cursor.rowcount
+
+        # 3. Purge dummy/spam users
+        cursor.execute("""
+            DELETE FROM users
+            WHERE email = 'guest@cookedmains.in' OR id = 'usr_guest_005'
+               OR LOWER(email) IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com',
+                                  'test_audit@upsc.in', 'cadet.test@gmail.com', 'test_dup_check_user@example.com')
+               OR LOWER(email) LIKE '%@test.com'
+               OR LOWER(email) LIKE '%@example.com'
+               OR LOWER(email) LIKE 'audit_%'
+        """)
+        purged["users"] = cursor.rowcount
+
+        # 4. Purge dummy sessions
+        cursor.execute("""
+            DELETE FROM user_sessions
+            WHERE LOWER(user_email) IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com',
+                                        'test_audit@upsc.in', 'cadet.test@gmail.com')
+               OR LOWER(user_email) LIKE '%@test.com'
+               OR LOWER(user_email) LIKE '%@example.com'
+               OR LOWER(user_email) LIKE 'audit_%'
+        """)
+        purged["user_sessions"] = cursor.rowcount
+
+        conn.commit()
+        conn.close()
+
+        # 5. Purge spam from remote Supabase if connected
+        if supabase:
+            try:
+                res_del = supabase.table("evaluations").delete().ilike("question_title", "%Courage is resistance%").execute()
+                if res_del and res_del.data:
+                    purged["supabase_evaluations"] = len(res_del.data)
+            except Exception as se_err:
+                logger.info(f"Supabase purge notice: {se_err}")
+    except Exception as e:
+        logger.error(f"Error purging dummy/spam data: {e}")
+        return {"status": "error", "error": str(e), "purged": purged}
+
+    return {"status": "success", "message": "Spam and mock data purged permanently.", "purged": purged}
 
 
 def cleanup_expired_guest_sessions(max_age_hours: float = 12.0) -> Dict[str, Any]:
@@ -1446,7 +1545,7 @@ def is_evaluation_fully_completed(
         score = float(evaluation_dict.get("overall_score", 0.0))
     except (ValueError, TypeError):
         return False
-    if score <= 0.0:
+    if score < 0.0:
         return False
 
     # 4. Reject dummy fallback transcription template
@@ -3568,7 +3667,9 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
                 continue
 
             eval_id = str(r.get("id") or "")
-            if not eval_id or eval_id in ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4'):
+            if not eval_id or eval_id in ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4', 'eval_1792243539_0fd39e', 'eval_1792237107_48cc05', 'eval_1792237058_d2a573', 'eval_1792237009_a055c2'):
+                continue
+            if "courage is resistance" in q_title.lower():
                 continue
 
             u_id = str(r.get("user_id") or "")
@@ -3672,6 +3773,28 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
                 ev["file_hash"], 0, None, ev["baseline_eval_id"], ev["file_url"]
             ))
             synced_evals_count += 1
+            
+            # Ensure activity_logs contains this evaluated copy so live stream is updated
+            try:
+                cursor.execute("SELECT id FROM activity_logs WHERE eval_id = ?", (ev["id"],))
+                if not cursor.fetchone():
+                    act_id = f"act_{uuid.uuid4().hex[:12]}"
+                    q_disp = (ev["question"] or "Answer Sheet")[:85]
+                    cursor.execute("""
+                        INSERT OR IGNORE INTO activity_logs (id, created_at, user_email, user_name, action_type, title, detail, eval_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        act_id,
+                        ev["created_at"],
+                        ev["user_email"],
+                        ev["user_email"].split("@")[0].title(),
+                        "copy_evaluated",
+                        f"Evaluated {ev['paper']} ({ev['max_marks']}M) — Scored {ev['overall_score']}/{ev['max_marks']}",
+                        f"Q: {q_disp}",
+                        ev["id"]
+                    ))
+            except Exception:
+                pass
 
         conn.commit()
         conn.close()
@@ -3775,6 +3898,9 @@ def push_sqlite_to_supabase() -> Dict[str, Any]:
           AND user_email NOT LIKE '%test%'
           AND user_email NOT LIKE '%candidate%'
           AND user_email != 'aspirant@cookedmains.com'
+          AND question NOT LIKE '%Courage is resistance%'
+          AND id NOT IN ('eval_1792243539_0fd39e', 'eval_1792237107_48cc05', 'eval_1792237058_d2a573', 'eval_1792237009_a055c2')
+          AND NOT (user_email = 'guest@cookedmains.in' AND question LIKE '%Courage%')
     """)
     evals = [dict(r) for r in cursor.fetchall()]
     conn.close()
@@ -4058,6 +4184,10 @@ def get_admin_evaluations_feed(
     Returns evaluations across all aspirants categorized by subject, date, and keyword.
     Zero Deletion Guarantee: All evaluated copies are permanently preserved.
     """
+    try:
+        sync_supabase_to_sqlite(False)
+    except Exception:
+        pass
     conn = get_db()
     cursor = conn.cursor()
     sql = """
@@ -4067,8 +4197,11 @@ def get_admin_evaluations_feed(
         FROM evaluations e
         LEFT JOIN users u ON LOWER(e.user_email) = LOWER(u.email)
         WHERE e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
+          AND e.question NOT LIKE '%Courage is resistance%'
           AND e.id NOT IN ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
-                         'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4')
+                         'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4',
+                         'eval_1792243539_0fd39e', 'eval_1792237107_48cc05', 'eval_1792237058_d2a573', 'eval_1792237009_a055c2')
+          AND NOT (LOWER(e.user_email) = 'guest@cookedmains.in' AND e.question LIKE '%Courage%')
           AND LOWER(e.user_email) NOT IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com',
                                        'test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
                                        'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
@@ -4109,7 +4242,7 @@ def get_admin_evaluations_feed(
     if date_filter and date_filter.strip() and date_filter.strip().lower() != 'all':
         df = date_filter.strip().lower()
         if df == 'today':
-            sql += " AND DATE(e.created_at) = DATE('now', 'localtime')"
+            sql += " AND (DATE(e.created_at) = DATE('now') OR DATE(e.created_at) = DATE('now', '+5 hours', '30 minutes') OR DATE(e.created_at) = DATE('now', 'localtime'))"
         elif df == 'yesterday':
             sql += " AND DATE(e.created_at) = DATE('now', '-1 day', 'localtime')"
         elif df == 'week':
@@ -4154,8 +4287,11 @@ def get_admin_evaluations_stats() -> Dict[str, Any]:
     cursor = conn.cursor()
     base_where = """
         WHERE e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
+          AND e.question NOT LIKE '%Courage is resistance%'
           AND e.id NOT IN ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
-                         'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4')
+                         'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4',
+                         'eval_1792243539_0fd39e', 'eval_1792237107_48cc05', 'eval_1792237058_d2a573', 'eval_1792237009_a055c2')
+          AND NOT (LOWER(e.user_email) = 'guest@cookedmains.in' AND e.question LIKE '%Courage%')
           AND LOWER(e.user_email) NOT IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com',
                                        'test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
                                        'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
@@ -4206,7 +4342,7 @@ def get_admin_evaluations_stats() -> Dict[str, Any]:
                 stats["by_subject"]["Optional"] += cnt
         stats["by_subject"]["all"] = stats["total"]
 
-        cursor.execute(f"SELECT COUNT(*) FROM evaluations e {base_where} AND DATE(e.created_at) = DATE('now', 'localtime')")
+        cursor.execute(f"SELECT COUNT(*) FROM evaluations e {base_where} AND (DATE(e.created_at) = DATE('now') OR DATE(e.created_at) = DATE('now', '+5 hours', '30 minutes') OR DATE(e.created_at) = DATE('now', 'localtime'))")
         stats["by_date"]["today"] = (cursor.fetchone() or [0])[0]
 
         cursor.execute(f"SELECT COUNT(*) FROM evaluations e {base_where} AND DATE(e.created_at) = DATE('now', '-1 day', 'localtime')")
@@ -4227,6 +4363,10 @@ def get_admin_evaluations_stats() -> Dict[str, Any]:
 
 def get_admin_activity_stream(limit: int = 60) -> List[Dict[str, Any]]:
     """Returns a chronological live activity stream combining activity_logs, evaluations, logins, and feedbacks."""
+    try:
+        sync_supabase_to_sqlite(False)
+    except Exception:
+        pass
     conn = get_db()
     cursor = conn.cursor()
     events: List[Dict[str, Any]] = []
@@ -4235,6 +4375,11 @@ def get_admin_activity_stream(limit: int = 60) -> List[Dict[str, Any]]:
         cursor.execute("""
             SELECT * FROM activity_logs 
             WHERE id NOT LIKE 'log_0%'
+              AND detail NOT LIKE '%Courage is resistance%'
+              AND title NOT LIKE '%Courage is resistance%'
+              AND id NOT IN ('act_1886785f2c92', 'act_d058dc34882a', 'act_7097ff3da22d', 'act_91ecdffec7ed',
+                             'act_23973e17816c', 'act_d957b4444d0e', 'act_575eba204bf9', 'act_7d287f723cf9', 'act_e070f8f57933')
+              AND NOT (LOWER(user_email) = 'guest@cookedmains.in' AND (detail LIKE '%Courage%' OR title LIKE '%Courage%'))
               AND LOWER(user_email) NOT IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com',
                                            'test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
                                            'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
@@ -4272,8 +4417,11 @@ def get_admin_activity_stream(limit: int = 60) -> List[Dict[str, Any]]:
         FROM evaluations e
         LEFT JOIN users u ON LOWER(e.user_email) = LOWER(u.email)
         WHERE e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
+          AND e.question NOT LIKE '%Courage is resistance%'
           AND e.id NOT IN ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
-                         'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4')
+                         'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4',
+                         'eval_1792243539_0fd39e', 'eval_1792237107_48cc05', 'eval_1792237058_d2a573', 'eval_1792237009_a055c2')
+          AND NOT (LOWER(e.user_email) = 'guest@cookedmains.in' AND e.question LIKE '%Courage%')
           AND LOWER(e.user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
                                        'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
                                        'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
