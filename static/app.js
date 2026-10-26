@@ -899,7 +899,7 @@ window.switchStudioTab = function(tabId, skipScrollToTop = false) {
                               document.getElementById("studioTabNavHeader");
       if (rightStudioCard) {
         const isMobile = window.innerWidth < 640;
-        const navbarHeight = isMobile ? 68 : 86;
+        const navbarHeight = isMobile ? 56 : 64;
         const currentScrollY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
         const rect = rightStudioCard.getBoundingClientRect();
         const targetY = Math.max(0, rect.top + currentScrollY - navbarHeight);
@@ -12391,6 +12391,23 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
 // Transfers evaluation feedback from point_by_point_audit cards into Deep Evaluation
 // (Intro feedback -> Intro Audit, Body Positive -> Body Strengths, Body Levers -> Body Upgrade Levers, Conclusion -> Conclusion Audit)
 // Strictly omits candidate handwritten quotes and ensures strict cross-section deduplication without changing feedback wording.
+
+// Image 5 Fix: Sort evaluation points strictly chronologically by page number (Page 1 first, then Page 2, Page 3, etc.)
+window.sortPointsChronologically = function(pointsList) {
+  if (!Array.isArray(pointsList) || pointsList.length <= 1) return pointsList || [];
+  const indexed = pointsList.map((item, idx) => {
+    const text = String(item || "");
+    const match = text.match(/\((?:Pages?|पृष्ठ)\s*(\d+)/i) || text.match(/\b(?:Pages?|पृष्ठ)\s*(\d+)/i);
+    const pageNum = match ? parseInt(match[1], 10) : 1;
+    return { item, pageNum, idx };
+  });
+  indexed.sort((a, b) => {
+    if (a.pageNum !== b.pageNum) return a.pageNum - b.pageNum;
+    return a.idx - b.idx;
+  });
+  return indexed.map(obj => obj.item);
+};
+
 window.transferPointAuditToDeepEvaluation = function(evalData) {
   if (!evalData || typeof evalData !== "object") return;
   const pbpList = Array.isArray(evalData.point_by_point_audit) ? evalData.point_by_point_audit : [];
@@ -12474,9 +12491,8 @@ window.transferPointAuditToDeepEvaluation = function(evalData) {
         introCrit = introCrit ? `${introCrit}<br>• **${rawTitle}**: ${verdict}` : `**${rawTitle}**: ${verdict}`;
       }
     } else if (isConc) {
-      if (!isDuplicate(verdict, concCrit)) {
-        concCrit = concCrit ? `${concCrit}<br>• **${rawTitle}**: ${verdict}` : `**${rawTitle}**: ${verdict}`;
-      }
+      // Image 1 Fix: Keep only ONE feedback point in conclusion section which follows precise and relevant point for evaluation
+      concCrit = `**${rawTitle}**: ${verdict}`;
     } else {
       const pageTag = isHindi ? `पृष्ठ ${pNum}` : `Page ${pNum}`;
       const entry = `**${rawTitle} (${pageTag})**: ${verdict}`;
@@ -12496,8 +12512,8 @@ window.transferPointAuditToDeepEvaluation = function(evalData) {
 
   intro.current_critique = introCrit;
   conc.current_critique = concCrit;
-  body.strengths = existingStrengths;
-  body.critical_gaps = existingGaps;
+  body.strengths = window.sortPointsChronologically(existingStrengths);
+  body.critical_gaps = window.sortPointsChronologically(existingGaps);
 };
 
 
@@ -13153,56 +13169,99 @@ function renderEvaluation(evalData) {
   if (directiveEvaluationText) directiveEvaluationText.innerHTML = formatHighlightedText(enrichDirectiveAuditText(dir.evaluation || defEval));
   if (directiveGapText) directiveGapText.innerHTML = formatHighlightedText(enrichDirectiveAuditText(dir.gap || defGap));
 
-  // Operative Keywords & Glossary Chips
+  // Image 3 Fix: Operative Keywords & Evaluator Glossary - Rich directive & high-yield subject keywords
   const glossaryChipsContainer = document.getElementById("directiveGlossaryChips");
   if (glossaryChipsContainer) {
     glossaryChipsContainer.innerHTML = "";
     const qRaw = String(evalData.detected_question || (typeof state !== "undefined" && state.question) || "").trim();
-    const combinedTokens = typeof extractCoreQuestionTokens === "function" ? extractCoreQuestionTokens(qRaw) : [];
-    
-    // Built-in comprehensive UPSC evaluator glossary
-    const glossaryDict = {
-      "security necessity": "Operational requirement to protect sovereignty or critical infrastructure against hostile intrusion.",
-      "civil liberties": "Fundamental freedoms guaranteed under Part III of the Constitution that restrict arbitrary state coercion.",
-      "judicial precedents": "Landmark apex court rulings establishing binding constitutional doctrines and legal tests.",
-      "statutory recommendations": "Actionable, legal amendments and legislative provisions required to plug administrative lacunae.",
-      "proportionality": "Four-fold judicial test (Legality, Aim, Necessity, Safeguards) from Puttaswamy (2017).",
-      "critical information infrastructure": "Computer assets whose destruction would impact national security or public safety (Sec 70A IT Act).",
-      "red-teaming": "Rigorous simulated adversarial probing of models or systems before real-world operational deployment.",
-      "sovereign ai": "Domestic indigenous foundational intelligence infrastructure independent of foreign commercial platforms.",
-      "electoral bonds": "Struck-down opaque bearer bonds; landmark for voter's right to know under Article 19(1)(a).",
-      "zero-mdr": "Zero Merchant Discount Rate on UPI; balances grassroot inclusion against banking tech solvency.",
-      "separation of powers": "Constitutional doctrine dividing sovereign authority among Legislature, Executive, and Judiciary (Art 50, Kesavananda).",
-      "checks and balances": "Constitutional mechanisms enabling each branch to prevent arbitrary hegemony by other branches.",
-      "judicial review": "Power of higher courts (Art 13, 32, 226) to test statutory and executive acts against the Constitution.",
-      "basic structure": "Inviolable core constitutional principles (Kesavananda Bharati 1973) immune to constitutional amendments (Art 368).",
-      "cooperative federalism": "Collaborative governance framework between Union and States (Art 263 Inter-State Council, GST Council).",
-      "due process": "Substantive fairness, reasonableness, and natural justice read into Art 21 via Maneka Gandhi (1978).",
-      "rule of law": "Supremacy of regular law, equality before law, and absence of executive arbitrariness (Art 14, Dicey).",
-      "fiscal deficit": "Excess of total government expenditure over revenue and non-debt receipts; capped under FRBM Act.",
-      "inflation targeting": "Statutory monetary policy framework (4% ± 2%) anchored by the RBI Monetary Policy Committee.",
-      "inclusive growth": "Economic growth that distributes opportunities equitable across social strata and reduces regional disparity.",
-      "climate resilience": "Adaptive capacity of ecosystems and communities to withstand extreme climate events (Sendai/Paris Accord).",
-      "strategic autonomy": "India's independent foreign policy doctrine prioritizing national interests without military alliance entanglement.",
-      "nolan principles": "Seven standards of ethical public conduct: Selflessness, Integrity, Objectivity, Accountability, Openness, Honesty, Leadership."
-    };
-
     const candidateTerms = [];
-    if (combinedTokens && combinedTokens.length > 0) {
-      combinedTokens.forEach(tok => candidateTerms.push({ term: tok, meaning: "Operative subject keyword demanded by question." }));
-    }
-    const fullAuditText = `${dir.evaluation || ""} ${dir.gap || ""} ${dName} ${qRaw}`.toLowerCase();
-    for (let [k, v] of Object.entries(glossaryDict)) {
-      if (fullAuditText.includes(k) && !candidateTerms.some(c => c.term.toLowerCase() === k)) {
-        candidateTerms.push({ term: k.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" "), meaning: v });
+
+    // 1. Directive Chip with UPSC examiner marking expectations
+    const dLower = String(dName || "Explain").toLowerCase().trim();
+    const directiveExplMap = {
+      "explain": "Directive 'Explain': Define the foundational phenomenon upfront, clarify the underlying cause-and-effect mechanisms across societal/institutional dimensions, and anchor with concrete empirical evidence.",
+      "critically examine": "Directive 'Critically Examine': Investigate both sides with empirical rigor—present affirmative arguments with institutional backing (~65%), balance with genuine operational bottlenecks or counter-arguments (~35%), and provide a forward-looking synthesis.",
+      "examine": "Directive 'Examine': Look closely into the facts, analyze causes and consequences systematically under structured sub-headings, and support claims with verifiable examples.",
+      "evaluate": "Directive 'Evaluate': Assess the efficacy, outcomes, and shortcomings against established constitutional/policy benchmarks, concluding with a reasoned final judgment.",
+      "critically evaluate": "Directive 'Critically Evaluate': Probe merits, demerits, implementation gaps, and structural limitations, weighing evidence to deliver a balanced judgment.",
+      "discuss": "Directive 'Discuss': Provide a comprehensive, multidimensional scrutiny (social, economic, institutional, constitutional) exploring multiple perspectives and pragmatic solutions.",
+      "analyse": "Directive 'Analyse': Break down the complex issue into its constituent components, dissecting causal drivers, structural linkages, and systemic impacts.",
+      "comment": "Directive 'Comment': Express a clear, reasoned perspective anchored in constitutional principles, judicial rulings, and authoritative facts."
+    };
+    const directiveMeaning = directiveExplMap[dLower] || `Directive '${dName}': Fulfill the exact operational command by balancing core demands with question-specific evidence.`;
+    candidateTerms.push({
+      term: `🔍 ${dName || "Directive"}`,
+      isDirective: true,
+      meaning: directiveMeaning,
+      tag: "Command Directive",
+      where: "Determines the balance and structure of your answer"
+    });
+
+    // 2. High-Yield Operative Subject Keywords from missing_keywords_cards
+    const mkCards = Array.isArray(evalData.missing_keywords_cards) ? evalData.missing_keywords_cards : [];
+    mkCards.forEach(card => {
+      if (card && card.term) {
+        candidateTerms.push({
+          term: String(card.term).replace(/[*_#`]/g, "").trim(),
+          meaning: String(card.definition || card.exam_application || "High-yield UPSC keyword").trim(),
+          tag: String(card.domain_or_thinker || card.thinker || "Subject Anchor").trim(),
+          where: String(card.where_to_use || "Integrate in core body analysis").trim()
+        });
+      }
+    });
+
+    // 3. Fallback to comprehensive UPSC subject keywords if fewer than 4 items
+    if (candidateTerms.length < 5) {
+      const glossaryDict = {
+        "constitutional morality": "Commitment to constitutional values and substantive democracy over majoritarian impulse (Ambedkar / Navtej Johar).",
+        "sarva dharma sambhava": "Traditional Indian secular ethos of equal respect and protection for all religious communities.",
+        "fraternity": "Constitutional value (Preamble, Art 51A(e)) assuring individual dignity and unity/integrity of the nation.",
+        "capability approach": "Amartya Sen's development framework prioritizing substantive freedoms and individual agency.",
+        "ethical egoism": "Philosophical stance (Ayn Rand) where moral action is motivated by self-interest, conflicting with social harmony.",
+        "social audit": "Community-led monitoring of state schemes to ensure transparency and civic accountability.",
+        "rule of law": "Supremacy of regular law, equality before law, and absence of executive arbitrariness (Art 14, Dicey).",
+        "proportionality": "Four-fold judicial test (Legality, Aim, Necessity, Safeguards) from Puttaswamy (2017).",
+        "basic structure": "Inviolable core constitutional principles (Kesavananda Bharati 1973) immune to constitutional amendments (Art 368).",
+        "inclusive growth": "Economic growth that distributes opportunities equitable across social strata and reduces regional disparity."
+      };
+      const fullAuditText = `${dir.evaluation || ""} ${dir.gap || ""} ${dName} ${qRaw} ${evalData.transcribed_text || ""}`.toLowerCase();
+      for (let [k, v] of Object.entries(glossaryDict)) {
+        if (candidateTerms.length >= 6) break;
+        if (fullAuditText.includes(k) && !candidateTerms.some(c => c.term.toLowerCase().includes(k))) {
+          candidateTerms.push({
+            term: k.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
+            meaning: v,
+            tag: "Core Concept",
+            where: "Integrate to substantiate arguments"
+          });
+        }
       }
     }
 
-    candidateTerms.slice(0, 5).forEach(kw => {
-      const chip = document.createElement("span");
-      chip.className = "inline-flex items-center gap-1 text-[10.5px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium cursor-help hover:border-amber-400 dark:hover:border-amber-500 transition-colors";
-      chip.title = kw.meaning;
-      chip.innerHTML = `<span class="font-bold text-slate-900 dark:text-slate-100">${escapeHtml(kw.term)}</span> <span class="text-[9px] text-amber-500 font-mono">ℹ</span>`;
+    candidateTerms.slice(0, 6).forEach(kw => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      const isDir = Boolean(kw.isDirective);
+      chip.className = isDir
+        ? "inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-300 border border-amber-500/35 font-bold transition-all cursor-pointer shadow-xs"
+        : "inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-semibold transition-all cursor-pointer shadow-xs hover:border-amber-400 dark:hover:border-amber-500";
+      
+      const fullTooltip = `${kw.term}${kw.tag ? ` (${kw.tag})` : ""}: ${kw.meaning}${kw.where ? ` • [How to Use]: ${kw.where}` : ""}`;
+      chip.title = fullTooltip;
+      chip.innerHTML = `<span>${escapeHtml(kw.term)}</span> <span class="text-[9.5px] text-amber-600 dark:text-amber-400 font-mono font-bold">ℹ</span>`;
+      
+      // Interactive tap/click modal-friendly alert for mobile devices
+      chip.addEventListener("click", () => {
+        if (typeof showToast === "function") {
+          showToast(`📘 ${kw.term}: ${kw.meaning}`, 6000);
+        } else {
+          alert(`📘 ${kw.term}
+
+• Meaning: ${kw.meaning}
+• Where to Use: ${kw.where || "Core Body Analysis"}`);
+        }
+      });
+
       glossaryChipsContainer.appendChild(chip);
     });
   }
@@ -13546,7 +13605,8 @@ function renderEvaluation(evalData) {
 
   const strengthsEl = document.getElementById("bodyStrengthsList");
   strengthsEl.innerHTML = "";
-  (body.strengths || []).forEach(s => {
+  const sortedStrengths = typeof window.sortPointsChronologically === "function" ? window.sortPointsChronologically(body.strengths || []) : (body.strengths || []);
+  sortedStrengths.forEach(s => {
     registerInDeepEval(s);
     const cleanS = String(s || '').replace(/^[✓✔•★⭐\s\-]+/, '').replace(/\s*\((?:Ref|उत्तर संदर्भ|उत्तर)\s*:\s*[^)]+\)/gi, '').trim();
     const li = document.createElement("li");
@@ -13557,7 +13617,8 @@ function renderEvaluation(evalData) {
 
   const gapsEl = document.getElementById("bodyGapsList");
   gapsEl.innerHTML = "";
-  (body.critical_gaps || []).forEach(g => {
+  const sortedGaps = typeof window.sortPointsChronologically === "function" ? window.sortPointsChronologically(body.critical_gaps || []) : (body.critical_gaps || []);
+  sortedGaps.forEach(g => {
     registerInDeepEval(g);
     const cleanG = String(g || '').replace(/^[✎✗×•\s\-]+/, '').replace(/\s*\((?:Ref|उत्तर संदर्भ|उत्तर)\s*:\s*[^)]+\)/gi, '').trim();
     const li = document.createElement("li");
@@ -13642,7 +13703,13 @@ function renderEvaluation(evalData) {
       "The increased frequency of heatwaves demands their statutory categorisation as a notified **'disaster' under the Disaster Management Act, 2005**, backed by **NDMA Heat Action Plans (HAPs)**."
     )}"`;
   } else {
-    document.getElementById("conclusionCritiqueText").innerHTML = formatHighlightedText(conc.current_critique || "");
+    let finalConcCrit = String(conc.current_critique || "").trim();
+    if (finalConcCrit.includes("<br>•") || finalConcCrit.includes("\n•") || finalConcCrit.includes("\n-")) {
+      const parts = finalConcCrit.split(/(?:<br\s*\/?>|\n)[•\-]\s*/).map(p => p.trim()).filter(Boolean);
+      // Image 1: Keep single most precise, relevant evaluation point (preferring one with specific guidance/advice)
+      finalConcCrit = parts.find(p => /(?:though|could\s+be|tie|refine|add|anchor|connect|morality|suggest|however|weakness)/i.test(p)) || parts[parts.length - 1];
+    }
+    document.getElementById("conclusionCritiqueText").innerHTML = formatHighlightedText(finalConcCrit);
     if (modelConcCardEl) modelConcCardEl.classList.remove("hidden");
     if (modelConcHeadLbl) {
       modelConcHeadLbl.textContent = isHindi ? "✍️ लिखने का आदर्श प्रारूप (टॉपर मॉडल उत्तर के अनुसार):" : "✍️ How to Write (Matched with Topper Model Answer):";
@@ -14778,22 +14845,77 @@ function renderBatch1ExaminerMastery(evalData) {
   let habitFixedHtml = "";
   let nextHabitHtml = "";
 
-  if (isHindi) {
-    if (totalCopiesInLocker > 1) {
-      habitFixedHtml = `**सतत दृश्य संरचना**: आपकी **${totalCopiesInLocker} मूल्यांकित प्रतियों** में आपने लगातार **बॉक्स उप-शीर्षकों एवं बिंदुवार प्रस्तुति** का उपयोग किया है, जो मुख्य तर्कों को 15 सेकंड में स्पष्ट करता है।`;
-      nextHabitHtml = `**अगले +1.5 अंक हेतु आदत**: सुनिश्चित करें कि प्रश्न के प्रत्येक उप-भाग को **समान बिंदु घनत्व (4–5 बिंदु प्रत्येक)** मिले और 15-अंकों के प्रश्न को बिना 3-बिंदु **आगे की राह (Way Forward)** के समाप्त न करें।`;
+  // Image 2 Fix: Dynamic, question-specific, and personally guided coaching based on real evaluation metrics
+  const bAuditObj = evalData.body_audit || {};
+  const sArr = Array.isArray(bAuditObj.strengths) ? bAuditObj.strengths : [];
+  const gArr = Array.isArray(bAuditObj.critical_gaps) ? bAuditObj.critical_gaps : [];
+  const mmVal = parseInt(evalData.max_marks || (state.currentEvaluation && state.currentEvaluation.max_marks) || 10, 10);
+  const detectedPaper = String(evalData.paper || evalData.detected_paper || (state.currentEvaluation && state.currentEvaluation.paper) || "GS2").toUpperCase();
+
+  // Extract top verified strength
+  let topStrTitle = "";
+  let topStrDetail = "";
+  if (sArr.length > 0) {
+    const rawS = String(sArr[0] || "").replace(/^[✓✔•★⭐\s\-]+/, "").trim();
+    if (rawS.includes(":")) {
+      const parts = rawS.split(":");
+      topStrTitle = parts[0].replace(/[*_#`]/g, "").replace(/\((?:Pages?|पृष्ठ)\s*[\d–-]+\)/gi, "").trim();
+      topStrDetail = parts.slice(1).join(":").replace(/[*_#`]/g, "").trim();
     } else {
-      habitFixedHtml = `**आधारभूत क्षमता दर्ज**: आपकी **उप-शीर्षक संरचना एवं बिंदु-वार तर्कप्रणाली** मेंटर प्रोफाइल में दर्ज कर ली गई है।`;
-      nextHabitHtml = `**अगली प्रति का लक्ष्य**: अपने अगले उत्तर में प्रत्येक बिंदु को **1 ठोस रिपोर्ट/योजना/अनुच्छेद** तथा **30-सेकंड की रूपरेखा/आरेख** से पुष्ट कर 55%+ टॉपर श्रेणी में स्थान सुनिश्चित करें।`;
+      topStrTitle = rawS.slice(0, 45).replace(/[*_#`]/g, "").trim();
+      topStrDetail = rawS.slice(45).replace(/[*_#`]/g, "").trim();
     }
+  }
+  if (!topStrTitle || (typeof window.isMetaPlaceholderText === "function" && window.isMetaPlaceholderText(topStrTitle))) {
+    topStrTitle = isHindi ? "संरचित उप-शीर्षक एवं बिंदुवार विश्लेषण" : "Structured Sub-Headings & Thematic Density";
+    topStrDetail = isHindi ? "मुख्य मांग को सीधे संबोधित करते हुए स्पष्ट प्रस्तुतीकरण।" : "Directly engaged with core question demands using neat visual breakdown.";
+  }
+
+  // Extract top upgrade lever
+  let topGapTitle = "";
+  let topGapDetail = "";
+  if (gArr.length > 0) {
+    const rawG = String(gArr[0] || "").replace(/^[✎✗×•\s\-]+/, "").trim();
+    if (rawG.includes(":")) {
+      const parts = rawG.split(":");
+      topGapTitle = parts[0].replace(/[*_#`]/g, "").replace(/\((?:Pages?|पृष्ठ)\s*[\d–-]+\)/gi, "").trim();
+      topGapDetail = parts.slice(1).join(":").replace(/[*_#`]/g, "").trim();
+    } else {
+      topGapTitle = rawG.slice(0, 45).replace(/[*_#`]/g, "").trim();
+      topGapDetail = rawG.slice(45).replace(/[*_#`]/g, "").trim();
+    }
+  }
+
+  // Subject-specific tailored coaching
+  let subjAdvice = "";
+  if (detectedPaper.includes("GS4") || /ethics|moral|integrity|intolerance|virtue|nolan/i.test(String(evalData.detected_question || state.question || ""))) {
+    subjAdvice = isHindi
+      ? "सद्गुण नीतिशास्त्र (Virtue Ethics) व उपयोगितावाद तथा संवैधानिक नैतिकता (अनुच्छेद 51A(e), बंधुत्व) के साथ व्यावहारिक प्रशासनिक समाधान प्रस्तुत करें।"
+      : "Anchor sociological observations with formal ethical frameworks (Virtue Ethics / Deontology) and Constitutional Morality (Fraternity & Article 51A(e)) for an authoritative resolution.";
+  } else if (detectedPaper.includes("GS2") || /polity|constitution|federal|judic|parliament|governance/i.test(String(evalData.detected_question || state.question || ""))) {
+    subjAdvice = isHindi
+      ? "तर्कों को संबंधित संवैधानिक अनुच्छेदों, सर्वोच्च न्यायालय के ऐतिहासिक निर्णयों तथा 2nd ARC / विधि आयोग के सुझावों से पुष्ट करें।"
+      : "Substantiate arguments with specific Constitutional Articles, landmark Supreme Court rulings, and 2nd ARC / Law Commission recommendations.";
+  } else if (detectedPaper.includes("GS3") || /economy|gdp|fiscal|environment|disaster|ai|tech/i.test(String(evalData.detected_question || state.question || ""))) {
+    subjAdvice = isHindi
+      ? "प्रत्येक तर्क को आधिकारिक नीतिगत आंकड़ों (नीति आयोग / बजट / आर्थिक समीक्षा) तथा प्रमुख योजनाओं से प्रमाणित करें।"
+      : "Back qualitative claims with official empirical data points (NITI Aayog, Economic Survey, Budget allocations) and statutory institutional mechanisms.";
   } else {
-    if (totalCopiesInLocker > 1) {
-      habitFixedHtml = `**Consistent Visual Structure**: Across your **${totalCopiesInLocker} evaluated copies**, you consistently use **boxed sub-headings and numbered points**, which helps the UPSC examiner scan your core arguments in under 15 seconds.`;
-      nextHabitHtml = `**Next Habit for +1.5M Jump**: Ensure every sub-demand of the question receives **equal point density (4–5 points each)** and never end a 15-marker without a dedicated 3-point **Way Forward** before the Conclusion.`;
-    } else {
-      habitFixedHtml = `**Baseline Strength Recorded**: Your **sub-heading structure and point-first argumentation** have been logged in your Personal Mentor Profile.`;
-      nextHabitHtml = `**Next Copy Target**: In your next upload, focus on pairing each point with **1 concrete report/scheme/article** and a **30-second boxed schematic** to push past the 55%+ Topper threshold.`;
-    }
+    subjAdvice = isHindi
+      ? "कालानुक्रमिक स्पष्टता, बहुआयामी दृष्टिकोण तथा प्रासंगिक स्थानिक उदाहरणों का समावेश करें।"
+      : "Structure points with chronological clarity, multidimensional cause-and-effect links, and authentic contemporary micro-examples.";
+  }
+
+  const markBudgetGuide = mmVal === 10
+    ? (isHindi ? "10-अंकों के प्रश्न (7 मिनट) में भूमिका 2 पंक्तियों तक सीमित रखें और 2 मुख्य उप-शीर्षकों में 3-3 उच्च-मूल्य बिंदु दें।" : "In a 10-marker (7-minute budget), keep your introduction to 2 lines and structure the body into 2 distinct sub-headings with 3 high-yield points each.")
+    : (isHindi ? "15-अंकों के प्रश्न (11 मिनट) में दोनों उप-मांगों को समान विस्तार (4-5 बिंदु प्रत्येक) दें और निष्कर्ष से पूर्व 3-बिंदु अग्रगामी समाधान जोड़ें।" : "In a 15-marker (11-minute budget), ensure balanced dimensional expansion across all sub-demands (4–5 points each) with a dedicated 3-point Way Forward.");
+
+  if (isHindi) {
+    habitFixedHtml = `**प्रमाणित मजबूती — ${topStrTitle}**: इस प्रति में आपने **${topStrTitle}** का सराहनीय प्रयोग किया (${topStrDetail.slice(0, 160)})। यह प्रस्तुति परीक्षक को मुख्य मांग के अंक तुरंत देने के लिए प्रेरित करती है। इसे आगामी प्रतियों में भी यथावत बनाए रखें।`;
+    nextHabitHtml = `**अगले +1.5M हेतु व्यक्तिगत मेंटर मार्गदर्शन**: ${topGapTitle ? `सर्वोच्च प्राथमिकता: **${topGapTitle}** पर ध्यान दें (${topGapDetail.slice(0, 140)})। ` : ""}${markBudgetGuide} ${subjAdvice}`;
+  } else {
+    habitFixedHtml = `**Proven Habit — ${topStrTitle}**: In this evaluated copy, you demonstrated **${topStrTitle}** (${topStrDetail.slice(0, 160)}). This structured grounding immediately captures examiner confidence and secures baseline demand marks. Keep this as your permanent standard.`;
+    nextHabitHtml = `**Personal Mentor Action for +1.5M Jump**: ${topGapTitle ? `Highest-Yield Upgrade: Focus on **${topGapTitle}** (${topGapDetail.slice(0, 140)}). ` : ""}${markBudgetGuide} ${subjAdvice}`;
   }
 
   memoryBoxEl.innerHTML = `

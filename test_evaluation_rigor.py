@@ -478,6 +478,90 @@ class TestEvaluationRigor(unittest.TestCase):
         self.assertNotIn("desktopAuditCardsContainer", html)
         self.assertNotIn("Which Exact Points Fetched Marks vs. Scope to Upgrade", html)
 
+    def test_chronological_ordering_of_body_points(self):
+        """19. Body strengths and critical gaps are sorted strictly chronologically by page number."""
+        from evaluator_engine import sort_points_chronologically, transfer_point_audit_to_deep_evaluation
+
+        disordered_points = [
+            "**Page 3 Analysis (Page 3)**: Disproportionate focus on communal electorate.",
+            "**Page 1 Context (Page 1)**: Well-formulated introduction linking 1857 to Crown takeover.",
+            "**Page 2 Analysis (Page 2)**: Detailed exploration of Army reorganization under Peel Commission."
+        ]
+        sorted_points = sort_points_chronologically(disordered_points)
+        self.assertIn("(Page 1)", sorted_points[0])
+        self.assertIn("(Page 2)", sorted_points[1])
+        self.assertIn("(Page 3)", sorted_points[2])
+
+        # Test transfer_point_audit_to_deep_evaluation chronological sorting
+        sample_data = {
+            "total_pages": 3,
+            "point_by_point_audit": [
+                {
+                    "page": 2,
+                    "title": "Military Restructuring",
+                    "examiner_verdict": "Detailed military ratio change.",
+                    "is_positive": True
+                },
+                {
+                    "page": 1,
+                    "title": "Administrative Crown Transition",
+                    "examiner_verdict": "Clear linkage to Act for the Better Government of India 1858.",
+                    "is_positive": True
+                }
+            ],
+            "body_audit": {
+                "strengths": [
+                    "**Third Page Observation (Page 3)**: Princely state annexation reversal policy."
+                ],
+                "critical_gaps": []
+            }
+        }
+        transfer_point_audit_to_deep_evaluation(sample_data, is_hindi=False)
+        strengths = sample_data["body_audit"]["strengths"]
+        self.assertEqual(len(strengths), 3)
+        self.assertIn("Page 1", strengths[0])
+        self.assertIn("Page 2", strengths[1])
+        self.assertIn("Page 3", strengths[2])
+
+    def test_single_precise_conclusion_feedback_point(self):
+        """20. Conclusion audit maintains strictly one precise, relevant evaluation feedback point."""
+        from evaluator_engine import transfer_point_audit_to_deep_evaluation
+
+        sample_data = {
+            "total_pages": 2,
+            "point_by_point_audit": [
+                {
+                    "page": 2,
+                    "title": "Forward-Looking Conclusion",
+                    "examiner_verdict": "Synthesized institutional transition to 1858 Crown proclamation effectively.",
+                    "is_positive": True
+                }
+            ],
+            "conclusion_audit": {
+                "current_critique": "Generic closing statement."
+            }
+        }
+        transfer_point_audit_to_deep_evaluation(sample_data, is_hindi=False)
+        critique = sample_data["conclusion_audit"]["current_critique"]
+        # Must be a single point, not multiple points joined with <br>•
+        self.assertNotIn("<br>•", critique)
+        self.assertIn("Forward-Looking Conclusion", critique)
+        self.assertIn("Synthesized institutional transition", critique)
+
+    def test_sticky_tab_navigation_header_css(self):
+        """21. Studio tab navigation header has sticky styles with proper top offsets and backdrop blur."""
+        with open("static/style.css", "r", encoding="utf-8") as f:
+            css = f.read()
+
+        self.assertIn("#studioTabNavHeader", css)
+        self.assertIn("top: 56px !important", css)
+        self.assertIn("top: 64px !important", css)
+        self.assertIn("z-index: 45 !important", css)
+
+        with open("static/index.html", "r", encoding="utf-8") as f:
+            html = f.read()
+        self.assertIn('id="studioTopBar" class="relative', html)
+
 if __name__ == "__main__":
     unittest.main()
 

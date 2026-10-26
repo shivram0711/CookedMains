@@ -8743,6 +8743,32 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
 
 
 
+
+def sort_points_chronologically(points_list: List[str]) -> List[str]:
+    """
+    Sorts evaluation feedback points strictly chronologically by page number
+    (Page 1 points first, then Page 2, Page 3, etc.), preserving the original
+    flow of points within the same page.
+    """
+    if not points_list or not isinstance(points_list, list):
+        return []
+
+    def _extract_page_key(item_with_idx):
+        idx, s = item_with_idx
+        text = str(s or "")
+        m = re.search(r'\((?:Pages?|पृष्ठ)\s*(\d+)', text, flags=re.IGNORECASE)
+        if m:
+            return (int(m.group(1)), idx)
+        m2 = re.search(r'\b(?:Pages?|पृष्ठ)\s*(\d+)', text, flags=re.IGNORECASE)
+        if m2:
+            return (int(m2.group(1)), idx)
+        return (1, idx)
+
+    indexed = list(enumerate(points_list))
+    indexed.sort(key=_extract_page_key)
+    return [item for _, item in indexed]
+
+
 def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool = False) -> None:
     """
     Transfers evaluation feedback from each page's point_by_point_audit cards into
@@ -8847,11 +8873,10 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
                 else:
                     intro_crit = f"{intro_crit}<br>• **{clean_title}**: {verdict}"
         elif is_conc:
-            if not _is_duplicate_sentence(verdict, conc_crit):
-                if not conc_crit:
-                    conc_crit = f"**{clean_title}**: {verdict}"
-                else:
-                    conc_crit = f"{conc_crit}<br>• **{clean_title}**: {verdict}"
+            # Image 1 Fix: Keep only ONE feedback point in conclusion section which follows precise and relevant point for evaluation
+            # Do NOT stack multiple bullet points or generic closing praise with card feedback.
+            clean_conc_entry = f"**{clean_title}**: {verdict}" if not verdict.startswith("**") else verdict
+            conc_crit = clean_conc_entry
         else:
             page_tag = f"पृष्ठ {p_num}" if is_hindi else f"Page {p_num}"
             formatted_entry = f"**{clean_title} ({page_tag})**: {verdict}"
@@ -8865,8 +8890,9 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
 
     intro_audit["current_critique"] = intro_crit
     conclusion_audit["current_critique"] = conc_crit
-    body_audit["strengths"] = existing_strengths
-    body_audit["critical_gaps"] = existing_gaps
+    # Image 5 Fix: Ensure evaluation points follow continuous chronological flow with answersheet (Page 1 first, then Page 2, Page 3...)
+    body_audit["strengths"] = sort_points_chronologically(existing_strengths)
+    body_audit["critical_gaps"] = sort_points_chronologically(existing_gaps)
 
     data["intro_audit"] = intro_audit
     data["body_audit"] = body_audit
