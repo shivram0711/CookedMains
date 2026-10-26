@@ -5367,7 +5367,7 @@ window.extractCandidateHeadingsWithPositions = function(rawPgTrans) {
 
 // Global helper: Detect meta-prompt placeholders or evaluator comments that should NEVER appear as candidate quotes or advice
 window.isMetaPlaceholderText = function(str) {
-  return /(?:direct assessment quoting|specific technical concept|foundational doctrine missing|specific missing institutional|empirical data point|specific assessment of the candidate|concrete institutional|discipline-specific|accurate conceptual opening|opening upgrade|substantive upgrade|argument & point audit|page \d+ points evaluated|closing stance evaluated|opening premise evaluated|substantive arguments analyzed|core dimensional scope|directly engaged the core directive|evaluated candidate's specific points|detailed analysis across candidate's points|point \[[a-z0-9]+\]|\[point \d+|substantiate point|bridge the gap in point|add [^;*]+\*[^;*]+ as a keyword|^add .* as a keyword|direct premise|core argumentation|dimension coverage|closing synthesis evaluated|concluding synthesis evaluated|opened by defining the core concept|establishing direct analytical context|articulated key mechanisms|addressing primary question dimension|evaluated practical implications|demonstrating multidimensional coverage|the conclusion is balanced|the conclusion summarizes|summarizes the argument well|back argument with 1 concrete empirical metric|anchor with official guidelines|anchor with official doctrine|committee recommendation, or case law)/i.test(String(str || ""));
+  return /(?:direct assessment quoting|specific technical concept|foundational doctrine missing|specific missing institutional|empirical data point|specific assessment of the candidate|concrete institutional|discipline-specific|accurate conceptual opening|opening upgrade|substantive upgrade|argument & point audit|page \d+ points evaluated|closing stance evaluated|opening premise evaluated|substantive arguments analyzed|core dimensional scope|directly engaged the core directive|evaluated candidate's specific points|detailed analysis across candidate's points|point \[[a-z0-9]+\]|\[point \d+|substantiate point|bridge the gap in point|add [^;*]+\*[^;*]+ as a keyword|^add .* as a keyword|direct premise|core argumentation|dimension coverage|closing synthesis evaluated|concluding synthesis evaluated|opened by defining the core concept|establishing direct analytical context|articulated key mechanisms|addressing primary question dimension|evaluated practical implications|demonstrating multidimensional coverage|the conclusion is balanced|the conclusion summarizes|summarizes the argument well|back argument with 1 concrete empirical metric|anchor with official guidelines|anchor with official doctrine|committee recommendation, or case law|body\s*&\s*core\s*&\s*demand|& core & demand|core demand|primary sub-part|secondary dimension|addressed primary sub-part|covered secondary dimension|addressed substantive question dimensions|structured points on page)/i.test(String(str || ""));
 };
 
 // Global helper: Detect Devanagari text
@@ -9585,11 +9585,13 @@ function deriveAdaptiveCardHeading(sec, quote, evalData, currentPg, totalPages) 
   // 1. Strip forced mechanical prefixes like INTRO:, BODY:, CONCLUSION:, CORE DEMAND:
   rawTitle = rawTitle.replace(/^(?:(?:intro|body|conclusion|core demand|concl|भाग|मुख्य भाग|प्रस्तावना|निष्कर्ष)\s*[:—–-]\s*)+/gi, "").trim();
   rawTitle = rawTitle.replace(/^(?:part\s*[a-z0-9]\s*[-—–:]\s*)+/gi, "").trim();
+  rawTitle = rawTitle.replace(/^(?:body\s*&\s*core\s*&\s*demand|body\s*:\s*core\s*demand|core\s*demand\s*[-—–:]\s*part\s*[a-z0-9]|core\s*demand|& core & demand)\s*[:—–-]?\s*/gi, "").trim();
+  rawTitle = rawTitle.replace(/^(?:&\s*)+/g, "").trim();
 
   const isGenericLabel = (str) => {
     if (!str || str.length < 4) return true;
     if (typeof window.isMetaPlaceholderText === "function" && window.isMetaPlaceholderText(str)) return true;
-    return /\b(?:definition\s*&\s*scope|core\s*demand|closing\s*synthesis|depth\s*&\s*substantiation|good\s*governance\s*template|primary\s*demand|secondary\s*demand|actionable\s*way\s*forward|constructive\s*way\s*forward|underlying\s*mechanisms|multidimensional\s*impacts|actionable\s*interventions|factual\s*accuracy|secondary\s*analysis|challenges\s*(?:&|and)\s*critical|core\s*arguments|strategic\s*interventions|secondary\s*dimensions|governance\s*roadmap|policy\s*interventions|परिभाषा\s*एवं\s*दायरा|मुख्य\s*मांग|आगे\s*की\s*राह|अनुत्तरित|द्वितीयक\s*विश्लेषण|चुनौतियाँ\s*एवं\s*बाधाएं|संवैधानिक\s*समन्वय|context\s*&\s*conceptual\s*definition|closing\s*synthesis\s*&\s*way\s*forward|evolution\s*of\s*case\s*laws|constitutional\s*supremacy\s*\(page\s*\d+\)|causes\s*of\s*marine\s*heat\s*waves|impacts\s*of\s*marine\s*heat\s*waves)\b/i.test(str.trim());
+    return /\b(?:body\s*&\s*core\s*&\s*demand|&\s*core\s*&\s*demand|core\s*demand|definition\s*&\s*scope|core\s*demand|closing\s*synthesis|depth\s*&\s*substantiation|good\s*governance\s*template|primary\s*demand|secondary\s*demand|actionable\s*way\s*forward|constructive\s*way\s*forward|underlying\s*mechanisms|multidimensional\s*impacts|actionable\s*interventions|factual\s*accuracy|secondary\s*analysis|challenges\s*(?:&|and)\s*critical|core\s*arguments|strategic\s*interventions|secondary\s*dimensions|governance\s*roadmap|policy\s*interventions|परिभाषा\s*एवं\s*दायरा|मुख्य\s*मांग|आगे\s*की\s*राह|अनुत्तरित|द्वितीयक\s*विश्लेषण|चुनौतियाँ\s*एवं\s*बाधाएं|संवैधानिक\s*समन्वय|context\s*&\s*conceptual\s*definition|closing\s*synthesis\s*&\s*way\s*forward|evolution\s*of\s*case\s*laws|constitutional\s*supremacy\s*\(page\s*\d+\)|causes\s*of\s*marine\s*heat\s*waves|impacts\s*of\s*marine\s*heat\s*waves)\b/i.test(str.trim());
   };
 
   if (sec.zone === "conclusion" && (sec.isUnwritten || (sec.marks && sec.marks.includes("0.0")))) {
@@ -9700,7 +9702,7 @@ function deriveAdaptiveCardHeading(sec, quote, evalData, currentPg, totalPages) 
   }
 
   const quoteWords = safeQuote.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(w => w.length >= 4);
-  const stopWords = new Set(["this", "that", "with", "from", "were", "have", "more", "also", "into", "been", "other", "their", "such", "than", "they", "them", "which", "about", "under", "after", "before", "page", "point", "marks", "words"]);
+  const stopWords = new Set(["this", "that", "with", "from", "were", "have", "more", "also", "into", "been", "other", "their", "such", "than", "they", "them", "which", "about", "under", "after", "before", "page", "point", "marks", "words", "body", "core", "demand", "part", "intro", "conclusion", "concl", "subpart", "dimension", "step", "candidate", "addressed", "covered", "written"]);
   const substantive = quoteWords.filter(w => !stopWords.has(w));
 
   // If quote contains candidate numbered points, it is strictly a body point card
@@ -9793,7 +9795,9 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
       sections = pbpForPg.map((p, idx) => ({
         zone: currentPg === totalPages ? "conclusion" : "body",
         title: p.title || `Point ${idx + 1}`,
-        marks: p.credit_badge || "+1.0 / 2.0",
+        marks: p.marks || (p.awarded !== undefined && p.max !== undefined ? `+${p.awarded} / ${p.max}` : (p.credit_badge || "+1.0 / 2.0")),
+        awarded: p.awarded !== undefined ? parseFloat(p.awarded) : null,
+        max: p.max !== undefined ? parseFloat(p.max) : null,
         quote: p.what_you_wrote || "",
         advise: p.examiner_verdict || "",
         bodyHtml: p.examiner_verdict || "",
@@ -9821,10 +9825,21 @@ window.renderDesktopAuditCards = function(sections, currentPg, totalPages) {
   let pageScoreTotal = 0;
   let pageMaxTotal = 0;
   sections.forEach(sec => {
-    const match = String(sec.marks || "").match(/([0-9]+(?:\.[0-9]+)?)\s*\/\s*([0-9]+(?:\.[0-9]+)?)/);
-    if (match) {
-      pageScoreTotal += parseFloat(match[1]);
-      pageMaxTotal += parseFloat(match[2]);
+    if (sec.awarded !== null && sec.awarded !== undefined && sec.max !== null && sec.max !== undefined && !isNaN(sec.awarded) && !isNaN(sec.max)) {
+      pageScoreTotal += parseFloat(sec.awarded);
+      pageMaxTotal += parseFloat(sec.max);
+    } else {
+      const match = String(sec.marks || sec.credit_badge || "").match(/([0-9]+(?:\.[0-9]+)?)\s*(?:\/|\bout\s+of\b)\s*([0-9]+(?:\.[0-9]+)?)/i);
+      if (match) {
+        pageScoreTotal += parseFloat(match[1]);
+        pageMaxTotal += parseFloat(match[2]);
+      } else {
+        const singleMatch = String(sec.marks || sec.credit_badge || "").match(/(?:\+|\b)([0-9]+(?:\.[0-9]+)?)\s*M\b/i);
+        if (singleMatch) {
+          pageScoreTotal += parseFloat(singleMatch[1]);
+          pageMaxTotal += Math.max(parseFloat(singleMatch[1]), 2.0);
+        }
+      }
     }
   });
 
@@ -11576,15 +11591,17 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
 
   body.critical_gaps = formattedGaps.slice(0, 4);
 
-  // 4. Ensure missing dimensions has 3 to 4 analytical items
+  // 4. Ensure missing dimensions has 3 to 4 analytical items (discipline-aware, zero statutory anchors on physical geo)
   if (!Array.isArray(body.missing_dimensions) || body.missing_dimensions.length < 3) {
+    const qTxtCheck = String(evalData.question || evalData.detected_question || (typeof state !== "undefined" && state.question) || "").toLowerCase();
+    const isPhysicalGeo = /geography|ocean|climate|current|wind|circulation|plate\s*tectonic|geomorphic|monsoon|cyclone/i.test(qTxtCheck);
     const fallbackDims = isHindi ? [
-      "**संस्थागत एवं विधिक आधार (Institutional Anchor)**: तर्कों को आधिकारिक समिति अनुशंसाओं, संवैधानिक अधिदेशों या राष्ट्रीय विधिक रूपरेखाओं से पुष्ट करें।",
-      "**प्रामाणिक साक्ष्य एवं क्षेत्रीय विभाजन (Empirical Metric)**: गुणात्मक बिंदुओं को आधिकारिक सर्वेक्षणों, नीति आयोग रिपोर्टों या डेटा से समर्थित करें।",
+      isPhysicalGeo ? "**भौतिक प्रक्रिया एवं युग्मन (Physical Mechanism)**: समुद्री धाराओं एवं वायुमंडलीय परिसंचरण के त्रि-कोशिकीय युग्मन तथा वैश्विक मानचित्रण को स्पष्ट करें।" : "**संस्थागत एवं विधिक आधार (Institutional Anchor)**: तर्कों को आधिकारिक समिति अनुशंसाओं, संवैधानिक अधिदेशों या राष्ट्रीय विधिक रूपरेखाओं से पुष्ट करें।",
+      isPhysicalGeo ? "**अनुभवजन्य साक्ष्य एवं क्षेत्रीय प्रभाव (Empirical & Regional Impacts)**: तटीय जलवायु, समुद्री पारिस्थितिकी एवं मत्स्य क्षेत्रों पर विशिष्ट प्रभावों को साक्ष्यों सहित प्रस्तुत करें।" : "**प्रामाणिक साक्ष्य एवं क्षेत्रीय विभाजन (Empirical Metric)**: गुणात्मक बिंदुओं को आधिकारिक सर्वेक्षणों, नीति आयोग रिपोर्टों या डेटा से समर्थित करें।",
       "**अग्रगामी क्रियान्वयन रणनीति (Implementation Strategy)**: प्रशासनिक, ढांचागत या तकनीकी समाधान प्रस्तुत कर व्यवस्थागत बाधाओं को दूर करने की कार्ययोजना दें।"
     ] : [
-      "**Institutional & Statutory Anchor**: Ground arguments in official committee recommendations, constitutional mandates, or national statutory frameworks.",
-      "**Empirical Metric & Regional Disaggregation**: Back qualitative points with authoritative surveys, baseline percentages, and spatial vulnerability distributions.",
+      isPhysicalGeo ? "**Physical Mechanism & Global Coupling**: Clarify the tri-cellular atmospheric coupling with wind-driven gyres and deep thermohaline density gradients." : "**Institutional & Statutory Anchor**: Ground arguments in official committee recommendations, constitutional mandates, or national statutory frameworks.",
+      isPhysicalGeo ? "**Empirical Evidence & Regional Micro-Case Studies**: Substantiate climatic impacts (coastal desiccation, marine upwelling) and economic activities (pelagic fisheries, navigation corridors) with specific geographic examples." : "**Empirical Metric & Regional Disaggregation**: Back qualitative points with authoritative surveys, baseline percentages, and spatial vulnerability distributions.",
       "**Forward-Looking Implementation Strategy**: Provide concrete administrative, infrastructural, or technological mechanisms to bridge systemic operational bottlenecks."
     ];
     body.missing_dimensions = (body.missing_dimensions || []).concat(fallbackDims).slice(0, 4);
@@ -15668,16 +15685,24 @@ window.computeDiagramRelevanceProfile = function(evalData) {
     }
   }
 
-  // Helper to build a clean 2-line horizontal chain from structure or concept_title
-  const rawStructure = diagRec.structure || (isHindi ? "कारण / अधिदेश ──> संस्थागत तंत्र ──> मापने योग्य परिणाम" : "Trigger / Mandate ──> Institutional Mechanism ──> Measurable Outcome");
-  const chainParts = rawStructure
-    .split(/->|──>|→|\||,/)
-    .map(s => s.replace(/[\[\]]/g, "").trim())
-    .filter(Boolean)
-    .slice(0, 4);
+  // Helper to build a clean 2-line horizontal chain from structure, nodes, or concept_title
+  let chainParts = [];
+  if (Array.isArray(diagRec.nodes) && diagRec.nodes.length >= 2) {
+    chainParts = diagRec.nodes.map(n => n.label || n.title || "").filter(Boolean).slice(0, 4);
+  }
+  if (chainParts.length < 2 && diagRec.structure) {
+    chainParts = String(diagRec.structure)
+      .split(/->|──>|→|\|,/)
+      .map(s => s.replace(/[\[\]]/g, "").trim())
+      .filter(Boolean)
+      .slice(0, 4);
+  }
+  const isPhysicalGeoTopic = /geography|ocean|climate|current|wind|circulation|plate\s*tectonic|geomorphic|monsoon|cyclone/i.test(qText);
   const compactArrowChain = chainParts.length >= 2
     ? chainParts.map(p => `[${p}]`).join(" ──> ")
-    : (isHindi ? `[संवैधानिक अधिदेश] ──> [संस्थागत बाधाएं] ──> [आगे की राह]` : `[Constitutional Mandate] ──> [Institutional Bottleneck] ──> [Way Forward]`);
+    : (isPhysicalGeoTopic
+        ? (isHindi ? `[वायुमंडलीय परिसंचरण] ──> [पवन-घर्षण एवं धारा युग्मन] ──> [क्षेत्रीय जलवायु व मानव गतिविधियां]` : `[Atmospheric Circulation] ──> [Wind Friction & Current Coupling] ──> [Regional Climate & Human Impact]`)
+        : (isHindi ? `[प्राथमिक प्रेरक] ──> [कारण-प्रभाव क्रियान्वयन] ──> [मापने योग्य परिणाम]` : `[Primary Driver] ──> [Causal Mechanism] ──> [Outcome & Impact]`));
 
   const rawConcept = diagRec.concept_title || (isHindi ? "केंद्रीय विश्लेषणात्मक फ़्लो" : "Core Analytical Flow");
 

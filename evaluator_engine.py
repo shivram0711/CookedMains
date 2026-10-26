@@ -753,7 +753,7 @@ def is_paper_compatible(selected_paper: str, detected_or_inferred_paper: str, qu
         "right to information", "rti act", "rti", "official secrets act", "citizen's charter", "citizens charter",
         "sevottam", "social audit", "social audits", "constitutional morality", "judicial ethics", "judicial accountability",
         "civil service values", "civil services values", "public service values", "integrity in governance",
-        "conflict of interest", "ethics in governance", "2nd arc", "second arc", "mission karmayogi",
+        "conflict of interest", "ethics in governance", "2nd arc", "second arc", "mission karmayogi", "emotional intelligence", "civil service", "civil services",
         "lok प्रतिनिधित्व अधिनियम", "चुनावी नैतिकता"
     ]
     if (s_norm in ["GS2", "GS4"]) and (d_norm in ["GS2", "GS4"]):
@@ -1247,16 +1247,31 @@ def build_hindi_evaluation_prompt(
     question, _, _ = sanitize_against_prompt_injection(question, field_name="hindi_question")
     detected_paper = detect_academic_discipline(question, paper_key)
 
-    # Question-specific dynamic demand allocations (no fixed percentage templates)
-    sample_score = round(max_marks * 0.42, 1)
-    d1_m = round(max_marks * 0.20, 1)
-    d2_m = round(max_marks * 0.40, 1)
-    d3_m = round(max_marks * 0.25, 1)
-    d4_m = round(max_marks - d1_m - d2_m - d3_m, 1)
-    d1_aw = round(sample_score * 0.25, 1)
-    d2_aw = round(sample_score * 0.40, 1)
-    d3_aw = round(sample_score * 0.20, 1)
-    d4_aw = round(sample_score - d1_aw - d2_aw - d3_aw, 1)
+    # Question-specific dynamic demand allocations (UPSC Mains standard: Intro 1.0–1.5M, Conclusion 1.0–1.5M, Body 80–85%)
+    if max_marks == 10:
+        d1_m, d2_m, d3_m, d4_m = 1.0, 4.0, 4.0, 1.0
+        sample_score = 4.0
+        d1_aw, d2_aw, d3_aw, d4_aw = 0.5, 1.5, 1.5, 0.5
+    elif max_marks == 15:
+        d1_m, d2_m, d3_m, d4_m = 1.5, 6.0, 6.0, 1.5
+        sample_score = 5.5
+        d1_aw, d2_aw, d3_aw, d4_aw = 0.5, 2.5, 2.0, 0.5
+    elif max_marks == 20:
+        d1_m, d2_m, d3_m, d4_m = 2.0, 8.0, 8.0, 2.0
+        sample_score = 7.5
+        d1_aw, d2_aw, d3_aw, d4_aw = 1.0, 3.0, 2.5, 1.0
+    else:
+        d1_m = max(1.0, round(max_marks * 0.10, 1))
+        d4_m = max(1.0, round(max_marks * 0.10, 1))
+        body_m = round(max_marks - d1_m - d4_m, 1)
+        d2_m = round(body_m * 0.5, 1)
+        d3_m = round(body_m - d2_m, 1)
+        sample_score = round(max_marks * 0.38, 1)
+        d1_aw = round(sample_score * 0.12, 1)
+        d4_aw = round(sample_score * 0.12, 1)
+        rem_aw = round(sample_score - d1_aw - d4_aw, 1)
+        d2_aw = round(rem_aw * 0.55, 1)
+        d3_aw = round(rem_aw - d2_aw, 1)
     sample_intro_aw = d1_aw
     sample_body_aw = round(d2_aw + d3_aw, 1)
     sample_conc_aw = d4_aw
@@ -1340,15 +1355,6 @@ def build_hindi_evaluation_prompt(
       "marks_awarded": "+{d4_aw:.1f} / {d4_m:.1f}",
       "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — उत्तर का संतुलित समापन।\\n✎ **सुधार**: आगे की राह में 1 ठोस संस्थागत सुधार जोड़ें।"
     }}}}'''
-    d1_m = round(max_marks * 0.20, 1)
-    d2_m = round(max_marks * 0.40, 1)
-    d3_m = round(max_marks * 0.25, 1)
-    d4_m = round(max_marks - d1_m - d2_m - d3_m, 1)
-    d1_aw = round(sample_score * 0.25, 1)
-    d2_aw = round(sample_score * 0.40, 1)
-    d3_aw = round(sample_score * 0.20, 1)
-    d4_aw = round(sample_score - d1_aw - d2_aw - d3_aw, 1)
-
     ca_block = f"CURRENT AFFAIRS CONTEXT (समसामयिक संदर्भ):\n{current_affairs_context}\n" if current_affairs_context else ""
 
     prompt = f"""You are a Senior UPSC Mains Examiner (वरिष्ठ संघ लोक सेवा आयोग मुख्य परीक्षा परीक्षक - हिंदी माध्यम).
@@ -1945,16 +1951,31 @@ def build_evaluation_prompt(
     detected_paper = detect_academic_discipline(question, paper_key)
     taxonomy = PAPER_TAXONOMIES.get(detected_paper, PAPER_TAXONOMIES.get("GS2"))
     
-    # Question-specific dynamic demand allocations (no fixed percentage templates)
-    sample_score = round(max_marks * 0.42, 1)
-    d1_m = round(max_marks * 0.20, 1)
-    d2_m = round(max_marks * 0.40, 1)
-    d3_m = round(max_marks * 0.25, 1)
-    d4_m = round(max_marks - d1_m - d2_m - d3_m, 1)
-    d1_aw = round(sample_score * 0.25, 1)
-    d2_aw = round(sample_score * 0.40, 1)
-    d3_aw = round(sample_score * 0.20, 1)
-    d4_aw = round(sample_score - d1_aw - d2_aw - d3_aw, 1)
+    # Question-specific dynamic demand allocations (UPSC Mains standard: Intro 1.0–1.5M, Conclusion 1.0–1.5M, Body 80–85%)
+    if max_marks == 10:
+        d1_m, d2_m, d3_m, d4_m = 1.0, 4.0, 4.0, 1.0
+        sample_score = 4.0
+        d1_aw, d2_aw, d3_aw, d4_aw = 0.5, 1.5, 1.5, 0.5
+    elif max_marks == 15:
+        d1_m, d2_m, d3_m, d4_m = 1.5, 6.0, 6.0, 1.5
+        sample_score = 5.5
+        d1_aw, d2_aw, d3_aw, d4_aw = 0.5, 2.5, 2.0, 0.5
+    elif max_marks == 20:
+        d1_m, d2_m, d3_m, d4_m = 2.0, 8.0, 8.0, 2.0
+        sample_score = 7.5
+        d1_aw, d2_aw, d3_aw, d4_aw = 1.0, 3.0, 2.5, 1.0
+    else:
+        d1_m = max(1.0, round(max_marks * 0.10, 1))
+        d4_m = max(1.0, round(max_marks * 0.10, 1))
+        body_m = round(max_marks - d1_m - d4_m, 1)
+        d2_m = round(body_m * 0.5, 1)
+        d3_m = round(body_m - d2_m, 1)
+        sample_score = round(max_marks * 0.38, 1)
+        d1_aw = round(sample_score * 0.12, 1)
+        d4_aw = round(sample_score * 0.12, 1)
+        rem_aw = round(sample_score - d1_aw - d4_aw, 1)
+        d2_aw = round(rem_aw * 0.55, 1)
+        d3_aw = round(rem_aw - d2_aw, 1)
     sample_intro_aw = d1_aw
     sample_body_aw = round(d2_aw + d3_aw, 1)
     sample_conc_aw = d4_aw
@@ -2288,6 +2309,19 @@ Every UPSC Mains paper and micro-subject has its own distinct soul, technical le
   * History & Art/Culture DNA: Evaluate for chronological periodization, architectural/artistic vocabulary (Nagara vs Dravida, Tribhanga, Pietra Dura), primary sources/inscriptions/numismatics, ideological currents (Moderates, Extremists, Subaltern, Bhakti-Sufi synthesis), and cause-effect-consequence analysis (penalize mere storytelling).
   * Indian Society DNA: Evaluate for sociological concepts (Sanskritization, Secularization, Care Economy, Demographic Dividend, Urbanization-Induced Alienation, Regionalism vs Communalism, Melting Pot vs Salad Bowl), empirical baselines (NFHS-5, PLFS, Census), and constitutional social harmony.
   * Geography & Resources DNA: Evaluate for physical/geomorphic processes (Coriolis force, Albedo, ITCZ, Plate Tectonics, Thermohaline circulation, Western Disturbances), spatial location accuracy, **hand-drawn India/World sketch maps or cross-section diagrams**, and contemporary flashpoints (GLOFs, Wayanad landslides, Urban Heat Islands).
+    - OCEANOGRAPHY & CLIMATOLOGY STRICT BENCHMARK DIAGNOSIS:
+      1. Wind-Driven Surface Currents vs. Deep Thermohaline Conveyor:
+         * Surface currents are driven by planetary winds (Trades, Westerlies) through surface wind drag and Coriolis deflection (Ekman spiral and net 90° Ekman transport), forming subtropical gyres.
+         * Deep ocean circulation (Thermohaline / AMOC) is density-driven by temperature and salinity gradients (brine rejection/cooling at polar margins), NOT wind-driven.
+         * Polar atmospheric cell involves subsidence of cold dense air at the polar high; do NOT confuse atmospheric polar sinking with ocean thermohaline sinking or attribute deep ocean circulation to Polar cell winds.
+      2. Hemispheric & Wind Belt Spatial Precision:
+         * Catch geographic errors rigorously (e.g. Humboldt / Peru Current is located in the Southern Hemisphere along the west coast of South America, driven by SE Trade Winds in the South Pacific subtropical gyre; placing it in the Northern Hemisphere under Westerlies is a major factual error).
+      3. Oceanographic & Fishing Facts vs. Shelf Topography:
+         * Distinguish shallow continental shelf / tidal mixing zones (e.g. Dogger Bank in the North Sea) from warm-cold current convergence zones (e.g. Grand Banks of Newfoundland where Gulf Stream meets Labrador Current, or Pacific Kuroshio-Oyashio convergence). Crediting Dogger Bank as a current-convergence zone is factually incorrect.
+      4. Climate vs. Human Activity Disaggregation:
+         * Strictly disaggregate Climatic impacts (coastal desiccation/aridity from cold currents like Atacama/Namib, maritime moderation from North Atlantic Drift, upwelling, advection fog) from Human/Economic activities (shipping lanes, ice-free ports like Murmansk, pelagic fisheries, offshore energy).
+      5. Defensible UPSC Marking & Objective Tone:
+         * If the candidate confuses driving mechanisms, misplaces currents across hemispheres, or muddles geography, award an honest, defensible practice score (~4.5 to 5.5 / 15.0M) and pinpoint the exact error with candidate handwriting quotes. Do NOT inflate marks or offer patronizing boilerplate praise.
     CRITICAL MANDATE: On Physical Geography questions, NEVER demand, invent, or penalize for statutory provisions, constitutional articles, or administrative committees! Ground feedback purely in Earth science and spatial evidence.
   * STRICT EVIDENCE CITATION & ZERO HALLUCINATED EXAMPLES:
     - Every compliment, mark award, or critical deduction must cite candidate handwriting and page numbers: (Page X: "quote").
@@ -2963,7 +2997,7 @@ Generate strictly valid JSON matching this schema:
   "sub_part_step_marking": [
     {{
       "step_label": "1. Introduction (Context & Baseline Hook)",
-      "sub_heading": "Conceptual Definition, Constitutional/Statutory Anchor or Contemporary Context",
+      "sub_heading": "Phenomenon / Conceptual Foundation & Question Context",
       "demand_status": "Partially Fulfilled",
       "awarded": {sample_intro_aw:.2f},
       "max": {d1_m:.1f},
@@ -2995,7 +3029,7 @@ Generate strictly valid JSON matching this schema:
     }},
     {{
       "step_label": "5. Conclusion (Closing Synthesis)",
-      "sub_heading": "Topic-Specific Institutional, Constitutional or Policy Synthesis",
+      "sub_heading": "Synthesis of Core Demand & Forward Perspective",
       "demand_status": "Demand Fulfilled",
       "awarded": {sample_conc_aw:.2f},
       "max": {d4_m:.1f},
@@ -3636,6 +3670,15 @@ def _has_meta_placeholder(txt: str) -> bool:
                           r'detailed analysis across candidate\'s points|'
                           r'point \[[a-z0-9]+\]|'
                           r'substantiate point|'
+                          r'body\s*&\s*core\s*&\s*demand|'
+                          r'& core & demand|'
+                          r'core demand|'
+                          r'primary sub-part|'
+                          r'secondary dimension|'
+                          r'addressed primary sub-part|'
+                          r'covered secondary dimension|'
+                          r'addressed substantive question dimensions|'
+                          r'structured points on page|'
                           r'bridge the gap in point)', str(txt or "")))
 
 
@@ -4223,7 +4266,7 @@ def _ensure_at_least_one_value_addition(data: Dict[str, Any], is_hindi: bool = F
     # Option A: Extract from missing_dimensions if a substantive forward-looking or comparative angle exists
     for dim in missing_dims:
         dim_str = str(dim).strip()
-        if dim_str and len(dim_str) > 10 and not any(w in dim_str.lower() for w in ["none", "nil", "no missing", "well covered"]):
+        if dim_str and len(dim_str) > 10 and not any(w in dim_str.lower() for w in ["none", "nil", "no missing", "well covered", "thoroughly analyzed", "all substantive", "well addressed", "no major"]):
             parts = re.split(r'[:—–-]\s*', dim_str, 1)
             enrichment_term = re.sub(r'[*_"]', '', parts[0]).strip()[:50]
             desc = parts[1].strip() if len(parts) > 1 else dim_str
@@ -4267,6 +4310,14 @@ def _ensure_at_least_one_value_addition(data: Dict[str, Any], is_hindi: bool = F
             )
             enrichment_where = "Page 2 • Beside multidimensional deprivation indicators" if not is_hindi else "पृष्ठ 2 • बहुआयामी वंचना संकेतकों के साथ"
             enrichment_how = "Deprivations cluster disproportionately along intersecting axes of spatial remoteness and marginalized social identity." if not is_hindi else "वंचनाएं स्थानिक दूरी और सामाजिक हाशियाकरण के अंतर्संबंधों पर अधिक केंद्रित होती हैं।"
+        elif any(k in q_low for k in ["ocean", "circulation", "current", "gyre", "atmospheric cell", "hadley", "ferrel", "polar cell", "ekman", "thermohaline", "upwelling"]):
+            enrichment_term = "Ekman Spiral & Sverdrup Transport Mass Balance" if not is_hindi else "एकमान सर्पिल एवं स्वेरड्रप संचरण संतुलन"
+            enrichment_def = (
+                "No major omission was identified in this evaluation. Optional upgrade: Clarify how surface wind stress generates a 45-degree deflection at the surface and 90-degree net mass transport (Ekman transport), powering subtropical convergence and geostrophic gyres." if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: स्पष्ट करें कि पवन घर्षण सतह पर 45° और शुद्ध जल द्रव्यमान को 90° पर विक्षेपित करता है (एकमान संचरण), जिससे उपोष्णकटिबंधीय अभिसरण और भंवर (gyres) बनते हैं।"
+            )
+            enrichment_where = "Page 2 • Under wind-current coupling mechanism" if not is_hindi else "पृष्ठ 2 • पवन-धारा अंतर्संबंध तंत्र के अंतर्गत"
+            enrichment_how = "Net Ekman transport pushes water toward the centre of subtropical gyres, producing sea surface elevation gradients that sustain geostrophic surface currents." if not is_hindi else "एकमान संचरण उपोष्णकटिबंधीय भंवरों के केंद्र में जल इकट्ठा करता है, जिससे प्रवणता बल भू-विक्षेपी धाराओं को संचालित रखता है।"
         elif any(k in q_low for k in ["earthquake", "seismic", "wadati", "benioff", "convergent", "plate tectonics"]):
             enrichment_term = "Dehydration Embrittlement & Slab Detachment Dynamics" if not is_hindi else "निर्जलीकरण भंगुरता एवं स्लैब पृथक्करण गतिकी"
             enrichment_def = (
@@ -4499,6 +4550,15 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                                   r'detailed analysis across candidate\'s points|'
                                   r'point \[[a-z0-9]+\]|'
                                   r'substantiate point|'
+                          r'body\s*&\s*core\s*&\s*demand|'
+                          r'& core & demand|'
+                          r'core demand|'
+                          r'primary sub-part|'
+                          r'secondary dimension|'
+                          r'addressed primary sub-part|'
+                          r'covered secondary dimension|'
+                          r'addressed substantive question dimensions|'
+                          r'structured points on page|'
                                   r'bridge the gap in point|'
                                   r'opened by defining the core concept|'
                                   r'establishing direct analytical context|'
@@ -6674,15 +6734,16 @@ def _normalize_exam_hall_discipline_and_micro_marking(data: Dict[str, Any], max_
     }
 
     # 2. Transparent Micro-Marking Arithmetic
-    intro_aw = float(rubric.get("intro_score") if rubric.get("intro_score") is not None else 1.0)
+    is_zero_overall = (overall_score <= 0.0)
+    intro_aw = float(rubric.get("intro_score") if rubric.get("intro_score") is not None else (0.0 if is_zero_overall else 1.0))
     intro_max = float(rubric.get("intro_max") if rubric.get("intro_max") is not None else (1.5 if max_marks == 10 else 2.0))
-    core_aw = float(rubric.get("core_demand_score") if rubric.get("core_demand_score") is not None else 2.0)
+    core_aw = float(rubric.get("core_demand_score") if rubric.get("core_demand_score") is not None else (0.0 if is_zero_overall else 2.0))
     core_max = float(rubric.get("core_demand_max") if rubric.get("core_demand_max") is not None else (4.5 if max_marks == 10 else 7.0))
-    val_aw = float(rubric.get("value_add_score") if rubric.get("value_add_score") is not None else 0.5)
+    val_aw = float(rubric.get("value_add_score") if rubric.get("value_add_score") is not None else (0.0 if is_zero_overall else 0.5))
     val_max = float(rubric.get("value_add_max") if rubric.get("value_add_max") is not None else (1.5 if max_marks == 10 else 2.5))
-    pres_aw = float(rubric.get("presentation_score") if rubric.get("presentation_score") is not None else 0.5)
+    pres_aw = float(rubric.get("presentation_score") if rubric.get("presentation_score") is not None else (0.0 if is_zero_overall else 0.5))
     pres_max = float(rubric.get("presentation_max") if rubric.get("presentation_max") is not None else (1.0 if max_marks == 10 else 1.5))
-    conc_aw = float(rubric.get("conclusion_score") if rubric.get("conclusion_score") is not None else 0.5)
+    conc_aw = float(rubric.get("conclusion_score") if rubric.get("conclusion_score") is not None else (0.0 if is_zero_overall else 0.5))
     conc_max = float(rubric.get("conclusion_max") if rubric.get("conclusion_max") is not None else (1.5 if max_marks == 10 else 2.0))
 
     if is_hindi:
@@ -6831,11 +6892,11 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
     rubric = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
 
     if max_marks == 10:
-        intro_max, part_a_max, part_b_max, conc_max = 1.5, 4.0, 3.0, 1.5
+        intro_max, part_a_max, part_b_max, conc_max = 1.0, 4.0, 4.0, 1.0
     elif max_marks == 15:
-        intro_max, part_a_max, part_b_max, conc_max = 2.0, 6.0, 5.0, 2.0
+        intro_max, part_a_max, part_b_max, conc_max = 1.5, 6.0, 6.0, 1.5
     elif max_marks == 20:
-        intro_max, part_a_max, part_b_max, conc_max = 2.5, 8.0, 7.0, 2.5
+        intro_max, part_a_max, part_b_max, conc_max = 2.0, 8.0, 8.0, 2.0
     else:
         intro_max = round(max_marks * 0.15, 1)
         conc_max = round(max_marks * 0.15, 1)
@@ -7406,10 +7467,10 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
             short_tag = re.split(r'[:(]', clean_title)[0].strip()[:24]
             if is_hindi:
                 badge_loc = f"पृष्ठ {p_num} • {short_tag}"
-                credit_badge = f"✓ +{aw:.1f}M अंक मिले" if is_pos else f"✎ +{aw:.1f}M सुधार का दायरा"
+                credit_badge = f"✓ +{aw:.1f} / {mx:.1f}M अंक मिले" if is_pos else f"✎ +{aw:.1f} / {mx:.1f}M सुधार का दायरा"
             else:
                 badge_loc = f"Page {p_num} • {short_tag}"
-                credit_badge = f"✓ +{aw:.1f}M Rewarded" if ratio >= 0.6 else (f"✓ +{aw:.1f}M Credit" if is_pos else (f"✎ +{aw:.1f}M Partial Credit" if aw > 0 else "➔ Room to Upgrade"))
+                credit_badge = f"✓ +{aw:.1f} / {mx:.1f}M Rewarded" if ratio >= 0.6 else (f"✓ +{aw:.1f} / {mx:.1f}M Credit" if is_pos else (f"✎ +{aw:.1f} / {mx:.1f}M Partial Credit" if aw > 0 else "➔ Room to Upgrade"))
 
             qw = str(st.get("quoted_written", "")).strip()
             if not qw or _has_meta_placeholder(qw):
@@ -7434,7 +7495,10 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                 "what_you_wrote": qw,
                 "examiner_verdict": verdict,
                 "credit_badge": credit_badge,
-                "is_positive": is_pos
+                "is_positive": is_pos,
+                "awarded": aw,
+                "max": mx,
+                "marks": f"+{aw:.1f} / {mx:.1f}"
             })
         data["point_by_point_audit"] = pbp_generated
     else:
@@ -8142,17 +8206,13 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
         c_audit["is_unwritten"] = False
 
         # Determine authentic conclusion marks (matching Section 1 sub_part_step_marking!)
-        assigned_conc = max(
-            0.5,
-            gemini_step_conc_aw,
-            rubric_c_score,
-            c_audit_score,
-            ann_conc_aw
-        )
+        conc_cands = [gemini_step_conc_aw, rubric_c_score, c_audit_score, ann_conc_aw]
+        valid_conc_cands = [x for x in conc_cands if x is not None and x > 0]
+        assigned_conc = max(valid_conc_cands) if valid_conc_cands else 0.0
         if is_generic_conc and assigned_conc > 0.5:
             assigned_conc = 0.5
 
-        assigned_conc = min(c_max, max(0.5, round(assigned_conc * 2) / 2))
+        assigned_conc = min(c_max, round(assigned_conc * 2) / 2)
         rubric_d["conclusion_score"] = assigned_conc
         c_audit["score"] = assigned_conc
         c_audit["model_conclusion_rewrite"] = effective_conc
