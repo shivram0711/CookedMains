@@ -11637,19 +11637,14 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
   body.critical_gaps = formattedGaps.slice(0, 4);
 
   // 4. Ensure missing dimensions has 3 to 4 analytical items (discipline-aware, zero statutory anchors on physical geo)
-  if (!Array.isArray(body.missing_dimensions) || body.missing_dimensions.length < 3) {
-    const qTxtCheck = String(evalData.question || evalData.detected_question || (typeof state !== "undefined" && state.question) || "").toLowerCase();
-    const isPhysicalGeo = /geography|ocean|climate|current|wind|circulation|plate\s*tectonic|geomorphic|monsoon|cyclone/i.test(qTxtCheck);
-    const fallbackDims = isHindi ? [
-      isPhysicalGeo ? "**भौतिक प्रक्रिया एवं युग्मन (Physical Mechanism)**: समुद्री धाराओं एवं वायुमंडलीय परिसंचरण के त्रि-कोशिकीय युग्मन तथा वैश्विक मानचित्रण को स्पष्ट करें।" : "**संस्थागत एवं विधिक आधार (Institutional Anchor)**: तर्कों को आधिकारिक समिति अनुशंसाओं, संवैधानिक अधिदेशों या राष्ट्रीय विधिक रूपरेखाओं से पुष्ट करें।",
-      isPhysicalGeo ? "**अनुभवजन्य साक्ष्य एवं क्षेत्रीय प्रभाव (Empirical & Regional Impacts)**: तटीय जलवायु, समुद्री पारिस्थितिकी एवं मत्स्य क्षेत्रों पर विशिष्ट प्रभावों को साक्ष्यों सहित प्रस्तुत करें।" : "**प्रामाणिक साक्ष्य एवं क्षेत्रीय विभाजन (Empirical Metric)**: गुणात्मक बिंदुओं को आधिकारिक सर्वेक्षणों, नीति आयोग रिपोर्टों या डेटा से समर्थित करें।",
-      "**अग्रगामी क्रियान्वयन रणनीति (Implementation Strategy)**: प्रशासनिक, ढांचागत या तकनीकी समाधान प्रस्तुत कर व्यवस्थागत बाधाओं को दूर करने की कार्ययोजना दें।"
-    ] : [
-      isPhysicalGeo ? "**Physical Mechanism & Global Coupling**: Clarify the tri-cellular atmospheric coupling with wind-driven gyres and deep thermohaline density gradients." : "**Institutional & Statutory Anchor**: Ground arguments in official committee recommendations, constitutional mandates, or national statutory frameworks.",
-      isPhysicalGeo ? "**Empirical Evidence & Regional Micro-Case Studies**: Substantiate climatic impacts (coastal desiccation, marine upwelling) and economic activities (pelagic fisheries, navigation corridors) with specific geographic examples." : "**Empirical Metric & Regional Disaggregation**: Back qualitative points with authoritative surveys, baseline percentages, and spatial vulnerability distributions.",
-      "**Forward-Looking Implementation Strategy**: Provide concrete administrative, infrastructural, or technological mechanisms to bridge systemic operational bottlenecks."
-    ];
-    body.missing_dimensions = (body.missing_dimensions || []).concat(fallbackDims).slice(0, 4);
+  // 4. Clean missing dimensions: strictly filter out generic catalogue boilerplate and de-duplicate
+  if (Array.isArray(body.missing_dimensions)) {
+    const isGenericBoilerplate = (txt) => {
+      return /(?:institutional\s*&\s*statutory\s*anchor|empirical\s*metric\s*&\s*regional\s*disaggregation|forward-looking\s*implementation\s*strategy|संस्थागत\s*एवं\s*विधिक\s*आधार|प्रामाणिक\s*साक्ष्य\s*एवं\s*क्षेत्रीय\s*विभाजन|अग्रगामी\s*क्रियान्वयन\s*रणनीति|official\s*committee\s*recommendations|authoritative\s*surveys,\s*baseline\s*percentages|systemic\s*operational\s*bottlenecks)/i.test(String(txt || ""));
+    };
+    body.missing_dimensions = body.missing_dimensions.filter(d => d && !isGenericBoilerplate(d)).slice(0, 3);
+  } else {
+    body.missing_dimensions = [];
   }
 
   evalData.body_audit = body;
@@ -13441,19 +13436,28 @@ function renderEvaluation(evalData) {
     gapsEl.appendChild(li);
   });
 
+  const missingDimCardBox = document.getElementById("bodyMissingDimensionsCardBox");
   const missingDimEl = document.getElementById("bodyMissingDimensionsList");
-  missingDimEl.innerHTML = "";
-  const uniqueMissingDims = (body.missing_dimensions || []).filter(d => !isAlreadyInDeepEval(d));
-  const dimsToRender = uniqueMissingDims.length > 0 ? uniqueMissingDims : (body.missing_dimensions || []).slice(0, 4);
-  dimsToRender.forEach(d => {
-    registerInDeepEval(d);
-    const li = document.createElement("li");
-    li.className = "leading-relaxed";
-    li.innerHTML = formatHighlightedText(d);
-    missingDimEl.appendChild(li);
-  });
+  if (missingDimEl) {
+    missingDimEl.innerHTML = "";
+    const isGenericBoilerplate = (txt) => {
+      return /(?:institutional\s*&\s*statutory\s*anchor|empirical\s*metric\s*&\s*regional\s*disaggregation|forward-looking\s*implementation\s*strategy|संस्थागत\s*एवं\s*विधिक\s*आधार|प्रामाणिक\s*साक्ष्य\s*एवं\s*क्षेत्रीय\s*विभाजन|अग्रगामी\s*क्रियान्वयन\s*रणनीति|official\s*committee\s*recommendations|authoritative\s*surveys,\s*baseline\s*percentages|systemic\s*operational\s*bottlenecks)/i.test(String(txt || ""));
+    };
+    const uniqueMissingDims = (body.missing_dimensions || []).filter(d => d && !isGenericBoilerplate(d) && !isAlreadyInDeepEval(d));
+    if (uniqueMissingDims.length > 0) {
+      if (missingDimCardBox) missingDimCardBox.classList.remove("hidden");
+      uniqueMissingDims.forEach(d => {
+        registerInDeepEval(d);
+        const li = document.createElement("li");
+        li.className = "leading-relaxed";
+        li.innerHTML = formatHighlightedText(d);
+        missingDimEl.appendChild(li);
+      });
+    } else {
+      if (missingDimCardBox) missingDimCardBox.classList.add("hidden");
+    }
+  }
 
-  // Pre-register bodyKeywordCards (both term and definition stems) so value_add_checklist and caDataReportsList never repeat them
   bodyKeywordCards.forEach(c => {
     if (c && c.term) registerInDeepEval(c.term);
     if (c && c.definition) registerInDeepEval(c.definition);

@@ -270,5 +270,133 @@ class TestEvaluationRigor(unittest.TestCase):
         self.assertLessEqual(c_max, 1.5)
         self.assertNotEqual(c_max, 2.5)
 
+    def test_regression_screenshot_1_ocean_currents_uncovered_demands(self):
+        """13. Regression Case 1 (Screenshot 1): Ocean Currents question must NOT emit generic institutional/statutory anchors."""
+        eval_data = {
+            "detected_question": "How is general pattern of ocean surface current circulation related to global atmospheric circulation patterns? Also discuss the influence of these circulations on climate and human activities.",
+            "max_marks": 15,
+            "transcribed_text": "Wind friction on surface waters initiates oceanic movement. Trade winds drive equatorial currents.",
+            "body_audit": {
+                "strengths": ["Clear linkage between Trade Winds and Equatorial currents."],
+                "critical_gaps": ["Did not explain Ekman spiral deflection."],
+                "missing_dimensions": [
+                    "**Thermodynamic Heat Transport**: Elaborate on how poleward warm current transport regulates global planetary energy balance.",
+                    "**Interannual Variability**: Briefly touch upon coupled ocean-atmosphere anomalies like ENSO (El Nino Southern Oscillation).",
+                    "**Institutional & Statutory Anchor**: Ground arguments in official committee recommendations, constitutional mandates, or national statutory frameworks.",
+                    "**Empirical Metric & Regional Disaggregation**: Back qualitative points with authoritative surveys, baseline percentages, and spatial vulnerability distributions."
+                ]
+            }
+        }
+        norm = normalize_evaluation_data(eval_data, max_marks=15)
+        dims = norm.get("body_audit", {}).get("missing_dimensions", [])
+        
+        # Must strip generic catalogue boilerplate
+        self.assertFalse(any("Institutional & Statutory Anchor" in d for d in dims))
+        self.assertFalse(any("Empirical Metric & Regional Disaggregation" in d for d in dims))
+        self.assertFalse(any("official committee recommendations" in d.lower() for d in dims))
+        
+        # Must retain question-specific physical geography dimensions
+        self.assertTrue(any("Thermodynamic Heat Transport" in d for d in dims))
+        self.assertTrue(any("Interannual Variability" in d or "ENSO" in d for d in dims))
+        self.assertLessEqual(len(dims), 2)
+
+    def test_regression_screenshot_2_judicial_countermajoritarian_uncovered_demands(self):
+        """14. Regression Case 2 (Screenshot 2): Judicial review prompt must NOT append generic statutory/empirical boilerplate."""
+        eval_data = {
+            "detected_question": "Examine the role of the judiciary in upholding constitutionalism while balancing counter-majoritarian concerns.",
+            "max_marks": 10,
+            "transcribed_text": "Judicial review under Article 13 and 32 safeguards fundamental rights against executive and legislative excess.",
+            "body_audit": {
+                "strengths": ["Cited Article 13 and Article 32 correctly."],
+                "critical_gaps": ["Needs discussion on judicial self-restraint."],
+                "missing_dimensions": [
+                    "**Institutional Limitations**: Acknowledging the counter-majoritarian dilemma and implementation bottlenecks of judicial mandates.",
+                    "**Institutional & Statutory Anchor**: Ground arguments in official committee recommendations, constitutional mandates, or national statutory frameworks.",
+                    "**Empirical Metric & Regional Disaggregation**: Back qualitative points with authoritative surveys, baseline percentages, and spatial vulnerability distributions.",
+                    "**Forward-Looking Implementation Strategy**: Provide concrete administrative, infrastructural, or technological mechanisms to bridge systemic operational bottlenecks."
+                ]
+            }
+        }
+        norm = normalize_evaluation_data(eval_data, max_marks=10)
+        dims = norm.get("body_audit", {}).get("missing_dimensions", [])
+        
+        # Must strip all generic catalogue items
+        self.assertFalse(any("Institutional & Statutory Anchor" in d for d in dims))
+        self.assertFalse(any("Empirical Metric & Regional Disaggregation" in d for d in dims))
+        self.assertFalse(any("Forward-Looking Implementation Strategy" in d for d in dims))
+        
+        # Retains only the genuine judicial dimension
+        self.assertEqual(len(dims), 1)
+        self.assertIn("Institutional Limitations", dims[0])
+
+    def test_regression_screenshot_3_post_1857_british_response_uncovered_demands(self):
+        """15. Regression Case 3 (Screenshot 3): Post-1857 British response prompt retains historical dimensions and rejects generic boilerplate."""
+        eval_data = {
+            "detected_question": "British response to the revolt of 1857 did more than restoring colonial control; it prolonged the longevity of British imperialism in India. Examine.",
+            "max_marks": 10,
+            "transcribed_text": "Revolt of 1857 led to Act for Better Government of India 1858 and army reorganization based on martial races.",
+            "body_audit": {
+                "strengths": ["Addressed 1858 Act and army reorganization."],
+                "critical_gaps": ["Missed ideological shift of non-interference in religious practices."],
+                "missing_dimensions": [
+                    "**Economic Imperialism Dimension**: Integration of Indian markets into global capitalist finance under direct Crown supervision.",
+                    "**Landlord Patronage Dimension**: Empowerment of Oudh talukdars and loyalist zamindars as rural anchors of colonial rule.",
+                    "**Institutional & Statutory Anchor**: Ground arguments in official committee recommendations, constitutional mandates, or national statutory frameworks.",
+                    "**Empirical Metric & Regional Disaggregation**: Back qualitative points with authoritative surveys, baseline percentages, and spatial vulnerability distributions."
+                ]
+            }
+        }
+        norm = normalize_evaluation_data(eval_data, max_marks=10)
+        dims = norm.get("body_audit", {}).get("missing_dimensions", [])
+        
+        # Must strip generic items
+        self.assertFalse(any("Institutional & Statutory Anchor" in d for d in dims))
+        self.assertFalse(any("Empirical Metric & Regional Disaggregation" in d for d in dims))
+        
+        # Must retain genuine historical dimensions
+        self.assertTrue(any("Economic Imperialism Dimension" in d for d in dims))
+        self.assertTrue(any("Landlord Patronage Dimension" in d for d in dims))
+        self.assertEqual(len(dims), 2)
+
+    def test_missing_dimensions_omits_already_covered_student_evidence(self):
+        """16. Verification of omission: A dimension is omitted if the student already wrote about it."""
+        eval_data = {
+            "detected_question": "British response to the revolt of 1857 did more than restoring colonial control; it prolonged the longevity of British imperialism in India. Examine.",
+            "max_marks": 10,
+            "transcribed_text": (
+                "British courted the landlord patronage by empowering Oudh talukdars and loyalist zamindars as rural conservative anchors.\n"
+                "Furthermore, Indian markets were integrated into global capitalist finance through railway construction and export orientation."
+            ),
+            "body_audit": {
+                "strengths": ["Highlighted Oudh talukdars and landlord patronage.", "Analyzed market integration and railway capital."],
+                "critical_gaps": ["Could elaborate on the Queen's Proclamation of 1858."],
+                "missing_dimensions": [
+                    "**Landlord Patronage Dimension**: Empowerment of Oudh talukdars and loyalist zamindars as rural anchors of colonial rule.",
+                    "**Economic Imperialism Dimension**: Integration of Indian markets into global capitalist finance under direct Crown supervision."
+                ]
+            }
+        }
+        norm = normalize_evaluation_data(eval_data, max_marks=10)
+        dims = norm.get("body_audit", {}).get("missing_dimensions", [])
+        # Since student explicitly wrote both landlord patronage and economic imperialism, they should NOT be labeled missing!
+        self.assertEqual(dims, [])
+
+    def test_missing_dimensions_can_be_empty_without_forced_padding(self):
+        """17. No artificial padding: If answer has no major missing dimensions, section remains clean and empty."""
+        eval_data = {
+            "detected_question": "Explain plate tectonics and volcanism.",
+            "max_marks": 10,
+            "transcribed_text": "Comprehensive handwritten answer covering all demands thoroughly.",
+            "body_audit": {
+                "strengths": ["Covered convergent, divergent, and transform plate boundaries."],
+                "critical_gaps": [],
+                "missing_dimensions": []
+            }
+        }
+        norm = normalize_evaluation_data(eval_data, max_marks=10)
+        dims = norm.get("body_audit", {}).get("missing_dimensions", [])
+        # Must remain empty without forced padding to 3 or 4 items
+        self.assertEqual(dims, [])
+
 if __name__ == "__main__":
     unittest.main()

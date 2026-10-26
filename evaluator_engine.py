@@ -1778,8 +1778,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "कमी 2: डेटा या समिति रिपोर्ट का अभाव।"
     ],
     "missing_dimensions": [
-      "**[छूटा हुआ आयाम 1]**: इसका विस्तृत प्रशासनिक महत्व।",
-      "**[छूटा हुआ आयाम 2]**: नीतिगत समाधान या अंतर्राष्ट्रीय उदाहरण।"
+      "**[प्रश्न की छूटी हुई मुख्य मांग] (पृष्ठ X)**: छूटे हुए मुख्य आयाम का स्पष्ट विश्लेषण और उसे जोड़ने का संक्षिप्त उपाय।"
     ],
     "examiner_guidance": "मुख्य भाग को टॉपर स्तर पर ले जाने हेतु 2 ठोस सुधारात्मक कदम।"
   }},
@@ -2741,9 +2740,15 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
         - STRICT PROHIBITION: NEVER write as long paragraphs!
         - MUST output **3 to 4 distinct, structured upgrade points** (25 to 40 words each):
           `**[Clear Actionable Title] (Page X)**: In-depth guidance explaining what was generic or incomplete with exact domain-specific terminology, data, or frameworks to add.`
-      * `body_audit.missing_dimensions`:
-        - MUST output **3 to 4 analytical dimensions**:
-          `**[Dimension Title]**: Clear, concrete explanation of the unexplored institutional, statutory, spatial, empirical, or ethical angle.`
+      * `body_audit.missing_dimensions` (Uncovered Demands):
+        - CRITICAL 3-POINT FILTER BEFORE EMITTING ANY ITEM:
+          1. Explicit or clearly implied demand: It MUST address an actual requirement of THIS EXACT QUESTION.
+          2. Verified omission: The candidate has NOT already covered it anywhere in their script (cross-check against `transcribed_text` and `body_audit.strengths`).
+          3. Material improvement: Incorporating it would substantially elevate the answer within its marks and word limit.
+        - STRICT BAN ON REUSABLE CATALOGUE LABELS: NEVER output boilerplate labels such as `"Institutional & Statutory Anchor"`, `"Empirical Metric & Regional Disaggregation"`, or `"Forward-Looking Implementation Strategy"` unless that exact specific dimension was asked by the prompt and omitted by the candidate.
+        - ZERO ARTIFICIAL PADDING: Do NOT force a target count. If the candidate covered all core demands, return an empty array `[]` or at most 1–2 genuinely missing core dimensions.
+        - Distinguish core omissions from optional enrichment: put optional data, reports, and examples in `value_add_checklist` or `missing_keywords_cards`, NOT here!
+        - Title must name the exact analytical gap: e.g. `**Economic Imperialism & Capitalist Integration (Page 2)**: ...`, `**Counter-Majoritarian Judicial Restraint (Page 2)**: ...`, `**Thermodynamic Heat Transport & Planetary Balance (Page 1)**: ...`.
     - C. USE SIMPLE, CLEAR, EASY-TO-UNDERSTAND ENGLISH (ZERO HEAVY JARGON):
       * Write every evaluation remark in plain, natural English that any aspirant can understand in 3 seconds.
       * STRICTLY AVOID dense, robotic phrases such as `"Addressed limitations superficially without citing institutional friction"`, `"underweighting separation of powers constraints"`, `"epistemic tautology"`, `"dichotomy"`, `"substantiation"`.
@@ -3130,9 +3135,7 @@ Generate strictly valid JSON matching this schema:
       "**[Actionable Upgrade 3] (Page 3)**: In-depth explanation of what was generic or incomplete with exact terminology/data to add"
     ],
     "missing_dimensions": [
-      "**[Institutional / Statutory Dimension]**: Concrete explanation of missed perspective",
-      "**[Empirical / Spatial Dimension]**: Concrete explanation of missed perspective",
-      "**[Socio-Economic / Multi-Stakeholder Dimension]**: Concrete explanation of missed perspective"
+      "**[Core Question Sub-Demand Missed] (Page X)**: Concise explanation of the omitted question demand, why it matters to this prompt, and an answer-ready point to incorporate."
     ]
   }},
   "value_add_checklist": {{
@@ -4267,7 +4270,7 @@ def _ensure_at_least_one_value_addition(data: Dict[str, Any], is_hindi: bool = F
     for dim in missing_dims:
         dim_str = str(dim).strip()
         if dim_str and len(dim_str) > 10 and not any(w in dim_str.lower() for w in ["none", "nil", "no missing", "well covered", "thoroughly analyzed", "all substantive", "well addressed", "no major"]):
-            parts = re.split(r'[:—–-]\s*', dim_str, 1)
+            parts = re.split(r'[:—–-]\s*', dim_str, maxsplit=1)
             enrichment_term = re.sub(r'[*_"]', '', parts[0]).strip()[:50]
             desc = parts[1].strip() if len(parts) > 1 else dim_str
             enrichment_def = (
@@ -7988,6 +7991,70 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                         formatted_gaps.append(f"**{t_clean} (Page {pg_num})**: {verd}")
 
         body_audit["critical_gaps"] = formatted_gaps[:4]
+
+        # 2b. Strict Verification, De-duplication & Sanitization of body_audit.missing_dimensions
+        raw_missing_dims = body_audit.get("missing_dimensions")
+        if isinstance(raw_missing_dims, list):
+            clean_missing_dims = []
+            generic_dim_boilerplate_regex = re.compile(
+                r'(?i)(?:institutional\s*&\s*statutory\s*anchor|'
+                r'empirical\s*metric\s*&\s*regional\s*disaggregation|'
+                r'forward-looking\s*implementation\s*strategy|'
+                r'ground\s*arguments\s*in\s*official\s*committee\s*recommendations|'
+                r'back\s*qualitative\s*points\s*with\s*authoritative\s*surveys|'
+                r'bridge\s*systemic\s*operational\s*bottlenecks|'
+                r'संस्थागत\s*एवं\s*विधिक\s*आधार|'
+                r'प्रामाणिक\s*साक्ष्य\s*एवं\s*क्षेत्रीय\s*विभाजन|'
+                r'अग्रगामी\s*क्रियान्वयन\s*रणनीति|'
+                r'तर्कों\s*को\s*आधिकारिक\s*समिति\s*अनुशंसाओं|'
+                r'गुणात्मक\s*बिंदुओं\s*को\s*आधिकारिक\s*सर्वेक्षणों|'
+                r'व्यवस्थागत\s*बाधाओं\s*को\s*दूर\s*करने)'
+            )
+
+            for md in raw_missing_dims:
+                md_str = str(md or "").strip()
+                if not md_str or len(md_str) < 12:
+                    continue
+
+                # Check 1: Reject generic catalogue boilerplate
+                if generic_dim_boilerplate_regex.search(md_str):
+                    continue
+
+                # Check 2: Reject if candidate already wrote about this concept in their answer
+                parts = md_str.split(":", 1)
+                analysis_part = parts[1] if len(parts) > 1 else md_str
+                md_clean_terms = [w.lower() for w in re.findall(r'\b[a-zA-Z]{4,}\b', analysis_part)
+                                  if w.lower() not in {"dimension", "page", "need", "should", "with", "from", "that", "this", "also", "their", "more", "under", "have", "been", "into"}]
+                matched_terms = [w for w in md_clean_terms if w in positive_corpus or (len(w) >= 6 and w[:5] in positive_corpus)]
+                if len(matched_terms) >= 4 or (len(md_clean_terms) >= 3 and len(matched_terms) >= len(md_clean_terms) * 0.45):
+                    continue
+
+                # Check 3: Reject if already covered in body_audit.critical_gaps
+                is_dup_gap = False
+                for fg in body_audit.get("critical_gaps", []):
+                    fg_low = str(fg).lower()
+                    if md_str.lower()[:25] in fg_low or (len(matched_terms) >= 2 and all(t in fg_low for t in matched_terms[:3])):
+                        is_dup_gap = True
+                        break
+                if is_dup_gap:
+                    continue
+
+                # Ensure clean format: **[Specific Dimension]**: Explanation
+                if not md_str.startswith("**"):
+                    if ":" in md_str and md_str.index(":") <= 50:
+                        parts = md_str.split(":", 1)
+                        md_str = f"**{parts[0].strip()}**: {parts[1].strip()}"
+                    else:
+                        words = md_str.split()
+                        t_words = " ".join(words[:min(4, len(words))])
+                        r_words = " ".join(words[min(4, len(words)):])
+                        md_str = f"**{t_words}**: {r_words}"
+
+                clean_missing_dims.append(md_str)
+
+            # Do NOT force a minimum count or pad with synthetic items!
+            body_audit["missing_dimensions"] = clean_missing_dims[:3]
+
         data["body_audit"] = body_audit
 
     # 3. Overall Body Assessment synthesis
