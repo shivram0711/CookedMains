@@ -21286,3 +21286,15 @@ window.submitQuickFeedback = async function() {
 
 
 
+
+// =========================================================
+// PHASE 2: EDITORIAL COMPENDIUM PROGRESSIVE DISCLOSURE
+// =========================================================
+window.toggleAllCompendiumDrawers = function() {
+  const drawers = document.querySelectorAll(".editorial-compendium-drawer");
+  const anyClosed = Array.from(drawers).some(d => !d.open);
+  drawers.forEach(d => { d.open = anyClosed; });
+  const label = document.getElementById("toggleAllDrawersLabel");
+  if (label) label.textContent = anyClosed ? "Collapse All Modules" : "Expand All Modules";
+  if (window.lucide) { try { lucide.createIcons(); } catch(e) {} }
+};

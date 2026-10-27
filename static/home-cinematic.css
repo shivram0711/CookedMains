@@ -1729,15 +1729,15 @@ html.dark .cinematic-routine-step-btn.is-active {
 }
 
 html.dark .cinematic-hero-split-card {
-  background: rgba(11, 19, 43, 0.95);
-  border-color: rgba(245, 158, 11, 0.22);
-  box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.65), 0 0 40px rgba(245, 158, 11, 0.08);
+  background: #0E131F;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.65);
 }
 
 html:not(.dark) .cinematic-hero-split-card {
-  background: rgba(255, 255, 255, 0.96);
-  border-color: rgba(217, 119, 6, 0.2);
-  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.08);
 }
 
 /* Left Pitch Column */
@@ -1779,25 +1779,25 @@ html.dark .cinematic-hero-subhead {
 }
 
 .btn-primary-eval {
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-  color: #0A1128;
-  font-weight: 800;
+  background: #D97706;
+  color: #FFFFFF;
+  font-weight: 700;
   font-size: 0.875rem;
   padding: 0.85rem 1.35rem;
-  border-radius: 0.875rem;
-  border: none;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(245, 158, 11, 0.4);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.4);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.22);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-primary-eval:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 30px -5px rgba(217, 119, 6, 0.55);
-  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(217, 119, 6, 0.32);
+  background: #B45309;
 }
 
 .btn-primary-eval:active {
@@ -2450,15 +2450,20 @@ html:not(.dark) .hud-footer-note {
   }
 
   .btn-primary-eval {
-    width: 100%;
-    padding: 10px 14px;
-    font-size: 12px;
-    font-weight: 700;
-    border-radius: 10px;
-    justify-content: center;
-    text-align: center;
-    white-space: normal;
-  }
+  background: #D97706;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.875rem;
+  padding: 0.85rem 1.35rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.22);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
   .btn-secondary-demo {
     width: 100%;

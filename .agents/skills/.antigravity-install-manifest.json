@@ -13,6 +13,10 @@
     "supabase-postgres-best-practices",
     "tailwind-design-system",
     "gsd",
-    "ponytail"
+    "ponytail",
+    "redesign-existing-projects",
+    "baseline-ui",
+    "anti-slop-design",
+    "landing-page-generator"
   ]
 }

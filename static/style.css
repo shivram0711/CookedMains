@@ -146,15 +146,17 @@ html.dark .section-curly-brace path {
   --studio-hover-border: #CBD5E1;
   --studio-subhead: #64748B;
   --studio-text: #0F172A;
+  --accent-gold: #D97706;
 }
 
 html.dark, body.dark {
-  --studio-canvas: #0A0C10;
-  --studio-card: #12151E;
-  --studio-border: #1E2333;
-  --studio-hover-border: #334155;
+  --studio-canvas: #0B0E14;
+  --studio-card: #111622;
+  --studio-border: #1E2638;
+  --studio-hover-border: #2C374E;
   --studio-subhead: #94A3B8;
-  --studio-text: #F1F5F9;
+  --studio-text: #F8FAFC;
+  --accent-gold: #D97706;
 }
 
 body {
@@ -163,7 +165,7 @@ body {
 }
 
 html.dark body, body.dark {
-  background-color: #0A0C10 !important;
+  background-color: #0B0E14 !important;
   color: #F1F5F9;
 }
 
@@ -515,7 +517,7 @@ body.studio-copies-focus #evaluationStudio > .grid > div:last-child {
 }
 
 #guardAlertModal #guardComparisonBox {
-  background-color: #0A0C10 !important;
+  background-color: #0B0E14 !important;
   border-color: #1E2333 !important;
 }
 
@@ -4577,3 +4579,120 @@ html.dark .teacher-stamp-badge {
 }
 
 
+
+/* ==========================================================================
+   BASELINE UI & REDESIGN-EXISTING-PROJECTS: PHASE 1 SYSTEM TOKENS
+   ========================================================================== */
+h1, h2, h3, .cinematic-hero-title, .font-serif {
+  font-family: 'Newsreader', 'Cinzel', Georgia, serif !important;
+  letter-spacing: -0.02em;
+}
+
+/* Tabular figures for all scores and marks */
+.font-mono, .score-badge, [id*="Score"], [id*="Marks"] {
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* Single-accent button discipline with 1px border contrast */
+.btn-primary-eval, #evaluateBtn, #loginRegisterBtn, #authSubmitBtn {
+  letter-spacing: 0.01em;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* ==========================================================================
+   EDITORIAL COMPENDIUM PROGRESSIVE DISCLOSURE DRAWERS
+   ========================================================================== */
+.editorial-compendium-drawer {
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 1rem;
+  background-color: #FFFFFF;
+  transition: all 0.25s ease-in-out;
+  overflow: hidden;
+}
+
+html.dark .editorial-compendium-drawer {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: #111622;
+}
+
+.editorial-compendium-drawer summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.editorial-compendium-drawer summary::-webkit-details-marker {
+  display: none;
+}
+
+.editorial-compendium-drawer summary:hover {
+  background-color: rgba(248, 250, 252, 0.8);
+}
+
+html.dark .editorial-compendium-drawer summary:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.editorial-compendium-drawer[open] {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+}
+
+html.dark .editorial-compendium-drawer[open] {
+  box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5);
+}
+
+.editorial-compendium-drawer .drawer-chevron {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.editorial-compendium-drawer[open] .drawer-chevron {
+  transform: rotate(180deg);
+}
+
+.editorial-compendium-drawer .drawer-content {
+  padding: 0 1.5rem 1.75rem 1.5rem;
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+html.dark .editorial-compendium-drawer .drawer-content {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ==========================================================================
+   PHASE 3: EVALUATION STUDIO & SCORECARD PRESTIGE POLISH
+   ========================================================================== */
+#heroScoreBannerCard {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+}
+
+html.dark #heroScoreBannerCard {
+  background-color: #0E131F !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6) !important;
+}
+
+#heroScoreBannerCard .score-circle-display {
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* Red-pen feedback margin badges for faculty authenticity */
+.margin-remark-tag-danger {
+  background-color: rgba(244, 63, 94, 0.1);
+  color: #E11D48;
+  border: 1px solid rgba(244, 63, 94, 0.25);
+  font-weight: 600;
+}
+
+.margin-remark-tag-success {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  font-weight: 600;
+}
