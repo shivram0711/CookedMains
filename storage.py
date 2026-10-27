@@ -1930,6 +1930,24 @@ def save_evaluation_record(
     ))
     conn.commit()
     conn.close()
+
+    try:
+        clean_em = (email or "").strip().lower()
+        if clean_em and not is_dummy_or_demo_email(clean_em):
+            u_name = (user.get("name") or clean_em.split("@")[0].title()).strip()
+            score_fmt = f"{overall_score:g}" if isinstance(overall_score, (int, float)) else str(overall_score)
+            q_prev = (question or "Answer Copy")[:85]
+            log_platform_activity(
+                user_email=clean_em,
+                user_name=u_name,
+                action_type="copy_evaluated",
+                title=f"Evaluated {paper} ({max_marks}M) — Scored {score_fmt}/{max_marks}",
+                detail=f"Q: {q_prev}",
+                eval_id=eval_id
+            )
+    except Exception:
+        pass
+
     return eval_id
 
 def _format_supabase_eval_row(row: Dict[str, Any]) -> Dict[str, Any]:
@@ -3541,6 +3559,21 @@ def log_platform_activity(
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, (act_id, ist_now, clean_email, clean_name, action_type, title, detail, eval_id or ""))
 
+        if supabase and not is_dummy_or_demo_email(clean_email):
+            try:
+                _safe_supabase_insert("activity_logs", {
+                    "id": act_id,
+                    "created_at": ist_now,
+                    "user_email": clean_email,
+                    "user_name": clean_name,
+                    "action_type": action_type,
+                    "title": title,
+                    "detail": detail,
+                    "eval_id": eval_id or ""
+                })
+            except Exception:
+                pass
+
         try:
             cursor.execute("""
                 SELECT id, recent_actions, evaluations_count, started_at
@@ -3800,6 +3833,32 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
             neq_val="__USER_ACCOUNT_PROFILE__",
             limit=80
         )
+
+        # 3. Fetch recent activity logs from Supabase
+        if supabase:
+            try:
+                res_act = supabase.table("activity_logs").select("*").order("created_at", desc=True).limit(60).execute()
+                if res_act and res_act.data:
+                    conn_act = get_db()
+                    cur_act = conn_act.cursor()
+                    for act_row in res_act.data:
+                        cur_act.execute("""
+                            INSERT OR IGNORE INTO activity_logs (id, created_at, user_email, user_name, action_type, title, detail, eval_id)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (
+                            act_row.get("id"),
+                            act_row.get("created_at"),
+                            act_row.get("user_email"),
+                            act_row.get("user_name"),
+                            act_row.get("action_type"),
+                            act_row.get("title"),
+                            act_row.get("detail"),
+                            act_row.get("eval_id") or ""
+                        ))
+                    conn_act.commit()
+                    conn_act.close()
+            except Exception:
+                pass
 
         # If Supabase has zero users and zero evaluations, auto-seed it from current local database
         if len(user_rows) == 0 and len(eval_rows) == 0:
