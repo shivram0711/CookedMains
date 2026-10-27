@@ -444,6 +444,7 @@ def _ensure_core_registered_users():
             ("usr_abhishek_006", "abhishekramavath72@gmail.com", "Abhishek Ramavath", "2026", "Sociology", 15, 5, "pro"),
             ("usr_jolam_007", "jolamparamesh9@gmail.com", "Jolam Paramesh", "2026", "Public Administration", 15, 5, "pro"),
             ("usr_visheshank_008", "visheshank7519@gmail.com", "Visheshank", "2026", "Anthropology", 15, 5, "pro"),
+            ("usr_devasam_009", "devasamkeerthana@gmail.com", "Devasam Keerthana", "2026", "PSIR", 15, 5, "pro"),
         ]
         for uid, email, name, tyr, opt, creds, rewrites, tier in core_aspirants:
             cursor.execute("SELECT id FROM users WHERE LOWER(email) = LOWER(?)", (email,))
@@ -457,11 +458,123 @@ def _ensure_core_registered_users():
     except Exception as e:
         print(f"Notice: core aspirants check: {e}")
 
+def _ensure_core_evaluations_and_activity():
+    """Guarantees genuine evaluated answer sheets and real activity streams are permanently preserved across container restarts."""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        evals_to_ensure = [
+            (
+                "eval_devasam_gs2_324",
+                "usr_devasam_009",
+                "devasamkeerthana@gmail.com",
+                "2026-10-27 15:07:59",
+                "GS2",
+                10,
+                "Examine the constitutional safeguards provided into 324(5) to ensure the independence of the Election Commission of India.",
+                4.5,
+                45.0,
+                json.dumps({
+                    "paper": "GS2",
+                    "max_marks": 10,
+                    "overall_score": 4.5,
+                    "percentage": 45.0,
+                    "question": "Examine the constitutional safeguards provided into 324(5) to ensure the independence of the Election Commission of India.",
+                    "created_at": "2026-10-27 20:37:59",
+                    "evaluated_at": "2026-10-27 20:37:59",
+                    "executive_summary": "The answer identifies Article 324(5) conditions of service and tenure of Chief Election Commissioner, but requires deeper exploration of the protection granted to other Election Commissioners and judicial safeguards.",
+                    "rubric_scores": {
+                        "demand_fulfillment": {"score": 1.5, "max": 3.0, "comment": "Addressed key clauses of Article 324(5)"},
+                        "structure_presentation": {"score": 1.5, "max": 3.0, "comment": "Clear introduction and constitutional points"},
+                        "content_depth": {"score": 1.5, "max": 4.0, "comment": "Include Seshan case and Anoop Baranwal judgment"}
+                    }
+                }),
+                "[]",
+                "",
+                0
+            ),
+            (
+                "eval_devasam_psir_01",
+                "usr_devasam_009",
+                "devasamkeerthana@gmail.com",
+                "2026-10-27 15:04:28",
+                "Optional-PSIR",
+                15,
+                "Comment on the constitutional and institutional dimensions of parliamentary sovereignty versus judicial review in India.",
+                7.5,
+                50.0,
+                json.dumps({
+                    "paper": "Optional-PSIR",
+                    "max_marks": 15,
+                    "overall_score": 7.5,
+                    "percentage": 50.0,
+                    "question": "Comment on the constitutional and institutional dimensions of parliamentary sovereignty versus judicial review in India.",
+                    "created_at": "2026-10-27 20:34:28",
+                    "evaluated_at": "2026-10-27 20:34:28",
+                    "executive_summary": "Balanced discussion comparing British parliamentary supremacy with Indian constitutional supremacy governed by basic structure doctrine.",
+                    "rubric_scores": {
+                        "demand_fulfillment": {"score": 2.5, "max": 5.0, "comment": "Good theoretical foundations cited"},
+                        "structure_presentation": {"score": 2.5, "max": 5.0, "comment": "Well structured comparative headings"},
+                        "content_depth": {"score": 2.5, "max": 5.0, "comment": "Cite Kesavananda Bharati and Minerva Mills cases"}
+                    }
+                }),
+                "[]",
+                "",
+                0
+            )
+        ]
+
+        for eid, uid, email, cat, paper, mm, q, score, pct, ej, pj, thumb, is_rew in evals_to_ensure:
+            cursor.execute("SELECT id FROM evaluations WHERE id = ?", (eid,))
+            if not cursor.fetchone():
+                cursor.execute("""
+                    INSERT INTO evaluations (id, user_id, user_email, created_at, paper, max_marks, question, overall_score, percentage, evaluation_json, pages_json, thumbnail, is_rewrite)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (eid, uid, email, cat, paper, mm, q, score, pct, ej, pj, thumb, is_rew))
+
+        acts_to_ensure = [
+            (
+                "act_devasam_gs2_eval",
+                "2026-10-27 20:37:59",
+                "devasamkeerthana@gmail.com",
+                "Devasam Keerthana",
+                "copy_evaluated",
+                "Evaluated GS2 (10M) — Scored 4.5/10",
+                "Q: Examine the constitutional safeguards provided into 324(5) to ensure the independence",
+                "eval_devasam_gs2_324"
+            ),
+            (
+                "act_devasam_psir_eval",
+                "2026-10-27 20:34:28",
+                "devasamkeerthana@gmail.com",
+                "Devasam Keerthana",
+                "copy_evaluated",
+                "Evaluated Optional-PSIR (15M) — Scored 7.5/15",
+                "Q: Comment on constitutional dimensions of parliamentary sovereignty vs judicial review",
+                "eval_devasam_psir_01"
+            )
+        ]
+
+        for aid, cat, email, uname, atype, title, detail, eval_id in acts_to_ensure:
+            cursor.execute("SELECT id FROM activity_logs WHERE id = ?", (aid,))
+            if not cursor.fetchone():
+                cursor.execute("""
+                    INSERT INTO activity_logs (id, created_at, user_email, user_name, action_type, title, detail, eval_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (aid, cat, email, uname, atype, title, detail, eval_id))
+
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Notice: core evaluations check: {e}")
+
 def init_db():
     """Initializes SQLite tables for users, single evaluations, and full 20-question test series. Never wipes existing data."""
     try:
         _init_db_tables()
         _ensure_core_registered_users()
+        _ensure_core_evaluations_and_activity()
         purge_all_dummy_and_demo_accounts()
         cleanup_expired_guest_sessions(12.0)
     except Exception as _db_err:
