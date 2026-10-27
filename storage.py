@@ -23,7 +23,11 @@ except ImportError:
     HAS_PIL = False
 
 # Supabase Client Initialization
-from supabase import create_client, Client
+try:
+    from supabase import create_client, Client
+except ImportError:
+    create_client = None
+    Client = Any
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip() or "https://uivzorhuqsdiaarlmbhv.supabase.co"
 if SUPABASE_URL:
@@ -328,7 +332,10 @@ def purge_all_dummy_and_demo_accounts() -> Dict[str, Any]:
         # 5. Purge spam from remote Supabase if connected
         if supabase:
             try:
-                res_del = supabase.table("evaluations").delete().ilike("question_title", "%Courage is resistance%").execute()
+                try:
+                    res_del = supabase.table("evaluations").delete().ilike("question_title", "%Courage is resistance%").execute()
+                except Exception:
+                    res_del = supabase.table("evaluations").delete().ilike("question", "%Courage is resistance%").execute()
                 if res_del and res_del.data:
                     purged["supabase_evaluations"] = len(res_del.data)
             except Exception as se_err:
@@ -423,10 +430,38 @@ def cleanup_expired_guest_sessions(max_age_hours: float = 12.0) -> Dict[str, Any
         return {"status": "error", "error": str(e), "deleted_sessions": 0, "deleted_logs": 0}
 
 
+def _ensure_core_registered_users():
+    """Guarantees genuine registered aspirants are ALWAYS permanently preserved in local SQLite across restarts."""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        core_aspirants = [
+            ("usr_shivram_001", "shivram@gmail.com", "Shivram", "2026", "PSIR", 15, 5, "pro"),
+            ("usr_pranav_002", "pranavsaxena301@gmail.com", "Pranav Saxena", "2026", "Geography", 15, 5, "pro"),
+            ("usr_bablu_003", "bhaib7852@gmail.com", "Bablu", "2026", "History", 15, 5, "pro"),
+            ("usr_shivram0711_004", "shivram0711@gmail.com", "Shivram0711", "2026", "PSIR", 15, 5, "pro"),
+            ("usr_clementine_005", "clementinehallie@gmail.com", "Clementine Hallie", "2026", "PSIR", 15, 5, "pro"),
+            ("usr_abhishek_006", "abhishekramavath72@gmail.com", "Abhishek Ramavath", "2026", "Sociology", 15, 5, "pro"),
+            ("usr_jolam_007", "jolamparamesh9@gmail.com", "Jolam Paramesh", "2026", "Public Administration", 15, 5, "pro"),
+            ("usr_visheshank_008", "visheshank7519@gmail.com", "Visheshank", "2026", "Anthropology", 15, 5, "pro"),
+        ]
+        for uid, email, name, tyr, opt, creds, rewrites, tier in core_aspirants:
+            cursor.execute("SELECT id FROM users WHERE LOWER(email) = LOWER(?)", (email,))
+            if not cursor.fetchone():
+                cursor.execute("""
+                    INSERT INTO users (id, email, name, target_year, optional_subject, free_credits, free_rewrites, is_pro, plan_tier)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)
+                """, (uid, email, name, tyr, opt, creds, rewrites, tier))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Notice: core aspirants check: {e}")
+
 def init_db():
     """Initializes SQLite tables for users, single evaluations, and full 20-question test series. Never wipes existing data."""
     try:
         _init_db_tables()
+        _ensure_core_registered_users()
         purge_all_dummy_and_demo_accounts()
         cleanup_expired_guest_sessions(12.0)
     except Exception as _db_err:
@@ -791,22 +826,94 @@ def hash_user_password(email: str, password: str) -> str:
     salt = f"cookedmains.salt.v1.{clean_email}".encode("utf-8")
     return hashlib.pbkdf2_hmac("sha256", (password or "").strip().encode("utf-8"), salt, 100000).hex()
 
+def _safe_supabase_insert(table_name: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Inserts a record into Supabase with automatic schema-mismatch resilience.
+    If PostgreSQL rejects a column with 42703 ('column ... does not exist'),
+    it dynamically strips the offending column and retries.
+    Guarantees inserts never crash or get discarded due to schema column drift.
+    """
+    if not supabase:
+        return None
+    curr_payload = dict(payload)
+    for attempt in range(6):
+        try:
+            res = supabase.table(table_name).insert(curr_payload).execute()
+            if res and res.data and len(res.data) > 0:
+                return res.data[0]
+            return {"status": "success"}
+        except Exception as e:
+            err_msg = str(e).lower()
+            stripped_any = False
+            for col_cand in ["question_title", "total_marks", "question", "max_marks", "file_url", "pages_json", "user_email", "paper", "thumbnail"]:
+                if f"'{col_cand}' does not exist" in err_msg or f".{col_cand} does not exist" in err_msg or f'column "{col_cand}"' in err_msg:
+                    if col_cand in curr_payload:
+                        curr_payload.pop(col_cand, None)
+                        stripped_any = True
+            if not stripped_any:
+                print(f"Notice: Supabase insert attempt notice: {e}")
+                return None
+    return None
+
+def _safe_supabase_eval_select(
+    columns: str,
+    filter_col: Optional[str] = None,
+    filter_val: Any = None,
+    limit: int = 100,
+    desc: bool = True,
+    neq_col: Optional[str] = None,
+    neq_val: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """
+    Selects from Supabase evaluations table with automatic fallback between 'question_title' and 'question',
+    and between 'total_marks' and 'max_marks'. Prevents PostgreSQL code 42703 from breaking queries.
+    """
+    if not supabase:
+        return []
+    queries_to_try = [
+        (columns, filter_col, neq_col),
+    ]
+    alt_cols = columns.replace("question_title", "question").replace("total_marks", "max_marks")
+    alt_filter = ("question" if filter_col == "question_title" else ("question_title" if filter_col == "question" else filter_col))
+    alt_neq = ("question" if neq_col == "question_title" else ("question_title" if neq_col == "question" else neq_col))
+    if alt_cols != columns or alt_filter != filter_col or alt_neq != neq_col:
+        queries_to_try.append((alt_cols, alt_filter, alt_neq))
+    
+    queries_to_try.append(("id, user_id, evaluation_json, created_at", alt_filter, alt_neq))
+
+    for cols, f_col, n_col in queries_to_try:
+        try:
+            q = supabase.table("evaluations").select(cols)
+            if f_col and filter_val is not None:
+                q = q.eq(f_col, filter_val)
+            if n_col and neq_val is not None:
+                q = q.neq(n_col, neq_val)
+            q = q.order("created_at", desc=desc).limit(limit)
+            res = q.execute()
+            if res and res.data:
+                return res.data
+        except Exception as e:
+            if "42703" in str(e) or "does not exist" in str(e):
+                continue
+            print(f"Notice: Supabase select notice: {e}")
+    return []
+
 def _get_supabase_account_profile(user_id: str) -> Optional[Dict[str, Any]]:
     """Fetches persistent account profile & password_hash from Supabase across server redeploys."""
     if not supabase or not user_id:
         return None
     try:
-        res = supabase.table("evaluations").select("id,evaluation_json").eq("user_id", user_id).eq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(1).execute()
-        if res and res.data and len(res.data) > 0:
-            row = res.data[0]
+        rows = _safe_supabase_eval_select("id, evaluation_json", filter_col="user_id", filter_val=user_id, limit=5)
+        for row in rows:
             ev = row.get("evaluation_json") or {}
             if isinstance(ev, str):
                 try:
                     ev = json.loads(ev)
                 except Exception:
                     ev = {}
-            ev["_supa_profile_row_id"] = row.get("id")
-            return ev
+            if ev.get("_is_account_profile") or ev.get("email"):
+                ev["_supa_profile_row_id"] = row.get("id")
+                return ev
     except Exception:
         pass
     return None
@@ -830,9 +937,9 @@ def _find_supabase_account_by_device_id(device_id: str) -> Optional[str]:
 
     if supabase:
         try:
-            res = supabase.table("evaluations").select("evaluation_json").eq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(250).execute()
-            if res and res.data:
-                for r in res.data:
+            dev_rows = _safe_supabase_eval_select("evaluation_json", filter_col="question_title", filter_val="__USER_ACCOUNT_PROFILE__", limit=250)
+            if dev_rows:
+                for r in dev_rows:
                     ev = r.get("evaluation_json") or {}
                     if isinstance(ev, str):
                         try:
@@ -891,13 +998,16 @@ def _save_supabase_account_profile(user_dict: Dict[str, Any], device_id: Optiona
                 "evaluation_json": profile_payload
             }).eq("id", existing["_supa_profile_row_id"]).execute()
         else:
-            supabase.table("evaluations").insert({
+            insert_payload = {
                 "user_id": uid,
+                "question": "__USER_ACCOUNT_PROFILE__",
                 "question_title": "__USER_ACCOUNT_PROFILE__",
                 "file_url": "",
+                "max_marks": 0,
                 "total_marks": 0,
                 "evaluation_json": profile_payload
-            }).execute()
+            }
+            _safe_supabase_insert("evaluations", insert_payload)
     except Exception as e:
         print(f"Notice: Supabase account profile sync notice: {e}")
 
@@ -1225,9 +1335,9 @@ def get_daily_evaluations_count(email: str, is_rewrite: bool = False) -> int:
             now_ist = datetime.now(ist_tz)
             today_str = now_ist.strftime("%Y-%m-%d")
             det_id = get_deterministic_user_id(clean_email)
-            res = supabase.table("evaluations").select("question_title,created_at,evaluation_json").eq("user_id", det_id).order("created_at", desc=True).limit(40).execute()
-            if res and res.data:
-                for item in res.data:
+            res_rows = _safe_supabase_eval_select("question_title,created_at,evaluation_json", filter_col="user_id", filter_val=det_id, limit=40)
+            if res_rows:
+                for item in res_rows:
                     if item.get("question_title") == "__USER_ACCOUNT_PROFILE__":
                         continue
                     c_at = item.get("created_at") or ""
@@ -1362,24 +1472,19 @@ def upload_file_to_supabase(user_id: str, file_bytes: bytes, file_ext: str = ".p
         return None
 
 def insert_supabase_evaluation(user_id: str, question_title: str, file_url: Optional[str], total_marks: int, result_json: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    """Inserts evaluation record into Supabase 'evaluations' table."""
+    """Inserts evaluation record into Supabase 'evaluations' table with automatic schema resilience."""
     if not supabase:
         return None
-    try:
-        payload = {
-            "user_id": user_id,
-            "question_title": question_title,
-            "file_url": file_url or "",
-            "total_marks": total_marks,
-            "evaluation_json": result_json
-        }
-        res = supabase.table("evaluations").insert(payload).execute()
-        if res and res.data and len(res.data) > 0:
-            return res.data[0]
-        return None
-    except Exception as e:
-        print(f"Supabase evaluations insert error: {e}")
-        return None
+    payload = {
+        "user_id": user_id,
+        "question": question_title,
+        "question_title": question_title,
+        "file_url": file_url or "",
+        "max_marks": total_marks,
+        "total_marks": total_marks,
+        "evaluation_json": result_json
+    }
+    return _safe_supabase_insert("evaluations", payload)
 
 def _compact_pages_for_cloud_json(pages_list: List[str], max_dim: int = 650, quality: int = 58) -> List[str]:
     """Compresses base64 page images into lightweight ~35KB previews so Supabase JSONB inserts never exceed payload limits."""
@@ -2433,9 +2538,9 @@ def _collect_all_recent_canonical_evaluations(limit: int = 120) -> List[Dict[str
 
     if supabase:
         try:
-            res = supabase.table("evaluations").select("id,question_title,total_marks,evaluation_json,created_at").order("created_at", desc=True).limit(limit).execute()
-            if res and res.data:
-                for row in res.data:
+            canon_rows = _safe_supabase_eval_select("id,question_title,total_marks,evaluation_json,created_at", limit=limit)
+            if canon_rows:
+                for row in canon_rows:
                     rid = str(row.get("id") or "")
                     q_t = str(row.get("question_title") or "")
                     if not rid or rid in seen_ids or q_t.startswith("__"):
@@ -3565,40 +3670,43 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
     synced_evals_count = 0
 
     try:
-        # 1. Fetch user accounts from Supabase (__USER_ACCOUNT_PROFILE__)
-        user_rows = []
-        try:
-            res_u = supabase.table("evaluations").select(
-                "id, user_id, evaluation_json, created_at"
-            ).eq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(300).execute()
-            if res_u and res_u.data:
-                user_rows = res_u.data
-        except Exception as ue:
-            print(f"Notice: Supabase fetch users for sync notice: {ue}")
+        # 1. Fetch user accounts from Supabase (__USER_ACCOUNT_PROFILE__) with schema resilience
+        user_rows = _safe_supabase_eval_select(
+            "id, user_id, evaluation_json, created_at",
+            filter_col="question_title",
+            filter_val="__USER_ACCOUNT_PROFILE__",
+            limit=300
+        )
 
-        # 2. Fetch recent answer evaluations from Supabase
-        eval_rows = []
-        try:
-            res_e = supabase.table("evaluations").select(
-                "id, user_id, question_title, file_url, total_marks, evaluation_json, created_at"
-            ).neq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(80).execute()
-            if res_e and res_e.data:
-                eval_rows = res_e.data
-        except Exception as ee:
-            print(f"Notice: Supabase fetch evals for sync notice: {ee}")
+        # 2. Fetch recent answer evaluations from Supabase with schema resilience
+        eval_rows = _safe_supabase_eval_select(
+            "id, user_id, question_title, file_url, total_marks, evaluation_json, created_at",
+            filter_col=None,
+            filter_val=None,
+            neq_col="question_title",
+            neq_val="__USER_ACCOUNT_PROFILE__",
+            limit=80
+        )
 
         # If Supabase has zero users and zero evaluations, auto-seed it from current local database
         if len(user_rows) == 0 and len(eval_rows) == 0:
             try:
                 push_res = push_sqlite_to_supabase()
                 print(f'[SUPABASE AUTO-SEED] Cloud was empty, seeded from SQLite: {push_res}')
-                try:
-                    res_u = supabase.table('evaluations').select('id, user_id, evaluation_json, created_at').eq('question_title', '__USER_ACCOUNT_PROFILE__').order('created_at', desc=True).limit(300).execute()
-                    if res_u and res_u.data: user_rows = res_u.data
-                    res_e = supabase.table('evaluations').select('id, user_id, question_title, file_url, total_marks, evaluation_json, created_at').neq('question_title', '__USER_ACCOUNT_PROFILE__').order('created_at', desc=True).limit(80).execute()
-                    if res_e and res_e.data: eval_rows = res_e.data
-                except Exception:
-                    pass
+                user_rows = _safe_supabase_eval_select(
+                    "id, user_id, evaluation_json, created_at",
+                    filter_col="question_title",
+                    filter_val="__USER_ACCOUNT_PROFILE__",
+                    limit=300
+                )
+                eval_rows = _safe_supabase_eval_select(
+                    "id, user_id, question_title, file_url, total_marks, evaluation_json, created_at",
+                    filter_col=None,
+                    filter_val=None,
+                    neq_col="question_title",
+                    neq_val="__USER_ACCOUNT_PROFILE__",
+                    limit=80
+                )
             except Exception as se_err:
                 print(f'Auto-seed Supabase notice: {se_err}')
 
@@ -3873,20 +3981,31 @@ def push_sqlite_to_supabase() -> Dict[str, Any]:
                 "plan_tier": u["plan_tier"],
                 "created_at": u["created_at"]
             }
-            existing = supabase.table("evaluations").select("id").eq("user_id", u["id"]).eq("question_title", "__USER_ACCOUNT_PROFILE__").execute()
-            if existing and existing.data and len(existing.data) > 0:
-                supabase.table("evaluations").update({
-                    "evaluation_json": profile_payload
-                }).eq("id", existing.data[0]["id"]).execute()
+            existing_rows = _safe_supabase_eval_select("id", filter_col="user_id", filter_val=u["id"], limit=5)
+            existing_prof_id = None
+            if existing_rows:
+                existing_prof_id = existing_rows[0].get("id")
+            if existing_prof_id:
+                try:
+                    supabase.table("evaluations").update({
+                        "evaluation_json": profile_payload
+                    }).eq("id", existing_prof_id).execute()
+                    pushed_users += 1
+                except Exception:
+                    pass
             else:
-                supabase.table("evaluations").insert({
+                insert_payload = {
                     "user_id": u["id"],
+                    "question": "__USER_ACCOUNT_PROFILE__",
                     "question_title": "__USER_ACCOUNT_PROFILE__",
                     "file_url": "",
+                    "max_marks": 0,
                     "total_marks": 0,
                     "evaluation_json": profile_payload
-                }).execute()
-            pushed_users += 1
+                }
+                res_ins = _safe_supabase_insert("evaluations", insert_payload)
+                if res_ins:
+                    pushed_users += 1
         except Exception as ue:
             print(f"Notice: pushing user {u['email']} to Supabase failed: {ue}")
 
@@ -3928,16 +4047,23 @@ def push_sqlite_to_supabase() -> Dict[str, Any]:
             slim_eval["_meta_user_email"] = ev.get("user_email")
             slim_eval["_meta_eval_id"] = ev.get("id")
 
-            existing_eval = supabase.table("evaluations").select("id").eq("user_id", ev["user_id"]).eq("question_title", ev["question"]).execute()
-            if not (existing_eval and existing_eval.data and len(existing_eval.data) > 0):
-                insert_supabase_evaluation(
+            existing_eval = _safe_supabase_eval_select("id, question, question_title", filter_col="user_id", filter_val=ev["user_id"], limit=20)
+            already_exists = False
+            for ex in existing_eval:
+                ex_q = ex.get("question") or ex.get("question_title") or ""
+                if ex_q == ev["question"] or ex.get("id") == ev["id"]:
+                    already_exists = True
+                    break
+            if not already_exists:
+                res_ins = insert_supabase_evaluation(
                     user_id=ev["user_id"],
                     question_title=ev["question"],
                     file_url=ev.get("file_url") or "",
                     total_marks=int(ev.get("max_marks") or 10),
                     result_json=slim_eval
                 )
-                pushed_evals += 1
+                if res_ins:
+                    pushed_evals += 1
         except Exception as ee:
             print(f"Notice: pushing evaluation {ev.get('id')} to Supabase failed: {ee}")
 
