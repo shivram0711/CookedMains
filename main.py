@@ -25,6 +25,7 @@ def release_process_memory():
 import json
 import copy
 import time
+import threading
 import hashlib
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Any, Dict, Tuple, Set, Union
@@ -115,6 +116,54 @@ import urllib.request
 
 
 app = FastAPI(title="Cooked Mains - UPSC Mains Evaluator")
+# ==============================================================================
+# SECURITY HARDENING: HTTP HEADERS & IN-MEMORY RATE LIMITING
+# ==============================================================================
+_RATE_LIMIT_BUCKETS: Dict[str, List[float]] = {}
+_RATE_LIMIT_LOCK = threading.Lock()
+
+def get_client_ip(request: Request) -> str:
+    """Safely extracts real client IP behind Cloudflare or Render reverse proxy."""
+    cf_ip = request.headers.get("CF-Connecting-IP")
+    if cf_ip:
+        return cf_ip.strip()
+    x_forwarded = request.headers.get("X-Forwarded-For")
+    if x_forwarded:
+        return x_forwarded.split(",")[0].strip()
+    if request.client and request.client.host:
+        return request.client.host
+    return "127.0.0.1"
+
+def check_rate_limit(client_ip: str, route_key: str, max_requests: int, window_seconds: int = 60) -> bool:
+    """Returns True if within rate limit, False if exceeded."""
+    now = time.time()
+    bucket_key = f"{route_key}:{client_ip}"
+    with _RATE_LIMIT_LOCK:
+        if len(_RATE_LIMIT_BUCKETS) > 1000:
+            expired = [k for k, v in _RATE_LIMIT_BUCKETS.items() if not v or (now - v[-1]) > 300]
+            for k in expired:
+                _RATE_LIMIT_BUCKETS.pop(k, None)
+        timestamps = _RATE_LIMIT_BUCKETS.get(bucket_key, [])
+        valid_ts = [ts for ts in timestamps if (now - ts) < window_seconds]
+        if len(valid_ts) >= max_requests:
+            _RATE_LIMIT_BUCKETS[bucket_key] = valid_ts
+            return False
+        valid_ts.append(now)
+        _RATE_LIMIT_BUCKETS[bucket_key] = valid_ts
+        return True
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Enforces strict industry-standard security headers on all responses."""
+    response = await call_next(request)
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    return response
+
+
 
 # Ensure static folder exists
 os.makedirs(os.path.join(os.path.dirname(__file__), "static"), exist_ok=True)
@@ -1252,7 +1301,13 @@ async def api_auth_google_verify(request: Request):
 
 @app.post("/api/user/login")
 async def api_user_login(request: Request):
-    """Registers or authenticates aspirant with PBKDF2-HMAC-SHA256 password protection and Supabase profile persistence."""
+    """Registers or authenticates aspirant with PBKDF2-HMAC-SHA256 password protection and rate limiting."""
+    client_ip = get_client_ip(request)
+    if not check_rate_limit(client_ip, "user_login", max_requests=10, window_seconds=60):
+        raise HTTPException(
+            status_code=429,
+            detail="Too many authentication requests. Please wait a minute."
+        )
     try:
         content_type = request.headers.get("content-type", "")
         if "application/json" in content_type:
@@ -1644,7 +1699,13 @@ async def serve_admin_page():
 
 @app.post("/api/admin/login")
 async def api_admin_login(request: Request):
-    """Authenticates admin with PIN/password."""
+    """Authenticates admin with PIN/password, protected against brute force attacks."""
+    client_ip = get_client_ip(request)
+    if not check_rate_limit(client_ip, "admin_login", max_requests=5, window_seconds=60):
+        raise HTTPException(
+            status_code=429,
+            detail="Too many admin login attempts from this IP. For security, please wait 60 seconds."
+        )
     try:
         data = await request.json()
     except Exception:
@@ -1944,6 +2005,7 @@ _LAST_EVAL_TRACE: list = []
 
 @app.post("/api/evaluate")
 async def evaluate_answer(
+    request: Request,
     background_tasks: BackgroundTasks,
     question: str = Form(...),
     paper: str = Form("GS2"),
@@ -1966,6 +2028,12 @@ async def evaluate_answer(
     Evaluates handwritten answer copy.
     Uses server master key if user did not supply one.
     """
+    client_ip = get_client_ip(request)
+    if not check_rate_limit(client_ip, "eval_submission", max_requests=15, window_seconds=60):
+        raise HTTPException(
+            status_code=429,
+            detail="Evaluation rate limit reached. Please wait 1 minute before submitting another answer sheet."
+        )
     try:
         # Check if user requested a preloaded sample evaluation without API key
         if sample_id and (not files or len(files) == 0 or files[0].filename == ""):
@@ -3083,6 +3151,7 @@ async def get_test_series(test_id: str):
 
 @app.post("/api/essay/evaluate")
 async def evaluate_essay_async(
+    request: Request,
     background_tasks: BackgroundTasks,
     question: str = Form(...),
     paper: str = Form("Essay"),
@@ -3097,6 +3166,12 @@ async def evaluate_essay_async(
     Accepts long essay booklets (PDF or images), splits into batched pages,
     creates a resumable background evaluation job, and starts execution.
     """
+    client_ip = get_client_ip(request)
+    if not check_rate_limit(client_ip, "essay_submission", max_requests=8, window_seconds=60):
+        raise HTTPException(
+            status_code=429,
+            detail="Essay evaluation rate limit reached. Please wait 1 minute before submitting another essay."
+        )
     if not files or len(files) == 0 or files[0].filename == "":
         raise HTTPException(status_code=400, detail="Please upload an essay answer booklet (PDF or image scans).")
 
