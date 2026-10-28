@@ -156,10 +156,10 @@ def check_rate_limit(client_ip: str, route_key: str, max_requests: int, window_s
 async def add_security_headers(request: Request, call_next):
     """Enforces strict industry-standard security headers on all responses."""
     response = await call_next(request)
-    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Permissions-Policy"] = "microphone=(), geolocation=()"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     return response
 
@@ -2029,7 +2029,7 @@ async def evaluate_answer(
     Uses server master key if user did not supply one.
     """
     client_ip = get_client_ip(request)
-    if not check_rate_limit(client_ip, "eval_submission", max_requests=15, window_seconds=60):
+    if not check_rate_limit(client_ip, "eval_submission", max_requests=120, window_seconds=60):
         raise HTTPException(
             status_code=429,
             detail="Evaluation rate limit reached. Please wait 1 minute before submitting another answer sheet."
