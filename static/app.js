@@ -22,7 +22,7 @@ const state = {
   question: "",
   questionMode: "auto", // "auto", "daily", "custom"
   apiKey: localStorage.getItem("mainsmentor_gemini_key") || "",
-  serverHasKey: false,
+  serverHasKey: true,
   uploadedFiles: [],
   activePages: [],
   currentPageIndex: 0,
@@ -10564,13 +10564,7 @@ window.runEvaluation = async function(allowAutoAligned = false) {
     }
   }
 
-  // If neither local key nor server key is available
-  if (!state.apiKey && !state.serverHasKey) {
-    keyModal.classList.remove("hidden");
-    keyModal.classList.add("flex");
-    alert("Please set a Master Gemini API Key in Admin Settings to enable live evaluation for students, or click 'Try with Topper Sample Copy' for the demo.");
-    return;
-  }
+  // Server master key is active on backend; if client has custom key, it gets priority
 
   // Lock evaluate button and subject/marks selectors during evaluation
   setSubjectAndMarksLocked(true);
@@ -10593,7 +10587,7 @@ window.runEvaluation = async function(allowAutoAligned = false) {
   if (allowAutoAligned) {
     formData.append("allow_auto_aligned", "true");
   }
-  if (state.apiKey && !state.serverHasKey) {
+  if (state.apiKey) {
     formData.append("api_key", state.apiKey);
   }
   if (state.user && state.user.email) {
