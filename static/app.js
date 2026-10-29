@@ -1154,22 +1154,24 @@ window.handleRewriteFiles = async function(files) {
     }
   }
 
-  const fd = new FormData();
-  state.uploadedFiles.forEach(f => fd.append("files", f));
-
+  const hasRewritePdf = state.uploadedFiles.some(f => (f.type && f.type === "application/pdf") || (f.name || "").toLowerCase().endsWith(".pdf"));
   let rendered = false;
-  try {
-    const res = await fetch("/api/render-preview", { method: "POST", body: fd });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.pages && data.pages.length > 0) {
-        state.activePages = data.pages;
-        state.currentPageIndex = 0;
-        rendered = true;
+  if (hasRewritePdf) {
+    const fd = new FormData();
+    state.uploadedFiles.forEach(f => fd.append("files", f));
+    try {
+      const res = await fetch("/api/render-preview", { method: "POST", body: fd });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.pages && data.pages.length > 0) {
+          state.activePages = data.pages;
+          state.currentPageIndex = 0;
+          rendered = true;
+        }
       }
+    } catch (err) {
+      console.warn("Server render-preview failed, using client fallback:", err);
     }
-  } catch (err) {
-    console.warn("Server render-preview failed, using client fallback:", err);
   }
 
   if (!rendered) {
@@ -4428,39 +4430,42 @@ async function handleFiles(files, isAppend = false) {
   const extra = totalCount > 1 ? ` (+${totalCount - 1} more page${totalCount > 2 ? 's' : ''})` : "";
   const displayFileName = `${firstFile.name}${extra}`;
 
-  // Instant server-side rendering for PDFs & image optimization
-  const fd = new FormData();
-  for (const f of processedList) {
-    fd.append("files", f);
-  }
-
+  // Local client rendering for images; instant server rendering only if PDF booklet uploaded
+  const hasPdf = processedList.some(f => (f.type && f.type === "application/pdf") || (f.name || "").toLowerCase().endsWith(".pdf"));
   let serverRendered = false;
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
-    const res = await fetch("/api/render-preview", {
-      method: "POST",
-      body: fd,
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-    if (res.ok) {
-      const data = await res.json();
-      if (data.pages && data.pages.length > 0) {
-        if (isAppend && state.activePages && state.activePages.length > 0) {
-          state.activePages = state.activePages.concat(data.pages);
-          state.currentPageIndex = state.activePages.length - 1; // switch viewer to newest added page
-        } else {
-          state.activePages = data.pages;
-          state.currentPageIndex = 0;
-        }
-        updateViewer();
-        renderPreviewStrip();
-        serverRendered = true;
-      }
+
+  if (hasPdf) {
+    const fd = new FormData();
+    for (const f of processedList) {
+      fd.append("files", f);
     }
-  } catch (err) {
-    console.warn("Backend render-preview error or timeout, falling back to local client renderer:", err);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const res = await fetch("/api/render-preview", {
+        method: "POST",
+        body: fd,
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.pages && data.pages.length > 0) {
+          if (isAppend && state.activePages && state.activePages.length > 0) {
+            state.activePages = state.activePages.concat(data.pages);
+            state.currentPageIndex = state.activePages.length - 1; // switch viewer to newest added page
+          } else {
+            state.activePages = data.pages;
+            state.currentPageIndex = 0;
+          }
+          updateViewer();
+          renderPreviewStrip();
+          serverRendered = true;
+        }
+      }
+    } catch (err) {
+      console.warn("Backend render-preview error or timeout, falling back to local client renderer:", err);
+    }
   }
 
   if (!serverRendered) {

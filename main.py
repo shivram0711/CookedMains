@@ -591,11 +591,15 @@ async def render_preview(request: Request, files: List[UploadFile] = File(defaul
                     if HAS_PIL and Image:
                         try:
                             im = Image.open(io.BytesIO(content)).convert("RGB")
-                            im.thumbnail((1400, 1400))
+                            if max(im.size) > 960:
+                                im.thumbnail((960, 960))
                             buf = io.BytesIO()
-                            im.save(buf, format="JPEG", quality=75, optimize=True)
+                            im.save(buf, format="JPEG", quality=65, optimize=True)
                             b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
                             previews.append(f"data:image/jpeg;base64,{b64}")
+                            im.close()
+                            del im
+                            del buf
                         except Exception:
                             b64 = base64.b64encode(content).decode("utf-8")
                             mime = "image/png" if filename.endswith(".png") or "png" in content_type else "image/jpeg"
@@ -3023,6 +3027,12 @@ async def evaluate_answer(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Evaluation Error: {str(e)}")
+    finally:
+        try:
+            background_tasks.add_task(release_process_memory)
+        except Exception:
+            pass
+        release_process_memory()
 
 # -------------------------------------------------------------------------
 # FULL 20-QUESTION UPSC TEST SERIES (250M / 50-PAGE QCAB) BACKGROUND PIPELINE
@@ -3083,7 +3093,17 @@ async def process_test_series_background(test_id: str, questions: List[dict], pa
                     evaluation_dict={"executive_summary": "Evaluation encountered an issue.", "rubric_scores": {}},
                     pages_list=pages_b64
                 )
+            finally:
+                for img in pil_images:
+                    if hasattr(img, 'close'):
+                        try:
+                            img.close()
+                        except Exception:
+                            pass
+                del pil_images
+                release_process_memory()
     finalize_test_series(test_id)
+    release_process_memory()
 
 @app.get("/api/test-series/sample")
 async def get_test_series_sample():
