@@ -2294,13 +2294,18 @@ MANDATORY CURRENT AFFAIRS VALUE-ADDITION INSTRUCTIONS:
     booklet_extraction_directive = ""
     if is_auto_detect:
         booklet_extraction_directive = """
-🚨 MANDATORY BOOKLET QUESTION OCR EXTRACTION (AUTO-DETECT MODE ACTIVE):
-- The aspirant has uploaded an authentic handwritten mock test booklet or official UPSC Question-Cum-Answer-Booklet (QCAB).
-- The question prompt is PRE-PRINTED in typeset font at the top of Page 1 (or Page 1+2).
-- YOU MUST READ THE PRINTED QUESTION ON THE BOOKLET HEADER AND EXTRACT IT VERBATIM INTO "detected_question".
-- Set "detected_paper" to the GS paper (GS1, GS2, GS3, GS4, Essay, or Optional) that matches this booklet question.
-- Also read any marks weightage (10/15/20 Marks) printed on the booklet.
-- EVALUATE THE STUDENT'S HANDWRITTEN ANSWER STRICTLY AGAINST THIS EXTRACTED BOOKLET QUESTION! DO NOT INVENT OR ASSUME ANY OTHER PROMPT!
+🚨 MANDATORY QUESTION OCR & DEMAND EXTRACTION (AUTO-DETECT MODE ACTIVE):
+1. PRE-PRINTED BOOKLET QUESTION:
+   - If the booklet has a pre-printed question in typeset font at the top of Page 1 (or Page 1+2), extract it verbatim into "detected_question".
+2. HANDWRITTEN QUESTION AT TOP:
+   - If the candidate wrote the question statement by hand at the top of Page 1 (e.g. "Q.1 ...", "Q. Explain the mechanism..."), extract that exact handwritten question statement into "detected_question".
+3. PLAIN SHEET / UNWRITTEN QUESTION CONTINGENCY (CANDIDATE WROTE ONLY ANSWERS):
+   - If the uploaded sheet contains ONLY the candidate's answers with NO question statement printed or written anywhere:
+     * Carefully scrutinize the candidate's opening definition/thesis, central headings, and analytical arguments across all uploaded pages.
+     * Accurately reconstruct and infer the specific official UPSC Mains question statement that the candidate is answering (including exact topic, core phenomena, and operative directive e.g. "Explain...", "Discuss...").
+     * Set "detected_question": "[Self-Derived Question Demand]: <exact inferred UPSC question statement>".
+     * In "examiner_overall_verdict", append: "📌 Note: Evaluated against your answer's core question demand because no question statement was written on the sheet. For 100% directive precision, write the question or type it in the Question box."
+4. Set "detected_paper" to the true academic GS paper matching this question, and extract any printed marks weightage (10/15/20 Marks).
 """
     else:
         booklet_extraction_directive = f"""
@@ -7098,11 +7103,11 @@ def _normalize_exam_hall_discipline_and_micro_marking(data: Dict[str, Any], max_
                 f"leaving ample reserve to finish **all 20 questions** without panic."
             )
 
-    has_margin_bleed = any("margin" in str(a.get("remark", "")).lower() for a in data.get("visual_annotations", []))
+    has_margin_bleed = any(re.search(r'\b(?:margin\s*(?:bleed|intrusion|violation|penalty)|bleeding\s+into\s+margin|wrote\s+in\s+(?:the\s+)?margin)\b', str(a.get("remark", "")), re.I) for a in data.get("visual_annotations", []))
     if is_hindi:
-        margin_status = "हाशिया उल्लंघन (Margin Intrusion -0.5M जोखिम)" if has_margin_bleed else "QCAB मानक अनुपालन (हाशिया सुरक्षित)"
+        margin_status = "हाशिया उल्लंघन (Margin Intrusion -0.5M जोखिम)" if has_margin_bleed else "मानक अनुपालन (हाशिया सुरक्षित / सादा पृष्ठ मान्य)"
     else:
-        margin_status = "Margin Intrusion Detected (-0.5M Risk)" if has_margin_bleed else "QCAB Compliant (Margins Respected)"
+        margin_status = "Margin Intrusion Detected (-0.5M Risk)" if has_margin_bleed else "Compliant (Margins Respected / Plain Paper Accepted)"
 
     data["upsc_exam_hall_discipline"] = {
         "estimated_word_count": cand_word_count,

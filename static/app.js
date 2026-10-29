@@ -4132,11 +4132,11 @@ window.setAnswersheetLockedState = function setAnswersheetLockedState(isLocked, 
       dropzone.classList.add("cursor-default");
     }
 
-    // Disable question selection & inputs until Clear All is clicked
-    qModeBtns.forEach(btn => btn.classList.add("opacity-50", "pointer-events-none"));
-    mBtns.forEach(btn => btn.classList.add("opacity-50", "pointer-events-none"));
-    pTabs.forEach(tab => tab.classList.add("opacity-50", "pointer-events-none"));
-    if (customQuestionInput) customQuestionInput.disabled = true;
+    // Keep question selection & inputs accessible so students can type question if sheet is plain
+    qModeBtns.forEach(btn => btn.classList.remove("opacity-50", "pointer-events-none"));
+    mBtns.forEach(btn => btn.classList.remove("opacity-50", "pointer-events-none"));
+    pTabs.forEach(tab => tab.classList.remove("opacity-50", "pointer-events-none"));
+    if (customQuestionInput) customQuestionInput.disabled = false;
 
     window.updateStagedStatusAndGuidance();
   } else {
@@ -10493,6 +10493,60 @@ window.runEvaluation = async function(allowAutoAligned = false) {
       alert("Please upload your handwritten answer sheet (PDF or images) before evaluating.");
     }
     return;
+  }
+
+  // 4. Mandatory Pre-Evaluation Quality & Question Demand Checklist Verification
+  const chkQuestion = document.getElementById("chkQuestionIncluded");
+  const chkAngle = document.getElementById("chkProperAngle");
+  const chkShadows = document.getElementById("chkNoShadows");
+  const chkOrder = document.getElementById("chkChronologicalOrder");
+
+  // Validate quality checkboxes (angle, shadows, page order)
+  if ((chkAngle && !chkAngle.checked) || (chkShadows && !chkShadows.checked) || (chkOrder && !chkOrder.checked)) {
+    const checklistCard = document.getElementById("preEvalChecklistCard");
+    if (checklistCard) {
+      checklistCard.scrollIntoView({ behavior: "smooth", block: "center" });
+      checklistCard.classList.add("ring-2", "ring-amber-500", "animate-pulse");
+      setTimeout(() => checklistCard.classList.remove("ring-2", "ring-amber-500", "animate-pulse"), 2500);
+    }
+    if (typeof window.showAppToast === "function") {
+      window.showAppToast("⚠️ Please confirm all quality checklist items (overhead angle, lighting, page order) before evaluating.", 4500);
+    } else {
+      alert("Please confirm all quality checklist items (overhead angle, lighting, page order) before evaluating.");
+    }
+    return;
+  }
+
+  // Question Demand Safeguard
+  if (state.questionMode === "custom") {
+    const customInput = document.getElementById("customQuestionInput");
+    const customVal = customInput ? customInput.value.trim() : "";
+    if (!customVal) {
+      if (typeof flashStep === "function") flashStep("customQuestionContainer", "⚠️ Type Question First!");
+      if (customInput) {
+        customInput.classList.add("ring-2", "ring-rose-500", "border-rose-500");
+        customInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        customInput.focus();
+      }
+      if (typeof window.showAppToast === "function") {
+        window.showAppToast("⚠️ Question statement is required. Please type or paste the question you are answering.", 4500);
+      } else {
+        alert("Question statement is required. Please type or paste the question you are answering.");
+      }
+      return;
+    }
+    question = customVal;
+  } else if (state.questionMode === "auto") {
+    // If user explicitly unchecked "Question Included", they wrote only answers on a plain sheet!
+    if (chkQuestion && !chkQuestion.checked && !state.questionConfirmedOnSheet) {
+      window.activateCustomQuestionMode();
+      if (typeof window.showAppToast === "function") {
+        window.showAppToast("✍️ You indicated no question is on your sheet. Please type or paste the question statement above so the evaluator knows the exact demand.", 5500);
+      } else {
+        alert("You indicated no question is on your sheet. Please type or paste the question statement above so the evaluator knows the exact demand.");
+      }
+      return;
+    }
   }
 
   // Check if running preloaded demo sample (only if user explicitly activated demo sample and has no uploaded files)
@@ -21311,4 +21365,80 @@ window.toggleAllCompendiumDrawers = function() {
   const label = document.getElementById("toggleAllDrawersLabel");
   if (label) label.textContent = anyClosed ? "Collapse All Modules" : "Expand All Modules";
   if (window.lucide) { try { lucide.createIcons(); } catch(e) {} }
+};
+
+// =========================================================================
+// PRE-EVALUATION CHECKLIST & QUESTION DEMAND CONTROLLERS
+// =========================================================================
+window.activateCustomQuestionMode = function() {
+  if (typeof window.setQuestionMode === "function") {
+    window.setQuestionMode("custom");
+  }
+  const customContainer = document.getElementById("customQuestionContainer");
+  if (customContainer) customContainer.classList.remove("hidden");
+  const customInput = document.getElementById("customQuestionInput");
+  if (customInput) {
+    customInput.disabled = false;
+    customInput.classList.remove("ring-2", "ring-rose-500", "border-rose-500");
+    customInput.classList.add("ring-2", "ring-amber-500");
+    setTimeout(() => customInput.classList.remove("ring-2", "ring-amber-500"), 2000);
+    customInput.scrollIntoView({ behavior: "smooth", block: "center" });
+    customInput.focus();
+  }
+};
+
+window.openQuestionVerifyModal = function() {
+  const modal = document.getElementById("questionVerifyModal");
+  if (modal) {
+    modal.classList.remove("hidden");
+    const input = document.getElementById("modalQuickQuestionInput");
+    if (input) setTimeout(() => input.focus(), 100);
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
+      try { window.lucide.createIcons({ root: modal }); } catch (e) {}
+    }
+  }
+};
+
+window.closeQuestionVerifyModal = function() {
+  const modal = document.getElementById("questionVerifyModal");
+  if (modal) modal.classList.add("hidden");
+};
+
+window.confirmQuestionOnSheetAndProceed = function() {
+  state.questionConfirmedOnSheet = true;
+  const chk = document.getElementById("chkQuestionIncluded");
+  if (chk) chk.checked = true;
+  window.closeQuestionVerifyModal();
+  if (typeof window.runEvaluation === "function") {
+    window.runEvaluation(false);
+  }
+};
+
+window.submitModalQuestionAndProceed = function() {
+  const input = document.getElementById("modalQuickQuestionInput");
+  const text = input ? input.value.trim() : "";
+  if (!text) {
+    if (input) {
+      input.classList.add("ring-2", "ring-rose-500");
+      setTimeout(() => input.classList.remove("ring-2", "ring-rose-500"), 2000);
+    }
+    if (typeof window.showAppToast === "function") {
+      window.showAppToast("⚠️ Please enter the question statement before continuing.", 3500);
+    } else {
+      alert("Please enter the question statement before continuing.");
+    }
+    return;
+  }
+  const customInput = document.getElementById("customQuestionInput");
+  if (customInput) customInput.value = text;
+  if (typeof window.setQuestionMode === "function") {
+    window.setQuestionMode("custom");
+  }
+  state.questionConfirmedOnSheet = true;
+  const chk = document.getElementById("chkQuestionIncluded");
+  if (chk) chk.checked = true;
+  window.closeQuestionVerifyModal();
+  if (typeof window.runEvaluation === "function") {
+    window.runEvaluation(false);
+  }
 };
