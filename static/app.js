@@ -1283,8 +1283,8 @@ window.executeRewriteEvaluation = async function() {
     btn.classList.add("evaluate-btn-locked");
     btn.setAttribute("data-orig-html", origHtml || btn.innerHTML);
     btn.innerHTML = `
-      <span class="w-3.5 h-3.5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
-      <span>Work in Progress — Evaluating...</span>
+      <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0"></span>
+      <span class="text-white font-bold text-sm">Work in Progress — Evaluating...</span>
     `;
   };
 
@@ -8256,10 +8256,10 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
     window._activeGutterSections = sections;
     window._currentMobileGutterIndex = 0;
 
-    // Populate mobile thumb-card drawer (< 1024px)
+    // Mobile thumb-card drawer permanently removed per user request
     if (mobileDrawer) {
-      mobileDrawer.classList.remove("hidden");
-      window.renderMobileDrawerPoint(0);
+      mobileDrawer.classList.add("hidden");
+      mobileDrawer.style.display = "none";
     }
 
     // Populate desktop & tablet Examiner Line-by-Line Audit in blank area below answersheet
@@ -10247,6 +10247,12 @@ window.focusGutterPointOnPage = function(index, yPercent, marksStr, sec, isPinne
 
 // Global helper: Render point inside mobile thumb-card drawer (< 1024px) (Image 2 style)
 window.renderMobileDrawerPoint = function(index) {
+  const drawer = document.getElementById("mobileDrawerBar");
+  if (drawer) {
+    drawer.classList.add("hidden");
+    drawer.style.display = "none";
+  }
+  return;
   const sections = window._activeGutterSections || [];
   if (!sections.length) return;
   const safeIdx = Math.max(0, Math.min(sections.length - 1, index));
@@ -10572,8 +10578,8 @@ window.runEvaluation = async function(allowAutoAligned = false) {
   evaluateBtn.classList.add("evaluate-btn-locked");
   const origBtnContent = evaluateBtn.innerHTML;
   evaluateBtn.innerHTML = `
-    <span class="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
-    <span>AI Evaluation In Progress...</span>
+    <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0"></span>
+    <span class="text-white font-bold text-sm tracking-wide">AI Evaluation In Progress...</span>
   `;
 
   loadingIndicator.classList.remove("hidden");
@@ -10997,8 +11003,8 @@ window.retryEssayJob = async function(jobId) {
     evaluateBtn.disabled = true;
     evaluateBtn.classList.add("evaluate-btn-locked");
     evaluateBtn.innerHTML = `
-      <span class="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
-      <span>Resuming Evaluation...</span>
+      <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0"></span>
+      <span class="text-white font-bold text-sm tracking-wide">Resuming Evaluation...</span>
     `;
   }
   setSubjectAndMarksLocked(true);

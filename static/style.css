@@ -293,12 +293,26 @@ body.dark .studio-tab-btn.active {
   background: rgba(56, 189, 248, 0.12);
 }
 
-/* Locked evaluate button */
-.evaluate-btn-locked {
+/* Locked evaluate button: High contrast, bright white text & spinner, vibrant amber */
+.evaluate-btn-locked,
+#evaluateBtn.evaluate-btn-locked,
+#evaluateBtn:disabled {
   pointer-events: none !important;
-  opacity: 0.55 !important;
   cursor: not-allowed !important;
-  box-shadow: none !important;
+  background-color: #d97706 !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35) !important;
+}
+
+#evaluateBtn.evaluate-btn-locked span,
+#evaluateBtn:disabled span {
+  color: #ffffff !important;
+}
+
+/* Mobile Point-Wise Marks Allocation drawer permanently hidden per user request */
+#mobileDrawerBar {
+  display: none !important;
 }
 
 /* Studio Page Thumbnail Gallery (Matching Image 2: p.1, p.2 etc.) */
