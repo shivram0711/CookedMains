@@ -10245,136 +10245,13 @@ window.focusGutterPointOnPage = function(index, yPercent, marksStr, sec, isPinne
   });
 };
 
-// Global helper: Render point inside mobile thumb-card drawer (< 1024px) (Image 2 style)
+// Global helper: Render point inside mobile thumb-card drawer (< 1024px) (Removed per user request)
 window.renderMobileDrawerPoint = function(index) {
   const drawer = document.getElementById("mobileDrawerBar");
   if (drawer) {
     drawer.classList.add("hidden");
     drawer.style.display = "none";
   }
-  return;
-  const sections = window._activeGutterSections || [];
-  if (!sections.length) return;
-  const safeIdx = Math.max(0, Math.min(sections.length - 1, index));
-  window._currentMobileGutterIndex = safeIdx;
-  const currentPg = ((typeof state !== "undefined" && state.currentPageIndex) || 0) + 1;
-  ensureSectionsQuoteAudit(sections, currentPg);
-  const sec = sections[safeIdx];
-  const drawer = document.getElementById("mobileDrawerBar");
-  const counter = document.getElementById("mobileDrawerCounter");
-  const content = document.getElementById("mobileDrawerContent");
-  if (!drawer || !content) return;
-
-  drawer.classList.remove("hidden");
-  if (counter) {
-    counter.textContent = `Point ${safeIdx + 1} of ${sections.length}`;
-  }
-
-  const evalData = (typeof state !== "undefined" && state.currentEvaluation) ? state.currentEvaluation : {};
-  const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
-
-  // Check matching point in point_by_point_audit
-  const pbpAll = Array.isArray(evalData.point_by_point_audit) ? evalData.point_by_point_audit : [];
-  const pbpPageItems = pbpAll.filter(p => (parseInt(p.page, 10) || 1) === currentPg);
-  const matchedPbp = pbpPageItems[safeIdx] || null;
-
-  let shortTag = "";
-  if (matchedPbp && matchedPbp.badge) {
-    shortTag = String(matchedPbp.badge).replace(/^Page\s*\d+\s*[•·-]\s*/i, "").replace(/^पृष्ठ\s*\d+\s*[•·-]\s*/i, "").trim();
-  }
-  if (!shortTag) {
-    if (sec.zone === "intro" || (safeIdx === 0 && currentPg === 1)) {
-      shortTag = isHindi ? "प्रारंभिक संदर्भ" : "OPENING & CONTEXT";
-    } else if (sec.zone === "conclusion" || (safeIdx === sections.length - 1 && currentPg === ((state.activePages && state.activePages.length) || 1))) {
-      shortTag = isHindi ? "आगे की राह व निष्कर्ष" : "WAY FORWARD & CLOSING";
-    } else {
-      const rawT = String(sec.title || "").replace(/^(?:BODY|PART\s*[A-Z]|मुख्य\s*भाग)[:\s-]*/i, "").trim();
-      shortTag = rawT.length > 28 ? (rawT.slice(0, 26) + "..") : rawT;
-    }
-  }
-  const pageBadgeText = isHindi ? `पृष्ठ ${currentPg} • ${shortTag.toUpperCase()}` : `PAGE ${currentPg} • ${shortTag.toUpperCase()}`;
-
-  let awardedVal = 1.0;
-  let maxVal = 2.0;
-  const mMatch = String(sec.marks || "").match(/([0-9]+(?:\.[0-9]+)?)\s*\/\s*([0-9]+(?:\.[0-9]+)?)/);
-  if (mMatch) {
-    awardedVal = parseFloat(mMatch[1]);
-    maxVal = parseFloat(mMatch[2]);
-  } else {
-    const singleM = String(sec.marks || "").match(/\+?([0-9]+(?:\.[0-9]+)?)/);
-    if (singleM) awardedVal = parseFloat(singleM[1]);
-  }
-
-  let isPositive = sec.isTick !== false && awardedVal > 0;
-  let creditBadgeText = "";
-  if (matchedPbp && matchedPbp.credit_badge) {
-    creditBadgeText = matchedPbp.credit_badge;
-    if (matchedPbp.is_positive !== undefined) isPositive = Boolean(matchedPbp.is_positive);
-  } else {
-    const ratio = maxVal > 0 ? (awardedVal / maxVal) : 0.5;
-    if (isHindi) {
-      creditBadgeText = ratio >= 0.4 ? `✓ +${awardedVal.toFixed(1)}M अंक मिले` : `✎ +${awardedVal.toFixed(1)}M सुधार का दायरा`;
-    } else {
-      creditBadgeText = ratio >= 0.6 ? `✓ +${awardedVal.toFixed(1)}M Rewarded` : (ratio >= 0.4 ? `✓ +${awardedVal.toFixed(1)}M Credit` : (awardedVal > 0 ? `✎ +${awardedVal.toFixed(1)}M Partial Credit` : `➔ Room to Upgrade`));
-    }
-  }
-
-  const badgeStyle = isPositive
-    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
-    : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30";
-
-  let headingTitle = "";
-  if (matchedPbp && matchedPbp.title && !window.isMetaPlaceholderText(matchedPbp.title)) {
-    headingTitle = matchedPbp.title;
-  } else if (sec.headingTitle && !window.isMetaPlaceholderText(sec.headingTitle)) {
-    headingTitle = sec.headingTitle;
-  } else {
-    headingTitle = String(sec.title || "").replace(/^(?:BODY|PART\s*[A-Z]|मुख्य\s*भाग)[:\s-]*/i, "").trim();
-  }
-
-  creditBadgeText = String(creditBadgeText || "").replace(/➔?\s*\+?([0-9.]+\s*M)\s*Scope/i, "✎ +$1 Partial Credit");
-  const isPartialCredit = /Partial/i.test(creditBadgeText) || /आंशिक/i.test(creditBadgeText);
-  const audit = sec._quoteAudit || (typeof getCardQuoteAndElevate === "function" ? getCardQuoteAndElevate(sec, null) : {});
-  let whatYouWrote = (matchedPbp && matchedPbp.what_you_wrote && !window.isMetaPlaceholderText(matchedPbp.what_you_wrote))
-    ? matchedPbp.what_you_wrote
-    : cleanCandidateQuote(audit.quote || sec.quote, 180);
-  whatYouWrote = whatYouWrote.replace(/^["']|["']$/g, "").trim();
-
-  let verdict = "";
-  if (matchedPbp && matchedPbp.examiner_verdict && !window.isMetaPlaceholderText(matchedPbp.examiner_verdict)) {
-    verdict = matchedPbp.examiner_verdict;
-  } else {
-    const ass = audit.assessment || sec.assessment || {};
-    const answersWell = sanitizeCompleteSentence(ass.answersWell || "");
-    const specificImprovement = sanitizeCompleteSentence(ass.specificImprovement || audit.advise || "");
-    const inaccuracyOrGap = sanitizeCompleteSentence(ass.inaccuracyOrGap || "");
-    if (answersWell) {
-      verdict = `${answersWell} ${specificImprovement || inaccuracyOrGap}`.trim();
-    } else {
-      verdict = specificImprovement || inaccuracyOrGap || audit.advise || (isHindi ? "यूपीएससी मूल्यांकन मानकों के अनुरूप प्रभावी प्रस्तुति।" : "Evaluated candidate's handwritten point with UPSC benchmarks.");
-    }
-  }
-
-  const quotePrefix = isHindi ? "परीक्षार्थी का उत्तर" : "Candidate's Writing";
-
-  content.innerHTML = `
-    <div class="space-y-2">
-      <div class="flex items-center justify-between gap-1.5">
-        <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">
-          ${escapeHtml(pageBadgeText)} ↗
-        </span>
-        <span class="text-[10.5px] font-extrabold px-2 py-0.5 rounded border ${badgeStyle} shrink-0 whitespace-nowrap">
-          ${escapeHtml(creditBadgeText)}
-        </span>
-      </div>
-      <div class="text-xs font-extrabold text-slate-900 dark:text-white leading-snug break-words">
-        ${escapeHtml(headingTitle)}
-      </div>
-      ${formatEvaluatorCardParagraph(quotePrefix, whatYouWrote, verdict, isPositive)}
-    </div>
-  `;
-
-  window.focusGutterPointOnPage(safeIdx, sec._yPct, sec.marks, sec, true);
 };
 
 window.nextMobileGutterPoint = function() {
