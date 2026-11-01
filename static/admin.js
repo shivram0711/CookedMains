@@ -57,14 +57,14 @@ function startAutoRefresh() {
       loadAdminSessions();
       loadAspirants();
     }
-  }, 15000);
+  }, 60000);
 }
 
 function toggleAutoRefresh() {
   autoRefreshEnabled = !autoRefreshEnabled;
   const label = document.getElementById("autoRefreshLabel");
   const dot = document.getElementById("autoRefreshDot");
-  if (label) label.textContent = autoRefreshEnabled ? "Live Sync: ON (15s)" : "Live Sync: PAUSED";
+  if (label) label.textContent = autoRefreshEnabled ? "Live Sync: ON (60s)" : "Live Sync: PAUSED";
   if (dot) {
     dot.className = autoRefreshEnabled
       ? "w-2 h-2 rounded-full bg-emerald-400 animate-pulse"

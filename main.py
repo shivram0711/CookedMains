@@ -238,13 +238,10 @@ async def _self_keep_alive_loop():
                         return resp.status
                 await asyncio.to_thread(_ping)
 
-            # 2. Execute real Supabase database query so Supabase never marks project inactive
+            # 2. Execute real Supabase database query so Supabase never marks project inactive (lightweight 50-byte ping)
             await asyncio.to_thread(_execute_supabase_activity_ping)
 
-            # 3. Synchronize any fresh Supabase cloud records into local SQLite
-            await asyncio.to_thread(sync_supabase_to_sqlite, False)
-
-            # 4. Auto-clean expired unauthenticated guest bounce sessions (>12h old)
+            # 3. Auto-clean expired unauthenticated guest bounce sessions (>12h old)
             await asyncio.to_thread(cleanup_expired_guest_sessions, 12.0)
         except Exception:
             pass
@@ -1466,6 +1463,48 @@ async def api_user_history(response: Response, email: Optional[str] = None, user
     if email:
         return get_user_evaluations(email)
 
+    # 1. Local SQLite First (Instant, 0ms, 0 Supabase Egress)
+    conn = get_db()
+    cursor = conn.cursor()
+    if user_id:
+        cursor.execute("""
+            SELECT id, created_at, paper, max_marks, question, overall_score, percentage, thumbnail, is_rewrite,
+                   has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url, evaluation_json
+            FROM evaluations
+            WHERE user_id = ?
+              AND SUBSTR(question, 1, 2) != '__'
+              AND overall_score > 0
+            ORDER BY created_at DESC
+        """, (user_id,))
+    else:
+        cursor.execute("""
+            SELECT id, created_at, paper, max_marks, question, overall_score, percentage, thumbnail, is_rewrite,
+                   has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url, evaluation_json
+            FROM evaluations
+            WHERE SUBSTR(question, 1, 2) != '__'
+              AND LOWER(question) NOT IN ('general studies mains question', 'upsc mains question', 'upsc mains answer')
+              AND LOWER(question) NOT LIKE '%general studies mains question%'
+              AND overall_score > 0
+            ORDER BY created_at DESC
+            LIMIT 50
+        """)
+    rows = cursor.fetchall()
+    conn.close()
+    valid_rows = []
+    for r in rows:
+        d = dict(r)
+        ev = {}
+        try:
+            ev = json.loads(d.pop("evaluation_json")) if d.get("evaluation_json") else {}
+        except Exception:
+            pass
+        if is_evaluation_fully_completed(ev, d.get("question"), d.get("max_marks")):
+            d["evaluation"] = ev
+            valid_rows.append(d)
+    if valid_rows:
+        return valid_rows
+
+    # 2. Supabase Fallback only if SQLite had zero rows (e.g. cold start)
     if supabase and user_id:
         try:
             res = supabase.table("evaluations").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
@@ -1481,48 +1520,7 @@ async def api_user_history(response: Response, email: Optional[str] = None, user
         except Exception as e:
             print(f"Supabase /locker query error: {e}")
 
-    if supabase:
-        try:
-            res = supabase.table("evaluations").select("*").order("created_at", desc=True).limit(50).execute()
-            if res and res.data:
-                rows_clean = []
-                for r in res.data:
-                    if str(r.get("question_title") or "").startswith("__"):
-                        continue
-                    formatted = _format_supabase_eval_row(r)
-                    if is_evaluation_fully_completed(formatted.get("evaluation"), formatted.get("question"), formatted.get("max_marks")):
-                        rows_clean.append(formatted)
-                return rows_clean
-        except Exception as e:
-            print(f"Supabase /locker query error: {e}")
-
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id, created_at, paper, max_marks, question, overall_score, percentage, thumbnail, is_rewrite,
-               has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url, evaluation_json
-        FROM evaluations
-        WHERE SUBSTR(question, 1, 2) != '__'
-          AND LOWER(question) NOT IN ('general studies mains question', 'upsc mains question', 'upsc mains answer')
-          AND LOWER(question) NOT LIKE '%general studies mains question%'
-          AND overall_score > 0
-        ORDER BY created_at DESC
-        LIMIT 50
-    """)
-    rows = cursor.fetchall()
-    conn.close()
-    valid_rows = []
-    for r in rows:
-        d = dict(r)
-        ev = {}
-        try:
-            ev = json.loads(d.pop("evaluation_json")) if d.get("evaluation_json") else {}
-        except Exception:
-            pass
-        if is_evaluation_fully_completed(ev, d.get("question"), d.get("max_marks")):
-            d["evaluation"] = ev
-            valid_rows.append(d)
-    return valid_rows
+    return []
 
 @app.get("/api/user/history/{eval_id}")
 async def api_history_detail(eval_id: str):

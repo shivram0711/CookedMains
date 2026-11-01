@@ -1362,6 +1362,11 @@ def get_daily_evaluations_count(email: str, is_rewrite: bool = False) -> int:
     sqlite_count = row[0] if row else 0
     conn.close()
 
+    # If SQLite already found evaluations for today, trust it immediately (zero Supabase egress!)
+    if sqlite_count > 0:
+        return sqlite_count
+
+    # Fallback to Supabase ONLY if local SQLite has 0 (e.g. cold start right after reboot)
     supa_count = 0
     if supabase and clean_email:
         try:
@@ -1370,22 +1375,14 @@ def get_daily_evaluations_count(email: str, is_rewrite: bool = False) -> int:
             now_ist = datetime.now(ist_tz)
             today_str = now_ist.strftime("%Y-%m-%d")
             det_id = get_deterministic_user_id(clean_email)
-            res_rows = _safe_supabase_eval_select("question_title,created_at,evaluation_json", filter_col="user_id", filter_val=det_id, limit=40)
+            # Lightweight query: ONLY select question_title, created_at (NO heavy evaluation_json!)
+            res_rows = _safe_supabase_eval_select("question_title,created_at", filter_col="user_id", filter_val=det_id, limit=20)
             if res_rows:
                 for item in res_rows:
-                    if item.get("question_title") == "__USER_ACCOUNT_PROFILE__":
+                    if str(item.get("question_title") or "").startswith("__"):
                         continue
                     c_at = item.get("created_at") or ""
-                    ev_j = item.get("evaluation_json") or {}
-                    if isinstance(ev_j, str):
-                        try:
-                            ev_j = json.loads(ev_j)
-                        except Exception:
-                            ev_j = {}
-                    if ev_j.get("_is_account_profile"):
-                        continue
-                    item_rw = int(ev_j.get("_meta_is_rewrite") or 0)
-                    if item_rw == target_rewrite and c_at:
+                    if c_at:
                         try:
                             dt_utc = datetime.fromisoformat(c_at.replace("Z", "+00:00"))
                             dt_ist = dt_utc.astimezone(ist_tz)
@@ -1933,8 +1930,44 @@ def get_user_evaluations(email: str) -> List[Dict[str, Any]]:
     """Returns list of student's past evaluated answer copies (merges Supabase & SQLite and auto-backfills SQLite so zero copies are ever lost)."""
     clean_email = (email or "").strip().lower()
     user = get_or_create_user(clean_email)
+
+    # 1. Check local SQLite first (Instant 0ms, 0 Supabase egress)
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, created_at, paper, max_marks, question, overall_score, percentage, thumbnail, is_rewrite,
+               has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url, file_hash, evaluation_json, pages_json
+        FROM evaluations
+        WHERE LOWER(user_email) = ?
+          AND SUBSTR(question, 1, 2) != '__'
+          AND overall_score > 0
+        ORDER BY created_at DESC
+    """, (clean_email,))
+    cached_rows = cursor.fetchall()
+    conn.close()
+
+    if cached_rows:
+        result = []
+        for r in cached_rows:
+            d = dict(r)
+            ev = {}
+            try:
+                ev = json.loads(d.pop("evaluation_json") or "{}")
+            except Exception:
+                ev = {}
+            if is_evaluation_fully_completed(ev, d.get("question"), d.get("max_marks")):
+                d["evaluation"] = ev
+                try:
+                    d["pages"] = json.loads(d.pop("pages_json") or "[]")
+                except Exception:
+                    d["pages"] = []
+                result.append(d)
+        if result:
+            return result
+
     merged_by_id: Dict[str, Dict[str, Any]] = {}
 
+    # 2. Supabase Fallback only if SQLite had zero rows for this user
     if supabase and user and user.get("id"):
         try:
             res = supabase.table("evaluations").select("*").eq("user_id", user["id"]).order("created_at", desc=True).execute()
@@ -3869,15 +3902,38 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
             limit=300
         )
 
-        # 2. Fetch recent answer evaluations from Supabase with schema resilience
-        eval_rows = _safe_supabase_eval_select(
-            "id, user_id, question_title, file_url, total_marks, evaluation_json, created_at",
+        # 2. Smart delta fetch: Check which evaluations are already in local SQLite
+        conn_check = get_db()
+        cur_check = conn_check.cursor()
+        cur_check.execute("SELECT id FROM evaluations")
+        local_eval_ids = {str(row["id"]) for row in cur_check.fetchall() if row["id"]}
+        conn_check.close()
+
+        # Fetch lightweight headers from Supabase WITHOUT evaluation_json (saves 99% bandwidth!)
+        eval_headers = _safe_supabase_eval_select(
+            "id, user_id, question_title, file_url, total_marks, created_at",
             filter_col=None,
             filter_val=None,
             neq_col="question_title",
             neq_val="__USER_ACCOUNT_PROFILE__",
             limit=80
         )
+        missing_ids = [str(r.get("id")) for r in eval_headers if str(r.get("id")) and str(r.get("id")) not in local_eval_ids]
+        
+        eval_rows = []
+        # If SQLite already has all evaluations, eval_rows is empty and zero evaluation_json is transferred!
+        for m_id in missing_ids[:20]:
+            try:
+                r_single = _safe_supabase_eval_select(
+                    "id, user_id, question_title, file_url, total_marks, evaluation_json, created_at",
+                    filter_col="id",
+                    filter_val=m_id,
+                    limit=1
+                )
+                if r_single:
+                    eval_rows.extend(r_single)
+            except Exception:
+                pass
 
         # 3. Fetch recent activity logs from Supabase
         if supabase:
@@ -4294,10 +4350,11 @@ def push_sqlite_to_supabase() -> Dict[str, Any]:
     }
 
 def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
-    try:
-        sync_supabase_to_sqlite(force=force_sync)
-    except Exception as se:
-        print(f"Admin stats Supabase sync notice: {se}")
+    if force_sync:
+        try:
+            sync_supabase_to_sqlite(force=True)
+        except Exception as se:
+            print(f"Admin stats Supabase sync notice: {se}")
 
     conn = get_db()
     cursor = conn.cursor()
@@ -4529,10 +4586,6 @@ def get_admin_evaluations_feed(
     Returns evaluations across all aspirants categorized by subject, date, and keyword.
     Zero Deletion Guarantee: All evaluated copies are permanently preserved.
     """
-    try:
-        sync_supabase_to_sqlite(False)
-    except Exception:
-        pass
     conn = get_db()
     cursor = conn.cursor()
     sql = """
@@ -4708,10 +4761,6 @@ def get_admin_evaluations_stats() -> Dict[str, Any]:
 
 def get_admin_activity_stream(limit: int = 60) -> List[Dict[str, Any]]:
     """Returns a chronological live activity stream combining activity_logs, evaluations, logins, and feedbacks."""
-    try:
-        sync_supabase_to_sqlite(False)
-    except Exception:
-        pass
     conn = get_db()
     cursor = conn.cursor()
     events: List[Dict[str, Any]] = []
