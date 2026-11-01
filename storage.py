@@ -1505,6 +1505,31 @@ def upload_file_to_supabase(user_id: str, file_bytes: bytes, file_ext: str = ".p
         return None
     try:
         clean_ext = file_ext if file_ext.startswith(".") else f".{file_ext}"
+
+        # Storage Capacity Optimization:
+        # Optimizes smartphone camera photos before storage upload so raw 5-10MB images become crisp ~75KB JPEGs.
+        # This increases the 1 GB bucket capacity to 13,000+ student answer pages and speeds up transfers.
+        if clean_ext.lower() in [".jpg", ".jpeg", ".png", ".webp"] or "image" in str(content_type).lower():
+            if HAS_PIL and Image is not None and len(file_bytes) > 120000:
+                try:
+                    from PIL import ImageOps
+                    img = Image.open(io.BytesIO(file_bytes))
+                    try:
+                        img = ImageOps.exif_transpose(img)
+                    except Exception:
+                        pass
+                    img = img.convert("RGB")
+                    if max(img.size) > 1280:
+                        resample_filter = getattr(getattr(Image, "Resampling", None), "LANCZOS", getattr(Image, "LANCZOS", 1))
+                        img.thumbnail((1280, 1280), resample_filter)
+                    buf = io.BytesIO()
+                    img.save(buf, format="JPEG", quality=75, optimize=True)
+                    file_bytes = buf.getvalue()
+                    clean_ext = ".jpg"
+                    content_type = "image/jpeg"
+                except Exception as comp_err:
+                    print(f"Notice: Image storage compression fallback: {comp_err}")
+
         storage_path = f"{user_id}/{uuid.uuid4()}{clean_ext}"
         supabase.storage.from_("answer-sheets").upload(
             file=file_bytes,
