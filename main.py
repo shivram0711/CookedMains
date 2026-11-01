@@ -1275,13 +1275,22 @@ async def api_auth_google_verify(request: Request):
         raise HTTPException(status_code=401, detail=auth_res.get("error") or "Google sign-in blocked by Single-Account policy.")
 
     user = auth_res["user"]
-    log_platform_activity(
-        user_email=user["email"],
-        user_name=user.get("name") or user["email"].split("@")[0].title(),
-        action_type="user_login",
-        title=f"Google Login: {user.get('name') or user['email']}",
-        detail=f"Authenticated via Google OAuth • {user['email']}"
-    )
+    if auth_res.get("is_new_user"):
+        log_platform_activity(
+            user_email=user["email"],
+            user_name=user.get("name") or user["email"].split("@")[0].title(),
+            action_type="user_registered",
+            title=f"New Aspirant Joined: {user.get('name') or user['email']}",
+            detail=f"Registered via Google OAuth ({user.get('optional_subject', 'General Studies')}) • {user['email']}"
+        )
+    else:
+        log_platform_activity(
+            user_email=user["email"],
+            user_name=user.get("name") or user["email"].split("@")[0].title(),
+            action_type="user_login",
+            title=f"Google Login: {user.get('name') or user['email']}",
+            detail=f"Authenticated via Google OAuth • {user['email']}"
+        )
     history = get_user_evaluations(user["email"])
     quota = get_user_daily_quota(user["email"])
     return {
@@ -1344,13 +1353,22 @@ async def api_user_login(request: Request):
         raise HTTPException(status_code=401, detail=auth_res.get("error") or "Authentication failed.")
 
     user = auth_res["user"]
-    log_platform_activity(
-        user_email=user["email"],
-        user_name=user.get("name") or user["email"].split("@")[0].title(),
-        action_type="user_login",
-        title=f"User Login: {user.get('name') or user['email']}",
-        detail=f"Signed in successfully • {user['email']}"
-    )
+    if auth_res.get("is_new_user"):
+        log_platform_activity(
+            user_email=user["email"],
+            user_name=user.get("name") or user["email"].split("@")[0].title(),
+            action_type="user_registered",
+            title=f"New Aspirant Joined: {user.get('name') or user['email']}",
+            detail=f"Registered account ({user.get('optional_subject', 'General Studies')}) • {user['email']}"
+        )
+    else:
+        log_platform_activity(
+            user_email=user["email"],
+            user_name=user.get("name") or user["email"].split("@")[0].title(),
+            action_type="user_login",
+            title=f"User Login: {user.get('name') or user['email']}",
+            detail=f"Signed in successfully • {user['email']}"
+        )
     history = get_user_evaluations(user["email"])
     quota = get_user_daily_quota(user["email"])
     return {
@@ -2059,6 +2077,7 @@ async def evaluate_answer(
         primary_content: Optional[bytes] = None
         primary_filename: str = ""
         is_pdf = False
+        raw_files_data: List[Dict[str, Any]] = []
 
         if files and len(files) > 0 and files[0].filename != "":
             from PIL import ImageOps
@@ -2071,6 +2090,12 @@ async def evaluate_answer(
                 file_hashes.append(hashlib.sha256(content).hexdigest())
 
                 file_is_pdf = filename.endswith(".pdf") or "pdf" in ctype or content[:4] == b"%PDF"
+                raw_files_data.append({
+                    "content": content,
+                    "filename": filename,
+                    "content_type": ctype,
+                    "is_pdf": file_is_pdf
+                })
                 if not primary_content:
                     primary_content = content
                     primary_filename = filename
@@ -2880,7 +2905,44 @@ async def evaluate_answer(
         # Supabase Persistent Storage and Record Insertion
         user_id = user["id"] if (user and user.get("id")) else get_deterministic_user_id(user_email or "guest@upsc.gov.in")
         public_file_url = None
-        if primary_content:
+        uploaded_storage_urls: List[str] = []
+
+        if raw_files_data:
+            if is_pdf and primary_content:
+                try:
+                    p_url = upload_file_to_supabase(
+                        user_id=user_id,
+                        file_bytes=primary_content,
+                        file_ext=".pdf",
+                        content_type="application/pdf"
+                    )
+                    if p_url:
+                        uploaded_storage_urls.append(p_url)
+                        public_file_url = p_url
+                except Exception as se:
+                    print(f"Notice: Supabase storage upload error: {se}")
+            else:
+                for idx, rfd in enumerate(raw_files_data):
+                    f_bytes = rfd.get("content")
+                    if not f_bytes:
+                        continue
+                    f_name = rfd.get("filename") or f"page_{idx+1}.jpg"
+                    f_ext = os.path.splitext(f_name)[1] or ".jpg"
+                    f_mime = "image/png" if f_ext == ".png" else "image/jpeg"
+                    try:
+                        f_url = upload_file_to_supabase(
+                            user_id=user_id,
+                            file_bytes=f_bytes,
+                            file_ext=f_ext,
+                            content_type=f_mime
+                        )
+                        if f_url:
+                            uploaded_storage_urls.append(f_url)
+                    except Exception as se:
+                        print(f"Notice: Supabase page {idx+1} upload error: {se}")
+                if uploaded_storage_urls:
+                    public_file_url = uploaded_storage_urls[0]
+        elif primary_content:
             file_ext = ".pdf" if is_pdf else (os.path.splitext(primary_filename)[1] or ".jpg")
             mime_type = "application/pdf" if is_pdf else ("image/png" if file_ext == ".png" else "image/jpeg")
             try:
@@ -2890,6 +2952,8 @@ async def evaluate_answer(
                     file_ext=file_ext,
                     content_type=mime_type
                 )
+                if public_file_url:
+                    uploaded_storage_urls.append(public_file_url)
             except Exception as se:
                 print(f"Notice: Supabase storage upload error: {se}")
 
@@ -2967,7 +3031,7 @@ async def evaluate_answer(
                 overall_score=overall_score,
                 percentage=pct,
                 evaluation_dict=evaluation_result,
-                pages_list=uploaded_page_previews,
+                pages_list=uploaded_storage_urls if uploaded_storage_urls else uploaded_page_previews,
                 is_rewrite=is_rewrite,
                 file_hash=submission_hash,
                 baseline_eval_id=(baseline_eval_id or (prev_record.get("id") if prev_record else None)) if is_rewrite else None,

@@ -1251,7 +1251,7 @@ def authenticate_or_register_user(
         if device_id:
             bind_device_to_account(device_id, clean_email, client_ip)
         _save_supabase_account_profile(user, device_id=device_id)
-        return {"success": True, "user": user}
+        return {"success": True, "user": user, "is_new_user": not account_already_exists}
 
     # If account already exists, check if someone is trying to register a 2nd identity with a different name
     if account_already_exists and req_mode != "login":
@@ -1283,7 +1283,7 @@ def authenticate_or_register_user(
             }
         if device_id:
             bind_device_to_account(device_id, clean_email, client_ip)
-        return {"success": True, "user": user}
+        return {"success": True, "user": user, "is_new_user": False}
 
     # New account registration MUST provide a password (min 4 chars)
     if not clean_pw or len(clean_pw) < 4:
@@ -1307,7 +1307,7 @@ def authenticate_or_register_user(
         bind_device_to_account(device_id, clean_email, client_ip)
     _save_supabase_account_profile(user, device_id=device_id)
 
-    return {"success": True, "user": user}
+    return {"success": True, "user": user, "is_new_user": True}
 
 def update_user_profile(email: str, name: Optional[str] = None, target_year: Optional[str] = None, optional_subject: Optional[str] = None) -> Dict[str, Any]:
     """Updates candidate profile attributes locally and in Supabase."""
@@ -1441,6 +1441,20 @@ def save_feedback(user_email: str, user_name: str, category: str, rating: int, m
     )
     conn.commit()
     conn.close()
+
+    if supabase:
+        try:
+            _safe_supabase_insert("feedback", {
+                "id": fid,
+                "user_email": (user_email or "").strip().lower(),
+                "user_name": (user_name or "").strip(),
+                "category": category,
+                "rating": int(rating),
+                "message": message.strip()
+            })
+        except Exception:
+            pass
+
     return {"id": fid, "status": "success"}
 
 def get_user(email: str) -> Optional[Dict[str, Any]]:
@@ -3324,6 +3338,23 @@ def create_transaction(user_id: str, user_email: str, user_name: str, plan_id: s
     """, (tx_id, user_id, user_email, user_name, plan_id, plan_name, amount, clean_utr, screenshot_data))
     
     conn.commit()
+
+    if supabase:
+        try:
+            _safe_supabase_insert("transactions", {
+                "id": tx_id,
+                "user_id": user_id,
+                "user_email": user_email,
+                "user_name": user_name,
+                "plan_id": plan_id,
+                "plan_name": plan_name,
+                "amount": amount,
+                "utr_number": clean_utr,
+                "payment_method": "UPI",
+                "status": "pending"
+            })
+        except Exception:
+            pass
     cursor.execute("SELECT * FROM transactions WHERE id = ?", (tx_id,))
     row = cursor.fetchone()
     conn.close()
@@ -3631,6 +3662,23 @@ def log_platform_activity(
         }
         conn = get_db()
         cursor = conn.cursor()
+
+        # Deduplication Guard: Never write duplicate activity entries
+        if eval_id:
+            cursor.execute("SELECT id FROM activity_logs WHERE eval_id = ?", (eval_id,))
+            if cursor.fetchone():
+                conn.close()
+                return
+        else:
+            cursor.execute("""
+                SELECT id FROM activity_logs
+                WHERE LOWER(user_email) = ? AND title = ?
+                ORDER BY created_at DESC LIMIT 1
+            """, (clean_email, title))
+            if cursor.fetchone():
+                conn.close()
+                return
+
         act_id = f"act_{uuid.uuid4().hex[:12]}"
         cursor.execute("""
             INSERT INTO activity_logs (id, created_at, user_email, user_name, action_type, title, detail, eval_id)
@@ -4858,7 +4906,35 @@ def get_admin_activity_stream(limit: int = 60) -> List[Dict[str, Any]]:
 
     conn.close()
     events.sort(key=lambda x: str(x.get("created_at") or ""), reverse=True)
-    return events[:limit]
+
+    deduped_events: List[Dict[str, Any]] = []
+    seen_eval_ids = set()
+    seen_action_keys = set()
+    seen_ids = set()
+
+    for ev in events:
+        eid = (ev.get("id") or "").strip()
+        if eid and eid in seen_ids:
+            continue
+        
+        eval_id = (ev.get("eval_id") or "").strip()
+        if eval_id:
+            if eval_id in seen_eval_ids:
+                continue
+            seen_eval_ids.add(eval_id)
+        else:
+            u_email = (ev.get("user_email") or "").strip().lower()
+            title = (ev.get("title") or "").strip().lower()
+            action_key = (u_email, title)
+            if action_key in seen_action_keys:
+                continue
+            seen_action_keys.add(action_key)
+
+        if eid:
+            seen_ids.add(eid)
+        deduped_events.append(ev)
+
+    return deduped_events[:limit]
 
 
 def reset_user_daily_quota_admin(email: str) -> Dict[str, Any]:
