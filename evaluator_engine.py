@@ -869,6 +869,7 @@ def infer_paper_from_question_content(question_text: str) -> Optional[str]:
         "freedom struggle", "1857", "swadeshi", "gandhi", "non-cooperation", "civil disobedience", "quit india", "subhash chandra bose", "colonial rule", "british rule", "drain of wealth", "subaltern",
         "geomorphology", "plate tectonics", "earthquake", "volcano", "volcanic", "caldera", "calderas", "cyclone", "monsoon", "el nino", "la nina", "ocean current", "drainage system",
         "secularism in india", "communalism", "regionalism", "caste system", "caste", "urbanization issues",
+        "patriarchy", "patriarchal", "female labor", "female labour", "women empowerment", "gender inequality", "gender disparity", "social empowerment", "globalization on indian society", "effects of globalization", "diversity of india", "communalism",
         "scenic beauty", "geomorphic", "landform", "landforms", "magma", "lava", "crater", "pyroclastic", "geomorph"
     ]
     gs1_score = sum(2 if has_phrase(text, w) else 0 for w in gs1_signals)
@@ -8655,40 +8656,56 @@ def _build_domain_specific_conclusion(question_text: str, paper_name: str, exist
     q_low = f"{question_text} {existing_text}".lower()
     p_up = str(paper_name or "").upper()
 
+    def _matches_any(text: str, words: list) -> bool:
+        for w in words:
+            if len(w) <= 4:
+                if re.search(r'\b' + re.escape(w) + r'\b', text, re.I):
+                    return True
+            else:
+                if w in text:
+                    return True
+        return False
+
     if is_hindi:
-        if any(k in q_low for k in ["1857", "विद्रोह", "ब्रिटिश", "उपनिवेश", "साम्राज्यवाद", "स्वतंत्रता संग्राम", "राष्ट्रीय आंदोलन", "कांग्रेस", "कंपनी"]):
-            return (
-                "यद्यपि 1857 के पश्चात प्रशासनिक एवं सैन्य पुनर्गठन ने औपनिवेशिक नियंत्रण को दीर्घायु प्रदान की, "
-                "किंतु इसने संस्थागत अंतर्विरोधों को जन्म देकर संगठित राष्ट्रीय चेतना (1885 कांग्रेस) को उत्प्रेरित किया, जिसने अंततः साम्राज्य के पतन की नींव रखी।"
-            )
-        if any(k in q_low for k in ["इतिहास", "कला", "संस्कृति", "मौर्य", "चोल", "अशोक", "भक्ति", "सूफी", "विरासत", "वास्तुकला"]):
-            return (
-                "ऐतिहासिक साक्ष्यों एवं सांस्कृतिक निरंतरता का यह संश्लेषण न केवल भारतीय सभ्यता के विकासात्मक स्वरूप को रेखांकित करता है, "
-                "बल्कि आधुनिक राष्ट्र-निर्माण और संवैधानिक बंधुत्व को भी समृद्ध आधार प्रदान करता है।"
-            )
-        if any(k in q_low for k in ["भूगोल", "भूकंप", "चक्रवात", "मानसून", "आपदा", "प्लेट", "संसाधन", "नदी"]):
-            return (
-                "सेंदाई फ्रेमवर्क (2015-2030) के अनुरूप स्थानिक योजना, पूर्व-चेतावनी प्रणाली तथा जलवायु-अनुकूल अवसंरचना का समन्वय "
-                "आपदा जोखिम न्यूनीकरण एवं सतत क्षेत्रीय विकास सुनिश्चित करने हेतु अनिवार्य है।"
-            )
-        if any(k in q_low for k in ["समाज", "जाति", "महिला", "शहरीकरण", "जनसंख्या", "विविधता", "धर्मनिरपेक्ष"]):
-            return (
-                "समावेशी जन-भागीदारी एवं प्रगतिशील विधिक संरक्षणों का समन्वय संवैधानिक बंधुत्व तथा वास्तविक सामाजिक न्याय की प्राप्ति को सशक्त बनाता है।"
-            )
-        if "GS4" in p_up or "ETHICS" in p_up or any(k in q_low for k in ["नैतिक", "सत्यनिष्ठा", "मूल्य"]):
+        if "GS4" in p_up or "ETHICS" in p_up or _matches_any(q_low, ["नैतिक", "सत्यनिष्ठा", "मूल्य", "दुविधा"]):
             return (
                 "प्रशासनिक निर्णयों को **संवैधानिक नैतिकता**, **नोलन समिति के सिद्धांतों (सत्यनिष्ठा, निष्पक्षता, जवाबदेही)** "
                 "तथा **गांधीवादी अंत्योदय** से जोड़ना लोक सेवकों को नैतिक दुविधाओं का संवेदनशील समाधान करने में सक्षम बनाता है।"
             )
-        if "GS2" in p_up or "POLITY" in p_up or any(k in q_low for k in ["संविधान", "न्यायपालिका", "अधिकार", "संसद", "आयोग", "राज्यपाल"]):
+        if "GS2" in p_up or "POLITY" in p_up or _matches_any(q_low, ["संविधान", "न्यायपालिका", "अधिकार", "संसद", "आयोग", "राज्यपाल"]):
             return (
                 "**अनुच्छेद 13** के न्यायिक पुनरावलोकन, **अनुच्छेद 50** के शक्ति-पृथक्करण एवं **संवैधानिक नैतिकता** का सामंजस्य "
                 "संस्थागत सौहार्द, वास्तविक न्याय तथा लोकतांत्रिक जवाबदेही सुनिश्चित करता है।"
             )
-        if "GS3" in p_up or any(k in q_low for k in ["अर्थव्यवस्था", "पर्यावरण", "जलवायु", "सुरक्षा", "कृषि"]):
+        if "GS3" in p_up or _matches_any(q_low, ["अर्थव्यवस्था", "पर्यावरण", "जलवायु", "सुरक्षा", "कृषि", "सिंचाई"]):
             return (
                 "**पंचामृत जलवायु लक्ष्यों**, लक्षित पूंजीगत निवेश तथा घरेलू आपूर्ति-श्रृंखला के सुदृढ़ीकरण से ही "
                 "एक समावेशी, धारणीय एवं आत्मनिर्भर अर्थव्यवस्था का निर्माण संभव हो सकेगा।"
+            )
+        # GS1 topics
+        if _matches_any(q_low, ["1857", "विद्रोह", "ब्रिटिश", "उपनिवेश", "साम्राज्यवाद", "स्वतंत्रता संग्राम", "राष्ट्रीय आंदोलन", "कांग्रेस", "कंपनी"]):
+            return (
+                "यद्यपि 1857 के पश्चात प्रशासनिक एवं सैन्य पुनर्गठन ने औपनिवेशिक नियंत्रण को दीर्घायु प्रदान की, "
+                "किंतु इसने संस्थागत अंतर्विरोधों को जन्म देकर संगठित राष्ट्रीय चेतना (1885 कांग्रेस) को उत्प्रेरित किया, जिसने अंततः साम्राज्य के पतन की नींव रखी।"
+            )
+        if _matches_any(q_low, ["सल्तनत", "रहट", "चरखा"]) or (_matches_any(q_low, ["मध्यकालीन"]) and _matches_any(q_low, ["तकनीक", "शिल्प"])):
+            return (
+                "सल्तनत कालीन तकनीकी प्रसार (रहट, चरखा) ने इरफान हबीब की 'मध्यकालीन नगरीय क्रांति' को उत्प्रेरित किया, "
+                "जिसने कृषि अधिशेष को विविध शिल्पी अर्थव्यवस्था में बदलकर समग्र मध्यकालीन भारतीय समाज की भौतिक नींव रखी।"
+            )
+        if _matches_any(q_low, ["इतिहास", "कला", "संस्कृति", "मौर्य", "चोल", "अशोक", "भक्ति", "सूफी", "विरासत", "वास्तुकला"]):
+            return (
+                "ऐतिहासिक साक्ष्यों एवं सांस्कृतिक निरंतरता का यह संश्लेषण न केवल भारतीय सभ्यता के विकासात्मक स्वरूप को रेखांकित करता है, "
+                "बल्कि आधुनिक राष्ट्र-निर्माण और सांस्कृतिक विरासत को भी समृद्ध आधार प्रदान करता है।"
+            )
+        if _matches_any(q_low, ["भूगोल", "भूकंप", "चक्रवात", "मानसून", "आपदा", "प्लेट", "संसाधन", "नदी", "काल्डेरा"]):
+            return (
+                "सेंदाई फ्रेमवर्क (2015-2030) के अनुरूप स्थानिक योजना, पूर्व-चेतावनी प्रणाली तथा जलवायु-अनुकूल अवसंरचना का समन्वय "
+                "आपदा जोखिम न्यूनीकरण एवं सतत क्षेत्रीय विकास सुनिश्चित करने हेतु अनिवार्य है।"
+            )
+        if _matches_any(q_low, ["समाज", "जाति", "महिला", "शहरीकरण", "जनसंख्या", "विविधता", "धर्मनिरपेक्ष", "पितृसत्ता"]):
+            return (
+                "समावेशी जन-भागीदारी एवं प्रगतिशील विधिक संरक्षणों का समन्वय संवैधानिक बंधुत्व तथा वास्तविक सामाजिक न्याय की प्राप्ति को सशक्त बनाता है।"
             )
         return (
             "साक्ष्य-आधारित संस्थागत सुधारों, अंतिम छोर तक क्षमता निर्माण तथा परिणाम-उन्मुख वित्तीय अभिशासन का समन्वय "
@@ -8696,119 +8713,118 @@ def _build_domain_specific_conclusion(question_text: str, paper_name: str, exist
         )
 
     # English discipline & question-specific synthesis:
-    # 1. Modern Indian History / British Colonialism / 1857 Revolt / Freedom Struggle
-    if any(k in q_low for k in ["1857", "revolt", "colonial", "imperialism", "british rule", "british response", "viceroy", "company's rule", "crown rule", "peel commission", "freedom struggle", "nationalist", "nationalism", "national movement", "congress", "inc", "swadeshi", "gandhian", "non-cooperation", "civil disobedience", "quit india", "partition", "drain of wealth", "dalhousie", "curzon"]):
+    # Rule 1: GS-4 Ethics questions ALWAYS route strictly to Ethics
+    if "GS4" in p_up or "ETHICS" in p_up or _matches_any(q_low, ["ethical dilemma", "probity", "nolan", "moral attitude", "code of ethics", "public interest vs"]):
+        return (
+            "Anchoring administrative choices in **Constitutional Morality**, the **Nolan Committee principles (Selflessness, Integrity, Objectivity)**, and **Gandhian Antyodaya** "
+            "empowers public servants to resolve complex ethical dilemmas with compassion and unyielding probity."
+        )
+
+    # Rule 2: GS-2 Polity & Governance questions ALWAYS route strictly to Polity/Governance
+    if "GS2" in p_up or "POLITY" in p_up:
+        if _matches_any(q_low, ["election", "eci", "cec", "commissioner", "324", "anoop baranwal", "appointment"]):
+            return (
+                "Insulating the **Election Commission of India under Article 324** through an independent consultative collegium and "
+                "**removal parity under Article 324(5)** safeguards institutional credibility and democratic purity."
+            )
+        if _matches_any(q_low, ["supremacy of the constitution", "judicial review", "njac", "basic structure"]):
+            return (
+                "Harmonizing **Article 13** judicial review with **Article 50** separation of powers ensures that **Constitutional Supremacy** thrives through "
+                "**mutual institutional comity** and **constitutional morality**, preserving what **Granville Austin** termed the Constitution's 'seamless web' of checks and balances."
+            )
+        if _matches_any(q_low, ["criminalisation of politics", "rpa", "disqualification"]):
+            return (
+                "Fast-tracking special MP/MLA courts alongside statutory **inner-party democracy (Law Commission 255th Report)** and **state funding reforms (Indrajit Gupta Committee)** "
+                "is essential to cleanse the legislature and uphold the **purity of the ballot under Article 324**."
+            )
+        if _matches_any(q_low, ["nutrition", "food surplus", "hunger", "starvation", "malnutrition", "food security", "poshan", "pds", "nfsa", "stunting", "wasting", "anaemia"]):
+            return (
+                "Aligning the **National Food Security Act (NFSA 2013)** with **crop diversification (Shree Anna / Millets)**, "
+                "**targeted social audits**, and decentralized **POSHAN 2.0 telemetry** is essential to resolve the structural paradox "
+                "and achieve **SDG-2 (Zero Hunger & Nutritional Security) under Article 47**."
+            )
+        if _matches_any(q_low, ["health", "education", "poverty", "vulnerable", "social justice", "welfare", "human resource"]):
+            return (
+                "Converging **statutory welfare guarantees** with **outcome-linked fiscal delivery** and **last-mile social audits** "
+                "is vital to uphold substantive equality under **Article 21 and the DPSP welfare mandate (Article 38/47)**."
+            )
+        if _matches_any(q_low, ["bilateral", "foreign", "international", "unsc", "quad", "brics", "diplomacy", "indo-pacific"]):
+            return (
+                "Balancing **principled strategic autonomy** with **rule-based multilateralism** reinforces India's role as a "
+                "**Vishwa-Bandhu** and a stabilizing anchor in a multipolar global order."
+            )
+        return (
+            "Synthesizing **Article 13** judicial review with **Article 50** separation of powers and **Constitutional Morality** "
+            "ensures institutional comity, substantive justice, and democratic accountability."
+        )
+
+    # Rule 3: GS-3 Economy, Agriculture, S&T, Environment & Security
+    if "GS3" in p_up or "ECONOMY" in p_up:
+        if _matches_any(q_low, ["irrigation", "water demand", "groundwater", "canal", "micro-irrigation", "pmksy"]):
+            return (
+                "Scaling **micro-irrigation (Per Drop More Crop)** alongside participatory irrigation management, canal telemetry, and "
+                "aquifer recharge under **Atal Bhujal Yojana** is critical to decoupling agricultural productivity from unsustainable groundwater depletion."
+            )
+        if _matches_any(q_low, ["artificial intelligence", "drone", "gis", "remote sensing", "aerial planning", "geospatial"]):
+            return (
+                "Integrating AI-driven predictive spatial analytics with high-resolution drone telemetry and **PM Gati Shakti NMP GIS layers** "
+                "transforms urban and infrastructure planning from reactive zoning into evidence-based, sustainable territorial governance."
+            )
+        if _matches_any(q_low, ["floriculture", "horticulture", "agri export"]):
+            return (
+                "Operationalizing **APEDA's cold-chain corridors**, **MIDH protected-cultivation clusters**, and **phyto-sanitary certification** "
+                "will realize the **Ashok Dalwai Committee's** vision—turning Indian floriculture into a high-margin **plough-to-port income multiplier** for smallholder farmers."
+            )
+        if _matches_any(q_low, ["deep-tech", "deep tech", "startup", "innovation"]):
+            return (
+                "Operationalizing the **Rs 1 Lakh Crore ANRF R&D Fund** alongside **patient risk capital** and **GFR Rule 173 domestic procurement** "
+                "will bridge the **'Valley of Death' (TRL 4–9)**—transforming Indian startups from service-delivery platforms into **globally competitive sovereign IP creators**."
+            )
+        if _matches_any(q_low, ["biodiversity", "environment", "pollution", "forest", "wildlife", "renewable", "emission", "climate change"]):
+            return (
+                "Synthesizing **Panchamrit decarbonization targets**, **Mission LiFE behavioural nudges**, and **statutory environmental audits** "
+                "will harmonize national industrial aspirations with ecological sustainability and intergenerational equity."
+            )
+        if _matches_any(q_low, ["security", "border", "cyber", "terrorism", "extremism", "money laundering", "police"]):
+            return (
+                "Coupling **multi-agency intelligence telemetry (MAC/NATGRID)** with **community-oriented policing** and **state-of-the-art cyber defense grids** "
+                "is vital to safeguard national sovereignty against hybrid, multi-domain asymmetric threats."
+            )
+        return (
+            "Integrating **evidence-based institutional reforms**, **last-mile capacity building**, and **outcome-linked fiscal governance** "
+            "will translate policy intent into durable, equitable structural transformation."
+        )
+
+    # Rule 4: GS-1 History, Art & Culture, Geography & Society
+    if _matches_any(q_low, ["sultanate", "delhi sultanate", "alauddin", "tughlaq", "persian wheel", "rahat", "charkha"]) or (_matches_any(q_low, ["medieval"]) and _matches_any(q_low, ["technol", "craft", "artisan"])):
+        return (
+            "The diffusion of Central and West Asian technologies during the Sultanate period catalyzed Irfan Habib's "
+            "'medieval urban revolution', transforming the agrarian base into a diversified craft and artisanal economy "
+            "that laid the material foundations of medieval composite Indian society."
+        )
+    if _matches_any(q_low, ["1857", "revolt", "colonial", "imperialism", "british rule", "viceroy", "company's rule", "crown rule", "peel commission", "freedom struggle", "nationalist", "nationalism", "national movement", "congress", "swadeshi", "gandhian", "drain of wealth"]):
         return (
             "While post-1857 administrative and military restructuring prolonged British imperial longevity in the short term, "
             "it deepened institutional contradictions and catalyzed organized political consciousness—ironically nurturing "
             "the nationalist movement (culminating in the Indian National Congress of 1885) that ultimately dismantled colonial rule."
         )
-
-    # 2. Ancient & Medieval History / Art, Architecture & Culture
-    if any(k in q_low for k in ["sultanate", "delhi sultanate", "alauddin", "tughlaq", "ancient", "medieval", "maurya", "ashoka", "gupta", "chola", "vijayanagar", "mughal", "bhakti", "sufi", "indus valley", "harappa", "vedic", "buddhism", "jainism", "temple", "sculpture", "art", "heritage"]):
-        if any(k in q_low for k in ["technology", "technological", "persian wheel", "rahat", "charkha", "craft", "artisan"]):
-            return (
-                "The diffusion of Central and West Asian technologies during the Sultanate period catalyzed Irfan Habib's "
-                "'medieval urban revolution', transforming the agrarian base into a diversified craft and artisanal economy "
-                "that laid the material foundations of medieval composite Indian society."
-            )
+    if _matches_any(q_low, ["ancient", "medieval", "maurya", "ashoka", "gupta", "chola", "vijayanagar", "mughal", "bhakti", "sufi", "indus valley", "harappa", "vedic", "buddhism", "jainism", "temple", "sculpture", "heritage"]):
         return (
             "Synthesizing institutional statecraft with living cultural continuity highlights the resilient evolution "
             "of Indian civilization, providing timeless insights for contemporary composite nationhood and cultural heritage."
         )
-
-    # 3. Geography / Physical Earth / Disaster Mitigation
-    if any(k in q_low for k in ["geography", "mineral", "resource", "water", "river", "glacier", "soil", "forest", "drainage", "monsoon", "plate", "earthquake", "cyclone", "volcano", "climate", "disaster", "hazard", "urban heat", "landslide", "tsunami"]):
+    if _matches_any(q_low, ["geography", "mineral", "resource", "water", "river", "glacier", "soil", "forest", "drainage", "monsoon", "plate", "earthquake", "cyclone", "volcano", "caldera", "climate", "disaster", "hazard", "urban heat", "landslide", "tsunami"]):
         return (
             "Integrating spatial resource mapping, climate-resilient engineering, and early-warning telemetry under the "
             "**Sendai Framework (2015–2030)** and **NDMA Guidelines** is imperative to transition vulnerable ecologies from risk exposure to sustainable resilience."
         )
+    if _matches_any(q_low, ["society", "caste", "women", "gender", "patriarchy", "urbanization", "population", "demographic", "secularism", "communalism", "regionalism", "diversity", "social integration", "female labor"]):
+        return (
+            "Harmonizing community-driven affirmative action with robust legal-institutional safeguards upholds substantive equality "
+            "and constitutional fraternity under **Articles 14, 15, and 21**, driving inclusive structural social transformation."
+        )
 
-    # 4. Indian Society & Demographics (STRICTLY non-historical questions only)
-    if not any(k in q_low for k in ["sultanate", "medieval", "ancient", "colonial", "1857", "british rule", "mughal", "maurya", "gupta", "chola"]):
-        if any(k in q_low for k in ["society", "caste", "women", "gender", "patriarchy", "urbanization", "population", "demographic", "secularism", "communalism", "regionalism", "diversity", "social integration", "elderly"]):
-            return (
-                "Harmonizing community-driven affirmative action with robust legal-institutional safeguards upholds substantive equality "
-                "and constitutional fraternity under **Articles 14, 15, and 21**, driving inclusive structural social transformation."
-            )
-
-    # Specific Polity & Governance topics
-    if any(k in q_low for k in ["election", "eci", "cec", "commissioner", "324", "anoop baranwal", "appointment", "electoral"]):
-        return (
-            "Insulating the **Election Commission of India under Article 324** through an independent consultative collegium and "
-            "**removal parity under Article 324(5)** safeguards institutional credibility and democratic purity."
-        )
-    if "aspirational" in q_low or ("good governance" in q_low and "district" in q_low):
-        return (
-            "By institutionalizing real-time data monitoring under the **Champions of Change portal** and scaling the **3Cs strategy** into the **Aspirational Blocks Programme (ABP)**, "
-            "ADP provides a transformative, cooperative federalism blueprint to eliminate regional developmental disparities."
-        )
-    if "floriculture" in q_low or ("agri" in q_low and "export" in q_low):
-        return (
-            "Operationalizing **APEDA's cold-chain corridors**, **MIDH protected-cultivation clusters**, and **phyto-sanitary certification** "
-            "will realize the **Ashok Dalwai Committee's** vision—turning Indian floriculture into a high-margin **plough-to-port income multiplier** for smallholder farmers."
-        )
-    if "plfs" in q_low or "periodic labour force" in q_low:
-        return (
-            "Integrating **PLFS high-frequency CWS/US labour telemetry** with **e-Shram** and **National Career Service (NCS)** databases "
-            "will align India's workforce metrics with **ILO decent-work standards (SDG-8)**—shifting policy focus from headline employment counts to **formal wage quality and productive female workforce participation**."
-        )
-    if "deep-tech" in q_low or "deep tech" in q_low or "startup" in q_low:
-        return (
-            "Operationalizing the **Rs 1 Lakh Crore ANRF R&D Fund** alongside **patient risk capital** and **GFR Rule 173 domestic procurement** "
-            "will bridge the **'Valley of Death' (TRL 4–9)**—transforming Indian startups from service-delivery platforms into **globally competitive sovereign IP creators**."
-        )
-    if "supremacy of the constitution" in q_low or "judicial review" in q_low or "njac" in q_low:
-        return (
-            "Harmonizing **Article 13** judicial review with **Article 50** separation of powers ensures that **Constitutional Supremacy** thrives through "
-            "**mutual institutional comity** and **constitutional morality**, preserving what **Granville Austin** termed the Constitution's 'seamless web' of checks and balances."
-        )
-    if "criminal" in q_low and ("politic" in q_low or "rpa" in q_low):
-        return (
-            "Fast-tracking special MP/MLA courts alongside statutory **inner-party democracy (Law Commission 255th Report)** and **state funding reforms (Indrajit Gupta Committee)** "
-            "is essential to cleanse the legislature and uphold the **purity of the ballot under Article 324**."
-        )
-    if "GS3" in p_up and any(k in q_low for k in ["economy", "gdp", "fiscal", "inflation", "manufacturing", "semiconductor", "msme", "trade", "investment", "tax"]):
-        return (
-            "Aligning **structural fiscal consolidation** with **targeted capex multiplier investments** and **domestic supply-chain formalization** "
-            "will drive sustainable, high-productivity economic growth toward the vision of an inclusive **Viksit Bharat**."
-        )
-    if "GS3" in p_up and any(k in q_low for k in ["biodiversity", "environment", "pollution", "forest", "wildlife", "cop", "renewable", "emission", "climate change"]):
-        return (
-            "Synthesizing **Panchamrit decarbonization targets**, **Mission LiFE behavioural nudges**, and **statutory environmental audits** "
-            "will harmonize national industrial aspirations with ecological sustainability and intergenerational equity."
-        )
-    if "GS3" in p_up and any(k in q_low for k in ["security", "border", "cyber", "terrorism", "extremism", "money laundering", "police"]):
-        return (
-            "Coupling **multi-agency intelligence telemetry (MAC/NATGRID)** with **community-oriented policing** and **state-of-the-art cyber defense grids** "
-            "is vital to safeguard national sovereignty against hybrid, multi-domain asymmetric threats."
-        )
-    if any(k in q_low for k in ["nutrition", "food surplus", "hunger", "starvation", "malnutrition", "food security", "poshan", "pds", "nfsa", "stunting", "wasting", "anaemia"]):
-        return (
-            "Aligning the **National Food Security Act (NFSA 2013)** with **crop diversification (Shree Anna / Millets)**, "
-            "**targeted social audits**, and decentralized **POSHAN 2.0 telemetry** is essential to resolve the structural paradox "
-            "and achieve **SDG-2 (Zero Hunger & Nutritional Security) under Article 47**."
-        )
-    if any(k in q_low for k in ["health", "education", "poverty", "vulnerable", "social justice", "welfare", "human resource"]):
-        return (
-            "Converging **statutory welfare guarantees** with **outcome-linked fiscal delivery** and **last-mile social audits** "
-            "is vital to uphold substantive equality under **Article 21 and the DPSP welfare mandate (Article 38/47)**."
-        )
-    if "GS2" in p_up and any(k in q_low for k in ["bilateral", "foreign", "international", "unsc", "quad", "brics", "diplomacy", "treaty", "indo-pacific"]):
-        return (
-            "Balancing **principled strategic autonomy** with **rule-based multilateralism** reinforces India's role as a "
-            "**Vishwa-Bandhu** and a stabilizing anchor in a multipolar global order."
-        )
-    if "GS2" in p_up or "POLITY" in p_up:
-        return (
-            "Synthesizing **Article 13** judicial review with **Article 50** separation of powers and **Constitutional Morality** "
-            "ensures institutional comity, substantive justice, and democratic accountability."
-        )
-    if "GS4" in p_up or "ETHICS" in p_up:
-        return (
-            "Anchoring administrative choices in **Constitutional Morality**, the **Nolan Committee principles (Selflessness, Integrity, Objectivity)**, and **Gandhian Antyodaya** "
-            "empowers public servants to resolve complex ethical dilemmas with compassion and unyielding probity."
-        )
+    # General fallback
     if "GS1" in p_up:
         return (
             "Aligning rigorous evidence-based inquiry with institutional safeguards and inclusive grassroots participation "

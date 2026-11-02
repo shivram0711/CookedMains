@@ -2957,24 +2957,34 @@ window.sanitizeRepetitiveConclusionCliches = function(evalObj, questionText, pap
   const existingConc = String(conc.model_conclusion_rewrite || "").toLowerCase();
 
   let domainConc = "";
-  if (/(?:1857|revolt|colonial|imperialism|british rule|viceroy|company's rule|crown rule|peel commission|freedom struggle|nationalist|nationalism|national movement|congress|inc\b|swadeshi|gandhian|drain of wealth)/i.test(qStr)) {
-    domainConc = "While post-1857 administrative and military restructuring prolonged British imperial longevity in the short term, it deepened institutional contradictions and catalyzed organized political consciousness—ironically nurturing the nationalist movement (culminating in the Indian National Congress of 1885) that ultimately dismantled colonial rule.";
-  } else if (/(?:ancient|medieval|maurya|ashoka|gupta|chola|vijayanagar|mughal|sultanate|bhakti|sufi|harappa|vedic|buddhism|jainism|heritage|art|culture)/i.test(qStr)) {
-    if (/(?:technology|technological|rahat|persian wheel|charkha|craft|artisan|urban\s*revolution)/i.test(qStr)) {
-      domainConc = "The diffusion of Central and West Asian technologies during the Sultanate period catalyzed Irfan Habib's 'medieval urban revolution', transforming the agrarian base into a diversified craft and artisanal economy that laid the material foundations of medieval composite Indian society.";
-    } else {
-      domainConc = "Synthesizing institutional statecraft with living cultural continuity highlights the resilient evolution of Indian civilization, providing timeless insights for contemporary composite nationhood and cultural heritage.";
-    }
-  } else if (/(?:geography|mineral|resource|water|river|glacier|soil|forest|monsoon|plate|earthquake|cyclone|volcano|disaster|hazard)/i.test(qStr)) {
-    domainConc = "Integrating spatial resource mapping, climate-resilient engineering, and early-warning telemetry under the **Sendai Framework (2015–2030)** and **NDMA Guidelines** is imperative to transition vulnerable ecologies from risk exposure to sustainable resilience.";
-  } else if (!/(?:ancient|medieval|sultanate|colonial|1857|british rule|mughal|maurya|gupta|chola)/i.test(qStr) && /(?:society|caste|women|gender|patriarchy|urbanization|population|demographic|secularism|communalism|regionalism|diversity)/i.test(qStr)) {
-    domainConc = "Harmonizing community-driven affirmative action with robust legal-institutional safeguards upholds substantive equality and constitutional fraternity under **Articles 14, 15, and 21**, driving inclusive structural social transformation.";
-  } else if (pStr.includes("GS2") || pStr.includes("POLITY")) {
-    domainConc = "Harmonizing **constitutional morality** with **institutional accountability (2nd ARC)** ensures that democratic governance delivers both **substantive justice** and **cooperative federalism**.";
-  } else if (pStr.includes("GS4") || pStr.includes("ETHICS")) {
+  if (pStr.includes("GS4") || pStr.includes("ETHICS") || /(?:ethical dilemma|\bprobity\b|nolan|moral attitude|code of ethics)/i.test(qStr)) {
     domainConc = "Anchoring public administration in **Nishkama Karma**, **2nd ARC 'Ethics in Governance' norms**, and **Gandhian Antyodaya** transforms civil servants from mere rule-enforcers into **compassionate trustees of public welfare**.";
-  } else if (pStr.includes("GS1")) {
-    domainConc = "Aligning rigorous evidence-based inquiry with institutional safeguards and inclusive grassroots participation is essential to balance historical continuity, spatial equity, and sustainable socio-economic progress.";
+  } else if (pStr.includes("GS2") || pStr.includes("POLITY")) {
+    if (/(?:election|eci|cec|commissioner|324|anoop baranwal)/i.test(qStr)) {
+      domainConc = "Insulating the **Election Commission of India under Article 324** through an independent consultative collegium and **removal parity under Article 324(5)** safeguards institutional credibility and democratic purity.";
+    } else if (/(?:nutrition|food surplus|hunger|starvation|malnutrition|food security|poshan|pds|nfsa|stunting|wasting|anaemia)/i.test(qStr)) {
+      domainConc = "Aligning the **National Food Security Act (NFSA 2013)** with **crop diversification (Shree Anna / Millets)**, **targeted social audits**, and decentralized **POSHAN 2.0 telemetry** is essential to resolve the structural paradox and achieve **SDG-2 (Zero Hunger & Nutritional Security) under Article 47**.";
+    } else {
+      domainConc = "Harmonizing **constitutional morality** with **institutional accountability (2nd ARC)** ensures that democratic governance delivers both **substantive justice** and **cooperative federalism**.";
+    }
+  } else if (pStr.includes("GS3") || pStr.includes("ECONOMY")) {
+    if (/(?:irrigation|groundwater|canal|water demand|pmksy)/i.test(qStr)) {
+      domainConc = "Scaling **micro-irrigation (Per Drop More Crop)** alongside participatory irrigation management and aquifer recharge under **Atal Bhujal Yojana** is critical to decoupling agricultural productivity from unsustainable groundwater depletion.";
+    } else if (/(?:ai|artificial intelligence|drone|gis|remote sensing|aerial)/i.test(qStr)) {
+      domainConc = "Integrating AI-driven predictive spatial analytics with high-resolution drone telemetry and **PM Gati Shakti NMP GIS layers** transforms urban and infrastructure planning into evidence-based, sustainable territorial governance.";
+    } else {
+      domainConc = "Integrating **evidence-based structural reforms**, **targeted capex multiplier investments**, and **outcome-linked fiscal governance** will translate policy intent into durable economic transformation.";
+    }
+  } else if (/(?:sultanate|delhi sultanate|alauddin|tughlaq|persian wheel|rahat|charkha)/i.test(qStr) || (/(?:medieval)/i.test(qStr) && /(?:technol|craft|artisan)/i.test(qStr))) {
+    domainConc = "The diffusion of Central and West Asian technologies during the Sultanate period catalyzed Irfan Habib's 'medieval urban revolution', transforming the agrarian base into a diversified craft and artisanal economy that laid the material foundations of medieval composite Indian society.";
+  } else if (/(?:1857|\brevolt\b|\bcolonial\b|imperialism|british rule|viceroy|company's rule|crown rule|peel commission|freedom struggle|nationalist|nationalism|national movement|\bcongress\b|\binc\b|swadeshi|gandhian|drain of wealth)/i.test(qStr)) {
+    domainConc = "While post-1857 administrative and military restructuring prolonged British imperial longevity in the short term, it deepened institutional contradictions and catalyzed organized political consciousness—ironically nurturing the nationalist movement (culminating in the Indian National Congress of 1885) that ultimately dismantled colonial rule.";
+  } else if (/(?:ancient|medieval|maurya|ashoka|gupta|chola|vijayanagar|mughal|bhakti|sufi|harappa|vedic|buddhism|jainism|heritage|\bart\b|culture)/i.test(qStr)) {
+    domainConc = "Synthesizing institutional statecraft with living cultural continuity highlights the resilient evolution of Indian civilization, providing timeless insights for contemporary composite nationhood and cultural heritage.";
+  } else if (/(?:geography|mineral|resource|water|river|glacier|soil|forest|monsoon|plate|earthquake|cyclone|volcano|caldera|disaster|hazard)/i.test(qStr)) {
+    domainConc = "Integrating spatial resource mapping, climate-resilient engineering, and early-warning telemetry under the **Sendai Framework (2015–2030)** and **NDMA Guidelines** is imperative to transition vulnerable ecologies from risk exposure to sustainable resilience.";
+  } else if (/(?:society|caste|women|gender|patriarchy|urbanization|population|demographic|secularism|communalism|regionalism|diversity|female labor)/i.test(qStr)) {
+    domainConc = "Harmonizing community-driven affirmative action with robust legal-institutional safeguards upholds substantive equality and constitutional fraternity under **Articles 14, 15, and 21**, driving inclusive structural social transformation.";
   } else {
     domainConc = "Integrating **evidence-based institutional reforms**, **last-mile capacity building**, and **outcome-linked fiscal governance** will translate policy intent into durable structural transformation.";
   }
