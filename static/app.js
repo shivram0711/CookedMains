@@ -2,6 +2,8 @@
 
 // Temporary Feature Flag: Rewrite & Re-evaluation paused while refining core evaluation
 window.ENABLE_REWRITE_FEATURE = false;
+var qStrLow = "";
+window.qStrLow = "";
 
 // One-time Clean-Slate Reset for Pilot Launch (clears old test sessions & bindings once)
 if (localStorage.getItem("cookedmains_clean_slate_v1") !== "done") {
@@ -2958,10 +2960,14 @@ window.sanitizeRepetitiveConclusionCliches = function(evalObj, questionText, pap
   if (/(?:1857|revolt|colonial|imperialism|british rule|viceroy|company's rule|crown rule|peel commission|freedom struggle|nationalist|nationalism|national movement|congress|inc\b|swadeshi|gandhian|drain of wealth)/i.test(qStr)) {
     domainConc = "While post-1857 administrative and military restructuring prolonged British imperial longevity in the short term, it deepened institutional contradictions and catalyzed organized political consciousness—ironically nurturing the nationalist movement (culminating in the Indian National Congress of 1885) that ultimately dismantled colonial rule.";
   } else if (/(?:ancient|medieval|maurya|ashoka|gupta|chola|vijayanagar|mughal|sultanate|bhakti|sufi|harappa|vedic|buddhism|jainism|heritage|art|culture)/i.test(qStr)) {
-    domainConc = "Synthesizing institutional statecraft with living cultural continuity highlights the resilient evolution of Indian civilization, providing timeless insights for contemporary composite nationhood and democratic fraternity.";
+    if (/(?:technology|technological|rahat|persian wheel|charkha|craft|artisan|urban\s*revolution)/i.test(qStr)) {
+      domainConc = "The diffusion of Central and West Asian technologies during the Sultanate period catalyzed Irfan Habib's 'medieval urban revolution', transforming the agrarian base into a diversified craft and artisanal economy that laid the material foundations of medieval composite Indian society.";
+    } else {
+      domainConc = "Synthesizing institutional statecraft with living cultural continuity highlights the resilient evolution of Indian civilization, providing timeless insights for contemporary composite nationhood and cultural heritage.";
+    }
   } else if (/(?:geography|mineral|resource|water|river|glacier|soil|forest|monsoon|plate|earthquake|cyclone|volcano|disaster|hazard)/i.test(qStr)) {
     domainConc = "Integrating spatial resource mapping, climate-resilient engineering, and early-warning telemetry under the **Sendai Framework (2015–2030)** and **NDMA Guidelines** is imperative to transition vulnerable ecologies from risk exposure to sustainable resilience.";
-  } else if (/(?:society|caste|women|gender|patriarchy|urbanization|population|demographic|secularism|communalism|regionalism|diversity)/i.test(qStr)) {
+  } else if (!/(?:ancient|medieval|sultanate|colonial|1857|british rule|mughal|maurya|gupta|chola)/i.test(qStr) && /(?:society|caste|women|gender|patriarchy|urbanization|population|demographic|secularism|communalism|regionalism|diversity)/i.test(qStr)) {
     domainConc = "Harmonizing community-driven affirmative action with robust legal-institutional safeguards upholds substantive equality and constitutional fraternity under **Articles 14, 15, and 21**, driving inclusive structural social transformation.";
   } else if (pStr.includes("GS2") || pStr.includes("POLITY")) {
     domainConc = "Harmonizing **constitutional morality** with **institutional accountability (2nd ARC)** ensures that democratic governance delivers both **substantive justice** and **cooperative federalism**.";
@@ -13961,16 +13967,28 @@ function renderEvaluation(evalData) {
     } else {
       cards.forEach((c, idx) => {
         // Disciplinary sanitization: never allow statutory/inter-departmental matrix in History/Geography
-        if ((currentDiscipline === "HISTORY_CULTURE" || /ancient|medieval|history|culture/i.test(qStrLow)) && /institutional\s+inter-linkage|statutory\s+mechanism/i.test(String(c.term || "") + " " + String(c.definition || ""))) {
-          c.term = isHindi ? "पुरालेखीय साक्ष्य एवं भू-आकृतिक संरचना" : "Epigraphic Corroboration & Geomorphic Matrix";
-          c.domain_or_thinker = isHindi ? "ऐतिहासिक साक्ष्य" : "Historical Evidence";
-          c.definition = isHindi
-            ? "ऐतिहासिक तर्कों को प्राथमिक पुरालेखीय/साहित्यिक स्रोतों (जैसे अर्थशास्त्र, मेगस्थनीज की इंडिका) एवं भू-आकृतिक कारकों से प्रमाणित करें।"
-            : "Corroborate historical claims with primary epigraphic/literary sources (e.g. Arthashastra, Megasthenes' Indica) and geomorphic determinants.";
-          c.where_to_use = isHindi ? "पृष्ठ 2 • व्यापार, अर्थव्यवस्था अथवा प्रशासनिक विकास" : "Page 2 • Under Trade, Economy or Administrative Evolution";
-          c.how_to_use_one_line = isHindi
-            ? "उपजाऊ नदी घाटियों (सिंधु-गंगा) ने कृषि अधिशेष उत्पन्न किया जिससे नगरीकरण संभव हुआ, जिसकी पुष्टि तत्कालीन अभिलेखीय साक्ष्यों से होती है।"
-            : "Fertile river basins (Indus-Ganga) generated agricultural surplus that sustained urbanization, corroborated by contemporary archaeological strata.";
+        if ((currentDiscipline === "HISTORY_CULTURE" || /ancient|medieval|sultanate|history|culture/i.test(qStrLow)) && /institutional\s+inter-linkage|statutory\s+mechanism/i.test(String(c.term || "") + " " + String(c.definition || ""))) {
+          if (/sultanate|rahat|charkha|persian wheel|medieval/i.test(qStrLow)) {
+            c.term = isHindi ? "तकनीकी प्रसार एवं शिल्पी विशेषज्ञता ढांचा" : "Technological Diffusion & Artisan Specialization Matrix";
+            c.domain_or_thinker = isHindi ? "आर्थिक इतिहास" : "Economic Historiography";
+            c.definition = isHindi
+              ? "ऐतिहासिक तर्कों को समकालीन मध्यकालीन ग्रंथों (फुतूह-उस-सलातीन, तारीख-ए-फिरोजशाही) तथा इरफान हबीब की नगरीय क्रांति से प्रमाणित करें।"
+              : "Corroborate medieval technological diffusion with contemporary chronicles (Isami, Afif) and Irfan Habib's medieval urban revolution thesis.";
+            c.where_to_use = isHindi ? "पृष्ठ 2 • समाज पर तकनीकी परिवर्तनों के प्रभाव के अंतर्गत" : "Page 2 • Under Societal Influence & Craft Specialization";
+            c.how_to_use_one_line = isHindi
+              ? "रहट व चरखे के प्रसार ने कृषि अधिशेष को नगरीय शिल्पों में रूपांतरित कर मध्यकालीन नगरीय क्रांति को आधार प्रदान किया।"
+              : "Diffusion of the gear-wheel Rahat and spinning wheel catalyzed the 13th-14th century medieval urban revolution, expanding artisanal craft mobilization.";
+          } else {
+            c.term = isHindi ? "पुरालेखीय साक्ष्य एवं भू-आकृतिक संरचना" : "Epigraphic Corroboration & Geomorphic Matrix";
+            c.domain_or_thinker = isHindi ? "ऐतिहासिक साक्ष्य" : "Historical Evidence";
+            c.definition = isHindi
+              ? "ऐतिहासिक तर्कों को प्राथमिक पुरालेखीय/साहित्यिक स्रोतों (जैसे अर्थशास्त्र, मेगस्थनीज की इंडिका) एवं भू-आकृतिक कारकों से प्रमाणित करें।"
+              : "Corroborate historical claims with primary epigraphic/literary sources (e.g. Arthashastra, Megasthenes' Indica) and geomorphic determinants.";
+            c.where_to_use = isHindi ? "पृष्ठ 2 • व्यापार, अर्थव्यवस्था अथवा प्रशासनिक विकास" : "Page 2 • Under Trade, Economy or Administrative Evolution";
+            c.how_to_use_one_line = isHindi
+              ? "उपजाऊ नदी घाटियों (सिंधु-गंगा) ने कृषि अधिशेष उत्पन्न किया जिससे नगरीकरण संभव हुआ, जिसकी पुष्टि तत्कालीन अभिलेखीय साक्ष्यों से होती है।"
+              : "Fertile river basins (Indus-Ganga) generated agricultural surplus that sustained urbanization, corroborated by contemporary archaeological strata.";
+          }
         }
         const div = document.createElement("div");
         const actionType = String(c.action_type || "Add").trim();
@@ -14182,6 +14200,23 @@ function renderEvaluation(evalData) {
               marks_gain: "+0.5 to +1.0 Mark",
               current_weakness: "Lacked technical precision on real-time geodetic ground positioning.",
               recommended_insertion: "Deploy the **Survey of India Continuously Operating Reference Stations (CORS)** network to provide real-time 3cm positioning accuracy for automated drone navigation."
+            }
+          ];
+        } else if (/sultanate|rahat|charkha|persian wheel/i.test(qStrLow) || (/medieval/i.test(qStrLow) && /technol/i.test(qStrLow))) {
+          filteredExamples = [
+            {
+              example_title: "Primary Chronicles: Isami & Afif",
+              paragraph_target: "Page 2 • Under Textile & Craft Technology",
+              marks_gain: "+0.5 to +1.0 Mark",
+              current_weakness: "Descriptive points without citing contemporary medieval chronicles.",
+              recommended_insertion: "Cite **Isami's Futuh-us-Salatin (1350 CE)** recording the earliest introduction of the spinning wheel (charkha) in India, and **Afif's Tarikh-i Firoz Shahi** on large-scale canal networks."
+            },
+            {
+              example_title: "Economic Historiography (Irfan Habib)",
+              paragraph_target: "Page 2–3 • Under Influence on Indian Society & Urbanisation",
+              marks_gain: "+0.5 to +1.0 Mark",
+              current_weakness: "Lacked theoretical anchor connecting technology with socio-economic transformation.",
+              recommended_insertion: "Anchor in economic historian **Irfan Habib's** thesis that diffusion of the gear-wheel Rahat and iron stirrups fueled an agricultural surplus, powering the 13th-14th century **medieval urban revolution**."
             }
           ];
         } else {

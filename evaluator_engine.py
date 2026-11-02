@@ -672,6 +672,9 @@ def detect_academic_discipline(question_text: str, current_paper: str = "GS2") -
     # Check if question content decisively belongs to a specific GS paper
     inferred = infer_paper_from_question_content(question_text)
     if inferred:
+        # History is unambiguous and must not be hijacked by default GS2
+        if inferred == "GS1" and has_any_phrase(text, ["sultanate", "delhi sultanate", "medieval", "ancient", "maurya", "gupta", "chola", "mughal", "harappa", "indus valley", "vedic", "1857", "swadeshi", "colonial rule", "british rule", "geomorphology", "plate tectonics", "earthquake", "volcano", "caldera"]):
+            return "Optional-History" if is_explicit_optional else "GS1"
         # If user explicitly selected a valid standard paper, check compatibility before overriding
         if current_paper in ["GS1", "GS2", "GS3", "GS4", "Essay"]:
             if is_paper_compatible(current_paper, inferred, question_text):
@@ -721,6 +724,8 @@ def is_paper_compatible(selected_paper: str, detected_or_inferred_paper: str, qu
         "social empowerment", "tribal", "scheduled caste", "scheduled tribe", "minority", "minorities"
     ]
     if (s_norm in ["GS1", "GS2"]) and (d_norm in ["GS1", "GS2"]):
+        if question_text and has_any_phrase(question_text.lower(), ["sultanate", "delhi sultanate", "medieval", "ancient", "mughal", "maurya", "gupta", "chola", "harappa", "indus valley", "vedic", "1857", "swadeshi", "colonial rule", "british rule"]):
+            return False
         if question_text and has_any_phrase(question_text.lower(), gs1_gs2_overlap_keywords):
             return True
 
@@ -857,12 +862,19 @@ def infer_paper_from_question_content(question_text: str) -> Optional[str]:
     # 4. GS1 History, Geography, Society signals
     gs1_signals = [
         "art and culture", "temple architecture", "temple", "sculpture", "ancient india", "medieval india", "mughal", "gupta", "mauryan", "chola", "cholas",
-        "freedom struggle", "1857", "swadeshi", "gandhi", "non-cooperation", "quit india", "subhash chandra bose", "colonial rule",
-        "geomorphology", "plate tectonics", "earthquake", "volcano", "volcanic", "caldera", "calderas", "cyclone", "monsoon", "el nino", "la nina", "ocean current",
+        "sultanate", "delhi sultanate", "alauddin", "balban", "iltutmish", "tughlaq", "firuz shah", "lodhi", "khilji", "mamluk", "iqta", "medieval", "ancient",
+        "persian wheel", "rahat", "charkha", "spinning wheel", "true arch", "lime mortar", "karkhanas", "vijayanagar", "bahmani", "maratha",
+        "harappa", "harappan", "indus valley", "vedic", "buddhism", "jainism", "bhakti", "sufi", "sangam", "pallava", "chalukya", "rashtrakuta", "stupa", "rock-cut",
+        "epigraphy", "numismatic", "inscriptions", "archaeological", "excavation",
+        "freedom struggle", "1857", "swadeshi", "gandhi", "non-cooperation", "civil disobedience", "quit india", "subhash chandra bose", "colonial rule", "british rule", "drain of wealth", "subaltern",
+        "geomorphology", "plate tectonics", "earthquake", "volcano", "volcanic", "caldera", "calderas", "cyclone", "monsoon", "el nino", "la nina", "ocean current", "drainage system",
         "secularism in india", "communalism", "regionalism", "caste system", "caste", "urbanization issues",
         "scenic beauty", "geomorphic", "landform", "landforms", "magma", "lava", "crater", "pyroclastic", "geomorph"
     ]
     gs1_score = sum(2 if has_phrase(text, w) else 0 for w in gs1_signals)
+    # Unequivocal History boost
+    if has_any_phrase(text, ["sultanate", "delhi sultanate", "medieval", "ancient", "maurya", "gupta", "chola", "mughal", "harappa", "indus valley", "vedic", "1857", "swadeshi", "gandhian", "colonial rule", "british rule", "archaeological", "epigraphy", "numismatic", "temple architecture"]):
+        gs1_score += 6
 
     # Contextual Demands Analysis for Overlap Resolution (e.g. Security laws vs Civil Liberties)
     # If question is fundamentally about democratic balance, civil liberties, or constitutional safeguards:
@@ -1109,7 +1121,15 @@ def detect_precise_subject(question_text: str, current_paper: str = "GS2") -> Di
 
     # 6. GS 1 (History, Art & Culture, Geography, Society)
     # Reached when p_upper == "GS1"
-    if has_any_phrase(text, ["art and culture", "performing art", "folk art", "temple", "gandhara", "mathura", "sculpture", "architecture", "bhakti", "sufi", "heritage", "monument", "ancient", "medieval", "mughal", "gupta", "mauryan", "indus valley", "harappan", "ajanta", "ellora", "ahom", "chola"]):
+    if has_any_phrase(text, ["sultanate", "delhi sultanate", "medieval", "mughal", "iqta", "rahat", "charkha", "persian wheel", "spinning wheel", "true arch", "lime mortar", "karkhanas", "alauddin", "tughlaq", "vijayanagar", "bahmani"]):
+        return {
+            "paper_code": "GS1",
+            "paper_label": "General Studies Paper - I",
+            "discipline": "Medieval Indian History, Culture & Technology",
+            "full_display": "GS-1 (Medieval Indian History & Technology)",
+            "syllabus_subheading": "Medieval Indian History: Technological Developments, Socio-Economic Formations & Culture"
+        }
+    elif has_any_phrase(text, ["art and culture", "performing art", "folk art", "temple", "gandhara", "mathura", "sculpture", "architecture", "bhakti", "sufi", "heritage", "monument", "ancient", "gupta", "mauryan", "indus valley", "harappan", "ajanta", "ellora", "ahom", "chola"]):
         return {
             "paper_code": "GS1",
             "paper_label": "General Studies Paper - I",
@@ -4823,6 +4843,19 @@ def _ensure_at_least_one_value_addition(data: Dict[str, Any], is_hindi: bool = F
             )
             enrichment_where = "Page 2 • Under mantle transition zone dynamics" if not is_hindi else "पृष्ठ 2 • मेंटल संक्रमण क्षेत्र गतिकी के अंतर्गत"
             enrichment_how = "Dehydration embrittlement of hydrous serpentinites releases pore fluid pressures, triggering brittle seismic rupture deep within the subducting lithosphere." if not is_hindi else "जलयोजित खनिजों से तरल पदार्थ मुक्त होने पर अत्यधिक गहराई में भी भंगुर भूकंपीय विखंडन संभव होता है।"
+        elif any(k in q_low for k in ["sultanate", "rahat", "persian wheel", "charkha", "spinning wheel", "iqta"]) or (any(k in q_low for k in ["medieval", "मध्यकालीन"]) and any(k in q_low for k in ["technol", "तकनीक", "craft", "artisan", "उद्योग"])):
+            enrichment_term = "Technological Diffusion & Artisan Specialization Matrix" if not is_hindi else "तकनीकी प्रसार एवं शिल्पी विशेषज्ञता ढांचा"
+            enrichment_def = (
+                "No major omission was identified in this evaluation. Optional upgrade: Link the diffusion of the Persian wheel (Rahat), spinning wheel (charkha), and paper-making to agrarian surplus, royal karkhanas, and Irfan Habib's medieval urban revolution."
+                if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: रहट (पारसी पहिया), चरखा एवं कागज निर्माण के प्रसार को कृषि अधिशेष, शाही कारखानों तथा इरफान हबीब की मध्यकालीन नगरीय क्रांति से जोड़ें।"
+            )
+            enrichment_where = "Page 2 • Under How Technological Changes Influenced Society" if not is_hindi else "पृष्ठ 2 • समाज पर तकनीकी परिवर्तनों के प्रभाव के अंतर्गत"
+            enrichment_how = (
+                "Diffusion of mechanical gear-wheels (Rahat) and iron stirrups catalyzed the 13th-14th century medieval urban revolution, transforming rural surplus into specialized urban artisanal crafts."
+                if not is_hindi else
+                "यांत्रिक गियर-पहियों (रहट) और लोहे की रकाबों के प्रसार ने 13वीं-14वीं शताब्दी की मध्यकालीन नगरीय क्रांति को प्रेरित किया, जिससे कृषि अधिशेष का उपयोग नगरीय शिल्पों में हुआ।"
+            )
         elif any(k in q_low for k in ["ancient", "medieval", "modern", "history", "culture", "heritage", "art", "monument", "civiliz", "प्राचीन", "इतिहास", "संस्कृति", "सभ्यता", "भौगोलिक"]):
             enrichment_term = "Epigraphic Corroboration & Geomorphic Matrix" if not is_hindi else "पुरालेखीय साक्ष्य एवं भू-आकृतिक संरचना"
             enrichment_def = (
@@ -4863,13 +4896,28 @@ def _ensure_at_least_one_value_addition(data: Dict[str, Any], is_hindi: bool = F
                 "कर्तव्यशास्त्रीय सिद्धांतों का अनुप्रयोग यह सुनिश्चित करता है कि प्रशासनिक सुविधा के लिए प्रक्रियात्मक निष्पक्षता एवं जनविश्वास से समझौता न हो।"
             )
         else:
-            enrichment_term = "Institutional Inter-Linkage & Implementation Matrix" if not is_hindi else "संस्थागत अंतर्संबंध एवं क्रियान्वयन ढांचा"
-            enrichment_def = (
-                "No major omission was identified in this evaluation. Optional upgrade: Pair the primary statutory mechanism with an inter-departmental accountability feedback loop." if not is_hindi else
-                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: मुख्य वैधानिक तंत्र को अंतर-विभागीय जवाबदेही तंत्र से जोड़ें।"
-            )
-            enrichment_where = "Final Page • Attach to your closing policy synthesis" if not is_hindi else "अंतिम पृष्ठ • अपने नीतिगत निष्कर्ष के साथ जोड़ें"
-            enrichment_how = "Institutionalizing inter-departmental coordination ensures statutory mandates translate into measurable ground delivery." if not is_hindi else "अंतर-विभागीय समन्वय को संस्थागत रूप देने से वैधानिक प्रावधान जमीनी स्तर पर प्रभावी होते हैं।"
+            p_curr = str(data.get("detected_paper") or "").upper()
+            if "GS1" in p_curr or any(k in q_low for k in ["history", "ancient", "medieval", "culture", "geograph", "society"]):
+                enrichment_term = "Epigraphic Corroboration & Materialist Linkages" if not is_hindi else "अभिलेखीय साक्ष्य एवं भौतिकवादी अंतर्संबंध"
+                enrichment_def = (
+                    "No major omission was identified in this evaluation. Optional upgrade: Corroborate historical arguments with primary textual references and material socio-economic formations."
+                    if not is_hindi else
+                    "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: ऐतिहासिक तर्कों को प्राथमिक ऐतिहासिक संदर्भों तथा भौतिक-आर्थिक स्वरूप से पुष्ट करें।"
+                )
+                enrichment_where = "Page 2 • Under Core Analytical Section" if not is_hindi else "पृष्ठ 2 • मुख्य विश्लेषणात्मक खंड के अंतर्गत"
+                enrichment_how = (
+                    "Primary epigraphical and archaeological records corroborate structural socio-economic transformations across the period."
+                    if not is_hindi else
+                    "प्राथमिक पुरातात्विक व अभिलेखीय साक्ष्य इस कालखंड के सामाजिक-आर्थिक परिवर्तनों की ठोस पुष्टि करते हैं।"
+                )
+            else:
+                enrichment_term = "Quasi-Judicial & Statutory Oversight Matrix" if not is_hindi else "अर्ध-न्यायिक एवं विधिक निगरानी ढांचा"
+                enrichment_def = (
+                    "No major omission was identified in this evaluation. Optional upgrade: Pair the primary statutory mechanism with an institutional accountability loop." if not is_hindi else
+                    "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: मुख्य वैधानिक तंत्र को संस्थागत जवाबदेही से जोड़ें।"
+                )
+                enrichment_where = "Final Page • Attach to your closing policy synthesis" if not is_hindi else "अंतिम पृष्ठ • अपने नीतिगत निष्कर्ष के साथ जोड़ें"
+                enrichment_how = "Institutionalizing inter-agency coordination ensures statutory mandates translate into measurable ground delivery." if not is_hindi else "अंतर-विभागीय समन्वय को संस्थागत रूप देने से वैधानिक प्रावधान प्रभावी होते हैं।"
 
     data["missing_keywords_cards"] = [
         {
@@ -6649,11 +6697,27 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
             ex_ins["current_weakness"] = "Generic statement without citing the 2023 statutory mechanics or recent constitutional challenge."
             ex_ins["recommended_insertion"] = "Cite the **Chief Election Commissioner and Other ECs Act, 2023** section 7(1) replacing the CJI with a Union Minister, challenged in **Dr. Jaya Thakur v. Union of India (2024)** regarding institutional independence under **Article 324**."
             ex_ins["marks_gain"] = "+0.5 to +1.0 Mark"
-        elif subj_meta["discipline"] == "HISTORY_CULTURE" or any(k in q_low for k in ["ancient", "medieval", "modern", "history", "culture", "heritage", "monument", "civiliz"]):
-            ex_ins["paragraph_target"] = "Page 2 • Under Trade, Economy or Cultural Exchange"
-            ex_ins["current_weakness"] = "Descriptive historical points without citing contemporary archaeological excavations or epigraphical evidence."
-            ex_ins["recommended_insertion"] = "Corroborate with recent archaeological discoveries (e.g. **Keeladi / Rakhigarhi excavations** for trade networks) or primary epigraphical evidence (e.g. **Junagadh Inscription of Rudradaman** on the Sudarshana Lake embankment)."
-            ex_ins["marks_gain"] = "+0.5 to +1.0 Mark"
+        elif subj_meta["discipline"] in ["HISTORY_CULTURE", "Medieval Indian History, Culture & Technology", "Indian Heritage, Art & Culture", "Modern Indian History & Freedom Struggle"] or any(k in q_low for k in ["sultanate", "ancient", "medieval", "modern", "history", "culture", "heritage", "monument", "civiliz"]):
+            if any(k in q_low for k in ["sultanate", "persian wheel", "rahat", "charkha", "spinning wheel", "iqta"]) or (any(k in q_low for k in ["medieval", "मध्यकालीन"]) and any(k in q_low for k in ["technol", "तकनीक"])):
+                ex_ins["example_title"] = "Primary Chronicle & Economic Historiography Anchor" if not is_hindi else "समकालीन ऐतिहासिक ग्रंथ एवं आर्थिकी संदर्भ"
+                ex_ins["paragraph_target"] = "Page 2 • Under Societal Transformation & Urbanisation" if not is_hindi else "पृष्ठ 2 • सामाजिक परिवर्तन एवं नगरीकरण के अंतर्गत"
+                ex_ins["current_weakness"] = "Descriptive points without citing contemporary medieval chronicles or economic historians." if not is_hindi else "समकालीन मध्यकालीन ग्रंथों अथवा आर्थिक इतिहासकारों के प्रत्यक्ष संदर्भ का अभाव।"
+                ex_ins["recommended_insertion"] = (
+                    "Cite contemporary medieval chroniclers: **Isami's Futuh-us-Salatin (1350 CE)** for the earliest reference to the spinning wheel (charkha), **Afif's Tarikh-i Firoz Shahi** on canal excavations, and economic historian **Irfan Habib's** thesis on the 13th-14th century **medieval urban revolution**."
+                    if not is_hindi else
+                    "समकालीन ऐतिहासिक स्रोतों का उल्लेख करें: चरखे के प्रथम प्रामाणिक संदर्भ हेतु **इमामी की फुतूह-उस-सलातीन (1350 ई.)**, नहर निर्माण हेतु **अफीफ की तारीख-ए-फिरोजशाही** तथा आर्थिक इतिहासकार **इरफान हबीब** की 'मध्यकालीन नगरीय क्रांति' की अवधारणा।"
+                )
+                ex_ins["marks_gain"] = "+0.5 to +1.0 Mark"
+            else:
+                ex_ins["example_title"] = "Archaeological & Epigraphic Corroboration" if not is_hindi else "पुरातात्विक एवं पुरालेखीय साक्ष्य"
+                ex_ins["paragraph_target"] = "Page 2 • Under Trade, Economy or Cultural Exchange" if not is_hindi else "पृष्ठ 2 • व्यापार, अर्थव्यवस्था अथवा सांस्कृतिक विनिमय के अंतर्गत"
+                ex_ins["current_weakness"] = "Descriptive historical points without citing contemporary archaeological excavations or epigraphical evidence." if not is_hindi else "समकालीन पुरातात्विक उत्खननों अथवा अभिलेखीय साक्ष्यों के संदर्भ का अभाव।"
+                ex_ins["recommended_insertion"] = (
+                    "Corroborate with recent archaeological discoveries (e.g. **Keeladi / Rakhigarhi excavations** for trade networks) or primary epigraphical evidence (e.g. **Junagadh Inscription of Rudradaman** on the Sudarshana Lake embankment)."
+                    if not is_hindi else
+                    "प्राथमिक पुरातात्विक साक्ष्यों (जैसे व्यापारिक संपर्कों हेतु **कीलाडी / राखीगढ़ी उत्खनन**) अथवा अभिलेखीय साक्ष्यों (जैसे सुदर्शन झील बांध पर **रुद्रदामन का जूनागढ़ अभिलेख**) से पुष्ट करें।"
+                )
+                ex_ins["marks_gain"] = "+0.5 to +1.0 Mark"
         elif subj_meta["discipline"] == "POLITY_GOVERNANCE":
             ex_ins["paragraph_target"] = "Page 2 • Under your core institutional challenge sub-heading"
             ex_ins["current_weakness"] = "Theoretical critique without citing contemporary legislative or judicial benchmarks."
@@ -6696,21 +6760,37 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                     "marks_gain": "+0.5 to +1.0 Mark"
                 }
             ]
-        elif subj_meta["discipline"] == "HISTORY_CULTURE" or any(k in q_low for k in ["ancient", "medieval", "modern", "history", "culture", "heritage", "monument", "civiliz"]):
-            ca_va["current_examples"] = [
-                {
-                    "example_title": "Archaeological Corroboration (Keeladi & Rakhigarhi)",
-                    "paragraph_target": "Page 2 • Under Trade & Urban Growth",
-                    "recommended_insertion": "Corroborate civilizational trade networks with findings from **Keeladi excavations** (Vaigai river valley trade) and **Rakhigarhi** (mature Harappan urban planning).",
-                    "marks_gain": "+0.5 to +1.0 Mark"
-                },
-                {
-                    "example_title": "Primary Epigraphy & Hydraulic Engineering",
-                    "paragraph_target": "Page 2 • Under Natural Resources & Water Management",
-                    "recommended_insertion": "Cite the **Junagadh Rock Inscription of Rudradaman (150 CE)** detailing the construction and repair of the Sudarshana Lake dam across Maurya and Saka periods.",
-                    "marks_gain": "+0.5 to +1.0 Mark"
-                }
-            ]
+        elif subj_meta["discipline"] in ["HISTORY_CULTURE", "Medieval Indian History, Culture & Technology", "Indian Heritage, Art & Culture", "Modern Indian History & Freedom Struggle"] or any(k in q_low for k in ["sultanate", "ancient", "medieval", "modern", "history", "culture", "heritage", "monument", "civiliz"]):
+            if any(k in q_low for k in ["sultanate", "persian wheel", "rahat", "charkha", "spinning wheel", "iqta"]) or (any(k in q_low for k in ["medieval", "मध्यकालीन"]) and any(k in q_low for k in ["technol", "तकनीक"])):
+                ca_va["current_examples"] = [
+                    {
+                        "example_title": "Primary Chronicles: Isami & Afif",
+                        "paragraph_target": "Page 2 • Under Textile & Craft Technology",
+                        "recommended_insertion": "Cite **Isami's Futuh-us-Salatin (1350 CE)** recording the earliest introduction of the spinning wheel (charkha) in India, and **Afif's Tarikh-i Firoz Shahi** on large-scale canal networks.",
+                        "marks_gain": "+0.5 to +1.0 Mark"
+                    },
+                    {
+                        "example_title": "Economic Historiography (Irfan Habib)",
+                        "paragraph_target": "Page 2–3 • Under Influence on Indian Society & Urbanisation",
+                        "recommended_insertion": "Anchor in economic historian **Irfan Habib's** thesis that diffusion of the gear-wheel Rahat and iron stirrups fueled an agricultural surplus, powering the 13th-14th century **medieval urban revolution**.",
+                        "marks_gain": "+0.5 to +1.0 Mark"
+                    }
+                ]
+            else:
+                ca_va["current_examples"] = [
+                    {
+                        "example_title": "Archaeological Corroboration (Keeladi & Rakhigarhi)",
+                        "paragraph_target": "Page 2 • Under Trade & Urban Growth",
+                        "recommended_insertion": "Corroborate civilizational trade networks with findings from **Keeladi excavations** (Vaigai river valley trade) and **Rakhigarhi** (mature Harappan urban planning).",
+                        "marks_gain": "+0.5 to +1.0 Mark"
+                    },
+                    {
+                        "example_title": "Primary Epigraphy & Hydraulic Engineering",
+                        "paragraph_target": "Page 2 • Under Natural Resources & Water Management",
+                        "recommended_insertion": "Cite the **Junagadh Rock Inscription of Rudradaman (150 CE)** detailing the construction and repair of the Sudarshana Lake dam across Maurya and Saka periods.",
+                        "marks_gain": "+0.5 to +1.0 Mark"
+                    }
+                ]
         else:
             ca_va["current_examples"] = [
                 {
@@ -8625,10 +8705,16 @@ def _build_domain_specific_conclusion(question_text: str, paper_name: str, exist
         )
 
     # 2. Ancient & Medieval History / Art, Architecture & Culture
-    if any(k in q_low for k in ["ancient", "medieval", "maurya", "ashoka", "gupta", "chola", "vijayanagar", "mughal", "delhi sultanate", "bhakti", "sufi", "indus valley", "harappa", "vedic", "buddhism", "jainism", "temple", "sculpture", "art", "heritage"]):
+    if any(k in q_low for k in ["sultanate", "delhi sultanate", "alauddin", "tughlaq", "ancient", "medieval", "maurya", "ashoka", "gupta", "chola", "vijayanagar", "mughal", "bhakti", "sufi", "indus valley", "harappa", "vedic", "buddhism", "jainism", "temple", "sculpture", "art", "heritage"]):
+        if any(k in q_low for k in ["technology", "technological", "persian wheel", "rahat", "charkha", "craft", "artisan"]):
+            return (
+                "The diffusion of Central and West Asian technologies during the Sultanate period catalyzed Irfan Habib's "
+                "'medieval urban revolution', transforming the agrarian base into a diversified craft and artisanal economy "
+                "that laid the material foundations of medieval composite Indian society."
+            )
         return (
             "Synthesizing institutional statecraft with living cultural continuity highlights the resilient evolution "
-            "of Indian civilization, providing timeless insights for contemporary composite nationhood and democratic fraternity."
+            "of Indian civilization, providing timeless insights for contemporary composite nationhood and cultural heritage."
         )
 
     # 3. Geography / Physical Earth / Disaster Mitigation
@@ -8638,12 +8724,13 @@ def _build_domain_specific_conclusion(question_text: str, paper_name: str, exist
             "**Sendai Framework (2015–2030)** and **NDMA Guidelines** is imperative to transition vulnerable ecologies from risk exposure to sustainable resilience."
         )
 
-    # 4. Indian Society & Demographics
-    if any(k in q_low for k in ["society", "caste", "women", "gender", "patriarchy", "urbanization", "population", "demographic", "secularism", "communalism", "regionalism", "diversity", "social integration", "elderly"]):
-        return (
-            "Harmonizing community-driven affirmative action with robust legal-institutional safeguards upholds substantive equality "
-            "and constitutional fraternity under **Articles 14, 15, and 21**, driving inclusive structural social transformation."
-        )
+    # 4. Indian Society & Demographics (STRICTLY non-historical questions only)
+    if not any(k in q_low for k in ["sultanate", "medieval", "ancient", "colonial", "1857", "british rule", "mughal", "maurya", "gupta", "chola"]):
+        if any(k in q_low for k in ["society", "caste", "women", "gender", "patriarchy", "urbanization", "population", "demographic", "secularism", "communalism", "regionalism", "diversity", "social integration", "elderly"]):
+            return (
+                "Harmonizing community-driven affirmative action with robust legal-institutional safeguards upholds substantive equality "
+                "and constitutional fraternity under **Articles 14, 15, and 21**, driving inclusive structural social transformation."
+            )
 
     # Specific Polity & Governance topics
     if any(k in q_low for k in ["election", "eci", "cec", "commissioner", "324", "anoop baranwal", "appointment", "electoral"]):
@@ -11334,6 +11421,27 @@ def _normalize_diagram_recommendation(data: Dict[str, Any], final_question: str,
                     {"step": 2, "label": "Unsupported Summit Collapse" if not is_hindi else "ज्वालामुखीय गुंबद का धंसाव", "subtext": "Overlying roof collapses along ring fractures" if not is_hindi else "वृत्ताकार भ्रंशों के सहारे छत का गिरना", "badge": "Stage 2" if not is_hindi else "चरण 2"},
                     {"step": 3, "label": "Hydrothermal Crater Lake" if not is_hindi else "काल्डेरा झील निर्माण", "subtext": "Meteoric water fills deep volcanic depression" if not is_hindi else "वर्षा जल भरने से सुरम्य झील का निर्माण", "badge": "Stage 3" if not is_hindi else "चरण 3"}
                 ]
+            elif any(k in q_lower for k in ["sultanate", "rahat", "persian wheel", "charkha"]) or (any(k in q_lower for k in ["medieval", "मध्यकालीन"]) and any(k in q_lower for k in ["technol", "तकनीक"])):
+                clean_nodes = [
+                    {
+                        "step": 1,
+                        "label": "Technological Diffusion" if not is_hindi else "तकनीकी प्रसार",
+                        "subtext": "Persian wheel (Rahat), spinning wheel & true arch" if not is_hindi else "रहट (पारसी पहिया), चरखा एवं मेहराब-गुंबद",
+                        "badge": "Input Innovations" if not is_hindi else "प्रमुख तकनीकें"
+                    },
+                    {
+                        "step": 2,
+                        "label": "Agrarian & Craft Multiplier" if not is_hindi else "कृषि व शिल्प अधिशेष",
+                        "subtext": "Canal-fed semi-arid irrigation + royal karkhana production" if not is_hindi else "नहर सिंचाई से अधिशेष + शाही कारखानों में उत्पादन",
+                        "badge": "Economic Channel" if not is_hindi else "आर्थिक माध्यम"
+                    },
+                    {
+                        "step": 3,
+                        "label": "Medieval Urban Revolution" if not is_hindi else "मध्यकालीन नगरीय क्रांति",
+                        "subtext": "Rise of secondary cities (Delhi, Lahore) + artisan mobilization" if not is_hindi else "शिल्पी जातियों का उभार + दिल्ली-लाहौर का नगरीकरण",
+                        "badge": "Societal Transformation" if not is_hindi else "सामाजिक प्रभाव"
+                    }
+                ]
             elif any(k in q_lower for k in ["ancient", "civiliz", "geograph", "magadh", "harappa", "indus", "vedic", "प्राचीन", "भौगोलिक", "सभ्यता", "सिंधु", "इतिहास"]):
                 clean_nodes = [
                     {
@@ -11356,12 +11464,13 @@ def _normalize_diagram_recommendation(data: Dict[str, Any], final_question: str,
                     }
                 ]
             else:
-                first_topic = re.sub(r'^(?:explain|discuss|examine|critically\s+examine|analyze|evaluate|elucidate)\s+(?:the\s+)?(?:role\s+of\s+)?', '', final_question, flags=re.I).split()
-                c_topic = " ".join(first_topic[:3]) if first_topic else "Primary Demand"
+                clean_q_stem = re.sub(r'^(?:what\s+(?:are|is)\s+(?:the\s+)?|explain\s+(?:the\s+)?|discuss\s+(?:the\s+)?|examine\s+(?:the\s+)?|critically\s+examine\s+(?:the\s+)?|analyze\s+(?:the\s+)?|evaluate\s+(?:the\s+)?|elucidate\s+(?:the\s+)?|how\s+did\s+(?:the\s+)?|how\s+can\s+(?:the\s+)?)\s*(?:role\s+of\s+)?', '', final_question, flags=re.I).strip()
+                words = [w for w in clean_q_stem.split() if w.lower() not in {"what", "are", "the", "how", "did", "can", "role", "of", "and", "in", "during", "towards", "development", "major"}]
+                c_topic = " ".join(words[:3]).title() if words else "Core Factor"
                 clean_nodes = [
-                    {"step": 1, "label": f"{c_topic} Genesis" if not is_hindi else f"{c_topic} का उद्भव", "subtext": "Initial causal factor and contextual origin" if not is_hindi else "आरंभिक कारण एवं संदर्भ", "badge": "Stage 1" if not is_hindi else "चरण 1"},
-                    {"step": 2, "label": "Operational Mechanism" if not is_hindi else "मुख्य कार्यप्रणाली", "subtext": "Core transmission channel and key linkages" if not is_hindi else "मुख्य प्रक्रिया एवं अंतर्संबंध", "badge": "Stage 2" if not is_hindi else "चरण 2"},
-                    {"step": 3, "label": "Developmental Outcome" if not is_hindi else "विकासात्मक परिणाम", "subtext": "Measurable societal and institutional impact" if not is_hindi else "ठोस प्रभाव एवं दूरगामी परिणाम", "badge": "Stage 3" if not is_hindi else "चरण 3"}
+                    {"step": 1, "label": f"{c_topic} Drivers" if not is_hindi else f"{c_topic} के प्रेरक", "subtext": "Catalytic initial conditions and foundational drivers" if not is_hindi else "आरंभिक प्रेरक कारक एवं संरचनात्मक संदर्भ", "badge": "Stage 1" if not is_hindi else "चरण 1"},
+                    {"step": 2, "label": "Operational Mechanism" if not is_hindi else "मुख्य कार्यप्रणाली", "subtext": "Core transmission channel and functional linkages" if not is_hindi else "मुख्य प्रक्रिया एवं कार्यात्मक अंतर्संबंध", "badge": "Stage 2" if not is_hindi else "चरण 2"},
+                    {"step": 3, "label": "Developmental Outcome" if not is_hindi else "दूरगामी परिणाम", "subtext": "Measurable systemic and institutional impact" if not is_hindi else "ठोस प्रभाव एवं संस्थागत परिणाम", "badge": "Stage 3" if not is_hindi else "चरण 3"}
                 ]
 
     # Clean comparison columns
