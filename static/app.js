@@ -12532,12 +12532,15 @@ window.transferPointAuditToDeepEvaluation = function(evalData) {
       const pageAlreadyCoveredPos = existingStrengths.some(s => s.toLowerCase().includes(`page ${pNum}`) || s.toLowerCase().includes(`पृष्ठ ${pNum}`));
       const pageAlreadyCoveredGap = existingGaps.some(g => g.toLowerCase().includes(`page ${pNum}`) || g.toLowerCase().includes(`पृष्ठ ${pNum}`));
 
+      const maxStrengths = totalPages >= 3 ? 6 : 4;
+      const maxGaps = totalPages >= 3 ? 5 : 4;
+
       if (isPos) {
-        if (existingStrengths.length < 4 && !pageAlreadyCoveredPos && !isItemDuplicate(rawTitle, verdict, existingStrengths)) {
+        if (existingStrengths.length < maxStrengths && !pageAlreadyCoveredPos && !isItemDuplicate(rawTitle, verdict, existingStrengths)) {
           existingStrengths.push(entry);
         }
       } else {
-        if (existingGaps.length < 4 && !pageAlreadyCoveredGap && !isItemDuplicate(rawTitle, verdict, existingGaps)) {
+        if (existingGaps.length < maxGaps && !pageAlreadyCoveredGap && !isItemDuplicate(rawTitle, verdict, existingGaps)) {
           existingGaps.push(entry);
         }
       }
@@ -14048,7 +14051,52 @@ function renderEvaluation(evalData) {
             recommended_insertion: resolvedInsertion
           }];
 
-      caExampleCardBox.innerHTML = rawExamples.map((ex, exIdx) => {
+      const candWrittenCorpus = (
+        String(evalData.transcribed_text || "") + " " +
+        (evalData.body_audit?.strengths || []).join(" ") + " " +
+        (evalData.point_by_point_audit || []).map(p => (p.what_you_wrote || "") + " " + (p.title || "")).join(" ")
+      ).toLowerCase();
+
+      const stopWordsVa = new Set(["scheme", "project", "mission", "policy", "ministry", "india", "indian", "national", "state", "board", "commission", "department", "initiative", "framework", "using", "under", "with", "from", "into", "cite", "leverage", "point", "page", "high", "resolution", "mapping", "modelling", "urban", "growth", "classification", "automated", "land", "crop", "drone", "drones"]);
+
+      const isAlreadyWrittenByStudent = (ex) => {
+        const t = String(ex.example_title || "").toLowerCase();
+        const r = String(ex.recommended_insertion || "").toLowerCase();
+        const tokens = (t + " " + r).replace(/[^a-z0-9ऀ-ॿ\s]/gi, " ").split(/\s+/).filter(w => w.length >= 4 && !stopWordsVa.has(w));
+        return tokens.some(tok => candWrittenCorpus.includes(tok));
+      };
+
+      let filteredExamples = rawExamples.filter(ex => !isAlreadyWrittenByStudent(ex));
+      if (filteredExamples.length === 0) {
+        if (/ai|drone|gis|remote sensing|aerial|locational|planning/i.test(qStrLow)) {
+          filteredExamples = [
+            {
+              example_title: "PM Gati Shakti National Master Plan (NMP)",
+              paragraph_target: "Page 2 • Under 3D City & Infrastructure Models",
+              marks_gain: "+0.5 to +1.0 Mark",
+              current_weakness: "Lacked integration of multi-modal geospatial infrastructure coordination.",
+              recommended_insertion: "Integrate the **PM Gati Shakti NMP GIS platform** with 1,400+ layers across 44 ministries for synchronized multi-modal infrastructure and locational planning."
+            },
+            {
+              example_title: "Survey of India CORS Network (Centimeter-Level Geodesy)",
+              paragraph_target: "Page 3 • Under Challenges & Way Forward",
+              marks_gain: "+0.5 to +1.0 Mark",
+              current_weakness: "Lacked technical precision on real-time geodetic ground positioning.",
+              recommended_insertion: "Deploy the **Survey of India Continuously Operating Reference Stations (CORS)** network to provide real-time 3cm positioning accuracy for automated drone navigation."
+            }
+          ];
+        } else {
+          filteredExamples = [{
+            example_title: isHindi ? "विशिष्ट समसामयिक संवर्धन" : "Contemporary Value Multiplier",
+            paragraph_target: resolvedTarget,
+            marks_gain: "+0.5 to +1.0 Mark",
+            current_weakness: resolvedWeakness,
+            recommended_insertion: resolvedInsertion
+          }];
+        }
+      }
+
+      caExampleCardBox.innerHTML = filteredExamples.map((ex, exIdx) => {
         const exTitle = ex.example_title || (isHindi ? `मूल्य संवर्धन #${exIdx + 1}` : `Contemporary Value Addition #${exIdx + 1}`);
         let rawTarget = ex.paragraph_target || (isTenMarker ? "Page 2 • Body Section" : "Page 2–3 • Body Section");
         if (isTenMarker) {

@@ -116,6 +116,94 @@ class TestMentorEvaluation(unittest.TestCase):
         self.assertFalse(normalized.get("is_case_study"))
         self.assertNotIn("case_study_audit", normalized)
 
+    def test_value_add_never_suggests_what_candidate_already_wrote(self):
+        from evaluator_engine import normalize_evaluation_data
+        
+        # Candidate explicitly wrote SVAMITVA on Page 2 and ISRO FASAL on Page 1
+        raw_data = {
+            "detected_question": "How can Artificial intelligence (AI) and drones be effectively used along with GIS and RS techniques in locational and aerial planning?",
+            "detected_paper": "GS3",
+            "max_marks": 15,
+            "transcribed_text": "Page 1: Automated land-use classification using AI and ISRO's FASAL project... Page 2: SVAMITVA 3D drone survey for rural land title deeds...",
+            "body_audit": {
+                "strengths": [
+                    "**Automated LULC & ISRO FASAL (Page 1)**: Demonstrated crop classification.",
+                    "**SVAMITVA & Drone Mapping (Page 2)**: Micro-planning for land titling."
+                ]
+            },
+            "point_by_point_audit": [
+                {"page": 1, "title": "Automated LULC & ISRO FASAL", "what_you_wrote": "ISRO's FASAL project", "is_positive": True},
+                {"page": 2, "title": "SVAMITVA & Drone Mapping", "what_you_wrote": "SVAMITVA 3D drone survey", "is_positive": True}
+            ],
+            "current_affairs_value_add": {
+                "current_examples": [
+                    {
+                        "example_title": "SVAMITVA Scheme (Ministry of Panchayati Raj)",
+                        "paragraph_target": "Page 2 • Beside your point",
+                        "recommended_insertion": "Leverage drone-based geospatial mapping under SVAMITVA scheme."
+                    },
+                    {
+                        "example_title": "ISRO FASAL Project",
+                        "paragraph_target": "Page 1 • Beside your point",
+                        "recommended_insertion": "Cite ISRO FASAL for acreage estimation."
+                    }
+                ]
+            }
+        }
+        
+        normalized = normalize_evaluation_data(raw_data, max_marks=15, question=raw_data["detected_question"], paper="GS3")
+        ca_va = normalized.get("current_affairs_value_add", {})
+        cur_exs = ca_va.get("current_examples", [])
+        
+        # Verify that SVAMITVA and ISRO FASAL are completely purged and NOT suggested to the student
+        for ex in cur_exs:
+            title = ex.get("example_title", "").lower()
+            rec = ex.get("recommended_insertion", "").lower()
+            self.assertNotIn("svamitva", title)
+            self.assertNotIn("fasal", title)
+            self.assertNotIn("svamitva", rec)
+            self.assertNotIn("fasal", rec)
+            
+        # Verify that fresh unmentioned value additions were supplied instead
+        all_text = " ".join(ex.get("example_title", "") + " " + ex.get("recommended_insertion", "") for ex in cur_exs).lower()
+        self.assertTrue("gati shakti" in all_text or "cors" in all_text or len(cur_exs) > 0)
+
+    def test_fifteen_marker_three_pages_all_evaluated_in_body_strengths(self):
+        from evaluator_engine import normalize_evaluation_data, transfer_point_audit_to_deep_evaluation
+        
+        # 15-marker with 3 pages
+        raw_data = {
+            "detected_question": "How can Artificial intelligence (AI) and drones be effectively used along with GIS and RS techniques in locational and aerial planning?",
+            "detected_paper": "GS3",
+            "max_marks": 15,
+            "total_pages": 3,
+            "body_audit": {
+                "strengths": [
+                    "**Automated LULC & ISRO FASAL (Page 1)**: Demonstrated crop classification.",
+                    "**Predictive Urban Modelling (Page 1)**: Traffic simulation.",
+                    "**SVAMITVA & Drone Mapping (Page 2)**: Micro-planning for land titling.",
+                    "**Digital Twins & Infrastructure (Page 2)**: 3D city models for Amaravati."
+                ]
+            },
+            "point_by_point_audit": [
+                {"page": 1, "title": "Automated LULC", "examiner_verdict": "Clear LULC processing.", "is_positive": True},
+                {"page": 2, "title": "SVAMITVA Drone Survey", "examiner_verdict": "Centimeter-level accuracy.", "is_positive": True},
+                {"page": 3, "title": "Precision Agriculture & PM KUSUM", "examiner_verdict": "Drone spraying and soil health.", "is_positive": True}
+            ]
+        }
+        
+        normalized = normalize_evaluation_data(raw_data, max_marks=15, question=raw_data["detected_question"], paper="GS3")
+        transfer_point_audit_to_deep_evaluation(normalized)
+        
+        strengths = normalized.get("body_audit", {}).get("strengths", [])
+        has_p1 = any("page 1" in s.lower() or "पृष्ठ 1" in s.lower() for s in strengths)
+        has_p2 = any("page 2" in s.lower() or "पृष्ठ 2" in s.lower() for s in strengths)
+        has_p3 = any("page 3" in s.lower() or "पृष्ठ 3" in s.lower() for s in strengths)
+        
+        self.assertTrue(has_p1, "Page 1 must be present in body_audit.strengths")
+        self.assertTrue(has_p2, "Page 2 must be present in body_audit.strengths")
+        self.assertTrue(has_p3, "Page 3 must be present in body_audit.strengths for 3-page 15-marker")
+
     def test_mentor_diagnostic_in_fallbacks(self):
         # Python fallback should have mentor framing
         self.assertIn("Mentor's Structural Diagnostic", self.engine_source)

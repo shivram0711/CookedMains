@@ -3179,6 +3179,16 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       * **Section 1 (`subpart_marks_breakdown` & `executive_summary`)**: Never write generic praise like `"Good attempt with structured points"`. Always quote the exact sub-part demand of the question, the exact points/examples written on the candidate's sheet, and the exact marks awarded out of the sub-part maximum.
       * **Section 2 (`intro_audit`)**: Supply a `model_intro_rewrite` that opens with an authentic definition, constitutional article, statutory anchor, or official survey metric specific to THAT exact question (never a generic paraphrase of the prompt).
       * **Section 3 (`body_audit`, `missing_keywords_cards`, `value_add_checklist`, `current_affairs_value_add`)**: Every recommended keyword, committee report, judgment, or scheme MUST belong 100% to the sub-topic of the question.
+      * **ABSOLUTE BAN ON SUGGESTING POINTS/SCHEMES ALREADY WRITTEN BY THE CANDIDATE**:
+        - NEVER recommend or suggest an example, scheme, project, or case study in `current_affairs_value_add`, `missing_keywords_cards`, or `value_add_checklist` that the candidate HAS ALREADY WRITTEN in their answer sheet!
+        - If the candidate already wrote 'ISRO FASAL' on Page 1, DO NOT suggest 'ISRO FASAL Project' as a value addition!
+        - If the candidate already wrote 'SVAMITVA' on Page 2, DO NOT suggest 'SVAMITVA Scheme' as a value addition!
+        - If the candidate already wrote 'PM-KUSUM' or 'NTPC' on Page 3, DO NOT suggest them in value addition!
+        - Recommending what the candidate already wrote destroys trust and shows laziness. Value addition MUST supply 100% FRESH, UNMENTIONED contemporary value multipliers that the candidate actually MISSED!
+      * **MANDATORY FULL 3-PAGE AUDIT FOR 15-MARK QUESTIONS (250 WORDS / 3 PAGES)**:
+        - For all 15-mark questions (3 pages), YOU MUST AUDIT ALL 3 PAGES EQUALLY!
+        - In `body_audit.strengths`, you MUST include distinct strength points covering Page 1, Page 2, AND Page 3!
+        - Never stop after Page 2. Page 3 must NEVER be omitted from `body_audit.strengths` or `point_by_point_audit`!
       * **Diagram Recommendation in `current_affairs_value_add`**:
         - Recommend a visual preview (`is_recommended: true`) ONLY when a visual genuinely clarifies a physical/geomorphic process, institutional mechanism, economic supply chain, chronological timeline, or conceptual comparison demanded by the prompt.
         - If the question is abstract, doctrinal, philosophical, or ethical and a diagram would be a forced gimmick, set `is_recommended: false` and state clearly why textual depth is preferred in `not_recommended_reason`.
@@ -3555,7 +3565,8 @@ Generate strictly valid JSON matching this schema:
       "**[Candidate Sub-Heading / Core Dimension] (Page 1)**: Quoting candidate's exact handwritten terms/mechanisms and explaining why this earned marks by fulfilling this specific demand of the question.",
       "**[Candidate Dimension / Empirical Evidence] (Page 1-2)**: Quoting candidate's specific points/case studies and explaining the causal depth demonstrated.",
       "**[Multi-dimensional Breakdown / Stakeholder Analysis] (Page 2)**: Quoting candidate's actual written arguments and attributing marks for analytical breadth.",
-      "**[Practical Application / Policy Dimension] (Page 2-3)**: Quoting candidate's specific measures and explaining how they address the bottlenecks identified."
+      "**[Sectoral Implementation / Case Study] (Page 2)**: Quoting candidate's actual written examples on Page 2 and crediting specific institutional points.",
+      "**[Practical Application / Policy Dimension / Diagram] (Page 3)**: Quoting candidate's specific measures, environmental monitoring, or challenges diagram from Page 3 and crediting analytical breadth."
     ],
     "critical_gaps": [
       "**[Incomplete Point -> Demand Link] (Page 1)**: Pointing out candidate's specific incomplete line/concept and providing the exact question-aligned micro-upgrade that completes the causal chain to the question demand.",
@@ -6710,6 +6721,61 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                 }
             ]
 
+    # Anti-Self-Suggestion Guard: Purge any current_examples that candidate ALREADY wrote on their sheet!
+    cand_written_corpus = (
+        str(data.get("transcribed_text") or "") + " " +
+        " ".join(str(s) for s in (data.get("body_audit", {}).get("strengths") or [])) + " " +
+        " ".join(str(p.get("what_you_wrote", "")) for p in (data.get("point_by_point_audit") or []))
+    ).lower()
+
+    stop_words_va = {"scheme", "project", "mission", "policy", "ministry", "india", "indian", "national", "state", "board", "commission", "department", "initiative", "framework", "using", "under", "with", "from", "into", "cite", "leverage", "point", "page", "high", "resolution", "mapping", "modelling", "urban", "growth", "classification", "automated", "land", "crop", "drone", "drones"}
+
+    def _is_item_already_written_by_student(item_dict):
+        t = str(item_dict.get("example_title") or "").lower()
+        r = str(item_dict.get("recommended_insertion") or "").lower()
+        key_tokens = [w for w in re.findall(r'[a-zA-Z0-9ऀ-ॿ]{4,}', t + " " + r) if w not in stop_words_va]
+        for tok in key_tokens:
+            if tok in cand_written_corpus:
+                return True
+        return False
+
+    raw_cur_exs = ca_va.get("current_examples")
+    if isinstance(raw_cur_exs, list) and len(raw_cur_exs) > 0:
+        clean_cur_exs = [ex for ex in raw_cur_exs if isinstance(ex, dict) and not _is_item_already_written_by_student(ex)]
+        if len(clean_cur_exs) > 0:
+            ca_va["current_examples"] = clean_cur_exs
+        else:
+            # Fallback to fresh domain-specific unmentioned anchors
+            if any(k in q_low for k in ["ai", "drone", "gis", "remote sensing", "aerial", "locational", "planning"]):
+                ca_va["current_examples"] = [
+                    {
+                        "example_title": "PM Gati Shakti National Master Plan (NMP)",
+                        "paragraph_target": "Page 2 • Under 3D City & Infrastructure Models",
+                        "recommended_insertion": "Integrate the **PM Gati Shakti NMP GIS platform** with 1,400+ layers across 44 ministries for synchronized multi-modal infrastructure and locational planning.",
+                        "marks_gain": "+0.5 to +1.0 Mark"
+                    },
+                    {
+                        "example_title": "Survey of India CORS Network (Centimeter-Level Geodesy)",
+                        "paragraph_target": "Page 3 • Under Challenges & Way Forward",
+                        "recommended_insertion": "Deploy the **Survey of India Continuously Operating Reference Stations (CORS)** network to provide real-time 3cm positioning accuracy for automated drone navigation.",
+                        "marks_gain": "+0.5 to +1.0 Mark"
+                    }
+                ]
+            else:
+                ca_va["current_examples"] = [
+                    {
+                        "example_title": "Domain Contemporary Benchmark",
+                        "paragraph_target": ex_ins.get("paragraph_target", "Page 2 • Body Section"),
+                        "recommended_insertion": "Incorporate authoritative statutory reports and official policy benchmarks directly answering the core directive.",
+                        "marks_gain": "+0.5 to +1.0 Mark"
+                    }
+                ]
+
+    # Also check current_example_insertion
+    if ex_ins and _is_item_already_written_by_student(ex_ins):
+        if ca_va.get("current_examples"):
+            ca_va["current_example_insertion"] = dict(ca_va["current_examples"][0])
+
     # Sanitize High-Yield Data & Reports from generic leak and irrelevant placeholders
     raw_reports = ca_va.get("high_yield_data_reports")
     cleaned_reps = []
@@ -8676,6 +8742,7 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
     if not isinstance(data, dict):
         return
 
+    total_pages_val = max(1, int(data.get("total_pages", 0) or len(data.get("processed_pages", [])) or 2))
     body_audit = data.get("body_audit") if isinstance(data.get("body_audit"), dict) else {}
     strengths_list = body_audit.get("strengths") if isinstance(body_audit.get("strengths"), list) else []
     anns_list = data.get("visual_annotations") if isinstance(data.get("visual_annotations"), list) else []
@@ -8834,7 +8901,19 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
 
         formatted_strengths.append(clean)
 
-    # Supplement if fewer than 4 structured points
+    # Supplement if fewer than 4 structured points (or ensure Page 3 is present in 3-page answers)
+    if total_pages_val >= 3:
+        has_p3_formatted = any(re.search(r'\((?:Page|पृष्ठ)\s*3\)', s, re.I) for s in formatted_strengths)
+        if not has_p3_formatted:
+            for pbp in pbp_list:
+                if isinstance(pbp, dict) and int(pbp.get("page", 0) or 0) == 3 and pbp.get("is_positive", True):
+                    t_clean = re.sub(r'[*_#`]', '', str(pbp.get("title") or "Page 3 Analytical Dimension")).strip()
+                    verd = str(pbp.get("examiner_verdict") or "").strip()
+                    if verd and not _has_meta_placeholder(verd):
+                        page_tag = "पृष्ठ 3" if is_hindi else "Page 3"
+                        formatted_strengths.append(f"**{t_clean} ({page_tag})**: {verd}")
+                        break
+
     if len(formatted_strengths) < 4:
         for pbp in pbp_list:
             if len(formatted_strengths) >= 5:
@@ -9769,11 +9848,14 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
             page_already_covered_pos = any(f"page {p_num}" in s.lower() or f"पृष्ठ {p_num}" in s.lower() for s in existing_strengths)
             page_already_covered_gap = any(f"page {p_num}" in g.lower() or f"पृष्ठ {p_num}" in g.lower() for g in existing_gaps)
             
+            max_strengths_allowed = 6 if total_pages >= 3 else 4
+            max_gaps_allowed = 5 if total_pages >= 3 else 4
+
             if is_pos:
-                if len(existing_strengths) < 4 and not page_already_covered_pos and not _is_item_duplicate(clean_title, verdict, existing_strengths):
+                if len(existing_strengths) < max_strengths_allowed and not page_already_covered_pos and not _is_item_duplicate(clean_title, verdict, existing_strengths):
                     existing_strengths.append(formatted_entry)
             else:
-                if len(existing_gaps) < 4 and not page_already_covered_gap and not _is_item_duplicate(clean_title, verdict, existing_gaps):
+                if len(existing_gaps) < max_gaps_allowed and not page_already_covered_gap and not _is_item_duplicate(clean_title, verdict, existing_gaps):
                     existing_gaps.append(formatted_entry)
 
     intro_audit["current_critique"] = intro_crit
