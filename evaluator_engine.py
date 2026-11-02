@@ -1653,8 +1653,19 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
       * ङ. निष्कर्ष: प्रश्न की मूल शब्दावली पर संश्लेषण बनाम असंबद्ध नारे:
         - निष्कर्ष में प्रश्न के केंद्रीय शब्दों (जैसे *कुशल सिंचाई प्रबंधन, सूक्ष्म सिंचाई संतृप्ति, मांग-पक्षीय जल प्रबंधन*) पर संतुलित दृष्टिकोण प्रस्तुत करें।
         - असंबद्ध नारों (जैसे सीधे 'समावेशी विकास' या 'विश्व गुरु') पर अचानक छलांग लगाने से बचें जिनकी मुख्य भाग में कोई पूर्वपीठिका नहीं थी।
-      * च. पूर्णतः गतिशील मूल्यांकन (स्थिर/तयशुदा वाक्यों का पूर्ण निषेध):
-        - प्रत्येक मूल्यांकन केवल और केवल प्रश्न की विशिष्ट शब्दावली, उसकी प्रत्यक्ष मांगों और अभ्यर्थी की वास्तविक हस्तलिखित उत्तर-पुस्तिका पर आधारित होना चाहिए।
+      * च. 10-अंकों (150 शब्द / 2 पृष्ठ) के प्रश्नों हेतु विशिष्ट मेंटर ऑडिट:
+        - 10-अंकों के प्रश्न में पृष्ठ सीमा (केवल 2 पृष्ठ), शब्द सीमा (150 शब्द) और समय (7.0 मिनट) का कड़ाई से पालन होता है:
+          1. **पृष्ठ 1 पर अनावश्यक/अत्यधिक बड़े आरेख पर अंक कटौती**:
+             * यदि अभ्यर्थी पृष्ठ 1 पर अप्रमाणिक या बड़ा आरेख बनाता है (जो 35%-40% स्थान घेर लेता है), तो स्पष्ट रेखांकित करें कि इससे पृष्ठ 2 पर मुख्य विश्लेषणात्मक मांग हेतु स्थान समाप्त हो जाता है। 10-अंकों में इसे 2-पंक्ति की इनलाइन तीर शृंखला से बदलें या केवल ठोस बिंदु लिखें।
+          2. **पृष्ठ 1 और पृष्ठ 2 के मध्य मांग का 50:50 संतुलन**:
+             * यदि प्रश्न में दो उप-मांगें हैं, तो पृष्ठ 1 पर पहली मांग और पृष्ठ 2 पर दूसरी मांग का संतुलित निरूपण होना चाहिए। पहली मांग में पूरा पृष्ठ 1 व्यर्थ कर दूसरी मांग को 2-3 सतही पंक्तियों में निपटाना गंभीर दोष है।
+          3. **अधूरे टेलीग्राम-शैली बुलेट्स के स्थान पर संक्षिप्त कारण-कार्य बिंदु**:
+             * जल्दबाजी में लिखे गए 1-पंक्ति के अधूरे बिंदुओं (जैसे "उपजाऊ मैदान ➔ सभ्यता का विकास") को 15-18 शब्दों के ठोस कारण-कार्य बिंदु में बदलना सिखाएं।
+          4. **संक्षिप्त 15-20 शब्दों का संतुलित समापन**।
+      * छ. तयशुदा/स्थिर वाक्यों का पूर्ण निषेध एवं 100% गतिशील विषयगत पृथक्करण (GS1, GS2, GS3, GS4):
+        - इन निर्देशों में दिए गए सभी उदाहरण (जैसे सिंचाई, जलवायु परिवर्तन, प्राचीन भारत) केवल परीक्षक की मूल्यांकन पद्धति को समझाने हेतु दिए गए हैं।
+        - किसी भी स्थिति में इन उदाहरणों या वाक्यों को अन्य विषयों (जैसे राजनीति, इतिहास, नीतिशास्त्र) में न दोहराएं।
+        - प्रत्येक टिप्पणी, प्रशंसा, कमी और सुधार केवल और केवल उस विशिष्ट प्रश्न की मांग, उसके संबंधित विषय (GS1/GS2/GS3/GS4) और अभ्यर्थी के वास्तविक हस्तलिखित उत्तर पर आधारित होनी चाहिए। कोई भी पूर्व-निर्मित या तयशुदा वाक्य कभी उत्पन्न न करें।
 
 OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
 {{
@@ -3256,9 +3267,27 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       * E. CONCLUSION: QUESTION-ANCHORED SYNTHESIS VS. UNANCHORED BUZZWORDS:
         - The conclusion must summarize on the question's central operational terms (e.g. *efficient irrigation management, water-use efficiency, demand-side water stewardship*).
         - If candidate concludes with an unanchored buzzword (e.g. leaping to *"inclusive growth"* or *"global superpower"*) that was neither asked nor discussed in the body, point out: `"**Unanchored Closing Buzzword**: You concluded on 'inclusive growth', which was neither asked in the prompt nor discussed in your body. Conclude directly on the lines of the question first (e.g. transitioning from supply-side expansion to demand-side efficiency like micro-irrigation saturation); unanchored slogans dilute focus."`
-      * F. PURELY DYNAMIC EVALUATION (ZERO STATIC BOILERPLATE):
-        - NEVER repeat rigid, static, or permanent template lines across answer sheets.
-        - Every observation, strength, gap, and rewrite MUST be 100% dynamically derived from the specific question wording, its explicit demands, and the candidate's actual written words.
+      * F. 10-MARKER (150 WORDS / 2 PAGES) SPECIFIC MENTOR AUDIT & FLAW DETECTION:
+        - In a 10-Marker, space and exam pacing are unforgiving (strictly 2 physical pages, 150 words, 7.0 minutes pacing budget). Evaluate 10-markers with this ruthless spatial precision:
+          1. **Severe Space Penalty for Unasked / Oversized Visuals on Page 1**:
+             * Drawing an unasked classification diagram, spider web, or oversized box diagram on Page 1 (e.g. drawing a 7-box 'factors' diagram occupying 35%–45% of Page 1) is a critical error! It eats nearly half of the opening page, leaving inadequate space for core analytical demands on Page 2.
+             * In `body_audit.critical_gaps` and Page 1 margin card, explicitly highlight this flaw: `"**Oversized / Unasked Diagram Space Deficit**: Your Page 1 diagram consumed ~40% of page real estate without answering the core analytical demand. In a 10-marker, replace with a compact 2-line inline arrow chain or skip the visual entirely to accommodate 8–10 substantive analytical points across both pages."`
+          2. **Demand Balance Across Page 1 & Page 2**:
+             * When a 10-marker contains two sub-demands (e.g. Demand 1: factors/causes; Demand 2: development/impact/solutions), target an even 50:50 distribution (Page 1 = Demand 1; Page 2 = Demand 2).
+             * If the candidate spends all of Page 1 on preliminary definitions and diagrams, rushing the second core demand into 2–3 superficial lines at the bottom of Page 2, penalize demand fulfillment and flag the imbalance.
+          3. **Telegraphic Point Stubs vs Compact Causal Bullets**:
+             * Because candidates rush in 10-markers, they frequently write 1-line telegram stubs (e.g. *"Fertile Plain -> proliferation of civilization"*).
+             * Guide the candidate to combine the factor and its causal mechanism into a compact 14–18 word bullet (e.g. *"• **Fertile Alluvial Plains**: Sustained agricultural surplus in the Gangetic basin, driving demographic growth and Second Urbanisation"*).
+          4. **Crisp 15–20 Word Exam-Hall Closing**:
+             * In a 10-marker, candidates often run out of space and omit the conclusion or trail off with a disconnected buzzword. Guide them to provide a crisp 2-line closing synthesizing the core question tension.
+      * G. ABSOLUTE BAN ON RIGID LINES, HARDCODED SENTENCES & SUBJECT LEAKAGE (UNIVERSAL ACROSS ALL SUBJECTS):
+        - **ILLUSTRATIVE EXAMPLES ARE NEVER TO BE REPEATED**: All examples mentioned in these prompt instructions (such as irrigation, climate change, groundwater, ancient India, or specific case laws) are purely educational illustrations of the evaluator's analytical methodology.
+        - **STRICT PROHIBITION**: NEVER repeat, leak, or quote any of these specific illustrative sentences, lines, or keywords unless the user's uploaded question is ACTUALLY about that exact topic!
+        - **DYNAMICALLY DERIVED ONLY**: Every single sentence in `body_audit.strengths`, `body_audit.critical_gaps`, `body_audit.overall_assessment`, `intro_audit`, and `conclusion_audit` MUST be 100% dynamically synthesized from:
+          1. The EXACT prompt text and command words of THAT specific question.
+          2. The EXACT academic discipline of THAT paper (GS1 History/Geography/Society, GS2 Polity/IR, GS3 Economy/Agri/S&T/Security, GS4 Ethics, or Optionals).
+          3. The EXACT handwritten text, diagrams, and headings written on THAT candidate's answer booklet.
+        - **NO PRE-FABRICATED CANNED REMARKS**: Never output rigid canned sentences (e.g. NEVER generate "Theoretical critique without citing contemporary legislative or judicial benchmarks" for a Geography or History question!). Every comment must speak directly and authentically to that student's specific answer copy.
 
 Generate strictly valid JSON matching this schema:
 {{

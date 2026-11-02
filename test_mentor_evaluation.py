@@ -18,7 +18,25 @@ class TestMentorEvaluation(unittest.TestCase):
         self.assertIn("DIAGRAMS: DATA CONDENSATION & REAL ESTATE OPTIMIZATION VS. SPACE WASTAGE", self.engine_source)
         self.assertIn("INTRODUCTION: CONNECTING DATA / FACT HOOK TO QUESTION DEMAND", self.engine_source)
         self.assertIn("CONCLUSION: QUESTION-ANCHORED SYNTHESIS VS. UNANCHORED BUZZWORDS", self.engine_source)
-        self.assertIn("PURELY DYNAMIC EVALUATION (ZERO STATIC BOILERPLATE)", self.engine_source)
+
+    def test_10_marker_mentor_checks_in_english_and_hindi(self):
+        # English 10-marker specific checks
+        self.assertIn("10-MARKER (150 WORDS / 2 PAGES) SPECIFIC MENTOR AUDIT", self.engine_source)
+        self.assertIn("Severe Space Penalty for Unasked / Oversized Visuals on Page 1", self.engine_source)
+        self.assertIn("Demand Balance Across Page 1 & Page 2", self.engine_source)
+        self.assertIn("Telegraphic Point Stubs vs Compact Causal Bullets", self.engine_source)
+        # Hindi 10-marker specific checks
+        self.assertIn("10-अंकों (150 शब्द / 2 पृष्ठ) के प्रश्नों हेतु विशिष्ट मेंटर ऑडिट", self.engine_source)
+        self.assertIn("पृष्ठ 1 पर अनावश्यक/अत्यधिक बड़े आरेख पर अंक कटौती", self.engine_source)
+        self.assertIn("पृष्ठ 1 और पृष्ठ 2 के मध्य मांग का 50:50 संतुलन", self.engine_source)
+
+    def test_zero_rigid_lines_and_subject_isolation(self):
+        # Strict rule that prompt examples must not leak across subjects
+        self.assertIn("ABSOLUTE BAN ON RIGID LINES, HARDCODED SENTENCES & SUBJECT LEAKAGE", self.engine_source)
+        self.assertIn("ILLUSTRATIVE EXAMPLES ARE NEVER TO BE REPEATED", self.engine_source)
+        self.assertIn("NO PRE-FABRICATED CANNED REMARKS", self.engine_source)
+        # Hindi zero rigid lines rule
+        self.assertIn("तयशुदा/स्थिर वाक्यों का पूर्ण निषेध एवं 100% गतिशील विषयगत पृथक्करण", self.engine_source)
 
     def test_hindi_prompt_mentor_section_present(self):
         self.assertIn("11. मेंटर-शैली सूक्ष्म मूल्यांकन: मांग में संतुलन, अचानक छलांग (Premature Jumps) से बचाव", self.engine_source)
