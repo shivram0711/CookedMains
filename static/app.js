@@ -11512,9 +11512,9 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
     const isPhilosophyEthics = /\b(?:ethics|moral|probity|integrity|attitude|virtue|utilitarian|dilemma)\b/i.test(String(evalData.detected_question || state.question || ""));
     const benchStr = isPhysicalGeo ? "geomorphic mechanisms and spatial case studies" : isHistoryCulture ? "primary historical sources and chronological evidence" : isPhilosophyEthics ? "applied administrative ethics and value frameworks" : "official benchmarks and empirical evidence";
     if (isHindi) {
-      body.overall_assessment = `मुख्य भाग (Body) में आपने **${topStr}** प्रस्तुत कर **${bScore.toFixed(1)} / ${bMax.toFixed(1)} अंक** प्राप्त किए हैं। आगे सुधार के लिए **${topGap}** पर विशेष ध्यान दें और प्रासंगिक उदाहरणों से पुष्ट करें।`;
+      body.overall_assessment = `**मेंटर संरचनात्मक विश्लेषण**: मुख्य भाग में आपने **${topStr}** प्रस्तुत कर **${bScore.toFixed(1)} / ${bMax.toFixed(1)} अंक** अर्जित किए हैं। संतुलन व टॉपर स्तर तक पहुँचने हेतु **${topGap}** पर विशेष ध्यान दें और चुनौतियों व उपायों के मध्य तार्किक तारतम्यता बनाए रखें।`;
     } else {
-      body.overall_assessment = `Your Body section scored **${bScore.toFixed(1)} / ${bMax.toFixed(1)}M** by demonstrating **${topStr}** with relevant points. To elevate your score, focus on **${topGap}** and substantiate with ${benchStr}.`;
+      body.overall_assessment = `**Mentor's Structural Diagnostic**: Your Body structured arguments around **${topStr}** (${bScore.toFixed(1)} / ${bMax.toFixed(1)}M). To achieve top-bracket marks, focus on **${topGap}**, avoiding rushed leaps across demands and substantiating with ${benchStr}.`;
     }
   }
 
