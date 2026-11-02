@@ -13072,56 +13072,220 @@ function renderEvaluation(evalData) {
 
   const isHindi = (typeof window.isHindiEvaluation === "function") && window.isHindiEvaluation(evalData);
   const dNorm = dName.toLowerCase();
+
+  // Dynamic Discipline Detection (Strict separation across GS1, GS2, GS3, GS4 & Essay)
+  const paperStr = String(evalData.paper || evalData.detected_paper || (state.currentEvaluation && state.currentEvaluation.paper) || "").toUpperCase();
+  const discStr = String(evalData.subject_discipline || evalData.syllabus_subheading || "").toLowerCase();
+  const qStr = String(evalData.detected_question || evalData.question || (typeof state !== "undefined" && state.question) || "").toLowerCase();
+
+  const isHist = (/GS[-_\s]?1/i.test(paperStr) || /history|heritage|ancient/i.test(discStr)) && (/history|ancient|medieval|modern|art|culture|heritage|archaeolog|dynast|monument|sculptur|buddh|jain|freedom|gandhi/i.test(discStr + " " + qStr) || !/geograph|climate|tectonic|volcan|caldera|ocean|monsoon|landslide|society|women|caste/i.test(qStr));
+  const isGeog = (/GS[-_\s]?1/i.test(paperStr) || /geograph/i.test(discStr)) && /geograph|climate|soil|volcan|caldera|earthquake|landslide|tectonic|river|drainage|monsoon|ocean|current|atmosphere|spatial|himalaya|western ghats/i.test(discStr + " " + qStr);
+  const isSoc = (/GS[-_\s]?1/i.test(paperStr) || /societ|social/i.test(discStr)) && /society|social|caste|women|gender|urbanis|communal|secular|globalis|poverty|population|demograph|sex ratio/i.test(discStr + " " + qStr);
+  const isPolity = /GS[-_\s]?2/i.test(paperStr) && !/international|foreign|bilateral|treaty|unsc|brics|quad|diploma/i.test(discStr + " " + qStr);
+  const isIR = /GS[-_\s]?2/i.test(paperStr) && /international|foreign|bilateral|treaty|unsc|brics|quad|diploma|geopolit|indo-pacific/i.test(discStr + " " + qStr);
+  const isEcon = /GS[-_\s]?3/i.test(paperStr) && /econom|gdp|fiscal|inflat|bank|rbi|budget|tax|industry|msme|trade|growth|invest/i.test(discStr + " " + qStr);
+  const isEnvSci = /GS[-_\s]?3/i.test(paperStr) && /environment|climate|biodivers|pollution|disaster|ndma|\bai\b|tech|space|isro|cyber/i.test(discStr + " " + qStr);
+  const isEthics = /GS[-_\s]?4/i.test(paperStr) || /ethics|moral|integrity|probity|attitude|nolan|corruption|empathy|virtue/i.test(discStr + " " + qStr);
+
   let cmdType = isHindi ? "समग्र निर्देश (Comprehensive Mandate)" : "Comprehensive Mandate";
   let cmdMeaning = isHindi
-    ? "प्रश्न की प्रत्यक्ष व अंतर्निहित सभी उप-मांगों को संतुलित तर्कों, तथ्यात्मक आधार एवं संवैधानिक निष्ठा के साथ पूर्ण करना अपेक्षित है।"
-    : "Demands addressing all explicit and implicit sub-demands with balanced argumentation, factual grounding, and constitutional fidelity.";
+    ? "प्रश्न की प्रत्यक्ष व अंतर्निहित सभी उप-मांगों को संतुलित तर्कों, तथ्यात्मक आधार एवं अनुशासित विश्लेषणात्मक संरचना के साथ पूर्ण करना अपेक्षित है।"
+    : "Demands addressing all explicit and implicit sub-demands with balanced argumentation, factual grounding, and disciplined analytical structure.";
 
   if (dNorm.includes("critically") || dNorm.includes("critical") || dNorm.includes("आलोचना")) {
     cmdType = isHindi ? "द्वंद्वात्मक निर्देश (Dialectical Mandate)" : "Dialectical Mandate";
-    cmdMeaning = isHindi
-      ? "दोनों पक्षों का गहन द्वंद्वात्मक मूल्यांकन: व्यावहारिक लाभों (Thesis) के साथ-साथ प्रणालीगत बाधाओं एवं चुनौतियों (Anti-thesis) का संतुलन कर अग्रगामी निष्कर्ष प्रस्तुत करना।"
-      : "Demands rigorous dialectical evaluation: balancing substantive operational merits (Thesis) against systemic bottlenecks, constitutional risks, or unintended harms (Anti-thesis) to reach a forward-looking verdict.";
+    if (isHist) {
+      cmdMeaning = isHindi
+        ? "द्वंद्वात्मक ऐतिहासिक मूल्यांकन: स्थापित उपलब्धियों/तर्कों के साथ-साथ सीमाओं, अंतर्निहित पूर्वाग्रहों और वैकल्पिक ऐतिहासिक दृष्टिकोणों का संतुलन करना।"
+        : "Demands dialectical historical evaluation: balancing established historical achievements/theses against underlying socio-economic limitations, historiographical debates, or counter-evidence.";
+    } else if (isGeog) {
+      cmdMeaning = isHindi
+        ? "विश्लेषणात्मक भौगोलिक मूल्यांकन: प्राकृतिक अवसरों व संभावनाओं के साथ-साथ भू-आकृतिक संवेदनशीलता, पारिस्थितिक क्षरण और आपदा जोखिमों का संतुलन करना।"
+        : "Demands rigorous geographical evaluation: balancing natural resource opportunities against geomorphic vulnerability, ecological fragility, and environmental hazard risks.";
+    } else if (isPolity) {
+      cmdMeaning = isHindi
+        ? "द्वंद्वात्मक मूल्यांकन: व्यावहारिक लाभों (Thesis) के साथ-साथ प्रणालीगत बाधाओं, संवैधानिक जोखिमों एवं विधिक चुनौतियों (Anti-thesis) का संतुलन कर अग्रगामी निष्कर्ष प्रस्तुत करना।"
+        : "Demands rigorous dialectical evaluation: balancing substantive operational merits (Thesis) against systemic bottlenecks, constitutional risks, or implementation challenges (Anti-thesis) to reach a forward-looking verdict.";
+    } else if (isEcon) {
+      cmdMeaning = isHindi
+        ? "द्वंद्वात्मक मूल्यांकन: आर्थिक वृद्धि संभावनाओं के साथ-साथ राजकोषीय दबावों, मुद्रास्फीति और आय असमानता की चुनौतियों का संतुलन करना।"
+        : "Demands rigorous dialectical evaluation: weighing economic growth potential against fiscal deficit pressures, inflationary risks, and distributional inequality.";
+    } else if (isEthics) {
+      cmdMeaning = isHindi
+        ? "नैतिक मूल्यांकन: तात्कालिक प्रशासनिक सुविधा के साथ-साथ मौलिक नैतिक मूल्यों, संवैधानिक नैतिकता और लोक विश्वास का संतुलन करना।"
+        : "Demands rigorous moral scrutiny: weighing immediate administrative expediency against fundamental ethical values, constitutional morality, and long-term public trust.";
+    } else {
+      cmdMeaning = isHindi
+        ? "दोनों पक्षों का गहन द्वंद्वात्मक मूल्यांकन: व्यावहारिक लाभों/तर्कों (Thesis) के साथ-साथ सीमाओं, कमियों व चुनौतियों (Anti-thesis) का संतुलन कर सुविचारित निष्कर्ष प्रस्तुत करना।"
+        : "Demands rigorous dialectical evaluation: balancing substantive arguments (Thesis) against critical limitations, counter-perspectives, or systemic bottlenecks (Anti-thesis) to reach a balanced synthesis.";
+    }
   } else if (dNorm.includes("examine") || dNorm.includes("investigate") || dNorm.includes("परीक्षण") || dNorm.includes("जांच")) {
     cmdType = isHindi ? "नैदानिक परीक्षण निर्देश (Diagnostic Mandate)" : "Diagnostic Mandate";
-    cmdMeaning = isHindi
-      ? "सतही विवरण से आगे बढ़कर संस्थागत कारणों, वैधानिक प्रावधानों एवं जमीनी बाधाओं की पहचान कर संरचनात्मक समाधान प्रस्तुत करना।"
-      : "Demands probing beneath surface-level descriptions to diagnose root institutional causes, statutory tensions, and ground-level implementation challenges, supported by actionable structural remedies.";
+    if (isHist) {
+      cmdMeaning = isHindi
+        ? "सतही घटनाओं से आगे बढ़कर अंतर्निहित संरचनात्मक कारणों, सामाजिक-आर्थिक परिवर्तनों और सांस्कृतिक प्रेरकों का प्रामाणिक साक्ष्यों के साथ परीक्षण करना।"
+        : "Demands probing beneath surface events to diagnose underlying structural causes, socio-economic transitions, and cultural catalysts with primary evidence.";
+    } else if (isGeog) {
+      cmdMeaning = isHindi
+        ? "स्थानिक व भौतिक प्रक्रियाओं, कारण-प्रभाव तंत्रों और क्षेत्रीय विषमताओं का भू-आकृतिक कारकों व रेखाचित्रों के साथ परीक्षण करना।"
+        : "Demands examining spatial and physical processes, causal mechanisms, and regional disparities with geomorphic factors and concrete mapping.";
+    } else if (isPolity) {
+      cmdMeaning = isHindi
+        ? "सतही विवरण से आगे बढ़कर संस्थागत कारणों, वैधानिक प्रावधानों एवं जमीनी बाधाओं की पहचान कर संरचनात्मक समाधान प्रस्तुत करना।"
+        : "Demands probing beneath surface-level descriptions to diagnose root institutional causes, statutory tensions, and ground-level implementation challenges, supported by actionable structural remedies.";
+    } else if (isEcon) {
+      cmdMeaning = isHindi
+        ? "आर्थिक प्रेरकों, संरचनात्मक बाधाओं और क्षेत्रीय चुनौतियों का आधिकारिक नीतिगत रुझानों के साथ परीक्षण करना।"
+        : "Demands investigating underlying macroeconomic drivers, structural supply-side constraints, and sectoral bottlenecks with official empirical trends.";
+    } else if (isEthics) {
+      cmdMeaning = isHindi
+        ? "आचरण के प्रेरकों, संस्थागत कार्यसंस्कृति और हितों के टकराव का नैतिक मानकों व आचार संहिता के आधार पर परीक्षण करना।"
+        : "Demands scrutinizing behavioural drivers, institutional culture, and conflict of interest points against ethical benchmarks and code of conduct.";
+    } else {
+      cmdMeaning = isHindi
+        ? "सतही विवरण से आगे बढ़कर मूल कारणों, अंतर्निहित प्रक्रियाओं एवं वास्तविक प्रभावों का तथ्यों व साक्ष्यों के साथ परीक्षण करना।"
+        : "Demands probing beneath surface-level descriptions to diagnose root causes, operational mechanisms, and critical implications, supported by concrete evidence.";
+    }
   } else if (dNorm.includes("discuss") || dNorm.includes("चर्चा")) {
     cmdType = isHindi ? "बहु-आयामी चर्चा निर्देश (Multi-Dimensional Mandate)" : "Multi-Dimensional Mandate";
-    cmdMeaning = isHindi
-      ? "विभिन्न हितधारक आयामों (सामाजिक, आर्थिक, राजनीतिक, प्रशासनिक, विधिक) को संरचित शीर्षकों एवं ठोस साक्ष्यों के साथ विस्तार देना।"
-      : "Demands exploring comprehensive multi-stakeholder dimensions (PESTLE: Political, Economic, Social, Technological, Legal, Environmental) with structured headings and concrete empirical evidence.";
+    if (isHist) {
+      cmdMeaning = isHindi
+        ? "इतिहास के विभिन्न आयामों (राजनीतिक, सामाजिक, आर्थिक, सांस्कृतिक) को कालानुक्रमिक प्रवाह और प्रामाणिक स्रोतों के साथ विस्तार देना।"
+        : "Demands exploring multiple historical dimensions (political, social, economic, cultural, and geographic) with structured chronological flow and authentic sources.";
+    } else if (isGeog) {
+      cmdMeaning = isHindi
+        ? "भौगोलिक आयामों (भू-आकृतिक, जलवायुवीय, जनसांख्यिकीय, आर्थिक) को क्षेत्रीय उदाहरणों और रेखाचित्रों के साथ विस्तार देना।"
+        : "Demands examining multifaceted geographic dimensions (physiographic, climatic, demographic, economic) supported by regional examples and sketch maps.";
+    } else if (isPolity) {
+      cmdMeaning = isHindi
+        ? "शासन के विभिन्न आयामों (संवैधानिक, वैधानिक, प्रशासनिक, संघीय) को न्यायिक निर्णयों और संस्थागत दृष्टिकोण से विस्तार देना।"
+        : "Demands examining governance dimensions (constitutional, statutory, administrative, federal) with landmark precedents and institutional perspectives.";
+    } else if (isEcon) {
+      cmdMeaning = isHindi
+        ? "अर्थव्यवस्था के बहु-क्षेत्रीय आयामों (कृषि, उद्योग, सेवा, विदेशी व्यापार, अवसंरचना) को आधिकारिक आंकड़ों के साथ विस्तार देना।"
+        : "Demands exploring multi-sectoral economic dimensions (agriculture, industry, services, external trade, infrastructure) with empirical telemetry.";
+    } else if (isEthics) {
+      cmdMeaning = isHindi
+        ? "व्यक्तिगत, संस्थागत और सामाजिक स्तरों पर नैतिक आयामों का परीक्षण करते हुए विभिन्न हितधारकों के मूल्यों का विश्लेषण करना।"
+        : "Demands exploring ethical dimensions across individual, organizational, and societal levels, evaluating diverse stakeholder values.";
+    } else {
+      cmdMeaning = isHindi
+        ? "विषय के विभिन्न आयामों को सुस्पष्ट उप-शीर्षकों एवं ठोस प्रामाणिक साक्ष्यों के साथ विस्तार देना।"
+        : "Demands exploring comprehensive multi-dimensional perspectives appropriate to the subject matter, structured under clear thematic headings and backed by concrete evidence.";
+    }
   } else if (dNorm.includes("evaluate") || dNorm.includes("assess") || dNorm.includes("मूल्यांकन") || dNorm.includes("आकलन")) {
     cmdType = isHindi ? "मानक-आधारित मूल्यांकन (Criterion-Based Audit)" : "Criterion-Based Audit";
-    cmdMeaning = isHindi
-      ? "नीतिगत या प्रशासनिक परिणामों को मूल संवैधानिक/वैधानिक उद्देश्यों की कसौटी पर परखना, कमियों की पहचान करना एवं प्रामाणिक निष्कर्ष देना।"
-      : "Demands measuring actual policy or operational outcomes directly against original constitutional/statutory intent, identifying quantitative gaps and delivering an authoritative verdict.";
-  } else if (dNorm.includes("elucidate") || dNorm.includes("explain") || dNorm.includes("elaborate") || dNorm.includes("प्रकाश डालिए") || dNorm.includes("स्पष्ट कीजिए")) {
+    if (isHist) {
+      cmdMeaning = isHindi
+        ? "नीतियों, व्यक्तित्वों या आंदोलनों के ऐतिहासिक महत्व, विरासत और दीर्घकालिक प्रभावों का वस्तुनिष्ठ मूल्यांकन करना।"
+        : "Demands assessing historical significance, civilizational impact, and long-term legacy against primary benchmarks and contemporary historiographical evidence.";
+    } else if (isGeog) {
+      cmdMeaning = isHindi
+        ? "स्थानिक नियोजन, संसाधन प्रबंधन या आपदा नियंत्रण रणनीतियों की प्रभावशीलता का पारिस्थितिक धारणीयता के आधार पर मूल्यांकन करना।"
+        : "Demands evaluating the effectiveness of spatial planning, resource management, or disaster mitigation strategies against ecological sustainability criteria.";
+    } else if (isPolity) {
+      cmdMeaning = isHindi
+        ? "नीतिगत या प्रशासनिक परिणामों को मूल संवैधानिक/वैधानिक उद्देश्यों की कसौटी पर परखना, कमियों की पहचान करना एवं प्रामाणिक निष्कर्ष देना।"
+        : "Demands measuring actual policy or operational outcomes directly against original constitutional/statutory intent, identifying quantitative gaps and delivering an authoritative verdict.";
+    } else if (isEcon) {
+      cmdMeaning = isHindi
+        ? "योजनाओं और सुधारों के परिणामों को निर्धारित आर्थिक लक्ष्यों, बजटीय दक्षता और समावेशी विकास की कसौटी पर परखना।"
+        : "Demands evaluating scheme performance and reform outcomes against targeted economic milestones, budgetary efficiency, and inclusive growth goals.";
+    } else if (isEthics) {
+      cmdMeaning = isHindi
+        ? "प्रशासनिक निर्णयों को नैतिक सिद्धांतों, जनहित, पारदर्शिता और जवाबदेही के मानकों पर परखते हुए अंतिम निष्कर्ष देना।"
+        : "Demands assessing administrative decisions against ethical frameworks, public interest, transparency, and accountability standards.";
+    } else {
+      cmdMeaning = isHindi
+        ? "परिणामों व प्रभावशीलता को मानक पैमानों और निर्धारित लक्ष्यों की कसौटी पर परखना, कमियों की पहचान करना एवं प्रामाणिक निष्कर्ष देना।"
+        : "Demands measuring performance, significance, or effectiveness against benchmark criteria and stated goals, identifying key gaps and delivering an authoritative verdict.";
+    }
+  } else if (dNorm.includes("elucidate") || dNorm.includes("explain") || dNorm.includes("elaborate") || dNorm.includes("प्रकाश डालिए") || dNorm.includes("स्पष्ट कीजिए") || dNorm.includes("व्याख्या")) {
     cmdType = isHindi ? "स्पष्टीकरण निर्देश (Explanatory Mandate)" : "Explanatory Mandate";
-    cmdMeaning = isHindi
-      ? "जटिल संस्थागत प्रक्रियाओं एवं सिद्धांतों को न्यायिक निर्णयों, प्रशासनिक उदाहरणों और प्रवाह-चित्रों द्वारा पूर्ण स्पष्टता से समझाना।"
-      : "Demands presenting complex institutional and doctrinal mechanisms with unmistakable clarity, substantiated by landmark judicial rulings, administrative flowcharts, and real-world cases.";
+    if (isHist) {
+      cmdMeaning = isHindi
+        ? "विषय के ऐतिहासिक विकास, भौगोलिक प्रभावों और सामाजिक-सांस्कृतिक कारकों को कालानुक्रमिक स्पष्टता, पुरातात्विक साक्ष्यों (शिलालेख, मुद्राशास्त्र) और साहित्यिक स्रोतों द्वारा समझाना।"
+        : "Demands clarifying historical developments, geographical influences, and socio-cultural factors with chronological clarity, substantiated by archaeological findings, textual sources (e.g. inscriptions, literature), and historical milestones.";
+    } else if (isGeog) {
+      cmdMeaning = isHindi
+        ? "भौगोलिक प्रक्रियाओं, स्थानिक प्रतिरूपों और मानव-पर्यावरण अंतर्संबंधों को भू-आकृतिक शब्दावली, रेखाचित्रों और क्षेत्रीय उदाहरणों द्वारा स्पष्ट समझाना।"
+        : "Demands elucidating physical mechanisms, spatial patterns, and human-ecological interactions with geomorphic terminology, diagrammatic sketches, and regional case examples.";
+    } else if (isSoc) {
+      cmdMeaning = isHindi
+        ? "सामाजिक संरचनाओं, जनसांख्यिकीय प्रवृत्तियों और सांस्कृतिक परिवर्तनों को समाजशास्त्रीय अवधारणाओं व प्रामाणिक संकेतकों (NFHS, जनगणना) द्वारा स्पष्ट करना।"
+        : "Demands detailing social structures, demographic dynamics, and cultural transformations with sociological concepts, demographic data (NFHS/Census), and empirical examples.";
+    } else if (isPolity) {
+      cmdMeaning = isHindi
+        ? "संवैधानिक प्रावधानों, संस्थागत तंत्रों और प्रशासनिक प्रक्रियाओं को न्यायिक निर्णयों और शासन के उदाहरणों द्वारा स्पष्टता से समझाना।"
+        : "Demands presenting constitutional provisions, institutional mechanisms, and governance processes with clarity, substantiated by landmark judicial rulings and administrative best practices.";
+    } else if (isIR) {
+      cmdMeaning = isHindi
+        ? "भू-राजनीतिक प्रेरकों, रणनीतिक हितों और द्विपक्षीय संबंधों को राजनयिक संधियों, संस्थागत मंचों और वैश्विक घटनाक्रमों द्वारा स्पष्ट करना।"
+        : "Demands analyzing geopolitical drivers, strategic interests, and bilateral dynamics, substantiated by diplomatic treaties, institutional summits, and global developments.";
+    } else if (isEcon) {
+      cmdMeaning = isHindi
+        ? "आर्थिक प्रक्रियाओं, क्षेत्रीय प्रवृत्तियों और वित्तीय नीतियों को आधिकारिक नीतिगत आंकड़ों (आर्थिक समीक्षा, बजट, नीति आयोग) द्वारा स्पष्ट करना।"
+        : "Demands clarifying macroeconomic mechanisms, sectoral trends, and fiscal/monetary dynamics, substantiated by official economic telemetry (Economic Survey, Budget, RBI/NITI Aayog).";
+    } else if (isEnvSci) {
+      cmdMeaning = isHindi
+        ? "पारिस्थितिक प्रक्रमों, वैज्ञानिक सिद्धांतों और निवारक ढांचों को आईपीसीसी/एनडीएमए मानकों और तकनीकी केसों द्वारा स्पष्ट करना।"
+        : "Demands elucidating ecological processes, scientific principles, and mitigation frameworks, substantiated by IPCC/NDMA benchmarks and technological use-cases.";
+    } else if (isEthics) {
+      cmdMeaning = isHindi
+        ? "नीतिशास्त्रीय अवधारणाओं, नैतिक द्वंद्वों और प्रशासनिक आचरण को दार्शनिक सिद्धांतों (नोलन, कर्तव्यशास्त्र, सद्गुण) और व्यावहारिक केसों द्वारा स्पष्ट करना।"
+        : "Demands clarifying moral concepts, ethical dilemmas, and administrative conduct with philosophical depth (Nolan, Deontology, Virtue Ethics) and practical civil service scenarios.";
+    } else {
+      cmdMeaning = isHindi
+        ? "विषय के मूल कारणों, प्रक्रियाओं एवं अंतर्संबंधों को तार्किक क्रम, विषयगत शब्दावली और प्रामाणिक उदाहरणों द्वारा पूर्ण स्पष्टता से समझाना।"
+        : "Demands presenting core causal mechanisms, operational processes, and logical relationships with unmistakable clarity, substantiated by domain concepts, authentic evidence, and contextual examples.";
+    }
   } else if (dNorm.includes("comment") || dNorm.includes("opinion") || dNorm.includes("दृष्टिकोण") || dNorm.includes("अभिमत")) {
     cmdType = isHindi ? "संतुलित वैचारिक दृष्टिकोण (Judicious Perspective)" : "Judicious Perspective";
-    cmdMeaning = isHindi
-      ? "संवैधानिक नैतिकता और प्रशासनिक यथार्थ के आधार पर एक सुविचारित, स्वतंत्र एवं तर्कसंगत दृष्टिकोण प्रस्तुत करना।"
-      : "Demands formulating a reasoned, independent perspective anchored firmly in constitutional morality, statutory safeguards, and empirical governance outcomes.";
+    if (isHist) {
+      cmdMeaning = isHindi
+        ? "प्रामाणिक ऐतिहासिक साक्ष्यों, स्थापित इतिहास-दृष्टि और सभ्यतागत संदर्भ के आधार पर एक सुविचारित दृष्टिकोण प्रस्तुत करना।"
+        : "Demands formulating a reasoned historical perspective based on established evidence, historiographical consensus, and civilizational context.";
+    } else if (isGeog) {
+      cmdMeaning = isHindi
+        ? "मानव-पर्यावरण अंतर्संबंधों, संसाधन प्रबंधन और क्षेत्रीय विकास की चुनौतियों पर एक संतुलित भौगोलिक दृष्टिकोण प्रस्तुत करना।"
+        : "Demands formulating a reasoned geographical perspective on human-environment dynamics, resource debates, or spatial development challenges.";
+    } else if (isPolity) {
+      cmdMeaning = isHindi
+        ? "संवैधानिक नैतिकता, वैधानिक सुरक्षा उपायों और प्रशासनिक परिणामों के आधार पर एक सुविचारित दृष्टिकोण प्रस्तुत करना।"
+        : "Demands formulating a reasoned, independent perspective anchored firmly in constitutional morality, statutory safeguards, and empirical governance outcomes.";
+    } else if (isEcon) {
+      cmdMeaning = isHindi
+        ? "बाजार दक्षता, सामाजिक न्याय, राजकोषीय अनुशासन और धारणीयता के संतुलन पर एक तर्कसंगत आर्थिक दृष्टिकोण प्रस्तुत करना।"
+        : "Demands formulating a balanced economic perspective weighing market efficiency against social equity, fiscal prudence, and sustainability.";
+    } else if (isEthics) {
+      cmdMeaning = isHindi
+        ? "नैतिक दर्शन, चरित्र की शुचिता और संवैधानिक मूल्यों पर आधारित एक स्पष्ट व दृढ़ नैतिक दृष्टिकोण प्रस्तुत करना।"
+        : "Demands articulating a definitive ethical stance grounded in moral philosophy, integrity of character, and constitutional values.";
+    } else {
+      cmdMeaning = isHindi
+        ? "तार्किक विश्लेषण, स्थापित सिद्धांतों और प्रामाणिक तथ्यों के आधार पर एक सुविचारित, स्वतंत्र एवं संतुलित दृष्टिकोण प्रस्तुत करना।"
+        : "Demands formulating a reasoned, independent perspective anchored in logical analysis, established principles, and verifiable evidence.";
+    }
   } else if (dNorm.includes("note") || dNorm.includes("टिप्पणी")) {
     cmdType = isHindi ? "विश्लेषणात्मक सारांश (Analytical Synthesis)" : "Analytical Synthesis & Overview";
     cmdMeaning = isHindi
-      ? "विषय की ऐतिहासिक पृष्ठभूमि, व्यावहारिक महत्व, प्रमुख चुनौतियों एवं भविष्यगामी सुधारों का संरचित समग्र विवरण प्रस्तुत करना।"
-      : "Demands a structured, multi-dimensional overview detailing foundational genesis, operational significance, key institutional challenges, and forward-looking reforms.";
+      ? "विषय की ऐतिहासिक/अवधारणात्मक पृष्ठभूमि, मुख्य महत्व, समकालीन प्रासंगिकता एवं प्रमुख आयामों का संरचित समग्र विवरण प्रस्तुत करना।"
+      : "Demands a structured, concise overview detailing foundational origins, core significance, contemporary relevance, and essential implications.";
   } else if (dNorm.includes("differentiate") || dNorm.includes("distinguish") || dNorm.includes("compare") || dNorm.includes("अंतर") || dNorm.includes("तुलना")) {
     cmdType = isHindi ? "तुलनात्मक विश्लेषण (Comparative Mandate)" : "Comparative Mandate";
     cmdMeaning = isHindi
-      ? "अवधारणात्मक उद्भव, कानूनी प्रभावशीलता एवं प्रशासनिक व्यवहार के आधार पर स्पष्ट सारणीबद्ध अंतर निरूपित करना।"
-      : "Demands articulating crisp tabular distinctions across conceptual origin, legal enforceability, and administrative practice before diagnosing behavioral failure points.";
+      ? "मूल अवधारणाओं, व्यावहारिक विशेषताओं एवं प्रभावों के आधार पर स्पष्ट सारणीबद्ध या बिंदुवार अंतर निरूपित करना।"
+      : "Demands articulating crisp tabular distinctions across conceptual origins, operational characteristics, and practical real-world implications.";
   } else if (dNorm.includes("case study") || dNorm.includes("केस स्टडी")) {
     cmdType = isHindi ? "व्यावहारिक नीतिशास्त्र निर्देश (Applied Ethics)" : "Applied Ethics Mandate";
     cmdMeaning = isHindi
       ? "हितधारक मानचित्रण -> नैतिक द्वंद्व -> बहु-विकल्प आव्यूह -> नीतिशास्त्रीय रूप से समर्थित कार्ययोजना प्रस्तुत करना।"
       : "Demands rigorous UPSC case study architecture: Stakeholder Mapping -> Ethical Dilemmas -> Multi-Option Matrix -> Deontologically Justified Course of Action.";
+  }
+
+  // If backend provided clean, non-generic details without stale boilerplate, respect it
+  if (dir.details && typeof dir.details === "string" && dir.details.trim().length > 25 && !dir.details.toLowerCase().includes("pestle framework") && !dir.details.toLowerCase().includes("judicial rulings")) {
+    cmdMeaning = dir.details.trim();
   }
 
   if (directiveTypePill) directiveTypePill.textContent = cmdType;
@@ -14926,36 +15090,83 @@ function renderBatch1ExaminerMastery(evalData) {
     }
   }
 
-  // Subject-specific tailored coaching
+  // Subject-specific tailored coaching (Dynamic across all GS Papers, with precise discipline detection)
+  const mPaperStr = String(evalData.paper || evalData.detected_paper || (state.currentEvaluation && state.currentEvaluation.paper) || "GS2").toUpperCase();
+  const mDiscStr = String(evalData.subject_discipline || evalData.syllabus_subheading || "").toLowerCase();
+  const mQStr = String(evalData.detected_question || evalData.question || (typeof state !== "undefined" && state.question) || "").toLowerCase();
+
+  const mIsHist = (/GS[-_\s]?1/i.test(mPaperStr) || /history|heritage|ancient/i.test(mDiscStr)) && (/history|ancient|medieval|modern|art|culture|heritage|archaeolog|dynast|monument|sculptur|buddh|jain|freedom|gandhi/i.test(mDiscStr + " " + mQStr) || !/geograph|climate|tectonic|volcan|caldera|ocean|monsoon|landslide|society|women|caste/i.test(mQStr));
+  const mIsGeog = (/GS[-_\s]?1/i.test(mPaperStr) || /geograph/i.test(mDiscStr)) && /geograph|climate|soil|volcan|caldera|earthquake|landslide|tectonic|river|drainage|monsoon|ocean|current|atmosphere|spatial|himalaya|western ghats/i.test(mDiscStr + " " + mQStr);
+  const mIsSoc = (/GS[-_\s]?1/i.test(mPaperStr) || /societ|social/i.test(mDiscStr)) && /society|social|caste|women|gender|urbanis|communal|secular|globalis|poverty|population|demograph|sex ratio/i.test(mDiscStr + " " + mQStr);
+  const mIsPolity = /GS[-_\s]?2/i.test(mPaperStr) && !/international|foreign|bilateral|treaty|unsc|brics|quad|diploma/i.test(mDiscStr + " " + mQStr);
+  const mIsIR = /GS[-_\s]?2/i.test(mPaperStr) && /international|foreign|bilateral|treaty|unsc|brics|quad|diploma|geopolit|indo-pacific/i.test(mDiscStr + " " + mQStr);
+  const mIsEcon = /GS[-_\s]?3/i.test(mPaperStr) && /econom|gdp|fiscal|inflat|bank|rbi|budget|tax|industry|msme|trade|growth|invest/i.test(mDiscStr + " " + mQStr);
+  const mIsEnvSci = /GS[-_\s]?3/i.test(mPaperStr) && /environment|climate|biodivers|pollution|disaster|ndma|\bai\b|tech|space|isro|cyber/i.test(mDiscStr + " " + mQStr);
+  const mIsEthics = /GS[-_\s]?4/i.test(mPaperStr) || /ethics|moral|integrity|probity|attitude|nolan|corruption|empathy|virtue/i.test(mDiscStr + " " + mQStr);
+
   let subjAdvice = "";
-  if (detectedPaper.includes("GS4") || /ethics|moral|integrity|intolerance|virtue|nolan/i.test(String(evalData.detected_question || state.question || ""))) {
+  if (mIsHist) {
     subjAdvice = isHindi
-      ? "सद्गुण नीतिशास्त्र (Virtue Ethics) व उपयोगितावाद तथा संवैधानिक नैतिकता (अनुच्छेद 51A(e), बंधुत्व) के साथ व्यावहारिक प्रशासनिक समाधान प्रस्तुत करें।"
-      : "Anchor sociological observations with formal ethical frameworks (Virtue Ethics / Deontology) and Constitutional Morality (Fraternity & Article 51A(e)) for an authoritative resolution.";
-  } else if (detectedPaper.includes("GS2") || /polity|constitution|federal|judic|parliament|governance/i.test(String(evalData.detected_question || state.question || ""))) {
+      ? "ऐतिहासिक तर्कों को प्राथमिक साहित्यिक स्रोतों (जैसे अर्थशास्त्र, मेगस्थनीज, संगम साहित्य), पुरातात्विक साक्ष्यों (अभिलेख, सिक्के, उत्खनन स्थल) और कालानुक्रमिक उदाहरणों से प्रमाणित करें।"
+      : "Back historical claims with primary textual sources (e.g. Megasthenes, Arthashastra, Sangam literature), archaeological findings (epigraphy, numismatics, excavation sites), and chronological milestones.";
+  } else if (mIsGeog) {
     subjAdvice = isHindi
-      ? "तर्कों को संबंधित संवैधानिक अनुच्छेदों, सर्वोच्च न्यायालय के ऐतिहासिक निर्णयों तथा 2nd ARC / विधि आयोग के सुझावों से पुष्ट करें।"
-      : "Substantiate arguments with specific Constitutional Articles, landmark Supreme Court rulings, and 2nd ARC / Law Commission recommendations.";
-  } else if (detectedPaper.includes("GS3") || /economy|gdp|fiscal|environment|disaster|ai|tech/i.test(String(evalData.detected_question || state.question || ""))) {
+      ? "स्थानिक विश्लेषण को भू-आकृतिक प्रक्रियाओं (जैसे दाब प्रवणता, विवर्तनिक संचलन), जलवायुवीय तंत्रों और 1 त्वरित 2D रेखाचित्र/मानचित्र से पुष्ट करें।"
+      : "Substantiate spatial analysis with geomorphic mechanisms (pressure gradients, tectonic movements), climatic driving forces, and 1 quick schematic sketch map.";
+  } else if (mIsSoc) {
     subjAdvice = isHindi
-      ? "प्रत्येक तर्क को आधिकारिक नीतिगत आंकड़ों (नीति आयोग / बजट / आर्थिक समीक्षा) तथा प्रमुख योजनाओं से प्रमाणित करें।"
-      : "Back qualitative claims with official empirical data points (NITI Aayog, Economic Survey, Budget allocations) and statutory institutional mechanisms.";
+      ? "सामाजिक परिघटनाओं को आधिकारिक जनसांख्यिकीय संकेतकों (NFHS, जनगणना), समाजशास्त्रीय अवधारणाओं (जैसे संस्कृतिकरण, पितृसत्तात्मक मानदंड) और समकालीन अध्ययनों से प्रमाणित करें।"
+      : "Anchor sociological arguments in official demographic telemetry (NFHS, Census), established sociological frameworks, and empirical field studies.";
+  } else if (mIsPolity) {
+    subjAdvice = isHindi
+      ? "संवैधानिक तर्कों को संबंधित अनुच्छेदों, सर्वोच्च न्यायालय के प्रमुख निर्णयों (जैसे केशवानंद, पुट्टास्वामी), विधि आयोग / 2nd ARC की सिफारिशों से प्रमाणित करें।"
+      : "Substantiate arguments with specific Constitutional Articles, landmark Supreme Court doctrines (e.g. Kesavananda, Puttaswamy), and 2nd ARC / Law Commission recommendations.";
+  } else if (mIsIR) {
+    subjAdvice = isHindi
+      ? "अंतरराष्ट्रीय संबंधों का विश्लेषण रणनीतिक राष्ट्रीय हितों, द्विपक्षीय संधियों, वैश्विक सम्मेलनों और विदेश नीति के सिद्धांतों (जैसे गुटनिरपेक्षता 2.0, सागर विजन) के आधार पर करें।"
+      : "Anchor geopolitical analysis in strategic national interests, bilateral treaties, institutional forums (UNSC, BRICS, Quad), and diplomatic doctrines.";
+  } else if (mIsEcon) {
+    subjAdvice = isHindi
+      ? "आर्थिक दावों को आधिकारिक आंकड़ों (आर्थिक समीक्षा, केंद्रीय बजट, नीति आयोग, आवधिक श्रम बल सर्वेक्षण) और प्रमुख नीतिगत पहलों से प्रमाणित करें।"
+      : "Substantiate economic claims with official empirical telemetry (Economic Survey, Union Budget, NITI Aayog, PLFS data) and targeted sectoral policies.";
+  } else if (mIsEnvSci) {
+    subjAdvice = isHindi
+      ? "पर्यावरणीय तर्कों को वैज्ञानिक सूचकांकों, आईपीसीसी रिपोर्टों, एनडीएमए दिशानिर्देशों, और वैधानिक संरक्षण तंत्रों (जैसे ईपीए 1986, वन संरक्षण अधिनियम) से पुष्ट करें।"
+      : "Ground environmental arguments in scientific thresholds, IPCC assessment indicators, NDMA disaster guidelines, and statutory conservation frameworks.";
+  } else if (mIsEthics) {
+    subjAdvice = isHindi
+      ? "नैतिक तर्कों को नोलन समिति के सार्वजनिक जीवन के सिद्धांतों, द्वितीय एआरसी (शासन में नैतिकता), दार्शनिक सिद्धांतों (कर्तव्यशास्त्र, सद्गुण नीतिशास्त्र) और व्यावहारिक प्रशासनिक केसों से पुष्ट करें।"
+      : "Anchor arguments in Nolan Principles of Public Life, 2nd ARC (Ethics in Governance), philosophical frameworks (Virtue Ethics, Deontology), and practical administrative dilemma resolutions.";
   } else {
     subjAdvice = isHindi
-      ? "कालानुक्रमिक स्पष्टता, बहुआयामी दृष्टिकोण तथा प्रासंगिक स्थानिक उदाहरणों का समावेश करें।"
-      : "Structure points with chronological clarity, multidimensional cause-and-effect links, and authentic contemporary micro-examples.";
+      ? "तर्कों को कालानुक्रमिक व तार्किक स्पष्टता, बहुआयामी दृष्टिकोण तथा प्रासंगिक उदाहरणों से प्रमाणित करें।"
+      : "Structure points with logical clarity, multidimensional cause-and-effect links, and authentic topic-specific examples.";
+  }
+
+  // Sanitize topGapDetail so any legacy boilerplate ("institutional anchors" in history/geography) is cleaned
+  let cleanTopGapDetail = topGapDetail;
+  if (cleanTopGapDetail) {
+    if (mIsHist) {
+      cleanTopGapDetail = cleanTopGapDetail.replace(/\b(?:institutional\s+anchors?|statutory\s+institutional\s+mechanisms?|statutory\s+anchors?|committee\s+reports?)\b/gi, "primary textual and archaeological evidence");
+    } else if (mIsGeog) {
+      cleanTopGapDetail = cleanTopGapDetail.replace(/\b(?:institutional\s+anchors?|statutory\s+institutional\s+mechanisms?|statutory\s+anchors?)\b/gi, "spatial mechanisms and regional examples");
+    } else if (mIsSoc) {
+      cleanTopGapDetail = cleanTopGapDetail.replace(/\b(?:institutional\s+anchors?|statutory\s+institutional\s+mechanisms?)\b/gi, "demographic data and sociological frameworks");
+    } else if (mIsEthics) {
+      cleanTopGapDetail = cleanTopGapDetail.replace(/\b(?:institutional\s+anchors?|statutory\s+institutional\s+mechanisms?)\b/gi, "ethical philosophies and administrative values");
+    }
   }
 
   const markBudgetGuide = mmVal === 10
     ? (isHindi ? "10-अंकों के प्रश्न (7 मिनट) में भूमिका 2 पंक्तियों तक सीमित रखें और 2 मुख्य उप-शीर्षकों में 3-3 उच्च-मूल्य बिंदु दें।" : "In a 10-marker (7-minute budget), keep your introduction to 2 lines and structure the body into 2 distinct sub-headings with 3 high-yield points each.")
-    : (isHindi ? "15-अंकों के प्रश्न (11 मिनट) में दोनों उप-मांगों को समान विस्तार (4-5 बिंदु प्रत्येक) दें और निष्कर्ष से पूर्व 3-बिंदु अग्रगामी समाधान जोड़ें।" : "In a 15-marker (11-minute budget), ensure balanced dimensional expansion across all sub-demands (4–5 points each) with a dedicated 3-point Way Forward.");
+    : (isHindi ? "15-अंकों के प्रश्न (11 मिनट) में प्रत्येक मुख्य उप-मांग को संतुलित विस्तार (4-5 बिंदु प्रत्येक) दें और स्पष्ट निष्कर्ष जोड़ें।" : "In a 15-marker (11-minute budget), ensure balanced dimensional expansion across all sub-demands (4–5 points each) with a structured conclusion.");
 
   if (isHindi) {
     habitFixedHtml = `**प्रमाणित मजबूती — ${topStrTitle}**: इस प्रति में आपने **${topStrTitle}** का सराहनीय प्रयोग किया (${topStrDetail.slice(0, 160)})। यह प्रस्तुति परीक्षक को मुख्य मांग के अंक तुरंत देने के लिए प्रेरित करती है। इसे आगामी प्रतियों में भी यथावत बनाए रखें।`;
-    nextHabitHtml = `**अगले +1.5M हेतु व्यक्तिगत मेंटर मार्गदर्शन**: ${topGapTitle ? `सर्वोच्च प्राथमिकता: **${topGapTitle}** पर ध्यान दें (${topGapDetail.slice(0, 140)})। ` : ""}${markBudgetGuide} ${subjAdvice}`;
+    nextHabitHtml = `**अगले +1.5M हेतु व्यक्तिगत मेंटर मार्गदर्शन**: ${topGapTitle ? `सर्वोच्च प्राथमिकता: **${topGapTitle}** पर ध्यान दें (${cleanTopGapDetail.slice(0, 140)})। ` : ""}${markBudgetGuide} ${subjAdvice}`;
   } else {
     habitFixedHtml = `**Proven Habit — ${topStrTitle}**: In this evaluated copy, you demonstrated **${topStrTitle}** (${topStrDetail.slice(0, 160)}). This structured grounding immediately captures examiner confidence and secures baseline demand marks. Keep this as your permanent standard.`;
-    nextHabitHtml = `**Personal Mentor Action for +1.5M Jump**: ${topGapTitle ? `Highest-Yield Upgrade: Focus on **${topGapTitle}** (${topGapDetail.slice(0, 140)}). ` : ""}${markBudgetGuide} ${subjAdvice}`;
+    nextHabitHtml = `**Personal Mentor Action for +1.5M Jump**: ${topGapTitle ? `Highest-Yield Upgrade: Focus on **${topGapTitle}** (${cleanTopGapDetail.slice(0, 140)}). ` : ""}${markBudgetGuide} ${subjAdvice}`;
   }
 
   memoryBoxEl.innerHTML = `

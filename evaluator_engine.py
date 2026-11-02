@@ -64,6 +64,10 @@ DIRECTIVES = {
         "meaning": "Crisp, information-dense overview covering definitions, key mechanisms, relevance, and contemporary issues.",
         "ideal_balance": "Precise conceptual overview, operational mechanisms, and contemporary significance."
     },
+    "explain": {
+        "meaning": "Clarify core mechanisms, causal processes, and chronological or spatial relationships with domain-specific terminology, structured sub-headings, and authentic examples.",
+        "ideal_balance": "Direct causal explanation with structured thematic sub-headings, logical cause-and-effect progression, and concrete authentic examples."
+    },
     "elucidate": {
         "meaning": "Clarify concept using lucid explanations, facts, and concrete case studies.",
         "ideal_balance": "Clear explanatory depth substantiated with concrete real-world examples, case studies, and contextual relevance."
@@ -285,6 +289,10 @@ HINDI_DIRECTIVES = {
     "आलोचनात्मक टिप्पणी": {
         "meaning": "उपलब्धियों और व्यवस्थागत कमियों दोनों की पड़ताल कर संतुलित सुधारपरक दृष्टिकोण प्रस्तुत करें।",
         "ideal_balance": "मूल विषयवस्तु के गुण-दोषों की पड़ताल और सुधारपरक दृष्टिकोण।"
+    },
+    "व्याख्या कीजिए": {
+        "meaning": "विषय के मूल कारणों, प्रक्रियाओं एवं अंतर्संबंधों को तार्किक क्रम, विषयगत शब्दावली और प्रामाणिक उदाहरणों द्वारा स्पष्ट करें।",
+        "ideal_balance": "कारण-प्रभाव विश्लेषण, विषय-आधारित उप-शीर्षक और प्रासंगिक ऐतिहासिक या भौगोलिक उदाहरण।"
     },
     "समीक्षा कीजिए": {
         "meaning": "उपलब्धियों और व्यवस्थागत कमियों दोनों की गहन पड़ताल करें और संतुलित समाधान दें।",
@@ -6601,6 +6609,10 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         d_info = detect_directive(final_question, medium=data.get("medium"))
         if not data["directive_compliance"].get("directive") or data["directive_compliance"].get("directive") == "Discuss / Comprehensive Analysis":
             data["directive_compliance"]["directive"] = d_info["directive"]
+        if not data["directive_compliance"].get("details") or "PESTLE" in str(data["directive_compliance"].get("details", "")):
+            data["directive_compliance"]["details"] = d_info.get("details", "")
+        if not data["directive_compliance"].get("ideal_balance"):
+            data["directive_compliance"]["ideal_balance"] = d_info.get("ideal_balance", "")
 
     # 7. Zero-Contradiction Audit & Plain-English / Hindi Simplification across all feedback fields
     _sanitize_and_simplify_feedback(data, is_hindi=is_hindi)
@@ -8168,7 +8180,29 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                 elif s_idx < len(gaps) and not _has_meta_placeholder(str(gaps[s_idx])):
                     verdict = str(gaps[s_idx]).strip()
                 else:
-                    verdict = "विश्लेषण को ठोस साक्ष्यों एवं संस्थागत संदर्भों से सुदृढ़ करें।" if is_hindi else f"Strengthen analysis of {clean_title} with specific evidence and institutional anchors."
+                    q_ctx_low = str(data.get("detected_question") or data.get("question") or "").lower()
+                    eff_p_code = str(data.get("detected_paper") or data.get("paper") or "").upper()
+                    is_h_disc = ("GS1" in eff_p_code or "GS-1" in eff_p_code) and any(k in q_ctx_low for k in ["ancient", "medieval", "modern", "history", "art", "culture", "heritage", "dynast", "archaeolog", "inscript", "temple", "sculptur", "buddh", "jain", "maury", "gupta", "chola", "mughal", "vijayanagar", "freedom", "gandhi"])
+                    is_g_disc = ("GS1" in eff_p_code or "GS-1" in eff_p_code) and any(k in q_ctx_low for k in ["geograph", "climate", "soil", "volcan", "caldera", "earthquake", "landslide", "tectonic", "river", "drainage", "monsoon", "ocean", "current", "plateau", "himalaya", "western ghats", "atmosphere"])
+                    is_s_disc = ("GS1" in eff_p_code or "GS-1" in eff_p_code) and any(k in q_ctx_low for k in ["society", "caste", "women", "gender", "urbanis", "communal", "secular", "globalis", "poverty", "population", "demograph", "sex ratio"])
+                    is_e_disc = ("GS4" in eff_p_code or "GS-4" in eff_p_code) or any(k in q_ctx_low for k in ["ethics", "moral", "integrity", "probity", "attitude", "nolan", "corruption", "empathy"])
+                    is_ec_disc = ("GS3" in eff_p_code or "GS-3" in eff_p_code) and any(k in q_ctx_low for k in ["econom", "gdp", "fiscal", "inflat", "bank", "rbi", "budget", "tax", "industry", "msme", "trade", "growth"])
+                    is_pol_disc = ("GS2" in eff_p_code or "GS-2" in eff_p_code) and not any(k in q_ctx_low for k in ["international", "foreign", "bilateral", "treaty", "unsc", "brics", "quad"])
+
+                    if is_h_disc:
+                        verdict = f"प्राथमिक ऐतिहासिक साक्ष्यों (शिलालेख, साहित्यिक संदर्भ) से {clean_title} का विश्लेषण सुदृढ़ करें।" if is_hindi else f"Strengthen analysis of {clean_title} with specific primary textual sources, epigraphic records, or historical milestones."
+                    elif is_g_disc:
+                        verdict = f"स्थानिक प्रक्रियाओं, भू-आकृतिक शब्दावली या रेखाचित्रों से {clean_title} का विश्लेषण सुदृढ़ करें।" if is_hindi else f"Strengthen analysis of {clean_title} with geomorphic mechanisms, spatial patterns, or schematic diagrams."
+                    elif is_s_disc:
+                        verdict = f"जनसांख्यिकीय संकेतकों (NFHS, जनगणना) या समाजशास्त्रीय अवधारणाओं से {clean_title} का विश्लेषण सुदृढ़ करें।" if is_hindi else f"Strengthen analysis of {clean_title} with demographic indicators (NFHS, Census) or sociological frameworks."
+                    elif is_e_disc:
+                        verdict = f"नीतिशास्त्रीय सिद्धांतों (कर्तव्यशास्त्र, सद्गुण) या नोलन मूल्यों से {clean_title} का विश्लेषण सुदृढ़ करें।" if is_hindi else f"Strengthen analysis of {clean_title} with ethical philosophies (Deontology, Virtue Ethics) or Nolan principles."
+                    elif is_ec_disc:
+                        verdict = f"आधिकारिक आर्थिक आंकड़ों (आर्थिक समीक्षा, बजट) या समिति रिपोर्टों से {clean_title} का विश्लेषण सुदृढ़ करें।" if is_hindi else f"Strengthen analysis of {clean_title} with official economic data (Economic Survey, Budget) or committee benchmarks."
+                    elif is_pol_disc:
+                        verdict = f"संवैधानिक अनुच्छेदों, न्यायिक निर्णयों या 2nd ARC के सुझावों से {clean_title} का विश्लेषण सुदृढ़ करें।" if is_hindi else f"Strengthen analysis of {clean_title} with specific Constitutional Articles, landmark judicial rulings, or 2nd ARC recommendations."
+                    else:
+                        verdict = f"तर्कों को विषयगत प्रासंगिक साक्ष्यों एवं स्पष्ट कार्य-कारण तंत्र से {clean_title} में सुदृढ़ करें।" if is_hindi else f"Strengthen analysis of {clean_title} with discipline-relevant empirical evidence and causal linkage."
             pbp_generated.append({
                 "page": p_num,
                 "badge": badge_loc,
@@ -8662,7 +8696,20 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                     t_clean = re.sub(r'[*_#`]', '', str(pbp.get("title"))).strip()
                     if not any(t_clean.lower()[:15] in fg.lower() for fg in formatted_gaps):
                         pg_num = pbp.get("page", 2)
-                        verd = str(pbp.get("examiner_verdict") or "Deepen analysis with official institutional data and statutory anchors.")
+                        verd = str(pbp.get("examiner_verdict") or "")
+                        if not verd or "institutional data and statutory anchors" in verd.lower():
+                            if is_history_culture:
+                                verd = "Deepen analysis with primary textual sources, epigraphic references, or archaeological findings."
+                            elif is_geo:
+                                verd = "Deepen analysis with geomorphic mechanisms, regional spatial patterns, and schematic sketch diagrams."
+                            elif is_ethics:
+                                verd = "Deepen analysis with formal ethical doctrines, Nolan principles, and practical administrative case examples."
+                            elif is_econ:
+                                verd = "Deepen analysis with official empirical telemetry (Economic Survey, Union Budget) and committee benchmarks."
+                            elif is_polity:
+                                verd = "Deepen analysis with specific Constitutional Articles, landmark judicial rulings, and 2nd ARC recommendations."
+                            else:
+                                verd = "Deepen analysis with concrete empirical data, domain concepts, and verified examples."
                         formatted_gaps.append(f"**{t_clean} (Page {pg_num})**: {verd}")
 
         body_audit["critical_gaps"] = formatted_gaps[:4]
