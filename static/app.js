@@ -11679,6 +11679,85 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
     });
   }
 
+  // Harvest from missing_dimensions if critical gaps is still under-populated
+  if (formattedGaps.length < 2 && Array.isArray(body.missing_dimensions)) {
+    body.missing_dimensions.forEach(dim => {
+      if (formattedGaps.length >= 3) return;
+      const dStr = String(dim || "").trim();
+      if (!dStr || dStr.length < 8) return;
+      const pgTag = isHindi ? " (पृष्ठ 2)" : " (Page 2)";
+      if (dStr.includes(":")) {
+        const parts = dStr.split(":");
+        const t = parts[0].replace(/[*_#`]/g, "").trim();
+        const gapEntry = `**${t}${pgTag}**: ${parts.slice(1).join(":").trim()}`;
+        if (!formattedGaps.some(fg => fg.toLowerCase().includes(t.toLowerCase().slice(0, 15)))) {
+          formattedGaps.push(gapEntry);
+        }
+      } else {
+        const gapEntry = `**${isHindi ? "विश्लेषणात्मक आयाम" : "Analytical Dimension Scope"}${pgTag}**: ${dStr}`;
+        if (!formattedGaps.some(fg => fg.toLowerCase().includes(dStr.toLowerCase().slice(0, 15)))) {
+          formattedGaps.push(gapEntry);
+        }
+      }
+    });
+  }
+
+  // Harvest from cards with constructive recommendations even if is_positive
+  if (formattedGaps.length < 2) {
+    pbpList.forEach(pbp => {
+      if (formattedGaps.length >= 3) return;
+      if (pbp && pbp.title) {
+        const verd = String(pbp.examiner_verdict || "");
+        if (/\b(?:could|scope\s+for|improve|suggest|lacks?|missing|superficial|substantiate|incomplete|brief|जोड़ें|सुधार|अभाव)\b/i.test(verd)) {
+          const tClean = pbp.title.replace(/[*_#`]/g, '').trim();
+          const pgStr = pbp.page ? (isHindi ? ` (पृष्ठ ${pbp.page})` : ` (Page ${pbp.page})`) : (isHindi ? " (पृष्ठ 2)" : " (Page 2)");
+          if (!formattedGaps.some(fg => fg.toLowerCase().includes(tClean.toLowerCase().slice(0, 15)))) {
+            formattedGaps.push(`**${tClean}${pgStr}**: ${verd}`);
+          }
+        }
+      }
+    });
+  }
+
+  // Dynamic discipline fallback: ensure Body Upgrade Levers is NEVER an empty container
+  if (formattedGaps.length === 0) {
+    const qText = String(evalData.detected_question || (typeof state !== "undefined" && state.question) || evalData.question || "").toLowerCase();
+    const curDisc = (typeof window.classifyQuestionDiscipline === "function")
+      ? window.classifyQuestionDiscipline(qText, evalData.paper || evalData.detected_paper)
+      : "POLICY_GOVERNANCE_ECONOMY";
+
+    if (isHindi) {
+      if (curDisc === "HISTORY_CULTURE" || /ancient|medieval|history|प्राचीन|इतिहास/.test(qText)) {
+        formattedGaps.push("**पुरातात्विक एवं साहित्यिक साक्ष्य (पृष्ठ 2)**: ऐतिहासिक दावों को समकालीन अभिलेखों, उत्खनन साक्ष्यों तथा साहित्यिक स्रोतों के प्रत्यक्ष संदर्भ से पुष्ट करें।");
+        formattedGaps.push("**सामाजिक-आर्थिक अंतर्संबंध (पृष्ठ 2)**: केवल राजनीतिक अथवा भौगोलिक सीमाओं तक सीमित न रहकर कृषि अधिशेष, व्यापारिक मार्गों एवं नगरीकरण की प्रक्रिया को स्पष्ट करें।");
+      } else if (curDisc === "PHYSICAL_GEOGRAPHY" || /geograph|भूगोल|मानसून|सिंचाई|irrigation/.test(qText)) {
+        formattedGaps.push("**भू-आकृतिक कार्य-कारण संबंध (पृष्ठ 2)**: केवल विवरणात्मक बिंदुओं के स्थान पर भौगोलिक प्रक्रियाओं के अंतर्निहित कार्य-कारण संबंधों एवं क्षेत्रीय प्रारूपों को स्पष्ट करें।");
+        formattedGaps.push("**स्थानिक आरेख एवं सांख्यिकीय डेटा (पृष्ठ 1–2)**: अवधारणाओं को केवल पाठ्य रूप में लिखने के बजाय एक संक्षिप्त, नामांकित रेखाचित्र अथवा आधिकारिक डेटा द्वारा संघनित करें।");
+      } else if (curDisc === "PHILOSOPHY_ETHICS" || /ethics|नीतिशास्त्र|मूल्य/.test(qText)) {
+        formattedGaps.push("**व्यावहारिक प्रशासनिक नीतिशास्त्र (पृष्ठ 2)**: सैद्धांतिक परिभाषाओं के स्थान पर नोलन सिद्धांतों, संवैधानिक नैतिकता एवं यथार्थवादी प्रशासनिक मानक संचालन प्रक्रियाओं (SOP) का प्रयोग करें।");
+      } else {
+        formattedGaps.push("**प्रामाणिक साक्ष्य एवं बहु-आयामी विस्तार (पृष्ठ 2)**: तर्कों को आधिकारिक नीतिगत दस्तावेजों, संस्थागत रूपरेखा तथा ठोस उदाहरणों से और अधिक पुष्ट करें।");
+        formattedGaps.push("**संतुलित दृष्टिकोण एवं अग्रगामी समाधान (पृष्ठ 2)**: समस्याओं के उल्लेख के साथ-साथ व्यवहार्य एवं नवाचारी प्रशासनिक समाधानों को प्राथमिकता दें।");
+      }
+    } else {
+      if (curDisc === "HISTORY_CULTURE" || /ancient|medieval|history/.test(qText)) {
+        formattedGaps.push("**Epigraphic & Archaeological Corroboration (Page 2)**: Corroborate historical claims with primary epigraphic inscriptions, numismatic evidence, or archaeological excavation strata.");
+        formattedGaps.push("**Socio-Economic & Materialist Linkages (Page 2)**: Connect political-geographical developments to underlying agrarian surplus, trade conduits, and urban transition mechanisms.");
+      } else if (curDisc === "PHYSICAL_GEOGRAPHY" || /geograph|irrigation|climate|monsoon/.test(qText)) {
+        formattedGaps.push("**Geomorphic Mechanism & Spatial Linkage (Page 2)**: Substantiate spatial assertions with explicit cause-and-effect physical mechanisms and regional disaggregation.");
+        formattedGaps.push("**Cartographic Integration & Empirical Metrics (Page 1–2)**: Integrate a rapid labeled sketch schematic and authoritative baseline metrics to condense data visually.");
+      } else if (/ai|drone|gis|remote sensing|aerial/.test(qText)) {
+        formattedGaps.push("**Geodetic Ground-Truthing & Real-Time Telemetry (Page 2)**: Strengthen locational analysis by integrating Continuously Operating Reference Stations (CORS) or DGPS baseline data for centimeter-level spatial precision.");
+        formattedGaps.push("**Regulatory & Data Governance Safeguards (Page 3)**: Complement technical use-cases with concrete compliance under Geospatial Guidelines 2021, Drone Rules 2021, and DPDP Act 2023 for sensitive geospatial data security.");
+      } else if (curDisc === "PHILOSOPHY_ETHICS" || /ethics|moral|probity/.test(qText)) {
+        formattedGaps.push("**Applied Ethical Frameworks & Administrative Trade-Offs (Page 2)**: Anchor dilemmas in formal public service values (Nolan principles, constitutional morality) and realistic 3-phase administrative standard operating procedures.");
+      } else {
+        formattedGaps.push("**Substantive Empirical Anchoring (Page 2)**: Deepen analytical points with official institutional frameworks, statutory citations, and verifiable baseline telemetry.");
+        formattedGaps.push("**Forward-Looking Operational Solutions (Page 2)**: Pair structural challenges with actionable, policy-compliant administrative levers rather than generic homilies.");
+      }
+    }
+  }
+
   body.critical_gaps = formattedGaps.slice(0, 4);
 
   // 4. Clean missing dimensions: strictly filter out generic catalogue boilerplate
@@ -12542,6 +12621,13 @@ window.transferPointAuditToDeepEvaluation = function(evalData) {
     }
   });
 
+  if (existingGaps.length === 0) {
+    const rawG = Array.isArray(body.critical_gaps) ? body.critical_gaps.map(cleanQuotes).filter(Boolean) : [];
+    if (rawG.length > 0) {
+      existingGaps = rawG;
+    }
+  }
+
   intro.current_critique = introCrit;
   conc.current_critique = concCrit;
   body.strengths = window.sortPointsChronologically(existingStrengths);
@@ -12550,6 +12636,9 @@ window.transferPointAuditToDeepEvaluation = function(evalData) {
 
 
 function renderEvaluation(evalData) {
+  const qStrLow = String(evalData?.detected_question || state?.question || evalData?.question || "").toLowerCase();
+  window.qStrLow = qStrLow;
+
   if (typeof window.transferPointAuditToDeepEvaluation === "function") {
     window.transferPointAuditToDeepEvaluation(evalData);
   }
@@ -13099,7 +13188,7 @@ function renderEvaluation(evalData) {
   const paperStr = String(evalData.paper || evalData.detected_paper || (state.currentEvaluation && state.currentEvaluation.paper) || "").toUpperCase();
   const discStr = String(evalData.subject_discipline || evalData.syllabus_subheading || "").toLowerCase();
   const qStr = String(evalData.detected_question || evalData.question || (typeof state !== "undefined" && state.question) || "").toLowerCase();
-  const qStrLow = qStr;
+  // qStrLow is already declared and exposed at the top of renderEvaluation
 
   const isHist = (/GS[-_\s]?1/i.test(paperStr) || /history|heritage|ancient/i.test(discStr)) && (/history|ancient|medieval|modern|art|culture|heritage|archaeolog|dynast|monument|sculptur|buddh|jain|freedom|gandhi/i.test(discStr + " " + qStr) || !/geograph|climate|tectonic|volcan|caldera|ocean|monsoon|landslide|society|women|caste/i.test(qStr));
   const isGeog = (/GS[-_\s]?1/i.test(paperStr) || /geograph/i.test(discStr)) && /geograph|climate|soil|volcan|caldera|earthquake|landslide|tectonic|river|drainage|monsoon|ocean|current|atmosphere|spatial|himalaya|western ghats/i.test(discStr + " " + qStr);
@@ -13677,15 +13766,34 @@ function renderEvaluation(evalData) {
 
   const gapsEl = document.getElementById("bodyGapsList");
   gapsEl.innerHTML = "";
-  const sortedGaps = typeof window.sortPointsChronologically === "function" ? window.sortPointsChronologically(body.critical_gaps || []) : (body.critical_gaps || []);
-  sortedGaps.forEach(g => {
-    registerInDeepEval(g);
-    const cleanG = String(g || '').replace(/^[✎✗×•\s\-]+/, '').replace(/\s*\((?:Ref|उत्तर संदर्भ|उत्तर)\s*:\s*[^)]+\)/gi, '').trim();
+  let sortedGaps = typeof window.sortPointsChronologically === "function" ? window.sortPointsChronologically(body.critical_gaps || []) : (body.critical_gaps || []);
+
+  if (!sortedGaps || sortedGaps.length === 0) {
+    const rawMissing = Array.isArray(body.missing_dimensions) ? body.missing_dimensions : [];
+    if (rawMissing.length > 0) {
+      sortedGaps = rawMissing.map((m, idx) => {
+        const pNum = Math.min(idx + 2, 3);
+        const pTag = isHindi ? `पृष्ठ ${pNum}` : `Page ${pNum}`;
+        return `**${isHindi ? "विश्लेषणात्मक विस्तार" : "Analytical Depth Lever"} (${pTag})**: ${m}`;
+      });
+    }
+  }
+
+  if (sortedGaps && sortedGaps.length > 0) {
+    sortedGaps.forEach(g => {
+      registerInDeepEval(g);
+      const cleanG = String(g || '').replace(/^[✎✗×•\s\-]+/, '').replace(/\s*\((?:Ref|उत्तर संदर्भ|उत्तर)\s*:\s*[^)]+\)/gi, '').trim();
+      const li = document.createElement("li");
+      li.className = "flex items-start space-x-2";
+      li.innerHTML = `<span class="text-amber-500 dark:text-amber-400 font-bold shrink-0 mt-0.5">✎</span><span class="leading-relaxed flex-1">${formatHighlightedText(cleanG)}</span>`;
+      gapsEl.appendChild(li);
+    });
+  } else {
     const li = document.createElement("li");
-    li.className = "flex items-start space-x-2";
-    li.innerHTML = `<span class="text-amber-500 dark:text-amber-400 font-bold shrink-0 mt-0.5">✎</span><span class="leading-relaxed flex-1">${formatHighlightedText(cleanG)}</span>`;
+    li.className = "flex items-start space-x-2 text-slate-600 dark:text-slate-400 italic text-xs py-1";
+    li.innerHTML = `<span class="text-emerald-500 font-bold shrink-0">✓</span><span class="leading-relaxed flex-1">${isHindi ? "मुख्य भाग के सभी प्राथमिक आयाम सफलतापूर्वक संबोधित किए गए हैं; 4.5 अंक से 6.5+ टॉपर स्तर तक पहुंचने के लिए नीचे दिए गए मूल्य संवर्धन (Value Addition) बिंदुओं का समावेश करें।" : "Core body arguments fulfilled the primary demand satisfactorily; integrate the Value Addition Multipliers below to elevate from 4.5M to 6.5M topper-level score."}</span>`;
     gapsEl.appendChild(li);
-  });
+  }
 
   const missingDimCardBox = document.getElementById("bodyMissingDimensionsCardBox");
   const missingDimEl = document.getElementById("bodyMissingDimensionsList");

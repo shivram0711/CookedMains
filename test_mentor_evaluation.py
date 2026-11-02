@@ -253,5 +253,46 @@ class TestMentorEvaluation(unittest.TestCase):
         self.assertIn("Mentor's Structural Diagnostic", self.app_source)
         self.assertIn("मेंटर संरचनात्मक विश्लेषण", self.app_source)
 
+    def test_body_critical_gaps_never_empty(self):
+        from evaluator_engine import normalize_evaluation_data, transfer_point_audit_to_deep_evaluation
+        # Test case: raw evaluation data where critical_gaps is completely empty
+        raw_data = {
+            "detected_question": "How can Artificial Intelligence (AI) and drones be effectively used along with GIS and RS techniques in locational and aerial planning?",
+            "detected_paper": "GS3",
+            "body_audit": {
+                "overall_assessment": "Candidate discussed several technical applications across multiple sectors.",
+                "strengths": [
+                    "**Automated LULC Mapping (Page 1)**: Correctly explained satellite imagery processing for crop classification.",
+                    "**Predictive Urban Growth Modeling (Page 1)**: Applied GIS datasets for smart city traffic simulation.",
+                    "**High-Resolution Drone Mapping (Page 2)**: Highlighted centimeter accuracy for micro-planning."
+                ],
+                "critical_gaps": [],
+                "missing_dimensions": [
+                    "Geodetic Ground-Truthing: Lack of integration with CORS networks for real-time 3cm positioning accuracy."
+                ]
+            },
+            "point_by_point_audit": [
+                {
+                    "title": "Automated LULC Mapping",
+                    "page": 1,
+                    "is_positive": True,
+                    "examiner_verdict": "Clear linkage to land use classification."
+                },
+                {
+                    "title": "3D City Models",
+                    "page": 2,
+                    "is_positive": True,
+                    "examiner_verdict": "Scope for deeper integration with PM Gati Shakti NMP platform."
+                }
+            ]
+        }
+
+        normalized = normalize_evaluation_data(raw_data, max_marks=15, question=raw_data["detected_question"], paper="GS3")
+        gaps = normalized.get("body_audit", {}).get("critical_gaps", [])
+
+        # Critical gaps must NEVER be empty
+        self.assertGreater(len(gaps), 0, "Critical gaps should never be empty when body audit is normalized")
+        self.assertTrue(any("Page" in g or "पृष्ठ" in g for g in gaps), "Critical gaps should have page tags")
+
 if __name__ == '__main__':
     unittest.main()

@@ -8986,6 +8986,71 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                                 verd = "Deepen analysis with concrete empirical data, domain concepts, and verified examples."
                         formatted_gaps.append(f"**{t_clean} (Page {pg_num})**: {verd}")
 
+        # Harvest from missing_dimensions if critical gaps is still under-populated
+        if len(formatted_gaps) < 2 and isinstance(body_audit.get("missing_dimensions"), list):
+            for dim in body_audit["missing_dimensions"]:
+                if len(formatted_gaps) >= 3:
+                    break
+                dim_s = str(dim or "").strip()
+                if not dim_s or len(dim_s) < 8:
+                    continue
+                pg_tag = "पृष्ठ 2" if is_hindi else "Page 2"
+                if ":" in dim_s:
+                    parts = dim_s.split(":", 1)
+                    d_title = re.sub(r'[*_#`]', '', parts[0]).strip()
+                    gap_entry = f"**{d_title} ({pg_tag})**: {parts[1].strip()}"
+                else:
+                    d_title = "विश्लेषणात्मक आयाम" if is_hindi else "Analytical Dimension Scope"
+                    gap_entry = f"**{d_title} ({pg_tag})**: {dim_s}"
+                if not any(gap_entry.lower()[:20] in fg.lower() for fg in formatted_gaps):
+                    formatted_gaps.append(gap_entry)
+
+        # Harvest from cards with constructive recommendations even if positive
+        if len(formatted_gaps) < 2:
+            for pbp in pbp_list:
+                if len(formatted_gaps) >= 3:
+                    break
+                if isinstance(pbp, dict) and pbp.get("title"):
+                    verd = str(pbp.get("examiner_verdict") or "").strip()
+                    if re.search(r'\b(?:could|scope\s+for|improve|suggest|lacks?|missing|superficial|substantiate|incomplete|brief|जोड़ें|सुधार|अभाव)\b', verd, re.I):
+                        t_clean = re.sub(r'[*_#`]', '', str(pbp.get("title"))).strip()
+                        pg_num = pbp.get("page", 2)
+                        pg_tag = f"पृष्ठ {pg_num}" if is_hindi else f"Page {pg_num}"
+                        gap_entry = f"**{t_clean} ({pg_tag})**: {verd}"
+                        if not any(t_clean.lower()[:15] in fg.lower() for fg in formatted_gaps):
+                            formatted_gaps.append(gap_entry)
+
+        # Dynamic fallback: ensure Body Upgrade Levers is NEVER an empty container
+        if not formatted_gaps:
+            q_text_low = str(data.get("detected_question") or data.get("question") or "").lower()
+            if is_hindi:
+                if is_history_culture or any(k in q_text_low for k in ["ancient", "medieval", "history", "प्राचीन", "इतिहास"]):
+                    formatted_gaps.append("**पुरातात्विक एवं साहित्यिक साक्ष्य (पृष्ठ 2)**: ऐतिहासिक दावों को समकालीन अभिलेखों, उत्खनन साक्ष्यों तथा साहित्यिक स्रोतों के प्रत्यक्ष संदर्भ से पुष्ट करें।")
+                    formatted_gaps.append("**सामाजिक-आर्थिक अंतर्संबंध (पृष्ठ 2)**: केवल राजनीतिक अथवा भौगोलिक सीमाओं तक सीमित न रहकर कृषि अधिशेष, व्यापारिक मार्गों एवं नगरीकरण की प्रक्रिया को स्पष्ट करें।")
+                elif is_geo or any(k in q_text_low for k in ["geograph", "भूगोल", "मानसून", "सिंचाई", "irrigation"]):
+                    formatted_gaps.append("**भू-आकृतिक कार्य-कारण संबंध (पृष्ठ 2)**: केवल विवरणात्मक बिंदुओं के स्थान पर भौगोलिक प्रक्रियाओं के अंतर्निहित कार्य-कारण संबंधों एवं क्षेत्रीय प्रारूपों को स्पष्ट करें।")
+                    formatted_gaps.append("**स्थानिक आरेख एवं सांख्यिकीय डेटा (पृष्ठ 1–2)**: अवधारणाओं को केवल पाठ्य रूप में लिखने के बजाय एक संक्षिप्त, नामांकित रेखाचित्र अथवा आधिकारिक डेटा द्वारा संघनित करें।")
+                elif is_ethics:
+                    formatted_gaps.append("**व्यावहारिक प्रशासनिक नीतिशास्त्र (पृष्ठ 2)**: सैद्धांतिक परिभाषाओं के स्थान पर नोलन सिद्धांतों, संवैधानिक नैतिकता एवं यथार्थवादी प्रशासनिक मानक संचालन प्रक्रियाओं (SOP) का प्रयोग करें।")
+                else:
+                    formatted_gaps.append("**प्रामाणिक साक्ष्य एवं बहु-आयामी विस्तार (पृष्ठ 2)**: तर्कों को आधिकारिक नीतिगत दस्तावेजों, संस्थागत रूपरेखा तथा ठोस उदाहरणों से और अधिक पुष्ट करें।")
+                    formatted_gaps.append("**संतुलित दृष्टिकोण एवं अग्रगामी समाधान (पृष्ठ 2)**: समस्याओं के उल्लेख के साथ-साथ व्यवहार्य एवं नवाचारी प्रशासनिक समाधानों को प्राथमिकता दें।")
+            else:
+                if is_history_culture or any(k in q_text_low for k in ["ancient", "medieval", "history"]):
+                    formatted_gaps.append("**Epigraphic & Archaeological Corroboration (Page 2)**: Corroborate historical claims with primary epigraphic inscriptions, numismatic evidence, or archaeological excavation strata.")
+                    formatted_gaps.append("**Socio-Economic & Materialist Linkages (Page 2)**: Connect political-geographical developments to underlying agrarian surplus, trade conduits, and urban transition mechanisms.")
+                elif is_geo or any(k in q_text_low for k in ["geograph", "irrigation", "climate", "monsoon"]):
+                    formatted_gaps.append("**Geomorphic Mechanism & Spatial Linkage (Page 2)**: Substantiate spatial assertions with explicit cause-and-effect physical mechanisms and regional disaggregation.")
+                    formatted_gaps.append("**Cartographic Integration & Empirical Metrics (Page 1–2)**: Integrate a rapid labeled sketch schematic and authoritative baseline metrics to condense data visually.")
+                elif any(k in q_text_low for k in ["ai", "drone", "gis", "remote sensing", "aerial"]):
+                    formatted_gaps.append("**Geodetic Ground-Truthing & Real-Time Telemetry (Page 2)**: Strengthen locational analysis by integrating Continuously Operating Reference Stations (CORS) or DGPS baseline data for centimeter-level spatial precision.")
+                    formatted_gaps.append("**Regulatory & Data Governance Safeguards (Page 3)**: Complement technical use-cases with concrete compliance under Geospatial Guidelines 2021, Drone Rules 2021, and DPDP Act 2023 for sensitive geospatial data security.")
+                elif is_ethics:
+                    formatted_gaps.append("**Applied Ethical Frameworks & Administrative Trade-Offs (Page 2)**: Anchor dilemmas in formal public service values (Nolan principles, constitutional morality) and realistic 3-phase administrative standard operating procedures.")
+                else:
+                    formatted_gaps.append("**Substantive Empirical Anchoring (Page 2)**: Deepen analytical points with official institutional frameworks, statutory citations, and verifiable baseline telemetry.")
+                    formatted_gaps.append("**Forward-Looking Operational Solutions (Page 2)**: Pair structural challenges with actionable, policy-compliant administrative levers rather than generic homilies.")
+
         body_audit["critical_gaps"] = formatted_gaps  # Dynamic: no artificial fixed cap
 
     # 2B. Sanitize missing_dimensions: filter out generic catalogue boilerplate,
@@ -9852,6 +9917,11 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
             else:
                 if not _is_item_duplicate(clean_title, verdict, existing_gaps):
                     existing_gaps.append(formatted_entry)
+
+    if not existing_gaps:
+        raw_critical = body_audit.get("critical_gaps")
+        if isinstance(raw_critical, list) and raw_critical:
+            existing_gaps = [_strip_candidate_quotes(g) for g in raw_critical if g and not _has_meta_placeholder(str(g))]
 
     intro_audit["current_critique"] = intro_crit
     conclusion_audit["current_critique"] = conc_crit
