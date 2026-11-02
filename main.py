@@ -2694,8 +2694,17 @@ async def evaluate_answer(
                                     if len(keys_to_try) > 1 and key_idx < len(keys_to_try) - 1:
                                         print(f"[EVALUATOR] Key {key_idx+1} hit quota limit. Instantly rotating to alternate project key...")
                                         break
-                                    # If this is the only key, pause with bounded delay to avoid firing rapid bursts
-                                    await asyncio.sleep(1.5)
+                                    # If this is the only key, pause with upstream-guided or bounded delay to avoid firing rapid bursts
+                                    quota_wait = 3.5
+                                    hint_match = re.search(r"(?:retry\s+after|wait|reset\s+in)\s*[:=]?\s*(\d+(?:\.\d+)?)\s*(?:s|sec|seconds)?", err_s, re.IGNORECASE)
+                                    if hint_match:
+                                        try:
+                                            hint_sec = float(hint_match.group(1))
+                                            if 0.5 <= hint_sec <= 8.0:
+                                                quota_wait = hint_sec + 0.5
+                                        except Exception:
+                                            pass
+                                    await asyncio.sleep(quota_wait)
                                     continue
 
                                 # 3. Transient provider load errors (503, 504, unavailable, deadline, timeout):
