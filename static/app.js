@@ -12529,18 +12529,13 @@ window.transferPointAuditToDeepEvaluation = function(evalData) {
       const entry = `**${rawTitle} (${pageTag})**: ${verdict}`;
       const isPos = pbp.is_positive !== false;
 
-      const pageAlreadyCoveredPos = existingStrengths.some(s => s.toLowerCase().includes(`page ${pNum}`) || s.toLowerCase().includes(`पृष्ठ ${pNum}`));
-      const pageAlreadyCoveredGap = existingGaps.some(g => g.toLowerCase().includes(`page ${pNum}`) || g.toLowerCase().includes(`पृष्ठ ${pNum}`));
-
-      const maxStrengths = totalPages >= 3 ? 6 : 4;
-      const maxGaps = totalPages >= 3 ? 5 : 4;
-
+      // Dynamic Examiner Evaluation: Highlight all effective points and feedback without artificial caps
       if (isPos) {
-        if (existingStrengths.length < maxStrengths && !pageAlreadyCoveredPos && !isItemDuplicate(rawTitle, verdict, existingStrengths)) {
+        if (!isItemDuplicate(rawTitle, verdict, existingStrengths)) {
           existingStrengths.push(entry);
         }
       } else {
-        if (existingGaps.length < maxGaps && !pageAlreadyCoveredGap && !isItemDuplicate(rawTitle, verdict, existingGaps)) {
+        if (!isItemDuplicate(rawTitle, verdict, existingGaps)) {
           existingGaps.push(entry);
         }
       }
@@ -13653,28 +13648,24 @@ function renderEvaluation(evalData) {
   const rawStrengthsList = (body.strengths || []).filter(s => !/(?:^|\*\*)\s*(?:intro|introduction|प्रस्तावना|context & conceptual definition)/i.test(String(s || "")));
   const sortedStrengths = typeof window.sortPointsChronologically === "function" ? window.sortPointsChronologically(rawStrengthsList) : rawStrengthsList;
 
-  // Strict page & topic de-duplication: ensure each uploaded page has 1 rich, non-repetitive point
+  // Dynamic Examiner Rendering: highlight all effective points without artificial caps or per-page limits
   const renderedStrengthTokens = [];
-  const renderedStrengthPages = new Set();
   sortedStrengths.forEach(s => {
     const cleanS = String(s || '').replace(/^[✓✔•★⭐\s\-]+/, '').replace(/\s*\((?:Ref|उत्तर संदर्भ|उत्तर)\s*:\s*[^)]+\)/gi, '').trim();
     if (!cleanS) return;
 
-    const pgMatch = cleanS.match(/(?:Page|पृष्ठ)\s*([\d–-]+)/i);
-    const pgKey = pgMatch ? pgMatch[1] : null;
     const tokens = cleanS.toLowerCase().replace(/[^a-z0-9\u0900-\u097F\s]/g, " ").split(/\s+/).filter(w => w.length >= 5);
     
-    // Check if another point already rendered covers this same page with overlapping keywords
+    // Only suppress true duplicate topic/verdict text
     const isDuplicate = renderedStrengthTokens.some(existingTokens => {
       const matchCount = tokens.filter(t => existingTokens.has(t)).length;
-      return matchCount >= 3;
+      return matchCount >= 4 && tokens.length > 0 && (matchCount / tokens.length) >= 0.7;
     });
 
-    if (isDuplicate || (pgKey && renderedStrengthPages.has(pgKey) && tokens.length > 0 && renderedStrengthTokens.some(st => tokens.filter(t => st.has(t)).length >= 2))) {
-      return; // Skip duplicate point
+    if (isDuplicate) {
+      return; // Skip true duplicate
     }
 
-    if (pgKey) renderedStrengthPages.add(pgKey);
     renderedStrengthTokens.push(new Set(tokens));
 
     registerInDeepEval(s);

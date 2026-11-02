@@ -204,6 +204,47 @@ class TestMentorEvaluation(unittest.TestCase):
         self.assertTrue(has_p2, "Page 2 must be present in body_audit.strengths")
         self.assertTrue(has_p3, "Page 3 must be present in body_audit.strengths for 3-page 15-marker")
 
+    def test_dynamic_capacity_no_fixed_six_or_four_cap(self):
+        from evaluator_engine import normalize_evaluation_data, transfer_point_audit_to_deep_evaluation
+        
+        # When an aspirant writes 8 distinct effective points across pages
+        raw_data = {
+            "detected_question": "Explain the role of Geographical factors towards the development of Ancient India.",
+            "detected_paper": "GS1",
+            "max_marks": 15,
+            "total_pages": 3,
+            "body_audit": {
+                "strengths": [
+                    "**Fertile Plains & IVC (Page 1)**: Alluvial soil enabled early agriculture.",
+                    "**Natural Barriers & Himalayas (Page 1)**: Protected from northern invasions.",
+                    "**Indian Ocean Connectivity (Page 1)**: Facilitated monsoon-driven maritime trade.",
+                    "**Monsoon Winds & Navigation (Page 2)**: Enabled Arab and Roman trade voyages.",
+                    "**Mineral Resources of Chota Nagpur (Page 2)**: Iron ore fueled Magadhan expansion.",
+                    "**Forest Wealth & Elephantry (Page 2)**: Military superiority in ancient armies.",
+                    "**Riverine Navigation & Internal Trade (Page 3)**: Ganga-Yamuna artery connected marts.",
+                    "**Mountain Passes & Khyber/Bolan (Page 3)**: Channels for Silk Road cultural exchange."
+                ],
+                "critical_gaps": [
+                    "**Regional Divergence Gap**: Explain why Peninsular deltas developed differently.",
+                    "**Sedimentation & Delta Formation**: Detail Sundarbans and Bengal delta emergence.",
+                    "**Ecological Vulnerability**: Highlight aridification of Saraswati river basin.",
+                    "**Textual Epigraphy**: Cite specific Sangam poems on Kaveripattinam port.",
+                    "**Numismatic Corroboration**: Mention Roman gold coin hoards in Arikamedu."
+                ]
+            },
+            "point_by_point_audit": []
+        }
+        
+        normalized = normalize_evaluation_data(raw_data, max_marks=15, question=raw_data["detected_question"], paper="GS1")
+        strengths = normalized.get("body_audit", {}).get("strengths", [])
+        gaps = normalized.get("body_audit", {}).get("critical_gaps", [])
+        
+        # Verify that all 8 effective strengths are preserved (NO truncation to 6 or 4!)
+        self.assertEqual(len(strengths), 8, f"Expected all 8 effective strengths to be retained dynamically, got {len(strengths)}")
+        
+        # Verify that all 5 genuine critical gaps are preserved (NO truncation to 4!)
+        self.assertEqual(len(gaps), 5, f"Expected all 5 genuine gaps to be retained dynamically, got {len(gaps)}")
+
     def test_mentor_diagnostic_in_fallbacks(self):
         # Python fallback should have mentor framing
         self.assertIn("Mentor's Structural Diagnostic", self.engine_source)

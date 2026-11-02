@@ -8928,7 +8928,7 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
     # Strictly filter out any introduction leaks from body strengths
     formatted_strengths = [s for s in formatted_strengths if not re.search(r'(?i)(?:^|\*\*)\s*(?:intro|introduction|प्रस्तावना|context & conceptual definition)', str(s))]
     if formatted_strengths:
-        body_audit["strengths"] = formatted_strengths[:6]
+        body_audit["strengths"] = formatted_strengths  # Dynamic: no artificial fixed cap
 
     # 2. Process and enrich body_audit.critical_gaps into 3 to 4 distinct structured points
     if isinstance(body_audit.get("critical_gaps"), list):
@@ -8986,7 +8986,7 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                                 verd = "Deepen analysis with concrete empirical data, domain concepts, and verified examples."
                         formatted_gaps.append(f"**{t_clean} (Page {pg_num})**: {verd}")
 
-        body_audit["critical_gaps"] = formatted_gaps[:4]
+        body_audit["critical_gaps"] = formatted_gaps  # Dynamic: no artificial fixed cap
 
     # 2B. Sanitize missing_dimensions: filter out generic catalogue boilerplate,
     # verify omissions against positive corpus, and de-duplicate.
@@ -9844,18 +9844,13 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
             page_tag = f"पृष्ठ {p_num}" if is_hindi else f"Page {p_num}"
             formatted_entry = f"**{clean_title} ({page_tag})**: {verdict}"
 
-            # Strict de-duplication: if body_audit already has points covering this page or matching topic, NEVER duplicate!
-            page_already_covered_pos = any(f"page {p_num}" in s.lower() or f"पृष्ठ {p_num}" in s.lower() for s in existing_strengths)
-            page_already_covered_gap = any(f"page {p_num}" in g.lower() or f"पृष्ठ {p_num}" in g.lower() for g in existing_gaps)
-            
-            max_strengths_allowed = 6 if total_pages >= 3 else 4
-            max_gaps_allowed = 5 if total_pages >= 3 else 4
-
+            # Dynamic Examiner Intelligence: Highlight ALL genuine, effective points written by the student
+            # Only suppress true duplicate topics/verdicts, never impose artificial caps or block multiple good points per page!
             if is_pos:
-                if len(existing_strengths) < max_strengths_allowed and not page_already_covered_pos and not _is_item_duplicate(clean_title, verdict, existing_strengths):
+                if not _is_item_duplicate(clean_title, verdict, existing_strengths):
                     existing_strengths.append(formatted_entry)
             else:
-                if len(existing_gaps) < max_gaps_allowed and not page_already_covered_gap and not _is_item_duplicate(clean_title, verdict, existing_gaps):
+                if not _is_item_duplicate(clean_title, verdict, existing_gaps):
                     existing_gaps.append(formatted_entry)
 
     intro_audit["current_critique"] = intro_crit
