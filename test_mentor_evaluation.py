@@ -51,6 +51,47 @@ class TestMentorEvaluation(unittest.TestCase):
         self.assertNotIn("executive discretion and judicial benchmarks", self.engine_source)
         self.assertNotIn("numerical imbalance and potential executive dominance", self.engine_source)
 
+    def test_directives_are_universal_without_gs2_bias(self):
+        from evaluator_engine import DIRECTIVES
+        # Verify that generic directives don't hardcode GS-2 specific phrases like constitutional/statutory/judgment
+        self.assertNotIn("constitutional/logical arguments", DIRECTIVES["give your opinion"]["meaning"])
+        self.assertNotIn("constitutional/logical arguments", DIRECTIVES["in your opinion"]["meaning"])
+        self.assertNotIn("statutory provisions, landmark judgments", DIRECTIVES["substantiate"]["meaning"])
+        self.assertNotIn("constitutional/statutory roles", DIRECTIVES["examine the role"]["meaning"])
+
+    def test_transfer_point_audit_deduplication(self):
+        from evaluator_engine import transfer_point_audit_to_deep_evaluation
+        mock_data = {
+            "evaluation": {
+                "body_audit": {
+                    "strengths": ["**Displacement Drivers Categorization (Page 1)**: Delineated large dams (Hirakud)."],
+                    "critical_gaps": []
+                },
+                "point_by_point_audit": [
+                    {
+                        "page_number": 1,
+                        "point_title": "Displacement Drivers Categorization",
+                        "verdict_reasoning": "Delineated large dams (Hirakud) and mining (Niyamgiri).",
+                        "is_positive": True
+                    },
+                    {
+                        "page_number": 2,
+                        "point_title": "Rehabilitation Bottlenecks",
+                        "verdict_reasoning": "Socio-economic hurdles and land alienation.",
+                        "is_positive": True
+                    }
+                ]
+            }
+        }
+        transfer_point_audit_to_deep_evaluation(mock_data)
+        strengths = mock_data["evaluation"]["body_audit"]["strengths"]
+        # Page 1 should not have duplicate entries
+        p1_count = sum(1 for s in strengths if "Page 1" in s)
+        self.assertEqual(p1_count, 1)
+        # Page 2 should be added
+        p2_count = sum(1 for s in strengths if "Page 2" in s)
+        self.assertEqual(p2_count, 1)
+
     def test_mentor_diagnostic_in_fallbacks(self):
         # Python fallback should have mentor framing
         self.assertIn("Mentor's Structural Diagnostic", self.engine_source)

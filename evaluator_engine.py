@@ -93,8 +93,8 @@ DIRECTIVES = {
         "ideal_balance": "Evidence-grounded assessment of outcomes vs intended goals, highlighting structural gaps, real-world impacts, and pragmatic recommendations."
     },
     "examine the role": {
-        "meaning": "Focus directly on operational mechanisms, constitutional/statutory roles, and demonstrated impact; constraints or a way forward are relevant when the question or answer contextually makes them so.",
-        "ideal_balance": "Core focus on operational and institutional mechanisms and their contribution; address challenges or reforms in proportion to question demands."
+        "meaning": "Focus directly on operational mechanisms, functions, and demonstrated impact of the subject with evidence and balanced perspective.",
+        "ideal_balance": "Core focus on operational mechanisms and their contribution; address challenges or reforms in proportion to question demands."
     },
     "causes and consequences": {
         "meaning": "Systematically delineate underlying drivers/triggers and multifaceted direct and indirect repercussions across social, economic, political, or environmental dimensions.",
@@ -109,20 +109,20 @@ DIRECTIVES = {
         "ideal_balance": "Targeted, actionable reforms anchored in committee reports, best practices, and constitutional values."
     },
     "give your opinion": {
-        "meaning": "Take an explicit, unambiguous stance in the opening; substantiate with constitutional/logical arguments and conclude constructively.",
+        "meaning": "Take a clear, definitive stance in the opening; substantiate with sound logical arguments, empirical evidence, and examples, and conclude with a forward-looking synthesis.",
         "ideal_balance": "Definitive upfront thesis, evidence-backed argumentation across dimensions, and a forward-looking synthesis."
     },
     "in your opinion": {
-        "meaning": "Take an explicit, unambiguous stance in the opening; substantiate with constitutional/logical arguments and conclude constructively.",
+        "meaning": "Take a clear, definitive stance in the opening; substantiate with sound logical arguments, empirical evidence, and examples, and conclude with a forward-looking synthesis.",
         "ideal_balance": "Definitive upfront thesis, evidence-backed argumentation across dimensions, and a forward-looking synthesis."
     },
     "comment": {
-        "meaning": "Express reasoned perspective based on logic, constitutional principles, and facts.",
+        "meaning": "Express a reasoned understanding and perspective on the core proposition based on logic, factual evidence, and analytical depth.",
         "ideal_balance": "Reasoned arguments taking a clear, substantiated stand on the core proposition."
     },
     "substantiate": {
-        "meaning": "Back every core argument with empirical evidence, statutory provisions, landmark judgments, committee reports, or concrete case studies; penalize unbacked assertions.",
-        "ideal_balance": "Core thesis supported by concrete empirical, legal, or institutional substantiation and forward vision."
+        "meaning": "Validate every core argument with concrete facts, empirical data, authoritative reports, or verifiable examples.",
+        "ideal_balance": "Core thesis supported by concrete empirical or domain-specific substantiation and forward vision."
     },
     "do you agree": {
         "meaning": "Take an explicit reasoned stance in the opening, substantiate with solid arguments, acknowledge counter-perspectives and operational challenges, and conclude with a nuanced synthesis.",
@@ -9670,16 +9670,17 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
     if not isinstance(data, dict):
         return
 
-    pbp_list = data.get("point_by_point_audit")
+    eval_dict = data.get("evaluation") if isinstance(data.get("evaluation"), dict) else data
+    pbp_list = eval_dict.get("point_by_point_audit")
     if not isinstance(pbp_list, list) or not pbp_list:
         return
 
-    total_pages = max(1, int(data.get("total_pages", 0) or len(data.get("processed_pages", [])) or 2))
+    total_pages = max(1, int(eval_dict.get("total_pages", 0) or len(eval_dict.get("processed_pages", [])) or 2))
     total_cards = len(pbp_list)
 
-    intro_audit = data.get("intro_audit") if isinstance(data.get("intro_audit"), dict) else {}
-    body_audit = data.get("body_audit") if isinstance(data.get("body_audit"), dict) else {}
-    conclusion_audit = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
+    intro_audit = eval_dict.get("intro_audit") if isinstance(eval_dict.get("intro_audit"), dict) else {}
+    body_audit = eval_dict.get("body_audit") if isinstance(eval_dict.get("body_audit"), dict) else {}
+    conclusion_audit = eval_dict.get("conclusion_audit") if isinstance(eval_dict.get("conclusion_audit"), dict) else {}
 
     raw_strengths = body_audit.get("strengths") if isinstance(body_audit.get("strengths"), list) else []
     raw_gaps = body_audit.get("critical_gaps") if isinstance(body_audit.get("critical_gaps"), list) else []
@@ -9726,10 +9727,10 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
         if not isinstance(pbp, dict):
             continue
 
-        raw_title = str(pbp.get("title") or "").strip()
+        raw_title = str(pbp.get("title") or pbp.get("point_title") or "").strip()
         raw_badge = str(pbp.get("badge") or "").strip()
-        p_num = int(pbp.get("page", 1) or 1)
-        raw_verdict = str(pbp.get("examiner_verdict") or "").strip()
+        p_num = int(pbp.get("page") or pbp.get("page_number") or 1)
+        raw_verdict = str(pbp.get("examiner_verdict") or pbp.get("verdict_reasoning") or "").strip()
         verdict = _strip_candidate_quotes(raw_verdict)
         if not verdict or _has_meta_placeholder(verdict):
             continue
@@ -9764,11 +9765,15 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
             page_tag = f"पृष्ठ {p_num}" if is_hindi else f"Page {p_num}"
             formatted_entry = f"**{clean_title} ({page_tag})**: {verdict}"
 
+            # Strict de-duplication: if body_audit already has points covering this page or matching topic, NEVER duplicate!
+            page_already_covered_pos = any(f"page {p_num}" in s.lower() or f"पृष्ठ {p_num}" in s.lower() for s in existing_strengths)
+            page_already_covered_gap = any(f"page {p_num}" in g.lower() or f"पृष्ठ {p_num}" in g.lower() for g in existing_gaps)
+            
             if is_pos:
-                if not _is_item_duplicate(clean_title, verdict, existing_strengths):
+                if len(existing_strengths) < 4 and not page_already_covered_pos and not _is_item_duplicate(clean_title, verdict, existing_strengths):
                     existing_strengths.append(formatted_entry)
             else:
-                if not _is_item_duplicate(clean_title, verdict, existing_gaps):
+                if len(existing_gaps) < 4 and not page_already_covered_gap and not _is_item_duplicate(clean_title, verdict, existing_gaps):
                     existing_gaps.append(formatted_entry)
 
     intro_audit["current_critique"] = intro_crit
