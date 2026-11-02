@@ -10332,6 +10332,156 @@ def build_resilient_fallback_evaluation(
     }
 
 
+async def evaluate_with_gemini(
+    images: List[Any],
+    question: str,
+    paper: str,
+    max_marks: int,
+    api_key: Optional[str] = None,
+    previous_question: Optional[str] = None,
+    medium: Optional[str] = "english"
+) -> Dict[str, Any]:
+    """
+    Evaluates handwritten images using the official Google GenAI SDK with multi-key round-robin load balancing,
+    live dynamic model discovery, and zero-crash resilience fallback.
+    Supports both English and Hindi mediums.
+    """
+    keys_to_try = get_active_gemini_keys(api_key)
+    detected_paper = detect_academic_discipline(question, paper)
+    directive_info = detect_directive(question, medium=medium)
+
+    if not keys_to_try:
+        raise RuntimeError("No active Gemini API key configured.")
+
+    # Grounded Current Affairs Retrieval (Local Knowledge Store + Optional Web Search)
+    current_affairs_context = await get_dynamic_grounded_context(question, detected_paper)
+
+    prompt = build_evaluation_prompt(
+        question, detected_paper, max_marks, directive_info,
+        previous_question=previous_question,
+        current_affairs_context=current_affairs_context,
+        medium=medium
+    )
+
+    # Prepare items for Gemini contents (handles PIL images, Gemini File objects, or raw bytes)
+    processed_imgs = []
+    if images:
+        for img in images:
+            if HAS_PIL and Image and hasattr(img, "convert"):
+                curr = img.convert("RGB")
+                max_dim = 1200
+                if max(curr.size) > max_dim:
+                    resample_filter = getattr(getattr(Image, "Resampling", None), "LANCZOS", 1)
+                    curr.thumbnail((max_dim, max_dim), resample_filter)
+                processed_imgs.append(curr)
+            else:
+                processed_imgs.append(img)
+
+    def _sync_call() -> Optional[Dict[str, Any]]:
+        config = types.GenerateContentConfig(
+            temperature=0.0,
+            top_p=1.0,
+            top_k=1,
+            seed=20260925,
+            response_mime_type="application/json"
+        )
+
+        sync_start = time.time()
+        for current_key in keys_to_try:
+            if time.time() - sync_start > 65:
+                break
+            try:
+                client = create_fast_gemini_client(current_key)
+            except Exception:
+                continue
+
+            failed_auth = False
+            candidate_models = get_active_gemini_models(client)[:5]
+            for model_name in candidate_models:
+                if time.time() - sync_start > 65:
+                    break
+                try:
+                    response = execute_gemini_with_resilience(
+                        client=client,
+                        model=model_name,
+                        contents=[prompt] + processed_imgs,
+                        config=config,
+                        max_retries=3
+                    )
+                    if response and response.text:
+                        parsed_dict = parse_llm_json_response(response.text)
+                        if isinstance(parsed_dict, dict) and len(parsed_dict) > 0:
+                            record_gemini_model_outcome(model_name, True)
+                            return parsed_dict
+                except Exception as e:
+                    err_str = str(e)
+                    record_gemini_model_outcome(model_name, False, err_str)
+                    err_low = err_str.lower()
+                    if any(t in err_low for t in [
+                        "api_key_invalid", "api key not valid", "unauthenticated",
+                        "permission_denied", "forbidden", "access_token_type_unsupported"
+                    ]):
+                        failed_auth = True
+                        break
+                    continue
+
+            if failed_auth:
+                continue
+
+            # If static/cached candidates failed, force a live model refresh from client.models.list()
+            for model_name in get_active_gemini_models(client, force_refresh=True):
+                if model_name in candidate_models:
+                    continue
+                try:
+                    response = execute_gemini_with_resilience(
+                        client=client,
+                        model=model_name,
+                        contents=[prompt] + processed_imgs,
+                        config=config,
+                        max_retries=3
+                    )
+                    if response and response.text:
+                        parsed_dict = parse_llm_json_response(response.text)
+                        if isinstance(parsed_dict, dict) and len(parsed_dict) > 0:
+                            record_gemini_model_outcome(model_name, True)
+                            return parsed_dict
+                except Exception as e2:
+                    record_gemini_model_outcome(model_name, False, str(e2))
+
+        return None
+
+    async with _GEMINI_EVAL_SEMAPHORE:
+        data = await asyncio.to_thread(_sync_call)
+
+    if not data or not isinstance(data, dict):
+        raise RuntimeError("Gemini models could not complete evaluation across active keys.")
+
+    if "directive_compliance" in data and not data["directive_compliance"].get("directive"):
+        data["directive_compliance"]["directive"] = directive_info["directive"]
+
+    # Post-process to ensure 100% mathematical accuracy, granular subject taxonomy, and diagram embedding
+    data = normalize_evaluation_data(data, max_marks, question, detected_paper, medium=medium)
+    return data
+
+
+# ==============================================================================
+# PERMANENT SELF-HEALING GEMINI MODEL ROUTER (Prevents "Model Inactive" Forever)
+# ==============================================================================
+_LAST_WORKING_GEMINI_MODEL: Optional[str] = None
+_INACTIVE_GEMINI_MODELS: set = {
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-flash-latest",
+}
+_DISCOVERED_GEMINI_MODELS_CACHE: List[str] = []
+_DISCOVERED_GEMINI_MODELS_TS: float = 0.0
+_BUSY_MODEL_COOLDOWNS: Dict[str, float] = {}
+
+
+
+
 def record_gemini_model_outcome(model_name: str, success: bool, error_str: str = "") -> None:
     """Tracks live working models and temporarily cools down congested models (503/429) to eliminate wait times."""
     global _LAST_WORKING_GEMINI_MODEL, _DISCOVERED_GEMINI_MODELS_TS, _BUSY_MODEL_COOLDOWNS
