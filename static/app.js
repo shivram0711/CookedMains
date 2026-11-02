@@ -13097,6 +13097,7 @@ function renderEvaluation(evalData) {
   const paperStr = String(evalData.paper || evalData.detected_paper || (state.currentEvaluation && state.currentEvaluation.paper) || "").toUpperCase();
   const discStr = String(evalData.subject_discipline || evalData.syllabus_subheading || "").toLowerCase();
   const qStr = String(evalData.detected_question || evalData.question || (typeof state !== "undefined" && state.question) || "").toLowerCase();
+  const qStrLow = qStr;
 
   const isHist = (/GS[-_\s]?1/i.test(paperStr) || /history|heritage|ancient/i.test(discStr)) && (/history|ancient|medieval|modern|art|culture|heritage|archaeolog|dynast|monument|sculptur|buddh|jain|freedom|gandhi/i.test(discStr + " " + qStr) || !/geograph|climate|tectonic|volcan|caldera|ocean|monsoon|landslide|society|women|caste/i.test(qStr));
   const isGeog = (/GS[-_\s]?1/i.test(paperStr) || /geograph/i.test(discStr)) && /geograph|climate|soil|volcan|caldera|earthquake|landslide|tectonic|river|drainage|monsoon|ocean|current|atmosphere|spatial|himalaya|western ghats/i.test(discStr + " " + qStr);
@@ -14123,7 +14124,7 @@ function renderEvaluation(evalData) {
       }
     }
 
-    const qStrLow = String(evalData.detected_question || state.question || "").toLowerCase();
+    // qStrLow is already defined at top of renderEvaluation
     const isSolarQuestion = /solar|surya|photovoltaic|rooftop|renewable energy/i.test(qStrLow);
     const isEciQuestion = /election|eci|cec|commissioner|324|anoop baranwal|appointment|electoral/i.test(qStrLow);
 
