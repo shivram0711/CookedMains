@@ -3618,7 +3618,7 @@ Generate strictly valid JSON matching this schema:
     "model_conclusion_rewrite": "MUST EXACTLY MATCH the concluding synthesis / Way Forward paragraph of your 'full_model_answer'! Ensure 100% thematic and structural alignment between this rewrite and the model answer's conclusion. NEVER output generic boilerplate (such as repeating 'Harmonizing constitutional morality with institutional accountability (2nd ARC)')."
   }},
   "case_study_audit": {{
-    "is_case_study": true, // MANDATORY: set true if this is an ethical case study / scenario dilemma (GS-4 Section B or administrative scenario)
+    "is_case_study": false, // Set to true ONLY if this is a genuine GS-4 Section B Case Study (20-marker / 250 words scenario). For all 10-markers, Section A theoretical questions, and GS-1/2/3 papers, set to false and return empty object!
     "protagonist_role": "Assigned administrative role or protagonist designation (e.g. 'Labor Enforcement Officer (LEO)' or 'Head, Air Quality Compliance Division')",
     "core_ethical_conflict": "1-line synthesis of fundamental dilemma (e.g. 'Duty & Rule of Law vs. Political Pressure & Physical Threat')",
     "candidate_decision_evaluation": {{
@@ -9983,21 +9983,29 @@ def _enrich_case_study_audit(data: Dict[str, Any]) -> None:
     q_text = str(data.get("detected_question") or "").lower()
     p_text = str(data.get("detected_paper") or "").upper()
     t_text = str(data.get("transcribed_text") or "").lower()
-    mm_eval = int(data.get("max_marks", 20) or 20)
+    mm_eval = int(data.get("max_marks", 10) or 10)
     
+    is_ethics = "GS4" in p_text or "GS-4" in p_text or "ETHIC" in p_text
+    
+    # STRICT RULE: 10-marker questions (Section A / 150 words) and non-ethics papers are NEVER case studies!
+    if mm_eval <= 10 or not is_ethics:
+        data["is_case_study"] = False
+        data.pop("case_study_audit", None)
+        return
+
     is_cs = (
         bool(data.get("is_case_study")) or
-        ("GS4" in p_text and mm_eval >= 15) or
-        ("ETHIC" in p_text and mm_eval >= 15) or
-        ("case study" in q_text or "case study" in t_text) or
-        ("options available" in q_text or "options available" in t_text) or
-        ("ethical dilemma" in q_text or "ethical dilemma" in t_text) or
-        ("courses of action" in q_text or "courses of action" in t_text) or
-        ("if you were in" in q_text or "what would you have done" in q_text) or
-        ("under the given conditions" in q_text)
+        (is_ethics and mm_eval >= 20 and (
+            "case study" in q_text or "options available" in q_text or 
+            "ethical dilemma" in q_text or "courses of action" in q_text or 
+            "if you were" in q_text or "what would you" in q_text or 
+            "under the given conditions" in q_text
+        ))
     )
     
     if not is_cs:
+        data["is_case_study"] = False
+        data.pop("case_study_audit", None)
         return
 
     data["is_case_study"] = True

@@ -13423,8 +13423,22 @@ function renderEvaluation(evalData) {
     const csBox = document.getElementById("caseStudyAuditBox");
     if (!csBox) return;
 
+    const maxMarks = parseInt(data.max_marks || 10, 10);
+    const paperStr = String(data.detected_paper || "").toUpperCase();
+    const isGs4 = paperStr.includes("GS4") || paperStr.includes("GS-4") || paperStr.includes("ETHIC");
+
+    // STRICT RULE: 10-markers (Section A / 150 words) and non-GS4 papers are NEVER case studies! Always hide!
+    if (maxMarks <= 10 || !isGs4) {
+      if (data) {
+        data.is_case_study = false;
+        if (data.case_study_audit) data.case_study_audit.is_case_study = false;
+      }
+      csBox.classList.add("hidden");
+      return;
+    }
+
     const cs = data.case_study_audit || {};
-    const isCs = Boolean(data.is_case_study || cs.is_case_study || (data.detected_paper === "GS4" && parseInt(data.max_marks || 10, 10) >= 15));
+    const isCs = Boolean(data.is_case_study || cs.is_case_study) && maxMarks >= 15 && isGs4;
 
     if (!isCs || !cs.protagonist_role) {
       csBox.classList.add("hidden");

@@ -92,6 +92,30 @@ class TestMentorEvaluation(unittest.TestCase):
         p2_count = sum(1 for s in strengths if "Page 2" in s)
         self.assertEqual(p2_count, 1)
 
+    def test_ten_marker_never_triggers_case_study(self):
+        from evaluator_engine import _enrich_case_study_audit, normalize_evaluation_data
+        
+        # Test 1: 10-marker Ethics question with candidate writing words like 'options' or 'dilemma'
+        data_10m = {
+            "detected_question": "What is emotional intelligence and how does it help civil servants in resolving ethical dilemmas?",
+            "detected_paper": "GS4",
+            "max_marks": 10,
+            "transcribed_text": "2. self-regulation: by delaying decision in pressure and mindfulness... courses of action: option 1...",
+            "is_case_study": True,
+            "case_study_audit": {
+                "protagonist_role": "Public Administrator / Decision Maker",
+                "core_ethical_conflict": "Constitutional Duty vs Personal Interest"
+            }
+        }
+        _enrich_case_study_audit(data_10m)
+        self.assertFalse(data_10m.get("is_case_study"))
+        self.assertNotIn("case_study_audit", data_10m)
+        
+        # Test 2: normalize_evaluation_data for 10-marker strips case study
+        normalized = normalize_evaluation_data(data_10m, max_marks=10, question=data_10m["detected_question"], paper="GS4")
+        self.assertFalse(normalized.get("is_case_study"))
+        self.assertNotIn("case_study_audit", normalized)
+
     def test_mentor_diagnostic_in_fallbacks(self):
         # Python fallback should have mentor framing
         self.assertIn("Mentor's Structural Diagnostic", self.engine_source)
