@@ -5521,14 +5521,6 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
   const isHindi = window.isHindiEvaluation(evalData);
   const rubric = evalData.rubric_scores || {};
   const maxMarks = parseFloat(evalData.max_marks || (typeof state !== "undefined" && state.marks) || 15.0);
-  const canonSubParts = Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : [];
-  let canonStepSum = 0.0;
-  if (canonSubParts.length >= 2) {
-    canonStepSum = canonSubParts.reduce((acc, st) => acc + (parseFloat(st.awarded != null ? st.awarded : st.marks_awarded) || 0.0), 0.0);
-  }
-  const overallScore = canonStepSum > 0 ? Math.round(canonStepSum * 10) / 10 : (Math.round((parseFloat(evalData.overall_score) || 0.0) * 10) / 10);
-  evalData.overall_score = overallScore;
-  evalData.total_score = overallScore;
 
   // Default UPSC Marks ceilings
   const defIntroMax = maxMarks === 10 ? 1.0 : (maxMarks === 15 ? 1.5 : 2.0);
@@ -5542,6 +5534,88 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
 
   let concScore = parseFloat(rubric.conclusion_score);
   if (isNaN(concScore)) concScore = maxMarks === 10 ? 0.5 : 1.0;
+
+  // 1. PRIMARY SOURCE OF TRUTH: Question Demands
+  // When evalData.question_demands is present, wire directly to canonical demand labels and marks
+  const canonDemands = Array.isArray(evalData.question_demands) && evalData.question_demands.length > 0
+    ? evalData.question_demands
+    : [];
+
+  if (canonDemands.length > 0) {
+    const bodyParts = canonDemands.map((qd, idx) => {
+      const partLetter = String.fromCharCode(65 + idx);
+      const title = String(qd.demand || qd.step_label || `Demand ${idx + 1}`).trim();
+      const statement = String(qd.directive_relevance || qd.sub_heading || "");
+      const score = Math.round((parseFloat(qd.marks_awarded != null ? qd.marks_awarded : qd.awarded) || 0.0) * 10) / 10;
+      const max = Math.round((parseFloat(qd.allocated_marks != null ? qd.allocated_marks : qd.max) || 2.0) * 10) / 10;
+      const evList = Array.isArray(qd.candidate_evidence) ? qd.candidate_evidence : [];
+      const evPage = evList.length > 0 && evList[0].page ? parseInt(evList[0].page, 10) : 1;
+      const note = String(qd.evidence_reason || qd.correction_or_next_step || "");
+
+      const pctVal = max > 0 ? (score / max) : 0.0;
+      const statusTag = isHindi
+        ? (score <= 0.05 ? "✗ मांग अधूरी (Demand Missed)" : pctVal >= 0.65 ? "✓ मांग पूर्ण (Demand Met)" : "⚠️ आंशिक पूर्ण (Partially Met)")
+        : (score <= 0.05 ? "✗ Demand Missed" : pctVal >= 0.65 ? "✓ Demand Fulfilled" : "⚠️ Partially Fulfilled");
+
+      return {
+        partIndex: idx,
+        partLetter,
+        page: evPage,
+        title,
+        shortTitle: title.length > 38 ? title.slice(0, 38).trim() : title,
+        heading: isHindi ? `${idx + 1}. मुख्य भाग — ${title}` : `${idx + 1}. Part ${partLetter} — ${title}`,
+        tag: isHindi ? `मुख्य भाग: ${title}` : `BODY: ${title.toUpperCase()}`,
+        statement,
+        score,
+        max,
+        marksStr: `+${score.toFixed(1)} / ${max.toFixed(1)}`,
+        note: `**${statusTag} (+${score.toFixed(1)}M)**: ${note.replace(/^[✓✔✎✗×]\s*/, "")}`
+      };
+    });
+
+    const bTotalScore = Math.round(bodyParts.reduce((acc, p) => acc + p.score, 0) * 10) / 10;
+    const bTotalMax = Math.round(bodyParts.reduce((acc, p) => acc + p.max, 0) * 10) / 10;
+    const activeOverall = bTotalScore > 0 ? bTotalScore : (Math.round((parseFloat(evalData.overall_score) || 0.0) * 10) / 10);
+    evalData.overall_score = activeOverall;
+    evalData.total_score = activeOverall;
+
+    return {
+      maxMarks,
+      overallScore: activeOverall,
+      bodyTotalScore: bTotalScore,
+      bodyTotalMax: bTotalMax,
+      intro: {
+        heading: isHindi ? "1. प्रस्तावना (विषय-परिचय एवं संदर्भ)" : "1. Introduction (Context & Scope)",
+        tag: isHindi ? "प्रस्तावना: संदर्भ" : "INTRO: CONTEXT",
+        shortTitle: isHindi ? "संदर्भ" : "CONTEXT",
+        score: introScore,
+        max: introMax,
+        marksStr: `+${introScore.toFixed(1)} / ${introMax.toFixed(1)}`,
+        statement: isHindi ? "प्रश्न की मुख्य मांग के संदर्भ में विषय की स्थापना।" : "Framing the question premise directly."
+      },
+      bodyParts,
+      conclusion: {
+        heading: isHindi ? `${bodyParts.length + 2}. निष्कर्ष (संश्लेषण)` : `${bodyParts.length + 2}. Conclusion (Synthesis)`,
+        tag: isHindi ? "निष्कर्ष: आगे की राह" : "CONCLUSION: CLOSING SYNTHESIS",
+        shortTitle: isHindi ? "संश्लेषण" : "SYNTHESIS",
+        score: concScore,
+        max: concMax,
+        marksStr: `+${concScore.toFixed(1)} / ${concMax.toFixed(1)}`,
+        statement: isHindi ? "तर्कों का संतुलित समापन।" : "Balanced closing synthesis."
+      },
+      questionDemands: canonDemands,
+      isDemandDriven: true
+    };
+  }
+
+  const canonSubParts = Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : [];
+  let canonStepSum = 0.0;
+  if (canonSubParts.length >= 2) {
+    canonStepSum = canonSubParts.reduce((acc, st) => acc + (parseFloat(st.awarded != null ? st.awarded : st.marks_awarded) || 0.0), 0.0);
+  }
+  const overallScore = canonStepSum > 0 ? Math.round(canonStepSum * 10) / 10 : (Math.round((parseFloat(evalData.overall_score) || 0.0) * 10) / 10);
+  evalData.overall_score = overallScore;
+  evalData.total_score = overallScore;
 
   const rawAiSteps = Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : [];
   const aiConcStep = rawAiSteps.find(st => st && /concl|synthesis|निष्कर्ष/i.test(String(st.step_label || st.sub_heading || "")));
@@ -5606,8 +5680,8 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
     return t && !t.includes("intro") && !t.includes("concl") && !t.includes("synthesis") && !t.includes("प्रस्तावना") && !t.includes("निष्कर्ष") && !window.isMetaPlaceholderText(t);
   });
 
-  let minBodyParts = totalPages <= 1 ? 1 : (totalPages === 2 ? 2 : 3);
-  let numBodyParts = Math.max(minBodyParts, Math.min(aiBodySteps.length, 4));
+  // Page count may control navigation and page display only; it must NOT determine body-section count, marks, or default section weights!
+  let numBodyParts = aiBodySteps.length > 0 ? Math.min(aiBodySteps.length, 4) : 1;
 
   // Derive weights and scores dynamically if provided by AI steps
   const rawAiBodyMaxes = [];
@@ -5639,7 +5713,7 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
     } else if (numBodyParts === 2) {
       weights = [0.5, 0.5];
     } else if (numBodyParts === 3) {
-      weights = [0.36, 0.36, 0.28];
+      weights = [0.34, 0.33, 0.33];
     } else {
       const eq = 1.0 / numBodyParts;
       weights = Array(numBodyParts).fill(eq);
@@ -5798,7 +5872,7 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
         if (isEnvironment) {
           if (i === 0) title = "Drivers & Core Surge Dynamics";
           else if (i === 1) title = "Potential Environmental & Ecological Impacts";
-          else title = "Sustainable Policy Roadmap & Regulatory Safeguards";
+          else title = /policy|roadmap|safeguard|mitigat|measure/i.test(qL) ? "Sustainable Policy Roadmap & Regulatory Safeguards" : "Ecological Dynamics & Carrying Capacity";
         } else if (isPolity) {
           if (i === 0) title = "Constitutional Mandate & Foundational Doctrines";
           else if (i === 1) title = "Institutional Dynamics & Judicial Benchmarks";
@@ -5810,7 +5884,7 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
         } else {
           if (i === 0) title = "Core Demand & Underlying Mechanisms";
           else if (i === 1) title = "Multidimensional Impacts & Ground Challenges";
-          else title = "Actionable Interventions & Institutional Safeguards";
+          else title = /policy|roadmap|safeguard|mitigat|measure|reform|solution/i.test(qL) ? "Actionable Interventions & Institutional Safeguards" : "Structural Implications & Institutional Analysis";
         }
       }
     }
@@ -14484,8 +14558,26 @@ function renderBatch1ExaminerMastery(evalData) {
 
   const concNumber = bodySubParts.length + 2;
   let stepItems = [];
-  const rawSubParts = Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : [];
-  if (rawSubParts.length >= 2) {
+  const canonDemands = Array.isArray(evalData.question_demands) && evalData.question_demands.length > 0
+    ? evalData.question_demands
+    : [];
+
+  if (canonDemands.length > 0) {
+    stepItems = canonDemands.map((qd, qIdx) => {
+      const qAw = Math.round((parseFloat(qd.marks_awarded != null ? qd.marks_awarded : qd.awarded) || 0.0) * 10) / 10;
+      const qMx = Math.round((parseFloat(qd.allocated_marks != null ? qd.allocated_marks : qd.max) || 1.0) * 10) / 10;
+      const qLabel = String(qd.demand || qd.step_label || `Demand ${qIdx + 1}`);
+      const qHeading = String(qd.directive_relevance || qd.sub_heading || "");
+      const qNote = String(qd.evidence_reason || qd.correction_or_next_step || "");
+      return {
+        heading: qLabel,
+        statement: qHeading,
+        score: qAw,
+        max: qMx,
+        note: qNote
+      };
+    });
+  } else if (rawSubParts.length >= 2) {
     stepItems = rawSubParts.map((st, sIdx) => {
       const sAw = parseFloat(st.awarded != null ? st.awarded : st.marks_awarded) || 0.0;
       const sMx = parseFloat(st.max != null ? st.max : st.max_marks) || 1.0;

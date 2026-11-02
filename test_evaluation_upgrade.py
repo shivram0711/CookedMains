@@ -16,6 +16,9 @@ Verifies:
 import unittest
 import sys
 import re
+import json
+import subprocess
+import os
 
 from evaluator_engine import (
     separate_bilingual_question,
@@ -29,7 +32,9 @@ from evaluator_engine import (
     build_hindi_evaluation_prompt,
     detect_directive,
     get_canonical_demand_status,
-    get_canonical_score_band
+    get_canonical_score_band,
+    deconstruct_question_demands,
+    build_resilient_fallback_evaluation
 )
 
 class TestEvaluationUpgrade(unittest.TestCase):
@@ -2441,6 +2446,460 @@ class TestUPSCInterdisciplinarySyllabusOverlap(unittest.TestCase):
         # Verify scoring decoupling: overall_score remains exactly 8.0
         self.assertEqual(norm["overall_score"], 8.0)
 
-if __name__ == "__main__":
 
+
+class TestQuestionSpecificDemandEvaluation(unittest.TestCase):
+    """
+    Regression & Verification Suite for Question-Specific Content Evaluation:
+    1. Demands strictly match what each question actually asks.
+    2. Sum of allocated marks in canonical question_demands equals max_marks exactly.
+    3. Sum of awarded marks in question_demands equals overall_score exactly.
+    4. Eliminates false citation hallucinations (e.g. PCPNDT Act when candidate wrote sonogram).
+    5. Multi-page count does not force arbitrary 3-part splits or default 'Policy Roadmap' titles.
+    6. Resilience fallback returns transparent limited-evaluation/busy state without fabricating candidate content.
+    """
+
+    def test_sex_ratio_2014_question_demand_deconstruction(self):
+        """
+        Regression Case: 2014 GS1 question on adverse sex ratio in prosperous regions.
+        Question: 'Why does some of the most prosperous region of India have an adverse sex ratio for women? Give your auguments. (2014) [10 Marks]'
+        """
+        q_text = "Why does some of the most prosperous region of India have an adverse sex ratio for women? Give your auguments. (2014) [10 Marks]"
+        decomp = deconstruct_question_demands(q_text, max_marks=10)
+
+        # 1. Way forward was not asked by the prompt; must NOT be flagged as demanded
+        self.assertFalse(decomp.get("is_wf_demanded"), "Question does not demand a Way Forward")
+
+        # 2. Deconstructed demands must address the causal phenomenon
+        demands = decomp.get("demands", [])
+        self.assertGreaterEqual(len(demands), 2, "Must deconstruct into core causal dimensions")
+        
+        demand_labels = " ".join(d.get("label", "") + " " + d.get("demand", "") for d in demands).lower()
+        self.assertNotIn("policy roadmap", demand_labels, "Must not force a Policy Roadmap demand")
+        self.assertTrue(
+            any(k in demand_labels for k in ["socio-cultural", "causal", "prosperity paradox", "technological", "drivers"]),
+            f"Demands must address core causal drivers: {demand_labels}"
+        )
+
+        # 3. Marks must reconcile to max_marks
+        part_maxes = decomp.get("part_maxes", [])
+        intro_max = decomp.get("intro_max", 1.0)
+        conc_max = decomp.get("conc_max", 1.0)
+        total_sum = round(intro_max + sum(part_maxes) + conc_max, 1)
+        self.assertEqual(total_sum, 10.0, f"Total allocated marks ({total_sum}) must equal 10.0")
+
+    def test_sex_ratio_zero_hallucination_pcpndt_guard(self):
+        """
+        Validates that when candidate writes 'sonogram' without citing 'PCPNDT Act',
+        the evaluation never falsely states 'You mentioned PCPNDT Act in passing'.
+        """
+        raw_eval = {
+            "overall_score": 4.5,
+            "max_marks": 10,
+            "detected_question": "Why does some of the most prosperous region of India have an adverse sex ratio for women? Give your auguments. (2014) [10 Marks]",
+            "detected_paper": "GS1",
+            "total_pages": 2,
+            "transcribed_text": (
+                "[Page 1] Sex ratio refers to the proportion of female population per 1000 male population. "
+                "Social causes: Increase no. of violence cases against women. As per NCRB 2023, 4.5 lakh cases. "
+                "Killing of a girl due to rituals & superstitions. Honour killing. "
+                "[Page 2] Health causes: Low fertility rate of women. Use of sonogram to identify gender. "
+                "Women are more prone to diseases as compared to men. As per NFHS-05, more than 40% of women are anemic. "
+                "Lack of proper sanitation causes severe diseases to women. Cervical cancer."
+            ),
+            "visual_annotations": [
+                {
+                    "page": 1,
+                    "tag": "Social Causes & NCRB Data",
+                    "type": "candidate_quote",
+                    "quote": "Sex ratio refers to proportion of female. Increase violence against women NCRB 2023 4.5 lakh cases.",
+                    "remark": "Clear definition followed by contemporary NCRB 2023 data citation.",
+                    "marks_awarded": 1.5,
+                    "max_marks": 2.0
+                },
+                {
+                    "page": 2,
+                    "tag": "Health Causes & Technology",
+                    "type": "candidate_quote",
+                    "quote": "Use of sonogram to identify gender. As per NFHS-05, more than 40% of women are anemic.",
+                    "remark": "Mentioned sonogram technology but omitted the statutory enforcement framework under the PCPNDT Act.",
+                    "marks_awarded": 1.5,
+                    "max_marks": 2.0
+                }
+            ],
+            "missing_keywords_cards": [
+                {
+                    "number": 1,
+                    "term": "PCPNDT Act (1994)",
+                    "action_type": "Add",
+                    "definition": "Pre-Conception and Pre-Natal Diagnostic Techniques Act prohibits sex selection before or after conception."
+                }
+            ]
+        }
+
+        norm = normalize_evaluation_data(
+            raw_eval,
+            max_marks=10,
+            question="Why does some of the most prosperous region of India have an adverse sex ratio for women? Give your auguments. (2014) [10 Marks]",
+            paper="GS1"
+        )
+
+        # 1. Zero Hallucination Guard: Candidate wrote 'sonogram', NOT 'PCPNDT Act'
+        # missing_keywords_cards must NOT claim 'You mentioned PCPNDT Act in passing'
+        cards = norm.get("missing_keywords_cards", [])
+        for c in cards:
+            c_def = c.get("definition", "")
+            if "PCPNDT" in c.get("term", ""):
+                self.assertNotIn(
+                    "You mentioned",
+                    c_def,
+                    "Must not hallucinate that candidate mentioned PCPNDT Act when candidate only wrote 'sonogram'!"
+                )
+
+        # 2. Shared Canonical Question-Demand Record must be present
+        qd_list = norm.get("question_demands")
+        self.assertIsInstance(qd_list, list, "question_demands must be a list")
+        self.assertGreaterEqual(len(qd_list), 2, "Must contain at least 2 canonical demands")
+
+        # 3. Mathematical Reconciliation
+        total_d_max = round(sum(float(d.get("allocated_marks", 0.0)) for d in qd_list), 1)
+        total_d_aw = round(sum(float(d.get("marks_awarded", 0.0)) for d in qd_list), 1)
+        self.assertEqual(total_d_max, 10.0, f"Sum of allocated marks ({total_d_max}) must equal max_marks (10.0)")
+        self.assertEqual(total_d_aw, norm["overall_score"], f"Sum of marks awarded ({total_d_aw}) must equal overall_score ({norm['overall_score']})")
+
+        # 4. Demand Status Validity
+        valid_statuses = {"met", "partly_met", "missing", "inaccurate", "unclear", "off_topic"}
+        for d in qd_list:
+            self.assertIn(d.get("status"), valid_statuses, f"Invalid demand status: {d.get('status')}")
+            self.assertIn("candidate_evidence", d, "Demand must include candidate_evidence")
+            self.assertIsInstance(d["candidate_evidence"], list)
+
+    def test_multi_page_answer_does_not_force_page_based_body_parts(self):
+        """
+        Verifies that candidate writing on 3 pages for a 10M question does NOT cause
+        Python or JS to invent a 3rd body part or default to 'Policy Roadmap & Safeguards'.
+        """
+        raw_eval = {
+            "overall_score": 4.0,
+            "max_marks": 10,
+            "total_pages": 3,
+            "detected_question": "Why does some of the most prosperous region of India have an adverse sex ratio for women? Give your auguments. (2014) [10 Marks]",
+            "detected_paper": "GS1",
+            "transcribed_text": "[Page 1] Intro text. [Page 2] Causal mechanisms. [Page 3] Concluding synthesis."
+        }
+
+        norm = normalize_evaluation_data(
+            raw_eval,
+            max_marks=10,
+            question="Why does some of the most prosperous region of India have an adverse sex ratio for women? Give your auguments. (2014) [10 Marks]",
+            paper="GS1"
+        )
+
+        steps = norm.get("sub_part_step_marking", [])
+        step_labels = " ".join(s.get("step_label", "") + " " + s.get("sub_heading", "") for s in steps).lower()
+        self.assertNotIn("policy roadmap", step_labels, "3-page submission must not force a Policy Roadmap step for a question that did not ask for it")
+
+    def test_resilience_fallback_returns_transparent_busy_state(self):
+        """
+        Verifies that build_resilient_fallback_evaluation returns a transparent limited-evaluation
+        service notice without synthesizing fake candidate transcripts or mock marks.
+        """
+        fb = build_resilient_fallback_evaluation(
+            question="Analyze the geopolitical implications of the Indo-Pacific Economic Framework.",
+            paper_key="GS2",
+            max_marks=10
+        )
+
+        self.assertEqual(fb.get("status"), "service_unavailable")
+        self.assertEqual(fb.get("error_type"), "evaluator_busy")
+        self.assertEqual(fb.get("overall_score"), 0.0, "Must not fabricate a non-zero score")
+        self.assertEqual(fb.get("transcribed_text"), "", "Must not fabricate a fake candidate transcript")
+        self.assertIn("Evaluator Server Notice", fb.get("title", ""))
+
+    # =========================================================================
+    # ITEM 4: SPECIFIC FAILURE MODE REGRESSION COVERAGE
+    # =========================================================================
+
+    def test_pure_why_question_receives_no_unasked_policy_or_impact_demand(self):
+        """
+        Asserts that a pure 'why' or causal geomorphic question receives no
+        unasked policy, institutional, impact, or way forward demand.
+        """
+        q = "Why are the Himalayas susceptible to landslides more frequently than the Western Ghats? Explain the geomorphic reasons. (10 Marks)"
+        decomp = deconstruct_question_demands(q, 10)
+        demands = decomp.get("demands", [])
+        self.assertTrue(len(demands) >= 2, "Should identify at least comparative geomorphic and tectonic reasons")
+        
+        all_text = " ".join((d.get("title", "") + " " + d.get("demand", "") + " " + d.get("directive_focus", "")).lower() for d in demands)
+        for unasked in ["policy", "way forward", "institutional", "mitigation", "disaster management"]:
+            self.assertNotIn(unasked, all_text, f"Pure why/geomorphic inquiry must not invent unasked '{unasked}' demand")
+
+        # Also verify normalization pipeline
+        norm = normalize_evaluation_data(
+            {"overall_score": 4.0, "max_marks": 10, "detected_question": q, "detected_paper": "GS1"},
+            max_marks=10,
+            question=q,
+            paper="GS1"
+        )
+        norm_text = " ".join((d.get("title", "") + " " + d.get("demand", "") + " " + d.get("directive_focus", "")).lower() for d in norm.get("question_demands", []))
+        for unasked in ["policy", "way forward", "institutional", "mitigation"]:
+            self.assertNotIn(unasked, norm_text, f"Normalized demands must not invent unasked '{unasked}' demand")
+
+    def test_every_evidence_quote_traceable_to_page_and_transcript(self):
+        """
+        Asserts that every evidence quote in normalized question_demands is traceable
+        to the stated page and appears in candidate transcribed_text.
+        """
+        transcribed_text = (
+            "[Page 1] Volcanic calderas are large cauldron-like depressions formed following volcanic eruptions. "
+            "Depletion of magma chamber leads to caldera collapse. Examples include Crater Lake. "
+            "[Page 2] Scenic beauty: Calderas form picturesque caldera lakes, vibrant geological landscape, "
+            "and geotourism attractions such as Santorini and Yellowstone."
+        )
+        raw_eval = {
+            "overall_score": 5.0,
+            "max_marks": 10,
+            "detected_question": "Explain the process of formation of volcanic calderas. How do they contribute to scenic beauty?",
+            "detected_paper": "GS1",
+            "transcribed_text": transcribed_text,
+            "question_demands": [
+                {
+                    "demand_id": "demand_1",
+                    "demand": "Volcanic caldera formation process and collapse mechanism",
+                    "allocated_marks": 5.0,
+                    "marks_awarded": 2.5,
+                    "status": "partly_met",
+                    "candidate_evidence": [
+                        {
+                            "page": 1,
+                            "quote": "Depletion of magma chamber leads to caldera collapse.",
+                            "has_diagram": False,
+                            "transcription_confidence": "high"
+                        }
+                    ]
+                },
+                {
+                    "demand_id": "demand_2",
+                    "demand": "Contribution to scenic beauty, tourism and landscapes",
+                    "allocated_marks": 5.0,
+                    "marks_awarded": 2.5,
+                    "status": "partly_met",
+                    "candidate_evidence": [
+                        {
+                            "page": 2,
+                            "quote": "Calderas form picturesque caldera lakes, vibrant geological landscape",
+                            "has_diagram": False,
+                            "transcription_confidence": "high"
+                        }
+                    ]
+                }
+            ]
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=10, question=raw_eval["detected_question"], paper="GS1")
+        demands = norm.get("question_demands", [])
+        self.assertTrue(len(demands) > 0)
+        
+        for d in demands:
+            evidence_list = d.get("candidate_evidence", [])
+            for ev in evidence_list:
+                quote = ev.get("quote", "").strip()
+                if quote:
+                    page = ev.get("page", 1)
+                    page_header = f"[Page {page}]"
+                    self.assertIn(page_header, transcribed_text, f"Stated page {page} must exist in transcript")
+                    
+                    # Split transcript into pages and verify quote is on that stated page
+                    page_sections = transcribed_text.split(page_header)
+                    self.assertTrue(len(page_sections) > 1, f"Page header {page_header} must partition transcript")
+                    page_content = page_sections[1].split("[Page ")[0]
+                    # Verify quote words appear on the stated page
+                    norm_quote_words = [w.lower() for w in quote.replace(".", "").split() if len(w) > 3]
+                    matching_words = [w for w in norm_quote_words if w in page_content.lower()]
+                    self.assertTrue(len(matching_words) >= 1, f"Quote '{quote}' must trace to page {page} content")
+
+    def test_absent_evidence_never_fabricated_as_quote_page_or_marks(self):
+        """
+        Asserts that absent evidence is never fabricated with synthetic quotes (like transcript[:80]),
+        fake page numbers, high OCR confidence, or unearned marks.
+        """
+        raw_eval = {
+            "overall_score": 0.0,
+            "max_marks": 10,
+            "detected_question": "Explain the process of formation of volcanic calderas. How do they contribute to scenic beauty?",
+            "detected_paper": "GS1",
+            "transcribed_text": "[Page 1] Introduction to volcanic rocks in Deccan Traps basaltic formations.",
+            "visual_annotations": []
+        }
+        norm = normalize_evaluation_data(raw_eval, max_marks=10, question=raw_eval["detected_question"], paper="GS1")
+        demands = norm.get("question_demands", [])
+        
+        for d in demands:
+            if not d.get("candidate_evidence"):
+                self.assertEqual(d.get("marks_awarded", 0.0), 0.0, "Missing evidence must yield 0 marks")
+                self.assertIn(d.get("status"), ["missing", "unclear", "inaccurate"], "Missing evidence status must reflect missing/unclear")
+                self.assertIn("Criterion unverified", d.get("evidence_reason", "") + d.get("correction_or_next_step", ""))
+            else:
+                for ev in d.get("candidate_evidence", []):
+                    # Must not be the default dummy slice or visual annotation placeholder
+                    self.assertNotEqual(ev.get("quote"), "[Page 1] Introduction to volcanic rocks in Deccan Traps basaltic formations."[:80])
+
+    def test_arithmetic_reconciliation_does_not_distort_last_demand(self):
+        """
+        Asserts that arithmetic reconciliation across demands scales or bounds proportionally
+        and does not dump an entire deficit/surplus onto the final demand alone.
+        """
+        raw_eval = {
+            "overall_score": 6.0,
+            "max_marks": 15,
+            "detected_question": "Explain the process of formation of volcanic calderas. How do they contribute to scenic beauty? (15 Marks)",
+            "detected_paper": "GS1",
+            "question_demands": [
+                {"demand_id": "D1", "demand": "Volcanic caldera formation process", "allocated_marks": 6.0, "marks_awarded": 3.0, "status": "partly_met", "candidate_evidence": [{"quote": "Collapse of magma chamber", "page": 1}]},
+                {"demand_id": "D2", "demand": "Contribution to scenic beauty & landscapes", "allocated_marks": 6.0, "marks_awarded": 3.0, "status": "partly_met", "candidate_evidence": [{"quote": "Forms scenic lakes and tourism", "page": 2}]},
+                {"demand_id": "D3", "demand": "Global / Indian examples", "allocated_marks": 3.0, "marks_awarded": 1.5, "status": "partly_met", "candidate_evidence": [{"quote": "Santorini, Crater Lake", "page": 2}]}
+            ]
+        }
+        # Initial sum is 3.0 + 3.0 + 1.5 = 7.5, but overall_score is 6.0 (discrepancy = -1.5)
+        # Previous naive reconciliation dumped -1.5 onto D3, dropping D3 from 1.5 to 0.0!
+        norm = normalize_evaluation_data(raw_eval, max_marks=15, question=raw_eval["detected_question"], paper="GS1")
+        reconciled_demands = norm.get("question_demands", [])
+        
+        d3 = next(d for d in reconciled_demands if d["demand_id"] == "D3")
+        # In proportional reconciliation, D3 should receive roughly (1.5 / 7.5) * 6.0 = 1.2 marks, NOT 0.0!
+        self.assertGreater(d3["marks_awarded"], 0.5, f"D3 marks {d3['marks_awarded']} must not be zeroed out by dumping discrepancy")
+        total_awarded = round(sum(d["marks_awarded"] for d in reconciled_demands), 1)
+        self.assertEqual(total_awarded, 6.0, f"Total awarded {total_awarded} must equal overall_score 6.0")
+
+    def test_1_2_and_3_page_submissions_retain_same_demand_structure_and_allocations(self):
+        """
+        Asserts that submissions of 1, 2, or 3 pages for the same question retain the exact
+        same demand structure, demand count, and allocated max marks.
+        """
+        q = "Why does some of the most prosperous region of India have an adverse sex ratio for women? Give your auguments. (2014) [10 Marks]"
+        
+        runs = []
+        for pages in [1, 2, 3]:
+            raw = {
+                "overall_score": 3.5,
+                "max_marks": 10,
+                "total_pages": pages,
+                "detected_question": q,
+                "detected_paper": "GS1",
+                "transcribed_text": f"Candidate answer spanning {pages} pages."
+            }
+            norm = normalize_evaluation_data(raw, max_marks=10, question=q, paper="GS1")
+            runs.append(norm.get("question_demands", []))
+
+        # Compare demands across page counts 1, 2, and 3
+        d1, d2, d3 = runs[0], runs[1], runs[2]
+        self.assertEqual(len(d1), len(d2), "Demand count must be identical between 1-page and 2-page copies")
+        self.assertEqual(len(d2), len(d3), "Demand count must be identical between 2-page and 3-page copies")
+        
+        for i in range(len(d1)):
+            self.assertEqual(d1[i]["demand_id"], d2[i]["demand_id"])
+            self.assertEqual(d2[i]["demand_id"], d3[i]["demand_id"])
+            self.assertEqual(d1[i]["demand"], d2[i]["demand"])
+            self.assertEqual(d2[i]["demand"], d3[i]["demand"])
+            self.assertEqual(d1[i]["allocated_marks"], d2[i]["allocated_marks"])
+            self.assertEqual(d2[i]["allocated_marks"], d3[i]["allocated_marks"])
+
+    def test_frontend_canonical_demand_scheme_renders_demands_not_page_fallbacks(self):
+        """
+        Asserts that getCanonicalStepMarkingScheme in static/app.js renders directly
+        from question_demands and never switches to page-count fallback partitions.
+        """
+        node_script = """
+        const fs = require('fs');
+        const vm = require('vm');
+        const code = fs.readFileSync('C:/Users/HP/.gemini/antigravity/scratch/upsc-mains-evaluator/static/app.js', 'utf8');
+        const storageMock = { getItem: () => null, setItem: () => {}, clear: () => {}, removeItem: () => {} };
+        const dummyEl = { addEventListener: () => {}, classList: { add: () => {}, remove: () => {} }, style: {}, innerHTML: '', textContent: '', appendChild: () => {} };
+        const sandbox = {
+            window: {},
+            document: { getElementById: () => dummyEl, querySelector: () => dummyEl, querySelectorAll: () => [], createElement: () => dummyEl, addEventListener: () => {} },
+            localStorage: storageMock,
+            sessionStorage: storageMock,
+            console: console,
+            navigator: { userAgent: 'node' },
+            location: { href: 'http://localhost/', search: '' },
+            addEventListener: () => {},
+            fetch: () => Promise.resolve({ ok: true, json: () => Promise.resolve({}) }),
+            URLSearchParams: URLSearchParams,
+            setInterval: () => {},
+            setTimeout: () => {}
+        };
+        sandbox.window = sandbox;
+        sandbox.global = sandbox;
+        vm.createContext(sandbox);
+        vm.runInContext(code, sandbox);
+
+        const evalData = {
+            overall_score: 4.5,
+            max_marks: 10,
+            total_pages: 3,
+            question_demands: [
+                {
+                    demand_id: 'D1',
+                    demand: 'Socio-economic factors in prosperous regions',
+                    allocated_marks: 5.0,
+                    marks_awarded: 2.5,
+                    status: 'partly_met',
+                    directive_focus: 'explain'
+                },
+                {
+                    demand_id: 'D2',
+                    demand: 'Technological misuse and patriarchal mindsets',
+                    allocated_marks: 5.0,
+                    marks_awarded: 2.0,
+                    status: 'partly_met',
+                    directive_focus: 'arguments'
+                }
+            ]
+        };
+
+        const result = sandbox.getCanonicalStepMarkingScheme(evalData);
+        console.log(JSON.stringify(result));
+        """
+        
+        res = subprocess.run(["node", "-e", node_script], capture_output=True, text=True, encoding="utf-8", cwd="C:\\Users\\HP\\.gemini\\antigravity\\scratch\\upsc-mains-evaluator")
+        self.assertEqual(res.returncode, 0, f"Node script failed: {res.stderr}")
+        
+        result_obj = json.loads(res.stdout.strip().splitlines()[0])
+        self.assertTrue(result_obj.get("isDemandDriven"), "Must flag as demand-driven evaluation")
+        
+        body_parts = result_obj.get("bodyParts", [])
+        self.assertEqual(len(body_parts), 2, "Frontend must render exactly 2 canonical demands, NOT 3 pages")
+        self.assertEqual(body_parts[0]["title"], "Socio-economic factors in prosperous regions")
+        self.assertEqual(body_parts[0]["max"], 5.0)
+        self.assertEqual(body_parts[0]["score"], 2.5)
+        self.assertEqual(body_parts[1]["title"], "Technological misuse and patriarchal mindsets")
+        self.assertEqual(body_parts[1]["max"], 5.0)
+        self.assertEqual(body_parts[1]["score"], 2.0)
+
+    def test_hindi_and_english_demand_equivalence(self):
+        """
+        Asserts that equivalent English and Hindi questions produce equivalent demand structures
+        and mark allocations while preserving appropriate language representations.
+        """
+        eng_q = "Explain the process of formation of volcanic calderas. How do they contribute to the scenic beauty of the region? (15 Marks, 250 words)"
+        hin_q = "ज्वालामुखीय काल्डेरा के निर्माण की प्रक्रिया की व्याख्या कीजिए। ये उस क्षेत्र की प्राकृतिक सुंदरता में किस प्रकार योगदान करते हैं? (15 अंक, 250 शब्द)"
+        
+        eng_decomp = deconstruct_question_demands(eng_q, 15)
+        hin_decomp = deconstruct_question_demands(hin_q, 15)
+        
+        eng_demands = eng_decomp.get("demands", [])
+        hin_demands = hin_decomp.get("demands", [])
+        
+        self.assertEqual(len(eng_demands), len(hin_demands), "Hindi and English equivalents must have identical demand counts")
+        
+        # Verify mark allocations match
+        for ed, hd in zip(eng_demands, hin_demands):
+            self.assertEqual(ed.get("allocated_marks"), hd.get("allocated_marks"), "Allocated marks must match across languages")
+            # Verify Hindi demand title has Hindi/Devanagari characters
+            has_devanagari = any('\u0900' <= char <= '\u097F' for char in hd.get("demand", ""))
+            self.assertTrue(has_devanagari, f"Hindi demand title '{hd.get('demand')}' must be in Devanagari")
+
+    # =========================================================================
+
+if __name__ == "__main__":
     unittest.main()
