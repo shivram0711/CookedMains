@@ -3862,6 +3862,11 @@ def _build_domain_specific_intro(question_text: str, paper_name: str, existing_t
                 "**अनुच्छेद 243ZD** (74वां संविधान संशोधन अधिनियम) के तहत परिकल्पित **जिला योजना समिति (DPC)** का मुख्य कार्य "
                 "पंचायतों एवं नगरपालिकाओं द्वारा तैयार की गई विकास योजनाओं को समेकित कर जिले हेतु एक समग्र प्रारूप विकास योजना तैयार करना है।"
             )
+        if ("GS1" in p_up or "GS-1" in p_up) or any(k in q_low for k in ["प्राचीन", "भूगोल", "भौगोलिक", "इतिहास", "सभ्यता", "सिंधु", "वैदिक", "मौर्य", "गुप्त"]):
+            return (
+                "**प्राचीन भारत** का सभ्यतागत विकास उसके **भू-आकृतिक स्वरूप** से प्रत्यक्षतः निर्धारित हुआ — जहाँ उपजाऊ नदी घाटियों (सिंधु एवं गंगा) ने नगरीकरण हेतु कृषि अधिशेष प्रदान किया, "
+                "वहीं प्राकृतिक हिमालयी सीमाओं एवं प्रायद्वीपीय तटरेखा ने सुरक्षा तथा सामुद्रिक व्यापार को दिशा दी।"
+            )
         if "GS2" in p_up or "POLITY" in p_up or any(k in q_low for k in ["संविधान", "न्यायपालिका", "अधिकार", "संसद", "आयोग", "राज्यपाल", "निर्वाचन"]):
             return (
                 "भारत में संवैधानिक अभिशासन शक्तियों के पृथक्करण और संस्थागत संतुलन पर आधारित है, जो **संवैधानिक नैतिकता** "
@@ -3946,7 +3951,12 @@ def _build_domain_specific_intro(question_text: str, paper_name: str, existing_t
             "The **Ahom Kingdom (1228–1826)** established enduring political and cultural sovereignty in the Brahmaputra valley, sustained by the unique **Paik mobilization system**, "
             "indigenous chronicles (**Buranjis**), and syncretic socio-administrative institutions."
         )
-    if "GS1" in p_up and any(k in q_low for k in ["history", "culture", "art", "temple", "movement", "heritage"]):
+    if ("GS1" in p_up or "GS-1" in p_up) and any(k in q_low for k in ["ancient", "civiliz", "geograph", "indus", "vedic", "magadh", "history", "culture", "art", "temple", "movement", "heritage"]):
+        return (
+            "The civilizational development of **Ancient India** was fundamentally shaped by its **geomorphic matrix** — where fertile riverine plains (Indus and Ganga) "
+            "generated agrarian surpluses for urbanization, while natural Himalayan ramparts and peninsular sea lanes guided strategic security and maritime commerce."
+        )
+    if ("GS1" in p_up or "GS-1" in p_up) and any(k in q_low for k in ["history", "culture", "art", "temple", "movement", "heritage"]):
         return (
             "India's historical evolution and cultural architecture reflect an enduring civilizational synthesis, shaped through dynamic socio-political institutions, "
             "epigraphical traditions, and regional vernacular patronage."
@@ -3978,11 +3988,30 @@ def _build_domain_specific_intro(question_text: str, paper_name: str, existing_t
         )
 
     clean_q = re.sub(r'^(?:discuss|examine|critically\s+examine|analyze|evaluate|elucidate|comment\s+on|explain|what\s+is|what\s+are)\s+', '', question_text, flags=re.I).strip()
+    # Strip question tail artifacts like '2023, 150 words'
+    clean_q = re.sub(r'\s*\d{4}\s*,?\s*\d+\s*words?.*$', '', clean_q, flags=re.I).strip()
     words = clean_q.split()
-    core_topic = " ".join(words[:6]).rstrip(",;:") if words else "the core policy directive"
+    core_topic = " ".join(words[:6]).rstrip(",;:") if words else "the core subject"
+
+    if ("GS1" in p_up or "GS-1" in p_up) or any(k in q_low for k in ["ancient", "medieval", "modern", "history", "culture", "geograph", "heritage", "monument", "civiliz"]):
+        return (
+            f"Examining **{core_topic}** reveals the fundamental interplay between physical geographical determinants, socio-cultural evolution, "
+            f"and regional civilizational milestones in India's historical trajectory."
+        )
+    if "GS4" in p_up or "ETHICS" in p_up:
+        return (
+            f"Analyzing **{core_topic}** requires examining core ethical dilemmas, balancing administrative expediency against **Constitutional Morality** "
+            f"and the **Nolan Principles of Public Life**."
+        )
+    if "GS3" in p_up or any(k in q_low for k in ["econom", "gdp", "fiscal", "inflat", "bank", "environment", "disaster"]):
+        return (
+            f"Addressing **{core_topic}** demands harmonizing economic productivity with structural policy reforms, fiscal sustainability, "
+            f"and verifiable empirical benchmarks."
+        )
+
     return (
-        f"Addressing **{core_topic}** requires an integrated approach that anchors foundational statutory principles alongside empirical benchmarks, "
-        f"ensuring transparent institutional accountability and outcome-oriented governance."
+        f"Addressing **{core_topic}** requires a structured institutional approach that balances constitutional mandates, statutory safeguards, "
+        f"and verifiable ground-level outcomes."
     )
 
 
@@ -4383,7 +4412,7 @@ def _ensure_topper_model_answer_quality(data: Dict[str, Any], max_marks: int = 1
     is_adaptive = has_candidate_work
 
     # Word limits and point targets
-    if max_marks <= 10:
+    if int(data.get("max_marks") or 10) <= 10:
         min_target_wc = 135
         target_words = 150
         min_points = 10  # At least 10 distinct body points for 10M
@@ -4690,6 +4719,45 @@ def _ensure_at_least_one_value_addition(data: Dict[str, Any], is_hindi: bool = F
             )
             enrichment_where = "Page 2 • Under mantle transition zone dynamics" if not is_hindi else "पृष्ठ 2 • मेंटल संक्रमण क्षेत्र गतिकी के अंतर्गत"
             enrichment_how = "Dehydration embrittlement of hydrous serpentinites releases pore fluid pressures, triggering brittle seismic rupture deep within the subducting lithosphere." if not is_hindi else "जलयोजित खनिजों से तरल पदार्थ मुक्त होने पर अत्यधिक गहराई में भी भंगुर भूकंपीय विखंडन संभव होता है।"
+        elif any(k in q_low for k in ["ancient", "medieval", "modern", "history", "culture", "heritage", "art", "monument", "civiliz", "प्राचीन", "इतिहास", "संस्कृति", "सभ्यता", "भौगोलिक"]):
+            enrichment_term = "Epigraphic Corroboration & Geomorphic Matrix" if not is_hindi else "पुरालेखीय साक्ष्य एवं भू-आकृतिक संरचना"
+            enrichment_def = (
+                "No major omission was identified in this evaluation. Optional upgrade: Corroborate historical claims with primary epigraphic/literary sources (e.g. Arthashastra, Megasthenes' Indica) and geomorphic determinants."
+                if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: ऐतिहासिक तर्कों को प्राथमिक पुरालेखीय/साहित्यिक स्रोतों (जैसे अर्थशास्त्र, मेगस्थनीज की इंडिका) एवं भू-आकृतिक कारकों से प्रमाणित करें।"
+            )
+            enrichment_where = "Page 2 • Under Trade, Economy or Administrative Evolution" if not is_hindi else "पृष्ठ 2 • व्यापार, अर्थव्यवस्था अथवा प्रशासनिक विकास के अंतर्गत"
+            enrichment_how = (
+                "Fertile river basins (Indus-Ganga) generated agricultural surplus that sustained urbanization, corroborated by contemporary archaeological strata and epigraphic records."
+                if not is_hindi else
+                "उपजाऊ नदी घाटियों (सिंधु-गंगा) ने कृषि अधिशेष उत्पन्न किया जिससे द्वितीय नगरीकरण संभव हुआ, जिसकी पुष्टि तत्कालीन पुरातात्विक स्तरों एवं अभिलेखीय साक्ष्यों से होती है।"
+            )
+        elif any(k in q_low for k in ["geograph", "climate", "monsoon", "plateau", "soil", "drainage", "river", "tectonic"]):
+            enrichment_term = "Drainage Morphometry & Spatial Resource Matrix" if not is_hindi else "अपवाह आकारिकी एवं स्थानिक संसाधन स्वरूप"
+            enrichment_def = (
+                "No major omission was identified in this evaluation. Optional upgrade: Detail spatial drainage patterns and geomorphic thresholds that govern regional resource availability."
+                if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: स्थानिक अपवाह प्रतिरूपों एवं भू-आकृतिक सीमाओं को स्पष्ट करें जो क्षेत्रीय संसाधन उपलब्धता को निर्धारित करते हैं।"
+            )
+            enrichment_where = "Page 2 • Under spatial analysis and regional impact" if not is_hindi else "पृष्ठ 2 • स्थानिक विश्लेषण एवं क्षेत्रीय प्रभाव के अंतर्गत"
+            enrichment_how = (
+                "Perennial fluvial networks created dendritic drainage systems, establishing natural communication corridors and alluvial depositories across the terrain."
+                if not is_hindi else
+                "सदानीरा नदी तंत्रों ने वृक्षाकार अपवाह प्रणाली का निर्माण कर प्राकृतिक परिवहन गलियारे एवं जलोढ़ निक्षेप स्थापित किए।"
+            )
+        elif "GS4" in str(data.get("detected_paper") or "").upper() or any(k in q_low for k in ["ethics", "moral", "integrity", "nolan"]):
+            enrichment_term = "Deontological Duty vs Public Trust Matrix" if not is_hindi else "कर्तव्यशास्त्र बनाम लोकहित समन्वय"
+            enrichment_def = (
+                "No major omission was identified in this evaluation. Optional upgrade: Anchor administrative dilemmas in Nolan Committee principles and constitutional morality."
+                if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: प्रशासनिक दुविधाओं को नोलन समिति के सिद्धांतों एवं संवैधानिक नैतिकता से जोड़ें।"
+            )
+            enrichment_where = "Final Page • Beside your administrative dilemma resolution" if not is_hindi else "अंतिम पृष्ठ • प्रशासनिक दुविधा समाधान के साथ"
+            enrichment_how = (
+                "Applying ethical deontology ensures that administrative expediency does not compromise statutory procedural fairness and public trust."
+                if not is_hindi else
+                "कर्तव्यशास्त्रीय सिद्धांतों का अनुप्रयोग यह सुनिश्चित करता है कि प्रशासनिक सुविधा के लिए प्रक्रियात्मक निष्पक्षता एवं जनविश्वास से समझौता न हो।"
+            )
         else:
             enrichment_term = "Institutional Inter-Linkage & Implementation Matrix" if not is_hindi else "संस्थागत अंतर्संबंध एवं क्रियान्वयन ढांचा"
             enrichment_def = (
@@ -6477,6 +6545,11 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
             ex_ins["current_weakness"] = "Generic statement without citing the 2023 statutory mechanics or recent constitutional challenge."
             ex_ins["recommended_insertion"] = "Cite the **Chief Election Commissioner and Other ECs Act, 2023** section 7(1) replacing the CJI with a Union Minister, challenged in **Dr. Jaya Thakur v. Union of India (2024)** regarding institutional independence under **Article 324**."
             ex_ins["marks_gain"] = "+0.5 to +1.0 Mark"
+        elif subj_meta["discipline"] == "HISTORY_CULTURE" or any(k in q_low for k in ["ancient", "medieval", "modern", "history", "culture", "heritage", "monument", "civiliz"]):
+            ex_ins["paragraph_target"] = "Page 2 • Under Trade, Economy or Cultural Exchange"
+            ex_ins["current_weakness"] = "Descriptive historical points without citing contemporary archaeological excavations or epigraphical evidence."
+            ex_ins["recommended_insertion"] = "Corroborate with recent archaeological discoveries (e.g. **Keeladi / Rakhigarhi excavations** for trade networks) or primary epigraphical evidence (e.g. **Junagadh Inscription of Rudradaman** on the Sudarshana Lake embankment)."
+            ex_ins["marks_gain"] = "+0.5 to +1.0 Mark"
         elif subj_meta["discipline"] == "POLITY_GOVERNANCE":
             ex_ins["paragraph_target"] = "Page 2 • Under your core institutional challenge sub-heading"
             ex_ins["current_weakness"] = "Theoretical critique without citing contemporary legislative or judicial benchmarks."
@@ -6519,6 +6592,21 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                     "marks_gain": "+0.5 to +1.0 Mark"
                 }
             ]
+        elif subj_meta["discipline"] == "HISTORY_CULTURE" or any(k in q_low for k in ["ancient", "medieval", "modern", "history", "culture", "heritage", "monument", "civiliz"]):
+            ca_va["current_examples"] = [
+                {
+                    "example_title": "Archaeological Corroboration (Keeladi & Rakhigarhi)",
+                    "paragraph_target": "Page 2 • Under Trade & Urban Growth",
+                    "recommended_insertion": "Corroborate civilizational trade networks with findings from **Keeladi excavations** (Vaigai river valley trade) and **Rakhigarhi** (mature Harappan urban planning).",
+                    "marks_gain": "+0.5 to +1.0 Mark"
+                },
+                {
+                    "example_title": "Primary Epigraphy & Hydraulic Engineering",
+                    "paragraph_target": "Page 2 • Under Natural Resources & Water Management",
+                    "recommended_insertion": "Cite the **Junagadh Rock Inscription of Rudradaman (150 CE)** detailing the construction and repair of the Sudarshana Lake dam across Maurya and Saka periods.",
+                    "marks_gain": "+0.5 to +1.0 Mark"
+                }
+            ]
         else:
             ca_va["current_examples"] = [
                 {
@@ -6555,7 +6643,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                 "National Family Health Survey (NFHS-5) — Data on sex ratio at birth, maternal anemia, and institutional deliveries.",
                 "Parliamentary Standing Committee on Empowerment of Women — Recommendations on fast-track special courts and grassroots safety infrastructure."
             ]
-        elif re.search(r'\b(?:agri|farmer|msp|doubling|crop|irrigation|apmc|fpo)\b', q_text_ca):
+        elif not (subj_meta["discipline"] == "HISTORY_CULTURE" or any(k in q_low for k in ["ancient", "medieval", "history", "civiliz"])) and re.search(r'\b(?:agri|farmer|msp|doubling|crop|irrigation|apmc|fpo)\b', q_text_ca):
             cleaned_reps = [
                 "M.S. Swaminathan Commission (National Commission on Farmers) — 50% profit margin over comprehensive cost of production (C2+50%).",
                 "Ashok Dalwai Committee on Doubling Farmers' Income — Secondary agriculture, FPO aggregation, and agri-logistics infrastructure."
@@ -8218,8 +8306,16 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
         data["point_by_point_audit"] = pbp_generated
     else:
         # Existing point_by_point_audit: calibrate marks and badges
-        # Ensure multi-page copies distribute cards to all pages (Page 1, 2, and 3)
-        if total_pages_val >= 3 and len(existing_pbp) >= 3:
+        # Ensure 2-page copies (10-markers) distribute cards to Page 1 AND Page 2
+        if total_pages_val == 2 and len(existing_pbp) >= 2:
+            has_p2 = any(int(it.get("page", 0)) == 2 for it in existing_pbp if isinstance(it, dict))
+            if not has_p2:
+                mid = len(existing_pbp) // 2
+                for idx_mid in range(mid, len(existing_pbp)):
+                    if isinstance(existing_pbp[idx_mid], dict):
+                        existing_pbp[idx_mid]["page"] = 2
+        # Ensure 3-page copies distribute cards to all pages (Page 1, 2, and 3)
+        elif total_pages_val >= 3 and len(existing_pbp) >= 3:
             has_p3 = any(int(it.get("page", 0)) == total_pages_val for it in existing_pbp if isinstance(it, dict))
             if not has_p3:
                 existing_pbp[-1]["page"] = total_pages_val
@@ -8230,8 +8326,12 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
             if not isinstance(item, dict):
                 continue
             p_val = int(item.get("page", 0) or 0)
+            if total_pages_val <= 2 and p_val > 2:
+                p_val = 2
             if p_val <= 0 or p_val > total_pages_val:
                 item["page"] = min(total_pages_val, max(1, idx + 1))
+            else:
+                item["page"] = p_val
 
             t = str(item.get("title", "")).strip()
             if not t or _has_meta_placeholder(t):
@@ -8646,13 +8746,15 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
         for pbp in pbp_list:
             if len(formatted_strengths) >= 5:
                 break
-            if isinstance(pbp, dict) and pbp.get("is_positive") and pbp.get("title") and not re.search(r'conclusion|unwritten', str(pbp.get("title")), re.I):
+            if isinstance(pbp, dict) and pbp.get("is_positive") and pbp.get("title") and not re.search(r'intro|introduction|प्रस्तावना|context & conceptual definition|conclusion|unwritten', str(pbp.get("title")), re.I):
                 t_clean = re.sub(r'[*_#`]', '', str(pbp.get("title"))).strip()
                 if not any(t_clean.lower()[:15] in fs.lower() for fs in formatted_strengths):
                     pg_num = pbp.get("page", 2)
                     verd = str(pbp.get("examiner_verdict") or "Substantiated demand with structured points.")
                     formatted_strengths.append(f"**{t_clean} (Page {pg_num})**: {verd}")
 
+    # Strictly filter out any introduction leaks from body strengths
+    formatted_strengths = [s for s in formatted_strengths if not re.search(r'(?i)(?:^|\*\*)\s*(?:intro|introduction|प्रस्तावना|context & conceptual definition)', str(s))]
     if formatted_strengths:
         body_audit["strengths"] = formatted_strengths[:6]
 
@@ -10875,9 +10977,12 @@ def _normalize_diagram_recommendation(data: Dict[str, Any], final_question: str,
             raw_title = "Strategic Disinvestment vs. Asset Monetisation Framework" if not is_hindi else "रणनीतिक विनिवेश बनाम परिसंपत्ति मुद्रीकरण रूपरेखा"
         elif "plassey" in q_lower:
             raw_title = "Plassey Subversion & Territorial Annexation Sequence" if not is_hindi else "प्लासी का युद्ध: राजनीतिक षड्यंत्र एवं क्षेत्रीय विस्तार क्रम"
+        elif any(k in q_lower for k in ["ancient", "civiliz", "geograph", "magadh", "harappa", "indus", "vedic", "प्राचीन", "भौगोलिक", "सभ्यता", "सिंधु", "इतिहास"]):
+            raw_title = "Spatial & Geomorphic Catalysts in Ancient India" if not is_hindi else "प्राचीन भारत के विकास में भौगोलिक एवं स्थानिक उत्प्रेरक"
         else:
-            first_words = " ".join(final_question.split()[:5])
-            raw_title = f"Causal Mechanism Flow: {first_words}" if not is_hindi else f"कारण-प्रभाव फ़्लो: {first_words}"
+            clean_q_diag = re.sub(r'^(?:explain|discuss|examine|critically\s+examine|analyze|evaluate|elucidate|what\s+is|what\s+are)\s+(?:the\s+)?(?:role\s+of\s+)?', '', final_question, flags=re.I).strip()
+            first_words = " ".join(clean_q_diag.split()[:5])
+            raw_title = f"Causal Process Flow: {first_words}" if not is_hindi else f"कारण-प्रभाव फ़्लो: {first_words}"
 
     # Determine diagram_type
     diag_type = str(diag_rec.get("diagram_type") or "").strip().lower()
@@ -10976,11 +11081,34 @@ def _normalize_diagram_recommendation(data: Dict[str, Any], final_question: str,
                     {"step": 2, "label": "Unsupported Summit Collapse" if not is_hindi else "ज्वालामुखीय गुंबद का धंसाव", "subtext": "Overlying roof collapses along ring fractures" if not is_hindi else "वृत्ताकार भ्रंशों के सहारे छत का गिरना", "badge": "Stage 2" if not is_hindi else "चरण 2"},
                     {"step": 3, "label": "Hydrothermal Crater Lake" if not is_hindi else "काल्डेरा झील निर्माण", "subtext": "Meteoric water fills deep volcanic depression" if not is_hindi else "वर्षा जल भरने से सुरम्य झील का निर्माण", "badge": "Stage 3" if not is_hindi else "चरण 3"}
                 ]
-            else:
+            elif any(k in q_lower for k in ["ancient", "civiliz", "geograph", "magadh", "harappa", "indus", "vedic", "प्राचीन", "भौगोलिक", "सभ्यता", "सिंधु", "इतिहास"]):
                 clean_nodes = [
-                    {"step": 1, "label": "Foundational Driver" if not is_hindi else "प्राथमिक कारण", "subtext": "Initial causal factor or policy trigger", "badge": "Trigger" if not is_hindi else "आरंभ"},
-                    {"step": 2, "label": "Structural Mechanism" if not is_hindi else "संरचनात्मक प्रक्रिया", "subtext": "Core transmission channel", "badge": "Mechanism" if not is_hindi else "क्रियाविधि"},
-                    {"step": 3, "label": "Measurable Impact" if not is_hindi else "मापने योग्य परिणाम", "subtext": "Outcome on target stakeholders", "badge": "Outcome" if not is_hindi else "परिणाम"}
+                    {
+                        "step": 1,
+                        "label": "Riverine Alluvium (Indus & Ganga)" if not is_hindi else "उपजाऊ नदी घाटियां (सिंधु एवं गंगा)",
+                        "subtext": "Agrarian surplus & 2nd Urbanisation (Mahajanapadas)" if not is_hindi else "कृषि अधिशेष एवं द्वितीय नगरीकरण (महाजनपद)",
+                        "badge": "Resource Base" if not is_hindi else "संसाधन आधार"
+                    },
+                    {
+                        "step": 2,
+                        "label": "Natural Himalayan Ramparts" if not is_hindi else "हिमालयी प्राकृतिक प्राचीर व दर्रे",
+                        "subtext": "Shield against northern nomads; Khyber/Bolan trade" if not is_hindi else "उत्तरी आक्रमणों से सुरक्षा; खैबर/बोलन दर्रों से व्यापार",
+                        "badge": "Strategic Shield" if not is_hindi else "सुरक्षा प्राचीर"
+                    },
+                    {
+                        "step": 3,
+                        "label": "Peninsular Coastline & Monsoons" if not is_hindi else "प्रायद्वीपीय तटरेखा एवं मानसूनी हवाएं",
+                        "subtext": "Indian Ocean maritime trade (Cholas, Rome, SE Asia)" if not is_hindi else "हिंद महासागरीय व्यापार (चोल, रोम, द.-पू. एशिया)",
+                        "badge": "Maritime Trade" if not is_hindi else "सामुद्रिक व्यापार"
+                    }
+                ]
+            else:
+                first_topic = re.sub(r'^(?:explain|discuss|examine|critically\s+examine|analyze|evaluate|elucidate)\s+(?:the\s+)?(?:role\s+of\s+)?', '', final_question, flags=re.I).split()
+                c_topic = " ".join(first_topic[:3]) if first_topic else "Primary Demand"
+                clean_nodes = [
+                    {"step": 1, "label": f"{c_topic} Genesis" if not is_hindi else f"{c_topic} का उद्भव", "subtext": "Initial causal factor and contextual origin" if not is_hindi else "आरंभिक कारण एवं संदर्भ", "badge": "Stage 1" if not is_hindi else "चरण 1"},
+                    {"step": 2, "label": "Operational Mechanism" if not is_hindi else "मुख्य कार्यप्रणाली", "subtext": "Core transmission channel and key linkages" if not is_hindi else "मुख्य प्रक्रिया एवं अंतर्संबंध", "badge": "Stage 2" if not is_hindi else "चरण 2"},
+                    {"step": 3, "label": "Developmental Outcome" if not is_hindi else "विकासात्मक परिणाम", "subtext": "Measurable societal and institutional impact" if not is_hindi else "ठोस प्रभाव एवं दूरगामी परिणाम", "badge": "Stage 3" if not is_hindi else "चरण 3"}
                 ]
 
     # Clean comparison columns
@@ -11014,6 +11142,11 @@ def _normalize_diagram_recommendation(data: Dict[str, Any], final_question: str,
                 ]
 
     # Construct final validated diagram_recommendation dictionary
+    mm_diag = int(data.get('max_marks') or 10)
+    if mm_diag <= 10:
+        placement = placement.replace("Page 3", "Page 2").replace("पृष्ठ 3", "पृष्ठ 2")
+        tip = tip.replace("Page 3", "Page 2").replace("पृष्ठ 3", "पृष्ठ 2")
+
     normalized_diag = {
         "is_recommended": is_rec,
         "not_recommended_reason": not_rec_reason,

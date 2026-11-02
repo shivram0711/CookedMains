@@ -8463,22 +8463,42 @@ function buildDomainModelIntro(evalData) {
   if (qLow.includes("ahom") || qLow.includes("buranji") || qLow.includes("saraighat")) {
     return "The **Ahom Kingdom (1228–1826)** established enduring political and cultural sovereignty in the Brahmaputra valley, sustained by the unique **Paik mobilization system**, indigenous chronicles (**Buranjis**), and syncretic socio-administrative institutions.";
   }
-  if (pStr.includes("GS1")) {
-    return "Understanding the spatial and socio-historical dimensions of this phenomenon requires analyzing foundational institutional forces, geomorphic dynamics, and structural transformations.";
+  if ((/GS[-_\s]?1/i.test(pStr) || /history|ancient|culture/i.test(qLow)) && (/ancient|civiliz|geograph|indus|vedic|magadh/i.test(qLow))) {
+    return isHindi
+      ? "**प्राचीन भारत** का सभ्यतागत विकास उसके **भू-आकृतिक स्वरूप** से प्रत्यक्षतः निर्धारित हुआ — जहाँ उपजाऊ नदी घाटियों (सिंधु एवं गंगा) ने नगरीकरण हेतु कृषि अधिशेष दिया, वहीं प्राकृतिक सीमाओं एवं प्रायद्वीपीय तटरेखा ने सुरक्षा व सामुद्रिक व्यापार को दिशा दी।"
+      : "The civilizational development of **Ancient India** was fundamentally shaped by its **geomorphic matrix** — where fertile riverine plains (Indus and Ganga) generated agrarian surpluses for urbanization, while natural Himalayan ramparts and peninsular sea lanes guided security and maritime commerce.";
   }
-  if (pStr.includes("GS2") || pStr.includes("POLITY")) {
-    return "Constitutional governance in India balances the separation of powers with institutional checks and balances, operationalizing **Constitutional Morality** to secure fundamental rights and cooperative federalism.";
+  if (/GS[-_\s]?1/i.test(pStr)) {
+    return isHindi
+      ? "इस विषय के ऐतिहासिक एवं भौगोलिक आयामों का विश्लेषण उन आधारभूत स्थानिक प्रतिरूपों, पर्यावरणीय कारकों और सभ्यतागत विकास को स्पष्ट करता है जिन्होंने क्षेत्रीय संवृद्धि को दिशा दी।"
+      : "Examining the spatial and socio-historical dimensions of this theme illuminates the foundational geomorphic determinants, environmental conditions, and civilizational dynamics that shaped regional development.";
   }
-  if (pStr.includes("GS3")) {
-    return "Sustaining India's macroeconomic trajectory requires harmonizing structural fiscal prudence with targeted capex expansion, formalizing employment, and strengthening productive capital formation.";
+  if (/GS[-_\s]?2/i.test(pStr) || pStr.includes("POLITY")) {
+    return isHindi
+      ? "भारत में संवैधानिक अभिशासन शक्तियों के पृथक्करण और संस्थागत संतुलन पर आधारित है, जो **संवैधानिक नैतिकता** तथा **विधि के शासन** द्वारा मूल अधिकारों को सुरक्षित करता है।"
+      : "Constitutional governance in India balances the separation of powers with institutional checks and balances, operationalizing **Constitutional Morality** to secure fundamental rights and cooperative federalism.";
   }
-  if (pStr.includes("GS4") || pStr.includes("ETHICS")) {
-    return "Public administration ethics anchors administrative discretion in **Constitutional Morality** and the **Nolan Committee Principles**, ensuring that public servants exercise authority with unyielding integrity, objectivity, and empathy.";
+  if (/GS[-_\s]?3/i.test(pStr)) {
+    return isHindi
+      ? "भारत के आर्थिक विकास को गति देने के लिए संरचनात्मक सुधारों, पूंजीगत व्यय के विस्तार और धारणीय राजकोषीय प्रबंधन के मध्य रणनीतिक संतुलन अनिवार्य है।"
+      : "Sustaining India's macroeconomic trajectory requires harmonizing structural fiscal prudence with targeted capex expansion, formalizing employment, and strengthening productive capital formation.";
+  }
+  if (/GS[-_\s]?4/i.test(pStr) || pStr.includes("ETHICS")) {
+    return isHindi
+      ? "लोक प्रशासन में नैतिकता प्रशासनिक निर्णयों को **संवैधानिक नैतिकता** और **नोलन समिति के 7 सिद्धांतों** से जोड़ती है, जिससे लोक सेवक सत्यनिष्ठा एवं निष्पक्षता से कार्य कर सकें।"
+      : "Public administration ethics anchors administrative discretion in **Constitutional Morality** and the **Nolan Committee Principles**, ensuring that public servants exercise authority with unyielding integrity, objectivity, and empathy.";
   }
 
-  const cleanQ = qStr.replace(/^(?:discuss|examine|critically\s+examine|analyze|evaluate|elucidate|comment\s+on|explain|what\s+is|what\s+are)\s+/i, "").trim();
+  const cleanQ = qStr.replace(/^(?:discuss|examine|critically\s+examine|analyze|evaluate|elucidate|comment\s+on|explain|what\s+is|what\s+are)\s+/i, "").replace(/\s*\d{4}\s*,?\s*\d+\s*words?.*$/i, "").trim();
   const words = cleanQ.split(/\s+/).slice(0, 6).join(" ").replace(/[,;:]+$/, "");
-  return `Addressing **${words || "the core directive"}** requires an integrated approach that anchors foundational statutory principles alongside empirical benchmarks, ensuring transparent institutional accountability and outcome-oriented governance.`;
+  if (/GS[-_\s]?1/i.test(pStr) || /history|culture|ancient|geograph/i.test(qLow)) {
+    return isHindi
+      ? `**${words || "इस विषय"}** का विश्लेषण उन आधारभूत भौगोलिक कारकों, सामाजिक-सांस्कृतिक प्रक्रियाओं और ऐतिहासिक मील के पत्थरों को स्पष्ट करता है जिन्होंने सभ्यतागत विकास को दिशा दी।`
+      : `Examining **${words || "the core theme"}** reveals the vital interplay between physical geographical determinants, socio-cultural evolution, and regional civilizational milestones.`;
+  }
+  return isHindi
+    ? `**${words || "मुख्य विषय"}** के प्रभावी समाधान हेतु नीतिगत ढांचे, प्रामाणिक साक्ष्यों एवं संस्थागत जवाबदेही का समेकित क्रियान्वयन संवैधानिक मूल्यों के अनुरूप परिणामोन्मुखी शासन सुनिश्चित करता है।`
+    : `Addressing **${words || "the core directive"}** requires a structured institutional approach that balances constitutional mandates, statutory safeguards, and verifiable ground-level outcomes.`;
 }
 window.buildDomainModelIntro = buildDomainModelIntro;
 
@@ -13764,7 +13784,8 @@ function renderEvaluation(evalData) {
 
   const strengthsEl = document.getElementById("bodyStrengthsList");
   strengthsEl.innerHTML = "";
-  const sortedStrengths = typeof window.sortPointsChronologically === "function" ? window.sortPointsChronologically(body.strengths || []) : (body.strengths || []);
+  const rawStrengthsList = (body.strengths || []).filter(s => !/(?:^|\*\*)\s*(?:intro|introduction|प्रस्तावना|context & conceptual definition)/i.test(String(s || "")));
+  const sortedStrengths = typeof window.sortPointsChronologically === "function" ? window.sortPointsChronologically(rawStrengthsList) : rawStrengthsList;
   sortedStrengths.forEach(s => {
     registerInDeepEval(s);
     const cleanS = String(s || '').replace(/^[✓✔•★⭐\s\-]+/, '').replace(/\s*\((?:Ref|उत्तर संदर्भ|उत्तर)\s*:\s*[^)]+\)/gi, '').trim();
@@ -13951,6 +13972,18 @@ function renderEvaluation(evalData) {
       `;
     } else {
       cards.forEach((c, idx) => {
+        // Disciplinary sanitization: never allow statutory/inter-departmental matrix in History/Geography
+        if ((currentDiscipline === "HISTORY_CULTURE" || /ancient|medieval|history|culture/i.test(qStrLow)) && /institutional\s+inter-linkage|statutory\s+mechanism/i.test(String(c.term || "") + " " + String(c.definition || ""))) {
+          c.term = isHindi ? "पुरालेखीय साक्ष्य एवं भू-आकृतिक संरचना" : "Epigraphic Corroboration & Geomorphic Matrix";
+          c.domain_or_thinker = isHindi ? "ऐतिहासिक साक्ष्य" : "Historical Evidence";
+          c.definition = isHindi
+            ? "ऐतिहासिक तर्कों को प्राथमिक पुरालेखीय/साहित्यिक स्रोतों (जैसे अर्थशास्त्र, मेगस्थनीज की इंडिका) एवं भू-आकृतिक कारकों से प्रमाणित करें।"
+            : "Corroborate historical claims with primary epigraphic/literary sources (e.g. Arthashastra, Megasthenes' Indica) and geomorphic determinants.";
+          c.where_to_use = isHindi ? "पृष्ठ 2 • व्यापार, अर्थव्यवस्था अथवा प्रशासनिक विकास" : "Page 2 • Under Trade, Economy or Administrative Evolution";
+          c.how_to_use_one_line = isHindi
+            ? "उपजाऊ नदी घाटियों (सिंधु-गंगा) ने कृषि अधिशेष उत्पन्न किया जिससे नगरीकरण संभव हुआ, जिसकी पुष्टि तत्कालीन अभिलेखीय साक्ष्यों से होती है।"
+            : "Fertile river basins (Indus-Ganga) generated agricultural surplus that sustained urbanization, corroborated by contemporary archaeological strata.";
+        }
         const div = document.createElement("div");
         const actionType = String(c.action_type || "Add").trim();
         const priority = String(c.priority || "High Priority").trim();
@@ -14115,16 +14148,38 @@ function renderEvaluation(evalData) {
       }
     }
 
-    const curExamples = Array.isArray(caData.current_examples) ? caData.current_examples : [];
-    if (caExampleCardBox && curExamples.length > 1) {
-      caExampleCardBox.innerHTML = curExamples.map((ex, exIdx) => {
-        const exTitle = ex.example_title || `Contemporary Example #${exIdx + 1}`;
-        const exTarget = ex.paragraph_target || `Page ${exIdx + 2} • Body Section`;
+    // Fully reset caExampleCardBox on every evaluation to eliminate state leak/persistence
+    if (caExampleCardBox) {
+      caExampleCardBox.innerHTML = "";
+      const isTenMarker = Number(evalData.max_marks || (state && state.marks) || 10) <= 10;
+      const rawExamples = Array.isArray(caData.current_examples) && caData.current_examples.length > 0
+        ? caData.current_examples
+        : [{
+            example_title: exIns.example_title || (isHindi ? "समसामयिक संवर्धन" : "Contemporary Value Addition"),
+            paragraph_target: resolvedTarget,
+            marks_gain: exIns.marks_gain || "+0.5 to +1.0 Mark",
+            current_weakness: resolvedWeakness,
+            recommended_insertion: resolvedInsertion
+          }];
+
+      caExampleCardBox.innerHTML = rawExamples.map((ex, exIdx) => {
+        const exTitle = ex.example_title || (isHindi ? `मूल्य संवर्धन #${exIdx + 1}` : `Contemporary Value Addition #${exIdx + 1}`);
+        let rawTarget = ex.paragraph_target || (isTenMarker ? "Page 2 • Body Section" : "Page 2–3 • Body Section");
+        if (isTenMarker) {
+          rawTarget = rawTarget.replace(/Page\s*3/gi, "Page 2").replace(/पृष्ठ\s*3/gi, "पृष्ठ 2");
+        }
         const exGain = ex.marks_gain || "+0.5 to +1.0M";
         let exText = ex.recommended_insertion || resolvedInsertion;
         if (!isSolarQuestion && /pm-surya|surya\s*ghar|tender\/regulatory/i.test(exText)) {
           exText = resolvedInsertion;
         }
+        const exWeak = ex.current_weakness || (rawExamples.length === 1 ? resolvedWeakness : "");
+        const weaknessHtml = exWeak && exWeak.length > 5 ? `
+          <div class="text-[10px] text-slate-600 dark:text-slate-400 italic">
+            <span class="font-semibold text-amber-700 dark:text-amber-400">${isHindi ? "वर्तमान कमी:" : "Current Gap:"}</span> ${escapeHtml(exWeak)}
+          </div>
+        ` : "";
+
         return `
           <div class="p-3 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 mb-2 last:mb-0">
             <div class="space-y-1">
@@ -14134,24 +14189,21 @@ function renderEvaluation(evalData) {
               </div>
               <div class="text-[10px] text-sky-700 dark:text-sky-300 font-medium flex items-center space-x-1.5">
                 <i data-lucide="map-pin" class="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0"></i>
-                <span><strong>Where to Write:</strong> <span>${escapeHtml(exTarget)}</span></span>
+                <span><strong>${isHindi ? "कहाँ लिखें:" : "Where to Write:"}</strong> <span>${escapeHtml(rawTarget)}</span></span>
               </div>
             </div>
+            ${weaknessHtml}
             <div class="va-how-to-write-box p-2.5 rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-300/70 dark:border-amber-500/30 text-[11px] leading-relaxed font-sans">
-              <span class="va-how-to-write-title text-[9.5px] font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider block mb-0.5">✍️ How to Write in Body (2-Line Exam Format):</span>
+              <span class="va-how-to-write-title text-[9.5px] font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider block mb-0.5">${isHindi ? "✍️ मुख्य भाग में ऐसे लिखें (2-Line Exam Format):" : "✍️ How to Write in Body (2-Line Exam Format):"}</span>
               <span class="va-how-to-write-content text-slate-800 dark:text-slate-200 font-medium">${formatHighlightedText(exText)}</span>
             </div>
           </div>
         `;
       }).join("");
+
       if (window.lucide) {
         try { window.lucide.createIcons({ root: caExampleCardBox }); } catch (e) {}
       }
-    } else {
-      if (caExampleTarget) caExampleTarget.textContent = resolvedTarget;
-      if (caMarksGainBadge) caMarksGainBadge.textContent = exIns.marks_gain || "+0.5 to +1.0 Mark";
-      if (caCurrentWeakness) caCurrentWeakness.textContent = resolvedWeakness;
-      if (caRecommendedInsertion) caRecommendedInsertion.innerHTML = formatHighlightedText(resolvedInsertion);
     }
 
     // Hide Official Reports / Committees / Way Forward box on History, Culture, Geography & Philosophy questions or when reports are generic boilerplate
@@ -14232,7 +14284,11 @@ function renderEvaluation(evalData) {
         diagDrawTipText.textContent = diagRec.exam_sketch_tip || (isHindi ? "45 सेकंड में 3 बॉक्स बनाकर तीरों से जोड़ें।" : "Draw 3 simple boxes linked by arrows in ~45 seconds.");
       }
       if (diagPlacementText) {
-        diagPlacementText.textContent = diagRec.placement || (isHindi ? "पृष्ठ 1 • मुख्य कारण-प्रभाव पैराग्राफ के साथ" : "Page 1 • Beside your core causal mechanism paragraph");
+        let pTxt = diagRec.placement || (isHindi ? "पृष्ठ 1 • मुख्य कारण-प्रभाव पैराग्राफ के साथ" : "Page 1 • Beside your core causal mechanism paragraph");
+        if (Number(evalData.max_marks || (state && state.marks) || 10) <= 10) {
+          pTxt = pTxt.replace(/Page\s*3/gi, "Page 2").replace(/पृष्ठ\s*3/gi, "पृष्ठ 2");
+        }
+        diagPlacementText.textContent = pTxt;
       }
     } else {
       if (diagPreviewSection) diagPreviewSection.classList.add("hidden");
