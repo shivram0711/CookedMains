@@ -10019,11 +10019,9 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
         )
 
         if is_intro:
-            if not _is_duplicate_sentence(verdict, intro_crit):
-                if not intro_crit:
-                    intro_crit = f"**{clean_title}**: {verdict}"
-                else:
-                    intro_crit = f"{intro_crit}<br>• **{clean_title}**: {verdict}"
+            # Strictly ONE feedback point in introduction section to prevent confusion (no stacking or double bullets)
+            clean_intro_entry = f"**{clean_title}**: {verdict}" if not verdict.startswith("**") else verdict
+            intro_crit = clean_intro_entry
         elif is_conc:
             # Image 1 Fix: Keep only ONE feedback point in conclusion section which follows precise and relevant point for evaluation
             # Do NOT stack multiple bullet points or generic closing praise with card feedback.
@@ -10047,6 +10045,13 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
         if isinstance(raw_critical, list) and raw_critical:
             existing_gaps = [_strip_candidate_quotes(g) for g in raw_critical if g and not _has_meta_placeholder(str(g))]
 
+    if intro_crit:
+        # Guarantee strictly ONE single cohesive feedback statement (no stacked bullets or dual lines)
+        intro_crit_parts = [p.strip() for p in re.split(r'<br\s*/?>|\n+', intro_crit) if p.strip()]
+        if len(intro_crit_parts) > 1:
+            upgrade_parts = [p for p in intro_crit_parts if re.search(r'(?i)(upgrade|periodize|scope|gap|consonance|miss|lacks|ground|demarcat)', p)]
+            intro_crit = upgrade_parts[0] if upgrade_parts else intro_crit_parts[0]
+        intro_crit = re.sub(r'^[•\-\s]+', '', intro_crit).strip()
     intro_audit["current_critique"] = intro_crit
     conclusion_audit["current_critique"] = conc_crit
     # Image 5 Fix: Ensure evaluation points follow continuous chronological flow with answersheet (Page 1 first, then Page 2, Page 3...)

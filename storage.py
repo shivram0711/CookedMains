@@ -2826,9 +2826,11 @@ def find_canonical_evaluation_for_script(
     max_marks: Optional[int] = None
 ) -> Optional[Dict[str, Any]]:
     """
-    Finds a previously evaluated canonical record for identical or near-identical scripts
-    to guarantee 100% deterministic, equivalent evaluation across devices (PC vs Mobile).
+    Finds a previously evaluated canonical record for identical or near-identical scripts.
+    Disabled by default to ensure fresh, authentic LLM evaluations reflecting prompt improvements.
     """
+    if os.environ.get("ENABLE_CANONICAL_SCRIPT_LOCK", "false").lower() not in ("true", "1"):
+        return None
     candidates = _collect_all_recent_canonical_evaluations(limit=100)
     if not candidates:
         return None

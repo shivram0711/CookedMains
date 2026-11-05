@@ -2523,7 +2523,7 @@ async def evaluate_answer(
 
         # PRE-LLM CANONICAL SCRIPT CHECK (100% Cross-Account Consistency for Same File or Same Handwriting Sheet)
         evaluation_result = None
-        if not is_rewrite:
+        if not is_rewrite and os.environ.get("ENABLE_CANONICAL_SCRIPT_LOCK", "false").lower() in ("true", "1"):
             canonical_pre = find_canonical_evaluation_for_script(
                 file_hash=submission_hash,
                 visual_hashes=visual_hashes,
@@ -2763,7 +2763,7 @@ async def evaluate_answer(
         # POST-LLM CONTENT & HANDWRITING CANONICAL LOCK
         # If two accounts upload photos/scans of the same written answer content (>=68% point/text similarity on same question),
         # lock to the canonical evaluation so marks, rubric breakdown, and margin remarks are 100% identical!
-        if not is_rewrite:
+        if not is_rewrite and os.environ.get("ENABLE_CANONICAL_SCRIPT_LOCK", "false").lower() in ("true", "1"):
             canonical_post = find_canonical_evaluation_for_script(
                 file_hash=submission_hash,
                 visual_hashes=visual_hashes,

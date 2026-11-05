@@ -12163,7 +12163,7 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
       if (hasIndirectBgOpening) {
         evalData.intro_audit.current_critique = `✗ **Indirect Opening (Red-Pen Teacher Check)**: Your opening lines${quoteSnippet} start with general background—don't spend lines on background; start directly by defining the core keyword of the question and anchoring ${missList.length > 0 ? missList.slice(0, 2).join(" & ") : firstKw}.`;
       } else {
-        evalData.intro_audit.current_critique = `✓ **Opening Premise Evaluated**: Your introduction establishes the baseline theme of the question${quoteSnippet}.<br>✎ **How to Score Full Intro Marks**: Expand your opening by 1–2 lines integrating ${missList.length > 0 ? missList.slice(0, 2).join(" and ") : firstKw} along with a concrete baseline statistic or mechanism.`;
+        evalData.intro_audit.current_critique = `✓ **Opening Premise Evaluated**: Your introduction establishes the baseline theme of the question${quoteSnippet}—to score full marks, expand by 1–2 lines integrating ${missList.length > 0 ? missList.slice(0, 2).join(" and ") : firstKw} with a concrete baseline statistic or mechanism.`;
       }
     } else if (hasIndirectBgOpening && !/indirect opening|background/i.test(rawICrit)) {
       evalData.intro_audit.current_critique = `✗ **Indirect Opening Tip**: Start directly with the core concept of the question rather than general background.<br>` + rawICrit;
@@ -13664,6 +13664,12 @@ function renderEvaluation(evalData) {
     document.getElementById("modelIntroText").innerHTML = `"${formatHighlightedText(modelIntro)}"`;
   } else {
     let rawIntroCrit = String(intro.current_critique || "").trim();
+    // Guarantee strictly ONE single cohesive feedback item displayed in the intro audit card (no stacked bullet lines)
+    if (rawIntroCrit.includes("<br>") || rawIntroCrit.includes("\n")) {
+      const parts = rawIntroCrit.split(/<br\s*\/?>|\n+/).map(s => s.trim()).filter(Boolean);
+      const upgradePart = parts.find(p => /upgrade|periodize|scope|gap|consonance|miss|lacks|ground|demarcat/i.test(p));
+      rawIntroCrit = (upgradePart || parts[0] || "").replace(/^[•\-\*\s]+/, "").trim();
+    }
     const missList = Array.isArray(intro.missing_elements) ? intro.missing_elements.filter(Boolean) : [];
     if (rawIntroCrit.length < 55 && missList.length > 0) {
       rawIntroCrit = isHindi
