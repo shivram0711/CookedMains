@@ -1,4 +1,4 @@
-import os
+﻿import os
 import json
 import re
 import time
@@ -1650,43 +1650,49 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
 
 11. मेंटर-शैली सूक्ष्म मूल्यांकन: मांग में संतुलन, अचानक छलांग (Premature Jumps) से बचाव, कारण-कार्य चक्र की पूर्णता एवं रचनात्मक मेंटर भाषा (NON-NEGOTIABLE):
     - एक वरिष्ठ यूपीएससी मेंटर की तरह उत्तर-पुस्तिका का समग्र व सूक्ष्म परीक्षण करें ताकि अभ्यर्थी को परीक्षा-हॉल की संरचनात्मक व विषयगत बारीकियों की स्पष्ट सीख मिले:
-      * क. मांग संतुलन व अचानक छलांग से बचाव (STRUCTURAL TRANSITION AUDIT):
-        - यदि प्रश्न में एक से अधिक प्रत्यक्ष मांगें हैं (जैसे मांग 1: "भारतीय सिंचाई प्रणाली की हालिया चुनौतियाँ"; मांग 2: "कुशल प्रबंधन हेतु सरकार द्वारा उठाए गए कदम"):
+      * क. मांग संतुलन व उप-मांग संयोजक सेतु / शीर्षक ऑडिट (STRUCTURAL TRANSITION AUDIT):
+        - यदि प्रश्न में एक से अधिक प्रत्यक्ष मांगें हैं (जैसे मांग 1: "सार्वजनिक व्यय का पैटर्न व प्रवृत्ति"; मांग 2: "समावेशी विकास के साथ संरेखण"):
           * जाँचें कि अभ्यर्थी ने दोनों मांगों को संतुलित विस्तार और तकनीकी गहराई दी है या नहीं।
-          * यदि अभ्यर्थी ने पहली मांग (चुनौतियों) को 2-3 संक्षिप्त पंक्तियों में निपटाकर सीधे पृष्ठ 2 व 3 पर सरकारी योजनाओं की सूची बना दी है:
-            -> `body_audit.overall_assessment` एवं `body_audit.critical_gaps` में इस संरचनात्मक असंतुलन को स्पष्ट रूप से रेखांकित करें:
-               `"**उपायों पर असंतुलित छलांग / मांग की अनदेखी**: आपने प्राथमिक विश्लेषणात्मक मांग ([मांग 1]) को सतही पंक्तियों में समेट दिया और अधिकांश पृष्ठ सरकारी योजनाओं की सूची बनाने में लगा दिए। 15-अंकों के प्रश्न में समाधानों पर जाने से पूर्व मुख्य चुनौतियों का संतुलित व गहन विश्लेषण अनिवार्य है।"`
-          * संयोजक सेतु (Transitional Bridge) की सीख:
-            -> अभ्यर्थी को सिखाएं कि पहली मांग से दूसरी मांग पर जाने से पूर्व 1-2 पंक्तियों का संदर्भ-युक्त संयोजक वाक्य लिखें (जैसे: *"भूजल के अत्यधिक दोहन, अनियमित मानसून तथा वितरण हानियों की इन चुनौतियों से निपटने हेतु सरकार ने निम्नलिखित प्रमुख उपाय लागू किए हैं:"*)।
-      * ख. अभ्यर्थी के बिंदुओं का गहन परीक्षण (अधूरे बिंदु बनाम पूर्ण उत्तर):
-        - `body_audit.critical_gaps` में अभ्यर्थी के उन बिंदुओं की पहचान करें जो केवल कारक या योजना का नाम लिख कर छोड़ दिए गए हैं:
-          * *मांग से असंबद्ध अमूर्त कारक*: यदि अभ्यर्थी लिखता है "जलवायु परिवर्तन से अनियमित मानसून और ग्लोबल वार्मिंग होती है", तो बताएं कि यह बिंदु अधूरा है क्योंकि यह सिंचाई पर पड़ने वाले प्रभाव को स्पष्ट नहीं करता। इसे जोड़ें: "जलवायु परिवर्तन के कारण अनियमित वर्षा से जलाशयों में जल स्तर घटता है और प्रमुख नहरों को जल की आपूर्ति बाधित होती है।"
-          * *डेटा/कारण की अपूर्ण शृंखला*: यदि अभ्यर्थी लिखता है "नहरों के अभाव में किसान नलकूपों पर निर्भर हैं जिससे भूजल दोहन होता है", तो इसे सिंचाई की निर्भरता से जोड़ें: "...जिससे देश के 60% से अधिक सिंचित क्षेत्र को सहारा देने वाले भूजल स्तर में भारी गिरावट आ रही है।"
-          * *योजना को चुनौती के समाधान से जोड़ना*: सरकारी योजना का नाम लिखने पर केवल उसकी परिभाषा न दें, बल्कि यह बताएं कि वह पहचानी गई किस विशिष्ट समस्या का समाधान करती है (जैसे "नारी शक्ति से जल शक्ति: विकेंद्रीकृत सामुदायिक जल प्रबंधन द्वारा अंतिम छोर तक जल वितरण दक्षता बढ़ाना")।
-          * *अकेला अप्रमाणित उदाहरण*: केवल "तेलंगाना चावल का शीर्ष उत्पादक है" लिखना प्रश्न से नहीं जुड़ता; इसे समझाएं: "भूजल संकट के बावजूद अर्ध-शुष्क क्षेत्रों में अत्यधिक जल-खपत वाली फसलों (धान/गन्ना) का विस्तार फसल-जल असंतुलन को दर्शाता है।"
+          * यदि अभ्यर्थी ने पहली मांग को 2-3 संक्षिप्त पंक्तियों में निपटाकर सीधे पृष्ठ 2 पर परिणामों या योजनाओं की सूची बना दी है:
+            -> `body_audit.overall_assessment` एवं `body_audit.critical_gaps` में इस संरचनात्मक असंतुलन को स्पष्ट रेखांकित करें।
+          * उप-मांगों के मध्य संयोजक सेतु एवं शीर्षक की दोहरी गतिशील पड़ताल (TWO-WAY DYNAMIC FIX):
+            -> सर्वप्रथम अभ्यर्थी का वास्तविक हस्तलिखित उप-शीर्षक देखें:
+               1. **यदि अभ्यर्थी ने पहले से ही दोनों मांगों को जोड़ने वाला प्रासंगिक शीर्षक लिखा है** (जैसे: *"समावेशी विकास के साथ बदलते व्यय पैटर्न का संरेखण"* अथवा *"बढ़ते सामाजिक व्यय का समावेशी संकेतकों पर प्रभाव"*):
+                  तो उनकी कोई अनावश्यक आलोचना न करें और न ही जबरन 1-पंक्ति का संयोजक वाक्य जोड़ने को कहें! उनके शीर्षक द्वारा स्थापित संरचनात्मक निरंतरता की सराहना करें।
+               2. **यदि अभ्यर्थी का उप-शीर्षक अचानक या असंबद्ध है** (जैसे प्रवृत्तियों के तुरंत बाद संदर्भहीन एकाकी शीर्षक *"समावेशी विकास से संरेखण की सीमा"*):
+                  तो पृष्ठ स्थान व आवश्यकतानुसार दो में से उपयुक्त विकल्प सुझाएं:
+                  - **विकल्प 1 (स्थान-बचत संयोजक उप-शीर्षक - 10-अंकों में अनुशंसित)**: 10-अंकों (150 शब्द) के प्रश्न में स्थान सीमित होने के कारण अभ्यर्थी को अपने एकाकी शीर्षक को ही सक्रिय व संयोजक शीर्षक में बदलना सिखाएं ताकि बिना अतिरिक्त पंक्ति गंवाए दोनों मांगों का सेतु बन जाए।
+                  - **विकल्प 2 (1-2 पंक्ति का संदर्भ-युक्त संयोजक वाक्य - 15-अंकों या स्थान होने पर)**: यदि स्थान उपलब्ध है, तो पिछली मांग के निष्कर्ष को अगली मांग से जोड़ने वाला 1 संक्षिप्त संयोजक वाक्य लिखना सिखाएं।
+                  - प्रत्येक मूल्यांकन पर जबरन 1-पंक्ति का वाक्य न थोपें; अभ्यर्थी की वास्तविक उत्तर-पुस्तिका के लेआउट और शब्द सीमा के अनुसार ही संयोजक शीर्षक या वाक्य का सुझाव दें।
+      * ख. अभ्यर्थी के बिंदुओं का गहन परीक्षण (कार्यात्मक तंत्र बनाम नाम लिखना, कारण-कार्य चक्र):
+        - `body_audit.critical_gaps` में अभ्यर्थी के उन बिंदुओं की पहचान करें जो केवल कारक, डेटा या योजना का नाम लिख कर छोड़ दिए गए हैं:
+          * *योजनाओं का कार्यात्मक तंत्र बनाम केवल नाम लिखना*: यदि अभ्यर्थी केवल योजना का नाम और लाभार्थी संख्या लिखता है (जैसे *"आयुष्मान भारत 50 करोड़ को कवर करता है"* अथवा *"पीएम जन धन योजना 47 करोड़ खाते"*):
+            `body_audit.critical_gaps` में रचनात्मक सुधार दें: केवल नाम लिखना अपूर्ण है; उसका परिचालन तंत्र स्पष्ट करें (जैसे *"आयुष्मान भारत ₹5 लाख/परिवार का द्वितीयक/तृतीयक स्वास्थ्य बीमा प्रदान कर अपनी जेब से होने वाले विनाशकारी स्वास्थ्य व्यय (OOPE) से सुरक्षा देता है; जन-धन ने डीबीटी हेतु जैम पाइपलाइन बनाई"*).
+          * *डेटा डंपिंग बनाम कारण-कार्य चक्र (The "Why and How" Test)*: यदि अभ्यर्थी अकेला व्यापक डेटा बिंदु लिखता है (जैसे *"415 मिलियन लोग गरीबी से बाहर आए"* अथवा *"जीवन प्रत्याशा 58 से 70 वर्ष हुई"*):
+            `body_audit.critical_gaps` में रेखांकित करें कि अकेला डेटा यह नहीं बताता कि सरकारी नीति या व्यय ने इसे कैसे संभव बनाया। कारण-कार्य शृंखला पूरी करें: गरीबी में कमी को लक्षित सुरक्षा जाल (एनएफएसए खाद्यान्न, मनरेगा मजदूरी बफर, डीबीटी) से तथा जीवन प्रत्याशा को प्राथमिक स्वास्थ्य, टीकाकरण व स्वच्छता में निवेश से जोड़ें। डेटा को नीतिगत तर्क का प्रमाण होना चाहिए, न कि स्वतंत्र सूचना।
+          * *मांग से असंबद्ध अमूर्त कारक*: यदि कारक प्रश्न के मुख्य परिचालन तनाव से नहीं जुड़ता, तो उसका सटीक प्रभाव स्पष्ट करें।
       * ग. आरेख: डेटा संघनन बनाम स्थान की बर्बादी:
-        - यदि अभ्यर्थी ने अप्रासंगिक या प्राथमिक स्तर का आरेख बनाया है (जैसे "सिंचाई के स्रोत: नदियां, वर्षा, भूजल", जबकि चुनौतियाँ पूछी गई थीं):
+        - 10-अंकों (150 शब्द) के प्रश्न में बिना पैमाने या बिना क्षेत्रीय विभाजन का सामान्य रेखाचित्र (Line Graph) या अप्रमाणिक आरेख पृष्ठ का 25-30% स्थान घेर लेता है:
           -> इसे `body_audit.strengths` में जबरन उच्च अंक दिलाने वाला न बताएं।
-          -> `body_audit.critical_gaps` में रचनात्मक सलाह दें: `"**अप्रमाणिक आरेख / स्थान का उपयोग**: सिंचाई के स्रोत नहीं पूछे गए थे; इसे बनाने में वह स्थान व्यर्थ हुआ जहाँ 2 ठोस विश्लेषणात्मक चुनौतियाँ लिखी जा सकती थीं। यदि आरेख बनाना हो, तो प्रश्न की तकनीकी भाषा ('भारत में प्रमुख सिंचाई प्रणालियाँ') का प्रयोग करें और कोष्ठक में प्रामाणिक डेटा (जैसे 62% भूजल, 24% नहरें, 14% अन्य) दर्ज करें ताकि वह डेटा संघनन का कार्य करे।"
-      * घ. प्रस्तावना: डेटा हुक को प्रश्न की मांग से जोड़ना:
-        - प्रामाणिक डेटा (जैसे "राष्ट्रीय आयोग के अनुसार 2050 तक सिंचाई जल मांग 807 BCM") एक अच्छा हुक है, किंतु यदि इसे वहीं छोड़ दिया जाए तो यह केवल एक सूचना बनकर रह जाता है।
-        - अभ्यर्थी को सिखाएं कि इसके आगे एक संयोजक उप-वाक्य जोड़ें (*"...जिससे भारत की मौजूदा सिंचाई प्रणालियों पर परिचालन दबाव अत्यधिक बढ़ रहा है"*) ताकि डेटा सीधे प्रश्न के तनाव से जुड़ जाए।
-      * ङ. निष्कर्ष: प्रश्न की मूल शब्दावली पर संश्लेषण बनाम असंबद्ध नारे:
-        - निष्कर्ष में प्रश्न के केंद्रीय शब्दों (जैसे *कुशल सिंचाई प्रबंधन, सूक्ष्म सिंचाई संतृप्ति, मांग-पक्षीय जल प्रबंधन*) पर संतुलित दृष्टिकोण प्रस्तुत करें।
-        - असंबद्ध नारों (जैसे सीधे 'समावेशी विकास' या 'विश्व गुरु') पर अचानक छलांग लगाने से बचें जिनकी मुख्य भाग में कोई पूर्वपीठिका नहीं थी।
+          -> `body_audit.critical_gaps` में स्पष्ट सलाह दें: 10-अंकों में बिना डेटा-विभाजन का सामान्य आरेख बनाने से वह स्थान नष्ट होता है जहाँ ठोस विश्लेषणात्मक बिंदु लिखे जा सकते थे; सतही आरेख के बजाय ठोस कारण-कार्य बिंदु अधिक अंक दिलाते हैं।
+      * घ. प्रस्तावना: विषय का दायरा स्पष्ट करना बनाम परिभाषा का जाल (केवल intro_audit में):
+        - यह सुधार सख्ती से केवल `intro_audit.current_critique` एवं `intro_audit.topper_reframe` में दर्ज करें (मुख्य भाग में नहीं):
+        - नीतिगत/प्रशासनिक प्रश्नों में 'समावेशी विकास' जैसे व्यापक शब्दों की किताबी परिभाषा देने में शब्द व्यर्थ न करें।
+        - इसके स्थान पर कोष्ठक में सामाजिक सेवाओं का दायरा (जैसे स्वास्थ्य, शिक्षा, सामाजिक सुरक्षा, पोषण) स्पष्ट करना सिखाएं ताकि संरचनात्मक विश्लेषण का आधार तैयार हो सके।
+      * ङ. निष्कर्ष: प्रश्न-आधारित नीतिगत संश्लेषण बनाम असंबद्ध उद्धरण (केवल conclusion_audit में):
+        - यह सुधार सख्ती से केवल `conclusion_audit.current_critique` एवं `conclusion_audit.topper_reframe` में दर्ज करें (मुख्य भाग में नहीं):
+        - 10-अंकों के सीमित शब्द बजट में सजावटी उद्धरण (जैसे महबूब उल हक का कथन) यदि उत्तर के आर्थिक तर्क से नहीं जुड़ते, तो वे केवल स्थान घेरते हैं।
+        - अभ्यर्थी को सजावटी नारों के स्थान पर प्रश्न के केंद्रीय तनाव (जैसे आवंटन-बजट से परिणाम-बजट की ओर बढ़ना, या 6% एनईपी / 2.5% एनएचपी व्यय लक्ष्य) पर 2-पंक्ति का ठोस नीतिगत संश्लेषण लिखना सिखाएं।
       * च. 10-अंकों (150 शब्द / 2 पृष्ठ) के प्रश्नों हेतु विशिष्ट मेंटर ऑडिट:
-        - 10-अंकों के प्रश्न में पृष्ठ सीमा (केवल 2 पृष्ठ), शब्द सीमा (150 शब्द) और समय (7.0 मिनट) का कड़ाई से पालन होता है:
-          1. **पृष्ठ 1 पर अनावश्यक/अत्यधिक बड़े आरेख पर अंक कटौती**:
-             * यदि अभ्यर्थी पृष्ठ 1 पर अप्रमाणिक या बड़ा आरेख बनाता है (जो 35%-40% स्थान घेर लेता है), तो स्पष्ट रेखांकित करें कि इससे पृष्ठ 2 पर मुख्य विश्लेषणात्मक मांग हेतु स्थान समाप्त हो जाता है। 10-अंकों में इसे 2-पंक्ति की इनलाइन तीर शृंखला से बदलें या केवल ठोस बिंदु लिखें।
-          2. **पृष्ठ 1 और पृष्ठ 2 के मध्य मांग का 50:50 संतुलन**:
-             * यदि प्रश्न में दो उप-मांगें हैं, तो पृष्ठ 1 पर पहली मांग और पृष्ठ 2 पर दूसरी मांग का संतुलित निरूपण होना चाहिए। पहली मांग में पूरा पृष्ठ 1 व्यर्थ कर दूसरी मांग को 2-3 सतही पंक्तियों में निपटाना गंभीर दोष है।
-          3. **अधूरे टेलीग्राम-शैली बुलेट्स के स्थान पर संक्षिप्त कारण-कार्य बिंदु**:
-             * जल्दबाजी में लिखे गए 1-पंक्ति के अधूरे बिंदुओं (जैसे "उपजाऊ मैदान ➔ सभ्यता का विकास") को 15-18 शब्दों के ठोस कारण-कार्य बिंदु में बदलना सिखाएं।
-          4. **संक्षिप्त 15-20 शब्दों का संतुलित समापन**।
-      * छ. तयशुदा/स्थिर वाक्यों का पूर्ण निषेध एवं 100% गतिशील विषयगत पृथक्करण (GS1, GS2, GS3, GS4):
-        - इन निर्देशों में दिए गए सभी उदाहरण (जैसे सिंचाई, जलवायु परिवर्तन, प्राचीन भारत) केवल परीक्षक की मूल्यांकन पद्धति को समझाने हेतु दिए गए हैं।
-        - किसी भी स्थिति में इन उदाहरणों या वाक्यों को अन्य विषयों (जैसे राजनीति, इतिहास, नीतिशास्त्र) में न दोहराएं।
-        - प्रत्येक टिप्पणी, प्रशंसा, कमी और सुधार केवल और केवल उस विशिष्ट प्रश्न की मांग, उसके संबंधित विषय (GS1/GS2/GS3/GS4) और अभ्यर्थी के वास्तविक हस्तलिखित उत्तर पर आधारित होनी चाहिए। कोई भी पूर्व-निर्मित या तयशुदा वाक्य कभी उत्पन्न न करें।
+        - पृष्ठ 1 और पृष्ठ 2 के मध्य 50:50 संतुलन, अप्रामाणिक आरेख पर स्थान कटौती, तथा संक्षिप्त कारण-कार्य बुलेट्स का कड़ाई से पालन करें।
+      * छ. संबंधित अनुभाग में ही मूल्यांकन का सख्त नियम एवं 100% गतिशील विषयगत पृथक्करण:
+        - **अनुभाग मर्यादा (RESPECTIVE SECTION DISCIPLINE)**:
+          * प्रस्तावना के दोष केवल `intro_audit` में दर्ज होंगे।
+          * मुख्य भाग के दोष (उप-मांग संतुलन, संयोजक शीर्षक/सेतु, कार्यात्मक तंत्र, आरेख स्थान उपयोग) केवल `body_audit` में दर्ज होंगे।
+          * निष्कर्ष के दोष (सजावटी उद्धरण, असंबद्ध नारे, नीतिगत संश्लेषण) केवल `conclusion_audit` में दर्ज होंगे।
+          * किसी भी अनुभाग की टिप्पणी दूसरे अनुभाग में कभी नहीं जाएगी।
+        - **शून्य तयशुदा/स्थिर वाक्य**: प्रत्येक टिप्पणी व सुधार अभ्यर्थी की वास्तविक हस्तलिखित उत्तर-पुस्तिका और प्रश्न के विषय (GS1, GS2, GS3, GS4) पर गतिशील रूप से आधारित होगा।
+
 
 OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
 {{
@@ -3273,31 +3279,45 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
 26. MENTOR EVALUATION RIGOR: DEMAND BALANCE, PREVENTING PREMATURE JUMPS, COMPLETING THE CAUSAL LOOP & MENTOR VOICE (MANDATORY):
     - A senior UPSC mentor evaluates an answer sheet to coach the candidate on structural flow, demand proportionality, and exam-room precision. Incorporate these core mentor evaluation principles across every evaluation:
       * A. DEMAND PROPORTIONALITY & PREVENTING PREMATURE JUMPS (STRUCTURAL TRANSITION AUDIT):
-        - When a question contains multiple explicit demands (e.g. Demand 1: "Major challenges faced by Indian irrigation system in recent times"; Demand 2: "Measures taken by government for efficient irrigation management"):
+        - When a question contains multiple explicit demands (e.g. Demand 1: "Pattern and trend of public expenditure"; Demand 2: "Consonance with inclusive growth"):
           * Check whether the candidate gave balanced space and technical depth to BOTH demands across the answer sheet.
-          * If the candidate rushes through Demand 1 with 2-3 brief lines and jumps straight to listing government schemes/measures on Pages 2 & 3:
+          * If the candidate rushes through Demand 1 with 2-3 brief lines and jumps straight to listing subsequent outcomes or government schemes on Page 2:
             -> Explicitly flag this structural jump in `body_audit.overall_assessment` and `body_audit.critical_gaps`:
-               e.g. `"**Premature Jump to Measures / Demand Underweighting**: You allocated excessive space to listing government schemes while rushing through the core analytical demand ([Demand 1]) in brief bullet points. In a 15-marker, [Demand 1] warrants balanced structural depth before transitioning to solutions."`
-          * Point out the lack of a transitional bridge:
-            -> Teach the candidate to insert a 1-2 line contextual bridge connecting specific bottlenecks identified above to the policy interventions that follow (e.g. *"To cater to these recent challenges of groundwater overdraft, erratic monsoons, and conveyance losses, key government interventions include:"*). A bridge prevents disjointed jumps and demonstrates deliberate structural flow.
+               e.g. `"**Premature Jump / Demand Underweighting**: You allocated excessive space to listing subsequent outcomes/schemes while rushing through the core analytical demand ([Demand 1]) in brief bullet points. Ensure balanced structural depth before transitioning."`
+          * SUB-DEMAND BRIDGE & CONNECTING HEADING AUDIT (TWO-WAY DYNAMIC FIX):
+            -> Look at the candidate's actual written heading between sub-demands first:
+               1. **IF the candidate ALREADY wrote a relevant, self-connecting heading** (e.g. *"Alignment of Changing Expenditure Pattern with Inclusive Growth"* or *"How Changed Spending Has Driven Inclusiveness"*):
+                  DO NOT criticize their transition or suggest adding a 1-line connecting clause! Acknowledge that their heading effectively maintains structural continuity.
+               2. **IF the candidate's heading is abrupt or disconnected** (e.g., jumping from trends directly into a bare, isolated header like *"Extent of alignment"* with zero contextual link):
+                  Guide them based on space budget and necessity using either of two solutions:
+                  - **Solution 1 (Self-Bridging Heading Refinement - Space-Saving)**: Preferred especially in 10-markers (150 words) where space is tight. Teach them to reframe their bare heading into an active, self-connecting title that carries the causal bridge directly without consuming extra page lines.
+                  - **Solution 2 (1–2 Line Contextual Bridge Clause - When Space Permits)**: If space permits or in 15-markers, teach them to insert a brief 1-line transitional clause linking the previous findings to the subsequent analysis.
+                  - NEVER universally impose a 1-liner on every evaluation; dynamically recommend a connecting heading or a 1-liner based on the candidate's actual sheet layout and word budget.
       * B. DEEP EVALUATION OF CANDIDATE'S BODY POINTS (INCOMPLETE STATEMENTS VS. COMPLETED ANSWERS):
-        - In `body_audit.critical_gaps` and margin cards, evaluate whether candidate points are incomplete statements that merely name an abstract factor or textbook definition without connecting to the question's core operational demand:
-          * *Factor without Demand Link*: If candidate writes a bare factor (e.g., *"Climate change induces irregular monsoons, global warming"*), critique it: It is incomplete because it does not explain how the specific subject is challenged. Show how to complete the causal chain: *"Climate change induces irregular monsoons, leading to erratic reservoir storage and drying of canal networks that sustain major irrigation systems."*
-          * *Cause without Quantitative / Ground Reality Link*: If candidate writes *"Groundwater depletion due to lack of canal connectivity, farmers rely on borewells"*, complete the loop to the question: *"...leading to acute aquifer depletion that imperils over 60% of India's net irrigated agriculture (e.g. Punjab Legislative Assembly alarm on groundwater exhaustion)."*
-          * *Scheme / Measure without Bottleneck Link*: If candidate writes *"Nari Shakti se Jal Shakti: women led organizations for water conservation and management"*, critique it: Do not merely summarize the scheme definition in the abstract; explain how it improves the specific challenge (e.g., *"decentralizes community water governance, plugging field-level distribution losses and improving canal tail-end water delivery"*).
-          * *Floating Data Point without Analytical Context*: If candidate writes *"Telangana is top producer of rice"*, critique it: It floats as an isolated fact. Reframe it: *"expansion of water-guzzling paddy in semi-arid zones of Telangana despite acute groundwater stress demonstrates crop-water mismatch."*
+        - In `body_audit.critical_gaps` and margin cards, evaluate whether candidate points are incomplete statements that merely name an abstract factor, textbook definition, or scheme without connecting to the question's core operational demand:
+          * *Factor without Demand Link*: If candidate writes a bare factor, critique it: It is incomplete because it does not explain how the specific subject is impacted. Show how to complete the causal chain.
+          * *Functional Mechanism Behind Schemes vs. Mere Name-Dropping*:
+            - If candidate merely name-drops a scheme with an isolated beneficiary number (e.g. *"Ayushman Bharat covering over 50 crore"* or *"PM Jan Dhan Yojana opened 47 crore accounts"*):
+              Critique it constructively in `body_audit.critical_gaps`: Naming a scheme without stating its operational mechanism is incomplete. Explain *what and how* it works (e.g. *"Ayushman Bharat provides secondary/tertiary health insurance up to ₹5 lakh/family, curbing catastrophic out-of-pocket medical expenditure; PMJDY established the JAM pipeline enabling leak-proof direct benefit transfers"*).
+          * *Causal Linkage / "Why and How" Test for Data Dumping*:
+            - If candidate writes an isolated macro metric or outcome (e.g. *"415 million people exited poverty"* or *"life expectancy increased from 58 to 70 years"*):
+              Critique it constructively in `body_audit.critical_gaps`: A standalone statistic does not explain *how* public intervention or expenditure drove that outcome. Complete the causal loop: connect poverty reduction to targeted safety nets (NFSA subsidized grains, MGNREGA wage buffer, DBT transfers) and life expectancy to investments in primary healthcare, immunization, and sanitation. Data must substantiate an argument, not substitute for it.
+          * *Floating Data Point without Analytical Context*: Reframe it so the data serves as empirical proof of a specific policy tension or causal mechanism.
         - In `body_audit.critical_gaps`, provide the exact question-specific micro-upgrade (15–25 words) that completes the statement.
       * C. DIAGRAMS: DATA CONDENSATION & REAL ESTATE OPTIMIZATION VS. SPACE WASTAGE:
         - Critically evaluate whether a diagram added genuine analytical value or wasted precious page space:
-          * If candidate drew an elementary, unasked diagram (e.g., a circle showing "Sources of Irrigation: Rivers, Rainwater, Ground water" when the prompt asked for *challenges* and *measures*):
+          * In 10-markers (150 words), an unasked, unscaled, or freehand line graph/diagram (e.g. a generic rising line graph without percentage scales or sectoral breakdown) displaces vertical space needed for analytical points:
             -> DO NOT lavish unearned praise on it in `body_audit.strengths`.
-            -> In `body_audit.critical_gaps` or Page 1 margin card, guide them constructively: `"**Unasked Diagram / Space Utilization**: Sources of irrigation was not asked; drawing this visual occupied vertical space where 2 substantive analytical challenges could have gone. If including a visual, frame it under the question's technical phrasing (e.g. 'Major Irrigation Systems in India') and insert empirical shares in brackets (e.g. 62% groundwater, 24% canals, 14% other) so it condenses high-yield data rather than filling blank space."`
-      * D. INTRODUCTION: CONNECTING DATA / FACT HOOK TO QUESTION DEMAND:
-        - Quoting an authentic baseline statistic (e.g. *"According to National Commission, irrigation water demand could reach 807 BCM by 2050"*) is a commendable hook, but if it ends there, it is an isolated fact.
-        - In `intro_audit.current_critique`, acknowledge the data hook, but show candidate how adding one connecting clause (*"...thus compounding the acute operational stress on India's existing irrigation systems"*) immediately bridges the hook to the question demand.
-      * E. CONCLUSION: QUESTION-ANCHORED SYNTHESIS VS. UNANCHORED BUZZWORDS:
-        - The conclusion must summarize on the question's central operational terms (e.g. *efficient irrigation management, water-use efficiency, demand-side water stewardship*).
-        - If candidate concludes with an unanchored buzzword (e.g. leaping to *"inclusive growth"* or *"global superpower"*) that was neither asked nor discussed in the body, point out: `"**Unanchored Closing Buzzword**: You concluded on 'inclusive growth', which was neither asked in the prompt nor discussed in your body. Conclude directly on the lines of the question first (e.g. transitioning from supply-side expansion to demand-side efficiency like micro-irrigation saturation); unanchored slogans dilute focus."`
+            -> In `body_audit.critical_gaps` or Page 1 margin card, guide them constructively: Explain that in a 10-marker with strictly 150 words, drawing an uncalibrated visual took away ~25% of the page that was needed to explain structural allocations; substantive causal points score higher than cosmetic sketches.
+      * D. INTRODUCTION: SCOPE DEMARCATION VS. DEFINITION TRAP (STRICTLY IN INTRO AUDIT):
+        - Place this critique STRICTLY inside `intro_audit.current_critique` and `intro_audit.topper_reframe` (NEVER in body or conclusion):
+        - In 10-markers on applied policy/governance/economy, defining broad textbook keywords (e.g. defining "inclusive growth") burns words needlessly.
+        - Instead, guide candidate to demarcate the operational scope of the subject in brackets (e.g., specifying that social services encompass health, education, social security, and nutrition) to set up the structural analysis before quoting macro percentages.
+        - If quoting an authentic baseline statistic, show candidate how adding one connecting clause bridges the hook directly to the question demand.
+      * E. CONCLUSION: QUESTION-ANCHORED SYNTHESIS VS. DECORATIVE QUOTES / SLOGANS (STRICTLY IN CONCLUSION AUDIT):
+        - Place this critique STRICTLY inside `conclusion_audit.current_critique` and `conclusion_audit.topper_reframe` (NEVER in body or intro):
+        - In tight word limits (10-markers), decorative quotes (e.g. quoting Mahbub ul Haq) or disconnected slogans that are not woven into the analytical argument displace actionable policy synthesis.
+        - Guide candidate to replace decorative quotes with a crisp, 2-line policy synthesis on the core question tension (e.g., shifting from outlay-budgeting to outcome-budgeting, or meeting national expenditure targets like 6% NEP / 2.5% NHP).
       * F. 10-MARKER (150 WORDS / 2 PAGES) SPECIFIC MENTOR AUDIT & FLAW DETECTION:
         - In a 10-Marker, space and exam pacing are unforgiving (strictly 2 physical pages, 150 words, 7.0 minutes pacing budget). Evaluate 10-markers with this ruthless spatial precision:
           1. **Severe Space Penalty for Unasked / Oversized Visuals on Page 1**:
@@ -3311,14 +3331,15 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
              * Guide the candidate to combine the factor and its causal mechanism into a compact 14–18 word bullet (e.g. *"• **Fertile Alluvial Plains**: Sustained agricultural surplus in the Gangetic basin, driving demographic growth and Second Urbanisation"*).
           4. **Crisp 15–20 Word Exam-Hall Closing**:
              * In a 10-marker, candidates often run out of space and omit the conclusion or trail off with a disconnected buzzword. Guide them to provide a crisp 2-line closing synthesizing the core question tension.
-      * G. ABSOLUTE BAN ON RIGID LINES, HARDCODED SENTENCES & SUBJECT LEAKAGE (UNIVERSAL ACROSS ALL SUBJECTS):
-        - **ILLUSTRATIVE EXAMPLES ARE NEVER TO BE REPEATED**: All examples mentioned in these prompt instructions (such as irrigation, climate change, groundwater, ancient India, or specific case laws) are purely educational illustrations of the evaluator's analytical methodology.
-        - **STRICT PROHIBITION**: NEVER repeat, leak, or quote any of these specific illustrative sentences, lines, or keywords unless the user's uploaded question is ACTUALLY about that exact topic!
-        - **DYNAMICALLY DERIVED ONLY**: Every single sentence in `body_audit.strengths`, `body_audit.critical_gaps`, `body_audit.overall_assessment`, `intro_audit`, and `conclusion_audit` MUST be 100% dynamically synthesized from:
-          1. The EXACT prompt text and command words of THAT specific question.
-          2. The EXACT academic discipline of THAT paper (GS1 History/Geography/Society, GS2 Polity/IR, GS3 Economy/Agri/S&T/Security, GS4 Ethics, or Optionals).
-          3. The EXACT handwritten text, diagrams, and headings written on THAT candidate's answer booklet.
-        - **NO PRE-FABRICATED CANNED REMARKS**: Never output rigid canned sentences (e.g. NEVER generate "Theoretical critique without citing contemporary legislative or judicial benchmarks" for a Geography or History question!). Every comment must speak directly and authentically to that student's specific answer copy.
+      * G. STRICT RESPECTIVE SECTION PLACEMENT & ZERO STATIC BOILERPLATE GUARANTEE:
+        - **RESPECTIVE SECTION DISCIPLINE (NO CROSS-POLLUTION)**:
+          * Intro flaws (scope demarcation, definition trap, hook linkage) -> Addressed STRICTLY in `intro_audit` (`intro_audit.current_critique` and `intro_audit.topper_reframe`).
+          * Body flaws (sub-demand balance, bridging headings/1-liners, causal transmission, scheme functional mechanisms, diagram space utility) -> Addressed STRICTLY in `body_audit` (`body_audit.overall_assessment`, `body_audit.critical_gaps`).
+          * Conclusion flaws (decorative quotes, unanchored slogans, synthesis) -> Addressed STRICTLY in `conclusion_audit` (`conclusion_audit.current_critique` and `conclusion_audit.topper_reframe`).
+          * NEVER leak intro critiques into body, or body critiques into conclusion!
+        - **DYNAMIC, NON-STATIC SITUATIONAL APPLICATION**:
+          * This is a diagnostic lens applied ONLY when that specific flaw actually appears in the candidate's script.
+          * NEVER output rigid, canned sentences or universal boilerplate. Every critique and reframe must be dynamically synthesized from the student's exact handwriting and the specific question asked across GS1, GS2, GS3, GS4.
 
 Generate strictly valid JSON matching this schema:
 {{
