@@ -4434,6 +4434,28 @@ def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
     conn = get_db()
     cursor = conn.cursor()
     
+    # Auto-heal: Ensure all genuine users with evaluations are registered in the users table across reboots
+    try:
+        cursor.execute("""
+            INSERT OR IGNORE INTO users (id, email, name, free_credits, is_pro, free_rewrites, target_year, optional_subject, plan_tier)
+            SELECT 
+                'usr_' || SUBSTR(HEX(e.user_email), 1, 12),
+                LOWER(e.user_email),
+                COALESCE(NULLIF(TRIM(SUBSTR(e.user_email, 1, INSTR(e.user_email, '@') - 1)), ''), 'Aspirant'),
+                15, 1, 5, '2026', 'PSIR', 'free'
+            FROM evaluations e
+            WHERE e.user_email IS NOT NULL 
+              AND e.user_email LIKE '%@%'
+              AND LOWER(e.user_email) NOT IN (SELECT LOWER(email) FROM users)
+              AND LOWER(e.user_email) NOT LIKE '%test%'
+              AND LOWER(e.user_email) NOT LIKE '%cadet%'
+              AND LOWER(e.user_email) NOT LIKE 'guest%'
+            GROUP BY LOWER(e.user_email)
+        """)
+        conn.commit()
+    except Exception:
+        pass
+
     cursor.execute("""
         SELECT COUNT(*) as c FROM users 
         WHERE SUBSTR(email, 1, 2) != '__'
