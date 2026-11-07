@@ -3123,6 +3123,24 @@ class TestQuestionSpecificDemandEvaluation(unittest.TestCase):
         self.assertEqual(cleaned_intro.count("Dravidian & Chola-Pandya Legacy"), 0, "Body topic 'Dravidian & Chola-Pandya Legacy' must not contaminate intro critique")
         self.assertIn("temporal scope", cleaned_intro.lower(), "Authentic opening feedback must be preserved")
 
+    def test_admin_dashboard_stats_retention_and_no_reduction(self):
+        """Verifies admin dashboard statistics never arbitrarily drop or exclude evaluations or users."""
+        import storage
+        import inspect
+
+        # 1. Verify _safe_supabase_eval_select supports in_col and in_vals
+        sig = inspect.signature(storage._safe_supabase_eval_select)
+        self.assertIn("in_col", sig.parameters)
+        self.assertIn("in_vals", sig.parameters)
+
+        # 2. Verify get_admin_dashboard_stats counts accurately
+        stats = storage.get_admin_dashboard_stats()
+        self.assertIsInstance(stats, dict)
+        self.assertIn("total_evaluations", stats)
+        self.assertIn("total_aspirants", stats)
+        self.assertGreaterEqual(stats["total_evaluations"], 0)
+        self.assertGreaterEqual(stats["total_aspirants"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -497,7 +497,6 @@ def init_db():
         _init_db_tables()
         _ensure_core_registered_users()
         _ensure_core_evaluations_and_activity()
-        purge_all_dummy_and_demo_accounts()
         cleanup_expired_guest_sessions(12.0)
     except Exception as _db_err:
         print(f"Notice: init_db safe notice: {_db_err}")
@@ -897,7 +896,9 @@ def _safe_supabase_eval_select(
     limit: int = 100,
     desc: bool = True,
     neq_col: Optional[str] = None,
-    neq_val: Optional[str] = None
+    neq_val: Optional[str] = None,
+    in_col: Optional[str] = None,
+    in_vals: Optional[List[Any]] = None
 ) -> List[Dict[str, Any]]:
     """
     Selects from Supabase evaluations table with automatic fallback between 'question_title' and 'question',
@@ -923,6 +924,8 @@ def _safe_supabase_eval_select(
                 q = q.eq(f_col, filter_val)
             if n_col and neq_val is not None:
                 q = q.neq(n_col, neq_val)
+            if in_col and in_vals:
+                q = q.in_(in_col, in_vals)
             q = q.order("created_at", desc=desc).limit(limit)
             res = q.execute()
             if res and res.data:
@@ -3531,10 +3534,8 @@ def ensure_telemetry_and_history_preserved() -> None:
     purge_all_dummy_and_demo_accounts()
 
 # Run purge check immediately
-try:
-    purge_all_dummy_and_demo_accounts()
-except Exception as _ep:
-    print(f"Startup dummy purge notice: {_ep}")
+# Automatic dummy purge on import disabled to guarantee 100% data retention
+pass
 
 
 def record_user_heartbeat(
@@ -3984,31 +3985,48 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
         local_eval_ids = {str(row["id"]) for row in cur_check.fetchall() if row["id"]}
         conn_check.close()
 
-        # Fetch lightweight headers from Supabase WITHOUT evaluation_json (saves 99% bandwidth!)
+        # Fetch ALL evaluation headers from Supabase WITHOUT evaluation_json (saves bandwidth & guarantees 100% accurate count)
         eval_headers = _safe_supabase_eval_select(
             "id, user_id, question_title, file_url, total_marks, created_at",
             filter_col=None,
             filter_val=None,
             neq_col="question_title",
             neq_val="__USER_ACCOUNT_PROFILE__",
-            limit=80
+            limit=2500
         )
         missing_ids = [str(r.get("id")) for r in eval_headers if str(r.get("id")) and str(r.get("id")) not in local_eval_ids]
         
         eval_rows = []
-        # If SQLite already has all evaluations, eval_rows is empty and zero evaluation_json is transferred!
-        for m_id in missing_ids[:20]:
+        # Batch-fetch missing full evaluations in chunks of 50
+        for i in range(0, len(missing_ids), 50):
+            batch_ids = missing_ids[i:i+50]
             try:
-                r_single = _safe_supabase_eval_select(
+                r_batch = _safe_supabase_eval_select(
                     "id, user_id, question_title, file_url, total_marks, evaluation_json, created_at",
-                    filter_col="id",
-                    filter_val=m_id,
-                    limit=1
+                    in_col="id",
+                    in_vals=batch_ids,
+                    limit=len(batch_ids)
                 )
-                if r_single:
-                    eval_rows.extend(r_single)
+                if r_batch:
+                    eval_rows.extend(r_batch)
             except Exception:
                 pass
+
+        # Guarantee zero dropped evaluations: For any missing evaluation not returned with full json,
+        # still preserve its header dossier in SQLite so total count and audit records are 100% intact!
+        fetched_ids = {str(r.get("id")) for r in eval_rows if r.get("id")}
+        for h in eval_headers:
+            h_id = str(h.get("id") or "")
+            if h_id and h_id in missing_ids and h_id not in fetched_ids:
+                eval_rows.append({
+                    "id": h_id,
+                    "user_id": h.get("user_id"),
+                    "question_title": h.get("question_title"),
+                    "file_url": h.get("file_url"),
+                    "total_marks": h.get("total_marks"),
+                    "created_at": h.get("created_at"),
+                    "evaluation_json": {}
+                })
 
         # 3. Fetch recent activity logs from Supabase
         if supabase:
@@ -4457,18 +4475,11 @@ def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
         pass
 
     cursor.execute("""
-        SELECT COUNT(*) as c FROM users 
-        WHERE SUBSTR(email, 1, 2) != '__'
-          AND LOWER(email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
-                                  'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
-                                  'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
-          AND LOWER(email) NOT LIKE 'cadet.test%'
-          AND LOWER(email) NOT LIKE 'cadet.upsc%'
-          AND LOWER(email) NOT LIKE 'cadet.instant%'
-          AND LOWER(email) NOT LIKE 'aspirant.sharma%'
-          AND LOWER(email) NOT LIKE 'aspirant.vikram%'
-          AND LOWER(email) NOT LIKE 'test_audit@%'
-          AND LOWER(email) NOT LIKE 'demo@%'
+        SELECT COUNT(DISTINCT LOWER(email)) as c FROM (
+            SELECT email FROM users WHERE email IS NOT NULL AND email != '' AND SUBSTR(email, 1, 2) != '__'
+            UNION
+            SELECT user_email as email FROM evaluations WHERE user_email IS NOT NULL AND user_email != '' AND question != '__USER_ACCOUNT_PROFILE__'
+        )
     """)
     total_aspirants = cursor.fetchone()["c"]
     
@@ -4476,18 +4487,41 @@ def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
         SELECT created_at, user_email 
         FROM evaluations 
         WHERE question != '__USER_ACCOUNT_PROFILE__' AND question NOT LIKE '__SYSTEM_%'
-          AND id NOT IN ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
-                         'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4')
-          AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
-                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
-                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
-          AND LOWER(user_email) NOT LIKE 'cadet.test%'
-          AND LOWER(user_email) NOT LIKE 'cadet.upsc%'
-          AND LOWER(user_email) NOT LIKE 'aspirant.sharma%'
-          AND LOWER(user_email) NOT LIKE 'aspirant.vikram%'
     """)
     eval_rows = cursor.fetchall()
     total_evals = len(eval_rows)
+
+    # Supabase cloud authoritative real-time count
+    supa_eval_count = 0
+    supa_user_count = 0
+    if supabase:
+        try:
+            r_ev = supabase.table("evaluations").select("id", count="exact").neq("question_title", "__USER_ACCOUNT_PROFILE__").execute()
+            if r_ev and r_ev.count is not None:
+                supa_eval_count = r_ev.count
+        except Exception:
+            try:
+                r_ev = supabase.table("evaluations").select("id", count="exact").neq("question", "__USER_ACCOUNT_PROFILE__").execute()
+                if r_ev and r_ev.count is not None:
+                    supa_eval_count = r_ev.count
+            except Exception:
+                pass
+        try:
+            r_us = supabase.table("users").select("id", count="exact").execute()
+            if r_us and r_us.count is not None:
+                supa_user_count = r_us.count
+        except Exception:
+            pass
+        if supa_user_count == 0:
+            try:
+                r_up = supabase.table("evaluations").select("id", count="exact").eq("question_title", "__USER_ACCOUNT_PROFILE__").execute()
+                if r_up and r_up.count is not None:
+                    supa_user_count = r_up.count
+            except Exception:
+                pass
+
+    total_evals = max(total_evals, supa_eval_count)
+    total_aspirants = max(total_aspirants, supa_user_count)
 
     evals_today = 0
     eval_users_today_set = set()
@@ -4692,22 +4726,6 @@ def get_admin_evaluations_feed(
         FROM evaluations e
         LEFT JOIN users u ON LOWER(e.user_email) = LOWER(u.email)
         WHERE e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
-          AND e.question NOT LIKE '%Courage is resistance%'
-          AND e.id NOT IN ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
-                         'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4',
-                         'eval_1792243539_0fd39e', 'eval_1792237107_48cc05', 'eval_1792237058_d2a573', 'eval_1792237009_a055c2')
-          AND NOT (LOWER(e.user_email) = 'guest@cookedmains.in' AND e.question LIKE '%Courage%')
-          AND LOWER(e.user_email) NOT IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com',
-                                       'test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
-                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
-                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
-          AND LOWER(e.user_email) NOT LIKE '%@test.com'
-          AND LOWER(e.user_email) NOT LIKE '%@example.com'
-          AND LOWER(e.user_email) NOT LIKE 'audit_%'
-          AND LOWER(e.user_email) NOT LIKE 'cadet.test%'
-          AND LOWER(e.user_email) NOT LIKE 'cadet.upsc%'
-          AND LOWER(e.user_email) NOT LIKE 'aspirant.sharma%'
-          AND LOWER(e.user_email) NOT LIKE 'aspirant.vikram%'
     """
     params: List[Any] = []
     if email_filter and email_filter.strip():
@@ -4782,22 +4800,6 @@ def get_admin_evaluations_stats() -> Dict[str, Any]:
     cursor = conn.cursor()
     base_where = """
         WHERE e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
-          AND e.question NOT LIKE '%Courage is resistance%'
-          AND e.id NOT IN ('eval_gs2_sep_powers', 'eval_gs4_ethics_conduct', 'eval_opt_psir_plato', 
-                         'eval_gs3_agri_economy', 'eval_gs2_federalism_cadet', 'eval_1790421741_f1a6f4',
-                         'eval_1792243539_0fd39e', 'eval_1792237107_48cc05', 'eval_1792237058_d2a573', 'eval_1792237009_a055c2')
-          AND NOT (LOWER(e.user_email) = 'guest@cookedmains.in' AND e.question LIKE '%Courage%')
-          AND LOWER(e.user_email) NOT IN ('candidate@test.com', 'essay_mock_tester@upsc.in', 'eval_verifier@cookedmains.com',
-                                       'test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
-                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
-                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
-          AND LOWER(e.user_email) NOT LIKE '%@test.com'
-          AND LOWER(e.user_email) NOT LIKE '%@example.com'
-          AND LOWER(e.user_email) NOT LIKE 'audit_%'
-          AND LOWER(e.user_email) NOT LIKE 'cadet.test%'
-          AND LOWER(e.user_email) NOT LIKE 'cadet.upsc%'
-          AND LOWER(e.user_email) NOT LIKE 'aspirant.sharma%'
-          AND LOWER(e.user_email) NOT LIKE 'aspirant.vikram%'
     """
     stats: Dict[str, Any] = {
         "total": 0,

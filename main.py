@@ -1780,9 +1780,8 @@ async def api_admin_activity(limit: int = 60, auth: bool = Depends(verify_admin_
 
 @app.post("/api/admin/ping-telemetry")
 async def api_admin_ping_telemetry():
-    """Refreshes radar telemetry and guarantees dummy accounts remain purged."""
-    res = await asyncio.to_thread(purge_all_dummy_and_demo_accounts)
-    return {"status": "success", "message": "Telemetry verified and all dummy data purged.", "purged": res}
+    """Refreshes radar telemetry without deleting any data."""
+    return {"status": "success", "message": "Telemetry verified."}
 
 @app.post("/api/admin/clear-dummy-data")
 @app.get("/api/admin/clear-dummy-data")

@@ -154,7 +154,6 @@ async function clearDummyDataAdmin() {
 async function loadAllAdminData(force = false) {
   if (force) {
     try {
-      await fetch("/api/admin/clear-dummy-data", { method: "POST" });
       await fetch("/api/admin/sync", { method: "POST" });
     } catch (e) {
       console.warn("Manual sync error:", e);
@@ -175,7 +174,6 @@ async function loadAllAdminData(force = false) {
 
 async function forceSyncCloud() {
   try {
-    await fetch("/api/admin/clear-dummy-data", { method: "POST" });
     const res = await fetch("/api/admin/sync", { method: "POST" });
     const data = await res.json();
     alert("Supabase Cloud Sync completed successfully!");
