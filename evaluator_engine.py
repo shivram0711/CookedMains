@@ -3679,7 +3679,7 @@ Generate strictly valid JSON matching this schema:
       ]
     }},
     "category_2": {{
-      "title": "Scientific Theories, Judicial Verdicts & Doctrines",
+      "title": "Domain Theories, Scholarly Traditions & Legal Doctrines",
       "items": [
         {{
           "item": "Plate Tectonic Theory / Mantle Plume Model",
@@ -6502,22 +6502,44 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         return norm
 
     # Check if already structured into category_1 .. category_4
+    # Enforce strictly dynamic titles matching question discipline (no 'Judicial Verdicts' on GS-1 History/Geography/Society)
+    def _is_mismatched_title(raw_t: str, default_t: str) -> bool:
+        t_low = (raw_t or "").lower()
+        if not t_low or len(t_low) < 5:
+            return True
+        if "scientific theories, judicial verdicts & doctrines" in t_low:
+            return True
+        if is_history_culture and any(k in t_low for k in ["judicial", "verdicts", "scientific theories", "sc judgment"]):
+            return True
+        if is_geo and any(k in t_low for k in ["judicial", "verdicts", "constitutional articles", "sc judgment"]):
+            return True
+        if is_society and any(k in t_low for k in ["geomorphic", "scientific theories"]):
+            return True
+        if is_ethics and any(k in t_low for k in ["geomorphic", "scientific theories"]):
+            return True
+        return False
+
     if isinstance(va_raw, dict) and "category_1" in va_raw:
         c1 = va_raw.get("category_1", {})
         c2 = va_raw.get("category_2", {})
         c3 = va_raw.get("category_3", {})
         c4 = va_raw.get("category_4", {})
+
+        c1_title = def_cat1_title if _is_mismatched_title(c1.get("title"), def_cat1_title) else c1.get("title")
+        c2_title = def_cat2_title if _is_mismatched_title(c2.get("title"), def_cat2_title) else c2.get("title")
+        c3_title = def_cat3_title if _is_mismatched_title(c3.get("title"), def_cat3_title) else c3.get("title")
+
         data["value_add_checklist"] = {
             "category_1": {
-                "title": c1.get("title") or def_cat1_title,
+                "title": c1_title or def_cat1_title,
                 "items": normalize_items_list(c1.get("items", []), "Page 1 or 2 in relevant sub-heading", "Substantiate framework")
             },
             "category_2": {
-                "title": c2.get("title") or def_cat2_title,
+                "title": c2_title or def_cat2_title,
                 "items": normalize_items_list(c2.get("items", []), "In body section addressing core demand", "Theoretical grounding")
             },
             "category_3": {
-                "title": c3.get("title") or def_cat3_title,
+                "title": c3_title or def_cat3_title,
                 "items": normalize_items_list(c3.get("items", []), "Under empirical evidence / case study dimension", "Empirical data point")
             },
             "category_4": {
@@ -10142,15 +10164,14 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
         is_pos = bool(pbp.get("is_positive", True))
 
         title_badge_low = (clean_title + " " + raw_badge).lower()
-        is_intro = bool(re.search(r'\b(?:intro|introduction|premise|opening|प्रस्तावना|भूमिका|आरंभ)\b', title_badge_low)) or (
-            idx == 0 and p_num == 1 and total_cards >= 3 and not re.search(r'\b(?:body|part\s*[b-z]|dimension\s*[2-9])\b', title_badge_low)
-        )
+        # Intro must be an actual introduction premise, never a regular body argument (like temple architecture or causes)
+        is_intro = bool(re.search(r'\b(?:intro|introduction|premise|opening|contextual\s*opening|temporal\s*scope|प्रस्तावना|भूमिका|आरंभ)\b', title_badge_low))
         is_conc = bool(re.search(r'\b(?:concl|conclusion|synthesis|closing|way\s*forward\s*&?\s*concl|निष्कर्ष|उपसंहार)\b', title_badge_low)) or (
             idx == total_cards - 1 and p_num >= total_pages and total_cards >= 3 and bool(re.search(r'\b(?:concl|conclusion|synthesis|closing|way\s*forward|way\s*ahead|निष्कर्ष|उपसंहार|आगे\s*की\s*राह)\b', title_badge_low))
         )
 
         if is_intro:
-            # Strictly ONE feedback point in introduction section: pair credit with exact flaw if marks were deducted
+            # Strictly ONE feedback point in introduction section (zero duplicate parenthetical nesting)
             clean_intro_entry = f"**{clean_title}**: {verdict}" if not verdict.startswith("**") else verdict
             intro_sc_eval = float(data.get("rubric_scores", {}).get("intro_score", 1.0) or 1.0)
             intro_mx_eval = float(data.get("rubric_scores", {}).get("intro_max", 1.5) or 1.5)
@@ -10158,10 +10179,6 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
                 miss_list = [str(m).strip() for m in (intro_audit.get("missing_elements") or []) if m]
                 if miss_list:
                     clean_intro_entry += f" {'प्रस्तावना में पूरे अंक हेतु, आरंभ में ही ' + ' तथा '.join(miss_list[:2]) + ' को स्पष्ट रूप से परिभाषित करें।' if is_hindi else f'To score full {intro_mx_eval:.1f}M, explicitly define ' + ' and '.join(miss_list[:2]) + ' in your opening lines.'}"
-                elif intro_audit.get("current_critique") and re.search(r'(?i)(upgrade|gap|miss|lacks|without|however|scope)', str(intro_audit.get("current_critique"))):
-                    crit_sub = str(intro_audit.get("current_critique")).split("<br>")[0].strip()
-                    if len(crit_sub) > 10 and not clean_intro_entry.endswith(crit_sub):
-                        clean_intro_entry += f" ({crit_sub})"
             intro_crit = clean_intro_entry
         elif is_conc:
             # Keep only ONE cohesive feedback point in conclusion section: pair credit with exact synthesis flaw if marks were deducted
@@ -10192,12 +10209,30 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
             existing_gaps = [_strip_candidate_quotes(g) for g in raw_critical if g and not _has_meta_placeholder(str(g))]
 
     if intro_crit:
-        # Guarantee strictly ONE single cohesive feedback statement (no stacked bullets or dual lines)
+        # Guarantee strictly ONE single cohesive feedback statement (no stacked bullets, no nested duplicate parentheses)
+        # Purge nested duplicate statements: e.g. "A: B. (A: B. (C))" -> "C" or clean sentence
+        nested_inner_match = re.search(r'\(\s*\((.*?)\)\s*\)', intro_crit)
+        if nested_inner_match:
+            inner_txt = nested_inner_match.group(1).strip()
+            if re.search(r'(?i)(?:opening|temporal scope|premise|contextualiz|thesis)', inner_txt):
+                intro_crit = inner_txt
+            else:
+                intro_crit = re.sub(r'\s*\(.*$', '', intro_crit).strip() + f". {inner_txt}"
+        else:
+            # Purge single duplicate parentheses: "A: B. (A: B...)"
+            dup_m = re.match(r'^(.*?)[.?!:]?\s*\(\s*\1', intro_crit, re.IGNORECASE)
+            if dup_m:
+                inner_single = re.search(r'\(([^()]+)\)\s*\)*$', intro_crit)
+                if inner_single:
+                    intro_crit = inner_single.group(1).strip()
+                else:
+                    intro_crit = dup_m.group(1).strip()
+
         intro_crit_parts = [p.strip() for p in re.split(r'<br\s*/?>|\n+', intro_crit) if p.strip()]
         if len(intro_crit_parts) > 1:
             upgrade_parts = [p for p in intro_crit_parts if re.search(r'(?i)(upgrade|periodize|scope|gap|consonance|miss|lacks|ground|demarcat)', p)]
             intro_crit = upgrade_parts[0] if upgrade_parts else intro_crit_parts[0]
-        intro_crit = re.sub(r'^[•\-\s]+', '', intro_crit).strip()
+        intro_crit = re.sub(r'^[\u2022\-\s]+', '', intro_crit).strip()
     intro_audit["current_critique"] = intro_crit
     conclusion_audit["current_critique"] = conc_crit
     # Image 5 Fix: Ensure evaluation points follow continuous chronological flow with answersheet (Page 1 first, then Page 2, Page 3...)

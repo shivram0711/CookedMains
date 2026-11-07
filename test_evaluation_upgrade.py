@@ -3055,5 +3055,74 @@ class TestQuestionSpecificDemandEvaluation(unittest.TestCase):
         self.assertIn("concluding synthesis", steps[3]["quoted_written"].lower())
 
 
+    def test_dynamic_category_title_for_gs1_history_and_geography(self):
+        """
+        Verify that GS-1 History and Geography evaluations never display
+        'Scientific Theories, Judicial Verdicts & Doctrines'.
+        Titles must dynamically match the discipline.
+        """
+        from evaluator_engine import normalize_evaluation_data
+
+        data_history = {
+            "overall_score": 6.9,
+            "max_marks": 15,
+            "detected_paper": "GS1",
+            "detected_question": "Explain the architectural innovations of the Vijayanagara Empire with examples.",
+            "value_add_checklist": {
+                "category_1": {
+                    "title": "Scientific Theories, Judicial Verdicts & Doctrines",
+                    "items": [{"item": "Deccan Syncretism", "where_to_write": "Page 2", "how_to_write": "Substantiate"}]
+                },
+                "category_2": {
+                    "title": "Scientific Theories, Judicial Verdicts & Doctrines",
+                    "items": [{"item": "Lotus Mahal Vaulting", "where_to_write": "Page 2", "how_to_write": "Substantiate"}]
+                }
+            }
+        }
+
+        norm_hist = normalize_evaluation_data(data_history, max_marks=15, question=data_history["detected_question"], paper="GS1")
+        va_hist = norm_hist.get("value_add_checklist", {})
+        cat2_title = va_hist.get("category_2", {}).get("title", "")
+
+        self.assertNotIn("Judicial Verdicts", cat2_title, "GS-1 History checklist title must not contain 'Judicial Verdicts'")
+        self.assertNotIn("Scientific Theories", cat2_title, "GS-1 History checklist title must not contain 'Scientific Theories'")
+        self.assertTrue(any(k in cat2_title.lower() for k in ["cultural", "architectural", "landmarks", "sources", "historical"]),
+                        f"Expected historical/cultural title, got: {cat2_title}")
+
+    def test_intro_critique_nested_parentheses_purged(self):
+        """
+        Verify that nested duplicate clauses in intro critique:
+        'A: B. (A: B. (C))' are cleanly purged down to a single cohesive sentence.
+        """
+        from evaluator_engine import transfer_point_audit_to_deep_evaluation
+
+        bad_intro_str = "Dravidian & Chola-Pandya Legacy: Clear structural breakdown of temple components with appropriate historical examples. (Dravidian & Chola-Pandya Legacy: Clear structural breakdown of temple components with appropriate historical examples. (Well-contextualized opening establishing the temporal scope and the core thesis of architectural amalgamation.))"
+
+        data = {
+            "overall_score": 6.9,
+            "max_marks": 15,
+            "intro_audit": {
+                "current_critique": bad_intro_str
+            },
+            "point_by_point_audit": [
+                {
+                    "title": "Dravidian & Chola-Pandya Legacy",
+                    "badge": "Body Argument",
+                    "page": 1,
+                    "examiner_verdict": "Clear structural breakdown of temple components with appropriate historical examples."
+                }
+            ]
+        }
+
+        transfer_point_audit_to_deep_evaluation(data)
+        cleaned_intro = data["intro_audit"]["current_critique"]
+
+        # Ensure no nested parentheses or duplicate repetitions remain
+        self.assertNotIn("((", cleaned_intro)
+        self.assertNotIn("))", cleaned_intro)
+        self.assertEqual(cleaned_intro.count("Dravidian & Chola-Pandya Legacy"), 0, "Body topic 'Dravidian & Chola-Pandya Legacy' must not contaminate intro critique")
+        self.assertIn("temporal scope", cleaned_intro.lower(), "Authentic opening feedback must be preserved")
+
+
 if __name__ == "__main__":
     unittest.main()

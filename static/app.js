@@ -13670,11 +13670,28 @@ function renderEvaluation(evalData) {
     document.getElementById("modelIntroText").innerHTML = `"${formatHighlightedText(modelIntro)}"`;
   } else {
     let rawIntroCrit = String(intro.current_critique || "").trim();
+    // Purge nested duplicate clauses and parentheses: e.g. "Dravidian... (Dravidian... (Well-contextualized...))"
+    const nestedParensMatch = rawIntroCrit.match(/\(\s*\((.*?)\)\s*\)/);
+    if (nestedParensMatch) {
+      const innerClause = nestedParensMatch[1].trim();
+      if (/opening|temporal scope|premise|contextualiz|thesis/i.test(innerClause)) {
+        rawIntroCrit = innerClause;
+      } else {
+        rawIntroCrit = rawIntroCrit.replace(/\s*\(.*$/, "").trim() + ". " + innerClause;
+      }
+    } else {
+      const dupPrefixMatch = rawIntroCrit.match(/^(.*?)[.?!:]?\s*\(\s*\1/i);
+      if (dupPrefixMatch) {
+        const innerSingle = rawIntroCrit.match(/\(([^()]+)\)\s*\)*$/);
+        rawIntroCrit = innerSingle ? innerSingle[1].trim() : dupPrefixMatch[1].trim();
+      }
+    }
+
     // Guarantee strictly ONE single cohesive feedback item displayed in the intro audit card (no stacked bullet lines)
     if (rawIntroCrit.includes("<br>") || rawIntroCrit.includes("\n")) {
       const parts = rawIntroCrit.split(/<br\s*\/?>|\n+/).map(s => s.trim()).filter(Boolean);
       const upgradePart = parts.find(p => /upgrade|periodize|scope|gap|consonance|miss|lacks|ground|demarcat/i.test(p));
-      rawIntroCrit = (upgradePart || parts[0] || "").replace(/^[•\-\*\s]+/, "").trim();
+      rawIntroCrit = (upgradePart || parts[0] || "").replace(/^[\u2022\-\s]+/, "").trim();
     }
     const missList = Array.isArray(intro.missing_elements) ? intro.missing_elements.filter(Boolean) : [];
     if (rawIntroCrit.length < 55 && missList.length > 0) {
@@ -13852,7 +13869,7 @@ function renderEvaluation(evalData) {
   });
 
   // Section 2B: Actionable Value Add Checklist for Body (filtered against Intro, Conclusion, Body Audit & Keywords)
-  renderValueAddCategories(evalData.value_add_checklist, state.paper, state.question, deepEvalSeenPhrases, bodyKeywordCards.length);
+  renderValueAddCategories(evalData.value_add_checklist, evalData.detected_paper || (typeof state !== 'undefined' && state.paper) || 'GS1', evalData.detected_question || (typeof state !== 'undefined' && state.question) || evalData.question || '', deepEvalSeenPhrases, bodyKeywordCards.length);
 
   // Section 3: Conclusion Audit & How to Write (Simple, Clean & Non-Confusing)
   const conc = evalData.conclusion_audit || {};
@@ -16026,26 +16043,41 @@ function renderValueAddCategories(vaData, paper, question, seenPhrasesSet, keywo
 
   const normalizeCategoryTitleForDiscipline = (rawTitle, idx) => {
     const t = String(rawTitle || "").trim();
+    const isGenericMismatched = /scientific theories|judicial verdicts|doctrines/i.test(t);
+
     if (discipline === "HISTORY_CULTURE") {
-      if (/global conventions|frameworks|policies|constitutional/i.test(t) || idx === 0) {
-        return "Primary Historical Sources, Chronicles & Institutions";
+      if (idx === 0 || /global conventions|frameworks|policies|constitutional|primary historical/i.test(t)) {
+        return "Primary Historical Sources, Chronicles & Epigraphy";
       }
-      if (/scientific theories|judicial verdicts|doctrines|geomorphic/i.test(t) || idx === 1) {
-        return "Cultural Movements, Literature & Architectural Landmarks";
+      if (idx === 1 || isGenericMismatched || /cultural movements|literature|architectural/i.test(t)) {
+        return "Cultural Movements, Scholarly Traditions & Architectural Landmarks";
       }
-      if (/empirical data|flashpoints|case studies/i.test(t) || idx === 2) {
-        return "Decisive Historical Turning Points & Legacy";
+      if (idx === 2 || /empirical data|flashpoints|case studies|decisive historical/i.test(t)) {
+        return "Decisive Historical Turning Points & Civilizational Legacy";
+      }
+    } else if (discipline === "PHYSICAL_GEOGRAPHY") {
+      if (idx === 0 || /constitutional|statutory/i.test(t)) {
+        return "Global Conventions, Treaties & Spatial Frameworks";
+      }
+      if (idx === 1 || isGenericMismatched || /judicial/i.test(t)) {
+        return "Geographical Theories, Models & Geomorphic Principles";
+      }
+      if (idx === 2) {
+        return "Empirical Basin Data, Field Studies & Regional Hazards";
       }
     } else if (discipline === "PHILOSOPHY_ETHICS") {
-      if (/global conventions|frameworks|scientific theories/i.test(t) || idx === 0) {
-        return "Moral Thinkers & Philosophical Doctrines";
+      if (idx === 0 || /global conventions|frameworks|scientific/i.test(t)) {
+        return "Moral Thinkers, Philosophical Doctrines & Ethical Principles";
       }
-      if (/judicial verdicts|geomorphic/i.test(t) || idx === 1) {
-        return "Constitutional Morality & Administrative Ethics";
+      if (idx === 1 || isGenericMismatched || /geomorphic/i.test(t)) {
+        return "2nd ARC Recommendations, Code of Conduct & Probity Frameworks";
       }
-    } else if (discipline === "POLICY_GOVERNANCE_ECONOMY") {
-      if (/scientific theories|geomorphic/i.test(t)) {
-        return "Supreme Court Verdicts, Committees & Doctrines";
+      if (idx === 2) {
+        return "Administrative Dilemmas, Case Exemplars & Real-World Conduct";
+      }
+    } else {
+      if (isGenericMismatched || /scientific theories/i.test(t)) {
+        return "Landmark Judicial Verdicts, Doctrines & Legal Principles";
       }
     }
     return t || `Value-Addition Dimension ${idx + 1}`;
@@ -16380,7 +16412,7 @@ window.renderDiagramPreview = function(container, diagData, isHindi) {
               <div class="flex-1 min-w-0 p-2.5 sm:p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 shadow-2xs flex flex-col justify-between space-y-1.5 break-words overflow-hidden">
                 <div class="min-w-0">
                   <div class="flex items-center justify-between gap-1 mb-1">
-                    <span class="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 truncate max-w-[120px]">${escapeHtml(n.badge || ('Stage ' + (idx + 1)))}</span>
+                    <span class="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 whitespace-nowrap">${escapeHtml(n.badge || ('Stage ' + (idx + 1)))}</span>
                     <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 shrink-0">#${idx + 1}</span>
                   </div>
                   <h5 class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-snug break-words">${escapeHtml(n.label || '')}</h5>
