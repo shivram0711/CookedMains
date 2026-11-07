@@ -2901,5 +2901,159 @@ class TestQuestionSpecificDemandEvaluation(unittest.TestCase):
 
     # =========================================================================
 
+    def test_strict_synchronization_rubric_and_step_marking_15m(self):
+        """
+        Verify that Rubric Metrics (intro, core, value_add, presentation, conclusion)
+        and Step-Marking Scheme are 100% mathematically and conceptually identical:
+        - Rubric intro_score & intro_max MUST equal Step 1 Intro awarded & max.
+        - Rubric conclusion_score & conclusion_max MUST equal Step 4 Conclusion awarded & max.
+        - Rubric body sum (core + value_add + presentation) MUST equal body step marks.
+        - Rubric total sum MUST equal overall_score and Step-Marked Total.
+        """
+        from evaluator_engine import _enforce_canonical_mathematical_reconciliation
+
+        data = {
+            "overall_score": 6.9,
+            "max_marks": 15,
+            "sub_part_step_marking": [
+                {
+                    "step_label": "1. Introduction (Context & Historical Baseline)",
+                    "sub_heading": "Imperial Chronology & Architectural Synthesis",
+                    "awarded": 1.5,
+                    "max": 1.5,
+                    "quoted_written": "Candidate contextualized the Sangama to Aravidu dynasties."
+                },
+                {
+                    "step_label": "2. Part A — Amalgamation of Past Traditions",
+                    "sub_heading": "Dravidian, Chola-Pandya, and Hoysala-Chalukyan Legacies",
+                    "awarded": 5.0,
+                    "max": 10.0,
+                    "quoted_written": "Retained garbhagriha, mandapa, and prakara frameworks."
+                },
+                {
+                    "step_label": "3. Part B — Contemporary Practices & Innovations",
+                    "sub_heading": "Indo-Islamic Synthesis, Hydraulic Engineering, and Urban Planning",
+                    "awarded": 0.2,
+                    "max": 2.0,
+                    "quoted_written": "Secular public structures and Lotus Mahal synthesis."
+                },
+                {
+                    "step_label": "4. Conclusion (Closing Synthesis)",
+                    "sub_heading": "Hampi as an Expression of Medieval Cultural Pluralism",
+                    "awarded": 0.2,
+                    "max": 1.5,
+                    "quoted_written": "Effective concluding synthesis capturing cultural pluralism."
+                }
+            ],
+            "rubric_scores": {
+                "intro_score": 1.0,
+                "intro_max": 1.5,
+                "core_demand_score": 3.0,
+                "core_demand_max": 7.8,
+                "value_add_score": 1.0,
+                "value_add_max": 2.4,
+                "presentation_score": 0.5,
+                "presentation_max": 1.8,
+                "conclusion_score": 1.5,
+                "conclusion_max": 1.5
+            },
+            "visual_annotations": [
+                {"tag": "Introduction: Historical Premise", "marks_awarded": "+1.0 / 1.5"},
+                {"tag": "Part A: Architecture", "marks_awarded": "+5.0 / 10.0"},
+                {"tag": "Part B: Innovations", "marks_awarded": "+0.2 / 2.0"},
+                {"tag": "Conclusion: Closing Synthesis", "marks_awarded": "+1.5 / 1.5"}
+            ]
+        }
+
+        _enforce_canonical_mathematical_reconciliation(data, max_marks=15)
+
+        rubric = data["rubric_scores"]
+        steps = data["sub_part_step_marking"]
+
+        # 1. Intro in Rubric MUST equal Intro Step 1
+        self.assertEqual(rubric["intro_score"], 1.5, "Rubric intro_score must equal Step 1 awarded (1.5)")
+        self.assertEqual(rubric["intro_max"], 1.5, "Rubric intro_max must equal Step 1 max (1.5)")
+
+        # 2. Conclusion in Rubric MUST equal Conclusion Step 4
+        self.assertEqual(rubric["conclusion_score"], 0.2, "Rubric conclusion_score must equal Step 4 awarded (0.2)")
+        self.assertEqual(rubric["conclusion_max"], 1.5, "Rubric conclusion_max must equal Step 4 max (1.5)")
+
+        # 3. Body sub-total in Rubric MUST equal Body steps sum (5.0 + 0.2 = 5.2)
+        body_rubric_sum = round(rubric["core_demand_score"] + rubric["value_add_score"] + rubric["presentation_score"], 1)
+        self.assertEqual(body_rubric_sum, 5.2, "Rubric body components must sum to exact body step marks (5.2)")
+
+        # 4. Total Rubric sum MUST equal overall_score and Step-Marked sum
+        total_rubric = round(rubric["intro_score"] + body_rubric_sum + rubric["conclusion_score"], 1)
+        self.assertEqual(total_rubric, 6.9, "Total rubric score must equal 6.9")
+        self.assertEqual(data["overall_score"], 6.9, "Overall score must equal 6.9")
+
+        # 5. Visual annotations must also be in 100% sync
+        intro_ann = next(a for a in data["visual_annotations"] if "intro" in a["tag"].lower())
+        conc_ann = next(a for a in data["visual_annotations"] if "concl" in a["tag"].lower())
+        self.assertEqual(intro_ann["marks_awarded"], "+1.5 / 1.5")
+        self.assertEqual(conc_ann["marks_awarded"], "+0.2 / 1.5")
+
+    def test_no_conclusion_critique_leakage_to_intro_or_body(self):
+        """
+        Verify that sub-headings containing 'synthesis' (e.g. 'Indo-Islamic Synthesis')
+        do NOT cause Step 1 or Step 3 to be corrupted with Conclusion critique text.
+        """
+        from evaluator_engine import _sanitize_and_simplify_feedback
+
+        data = {
+            "overall_score": 6.9,
+            "max_marks": 15,
+            "detected_question": "Explain the architectural innovations of the Vijayanagara Empire with examples.",
+            "sub_part_step_marking": [
+                {
+                    "step_label": "1. Introduction (Context & Historical Baseline)",
+                    "sub_heading": "Imperial Chronology & Architectural Synthesis",
+                    "awarded": 1.5,
+                    "max": 1.5,
+                    "quoted_written": "✓ Closing Synthesis Evaluated: Effective concluding synthesis capturing the transformation of inherited idioms into a remarkable expression of medieval cultural pluralism."
+                },
+                {
+                    "step_label": "2. Part A — Amalgamation of Past Traditions",
+                    "sub_heading": "Dravidian, Chola-Pandya, and Hoysala-Chalukyan Legacies",
+                    "awarded": 5.0,
+                    "max": 10.0,
+                    "quoted_written": "Retained garbhagriha, mandapa, and prakara frameworks while elevating gopurams."
+                },
+                {
+                    "step_label": "3. Part B — Contemporary Practices & Innovations",
+                    "sub_heading": "Indo-Islamic Synthesis, Hydraulic Engineering, and Urban Planning",
+                    "awarded": 0.2,
+                    "max": 2.0,
+                    "quoted_written": "✓ Closing Synthesis Evaluated: Effective concluding synthesis capturing the transformation of inherited idioms into a remarkable expression of medieval cultural pluralism."
+                },
+                {
+                    "step_label": "4. Conclusion (Closing Synthesis)",
+                    "sub_heading": "Hampi as an Expression of Medieval Cultural Pluralism",
+                    "awarded": 0.2,
+                    "max": 1.5,
+                    "quoted_written": "Effective concluding synthesis capturing the transformation of inherited idioms into a remarkable expression of medieval cultural pluralism."
+                }
+            ],
+            "conclusion_audit": {
+                "score": 0.2,
+                "current_critique": "✓ **Closing Synthesis Evaluated**: Effective concluding synthesis capturing the transformation of inherited idioms into a remarkable expression of medieval cultural pluralism."
+            },
+            "intro_audit": {
+                "score": 1.5,
+                "current_critique": "Solid contextual opening establishing the Vijayanagara imperial timeline."
+            }
+        }
+
+        from evaluator_engine import _enforce_canonical_mathematical_reconciliation
+        _enforce_canonical_mathematical_reconciliation(data, max_marks=15)
+
+        steps = data["sub_part_step_marking"]
+        # Step 1 should NOT contain Closing Synthesis Evaluated
+        self.assertNotIn("Closing Synthesis Evaluated", steps[0]["quoted_written"])
+        self.assertNotIn("Closing Synthesis Evaluated", steps[2]["quoted_written"])
+        # Step 4 SHOULD contain the authentic conclusion critique
+        self.assertIn("concluding synthesis", steps[3]["quoted_written"].lower())
+
+
 if __name__ == "__main__":
     unittest.main()

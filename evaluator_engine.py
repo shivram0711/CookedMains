@@ -9494,8 +9494,7 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
     gemini_step_conc_text = ""
     for st in sub_steps:
         lbl = str(st.get("step_label") or "").lower()
-        sh = str(st.get("sub_heading") or "").lower()
-        if "concl" in lbl or "synthesis" in lbl or "concl" in sh or "synthesis" in sh:
+        if any(k in lbl for k in ["concl", "निष्कर्ष", "closing synthesis"]) and not any(k in lbl for k in ["intro", "part a", "part b", "part c", "part 1", "part 2"]):
             try:
                 gemini_step_conc_aw = max(gemini_step_conc_aw, float(st.get("awarded", 0.0) or 0.0))
             except Exception:
@@ -9697,25 +9696,36 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                     f"✎ **To Score Full Marks**: {domain_conc}"
                 )
 
-        # Synchronize sub_part_step_marking Step 4
-        for st in sub_steps:
-            lbl = str(st.get("step_label") or "").lower()
-            sh = str(st.get("sub_heading") or "").lower()
-            if "concl" in lbl or "synthesis" in lbl or "concl" in sh or "synthesis" in sh:
-                st["awarded"] = assigned_conc
-                st["max"] = c_max
-                st["demand_status"] = get_canonical_demand_status(assigned_conc, c_max, is_hindi=is_hindi)
-                st["quoted_written"] = c_audit.get("current_critique") or st.get("quoted_written")
-                st["step_up_lever"] = domain_conc
+        # Synchronize sub_part_step_marking authentic Conclusion Step ONLY
+        conc_step_target = None
+        for st in reversed(sub_steps):
+            if isinstance(st, dict):
+                lbl = str(st.get("step_label") or st.get("part_name") or "").lower()
+                if any(k in lbl for k in ["concl", "निष्कर्ष", "closing synthesis"]) and not any(k in lbl for k in ["intro", "premise", "part a", "part b", "part c", "part 1", "part 2"]):
+                    conc_step_target = st
+                    break
+        if not conc_step_target and sub_steps and isinstance(sub_steps[-1], dict):
+            last_lbl = str(sub_steps[-1].get("step_label") or sub_steps[-1].get("part_name") or "").lower()
+            if not any(k in last_lbl for k in ["intro", "part a", "part b"]):
+                conc_step_target = sub_steps[-1]
+
+        if conc_step_target:
+            conc_step_target["awarded"] = assigned_conc
+            conc_step_target["max"] = c_max
+            conc_step_target["demand_status"] = get_canonical_demand_status(assigned_conc, c_max, is_hindi=is_hindi)
+            conc_step_target["quoted_written"] = c_audit.get("current_critique") or conc_step_target.get("quoted_written")
+            conc_step_target["step_up_lever"] = domain_conc
+
         data["sub_part_step_marking"] = sub_steps
         if isinstance(data.get("subpart_marks_breakdown"), list):
-            for sb in data["subpart_marks_breakdown"]:
-                pn = str(sb.get("part_name") or "").lower()
-                an = str(sb.get("analysis") or "").lower()
-                if "concl" in pn or "synthesis" in pn or "concl" in an or "synthesis" in an:
-                    sb["marks_awarded"] = assigned_conc
-                    sb["max_marks"] = c_max
-                    sb["demand_status"] = get_canonical_demand_status(assigned_conc, c_max, is_hindi=is_hindi)
+            for sb in reversed(data["subpart_marks_breakdown"]):
+                if isinstance(sb, dict):
+                    pn = str(sb.get("part_name") or "").lower()
+                    if any(k in pn for k in ["concl", "निष्कर्ष", "closing synthesis"]) and not any(k in pn for k in ["intro", "premise", "part a", "part b", "part c"]):
+                        sb["marks_awarded"] = assigned_conc
+                        sb["max_marks"] = c_max
+                        sb["demand_status"] = get_canonical_demand_status(assigned_conc, c_max, is_hindi=is_hindi)
+                        break
 
 
     if data.get("executive_summary"):
@@ -10349,29 +10359,140 @@ def _enforce_canonical_mathematical_reconciliation(data: Dict[str, Any], max_mar
     data["total_score"] = overall_score
     data["max_marks"] = int(max_marks)
 
-    # 2. Reconcile rubric_scores (detect discrepancies without arbitrary redistribution)
+    # 2. Reconcile rubric_scores with sub_part_step_marking (Strict 100% Equal Marks & Denominators)
     rubric = data.get("rubric_scores")
-    if isinstance(rubric, dict) and rubric:
+    if not isinstance(rubric, dict):
+        rubric = {}
+
+    if has_steps:
+        # Find canonical intro step (first step, or labeled intro/premise/प्रस्तावना)
+        intro_step = steps[0] if (steps and isinstance(steps[0], dict)) else {}
+        for s in steps:
+            if isinstance(s, dict):
+                lbl = str(s.get("step_label") or s.get("part_name") or "").lower()
+                if any(k in lbl for k in ["intro", "premise", "context", "प्रस्तावना"]):
+                    intro_step = s
+                    break
+
+        # Find canonical conclusion step (last step, or labeled conclusion/synthesis/निष्कर्ष)
+        conc_step = steps[-1] if (len(steps) >= 2 and isinstance(steps[-1], dict)) else {}
+        for s in reversed(steps):
+            if isinstance(s, dict):
+                lbl = str(s.get("step_label") or s.get("part_name") or "").lower()
+                if any(k in lbl for k in ["concl", "निष्कर्ष", "closing synthesis"]) and not any(k in lbl for k in ["intro", "premise", "part a", "part b", "part c", "part 1", "part 2"]):
+                    conc_step = s
+                    break
+
+        # Intro marks MUST be identical between Step Marking and Rubric
+        intro_aw = round(float(intro_step.get("awarded", 0.0) or 0.0), 1)
+        intro_max = round(float(intro_step.get("max", 1.5) or 1.5), 1)
+        rubric["intro_score"] = intro_aw
+        rubric["intro_max"] = intro_max
+
+        # Conclusion marks MUST be identical between Step Marking and Rubric
+        conc_aw = round(float(conc_step.get("awarded", 0.0) or 0.0), 1)
+        conc_max = round(float(conc_step.get("max", 1.5) or 1.5), 1)
+        rubric["conclusion_score"] = conc_aw
+        rubric["conclusion_max"] = conc_max
+
+        # Body steps (all steps other than intro_step and conc_step)
+        body_steps = [s for s in steps if s is not intro_step and s is not conc_step and isinstance(s, dict)]
+        if body_steps:
+            body_aw_target = round(sum(float(s.get("awarded", 0.0) or 0.0) for s in body_steps), 1)
+            body_max_target = round(sum(float(s.get("max", 0.0) or 0.0) for s in body_steps), 1)
+        else:
+            body_aw_target = max(0.0, round(overall_score - intro_aw - conc_aw, 1))
+            body_max_target = max(1.0, round(max_m - intro_max - conc_max, 1))
+
+        # Reconcile Core Demand, Value Addition, and Presentation to add up exactly to body_aw_target and body_max_target
+        raw_core = float(rubric.get("core_demand_score") or 0.0)
+        raw_val = float(rubric.get("value_add_score") or 0.0)
+        raw_pres = float(rubric.get("presentation_score") or 0.0)
+        raw_body_sc_sum = raw_core + raw_val + raw_pres
+
+        if raw_body_sc_sum > 0:
+            scale_sc = body_aw_target / raw_body_sc_sum
+            c_sc = round(raw_core * scale_sc, 1)
+            v_sc = round(raw_val * scale_sc, 1)
+            p_sc = round(body_aw_target - c_sc - v_sc, 1)
+        else:
+            c_sc = round(body_aw_target * 0.65, 1)
+            v_sc = round(body_aw_target * 0.20, 1)
+            p_sc = round(body_aw_target - c_sc - v_sc, 1)
+
+        # Ensure no negative scores and clamp properly
+        if p_sc < 0:
+            c_sc = max(0.0, round(c_sc + p_sc, 1))
+            p_sc = 0.0
+
+        rubric["core_demand_score"] = c_sc
+        rubric["value_add_score"] = v_sc
+        rubric["presentation_score"] = p_sc
+
+        # Reconcile Body Maxes
+        raw_core_m = float(rubric.get("core_demand_max") or 0.0)
+        raw_val_m = float(rubric.get("value_add_max") or 0.0)
+        raw_pres_m = float(rubric.get("presentation_max") or 0.0)
+        raw_body_m_sum = raw_core_m + raw_val_m + raw_pres_m
+
+        if raw_body_m_sum > 0:
+            scale_m = body_max_target / raw_body_m_sum
+            c_mx = round(raw_core_m * scale_m, 1)
+            v_mx = round(raw_val_m * scale_m, 1)
+            p_mx = round(body_max_target - c_mx - v_mx, 1)
+        else:
+            c_mx = round(body_max_target * 0.65, 1)
+            v_mx = round(body_max_target * 0.20, 1)
+            p_mx = round(body_max_target - c_mx - v_mx, 1)
+
+        if p_mx < 0.5 and body_max_target >= 1.5:
+            p_mx = 0.5
+            c_mx = round(body_max_target - v_mx - p_mx, 1)
+
+        rubric["core_demand_max"] = c_mx
+        rubric["value_add_max"] = v_mx
+        rubric["presentation_max"] = p_mx
+
+        rubric["total_score"] = overall_score
+        rubric["total_max"] = int(max_m)
+        data["rubric_scores"] = rubric
+
+        # Synchronize intro_audit & conclusion_audit scores and max marks
+        if isinstance(data.get("intro_audit"), dict):
+            data["intro_audit"]["score"] = intro_aw
+            data["intro_audit"]["max"] = intro_max
+        if isinstance(data.get("conclusion_audit"), dict):
+            data["conclusion_audit"]["score"] = conc_aw
+            data["conclusion_audit"]["max"] = conc_max
+
+        # Synchronize visual_annotations to match exact rubric and step marks
+        if isinstance(data.get("visual_annotations"), list):
+            graded_anns = [a for a in data["visual_annotations"] if a.get("marks_awarded") and str(a.get("type", "")).lower() != "info"]
+            intro_ann = next((a for a in graded_anns if any(k in str(a.get("tag", "")).lower() for k in ["intro", "premise", "context", "definition", "प्रस्तावना"])), None)
+            conc_ann = next((a for a in reversed(graded_anns) if any(k in str(a.get("tag", "")).lower() for k in ["conclusion", "synthesis", "निष्कर्ष", "closing"]) and not any(wf in str(a.get("tag", "")).lower() for wf in ["way forward", "solutions", "reforms", "measures", "आगे की राह", "सुझाव"])), None)
+            if intro_ann:
+                intro_ann["marks_awarded"] = f"+{intro_aw:.1f} / {intro_max:.1f}"
+            if conc_ann:
+                conc_ann["marks_awarded"] = f"+{conc_aw:.1f} / {conc_max:.1f}"
+
+        # Ensure non-conclusion steps never retain leaked conclusion critique text
+        for idx, st in enumerate(steps):
+            if isinstance(st, dict) and st is not conc_step:
+                qw = str(st.get("quoted_written") or "")
+                if re.search(r'(?i)(?:Closing\s*Synthesis\s*Evaluated|Concluding\s*synthesis\s*capturing|transformation\s*of\s*inherited\s*idioms|medieval\s*cultural\s*pluralism)', qw):
+                    if st is intro_step:
+                        intro_c = str((data.get("intro_audit") or {}).get("current_critique") or "")
+                        intro_c_clean = re.sub(r'^[✓✔✎✗×]\s*', '', intro_c.split('\n')[0]).strip()
+                        st["quoted_written"] = intro_c_clean or str(st.get("sub_heading") or "Evaluated introduction premise.")
+                    else:
+                        st["quoted_written"] = str(st.get("sub_heading") or f"Evaluated candidate arguments for {st.get('step_label', 'body section')}.")
+    else:
         comp_keys = ["intro", "core_demand", "value_add", "presentation", "conclusion"]
         for k in comp_keys:
             if f"{k}_max" in rubric and rubric[f"{k}_max"] is not None:
                 rubric[f"{k}_max"] = round(float(rubric[f"{k}_max"]), 1)
             if f"{k}_score" in rubric and rubric[f"{k}_score"] is not None:
                 rubric[f"{k}_score"] = round(float(rubric[f"{k}_score"]), 1)
-
-        present_scores = [rubric.get(f"{k}_score") for k in comp_keys if rubric.get(f"{k}_score") is not None]
-        if len(present_scores) == len(comp_keys):
-            sum_r_sc = round(sum(float(sc) for sc in present_scores), 1)
-            diff_r_sc = round(overall_score - sum_r_sc, 1)
-            if abs(diff_r_sc) > 0.001:
-                inconsistencies.append({
-                    "type": "rubric_overall_mismatch",
-                    "overall_score": overall_score,
-                    "rubric_sum": sum_r_sc,
-                    "difference": diff_r_sc,
-                    "message": f"Sum of rubric scores ({sum_r_sc}) differs from overall score ({overall_score}) by {diff_r_sc:+0.1f}M."
-                })
-
         rubric["total_score"] = overall_score
         rubric["total_max"] = int(max_marks)
         data["rubric_scores"] = rubric

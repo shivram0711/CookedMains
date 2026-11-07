@@ -5636,7 +5636,7 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
   evalData.total_score = overallScore;
 
   const rawAiSteps = Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : [];
-  const aiConcStep = rawAiSteps.find(st => st && /concl|synthesis|निष्कर्ष/i.test(String(st.step_label || st.sub_heading || "")));
+  const aiConcStep = [...rawAiSteps].reverse().find(st => st && (/concl|निष्कर्ष/i.test(String(st.step_label || "")) || (/closing\s*synthesis/i.test(String(st.step_label || "")) && !/intro|premise|part\s*[a-c]/i.test(String(st.step_label || ""))))) || (rawAiSteps.length >= 2 ? rawAiSteps[rawAiSteps.length - 1] : null);
   const aiConcAw = aiConcStep ? parseFloat(aiConcStep.awarded) : NaN;
   const cAudit = evalData.conclusion_audit || {};
   const cAuditScore = parseFloat(cAudit.score);
@@ -11324,68 +11324,66 @@ function syncRubricAndMarginScores(evalData) {
     return !isWF && (t.includes("conclusion") || t.includes("synthesis") || t.includes("finish") || t.includes("निष्कर्ष") || t.includes("closing"));
   }) || null;
 
-  let introAw = introAnn ? parseAwarded(introAnn.marks_awarded) : NaN;
-  if (isNaN(introAw)) {
-    introAw = parseFloat(rubric.intro_score);
-    if (isNaN(introAw)) introAw = Math.round((overallScore * (rIntroMax / maxMarks)) * 2) / 2;
-  }
-  introAw = Math.min(rIntroMax, Math.max(0.0, Math.round(introAw * 2) / 2));
+  // Strict 100% Equal Marks & Denominators between Step-Marking Scheme and Analytical Rubric
+  let introAw = NaN;
+  let concAw = NaN;
 
-  const isHeatwaveScoreCopy = false;
-  if (!evalData.intro_audit || typeof evalData.intro_audit !== "object") {
-    evalData.intro_audit = {};
-  }
-  const introCritiqueRaw = String(evalData.intro_audit.current_critique || "") + " " + String((introAnn && introAnn.remark) || "");
-  const hasIntroMissingGap = Boolean(
-    (Array.isArray(evalData.intro_audit.missing_elements) && evalData.intro_audit.missing_elements.length > 0) ||
-    /✎\s*missing|missing:|lacks\s+the\s+baseline|without\s+defining/i.test(introCritiqueRaw)
-  );
-
-  // Never allow 2.0/2.0 (100% full marks) on an Introduction that simultaneously flags Missing elements
-  if (hasIntroMissingGap && introAw >= rIntroMax - 0.1) {
-    introAw = Math.max(0.5, Math.round((rIntroMax - 0.5) * 2) / 2);
-  }
-
-  const isStartupDeepTechScoreCopy = false;
-  const transTailScoreCheck = String(evalData.transcribed_text || "").toLowerCase().slice(-340);
-  const isGenericConcScoreCopy = Boolean(
-    isStartupDeepTechScoreCopy ||
-    /holistic development on part of government and society|need for holistic development|part of government and society|this is the need of the hour|too general \(no/i.test(
-      transTailScoreCheck + " " + String((evalData.conclusion_audit && evalData.conclusion_audit.current_critique) || "")
-    )
-  );
-
-  let concAw = concAnn ? parseAwarded(concAnn.marks_awarded) : NaN;
-  const rawRubricConc = parseFloat(rubric.conclusion_score);
-  const stepConc = (Array.isArray(evalData.sub_part_step_marking) ? evalData.sub_part_step_marking : []).find(st => /concl|synthesis/i.test(String(st.step_label || st.sub_heading || "")));
-  const stepConcAw = stepConc ? parseFloat(stepConc.awarded) : NaN;
-
-  if (!isNaN(stepConcAw) && stepConcAw > 0 && (isNaN(concAw) || concAw === 0)) {
-    concAw = stepConcAw;
-  }
-  if (!isNaN(rawRubricConc) && rawRubricConc > 0 && (isNaN(concAw) || concAw === 0)) {
-    concAw = rawRubricConc;
-  }
-
-  if (isGenericConcScoreCopy) {
-    // A simple 1-line generic conclusion without topic keywords strictly gets +0.5 / 2.0 (or +0.5 / 1.5)
-    concAw = 0.5;
-    if (!evalData.conclusion_audit || typeof evalData.conclusion_audit !== "object") {
-      evalData.conclusion_audit = {};
+  if (rawSubPartsSync.length >= 2) {
+    let introStep = rawSubPartsSync[0];
+    for (const st of rawSubPartsSync) {
+      const lbl = String(st.step_label || st.part_name || "").toLowerCase();
+      if (/intro|premise|context|प्रस्तावना/i.test(lbl)) {
+        introStep = st;
+        break;
+      }
     }
-    evalData.conclusion_audit.current_critique = isStartupDeepTechScoreCopy
-      ? `✗ **Too General (+0.5 / ${rConcMax.toFixed(1)}M)**: You ended with *\"Thus, there is a need for holistic development on part of government and society\"*, which has no topic keywords and can fit any answer. Mention **deep-tech product nation** & **Viksit Bharat @2047** to score full marks.`
-      : `✗ **Too General (+0.5 / ${rConcMax.toFixed(1)}M)**: Your closing line is too general and does not include specific topic keywords. Mention 1–2 topic keywords and the core institutional/committee anchor to score full marks.`;
-  } else if (isNaN(concAw)) {
-    concAw = !isNaN(rawRubricConc) ? rawRubricConc : Math.round((overallScore * (rConcMax / maxMarks)) * 2) / 2;
+    let concStep = rawSubPartsSync[rawSubPartsSync.length - 1];
+    for (let sIdx = rawSubPartsSync.length - 1; sIdx >= 0; sIdx--) {
+      const st = rawSubPartsSync[sIdx];
+      const lbl = String(st.step_label || st.part_name || "").toLowerCase();
+      if ((/concl|निष्कर्ष/i.test(lbl) || /closing\s*synthesis/i.test(lbl)) && !/intro|premise|part\s*[a-c]/i.test(lbl)) {
+        concStep = st;
+        break;
+      }
+    }
+
+    if (introStep) {
+      const sVal = parseFloat(introStep.awarded != null ? introStep.awarded : introStep.marks_awarded);
+      if (!isNaN(sVal)) introAw = sVal;
+      const mVal = parseFloat(introStep.max != null ? introStep.max : introStep.max_marks);
+      if (!isNaN(mVal) && mVal > 0) { rIntroMax = mVal; rubric.intro_max = mVal; }
+    }
+    if (concStep) {
+      const sVal = parseFloat(concStep.awarded != null ? concStep.awarded : concStep.marks_awarded);
+      if (!isNaN(sVal)) concAw = sVal;
+      const mVal = parseFloat(concStep.max != null ? concStep.max : concStep.max_marks);
+      if (!isNaN(mVal) && mVal > 0) { rConcMax = mVal; rubric.conclusion_max = mVal; }
+    }
   }
-  concAw = Math.min(rConcMax, Math.max(0.0, Math.round(concAw * 2) / 2));
+
+  if (isNaN(introAw)) {
+    introAw = introAnn ? parseAwarded(introAnn.marks_awarded) : NaN;
+    if (isNaN(introAw)) {
+      introAw = parseFloat(rubric.intro_score);
+      if (isNaN(introAw)) introAw = Math.round((overallScore * (rIntroMax / maxMarks)) * 2) / 2;
+    }
+  }
+  introAw = Math.min(rIntroMax, Math.max(0.0, Math.round(introAw * 10) / 10));
+
+  if (isNaN(concAw)) {
+    concAw = concAnn ? parseAwarded(concAnn.marks_awarded) : NaN;
+    if (isNaN(concAw)) {
+      concAw = parseFloat(rubric.conclusion_score);
+      if (isNaN(concAw)) concAw = Math.round((overallScore * (rConcMax / maxMarks)) * 2) / 2;
+    }
+  }
+  concAw = Math.min(rConcMax, Math.max(0.0, Math.round(concAw * 10) / 10));
 
   // Ensure introAw + concAw never exceeds overallScore
   if (introAw + concAw > overallScore) {
     const scale = overallScore / (introAw + concAw || 1);
-    introAw = Math.round((introAw * scale) * 2) / 2;
-    concAw = Math.max(0.0, Math.round((overallScore - introAw) * 2) / 2);
+    introAw = Math.round((introAw * scale) * 10) / 10;
+    concAw = Math.max(0.0, Math.round((overallScore - introAw) * 10) / 10);
   }
 
   rubric.intro_score = introAw;
@@ -14466,6 +14464,7 @@ function renderEvaluation(evalData) {
   }
 
   // Analytical Scorecard Progress Bars
+  syncRubricAndMarginScores(evalData);
   const r = evalData.rubric_scores || {};
   const mm = parseFloat(evalData.max_marks) || 10;
   const introMax = r.intro_max || (mm === 10 ? 1.5 : (mm * 0.15));
@@ -14950,9 +14949,15 @@ function renderBatch1ExaminerMastery(evalData) {
       const sMx = parseFloat(st.max != null ? st.max : st.max_marks) || 1.0;
       const sLabel = String(st.step_label || st.part_name || `Step ${sIdx + 1}`);
       const sHeading = String(st.sub_heading || st.analysis || "");
-      const sQuote = String(st.quoted_written || st.scoring_rationale || st.step_up_lever || "");
-      const isIntro = /intro|premise|प्रस्तावना/i.test(sLabel);
-      const isConc = /concl|synthesis|निष्कर्ष/i.test(sLabel);
+      let sQuote = String(st.quoted_written || st.scoring_rationale || st.step_up_lever || "");
+      const isIntro = /intro|premise|प्रस्तावना/i.test(sLabel) || sIdx === 0;
+      const isConc = ((/concl|निष्कर्ष/i.test(sLabel) || /closing\s*synthesis/i.test(sLabel)) && !/intro|premise|part\s*[a-c]/i.test(sLabel)) || sIdx === rawSubParts.length - 1;
+
+      // Prevent leaked conclusion critique text into non-conclusion steps
+      if (!isConc && /closing\s*synthesis\s*evaluated|transformation\s*of\s*inherited\s*idioms/i.test(sQuote)) {
+        sQuote = isIntro ? (evalData.intro_audit && evalData.intro_audit.current_critique || sHeading) : sHeading;
+      }
+
       const sNote = (isIntro || isConc) && !sQuote.includes("**")
         ? buildPureMarksAllocationNote(sQuote, sAw, sMx, isIntro)
         : sQuote;
