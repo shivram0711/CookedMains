@@ -5541,8 +5541,9 @@ window.getCanonicalStepMarkingScheme = function(evalData) {
   // Default UPSC Marks ceilings
   const defIntroMax = maxMarks === 10 ? 1.0 : (maxMarks === 15 ? 1.5 : 2.0);
   const defConcMax = maxMarks === 10 ? 1.0 : (maxMarks === 15 ? 1.5 : 2.0);
+  const concCeiling = maxMarks === 10 ? 1.5 : (maxMarks === 15 ? 2.0 : 2.5);
   const introMax = parseFloat(rubric.intro_max) || defIntroMax;
-  const concMax = parseFloat(rubric.conclusion_max) || defConcMax;
+  const concMax = Math.min(concCeiling, parseFloat(rubric.conclusion_max) || defConcMax);
 
   let introScore = parseFloat(rubric.intro_score);
   if (isNaN(introScore)) introScore = maxMarks === 10 ? 1.0 : 1.5;
@@ -11298,7 +11299,9 @@ function syncRubricAndMarginScores(evalData) {
     rubric.presentation_max = rPresMax;
   }
   if (rubric.conclusion_max && parseFloat(rubric.conclusion_max) > 0) {
-    rConcMax = parseFloat(rubric.conclusion_max);
+    const concCeil = maxMarks === 10 ? 1.5 : (maxMarks === 15 ? 2.0 : 2.5);
+    rConcMax = Math.min(concCeil, parseFloat(rubric.conclusion_max));
+    rubric.conclusion_max = rConcMax;
   } else {
     rubric.conclusion_max = rConcMax;
   }

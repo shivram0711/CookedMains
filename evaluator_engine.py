@@ -1679,10 +1679,22 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
         - यह सुधार सख्ती से केवल `intro_audit.current_critique` एवं `intro_audit.topper_reframe` में दर्ज करें (मुख्य भाग में नहीं):
         - नीतिगत/प्रशासनिक प्रश्नों में 'समावेशी विकास' जैसे व्यापक शब्दों की किताबी परिभाषा देने में शब्द व्यर्थ न करें।
         - इसके स्थान पर कोष्ठक में सामाजिक सेवाओं का दायरा (जैसे स्वास्थ्य, शिक्षा, सामाजिक सुरक्षा, पोषण) स्पष्ट करना सिखाएं ताकि संरचनात्मक विश्लेषण का आधार तैयार हो सके।
-      * ङ. निष्कर्ष: प्रश्न-आधारित नीतिगत संश्लेषण बनाम असंबद्ध उद्धरण (केवल conclusion_audit में):
+      * ङ. निष्कर्ष एवं आगे की राह (अनुपातिक अंक सीमा व मांग-आधारित परीक्षण):
         - यह सुधार सख्ती से केवल `conclusion_audit.current_critique` एवं `conclusion_audit.topper_reframe` में दर्ज करें (मुख्य भाग में नहीं):
-        - 10-अंकों के सीमित शब्द बजट में सजावटी उद्धरण (जैसे महबूब उल हक का कथन) यदि उत्तर के आर्थिक तर्क से नहीं जुड़ते, तो वे केवल स्थान घेरते हैं।
-        - अभ्यर्थी को सजावटी नारों के स्थान पर प्रश्न के केंद्रीय तनाव (जैसे आवंटन-बजट से परिणाम-बजट की ओर बढ़ना, या 6% एनईपी / 2.5% एनएचपी व्यय लक्ष्य) पर 2-पंक्ति का ठोस नीतिगत संश्लेषण लिखना सिखाएं।
+        - **निष्कर्ष की अनुपातिक अंक सीमा (अनिवार्य नियम)**:
+          * निष्कर्ष 2-3 पंक्तियों (20-30 शब्द) का संक्षिप्त समापन होता है। इसे कभी भी अत्यधिक अंक (जैसे 15 में से 3 अंक) न दें:
+            - 10-अंकों का प्रश्न: अधिकतम 1.0 से 1.5 अंक।
+            - 15-अंकों का प्रश्न: अधिकतम 1.5 से 2.0 अंक (3 अंक कभी नहीं)।
+            - 20-अंकों का प्रश्न: अधिकतम 2.0 से 2.5 अंक।
+          * 75% से 80% अंक अनिवार्य रूप से मुख्य भाग की मांगों को ही मिलने चाहिए।
+        - **समापन संदर्भ (जैसे 'समुद्र मंथन' या 'विकसित भारत') को 'आगे की राह' न समझें**:
+          * यदि अभ्यर्थी ने अंतिम पैरा में किसी मिशन या पहल (जैसे अपतटीय तेल प्रश्न में 'समुद्र मंथन') का उल्लेख किया है, तो इसे केवल एक समापन संदर्भ (+1.0M) मानें। इसे अनावश्यक रूप से एक पूर्ण 'आगे की राह' अनुभाग में न बदलें और न ही निष्कर्ष के अंक बढ़ाएं।
+        - **मांग-आधारित समाधान परीक्षण (केवल प्रश्न की वास्तविक मांग पर निर्भर रहें)**:
+          * प्रश्न की प्रत्यक्ष/अप्रत्यक्ष मांग के आधार पर ही तय करें कि 'आगे की राह/सुधार' आवश्यक है या नहीं:
+            - प्रत्यक्ष मांग: जब प्रश्न में स्पष्ट सुधार/उपाय पूछे गए हों ("उपाय सुझाएं", "समाधान बताएं")।
+            - अप्रत्यक्ष मांग: अनुप्रयुक्त शासन, अर्थव्यवस्था, पर्यावरण या सुरक्षा समस्याओं (GS-2, GS-3, GS-4) में जहां संकट/चुनौती के समाधान स्वाभाविक रूप से अपेक्षित हैं।
+            - अप्रासंगिक (समाधान सुझाव वर्जित): शुद्ध भौतिक भूगोल (GS-1), इतिहास, कला एवं संस्कृति के प्रश्नों में 'आगे की राह' अनावश्यक है। ऐसे प्रश्नों में कभी भी अनावश्यक 'आगे की राह' न मांगें और न ही इसका सुझाव दें।
+        - अभ्यर्थी को सजावटी नारों के स्थान पर प्रश्न के केंद्रीय विषय पर 2-पंक्ति का ठोस विषयगत संश्लेषण लिखना सिखाएं।
       * च. 10-अंकों (150 शब्द / 2 पृष्ठ) के प्रश्नों हेतु विशिष्ट मेंटर ऑडिट:
         - पृष्ठ 1 और पृष्ठ 2 के मध्य 50:50 संतुलन, अप्रामाणिक आरेख पर स्थान कटौती, तथा संक्षिप्त कारण-कार्य बुलेट्स का कड़ाई से पालन करें।
       * छ. संबंधित अनुभाग में ही मूल्यांकन का सख्त नियम एवं 100% गतिशील विषयगत पृथक्करण:
@@ -3314,10 +3326,25 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
         - In 10-markers on applied policy/governance/economy, defining broad textbook keywords (e.g. defining "inclusive growth") burns words needlessly.
         - Instead, guide candidate to demarcate the operational scope of the subject in brackets (e.g., specifying that social services encompass health, education, social security, and nutrition) to set up the structural analysis before quoting macro percentages.
         - If quoting an authentic baseline statistic, show candidate how adding one connecting clause bridges the hook directly to the question demand.
-      * E. CONCLUSION: QUESTION-ANCHORED SYNTHESIS VS. DECORATIVE QUOTES / SLOGANS (STRICTLY IN CONCLUSION AUDIT):
+      * E. CONCLUSION & WAY FORWARD DISCIPLINE (WEIGHTAGE CEILING & DEMAND-DRIVEN TRIGGER):
         - Place this critique STRICTLY inside `conclusion_audit.current_critique` and `conclusion_audit.topper_reframe` (NEVER in body or intro):
-        - In tight word limits (10-markers), decorative quotes (e.g. quoting Mahbub ul Haq) or disconnected slogans that are not woven into the analytical argument displace actionable policy synthesis.
-        - Guide candidate to replace decorative quotes with a crisp, 2-line policy synthesis on the core question tension (e.g., shifting from outlay-budgeting to outcome-budgeting, or meeting national expenditure targets like 6% NEP / 2.5% NHP).
+        - **PROPORTIONATE CONCLUSION WEIGHTAGE CEILING (NON-NEGOTIABLE)**:
+          * The Conclusion is a compact 2–3 line synthesis (20–30 words). It must NEVER be allocated excessive marks:
+            - 10-Marker: strictly 1.0 to 1.5 Marks (never exceed 1.5M).
+            - 15-Marker: strictly 1.5 to 2.0 Marks (never exceed 2.0M; NEVER 3.0M!).
+            - 20-Marker: strictly 2.0 to 2.5 Marks (never exceed 2.5M).
+          * 75% to 80% of marks MUST remain allocated to the Core Body demands!
+        - **DO NOT CONFUSE CONCLUDING HOOKS (E.G. SAMUDRA MANTHAN, VIKSIT BHARAT) WITH A WAY FORWARD**:
+          * When a candidate mentions an initiative, mission, or keyword in their closing paragraph (e.g. citing India's 'Samudra Manthan' in a physical/economic geography question on offshore oil reserves), evaluate it strictly as an illustrative closing synthesis hook (+1.0M).
+          * DO NOT misinterpret this illustrative mention as a "Way Forward" section, and DO NOT inflate the conclusion weightage or convert the answer into an unasked policy roadmap!
+        - **QUESTION-DEMAND DRIVEN WAY FORWARD AUDIT (RELY ON QUESTION DEMANDS, NEVER ON CANDIDATE'S HABIT)**:
+          * Determine whether a "Way Forward / Solutions / Mitigation" section is warranted based STRICTLY on the question's explicit and implicit demands:
+            1. **Directly Demanded**: When the prompt explicitly uses solution keywords ("Suggest measures", "How can this be mitigated?", "Suggest a policy roadmap", "What steps are needed?").
+            2. **Indirectly Demanded**: In applied governance, socio-economic, environmental, or security challenges (GS-2, GS-3, GS-4) where an ongoing problem, bottleneck, or crisis is analyzed and constructive administrative/policy solutions are naturally required.
+            3. **NOT Demanded (Forbidden to suggest Way Forward)**: Pure physical, geomorphic, or climatological geography (GS-1), history, art & culture, or doctrinal/theoretical questions (e.g. offshore vs onshore oil reserves, mountain formation, temple architecture).
+            4. **MANDATORY**: If the question does NOT demand solutions, DO NOT suggest or demand an unasked "Way Forward" section! Even if the candidate writes a policy slogan or exploration mission, evaluate it strictly as a brief conclusion—never criticize them for lacking a full "Way Forward" or suggest writing an unasked solutions section.
+        - In tight word limits (10-markers), decorative quotes (e.g. quoting Mahbub ul Haq) or disconnected slogans that are not woven into the analytical argument displace actionable discipline-specific synthesis.
+        - Guide candidate to replace decorative quotes with a crisp, 2-line synthesis on the core question tension.
       * F. 10-MARKER (150 WORDS / 2 PAGES) SPECIFIC MENTOR AUDIT & FLAW DETECTION:
         - In a 10-Marker, space and exam pacing are unforgiving (strictly 2 physical pages, 150 words, 7.0 minutes pacing budget). Evaluate 10-markers with this ruthless spatial precision:
           1. **Severe Space Penalty for Unasked / Oversized Visuals on Page 1**:
@@ -6537,8 +6564,8 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
     steps = data.get("sub_part_step_marking") if isinstance(data.get("sub_part_step_marking"), list) else []
 
     # Check if demand-based sub_part_step_marking is already available
-    intro_step = next((s for s in steps if isinstance(s, dict) and any(k in str(s.get("step_label", "")).lower() for k in ["intro", "premise", "context", "प्रस्तावना"])), None)
-    conc_step = next((s for s in reversed(steps) if isinstance(s, dict) and any(k in str(s.get("step_label", "")).lower() for k in ["conclusion", "synthesis", "निष्कर्ष", "closing"]) and not any(wf in str(s.get("step_label", "")).lower() for wf in ["way forward", "solutions", "reforms", "measures", "आगे की राह", "सुझाव"])), None)
+    intro_step = next((s for s in steps if isinstance(s, dict) and any(k in str(s.get("step_label") or s.get("part_name") or s.get("name") or "").lower() for k in ["intro", "premise", "context", "प्रस्तावना"])), None)
+    conc_step = next((s for s in reversed(steps) if isinstance(s, dict) and any(k in str(s.get("step_label") or s.get("part_name") or s.get("name") or "").lower() for k in ["conclusion", "synthesis", "निष्कर्ष", "closing"]) and not any(wf in str(s.get("step_label") or s.get("part_name") or s.get("name") or "").lower() for wf in ["way forward", "solutions", "reforms", "measures", "आगे की राह", "सुझाव"])), None)
 
     if intro_step:
         canon_i_max = float(intro_step.get("max", 0.0) or 0.0)
@@ -6547,12 +6574,15 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         canon_i_max = float(rubric.get("intro_max") or (1.5 if max_marks == 10 else (2.0 if max_marks == 15 else (2.5 if max_marks == 20 else 20.0))))
         intro_aw = float(rubric.get("intro_score", round(overall_score * 0.15, 2)) or 0.0)
 
+    conc_ceiling = 1.5 if max_marks == 10 else (2.0 if max_marks == 15 else (2.5 if max_marks == 20 else 2.5))
     if conc_step:
-        canon_co_max = float(conc_step.get("max", 0.0) or 0.0)
-        conc_aw = float(conc_step.get("awarded", 0.0) or 0.0)
+        canon_co_max = min(conc_ceiling, float(conc_step.get("max", 0.0) or 0.0))
+        conc_step["max"] = canon_co_max
+        conc_aw = min(canon_co_max, float(conc_step.get("awarded", 0.0) or 0.0))
+        conc_step["awarded"] = conc_aw
     else:
-        canon_co_max = float(rubric.get("conclusion_max") or (1.5 if max_marks == 10 else (2.0 if max_marks == 15 else (2.5 if max_marks == 20 else 20.0))))
-        conc_aw = float(rubric.get("conclusion_score", round(overall_score * 0.12, 2)) or 0.0)
+        canon_co_max = min(conc_ceiling, float(rubric.get("conclusion_max") or (1.0 if max_marks == 10 else (1.5 if max_marks == 15 else 2.0))))
+        conc_aw = min(canon_co_max, float(rubric.get("conclusion_score", round(overall_score * 0.10, 2)) or 0.0))
 
     body_target_den = round(max(1.0, max_marks - canon_i_max - canon_co_max), 1)
 
@@ -8080,7 +8110,14 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
         sum_all_aw = sum(float(s.get("awarded", 0.0) or 0.0) for s in existing_steps if isinstance(s, dict))
 
         # Check if existing steps are already demand-based and mathematically sound
-        if abs(sum_all_max - max_marks) < 0.25 and abs(sum_all_aw - overall_score) < 0.25:
+        conc_ceiling = 1.5 if max_marks == 10 else (2.0 if max_marks == 15 else (2.5 if max_marks == 20 else 2.5))
+        intro_ceiling = 1.5 if max_marks == 10 else (2.0 if max_marks == 15 else (2.5 if max_marks == 20 else 2.5))
+        last_step_mx = float(existing_steps[-1].get("max", 0.0) or 0.0) if (existing_steps and isinstance(existing_steps[-1], dict)) else 0.0
+        first_step_mx = float(existing_steps[0].get("max", 0.0) or 0.0) if (existing_steps and isinstance(existing_steps[0], dict)) else 0.0
+        conc_valid = (last_step_mx <= conc_ceiling + 0.05)
+        intro_valid = (first_step_mx <= intro_ceiling + 0.05)
+
+        if abs(sum_all_max - max_marks) < 0.25 and abs(sum_all_aw - overall_score) < 0.25 and conc_valid and intro_valid:
             assigned_steps = []
             for idx, item in enumerate(existing_steps):
                 if not isinstance(item, dict):
@@ -8131,11 +8168,14 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
                     intro_max = float(existing_steps[0].get("max") or intro_max)
                 if "awarded" in existing_steps[0]:
                     intro_aw = float(existing_steps[0].get("awarded") or 0.0)
+            conc_ceiling = 1.5 if max_marks == 10 else (2.0 if max_marks == 15 else (2.5 if max_marks == 20 else 2.5))
             if isinstance(existing_steps[-1], dict):
                 if "max" in existing_steps[-1]:
-                    conc_max = float(existing_steps[-1].get("max") or conc_max)
+                    conc_max = min(conc_ceiling, float(existing_steps[-1].get("max") or conc_max))
+                    existing_steps[-1]["max"] = conc_max
                 if "awarded" in existing_steps[-1]:
-                    conc_aw = float(existing_steps[-1].get("awarded") or 0.0)
+                    conc_aw = min(conc_max, float(existing_steps[-1].get("awarded") or 0.0))
+                    existing_steps[-1]["awarded"] = conc_aw
 
             total_body_max = max(1.0, round((max_marks - intro_max - conc_max) * 4) / 4)
             total_body_aw = max(0.0, round((overall_score - intro_aw - conc_aw) * 4) / 4)
@@ -10087,6 +10127,19 @@ def _enforce_canonical_mathematical_reconciliation(data: Dict[str, Any], max_mar
     has_steps = isinstance(steps, list) and len(steps) >= 2
 
     if has_steps:
+        conc_ceiling = 1.5 if max_m == 10 else (2.0 if max_m == 15 else (2.5 if max_m == 20 else 2.5))
+        last_s = steps[-1] if isinstance(steps[-1], dict) else {}
+        last_lbl = str(last_s.get("step_label") or last_s.get("part_name") or last_s.get("name") or "").lower()
+        if any(k in last_lbl for k in ["conclusion", "synthesis", "निष्कर्ष", "closing"]) and not any(wf in last_lbl for wf in ["way forward", "solutions", "reforms", "measures", "आगे की राह", "सुझाव"]):
+            cur_conc_m = float(last_s.get("max", 0.0) or 0.0)
+            if cur_conc_m > conc_ceiling:
+                diff_c = cur_conc_m - conc_ceiling
+                last_s["max"] = conc_ceiling
+                if float(last_s.get("awarded", 0.0) or 0.0) > conc_ceiling:
+                    last_s["awarded"] = conc_ceiling
+                if len(steps) >= 3 and isinstance(steps[-2], dict):
+                    steps[-2]["max"] = round(float(steps[-2].get("max", 0.0) or 0.0) + diff_c, 1)
+
         # Preserve exact evidence-grounded criteria marks
         for s in steps:
             if isinstance(s, dict):
