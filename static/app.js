@@ -11490,7 +11490,7 @@ window.classifyQuestionDiscipline = function(questionText, paper) {
   const isPhilosophyEthics = (p.includes("GS4") || /\b(?:socrates|plato|aristotle|kant|categorical imperative|rawls|utilitarian|deontolog|virtue ethics|moral philosophy|ethical dilemma|conscience|probity|emotional intelligence|attitude|aptitude|quotations?|moral thinker|nolan|integrity|compassion|code of ethics|code of conduct|civil service values?)\b/i.test(q));
   if (isPhilosophyEthics) return "PHILOSOPHY_ETHICS";
 
-  const isPhysicalGeo = (p.includes("GS1") && /\b(?:volcan|caldera|geomorph|earthquake|plate|rock|mountain|lake|river)\b/i.test(q)) || /\b(?:volcan\w*|caldera\w*|geomorph\w*|earthquake\w*|plate\s+tectonic\w*|tsunami\w*|glacier\w*|karst\w*|monsoon\w*|ocean\s+current\w*|salinity|air\s+mass\w*|frontogenesis|jet\s+stream\w*|coral\s+reef\w*|continental\s+drift|seafloor\s+spreading|temperature|insolation|heat\s+budget|atmosphere|isotherm\w*|pressure\s+belt\w*|planetary\s+winds?|land-sea|continentality|lapse\s+rate|coriolis|albedo|drainage|river\s+system\w*|topography|rainfall|precipitation|inversion\s+of\s+temp\w*|scenic\s+beauty|landform\w*|magma\w*|lava\w*)\b/i.test(q);
+  const isPhysicalGeo = (p.includes("GS1") && /\b(?:volcan|caldera|geomorph|earthquake|plate|rock|mountain|lake|river|oil|shelf|basin|hydrocarbon)\b/i.test(q)) || /\b(?:volcan\w*|caldera\w*|geomorph\w*|earthquake\w*|plate\s+tectonic\w*|tsunami\w*|glacier\w*|karst\w*|monsoon\w*|ocean\s+current\w*|salinity|air\s+mass\w*|frontogenesis|jet\s+stream\w*|coral\s+reef\w*|continental\s+drift|seafloor\s+spreading|temperature|insolation|heat\s+budget|atmosphere|isotherm\w*|pressure\s+belt\w*|planetary\s+winds?|land-sea|continentality|lapse\s+rate|coriolis|albedo|drainage|river\s+system\w*|topography|rainfall|precipitation|inversion\s+of\s+temp\w*|scenic\s+beauty|landform\w*|magma\w*|lava\w*|oil\s+reserves?|off-?shore|on-?shore|hydrocarbons?|continental\s+shelf|sedimentary\s+basin\w*|geographical\s+explanation)\b/i.test(q);
   if (isPhysicalGeo) return "PHYSICAL_GEOGRAPHY";
 
   return "POLICY_GOVERNANCE_ECONOMY";
@@ -14260,7 +14260,24 @@ function renderEvaluation(evalData) {
         if (!isSolarQuestion && /pm-surya|surya\s*ghar|tender\/regulatory/i.test(exText)) {
           exText = resolvedInsertion;
         }
-        const exWeak = ex.current_weakness || (rawExamples.length === 1 ? resolvedWeakness : "");
+        let exWeak = ex.current_weakness;
+        if (!exWeak && rawExamples.length === 1) {
+          // Strictly verify spatial alignment before borrowing resolvedWeakness from next_attempt_focus
+          const naPlacement = String((na && (na.booklet_placement || na.target_section)) || "").toLowerCase();
+          const targetStr = String(rawTarget || "").toLowerCase();
+          const targetPageMatch = targetStr.match(/page\s*(\d+)/i);
+          const naPageMatch = naPlacement.match(/page\s*(\d+)/i);
+          const samePage = Boolean(targetPageMatch && naPageMatch && targetPageMatch[1] === naPageMatch[1]);
+          const sameSection = targetStr.includes("intro") ? naPlacement.includes("intro") : (targetStr.includes("body") || targetStr.includes("margin") || targetStr.includes("section")) && !naPlacement.includes("intro");
+
+          if (samePage && sameSection && resolvedWeakness && resolvedWeakness.length > 5) {
+            exWeak = resolvedWeakness;
+          } else {
+            exWeak = isHindi
+              ? `इस खंड (${rawTarget}) में विशिष्ट अवधारणात्मक क्रियाविधि एवं प्रमाणिक तकनीकी विश्लेषण का अभाव।`
+              : `Lacked precise domain terminology and structural mechanism under ${rawTarget}.`;
+          }
+        }
         const weaknessHtml = exWeak && exWeak.length > 5 ? `
           <div class="text-[10px] text-slate-600 dark:text-slate-400 italic">
             <span class="font-semibold text-amber-700 dark:text-amber-400">${isHindi ? "वर्तमान कमी:" : "Current Gap:"}</span> ${escapeHtml(exWeak)}
@@ -14307,18 +14324,71 @@ function renderEvaluation(evalData) {
     const reportsToRender = uniqueReports.length > 0 ? uniqueReports : rawReports.slice(0, 2);
 
     if (caReportsCardBox && caDataList) {
-      if (reportsToRender.length === 0 || currentDiscipline === "HISTORY_CULTURE" || currentDiscipline === "PHILOSOPHY_ETHICS" || currentDiscipline === "PHYSICAL_GEOGRAPHY") {
+      const isPurePhysical = /\b(?:volcan|caldera|magma|lava|pyroclastic|geomorph|earthquake|plate tectonic|glacier|karst|tsunami|scenic beauty)\b/i.test(qStrLow);
+      const isResourceGeo = /\b(?:oil|hydrocarbon|petroleum|offshore|off-shore|onshore|on-shore|continental shelf|mineral|resource distribution)\b/i.test(qStrLow);
+
+      if (reportsToRender.length === 0 || currentDiscipline === "HISTORY_CULTURE" || currentDiscipline === "PHILOSOPHY_ETHICS" || (currentDiscipline === "PHYSICAL_GEOGRAPHY" && isPurePhysical && !isResourceGeo)) {
         caReportsCardBox.classList.add("hidden");
         caDataList.innerHTML = "";
       } else {
         caReportsCardBox.classList.remove("hidden");
         reportsToRender.forEach(rep => registerInDeepEval(rep));
-        caDataList.innerHTML = reportsToRender.map(rep => `
-          <li class="flex items-start space-x-2">
-            <span class="text-amber-400 font-bold shrink-0">▪</span>
-            <span class="leading-relaxed">${formatHighlightedText(rep)}</span>
-          </li>
-        `).join("");
+
+        // Update card header sub-label to flow-connected guidance
+        const whereTextEl = document.getElementById("caReportsWhereText");
+        if (whereTextEl) {
+          whereTextEl.innerHTML = `<strong>${isHindi ? "कहाँ और कैसे जोड़ें:" : "Where & How to Connect:"}</strong> <span>${isHindi ? "उत्तर प्रवाह में प्रासंगिक आयाम पर जोड़ें" : "Anchor into relevant answer dimension"}</span>`;
+        }
+
+        caDataList.innerHTML = reportsToRender.map(rep => {
+          let title = "";
+          let flowTarget = "";
+          let howToConnect = "";
+
+          if (typeof rep === "object" && rep !== null) {
+            title = rep.title || rep.report_name || rep.benchmark || "";
+            flowTarget = rep.where_to_anchor || rep.flow_target || rep.target_section || "Body Flow";
+            howToConnect = rep.how_to_connect || rep.context_integration || rep.recommendation || "";
+          } else {
+            let s = String(rep).trim();
+            // Clean up common acronym typos (e.g. DGFCC -> DGH)
+            s = s.replace(/\bDGFCC\b/g, "DGH (Directorate General of Hydrocarbons)");
+            const parts = s.split(/\s+[—–-]\s+/);
+            if (parts.length >= 3) {
+              title = parts[0].trim();
+              flowTarget = parts[1].trim();
+              howToConnect = parts.slice(2).join(" — ").trim();
+            } else if (parts.length === 2) {
+              title = parts[0].trim();
+              howToConnect = parts[1].trim();
+              flowTarget = isHindi ? "मुख्य भाग के तर्कों के साथ" : "Body Analytical Flow";
+            } else {
+              title = s;
+              flowTarget = isHindi ? "मुख्य भाग के तर्कों के साथ" : "Body Analytical Flow";
+              howToConnect = isHindi
+                ? `उत्तर में प्रमाणिक वजन बढ़ाने हेतु ${s} का संदर्भ दें।`
+                : `Weave ${s} directly into your analytical arguments to substantiate domain credibility.`;
+            }
+          }
+
+          return `
+            <li class="p-2.5 rounded-md bg-white dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 space-y-1.5 shadow-xs">
+              <div class="flex flex-wrap items-center justify-between gap-1">
+                <span class="font-bold text-slate-900 dark:text-slate-100 text-[11px]">${escapeHtml(title)}</span>
+                ${flowTarget ? `<span class="text-[9.5px] font-semibold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/40 px-1.5 py-0.5 rounded border border-sky-200 dark:border-sky-800 flex items-center space-x-1"><i data-lucide="map-pin" class="w-2.5 h-2.5 text-sky-600 dark:text-sky-400"></i><span>${escapeHtml(flowTarget)}</span></span>` : ""}
+              </div>
+              ${howToConnect ? `
+                <div class="text-[10.5px] text-slate-700 dark:text-slate-300 leading-relaxed pl-2 border-l-2 border-amber-400 dark:border-amber-500">
+                  <span class="font-semibold text-amber-800 dark:text-amber-400">${isHindi ? "✍️ उत्तर प्रवाह में ऐसे जोड़ें:" : "✍️ How to Connect in Flow:"}</span> <span>${formatHighlightedText(howToConnect)}</span>
+                </div>
+              ` : ""}
+            </li>
+          `;
+        }).join("");
+
+        if (window.lucide) {
+          try { window.lucide.createIcons({ root: caDataList }); } catch (e) {}
+        }
       }
     }
 

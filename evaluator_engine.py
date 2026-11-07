@@ -646,7 +646,7 @@ def detect_academic_discipline(question_text: str, current_paper: str = "GS2") -
         
     # Geography keywords (if explicitly Optional or geomorphic models)
     geo_keywords = [
-        "geomorphic", "penck", "wm davis", "köppen", "koppen"
+        "geomorphic", "penck", "wm davis", "köppen", "koppen", "oil reserves", "off-shore", "offshore", "on-shore", "onshore", "continental shelf", "sedimentary basin"
     ]
     if (is_explicit_optional or current_paper in ["Optional", "default"]) and has_any_phrase(text, ["plate tectonics", "cyclones", "monsoon", "geomorphic", "penck", "wm davis"]):
         return "Optional-Geography"
@@ -870,7 +870,10 @@ def infer_paper_from_question_content(question_text: str) -> Optional[str]:
         "geomorphology", "plate tectonics", "earthquake", "volcano", "volcanic", "caldera", "calderas", "cyclone", "monsoon", "el nino", "la nina", "ocean current", "drainage system",
         "secularism in india", "communalism", "regionalism", "caste system", "caste", "urbanization issues",
         "patriarchy", "patriarchal", "female labor", "female labour", "women empowerment", "gender inequality", "gender disparity", "social empowerment", "globalization on indian society", "effects of globalization", "diversity of india", "communalism",
-        "scenic beauty", "geomorphic", "landform", "landforms", "magma", "lava", "crater", "pyroclastic", "geomorph"
+        "scenic beauty", "geomorphic", "landform", "landforms", "magma", "lava", "crater", "pyroclastic", "geomorph",
+        "geographical", "geography", "oil reserves", "off-shore", "offshore", "on-shore", "onshore", "hydrocarbon",
+        "continental shelf", "mineral distribution", "resource distribution", "sedimentary basin", "deltaic",
+        "spatial distribution", "oceanic", "marine resources", "petroleum", "energy resources"
     ]
     gs1_score = sum(2 if has_phrase(text, w) else 0 for w in gs1_signals)
     # Unequivocal History boost
@@ -1154,13 +1157,13 @@ def detect_precise_subject(question_text: str, current_paper: str = "GS2") -> Di
             "full_display": "GS-1 (Physical Geography & Geomorphology)",
             "syllabus_subheading": "Salient Features of World's Physical Geography & Geophysical Phenomena"
         }
-    elif has_any_phrase(text, ["urban", "urbanization", "heat island", "critical minerals", "mineral", "resource distribution", "migration", "spatial"]):
+    elif has_any_phrase(text, ["urban", "urbanization", "heat island", "critical minerals", "mineral", "resource distribution", "migration", "spatial", "oil reserves", "off-shore", "offshore", "on-shore", "onshore", "hydrocarbon", "continental shelf", "sedimentary basin", "petroleum", "energy resources", "geographical"]):
         return {
             "paper_code": "GS1",
             "paper_label": "General Studies Paper - I",
-            "discipline": "Economic & Human Geography",
-            "full_display": "GS-1 (Economic & Human Geography)",
-            "syllabus_subheading": "Distribution of Key Natural Resources, Urbanization Issues & Ecological Footprints"
+            "discipline": "Economic & Physical Geography",
+            "full_display": "GS-1 (Economic & Physical Geography: Resource Distribution)",
+            "syllabus_subheading": "Distribution of Key Natural Resources Across World & Indian Sub-Continent"
         }
     elif has_any_phrase(text, ["caste", "patriarchy", "women", "gender", "sanskritization", "social structure", "secularism", "communalism", "regionalism", "diversity"]):
         return {
@@ -3218,6 +3221,17 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       * **Section 1 (`subpart_marks_breakdown` & `executive_summary`)**: Never write generic praise like `"Good attempt with structured points"`. Always quote the exact sub-part demand of the question, the exact points/examples written on the candidate's sheet, and the exact marks awarded out of the sub-part maximum.
       * **Section 2 (`intro_audit`)**: Supply a `model_intro_rewrite` that opens with an authentic definition, constitutional article, statutory anchor, or official survey metric specific to THAT exact question (never a generic paraphrase of the prompt).
       * **Section 3 (`body_audit`, `missing_keywords_cards`, `value_add_checklist`, `current_affairs_value_add`)**: Every recommended keyword, committee report, judgment, or scheme MUST belong 100% to the sub-topic of the question.
+      * **STRICT SPATIAL SYNCHRONIZATION OF VALUE ADDITION CARDS (NON-NEGOTIABLE)**:
+        - `paragraph_target` and `current_weakness` / `current_gap` MUST reference the SAME physical section and paragraph on the candidate's sheet!
+        - If `paragraph_target` points to `Page 2 • Under your 'Deltaic Margins' section`, then `current_weakness` MUST identify what the candidate actually wrote under Deltaic Margins on Page 2 (e.g. "Listed rivers descriptively without articulating the geomorphic rollover anticlinal fault mechanism that traps hydrocarbons.").
+        - NEVER EVER pair a `paragraph_target` on Page 2 with a `current_weakness` quote from Page 1 (Introduction) or any other section! That is a careless contradiction.
+        - `recommended_insertion` must provide high-scoring, 2-line exam-ready text for THAT specific section—NEVER generic filler like "Incorporate authoritative statutory reports and official policy benchmarks...".
+      * **OFFICIAL REPORTS, COMMITTEES & DATA (AUTHORITY ANCHORS) DISCIPLINE**:
+        - **DO NOT FORCE WHEN IRRELEVANT**: In pure Physical Geography (caldera, volcanism, plate tectonics, geomorphic landforms), Ancient/Medieval History, Art & Culture, or abstract theory where statutory committees or administrative reports do not naturally belong, DO NOT force this card! Omit it cleanly (`high_yield_data_reports: []`).
+        - **CONNECT IN FLOW (NEVER A NAKED FACTUAL DUMP)**: Merely writing a raw acronym or treaty title (e.g. "DGFCC / DGH & UNCLOS") confuses the aspirant. Naked facts do not guarantee marks.
+        - When an authority anchor IS recommended, ALWAYS format it with flow context:
+          `[Anchor Title] — [Target Section in Flow] — [1-Line Exam Integration showing HOW to connect it to earn marks]`
+          (e.g., "UNCLOS Article 76 (Continental Shelf Delimitation) — Part A: Offshore Legal Boundary — Anchor the spatial extent of offshore exploration in UNCLOS Article 76, which accords sovereign exploration rights over continental shelf seabed resources up to 200–350 nautical miles.").
       * **ABSOLUTE BAN ON SUGGESTING POINTS/SCHEMES ALREADY WRITTEN BY THE CANDIDATE**:
         - NEVER recommend or suggest an example, scheme, project, or case study in `current_affairs_value_add`, `missing_keywords_cards`, or `value_add_checklist` that the candidate HAS ALREADY WRITTEN in their answer sheet!
         - If the candidate already wrote 'ISRO FASAL' on Page 1, DO NOT suggest 'ISRO FASAL Project' as a value addition!
@@ -6853,21 +6867,30 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                 }
             ]
 
-    # Anti-Self-Suggestion Guard: Purge any current_examples that candidate ALREADY wrote on their sheet!
+    # Anti-Self-Suggestion Guard: Only purge if distinct multi-word proper entity is already explicitly cited
     cand_written_corpus = (
         str(data.get("transcribed_text") or "") + " " +
         " ".join(str(s) for s in (data.get("body_audit", {}).get("strengths") or [])) + " " +
         " ".join(str(p.get("what_you_wrote", "")) for p in (data.get("point_by_point_audit") or []))
     ).lower()
 
-    stop_words_va = {"scheme", "project", "mission", "policy", "ministry", "india", "indian", "national", "state", "board", "commission", "department", "initiative", "framework", "using", "under", "with", "from", "into", "cite", "leverage", "point", "page", "high", "resolution", "mapping", "modelling", "urban", "growth", "classification", "automated", "land", "crop", "drone", "drones"}
+    # Generic discipline terms that must NEVER trigger duplicate purging on their own
+    generic_geo_econ_terms = {
+        "scheme", "project", "mission", "policy", "ministry", "india", "indian", "national", "state",
+        "board", "commission", "department", "initiative", "framework", "using", "under", "with", "from",
+        "into", "cite", "leverage", "point", "page", "high", "resolution", "mapping", "modelling", "urban",
+        "growth", "classification", "automated", "land", "crop", "drone", "drones", "water", "river",
+        "delta", "basin", "shelf", "geography", "reserve", "reserves", "oil", "onshore", "offshore",
+        "deep", "marine", "coastal", "drilling", "fault", "formation", "cost", "costs", "transport"
+    }
 
     def _is_item_already_written_by_student(item_dict):
         t = str(item_dict.get("example_title") or "").lower()
-        r = str(item_dict.get("recommended_insertion") or "").lower()
-        key_tokens = [w for w in re.findall(r'[a-zA-Z0-9ऀ-ॿ]{4,}', t + " " + r) if w not in stop_words_va]
-        for tok in key_tokens:
-            if tok in cand_written_corpus:
+        # Look for distinct 2-3 word phrases or specific proper nouns in title
+        specific_phrases = re.findall(r'[a-zA-Z0-9ऀ-ॿ]{4,}(?:\s+[a-zA-Z0-9ऀ-ॿ]{4,})+', t)
+        for ph in specific_phrases:
+            words = ph.split()
+            if not all(w in generic_geo_econ_terms for w in words) and ph in cand_written_corpus:
                 return True
         return False
 
@@ -6877,28 +6900,41 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         if len(clean_cur_exs) > 0:
             ca_va["current_examples"] = clean_cur_exs
         else:
-            # Fallback to fresh domain-specific unmentioned anchors
+            # Fallback to authentic, non-generic discipline-specific anchors
             if any(k in q_low for k in ["ai", "drone", "gis", "remote sensing", "aerial", "locational", "planning"]):
                 ca_va["current_examples"] = [
                     {
                         "example_title": "PM Gati Shakti National Master Plan (NMP)",
                         "paragraph_target": "Page 2 • Under 3D City & Infrastructure Models",
+                        "current_weakness": "Descriptive discussion lacking coordination across multi-modal geospatial infrastructure layers.",
                         "recommended_insertion": "Integrate the **PM Gati Shakti NMP GIS platform** with 1,400+ layers across 44 ministries for synchronized multi-modal infrastructure and locational planning.",
                         "marks_gain": "+0.5 to +1.0 Mark"
                     },
                     {
                         "example_title": "Survey of India CORS Network (Centimeter-Level Geodesy)",
-                        "paragraph_target": "Page 3 • Under Challenges & Way Forward",
+                        "paragraph_target": "Page 3 • Under Challenges & Spatial Accuracy",
+                        "current_weakness": "Lacked technical precision on real-time geodetic ground positioning.",
                         "recommended_insertion": "Deploy the **Survey of India Continuously Operating Reference Stations (CORS)** network to provide real-time 3cm positioning accuracy for automated drone navigation.",
+                        "marks_gain": "+0.5 to +1.0 Mark"
+                    }
+                ]
+            elif any(k in q_low for k in ["oil", "hydrocarbon", "petroleum", "offshore", "off-shore", "onshore", "on-shore", "shelf", "basin", "geograph"]):
+                ca_va["current_examples"] = [
+                    {
+                        "example_title": "Deepwater Structural Trapping & Salt Diapirism (Campos & KG-D6)",
+                        "paragraph_target": "Page 2 • Under your 'Deltaic Margins' section",
+                        "current_weakness": "Listed river deltas descriptively without articulating the geomorphic rollover anticlinal fault mechanism that traps hydrocarbons.",
+                        "recommended_insertion": "Substantiate with geomorphic trapping mechanisms: in passive continental margins (e.g. Krishna-Godavari deepwater, Brazil's Campos Basin), rapid sedimentation triggers **growth-fault traps and salt diapirism**, sealing high-yield sub-salt hydrocarbon plays.",
                         "marks_gain": "+0.5 to +1.0 Mark"
                     }
                 ]
             else:
                 ca_va["current_examples"] = [
                     {
-                        "example_title": "Domain Contemporary Benchmark",
+                        "example_title": "Subject Contemporary Anchor",
                         "paragraph_target": ex_ins.get("paragraph_target", "Page 2 • Body Section"),
-                        "recommended_insertion": "Incorporate authoritative statutory reports and official policy benchmarks directly answering the core directive.",
+                        "current_weakness": "Lacked empirical and structural depth in this specific section.",
+                        "recommended_insertion": ex_ins.get("recommended_insertion") or "Substantiate with domain-specific case evidence directly answering the question directive.",
                         "marks_gain": "+0.5 to +1.0 Mark"
                     }
                 ]
@@ -6908,18 +6944,34 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         if ca_va.get("current_examples"):
             ca_va["current_example_insertion"] = dict(ca_va["current_examples"][0])
 
-    # Sanitize High-Yield Data & Reports from generic leak and irrelevant placeholders
+    # Sanitize High-Yield Data & Reports: fix acronym typos, structure flow integration, and hide when irrelevant
     raw_reports = ca_va.get("high_yield_data_reports")
     cleaned_reps = []
+    is_pure_physical_geo = bool(re.search(r'\b(?:volcan|caldera|magma|lava|pyroclastic|geomorph|earthquake|plate tectonic|glacier|karst|tsunami|scenic beauty)\b', q_low))
+    is_geo_resources = bool(re.search(r'\b(?:oil|hydrocarbon|petroleum|offshore|off-shore|onshore|on-shore|continental shelf|mineral|resource distribution)\b', q_low))
+
     if isinstance(raw_reports, list):
         for r in raw_reports:
             r_str = str(r).strip()
+            # Fix DGFCC typo to DGH
+            r_str = re.sub(r'\bDGFCC\b', 'DGH (Directorate General of Hydrocarbons)', r_str)
             # Filter out generic placeholder boilerplate strings
             if re.search(r'official union ministry|statutory institutional benchmarks|national expert committee recommendations|empirical survey datasets|law commission recommendations and supreme court constitution bench|2nd arc ethics in governance guidelines on public trust', r_str, re.I):
                 continue
             if is_eci_q and re.search(r'multidimensional poverty|infrastructure index', r_str, re.I):
                 continue
+            # If purely physical geography question, do NOT force reports
+            if is_pure_physical_geo and not is_geo_resources:
+                continue
             if r_str:
+                # Ensure report specifies flow integration rather than a naked factual dump
+                if "—" not in r_str and " - " not in r_str:
+                    if "UNCLOS" in r_str:
+                        r_str = "UNCLOS Article 76 (Continental Shelf Delimitation) — Part A: Offshore Reserves Spatial Boundary — Anchor the spatial boundary of offshore exploration in UNCLOS Article 76, which accords sovereign exploration rights over continental shelf seabed resources up to 200–350 nautical miles."
+                    elif "DGH" in r_str:
+                        r_str = "DGH (Directorate General of Hydrocarbons) Basin Categorisation — Part A: Proven Offshore Hydrocarbon Plays — Substantiate offshore potential by referencing DGH Category-I proven commercial basins (e.g. Mumbai Offshore, KG Basin) vs deepwater frontier exploration."
+                    else:
+                        r_str = f"{r_str} — Body Analytical Flow — Anchor this benchmark directly into your core argument to substantiate empirical authority."
                 cleaned_reps.append(r_str)
 
     if not cleaned_reps:
@@ -6969,8 +7021,14 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                 "Economic Survey 2023-24 & Union Budget capital expenditure benchmarks.",
                 "FRBM Review Committee (N.K. Singh) debt-to-GDP targets and counter-cyclical fiscal glide path."
             ]
-        elif subj_meta["discipline"] in ("HISTORY_CULTURE", "PHILOSOPHY_ETHICS", "PHYSICAL_GEOGRAPHY"):
-            cleaned_reps = []
+        elif subj_meta["discipline"] in ("HISTORY_CULTURE", "PHILOSOPHY_ETHICS", "PHYSICAL_GEOGRAPHY", "Economic & Physical Geography", "Economic & Human Geography"):
+            if is_geo_resources:
+                cleaned_reps = [
+                    "UNCLOS Article 76 (Continental Shelf Delimitation) — Part A: Offshore Legal Boundary — Anchor the spatial extent of offshore exploration in UNCLOS Article 76, which accords sovereign exploration rights over continental shelf seabed resources up to 200–350 nautical miles.",
+                    "DGH (Directorate General of Hydrocarbons) Basin Categorisation — Part A: Proven Hydrocarbon Plays — Substantiate offshore potential by referencing Category-I commercial basins (e.g. Mumbai Offshore, KG Basin) vs deepwater frontier plays."
+                ]
+            else:
+                cleaned_reps = []
         else:
             cleaned_reps = []
 
@@ -8111,10 +8169,16 @@ def _normalize_batch1_examiner_mastery(data: Dict[str, Any], max_marks: int = 10
 
         # Check if existing steps are already demand-based and mathematically sound
         conc_ceiling = 1.5 if max_marks == 10 else (2.0 if max_marks == 15 else (2.5 if max_marks == 20 else 2.5))
-        intro_ceiling = 1.5 if max_marks == 10 else (2.0 if max_marks == 15 else (2.5 if max_marks == 20 else 2.5))
-        last_step_mx = float(existing_steps[-1].get("max", 0.0) or 0.0) if (existing_steps and isinstance(existing_steps[-1], dict)) else 0.0
-        first_step_mx = float(existing_steps[0].get("max", 0.0) or 0.0) if (existing_steps and isinstance(existing_steps[0], dict)) else 0.0
-        conc_valid = (last_step_mx <= conc_ceiling + 0.05)
+        intro_ceiling = 1.5 if max_marks == 10 else (2.5 if max_marks == 15 else (3.0 if max_marks == 20 else 3.0))
+        last_step = existing_steps[-1] if (existing_steps and isinstance(existing_steps[-1], dict)) else {}
+        first_step = existing_steps[0] if (existing_steps and isinstance(existing_steps[0], dict)) else {}
+        last_step_mx = float(last_step.get("max", 0.0) or 0.0)
+        first_step_mx = float(first_step.get("max", 0.0) or 0.0)
+        
+        last_lbl = str(last_step.get("step_label") or last_step.get("part_name") or "").lower()
+        is_pure_conclusion = any(k in last_lbl for k in ["conclusion", "synthesis", "निष्कर्ष", "closing"]) and not any(wf in last_lbl for wf in ["way forward", "solutions", "reforms", "measures", "आगे की राह", "सुझाव"])
+        
+        conc_valid = (not is_pure_conclusion) or (last_step_mx <= conc_ceiling + 0.05)
         intro_valid = (first_step_mx <= intro_ceiling + 0.05)
 
         if abs(sum_all_max - max_marks) < 0.25 and abs(sum_all_aw - overall_score) < 0.25 and conc_valid and intro_valid:
