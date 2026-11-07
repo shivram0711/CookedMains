@@ -10140,13 +10140,28 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
         )
 
         if is_intro:
-            # Strictly ONE feedback point in introduction section to prevent confusion (no stacking or double bullets)
+            # Strictly ONE feedback point in introduction section: pair credit with exact flaw if marks were deducted
             clean_intro_entry = f"**{clean_title}**: {verdict}" if not verdict.startswith("**") else verdict
+            intro_sc_eval = float(data.get("rubric_scores", {}).get("intro_score", 1.0) or 1.0)
+            intro_mx_eval = float(data.get("rubric_scores", {}).get("intro_max", 1.5) or 1.5)
+            if intro_sc_eval < intro_mx_eval - 0.1 and not re.search(r'(?i)(upgrade|gap|miss|lacks|without|however|scope|सुधार|अभाव)', clean_intro_entry):
+                miss_list = [str(m).strip() for m in (intro_audit.get("missing_elements") or []) if m]
+                if miss_list:
+                    clean_intro_entry += f" {'प्रस्तावना में पूरे अंक हेतु, आरंभ में ही ' + ' तथा '.join(miss_list[:2]) + ' को स्पष्ट रूप से परिभाषित करें।' if is_hindi else f'To score full {intro_mx_eval:.1f}M, explicitly define ' + ' and '.join(miss_list[:2]) + ' in your opening lines.'}"
+                elif intro_audit.get("current_critique") and re.search(r'(?i)(upgrade|gap|miss|lacks|without|however|scope)', str(intro_audit.get("current_critique"))):
+                    crit_sub = str(intro_audit.get("current_critique")).split("<br>")[0].strip()
+                    if len(crit_sub) > 10 and not clean_intro_entry.endswith(crit_sub):
+                        clean_intro_entry += f" ({crit_sub})"
             intro_crit = clean_intro_entry
         elif is_conc:
-            # Image 1 Fix: Keep only ONE feedback point in conclusion section which follows precise and relevant point for evaluation
-            # Do NOT stack multiple bullet points or generic closing praise with card feedback.
+            # Keep only ONE cohesive feedback point in conclusion section: pair credit with exact synthesis flaw if marks were deducted
             clean_conc_entry = f"**{clean_title}**: {verdict}" if not verdict.startswith("**") else verdict
+            conc_sc_eval = float(data.get("rubric_scores", {}).get("conclusion_score", 1.5) or 1.5)
+            conc_mx_eval = float(data.get("rubric_scores", {}).get("conclusion_max", 2.0) or 2.0)
+            if conc_sc_eval < conc_mx_eval - 0.1 and not re.search(r'(?i)(upgrade|gap|miss|lacks|without|however|scope|synthesis|सुधार|अभाव)', clean_conc_entry):
+                failure_m = str(conclusion_audit.get("failure_mode") or "").strip()
+                if failure_m and "none" not in failure_m.lower() and "well" not in failure_m.lower():
+                    clean_conc_entry += f" {'निष्कर्ष में पूरे अंक हेतु: ' + failure_m + ' से बचें तथा मुख्य प्रश्न मांग का ठोस नीतिगत/अवधारणात्मक संश्लेषण दें।' if is_hindi else f'To score full {conc_mx_eval:.1f}M: avoid ' + failure_m.lower() + ' and synthesize the core trade-off answering the question directive.'}"
             conc_crit = clean_conc_entry
         else:
             page_tag = f"पृष्ठ {p_num}" if is_hindi else f"Page {p_num}"

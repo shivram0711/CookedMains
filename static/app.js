@@ -11781,7 +11781,8 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
     }
   }
 
-  body.critical_gaps = formattedGaps.slice(0, 4);
+  // Dynamic mistake tracking: allow up to 5 genuine mistake points across all pages without artificial suppression
+  body.critical_gaps = formattedGaps.slice(0, 5);
 
   // 4. Clean missing dimensions: strictly filter out generic catalogue boilerplate
   if (Array.isArray(body.missing_dimensions)) {
