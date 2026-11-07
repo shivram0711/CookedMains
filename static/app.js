@@ -11490,7 +11490,11 @@ window.classifyQuestionDiscipline = function(questionText, paper) {
   const isPhilosophyEthics = (p.includes("GS4") || /\b(?:socrates|plato|aristotle|kant|categorical imperative|rawls|utilitarian|deontolog|virtue ethics|moral philosophy|ethical dilemma|conscience|probity|emotional intelligence|attitude|aptitude|quotations?|moral thinker|nolan|integrity|compassion|code of ethics|code of conduct|civil service values?)\b/i.test(q));
   if (isPhilosophyEthics) return "PHILOSOPHY_ETHICS";
 
-  const isPhysicalGeo = (p.includes("GS1") && /\b(?:volcan|caldera|geomorph|earthquake|plate|rock|mountain|lake|river|oil|shelf|basin|hydrocarbon)\b/i.test(q)) || /\b(?:volcan\w*|caldera\w*|geomorph\w*|earthquake\w*|plate\s+tectonic\w*|tsunami\w*|glacier\w*|karst\w*|monsoon\w*|ocean\s+current\w*|salinity|air\s+mass\w*|frontogenesis|jet\s+stream\w*|coral\s+reef\w*|continental\s+drift|seafloor\s+spreading|temperature|insolation|heat\s+budget|atmosphere|isotherm\w*|pressure\s+belt\w*|planetary\s+winds?|land-sea|continentality|lapse\s+rate|coriolis|albedo|drainage|river\s+system\w*|topography|rainfall|precipitation|inversion\s+of\s+temp\w*|scenic\s+beauty|landform\w*|magma\w*|lava\w*|oil\s+reserves?|off-?shore|on-?shore|hydrocarbons?|continental\s+shelf|sedimentary\s+basin\w*|geographical\s+explanation)\b/i.test(q);
+  // Physical Geography: only triggers on GS1 physical/geomorphic topics, never on GS3 energy security or GS2 polity
+  const isPhysicalGeo = (p.includes("GS1") || !p || p === "DEFAULT") && (
+    /\b(?:volcan\w*|caldera\w*|geomorph\w*|earthquake\w*|plate\s+tectonic\w*|tsunami\w*|glacier\w*|karst\w*|monsoon\w*|ocean\s+current\w*|salinity|air\s+mass\w*|frontogenesis|jet\s+stream\w*|coral\s+reef\w*|continental\s+drift|seafloor\s+spreading|temperature|insolation|heat\s+budget|atmosphere|isotherm\w*|pressure\s+belt\w*|planetary\s+winds?|land-sea|continentality|lapse\s+rate|coriolis|albedo|drainage|river\s+system\w*|topography|rainfall|precipitation|inversion\s+of\s+temp\w*|scenic\s+beauty|landform\w*|magma\w*|lava\w*)\b/i.test(q) ||
+    (/\b(?:off-?shore|on-?shore|continental\s+shelf|sedimentary\s+basin\w*)\b/i.test(q) && /\b(?:geograph\w*|distribution|formation|reserves?)\b/i.test(q) && !/\b(?:strategic\s+petroleum|spr|energy\s+security)\b/i.test(q))
+  );
   if (isPhysicalGeo) return "PHYSICAL_GEOGRAPHY";
 
   return "POLICY_GOVERNANCE_ECONOMY";

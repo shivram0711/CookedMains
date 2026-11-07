@@ -826,9 +826,13 @@ def infer_paper_from_question_content(question_text: str) -> Optional[str]:
         "code of conduct", "code of ethics", "talisman", "categorical imperative",
         "nishkam karma", "ethical dilemma", "ethical dilemmas", "dilemma", "dilemmas", "crisis of conscience", "case study",
         "district collector", "superintendent", "civil service values", "whistleblower",
-        "moral muteness", "ethical fading", "summum bonum", "eudaimonia", "human interface"
+        "moral muteness", "ethical fading", "summum bonum", "eudaimonia", "human interface",
+        "you are a district", "as a district magistrate", "as district magistrate", "how would you resolve this conflict",
+        "ethical issues involved", "options available to you", "course of action"
     ]
-    gs4_score = sum(2 if has_phrase(text, w) else 0 for w in gs4_signals)
+    gs4_score = sum(3 if has_phrase(text, w) else 0 for w in gs4_signals)
+    if any(k in text for k in ["dilemma", "ethical dilemma", "case study", "you are a district", "as district magistrate", "how would you resolve"]):
+        gs4_score += 6
     
     # 2. GS2 Polity, Governance, Constitution, Social Justice, IR signals
     gs2_signals = [
@@ -844,7 +848,8 @@ def infer_paper_from_question_content(question_text: str) -> Optional[str]:
         "representation of the people act", "representation of the people", "representation of people act", "right to contest", "criminalisation of politics", "criminalization of politics",
         "convicted criminals", "convicted politicians", "lifetime ban", "electoral reforms", "electoral reform", "electoral bonds", "political funding", "model code of conduct", "lily thomas", "jan chawkidar", "association for democratic reforms", "adr",
         "social justice", "vulnerable sections", "welfare schemes", "poverty alleviation", "social empowerment",
-        "bilateral", "foreign policy", "international relations", "unsc", "quad", "brics", "sco", "indo-pacific"
+        "bilateral", "foreign policy", "international relations", "unsc", "quad", "brics", "sco", "indo-pacific",
+        "unclos", "south china sea", "freedom of navigation", "maritime territorial", "maritime disputes", "maritime boundary"
     ]
     gs2_score = sum(2 if has_phrase(text, w) else 0 for w in gs2_signals)
 
@@ -854,6 +859,7 @@ def infer_paper_from_question_content(question_text: str) -> Optional[str]:
         "agriculture", "msp", "crop diversification", "irrigation", "pmksy", "fertilizer", "apmc", "food security",
         "artificial intelligence", "semiconductor", "quantum computing", "space tech", "isro", "nanotechnology",
         "climate change", "cop28", "cop29", "renewable energy", "solar mission", "green hydrogen", "biodiversity",
+        "strategic petroleum reserves", "petroleum reserves", "energy security", "spr",
         "disaster management", "ndma", "sendai framework", "urban flood", "landslide",
         "internal security", "border management", "cyber warfare", "money laundering", "pmla", "uapa", "naxalism", "lwe", "cross-border terrorism", "asymmetric warfare"
     ]
@@ -873,7 +879,7 @@ def infer_paper_from_question_content(question_text: str) -> Optional[str]:
         "scenic beauty", "geomorphic", "landform", "landforms", "magma", "lava", "crater", "pyroclastic", "geomorph",
         "geographical", "geography", "oil reserves", "off-shore", "offshore", "on-shore", "onshore", "hydrocarbon",
         "continental shelf", "mineral distribution", "resource distribution", "sedimentary basin", "deltaic",
-        "spatial distribution", "oceanic", "marine resources", "petroleum", "energy resources"
+        "spatial distribution", "oceanic", "marine resources", "offshore petroleum", "petroleum occurrence"
     ]
     gs1_score = sum(2 if has_phrase(text, w) else 0 for w in gs1_signals)
     # Unequivocal History boost
@@ -1157,21 +1163,21 @@ def detect_precise_subject(question_text: str, current_paper: str = "GS2") -> Di
             "full_display": "GS-1 (Physical Geography & Geomorphology)",
             "syllabus_subheading": "Salient Features of World's Physical Geography & Geophysical Phenomena"
         }
-    elif has_any_phrase(text, ["urban", "urbanization", "heat island", "critical minerals", "mineral", "resource distribution", "migration", "spatial", "oil reserves", "off-shore", "offshore", "on-shore", "onshore", "hydrocarbon", "continental shelf", "sedimentary basin", "petroleum", "energy resources", "geographical"]):
-        return {
-            "paper_code": "GS1",
-            "paper_label": "General Studies Paper - I",
-            "discipline": "Economic & Physical Geography",
-            "full_display": "GS-1 (Economic & Physical Geography: Resource Distribution)",
-            "syllabus_subheading": "Distribution of Key Natural Resources Across World & Indian Sub-Continent"
-        }
-    elif has_any_phrase(text, ["caste", "patriarchy", "women", "gender", "sanskritization", "social structure", "secularism", "communalism", "regionalism", "diversity"]):
+    elif has_any_phrase(text, ["caste", "patriarchy", "women", "gender", "sanskritization", "social structure", "secularism", "communalism", "regionalism", "diversity", "social integration", "national integration"]):
         return {
             "paper_code": "GS1",
             "paper_label": "General Studies Paper - I",
             "discipline": "Indian Society & Social Issues",
             "full_display": "GS-1 (Indian Society & Social Issues)",
             "syllabus_subheading": "Salient Features of Indian Society, Diversity, Social Empowerment & Communalism"
+        }
+    elif has_any_phrase(text, ["urban", "urbanization", "heat island", "critical minerals", "mineral", "resource distribution", "migration", "spatial", "oil reserves", "off-shore", "offshore", "on-shore", "onshore", "hydrocarbon", "continental shelf", "sedimentary basin"]):
+        return {
+            "paper_code": "GS1",
+            "paper_label": "General Studies Paper - I",
+            "discipline": "Economic & Physical Geography",
+            "full_display": "GS-1 (Economic & Physical Geography: Resource Distribution)",
+            "syllabus_subheading": "Distribution of Key Natural Resources Across World & Indian Sub-Continent"
         }
     else:
         return {
@@ -6918,12 +6924,18 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                         "marks_gain": "+0.5 to +1.0 Mark"
                     }
                 ]
-            elif any(k in q_low for k in ["oil", "hydrocarbon", "petroleum", "offshore", "off-shore", "onshore", "on-shore", "shelf", "basin", "geograph"]):
+            elif (any(k in q_low for k in ["oil reserves", "off-shore", "offshore", "on-shore", "onshore", "hydrocarbon reserves"]) or (any(k in q_low for k in ["oil", "petroleum", "hydrocarbon"]) and any(k in q_low for k in ["shelf", "basin", "geomorphic", "geographical"]))):
+                # Dynamically trace candidate's actual written sub-heading from step marking or booklet
+                cand_steps = [s for s in (data.get("sub_part_step_marking") or []) if isinstance(s, dict) and not any(k in str(s.get("step_label", "")).lower() for k in ["intro", "context", "conclusion"])]
+                dyn_heading = str(cand_steps[0].get("step_label", "")).strip() if cand_steps else ""
+                clean_dyn = re.sub(r'^(?:\d+[\.\)]\s*|part\s*[a-z0-9]\s*[-—:]\s*|मुख्य भाग\s*[-—:]\s*)+', '', dyn_heading, flags=re.I).strip()
+                target_str = f"Page 2 • Under your '{clean_dyn}' section" if clean_dyn else (ex_ins.get("paragraph_target") or "Page 2 • Body Section")
+
                 ca_va["current_examples"] = [
                     {
-                        "example_title": "Deepwater Structural Trapping & Salt Diapirism (Campos & KG-D6)",
-                        "paragraph_target": "Page 2 • Under your 'Deltaic Margins' section",
-                        "current_weakness": "Listed river deltas descriptively without articulating the geomorphic rollover anticlinal fault mechanism that traps hydrocarbons.",
+                        "example_title": "Deepwater Structural Trapping & Hydrocarbon Seals",
+                        "paragraph_target": target_str,
+                        "current_weakness": f"Under this section, points are descriptive without articulating the geomorphic trapping mechanism (anticlinal rollover / fault-seal) that preserves hydrocarbons.",
                         "recommended_insertion": "Substantiate with geomorphic trapping mechanisms: in passive continental margins (e.g. Krishna-Godavari deepwater, Brazil's Campos Basin), rapid sedimentation triggers **growth-fault traps and salt diapirism**, sealing high-yield sub-salt hydrocarbon plays.",
                         "marks_gain": "+0.5 to +1.0 Mark"
                     }
@@ -6967,9 +6979,14 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                 # Ensure report specifies flow integration rather than a naked factual dump
                 if "—" not in r_str and " - " not in r_str:
                     if "UNCLOS" in r_str:
-                        r_str = "UNCLOS Article 76 (Continental Shelf Delimitation) — Part A: Offshore Reserves Spatial Boundary — Anchor the spatial boundary of offshore exploration in UNCLOS Article 76, which accords sovereign exploration rights over continental shelf seabed resources up to 200–350 nautical miles."
-                    elif "DGH" in r_str:
-                        r_str = "DGH (Directorate General of Hydrocarbons) Basin Categorisation — Part A: Proven Offshore Hydrocarbon Plays — Substantiate offshore potential by referencing DGH Category-I proven commercial basins (e.g. Mumbai Offshore, KG Basin) vs deepwater frontier exploration."
+                        if any(k in q_low for k in ["oil", "hydrocarbon", "petroleum", "offshore", "off-shore", "shelf"]):
+                            r_str = "UNCLOS Article 76 (Continental Shelf Delimitation) — Part A: Offshore Reserves Spatial Boundary — Anchor the spatial boundary of offshore exploration in UNCLOS Article 76, which accords sovereign exploration rights over continental shelf seabed resources up to 200–350 nautical miles."
+                        elif any(k in q_low for k in ["south china sea", "maritime", "freedom of navigation", "eez", "indo-pacific"]):
+                            r_str = "UNCLOS 1982 (Articles 56 & 87) — Freedom of Navigation & EEZ Rights — Substantiate rule-based order in international waters and legitimate sovereign rights in the Exclusive Economic Zone."
+                        else:
+                            r_str = f"{r_str} — Maritime Governance Flow — Anchor this maritime legal convention directly into your argument."
+                    elif "DGH" in r_str and any(k in q_low for k in ["oil", "hydrocarbon", "petroleum", "gas"]):
+                        r_str = "DGH (Directorate General of Hydrocarbons) Basin Categorisation — Proven Hydrocarbon Plays — Substantiate resource potential by referencing DGH Category-I proven commercial basins vs frontier exploration blocks."
                     else:
                         r_str = f"{r_str} — Body Analytical Flow — Anchor this benchmark directly into your core argument to substantiate empirical authority."
                 cleaned_reps.append(r_str)
