@@ -11304,13 +11304,7 @@ async def evaluate_with_gemini(
 # PERMANENT SELF-HEALING GEMINI MODEL ROUTER (Prevents "Model Inactive" Forever)
 # ==============================================================================
 _LAST_WORKING_GEMINI_MODEL: Optional[str] = None
-_INACTIVE_GEMINI_MODELS: set = {
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-lite",
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-    "gemini-flash-latest",
-}
+_INACTIVE_GEMINI_MODELS: set = set()
 _DISCOVERED_GEMINI_MODELS_CACHE: List[str] = []
 _DISCOVERED_GEMINI_MODELS_TS: float = 0.0
 _BUSY_MODEL_COOLDOWNS: Dict[str, float] = {}
@@ -11392,15 +11386,14 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
             else:
                 ready_discovered.append(dm)
 
-    # 3. Top production models priority (Verified live Google Gemini models with primary + instant rotation fallbacks)
+    # 3. Top production models priority (Real Google Gemini official models: ultra-fast, robust multimodal vision)
     top_models_priority = [
-        "gemini-3.5-flash-lite",        # Primary fast active model (verified ~1.0s)
-        "gemini-flash-lite-latest",     # Instant active rotation fallback (verified ~0.8s)
-        "gemini-3.6-flash",             # High-reliability active fallback (verified ~1.5s)
-        "gemini-3.5-flash",             # Active fallback
-        "gemini-omni-flash-preview",    # Fast preview fallback
-        "gemini-3.7-flash",             # High-capacity active fallback
-        "gemini-3.8-flash",             # High-capacity active fallback
+        "gemini-2.5-flash",             # Champion 2.5 Flash: ultra-low latency, built-in reasoning
+        "gemini-2.0-flash",             # High-reliability 2.0 Flash production workhorse
+        "gemini-2.0-flash-lite",        # High-throughput low-latency fallback
+        "gemini-1.5-flash",             # Rock-solid battle-tested LTS production model
+        "gemini-2.5-pro",               # Deep reasoning advanced rubric grading fallback
+        "gemini-1.5-pro",               # Comprehensive multi-page rubric fallback
     ]
     for tm in reversed(top_models_priority):
         if tm in ready_discovered:
@@ -11411,13 +11404,12 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
     # 4. Static priority list acts as guaranteed fallback
     static_priority = [
-        "gemini-3.5-flash-lite",
-        "gemini-flash-lite-latest",
-        "gemini-3.6-flash",
-        "gemini-3.5-flash",
-        "gemini-omni-flash-preview",
-        "gemini-3.7-flash",
-        "gemini-3.8-flash",
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-1.5-flash",
+        "gemini-2.5-pro",
+        "gemini-1.5-pro",
     ]
     for m in static_priority:
         if m not in _INACTIVE_GEMINI_MODELS and m not in ordered:

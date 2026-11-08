@@ -220,7 +220,7 @@ async function loadAdminStats(forceSync = false) {
     setTxt("statAspirants", stats.total_aspirants ?? 0);
     setTxt("statEvalsToday", stats.evaluations_today_count ?? 0);
     setTxt("statEvaluations", stats.total_evaluations ?? 0);
-    setTxt("statGeminiModel", stats.active_gemini_model || "gemini-3.6-flash");
+    setTxt("statGeminiModel", stats.active_gemini_model || "gemini-2.5-flash");
     setTxt("statRating", stats.average_rating ?? "5.0");
     setTxt("statFeedbackCount", `${stats.total_feedbacks ?? 0} feedbacks received`);
 
@@ -239,7 +239,7 @@ async function loadAdminStats(forceSync = false) {
       setTxt("headerServerTime", `Server Time: ${stats.server_time_ist} • Live Telemetry Active`);
     }
 
-    setTxt("settingsActiveModel", stats.active_gemini_model || "gemini-3.6-flash");
+    setTxt("settingsActiveModel", stats.active_gemini_model || "gemini-2.5-flash");
     setTxt("settingsSupabaseStatus", stats.supabase_connected ? "Connected (Cloud Sync Active)" : "Local SQLite Vault Active");
 
     // Update Tab 6 Database Records Diagnostics

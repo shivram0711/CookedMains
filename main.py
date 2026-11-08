@@ -360,7 +360,7 @@ async def get_model_health(all_keys: int = 0, auth: bool = Depends(verify_admin_
             try:
                 c = create_fast_gemini_client(k, timeout_ms=15000)
                 resp = c.models.generate_content(
-                    model="gemini-3.5-flash-lite",
+                    model="gemini-2.5-flash",
                     contents="Ping. Respond with one word: OK"
                 )
                 lat = round(time.time() - t0, 2)
@@ -2611,14 +2611,13 @@ async def evaluate_answer(
 
                         active_models = get_active_gemini_models(client)
                         # Retain full candidate model set (top 6) to preserve output quality across GS English, GS Hindi, and Essay evaluations
-                        models_to_try = active_models[:7] if active_models else [
-                            "gemini-3.5-flash-lite",
-                            "gemini-flash-lite-latest",
-                            "gemini-3.6-flash",
-                            "gemini-3.5-flash",
-                            "gemini-3.8-flash",
-                            "gemini-omni-flash-preview",
-                            "gemini-3.7-flash",
+                        models_to_try = active_models[:6] if active_models else [
+                            "gemini-2.5-flash",
+                            "gemini-2.0-flash",
+                            "gemini-2.0-flash-lite",
+                            "gemini-1.5-flash",
+                            "gemini-2.5-pro",
+                            "gemini-1.5-pro",
                         ]
 
                         for model_name in models_to_try:

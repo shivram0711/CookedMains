@@ -4606,7 +4606,7 @@ def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
             })
     online_users.sort(key=lambda x: x["seconds_ago"])
 
-    active_model = "gemini-3.6-flash"
+    active_model = "gemini-2.5-flash"
     blacklisted_models = []
     try:
         import evaluator_engine as ee
