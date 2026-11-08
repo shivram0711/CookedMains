@@ -1,4 +1,4 @@
-﻿import os
+import os
 import json
 import re
 import time
@@ -11304,7 +11304,17 @@ async def evaluate_with_gemini(
 # PERMANENT SELF-HEALING GEMINI MODEL ROUTER (Prevents "Model Inactive" Forever)
 # ==============================================================================
 _LAST_WORKING_GEMINI_MODEL: Optional[str] = None
-_INACTIVE_GEMINI_MODELS: set = set()
+_INACTIVE_GEMINI_MODELS: set = {
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-pro",
+    "gemini-1.5-pro-latest",
+    "gemini-2.5-pro",
+    "gemini-2.5-flash-lite",
+}
 _DISCOVERED_GEMINI_MODELS_CACHE: List[str] = []
 _DISCOVERED_GEMINI_MODELS_TS: float = 0.0
 _BUSY_MODEL_COOLDOWNS: Dict[str, float] = {}
@@ -11388,12 +11398,12 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
     # 3. Top production models priority (Real Google Gemini official models: ultra-fast, robust multimodal vision)
     top_models_priority = [
-        "gemini-2.5-flash",             # Champion 2.5 Flash: ultra-low latency, built-in reasoning
-        "gemini-2.0-flash",             # High-reliability 2.0 Flash production workhorse
-        "gemini-2.0-flash-lite",        # High-throughput low-latency fallback
-        "gemini-1.5-flash",             # Rock-solid battle-tested LTS production model
-        "gemini-2.5-pro",               # Deep reasoning advanced rubric grading fallback
-        "gemini-1.5-pro",               # Comprehensive multi-page rubric fallback
+        "gemini-3.5-flash-lite",        # Ultra-fast, responsive multimodal flash-lite
+        "gemini-3.6-flash",             # Official Google recommended replacement for 2.5/2.0
+        "gemini-flash-lite-latest",     # Stable rolling flash-lite alias
+        "gemini-3.5-flash",             # High-capacity multimodal production model
+        "gemini-omni-flash-preview",    # Fast multimodal vision preview
+        "gemini-3.1-flash-lite",        # Low-latency flash-lite tier
     ]
     for tm in reversed(top_models_priority):
         if tm in ready_discovered:
@@ -11404,12 +11414,12 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
 
     # 4. Static priority list acts as guaranteed fallback
     static_priority = [
-        "gemini-2.5-flash",
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-        "gemini-1.5-flash",
-        "gemini-2.5-pro",
-        "gemini-1.5-pro",
+        "gemini-3.5-flash-lite",
+        "gemini-3.6-flash",
+        "gemini-flash-lite-latest",
+        "gemini-3.5-flash",
+        "gemini-omni-flash-preview",
+        "gemini-3.1-flash-lite",
     ]
     for m in static_priority:
         if m not in _INACTIVE_GEMINI_MODELS and m not in ordered:
@@ -11426,12 +11436,12 @@ def get_active_gemini_models(client: Any = None, force_refresh: bool = False) ->
     return ordered
 
 
-def create_fast_gemini_client(api_key: str, timeout_ms: int = 65000) -> Any:
-    """Creates a genai.Client with a 65-second timeout so full vision evaluations across multiple handwritten pages complete reliably without premature cutoff."""
-    try:
-        return genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=timeout_ms))
-    except Exception:
-        return genai.Client(api_key=api_key)
+def create_fast_gemini_client(api_key: str, timeout_ms: Any = None) -> Any:
+    """Creates a standard genai.Client without deadline conflicts so evaluations succeed reliably across all official Google endpoints."""
+    return genai.Client(api_key=api_key)
+
+
+
 
 
 # ==============================================================================

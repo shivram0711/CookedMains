@@ -369,7 +369,7 @@ async def get_model_health(all_keys: int = 0, auth: bool = Depends(verify_admin_
         # Test candidate models against Key 1 rapidly (timeout 4s each)
         candidate_models = [m for m in discovered_list if not m.startswith("Discovery error")] or [
             "gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.1-flash-lite",
-            "gemini-2.5-flash-lite", "gemini-2.5-pro", "gemini-omni-flash-preview"
+            "gemini-flash-lite-latest", "gemini-3.5-flash", "gemini-omni-flash-preview"
         ]
 
         tested_models_report = []
@@ -2653,12 +2653,12 @@ async def evaluate_answer(
                         active_models = get_active_gemini_models(client)
                         # Retain full candidate model set (top 6) to preserve output quality across GS English, GS Hindi, and Essay evaluations
                         models_to_try = active_models[:6] if active_models else [
-                            "gemini-2.5-flash",
-                            "gemini-2.0-flash",
-                            "gemini-2.0-flash-lite",
-                            "gemini-1.5-flash",
-                            "gemini-2.5-pro",
-                            "gemini-1.5-pro",
+                            "gemini-3.5-flash-lite",
+                            "gemini-3.6-flash",
+                            "gemini-flash-lite-latest",
+                            "gemini-3.5-flash",
+                            "gemini-omni-flash-preview",
+                            "gemini-3.1-flash-lite",
                         ]
 
                         for model_name in models_to_try:

@@ -25,7 +25,7 @@ class TestKeyFailoverAndQuotaHandling(unittest.TestCase):
         with self.assertRaises(Exception) as ctx:
             execute_gemini_with_resilience(
                 client=mock_client,
-                model="gemini-2.5-flash",
+                model="gemini-3.5-flash-lite",
                 contents="test",
                 max_retries=3,
                 fast_fail_on_quota=True
@@ -48,7 +48,7 @@ class TestKeyFailoverAndQuotaHandling(unittest.TestCase):
         eval_loop_start = time.time()
 
         models_to_try = [
-            "gemini-2.5-flash",
+            "gemini-3.5-flash-lite",
             "gemini-flash-lite-latest",
             "gemini-3.6-flash",
             "gemini-3.5-flash",
@@ -117,7 +117,7 @@ class TestKeyFailoverAndQuotaHandling(unittest.TestCase):
 
         # Verification Assertions:
         # 1. Key 1 was tried with the first model
-        self.assertIn(("key_project_A_saturated", "gemini-2.5-flash"), key_attempt_log)
+        self.assertIn(("key_project_A_saturated", "gemini-3.5-flash-lite"), key_attempt_log)
 
         # 2. Key 1 was NOT retried across the other 5 models (loop broke out immediately on 429)
         key_1_attempts = [m for k, m in key_attempt_log if k == "key_project_A_saturated"]
