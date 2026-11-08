@@ -345,7 +345,7 @@ async def get_model_health(all_keys: int = 0, auth: bool = Depends(verify_admin_
             "models_priority": get_active_gemini_models()
         }
 
-    from evaluator_engine import create_fast_gemini_client, get_active_gemini_models, record_gemini_model_outcome
+    from evaluator_engine import create_fast_gemini_client, get_active_gemini_models, record_gemini_model_outcome, _INACTIVE_GEMINI_MODELS
     test_models = get_active_gemini_models()[:3]
     test_results = []
     overall_working = False
@@ -360,17 +360,17 @@ async def get_model_health(all_keys: int = 0, auth: bool = Depends(verify_admin_
             actions = getattr(m_item, "supported_actions", None) or []
             if "generateContent" in actions:
                 m_str = str(getattr(m_item, "name", "") or "").replace("models/", "").strip()
-                if m_str and not any(bad in m_str for bad in ["embedding", "imagen", "audio", "tts"]):
+                if m_str and m_str not in _INACTIVE_GEMINI_MODELS and not any(bad in m_str for bad in ["embedding", "imagen", "audio", "tts", "robotics", "banana"]):
                     discovered_list.append(m_str)
     except Exception as d_err:
         discovered_list = [f"Discovery error: {d_err}"]
 
     if all_keys == 1:
         # Test candidate models against Key 1 rapidly (timeout 4s each)
-        candidate_models = [m for m in discovered_list if not m.startswith("Discovery error")] or [
-            "gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.1-flash-lite",
-            "gemini-flash-lite-latest", "gemini-3.5-flash", "gemini-omni-flash-preview"
-        ]
+        top_priorities = ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-flash-lite-latest", "gemini-3.5-flash", "gemini-omni-flash-preview", "gemini-3.1-flash-lite"]
+        filtered_discovered = [m for m in discovered_list if not m.startswith("Discovery error") and m not in _INACTIVE_GEMINI_MODELS]
+        candidate_models = [m for m in top_priorities if m in filtered_discovered] + [m for m in filtered_discovered if m not in top_priorities] or top_priorities
+
 
         tested_models_report = []
         champion_working_model = None
