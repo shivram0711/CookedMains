@@ -366,41 +366,45 @@ async def get_model_health(all_keys: int = 0, auth: bool = Depends(verify_admin_
         discovered_list = [f"Discovery error: {d_err}"]
 
     if all_keys == 1:
-        key_diagnostics = []
-        # Test candidate models in order: try discovered list first, then common models
-        candidate_test_models = [m for m in discovered_list if not m.startswith("Discovery error")] or [
-            "gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash", "gemini-flash-latest"
+        # Test every candidate model against Key 1 to find which models are ALIVE
+        models_to_test = [
+            "gemini-3.1-flash-lite",
+            "gemini-3.5-flash-lite",
+            "gemini-3.5-flash",
+            "gemini-3.6-flash",
+            "gemini-2.5-flash-lite",
+            "gemini-2.5-pro",
+            "gemini-omni-flash-preview",
+            "gemma-4-26b-a4b-it",
+            "gemma-4-31b-it"
         ]
-        test_m = candidate_test_models[0] if candidate_test_models else "gemini-2.0-flash"
-
-        for i, k in enumerate(keys):
-            masked = f"{k[:6]}...{k[-4:]}" if len(k) > 10 else f"Key_{i+1}"
-            k_res = {"slot": i + 1, "key": masked, "tested_model": test_m, "status": "unknown"}
-            t0 = time.time()
-            try:
-                c = create_fast_gemini_client(k, timeout_ms=15000)
-                resp = c.models.generate_content(
-                    model=test_m,
-                    contents="Ping. Respond with one word: OK"
-                )
-                lat = round(time.time() - t0, 2)
-                if resp and resp.text:
-                    k_res["status"] = "active"
-                    k_res["latency_seconds"] = lat
-                    k_res["response"] = resp.text.strip()[:20]
-                    overall_working = True
-            except Exception as e:
-                k_res["status"] = "failed"
-                k_res["latency_seconds"] = round(time.time() - t0, 2)
-                k_res["error"] = str(e)[:160]
-            key_diagnostics.append(k_res)
+        
+        matrix = []
+        for m_name in models_to_test:
+            m_res = {"model": m_name, "working_keys": 0, "key_details": []}
+            for i, k in enumerate(keys):
+                masked = f"{k[:6]}...{k[-4:]}" if len(k) > 10 else f"Key_{i+1}"
+                try:
+                    c = create_fast_gemini_client(k, timeout_ms=8000)
+                    resp = c.models.generate_content(
+                        model=m_name,
+                        contents="Ping. Respond with: OK"
+                    )
+                    if resp and resp.text:
+                        m_res["working_keys"] += 1
+                        m_res["key_details"].append({"slot": i + 1, "key": masked, "status": "active", "response": resp.text.strip()[:20]})
+                        overall_working = True
+                except Exception as e:
+                    err_s = str(e)
+                    err_short = "429_quota" if "429" in err_s or "quota" in err_s.lower() else ("404_not_found" if "404" in err_s else err_s[:60])
+                    m_res["key_details"].append({"slot": i + 1, "key": masked, "status": "failed", "error": err_short})
+            matrix.append(m_res)
 
         return {
             "status": "healthy" if overall_working else "issues_detected",
             "active_keys_count": len(keys),
-            "discovered_models": discovered_list[:15],
-            "tested_model": test_m,
-            "keys_report": key_diagnostics
+            "discovered_models": discovered_list,
+            "models_matrix": matrix
         }
 
     for m in test_models:
