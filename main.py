@@ -351,16 +351,36 @@ async def get_model_health(all_keys: int = 0, auth: bool = Depends(verify_admin_
     overall_working = False
     active_champion = None
 
+    # Dynamic model discovery & multi-model diagnostics
+    c_first = None
+    discovered_list = []
+    try:
+        c_first = create_fast_gemini_client(keys[0], timeout_ms=10000)
+        for m_item in c_first.models.list():
+            actions = getattr(m_item, "supported_actions", None) or []
+            if "generateContent" in actions:
+                m_str = str(getattr(m_item, "name", "") or "").replace("models/", "").strip()
+                if m_str and not any(bad in m_str for bad in ["embedding", "imagen", "audio", "tts"]):
+                    discovered_list.append(m_str)
+    except Exception as d_err:
+        discovered_list = [f"Discovery error: {d_err}"]
+
     if all_keys == 1:
         key_diagnostics = []
+        # Test candidate models in order: try discovered list first, then common models
+        candidate_test_models = [m for m in discovered_list if not m.startswith("Discovery error")] or [
+            "gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash", "gemini-flash-latest"
+        ]
+        test_m = candidate_test_models[0] if candidate_test_models else "gemini-2.0-flash"
+
         for i, k in enumerate(keys):
             masked = f"{k[:6]}...{k[-4:]}" if len(k) > 10 else f"Key_{i+1}"
-            k_res = {"slot": i + 1, "key": masked, "status": "unknown"}
+            k_res = {"slot": i + 1, "key": masked, "tested_model": test_m, "status": "unknown"}
             t0 = time.time()
             try:
                 c = create_fast_gemini_client(k, timeout_ms=15000)
                 resp = c.models.generate_content(
-                    model="gemini-2.5-flash",
+                    model=test_m,
                     contents="Ping. Respond with one word: OK"
                 )
                 lat = round(time.time() - t0, 2)
@@ -372,12 +392,14 @@ async def get_model_health(all_keys: int = 0, auth: bool = Depends(verify_admin_
             except Exception as e:
                 k_res["status"] = "failed"
                 k_res["latency_seconds"] = round(time.time() - t0, 2)
-                k_res["error"] = str(e)[:120]
+                k_res["error"] = str(e)[:160]
             key_diagnostics.append(k_res)
 
         return {
             "status": "healthy" if overall_working else "issues_detected",
             "active_keys_count": len(keys),
+            "discovered_models": discovered_list[:15],
+            "tested_model": test_m,
             "keys_report": key_diagnostics
         }
 
