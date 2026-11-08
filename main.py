@@ -366,45 +366,60 @@ async def get_model_health(all_keys: int = 0, auth: bool = Depends(verify_admin_
         discovered_list = [f"Discovery error: {d_err}"]
 
     if all_keys == 1:
-        # Test every candidate model against Key 1 to find which models are ALIVE
-        models_to_test = [
-            "gemini-3.1-flash-lite",
-            "gemini-3.5-flash-lite",
-            "gemini-3.5-flash",
-            "gemini-3.6-flash",
-            "gemini-2.5-flash-lite",
-            "gemini-2.5-pro",
-            "gemini-omni-flash-preview",
-            "gemma-4-26b-a4b-it",
-            "gemma-4-31b-it"
+        # Test candidate models against Key 1 rapidly (timeout 4s each)
+        candidate_models = [m for m in discovered_list if not m.startswith("Discovery error")] or [
+            "gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.1-flash-lite",
+            "gemini-2.5-flash-lite", "gemini-2.5-pro", "gemini-omni-flash-preview"
         ]
-        
-        matrix = []
-        for m_name in models_to_test:
-            m_res = {"model": m_name, "working_keys": 0, "key_details": []}
-            for i, k in enumerate(keys):
-                masked = f"{k[:6]}...{k[-4:]}" if len(k) > 10 else f"Key_{i+1}"
-                try:
-                    c = create_fast_gemini_client(k, timeout_ms=8000)
-                    resp = c.models.generate_content(
-                        model=m_name,
-                        contents="Ping. Respond with: OK"
-                    )
-                    if resp and resp.text:
-                        m_res["working_keys"] += 1
-                        m_res["key_details"].append({"slot": i + 1, "key": masked, "status": "active", "response": resp.text.strip()[:20]})
-                        overall_working = True
-                except Exception as e:
-                    err_s = str(e)
-                    err_short = "429_quota" if "429" in err_s or "quota" in err_s.lower() else ("404_not_found" if "404" in err_s else err_s[:60])
-                    m_res["key_details"].append({"slot": i + 1, "key": masked, "status": "failed", "error": err_short})
-            matrix.append(m_res)
+
+        tested_models_report = []
+        champion_working_model = None
+        c0 = create_fast_gemini_client(keys[0], timeout_ms=5000)
+        for m_cand in candidate_models[:8]:
+            t0 = time.time()
+            try:
+                r_cand = c0.models.generate_content(
+                    model=m_cand,
+                    contents="Ping. Respond with one word: OK"
+                )
+                lat = round(time.time() - t0, 2)
+                if r_cand and r_cand.text:
+                    tested_models_report.append({"model": m_cand, "status": "ACTIVE", "latency": lat, "response": r_cand.text.strip()[:20]})
+                    if not champion_working_model:
+                        champion_working_model = m_cand
+            except Exception as e_cand:
+                lat = round(time.time() - t0, 2)
+                err_s = str(e_cand)
+                err_short = "429_quota" if "429" in err_s or "quota" in err_s.lower() else ("404_not_found" if "404" in err_s else err_s[:80])
+                tested_models_report.append({"model": m_cand, "status": "FAILED", "latency": lat, "error": err_short})
+
+        # Test each key against the first working model (or gemini-3.5-flash-lite)
+        chosen_m = champion_working_model or (tested_models_report[0]["model"] if tested_models_report else "gemini-3.5-flash-lite")
+        keys_summary = []
+        for i, k in enumerate(keys):
+            masked = f"{k[:6]}...{k[-4:]}" if len(k) > 10 else f"Key_{i+1}"
+            k_res = {"slot": i + 1, "key": masked, "status": "unknown"}
+            try:
+                ck = create_fast_gemini_client(k, timeout_ms=4000)
+                rk = ck.models.generate_content(model=chosen_m, contents="Ping. Respond: OK")
+                if rk and rk.text:
+                    k_res["status"] = "ACTIVE"
+                    k_res["response"] = rk.text.strip()[:20]
+                    overall_working = True
+            except Exception as ek:
+                err_k = str(ek)
+                k_res["status"] = "FAILED"
+                k_res["error"] = "429_quota" if "429" in err_k or "quota" in err_k.lower() else ("404_not_found" if "404" in err_k else err_k[:80])
+            keys_summary.append(k_res)
 
         return {
             "status": "healthy" if overall_working else "issues_detected",
             "active_keys_count": len(keys),
-            "discovered_models": discovered_list,
-            "models_matrix": matrix
+            "champion_working_model": champion_working_model,
+            "chosen_model_tested_across_keys": chosen_m,
+            "models_tested_on_key_1": tested_models_report,
+            "keys_summary": keys_summary,
+            "all_discovered_models": discovered_list
         }
 
     for m in test_models:
