@@ -180,6 +180,12 @@ def _execute_supabase_activity_ping() -> Dict[str, Any]:
     _last_supabase_ping_ts = time.time()
     result = {"db_queried": False, "rest_pinged": False, "project_url": supabase_url}
     try:
+        try:
+            from storage import is_supabase_circuit_broken
+            if is_supabase_circuit_broken():
+                return {"status": "circuit_broken", "reason": "Supabase quota circuit broken"}
+        except Exception:
+            pass
         if supabase is not None:
             # 1. Execute a real PostgreSQL SELECT query via PostgREST
             supabase.table("evaluations").select("id").limit(1).execute()

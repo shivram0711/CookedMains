@@ -39,6 +39,19 @@ SUPABASE_KEY = (
 )
 
 supabase: Optional[Client] = None
+_SUPABASE_CIRCUIT_BROKEN: bool = False
+_SUPABASE_CIRCUIT_BROKEN_REASON: str = ""
+
+def mark_supabase_circuit_broken(reason: str = "") -> None:
+    global _SUPABASE_CIRCUIT_BROKEN, _SUPABASE_CIRCUIT_BROKEN_REASON
+    if not _SUPABASE_CIRCUIT_BROKEN:
+        _SUPABASE_CIRCUIT_BROKEN = True
+        _SUPABASE_CIRCUIT_BROKEN_REASON = str(reason)
+        print(f"[SUPABASE CIRCUIT BREAKER] Disabled outbound Supabase requests: {reason}")
+
+def is_supabase_circuit_broken() -> bool:
+    return _SUPABASE_CIRCUIT_BROKEN
+
 if SUPABASE_URL and SUPABASE_KEY:
     try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -867,7 +880,7 @@ def _safe_supabase_insert(table_name: str, payload: Dict[str, Any]) -> Optional[
     it dynamically strips the offending column and retries.
     Guarantees inserts never crash or get discarded due to schema column drift.
     """
-    if not supabase:
+    if not supabase or _SUPABASE_CIRCUIT_BROKEN:
         return None
     curr_payload = dict(payload)
     for attempt in range(6):
@@ -878,6 +891,9 @@ def _safe_supabase_insert(table_name: str, payload: Dict[str, Any]) -> Optional[
             return {"status": "success"}
         except Exception as e:
             err_msg = str(e).lower()
+            if any(term in err_msg for term in ["402", "payment required", "restricted", "over quota", "fair use"]):
+                mark_supabase_circuit_broken(f"Quota restricted: {e}")
+                return None
             stripped_any = False
             for col_cand in ["id", "question_title", "total_marks", "question", "max_marks", "file_url", "pages_json", "user_email", "paper", "thumbnail"]:
                 if f"'{col_cand}' does not exist" in err_msg or f".{col_cand} does not exist" in err_msg or f'column "{col_cand}"' in err_msg:
@@ -904,7 +920,7 @@ def _safe_supabase_eval_select(
     Selects from Supabase evaluations table with automatic fallback between 'question_title' and 'question',
     and between 'total_marks' and 'max_marks'. Prevents PostgreSQL code 42703 from breaking queries.
     """
-    if not supabase:
+    if not supabase or _SUPABASE_CIRCUIT_BROKEN:
         return []
     queries_to_try = [
         (columns, filter_col, neq_col),
@@ -931,6 +947,10 @@ def _safe_supabase_eval_select(
             if res and res.data:
                 return res.data
         except Exception as e:
+            err_low = str(e).lower()
+            if any(term in err_low for term in ["402", "payment required", "restricted", "over quota", "fair use"]):
+                mark_supabase_circuit_broken(f"Quota restricted: {e}")
+                return []
             if "42703" in str(e) or "does not exist" in str(e):
                 continue
             print(f"Notice: Supabase select notice: {e}")
@@ -1504,7 +1524,7 @@ def add_user_credits(email: str, credits_to_add: int, set_pro: bool = False) -> 
 
 def upload_file_to_supabase(user_id: str, file_bytes: bytes, file_ext: str = ".pdf", content_type: str = "application/pdf") -> Optional[str]:
     """Uploads student PDF/image to Supabase storage bucket 'answer-sheets' and returns public URL."""
-    if not supabase:
+    if not supabase or _SUPABASE_CIRCUIT_BROKEN:
         return None
     try:
         clean_ext = file_ext if file_ext.startswith(".") else f".{file_ext}"
@@ -1547,8 +1567,14 @@ def upload_file_to_supabase(user_id: str, file_bytes: bytes, file_ext: str = ".p
 
 def insert_supabase_evaluation(user_id: str, question_title: str, file_url: Optional[str], total_marks: int, result_json: Dict[str, Any], eval_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """Inserts evaluation record into Supabase 'evaluations' table with automatic schema resilience."""
-    if not supabase:
+    if not supabase or _SUPABASE_CIRCUIT_BROKEN:
         return None
+    # Cloud payload slimming: Strip heavy base64 page images to keep row <10KB, reducing egress by 99%
+    slim_result = dict(result_json) if isinstance(result_json, dict) else {}
+    if "pages" in slim_result:
+        slim_result["pages"] = [p for p in slim_result.get("pages", []) if isinstance(p, str) and not p.startswith("data:image")]
+    if "_meta_pages" in slim_result:
+        slim_result["_meta_pages"] = [p for p in slim_result.get("_meta_pages", []) if isinstance(p, str) and not p.startswith("data:image")]
     payload = {
         "user_id": user_id,
         "question": question_title,
@@ -3960,8 +3986,8 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
     if not force and (now - _last_supabase_sync_ts < 45.0):
         return {"status": "skipped", "reason": "debounce_active", "age_seconds": round(now - _last_supabase_sync_ts, 1)}
 
-    if supabase is None:
-        return {"status": "skipped", "reason": "supabase_not_initialized"}
+    if supabase is None or _SUPABASE_CIRCUIT_BROKEN:
+        return {"status": "skipped", "reason": "supabase_circuit_broken" if _SUPABASE_CIRCUIT_BROKEN else "supabase_not_initialized"}
 
     if not _supabase_sync_lock.acquire(blocking=False):
         return {"status": "skipped", "reason": "sync_in_progress"}
