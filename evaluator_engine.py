@@ -10057,7 +10057,9 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                 if not card.get("action_type") or card.get("action_type") == "Add":
                     card["action_type"] = "Expand"
                 card["domain_or_thinker"] = "⚡ Shallow Mention — Analytical Upgrade Needed"
-                clean_def = re.sub(r'^(?:✓\s*[^:]*:\s*|.*?significance:\s*)', '', str(card.get("definition") or "")).strip()
+                clean_def = str(card.get("definition") or "").strip()
+                while re.search(r'(?i)(?:✓\s*)?(?:You\s+mentioned|आपने\s+अपने\s+उत्तर\s+में)[^:]*(?:significance|महत्व से जोड़ें)\s*:\s*', clean_def):
+                    clean_def = re.sub(r'(?i)(?:✓\s*)?(?:You\s+mentioned|आपने\s+अपने\s+उत्तर\s+में)[^:]*(?:significance|महत्व से जोड़ें)\s*:\s*', '', clean_def).strip()
                 clean_def = re.sub(r'\s*\([^)]*\)', '', clean_def).strip()
                 card["definition"] = f"You mentioned **{r_term}** in passing—substantiate its core analytical significance: {clean_def}"
 

@@ -12433,9 +12433,13 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
         return;
       }
 
-      let cleanCoreDef = String(card.definition || "")
-        .replace(/^✓\s*You rightly cited[\s\S]*?institutional outcome:\s*/gi, "")
-        .replace(/^✓\s*You mentioned[\s\S]*?significance:\s*/gi, "")
+      let cleanCoreDef = String(card.definition || "");
+      // Thoroughly strip any repeated preambles (English or Hindi)
+      while (/(?:✓\s*)?(?:You\s+mentioned|आपने\s+अपने\s+उत्तर\s+में)[^:]*?(?:significance|महत्व से जोड़ें)\s*:\s*/i.test(cleanCoreDef)) {
+        cleanCoreDef = cleanCoreDef.replace(/(?:✓\s*)?(?:You\s+mentioned|आपने\s+अपने\s+उत्तर\s+में)[^:]*?(?:significance|महत्व से जोड़ें)\s*:\s*/i, "").trim();
+      }
+      cleanCoreDef = cleanCoreDef
+        .replace(/^(?:✓\s*)?You rightly cited[\s\S]*?institutional outcome:\s*/gi, "")
         .replace(/^(?:\+0\.)?5M extra from this keyword,\s*pair it with 1 concrete metric,\s*article,\s*or institutional outcome:\s*/gi, "")
         .replace(/(?:\+0\.)?5M extra from this keyword,\s*pair it with 1 concrete metric,\s*article,\s*or institutional outcome:\s*/gi, "")
         .replace(/^✓\s*You already wrote this data\/concept[\s\S]*?\(\s*/i, "")
@@ -16412,7 +16416,7 @@ window.renderDiagramPreview = function(container, diagData, isHindi) {
               <div class="flex-1 min-w-0 p-2.5 sm:p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 shadow-2xs flex flex-col justify-between space-y-1.5 break-words overflow-hidden">
                 <div class="min-w-0">
                   <div class="flex items-center justify-between gap-1 mb-1">
-                    <span class="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 whitespace-nowrap">${escapeHtml(n.badge || ('Stage ' + (idx + 1)))}</span>
+                    <span class="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 whitespace-normal break-words leading-tight">${escapeHtml(n.badge || ('Stage ' + (idx + 1)))}</span>
                     <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500 shrink-0">#${idx + 1}</span>
                   </div>
                   <h5 class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-snug break-words">${escapeHtml(n.label || '')}</h5>
