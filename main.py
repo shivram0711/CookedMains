@@ -2702,7 +2702,12 @@ async def evaluate_answer(
                                         actual_page_count = len(uploaded_page_previews) if uploaded_page_previews else (len(multimodal_parts) if multimodal_parts else 1)
                                         parsed_eval["pages"] = uploaded_page_previews
                                         parsed_eval["total_pages"] = max(actual_page_count, int(parsed_eval.get("total_pages") or 0))
-                                        evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper, medium=medium)
+                                        try:
+                                            evaluation_result = normalize_evaluation_data(parsed_eval, max_marks, question, detected_paper, medium=medium)
+                                        except Exception as norm_err:
+                                            import traceback
+                                            print(f"[EVALUATOR RECOVERY] normalize_evaluation_data error: {norm_err}. Retaining raw parsed evaluation.\n{traceback.format_exc()}")
+                                            evaluation_result = parsed_eval
                                         if isinstance(evaluation_result, dict) and actual_page_count > 0:
                                             evaluation_result["total_pages"] = max(actual_page_count, int(evaluation_result.get("total_pages") or 0))
                                             evaluation_result["pages"] = uploaded_page_previews

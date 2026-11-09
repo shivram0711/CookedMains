@@ -5036,6 +5036,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
     is_ethics = (discipline == "PHILOSOPHY_ETHICS")
     is_polity = (discipline == "POLITY_GOVERNANCE")
     is_econ = (discipline == "ECONOMY_DEVELOPMENT")
+    is_society = bool(discipline == "SOCIETY_SOCIAL_JUSTICE" or "society" in q_lower or "sociolog" in q_lower or "social" in q_lower or "caste" in q_lower or "women" in q_lower)
 
     # Comprehensive, robust Hindi vs English medium separation:
     eff_medium = data.get("medium") if data.get("medium") in ("hindi", "english") else medium
@@ -6489,6 +6490,10 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         def_cat1_title = "Philosophical Doctrines & Moral Thinkers"
         def_cat2_title = "2nd ARC Recommendations & Civil Service Values"
         def_cat3_title = "Applied Governance Case Studies & Real-World Exemplars"
+    elif is_society:
+        def_cat1_title = "Key Sociological Concepts & Demographic Metrics"
+        def_cat2_title = "Social Reformers, Commissions & Welfare Policies"
+        def_cat3_title = "Empirical Data, NFHS/Census Metrics & Ground Realities"
     else:
         def_cat1_title = "Core Frameworks & Domain Standards"
         def_cat2_title = "Theoretical Models & Expert Recommendations"
