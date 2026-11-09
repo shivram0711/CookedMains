@@ -19,6 +19,13 @@ import io
 from google import genai
 from google.genai import types
 
+try:
+    from upsc_sources_bank import get_subject_grounded_source_prompt
+except ImportError:
+    def get_subject_grounded_source_prompt(paper: str, question_text: str = "") -> str:
+        return ""
+
+
 # Load .env file if present
 _env_path = os.path.join(os.path.dirname(__file__), ".env")
 if os.path.exists(_env_path):
@@ -1284,6 +1291,7 @@ def build_hindi_evaluation_prompt(
     """
     question, _, _ = sanitize_against_prompt_injection(question, field_name="hindi_question")
     detected_paper = detect_academic_discipline(question, paper_key)
+    grounded_sources_block = get_subject_grounded_source_prompt(detected_paper or paper_key, question)
 
     # Question-specific dynamic demand allocations (UPSC Mains standard: Intro 1.0–1.5M, Conclusion 1.0–1.5M, Body 80–85%)
     q_demands_meta = deconstruct_question_demands(question, max_marks)
@@ -1432,6 +1440,8 @@ DIRECTIVE DEMAND: {directive_info.get('details', 'विभिन्न आय�
 IDEAL BALANCE: {directive_info.get('ideal_balance', 'प्रस्तावना 15%, मुख्य भाग 70%, निष्कर्ष 15%')}
 
 {ca_block}
+
+{grounded_sources_block}
 
 NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के विश्लेषण पर आधारित स्वर्णिम नियम):
 
@@ -2306,6 +2316,7 @@ def build_evaluation_prompt(
 
     question, _, _ = sanitize_against_prompt_injection(question, field_name="question")
     detected_paper = detect_academic_discipline(question, paper_key)
+    grounded_sources_block = get_subject_grounded_source_prompt(detected_paper or paper_key, question)
     taxonomy = PAPER_TAXONOMIES.get(detected_paper, PAPER_TAXONOMIES.get("GS2"))
     
     # Question-specific dynamic demand allocations (UPSC Mains standard: Intro 1.0–1.5M, Conclusion 1.0–1.5M, Body 80–85%)
@@ -2594,6 +2605,8 @@ CORE EVALUATION PRINCIPLES (DYNAMIC QUESTION UNDERSTANDING & CANONICAL SCORING R
      * Explicit Sub-Demands vs Implied Requirements: Deconstruct the prompt into its actual analytical parts (e.g. Demand 1: Economic Costs; Demand 2: Social Costs; Demand 3: Mitigation / Policy).
      * Essential Core Content vs Optional Value Additions: Distinguish what is mandatory to answer the prompt from supplementary additions. Never force irrelevant constitutional articles, committee reports, or diagrams onto topics where they do not naturally belong.
      * Accept Valid Alternative Approaches: Give full credit to well-reasoned alternative arguments, regional perspectives, or frameworks even if they differ from standard coaching model answers.
+
+{grounded_sources_block}
 
 ### THE 9 NON-NEGOTIABLE LAWS OF EVIDENCE-GROUNDED EVALUATION & INTEGRITY:
 1. EVALUATE ONLY THE CANDIDATE'S ACTUAL RESPONSE:
