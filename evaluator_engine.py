@@ -1690,6 +1690,11 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
           * *डेटा डंपिंग बनाम कारण-कार्य चक्र (The "Why and How" Test)*: यदि अभ्यर्थी अकेला व्यापक डेटा बिंदु लिखता है (जैसे *"415 मिलियन लोग गरीबी से बाहर आए"* अथवा *"जीवन प्रत्याशा 58 से 70 वर्ष हुई"*):
             `body_audit.critical_gaps` में रेखांकित करें कि अकेला डेटा यह नहीं बताता कि सरकारी नीति या व्यय ने इसे कैसे संभव बनाया। कारण-कार्य शृंखला पूरी करें: गरीबी में कमी को लक्षित सुरक्षा जाल (एनएफएसए खाद्यान्न, मनरेगा मजदूरी बफर, डीबीटी) से तथा जीवन प्रत्याशा को प्राथमिक स्वास्थ्य, टीकाकरण व स्वच्छता में निवेश से जोड़ें। डेटा को नीतिगत तर्क का प्रमाण होना चाहिए, न कि स्वतंत्र सूचना।
           * *मांग से असंबद्ध अमूर्त कारक*: यदि कारक प्रश्न के मुख्य परिचालन तनाव से नहीं जुड़ता, तो उसका सटीक प्रभाव स्पष्ट करें।
+          * *सुधार का अनिवार्य व्यावहारिक प्रारूप (ACTIONABLE REWRITE FORMAT)*:
+            - केवल कमी बताना या यह कहना कि "आलोचनात्मक विश्लेषण का अभाव था" या "अप्रत्यक्ष परिणामों की कमी थी" पूर्णतः वर्जित है!
+            - प्रत्येक सुधार बिंदु में अनिवार्य रूप से यह संरचना होनी चाहिए:
+              `**[स्पष्ट शीर्षक] (पृष्ठ X)**: [कमी या असंतुलन की पहचान] ✍️ **लिखने का सटीक प्रारूप**: "[अभ्यर्थी द्वारा सीधे अपने उत्तर में जोड़ने योग्य 15-25 शब्दों का सटीक परीक्षा-उपयोगी वाक्य/बिंदु]".`
+            - मॉडल उत्तर (full_model_answer) में 'टिप्पणी कीजिए' (Comment) या 'आलोचनात्मक परीक्षण' जैसे निर्देशों में सकारात्मक नीतिगत हस्तक्षेपों के साथ-साथ उनके अनपेक्षित परिणाम/सीमाएं भी शामिल हों, तथा body_audit.critical_gaps में उठाई गई कमियों का मॉडल उत्तर में अनिवार्य रूप से व्यावहारिक समाधान प्रदर्शित किया गया हो!
       * ग. आरेख: डेटा संघनन बनाम स्थान की बर्बादी:
         - 10-अंकों (150 शब्द) के प्रश्न में बिना पैमाने या बिना क्षेत्रीय विभाजन का सामान्य रेखाचित्र (Line Graph) या अप्रमाणिक आरेख पृष्ठ का 25-30% स्थान घेर लेता है:
           -> इसे `body_audit.strengths` में जबरन उच्च अंक दिलाने वाला न बताएं।
@@ -2870,6 +2875,15 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
         - FOR 10-MARKERS (2 Pages to fill): 2 sub-parts aligned to the question demands, TOTAL 7 TO 10 SUBSTANTIVE POINTS (3 to 5 points per sub-part).
         - FOR 15-MARKERS (3 Pages to fill): 2 to 3 sub-parts aligned strictly to explicit demands of the prompt, TOTAL 10 TO 15 SUBSTANTIVE POINTS (4 to 6 points per sub-part, e.g. 5-7 points across 2 sub-parts or 4-5 points across 3 sub-parts). NEVER write a truncated 4-5 point stub for a 15-marker!
         - FOR 20-MARKERS (4 Pages to fill): 3 to 4 sub-parts (TOTAL 12 TO 16 POINTS across the body).
+        - DIRECTIVE-DRIVEN ANALYTICAL BALANCE (CRITICAL TO AVOID ONE-SIDED MODEL ANSWERS):
+          * When the question uses command directives like 'Comment', 'Critically Examine', 'Critically Analyse', 'Evaluate', or 'Assess':
+            The topic is NEVER one-sided. A topper model answer MUST include both perspectives:
+            (a) The primary / affirmative dimension (e.g. how the policy was designed, structural pillars, achievements).
+            (b) The critical nuance / counter-perspective / unintended bottlenecks / persistent disparities (e.g. why regional divergence persisted, unintended distortions of policies like freight equalisation, green revolution concentration, or implementation frictions).
+        - MANDATORY INTEGRITY LINK WITH EVALUATOR'S IDENTIFIED UPGRADE LEVERS:
+          * Every single critical nuance, missing mechanism, or empirical gap you diagnosed in `body_audit.critical_gaps` MUST be explicitly demonstrated and fulfilled within the body of `full_model_answer`!
+          * If you criticized the candidate for lacking "unintended consequences like freight equalisation discouraging local value addition", YOUR TOPPER MODEL ANSWER MUST CONTAIN THAT EXACT CRITICAL POINT under the relevant subheading!
+          * The candidate reads the model answer as the gold-standard benchmark of how your feedback should be written under exam conditions. Never let the model answer repeat the candidate's omission!
         - Every bullet MUST follow the Factor -> Mechanism -> Consequence/Evidence model from the evaluator framework:
           `• **Bold Lead Keyword**: [1-line causal mechanism explaining the HOW/WHY] + [Concrete evidence: Article, Supreme Court case law, committee, economic data, historical ruler/text, or government initiative].`
           Avoid naked keyword listing ("notes dump"); every point must perform a distinct analytical job.
@@ -3138,10 +3152,13 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
           3. Multi-dimensional categorization / regional / stakeholder breakdown on Page 2 / Page 3.
           4. Practical applications, empirical data, institutional frameworks, or forward-looking policy dimensions on Page 2 / Page 3.
         - Wrap technical keywords, statutes, and metrics in `**keyword**` so semantic chips render!
-      * `body_audit.critical_gaps` (BODY UPGRADE LEVERS):
-        - STRICT PROHIBITION: NEVER write as long paragraphs!
-        - MUST output **3 to 4 distinct, structured upgrade points** (25 to 40 words each):
-          `**[Clear Actionable Title] (Page X)**: In-depth guidance explaining what was generic or incomplete with exact domain-specific terminology, data, or frameworks to add.`
+      * `body_audit.critical_gaps` (BODY UPGRADE LEVERS — ACTIONABLE REWRITE MANDATE):
+        - STRICT PROHIBITION: NEVER just describe the flaw or write a vague criticism (e.g. NEVER just say "Lacked critical evaluation of unintended consequences" or "Could have elaborated Y") without providing the EXACT sentence to write!
+        - EVERY upgrade lever MUST follow this mandatory 2-part structure:
+          `**[Clear Actionable Title] (Page X)**: [1 crisp sentence diagnosing the specific gap or one-sided argument] ✍️ **How to Write**: "[Exact 15-25 word exam-ready bullet or sentence that the candidate can directly write into their booklet under that point]".`
+        - Example:
+          `**Critical Nuance (Page 3)**: Your answer explains the intent of Freight Equalisation but omits its adverse impact on regional divergence. ✍️ **How to Write**: "Under point #3 on Freight Equalisation, add: 'However, Freight Equalisation (1956) stripped mineral-rich eastern states (Bihar, Bengal, Odisha) of natural locational advantages, inducing de-industrialization while subsidizing western coastal clusters.'" `
+        - MUST output **2 to 4 distinct, structured upgrade points** strictly adhering to this actionable format.
       * `body_audit.missing_dimensions` (UNCOVERED CORE DEMANDS):
         - Output ONLY genuine, question-specific analytical dimensions that the candidate actually missed and that are required by this exact question.
         - Strict 3-Point Validation Test:
