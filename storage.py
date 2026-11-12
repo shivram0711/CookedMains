@@ -510,6 +510,7 @@ def init_db():
         _init_db_tables()
         _ensure_core_registered_users()
         _ensure_core_evaluations_and_activity()
+        reconcile_stripped_evaluations_from_activity()
         cleanup_expired_guest_sessions(12.0)
     except Exception as _db_err:
         print(f"Notice: init_db safe notice: {_db_err}")
@@ -1582,7 +1583,7 @@ def insert_supabase_evaluation(user_id: str, question_title: str, file_url: Opti
         "file_url": file_url or "",
         "max_marks": total_marks,
         "total_marks": total_marks,
-        "evaluation_json": result_json
+        "evaluation_json": slim_result
     }
     resolved_id = eval_id or (result_json.get("_meta_eval_id") if isinstance(result_json, dict) else None)
     if resolved_id:
@@ -3976,6 +3977,151 @@ def is_created_today_ist(ts_str: Optional[str]) -> bool:
         return False
 
 
+def reconcile_stripped_evaluations_from_activity(existing_conn=None) -> int:
+    """
+    Restores genuine user_email, user_id, paper, max_marks, overall_score, and percentage
+    for evaluations that were synced with stripped metadata (aspirant@cookedmains.in or 0.0 score)
+    by matching against authentic copy_evaluated entries in activity_logs.
+    Never deletes any evaluation or user record.
+    """
+    import re
+    own_conn = existing_conn is None
+    conn = existing_conn if existing_conn is not None else get_db()
+    updated = 0
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, user_id, user_email, created_at, paper, max_marks, question,
+                   overall_score, percentage, evaluation_json
+            FROM evaluations
+            WHERE LOWER(user_email) = 'aspirant@cookedmains.in'
+               OR overall_score IS NULL
+               OR overall_score <= 0.0
+        """)
+        candidates = cursor.fetchall()
+        if not candidates:
+            return 0
+
+        cursor.execute("""
+            SELECT id, created_at, user_email, user_name, title, detail, eval_id
+            FROM activity_logs
+            WHERE action_type = 'copy_evaluated'
+              AND user_email IS NOT NULL
+              AND LOWER(user_email) != 'aspirant@cookedmains.in'
+            ORDER BY created_at DESC
+        """)
+        acts = [dict(r) for r in cursor.fetchall()]
+        if not acts:
+            return 0
+
+        cursor.execute("SELECT id, email FROM users")
+        email_to_uid = {str(r["email"]).strip().lower(): str(r["id"]) for r in cursor.fetchall() if r["email"]}
+
+        def _parse_dt_candidates(ts_str):
+            if not ts_str:
+                return []
+            s = str(ts_str).strip()[:19]
+            try:
+                dt = datetime.strptime(s, "%Y-%m-%d %H:%M:%S")
+                return [dt, dt - timedelta(hours=5, minutes=30)]
+            except Exception:
+                return []
+
+        def _parse_act_title(title_str):
+            t = str(title_str or "")
+            m = re.search(r"Evaluated\s+(.+?)\s*\((\d+)M\)\s*[\u2014-]+\s*Scored\s+([0-9.]+)/(\d+)", t)
+            if m:
+                return m.group(1).strip(), int(m.group(4)), float(m.group(3))
+            m2 = re.search(r"Scored\s+([0-9.]+)/(\d+)", t)
+            if m2:
+                return None, int(m2.group(2)), float(m2.group(1))
+            return None, None, None
+
+        act_by_eval_id = {}
+        for a in acts:
+            eid = str(a.get("eval_id") or "").strip()
+            if eid:
+                act_by_eval_id[eid] = a
+
+        for row in candidates:
+            ev_id = str(row["id"])
+            ev_email = str(row["user_email"] or "").strip().lower()
+            ev_score = float(row["overall_score"] or 0.0)
+            ev_max = int(row["max_marks"] or 10)
+
+            matched_act = act_by_eval_id.get(ev_id)
+            if not matched_act:
+                ev_dts = _parse_dt_candidates(row["created_at"])
+                if ev_dts:
+                    ev_utc = ev_dts[0]
+                    best_act = None
+                    best_diff = 999999.0
+                    for a in acts:
+                        for a_dt in _parse_dt_candidates(a.get("created_at")):
+                            diff = abs((ev_utc - a_dt).total_seconds())
+                            if diff <= 90.0 and diff < best_diff:
+                                _, a_max, a_sc = _parse_act_title(a.get("title"))
+                                if a_sc is not None and a_sc > 0 and (a_max is None or a_max == ev_max):
+                                    best_diff = diff
+                                    best_act = a
+                    matched_act = best_act
+
+            if not matched_act:
+                continue
+
+            act_email = canonicalize_email(str(matched_act.get("user_email") or ""))
+            if not act_email or act_email == "aspirant@cookedmains.in" or is_dummy_or_demo_email(act_email):
+                continue
+
+            act_paper, act_max, act_score = _parse_act_title(matched_act.get("title"))
+            if act_score is None or act_score <= 0.0:
+                continue
+
+            new_email = act_email if (not ev_email or ev_email == "aspirant@cookedmains.in") else ev_email
+            new_uid = email_to_uid.get(new_email) or str(row["user_id"] or "")
+            if not new_uid or new_uid == "usr_617370697261":
+                new_uid = f"usr_{new_email.encode('utf-8').hex()[:12]}"
+            new_max = act_max or ev_max or 10
+            new_score = act_score if ev_score <= 0.0 else ev_score
+            new_pct = round((new_score / new_max) * 100, 1) if new_max > 0 else 0.0
+            new_paper = act_paper if (act_paper and str(row["paper"] or "") in ("GS", "", "None")) else (row["paper"] or act_paper or "GS")
+
+            try:
+                ev_json_obj = json.loads(row["evaluation_json"] or "{}")
+                if not isinstance(ev_json_obj, dict):
+                    ev_json_obj = {}
+            except Exception:
+                ev_json_obj = {}
+
+            if not ev_json_obj.get("overall_score") or float(ev_json_obj.get("overall_score") or 0.0) <= 0.0:
+                ev_json_obj["overall_score"] = new_score
+            if not ev_json_obj.get("max_marks"):
+                ev_json_obj["max_marks"] = new_max
+            if not ev_json_obj.get("_meta_user_email") or ev_json_obj.get("_meta_user_email") == "aspirant@cookedmains.in":
+                ev_json_obj["_meta_user_email"] = new_email
+            if not ev_json_obj.get("_meta_paper") or ev_json_obj.get("_meta_paper") == "GS":
+                ev_json_obj["_meta_paper"] = new_paper
+
+            cursor.execute("""
+                UPDATE evaluations
+                SET user_id = ?, user_email = ?, paper = ?, max_marks = ?,
+                    overall_score = ?, percentage = ?, evaluation_json = ?
+                WHERE id = ?
+            """, (
+                new_uid, new_email, new_paper, new_max,
+                new_score, new_pct, json.dumps(ev_json_obj), ev_id
+            ))
+            updated += 1
+
+        if own_conn and updated > 0:
+            conn.commit()
+    except Exception as rec_err:
+        print(f"Notice: reconcile_stripped_evaluations_from_activity notice: {rec_err}")
+    finally:
+        if own_conn:
+            conn.close()
+    return updated
+
 def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
     """
     Synchronizes persistent user accounts, profiles, and evaluated answer sheets from Supabase
@@ -4261,7 +4407,44 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
                 ))
             synced_users_count += 1
 
+        cursor.execute("""
+            SELECT id, user_id, user_email, paper, max_marks, question,
+                   overall_score, percentage, evaluation_json, pages_json, thumbnail
+            FROM evaluations
+        """)
+        existing_evals_map = {str(r["id"]): dict(r) for r in cursor.fetchall()}
+
         for ev in parsed_evals:
+            existing_ev = existing_evals_map.get(str(ev["id"]))
+            use_uid = ev["user_id"]
+            use_email = ev["user_email"]
+            use_paper = ev["paper"]
+            use_max = ev["max_marks"]
+            use_q = ev["question"]
+            use_score = ev["overall_score"]
+            use_pct = ev["percentage"]
+            use_json = ev["evaluation_json"]
+            use_pages = ev["pages_json"]
+            use_thumb = ev["thumbnail"]
+
+            if existing_ev:
+                ex_score = float(existing_ev.get("overall_score") or 0.0)
+                ex_email = str(existing_ev.get("user_email") or "").strip().lower()
+                if use_score <= 0.0 and ex_score > 0.0:
+                    use_score = ex_score
+                    use_pct = float(existing_ev.get("percentage") or 0.0)
+                if use_email == "aspirant@cookedmains.in" and ex_email and ex_email != "aspirant@cookedmains.in":
+                    use_email = ex_email
+                    use_uid = existing_ev.get("user_id") or use_uid
+                if use_paper in ("GS", "", None) and existing_ev.get("paper") not in ("GS", "", None):
+                    use_paper = existing_ev.get("paper")
+                if len(str(use_json or "")) <= 120 and len(str(existing_ev.get("evaluation_json") or "")) > len(str(use_json or "")):
+                    use_json = existing_ev.get("evaluation_json")
+                if len(str(use_pages or "[]")) <= 4 and len(str(existing_ev.get("pages_json") or "[]")) > 4:
+                    use_pages = existing_ev.get("pages_json")
+                if not use_thumb and existing_ev.get("thumbnail"):
+                    use_thumb = existing_ev.get("thumbnail")
+
             cursor.execute("""
                 INSERT OR REPLACE INTO evaluations (
                     id, user_id, user_email, created_at, paper, max_marks, question,
@@ -4269,17 +4452,17 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
                     is_rewrite, file_hash, has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
-                ev["id"], ev["user_id"], ev["user_email"], ev["created_at"], ev["paper"],
-                ev["max_marks"], ev["question"], ev["overall_score"], ev["percentage"],
-                ev["evaluation_json"], ev["pages_json"], ev["thumbnail"], ev["is_rewrite"],
+                ev["id"], use_uid, use_email, ev["created_at"], use_paper,
+                use_max, use_q, use_score, use_pct,
+                use_json, use_pages, use_thumb, ev["is_rewrite"],
                 ev["file_hash"], 0, None, ev["baseline_eval_id"], ev["file_url"]
             ))
             synced_evals_count += 1
             
-            # Ensure activity_logs contains this evaluated copy so live stream is updated
+            # Ensure activity_logs contains this evaluated copy so live stream is updated (skip stripped fallback rows)
             try:
                 cursor.execute("SELECT id FROM activity_logs WHERE eval_id = ?", (ev["id"],))
-                if not cursor.fetchone():
+                if not cursor.fetchone() and (use_score > 0.0 or use_email != "aspirant@cookedmains.in"):
                     act_id = f"act_{uuid.uuid4().hex[:12]}"
                     q_disp = (ev["question"] or "Answer Sheet")[:85]
                     cursor.execute("""
@@ -4298,6 +4481,7 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
             except Exception:
                 pass
 
+        reconcile_stripped_evaluations_from_activity(conn)
         conn.commit()
         conn.close()
 
