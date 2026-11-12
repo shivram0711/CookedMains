@@ -9570,13 +9570,15 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             if aw_m:
                 ann_conc_aw = max(ann_conc_aw, float(aw_m.group(1)))
 
-    gemini_has_evaluated_conc = (
-        (gemini_step_conc_aw > 0.0) or
-        (c_audit_score > 0.0) or
-        (rubric_c_score > 0.0) or
-        (ann_conc_aw > 0.0) or
-        bool(re.search(r'(?i)(?:concluded\s+with|closing\s+(?:statement|sentence|line|stance)|relevant\s+statement|industrial\s*revolution|imperative)', gemini_step_conc_text + " " + conc_crit_str))
+    _ABSENT_CONC_RE = (
+        r'(?i)(?:\b(?:not\s+attempted|unwritten|stopped\s+abruptly|ended\s+abruptly|left\s+blank|'
+        r'lacks?\s+(?:a\s+)?conclu(?:ding|sion)|lack\s+of\s+(?:a\s+)?conclu(?:ding|sion)|'
+        r'no\s+(?:explicit\s+)?conclu(?:ding|sion)|missing\s+(?:a\s+)?conclu(?:ding|sion)|'
+        r'without\s+(?:a\s+)?conclu(?:ding|sion)|failed\s+to\s+conclude|did\s+not\s+conclude|'
+        r'does\s+not\s+(?:have|contain)\s+(?:a\s+)?conclu(?:ding|sion)|cuts?\s+off)\b|'
+        r'अनुत्तरित|निष्कर्ष\s+का\s+अभाव)'
     )
+    _llm_says_absent_conc = bool(re.search(_ABSENT_CONC_RE, (gemini_step_conc_text + " " + conc_crit_str).strip()))
 
     # 2. Check candidate transcript tail for authentic UPSC concluding signals:
     has_concluding_keywords = bool(re.search(
@@ -9595,6 +9597,16 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
     last_line = tail_lines[-1] if tail_lines else ""
     is_last_line_narrative = bool(last_line and not re.match(r'^(?:[-*•–—]|point\s*\d+|\b\d+[\.\)])', last_line) and len(last_line.split()) >= 5)
 
+    gemini_has_evaluated_conc = (
+        not (_llm_says_absent_conc and not has_concluding_keywords and not is_last_line_narrative) and (
+            (gemini_step_conc_aw > 0.0) or
+            (c_audit_score > 0.0) or
+            (rubric_c_score > 0.0) or
+            (ann_conc_aw > 0.0) or
+            bool(re.search(r'(?i)(?:concluded\s+with|closing\s+(?:statement|sentence|line|stance)|relevant\s+statement|industrial\s*revolution|imperative)', gemini_step_conc_text + " " + conc_crit_str))
+        )
+    )
+
     is_incomplete_conc = (
         not gemini_has_evaluated_conc and
         not has_concluding_keywords and
@@ -9603,7 +9615,7 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             bool(data.get("is_incomplete_answer")) or
             bool(data.get("is_candidate_incomplete_answer")) or
             bool(c_audit.get("is_unwritten")) or
-            bool(re.search(r'(?i)\b(?:not\s+attempted|unwritten|stopped\s+abruptly|left\s+blank)\b', conc_crit_str))
+            _llm_says_absent_conc
         )
     )
 
@@ -9683,47 +9695,65 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
         # Clean up existing conclusion critique and strip repeated prefixes
         raw_c_crit = str(c_audit.get("current_critique") or "")
         clean_c_crit = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:(?:\*\*)?(?:Closing|Concluding)\s*Synthesis(?:\s*Evaluated)?(?:\*\*)?:?\s*)+', '', raw_c_crit).strip()
-        is_generic_or_empty_crit = (not clean_c_crit) or (len(clean_c_crit) < 30) or bool(re.search(r'(?i)\b(?:not\s+attempted|unwritten|summarizes\s+your\s+stance)\b', clean_c_crit))
+        is_generic_or_empty_crit = (
+            (not clean_c_crit) or
+            (len(clean_c_crit) < 30) or
+            bool(re.search(r'(?i)\b(?:not\s+attempted|unwritten|summarizes\s+your\s+stance)\b', clean_c_crit)) or
+            bool(re.search(_ABSENT_CONC_RE, clean_c_crit))
+        )
+        is_conc_full = assigned_conc >= c_max - 0.09
 
         # Preserve Gemini's insightful conclusion critique if present, or construct a question-anchored feedback note
         if is_generic_or_empty_crit:
             if is_hindi:
-                if gemini_step_conc_text and not re.search(r'(?i)\b(?:not\s+attempted|unwritten|अनुत्तरित)\b', gemini_step_conc_text):
+                if gemini_step_conc_text and not re.search(_ABSENT_CONC_RE, gemini_step_conc_text):
                     clean_g_step = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:(?:\*\*)?(?:Closing|Concluding|निष्कर्ष)\s*(?:Synthesis|का\s*मूल्यांकन)?(?:\s*Evaluated)?(?:\*\*)?:?\s*)+', '', gemini_step_conc_text.strip()).strip()
                     c_audit["current_critique"] = f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: {clean_g_step}"
                 elif closing_cand_quote:
                     clean_cand_close = _clean_quote_snippet(closing_cand_quote, 220)
-                    c_audit["current_critique"] = (
-                        f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: आपने *\"{clean_cand_close}\"* के साथ उत्तर का समापन किया।\n"
-                        f"✎ **सुझाव (Refinement)**: {effective_conc}"
-                    )
+                    if is_conc_full:
+                        c_audit["current_critique"] = f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: आपने *\"{clean_cand_close}\"* के साथ स्पष्ट, प्रासंगिक और विषय-उन्मुख समापन किया है।"
+                    else:
+                        c_audit["current_critique"] = (
+                            f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: आपने *\"{clean_cand_close}\"* के साथ उत्तर का समापन किया।\n"
+                            f"✎ **सुझाव (Refinement)**: {effective_conc}"
+                        )
                 elif is_last_line_narrative and last_line:
                     clean_last = _clean_quote_snippet(last_line, 220)
-                    c_audit["current_critique"] = (
-                        f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: आपने *\"{clean_last}\"* के साथ समापन किया, किंतु यह सामान्य है।\n"
-                        f"✎ **सुझाव (Refinement)**: {effective_conc}"
-                    )
+                    if is_conc_full:
+                        c_audit["current_critique"] = f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: आपने *\"{clean_last}\"* के साथ स्पष्ट और प्रासंगिक समापन किया है।"
+                    else:
+                        c_audit["current_critique"] = (
+                            f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: आपने *\"{clean_last}\"* के साथ समापन किया, किंतु यह सामान्य है।\n"
+                            f"✎ **सुझाव (Refinement)**: {effective_conc}"
+                        )
                 else:
                     c_audit["current_critique"] = (
                         f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: आपने प्रासंगिक निष्कर्ष प्रस्तुत किया, किंतु इसे और सुदृढ़ किया जा सकता है।\n"
                         f"✎ **सुझाव (Refinement)**: {domain_conc}"
                     )
             else:
-                if gemini_step_conc_text and not re.search(r'(?i)\b(?:not\s+attempted|unwritten)\b', gemini_step_conc_text):
+                if gemini_step_conc_text and not re.search(_ABSENT_CONC_RE, gemini_step_conc_text):
                     clean_g_step = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:(?:\*\*)?(?:Closing|Concluding)\s*Synthesis(?:\s*Evaluated)?(?:\*\*)?:?\s*)+', '', gemini_step_conc_text.strip()).strip()
                     c_audit["current_critique"] = f"✓ **Closing Synthesis Evaluated**: {clean_g_step}"
                 elif closing_cand_quote:
                     clean_cand_close = _clean_quote_snippet(closing_cand_quote, 220)
-                    c_audit["current_critique"] = (
-                        f"✓ **Closing Synthesis Evaluated**: Concluded with *\"{clean_cand_close}\"*, summarizing core stance.\n"
-                        f"✎ **Refinement**: {effective_conc}"
-                    )
+                    if is_conc_full:
+                        c_audit["current_critique"] = f"✓ **Closing Synthesis Evaluated**: Concluded with *\"{clean_cand_close}\"*, providing a clear, relevant, and topic-specific synthesis."
+                    else:
+                        c_audit["current_critique"] = (
+                            f"✓ **Closing Synthesis Evaluated**: Concluded with *\"{clean_cand_close}\"*, summarizing core stance.\n"
+                            f"✎ **Refinement**: {effective_conc}"
+                        )
                 elif is_last_line_narrative and last_line:
                     clean_last = _clean_quote_snippet(last_line, 220)
-                    c_audit["current_critique"] = (
-                        f"✓ **Closing Synthesis Evaluated**: Concluded with *\"{clean_last}\"*, but it remained somewhat broad.\n"
-                        f"✎ **Refinement**: {effective_conc}"
-                    )
+                    if is_conc_full:
+                        c_audit["current_critique"] = f"✓ **Closing Synthesis Evaluated**: Concluded with *\"{clean_last}\"*, delivering a clear and topic-specific synthesis."
+                    else:
+                        c_audit["current_critique"] = (
+                            f"✓ **Closing Synthesis Evaluated**: Concluded with *\"{clean_last}\"*, but it remained somewhat broad.\n"
+                            f"✎ **Refinement**: {effective_conc}"
+                        )
                 else:
                     c_audit["current_critique"] = (
                         f"✓ **Closing Synthesis Evaluated**: Concluded with a relevant synthesis statement, but it remained somewhat broad.\n"
@@ -9753,36 +9783,37 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                     f"✎ **To Score Full Marks**: {domain_conc}"
                 )
 
-        # Synchronize sub_part_step_marking authentic Conclusion Step ONLY
-        conc_step_target = None
-        for st in reversed(sub_steps):
-            if isinstance(st, dict):
-                lbl = str(st.get("step_label") or st.get("part_name") or "").lower()
-                if any(k in lbl for k in ["concl", "निष्कर्ष", "closing synthesis"]) and not any(k in lbl for k in ["intro", "premise", "part a", "part b", "part c", "part 1", "part 2"]):
-                    conc_step_target = st
+    # Synchronize sub_part_step_marking & subpart_marks_breakdown Conclusion Step for BOTH incomplete and completed conclusions
+    final_conc_awarded = 0.0 if is_incomplete_conc else assigned_conc
+    conc_step_target = None
+    for st in reversed(sub_steps):
+        if isinstance(st, dict):
+            lbl = str(st.get("step_label") or st.get("part_name") or "").lower()
+            if any(k in lbl for k in ["concl", "निष्कर्ष", "closing synthesis"]) and not any(k in lbl for k in ["intro", "premise", "part a", "part b", "part c", "part 1", "part 2"]):
+                conc_step_target = st
+                break
+    if not conc_step_target and sub_steps and isinstance(sub_steps[-1], dict):
+        last_lbl = str(sub_steps[-1].get("step_label") or sub_steps[-1].get("part_name") or "").lower()
+        if not any(k in last_lbl for k in ["intro", "part a", "part b"]):
+            conc_step_target = sub_steps[-1]
+
+    if conc_step_target:
+        conc_step_target["awarded"] = final_conc_awarded
+        conc_step_target["max"] = c_max
+        conc_step_target["demand_status"] = get_canonical_demand_status(final_conc_awarded, c_max, is_hindi=is_hindi)
+        conc_step_target["quoted_written"] = c_audit.get("current_critique") or conc_step_target.get("quoted_written")
+        conc_step_target["step_up_lever"] = effective_conc if is_incomplete_conc else domain_conc
+
+    data["sub_part_step_marking"] = sub_steps
+    if isinstance(data.get("subpart_marks_breakdown"), list):
+        for sb in reversed(data["subpart_marks_breakdown"]):
+            if isinstance(sb, dict):
+                pn = str(sb.get("part_name") or "").lower()
+                if any(k in pn for k in ["concl", "निष्कर्ष", "closing synthesis"]) and not any(k in pn for k in ["intro", "premise", "part a", "part b", "part c"]):
+                    sb["marks_awarded"] = final_conc_awarded
+                    sb["max_marks"] = c_max
+                    sb["demand_status"] = get_canonical_demand_status(final_conc_awarded, c_max, is_hindi=is_hindi)
                     break
-        if not conc_step_target and sub_steps and isinstance(sub_steps[-1], dict):
-            last_lbl = str(sub_steps[-1].get("step_label") or sub_steps[-1].get("part_name") or "").lower()
-            if not any(k in last_lbl for k in ["intro", "part a", "part b"]):
-                conc_step_target = sub_steps[-1]
-
-        if conc_step_target:
-            conc_step_target["awarded"] = assigned_conc
-            conc_step_target["max"] = c_max
-            conc_step_target["demand_status"] = get_canonical_demand_status(assigned_conc, c_max, is_hindi=is_hindi)
-            conc_step_target["quoted_written"] = c_audit.get("current_critique") or conc_step_target.get("quoted_written")
-            conc_step_target["step_up_lever"] = domain_conc
-
-        data["sub_part_step_marking"] = sub_steps
-        if isinstance(data.get("subpart_marks_breakdown"), list):
-            for sb in reversed(data["subpart_marks_breakdown"]):
-                if isinstance(sb, dict):
-                    pn = str(sb.get("part_name") or "").lower()
-                    if any(k in pn for k in ["concl", "निष्कर्ष", "closing synthesis"]) and not any(k in pn for k in ["intro", "premise", "part a", "part b", "part c"]):
-                        sb["marks_awarded"] = assigned_conc
-                        sb["max_marks"] = c_max
-                        sb["demand_status"] = get_canonical_demand_status(assigned_conc, c_max, is_hindi=is_hindi)
-                        break
 
 
     if data.get("executive_summary"):

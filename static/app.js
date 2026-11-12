@@ -13879,7 +13879,7 @@ function renderEvaluation(evalData) {
   const conc = evalData.conclusion_audit || {};
   const concEarned = parseFloat(rScores.conclusion_score) || 0;
   const concMaxVal = parseFloat(rScores.conclusion_max) || (parseInt(evalData.max_marks || 10, 10) === 15 ? 2.0 : 1.5);
-  const isConcFullMarks = concEarned >= concMaxVal - 0.09;
+  const isConcFullMarks = !conc.is_unwritten && concEarned > 0 && concEarned >= concMaxVal - 0.09;
   const isHeatwaveConcCopy = false;
 
   const concValSecEl = document.getElementById("conclusionValueAddSection");
