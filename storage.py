@@ -39,23 +39,18 @@ SUPABASE_KEY = (
 )
 
 supabase: Optional[Client] = None
-_SUPABASE_CIRCUIT_BROKEN_UNTIL: float = 0.0
+_SUPABASE_CIRCUIT_BROKEN: bool = False
 _SUPABASE_CIRCUIT_BROKEN_REASON: str = ""
 
-def mark_supabase_circuit_broken(reason: str = "", cooldown_seconds: float = 30.0) -> None:
-    global _SUPABASE_CIRCUIT_BROKEN_UNTIL, _SUPABASE_CIRCUIT_BROKEN_REASON
-    _SUPABASE_CIRCUIT_BROKEN_UNTIL = time.time() + cooldown_seconds
-    _SUPABASE_CIRCUIT_BROKEN_REASON = str(reason)
-    print(f"[SUPABASE CIRCUIT BREAKER] Throttling outbound Supabase requests for {cooldown_seconds}s: {reason}")
+def mark_supabase_circuit_broken(reason: str = "") -> None:
+    global _SUPABASE_CIRCUIT_BROKEN, _SUPABASE_CIRCUIT_BROKEN_REASON
+    if not _SUPABASE_CIRCUIT_BROKEN:
+        _SUPABASE_CIRCUIT_BROKEN = True
+        _SUPABASE_CIRCUIT_BROKEN_REASON = str(reason)
+        print(f"[SUPABASE CIRCUIT BREAKER] Disabled outbound Supabase requests: {reason}")
 
 def is_supabase_circuit_broken() -> bool:
-    global _SUPABASE_CIRCUIT_BROKEN_UNTIL
-    return time.time() < _SUPABASE_CIRCUIT_BROKEN_UNTIL
-
-def reset_supabase_circuit_breaker() -> None:
-    global _SUPABASE_CIRCUIT_BROKEN_UNTIL, _SUPABASE_CIRCUIT_BROKEN_REASON
-    _SUPABASE_CIRCUIT_BROKEN_UNTIL = 0.0
-    _SUPABASE_CIRCUIT_BROKEN_REASON = ""
+    return _SUPABASE_CIRCUIT_BROKEN
 
 if SUPABASE_URL and SUPABASE_KEY:
     try:
@@ -897,8 +892,8 @@ def _safe_supabase_insert(table_name: str, payload: Dict[str, Any]) -> Optional[
             return {"status": "success"}
         except Exception as e:
             err_msg = str(e).lower()
-            if any(term in err_msg for term in ["402", "payment required", "over quota", "fair use", "bandwidth limit"]):
-                mark_supabase_circuit_broken(f"Quota notice: {e}", cooldown_seconds=30.0)
+            if any(term in err_msg for term in ["402", "payment required", "restricted", "over quota", "fair use"]):
+                mark_supabase_circuit_broken(f"Quota restricted: {e}")
                 return None
             stripped_any = False
             for col_cand in ["id", "question_title", "total_marks", "question", "max_marks", "file_url", "pages_json", "user_email", "paper", "thumbnail"]:
@@ -926,7 +921,7 @@ def _safe_supabase_eval_select(
     Selects from Supabase evaluations table with automatic fallback between 'question_title' and 'question',
     and between 'total_marks' and 'max_marks'. Prevents PostgreSQL code 42703 from breaking queries.
     """
-    if not supabase:
+    if not supabase or _SUPABASE_CIRCUIT_BROKEN:
         return []
     queries_to_try = [
         (columns, filter_col, neq_col),
@@ -954,8 +949,8 @@ def _safe_supabase_eval_select(
                 return res.data
         except Exception as e:
             err_low = str(e).lower()
-            if any(term in err_low for term in ["402", "payment required", "over quota", "fair use", "bandwidth limit"]):
-                mark_supabase_circuit_broken(f"Quota notice: {e}", cooldown_seconds=30.0)
+            if any(term in err_low for term in ["402", "payment required", "restricted", "over quota", "fair use"]):
+                mark_supabase_circuit_broken(f"Quota restricted: {e}")
                 return []
             if "42703" in str(e) or "does not exist" in str(e):
                 continue
@@ -4134,16 +4129,11 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
     """
     global _last_supabase_sync_ts
     now = time.time()
-    if force:
-        reset_supabase_circuit_breaker()
-    elif (now - _last_supabase_sync_ts < 45.0):
+    if not force and (now - _last_supabase_sync_ts < 45.0):
         return {"status": "skipped", "reason": "debounce_active", "age_seconds": round(now - _last_supabase_sync_ts, 1)}
 
-    if supabase is None:
-        return {"status": "skipped", "reason": "supabase_not_initialized"}
-
-    if is_supabase_circuit_broken() and not force:
-        return {"status": "skipped", "reason": "supabase_circuit_broken", "detail": _SUPABASE_CIRCUIT_BROKEN_REASON}
+    if supabase is None or _SUPABASE_CIRCUIT_BROKEN:
+        return {"status": "skipped", "reason": "supabase_circuit_broken" if _SUPABASE_CIRCUIT_BROKEN else "supabase_not_initialized"}
 
     if not _supabase_sync_lock.acquire(blocking=False):
         return {"status": "skipped", "reason": "sync_in_progress"}
@@ -4663,13 +4653,7 @@ def push_sqlite_to_supabase() -> Dict[str, Any]:
     }
 
 def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
-    conn_pre = get_db()
-    cur_pre = conn_pre.cursor()
-    cur_pre.execute("SELECT COUNT(*) as c FROM evaluations WHERE question != '__USER_ACCOUNT_PROFILE__'")
-    local_eval_cnt = cur_pre.fetchone()["c"]
-    conn_pre.close()
-
-    if force_sync or (local_eval_cnt < 50 and supabase is not None):
+    if force_sync:
         try:
             sync_supabase_to_sqlite(force=True)
         except Exception as se:
@@ -4943,17 +4927,6 @@ def get_admin_evaluations_feed(
     Returns evaluations across all aspirants categorized by subject, date, and keyword.
     Zero Deletion Guarantee: All evaluated copies are permanently preserved.
     """
-    conn_chk = get_db()
-    cur_chk = conn_chk.cursor()
-    cur_chk.execute("SELECT COUNT(*) as c FROM evaluations WHERE question != '__USER_ACCOUNT_PROFILE__'")
-    cur_c = cur_chk.fetchone()["c"]
-    conn_chk.close()
-    if cur_c < 50 and supabase is not None:
-        try:
-            sync_supabase_to_sqlite(force=True)
-        except Exception as se:
-            print(f"Feed Supabase sync notice: {se}")
-
     conn = get_db()
     cursor = conn.cursor()
     sql = """
