@@ -2803,7 +2803,10 @@ window.isEvaluationFullyCompleted = function(evalObj, questionText = "", maxMark
 // ============================================================================
 window.autoSyncBrowserVaultToServer = async function() {
   try {
-    const userEmail = (state.user && state.user.email) || localStorage.getItem("cookedmains_user_email") || "guest@cookedmains.in";
+    const userEmail = (state.user && state.user.email) ? String(state.user.email).trim().toLowerCase() : "";
+    // STRICT ACCOUNT ISOLATION: Never sync for unauthenticated or guest users!
+    if (!userEmail || userEmail === "guest@cookedmains.in") return;
+
     const db = await _openBrowserVaultDB();
     if (!db) return;
     const records = await new Promise((resolve) => {
@@ -2817,11 +2820,17 @@ window.autoSyncBrowserVaultToServer = async function() {
         resolve([]);
       }
     });
-    if (records && records.length > 0) {
+    // STRICT ACCOUNT ISOLATION: Only sync records that strictly belong to THIS user email
+    const userRecords = (records || []).filter(r => {
+      if (!r || typeof r !== "object") return false;
+      const recEmail = String(r.user_email || r.email || "").trim().toLowerCase();
+      return recEmail === userEmail;
+    });
+    if (userRecords.length > 0) {
       await fetch("/api/user/sync-vault", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userEmail, records: records.slice(0, 30) })
+        body: JSON.stringify({ email: userEmail, records: userRecords.slice(0, 30) })
       });
     }
   } catch (e) {
@@ -3123,6 +3132,17 @@ window.getEvaluationsFromBrowserVault = async function(email) {
           const res = req.result || [];
           res.forEach(item => {
             if (item && item.id) {
+              // STRICT ACCOUNT ISOLATION: A user must NEVER see, merge, or overlap copies belonging to another ID!
+              const recEmail = String(item.user_email || item.email || "").trim().toLowerCase();
+              if (recEmail !== cleanEmail) {
+                // If item has no email and current user is the original primary account, backfill it; otherwise strictly reject!
+                if (!recEmail && (cleanEmail === "shivram0711@gmail.com" || cleanEmail === "shivram@gmail.com")) {
+                  item.user_email = cleanEmail;
+                  try { store.put(item); } catch (pe) {}
+                } else {
+                  return; // Strictly reject: belongs to another user
+                }
+              }
               const evalObj = item.evaluation || item.evaluation_data || item;
               const q = item.question || item.question_title || evalObj.detected_question || "";
               if (window.isEvaluationFullyCompleted(evalObj, q, item.max_marks)) {
@@ -3151,6 +3171,7 @@ window.getEvaluationsFromBrowserVault = async function(email) {
 window.getEvaluationByIdFromBrowserVault = async function(evalId) {
   const cleanId = String(evalId || "").trim();
   if (!cleanId) return null;
+  const currentEmail = (state.user && state.user.email) ? String(state.user.email).trim().toLowerCase() : "";
   try {
     const db = await _openBrowserVaultDB();
     if (db) {
@@ -3161,6 +3182,11 @@ window.getEvaluationByIdFromBrowserVault = async function(evalId) {
         req.onerror = () => resolve(null);
       });
       if (rec) {
+        // STRICT ACCOUNT ISOLATION: Validate ownership
+        const recEmail = String(rec.user_email || rec.email || "").trim().toLowerCase();
+        if (currentEmail && recEmail && recEmail !== currentEmail) {
+          return null; // Belongs to another user, forbidden to access
+        }
         const evalObj = rec.evaluation || rec.evaluation_data || rec;
         const q = rec.question || rec.question_title || evalObj.detected_question || "";
         if (!window.isEvaluationFullyCompleted(evalObj, q, rec.max_marks)) {
@@ -3172,7 +3198,7 @@ window.getEvaluationByIdFromBrowserVault = async function(evalId) {
       }
     }
   } catch (e) {}
-  const all = await window.getEvaluationsFromBrowserVault(state.user?.email);
+  const all = await window.getEvaluationsFromBrowserVault(currentEmail);
   return all.find(x => String(x.id) === cleanId || String(x.rewrite_eval_id) === cleanId || String(x.baseline_eval_id) === cleanId) || null;
 };
 
@@ -3216,6 +3242,9 @@ window.fetchAndSyncUserLockerHistory = async function(email) {
 
   const validMerged = Array.from(mergedMap.values()).filter(item => {
     if (!item || !item.id) return false;
+    // STRICT ACCOUNT ISOLATION: A copy must belong strictly to this user's email
+    const itemEmail = String(item.user_email || item.email || cleanEmail).trim().toLowerCase();
+    if (itemEmail !== cleanEmail) return false;
     const ev = item.evaluation || item.evaluation_data || item;
     const q = item.question || item.question_title || ev.detected_question || "";
     return window.isEvaluationFullyCompleted(ev, q, item.max_marks);
@@ -21495,8 +21524,22 @@ window.confirmLogoutAspirant = function() {
   sessionStorage.removeItem("mainsmentor_user");
   localStorage.removeItem("mainsmentor_user");
   localStorage.removeItem("mainsmentor_api_key");
+  localStorage.removeItem("cookedmains_user_email");
   state.user = null;
   state.activeStudioView = "landing";
+  state.lockerHistory = []; // STRICT ACCOUNT ISOLATION: Clear in-memory locker records
+
+  // Zero out all UI locker counters immediately
+  const countStr = "0";
+  if (lockerCountBadge) lockerCountBadge.textContent = countStr;
+  const navLockerCount = document.getElementById("accountNavLockerCount");
+  if (navLockerCount) navLockerCount.textContent = countStr;
+  const mbBadge = document.getElementById("mbLockerBadge");
+  if (mbBadge) mbBadge.textContent = countStr;
+  const profileEvaluatedCount = document.getElementById("profileEvaluatedCount");
+  if (profileEvaluatedCount) profileEvaluatedCount.textContent = countStr;
+  const weeklyContainer = document.getElementById("accountLockerWeeklyContainer");
+  if (weeklyContainer) weeklyContainer.innerHTML = "";
 
   window.closeAccountModal();
   updateUserUI();

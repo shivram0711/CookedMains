@@ -2213,6 +2213,20 @@ def restore_evaluations_to_vault(email: str, records: List[Dict[str, Any]]) -> D
         # LOCKER GUARD: Never restore unevaluated, half-evaluated, or placeholder evaluations!
         if not is_evaluation_fully_completed(eval_obj, question, max_marks):
             continue
+        # STRICT ACCOUNT ISOLATION GUARD:
+        declared_email = str(rec.get("user_email") or rec.get("email") or "").strip().lower()
+        if declared_email and declared_email != clean_email:
+            continue
+
+        if rid:
+            conn_chk = get_db()
+            cur_chk = conn_chk.cursor()
+            cur_chk.execute("SELECT user_email FROM evaluations WHERE id = ?", (rid,))
+            ex_row = cur_chk.fetchone()
+            conn_chk.close()
+            if ex_row and ex_row["user_email"] and str(ex_row["user_email"]).strip().lower() != clean_email:
+                continue
+
         rec_authentic_ts = _resolve_authentic_created_at(
             eval_id=rid,
             evaluation_dict=eval_obj,

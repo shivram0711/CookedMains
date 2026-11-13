@@ -1525,34 +1525,26 @@ async def api_user_history(response: Response, email: Optional[str] = None, user
     """Returns list of student's past evaluated answer copies ordered by created_at desc."""
     if response:
         response.headers["X-Robots-Tag"] = "noindex, nofollow"
-    if email:
-        return get_user_evaluations(email)
+    clean_email = (email or "").strip().lower()
+    if clean_email:
+        return get_user_evaluations(clean_email)
+
+    # STRICT ACCOUNT ISOLATION: Never dump random evaluations across users if email/user_id not provided
+    if not user_id:
+        return []
 
     # 1. Local SQLite First (Instant, 0ms, 0 Supabase Egress)
     conn = get_db()
     cursor = conn.cursor()
-    if user_id:
-        cursor.execute("""
-            SELECT id, created_at, paper, max_marks, question, overall_score, percentage, thumbnail, is_rewrite,
-                   has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url, evaluation_json
-            FROM evaluations
-            WHERE user_id = ?
-              AND SUBSTR(question, 1, 2) != '__'
-              AND overall_score > 0
-            ORDER BY created_at DESC
-        """, (user_id,))
-    else:
-        cursor.execute("""
-            SELECT id, created_at, paper, max_marks, question, overall_score, percentage, thumbnail, is_rewrite,
-                   has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url, evaluation_json
-            FROM evaluations
-            WHERE SUBSTR(question, 1, 2) != '__'
-              AND LOWER(question) NOT IN ('general studies mains question', 'upsc mains question', 'upsc mains answer')
-              AND LOWER(question) NOT LIKE '%general studies mains question%'
-              AND overall_score > 0
-            ORDER BY created_at DESC
-            LIMIT 50
-        """)
+    cursor.execute("""
+        SELECT id, created_at, paper, max_marks, question, overall_score, percentage, thumbnail, is_rewrite,
+               has_been_rewritten, rewrite_eval_id, baseline_eval_id, file_url, evaluation_json
+        FROM evaluations
+        WHERE user_id = ?
+          AND SUBSTR(question, 1, 2) != '__'
+          AND overall_score > 0
+        ORDER BY created_at DESC
+    """, (user_id,))
     rows = cursor.fetchall()
     conn.close()
     valid_rows = []
