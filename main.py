@@ -1814,6 +1814,28 @@ async def api_admin_sync():
     res = await asyncio.to_thread(sync_supabase_to_sqlite, True)
     return {"status": "success", "sync_result": res}
 
+@app.get("/api/admin/supabase-diag")
+async def api_admin_supabase_diag(auth: bool = Depends(verify_admin_token)):
+    from storage import supabase, is_supabase_circuit_broken, reset_supabase_circuit_breaker
+    diag = {
+        "supabase_initialized": supabase is not None,
+        "circuit_broken": is_supabase_circuit_broken(),
+        "query_result": None,
+        "error": None
+    }
+    if supabase is not None:
+        try:
+            reset_supabase_circuit_breaker()
+            res = supabase.table("evaluations").select("id, question_title, created_at").neq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(5).execute()
+            diag["query_result"] = {
+                "count": len(res.data) if res and res.data else 0,
+                "sample": res.data[:3] if res and res.data else []
+            }
+        except Exception as e:
+            diag["error"] = str(e)
+            diag["error_type"] = type(e).__name__
+    return diag
+
 @app.get("/api/admin/stats")
 async def api_admin_stats(sync: Optional[int] = 0, auth: bool = Depends(verify_admin_token)):
     """Returns overview platform analytics for the admin dashboard."""
