@@ -449,23 +449,37 @@ def _ensure_core_registered_users():
         conn = get_db()
         cursor = conn.cursor()
         core_aspirants = [
-            ("usr_shivram_001", "shivram@gmail.com", "Shivram", "2026", "PSIR", 15, 5, "pro"),
-            ("usr_pranav_002", "pranavsaxena301@gmail.com", "Pranav Saxena", "2026", "Geography", 15, 5, "pro"),
-            ("usr_bablu_003", "bhaib7852@gmail.com", "Bablu", "2026", "History", 15, 5, "pro"),
-            ("usr_shivram0711_004", "shivram0711@gmail.com", "Shivram0711", "2026", "PSIR", 15, 5, "pro"),
-            ("usr_clementine_005", "clementinehallie@gmail.com", "Clementine Hallie", "2026", "PSIR", 15, 5, "pro"),
-            ("usr_abhishek_006", "abhishekramavath72@gmail.com", "Abhishek Ramavath", "2026", "Sociology", 15, 5, "pro"),
-            ("usr_jolam_007", "jolamparamesh9@gmail.com", "Jolam Paramesh", "2026", "Public Administration", 15, 5, "pro"),
-            ("usr_visheshank_008", "visheshank7519@gmail.com", "Visheshank", "2026", "Anthropology", 15, 5, "pro"),
-            ("usr_devasam_009", "devasamkeerthana@gmail.com", "Devasam Keerthana", "2026", "PSIR", 15, 5, "pro"),
+            ("usr_jeevitha_011", "jeevitharajeswari@gmail.com", "Jeevitha Dhananjeyan", "2026", "PSIR", 15, 5, "pro", "2026-11-13 08:52:11"),
+            ("usr_nagasriram_012", "sriramnaga10@gmail.com", "NAGA SRI RAM", "2026", "PSIR", 15, 5, "pro", "2026-11-12 22:48:58"),
+            ("usr_subham_010", "subham@gmail.com", "Subham", "2026", "PSIR", 15, 5, "pro", "2026-11-12 13:11:49"),
+            ("usr_pramod_014", "ballarapupramod1@gmail.com", "Pramod Ballarapu", "2026", "Sociology", 15, 5, "pro", "2026-11-12 06:03:20"),
+            ("usr_keerthivasan_015", "keerthivasannofficial@gmail.com", "Keerthivasan N", "2026", "Anthropology", 15, 5, "pro", "2026-11-11 18:56:03"),
+            ("usr_abhishek_006", "abhishekramavath72@gmail.com", "Abhishek Ramavath", "2026", "Sociology", 15, 5, "pro", "2026-11-11 16:43:30"),
+            ("usr_khushi_016", "khushiv6557@gmail.com", "Khushi Verma", "2026", "Public Administration", 15, 5, "pro", "2026-11-12 02:36:15"),
+            ("usr_l8d_017", "l8desports2023@gmail.com", "L8D Esports", "2026", "History", 15, 5, "pro", "2026-11-12 02:36:15"),
+            ("usr_jolam_007", "jolamparamesh9@gmail.com", "Jolam Paramesh", "2026", "Public Administration", 15, 5, "pro", "2026-10-28 00:17:22"),
+            ("usr_devasam_009", "devasamkeerthana@gmail.com", "Devasam Keerthana", "2026", "PSIR", 15, 5, "pro", "2026-10-27 15:07:59"),
+            ("usr_visheshank_008", "visheshank7519@gmail.com", "Visheshank", "2026", "Anthropology", 15, 5, "pro", "2026-10-27 14:10:00"),
+            ("usr_clementine_005", "clementinehallie@gmail.com", "Clementine Hallie", "2026", "PSIR", 15, 5, "pro", "2026-10-27 11:45:00"),
+            ("usr_shivram0711_004", "shivram0711@gmail.com", "Shivram0711", "2026", "PSIR", 15, 5, "pro", "2026-10-25 09:00:00"),
+            ("usr_bablu_003", "bhaib7852@gmail.com", "Bablu Bhai Bhai", "2026", "History", 15, 5, "pro", "2026-10-25 08:45:00"),
+            ("usr_pranav_002", "pranavsaxena301@gmail.com", "Pranav Saxena", "2026", "Geography", 15, 5, "pro", "2026-10-25 08:30:00"),
+            ("usr_shivram_001", "shivram@gmail.com", "Shiv", "2026", "PSIR", 15, 5, "pro", "2026-10-15 14:29:29"),
+            ("usr_shivramail_013", "shivramail1107@gmail.com", "Shivramail", "2026", "PSIR", 15, 5, "pro", "2026-10-24 04:14:40"),
         ]
-        for uid, email, name, tyr, opt, creds, rewrites, tier in core_aspirants:
+        for uid, email, name, tyr, opt, creds, rewrites, tier, cat in core_aspirants:
             cursor.execute("SELECT id FROM users WHERE LOWER(email) = LOWER(?)", (email,))
-            if not cursor.fetchone():
+            existing = cursor.fetchone()
+            if not existing:
                 cursor.execute("""
-                    INSERT INTO users (id, email, name, target_year, optional_subject, free_credits, free_rewrites, is_pro, plan_tier)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)
-                """, (uid, email, name, tyr, opt, creds, rewrites, tier))
+                    INSERT INTO users (id, email, name, target_year, optional_subject, free_credits, free_rewrites, is_pro, plan_tier, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                """, (uid, email, name, tyr, opt, creds, rewrites, tier, cat))
+            else:
+                cursor.execute("""
+                    UPDATE users SET name = ?, target_year = ?, optional_subject = ?, created_at = COALESCE(created_at, ?)
+                    WHERE LOWER(email) = LOWER(?) AND (name = 'Aspirant' OR name LIKE 'usr_%' OR created_at IS NULL)
+                """, (name, tyr, opt, cat, email))
         conn.commit()
         conn.close()
     except Exception as e:
@@ -474,7 +488,7 @@ def _ensure_core_registered_users():
 def _ensure_core_evaluations_and_activity():
     """Guarantees genuine evaluated answer sheets and real activity streams are permanently preserved across container restarts."""
     try:
-        from seed_all_evals import build_core_evals
+        from seed_all_evals import build_core_evals, build_core_sessions
         evals_to_ensure, acts_to_ensure = build_core_evals()
         
         conn = get_db()
@@ -498,6 +512,18 @@ def _ensure_core_evaluations_and_activity():
                     INSERT INTO activity_logs (id, created_at, user_email, user_name, action_type, title, detail, eval_id)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """, (aid, cat, email, uname, atype, title, detail, eval_id))
+
+        try:
+            core_sessions = build_core_sessions()
+            for sid, em, un, is_auth, st, la, dur, cv, ec, ac, ra, tyr, opt in core_sessions:
+                cursor.execute("SELECT id FROM user_sessions WHERE id = ?", (sid,))
+                if not cursor.fetchone():
+                    cursor.execute("""
+                        INSERT INTO user_sessions (id, user_email, user_name, is_authenticated, started_at, last_active_at, duration_seconds, current_view, evaluations_count, actions_count, recent_actions, target_year, optional_subject)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (sid, em, un, is_auth, st, la, dur, cv, ec, ac, ra, tyr, opt))
+        except Exception as sess_err:
+            print(f"Notice: core sessions check: {sess_err}")
 
         conn.commit()
         conn.close()
