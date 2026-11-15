@@ -522,6 +522,20 @@ async def robots_txt():
         headers={"Cache-Control": "public, max-age=3600"}
     )
 
+@app.api_route("/prelims", methods=["GET", "HEAD"])
+@app.api_route("/prelims.html", methods=["GET", "HEAD"])
+@app.api_route("/prelims-radar", methods=["GET", "HEAD"])
+async def prelims_page():
+    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "prelims.html"))
+
+@app.api_route("/sitemap-prelims.xml", methods=["GET", "HEAD"])
+async def sitemap_prelims_xml():
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "static", "sitemap-prelims.xml"),
+        media_type="application/xml; charset=utf-8",
+        headers={"Cache-Control": "public, max-age=3600"}
+    )
+
 @app.api_route("/sitemap-index.xml", methods=["GET", "HEAD"])
 async def sitemap_index_xml():
     return FileResponse(

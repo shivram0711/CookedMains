@@ -1,0 +1,242 @@
+[
+  {
+    "id": "2024-polity-01",
+    "year": 2024,
+    "subject": "Polity & Governance",
+    "sub_topic": "Constitutional Bodies & Articles",
+    "difficulty": "Moderate",
+    "question_text": "With reference to the Union Executive in India, consider the following statements:\n1. The President of India summons, prorogues and dissolves each House of Parliament on the advice of the Prime Minister.\n2. The Constitution of India provides that the President shall act in accordance with the advice tendered by the Council of Ministers with the Prime Minister at the head.\n3. The President cannot ask the Council of Ministers to reconsider such advice.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2024 Key",
+    "explanation": "• Statement 1 is incorrect: The President summons and prorogues both Houses on the advice of the Council of Ministers (Cabinet), not solely the Prime Minister alone.\n• Statement 2 is correct: Under Article 74(1), there shall be a Council of Ministers with the Prime Minister at the head to aid and advise the President, who shall act in accordance with such advice.\n• Statement 3 is incorrect: Under the 44th Constitutional Amendment Act, 1978 (proviso to Article 74(1)), the President MAY require the Council of Ministers to reconsider such advice once.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 17 (President) • Article 74(1) & 44th CAA 1978",
+    "elimination_trap": "Absolute Word Trap ('cannot'): Proviso to Article 74 explicitly allows one-time reconsideration.",
+    "mains_linkage": {
+      "question": "Examine the scope of presidential discretion under Article 74 of the Indian Constitution with judicial precedents. (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2024-eco-02",
+    "year": 2024,
+    "subject": "Economy",
+    "sub_topic": "Monetary Policy & Digital Rupee",
+    "difficulty": "Moderate",
+    "question_text": "With reference to Central Bank Digital Currency (CBDC) or Digital Rupee (e₹) launched by the Reserve Bank of India, consider the following statements:\n1. It is a sovereign currency issued by the RBI in alignment with monetary policy.\n2. It appears as a liability on the RBI's balance sheet just like physical banknotes.\n3. It cannot be converted into commercial bank deposits or physical cash.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2024 Key",
+    "explanation": "• Statement 1 is correct: CBDC is a legal tender issued by the central bank in digital form, representing sovereign fiat currency.\n• Statement 2 is correct: Just like physical cash, digital currency is a direct claim on the central bank and forms part of reserve money (M0), appearing as a liability on the RBI's balance sheet.\n• Statement 3 is incorrect: CBDC is 100% fungible and convertible at par (1:1) into physical banknotes and commercial bank deposits.",
+    "standard_book_ref": "RBI Concept Note on Central Bank Digital Currency (CBDC) • Macroeconomics NCERT Class 12",
+    "elimination_trap": "Negative Inversion Trap ('cannot be converted'): Sovereign digital currencies must maintain 1:1 convertibility with cash.",
+    "mains_linkage": {
+      "question": "How will Central Bank Digital Currency (CBDC) transform cross-border remittances and domestic monetary transmission in India? (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2024-env-03",
+    "year": 2024,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Wetlands & Conservation",
+    "difficulty": "Easy",
+    "question_text": "Consider the following Ramsar Wetlands in India:\n1. Bhoj Wetland\n2. Renuka Wetland\n3. Rudrasagar Lake\n4. Sasthamkotta Lake\n\nHow many of the above are correctly matched with their respective states?\n• Bhoj Wetland : Madhya Pradesh\n• Renuka Wetland : Himachal Pradesh\n• Rudrasagar Lake : Tripura\n• Sasthamkotta Lake : Kerala",
+    "options": [
+      "Only one",
+      "Only two",
+      "Only three",
+      "All four"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2024 Key",
+    "explanation": "• Bhoj Wetland is in Bhopal, Madhya Pradesh (formed by Upper and Lower Lakes).\n• Renuka Wetland is in Sirmaur district of Himachal Pradesh (smallest Ramsar site in India).\n• Rudrasagar Lake is in Melaghar, Tripura.\n• Sasthamkotta Lake is the largest freshwater lake in Kerala (Kollam district).\nAll 4 pairs are correctly matched.",
+    "standard_book_ref": "MoEFCC Ramsar Sites Directory • Shankar IAS Environment (Aquatic Ecosystems)",
+    "elimination_trap": "Pair Format: You cannot eliminate options by picking A/B; each individual state match must be verified.",
+    "mains_linkage": {
+      "question": "Evaluate the efficacy of the Amrit Dharohar initiative in rejuvenating Ramsar sites across India while supporting local livelihoods. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2023-hist-04",
+    "year": 2023,
+    "subject": "History & Culture",
+    "sub_topic": "Ancient & Medieval Dynasties",
+    "difficulty": "Hard",
+    "question_text": "In medieval India, the term 'Fanam' referred to which of the following?",
+    "options": [
+      "Clothing",
+      "Coins",
+      "Ornaments",
+      "Agricultural tools"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2023 Key (Set A)",
+    "explanation": "• 'Fanam' (or Panam) was a small gold or silver coin historically minted in South India, especially during the Vijayanagara Empire, Nayakas, Travancore, and Mysore kingdoms.\n• It is derived from the Sanskrit word 'Pana' (a monetary denomination used since the Mauryan period).",
+    "standard_book_ref": "Satish Chandra, Medieval India (Trade & Currency under Vijayanagara) • NCERT Class 7 Themes in Indian History",
+    "elimination_trap": "Obscure Terminology: In ancient and medieval questions, terms ending in '-nam' or '-panam' in South India almost always relate to currency/taxation (Panam = Money).",
+    "mains_linkage": {
+      "question": "Monetary monetization and urban market centers were the cornerstone of Vijayanagara's imperial prosperity. Elucidate with contemporary traveler accounts. (15M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2023-polity-05",
+    "year": 2023,
+    "subject": "Polity & Governance",
+    "sub_topic": "Electoral Ethics & RPA",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following statements in respect of the Election Commission of India:\n1. The Chief Election Commissioner and other Election Commissioners enjoy equal powers but receive unequal salaries.\n2. The Chief Election Commissioner is entitled to the same salary as is provided to a Judge of the Supreme Court.\n3. The recommendations of the Chief Election Commissioner are mandatory for removing an Election Commissioner from office.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2023 Key",
+    "explanation": "• Statement 1 is incorrect: The CEC and other ECs have equal powers, receive equal salary, allowances and perquisites similar to a Supreme Court Judge.\n• Statement 2 is correct: Under the Election Commission (Conditions of Service) Act, the CEC receives salary equal to that of a Supreme Court Judge.\n• Statement 3 is incorrect: Under Article 324(5), an Election Commissioner can only be removed upon the recommendation of the CEC; however, the Supreme Court has clarified that the President is not bound to accept it if it is arbitrary (the recommendation is a constitutional safeguard, but not termed 'mandatory' executive dictate).",
+    "standard_book_ref": "M. Laxmikanth, Chapter 43 (Election Commission) • Article 324(5)",
+    "elimination_trap": "Unequal Salary Myth: UPSC frequently tests whether CEC has higher salary than other ECs (they are completely equal).",
+    "mains_linkage": {
+      "question": "Examine the tension between the right to contest elections and the need to uphold electoral ethics under the Representation of the People Act. (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2023-geo-06",
+    "year": 2023,
+    "subject": "Geography",
+    "sub_topic": "Seismology & Plate Tectonics",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following statements regarding Earthquake waves:\n1. P-waves are longitudinal waves that can travel through gaseous, liquid, and solid materials.\n2. S-waves are transverse waves that cannot pass through liquids.\n3. The shadow zone of S-waves is significantly smaller than the shadow zone of P-waves.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2023 Key",
+    "explanation": "• Statement 1 is correct: Primary (P) waves are compressional/longitudinal waves; particle motion is parallel to wave propagation. They travel through solids, liquids, and gases.\n• Statement 2 is correct: Secondary (S) waves are shear/transverse waves; they can only travel through solid materials and are blocked by Earth's liquid outer core.\n• Statement 3 is incorrect: The shadow zone of S-waves is MUCH LARGER than P-waves (S-waves do not appear anywhere beyond 105° from epicenter, covering over 40% of the earth's surface, whereas P-waves shadow zone is only between 105° and 145°).",
+    "standard_book_ref": "NCERT Class 11 Fundamentals of Physical Geography, Chapter 3 (Interior of the Earth)",
+    "elimination_trap": "Inversion Trap: S-wave shadow zone is massive (>40% of Earth), while P-wave shadow zone is a narrow band (105°-145°).",
+    "mains_linkage": {
+      "question": "Explain the mechanism of earthquake genesis and elucidate why the Pacific Ring of Fire exhibits intense seismic and volcanic activity. (15M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2023-eco-07",
+    "year": 2023,
+    "subject": "Economy",
+    "sub_topic": "Public Finance & Fiscal Policy",
+    "difficulty": "Moderate",
+    "question_text": "In India, which one of the following is responsible for maintaining price stability by controlling inflation?",
+    "options": [
+      "Department of Consumer Affairs",
+      "Expenditure Management Commission",
+      "Financial Stability and Development Council",
+      "Reserve Bank of India"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2023 Key",
+    "explanation": "• Under the RBI Act, 1934 (amended in 2016 via the Monetary Policy Framework Agreement), the primary objective of the Reserve Bank of India is to maintain price stability while keeping in mind the objective of growth.\n• The Monetary Policy Committee (MPC) is statutorily mandated to target CPI inflation at 4% with a tolerance band of +/- 2% (2% to 6%).",
+    "standard_book_ref": "NCERT Class 12 Macroeconomics • Section 45ZB of RBI Act, 1934",
+    "elimination_trap": "FSDC distractor: FSDC handles inter-regulatory coordination, not statutory inflation targeting.",
+    "mains_linkage": {
+      "question": "Discuss the institutional mechanism of the Monetary Policy Committee (MPC) in balancing inflation management with economic growth impulses. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2022-env-08",
+    "year": 2022,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Climate Change & Conventions",
+    "difficulty": "Easy",
+    "question_text": "The 'Miyawaki method' is well known for the:\n",
+    "options": [
+      "Promotion of commercial farming in arid and semi-arid areas",
+      "Development of urban forests using native plant species in compact urban spaces",
+      "Harvesting of wind energy on coastal boundaries",
+      "Cultivation of genetically modified food crops in floodplains"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2022 Key (Set A)",
+    "explanation": "• Pioneered by Japanese botanist Akira Miyawaki, the Miyawaki technique involves planting 2 to 4 native species of trees per square meter in dense mini-groves.\n• It enables trees to grow up to 10 times faster and creates dense urban micro-forests within 20–30 years instead of 200–300 years, boosting local biodiversity and lowering urban heat island effects.",
+    "standard_book_ref": "Down to Earth Magazine / Current Affairs Compendiums • Urban Forestry Guidelines MoEFCC",
+    "elimination_trap": "Farming vs Forestry: Miyawaki is purely an ecological native reforestation technique, never commercial monoculture farming.",
+    "mains_linkage": {
+      "question": "Urban Heat Islands (UHIs) represent a growing ecological vulnerability in Indian metros. How can urban afforestation methods like Miyawaki mitigate microclimate distress? (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2022-polity-09",
+    "year": 2022,
+    "subject": "Polity & Governance",
+    "sub_topic": "Fundamental Rights & Judicial Review",
+    "difficulty": "Moderate",
+    "question_text": "A legislation which confers on the executive or administrative authority an unguided and uncontrolled discretionary power in the matter of the application of law violates which one of the following Articles of the Constitution of India?",
+    "options": [
+      "Article 14",
+      "Article 28",
+      "Article 32",
+      "Article 44"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2022 Key (Set A)",
+    "explanation": "• In Maneka Gandhi (1978) and E.P. Royappa (1974), the Supreme Court ruled that Article 14 strikes at arbitrariness in state action. Equality and arbitrariness are sworn enemies.\n• Any law conferring unguided, uncanalized, and uncontrolled discretionary power upon the executive without statutory standards violates Article 14 (Rule of Law & Non-Arbitrariness).",
+    "standard_book_ref": "M. Laxmikanth, Chapter 7 (Fundamental Rights - Article 14) • E.P. Royappa Case Precedent",
+    "elimination_trap": "Article 32 distractor: Article 32 is the remedy to enforce rights, but the substantive right against arbitrariness itself is anchored in Article 14.",
+    "mains_linkage": {
+      "question": "Arbitrariness in administrative discretion is the antithesis of the Rule of Law. Discuss how the doctrine of non-arbitrariness under Article 14 limits executive overreach. (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2024-sct-10",
+    "year": 2024,
+    "subject": "Science & Technology",
+    "sub_topic": "Biotechnology & Genetic Engineering",
+    "difficulty": "Moderate",
+    "question_text": "With reference to CRISPR-Cas9 technology, consider the following statements:\n1. It is a molecular tool used by scientists to edit parts of the genome by removing, adding, or altering sections of DNA sequence.\n2. The Cas9 protein acts as a pair of molecular scissors that cuts the two strands of DNA at a specific location in the genome.\n3. It cannot be used to treat genetic disorders in human germline cells.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2024 Key",
+    "explanation": "• Statement 1 is correct: CRISPR-Cas9 allows precise, targeted editing of DNA sequences across organisms.\n• Statement 2 is correct: Cas9 is an endonuclease enzyme ('molecular scissors') guided by a synthetic guide RNA (gRNA) to make double-stranded cuts at targeted genomic loci.\n• Statement 3 is incorrect: CRISPR-Cas9 CAN technically be used in human germline cells (embryos, eggs, sperm), though it is heavily regulated or ethically banned in many jurisdictions. The question states 'cannot be used', which is technically false (as seen in the He Jiankui CCR5 gene-editing case).",
+    "standard_book_ref": "NCERT Class 12 Biology (Biotechnology: Principles & Processes) • Nobel Prize in Chemistry 2020",
+    "elimination_trap": "Technical Capability vs Ethical Ban: Never confuse 'legally restricted' with 'scientifically impossible'.",
+    "mains_linkage": {
+      "question": "What are the ethical dilemmas and biosecurity concerns associated with human germline gene editing using CRISPR-Cas9? (10M)",
+      "paper": "GS3"
+    }
+  }
+]
