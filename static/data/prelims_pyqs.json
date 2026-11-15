@@ -238,5 +238,605 @@
       "question": "What are the ethical dilemmas and biosecurity concerns associated with human germline gene editing using CRISPR-Cas9? (10M)",
       "paper": "GS3"
     }
+  },
+  {
+    "id": "2024-eco-11",
+    "year": 2024,
+    "subject": "Economy",
+    "sub_topic": "National Income & Capital Formation",
+    "difficulty": "Moderate",
+    "question_text": "In the context of the Indian economy, which of the following are categorized as 'Capital Goods'?\n1. Tools, machinery and factory equipment used in manufacturing\n2. Raw materials consumed in the production process\n3. Transport vehicles used in commercial logistics\n\nSelect the correct answer using the code given below:",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2024 Key",
+    "explanation": "• Statement 1 and 3 are correct: Capital goods are durable tangible assets (machinery, tools, commercial trucks) used repeatedly over years to produce other goods and services.\n• Statement 2 is incorrect: Raw materials are 'Intermediate Goods' (consumed completely in a single production cycle), not capital goods.",
+    "standard_book_ref": "NCERT Class 12 Macroeconomics, Chapter 2 (National Income Accounting) • Ramesh Singh (Capital Formation)",
+    "elimination_trap": "Intermediate vs Capital Trap: Raw materials are intermediate single-use inputs, not durable fixed capital.",
+    "mains_linkage": {
+      "question": "Examine how gross fixed capital formation (GFCF) in infrastructure crowd-in private investments and accelerates long-term GDP growth. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2024-polity-12",
+    "year": 2024,
+    "subject": "Polity & Governance",
+    "sub_topic": "Parliament & Speaker's Office",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following statements regarding the Speaker of the Lok Sabha:\n1. The Speaker exercises a casting vote only in the case of an equality of votes in the first instance.\n2. When a resolution for the removal of the Speaker is under consideration, the Speaker can neither preside nor vote in any proceeding.\n3. A Speaker vacating office resigns by submitting the resignation letter in writing addressed to the President of India.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "1 and 2 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2024 Key",
+    "explanation": "• Statement 1 is correct: Under Article 100(1), the Speaker does not vote in the first instance, but exercises a casting vote in the case of equality of votes.\n• Statement 2 is incorrect: Under Article 96(2), when a removal resolution is under consideration, the Speaker cannot preside, but HAS THE RIGHT TO VOTE in the first instance (though not in the case of an equality of votes).\n• Statement 3 is incorrect: Under Article 94(b), the Speaker resigns by writing to the DEPUTY SPEAKER of the Lok Sabha, not the President.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 22 (Parliament - Presiding Officers) • Articles 94, 96 & 100",
+    "elimination_trap": "Resignation Recipient Trap: Speaker resigns to Deputy Speaker, NOT the President (unlike Supreme Court judges or Ministers).",
+    "mains_linkage": {
+      "question": "The impartiality of the Speaker's office has faced constitutional scrutiny in disqualification petitions under the Tenth Schedule. Critically analyze. (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2024-env-13",
+    "year": 2024,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Wildlife Conservation & Species",
+    "difficulty": "Hard",
+    "question_text": "With reference to the Project Cheetah in India, consider the following statements:\n1. Cheetahs were declared extinct in India in the year 1952.\n2. The cheetahs reintroduced into Kuno National Park were translocated from Namibia and South Africa, which belong to the Asiatic cheetah sub-species.\n3. The Asiatic cheetah is currently classified as 'Critically Endangered' by the IUCN, with its only surviving wild population in Iran.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2024 Key",
+    "explanation": "• Statement 1 is correct: The Asiatic cheetah was officially declared extinct in India in 1952 after the last three individuals were shot in 1947 in Surguja (Chhattisgarh).\n• Statement 2 is incorrect: The cheetahs translocated from Namibia and South Africa are AFRICAN cheetahs (Acinonyx jubatus jubatus), not Asiatic cheetahs.\n• Statement 3 is correct: The Asiatic cheetah (Acinonyx jubatus venaticus) is Critically Endangered on the IUCN Red List, surviving only in Iran (<50 individuals).",
+    "standard_book_ref": "MoEFCC Action Plan for Introduction of Cheetah in India • Shankar IAS (Biodiversity)",
+    "elimination_trap": "Subspecies Swap Trap: Reintroduced cheetahs are African cheetahs (Vulnerable), while Asiatic cheetahs survive only in Iran (Critically Endangered).",
+    "mains_linkage": {
+      "question": "Evaluate the ecological and management challenges of intercontinental mega-carnivore translocations in India in light of Project Cheetah. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2024-hist-14",
+    "year": 2024,
+    "subject": "History & Culture",
+    "sub_topic": "Ancient India & Sangam Age",
+    "difficulty": "Moderate",
+    "question_text": "In the context of ancient Tamil literature, what is 'Tolkappiyam' primarily celebrated as?",
+    "options": [
+      "An epic poem narrating the tragic story of Kovalan and Kannagi",
+      "A comprehensive treatise on Tamil grammar and poetic conventions, with reflections on socio-political life",
+      "A Buddhist philosophical treatise on ethics and logic",
+      "A manual on irrigation engineering and maritime shipbuilding under the Cholas"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2024 Key",
+    "explanation": "• Tolkappiyam, authored by Tolkappiyar, is the earliest extant work of Tamil literature.\n• It is divided into three sections (Eluttu, Col, Porul): while the first two deal with phonology and morphology/grammar, the third section (Porulatikaram) provides rich insights into the 'Tinai' (five physiographic landscapes), marital customs, warfare, and socio-economic life.",
+    "standard_book_ref": "Upinder Singh, History of Ancient and Early Medieval India, Chapter 8 • NCERT Class 11",
+    "elimination_trap": "Silappadikaram Distractor: Kovalan and Kannagi is the subject of Silappadikaram (by Ilango Adigal), NOT Tolkappiyam.",
+    "mains_linkage": {
+      "question": "Sangam literature serves as an invaluable window into the agrarian transitions, tribal institutions, and maritime trade of early historic South India. Discuss. (15M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2024-geo-15",
+    "year": 2024,
+    "subject": "Geography",
+    "sub_topic": "Mineral Resources & Industrial Geography",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following minerals found in the beach sands of coastal India:\n1. Ilmenite\n2. Rutile\n3. Monazite\n4. Zircon\n\nWhich of the above are sources of Titanium?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1, 2 and 4 only",
+      "1, 2, 3 and 4"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2024 Key",
+    "explanation": "• Ilmenite (FeTiO3) and Rutile (TiO2) are the primary commercial ore sources for Titanium metal and titanium dioxide pigment.\n• Monazite is a phosphate mineral containing rare earths and Thorium.\n• Zircon is a zirconium silicate (source of Zirconium metal used in nuclear fuel cladding).",
+    "standard_book_ref": "Indian Minerals Yearbook (Indian Bureau of Mines) • NCERT Class 12 India: People and Economy",
+    "elimination_trap": "Mineral Association: Beach sands contain Ilmenite, Rutile, Zircon, and Monazite together, but ONLY Ilmenite and Rutile yield Titanium.",
+    "mains_linkage": {
+      "question": "Assess the strategic importance of critical and beach sand minerals for India's clean energy transition and high-technology manufacturing. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2023-eco-16",
+    "year": 2023,
+    "subject": "Economy",
+    "sub_topic": "External Sector & Exchange Rates",
+    "difficulty": "Hard",
+    "question_text": "Consider the following statements regarding Real Effective Exchange Rate (REER):\n1. An increase in India's REER indicates an appreciation in the currency's external trade competitiveness.\n2. An increase in the Nominal Effective Exchange Rate (NEER) indicates an appreciation of the Rupee against a basket of currencies.\n3. An increasing divergence between NEER and REER highlights divergent domestic and foreign inflation rates.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2023 Key",
+    "explanation": "• Statement 1 is incorrect: An increase (appreciation) in India's REER means Indian exports become more expensive relative to trading partners, indicating a LOSS of trade competitiveness.\n• Statement 2 is correct: NEER is the weighted average of bilateral nominal exchange rates; an increase means nominal currency appreciation.\n• Statement 3 is correct: Since REER adjusts NEER for relative price differentials (inflation differential), a widening gap reflects differences in inflation rates between India and trading partners.",
+    "standard_book_ref": "Macroeconomics NCERT Class 12, Chapter 6 (Open Economy Macroeconomics) • RBI Bulletin",
+    "elimination_trap": "Currency Appreciation vs Competitiveness: Currency appreciation HARMS price competitiveness of exports; it does not improve it.",
+    "mains_linkage": {
+      "question": "Explain the divergence between NEER and REER in emerging markets and discuss how exchange rate volatility impacts export basket diversification. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2023-polity-17",
+    "year": 2023,
+    "subject": "Polity & Governance",
+    "sub_topic": "Constitutional Law & Article 21",
+    "difficulty": "Moderate",
+    "question_text": "In the Indian Constitutional jurisprudence, the concept of 'Due Process of Law' entails which of the following?",
+    "options": [
+      "Strict compliance with procedure established by statutory law",
+      "Fair, just and reasonable application of the law protecting natural justice",
+      "The sovereign power of the legislature to enact retrospective penal laws",
+      "The supremacy of customary practices over statutory enactments"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2023 Key",
+    "explanation": "• In Maneka Gandhi vs Union of India (1978), the Supreme Court held that the 'procedure established by law' under Article 21 cannot be arbitrary, oppressive, or fanciful; it must be 'right, just and fair', effectively reading American substantive 'Due Process of Law' into Article 21.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 7 (Fundamental Rights - Protection of Life and Personal Liberty) • Maneka Gandhi (1978)",
+    "elimination_trap": "Literal Text vs Judicial Interpretation: The text of Article 21 says 'procedure established by law', but since 1978, the doctrine applied is substantive fairness (natural justice).",
+    "mains_linkage": {
+      "question": "Trace the transition from A.K. Gopalan to Maneka Gandhi in the interpretation of Article 21. How has substantive due process enriched fundamental rights? (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2023-env-18",
+    "year": 2023,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Climate Conventions & Protocols",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following statements regarding the Kigali Amendment to the Montreal Protocol:\n1. It aims for the global phase-down of Hydrofluorocarbons (HFCs).\n2. HFCs are potent ozone-depleting substances that directly destroy the stratospheric ozone layer.\n3. The Kigali Amendment legally binds member countries to timeline targets for phasing down HFC consumption.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2023 Key",
+    "explanation": "• Statement 1 is correct: The Kigali Amendment (entered into force 2019) mandates gradual phase-down of HFCs.\n• Statement 2 is incorrect: HFCs do NOT deplete the ozone layer (they have zero ODP - Ozone Depletion Potential), but they are powerful greenhouse gases with high Global Warming Potential (GWP).\n• Statement 3 is correct: The Kigali Amendment is legally binding under international environmental law.",
+    "standard_book_ref": "Shankar IAS Environment (Ozone Depletion & Climate Agreements) • UNEP Ozone Secretariat",
+    "elimination_trap": "ODS vs GHG Trap: HFCs replaced CFCs precisely because HFCs do NOT destroy ozone; they are targeted now because they accelerate global warming.",
+    "mains_linkage": {
+      "question": "Analyze the implications of the Kigali Amendment for India's cooling and refrigeration manufacturing sector under the India Cooling Action Plan (ICAP). (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2023-hist-19",
+    "year": 2023,
+    "subject": "History & Culture",
+    "sub_topic": "Buddhism & Ancient Sites",
+    "difficulty": "Hard",
+    "question_text": "In ancient India, which one of the following places was a prominent Buddhist center that flourished under the Mahasanghikas and was known as 'Dhanyakataka'?",
+    "options": [
+      "Amaravati",
+      "Nagarjunakonda",
+      "Kanchipuram",
+      "Sannati"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2023 Key",
+    "explanation": "• Dhanyakataka (modern Dharanikota near Amaravati in Guntur district, Andhra Pradesh) was the capital of the Satavahanas and a renowned mahachaitya center of the Mahasanghika school of Buddhism.",
+    "standard_book_ref": "Upinder Singh, Ancient India • NCERT Class 11 An Introduction to Indian Art, Chapter 4",
+    "elimination_trap": "Nagarjunakonda Distractor: While nearby Nagarjunakonda is also an Ikshvaku Buddhist site, historical Dhanyakataka refers strictly to Amaravati.",
+    "mains_linkage": {
+      "question": "Highlight the distinctive architectural and sculptural features of the Amaravati school of art and contrast it with Mathura sculpture. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2023-sct-20",
+    "year": 2023,
+    "subject": "Science & Technology",
+    "sub_topic": "Defense & Missile Technology",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following statements regarding Ballistic and Cruise Missiles:\n1. Cruise missiles are jet-propelled and fly entirely within the earth's atmosphere at constant aerodynamic lift.\n2. Ballistic missiles leave the earth's atmosphere during part of their flight trajectory and re-enter following a sub-orbital parabolic path.\n3. Agni-V is an intercontinental cruise missile, whereas BrahMos is a supersonic ballistic missile.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2023 Key",
+    "explanation": "• Statement 1 is correct: Cruise missiles are unmanned self-propelled guided vehicles flying within the atmosphere at low altitudes.\n• Statement 2 is correct: Ballistic missiles are rocket-propelled during the initial launch phase, arc into space, and follow a gravitational ballistic trajectory back to the target.\n• Statement 3 is incorrect: Agni-V is a long-range BALLISTIC missile, while BrahMos is a supersonic CRUISE missile (missile types are inverted).",
+    "standard_book_ref": "DRDO Technology Focus • Science & Technology Compendiums",
+    "elimination_trap": "Pair Inversion: Agni is ballistic, BrahMos is cruise. UPSC frequently swaps names of prominent defense systems.",
+    "mains_linkage": {
+      "question": "How has the induction of supersonic and hypersonic cruise missiles transformed India's maritime and anti-access/area-denial (A2/AD) capabilities? (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2022-polity-21",
+    "year": 2022,
+    "subject": "Polity & Governance",
+    "sub_topic": "Judiciary & Contempt of Court",
+    "difficulty": "Moderate",
+    "question_text": "With reference to the Contempt of Courts Act, 1971, consider the following statements:\n1. The power of the Supreme Court and High Courts to punish for contempt is derived exclusively from the Contempt of Courts Act, 1971.\n2. The Constitution of India defines both 'Civil Contempt' and 'Criminal Contempt'.\n3. In India, the Parliament is vested with the power to make laws regarding contempt of court.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2022 Key",
+    "explanation": "• Statement 1 is incorrect: The Supreme Court and High Courts derive their contempt powers directly from the Constitution (Articles 129 and 215 as Courts of Record), which cannot be abridged even by parliamentary statute.\n• Statement 2 is incorrect: The Constitution DOES NOT define civil or criminal contempt; they are defined in Section 2 of the Contempt of Courts Act, 1971.\n• Statement 3 is correct: Parliament has the constitutional authority under Entry 77 of the Union List and Entry 14 of the Concurrent List to legislate on contempt of court.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 26 (Supreme Court) • Articles 129, 215 & Contempt of Courts Act 1971",
+    "elimination_trap": "Constitutional Definition Trap: The Constitution mentions 'contempt of court', but NEVER defines what constitutes civil or criminal contempt.",
+    "mains_linkage": {
+      "question": "Does the law of criminal contempt under the Contempt of Courts Act 1971 chill legitimate public scrutiny of the judiciary? Analyze with recent judgments. (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2022-eco-22",
+    "year": 2022,
+    "subject": "Economy",
+    "sub_topic": "Monetary Operations & Liquidity",
+    "difficulty": "Easy",
+    "question_text": "In the context of the Indian economy, 'Open Market Operations' (OMO) conducted by the Reserve Bank of India refer to the:",
+    "options": [
+      "Borrowing by scheduled commercial banks from the RBI against collateral",
+      "Purchase and sale of government securities by the central bank in the open market",
+      "Lending by commercial banks to priority sectors at subsidized interest rates",
+      "Fixation of statutory minimum export prices for agricultural commodities"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2022 Key",
+    "explanation": "• Open Market Operations (OMOs) involve the outright purchase and sale of government securities (G-Secs) by the RBI to adjust the rupee liquidity conditions in the financial system on a durable basis.",
+    "standard_book_ref": "NCERT Class 12 Macroeconomics • RBI Functions & Working",
+    "elimination_trap": "Repo vs OMO: Short-term collateralized borrowing is Repo/Reverse Repo, whereas outright sale/purchase of G-Secs is OMO.",
+    "mains_linkage": {
+      "question": "Explain how Open Market Operations (OMOs) and Operation Twist help the central bank manage sovereign yield curves and macroeconomic liquidity. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2022-env-23",
+    "year": 2022,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Marine Ecology & Eco-Tech",
+    "difficulty": "Moderate",
+    "question_text": "The term 'Biorock Technology' is frequently discussed in the media in the context of which of the following?",
+    "options": [
+      "Extraction of shale gas from offshore geological formations",
+      "Restoration and regeneration of damaged coral reefs and marine habitats",
+      "Stabilization of agricultural soil slopes in landslide-prone hill areas",
+      "In situ remediation of heavy metals from municipal wastewater"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2022 Key",
+    "explanation": "• Biorock (mineral accretion technology) passes low-voltage electrical currents through seawater to precipitate calcium carbonate onto steel structures, accelerating coral calcification up to 3 to 5 times faster than normal.",
+    "standard_book_ref": "Zoological Survey of India (Coral Restoration in Gulf of Kutch) • PMF IAS Environment",
+    "elimination_trap": "Shale Gas Distractor: 'Rock' implies geological mining, but 'Bio-rock' is an electro-chemical marine calcification technique for corals.",
+    "mains_linkage": {
+      "question": "Ocean acidification and marine heatwaves are triggering unprecedented coral bleaching. Evaluate technological interventions like Biorock in preserving marine biodiversity. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2022-hist-24",
+    "year": 2022,
+    "subject": "History & Culture",
+    "sub_topic": "Mauryan Empire & Inscriptions",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following pairs of Ashokan sites and their corresponding Indian States:\n1. Dhauli : Odisha\n2. Erragudi : Andhra Pradesh\n3. Jaugada : Madhya Pradesh\n4. Kalsi : Karnataka\n\nHow many of the pairs given above are correctly matched?",
+    "options": [
+      "Only one pair",
+      "Only two pairs",
+      "Only three pairs",
+      "All four pairs"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2022 Key",
+    "explanation": "• Dhauli is in Odisha (near Bhubaneswar, site of Kalinga War) — Correct.\n• Erragudi is in Kurnool district of Andhra Pradesh — Correct.\n• Jaugada is in Ganjam district of ODISHA (not Madhya Pradesh) — Incorrect.\n• Kalsi is in Dehradun district of UTTARAKHAND (not Karnataka) — Incorrect.\nTherefore, exactly two pairs are correctly matched.",
+    "standard_book_ref": "Upinder Singh, Chapter 7 (The Mauryan Empire) • Archaeological Survey of India Edict Inventory",
+    "elimination_trap": "Pair Format: Kalsi is in the North (Uttarakhand hills) and Jaugada is in coastal Odisha. Only two pairs are valid.",
+    "mains_linkage": {
+      "question": "Ashokan edicts were an innovative medium for imperial communication and moral cohesion across diverse linguistic zones. Discuss. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2022-geo-25",
+    "year": 2022,
+    "subject": "Geography",
+    "sub_topic": "Geomorphology & Landforms",
+    "difficulty": "Moderate",
+    "question_text": "The 'Gandikota canyon' of South India was carved out by which one of the following rivers?",
+    "options": [
+      "Cauvery",
+      "Manjira",
+      "Pennar",
+      "Tungabhadra"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2022 Key",
+    "explanation": "• Known as the 'Grand Canyon of India', the Gandikota gorge was cut through the Erramala hills in Kadapa district of Andhra Pradesh by the Pennar River over millions of years.",
+    "standard_book_ref": "NCERT Class 11 Physical Geography • Survey of India Geotourism Sites",
+    "elimination_trap": "Tungabhadra Distractor: Hampi gorge is associated with Tungabhadra, whereas the dramatic Gandikota red granite canyon belongs strictly to Pennar.",
+    "mains_linkage": {
+      "question": "Explain the geomorphological processes responsible for canyon and gorge formation and how river rejuvenation shapes peninsular valleys. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2022-sct-26",
+    "year": 2022,
+    "subject": "Science & Technology",
+    "sub_topic": "Emerging Tech & Internet",
+    "difficulty": "Moderate",
+    "question_text": "With reference to 'Web 3.0', consider the following statements:\n1. Web 3.0 technology enables people to control their own personal data without reliance on centralized server platforms.\n2. In Web 3.0, blockchain-based social networks and decentralized autonomous organizations (DAOs) can operate.\n3. Web 3.0 operates primarily by replacing public internet infrastructure with closed private fiber-optic channels.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2022 Key",
+    "explanation": "• Statements 1 and 2 are correct: Web 3.0 represents a decentralized, permissionless web where users retain data ownership through cryptography and smart contracts without centralized tech monopolies.\n• Statement 3 is incorrect: Web 3.0 runs on standard open internet protocols and distributed peer-to-peer networks, not closed private cables.",
+    "standard_book_ref": "Science & Technology Current Affairs Compendiums • IEEE Tech Reports",
+    "elimination_trap": "Physical vs Protocol Layer: Web 3.0 is a decentralized software application/protocol layer, not proprietary private hardware cables.",
+    "mains_linkage": {
+      "question": "Discuss the potential of Web 3.0 and Decentralized Autonomous Organizations (DAOs) in enhancing data sovereignty and algorithmic transparency. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2021-polity-27",
+    "year": 2021,
+    "subject": "Polity & Governance",
+    "sub_topic": "Constitutionalism & Rule of Law",
+    "difficulty": "Moderate",
+    "question_text": "A 'Constitutional Government' by definition is a:",
+    "options": [
+      "Government by legislature",
+      "Popular government",
+      "Multi-party government",
+      "Limited government"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2021 Key",
+    "explanation": "• The essence of constitutionalism is 'Limited Government'. A constitution imposes institutional checks and balances, separation of powers, and fundamental rights to restrict arbitrary state authority and prevent majoritarian tyranny.",
+    "standard_book_ref": "NCERT Class 11 Indian Constitution at Work, Chapter 1 • M. Laxmikanth, Chapter 3",
+    "elimination_trap": "Democracy vs Constitutionalism: A government can be 'popular' or 'multi-party' but still act arbitrarily; a constitutional government is fundamentally one with legal limitations on power.",
+    "mains_linkage": {
+      "question": "Constitutionalism is not merely having a written constitution; it requires an ethos of restraint and institutional vigilance. Elaborate. (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2021-eco-28",
+    "year": 2021,
+    "subject": "Economy",
+    "sub_topic": "Money Supply & Banking Multiplier",
+    "difficulty": "Easy",
+    "question_text": "The 'Money Multiplier' in an economy increases with which one of the following?",
+    "options": [
+      "Increase in the Cash Reserve Ratio (CRR) in the banks",
+      "Increase in the Statutory Liquidity Ratio (SLR) in the banks",
+      "Increase in the banking habits of the population",
+      "Increase in the population of the country"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2021 Key",
+    "explanation": "• Money Multiplier equals Broad Money (M3) divided by Reserve Money (M0). When people hold less currency in cash and deposit more money into banks (increasing banking habits), banks have more deposits to create credit, expanding the money multiplier.\n• Increasing CRR or SLR forces banks to hold more reserves, which REDUCES credit creation and lowers the multiplier.",
+    "standard_book_ref": "NCERT Class 12 Macroeconomics, Chapter 3 (Money and Banking)",
+    "elimination_trap": "Reserve Ratio Inversion: Higher CRR decreases the money multiplier ($m = 1/r$). Greater banking habits increases it.",
+    "mains_linkage": {
+      "question": "Analyze the role of digital public infrastructure (UPI, Jan Dhan accounts) in formalizing household savings and increasing monetary transmission. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2021-env-29",
+    "year": 2021,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Carbon Sequestration & Oceans",
+    "difficulty": "Easy",
+    "question_text": "What is 'Blue Carbon'?",
+    "options": [
+      "Carbon captured by coastal, aquatic and marine ecosystems",
+      "Carbon sequestered in deep permafrost and polar ice caps",
+      "Carbon emissions produced from offshore oil and petroleum drilling",
+      "Carbon captured directly from industrial chimneys into synthetic polymers"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2021 Key",
+    "explanation": "• 'Blue Carbon' refers to the carbon captured and sequestered by the world's oceanic and coastal ecosystems, primarily mangroves, tidal salt marshes, and seagrass meadows. These habitats sequester carbon up to 10 times faster per hectare than terrestrial tropical rainforests.",
+    "standard_book_ref": "UNEP Blue Carbon Policy Report • Shankar IAS (Aquatic Ecosystems)",
+    "elimination_trap": "Direct Concept: Blue stands for marine/oceanic ecosystems, Green for terrestrial forests, Brown/Black for fossil fuels and industrial soot.",
+    "mains_linkage": {
+      "question": "Assess the potential of coastal blue carbon ecosystems (mangroves, seagrasses) in India's strategy to achieve Net Zero by 2070. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2021-hist-30",
+    "year": 2021,
+    "subject": "History & Culture",
+    "sub_topic": "Modern India & Freedom Struggle",
+    "difficulty": "Easy",
+    "question_text": "With reference to 8th August 1942 in Indian history, which one of the following statements is correct?",
+    "options": [
+      "The Quit India Resolution was adopted by the All India Congress Committee at Bombay",
+      "The Viceroy's Executive Council was expanded to include more Indians under the August Offer",
+      "The Congress ministries resigned in seven provinces protesting World War II",
+      "Cripps Mission arrived in New Delhi proposing Dominion status post-war"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2021 Key",
+    "explanation": "• On 8 August 1942, the All India Congress Committee passed the historic 'Quit India' Resolution at Gowalia Tank Maidan in Bombay, where Mahatma Gandhi delivered his famous 'Do or Die' (Karo ya Maro) speech.",
+    "standard_book_ref": "Bipin Chandra, India's Struggle for Independence • Rajiv Ahir (Spectrum Modern India)",
+    "elimination_trap": "August Offer vs Quit India: August Offer was 8 August 1940; Quit India was 8 August 1942.",
+    "mains_linkage": {
+      "question": "The Quit India Movement of 1942 was characterized by unprecedented underground networks and parallel governments (Prati Sarkar). Elaborate. (15M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2020-polity-31",
+    "year": 2020,
+    "subject": "Polity & Governance",
+    "sub_topic": "Constitutional Rights & Property",
+    "difficulty": "Moderate",
+    "question_text": "What is the legal status of the 'Right to Property' in India today?",
+    "options": [
+      "Fundamental Right available to citizens only",
+      "Legal right available to citizens only",
+      "Legal right available to any person",
+      "Neither Fundamental Right nor legal right"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2020 Key",
+    "explanation": "• The 44th Amendment Act, 1978 repealed Article 19(1)(f) and Article 31, stripping property of its Fundamental Right status.\n• It inserted Article 300A in Part XII: 'No person shall be deprived of his property save by authority of law'. It is a constitutional/legal right available to 'any person' (citizens as well as non-citizens and corporate entities).",
+    "standard_book_ref": "M. Laxmikanth, Chapter 7 & Chapter 34 (Property Rights - Article 300A)",
+    "elimination_trap": "Citizen vs Any Person Trap: Article 300A uses the word 'person', not 'citizen'. Therefore, foreign nationals and juristic entities also enjoy legal protection against unlawful confiscation.",
+    "mains_linkage": {
+      "question": "Examine how the Supreme Court has interpreted Article 300A to ensure fair compensation and human dignity in compulsory land acquisitions. (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2020-eco-32",
+    "year": 2020,
+    "subject": "Economy",
+    "sub_topic": "Monetary Policy Transmission",
+    "difficulty": "Moderate",
+    "question_text": "If the RBI decides to adopt an 'Expansionary Monetary Policy', which of the following would it NOT do?\n1. Cut and optimize the Statutory Liquidity Ratio (SLR)\n2. Increase the Marginal Standing Facility (MSF) rate\n3. Cut the Bank Rate and Repo Rate\n\nSelect the correct answer using the code given below:",
+    "options": [
+      "1 and 2 only",
+      "2 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2020 Key",
+    "explanation": "• In an expansionary (easy money) policy, the RBI wants to stimulate credit growth by lowering interest rates (cutting Repo Rate, Bank Rate, MSF rate) and lowering reserve requirements (cutting SLR/CRR).\n• Increasing the MSF rate makes overnight borrowing expensive for banks, which is a CONTRACTIONARY measure. Hence, RBI would NOT increase MSF rate.",
+    "standard_book_ref": "NCERT Class 12 Macroeconomics • Ramesh Singh (Monetary Policy Tools)",
+    "elimination_trap": "Negative Question Trap ('would it NOT do'): The question asks what the RBI avoids doing during stimulus. Increasing MSF suppresses liquidity.",
+    "mains_linkage": {
+      "question": "Assess the effectiveness of counter-cyclical monetary policy versus targeted fiscal support during macroeconomic stagflation. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2020-env-33",
+    "year": 2020,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Environmental Legislation & Statutory Bodies",
+    "difficulty": "Moderate",
+    "question_text": "Which one of the following has been constituted under the Environment (Protection) Act, 1986?",
+    "options": [
+      "Central Water Commission",
+      "Central Ground Water Board",
+      "Central Ground Water Authority",
+      "National Water Development Agency"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2020 Key",
+    "explanation": "• The Central Ground Water Authority (CGWA) was constituted under Section 3(3) of the Environment (Protection) Act, 1986 pursuant to the Supreme Court's directives in M.C. Mehta vs Union of India.\n• CGWB, on the other hand, is a subordinate office under the Ministry of Jal Shakti.",
+    "standard_book_ref": "MoEFCC Acts & Rules • Shankar IAS (Environmental Institutions)",
+    "elimination_trap": "Board vs Authority: Central Ground Water Board (CGWB) is an administrative body formed in 1970; Central Ground Water Authority (CGWA) is the statutory body under EPA 1986.",
+    "mains_linkage": {
+      "question": "Analyze the governance deficit in groundwater regulation in India and assess the statutory enforcement powers of the Central Ground Water Authority. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2020-geo-34",
+    "year": 2020,
+    "subject": "Geography",
+    "sub_topic": "Physiography & Glaciers",
+    "difficulty": "Easy",
+    "question_text": "Siachen Glacier is situated to the:",
+    "options": [
+      "East of Aksai Chin",
+      "East of Leh",
+      "North of Gilgit",
+      "North of Nubra Valley"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2020 Key",
+    "explanation": "• Siachen Glacier lies in the Eastern Karakoram range immediately North of the Nubra Valley. Meltwater from Siachen Glacier feeds the Nubra River, which flows into the Shyok River and subsequently into the Indus River system.\n• It lies West of Aksai Chin, North of Leh, and East of Gilgit.",
+    "standard_book_ref": "Oxford School Atlas / Orient BlackSwan • NCERT Class 11 India: Physical Environment",
+    "elimination_trap": "Directional Compass: Siachen is West of Aksai Chin (not East) and North of Nubra Valley.",
+    "mains_linkage": {
+      "question": "Discuss the strategic and geopolitical significance of the Siachen-Saltoro complex in guarding India's northern frontiers. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2020-sct-35",
+    "year": 2020,
+    "subject": "Science & Technology",
+    "sub_topic": "Biotechnology & Reproductive Genetics",
+    "difficulty": "Moderate",
+    "question_text": "In the context of recent developments in medical science, what is 'Pronuclear Transfer' used for?",
+    "options": [
+      "Deterrence of biodegradation of agricultural produce",
+      "Development of biodegradable plastics from marine algae",
+      "Production of synthetic hormones using genetically modified yeasts",
+      "Prevention of mitochondrial diseases in offspring"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2020 Key",
+    "explanation": "• Pronuclear transfer (PNT) is an in vitro fertilization (IVF) technique used in mitochondrial replacement therapy (MRT).\n• It transfers the pronuclei from a fertilized egg containing faulty maternal mitochondrial DNA into an enucleated healthy donor egg with normal mitochondria, preventing severe inherited mitochondrial disorders in the baby (often popularized as 'three-parent IVF').",
+    "standard_book_ref": "The Lancet / Nature Biotech Reports • NCERT Biology Class 12",
+    "elimination_trap": "Nuclear vs Mitochondrial: PNT cures mitochondrial DNA defects (inherited exclusively maternally), not nuclear chromosome defects.",
+    "mains_linkage": {
+      "question": "Examine the scientific mechanism and ethical dilemmas associated with mitochondrial replacement therapy (three-parent baby technology). (10M)",
+      "paper": "GS3"
+    }
   }
 ]
