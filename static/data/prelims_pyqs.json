@@ -1,5 +1,245 @@
 [
   {
+    "id": "2025-sct-10",
+    "year": 2025,
+    "subject": "Science & Technology",
+    "sub_topic": "Nuclear Energy & SMRs",
+    "difficulty": "Moderate",
+    "question_text": "In the context of the clean energy transition, what are 'Small Modular Reactors' (SMRs)?",
+    "options": [
+      "Miniature fission reactors used exclusively in medical imaging and radioactive tracer synthesis",
+      "Advanced nuclear reactors that have a power capacity up to 300 MW(e) per unit and can be factory-fabricated and transported to sites",
+      "Fusion-based micro-tokamaks designed for domestic household electricity generation",
+      "Mobile solar-powered battery units used for defense installations"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2025 Key",
+    "explanation": "• According to the International Atomic Energy Agency (IAEA), Small Modular Reactors (SMRs) are advanced nuclear fission reactors with an electrical power output of up to 300 MW(e) per unit (about one-third of the generating capacity of traditional nuclear power plants). Their modular components can be mass-manufactured in factories and shipped to locations.",
+    "standard_book_ref": "IAEA Advanced Nuclear Power Reports • Department of Atomic Energy (DAE) Releases",
+    "elimination_trap": "Fission vs Fusion: SMRs currently being deployed are nuclear FISSION reactors, not fusion reactors.",
+    "mains_linkage": {
+      "question": "Examine the role of Small Modular Reactors (SMRs) in decarbonizing hard-to-abate industrial sectors and addressing base-load clean energy requirements in India. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2025-hist-09",
+    "year": 2025,
+    "subject": "History & Culture",
+    "sub_topic": "Temple Architecture & Hoysalas",
+    "difficulty": "Moderate",
+    "question_text": "With reference to the Sacred Ensembles of the Hoysalas inscribed on the UNESCO World Heritage List, consider the following statements:\n1. The temples at Belur, Halebidu, and Somanathapura were built using fine-grained chloritic schist (soapstone).\n2. A signature characteristic of Hoysala temples is the stellate (star-shaped) ground plan raised on a wide platform called 'Jagati'.\n3. The temples exclusively venerate Lord Shiva, with no depiction of Vaishnava themes or iconography.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2025 Key",
+    "explanation": "• Statement 1 and 2 are correct: Hoysala artisans utilized soft soapstone (chloritic schist) for intricate filigree carvings, building temples with unique stellate (star-shaped) vimanas set on high Jagati platforms.\n• Statement 3 is incorrect: Hoysala temples patronized both Shaiva and Vaishnava traditions; the Chennakeshava temple at Belur and Keshava temple at Somanathapura are dedicated to Vishnu (Krishna/Keshava), while Hoysaleshwara at Halebidu is Shaiva.",
+    "standard_book_ref": "NCERT Class 11 An Introduction to Indian Art, Chapter 6 • Nitin Singhania (Temple Architecture)",
+    "elimination_trap": "Exclusivity Trap ('exclusively venerate Shiva'): Hoysala rulers were deeply eclectic; Chennakeshava temple at Belur is one of the most famous Vaishnava shrines in India.",
+    "mains_linkage": {
+      "question": "Analyze how the Hoysala temple architecture represents a synthesis of Nagara and Dravidian idioms into a distinct Vesara masterpiece. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2025-env-08",
+    "year": 2025,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Global Biodiversity Framework & Conservation",
+    "difficulty": "Moderate",
+    "question_text": "The '30x30 Target', often mentioned in the context of the Kunming-Montreal Global Biodiversity Framework (GBF), refers to:",
+    "options": [
+      "Reducing greenhouse gas emissions by 30% below 1990 levels by 2030",
+      "Ensuring that at least 30% of degraded terrestrial, inland water, and coastal/marine ecosystems are under effective conservation by 2030",
+      "Eliminating 30 hazardous chemical pesticides from agriculture within 30 months",
+      "Phasing out 30% of global coal-fired power plants across OECD countries by 2030"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2025 Key",
+    "explanation": "• Target 3 of the Kunming-Montreal GBF (adopted at COP15 CBD) commits nations to conserve and protect at least 30% of Earth's lands, inland waters, and ocean areas by 2030 through protected areas and Other Effective Area-based Conservation Measures (OECMs).",
+    "standard_book_ref": "UN Convention on Biological Diversity (CBD) COP15 • Shankar IAS (Biodiversity)",
+    "elimination_trap": "Emissions vs Biodiversity: 30x30 is an ecological habitat protection target under CBD, NOT a climate emission reduction target under UNFCCC.",
+    "mains_linkage": {
+      "question": "How can India reconcile the 30x30 biodiversity conservation target under the Kunming-Montreal Framework with the community forest rights of indigenous tribal populations under the FRA 2006? (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2025-eco-07",
+    "year": 2025,
+    "subject": "Economy",
+    "sub_topic": "Monetary Operations & Liquidity Management",
+    "difficulty": "Hard",
+    "question_text": "Consider the following statements regarding the 'Standing Deposit Facility' (SDF) introduced by the Reserve Bank of India:\n1. It enables the RBI to absorb surplus liquidity from commercial banks without providing collateral government securities in return.\n2. The SDF rate serves as the lower floor of the Liquidity Adjustment Facility (LAF) corridor.\n3. The introduction of SDF required an amendment to Section 17 of the Reserve Bank of India Act, 1934.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2025 Key",
+    "explanation": "• All statements are correct:\n• Statement 1: Unlike reverse repo operations which require collateral G-Secs, SDF allows the central bank to absorb uncollateralized liquidity, preventing collateral shortages during excessive liquidity.\n• Statement 2: SDF replaced the fixed reverse repo rate as the floor of the LAF corridor (SDF at policy repo -25 bps; MSF at repo +25 bps).\n• Statement 3: An amendment to Section 17 of the RBI Act in 2018 legally empowered the RBI to operationalize SDF.",
+    "standard_book_ref": "RBI Monetary Policy Framework • Macroeconomics NCERT / Ramesh Singh",
+    "elimination_trap": "Collateral Requirement: Remember that the primary reason SDF was invented was to absorb liquidity WITHOUT parting with government securities.",
+    "mains_linkage": {
+      "question": "Explain the operating architecture of the Liquidity Adjustment Facility (LAF) corridor and evaluate the efficacy of the Standing Deposit Facility in sterilizing surplus market liquidity. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2025-polity-06",
+    "year": 2025,
+    "subject": "Polity & Governance",
+    "sub_topic": "Election Commission & Appointment Process",
+    "difficulty": "Moderate",
+    "question_text": "Under the Chief Election Commissioner and other Election Commissioners (Appointment, Conditions of Service and Term of Office) Act, 2023, the Selection Committee responsible for recommending appointments consists of:\n1. The Prime Minister of India as Chairperson\n2. The Chief Justice of India\n3. The Leader of the Opposition or the Leader of the largest opposition party in the Lok Sabha\n4. A Union Cabinet Minister nominated by the Prime Minister\n\nSelect the correct answer using the code given below:",
+    "options": [
+      "1, 2 and 3 only",
+      "1, 3 and 4 only",
+      "1 and 3 only",
+      "1, 2, 3 and 4"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2025 Key",
+    "explanation": "• Under Section 7(1) of the Act, the Selection Committee consists of: (a) Prime Minister (Chairperson), (b) Leader of the Opposition in Lok Sabha, and (c) a Union Cabinet Minister nominated by the PM.\n• The Chief Justice of India, who was included by the Supreme Court's interim order in Anoop Baranwal (2023), was replaced by the statutory enactment with a Union Cabinet Minister.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 43 (Election Commission) • CEC & other ECs Act 2023",
+    "elimination_trap": "CJI Exclusion: The 2023 parliamentary statute explicitly omitted the Chief Justice of India from the Selection Committee, replacing the CJI with a Union Cabinet Minister.",
+    "mains_linkage": {
+      "question": "Examine whether the exclusion of the Chief Justice of India from the Selection Committee for Election Commissioners dilutes the institutional autonomy envisioned under Article 324. (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2026-geo-05",
+    "year": 2026,
+    "subject": "Geography",
+    "sub_topic": "Strategic Minerals & Energy Geography",
+    "difficulty": "Moderate",
+    "question_text": "With reference to Lithium exploration in India, consider the following statements:\n1. Salal-Haimana in the Reasi district of Jammu & Kashmir and Katghora in Chhattisgarh have been identified as major lithium-bearing blocks.\n2. The Offshore Areas Mineral (Development and Regulation) Amendment Act permits the auction of critical and strategic minerals to private sector companies.\n3. India is currently the world's largest producer of refined lithium, surpassing Chile and Australia.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2026 Key",
+    "explanation": "• Statement 1 and 2 are correct: GSI discovered lithium inferred resources in Reasi (J&K) and Katghora (Chhattisgarh). Legislative amendments in MMDR and OAMDR allowed commercial auction of 24 critical/strategic minerals including lithium to private players.\n• Statement 3 is incorrect: Australia is the largest lithium producer and Chile has the largest reserves, while China dominates refining (>60%). India is currently an import-dependent country for processed lithium.",
+    "standard_book_ref": "Ministry of Mines Annual Report • Indian Minerals Yearbook",
+    "elimination_trap": "Global Leader Trap: India has newly discovered deposits, but is far from being the largest producer or refiner.",
+    "mains_linkage": {
+      "question": "Critical minerals are the bedrock of the 21st-century clean energy transition. Examine India's domestic exploration and overseas acquisition strategies through KABIL. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2026-sct-04",
+    "year": 2026,
+    "subject": "Science & Technology",
+    "sub_topic": "Quantum Computing & Cryptography",
+    "difficulty": "Hard",
+    "question_text": "Consider the following statements regarding 'Post-Quantum Cryptography' (PQC):\n1. It refers to cryptographic algorithms designed to secure digital communications against decryption attacks by future quantum computers.\n2. Most existing public-key encryption standards like RSA and ECC are theoretically vulnerable to Shor's algorithm running on a sufficiently powerful quantum computer.\n3. PQC algorithms can only be executed on quantum processors and cannot run on traditional classical silicon computers.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2026 Key",
+    "explanation": "• Statement 1 and 2 are correct: Quantum algorithms like Shor's algorithm can solve prime factorization and discrete logarithms in polynomial time, breaking RSA and ECC encryption. Post-Quantum Cryptography (PQC) develops mathematical problems (lattice-based, code-based) that quantum computers cannot easily solve.\n• Statement 3 is incorrect: A crucial feature of PQC is that it runs on EXISTING classical computers and standard internet hardware; it does NOT require a quantum computer to operate.",
+    "standard_book_ref": "National Quantum Mission (NQM) Compendium • NIST PQC Standards",
+    "elimination_trap": "Hardware Trap: Post-Quantum Cryptography is designed to run on ordinary CLASSICAL computers to protect them against quantum attacks.",
+    "mains_linkage": {
+      "question": "The advent of quantum computing poses asymmetric threats to modern cybersecurity and sovereign data infrastructure. How does the National Quantum Mission address this vulnerability? (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2026-env-03",
+    "year": 2026,
+    "subject": "Environment & Ecology",
+    "sub_topic": "International Conventions & High Seas",
+    "difficulty": "Hard",
+    "question_text": "The 'High Seas Treaty' (Biodiversity Beyond National Jurisdiction - BBNJ Agreement) recently signed under UNCLOS focuses on:\n1. Establishing Marine Protected Areas (MPAs) in international waters outside Exclusive Economic Zones.\n2. Fair and equitable sharing of benefits derived from Marine Genetic Resources (MGRs).\n3. Granting exclusive territorial sovereignty over mineral-rich seabed polymetallic nodule fields to coastal developing states.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2026 Key",
+    "explanation": "• Statements 1 and 2 are correct: The BBNJ Treaty creates an international legal framework to establish MPAs in areas beyond national jurisdiction (covering nearly two-thirds of the world's oceans) and mandates transparent benefit-sharing from marine genetic resources.\n• Statement 3 is incorrect: The High Seas and the international seabed ('The Area') are designated as the 'Common Heritage of Humankind'. No state can claim or exercise sovereignty over any part thereof (governed by the International Seabed Authority).",
+    "standard_book_ref": "UNCLOS III Framework • Shankar IAS Environment (Marine Ecosystems)",
+    "elimination_trap": "Sovereignty Distractor: High Seas are open to all and belong to no single sovereign; mineral exploitation in 'The Area' is regulated by ISA as Common Heritage of Mankind.",
+    "mains_linkage": {
+      "question": "Evaluate the strategic and environmental significance of the BBNJ Agreement (High Seas Treaty) for global ocean conservation and India's Deep Ocean Mission. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2026-eco-02",
+    "year": 2026,
+    "subject": "Economy",
+    "sub_topic": "Green Finance & Carbon Markets",
+    "difficulty": "Moderate",
+    "question_text": "With reference to the Carbon Credit Trading Scheme (CCTS) notified under the Energy Conservation (Amendment) Act in India, consider the following statements:\n1. The Bureau of Energy Efficiency (BEE) acts as the administrator for the Indian carbon market.\n2. The Central Electricity Regulatory Commission (CERC) is the regulator for trading of Carbon Credit Certificates.\n3. Only voluntary non-obligated entities can trade carbon credits, whereas obligated energy-intensive industries are excluded from the domestic market.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2026 Key",
+    "explanation": "• Statement 1 is correct: The Bureau of Energy Efficiency (BEE) is the statutory administrator recommending targets and issuing Carbon Credit Certificates (CCCs).\n• Statement 2 is correct: CERC is mandated as the regulator for trading of carbon credits across recognized power exchanges.\n• Statement 3 is incorrect: The scheme has a mandatory compliance mechanism for designated obligated energy-intensive sectors (fertilizers, steel, cement) as well as an offset mechanism for voluntary non-obligated entities.",
+    "standard_book_ref": "Ministry of Power CCTS Framework • Ramesh Singh / Economic Survey",
+    "elimination_trap": "Exclusive Exclusion Trap ('only voluntary entities'): National carbon trading regimes rely fundamentally on mandatory compliance caps on heavy industrial emitters.",
+    "mains_linkage": {
+      "question": "Discuss the institutional architecture of the Indian Carbon Market (ICM) and assess its potential to incentivize industrial decarbonization without hurting manufacturing competitiveness. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2026-polity-01",
+    "year": 2026,
+    "subject": "Polity & Governance",
+    "sub_topic": "Constitutional Amendments & Representation",
+    "difficulty": "Moderate",
+    "question_text": "With reference to the Constitution (One Hundred and Sixth Amendment) Act (Nari Shakti Vandan Adhiniyam), consider the following statements:\n1. It reserves one-third of all seats for women in the Lok Sabha, the State Legislative Assemblies, and the Legislative Assembly of the National Capital Territory of Delhi.\n2. The reservation comes into effect immediately without requiring any delimitation exercise or post-amendment census publication.\n3. The horizontal reservation for women shall continue in perpetuity unless expressly abolished by a two-thirds majority in Parliament.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "1 and 2 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2026 Key",
+    "explanation": "• Statement 1 is correct: The 106th CAA, 2023 inserted Articles 330A, 332A, and 239AA(2)(b) reserving 33% seats for women in Lok Sabha, State Legislative Assemblies, and NCT of Delhi.\n• Statement 2 is incorrect: Under newly inserted Article 334A, the reservation takes effect only after an exercise of delimitation is undertaken based on the relevant figures of the first census conducted after the commencement of the Act.\n• Statement 3 is incorrect: Under Article 334A(1), the sunset clause provides that the reservation shall cease to have effect on the expiration of a period of 15 years from its commencement (unless extended by Parliament by law).",
+    "standard_book_ref": "M. Laxmikanth, Chapter 22 (Parliament) & Constitutional Amendments Summary • Articles 330A, 332A & 334A",
+    "elimination_trap": "Immediate Implementation Trap: The 106th CAA explicitly conditions operationalization on the post-enactment census and subsequent delimitation.",
+    "mains_linkage": {
+      "question": "Examine the constitutional design and socio-political hurdles in operationalizing the 106th Constitutional Amendment Act for women's legislative representation. (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
     "id": "2024-polity-01",
     "year": 2024,
     "subject": "Polity & Governance",
