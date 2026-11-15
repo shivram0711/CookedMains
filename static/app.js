@@ -17543,7 +17543,7 @@ function populatePrintAnnotatedCopies(evalData, pages, targetContainer) {
 
     if (typeof window.applyPreciseHandwritingBounds === "function") {
       const tempImg = new Image();
-      tempImg.src = pageSrc;
+      tempImg.src = dataUrl;
       window.applyPreciseHandwritingBounds(tempImg, pageNum, totalPages, sections, pageAnns);
     }
 
@@ -17662,6 +17662,63 @@ function populatePrintAnnotatedCopies(evalData, pages, targetContainer) {
     container.appendChild(sheetEl);
   });
 }
+
+// Direct Native Evaluated Copy PDF Export & Print Engine
+window.triggerEvaluatedPdfExport = function() {
+  let pages = [];
+  if (state.activePages && state.activePages.length > 0) {
+    pages = state.activePages;
+  } else if (state.originalPages && state.originalPages.length > 0) {
+    pages = state.originalPages;
+  } else if (state.rewrittenPages && state.rewrittenPages.length > 0) {
+    pages = state.rewrittenPages;
+  } else {
+    const activeImg = document.getElementById("activePageImage");
+    if (activeImg && activeImg.src && !activeImg.src.includes("data:image/svg") && !activeImg.src.endsWith("/")) {
+      pages = [activeImg.src];
+    }
+  }
+
+  if (pages.length === 0) {
+    if (typeof window.showAppToast === 'function') {
+      window.showAppToast('Please select or upload an answer script first to export PDF.', false);
+    } else {
+      alert('Please select or upload an answer script first to export PDF.');
+    }
+    return;
+  }
+
+  const activeEval = (state.activeCopyMode === 'original' && state.originalEvaluation)
+    ? state.originalEvaluation
+    : (state.currentEvaluation || state.rewrittenEvaluation || state.originalEvaluation || {});
+
+  const container = document.getElementById("evaluatedPrintPreviewContainer");
+  if (container) {
+    populatePrintAnnotatedCopies(activeEval, pages, container);
+    if (typeof populatePrintDossier === "function") {
+      populatePrintDossier(activeEval);
+    }
+
+    const p1 = document.getElementById("printPage1");
+    const p2 = document.getElementById("printPage2");
+    if (p1 && p2) {
+      const cloneP1 = p1.cloneNode(true);
+      const cloneP2 = p2.cloneNode(true);
+      cloneP1.id = "previewDossierPage1";
+      cloneP2.id = "previewDossierPage2";
+      container.appendChild(cloneP1);
+      container.appendChild(cloneP2);
+    }
+  }
+
+  document.body.classList.add("print-active-preview");
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => {
+      document.body.classList.remove("print-active-preview");
+    }, 2000);
+  }, 120);
+};
 
 // Interactive Evaluated Copy Print Preview Dialog (Unified Complete Dossier)
 window.openEvaluatedPrintPreview = function() {
@@ -21968,150 +22025,10 @@ window.submitModalQuestionAndProceed = function() {
 // Incorporating Points 2 (Step Badges), 4 (Topper Model View), and 7 (Smart Tooltip)
 // =========================================================================
 
-window.setEvaluationViewMode = function(mode) {
-  state.evaluationViewMode = mode || "red_pen";
-  try {
-    localStorage.setItem("mainsmentor_view_mode", state.evaluationViewMode);
-  } catch (e) {}
-
-  const redBtn = document.getElementById("viewModeRedPenBtn");
-  const cardsBtn = document.getElementById("viewModeCardsBtn");
-  const onPageOverlay = document.getElementById("onPageRedPenOverlay");
-  const desktopAudit = document.getElementById("desktopExaminerAuditContainer");
-
-  if (state.evaluationViewMode === "red_pen") {
-    if (redBtn) {
-      redBtn.className = "px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-600 text-white transition shadow-xs flex items-center gap-1 cursor-pointer";
-      redBtn.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span><span>✍️ Red Pen</span>`;
-    }
-    if (cardsBtn) {
-      cardsBtn.className = "px-2 py-0.5 rounded-md text-[10px] font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition flex items-center gap-1 cursor-pointer";
-      cardsBtn.innerHTML = `<span>📋 Cards</span>`;
-    }
-    if (onPageOverlay) onPageOverlay.style.display = "block";
-  } else {
-    if (redBtn) {
-      redBtn.className = "px-2 py-0.5 rounded-md text-[10px] font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition flex items-center gap-1 cursor-pointer";
-      redBtn.innerHTML = `<span>✍️ Red Pen</span>`;
-    }
-    if (cardsBtn) {
-      cardsBtn.className = "px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900 transition shadow-xs flex items-center gap-1 cursor-pointer";
-      cardsBtn.innerHTML = `<span>📋 Cards</span>`;
-    }
-    if (onPageOverlay) onPageOverlay.style.display = "none";
-    if (desktopAudit) desktopAudit.classList.remove("hidden");
-  }
-
-  const activeEval = (state.activeCopyMode === 'original' && state.originalEvaluation)
-    ? state.originalEvaluation
-    : (state.currentEvaluation || state.rewrittenEvaluation || state.originalEvaluation);
-  const currentPg = (state.currentPageIndex || 0) + 1;
-  const totalPages = (state.activePages && state.activePages.length) ? state.activePages.length : 1;
-
-  if (typeof window.renderOnPageRedPenEvaluation === "function") {
-    window.renderOnPageRedPenEvaluation(activeEval, currentPg, totalPages);
-  }
-};
-
-window.openTopperModelView = function() {
-  if (typeof window.switchStudioTab === "function") {
-    window.switchStudioTab("rewrite");
-  }
-  setTimeout(() => {
-    const target = document.getElementById("fullModelAnswerContainer") || document.getElementById("tabPaneRewrite");
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
-      target.classList.add("ring-2", "ring-amber-500", "transition-all");
-      setTimeout(() => target.classList.remove("ring-2", "ring-amber-500"), 2200);
-    }
-  }, 100);
-};
-
-let _smartTooltipTimeout = null;
-window.showSmartRedPenTooltip = function(ann, event) {
-  if (_smartTooltipTimeout) {
-    clearTimeout(_smartTooltipTimeout);
-    _smartTooltipTimeout = null;
-  }
-  const tooltip = document.getElementById("smartRedPenTooltip");
-  if (!tooltip || !ann) return;
-
-  const quoteEl = document.getElementById("tooltipQuoteText");
-  const remEl = document.getElementById("tooltipRemarkText");
-  const marksEl = document.getElementById("tooltipMarksText");
-  const rewEl = document.getElementById("tooltipRewriteText");
-  const rewSec = document.getElementById("tooltipRewriteSection");
-  const badgeEl = document.getElementById("tooltipBadgeText");
-
-  if (badgeEl) badgeEl.textContent = ann.tag || "EXAMINER RED-PEN";
-  if (marksEl) marksEl.textContent = ann.step_badge || ann.marks_awarded || "";
-  if (quoteEl) {
-    quoteEl.textContent = ann.target_snippet || ann.candidate_text || ann.quote || "Target handwriting passage";
-  }
-  if (remEl) {
-    remEl.innerHTML = (ann.margin_remark || ann.remark || "").replace(/\n/g, "<br>");
-  }
-  if (rewEl) {
-    const rew = ann.rewrite_suggestion || "";
-    if (rew) {
-      rewEl.textContent = rew;
-      if (rewSec) rewSec.classList.remove("hidden");
-      window._activeTooltipRewrite = rew;
-    } else if (rewSec) {
-      rewSec.classList.add("hidden");
-    }
-  }
-
-  const x = event.clientX || (event.touches && event.touches[0] ? event.touches[0].clientX : 200);
-  const y = event.clientY || (event.touches && event.touches[0] ? event.touches[0].clientY : 200);
-  const pad = 15;
-  const tooltipWidth = 320;
-  const tooltipHeight = 220;
-
-  let left = x + pad;
-  let top = y + pad;
-
-  if (left + tooltipWidth > window.innerWidth) {
-    left = Math.max(10, x - tooltipWidth - pad);
-  }
-  if (top + tooltipHeight > window.innerHeight) {
-    top = Math.max(10, y - tooltipHeight - pad);
-  }
-
-  tooltip.style.left = `${left}px`;
-  tooltip.style.top = `${top}px`;
-  tooltip.classList.remove("hidden");
-};
-
-window.hideSmartRedPenTooltip = function() {
-  _smartTooltipTimeout = setTimeout(() => {
-    const tooltip = document.getElementById("smartRedPenTooltip");
-    if (tooltip) tooltip.classList.add("hidden");
-  }, 300);
-};
-
-window.copyTopperRewriteFromTooltip = function() {
-  const text = window._activeTooltipRewrite || "";
-  if (text && navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => {
-      const btn = document.getElementById("tooltipCopyRewriteBtn");
-      if (btn) {
-        btn.textContent = "✓ Copied!";
-        setTimeout(() => { btn.textContent = "📋 Copy"; }, 1500);
-      }
-    });
-  }
-};
-
 window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, synthesizedSections) {
   const overlay = document.getElementById("onPageRedPenOverlay");
   if (!overlay) return;
   overlay.innerHTML = "";
-
-  if (state.evaluationViewMode === "cards") {
-    overlay.style.display = "none";
-    return;
-  }
   overlay.style.display = "block";
 
   const evalData = evalObj || state.currentEvaluation || {};
@@ -22130,9 +22047,7 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
         start_y_percent: sec.startYPercent,
         end_y_percent: sec.endYPercent,
         marks_awarded: sec.marks,
-        step_badge: sec.marks ? `${sec.marks}M ${sec.isTick ? '✓' : '⚠️'}` : '',
-        margin_remark: sec.bodyHtml ? sec.bodyHtml.replace(/<[^>]*>/g, " ").trim().slice(0, 95) : "Direct examiner assessment.",
-        rewrite_suggestion: "Anchor with specific statutory provisions, empirical metrics, and Topper benchmark keywords."
+        margin_remark: sec.bodyHtml ? sec.bodyHtml.replace(/<[^>]*>/g, " ").trim().slice(0, 110) : "Direct examiner assessment."
       };
     });
   }
@@ -22152,7 +22067,7 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
     return ya - yb;
   });
 
-  const minDeltaY = 11.5;
+  const minDeltaY = 13.5;
   const layoutItems = [];
 
   let runningBottom = 6.0;
@@ -22198,15 +22113,17 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
     const ann = item.ann;
     const tx = item.targetX * 10;
     const ty = item.targetY * 14.14;
-    const mx = 750;
-    const my = item.placedY * 14.14 + 18;
+    const mx = 760;
+    const my = item.placedY * 14.14 + 14;
 
-    const markerType = ann.marker_type || (ann.type === "warning" || ann.type === "cross" ? "circle" : "tick");
+    const isError = ann.type === "cross" || ann.type === "warning" || String(ann.tag).includes("✗") || /inaccuracy|flaw|error|mistake|contradict|gap|missing/i.test(String(ann.margin_remark || ann.remark || ""));
+    const isSuggestion = ann.type === "suggestion" || String(ann.tag).includes("✎");
+    const markerType = ann.marker_type || (isError ? "circle" : (isSuggestion ? "bracket" : "tick"));
 
     // 1. On-Page Visual Marker
     if (markerType === "circle") {
-      const rx = 52;
-      const ry = 19;
+      const rx = 56;
+      const ry = 20;
       const rot = (idx % 2 === 0 ? -2.2 : 2.0);
       const circleEl = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
       circleEl.setAttribute("cx", tx);
@@ -22215,26 +22132,18 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
       circleEl.setAttribute("ry", ry);
       circleEl.setAttribute("fill", "none");
       circleEl.setAttribute("stroke", "#dc2626");
-      circleEl.setAttribute("stroke-width", "2.6");
+      circleEl.setAttribute("stroke-width", "2.8");
       circleEl.setAttribute("stroke-linecap", "round");
       circleEl.setAttribute("transform", `rotate(${rot} ${tx} ${ty})`);
-      circleEl.setAttribute("class", "cursor-pointer pointer-events-auto transition-all");
-      circleEl.addEventListener("mouseenter", (e) => window.showSmartRedPenTooltip(ann, e));
-      circleEl.addEventListener("mouseleave", () => window.hideSmartRedPenTooltip());
-      circleEl.addEventListener("click", (e) => window.showSmartRedPenTooltip(ann, e));
       svg.appendChild(circleEl);
     } else if (markerType === "bracket") {
-      const bh = 50;
+      const bh = 46;
       const bPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      bPath.setAttribute("d", `M ${tx-30} ${ty-bh} Q ${tx-40} ${ty-bh/2} ${tx-48} ${ty} Q ${tx-40} ${ty+bh/2} ${tx-30} ${ty+bh}`);
+      bPath.setAttribute("d", `M ${tx-28} ${ty-bh} Q ${tx-38} ${ty-bh/2} ${tx-44} ${ty} Q ${tx-38} ${ty+bh/2} ${tx-28} ${ty+bh}`);
       bPath.setAttribute("fill", "none");
       bPath.setAttribute("stroke", "#dc2626");
       bPath.setAttribute("stroke-width", "2.6");
       bPath.setAttribute("stroke-linecap", "round");
-      bPath.setAttribute("class", "cursor-pointer pointer-events-auto");
-      bPath.addEventListener("mouseenter", (e) => window.showSmartRedPenTooltip(ann, e));
-      bPath.addEventListener("mouseleave", () => window.hideSmartRedPenTooltip());
-      bPath.addEventListener("click", (e) => window.showSmartRedPenTooltip(ann, e));
       svg.appendChild(bPath);
     } else {
       const tick = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -22244,10 +22153,6 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
       tick.setAttribute("stroke-width", "3.2");
       tick.setAttribute("stroke-linecap", "round");
       tick.setAttribute("stroke-linejoin", "round");
-      tick.setAttribute("class", "cursor-pointer pointer-events-auto");
-      tick.addEventListener("mouseenter", (e) => window.showSmartRedPenTooltip(ann, e));
-      tick.addEventListener("mouseleave", () => window.hideSmartRedPenTooltip());
-      tick.addEventListener("click", (e) => window.showSmartRedPenTooltip(ann, e));
       svg.appendChild(tick);
     }
 
@@ -22255,60 +22160,48 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
     const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
     const ctrlX = (mx + tx) / 2;
     const ctrlY = my + (ty - my) * 0.28;
-    const endX = tx + (markerType === "circle" ? 48 : 20);
+    const endX = tx + (markerType === "circle" ? 54 : 20);
     arrowPath.setAttribute("d", `M ${mx} ${my} Q ${ctrlX} ${ctrlY} ${endX} ${ty}`);
     arrowPath.setAttribute("fill", "none");
     arrowPath.setAttribute("stroke", "#dc2626");
-    arrowPath.setAttribute("stroke-width", "1.9");
+    arrowPath.setAttribute("stroke-width", "2.0");
     arrowPath.setAttribute("stroke-linecap", "round");
     arrowPath.setAttribute("marker-end", "url(#redArrowhead)");
     svg.appendChild(arrowPath);
 
-    // 3. Margin Card in Right Margin
-    const cardEl = document.createElement("div");
-    cardEl.className = "onpage-redpen-card absolute";
-    cardEl.style.left = "76.5%";
-    cardEl.style.width = "22%";
-    cardEl.style.top = `${item.placedY}%`;
+    // 3. Clear Handwriting Margin Remark (Competitor SuperKalam Replica: Frameless, Legible & Authentic)
+    const noteEl = document.createElement("div");
+    noteEl.className = "onpage-redpen-note absolute";
+    noteEl.style.left = "77%";
+    noteEl.style.width = "22.5%";
+    noteEl.style.top = `${item.placedY}%`;
 
-    const tagStr = ann.tag ? String(ann.tag).replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, "") : "Examiner Point";
+    const rawTag = ann.tag ? String(ann.tag).replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, "").trim() : (isError ? "Factual Inaccuracy" : "Core Analysis");
+    const cleanTag = rawTag.replace(/^[✓✔✎✗×]\s*/, "");
     const remStr = ann.margin_remark || ann.remark || "";
-    const cleanRem = remStr.replace(/\*\*/g, "").slice(0, 110);
+    const cleanRem = remStr.replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").slice(0, 130);
 
-    cardEl.innerHTML = `
-      <div style="font-weight: 700; font-size: 11px; letter-spacing: 0.2px; color: #991b1b; border-bottom: 1px dashed rgba(220,38,38,0.3); padding-bottom: 2px; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center;">
-        <span class="truncate">${escapeHtml(tagStr)}</span>
-        ${ann.marks_awarded ? `<span style="font-size: 9.5px; font-mono; opacity: 0.85;">${escapeHtml(ann.marks_awarded)}</span>` : ''}
-      </div>
-      <div style="font-size: 11.5px; line-height: 1.25; color: #b91c1c;">
-        ${escapeHtml(cleanRem)}
-      </div>
+    let leadHtml = "";
+    if (isError) {
+      leadHtml = `<span class="redpen-lead error">✗ ${escapeHtml(cleanTag)}:</span>`;
+    } else if (isSuggestion) {
+      leadHtml = `<span class="redpen-lead suggestion">✎ ${escapeHtml(cleanTag)}:</span>`;
+    } else {
+      leadHtml = `<span class="redpen-lead success">✓ ${escapeHtml(cleanTag)}:</span>`;
+    }
+
+    noteEl.innerHTML = `
+      ${leadHtml}
+      <span class="redpen-body">${escapeHtml(cleanRem)}</span>
     `;
 
-    cardEl.addEventListener("mouseenter", (e) => window.showSmartRedPenTooltip(ann, e));
-    cardEl.addEventListener("mouseleave", () => window.hideSmartRedPenTooltip());
-    cardEl.addEventListener("click", (e) => window.showSmartRedPenTooltip(ann, e));
-    overlay.appendChild(cardEl);
-
-    // 4. Suggestion Point 2: Stamped Section Step-Marking Badges
-    if (ann.marks_awarded && ann.type !== "info") {
-      const badgeEl = document.createElement("div");
-      badgeEl.className = "onpage-step-badge absolute";
-      badgeEl.style.left = "3.5%";
-      badgeEl.style.top = `${item.placedY}%`;
-      const badgeText = ann.step_badge || `${ann.marks_awarded}M ✓`;
-      badgeEl.innerHTML = `<span>${escapeHtml(badgeText)}</span>`;
-      badgeEl.addEventListener("mouseenter", (e) => window.showSmartRedPenTooltip(ann, e));
-      badgeEl.addEventListener("mouseleave", () => window.hideSmartRedPenTooltip());
-      badgeEl.addEventListener("click", (e) => window.showSmartRedPenTooltip(ann, e));
-      overlay.appendChild(badgeEl);
-    }
+    overlay.appendChild(noteEl);
   });
 
   overlay.appendChild(svg);
 };
 
-// Stage 3: Helper to generate on-page red pen SVG & cards HTML for Print & PDF Export
+// Helper to generate on-page red pen SVG & notes HTML for Print & PDF Export
 window.generatePrintRedPenOverlayHtml = function(pageAnns, sections) {
   let anns = Array.isArray(pageAnns) && pageAnns.length > 0 ? pageAnns : [];
   if (anns.length === 0 && Array.isArray(sections) && sections.length > 0) {
@@ -22318,14 +22211,13 @@ window.generatePrintRedPenOverlayHtml = function(pageAnns, sections) {
       approx_x_percent: 32,
       approx_y_percent: Math.round((sec.startYPercent + sec.endYPercent) / 2),
       marks_awarded: sec.marks,
-      step_badge: sec.marks ? `${sec.marks}M ${sec.isTick ? '✓' : '⚠️'}` : '',
-      margin_remark: sec.bodyHtml ? sec.bodyHtml.replace(/<[^>]*>/g, " ").trim().slice(0, 95) : "Direct assessment."
+      margin_remark: sec.bodyHtml ? sec.bodyHtml.replace(/<[^>]*>/g, " ").trim().slice(0, 110) : "Direct assessment."
     }));
   }
 
   if (anns.length === 0) return "";
 
-  const minDeltaY = 11.5;
+  const minDeltaY = 13.5;
   const layout = [];
   let curBottom = 6.0;
 
@@ -22343,52 +22235,51 @@ window.generatePrintRedPenOverlayHtml = function(pageAnns, sections) {
   }
 
   let pathsHtml = "";
-  let cardsHtml = "";
-  let badgesHtml = "";
+  let notesHtml = "";
 
   layout.forEach((it, idx) => {
     const a = it.ann;
     const tx = it.targetX * 10;
     const ty = it.targetY * 14.14;
-    const mx = 750;
-    const my = it.placedY * 14.14 + 18;
-    const mType = a.marker_type || (a.type === "warning" || a.type === "cross" ? "circle" : "tick");
+    const mx = 760;
+    const my = it.placedY * 14.14 + 14;
+
+    const isErr = a.type === "cross" || a.type === "warning" || String(a.tag).includes("✗") || /inaccuracy|flaw|error|mistake|contradict|gap|missing/i.test(String(a.margin_remark || a.remark || ""));
+    const isSug = a.type === "suggestion" || String(a.tag).includes("✎");
+    const mType = a.marker_type || (isErr ? "circle" : (isSug ? "bracket" : "tick"));
 
     if (mType === "circle") {
-      pathsHtml += `<ellipse cx="${tx}" cy="${ty}" rx="52" ry="19" fill="none" stroke="#dc2626" stroke-width="2.6" stroke-linecap="round" transform="rotate(-2 ${tx} ${ty})" />`;
+      pathsHtml += `<ellipse cx="${tx}" cy="${ty}" rx="56" ry="20" fill="none" stroke="#dc2626" stroke-width="2.8" stroke-linecap="round" transform="rotate(-2 ${tx} ${ty})" />`;
     } else if (mType === "bracket") {
-      pathsHtml += `<path d="M ${tx-30} ${ty-50} Q ${tx-40} ${ty-25} ${tx-48} ${ty} Q ${tx-40} ${ty+25} ${tx-30} ${ty+50}" fill="none" stroke="#dc2626" stroke-width="2.6" stroke-linecap="round" />`;
+      pathsHtml += `<path d="M ${tx-28} ${ty-46} Q ${tx-38} ${ty-23} ${tx-44} ${ty} Q ${tx-38} ${ty+23} ${tx-28} ${ty+46}" fill="none" stroke="#dc2626" stroke-width="2.6" stroke-linecap="round" />`;
     } else {
       pathsHtml += `<path d="M ${tx-14} ${ty+2} L ${tx-4} ${ty+12} L ${tx+16} ${ty-12}" fill="none" stroke="#dc2626" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />`;
     }
 
     const ctrlX = (mx + tx) / 2;
     const ctrlY = my + (ty - my) * 0.28;
-    const endX = tx + (mType === "circle" ? 48 : 20);
-    pathsHtml += `<path d="M ${mx} ${my} Q ${ctrlX} ${ctrlY} ${endX} ${ty}" fill="none" stroke="#dc2626" stroke-width="1.9" stroke-linecap="round" marker-end="url(#printRedArrowhead)" />`;
+    const endX = tx + (mType === "circle" ? 54 : 20);
+    pathsHtml += `<path d="M ${mx} ${my} Q ${ctrlX} ${ctrlY} ${endX} ${ty}" fill="none" stroke="#dc2626" stroke-width="2.0" stroke-linecap="round" marker-end="url(#printRedArrowhead)" />`;
 
-    const tagStr = a.tag ? String(a.tag).replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, "") : "Examiner Point";
-    const remStr = (a.margin_remark || a.remark || "").replace(/\*\*/g, "").slice(0, 110);
+    const rawT = a.tag ? String(a.tag).replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, "").trim() : (isErr ? "Factual Inaccuracy" : "Examiner Point");
+    const cTag = rawT.replace(/^[✓✔✎✗×]\s*/, "");
+    const rStr = (a.margin_remark || a.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").slice(0, 130);
 
-    cardsHtml += `
-      <div class="onpage-redpen-card absolute" style="left: 76.5%; width: 22%; top: ${it.placedY}%; font-size: 10px;">
-        <div style="font-weight: 700; font-size: 10px; color: #991b1b; border-bottom: 1px dashed rgba(220,38,38,0.3); padding-bottom: 1px; margin-bottom: 2px;">
-          ${escapeHtml(tagStr)} ${a.marks_awarded ? `<span style="float: right;">${escapeHtml(a.marks_awarded)}</span>` : ''}
-        </div>
-        <div style="font-size: 10px; line-height: 1.2; color: #b91c1c;">
-          ${escapeHtml(remStr)}
-        </div>
+    let lHtml = "";
+    if (isErr) {
+      lHtml = `<span class="redpen-lead error" style="font-weight: 700; color: #dc2626; display: block;">✗ ${escapeHtml(cTag)}:</span>`;
+    } else if (isSug) {
+      lHtml = `<span class="redpen-lead suggestion" style="font-weight: 700; color: #b45309; display: block;">✎ ${escapeHtml(cTag)}:</span>`;
+    } else {
+      lHtml = `<span class="redpen-lead success" style="font-weight: 700; color: #047857; display: block;">✓ ${escapeHtml(cTag)}:</span>`;
+    }
+
+    notesHtml += `
+      <div class="onpage-redpen-note absolute" style="left: 77%; width: 22.5%; top: ${it.placedY}%; font-family: 'Kalam', 'Caveat', cursive, sans-serif; font-size: 11pt; line-height: 1.35; color: #991b1b;">
+        ${lHtml}
+        <span class="redpen-body" style="display: block;">${escapeHtml(rStr)}</span>
       </div>
     `;
-
-    if (a.marks_awarded && a.type !== "info") {
-      const bText = a.step_badge || `${a.marks_awarded}M ✓`;
-      badgesHtml += `
-        <div class="onpage-step-badge absolute" style="left: 3.5%; top: ${it.placedY}%; font-size: 11px;">
-          <span>${escapeHtml(bText)}</span>
-        </div>
-      `;
-    }
   });
 
   return `
@@ -22400,7 +22291,6 @@ window.generatePrintRedPenOverlayHtml = function(pageAnns, sections) {
       </defs>
       ${pathsHtml}
     </svg>
-    ${cardsHtml}
-    ${badgesHtml}
+    ${notesHtml}
   `;
 };

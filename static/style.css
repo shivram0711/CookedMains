@@ -4715,64 +4715,60 @@ html.dark #heroScoreBannerCard {
 
 
 /* =========================================================================
-   ON-PAGE RED-PEN EVALUATION MECHANISM & ANTI-OVERLAP CANVAS STYLES
+   ON-PAGE RED-PEN EVALUATION MECHANISM & COMPETITOR-PARITY STYLES
    ========================================================================= */
-.onpage-redpen-card {
-  font-family: 'Caveat', 'Kalam', cursive, sans-serif !important;
-  color: #b91c1c !important;
-  background-color: rgba(255, 255, 255, 0.96);
-  border: 1.5px solid rgba(220, 38, 38, 0.65);
-  border-radius: 8px;
-  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
-  padding: 6px 10px;
-  line-height: 1.25;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-  backdrop-filter: blur(4px);
-  user-select: none;
-  z-index: 28;
-}
-html.dark .onpage-redpen-card {
-  background-color: rgba(26, 17, 23, 0.95);
-  color: #f87171 !important;
-  border-color: rgba(239, 68, 68, 0.6);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
-}
-.onpage-redpen-card:hover {
-  transform: translateY(-2px) scale(1.02);
-  border-color: #dc2626 !important;
-  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.28);
-  z-index: 45 !important;
-}
-.onpage-step-badge {
-  font-family: 'Caveat', 'Kalam', cursive, sans-serif !important;
-  font-size: 13.5px;
-  font-weight: 700;
+.onpage-redpen-note {
+  font-family: 'Kalam', 'Caveat', cursive, sans-serif !important;
   color: #991b1b !important;
-  background: rgba(254, 226, 226, 0.94);
-  border: 1.5px dashed #dc2626;
-  border-radius: 6px;
-  padding: 2px 7px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.18);
-  transform: rotate(-1.5deg);
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  user-select: none;
-  z-index: 30;
+  font-size: clamp(12.5px, 1.3vw, 15px);
+  line-height: 1.38;
+  word-break: break-word;
+  user-select: text;
+  z-index: 28;
+  background: transparent;
+  padding: 2px 4px;
+  transition: transform 0.15s ease;
 }
-html.dark .onpage-step-badge {
-  background: rgba(80, 18, 24, 0.94);
-  color: #fca5a5 !important;
-  border-color: #ef4444;
+html.dark .onpage-redpen-note {
+  color: #f87171 !important;
 }
-.onpage-step-badge:hover {
-  transform: rotate(0deg) scale(1.08);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+.onpage-redpen-note:hover {
+  transform: scale(1.02);
   z-index: 45 !important;
 }
+
+.redpen-lead {
+  font-weight: 700;
+  display: block;
+  margin-bottom: 2px;
+  font-size: 1.02em;
+  letter-spacing: 0.2px;
+}
+.redpen-lead.error {
+  color: #dc2626 !important;
+}
+html.dark .redpen-lead.error {
+  color: #f87171 !important;
+}
+.redpen-lead.suggestion {
+  color: #b45309 !important;
+}
+html.dark .redpen-lead.suggestion {
+  color: #fbbf24 !important;
+}
+.redpen-lead.success {
+  color: #047857 !important;
+}
+html.dark .redpen-lead.success {
+  color: #34d399 !important;
+}
+
+.redpen-body {
+  color: inherit;
+  font-weight: 500;
+  display: block;
+}
+
 .onpage-arrow-svg {
   position: absolute;
   inset: 0;

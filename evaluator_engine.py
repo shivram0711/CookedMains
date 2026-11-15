@@ -1348,79 +1348,132 @@ def build_hindi_evaluation_prompt(
       "marker_type": "tick",
       "target_snippet": "[परीक्षार्थी की आरंभिक पंक्ति से 2-7 शब्द]",
       "approx_x_percent": 32,
-      "approx_y_percent": 30,
+      "approx_y_percent": 28,
       "tag": "प्रस्तावना (भूमिका)",
       "start_y_percent": 24,
       "end_y_percent": 38,
       "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
-      "step_badge": "+{d1_aw:.1f} / {d1_m:.1f}M ✓",
       "margin_remark": "✓ सटीक अवधारणात्मक शुरुआत।\\n✎ [1 विषय-विशिष्ट सुधार]",
-      "rewrite_suggestion": "[सीधे जोड़ने योग्य 1 मानक वाक्य]",
       "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — सटीक Conceptual Baseline के साथ प्रभावी शुरुआत।\\n✎ **सुधार**: 1 विषय-सटीक संवर्धन जोड़ें।"
     }}}},
     {{{{
+      "page": 1,
       "page_number": 1,
-      "tag": "Body: [प्रथम उप-शीर्षक]",
-      "start_y_percent": 42,
-      "end_y_percent": 88,
+      "marker_type": "circle",
+      "target_snippet": "[परीक्षार्थी द्वारा लिखा गया कोई त्रुटिपूर्ण तथ्य या कमजोर दावा]",
+      "approx_x_percent": 36,
+      "approx_y_percent": 68,
+      "tag": "✗ तथ्यात्मक त्रुटि / विश्लेषणात्मक कमी",
+      "type": "cross",
+      "start_y_percent": 45,
+      "end_y_percent": 86,
       "marks_awarded": "+{d2_aw:.1f} / {d2_m:.1f}",
-      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — बिंदुवार संरचना का सटीक उपयोग।\\n✎ **सुधार**: प्रासंगिक समिति/आंकड़े का उल्लेख करें।"
+      "margin_remark": "✗ तथ्यात्मक त्रुटि: [त्रुटि की पहचान करें एवं सही तथ्य/आंकड़ा बताएं]।",
+      "remark": "✗ **तथ्यात्मक त्रुटि**: परीक्षार्थी ने लिखा \"[त्रुटिपूर्ण वाक्य]\" — [स्पष्ट करें कि यह त्रुटिपूर्ण क्यों है तथा प्रामाणिक आंकड़ा बताएं]।"
     }}}},
     {{{{
+      "page": 2,
       "page_number": 2,
+      "marker_type": "tick",
+      "target_snippet": "[द्वितीय पृष्ठ से परीक्षार्थी का मुख्य तर्क]",
+      "approx_x_percent": 34,
+      "approx_y_percent": 45,
       "tag": "Body: [द्वितीय उप-शीर्षक / मुख्य विश्लेषण]",
+      "type": "tick",
       "start_y_percent": 10,
       "end_y_percent": 88,
       "marks_awarded": "+{d3_aw:.1f} / {d3_m:.1f}",
+      "margin_remark": "✓ बहु-आयामी विश्लेषण व स्पष्ट बिंदुवार प्रस्तुति।\\n✎ संवैधानिक प्रावधान जोड़ें।",
       "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — बहु-आयामी विश्लेषण।\\n✎ **सुधार**: ठोस उदाहरण एवं संवैधानिक प्रावधान जोड़ें।"
     }}}},
     {{{{
+      "page": 3,
       "page_number": 3,
-      "tag": "Body: [तृतीय उप-शीर्षक / सुधार रणनीतियाँ]",
+      "marker_type": "circle",
+      "target_snippet": "[तृतीय पृष्ठ पर अस्पष्ट या गलत संदर्भ]",
+      "approx_x_percent": 38,
+      "approx_y_percent": 38,
+      "tag": "✗ संदर्भ / आंकड़े की कमी",
+      "type": "cross",
       "start_y_percent": 10,
-      "end_y_percent": 68,
+      "end_y_percent": 64,
       "marks_awarded": "+{round(d_c_aw, 1):.1f} / {round(d_c_m, 1):.1f}",
-      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — व्यावहारिक सुधार रणनीति।\\n✎ **सुधार**: नीतिगत ढांचा व कार्यान्वयन रोडमैप जोड़ें।"
+      "margin_remark": "✗ अस्पष्ट संदर्भ: [सटीक समिति/नीतिगत सुधार का उल्लेख करें]।",
+      "remark": "✗ **कमी**: परीक्षार्थी ने सुधारों में केवल सामान्य बातें लिखीं — [सटीक नीतिगत ढांचे का उल्लेख करें]।"
     }}}},
     {{{{
+      "page": 3,
       "page_number": 3,
+      "marker_type": "tick",
+      "target_snippet": "[तृतीय पृष्ठ से निष्कर्ष का अंतिम वाक्य]",
+      "approx_x_percent": 34,
+      "approx_y_percent": 76,
       "tag": "निष्कर्ष (आगे की राह)",
-      "start_y_percent": 70,
+      "type": "suggestion",
+      "start_y_percent": 68,
       "end_y_percent": 86,
       "marks_awarded": "+{round(d4_aw, 1):.1f} / {round(d4_m, 1):.1f}",
+      "margin_remark": "✓ उत्तर का संतुलित समापन।\\n✎ 1 दूरदर्शी संस्थागत सुधार जोड़ें।",
       "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — उत्तर का संतुलित समापन।\\n✎ **सुधार**: आगे की राह में 1 ठोस संस्थागत सुधार जोड़ें।"
     }}}}'''
     else:
         hindi_prompt_visual_annotations_example = f'''    {{{{
+      "page": 1,
       "page_number": 1,
+      "marker_type": "tick",
+      "target_snippet": "[परीक्षार्थी की आरंभिक पंक्ति से 2-7 शब्द]",
+      "approx_x_percent": 32,
+      "approx_y_percent": 28,
       "tag": "प्रस्तावना (भूमिका)",
       "start_y_percent": 24,
       "end_y_percent": 38,
       "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
-      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — सटीक Conceptual Baseline के साथ प्रभावी शुरुआत।\\n✎ **सुधार**: 1 विषय-सटीक संवर्धन जोड़ें।"
+      "margin_remark": "✓ सटीक अवधारणात्मक शुरुआत।\\n✎ [1 विषय-विशिष्ट सुधार]",
+      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — सटीक शुरुआत।\\n✎ **सुधार**: 1 विषय-सटीक संवर्धन जोड़ें।"
     }}}},
     {{{{
+      "page": 1,
       "page_number": 1,
-      "tag": "Body: [प्रथम उप-शीर्षक]",
-      "start_y_percent": 42,
-      "end_y_percent": 88,
+      "marker_type": "circle",
+      "target_snippet": "[प्रथम पृष्ठ से तथ्यात्मक या अवधारणात्मक कमी]",
+      "approx_x_percent": 36,
+      "approx_y_percent": 68,
+      "tag": "✗ तथ्यात्मक त्रुटि / विश्लेषणात्मक कमी",
+      "type": "cross",
+      "start_y_percent": 45,
+      "end_y_percent": 86,
       "marks_awarded": "+{d2_aw:.1f} / {d2_m:.1f}",
-      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — बिंदुवार संरचना का सटीक उपयोग।\\n✎ **सुधार**: प्रासंगिक समिति/आंकड़े का उल्लेख करें।"
+      "margin_remark": "✗ तथ्यात्मक त्रुटि: [सटीक गलती व सही तथ्य बताएं]।",
+      "remark": "✗ **त्रुटि**: परीक्षार्थी का दावा अपूर्ण/गलत है — [सही तथ्य बताएं]।"
     }}}},
     {{{{
+      "page": 2,
       "page_number": 2,
+      "marker_type": "tick",
+      "target_snippet": "[द्वितीय पृष्ठ से मुख्य तर्क]",
+      "approx_x_percent": 34,
+      "approx_y_percent": 40,
       "tag": "Body: [द्वितीय उप-शीर्षक]",
+      "type": "tick",
       "start_y_percent": 10,
       "end_y_percent": 68,
       "marks_awarded": "+{d3_aw:.1f} / {d3_m:.1f}",
+      "margin_remark": "✓ बहु-आयामी विश्लेषण।\\n✎ ठोस उदाहरण जोड़ें।",
       "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — बहु-आयामी विश्लेषण।\\n✎ **सुधार**: ठोस उदाहरण एवं संवैधानिक प्रावधान जोड़ें।"
     }}}},
     {{{{
+      "page": 2,
       "page_number": 2,
+      "marker_type": "tick",
+      "target_snippet": "[द्वितीय पृष्ठ से निष्कर्ष का वाक्य]",
+      "approx_x_percent": 34,
+      "approx_y_percent": 74,
       "tag": "निष्कर्ष (आगे की राह)",
+      "type": "suggestion",
       "start_y_percent": 70,
       "end_y_percent": 86,
       "marks_awarded": "+{d4_aw:.1f} / {d4_m:.1f}",
+      "margin_remark": "✓ संतुलित समापन।\\n✎ 1 ठोस संस्थागत सुधार जोड़ें।",
       "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — उत्तर का संतुलित समापन।\\n✎ **सुधार**: आगे की राह में 1 ठोस संस्थागत सुधार जोड़ें।"
     }}}}'''
     ca_block = f"CURRENT AFFAIRS CONTEXT (समसामयिक संदर्भ):\n{current_affairs_context}\n" if current_affairs_context else ""
@@ -2410,56 +2463,70 @@ def build_evaluation_prompt(
       "marker_type": "tick",
       "target_snippet": "[Extract 2-7 words from candidate's opening line]",
       "approx_x_percent": 32,
-      "approx_y_percent": 30,
+      "approx_y_percent": 28,
       "start_y_percent": 24,
-      "end_y_percent": 42,
-      "tag": "Intro: Context & Conceptual Definition",
+      "end_y_percent": 40,
+      "tag": "Intro: Conceptual Definition",
       "type": "tick",
       "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
-      "step_badge": "+{d1_aw:.1f} / {d1_m:.1f}M ✓",
-      "margin_remark": "✓ Direct conceptual baseline & crisp framing.\\n✎ [1 subject elevation].",
-      "rewrite_suggestion": "[1 exam-ready sentence to elevate opening]",
-      "remark": "✓ **Direct Premise**: Opened directly with *\"[Extract 10-18 words verbatim from candidate's handwritten opening paragraph]\"*, framing the core thesis.\\n✎ **Opening Upgrade**: [Provide 1 discipline-specific elevation tailored strictly to this question topic]."
+      "margin_remark": "✓ Direct conceptual framing establishing core thesis.\\n✎ [1 discipline-specific elevation].",
+      "remark": "✓ **Direct Premise**: Opened directly with *\"[Verbatim opening quote]\"*, framing core thesis.\\n✎ **Opening Upgrade**: [Discipline-specific elevation]."
     }}}},
     {{{{
       "page": 1,
+      "marker_type": "circle",
+      "target_snippet": "[Extract 2-5 words of candidate's flawed/vague claim on Page 1]",
+      "approx_x_percent": 36,
       "approx_y_percent": 68,
-      "start_y_percent": 44,
-      "end_y_percent": 88,
-      "tag": "Body: [Candidate's Actual Written Sub-Heading 1]",
-      "type": "tick",
+      "start_y_percent": 50,
+      "end_y_percent": 86,
+      "tag": "✗ Factual Inaccuracy / Critical Gap",
+      "type": "cross",
       "marks_awarded": "+{d2_aw:.1f} / {d2_m:.1f}",
-      "remark": "✓ **Core Argumentation**: Articulated *\"[Extract verbatim handwritten sentence from candidate's first body section]\"*.\\n✎ **Substantive Elevation**: [Provide 1 concrete upgrade relevant strictly to this subject]."
+      "margin_remark": "✗ Factual Inaccuracy: [State exact mistake and provide correct data/fact/thinker].",
+      "remark": "✗ **Factual Inaccuracy**: Candidate claimed *\"[Flawed snippet]\"* — [Explain why inaccurate and give standard benchmark]."
     }}}},
     {{{{
       "page": 2,
-      "approx_y_percent": 50,
-      "start_y_percent": 8,
-      "end_y_percent": 88,
-      "tag": "Body: [Candidate's Actual Written Sub-Heading 2 (Page 2 Analysis)]",
+      "marker_type": "tick",
+      "target_snippet": "[Extract 2-6 words of strong argument on Page 2]",
+      "approx_x_percent": 34,
+      "approx_y_percent": 45,
+      "start_y_percent": 10,
+      "end_y_percent": 86,
+      "tag": "Body: [Candidate's Actual Heading on Page 2]",
       "type": "tick",
       "marks_awarded": "+{d3_aw:.1f} / {d3_m:.1f}",
-      "remark": "✓ **Analytical Dimension**: Examined *\"[Extract verbatim handwritten sentence from candidate's second page handwriting]\"*.\\n✎ **Substantive Elevation**: [Provide 1 concrete upgrade relevant strictly to this subject and dimension]."
+      "margin_remark": "✓ Substantive dimension with relevant examples.\\n✎ Support with official data.",
+      "remark": "✓ **Analytical Dimension**: Examined *\"[Page 2 argument quote]\"*.\\n✎ **Elevation**: [Concrete upgrade]."
     }}}},
     {{{{
       "page": 3,
-      "approx_y_percent": 40,
-      "start_y_percent": 8,
-      "end_y_percent": 68,
-      "tag": "Body: [Candidate's Actual Written Sub-Heading 3 / Reform Strategies]",
-      "type": "tick",
+      "marker_type": "circle",
+      "target_snippet": "[Extract 2-5 words of inaccurate fact/citation on Page 3]",
+      "approx_x_percent": 38,
+      "approx_y_percent": 38,
+      "start_y_percent": 10,
+      "end_y_percent": 64,
+      "tag": "✗ Data / Citation Inaccuracy",
+      "type": "cross",
       "marks_awarded": "+{round(d_c_aw, 1):.1f} / {round(d_c_m, 1):.1f}",
-      "remark": "✓ **Reform & Strategic Solutions**: Evaluated *\"[Extract verbatim handwritten sentence from candidate's third page handwriting / reforms]\"*.\\n✎ **Policy Elevation**: [Provide 1 concrete actionable policy or institutional reform]."
+      "margin_remark": "✗ Misattributed Data: [Point out candidate's exact data error on Page 3 and supply correct citation].",
+      "remark": "✗ **Citation Flaw**: Candidate wrote *\"[Flawed Page 3 quote]\"* — [Supply correct report/study]."
     }}}},
     {{{{
       "page": 3,
+      "marker_type": "tick",
+      "target_snippet": "[Extract closing sentence from student's conclusion on Page 3]",
+      "approx_x_percent": 34,
       "approx_y_percent": 76,
-      "start_y_percent": 70,
+      "start_y_percent": 68,
       "end_y_percent": 86,
-      "tag": "Conclusion: Closing Synthesis",
+      "tag": "Conclusion: Synthesis",
       "type": "suggestion",
       "marks_awarded": "+{round(d4_aw, 1):.1f} / {round(d4_m, 1):.1f}",
-      "remark": "✓ **Closing Synthesis**: Concluded with *\"[Extract verbatim handwritten closing sentence from student's conclusion on Page 3]\"*.\\n✎ **Topper Finish**: [Provide 1 forward-looking subject-appropriate finish connecting to long-term impact]."
+      "margin_remark": "✓ Forward-looking conclusion tying core themes.\\n✎ Anchor with 1 institutional roadmap.",
+      "remark": "✓ **Closing Synthesis**: Concluded with *\"[Closing sentence quote]\"*.\\n✎ **Topper Finish**: [Long-term institutional roadmap]."
     }}}}'''
     else:
         eng_prompt_visual_annotations_example = f'''    {{{{
@@ -2467,46 +2534,56 @@ def build_evaluation_prompt(
       "marker_type": "tick",
       "target_snippet": "[Extract 2-7 words from candidate's opening line]",
       "approx_x_percent": 32,
-      "approx_y_percent": 30,
+      "approx_y_percent": 28,
       "start_y_percent": 24,
-      "end_y_percent": 42,
-      "tag": "Intro: Context & Conceptual Definition",
+      "end_y_percent": 40,
+      "tag": "Intro: Context & Definition",
       "type": "tick",
       "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
-      "step_badge": "+{d1_aw:.1f} / {d1_m:.1f}M ✓",
-      "margin_remark": "✓ Direct conceptual baseline & crisp framing.\\n✎ [1 subject elevation].",
-      "rewrite_suggestion": "[1 exam-ready sentence to elevate opening]",
-      "remark": "✓ **Direct Premise**: Opened directly with *\"[Extract 10-18 words verbatim from candidate's handwritten opening paragraph]\"*, framing the core thesis.\\n✎ **Opening Upgrade**: [Provide 1 discipline-specific elevation tailored strictly to this question topic]."
+      "margin_remark": "✓ Direct conceptual framing.\\n✎ [1 subject elevation].",
+      "remark": "✓ **Direct Premise**: Opened directly with *\"[Extract opening quote]\"*.\\n✎ **Opening Upgrade**: [Discipline-specific elevation]."
     }}}},
     {{{{
       "page": 1,
+      "marker_type": "circle",
+      "target_snippet": "[Extract 2-5 words of candidate's flawed/vague claim on Page 1]",
+      "approx_x_percent": 36,
       "approx_y_percent": 68,
-      "start_y_percent": 44,
-      "end_y_percent": 88,
-      "tag": "Body: [Candidate's Actual Written Sub-Heading 1]",
-      "type": "tick",
+      "start_y_percent": 48,
+      "end_y_percent": 86,
+      "tag": "✗ Factual Inaccuracy / Critical Gap",
+      "type": "cross",
       "marks_awarded": "+{d2_aw:.1f} / {d2_m:.1f}",
-      "remark": "✓ **Core Argumentation**: Articulated *\"[Extract verbatim handwritten sentence from candidate's first body section]\"*.\\n✎ **Substantive Elevation**: [Provide 1 concrete upgrade relevant strictly to this subject]."
+      "margin_remark": "✗ Factual Inaccuracy: [State exact error and correct fact/thinker].",
+      "remark": "✗ **Factual Inaccuracy**: Candidate claimed *\"[Flawed snippet]\"* — [Explain why inaccurate and provide benchmark]."
     }}}},
     {{{{
       "page": 2,
+      "marker_type": "tick",
+      "target_snippet": "[Extract 2-6 words of strong argument on Page 2]",
+      "approx_x_percent": 34,
       "approx_y_percent": 40,
       "start_y_percent": 8,
       "end_y_percent": 68,
       "tag": "Body: [Candidate's Actual Written Sub-Heading 2]",
       "type": "tick",
       "marks_awarded": "+{d3_aw:.1f} / {d3_m:.1f}",
-      "remark": "✓ **Analytical Dimension**: Examined *\"[Extract verbatim handwritten sentence from candidate's second page handwriting]\"*.\\n✎ **Substantive Elevation**: [Provide 1 concrete upgrade relevant strictly to this subject and dimension]."
+      "margin_remark": "✓ Analytical dimension with empirical examples.\\n✎ Deepen with statutory backing.",
+      "remark": "✓ **Analytical Dimension**: Examined *\"[Page 2 quote]\"*.\\n✎ **Substantive Elevation**: [Provide concrete upgrade]."
     }}}},
     {{{{
       "page": 2,
+      "marker_type": "tick",
+      "target_snippet": "[Extract closing sentence from student's conclusion]",
+      "approx_x_percent": 34,
       "approx_y_percent": 74,
       "start_y_percent": 70,
       "end_y_percent": 86,
-      "tag": "Conclusion: Closing Synthesis",
+      "tag": "Conclusion: Synthesis",
       "type": "suggestion",
       "marks_awarded": "+{d4_aw:.1f} / {d4_m:.1f}",
-      "remark": "✓ **Closing Synthesis**: Concluded with *\"[Extract verbatim handwritten closing sentence from student's conclusion]\"*.\\n✎ **Topper Finish**: [Provide 1 forward-looking subject-appropriate finish connecting to long-term impact]."
+      "margin_remark": "✓ Balanced conclusion summarizing directive.\\n✎ Connect to long-term impact.",
+      "remark": "✓ **Closing Synthesis**: Concluded with *\"[Closing quote]\"*.\\n✎ **Topper Finish**: [Long-term institutional roadmap]."
     }}}}'''
     
     rewrite_check_instructions = ""
@@ -4470,8 +4547,8 @@ def _extract_candidate_headings_with_positions(raw_pg_trans: str) -> list:
                 })
                 continue
 
-        # 2. Clean bullet prefix if present
-        clean_l = re.sub(r'^(?:[①-⑩\d]+[\.\)]\s*|[-•*✓✔✎✗×]\s*)', '', l).strip()
+        # 2. Clean bullet prefix if present (supports circled ①-⑳ with or without punctuation, digits, dashes)
+        clean_l = re.sub(r'^(?:[①-⑳\d]+[\.\)]?|[a-zA-Z][\.\)]|[-•*✓✔✎✗×])\s*', '', l).strip()
 
         # 3. Standalone heading lines (not full sentences, <= 70 chars, doesn't end with period)
         if clean_l and len(clean_l) <= 70 and not clean_l.endswith(('.', ',')):
@@ -4479,10 +4556,14 @@ def _extract_candidate_headings_with_positions(raw_pg_trans: str) -> list:
                 re.search(r'[\u0900-\u097F]', clean_l) and
                 re.search(r'(?:चुनौत|समस्या|आगे\s*की\s*राह|समाधान|सुझाव|प्रासंगिकता|आवश्यकता|महत्व|उद्देश्य|प्रभाव|कारण|ढांचा|सिद्धांत|विशेषता|प्रस्तावना|निष्कर्ष|कदम)', clean_l)
             )
+            words = clean_l.split()
+            cap_words = sum(1 for w in words if w and w[0].isupper())
+            is_title_case_head = (len(words) <= 8 and len(words) >= 2 and cap_words >= max(2, len(words) // 2))
             is_eng_heading = bool(
                 clean_l.isupper() or
+                is_title_case_head or
                 re.match(r'^[A-Z][A-Za-z0-9\s/&—–\(\),-]+(?::| - | -- |$)', clean_l) or
-                re.match(r'^(?:Challenges|Relevance|Need|Way Forward|Solutions|Issues|Implications|Impacts|Significance|Role of|Measures|Key Pillars|Dimensions|Arguments)\b', clean_l, re.IGNORECASE)
+                re.match(r'^(?:Challenges|Relevance|Need|Way Forward|Solutions|Issues|Implications|Impacts|Significance|Role of|Measures|Key Pillars|Dimensions|Arguments|Marital|Residential|Political|Evidence|Caste|Secularization|Urban|Reforms)\b', clean_l, re.IGNORECASE)
             )
 
             if (is_hindi_heading or is_eng_heading) and not re.match(r'^(?:page\s*\d+|q\s*\d+|total|marks|feedback|scanned\s+by.*)$', clean_l.lower()):
@@ -5570,6 +5651,12 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                             "**व्यापक आर्थिक आयाम (Macroeconomic Scope)**: पूंजीगत व्यय (Capex), आपूर्ति-श्रृंखला सुधारों और क्षेत्रीय उत्पादन के आंकड़ों को शामिल करें।",
                             "**नीतिगत व संस्थागत समाधान (Policy Roadmap)**: आरबीआई वित्तीय स्थिरता रिपोर्ट या पीएलआई (PLI) योजनाओं के संदर्भ से तर्कों को पुष्ट करें।"
                         ]
+                    elif is_society:
+                        hindi_levers = [
+                            "**समाजशास्त्रीय परिप्रेक्ष्य**: एम.एन. श्रीनिवास (संस्कृतिकरण/प्रभु जाति), सुखदेव थोराट (आवासीय भेदभाव) या सुरिंदर जोधका के समाजशास्त्रीय अध्ययनों से तर्कों को पुष्ट करें।",
+                            "**तथ्यात्मक सामाजिक आंकड़े**: पीएलएफएस (PLFS), आईएचडीएस (IHDS) या एनएफएचएस (NFHS-5) के अंतरजातीय विवाह व व्यावसायिक गतिशीलता के आंकड़ों का उल्लेख करें।",
+                            "**संवैधानिक व वैधानिक सुरक्षा**: अनुच्छेद 17, नागरिक अधिकार संरक्षण अधिनियम 1955 और समकालीन समावेशी शहरी नीतियों से उत्तर को पुष्ट करें।"
+                        ]
                     elif is_history_culture:
                         hindi_levers = [
                             "**ऐतिहासिक व सांस्कृतिक प्रमाण (Historical Depth)**: प्राथमिक ऐतिहासिक स्रोतों, अभिलेखीय साक्ष्यों या दार्शनिक ग्रंथों का उल्लेख करें।",
@@ -5608,6 +5695,12 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                             "**Empirical Depth**: Substantiate points with official economic telemetry, NITI Aayog indices, or statutory compliance frameworks.",
                             "**Macroeconomic Linkage**: Interlink capital expenditure, sectoral gross value added, and structural supply-side reforms.",
                             "**Policy Benchmarking**: Support recommendations with Economic Survey findings or RBI Financial Stability Report telemetry."
+                        ]
+                    elif is_society:
+                        eng_levers = [
+                            "**Sociological Benchmark**: Substantiate with authoritative sociological perspectives (e.g. M.N. Srinivas on Sanskritization vs Westernization, Thorat on rental discrimination, or Deshpande on economic casteism).",
+                            "**Empirical Social Telemetry**: Corroborate claims with data from Periodic Labour Force Survey (PLFS), IHDS, or NFHS-5 on inter-caste marriages and occupational mobility.",
+                            "**Constitutional & Policy Safeguards**: Anchor points in Article 17, Protection of Civil Rights Act 1955, and contemporary urban inclusion policies."
                         ]
                     elif is_history_culture:
                         eng_levers = [
@@ -6115,7 +6208,15 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                             lower_start = 48.0
                             lower_end = min(70.0, real_conc_start - 2.0)
                         else:
-                            upper_tag = f"Body: {primary_cand_heading}" if primary_cand_heading else ("Body: Core Analysis" if not is_hindi else "मुख्य भाग: मुख्य विश्लेषण")
+                            # Extract page-local headings or points strictly from THIS page (zero cross-page leak)
+                            local_pts = [l.strip() for l in raw_pg_trans_final.splitlines() if re.match(r'^(?:[①-⑳\d]+[\.\)]?|[a-zA-Z][\.\)])\s+[A-Za-zऀ-ॿ]', l.strip())]
+                            if local_pts:
+                                p_clean = re.sub(r'^(?:[①-⑳\d]+[\.\)]?|[a-zA-Z][\.\)])\s*', '', local_pts[0]).strip()
+                                upper_tag = f"Body: {p_clean[:45]}" if not is_hindi else f"मुख्य भाग: {p_clean[:45]}"
+                            elif p_final_pt_str:
+                                upper_tag = f"Body: Page {pg} Analysis ({p_final_pt_str})" if not is_hindi else f"मुख्य भाग: पृष्ठ {pg} विश्लेषण ({p_final_pt_str})"
+                            else:
+                                upper_tag = f"Body: Page {pg} Dimensions" if not is_hindi else f"मुख्य भाग: पृष्ठ {pg} मुख्य आयाम"
                             upper_start = 10.0
                             upper_end = 46.0
                             lower_tag = "Body: आगे की राह व समाधान" if is_hindi else "Body: Way Forward & Solutions"
@@ -6157,11 +6258,10 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                         if len(cand_page_headings) == 1:
                             h0_txt = cand_page_headings[0]['text'].title() if (cand_page_headings[0]['text'].isupper() and len(cand_page_headings[0]['text']) > 3 and not re.search(r'[\u0900-\u097F]', cand_page_headings[0]['text'])) else cand_page_headings[0]['text']
                             single_body_tag = f"Body: {h0_txt}" if not is_hindi else f"मुख्य भाग: {h0_txt}"
-                        elif primary_cand_heading:
-                            if p_final_pt_str:
-                                single_body_tag = f"Body: {primary_cand_heading} ({p_final_pt_str})" if not is_hindi else f"मुख्य भाग: {primary_cand_heading} ({p_final_pt_str})"
-                            else:
-                                single_body_tag = f"Body: {primary_cand_heading} (Contd.)" if not is_hindi else f"मुख्य भाग: {primary_cand_heading} (आगे जारी)"
+                        elif p_final_pt_str:
+                            single_body_tag = f"Body: Page {pg} Analysis ({p_final_pt_str})" if not is_hindi else f"मुख्य भाग: पृष्ठ {pg} विश्लेषण ({p_final_pt_str})"
+                        elif primary_cand_heading and pg == 2:
+                            single_body_tag = f"Body: {primary_cand_heading} (Contd.)" if not is_hindi else f"मुख्य भाग: {primary_cand_heading} (आगे जारी)"
                         elif p_final_pt_str:
                             single_body_tag = f"Body: Core Analysis ({p_final_pt_str})" if not is_hindi else f"मुख्य भाग: मुख्य विश्लेषण ({p_final_pt_str})"
                         else:
