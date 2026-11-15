@@ -6153,18 +6153,38 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                     real_conc_start = max(70.0, float(conc_ann.get("start_y_percent", 70.0) or 70.0) if conc_ann else 70.0)
                     real_conc_end = min(78.0, max(real_conc_start + 4.0, float(conc_ann.get("end_y_percent", 77.0) or 77.0) if conc_ann else 77.0))
 
-                    # Conclusion remark & annotation
+                    # Conclusion remark & annotation (Strict score-verdict consistency: NO praise for low marks)
+                    c_aw = float(conc_audit_obj.get("score") if conc_audit_obj.get("score") is not None else (conc_ann.get("marks_awarded") if conc_ann else 0.5) or 0.5)
+                    c_mx = float(conc_audit_obj.get("max") if conc_audit_obj.get("max") is not None else (1.5 if max_marks <= 10 else 2.0))
+                    c_ded = max(0.0, c_mx - c_aw)
+                    is_low_conc = c_aw < (c_mx * 0.65)
+
                     c_crit = str(conc_audit_obj.get("current_critique") or "")
                     c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "")
                     clean_close = _clean_quote_snippet(closing_line, 120)
                     clean_topper = c_rew.strip() if len(c_rew.strip()) >= 25 else 'Anchor closing line in 1 concrete institutional benchmark.'
-                    if clean_close:
-                        real_conc_rem = f"✓ **Closing Stance Evaluated**: Concluded with *\"{clean_close}\"* tying together the core directive.\n✎ **Topper Finish**: {clean_topper}"
-                    elif c_crit and len(c_crit) >= 30 and not _has_meta_placeholder(c_crit):
-                        clean_crit = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:\*\*(?:Closing|Concluding)\s*Synthesis\s*Evaluated\*\*:?\s*)+', '', c_crit).strip()
-                        real_conc_rem = f"✓ **Closing Stance Evaluated**: {clean_crit}\n✎ **Topper Finish**: {clean_topper}"
+
+                    if is_low_conc:
+                        # Low score: MUST highlight the exact mistake / gap; NEVER write "Solid" or "Well-structured"
+                        gap_msg = ""
+                        w_list = conc_audit_obj.get("weaknesses") or conc_audit_obj.get("critical_gaps") or []
+                        if isinstance(w_list, list) and w_list and not re.search(r'(?i)solid|well-structured|good|comprehensive', str(w_list[0])):
+                            gap_msg = str(w_list[0]).strip()
+                        if not gap_msg:
+                            if clean_close:
+                                gap_msg = f"Ended with broad generic aspirational statements (*\"{clean_close}\"*); omitted concrete institutional roadmap or policy mechanisms to resolve the core dilemma. Deducted {c_ded:.1f}M for lack of substantive policy synthesis."
+                            else:
+                                gap_msg = f"Broad, generic closing statement; lacked actionable policy roadmap and statutory benchmarks. Deducted {c_ded:.1f}M for missing depth."
+                        real_conc_rem = f"✗ **Conclusion Gap & Deduction**: {gap_msg}\n✎ **Topper Finish**: {clean_topper}"
                     else:
-                        real_conc_rem = f"✓ **Closing Stance Evaluated**: Summarized candidate's concluding stand on the core directive.\n✎ **Topper Finish**: {clean_topper}"
+                        # High score (>= 65%): Highlight the effective synthesis that earned marks
+                        if clean_close:
+                            real_conc_rem = f"✓ **Effective Closing Synthesis**: Concluded with decisive forward-looking synthesis (*\"{clean_close}\"*), tying together key arguments from the body.\n✎ **Topper Finish**: {clean_topper}"
+                        elif c_crit and len(c_crit) >= 30 and not _has_meta_placeholder(c_crit) and not re.search(r'(?i)solid|good', c_crit):
+                            clean_crit = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:\*\*(?:Closing|Concluding)\s*Synthesis\s*Evaluated\*\*:?\s*)+', '', c_crit).strip()
+                            real_conc_rem = f"✓ **Effective Closing Synthesis**: {clean_crit}\n✎ **Topper Finish**: {clean_topper}"
+                        else:
+                            real_conc_rem = f"✓ **Effective Closing Synthesis**: Substantive and well-rounded synthesis connecting core directive to long-term impact.\n✎ **Topper Finish**: {clean_topper}"
 
                     if is_wf_demanded and not has_written_wf:
                         if "Missing Required Mitigation" not in real_conc_rem:
@@ -6175,9 +6195,9 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                         "approx_y_percent": int(round((real_conc_start + real_conc_end) / 2)),
                         "start_y_percent": real_conc_start,
                         "end_y_percent": real_conc_end,
-                        "tag": "निष्कर्ष" if is_hindi else "Conclusion",
-                        "type": "suggestion",
-                        "marks_awarded": "+1.0 / 2.0",
+                        "tag": ("✗ निष्कर्ष में कमी" if is_low_conc else "✓ निष्कर्ष") if is_hindi else ("✗ Conclusion Gap" if is_low_conc else "✓ Conclusion: Synthesis"),
+                        "type": "cross" if is_low_conc else "suggestion",
+                        "marks_awarded": f"+{c_aw:.1f} / {c_mx:.1f}",
                         "remark": real_conc_rem
                     }
 
@@ -10093,10 +10113,18 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                         f"✎ **Refinement**: {domain_conc}"
                     )
         else:
+            is_low_c = assigned_conc < (c_max * 0.65)
+            # Scrub contradictory praise if low marks awarded
+            if is_low_c and re.search(r'(?i)solid|well-structured|good|comprehensive|effective', clean_c_crit):
+                c_ded = max(0.0, c_max - assigned_conc)
+                if closing_cand_quote:
+                    clean_c_crit = f"Ended with broad aspirational statements (*\"{_clean_quote_snippet(closing_cand_quote, 110)}\"*); omitted concrete institutional mechanisms and actionable policy roadmap. Deducted {c_ded:.1f}M for lack of substantive depth."
+                else:
+                    clean_c_crit = f"Generic and broad closing statement; lacked concrete institutional roadmap and actionable policy levers. Deducted {c_ded:.1f}M for lack of depth."
             if is_hindi:
-                c_audit["current_critique"] = f"✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**: {clean_c_crit}"
+                c_audit["current_critique"] = f"{'✗ **निष्कर्ष में कमी (Conclusion Gap)**' if is_low_c else '✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**'}: {clean_c_crit}"
             else:
-                c_audit["current_critique"] = f"✓ **Closing Synthesis Evaluated**: {clean_c_crit}"
+                c_audit["current_critique"] = f"{'✗ **Conclusion Gap & Weakness**' if is_low_c else '✓ **Closing Synthesis Evaluated**'}: {clean_c_crit}"
 
         data["conclusion_audit"] = c_audit
         data["rubric_scores"] = rubric_d
@@ -10735,9 +10763,9 @@ def _enforce_canonical_mathematical_reconciliation(data: Dict[str, Any], max_mar
                     diff = max(0.0, s["max"] - s["awarded"])
                     if diff > 0.05:
                         s["quoted_written"] = (
-                            f"अभ्यर्थी के मुख्य तर्कों ({qw_clean}) का मूल्यांकन; अतिरिक्त गहराई व तकनीकी विस्तार हेतु {diff:.1f} अंक रोके गए (विस्तृत मूल्यांकन देखें)।"
+                            f"अभ्यर्थी के मुख्य तर्कों ({qw_clean}) का मूल्यांकन; {diff:.1f} अंक ठोस नीतिगत सुधार व संस्थागत साक्ष्य न होने के कारण काटे गए।"
                             if is_hindi else
-                            f"Evaluated candidate arguments on {qw_clean}; ({diff:.1f}M held back for analytical depth and empirical substantiation — see Deep Evaluation tab)."
+                            f"Evaluated candidate arguments on {qw_clean}; deducted {diff:.1f}M for lack of specific institutional benchmarks and actionable policy depth."
                         )
                     else:
                         s["quoted_written"] = (

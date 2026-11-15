@@ -14991,11 +14991,37 @@ function renderBatch1ExaminerMastery(evalData) {
       firstSentence = firstSentence.slice(0, 132).replace(/\s+\S*$/, "") + "...";
     }
 
-    const deductionTail = parseFloat(deducted) > 0.05
-      ? (isHindi ? ` (अतिरिक्त गहराई व तकनीकी विस्तार हेतु **${deducted} अंक** रोके गए — *विस्तृत मूल्यांकन* टैब देखें)।` : ` (**${deducted}M** held back for technical depth / analytical precision — see *Deep Evaluation* tab).`)
-      : (isHindi ? ` (मांग की संपूर्ण पूर्ति हेतु पूरे अंक प्रदान किए गए)।` : ` (Full credit awarded for substantive fulfillment).`);
+    const isLowScore = score < (max * 0.65);
 
-    return `${statusPrefix} (**+${score.toFixed(1)}M**): ${firstSentence.replace(/\.$/, "")}.${deductionTail}`;
+    // Consistency Check: When score is low (< 65%), scrub contradictory praise like "Solid", "Well-structured"
+    if (isLowScore && /solid|well-structured|good|comprehensive|effective/i.test(firstSentence)) {
+      if (isConcSection) {
+        firstSentence = isHindi
+          ? "समापन सामान्य रहा; ठोस नीतिगत सुधार व संस्थागत रूपरेखा का अभाव"
+          : "Broad and generic closing; lacked concrete institutional mechanisms and forward-looking policy roadmap";
+      } else if (isIntroSection) {
+        firstSentence = isHindi
+          ? "प्रारंभिक परिभाषा सामान्य रही; ठोस संवैधानिक/विषय-विशिष्ट आधार का अभाव"
+          : "Generic opening definition; omitted foundational constitutional/conceptual doctrine";
+      } else {
+        firstSentence = isHindi
+          ? "विश्लेषण सीमित रहा; आवश्यक अनुभवजन्य साक्ष्य व संस्थागत प्रावधानों का अभाव"
+          : "Substantive coverage was limited; omitted key empirical telemetry and statutory benchmarks";
+      }
+    }
+
+    let deductionTail = "";
+    if (parseFloat(deducted) > 0.05) {
+      deductionTail = isHindi
+        ? ` — **${deducted} अंक** विशिष्ट संस्थागत रूपरेखा व गहराई न होने के कारण काटे गए।`
+        : ` — **${deducted}M** deducted for lack of actionable policy depth and institutional benchmarks.`;
+    } else {
+      deductionTail = isHindi
+        ? ` — मांग की संपूर्ण पूर्ति हेतु पूरे अंक प्रदान किए गए।`
+        : ` — Full credit awarded for substantive and well-rounded fulfillment.`;
+    }
+
+    return `${statusPrefix} (**+${score.toFixed(1)}M**): ${firstSentence.replace(/\.$/, "")}${deductionTail}`;
   };
 
   const concNumber = bodySubParts.length + 2;
@@ -22101,20 +22127,51 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
   const bottomContainer = document.getElementById("bottomConclusionContainer");
   if (bottomContainer) {
     if (conclusionAnn) {
-      const isErr = conclusionAnn.type === "cross" || conclusionAnn.type === "warning" || String(conclusionAnn.tag).includes("✗") || /inaccuracy|flaw|error|mistake|contradict|gap|missing/i.test(String(conclusionAnn.margin_remark || conclusionAnn.remark || ""));
-      const cleanTag = String(conclusionAnn.tag || (isErr ? "Missing Synthesis" : "Closing Stance Evaluated")).replace(/^Body:\s*/i, "").replace(/^Conclusion:\s*/i, "").replace(/^[✓✔✎✗×]\s*/, "");
-      const fullRem = String(conclusionAnn.margin_remark || conclusionAnn.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
+      let cScore = 0.5, cMax = 1.5;
+      const mMatch = String(conclusionAnn.marks_awarded || "").match(/([+-]?\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/);
+      if (mMatch) {
+        cScore = parseFloat(mMatch[1]);
+        cMax = parseFloat(mMatch[2]);
+      } else if (evalData.conclusion_audit && evalData.conclusion_audit.score != null) {
+        cScore = parseFloat(evalData.conclusion_audit.score) || 0.5;
+        cMax = parseFloat(evalData.conclusion_audit.max) || 1.5;
+      }
+      const isLowScore = cScore < (cMax * 0.65);
+      const isErr = isLowScore || conclusionAnn.type === "cross" || conclusionAnn.type === "warning" || String(conclusionAnn.tag).includes("✗");
+
+      let cleanTag = String(conclusionAnn.tag || "").replace(/^Body:\s*/i, "").replace(/^Conclusion:\s*/i, "").replace(/^[✓✔✎✗×]\s*/, "").trim();
+      if (!cleanTag || /conclusion/i.test(cleanTag)) {
+        cleanTag = isErr ? "Conclusion Weakness & Gap" : "Closing Stance Evaluated";
+      }
+
+      let fullRem = String(conclusionAnn.margin_remark || conclusionAnn.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
+
+      // If low score (< 65%), scrub contradictory praise like "Solid", "Well-structured"
+      if (isLowScore && /solid|well-structured|good|comprehensive|effective/i.test(fullRem)) {
+        let actualGap = "";
+        if (evalData.conclusion_audit) {
+          const wList = evalData.conclusion_audit.weaknesses || evalData.conclusion_audit.critical_gaps || [];
+          if (Array.isArray(wList) && wList.length > 0 && wList[0] && !/solid|good|well-structured/i.test(String(wList[0]))) {
+            actualGap = String(wList[0]).replace(/^[✓✔✎✗×]\s*/, "").trim();
+          }
+        }
+        if (actualGap) {
+          fullRem = actualGap;
+        } else {
+          fullRem = `Ended with broad generic statements; lacked concrete institutional roadmap and actionable policy levers to address the core dilemma. Deducted ${(cMax - cScore).toFixed(1)}M for missing analytical depth.`;
+        }
+      }
 
       bottomContainer.innerHTML = `
-        <div class="w-full flex items-start gap-3 p-3 rounded-lg bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 shadow-xs">
+        <div class="w-full flex items-start gap-3 p-3 rounded-lg ${isErr ? 'bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60' : 'bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60'} shadow-xs">
           <div class="shrink-0 pt-0.5">
             <span class="px-2 py-1 rounded text-[11px] font-bold uppercase tracking-wider ${isErr ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'} font-mono shadow-xs">
-              ${isErr ? '✗ Conclusion Gap' : '✓ Closing Stance Evaluated'}
+              ${isErr ? '✗ Conclusion Gap' : '✓ Conclusion Fulfilled'}
             </span>
           </div>
-          <div class="flex-1 min-w-0" style="font-family: 'Kalam', 'Caveat', cursive, sans-serif; font-size: 13.5px; line-height: 1.4; color: #991b1b;">
-            <div class="font-bold text-rose-950 dark:text-rose-200 mb-0.5">${escapeHtml(cleanTag)} ${conclusionAnn.marks_awarded ? `<span style="font-mono; font-size: 11px; opacity: 0.85; margin-left: 6px;">(${escapeHtml(conclusionAnn.marks_awarded)})</span>` : ''}</div>
-            <div class="text-[#991b1b] dark:text-[#f87171]">${escapeHtml(fullRem)}</div>
+          <div class="flex-1 min-w-0" style="font-family: 'Kalam', 'Caveat', cursive, sans-serif; font-size: 13.5px; line-height: 1.4; color: ${isErr ? '#991b1b' : '#065f46'};">
+            <div class="font-bold ${isErr ? 'text-rose-950 dark:text-rose-200' : 'text-emerald-950 dark:text-emerald-200'} mb-0.5">${escapeHtml(cleanTag)} <span style="font-mono; font-size: 11px; opacity: 0.85; margin-left: 6px;">(+${cScore.toFixed(1)} / ${cMax.toFixed(1)}M)</span></div>
+            <div class="${isErr ? 'text-[#991b1b] dark:text-[#f87171]' : 'text-[#065f46] dark:text-[#34d399]'}">${escapeHtml(fullRem)}</div>
           </div>
         </div>
       `;
