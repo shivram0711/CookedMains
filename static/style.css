@@ -4788,3 +4788,12 @@ html.dark .redpen-lead.success {
   background-color: rgba(239, 68, 68, 0.15);
   outline: 1.5px dashed rgba(220, 38, 38, 0.6);
 }
+
+#evaluatedSheetCanvas {
+  min-width: 580px;
+}
+@media (max-width: 640px) {
+  #bookletScrollArea {
+    overflow-x: auto !important;
+  }
+}

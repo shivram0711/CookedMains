@@ -17638,6 +17638,34 @@ function populatePrintAnnotatedCopies(evalData, pages, targetContainer) {
       `;
     }
 
+    const conclAnn = pageAnns.find(a => /concl|synthesis|निष्कर्ष|closing/i.test(a.tag || "") || /concl|synthesis|निष्कर्ष/i.test(a.type || ""));
+    const bodyAnns = pageAnns.filter(a => a !== conclAnn);
+
+    let bottomConclHtml = "";
+    if (conclAnn) {
+      const isErr = conclAnn.type === "cross" || conclAnn.type === "warning" || String(conclAnn.tag).includes("✗") || /inaccuracy|flaw|error|mistake|contradict|gap|missing/i.test(String(conclAnn.margin_remark || conclAnn.remark || ""));
+      const cTag = String(conclAnn.tag || (isErr ? "Missing Synthesis" : "Closing Stance Evaluated")).replace(/^Body:\s*/i, "").replace(/^Conclusion:\s*/i, "").replace(/^[✓✔✎✗×]\s*/, "");
+      const fRem = String(conclAnn.margin_remark || conclAnn.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
+      bottomConclHtml = `
+        <div style="width: 100%; display: flex; align-items: flex-start; gap: 10px; padding: 7px 12px; background: rgba(254, 242, 242, 0.95); border: 1.5px solid #fca5a5; border-radius: 6px; box-sizing: border-box;">
+          <span style="display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 8pt; font-family: monospace; font-weight: bold; text-transform: uppercase; background: ${isErr ? '#dc2626' : '#059669'}; color: #fff; white-space: nowrap;">
+            ${isErr ? '✗ Conclusion Gap' : '✓ Closing Stance Evaluated'}
+          </span>
+          <div style="flex: 1; font-family: 'Kalam', 'Caveat', cursive, sans-serif; font-size: 10.5pt; line-height: 1.35; color: #991b1b;">
+            <strong style="color: #0f172a;">${escapeHtml(cTag)}${conclAnn.marks_awarded ? ` (${escapeHtml(conclAnn.marks_awarded)})` : ''}:</strong>
+            <span>${escapeHtml(fRem)}</span>
+          </div>
+        </div>
+      `;
+    } else {
+      bottomConclHtml = `
+        <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 8pt; font-family: monospace; color: #64748b; padding: 4px 8px;">
+          <span>Page ${pageNum} Evaluation & Point Audit</span>
+          <span style="color: #dc2626; font-weight: bold;">${totalPages > pageNum ? `Continued on Page ${pageNum + 1} →` : `End of Answer Script`}</span>
+        </div>
+      `;
+    }
+
     const sheetEl = document.createElement("div");
     sheetEl.className = "print-copy-sheet";
     sheetEl.innerHTML = `
@@ -17645,10 +17673,23 @@ function populatePrintAnnotatedCopies(evalData, pages, targetContainer) {
 
       <div class="print-copy-body">
         <div class="print-copy-img-wrap" style="width: 100%; flex: 1 1 100%; border-right: none;">
-          <div class="print-page-canvas" style="position: relative;">
-            <img src="${dataUrl}" class="print-copy-img" alt="Answer Page ${pageNum}">
-            <div class="print-redpen-overlay" style="position: absolute; inset: 0; pointer-events: none; z-index: 10;">
-              ${(typeof window.generatePrintRedPenOverlayHtml === "function") ? window.generatePrintRedPenOverlayHtml(pageAnns, sections) : ""}
+          <div class="print-page-canvas" style="position: relative; width: 100%; display: flex; flex-direction: column; background: #ffffff; border-radius: 6px; overflow: hidden; border: 1px solid #e2e8f0;">
+            <!-- Top Row: Candidate Script (72%) + Dedicated Examiner Right Margin (28%) -->
+            <div style="display: flex; flex-direction: row; position: relative; width: 100%;">
+              <div style="width: 72%; flex: 0 0 72%; background: #ffffff;">
+                <img src="${dataUrl}" class="print-copy-img" alt="Answer Page ${pageNum}" style="width: 100%; display: block;">
+              </div>
+              <div style="width: 28%; flex: 0 0 28%; background: #fafafa; border-left: 1.5px dashed rgba(220, 38, 38, 0.35); position: relative;">
+                <div style="padding: 6px 8px; font-size: 7.5pt; font-family: monospace; font-weight: bold; color: rgba(220, 38, 38, 0.6); text-transform: uppercase;">Examiner Margin</div>
+              </div>
+              <div class="print-redpen-overlay" style="position: absolute; inset: 0; pointer-events: none; z-index: 10;">
+                ${(typeof window.generatePrintRedPenOverlayHtml === "function") ? window.generatePrintRedPenOverlayHtml(bodyAnns, sections, conclAnn) : ""}
+              </div>
+            </div>
+
+            <!-- Dedicated Expanded Bottom Space (Below candidate handwriting: ample room for Conclusion & Synthesis) -->
+            <div class="print-expanded-bottom-space" style="width: 100%; min-height: 52px; background: #fafafa; border-top: 1.5px dashed rgba(220, 38, 38, 0.35); padding: 6px 10px; box-sizing: border-box;">
+              ${bottomConclHtml}
             </div>
           </div>
         </div>
@@ -22047,12 +22088,48 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
         start_y_percent: sec.startYPercent,
         end_y_percent: sec.endYPercent,
         marks_awarded: sec.marks,
-        margin_remark: sec.bodyHtml ? sec.bodyHtml.replace(/<[^>]*>/g, " ").trim().slice(0, 110) : "Direct examiner assessment."
+        margin_remark: sec.bodyHtml ? sec.bodyHtml.replace(/<[^>]*>/g, " ").trim() : "Direct examiner assessment."
       };
     });
   }
 
-  if (rawAnns.length === 0) return;
+  // 1. Separate Conclusion annotation from Body margin annotations
+  const conclusionAnn = rawAnns.find(a => /concl|synthesis|निष्कर्ष|closing/i.test(a.tag || "") || /concl|synthesis|निष्कर्ष/i.test(a.type || ""));
+  const bodyAnns = rawAnns.filter(a => a !== conclusionAnn);
+
+  // 2. Render Conclusion in Dedicated Expanded Bottom Space (Below student handwriting: zero clipping, zero cutting off)
+  const bottomContainer = document.getElementById("bottomConclusionContainer");
+  if (bottomContainer) {
+    if (conclusionAnn) {
+      const isErr = conclusionAnn.type === "cross" || conclusionAnn.type === "warning" || String(conclusionAnn.tag).includes("✗") || /inaccuracy|flaw|error|mistake|contradict|gap|missing/i.test(String(conclusionAnn.margin_remark || conclusionAnn.remark || ""));
+      const cleanTag = String(conclusionAnn.tag || (isErr ? "Missing Synthesis" : "Closing Stance Evaluated")).replace(/^Body:\s*/i, "").replace(/^Conclusion:\s*/i, "").replace(/^[✓✔✎✗×]\s*/, "");
+      const fullRem = String(conclusionAnn.margin_remark || conclusionAnn.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
+
+      bottomContainer.innerHTML = `
+        <div class="w-full flex items-start gap-3 p-3 rounded-lg bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 shadow-xs">
+          <div class="shrink-0 pt-0.5">
+            <span class="px-2 py-1 rounded text-[11px] font-bold uppercase tracking-wider ${isErr ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'} font-mono shadow-xs">
+              ${isErr ? '✗ Conclusion Gap' : '✓ Closing Stance Evaluated'}
+            </span>
+          </div>
+          <div class="flex-1 min-w-0" style="font-family: 'Kalam', 'Caveat', cursive, sans-serif; font-size: 13.5px; line-height: 1.4; color: #991b1b;">
+            <div class="font-bold text-rose-950 dark:text-rose-200 mb-0.5">${escapeHtml(cleanTag)} ${conclusionAnn.marks_awarded ? `<span style="font-mono; font-size: 11px; opacity: 0.85; margin-left: 6px;">(${escapeHtml(conclusionAnn.marks_awarded)})</span>` : ''}</div>
+            <div class="text-[#991b1b] dark:text-[#f87171]">${escapeHtml(fullRem)}</div>
+          </div>
+        </div>
+      `;
+    } else {
+      bottomContainer.innerHTML = `
+        <div class="w-full flex items-center justify-between py-1 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
+          <span class="flex items-center gap-1.5"><i data-lucide="file-text" class="w-3.5 h-3.5 text-rose-500"></i> Page ${currentPg} Evaluation & Point Audit</span>
+          <span class="text-rose-600 font-bold">${totalPages > currentPg ? `Continued on Page ${currentPg + 1} →` : `End of Answer Script`}</span>
+        </div>
+      `;
+    }
+    if (window.lucide) { try { lucide.createIcons(); } catch(e) {} }
+  }
+
+  if (bodyAnns.length === 0 && !conclusionAnn) return;
 
   function floatVal(v1, v2, def) {
     if (v1 !== undefined && v1 !== null && !isNaN(Number(v1))) return Number(v1);
@@ -22060,35 +22137,36 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
     return def;
   }
 
-  // Strict Anti-Overlap Layout Algorithm (User Non-Negotiable Constraint)
-  const sortedAnns = [...rawAnns].sort((a, b) => {
+  // 3. Strict Anti-Overlap Layout Algorithm for Body Annotations in Dedicated 28% Margin
+  const sortedAnns = [...bodyAnns].sort((a, b) => {
     const ya = floatVal(a.approx_y_percent, a.start_y_percent, 20);
     const yb = floatVal(b.approx_y_percent, b.start_y_percent, 20);
     return ya - yb;
   });
 
-  const minDeltaY = 13.5;
+  const minDeltaY = 14.5;
   const layoutItems = [];
 
   let runningBottom = 6.0;
   for (let i = 0; i < sortedAnns.length; i++) {
     const ann = sortedAnns[i];
     const targetY = floatVal(ann.approx_y_percent, ann.start_y_percent, 16 + i * 22);
-    const targetX = floatVal(ann.approx_x_percent, null, 32);
+    const targetX = floatVal(ann.approx_x_percent, null, 30);
     const placedY = Math.max(targetY, runningBottom + 2.0);
     layoutItems.push({
       ann,
-      targetX: Math.max(18, Math.min(68, targetX)),
-      targetY: Math.max(8, Math.min(88, targetY)),
-      placedY: Math.max(6, Math.min(88, placedY))
+      // Target on candidate script (left 72%): map targetX to 0..720 on 1000-width canvas
+      targetCanvasX: Math.max(10, Math.min(68, targetX)) * 7.2,
+      targetCanvasY: Math.max(8, Math.min(88, targetY)) * 14.14,
+      placedY: Math.max(6, Math.min(86, placedY))
     });
     runningBottom = placedY + minDeltaY;
   }
 
   if (layoutItems.length > 0) {
     const last = layoutItems[layoutItems.length - 1];
-    if (last.placedY > 88.0) {
-      const overflow = last.placedY - 88.0;
+    if (last.placedY > 86.0) {
+      const overflow = last.placedY - 86.0;
       const shiftPerItem = overflow / layoutItems.length;
       for (let i = 0; i < layoutItems.length; i++) {
         layoutItems[i].placedY = Math.max(6.0 + i * minDeltaY, layoutItems[i].placedY - shiftPerItem * (i + 1));
@@ -22109,21 +22187,23 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
   `;
   svg.appendChild(defs);
 
+  // 4. Render Body Margin Notes & Connecting Arrows
   layoutItems.forEach((item, idx) => {
     const ann = item.ann;
-    const tx = item.targetX * 10;
-    const ty = item.targetY * 14.14;
-    const mx = 760;
+    const tx = item.targetCanvasX;
+    const ty = item.targetCanvasY;
+    // Dedicated Right Margin starts at 720 (72%): Arrow originates at 735
+    const mx = 735;
     const my = item.placedY * 14.14 + 14;
 
     const isError = ann.type === "cross" || ann.type === "warning" || String(ann.tag).includes("✗") || /inaccuracy|flaw|error|mistake|contradict|gap|missing/i.test(String(ann.margin_remark || ann.remark || ""));
     const isSuggestion = ann.type === "suggestion" || String(ann.tag).includes("✎");
     const markerType = ann.marker_type || (isError ? "circle" : (isSuggestion ? "bracket" : "tick"));
 
-    // 1. On-Page Visual Marker
+    // Visual Marker on Candidate Script
     if (markerType === "circle") {
-      const rx = 56;
-      const ry = 20;
+      const rx = 52;
+      const ry = 18;
       const rot = (idx % 2 === 0 ? -2.2 : 2.0);
       const circleEl = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
       circleEl.setAttribute("cx", tx);
@@ -22137,9 +22217,9 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
       circleEl.setAttribute("transform", `rotate(${rot} ${tx} ${ty})`);
       svg.appendChild(circleEl);
     } else if (markerType === "bracket") {
-      const bh = 46;
+      const bh = 42;
       const bPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      bPath.setAttribute("d", `M ${tx-28} ${ty-bh} Q ${tx-38} ${ty-bh/2} ${tx-44} ${ty} Q ${tx-38} ${ty+bh/2} ${tx-28} ${ty+bh}`);
+      bPath.setAttribute("d", `M ${tx-25} ${ty-bh} Q ${tx-35} ${ty-bh/2} ${tx-40} ${ty} Q ${tx-35} ${ty+bh/2} ${tx-25} ${ty+bh}`);
       bPath.setAttribute("fill", "none");
       bPath.setAttribute("stroke", "#dc2626");
       bPath.setAttribute("stroke-width", "2.6");
@@ -22156,11 +22236,11 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
       svg.appendChild(tick);
     }
 
-    // 2. Smooth Curved Connecting Bezier Arrow
+    // Connecting Bezier Arrow: origin in dedicated right margin (735), sweeps to candidate text
     const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
     const ctrlX = (mx + tx) / 2;
     const ctrlY = my + (ty - my) * 0.28;
-    const endX = tx + (markerType === "circle" ? 54 : 20);
+    const endX = tx + (markerType === "circle" ? 50 : 18);
     arrowPath.setAttribute("d", `M ${mx} ${my} Q ${ctrlX} ${ctrlY} ${endX} ${ty}`);
     arrowPath.setAttribute("fill", "none");
     arrowPath.setAttribute("stroke", "#dc2626");
@@ -22169,17 +22249,17 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
     arrowPath.setAttribute("marker-end", "url(#redArrowhead)");
     svg.appendChild(arrowPath);
 
-    // 3. Clear Handwriting Margin Remark (Competitor SuperKalam Replica: Frameless, Legible & Authentic)
+    // Note placed in Dedicated Right Margin (left: 73.5%, width: 25%) - ZERO OVERWRITE ON CANDIDATE SCRIPT
     const noteEl = document.createElement("div");
     noteEl.className = "onpage-redpen-note absolute";
-    noteEl.style.left = "77%";
-    noteEl.style.width = "22.5%";
+    noteEl.style.left = "73.5%";
+    noteEl.style.width = "25%";
     noteEl.style.top = `${item.placedY}%`;
 
     const rawTag = ann.tag ? String(ann.tag).replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, "").trim() : (isError ? "Factual Inaccuracy" : "Core Analysis");
     const cleanTag = rawTag.replace(/^[✓✔✎✗×]\s*/, "");
     const remStr = ann.margin_remark || ann.remark || "";
-    const cleanRem = remStr.replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").slice(0, 130);
+    const cleanRem = remStr.replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
 
     let leadHtml = "";
     if (isError) {
@@ -22198,11 +22278,34 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
     overlay.appendChild(noteEl);
   });
 
+  // 5. Connect Conclusion arrow if present
+  if (conclusionAnn) {
+    const c_tx = 350;
+    const c_ty = Math.min(1300, (floatVal(conclusionAnn.approx_y_percent, null, 80)) * 14.14);
+    const c_tick = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    c_tick.setAttribute("d", `M ${c_tx-16} ${c_ty+2} L ${c_tx-4} ${c_ty+14} L ${c_tx+18} ${c_ty-14}`);
+    c_tick.setAttribute("fill", "none");
+    c_tick.setAttribute("stroke", "#dc2626");
+    c_tick.setAttribute("stroke-width", "3.2");
+    c_tick.setAttribute("stroke-linecap", "round");
+    c_tick.setAttribute("stroke-linejoin", "round");
+    svg.appendChild(c_tick);
+
+    const c_arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    c_arrow.setAttribute("d", `M 500 1390 Q 420 1340 ${c_tx+20} ${c_ty}`);
+    c_arrow.setAttribute("fill", "none");
+    c_arrow.setAttribute("stroke", "#dc2626");
+    c_arrow.setAttribute("stroke-width", "1.9");
+    c_arrow.setAttribute("stroke-dasharray", "4 3");
+    c_arrow.setAttribute("marker-end", "url(#redArrowhead)");
+    svg.appendChild(c_arrow);
+  }
+
   overlay.appendChild(svg);
 };
 
 // Helper to generate on-page red pen SVG & notes HTML for Print & PDF Export
-window.generatePrintRedPenOverlayHtml = function(pageAnns, sections) {
+window.generatePrintRedPenOverlayHtml = function(pageAnns, sections, conclusionAnn) {
   let anns = Array.isArray(pageAnns) && pageAnns.length > 0 ? pageAnns : [];
   if (anns.length === 0 && Array.isArray(sections) && sections.length > 0) {
     anns = sections.map((sec, idx) => ({
@@ -22211,13 +22314,11 @@ window.generatePrintRedPenOverlayHtml = function(pageAnns, sections) {
       approx_x_percent: 32,
       approx_y_percent: Math.round((sec.startYPercent + sec.endYPercent) / 2),
       marks_awarded: sec.marks,
-      margin_remark: sec.bodyHtml ? sec.bodyHtml.replace(/<[^>]*>/g, " ").trim().slice(0, 110) : "Direct assessment."
+      margin_remark: sec.bodyHtml ? sec.bodyHtml.replace(/<[^>]*>/g, " ").trim() : "Direct assessment."
     }));
   }
 
-  if (anns.length === 0) return "";
-
-  const minDeltaY = 13.5;
+  const minDeltaY = 14.5;
   const layout = [];
   let curBottom = 6.0;
 
@@ -22227,9 +22328,9 @@ window.generatePrintRedPenOverlayHtml = function(pageAnns, sections) {
     const placedY = Math.max(targetY, curBottom + 2.0);
     layout.push({
       ann: a,
-      targetX: Math.max(18, Math.min(68, a.approx_x_percent || 32)),
-      targetY: Math.max(8, Math.min(88, targetY)),
-      placedY: Math.max(6, Math.min(88, placedY))
+      targetCanvasX: Math.max(10, Math.min(68, a.approx_x_percent || 30)) * 7.2,
+      targetCanvasY: Math.max(8, Math.min(88, targetY)) * 14.14,
+      placedY: Math.max(6, Math.min(86, placedY))
     });
     curBottom = placedY + minDeltaY;
   }
@@ -22239,9 +22340,9 @@ window.generatePrintRedPenOverlayHtml = function(pageAnns, sections) {
 
   layout.forEach((it, idx) => {
     const a = it.ann;
-    const tx = it.targetX * 10;
-    const ty = it.targetY * 14.14;
-    const mx = 760;
+    const tx = it.targetCanvasX;
+    const ty = it.targetCanvasY;
+    const mx = 735;
     const my = it.placedY * 14.14 + 14;
 
     const isErr = a.type === "cross" || a.type === "warning" || String(a.tag).includes("✗") || /inaccuracy|flaw|error|mistake|contradict|gap|missing/i.test(String(a.margin_remark || a.remark || ""));
@@ -22249,21 +22350,21 @@ window.generatePrintRedPenOverlayHtml = function(pageAnns, sections) {
     const mType = a.marker_type || (isErr ? "circle" : (isSug ? "bracket" : "tick"));
 
     if (mType === "circle") {
-      pathsHtml += `<ellipse cx="${tx}" cy="${ty}" rx="56" ry="20" fill="none" stroke="#dc2626" stroke-width="2.8" stroke-linecap="round" transform="rotate(-2 ${tx} ${ty})" />`;
+      pathsHtml += `<ellipse cx="${tx}" cy="${ty}" rx="52" ry="18" fill="none" stroke="#dc2626" stroke-width="2.8" stroke-linecap="round" transform="rotate(-2 ${tx} ${ty})" />`;
     } else if (mType === "bracket") {
-      pathsHtml += `<path d="M ${tx-28} ${ty-46} Q ${tx-38} ${ty-23} ${tx-44} ${ty} Q ${tx-38} ${ty+23} ${tx-28} ${ty+46}" fill="none" stroke="#dc2626" stroke-width="2.6" stroke-linecap="round" />`;
+      pathsHtml += `<path d="M ${tx-25} ${ty-42} Q ${tx-35} ${ty-21} ${tx-40} ${ty} Q ${tx-35} ${ty+21} ${tx-25} ${ty+42}" fill="none" stroke="#dc2626" stroke-width="2.6" stroke-linecap="round" />`;
     } else {
       pathsHtml += `<path d="M ${tx-14} ${ty+2} L ${tx-4} ${ty+12} L ${tx+16} ${ty-12}" fill="none" stroke="#dc2626" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />`;
     }
 
     const ctrlX = (mx + tx) / 2;
     const ctrlY = my + (ty - my) * 0.28;
-    const endX = tx + (mType === "circle" ? 54 : 20);
+    const endX = tx + (mType === "circle" ? 50 : 18);
     pathsHtml += `<path d="M ${mx} ${my} Q ${ctrlX} ${ctrlY} ${endX} ${ty}" fill="none" stroke="#dc2626" stroke-width="2.0" stroke-linecap="round" marker-end="url(#printRedArrowhead)" />`;
 
     const rawT = a.tag ? String(a.tag).replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, "").trim() : (isErr ? "Factual Inaccuracy" : "Examiner Point");
     const cTag = rawT.replace(/^[✓✔✎✗×]\s*/, "");
-    const rStr = (a.margin_remark || a.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").slice(0, 130);
+    const rStr = (a.margin_remark || a.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
 
     let lHtml = "";
     if (isErr) {
@@ -22275,12 +22376,19 @@ window.generatePrintRedPenOverlayHtml = function(pageAnns, sections) {
     }
 
     notesHtml += `
-      <div class="onpage-redpen-note absolute" style="left: 77%; width: 22.5%; top: ${it.placedY}%; font-family: 'Kalam', 'Caveat', cursive, sans-serif; font-size: 11pt; line-height: 1.35; color: #991b1b;">
+      <div class="onpage-redpen-note absolute" style="left: 73.5%; width: 25%; top: ${it.placedY}%; font-family: 'Kalam', 'Caveat', cursive, sans-serif; font-size: 10.5pt; line-height: 1.35; color: #991b1b;">
         ${lHtml}
         <span class="redpen-body" style="display: block;">${escapeHtml(rStr)}</span>
       </div>
     `;
   });
+
+  if (conclusionAnn) {
+    const c_tx = 350;
+    const c_ty = Math.min(1300, (conclusionAnn.approx_y_percent || 80) * 14.14);
+    pathsHtml += `<path d="M ${c_tx-16} ${c_ty+2} L ${c_tx-4} ${c_ty+14} L ${c_tx+18} ${c_ty-14}" fill="none" stroke="#dc2626" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />`;
+    pathsHtml += `<path d="M 500 1390 Q 420 1340 ${c_tx+20} ${c_ty}" fill="none" stroke="#dc2626" stroke-width="1.9" stroke-dasharray="4 3" marker-end="url(#printRedArrowhead)" />`;
+  }
 
   return `
     <svg class="onpage-arrow-svg" viewBox="0 0 1000 1414" preserveAspectRatio="none" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;">

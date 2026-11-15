@@ -3379,26 +3379,36 @@
                       <p class="text-[11px] text-slate-400">Upload handwritten pages (PDF/JPG) from the intake panel.</p>
                     </div>
                     
-                    <!-- Clean Answer Sheet Wrapper: tightly wraps image + slim Smart Gutter Ribbon -->
-                    <div class="relative w-full h-auto hidden flex items-stretch" id="pageImageWrapper">
-                      <div class="relative flex-1 min-w-0" id="pageImageSubWrapper">
-                        <img id="activePageImage" src="" alt="Answer Sheet Preview" class="w-full h-auto block shadow-sm">
-
-                        <!-- Stage 2: On-Page Red-Pen Evaluation Overlay (Circles, Brackets, Arrows, Margin Notes & Step-Marking Badges) -->
-                        <div id="onPageRedPenOverlay" class="absolute inset-0 pointer-events-auto overflow-visible z-20"></div>
+                    <!-- Evaluated Answer Sheet Canvas: Dedicated Right Margin (28%) + Expanded Bottom Space -->
+                    <div class="relative w-full h-auto hidden flex flex-col items-stretch" id="pageImageWrapper">
+                      <div class="relative w-full bg-white dark:bg-[#0E131F] rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden" id="evaluatedSheetCanvas">
                         
-                        <!-- Connector Guides Overlay Layer: Hidden per user request -->
-                        <div id="annotationsGuideLayer" class="absolute inset-0 pointer-events-none hidden" style="display: none !important;"></div>
+                        <!-- Top Row: Candidate Script (72%) + Dedicated Examiner Right Margin (28%) -->
+                        <div class="relative w-full flex flex-row items-stretch" id="evaluatedSheetMainRow">
+                          <!-- Candidate Script Column: Scaled cleanly to 72% so student handwriting NEVER touches the margin -->
+                          <div class="relative min-w-0" style="width: 72%; flex: 0 0 72%; background-color: #fafafa;" id="candidateScriptCol">
+                            <img id="activePageImage" src="" alt="Answer Sheet Preview" class="w-full h-auto block shadow-xs select-none pointer-events-none">
+                          </div>
 
-                        <!-- Horizontal Laser Focus Beam (Illuminates exact handwriting passage within column) -->
-                        <div id="gutterLaserBeam" class="absolute left-[16%] right-[16%] w-[68%] rounded-lg bg-amber-500/15 border border-amber-400/50 pointer-events-none transition-all duration-300 opacity-0 flex items-center justify-end pr-2 z-20 hidden" style="display: none !important;">
-                          <span id="gutterLaserLabel" class="text-[9.5px] font-bold font-mono px-2 py-0.5 rounded bg-amber-500 text-black shadow-md">FOCUSED POINT</span>
+                          <!-- Dedicated Examiner Margin Column (28%): Clean white margin with subtle dashed red guide line -->
+                          <div class="relative select-none flex flex-col justify-between" style="width: 28%; flex: 0 0 28%; background-color: #fdfdfd; border-left: 1.5px dashed rgba(220, 38, 38, 0.35);" id="examinerDedicatedMarginCol">
+                            <div class="p-2 text-[9px] font-mono font-bold tracking-widest text-rose-500/60 uppercase select-none flex items-center justify-between">
+                              <span>Examiner Margin</span>
+                              <i data-lucide="pen-tool" class="w-2.5 h-2.5 opacity-60"></i>
+                            </div>
+                          </div>
+
+                          <!-- Full-Width Red-Pen SVG & Margin Notes Overlay covering script + margin -->
+                          <div id="onPageRedPenOverlay" class="absolute inset-0 pointer-events-auto overflow-visible z-20"></div>
                         </div>
-                      </div>
 
-                      <!-- Smart Gutter Ribbon (Slim 36px wide on desktop/tablet, strictly alongside paper without touching writing) -->
-                      <div id="smartGutterRibbon" class="w-9 sm:w-11 bg-slate-900/95 border-l border-slate-800 flex flex-col items-center py-3 shrink-0 select-none relative z-10 hidden" style="display: none !important;">
-                        <!-- Dynamic Gutter Score Pins Rendered by renderAnnotationsOverlay() -->
+                        <!-- Dedicated Expanded Bottom Space (Below student handwriting: ample room for Conclusion & Closing Synthesis) -->
+                        <div id="sheetExpandedBottomSpace" class="w-full relative bg-[#fafafa] dark:bg-[#111625] border-t border-rose-200/60 dark:border-rose-900/40 px-4 py-3 min-h-[90px] flex items-center text-xs z-20 shadow-xs">
+                          <div id="bottomConclusionContainer" class="w-full">
+                            <!-- Rendered dynamically by renderOnPageRedPenEvaluation -->
+                          </div>
+                        </div>
+
                       </div>
                     </div>
                     
