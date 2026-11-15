@@ -6162,7 +6162,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                     c_crit = str(conc_audit_obj.get("current_critique") or "")
                     c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "")
                     clean_close = _clean_quote_snippet(closing_line, 120)
-                    clean_topper = c_rew.strip() if len(c_rew.strip()) >= 25 else 'Anchor closing line in 1 concrete institutional benchmark.'
+                    clean_topper = c_rew.strip() if len(c_rew.strip()) >= 25 else ('अंतिम पंक्ति में मुख्य प्रश्न मांग का ठोस व संतुलित संश्लेषण दें।' if is_hindi else 'Anchor closing line with a precise forward-looking synthesis addressing the core directive.')
 
                     if is_low_conc:
                         # Low score: MUST highlight the exact mistake / gap; NEVER write "Solid" or "Well-structured"
@@ -6172,9 +6172,17 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                             gap_msg = str(w_list[0]).strip()
                         if not gap_msg:
                             if clean_close:
-                                gap_msg = f"Ended with broad generic aspirational statements (*\"{clean_close}\"*); omitted concrete institutional roadmap or policy mechanisms to resolve the core dilemma. Deducted {c_ded:.1f}M for lack of substantive policy synthesis."
+                                gap_msg = (
+                                    f"समापन *\"{clean_close}\"* के साथ किया गया; किंतु यह सामान्य रहा और प्रश्न की मुख्य विश्लेषणात्मक मांग का सटीक निष्कर्ष नहीं दिया।"
+                                    if is_hindi else
+                                    f"Concluded with *\"{clean_close}\"*, but remained a broad general statement without directly synthesizing the core analytical demand of the question."
+                                )
                             else:
-                                gap_msg = f"Broad, generic closing statement; lacked actionable policy roadmap and statutory benchmarks. Deducted {c_ded:.1f}M for missing depth."
+                                gap_msg = (
+                                    "समापन सामान्य रहा और प्रश्न की मुख्य मांग का ठोस निष्कर्ष प्रस्तुत नहीं किया गया।"
+                                    if is_hindi else
+                                    "Broad, generic closing statement; did not directly synthesize the core analytical demand of the question."
+                                )
                         real_conc_rem = f"✗ **Conclusion Gap & Deduction**: {gap_msg}\n✎ **Topper Finish**: {clean_topper}"
                     else:
                         # High score (>= 65%): Highlight the effective synthesis that earned marks
@@ -10118,9 +10126,17 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             if is_low_c and re.search(r'(?i)solid|well-structured|good|comprehensive|effective', clean_c_crit):
                 c_ded = max(0.0, c_max - assigned_conc)
                 if closing_cand_quote:
-                    clean_c_crit = f"Ended with broad aspirational statements (*\"{_clean_quote_snippet(closing_cand_quote, 110)}\"*); omitted concrete institutional mechanisms and actionable policy roadmap. Deducted {c_ded:.1f}M for lack of substantive depth."
+                    clean_c_crit = (
+                        f"समापन *\"{_clean_quote_snippet(closing_cand_quote, 110)}\"* के साथ किया गया; किंतु यह सामान्य रहा और प्रश्न की मुख्य विश्लेषणात्मक मांग का सटीक निष्कर्ष नहीं दिया।"
+                        if is_hindi else
+                        f"Concluded with *\"{_clean_quote_snippet(closing_cand_quote, 110)}\"*, but remained a broad general statement without directly synthesizing the core analytical demand of the question."
+                    )
                 else:
-                    clean_c_crit = f"Generic and broad closing statement; lacked concrete institutional roadmap and actionable policy levers. Deducted {c_ded:.1f}M for lack of depth."
+                    clean_c_crit = (
+                        "समापन सामान्य रहा और प्रश्न की मुख्य मांग का ठोस निष्कर्ष प्रस्तुत नहीं किया गया।"
+                        if is_hindi else
+                        "Broad, generic closing statement; did not directly synthesize the core analytical demand of the question."
+                    )
             if is_hindi:
                 c_audit["current_critique"] = f"{'✗ **निष्कर्ष में कमी (Conclusion Gap)**' if is_low_c else '✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**'}: {clean_c_crit}"
             else:
@@ -10754,25 +10770,13 @@ def _enforce_canonical_mathematical_reconciliation(data: Dict[str, Any], max_mar
                 aw_val = s.get("awarded")
                 s["awarded"] = round(float(aw_val if (aw_val is not None and aw_val != "") else 0.0), 1)
                 
-                # Format precise summary note if raw fragments detected
+                # Preserve candidate's authentic points without overwriting with static policy boilerplate
                 qw = str(s.get("quoted_written") or "").strip()
                 if re.match(r'^\d+\.\s*', qw):
                     qw_clean = re.sub(r'^\d+\.\s*', '', qw)
                     qw_clean = re.sub(r'\s*\d+\.\s*', ', ', qw_clean)
                     qw_clean = re.sub(r'\.{2,}', '', qw_clean).strip()
-                    diff = max(0.0, s["max"] - s["awarded"])
-                    if diff > 0.05:
-                        s["quoted_written"] = (
-                            f"अभ्यर्थी के मुख्य तर्कों ({qw_clean}) का मूल्यांकन; {diff:.1f} अंक ठोस नीतिगत सुधार व संस्थागत साक्ष्य न होने के कारण काटे गए।"
-                            if is_hindi else
-                            f"Evaluated candidate arguments on {qw_clean}; deducted {diff:.1f}M for lack of specific institutional benchmarks and actionable policy depth."
-                        )
-                    else:
-                        s["quoted_written"] = (
-                            f"अभ्यर्थी के मुख्य तर्कों ({qw_clean}) का मूल्यांकन; मांग की संपूर्ण पूर्ति हेतु पूरे अंक प्रदान किए गए।"
-                            if is_hindi else
-                            f"Evaluated candidate arguments on {qw_clean}; full marks awarded for comprehensive substantiation."
-                        )
+                    s["quoted_written"] = qw_clean
 
         sum_aw = round(sum(float(s.get("awarded", 0.0)) for s in steps if isinstance(s, dict)), 1)
         sum_max = round(sum(float(s.get("max", 0.0)) for s in steps if isinstance(s, dict)), 1)

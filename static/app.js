@@ -14993,35 +14993,41 @@ function renderBatch1ExaminerMastery(evalData) {
 
     const isLowScore = score < (max * 0.65);
 
-    // Consistency Check: When score is low (< 65%), scrub contradictory praise like "Solid", "Well-structured"
+    // Strict Dynamic Evaluation: Never inject static/universal policy statements on dynamic UPSC questions (History, Geography, Society, Ethics, etc.)
     if (isLowScore && /solid|well-structured|good|comprehensive|effective/i.test(firstSentence)) {
       if (isConcSection) {
-        firstSentence = isHindi
-          ? "समापन सामान्य रहा; ठोस नीतिगत सुधार व संस्थागत रूपरेखा का अभाव"
-          : "Broad and generic closing; lacked concrete institutional mechanisms and forward-looking policy roadmap";
+        // Dynamic question-derived conclusion gap
+        let candCloseQuote = "";
+        if (evalData.conclusion_audit && evalData.conclusion_audit.current_critique) {
+          const qMatch = String(evalData.conclusion_audit.current_critique).match(/\*\"([^\"]+)\"\*/);
+          if (qMatch) candCloseQuote = qMatch[1];
+        }
+        if (!candCloseQuote && evalData.transcribed_text) {
+          const lines = String(evalData.transcribed_text).split("\n").map(l => l.trim()).filter(l => l.length > 15 && !l.startsWith("[Page"));
+          if (lines.length > 0) candCloseQuote = lines[lines.length - 1].slice(0, 90);
+        }
+        if (candCloseQuote) {
+          firstSentence = isHindi
+            ? `*\"${candCloseQuote}\"* के साथ समापन किया; किंतु यह सामान्य रहा और प्रश्न की मुख्य विश्लेषणात्मक मांग का सटीक निष्कर्ष नहीं दिया`
+            : `Concluded with *"${candCloseQuote}"*; remained a broad general statement without directly synthesizing the core analytical demand of the question`;
+        } else {
+          firstSentence = isHindi
+            ? "समापन सामान्य रहा; प्रश्न की मुख्य विश्लेषणात्मक मांग का सटीक व विषय-विशिष्ट संश्लेषण नहीं किया गया"
+            : "Closing remained broad and general; did not directly synthesize the core analytical demand of the question";
+        }
       } else if (isIntroSection) {
         firstSentence = isHindi
-          ? "प्रारंभिक परिभाषा सामान्य रही; ठोस संवैधानिक/विषय-विशिष्ट आधार का अभाव"
-          : "Generic opening definition; omitted foundational constitutional/conceptual doctrine";
+          ? "प्रारंभिक उल्लेख सामान्य रहा; प्रश्न की मुख्य मांग का आधार स्पष्ट रूप से स्थापित नहीं किया गया"
+          : "Generic opening statement; did not clearly establish the foundational premise demanded by the question";
       } else {
         firstSentence = isHindi
-          ? "विश्लेषण सीमित रहा; आवश्यक अनुभवजन्य साक्ष्य व संस्थागत प्रावधानों का अभाव"
-          : "Substantive coverage was limited; omitted key empirical telemetry and statutory benchmarks";
+          ? "सामान्य बिंदुओं का उल्लेख किया गया, किंतु प्रश्न की मांग के अनुरूप गहराई व विश्लेषणात्मक विस्तार का अभाव रहा"
+          : "Covered basic points, but lacked substantive analytical depth and empirical grounding demanded by the question";
       }
     }
 
-    let deductionTail = "";
-    if (parseFloat(deducted) > 0.05) {
-      deductionTail = isHindi
-        ? ` — **${deducted} अंक** विशिष्ट संस्थागत रूपरेखा व गहराई न होने के कारण काटे गए।`
-        : ` — **${deducted}M** deducted for lack of actionable policy depth and institutional benchmarks.`;
-    } else {
-      deductionTail = isHindi
-        ? ` — मांग की संपूर्ण पूर्ति हेतु पूरे अंक प्रदान किए गए।`
-        : ` — Full credit awarded for substantive and well-rounded fulfillment.`;
-    }
-
-    return `${statusPrefix} (**+${score.toFixed(1)}M**): ${firstSentence.replace(/\.$/, "")}${deductionTail}`;
+    // Zero static boilerplate tails: display only the authentic evaluated points and dynamic reason
+    return `${statusPrefix} (**+${score.toFixed(1)}M**): ${firstSentence.replace(/\.$/, "")}`;
   };
 
   const concNumber = bodySubParts.length + 2;
@@ -22160,7 +22166,9 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
         if (actualGap) {
           fullRem = actualGap;
         } else {
-          fullRem = `Ended with broad generic statements; lacked concrete institutional roadmap and actionable policy levers to address the core dilemma. Deducted ${(cMax - cScore).toFixed(1)}M for missing analytical depth.`;
+          fullRem = isHindi
+            ? "समापन सामान्य रहा; प्रश्न की मुख्य विश्लेषणात्मक मांग का सटीक संश्लेषण नहीं किया गया।"
+            : "Concluded with broad general statements without directly synthesizing the core analytical demand of the question.";
         }
       }
 
