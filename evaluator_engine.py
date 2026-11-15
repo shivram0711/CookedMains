@@ -1343,11 +1343,19 @@ def build_hindi_evaluation_prompt(
 
     if max_marks >= 15:
         hindi_prompt_visual_annotations_example = f'''    {{{{
+      "page": 1,
       "page_number": 1,
+      "marker_type": "tick",
+      "target_snippet": "[परीक्षार्थी की आरंभिक पंक्ति से 2-7 शब्द]",
+      "approx_x_percent": 32,
+      "approx_y_percent": 30,
       "tag": "प्रस्तावना (भूमिका)",
       "start_y_percent": 24,
       "end_y_percent": 38,
       "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
+      "step_badge": "+{d1_aw:.1f} / {d1_m:.1f}M ✓",
+      "margin_remark": "✓ सटीक अवधारणात्मक शुरुआत।\\n✎ [1 विषय-विशिष्ट सुधार]",
+      "rewrite_suggestion": "[सीधे जोड़ने योग्य 1 मानक वाक्य]",
       "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — सटीक Conceptual Baseline के साथ प्रभावी शुरुआत।\\n✎ **सुधार**: 1 विषय-सटीक संवर्धन जोड़ें।"
     }}}},
     {{{{
@@ -2399,12 +2407,18 @@ def build_evaluation_prompt(
     if max_marks >= 15:
         eng_prompt_visual_annotations_example = f'''    {{{{
       "page": 1,
+      "marker_type": "tick",
+      "target_snippet": "[Extract 2-7 words from candidate's opening line]",
+      "approx_x_percent": 32,
       "approx_y_percent": 30,
       "start_y_percent": 24,
       "end_y_percent": 42,
       "tag": "Intro: Context & Conceptual Definition",
       "type": "tick",
       "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
+      "step_badge": "+{d1_aw:.1f} / {d1_m:.1f}M ✓",
+      "margin_remark": "✓ Direct conceptual baseline & crisp framing.\\n✎ [1 subject elevation].",
+      "rewrite_suggestion": "[1 exam-ready sentence to elevate opening]",
       "remark": "✓ **Direct Premise**: Opened directly with *\"[Extract 10-18 words verbatim from candidate's handwritten opening paragraph]\"*, framing the core thesis.\\n✎ **Opening Upgrade**: [Provide 1 discipline-specific elevation tailored strictly to this question topic]."
     }}}},
     {{{{
@@ -2450,12 +2464,18 @@ def build_evaluation_prompt(
     else:
         eng_prompt_visual_annotations_example = f'''    {{{{
       "page": 1,
+      "marker_type": "tick",
+      "target_snippet": "[Extract 2-7 words from candidate's opening line]",
+      "approx_x_percent": 32,
       "approx_y_percent": 30,
       "start_y_percent": 24,
       "end_y_percent": 42,
       "tag": "Intro: Context & Conceptual Definition",
       "type": "tick",
       "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
+      "step_badge": "+{d1_aw:.1f} / {d1_m:.1f}M ✓",
+      "margin_remark": "✓ Direct conceptual baseline & crisp framing.\\n✎ [1 subject elevation].",
+      "rewrite_suggestion": "[1 exam-ready sentence to elevate opening]",
       "remark": "✓ **Direct Premise**: Opened directly with *\"[Extract 10-18 words verbatim from candidate's handwritten opening paragraph]\"*, framing the core thesis.\\n✎ **Opening Upgrade**: [Provide 1 discipline-specific elevation tailored strictly to this question topic]."
     }}}},
     {{{{
@@ -6165,6 +6185,67 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                 pg_subset = [a for a in annotations if int(a.get("page", 1) or 1) == pg_idx]
                 _heal_cross_attributed_page_annotations(pg_subset)
                 _enforce_clean_vertical_separation(pg_subset)
+            # Stage 1: Enrich on-page red pen visual metadata with zero overlap guarantees
+            for ann_item in annotations:
+                if "page" not in ann_item and "page_number" in ann_item:
+                    ann_item["page"] = ann_item["page_number"]
+                p_num = int(ann_item.get("page", 1) or 1)
+                ann_item["page"] = p_num
+
+                # Marker type determination: circle, bracket, tick, cross, or badge
+                if not ann_item.get("marker_type"):
+                    t_str = str(ann_item.get("type", "")).lower()
+                    r_str = str(ann_item.get("remark", ""))
+                    if t_str in ("cross", "warning", "danger") or "blunder" in r_str.lower() or "अशुद्ध" in r_str or "गलत" in r_str:
+                        ann_item["marker_type"] = "circle"
+                    elif "bracket" in t_str or len(str(ann_item.get("target_snippet") or "")) > 35:
+                        ann_item["marker_type"] = "bracket"
+                    elif "✓" in r_str or "tick" in t_str or "success" in t_str:
+                        ann_item["marker_type"] = "tick"
+                    else:
+                        ann_item["marker_type"] = "circle" if ("✎" in r_str) else "tick"
+
+                # Target snippet extraction for precise on-page anchoring
+                if not ann_item.get("target_snippet"):
+                    rem_full = str(ann_item.get("remark", ""))
+                    q_match = re.search(r'["\*]([^"]{4,55})["\*]', rem_full)
+                    if q_match:
+                        ann_item["target_snippet"] = q_match.group(1).strip()
+                    else:
+                        clean_t = re.sub(r'^(?:Body|मुख्य भाग|Intro|प्रस्तावना|निष्कर्ष|Conclusion):\s*', '', str(ann_item.get("tag", ""))).strip()
+                        ann_item["target_snippet"] = clean_t[:35] if clean_t else "Core analytical premise"
+
+                # Coordinates: safe margins (X: 30-40% for text area, Y: vertical span center)
+                if not ann_item.get("approx_x_percent"):
+                    ann_item["approx_x_percent"] = 32
+                s_y = float(ann_item.get("start_y_percent", 20.0) or 20.0)
+                e_y = float(ann_item.get("end_y_percent", s_y + 15.0) or (s_y + 15.0))
+                ann_item["approx_y_percent"] = int(round((s_y + e_y) / 2))
+
+                # Step-marking stamp badge (Point 2: section step-marks badge stamped on page)
+                raw_m = str(ann_item.get("marks_awarded", "")).strip()
+                if raw_m and not ann_item.get("step_badge") and ann_item.get("type") != "info":
+                    m_p = re.search(r'([+-]?\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)', raw_m)
+                    if m_p:
+                        s_val = float(m_p.group(1))
+                        d_val = float(m_p.group(2))
+                        ratio = s_val / d_val if d_val > 0 else 0
+                        badge_icon = "✓" if ratio >= 0.55 else "⚠️"
+                        ann_item["step_badge"] = f"+{s_val:.1f} / {d_val:.1f}M {badge_icon}"
+
+                # Margin remark & rewrite suggestion for interactive red-pen inspection
+                if not ann_item.get("margin_remark"):
+                    rem_lines = [l.strip() for l in str(ann_item.get("remark", "")).splitlines() if l.strip()]
+                    ann_item["margin_remark"] = rem_lines[0] if rem_lines else str(ann_item.get("remark", ""))[:95]
+                if not ann_item.get("rewrite_suggestion"):
+                    rem_lines = [l.strip() for l in str(ann_item.get("remark", "")).splitlines() if l.strip()]
+                    for l in rem_lines:
+                        if "✎" in l or "सुधार" in l or "Upgrade" in l or "Topper" in l:
+                            ann_item["rewrite_suggestion"] = l.replace("✎", "").strip()
+                            break
+                    if not ann_item.get("rewrite_suggestion"):
+                        ann_item["rewrite_suggestion"] = "Substantiate with 1 specific statutory anchor, official committee recommendation, or empirical metric."
+
             data["visual_annotations"] = annotations
             data["total_pages"] = max(int(data.get("total_pages", 0) or 0), max_pg)
 
@@ -7532,6 +7613,68 @@ def _prevent_duplicate_credit(data: Dict[str, Any]) -> None:
                 deduped_anns.append(a)
             else:
                 deduped_anns.append(a)
+        # Stage 1: Enrich on-page red pen visual metadata with zero overlap guarantees
+        for ann_item in deduped_anns:
+            if isinstance(ann_item, dict):
+                if "page" not in ann_item and "page_number" in ann_item:
+                    ann_item["page"] = ann_item["page_number"]
+                p_num = int(ann_item.get("page", 1) or 1)
+                ann_item["page"] = p_num
+
+                # Marker type determination: circle, bracket, tick, cross, or badge
+                if not ann_item.get("marker_type"):
+                    t_str = str(ann_item.get("type", "")).lower()
+                    r_str = str(ann_item.get("remark", ""))
+                    if t_str in ("cross", "warning", "danger") or "blunder" in r_str.lower() or "अशुद्ध" in r_str or "गलत" in r_str:
+                        ann_item["marker_type"] = "circle"
+                    elif "bracket" in t_str or len(str(ann_item.get("target_snippet") or "")) > 35:
+                        ann_item["marker_type"] = "bracket"
+                    elif "✓" in r_str or "tick" in t_str or "success" in t_str:
+                        ann_item["marker_type"] = "tick"
+                    else:
+                        ann_item["marker_type"] = "circle" if ("✎" in r_str) else "tick"
+
+                # Target snippet extraction for precise on-page anchoring
+                if not ann_item.get("target_snippet"):
+                    rem_full = str(ann_item.get("remark", ""))
+                    q_match = re.search(r'["*]([^"*]{4,55})["*]', rem_full)
+                    if q_match:
+                        ann_item["target_snippet"] = q_match.group(1).strip()
+                    else:
+                        clean_t = re.sub(r'^(?:Body|मुख्य भाग|Intro|प्रस्तावना|निष्कर्ष|Conclusion):\s*', '', str(ann_item.get("tag", ""))).strip()
+                        ann_item["target_snippet"] = clean_t[:35] if clean_t else "Core analytical premise"
+
+                # Coordinates: safe margins (X: 30-40% for text area, Y: vertical span center)
+                if not ann_item.get("approx_x_percent"):
+                    ann_item["approx_x_percent"] = 32
+                s_y = float(ann_item.get("start_y_percent", 20.0) or 20.0)
+                e_y = float(ann_item.get("end_y_percent", s_y + 15.0) or (s_y + 15.0))
+                ann_item["approx_y_percent"] = int(round((s_y + e_y) / 2))
+
+                # Step-marking stamp badge (Point 2: section step-marks badge stamped on page)
+                raw_m = str(ann_item.get("marks_awarded", "")).strip()
+                if raw_m and not ann_item.get("step_badge") and ann_item.get("type") != "info":
+                    m_p = re.search(r'([+-]?\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)', raw_m)
+                    if m_p:
+                        s_val = float(m_p.group(1))
+                        d_val = float(m_p.group(2))
+                        ratio = s_val / d_val if d_val > 0 else 0
+                        badge_icon = "✓" if ratio >= 0.55 else "⚠️"
+                        ann_item["step_badge"] = f"+{s_val:.1f} / {d_val:.1f}M {badge_icon}"
+
+                # Margin remark & rewrite suggestion for interactive red-pen inspection
+                if not ann_item.get("margin_remark"):
+                    rem_lines = [l.strip() for l in str(ann_item.get("remark", "")).splitlines() if l.strip()]
+                    ann_item["margin_remark"] = rem_lines[0] if rem_lines else str(ann_item.get("remark", ""))[:95]
+                if not ann_item.get("rewrite_suggestion"):
+                    rem_lines = [l.strip() for l in str(ann_item.get("remark", "")).splitlines() if l.strip()]
+                    for l in rem_lines:
+                        if "✎" in l or "सुधार" in l or "Upgrade" in l or "Topper" in l:
+                            ann_item["rewrite_suggestion"] = l.replace("✎", "").strip()
+                            break
+                    if not ann_item.get("rewrite_suggestion"):
+                        ann_item["rewrite_suggestion"] = "Substantiate with 1 specific statutory anchor, official committee recommendation, or empirical metric."
+
         data["visual_annotations"] = deduped_anns
 
     # Prevent duplicate credit across evidence ledger criteria

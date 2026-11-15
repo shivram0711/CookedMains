@@ -4712,3 +4712,83 @@ html.dark #heroScoreBannerCard {
   border: 1px solid rgba(16, 185, 129, 0.25);
   font-weight: 600;
 }
+
+
+/* =========================================================================
+   ON-PAGE RED-PEN EVALUATION MECHANISM & ANTI-OVERLAP CANVAS STYLES
+   ========================================================================= */
+.onpage-redpen-card {
+  font-family: 'Caveat', 'Kalam', cursive, sans-serif !important;
+  color: #b91c1c !important;
+  background-color: rgba(255, 255, 255, 0.96);
+  border: 1.5px solid rgba(220, 38, 38, 0.65);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 6px 10px;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  backdrop-filter: blur(4px);
+  user-select: none;
+  z-index: 28;
+}
+html.dark .onpage-redpen-card {
+  background-color: rgba(26, 17, 23, 0.95);
+  color: #f87171 !important;
+  border-color: rgba(239, 68, 68, 0.6);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+.onpage-redpen-card:hover {
+  transform: translateY(-2px) scale(1.02);
+  border-color: #dc2626 !important;
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.28);
+  z-index: 45 !important;
+}
+.onpage-step-badge {
+  font-family: 'Caveat', 'Kalam', cursive, sans-serif !important;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #991b1b !important;
+  background: rgba(254, 226, 226, 0.94);
+  border: 1.5px dashed #dc2626;
+  border-radius: 6px;
+  padding: 2px 7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.18);
+  transform: rotate(-1.5deg);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+  z-index: 30;
+}
+html.dark .onpage-step-badge {
+  background: rgba(80, 18, 24, 0.94);
+  color: #fca5a5 !important;
+  border-color: #ef4444;
+}
+.onpage-step-badge:hover {
+  transform: rotate(0deg) scale(1.08);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+  z-index: 45 !important;
+}
+.onpage-arrow-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 25;
+}
+.onpage-target-hotspot {
+  position: absolute;
+  cursor: pointer;
+  z-index: 27;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+}
+.onpage-target-hotspot:hover {
+  background-color: rgba(239, 68, 68, 0.15);
+  outline: 1.5px dashed rgba(220, 38, 38, 0.6);
+}

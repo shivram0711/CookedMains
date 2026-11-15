@@ -40,7 +40,8 @@ const state = {
   isRewriteMode: false,
   isControlsLocked: false,
   dailyQuestion: null,
-  activeStudioView: "landing"
+  activeStudioView: "landing",
+  evaluationViewMode: (typeof localStorage !== "undefined" && localStorage.getItem("mainsmentor_view_mode")) || "red_pen"
 };
 window.state = state;
 
@@ -8387,10 +8388,16 @@ function applyPreciseHandwritingBounds(imgEl, currentPg, totalPages, sections, r
     if (typeof window.renderDesktopAuditCards === "function") {
       window.renderDesktopAuditCards(sections, currentPg, totalPages);
     }
+    if (typeof window.renderOnPageRedPenEvaluation === "function") {
+      window.renderOnPageRedPenEvaluation(activeEval, currentPg, totalPages, sections);
+    }
   } else {
     if (mobileDrawer) mobileDrawer.classList.add("hidden");
     const desktopAuditSection = document.getElementById("desktopExaminerAuditContainer");
     if (desktopAuditSection) desktopAuditSection.classList.add("hidden");
+    if (typeof window.renderOnPageRedPenEvaluation === "function") {
+      window.renderOnPageRedPenEvaluation(activeEval, currentPg, totalPages, []);
+    }
   }
 }
 
@@ -17638,8 +17645,11 @@ function populatePrintAnnotatedCopies(evalData, pages, targetContainer) {
 
       <div class="print-copy-body">
         <div class="print-copy-img-wrap" style="width: 100%; flex: 1 1 100%; border-right: none;">
-          <div class="print-page-canvas">
+          <div class="print-page-canvas" style="position: relative;">
             <img src="${dataUrl}" class="print-copy-img" alt="Answer Page ${pageNum}">
+            <div class="print-redpen-overlay" style="position: absolute; inset: 0; pointer-events: none; z-index: 10;">
+              ${(typeof window.generatePrintRedPenOverlayHtml === "function") ? window.generatePrintRedPenOverlayHtml(pageAnns, sections) : ""}
+            </div>
           </div>
         </div>
       </div>
@@ -21950,4 +21960,447 @@ window.submitModalQuestionAndProceed = function() {
   if (typeof window.runEvaluation === "function") {
     window.runEvaluation(false);
   }
+};
+
+
+// =========================================================================
+// STAGE 2: ON-PAGE RED-PEN EVALUATION MECHANISM & ANTI-OVERLAP CANVAS ENGINE
+// Incorporating Points 2 (Step Badges), 4 (Topper Model View), and 7 (Smart Tooltip)
+// =========================================================================
+
+window.setEvaluationViewMode = function(mode) {
+  state.evaluationViewMode = mode || "red_pen";
+  try {
+    localStorage.setItem("mainsmentor_view_mode", state.evaluationViewMode);
+  } catch (e) {}
+
+  const redBtn = document.getElementById("viewModeRedPenBtn");
+  const cardsBtn = document.getElementById("viewModeCardsBtn");
+  const onPageOverlay = document.getElementById("onPageRedPenOverlay");
+  const desktopAudit = document.getElementById("desktopExaminerAuditContainer");
+
+  if (state.evaluationViewMode === "red_pen") {
+    if (redBtn) {
+      redBtn.className = "px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-600 text-white transition shadow-xs flex items-center gap-1 cursor-pointer";
+      redBtn.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span><span>✍️ Red Pen</span>`;
+    }
+    if (cardsBtn) {
+      cardsBtn.className = "px-2 py-0.5 rounded-md text-[10px] font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition flex items-center gap-1 cursor-pointer";
+      cardsBtn.innerHTML = `<span>📋 Cards</span>`;
+    }
+    if (onPageOverlay) onPageOverlay.style.display = "block";
+  } else {
+    if (redBtn) {
+      redBtn.className = "px-2 py-0.5 rounded-md text-[10px] font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition flex items-center gap-1 cursor-pointer";
+      redBtn.innerHTML = `<span>✍️ Red Pen</span>`;
+    }
+    if (cardsBtn) {
+      cardsBtn.className = "px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900 transition shadow-xs flex items-center gap-1 cursor-pointer";
+      cardsBtn.innerHTML = `<span>📋 Cards</span>`;
+    }
+    if (onPageOverlay) onPageOverlay.style.display = "none";
+    if (desktopAudit) desktopAudit.classList.remove("hidden");
+  }
+
+  const activeEval = (state.activeCopyMode === 'original' && state.originalEvaluation)
+    ? state.originalEvaluation
+    : (state.currentEvaluation || state.rewrittenEvaluation || state.originalEvaluation);
+  const currentPg = (state.currentPageIndex || 0) + 1;
+  const totalPages = (state.activePages && state.activePages.length) ? state.activePages.length : 1;
+
+  if (typeof window.renderOnPageRedPenEvaluation === "function") {
+    window.renderOnPageRedPenEvaluation(activeEval, currentPg, totalPages);
+  }
+};
+
+window.openTopperModelView = function() {
+  if (typeof window.switchStudioTab === "function") {
+    window.switchStudioTab("rewrite");
+  }
+  setTimeout(() => {
+    const target = document.getElementById("fullModelAnswerContainer") || document.getElementById("tabPaneRewrite");
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      target.classList.add("ring-2", "ring-amber-500", "transition-all");
+      setTimeout(() => target.classList.remove("ring-2", "ring-amber-500"), 2200);
+    }
+  }, 100);
+};
+
+let _smartTooltipTimeout = null;
+window.showSmartRedPenTooltip = function(ann, event) {
+  if (_smartTooltipTimeout) {
+    clearTimeout(_smartTooltipTimeout);
+    _smartTooltipTimeout = null;
+  }
+  const tooltip = document.getElementById("smartRedPenTooltip");
+  if (!tooltip || !ann) return;
+
+  const quoteEl = document.getElementById("tooltipQuoteText");
+  const remEl = document.getElementById("tooltipRemarkText");
+  const marksEl = document.getElementById("tooltipMarksText");
+  const rewEl = document.getElementById("tooltipRewriteText");
+  const rewSec = document.getElementById("tooltipRewriteSection");
+  const badgeEl = document.getElementById("tooltipBadgeText");
+
+  if (badgeEl) badgeEl.textContent = ann.tag || "EXAMINER RED-PEN";
+  if (marksEl) marksEl.textContent = ann.step_badge || ann.marks_awarded || "";
+  if (quoteEl) {
+    quoteEl.textContent = ann.target_snippet || ann.candidate_text || ann.quote || "Target handwriting passage";
+  }
+  if (remEl) {
+    remEl.innerHTML = (ann.margin_remark || ann.remark || "").replace(/\n/g, "<br>");
+  }
+  if (rewEl) {
+    const rew = ann.rewrite_suggestion || "";
+    if (rew) {
+      rewEl.textContent = rew;
+      if (rewSec) rewSec.classList.remove("hidden");
+      window._activeTooltipRewrite = rew;
+    } else if (rewSec) {
+      rewSec.classList.add("hidden");
+    }
+  }
+
+  const x = event.clientX || (event.touches && event.touches[0] ? event.touches[0].clientX : 200);
+  const y = event.clientY || (event.touches && event.touches[0] ? event.touches[0].clientY : 200);
+  const pad = 15;
+  const tooltipWidth = 320;
+  const tooltipHeight = 220;
+
+  let left = x + pad;
+  let top = y + pad;
+
+  if (left + tooltipWidth > window.innerWidth) {
+    left = Math.max(10, x - tooltipWidth - pad);
+  }
+  if (top + tooltipHeight > window.innerHeight) {
+    top = Math.max(10, y - tooltipHeight - pad);
+  }
+
+  tooltip.style.left = `${left}px`;
+  tooltip.style.top = `${top}px`;
+  tooltip.classList.remove("hidden");
+};
+
+window.hideSmartRedPenTooltip = function() {
+  _smartTooltipTimeout = setTimeout(() => {
+    const tooltip = document.getElementById("smartRedPenTooltip");
+    if (tooltip) tooltip.classList.add("hidden");
+  }, 300);
+};
+
+window.copyTopperRewriteFromTooltip = function() {
+  const text = window._activeTooltipRewrite || "";
+  if (text && navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById("tooltipCopyRewriteBtn");
+      if (btn) {
+        btn.textContent = "✓ Copied!";
+        setTimeout(() => { btn.textContent = "📋 Copy"; }, 1500);
+      }
+    });
+  }
+};
+
+window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, synthesizedSections) {
+  const overlay = document.getElementById("onPageRedPenOverlay");
+  if (!overlay) return;
+  overlay.innerHTML = "";
+
+  if (state.evaluationViewMode === "cards") {
+    overlay.style.display = "none";
+    return;
+  }
+  overlay.style.display = "block";
+
+  const evalData = evalObj || state.currentEvaluation || {};
+  let rawAnns = (evalData.visual_annotations || []).filter(a => (parseInt(a.page, 10) || 1) === currentPg);
+
+  if (rawAnns.length === 0 && Array.isArray(synthesizedSections) && synthesizedSections.length > 0) {
+    rawAnns = synthesizedSections.map((sec, sIdx) => {
+      const midY = (sec.startYPercent + sec.endYPercent) / 2;
+      return {
+        page: currentPg,
+        tag: sec.title,
+        marker_type: sec.isTick ? "tick" : "circle",
+        target_snippet: sec.title.replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, ""),
+        approx_x_percent: 32,
+        approx_y_percent: Math.round(midY),
+        start_y_percent: sec.startYPercent,
+        end_y_percent: sec.endYPercent,
+        marks_awarded: sec.marks,
+        step_badge: sec.marks ? `${sec.marks}M ${sec.isTick ? '✓' : '⚠️'}` : '',
+        margin_remark: sec.bodyHtml ? sec.bodyHtml.replace(/<[^>]*>/g, " ").trim().slice(0, 95) : "Direct examiner assessment.",
+        rewrite_suggestion: "Anchor with specific statutory provisions, empirical metrics, and Topper benchmark keywords."
+      };
+    });
+  }
+
+  if (rawAnns.length === 0) return;
+
+  function floatVal(v1, v2, def) {
+    if (v1 !== undefined && v1 !== null && !isNaN(Number(v1))) return Number(v1);
+    if (v2 !== undefined && v2 !== null && !isNaN(Number(v2))) return Number(v2);
+    return def;
+  }
+
+  // Strict Anti-Overlap Layout Algorithm (User Non-Negotiable Constraint)
+  const sortedAnns = [...rawAnns].sort((a, b) => {
+    const ya = floatVal(a.approx_y_percent, a.start_y_percent, 20);
+    const yb = floatVal(b.approx_y_percent, b.start_y_percent, 20);
+    return ya - yb;
+  });
+
+  const minDeltaY = 11.5;
+  const layoutItems = [];
+
+  let runningBottom = 6.0;
+  for (let i = 0; i < sortedAnns.length; i++) {
+    const ann = sortedAnns[i];
+    const targetY = floatVal(ann.approx_y_percent, ann.start_y_percent, 16 + i * 22);
+    const targetX = floatVal(ann.approx_x_percent, null, 32);
+    const placedY = Math.max(targetY, runningBottom + 2.0);
+    layoutItems.push({
+      ann,
+      targetX: Math.max(18, Math.min(68, targetX)),
+      targetY: Math.max(8, Math.min(88, targetY)),
+      placedY: Math.max(6, Math.min(88, placedY))
+    });
+    runningBottom = placedY + minDeltaY;
+  }
+
+  if (layoutItems.length > 0) {
+    const last = layoutItems[layoutItems.length - 1];
+    if (last.placedY > 88.0) {
+      const overflow = last.placedY - 88.0;
+      const shiftPerItem = overflow / layoutItems.length;
+      for (let i = 0; i < layoutItems.length; i++) {
+        layoutItems[i].placedY = Math.max(6.0 + i * minDeltaY, layoutItems[i].placedY - shiftPerItem * (i + 1));
+      }
+    }
+  }
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "onpage-arrow-svg");
+  svg.setAttribute("viewBox", "0 0 1000 1414");
+  svg.setAttribute("preserveAspectRatio", "none");
+
+  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  defs.innerHTML = `
+    <marker id="redArrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M 0 0 L 6 3 L 0 6 z" fill="#dc2626" />
+    </marker>
+  `;
+  svg.appendChild(defs);
+
+  layoutItems.forEach((item, idx) => {
+    const ann = item.ann;
+    const tx = item.targetX * 10;
+    const ty = item.targetY * 14.14;
+    const mx = 750;
+    const my = item.placedY * 14.14 + 18;
+
+    const markerType = ann.marker_type || (ann.type === "warning" || ann.type === "cross" ? "circle" : "tick");
+
+    // 1. On-Page Visual Marker
+    if (markerType === "circle") {
+      const rx = 52;
+      const ry = 19;
+      const rot = (idx % 2 === 0 ? -2.2 : 2.0);
+      const circleEl = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+      circleEl.setAttribute("cx", tx);
+      circleEl.setAttribute("cy", ty);
+      circleEl.setAttribute("rx", rx);
+      circleEl.setAttribute("ry", ry);
+      circleEl.setAttribute("fill", "none");
+      circleEl.setAttribute("stroke", "#dc2626");
+      circleEl.setAttribute("stroke-width", "2.6");
+      circleEl.setAttribute("stroke-linecap", "round");
+      circleEl.setAttribute("transform", `rotate(${rot} ${tx} ${ty})`);
+      circleEl.setAttribute("class", "cursor-pointer pointer-events-auto transition-all");
+      circleEl.addEventListener("mouseenter", (e) => window.showSmartRedPenTooltip(ann, e));
+      circleEl.addEventListener("mouseleave", () => window.hideSmartRedPenTooltip());
+      circleEl.addEventListener("click", (e) => window.showSmartRedPenTooltip(ann, e));
+      svg.appendChild(circleEl);
+    } else if (markerType === "bracket") {
+      const bh = 50;
+      const bPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      bPath.setAttribute("d", `M ${tx-30} ${ty-bh} Q ${tx-40} ${ty-bh/2} ${tx-48} ${ty} Q ${tx-40} ${ty+bh/2} ${tx-30} ${ty+bh}`);
+      bPath.setAttribute("fill", "none");
+      bPath.setAttribute("stroke", "#dc2626");
+      bPath.setAttribute("stroke-width", "2.6");
+      bPath.setAttribute("stroke-linecap", "round");
+      bPath.setAttribute("class", "cursor-pointer pointer-events-auto");
+      bPath.addEventListener("mouseenter", (e) => window.showSmartRedPenTooltip(ann, e));
+      bPath.addEventListener("mouseleave", () => window.hideSmartRedPenTooltip());
+      bPath.addEventListener("click", (e) => window.showSmartRedPenTooltip(ann, e));
+      svg.appendChild(bPath);
+    } else {
+      const tick = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      tick.setAttribute("d", `M ${tx-14} ${ty+2} L ${tx-4} ${ty+12} L ${tx+16} ${ty-12}`);
+      tick.setAttribute("fill", "none");
+      tick.setAttribute("stroke", "#dc2626");
+      tick.setAttribute("stroke-width", "3.2");
+      tick.setAttribute("stroke-linecap", "round");
+      tick.setAttribute("stroke-linejoin", "round");
+      tick.setAttribute("class", "cursor-pointer pointer-events-auto");
+      tick.addEventListener("mouseenter", (e) => window.showSmartRedPenTooltip(ann, e));
+      tick.addEventListener("mouseleave", () => window.hideSmartRedPenTooltip());
+      tick.addEventListener("click", (e) => window.showSmartRedPenTooltip(ann, e));
+      svg.appendChild(tick);
+    }
+
+    // 2. Smooth Curved Connecting Bezier Arrow
+    const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    const ctrlX = (mx + tx) / 2;
+    const ctrlY = my + (ty - my) * 0.28;
+    const endX = tx + (markerType === "circle" ? 48 : 20);
+    arrowPath.setAttribute("d", `M ${mx} ${my} Q ${ctrlX} ${ctrlY} ${endX} ${ty}`);
+    arrowPath.setAttribute("fill", "none");
+    arrowPath.setAttribute("stroke", "#dc2626");
+    arrowPath.setAttribute("stroke-width", "1.9");
+    arrowPath.setAttribute("stroke-linecap", "round");
+    arrowPath.setAttribute("marker-end", "url(#redArrowhead)");
+    svg.appendChild(arrowPath);
+
+    // 3. Margin Card in Right Margin
+    const cardEl = document.createElement("div");
+    cardEl.className = "onpage-redpen-card absolute";
+    cardEl.style.left = "76.5%";
+    cardEl.style.width = "22%";
+    cardEl.style.top = `${item.placedY}%`;
+
+    const tagStr = ann.tag ? String(ann.tag).replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, "") : "Examiner Point";
+    const remStr = ann.margin_remark || ann.remark || "";
+    const cleanRem = remStr.replace(/\*\*/g, "").slice(0, 110);
+
+    cardEl.innerHTML = `
+      <div style="font-weight: 700; font-size: 11px; letter-spacing: 0.2px; color: #991b1b; border-bottom: 1px dashed rgba(220,38,38,0.3); padding-bottom: 2px; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center;">
+        <span class="truncate">${escapeHtml(tagStr)}</span>
+        ${ann.marks_awarded ? `<span style="font-size: 9.5px; font-mono; opacity: 0.85;">${escapeHtml(ann.marks_awarded)}</span>` : ''}
+      </div>
+      <div style="font-size: 11.5px; line-height: 1.25; color: #b91c1c;">
+        ${escapeHtml(cleanRem)}
+      </div>
+    `;
+
+    cardEl.addEventListener("mouseenter", (e) => window.showSmartRedPenTooltip(ann, e));
+    cardEl.addEventListener("mouseleave", () => window.hideSmartRedPenTooltip());
+    cardEl.addEventListener("click", (e) => window.showSmartRedPenTooltip(ann, e));
+    overlay.appendChild(cardEl);
+
+    // 4. Suggestion Point 2: Stamped Section Step-Marking Badges
+    if (ann.marks_awarded && ann.type !== "info") {
+      const badgeEl = document.createElement("div");
+      badgeEl.className = "onpage-step-badge absolute";
+      badgeEl.style.left = "3.5%";
+      badgeEl.style.top = `${item.placedY}%`;
+      const badgeText = ann.step_badge || `${ann.marks_awarded}M ✓`;
+      badgeEl.innerHTML = `<span>${escapeHtml(badgeText)}</span>`;
+      badgeEl.addEventListener("mouseenter", (e) => window.showSmartRedPenTooltip(ann, e));
+      badgeEl.addEventListener("mouseleave", () => window.hideSmartRedPenTooltip());
+      badgeEl.addEventListener("click", (e) => window.showSmartRedPenTooltip(ann, e));
+      overlay.appendChild(badgeEl);
+    }
+  });
+
+  overlay.appendChild(svg);
+};
+
+// Stage 3: Helper to generate on-page red pen SVG & cards HTML for Print & PDF Export
+window.generatePrintRedPenOverlayHtml = function(pageAnns, sections) {
+  let anns = Array.isArray(pageAnns) && pageAnns.length > 0 ? pageAnns : [];
+  if (anns.length === 0 && Array.isArray(sections) && sections.length > 0) {
+    anns = sections.map((sec, idx) => ({
+      tag: sec.title,
+      marker_type: sec.isTick ? "tick" : "circle",
+      approx_x_percent: 32,
+      approx_y_percent: Math.round((sec.startYPercent + sec.endYPercent) / 2),
+      marks_awarded: sec.marks,
+      step_badge: sec.marks ? `${sec.marks}M ${sec.isTick ? '✓' : '⚠️'}` : '',
+      margin_remark: sec.bodyHtml ? sec.bodyHtml.replace(/<[^>]*>/g, " ").trim().slice(0, 95) : "Direct assessment."
+    }));
+  }
+
+  if (anns.length === 0) return "";
+
+  const minDeltaY = 11.5;
+  const layout = [];
+  let curBottom = 6.0;
+
+  for (let i = 0; i < anns.length; i++) {
+    const a = anns[i];
+    const targetY = a.approx_y_percent || a.start_y_percent || (16 + i * 22);
+    const placedY = Math.max(targetY, curBottom + 2.0);
+    layout.push({
+      ann: a,
+      targetX: Math.max(18, Math.min(68, a.approx_x_percent || 32)),
+      targetY: Math.max(8, Math.min(88, targetY)),
+      placedY: Math.max(6, Math.min(88, placedY))
+    });
+    curBottom = placedY + minDeltaY;
+  }
+
+  let pathsHtml = "";
+  let cardsHtml = "";
+  let badgesHtml = "";
+
+  layout.forEach((it, idx) => {
+    const a = it.ann;
+    const tx = it.targetX * 10;
+    const ty = it.targetY * 14.14;
+    const mx = 750;
+    const my = it.placedY * 14.14 + 18;
+    const mType = a.marker_type || (a.type === "warning" || a.type === "cross" ? "circle" : "tick");
+
+    if (mType === "circle") {
+      pathsHtml += `<ellipse cx="${tx}" cy="${ty}" rx="52" ry="19" fill="none" stroke="#dc2626" stroke-width="2.6" stroke-linecap="round" transform="rotate(-2 ${tx} ${ty})" />`;
+    } else if (mType === "bracket") {
+      pathsHtml += `<path d="M ${tx-30} ${ty-50} Q ${tx-40} ${ty-25} ${tx-48} ${ty} Q ${tx-40} ${ty+25} ${tx-30} ${ty+50}" fill="none" stroke="#dc2626" stroke-width="2.6" stroke-linecap="round" />`;
+    } else {
+      pathsHtml += `<path d="M ${tx-14} ${ty+2} L ${tx-4} ${ty+12} L ${tx+16} ${ty-12}" fill="none" stroke="#dc2626" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />`;
+    }
+
+    const ctrlX = (mx + tx) / 2;
+    const ctrlY = my + (ty - my) * 0.28;
+    const endX = tx + (mType === "circle" ? 48 : 20);
+    pathsHtml += `<path d="M ${mx} ${my} Q ${ctrlX} ${ctrlY} ${endX} ${ty}" fill="none" stroke="#dc2626" stroke-width="1.9" stroke-linecap="round" marker-end="url(#printRedArrowhead)" />`;
+
+    const tagStr = a.tag ? String(a.tag).replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, "") : "Examiner Point";
+    const remStr = (a.margin_remark || a.remark || "").replace(/\*\*/g, "").slice(0, 110);
+
+    cardsHtml += `
+      <div class="onpage-redpen-card absolute" style="left: 76.5%; width: 22%; top: ${it.placedY}%; font-size: 10px;">
+        <div style="font-weight: 700; font-size: 10px; color: #991b1b; border-bottom: 1px dashed rgba(220,38,38,0.3); padding-bottom: 1px; margin-bottom: 2px;">
+          ${escapeHtml(tagStr)} ${a.marks_awarded ? `<span style="float: right;">${escapeHtml(a.marks_awarded)}</span>` : ''}
+        </div>
+        <div style="font-size: 10px; line-height: 1.2; color: #b91c1c;">
+          ${escapeHtml(remStr)}
+        </div>
+      </div>
+    `;
+
+    if (a.marks_awarded && a.type !== "info") {
+      const bText = a.step_badge || `${a.marks_awarded}M ✓`;
+      badgesHtml += `
+        <div class="onpage-step-badge absolute" style="left: 3.5%; top: ${it.placedY}%; font-size: 11px;">
+          <span>${escapeHtml(bText)}</span>
+        </div>
+      `;
+    }
+  });
+
+  return `
+    <svg class="onpage-arrow-svg" viewBox="0 0 1000 1414" preserveAspectRatio="none" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;">
+      <defs>
+        <marker id="printRedArrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <path d="M 0 0 L 6 3 L 0 6 z" fill="#dc2626" />
+        </marker>
+      </defs>
+      ${pathsHtml}
+    </svg>
+    ${cardsHtml}
+    ${badgesHtml}
+  `;
 };
