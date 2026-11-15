@@ -1728,6 +1728,26 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
           * निष्कर्ष के दोष (सजावटी उद्धरण, असंबद्ध नारे, नीतिगत संश्लेषण) केवल `conclusion_audit` में दर्ज होंगे।
           * किसी भी अनुभाग की टिप्पणी दूसरे अनुभाग में कभी नहीं जाएगी।
         - **शून्य तयशुदा/स्थिर वाक्य**: प्रत्येक टिप्पणी व सुधार अभ्यर्थी की वास्तविक हस्तलिखित उत्तर-पुस्तिका और प्रश्न के विषय (GS1, GS2, GS3, GS4) पर गतिशील रूप से आधारित होगा।
+      * ज. कठोर तथ्यात्मक परीक्षण, ऐतिहासिक/अनुभवजन्य सटीकता एवं कालभ्रम (Anachronism) ऑडिट (RED-PEN EXAMINER LAW):
+        - एक वरिष्ठ यूपीएससी परीक्षक के रूप में अभ्यर्थी द्वारा लिखे गए प्रत्येक ऐतिहासिक पात्र, आंदोलन, अधिनियम, संवैधानिक अनुच्छेद, आर्थिक आंकड़े और सामाजिक वर्ग का सूक्ष्म तथ्यात्मक परीक्षण करें:
+          1. **नेतृत्व व आंदोलन का सही मिलान (Leader-Movement Pairing)**:
+             - जांचें कि ऐतिहासिक नेता, विचारक अथवा संगठन वास्तव में उसी आंदोलन, क्षेत्र व कालखंड से संबंधित हैं या नहीं।
+             - जैसे: यदि अभ्यर्थी ने लिखा "एका आंदोलन -> नेहरू" अथवा "एका आंदोलन -> डॉ. राम मनोहर लोहिया", तो इसे स्पष्ट तथ्यात्मक भूल बताएं कि एका आंदोलन (1921-22) का नेतृत्व मदारी पासी ने किया था; नेहरू अवध किसान सभा से जुड़े थे; और डॉ. लोहिया 1930-40 के दशक में कांग्रेस सोशलिस्ट पार्टी व भारत छोड़ो आंदोलन में सक्रिय हुए, एका आंदोलन से उनका कोई संबंध नहीं था!
+          2. **वर्ग व सामाजिक भूमिका का सही वर्गीकरण (Oppressor vs. Participant)**:
+             - जांचें कि सामाजिक वर्गों की ऐतिहासिक भूमिका (शोषक बनाम शोषित/भागीदार) सही पहचानी गई है या नहीं।
+             - जैसे: यदि अभ्यर्थी साहूकारों, महाजनों अथवा जमींदारों को किसान/जनजातीय आंदोलनों के 'कमजोर भागीदार' के रूप में लिखता है, तो यह गंभीर श्रेणीगत भूल है—साहूकार और महाजन शोषण के मुख्य लक्ष्य/उत्पीड़क थे, न कि आंदोलनों के भागीदार!
+          3. **कालक्रम व कालभ्रम (Anachronism) की रोकथाम**:
+             - जांचें कि उल्लिखित व्यक्तित्व व संस्थाएं उस ऐतिहासिक कालखंड में वास्तव में विद्यमान थीं या नहीं।
+          4. **तालिकाओं में सममित तुलनात्मक मानक (Symmetrical Comparison)**:
+             - तुलनात्मक तालिका में दोनों स्तंभों में एक समान आधारभूत पैमाने की तुलना होनी चाहिए (उदा. लामबंदी का आधार बनाम लामबंदी का आधार)। किसी एक स्तंभ में विकृति (जैसे सांप्रदायिकता) और दूसरे में अधिकार (जैसे जनजातीय अलगाव) की असंगत तुलना को फ्लैग करें।
+          5. **अति-व्यापक सामान्यीकरण व ऐतिहासिक अंतर्विरोध**:
+             - जैसे: यह दावा करना कि जनजातीय आंदोलनों में "व्यापक ब्रिटिश-विरोधी दृष्टिकोण का अभाव था"—यह ऐतिहासिक रूप से गलत है क्योंकि संथाल हूल (1855) और बिरसा मुंडा के उलगुलान (1899-1900) ने विदेशी 'दिकू राज' और ब्रिटिश थानों/सेना को सीधे उखाड़ फेंकने का सशस्त्र प्रयास किया था।
+          6. **मर्यादित ऐतिहासिक शब्दावली व सम्मान**:
+             - राष्ट्रीय नेताओं व स्वतंत्रता सेनानियों के संदर्भ में अनुचित या अपमानजनक विशेषणों (जैसे बिरसा मुंडा के आंदोलन को 'Quixotic' या निरर्थक नायकत्व कहना) को तुरंत सुधारें।
+        - **अनिवार्य सुधार प्रारूप**:
+          * `body_audit.critical_gaps` में: `**तथ्यात्मक अशुद्धि: [अभ्यर्थी का उद्धरण] (पृष्ठ X)**: आपने लिखा "[उद्धरण]"। यह ऐतिहासिक/तथ्यात्मक रूप से अशुद्ध है क्योंकि [सटीक कारण]। ✍️ **लिखने का सटीक प्रारूप**: "[परीक्षा-हॉल उपयोगी सही वाक्य]".`
+          * `visual_annotations` में: `"type": "cross"` के साथ स्पष्ट तथ्यात्मक सुधार दें।
+          * `fatal_blunders_alert` में: यदि गंभीर कालभ्रम या गलत श्रेय है, तो `"has_blunder": true` दर्ज करें।
 
 
 OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
@@ -2823,10 +2843,21 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
      "✓ **[What fetched marks]**: e.g. Cited **Aristotle (Master Science)**.
      ✗ **[What lost marks]**: Missing **David Easton (Post-behavioralism)** & **Bismarck's 'art of possible'**."
 
-4. FATAL ATTRIBUTION & DISCIPLINE BLUNDER POLICE:
-   - Check if candidate misattributed a famous quote/maxim (e.g. attributing Plato's 'State is individual writ large' to Aristotle).
-   - Check if candidate dragged irrelevant Indian constitutional articles (like Art 51A Fundamental Duties) into Western Political Thought.
-   - If found, populate 'fatal_blunders_alert'.
+4. FATAL ATTRIBUTION, FACTUAL BLUNDERS & HISTORICAL/EMPIRICAL INACCURACY POLICE (UNIVERSAL ACROSS ALL GS PAPERS & SUBJECTS):
+   - A senior UPSC Mains examiner actively polices factual inaccuracies, chronological anachronisms, misattributions, and inverted stakeholder roles across all subjects (GS-1 History/Geography/Society, GS-2 Polity/IR, GS-3 Economy/Agri/S&T/Security, GS-4 Ethics, and Optionals):
+     * Historical & Leadership Pairing: Cross-check that named historical leaders, reformers, and organizations are accurately paired with their actual movement, event, and era (e.g., Eka movement was led by Madari Pasi in Awadh/Hardoi; Jawaharlal Nehru organized Awadh Kisan Sabha; Dr. Ram Manohar Lohia was a socialist leader active in the 1930s-40s CSP and Quit India, NOT the 1921-22 Eka Movement). Never allow or overlook misattributions.
+     * Stakeholder & Socioeconomic Role Reversals: Verify that social groups are correctly identified in their historical roles (e.g. moneylenders, landlords/zamindars, and colonial intermediaries were the exploitative targets/oppressors of peasant and tribal uprisings, NEVER vulnerable victims or participants!).
+     * Anachronisms & Chronological Integrity: Verify that figures, statutes, and events cited were contemporaneous with the phenomena under analysis.
+     * Scholarly, Doctrinal & Statutory Attribution: Verify that judicial doctrines, constitutional articles, thinkers, and statutory provisions are attributed to their true authors and cases (e.g., attributing Plato's 'State is individual writ large' to Aristotle, or citing Art 51A Fundamental Duties in Western Political Thought).
+     * Symmetrical Comparison Parameters in Tables: When candidate uses a comparative table or 2-column distinction, ensure both sides compare matching criteria (e.g. basis of mobilization vs basis of mobilization). Flag asymmetric comparisons (e.g. comparing communalism against tribal alienation).
+     * Sweeping Generalizations & Historical Contradictions: Flag claims that contradict established historical facts (e.g. claiming tribal movements 'lacked a broader anti-colonial outlook' when Santhal Hool and Birsa Munda's Ulgulan directly fought British forces and police outposts; or claiming movements 'lacked mass participation').
+     * Respectful Historiographical Tone & Terminology: Flag dismissive, patronizing, or inappropriate descriptions of freedom fighters, reformers, or marginalized communities (e.g., describing Birsa Munda's leadership as 'quixotic charismatic heroism').
+   - If any critical factual error, anachronism, or category confusion is found:
+     * Populate 'fatal_blunders_alert':
+       "has_blunder": true, "title": "Critical Attribution & Factual Inaccuracy Alert", "attribution_error": "[Exact quote of candidate's error] — [Clear explanation of why it is factually incorrect and what the correct historical/empirical fact is]", "disciplinary_leak": "[Broader diagnostic note on chronological/category precision]".
+     * Explicitly flag the error in 'body_audit.critical_gaps' with the exact quote, explanation, and exam-ready correction under ✍️ **How to Write**: "...".
+     * In 'visual_annotations', tag the line with "type": "cross" and explain the factual correction.
+     * In 'missing_keywords_cards', add an action with "action_type": "Correct", "priority": "High Priority".
 
 5. NEXT ATTEMPT FOCUS (MENTOR'S REWRITE WORKSHOP):
    - DO NOT give an abstract, isolated sentence! Anchor it directly to the candidate's script:
@@ -3065,6 +3096,13 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       * *Evaluate / Assess / To what extent*: Candidate MUST establish clear *criteria for judgement* and state *how far* the claim holds, rather than a generic pros/cons list.
       * *Critically examine / Critically analyse*: Establish valid aspects ➔ present counterarguments/limitations ➔ state conditions under which claim holds ➔ reasoned judgement.
       * *Compare / Distinguish*: Symmetrical comparison across matching criteria, never two detached descriptive essays.
+      * *How far would it be correct... / To what extent...*:
+        - ANTI-BINARY STRUCTURAL AUDIT: Strongly penalize dividing the answer into two simplistic, mutually exclusive binary camps (e.g., Heading 1: "Part of freedom struggle" vs Heading 2: "Not part of freedom struggle").
+        - In UPSC Mains, "How far" questions demand evaluating the dialectical relationship and degrees of convergence/divergence:
+          1. Dimension of Convergence / Integration: How the movement intersected with, radicalized, and provided the mass base for the anti-colonial struggle (e.g. peasant/tribal uprisings creating the groundswell that drew national leaders, boycotts, and forest satyagrahas).
+          2. Dimension of Autonomous Identity & Local Specificity: Why and how the movement retained an autonomous subaltern character driven by local agrarian/forest grievances (diku exploitation, illegal cesses) that operated independently of elite-led constitutional politics.
+          3. Synthesis: Evaluating how subaltern resistance forced the national movement to evolve beyond elite nationalism into a mass anti-imperialist front (Ranajit Guha / Sumit Sarkar historiography).
+        - If the candidate reduced the answer into crude polar opposites, flag this in `body_audit.critical_gaps` and show how to structure nuanced sub-parts.
 
 16. INITIAL TOPPER ANCHOR BOX / SMART-ART (PAGE 1 INSTANT AUTHORITY):
     - Immediately after the 2-line introduction on Page 1, include an authentic boxed micro-table or smart-art summary listing 4-5 key dimensions, policy anchors, or global frameworks.
@@ -3095,8 +3133,13 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       8. *Comparative Framework (Compare, Distinguish)*: Establishes the dimensions along which two concepts differ or converge.
       9. *Historical / Evolutionary (GS-1 History, Constitutional Evolution)*: Traces institutional origin to present character without a miniature historical narrative.
       10. *Ethical / Philosophical (GS-4 Normative)*: Clarifies the moral distinction or value conflict (e.g. Compliance vs. Integrity, Legality vs. Morality).
-    - ANTI-MISTAKE AUDIT (THE 4 INTRO TRAPS):
+    - ANTI-MISTAKE AUDIT (THE 5 INTRO TRAPS):
       * Penalize: (1) Generic background ("Since ancient times..."), (2) Repeating the prompt text, (3) Forced famous quotations, (4) "Intro Consuming the Body" (listing all causes/solutions in the intro).
+      * (5) **Premature Assumption / Stance-Jumping in Evaluative Questions**:
+        - In questions with evaluative directives (*"How far"*, *"Critically examine"*, *"To what extent"*), check whether the candidate's introduction prematurely assumes the conclusion as settled fact (e.g., opening by stating that peasant and tribal movements were simply an undercurrent of the national freedom struggle).
+        - In `intro_audit.current_critique`, diagnose this explicitly:
+          `"✗ **Premature Assertion**: While citing [historian/quote] demonstrates historiographical awareness, your opening assumes the conclusion by treating peasant and tribal movements as an integrated undercurrent of the national struggle before evaluating the 'how far' tension demanded by the prompt. An elevated opening must frame the dual character: autonomous subaltern resistance rooted in local grievances versus points of anti-colonial convergence."`
+        - In `intro_audit.model_intro_rewrite`, provide a 25–35 word opening that captures this analytical tension with bold keywords.
     - In `intro_audit.model_intro_rewrite`: Provide a 25–35 word exam-hall opening executing the exact directive-aligned archetype.
 
 18. DIRECTIVE-DRIVEN CONCLUSION MASTERY (ZERO GENERIC REPETITION / ZERO SLOGANS):
@@ -3113,13 +3156,18 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       * *Emerging Tech / AI / Dynamic*: Deliver a **Future-Oriented conclusion** identifying the decisive condition for public trust, human oversight, and data sovereignty.
       * *GS-1 History*: Deliver a **Historical-Significance conclusion** linking historical achievements to enduring democratic or cultural legacies.
       * *GS-2/GS-3 Strategy & Foreign Policy*: Deliver a **Strategic / Policy conclusion** establishing a clear, independent national priority.
-    - AUDIT AGAINST THE 5 COMMON CONCLUSION FAILURES:
+    - AUDIT AGAINST THE 6 COMMON CONCLUSION FAILURES:
       Flag and penalize:
       1. *Repetitive summary* ("Thus, it can be concluded that urban flooding has many causes...").
       2. *Generic optimism* ("India will definitely overcome all challenges and become a developed nation").
       3. *Forced quotation* ("Be the change you wish to see in the world").
       4. *New unexamined argument* (introducing an unexamined committee, scheme, or statute in the final line).
       5. *Excessive prescription* (dumping 6 new policy recommendations after the word limit is exhausted).
+      6. *Reductionist Synthesis in Subaltern & Grassroots Questions*:
+         - Audit whether the conclusion diminishes autonomous subaltern/grassroots struggles as mere "smaller scale replicas" of elite-led national movements (e.g., writing *"can be said to replicate the national movement on smaller scale"*).
+         - In `conclusion_audit.current_critique`, diagnose:
+           `"✗ **Reductionist Synthesis**: Describing peasant and tribal movements as 'replicas on a smaller scale' overlooks their autonomous subaltern origin and distinct consciousness (as highlighted by Ranajit Guha). Conclude instead by synthesizing how their independent grassroots struggles democratized the anti-colonial movement, compelling national leadership to incorporate agrarian and forest demands."`
+         - In `conclusion_audit.model_conclusion_rewrite`, provide a 25–35 word conclusion that synthesizes the true historical balance without generic boilerplate or reductionism.
     - Every `model_conclusion_rewrite` MUST be 100% tailored to the specific question's core subject, institutional mechanism, or constitutional doctrine in 20–30 words.
 
 19. POINT-BY-POINT VERBATIM AUDIT, VISUAL EXAMINER-ATTENTION DETECTION & ANTI-GENERIC GRADING (ZERO TRUST DEFICIT MANDATE):
@@ -3337,6 +3385,32 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
                  - **For GS-4 (Ethics & Case Studies)**: Supply missing stakeholder analysis, the KEE ethical framework (Keyword -> Explanation -> Example), moral philosophers (Rawls, Kant, Gandhi), and the Topper 3-Phase SOP (Immediate -> Administrative -> Long-term systemic reform).
                * Show them exactly how to structure and expand these points across Page 1, Page 2, and Page 3 so they know how to write a full 3-page, 250-word answer in their next attempt.
         - **IF the candidate's copy is fully written across all required pages**: Do NOT apply this under-written penalty; evaluate standard content depth normally.
+      * **G. Rigorous Fact-Checking, Historical/Empirical Accuracy & Anachronism Audit (Red-Pen Examiner Law)**:
+        - As a rigorous, subject-expert UPSC Mains Examiner, YOU MUST ACTIVELY FACT-CHECK every historical actor, movement, statute, constitutional article, economic metric, and class categorization written by the candidate:
+          1. **Leader-Movement Pairing Check**:
+             - Verify that historical leaders, organizations, and thinkers are accurately paired with their actual movement, region, and era.
+             - E.g., if candidate writes *"Eka movement -> Nehru"* or *"UP Eka movement -> Dr Ram Manohar Lohia"*: Flag that the Eka movement (1921-22) in northern Awadh was led by Madari Pasi; Jawaharlal Nehru organized the Awadh Kisan Sabha (1920); Dr. Ram Manohar Lohia was a prominent socialist leader active in the Congress Socialist Party (CSP) in the 1930s and 1942 Quit India Movement, decades after the Eka movement!
+          2. **Socioeconomic Role & Class Category Alignment**:
+             - Verify that social classes and groups are correctly identified as participants vs. exploiters/targets.
+             - E.g., if candidate writes *"represented vulnerable sections of society ex: farmers, tribals, moneylenders"*: Flag that moneylenders (*mahajans*, *sahukars*) were the primary oppressors and targets of peasant and tribal uprisings (e.g. Deccan Riots of 1875, Santhal Hool of 1855), NEVER vulnerable participants!
+          3. **Chronology & Anachronism Detection**:
+             - Verify that historical actors were active during the era described and that institutions/statutes existed at that time.
+          4. **Symmetrical Comparison Criteria in Tables**:
+             - When candidate draws a comparative table or 2-column distinction, check that both columns compare symmetrical, matching parameters. Flag asymmetric rows where one side names a pathology (e.g. "communalism") while the other side names a grievance/right (e.g. "tribal rights & alienation").
+          5. **Sweeping Over-Generalizations & Factual Contradictions**:
+             - Flag when candidate statements make sweeping claims contradicted by historical facts:
+               * E.g., claiming tribal movements *"lacked a broader anti-colonial view"*: Historically inaccurate—movements like Santhal Hool (1855), Birsa Munda's Ulgulan (1899-1900), and Alluri Sitarama Raju's Rampa Rebellion (1922-24) directly attacked British police stations, colonial courts, and armed forces to overthrow foreign British rule (*diku raj*).
+               * E.g., claiming movements *"lacked mass participation"*: Confuses local/regional mass mobilization with pan-Indian geographic reach.
+          6. **Historiographical Tone & Terminology**:
+             - Flag dismissive or pejorative words used for revered freedom fighters (e.g., describing Birsa Munda's leadership as *"quixotic charismatic heroism"*).
+        - **MANDATORY CORRECTION FORMAT**:
+          * In `body_audit.critical_gaps`:
+            `"**Factual Inaccuracy: [Exact Candidate Quote] (Page X)**: You wrote *"[verbatim quote]"*. This is factually incorrect because [clear explanation of historical/empirical error]. ✍️ **How to Write**: "[Exact exam-ready sentence stating the correct historical/empirical fact]"."`
+          * In `visual_annotations` for that page:
+            Tag with `"type": "cross"` or `"type": "alert"`:
+            `"✗ **Factual Error**: You wrote *"[verbatim quote]"*. [Explain correct fact concisely]. Factual accuracy is non-negotiable in UPSC Mains."`
+          * In `missing_keywords_cards`:
+            Provide an action with `"action_type": "Correct"`, `"priority": "High Priority"`, detailing the exact replacement.
 
 26. MENTOR EVALUATION RIGOR: DEMAND BALANCE, PREVENTING PREMATURE JUMPS, COMPLETING THE CAUSAL LOOP & MENTOR VOICE (MANDATORY):
     - A senior UPSC mentor evaluates an answer sheet to coach the candidate on structural flow, demand proportionality, and exam-room precision. Incorporate these core mentor evaluation principles across every evaluation:
