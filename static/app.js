@@ -14958,33 +14958,37 @@ function renderBatch1ExaminerMastery(evalData) {
       return `${statusPrefix} (**+${score.toFixed(1)}M**): Relevant demand to notify **heatwaves as a statutory 'disaster'** in India; **${deducted}M** deducted for lacking **Disaster Management Act, 2005** citation.`;
     }
 
-    // Universal 1-line marks allocation extractor: strip embedded (+X.X / Y.YM) badges, strip <br>✎ To Score Full... coaching, and keep strictly 1 concise sentence
+    // Universal 1-line marks allocation extractor: clean raw stubs, strip badges, and provide precise summary
     let firstSentence = String(rawCritique || "")
       .split(/<br\s*\/?>|\n|✎/i)[0]
-      .replace(/^[✓✔✎✗×]\s*/, "")
+      .replace(/^[✓✔✎✗×]\s*(?:Demand\s*(?:Fulfilled|Met|Missed)|Partially\s*Fulfilled)?\s*(?:\(\+?[0-9.]+\s*M?\))?:?\s*/i, "")
       .replace(/\(\+?\d+(?:\.\d+)?\s*\/\s*\d+(?:\.\d+)?\s*M?\)/gi, "")
+      .replace(/\(\s*[-+]?\d+(?:\.\d+)?\s*M?\s*held\s*back[^)]*\)/gi, "")
+      .replace(/^\d+\.\s+/, "")
+      .replace(/(?<!\d)\d+\.\s+/g, ", ")
+      .replace(/\s+,\s*/g, ", ")
+      .replace(/\.{2,}/g, "")
       .replace(/^(?:\*\*([^*]+)\*\*:\s*)+/, "")
       .replace(/\b(?:Mention|Do NOT|Simply attach|Add|Keep your|To score full marks|How to Score)[^.]*\.?/gi, "")
       .trim();
 
-    if (firstSentence.length > 135) {
-      firstSentence = firstSentence.slice(0, 132).replace(/\s+\S*$/, "") + ".";
+    if (!firstSentence || firstSentence.length < 8) {
+      firstSentence = isIntroSection
+        ? (isHindi ? "प्रारंभिक अवधारणात्मक परिभाषा एवं मुख्य थीसिस" : "Opening context and conceptual foundation")
+        : (isConcSection
+            ? (isHindi ? "समापन संश्लेषण एवं संतुलित निष्कर्ष" : "Closing synthesis and analytical balance")
+            : (isHindi ? "मुख्य विश्लेषणात्मक तर्क एवं साक्ष्य" : "Core analytical arguments and evidence"));
     }
 
-    if (firstSentence && firstSentence.length > 12) {
-      const deductionTail = parseFloat(deducted) > 0.05
-        ? (isHindi ? ` (अतिरिक्त गहराई व तकनीकी विस्तार हेतु **${deducted} अंक** रोके गए — *विस्तृत मूल्यांकन* टैब देखें)।` : ` (**${deducted}M** held back for technical depth / analytical precision — see *Deep Evaluation* tab).`)
-        : "";
-      return `${statusPrefix} (**+${score.toFixed(1)}M**): ${firstSentence.replace(/\.$/, "")}.${deductionTail}`;
+    if (firstSentence.length > 135) {
+      firstSentence = firstSentence.slice(0, 132).replace(/\s+\S*$/, "") + "...";
     }
-    if (isHindi) {
-      return isIntroSection
-        ? `${statusPrefix} (**+${score.toFixed(1)}M**): आरंभिक अवधारणात्मक परिभाषा पर **+${score.toFixed(1)} अंक** मिले; पूर्ण तकनीकी विस्तार के अभाव में **${deducted} अंक** रोके गए।`
-        : `${statusPrefix} (**+${score.toFixed(1)}M**): अंतिम संश्लेषित निष्कर्ष पर **+${score.toFixed(1)} अंक** मिले; समग्र अग्रगामी परिप्रेक्ष्य के अभाव में **${deducted} अंक** रोके गए।`;
-    }
-    return isIntroSection
-      ? `${statusPrefix} (**+${score.toFixed(1)}M**): Awarded **+${score.toFixed(1)}M** on opening conceptual definition; **${deducted}M** held back for complete technical depth.`
-      : `${statusPrefix} (**+${score.toFixed(1)}M**): Awarded **+${score.toFixed(1)}M** on closing synthesis; **${deducted}M** held back for comprehensive forward linkage.`;
+
+    const deductionTail = parseFloat(deducted) > 0.05
+      ? (isHindi ? ` (अतिरिक्त गहराई व तकनीकी विस्तार हेतु **${deducted} अंक** रोके गए — *विस्तृत मूल्यांकन* टैब देखें)।` : ` (**${deducted}M** held back for technical depth / analytical precision — see *Deep Evaluation* tab).`)
+      : (isHindi ? ` (मांग की संपूर्ण पूर्ति हेतु पूरे अंक प्रदान किए गए)।` : ` (Full credit awarded for substantive fulfillment).`);
+
+    return `${statusPrefix} (**+${score.toFixed(1)}M**): ${firstSentence.replace(/\.$/, "")}.${deductionTail}`;
   };
 
   const concNumber = bodySubParts.length + 2;
@@ -15001,16 +15005,15 @@ function renderBatch1ExaminerMastery(evalData) {
       const sHeading = String(st.sub_heading || st.analysis || "");
       let sQuote = String(st.quoted_written || st.scoring_rationale || st.step_up_lever || "");
       const isIntro = /intro|premise|प्रस्तावना/i.test(sLabel) || sIdx === 0;
-      const isConc = ((/concl|निष्कर्ष/i.test(sLabel) || /closing\s*synthesis/i.test(sLabel)) && !/intro|premise|part\s*[a-c]/i.test(sLabel)) || sIdx === rawSubParts.length - 1;
+      const isConc = (/concl|निष्कर्ष/i.test(sLabel) || /closing\s*synthesis/i.test(sLabel)) && !/intro|premise|part\s*[a-c]|sub-part/i.test(sLabel);
 
       // Prevent leaked conclusion critique text into non-conclusion steps
       if (!isConc && /closing\s*synthesis\s*evaluated|transformation\s*of\s*inherited\s*idioms/i.test(sQuote)) {
         sQuote = isIntro ? (evalData.intro_audit && evalData.intro_audit.current_critique || sHeading) : sHeading;
       }
 
-      const sNote = (isIntro || isConc) && !sQuote.includes("**")
-        ? buildPureMarksAllocationNote(sQuote, sAw, sMx, isIntro)
-        : sQuote;
+      // Universal precise summary formatting for ALL steps (Intro, Body Parts, Conclusion)
+      const sNote = buildPureMarksAllocationNote(sQuote, sAw, sMx, isIntro, isConc, sHeading);
       return {
         heading: sLabel,
         statement: sHeading,
@@ -15019,6 +15022,40 @@ function renderBatch1ExaminerMastery(evalData) {
         note: sNote
       };
     });
+
+    // Guaranteed Conclusion Card: If conclusion step is missing from rawSubParts, append it automatically
+    const hasGenConc = stepItems.some(st => {
+      const lbl = String(st.heading || "").toLowerCase();
+      return (lbl.includes("concl") || lbl.includes("निष्कर्ष") || lbl.includes("closing") || lbl.includes("synthesis")) &&
+             !lbl.includes("intro") && !lbl.includes("premise") && !lbl.includes("part a") && !lbl.includes("part b") && !lbl.includes("part c") && !lbl.includes("sub-part");
+    });
+
+    if (!hasGenConc) {
+      const rScores = evalData.rubric_scores || {};
+      const concScore = parseFloat(rScores.conclusion_score != null ? rScores.conclusion_score : (evalData.conclusion_audit && evalData.conclusion_audit.score)) || (maxMarks === 10 ? 0.5 : 1.0);
+      const concMax = parseFloat(rScores.conclusion_max != null ? rScores.conclusion_max : (maxMarks === 10 ? 1.0 : 1.5)) || (maxMarks === 10 ? 1.0 : 1.5);
+      const concCritique = String((evalData.conclusion_audit && (evalData.conclusion_audit.current_critique || evalData.conclusion_audit.model_conclusion_rewrite)) || (isHindi ? "समापन संश्लेषण का निष्पक्ष मूल्यांकन।" : "Closing synthesis evaluated.")).trim();
+
+      stepItems.push({
+        heading: isHindi ? `${stepItems.length + 1}. निष्कर्ष (समापन संश्लेषण)` : `${stepItems.length + 1}. Conclusion (Closing Synthesis)`,
+        statement: isHindi ? "समापन संश्लेषण एवं अग्रगामी दृष्टिकोण" : "Synthesis of Core Demand & Forward Perspective",
+        score: concScore,
+        max: concMax,
+        note: buildPureMarksAllocationNote(concCritique, concScore, concMax, false, true, "Conclusion")
+      });
+    }
+
+    // Rebalance any inflated body sub-part max (e.g. Part A having 11.5M)
+    const introIt = stepItems[0];
+    const concIt = stepItems[stepItems.length - 1];
+    const bodyIts = stepItems.slice(1, -1);
+    if (bodyIts.length > 0 && bodyIts.some(b => b.max > (maxMarks >= 15 ? 7.5 : 4.5))) {
+      const bodyBudget = Math.max(2.0, maxMarks - (introIt ? introIt.max : 1.5) - (concIt ? concIt.max : 1.5));
+      const equalMax = Math.round((bodyBudget / bodyIts.length) * 10) / 10;
+      bodyIts.forEach((b, idx) => {
+        b.max = idx === bodyIts.length - 1 ? Math.round((bodyBudget - equalMax * (bodyIts.length - 1)) * 10) / 10 : equalMax;
+      });
+    }
   } else {
     stepItems = [
       {

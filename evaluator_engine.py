@@ -10426,26 +10426,82 @@ def _enforce_canonical_mathematical_reconciliation(data: Dict[str, Any], max_mar
     has_steps = isinstance(steps, list) and len(steps) >= 2
 
     if has_steps:
-        conc_ceiling = 1.5 if max_m == 10 else (2.0 if max_m == 15 else (2.5 if max_m == 20 else 2.5))
-        last_s = steps[-1] if isinstance(steps[-1], dict) else {}
-        last_lbl = str(last_s.get("step_label") or last_s.get("part_name") or last_s.get("name") or "").lower()
-        if any(k in last_lbl for k in ["conclusion", "synthesis", "निष्कर्ष", "closing"]) and not any(wf in last_lbl for wf in ["way forward", "solutions", "reforms", "measures", "आगे की राह", "सुझाव"]):
-            cur_conc_m = float(last_s.get("max", 0.0) or 0.0)
-            if cur_conc_m > conc_ceiling:
-                diff_c = cur_conc_m - conc_ceiling
-                last_s["max"] = conc_ceiling
-                if float(last_s.get("awarded", 0.0) or 0.0) > conc_ceiling:
-                    last_s["awarded"] = conc_ceiling
-                if len(steps) >= 3 and isinstance(steps[-2], dict):
-                    steps[-2]["max"] = round(float(steps[-2].get("max", 0.0) or 0.0) + diff_c, 1)
+        # Check whether steps already contains a genuine conclusion step
+        has_conc = any(
+            any(k in str(s.get("step_label") or s.get("part_name") or s.get("name") or "").lower() for k in ["conclusion", "synthesis", "निष्कर्ष", "closing"])
+            and not any(wf in str(s.get("step_label") or s.get("part_name") or s.get("name") or "").lower() for wf in ["intro", "premise", "part a", "part b", "part c", "part 1", "part 2", "part d", "sub-part", "मुख्य भाग"])
+            for s in steps if isinstance(s, dict)
+        )
 
-        # Preserve exact evidence-grounded criteria marks
+        conc_ceiling = 1.0 if max_m == 10 else (1.5 if max_m == 15 else 2.0)
+
+        # If conclusion step is missing, synthesize and append it
+        if not has_conc:
+            rubric_scores = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
+            conc_audit = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
+            conc_target_max = float(rubric_scores.get("conclusion_max") or conc_ceiling)
+            conc_target_aw = float(rubric_scores.get("conclusion_score") if rubric_scores.get("conclusion_score") is not None else (conc_audit.get("score") if conc_audit.get("score") is not None else (0.5 if max_m == 10 else 1.0)))
+            conc_quote = str(conc_audit.get("current_critique") or conc_audit.get("model_conclusion_rewrite") or ("समापन संश्लेषण का निष्पक्ष मूल्यांकन।" if is_hindi else "Closing synthesis evaluated.")).strip()
+
+            conc_step = {
+                "step_label": f"{len(steps) + 1}. {'निष्कर्ष (समापन संश्लेषण)' if is_hindi else 'Conclusion (Closing Synthesis)'}",
+                "sub_heading": "समापन संश्लेषण एवं अग्रगामी दृष्टिकोण" if is_hindi else "Synthesis of Core Demand & Forward Perspective",
+                "demand_status": get_canonical_demand_status(conc_target_aw, conc_target_max, is_hindi=is_hindi),
+                "awarded": round(conc_target_aw, 1),
+                "max": round(conc_target_max, 1),
+                "quoted_written": conc_quote
+            }
+            steps.append(conc_step)
+        else:
+            last_s = steps[-1] if isinstance(steps[-1], dict) else {}
+            last_lbl = str(last_s.get("step_label") or last_s.get("part_name") or last_s.get("name") or "").lower()
+            if any(k in last_lbl for k in ["conclusion", "synthesis", "निष्कर्ष", "closing"]) and not any(wf in last_lbl for wf in ["way forward", "solutions", "reforms", "measures", "आगे की राह", "सुझाव"]):
+                cur_conc_m = float(last_s.get("max", 0.0) or 0.0)
+                if cur_conc_m > conc_ceiling:
+                    diff_c = cur_conc_m - conc_ceiling
+                    last_s["max"] = conc_ceiling
+                    if float(last_s.get("awarded", 0.0) or 0.0) > conc_ceiling:
+                        last_s["awarded"] = conc_ceiling
+
+        # Rebalance body step denominators so body steps share the remaining body budget evenly and realistically
+        intro_m = float(steps[0].get("max", 1.5) or 1.5) if isinstance(steps[0], dict) else 1.5
+        conc_m = float(steps[-1].get("max", 1.5) or 1.5) if isinstance(steps[-1], dict) else 1.5
+        rem_body_budget = round(max_m - intro_m - conc_m, 1)
+        body_indices = [i for i in range(1, len(steps) - 1)]
+        if body_indices and rem_body_budget > 0:
+            even_b = round(rem_body_budget / len(body_indices), 1)
+            for bi in body_indices:
+                steps[bi]["max"] = even_b
+            b_diff = round(rem_body_budget - sum(float(steps[bi].get("max", 0.0) or 0.0) for bi in body_indices), 1)
+            steps[body_indices[0]]["max"] = round(float(steps[body_indices[0]]["max"]) + b_diff, 1)
+
+        # Preserve exact evidence-grounded criteria marks & format precise summaries
         for s in steps:
             if isinstance(s, dict):
                 mx_val = s.get("max")
                 s["max"] = round(float(mx_val if (mx_val is not None and mx_val != "") else 2.0), 1)
                 aw_val = s.get("awarded")
                 s["awarded"] = round(float(aw_val if (aw_val is not None and aw_val != "") else 0.0), 1)
+                
+                # Format precise summary note if raw fragments detected
+                qw = str(s.get("quoted_written") or "").strip()
+                if re.match(r'^\d+\.\s*', qw):
+                    qw_clean = re.sub(r'^\d+\.\s*', '', qw)
+                    qw_clean = re.sub(r'\s*\d+\.\s*', ', ', qw_clean)
+                    qw_clean = re.sub(r'\.{2,}', '', qw_clean).strip()
+                    diff = max(0.0, s["max"] - s["awarded"])
+                    if diff > 0.05:
+                        s["quoted_written"] = (
+                            f"अभ्यर्थी के मुख्य तर्कों ({qw_clean}) का मूल्यांकन; अतिरिक्त गहराई व तकनीकी विस्तार हेतु {diff:.1f} अंक रोके गए (विस्तृत मूल्यांकन देखें)।"
+                            if is_hindi else
+                            f"Evaluated candidate arguments on {qw_clean}; ({diff:.1f}M held back for analytical depth and empirical substantiation — see Deep Evaluation tab)."
+                        )
+                    else:
+                        s["quoted_written"] = (
+                            f"अभ्यर्थी के मुख्य तर्कों ({qw_clean}) का मूल्यांकन; मांग की संपूर्ण पूर्ति हेतु पूरे अंक प्रदान किए गए।"
+                            if is_hindi else
+                            f"Evaluated candidate arguments on {qw_clean}; full marks awarded for comprehensive substantiation."
+                        )
 
         sum_aw = round(sum(float(s.get("awarded", 0.0)) for s in steps if isinstance(s, dict)), 1)
         sum_max = round(sum(float(s.get("max", 0.0)) for s in steps if isinstance(s, dict)), 1)
@@ -10478,8 +10534,10 @@ def _enforce_canonical_mathematical_reconciliation(data: Dict[str, Any], max_mar
                 "difference": diff_max,
                 "message": f"Sum of step maxima ({sum_max}) differs from question max marks ({max_m})."
             })
-            # Reconcile difference onto the last body step so denominators add to exactly max_m
-            if len(steps) >= 3 and isinstance(steps[-2], dict):
+            # Reconcile difference onto body step without inflating single step
+            if body_indices:
+                steps[body_indices[-1]]["max"] = round(float(steps[body_indices[-1]].get("max", 0.0) or 0.0) + diff_max, 1)
+            elif len(steps) >= 3 and isinstance(steps[-2], dict):
                 steps[-2]["max"] = round(float(steps[-2].get("max", 0.0) or 0.0) + diff_max, 1)
             elif isinstance(steps[-1], dict):
                 steps[-1]["max"] = round(float(steps[-1].get("max", 0.0) or 0.0) + diff_max, 1)
