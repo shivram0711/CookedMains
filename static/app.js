@@ -14938,7 +14938,7 @@ function renderBatch1ExaminerMastery(evalData) {
   const isEarthquakeStepCopy = /\bearthquake\b/i.test(qLow) && (/\b(?:mechanism|vulnerability|map\s+given\s+below)\b/i.test(qLow) || transAndQLow.includes("asthenosphere") || transAndQLow.includes("aesthenosphere") || transAndQLow.includes("seismic retrofitting"));
   const isAhomStepCopy = /\bahom\b/i.test(qLow);
 
-  const buildPureMarksAllocationNote = (rawCritique, score, max, isIntroSection) => {
+  const buildPureMarksAllocationNote = (rawCritique, score, max, isIntroSection = false, isConcSection = false, sectionHeading = "") => {
     const statusPrefix = isHindi
       ? (score >= max * 0.65 ? "**✓ मांग पूर्ण (Demand Met)**" : score > 0.05 ? "**⚠️ आंशिक पूर्ण (Partially Met)**" : "**✗ मांग अधूरी (Demand Missed)**")
       : (score >= max * 0.65 ? "**✓ Demand Fulfilled**" : score > 0.05 ? "**⚠️ Partially Fulfilled**" : "**✗ Demand Missed**");
@@ -15100,7 +15100,8 @@ function renderBatch1ExaminerMastery(evalData) {
           evalData.intro_audit && evalData.intro_audit.current_critique,
           scheme.intro.score,
           scheme.intro.max,
-          true
+          true,
+          false
         )
       },
       ...bodySubParts,
@@ -15113,7 +15114,8 @@ function renderBatch1ExaminerMastery(evalData) {
           evalData.conclusion_audit && evalData.conclusion_audit.current_critique,
           scheme.conclusion.score,
           scheme.conclusion.max,
-          false
+          false,
+          true
         )
       }
     ];
