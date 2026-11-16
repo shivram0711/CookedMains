@@ -460,6 +460,39 @@
       color: #334155 !important;
       border-color: #cbd5e1 !important;
     }
+
+    /* Authentic Brand Logo Responsive Toggle */
+    .brand-logo-light {
+      display: block !important;
+    }
+    .brand-logo-dark {
+      display: none !important;
+    }
+    html.dark .brand-logo-light {
+      display: none !important;
+    }
+    html.dark .brand-logo-dark {
+      display: block !important;
+    }
+
+    /* Global PYQ Topic Search & Year Matrix (Light Mode Overrides) */
+    html:not(.dark) input#topicSearchInput {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+    }
+    html:not(.dark) input#topicSearchInput::placeholder {
+      color: #94a3b8 !important;
+    }
+    html:not(.dark) .year-tab:not(.bg-amber-500) {
+      background-color: #ffffff !important;
+      color: #475569 !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .year-tab:not(.bg-amber-500):hover {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-slate-950 transition-colors duration-200 overflow-x-hidden w-full max-w-full">
@@ -468,16 +501,17 @@
   <header class="sticky top-0 z-50 backdrop-blur-md bg-slate-950/85 border-b border-slate-800 transition-colors duration-200">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
       
-      <!-- Brand Logo -->
-      <a href="/" class="flex items-center gap-2 sm:gap-2.5 group shrink-0">
-        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 font-black text-base sm:text-lg shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
-          CM
-        </div>
-        <div class="flex flex-col">
-          <span class="font-extrabold text-sm sm:text-base tracking-tight text-white flex items-center gap-1 sm:gap-1.5">
-            CookedMains <span class="text-[9px] sm:text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-amber-400/10 text-amber-400 border border-amber-400/20 font-bold">Radar</span>
+      <!-- Authentic Brand Logo for Light & Dark Mode + Brand Name -->
+      <a href="/" class="flex items-center gap-2 sm:gap-2.5 group shrink-0 py-1 select-none" title="Cooked Mains — Let Me Cook">
+        <img src="/static/brand_logo_light.png" alt="Cooked Mains Logo" class="brand-logo-light h-9 sm:h-11 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
+        <img src="/static/brand_logo_dark.png" alt="Cooked Mains Logo" class="brand-logo-dark h-9 sm:h-11 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
+        <div class="flex flex-col justify-center shrink-0">
+          <span class="text-sm sm:text-base md:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight whitespace-nowrap flex items-center">
+            Cooked <span class="text-amber-500 ml-1">Mains</span> <span class="text-[9px] sm:text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-amber-400/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold ml-1.5">Radar</span>
           </span>
-          <span class="text-[10px] text-slate-400 hidden lg:inline">UPSC CSE Prelims &amp; Mains Integrated</span>
+          <span class="text-[9px] sm:text-[10px] md:text-[11px] font-mono sm:font-sans font-bold tracking-wider text-amber-600 dark:text-amber-400 uppercase leading-none mt-0.5 whitespace-nowrap">
+            Let Me Cook
+          </span>
         </div>
       </a>
 
@@ -500,6 +534,12 @@
           <span>📝</span>
           <span class="text-[10px] font-bold">Mains</span>
         </a>
+
+        <!-- Bilingual English / Hindi Toggle Button -->
+        <button id="toggleLangBtn" class="flex items-center gap-1 text-[11px] font-bold px-2 sm:px-2.5 py-1 rounded-lg bg-slate-900 dark:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 transition-all cursor-pointer" title="Toggle English / हिंदी">
+          <span class="text-xs font-mono font-bold text-amber-400">A/अ</span>
+          <span id="langLabel" class="text-[10px] hidden sm:inline">English</span>
+        </button>
 
         <!-- Mistakes Nav Button -->
         <button id="viewMistakesNavBtn" class="flex items-center gap-1 text-[11px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-all cursor-pointer">
@@ -580,6 +620,49 @@
         </div>
 
       </div>
+    </div>
+  </section>
+
+  <!-- Global PYQ Topic Search & Year Matrix Bar -->
+  <section class="border-b border-slate-800 bg-slate-950/70 px-4 sm:px-6 py-3.5">
+    <div class="max-w-7xl mx-auto flex flex-col gap-3">
+      
+      <!-- Instant Topic Search -->
+      <div class="relative w-full">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+        <input type="text" id="topicSearchInput" placeholder="Search any topic, act, judgment, or theme (e.g. Preamble, Monetary Policy, Wetlands, Western Ghats, Harappan, Inflation, CBDC)..." class="w-full pl-10 pr-28 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs sm:text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-all">
+        <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center gap-1.5">
+          <span id="topicSearchCountBadge" class="hidden text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold"></span>
+          <button id="clearTopicSearchBtn" type="button" class="hidden text-slate-400 hover:text-white p-1 text-xs cursor-pointer font-bold" title="Clear Search">✕</button>
+        </div>
+      </div>
+
+      <!-- Year Filter Matrix (2013-2026) -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar" id="yearFilterContainer">
+        <span class="text-[11px] font-mono font-bold text-slate-400 shrink-0 mr-1 flex items-center gap-1">
+          <span>📅</span> Year:
+        </span>
+        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 shrink-0 cursor-pointer" data-year="all">
+          All Years (2013-2026)
+        </button>
+        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2026">2026</button>
+        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2025">2025</button>
+        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2024">2024</button>
+        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2023">2023</button>
+        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2022">2022</button>
+        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2021">2021</button>
+        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2020">2020</button>
+        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2019">2019</button>
+        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2018">2018</button>
+        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2017">2017</button>
+        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2016">2016</button>
+        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2015">2015</button>
+        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2014">2014</button>
+        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2013">2013</button>
+      </div>
+
     </div>
   </section>
 

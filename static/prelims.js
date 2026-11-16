@@ -25,6 +25,9 @@
     pyqs: [],
     filteredPyqs: [],
     activeSubject: 'all',
+    activeYear: 'all', // 'all' | '2026' | '2025' ...
+    searchQuery: '',
+    language: localStorage.getItem('cm_prelims_lang') || 'en', // 'en' | 'hi'
     activeView: 'all', // 'all' | 'mistakes' | 'guesses'
     activeMode: 'practice', // 'practice' | 'exam'
     answers: {}, // { [qId]: { selectedIndex, isCorrect, confidence, reason, justCleared, timestamp } }
@@ -205,7 +208,7 @@
     }
   }
 
-  // Filter PYQs based on subject and view (all/mistakes/guesses)
+  // Filter PYQs based on subject, year, view, and topic search query
   function applyFilters() {
     let list = STATE.pyqs;
 
@@ -214,11 +217,46 @@
       list = list.filter(q => q.subject.toLowerCase() === STATE.activeSubject.toLowerCase());
     }
 
+    // Filter by Year
+    if (STATE.activeYear !== 'all') {
+      const yr = parseInt(STATE.activeYear, 10);
+      list = list.filter(q => q.year === yr);
+    }
+
     // Filter by View
     if (STATE.activeView === 'mistakes') {
       list = list.filter(q => STATE.mistakes.has(q.id));
     } else if (STATE.activeView === 'guesses') {
       list = list.filter(q => STATE.flukes.has(q.id));
+    }
+
+    // Filter by Topic Search Query
+    if (STATE.searchQuery && STATE.searchQuery.trim().length > 0) {
+      const qLower = STATE.searchQuery.trim().toLowerCase();
+      list = list.filter(q => {
+        const textMatch = q.question_text && q.question_text.toLowerCase().includes(qLower);
+        const topicMatch = q.sub_topic && q.sub_topic.toLowerCase().includes(qLower);
+        const subjMatch = q.subject && q.subject.toLowerCase().includes(qLower);
+        const expMatch = q.explanation && q.explanation.toLowerCase().includes(qLower);
+        const bookMatch = q.standard_book_ref && q.standard_book_ref.toLowerCase().includes(qLower);
+        const trapMatch = q.elimination_trap && q.elimination_trap.toLowerCase().includes(qLower);
+        const optMatch = q.options && q.options.some(opt => opt.toLowerCase().includes(qLower));
+        return textMatch || topicMatch || subjMatch || expMatch || bookMatch || trapMatch || optMatch;
+      });
+
+      // Update Search Count Badge
+      const countBadge = document.getElementById('topicSearchCountBadge');
+      const clearBtn = document.getElementById('clearTopicSearchBtn');
+      if (countBadge) {
+        countBadge.classList.remove('hidden');
+        countBadge.textContent = `${list.length} Question${list.length === 1 ? '' : 's'}`;
+      }
+      if (clearBtn) clearBtn.classList.remove('hidden');
+    } else {
+      const countBadge = document.getElementById('topicSearchCountBadge');
+      const clearBtn = document.getElementById('clearTopicSearchBtn');
+      if (countBadge) countBadge.classList.add('hidden');
+      if (clearBtn) clearBtn.classList.add('hidden');
     }
 
     STATE.filteredPyqs = list;
@@ -1121,8 +1159,139 @@ https://cookedmains.com/prelims`;
     }, 150);
   }
 
+  // Bilingual UI Translations Dictionary
+  const I18N = {
+    en: {
+      langLabel: 'English',
+      searchPlaceholder: 'Search any topic, act, judgment, or theme (e.g. Preamble, Monetary Policy, Wetlands, Western Ghats, Harappan, Inflation, CBDC)...',
+      allSubjects: 'All Subjects',
+      polity: 'Polity',
+      economy: 'Economy',
+      environment: 'Environment',
+      history: 'History',
+      geography: 'Geography',
+      sciTech: 'Sci-Tech',
+      allYears: 'All Years (2013-2026)',
+      practiceMode: '📖 Practice',
+      examMode: '⏱️ Exam (Timed)',
+      viewAll: 'View: All PYQs',
+      viewMistakes: 'View: My Mistakes Only',
+      viewGuesses: 'View: My Flukes & Guesses',
+      microCorrectionTitle: '10-Minute "Micro-Correction" Generator',
+      exportFlashSheet: '🖨️ Export Revision Flash-Sheet',
+      clearMistakesBtn: 'Clear All Logged Mistakes'
+    },
+    hi: {
+      langLabel: 'हिंदी',
+      searchPlaceholder: 'विषय, अधिनियम, निर्णय या अवधारणा खोजें (उदा. प्रस्तावना, मौद्रिक नीति, आर्द्रभूमि, पश्चिमी घाट, हड़प्पा, मुद्रास्फीति)...',
+      allSubjects: 'सभी विषय',
+      polity: 'राजव्यवस्था',
+      economy: 'अर्थव्यवस्था',
+      environment: 'पर्यावरण',
+      history: 'इतिहास',
+      geography: 'भूगोल',
+      sciTech: 'विज्ञान-प्रौद्योगिकी',
+      allYears: 'सभी वर्ष (2013-2026)',
+      practiceMode: '📖 अभ्यास मोड',
+      examMode: '⏱️ परीक्षा (समयबद्ध)',
+      viewAll: 'देखें: सभी प्रश्न',
+      viewMistakes: 'देखें: मेरी गलतियाँ',
+      viewGuesses: 'देखें: मेरे तुक्के व अनुमान',
+      microCorrectionTitle: '10-मिनट "माइक्रो-करेक्शन" जनरेटर',
+      exportFlashSheet: '🖨️ रिवीजन फ्लैश-शीट डाउनलोड करें',
+      clearMistakesBtn: 'सभी दर्ज गलतियाँ मिटाएँ'
+    }
+  };
+
+  function syncLanguageUI() {
+    const lang = STATE.language || 'en';
+    const dict = I18N[lang] || I18N.en;
+
+    const langLabel = document.getElementById('langLabel');
+    if (langLabel) langLabel.textContent = dict.langLabel;
+
+    const searchInput = document.getElementById('topicSearchInput');
+    if (searchInput) searchInput.placeholder = dict.searchPlaceholder;
+
+    // Update Subject tab text
+    document.querySelectorAll('.subject-tab').forEach(b => {
+      const sub = b.getAttribute('data-subject');
+      if (sub === 'all') b.textContent = dict.allSubjects;
+      else if (sub === 'Polity & Governance') b.textContent = dict.polity;
+      else if (sub === 'Economy') b.textContent = dict.economy;
+      else if (sub === 'Environment & Ecology') b.textContent = dict.environment;
+      else if (sub === 'History & Culture') b.textContent = dict.history;
+      else if (sub === 'Geography') b.textContent = dict.geography;
+      else if (sub === 'Science & Technology') b.textContent = dict.sciTech;
+    });
+
+    // Update Mode buttons
+    const pracBtn = document.getElementById('modePracticeBtn');
+    const examBtn = document.getElementById('modeExamBtn');
+    if (pracBtn) pracBtn.textContent = dict.practiceMode;
+    if (examBtn) examBtn.textContent = dict.examMode;
+
+    // Update view filter options
+    const viewSelect = document.getElementById('viewFilterSelect');
+    if (viewSelect && viewSelect.options.length >= 3) {
+      viewSelect.options[0].textContent = dict.viewAll;
+      viewSelect.options[1].textContent = dict.viewMistakes;
+      viewSelect.options[2].textContent = dict.viewGuesses;
+    }
+
+    // Micro correction banner
+    const bannerTitle = document.querySelector('#microCorrectionBanner span.font-mono');
+    if (bannerTitle) bannerTitle.textContent = dict.microCorrectionTitle;
+    const bannerBtn = document.getElementById('bannerExportFlashSheetBtn');
+    if (bannerBtn) bannerBtn.innerHTML = `<span>${dict.exportFlashSheet}</span><span>→</span>`;
+  }
+
   // Setup UI Listeners (Tabs, Filter, Clear, Share, Export, Mobile Dock)
   function setupUIListeners() {
+    // Topic Search Input
+    const searchInput = document.getElementById('topicSearchInput');
+    const clearSearchBtn = document.getElementById('clearTopicSearchBtn');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        STATE.searchQuery = e.target.value;
+        applyFilters();
+      });
+    }
+    if (clearSearchBtn) {
+      clearSearchBtn.addEventListener('click', () => {
+        STATE.searchQuery = '';
+        if (searchInput) searchInput.value = '';
+        applyFilters();
+      });
+    }
+
+    // Year Matrix Tabs
+    document.querySelectorAll('.year-tab').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const yr = e.currentTarget.getAttribute('data-year') || 'all';
+        STATE.activeYear = yr;
+        
+        document.querySelectorAll('.year-tab').forEach(b => {
+          b.className = 'year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer';
+        });
+        e.currentTarget.className = 'year-tab px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 shrink-0 cursor-pointer';
+
+        applyFilters();
+      });
+    });
+
+    // Bilingual Language Toggle (English / हिंदी)
+    const langBtn = document.getElementById('toggleLangBtn');
+    if (langBtn) {
+      langBtn.addEventListener('click', () => {
+        STATE.language = STATE.language === 'en' ? 'hi' : 'en';
+        localStorage.setItem('cm_prelims_lang', STATE.language);
+        syncLanguageUI();
+        renderQuestions();
+        showToast(STATE.language === 'hi' ? 'भाषा बदलकर हिंदी कर दी गई है' : 'Language set to English');
+      });
+    }
+
     // Subject Tab Buttons
     document.querySelectorAll('.subject-tab').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -1241,6 +1410,7 @@ https://cookedmains.com/prelims`;
   document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     loadPersistedState();
+    syncLanguageUI();
     setupUIListeners();
     initRouting();
     initQuestions();
