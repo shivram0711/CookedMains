@@ -39,40 +39,160 @@
     html.dark .brand-logo-light { display: none !important; }
     html.dark .brand-logo-dark { display: block !important; }
 
-    /* Light Mode Overrides */
+    /* ====================================================
+       HIGH-CONTRAST BULLETPROOF THEME SYSTEM (DARK & LIGHT)
+       ==================================================== */
+
+    /* DARK MODE (Default html.dark) */
+    html.dark {
+      background-color: #020617 !important;
+      color: #f8fafc !important;
+    }
+    html.dark body {
+      background-color: #020617 !important;
+      color: #f8fafc !important;
+    }
+    html.dark header {
+      background-color: rgba(2, 6, 23, 0.9) !important;
+      border-color: #1e293b !important;
+    }
+    html.dark aside#sidebarNav {
+      background-color: #020617 !important;
+      border-color: #1e293b !important;
+    }
+    html.dark .light-card {
+      background-color: #0f172a !important;
+      border-color: #1e293b !important;
+      color: #f8fafc !important;
+    }
+    html.dark .light-inner-box {
+      background-color: #020617 !important;
+      border-color: #1e293b !important;
+      color: #f8fafc !important;
+    }
+    html.dark .light-input {
+      background-color: #020617 !important;
+      border-color: #334155 !important;
+      color: #f8fafc !important;
+    }
+
+    /* LIGHT MODE OVERRIDES (html:not(.dark)) */
     html:not(.dark) {
-      background-color: #faf8f5 !important;
+      background-color: #f8fafc !important;
       color: #0f172a !important;
     }
     html:not(.dark) body {
-      background-color: #faf8f5 !important;
+      background-color: #f8fafc !important;
       color: #0f172a !important;
+    }
+    html:not(.dark) header {
+      background-color: rgba(255, 255, 255, 0.95) !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+    }
+    html:not(.dark) aside#sidebarNav {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04) !important;
     }
     html:not(.dark) .light-card {
       background-color: #ffffff !important;
-      border-color: #e5e7eb !important;
-      color: #111827 !important;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05) !important;
-    }
-    html:not(.dark) .light-sidebar {
-      background-color: #ffffff !important;
-      border-color: #e5e7eb !important;
-      color: #334155 !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.06) !important;
     }
     html:not(.dark) .light-inner-box {
       background-color: #f8fafc !important;
       border-color: #e2e8f0 !important;
-      color: #1e293b !important;
-    }
-    html:not(.dark) .light-nav-active {
-      background-color: #fffbeb !important;
-      color: #d97706 !important;
-      border-color: #fde68a !important;
+      color: #0f172a !important;
     }
     html:not(.dark) .light-input {
       background-color: #ffffff !important;
       border-color: #cbd5e1 !important;
       color: #0f172a !important;
+    }
+
+    /* Text Colors in Light Mode */
+    html:not(.dark) .text-white {
+      color: #0f172a !important;
+    }
+    html:not(.dark) .text-slate-100,
+    html:not(.dark) .text-slate-200,
+    html:not(.dark) .text-slate-300 {
+      color: #1e293b !important;
+    }
+    html:not(.dark) .text-slate-400 {
+      color: #475569 !important;
+    }
+    html:not(.dark) .text-slate-500 {
+      color: #64748b !important;
+    }
+
+    /* Deep Readable Accents in Light Mode */
+    html:not(.dark) .text-emerald-300,
+    html:not(.dark) .text-emerald-400 {
+      color: #047857 !important;
+    }
+    html:not(.dark) .text-rose-300,
+    html:not(.dark) .text-rose-400 {
+      color: #be123c !important;
+    }
+    html:not(.dark) .text-amber-300,
+    html:not(.dark) .text-amber-400 {
+      color: #b45309 !important;
+    }
+    html:not(.dark) .text-blue-300,
+    html:not(.dark) .text-blue-400 {
+      color: #1d4ed8 !important;
+    }
+    html:not(.dark) .text-purple-300,
+    html:not(.dark) .text-purple-400 {
+      color: #6d28d9 !important;
+    }
+
+    /* Keep Crisp Contrast on Solid Amber / Emerald Buttons */
+    html:not(.dark) .bg-amber-500,
+    html:not(.dark) button.bg-amber-500,
+    html.dark .bg-amber-500,
+    html.dark button.bg-amber-500 {
+      color: #020617 !important;
+    }
+    html:not(.dark) .bg-emerald-500,
+    html.dark .bg-emerald-500 {
+      color: #ffffff !important;
+    }
+    html:not(.dark) .bg-rose-500,
+    html.dark .bg-rose-500 {
+      color: #ffffff !important;
+    }
+
+    /* Slate Background Overrides in Light Mode */
+    html:not(.dark) .bg-slate-950,
+    html:not(.dark) .bg-slate-900 {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) .bg-slate-800 {
+      background-color: #f1f5f9 !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) .border-slate-800,
+    html:not(.dark) .border-slate-700 {
+      border-color: #e2e8f0 !important;
+    }
+
+    /* Player Options in Light Mode */
+    html:not(.dark) .player-opt-btn {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) .player-opt-btn:hover {
+      border-color: #f59e0b !important;
+      background-color: #fffbeb !important;
     }
 
     /* Statement Slicer Crossed Out Style */
@@ -121,10 +241,7 @@
           <span id="sideLabelHome">Home Dashboard</span>
         </button>
 
-        <a href="#askDoubtInput" onclick="document.getElementById('askDoubtInput')?.focus(); return false;" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left">
-          <span class="text-base">✨</span>
-          <span id="sideLabelDoubt">Ask AI Mentor</span>
-        </a>
+        
 
         <a href="/planner" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left">
           <span class="text-base">🗺️</span>
@@ -257,34 +374,34 @@
            ==================================================== -->
       <div id="dashboardOverviewView" class="flex flex-col gap-6">
 
-        <!-- Top Greeting Hero Banner (Amber Radiant Gradient like SuperKalam) -->
-        <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 shadow-xl flex flex-col gap-4 relative overflow-hidden">
-          <div class="flex items-center justify-between">
+        <!-- Top Greeting Hero Banner (High-Impact Command Center) -->
+        <div class="p-6 sm:p-7 rounded-3xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-mono font-black uppercase tracking-wider text-slate-950/70">UPSC CSE Prelims Command Center</span>
+              <span class="px-2 py-0.5 rounded-full bg-slate-950/15 text-slate-950 text-[10px] font-black font-mono uppercase">1,280+ PYQs (2011–2026)</span>
+            </div>
             <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-950">
               Hi, <span id="dashGreetingName">Aspirant</span> 👋
             </h1>
-            <span class="hidden sm:inline-block px-3 py-1 rounded-full bg-slate-950/15 text-slate-950 text-xs font-black font-mono uppercase tracking-wider">
-              1,280+ UPSC PYQs (2011–2026)
-            </span>
+            <p class="text-xs sm:text-sm font-semibold text-slate-900/90 max-w-xl leading-relaxed">
+              Master authentic UPSC questions, eliminate negative marking bleed (-0.66 per error), and find your cutoff sweet spot.
+            </p>
           </div>
 
-          <!-- Ask Any Doubt / Search Bar -->
-          <div class="relative w-full max-w-3xl">
-            <input id="askDoubtInput" type="text" placeholder="Ask any doubt or search 1,280+ PYQs (e.g. Monetary Policy, Preamble, Wetlands)..." class="w-full pl-5 pr-12 py-3.5 rounded-2xl bg-white text-slate-900 text-sm font-semibold placeholder-slate-400 shadow-md focus:outline-none focus:ring-2 focus:ring-slate-950">
-            <button id="searchDoubtBtn" type="button" class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xs hover:scale-105 transition-transform cursor-pointer" title="Ask AI Mentor">
-              ✨
+          <div class="flex items-center gap-2.5 shrink-0">
+            <button type="button" onclick="window.startPracticeSession('all')" class="px-4 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-2">
+              <span>🎯</span>
+              <span>Start Practice</span>
             </button>
-          </div>
-
-          <!-- Quick Discovery Chips -->
-          <div class="flex items-center gap-2 flex-wrap text-xs font-bold text-slate-950">
-            <span class="text-slate-900/70 text-[11px] uppercase tracking-wider font-mono">Popular:</span>
-            <button type="button" class="quick-chip-btn px-2.5 py-1 rounded-lg bg-white/70 hover:bg-white transition-all cursor-pointer" data-kw="Preamble">🏛️ Preamble</button>
-            <button type="button" class="quick-chip-btn px-2.5 py-1 rounded-lg bg-white/70 hover:bg-white transition-all cursor-pointer" data-kw="Monetary Policy">📈 Monetary Policy</button>
-            <button type="button" class="quick-chip-btn px-2.5 py-1 rounded-lg bg-white/70 hover:bg-white transition-all cursor-pointer" data-kw="National Parks">🌿 National Parks</button>
-            <button type="button" class="quick-chip-btn px-2.5 py-1 rounded-lg bg-white/70 hover:bg-white transition-all cursor-pointer" data-kw="1857 Revolt">📜 1857 Revolt</button>
-            <button type="button" class="quick-chip-btn px-2.5 py-1 rounded-lg bg-white/70 hover:bg-white transition-all cursor-pointer" data-kw="Drainage">🌍 River Systems</button>
-            <button type="button" class="quick-chip-btn px-2.5 py-1 rounded-lg bg-white/70 hover:bg-white transition-all cursor-pointer" data-kw="CRISPR">🔬 CRISPR</button>
+            <button type="button" onclick="window.openMockGenerator()" class="px-4 py-2.5 rounded-xl bg-white/90 hover:bg-white text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center gap-2">
+              <span>⚡</span>
+              <span>Adaptive Mock</span>
+            </button>
+            <button type="button" onclick="window.openEVSimulator()" class="px-4 py-2.5 rounded-xl bg-slate-950/15 hover:bg-slate-950/25 text-slate-950 font-black text-xs transition-all cursor-pointer flex items-center gap-1.5" title="Open Cutoff EV Simulator">
+              <span>📊</span>
+              <span>EV Simulator</span>
+            </button>
           </div>
         </div>
 
@@ -1168,6 +1285,128 @@
         </button>
         <button type="button" id="confirmFinalSubmitBtn" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-lg cursor-pointer">
           Submit &amp; View Report
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ====================================================
+       INTERACTIVE CUTOFF SWEET SPOT & EV SIMULATOR MODAL
+       ==================================================== -->
+  <div id="cutoffEVModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+    <div class="light-card relative w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 sm:p-8 flex flex-col gap-6">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between border-b border-slate-800 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-xl shrink-0 font-black">
+            📊
+          </div>
+          <div class="flex flex-col">
+            <div class="flex items-center gap-2">
+              <h3 class="text-lg font-black text-white">Cutoff Sweet Spot &amp; EV Simulator</h3>
+              <span id="evVerdictPill" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                Safe Zone
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Mathematically calculate your target attempt ceiling vs negative marking penalty (-0.66) based on expected value ($EV$).
+            </p>
+          </div>
+        </div>
+
+        <button type="button" id="closeEVModalBtn" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Real-Time Scorecard Output Banner -->
+      <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col gap-3">
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="flex flex-col">
+            <span class="text-[10px] font-mono text-slate-400 uppercase">Gross Marks</span>
+            <span id="evGrossScoreText" class="text-xl sm:text-2xl font-black text-emerald-400">+114.0</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-[10px] font-mono text-rose-400 uppercase">Negative Bleed</span>
+            <span id="evPenaltyScoreText" class="text-xl sm:text-2xl font-black text-rose-400">-16.5</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-[10px] font-mono text-amber-400 uppercase">Net Score</span>
+            <span id="evNetScoreText" class="text-2xl sm:text-3xl font-black text-amber-400">97.5</span>
+          </div>
+        </div>
+
+        <div id="evCutoffDeltaNotice" class="text-[11px] p-2.5 rounded-xl font-semibold flex items-center justify-between bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+          <span id="evCutoffDeltaText">🎉 Clearing the standard 88.0 cutoff by +9.5 marks!</span>
+          <span class="font-mono text-[10px] uppercase text-emerald-400 font-bold">Benchmark: 88.0M</span>
+        </div>
+      </div>
+
+      <!-- Interactive Sliders -->
+      <div class="flex flex-col gap-4">
+        
+        <!-- Slider 1: Total Attempt Target -->
+        <div class="flex flex-col gap-1.5 p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800">
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span class="text-white flex items-center gap-1.5">🎯 Total Target Attempts (Ceiling)</span>
+            <span id="evTotalDisplay" class="font-mono text-amber-400 font-black">82 / 100</span>
+          </div>
+          <input id="evTotalSlider" type="range" min="65" max="95" value="82" class="w-full accent-amber-500 cursor-pointer">
+          <span class="text-[10px] text-slate-400">Recommended for GS-1: 80 to 88 attempts to buffer negative bleed.</span>
+        </div>
+
+        <!-- Slider 2: Sure-Shots (90% Acc) -->
+        <div class="flex flex-col gap-1.5 p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800">
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span class="text-emerald-400 flex items-center gap-1.5">🟢 Sure-Shot Questions (High Confidence · ~90% Acc)</span>
+            <span id="evSureDisplay" class="font-mono text-emerald-400 font-black">44 questions</span>
+          </div>
+          <input id="evSureSlider" type="range" min="20" max="60" value="44" class="w-full accent-emerald-500 cursor-pointer">
+        </div>
+
+        <!-- Slider 3: 50:50 Eliminators (50% Acc) -->
+        <div class="flex flex-col gap-1.5 p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800">
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span class="text-amber-400 flex items-center gap-1.5">🟡 Calculated 50:50 Eliminators (Positive EV · ~50% Acc)</span>
+            <span id="evFiftyDisplay" class="font-mono text-amber-400 font-black">26 questions</span>
+          </div>
+          <input id="evFiftySlider" type="range" min="5" max="45" value="26" class="w-full accent-amber-500 cursor-pointer">
+          <span class="text-[10px] text-slate-400">Math: For every 2 questions, +2.00 - 0.66 = +1.34 Net Marks gained!</span>
+        </div>
+
+        <!-- Slider 4: Wild / Blind Guesses (25% Acc) -->
+        <div class="flex flex-col gap-1.5 p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800">
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span class="text-rose-400 flex items-center gap-1.5">🔴 Wild / FOMO Guesses (Negative EV · ~25% Acc)</span>
+            <span id="evWildDisplay" class="font-mono text-rose-400 font-black">12 questions</span>
+          </div>
+          <input id="evWildSlider" type="range" min="0" max="25" value="12" class="w-full accent-rose-500 cursor-pointer">
+          <span class="text-[10px] text-rose-400">Math: For every 4 guesses, 1 right (+2.0) and 3 wrong (-2.0) = 0 net gain, but risk of severe marks bleed.</span>
+        </div>
+
+      </div>
+
+      <!-- Tactical Takeaway Box -->
+      <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3">
+        <span class="text-xl shrink-0">💡</span>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-bold text-amber-300 uppercase tracking-wider">Tactical Psychological Takeaway</span>
+          <p id="evTacticalTakeaway" class="text-xs text-slate-300 leading-relaxed">
+            Eliminating wild guesses and focusing purely on 50:50 elimination immediately prevents unnecessary marks bleed.
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+        <button type="button" id="closeEVModalBtn2" class="px-4 py-2.5 rounded-xl text-slate-400 hover:text-white text-xs font-semibold cursor-pointer">
+          Close
+        </button>
+        <button type="button" id="launchSprintWithEVBtn" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-lg transition-all cursor-pointer flex items-center gap-2">
+          <span>🎯 Practice with this Strategy</span>
         </button>
       </div>
 

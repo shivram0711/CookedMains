@@ -806,7 +806,7 @@
 
           return (
             '<button type="button" class="player-opt-btn p-3.5 rounded-2xl flex items-center gap-3 transition-all text-left text-xs sm:text-sm cursor-pointer ' + optStyle + '" data-oidx="' + oIdx + '">' +
-              '<span class="w-6 h-6 rounded-xl flex items-center justify-center font-bold text-xs bg-slate-800 text-white shrink-0">' + letters[oIdx] + '</span>' +
+              '<span class="w-6 h-6 rounded-xl flex items-center justify-center font-bold text-xs bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white shrink-0 font-mono">' + letters[oIdx] + '</span>' +
               '<span class="leading-relaxed flex-1">' + escapeHtml(opt) + '</span>' +
               statusBadge +
             '</button>'
@@ -862,7 +862,7 @@
 
           return (
             '<div class="p-3.5 rounded-2xl flex items-center gap-3 transition-all text-left text-xs sm:text-sm ' + optStyle + '">' +
-              '<span class="w-6 h-6 rounded-xl flex items-center justify-center font-bold text-xs bg-slate-800 text-white shrink-0">' + letters[oIdx] + '</span>' +
+              '<span class="w-6 h-6 rounded-xl flex items-center justify-center font-bold text-xs bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white shrink-0 font-mono">' + letters[oIdx] + '</span>' +
               '<span class="leading-relaxed flex-1">' + escapeHtml(opt) + '</span>' +
               statusBadge +
             '</div>'
@@ -933,7 +933,7 @@
 
           return (
             '<button type="button" class="player-opt-btn p-3.5 rounded-2xl flex items-center gap-3 transition-all text-left text-xs sm:text-sm cursor-pointer ' + optStyle + '" data-oidx="' + oIdx + '">' +
-              '<span class="w-6 h-6 rounded-xl flex items-center justify-center font-bold text-xs bg-slate-800 text-white shrink-0">' + letters[oIdx] + '</span>' +
+              '<span class="w-6 h-6 rounded-xl flex items-center justify-center font-bold text-xs bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white shrink-0 font-mono">' + letters[oIdx] + '</span>' +
               '<span class="leading-relaxed flex-1">' + escapeHtml(opt) + '</span>' +
               statusBadge +
             '</button>'
@@ -1166,6 +1166,130 @@
   }
 
   // Setup UI Listeners
+  
+  // ==========================================================
+  // CUTOFF SWEET SPOT & EV SIMULATOR ENGINE
+  // ==========================================================
+  window.openEVSimulator = function () {
+    const modal = document.getElementById('cutoffEVModal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      recalculateEV('total');
+    }
+  };
+
+  window.closeEVSimulator = function () {
+    const modal = document.getElementById('cutoffEVModal');
+    if (modal) modal.classList.add('hidden');
+  };
+
+  function recalculateEV(source) {
+    const totalSlider = document.getElementById('evTotalSlider');
+    const sureSlider = document.getElementById('evSureSlider');
+    const fiftySlider = document.getElementById('evFiftySlider');
+    const wildSlider = document.getElementById('evWildSlider');
+
+    if (!totalSlider || !sureSlider || !fiftySlider || !wildSlider) return;
+
+    let total = parseInt(totalSlider.value, 10);
+    let sure = parseInt(sureSlider.value, 10);
+    let fifty = parseInt(fiftySlider.value, 10);
+    let wild = parseInt(wildSlider.value, 10);
+
+    if (source === 'total') {
+      sure = Math.max(20, Math.min(60, Math.round(total * 0.54)));
+      fifty = Math.max(5, Math.min(45, Math.round(total * 0.32)));
+      wild = Math.max(0, total - sure - fifty);
+
+      sureSlider.value = sure;
+      fiftySlider.value = fifty;
+      wildSlider.value = wild;
+    } else {
+      total = sure + fifty + wild;
+      totalSlider.value = Math.max(65, Math.min(95, total));
+    }
+
+    const totalDisplay = document.getElementById('evTotalDisplay');
+    const sureDisplay = document.getElementById('evSureDisplay');
+    const fiftyDisplay = document.getElementById('evFiftyDisplay');
+    const wildDisplay = document.getElementById('evWildDisplay');
+
+    if (totalDisplay) totalDisplay.textContent = total + ' / 100';
+    if (sureDisplay) sureDisplay.textContent = sure + ' questions';
+    if (fiftyDisplay) fiftyDisplay.textContent = fifty + ' questions';
+    if (wildDisplay) wildDisplay.textContent = wild + ' questions';
+
+    // Mathematical Calculation
+    const sureCorrect = sure * 0.90;
+    const sureWrong = sure * 0.10;
+
+    const fiftyCorrect = fifty * 0.50;
+    const fiftyWrong = fifty * 0.50;
+
+    const wildCorrect = wild * 0.25;
+    const wildWrong = wild * 0.75;
+
+    const totalCorrect = sureCorrect + fiftyCorrect + wildCorrect;
+    const totalWrong = sureWrong + fiftyWrong + wildWrong;
+
+    const gross = totalCorrect * 2.0;
+    const penalty = totalWrong * (2.0 / 3.0);
+    const net = gross - penalty;
+
+    const CUTOFF = 88.0;
+    const delta = net - CUTOFF;
+
+    const netText = document.getElementById('evNetScoreText');
+    const grossText = document.getElementById('evGrossScoreText');
+    const penaltyText = document.getElementById('evPenaltyScoreText');
+    const verdictPill = document.getElementById('evVerdictPill');
+    const deltaNotice = document.getElementById('evCutoffDeltaNotice');
+    const deltaText = document.getElementById('evCutoffDeltaText');
+    const takeawayText = document.getElementById('evTacticalTakeaway');
+
+    if (netText) netText.textContent = (net > 0 ? '+' : '') + net.toFixed(1);
+    if (grossText) grossText.textContent = '+' + gross.toFixed(1);
+    if (penaltyText) penaltyText.textContent = '-' + penalty.toFixed(1);
+
+    if (net >= CUTOFF) {
+      if (verdictPill) {
+        verdictPill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30';
+        verdictPill.textContent = 'Safe Zone';
+      }
+      if (deltaNotice) {
+        deltaNotice.className = 'text-[11px] p-2.5 rounded-xl font-semibold flex items-center justify-between bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20';
+      }
+      if (deltaText) {
+        deltaText.textContent = '🎉 Clearing standard 88.0 cutoff by +' + delta.toFixed(1) + ' marks!';
+      }
+    } else {
+      if (verdictPill) {
+        verdictPill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30';
+        verdictPill.textContent = 'Mark Leak Risk';
+      }
+      if (deltaNotice) {
+        deltaNotice.className = 'text-[11px] p-2.5 rounded-xl font-semibold flex items-center justify-between bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20';
+      }
+      if (deltaText) {
+        deltaText.textContent = '⚠️ Trailing standard 88.0 cutoff by ' + delta.toFixed(1) + ' marks (Negative Bleed Trap!).';
+      }
+    }
+
+    if (takeawayText) {
+      if (wild >= 8) {
+        const wildBleed = (wildWrong * (2.0 / 3.0)).toFixed(1);
+        const potentialNet = (net + (wildWrong * (2.0 / 3.0)) - (wildCorrect * 2.0)).toFixed(1);
+        takeawayText.textContent = '🚨 Negative Bleed: Your ' + wild + ' wild guesses lose -' + wildBleed + ' marks in pure penalties. Eliminating them jumps your Net Score to ' + potentialNet + ' marks!';
+      } else if (total < 75) {
+        takeawayText.textContent = '⚠️ Under-Attempt Ceiling: At ' + total + ' attempts, even high accuracy caps your score near the cutoff edge (' + net.toFixed(1) + 'M). Push to 80–85 attempts using disciplined 50:50 elimination.';
+      } else if (net >= 95) {
+        takeawayText.textContent = '💎 Ranker Safe Zone: Net ' + net.toFixed(1) + ' marks (+' + delta.toFixed(1) + ' safe buffer). Eliminating wild guesses ensures you clear the cutoff effortlessly.';
+      } else {
+        takeawayText.textContent = '🎯 Competitive Threshold: You are at ' + net.toFixed(1) + ' marks. Converting just 3 more 50:50 questions into correct keys with Topper Trap elimination gives you a safe 92+ buffer!';
+      }
+    }
+  }
+
   function setupListeners() {
     // Mobile Sidebar Drawer
     const openSideBtn = document.getElementById('openMobileSidebarBtn');
@@ -1237,20 +1361,6 @@
       });
     });
 
-    // Search Doubt Input
-    const doubtInput = document.getElementById('askDoubtInput');
-    const searchBtn = document.getElementById('searchDoubtBtn');
-    const runSearch = function () {
-      const val = doubtInput ? doubtInput.value.trim() : '';
-      if (val) window.startPracticeSession('all', val);
-    };
-    if (searchBtn) searchBtn.addEventListener('click', runSearch);
-    if (doubtInput) {
-      doubtInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') runSearch();
-      });
-    }
-
     // Mock Generator Modal Triggers
     document.getElementById('openMockGenBtn')?.addEventListener('click', window.openMockGenerator);
     document.getElementById('closeMockGenBtn')?.addEventListener('click', window.closeMockGenerator);
@@ -1315,6 +1425,28 @@
     document.getElementById('closePaletteBtn')?.addEventListener('click', closePalette);
     document.getElementById('paletteModal')?.addEventListener('click', function (e) {
       if (e.target.id === 'paletteModal') closePalette();
+    });
+
+    
+    // Cutoff EV Simulator Triggers
+    document.getElementById('sideNavEV')?.addEventListener('click', function () {
+      window.openEVSimulator();
+      toggleSidebar(false);
+    });
+    document.getElementById('closeEVModalBtn')?.addEventListener('click', window.closeEVSimulator);
+    document.getElementById('closeEVModalBtn2')?.addEventListener('click', window.closeEVSimulator);
+    document.getElementById('cutoffEVModal')?.addEventListener('click', function (e) {
+      if (e.target.id === 'cutoffEVModal') window.closeEVSimulator();
+    });
+
+    document.getElementById('evTotalSlider')?.addEventListener('input', function () { recalculateEV('total'); });
+    document.getElementById('evSureSlider')?.addEventListener('input', function () { recalculateEV('pool'); });
+    document.getElementById('evFiftySlider')?.addEventListener('input', function () { recalculateEV('pool'); });
+    document.getElementById('evWildSlider')?.addEventListener('input', function () { recalculateEV('pool'); });
+
+    document.getElementById('launchSprintWithEVBtn')?.addEventListener('click', function () {
+      window.closeEVSimulator();
+      window.startPracticeSession('all');
     });
 
     // Post-Report Buttons
