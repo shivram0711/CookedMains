@@ -40,6 +40,23 @@
       silly: 0,
       elimination: 0,
       memory: 0
+    },
+    target: {
+      id: null,
+      title: '',
+      subject: 'All Subjects',
+      targetQuestions: 30,
+      solvedIds: [],
+      solvedCount: 0,
+      correctCount: 0,
+      startDate: null,
+      deadlineDate: null,
+      durationDays: 7,
+      dailyGoal: 5,
+      status: 'none', // 'none' | 'active' | 'completed'
+      strategyDirective: '',
+      highYieldFocus: '',
+      diagnosticProfile: null
     }
   };
 
@@ -48,7 +65,8 @@
     ANSWERS: 'cookedmains_prelims_answers_v1',
     MISTAKES: 'cookedmains_prelims_mistakes_v1',
     FLUKES: 'cookedmains_prelims_flukes_v1',
-    DIAGNOSTICS: 'cookedmains_prelims_diagnostics_v1'
+    DIAGNOSTICS: 'cookedmains_prelims_diagnostics_v1',
+    TARGET: 'cookedmains_prelims_target_v1'
   };
 
   // Subject Slugs for Clean SEO URLs
@@ -104,6 +122,14 @@
 
       const savedDiag = localStorage.getItem(STORAGE_KEYS.DIAGNOSTICS);
       if (savedDiag) STATE.diagnostics = JSON.parse(savedDiag);
+
+      const savedTarget = localStorage.getItem(STORAGE_KEYS.TARGET);
+      if (savedTarget) {
+        try {
+          const parsed = JSON.parse(savedTarget);
+          STATE.target = Object.assign(STATE.target, parsed);
+        } catch (e) {}
+      }
     } catch (e) {
       console.warn('Could not load stored Prelims state from localStorage:', e);
     }
@@ -116,6 +142,7 @@
       localStorage.setItem(STORAGE_KEYS.MISTAKES, JSON.stringify(Array.from(STATE.mistakes)));
       localStorage.setItem(STORAGE_KEYS.FLUKES, JSON.stringify(Array.from(STATE.flukes)));
       localStorage.setItem(STORAGE_KEYS.DIAGNOSTICS, JSON.stringify(STATE.diagnostics));
+      localStorage.setItem(STORAGE_KEYS.TARGET, JSON.stringify(STATE.target));
     } catch (e) {
       console.warn('Could not save Prelims state to localStorage:', e);
     }
@@ -786,9 +813,36 @@
       timestamp: Date.now()
     };
 
+    // Update Target Sprint Progress
+    if (STATE.target && (STATE.target.status === 'active' || STATE.target.status === 'in_progress')) {
+      const matchSubject = !STATE.target.subject || 
+                           STATE.target.subject === 'All Subjects' || 
+                           STATE.target.subject.toLowerCase() === 'all' ||
+                           (q.subject && q.subject.toLowerCase().includes(STATE.target.subject.toLowerCase())) ||
+                           (STATE.target.subject.toLowerCase().includes(q.subject ? q.subject.toLowerCase() : ''));
+      
+      if (matchSubject) {
+        if (!Array.isArray(STATE.target.solvedIds)) STATE.target.solvedIds = [];
+        if (!STATE.target.solvedIds.includes(qId)) {
+          STATE.target.solvedIds.push(qId);
+          STATE.target.solvedCount = STATE.target.solvedIds.length;
+          if (isCorrect) {
+            STATE.target.correctCount = (STATE.target.correctCount || 0) + 1;
+          }
+          if (STATE.target.solvedCount >= STATE.target.targetQuestions) {
+            STATE.target.status = 'completed';
+            showToast(STATE.language === 'hi' 
+              ? '🎉 बधाई! आपने अपना प्रारंभिक परीक्षा लक्ष्य पूरा कर लिया है!' 
+              : '🎉 Congratulations! You achieved your Prelims Sprint Target!');
+          }
+        }
+      }
+    }
+
     persistState();
     renderQuestions();
     updateMetricsDashboard();
+    updateTargetUI();
   }
 
   // Diagnostic Tag Handler
@@ -1159,6 +1213,923 @@ https://cookedmains.com/prelims`;
     }, 150);
   }
 
+  // ========================================================
+  // COGNITIVE TARGET ENGINE & SYLLABUS 80/20 DATA & METHODS
+  // ========================================================
+
+  let TEMP_AI_TARGET = null;
+
+  // Authoritative 80/20 Syllabus Mastery Data Bank
+  const SYLLABUS_80_20 = {
+    polity: {
+      titleEn: 'Polity & Governance',
+      titleHi: 'राजव्यवस्था एवं शासन',
+      weightageEn: '~14–16 Questions (28–32 Marks) • High Scoring Discipline',
+      weightageHi: '~14–16 प्रश्न (28–32 अंक) • उच्चतम स्कोरिंग विषय',
+      coreEn: [
+        'Fundamental Rights (Articles 14, 19, 21, 25–28, 32 Writs: Habeas Corpus vs Quo Warranto vs Mandamus)',
+        'Directive Principles & Fundamental Duties (Art 39(b)(c) vs Art 14/19; Swaran Singh Committee)',
+        'Constitutional & Statutory Bodies (ECI Art 324 removal/tenure, CAG Art 148, Finance Commission Art 280, UPSC)',
+        'Parliament Mechanics (Money Bill Art 110, Joint Sitting Art 108, Speaker under 10th Schedule, PAC vs Estimates Committee)',
+        'Judiciary Architecture (Judicial Review, Advisory Jurisdiction Art 143, Curative Petitions, Collegium Conventions)'
+      ],
+      coreHi: [
+        'मूल अधिकार (अनुच्छेद 14, 19, 21, 25–28, 32 रिट: बंदी प्रत्यक्षीकरण, अधिकार-पृच्छा, परमादेश)',
+        'नीति निर्देशक तत्व एवं मूल कर्तव्य (अनुच्छेद 39(ख)(ग) बनाम 14/19, स्वर्ण सिंह समिति)',
+        'संवैधानिक एवं सांविधिक निकाय (चुनाव आयोग अनु. 324 हटाना/वेतन, सीएजी अनु. 148, वित्त आयोग अनु. 280)',
+        'संसदीय कार्यप्रणाली (धन विधेयक अनु. 110, संयुक्त बैठक अनु. 108, 10वीं अनुसूची में अध्यक्ष की शक्ति, लोक लेखा समिति)',
+        'न्यायपालिका संरचना (न्यायिक समीक्षा, अनु. 143 परामर्शदात्री अधिकार, उपचारात्मक याचिका, कॉलेजियम परंपरा)'
+      ],
+      skipEn: [
+        'Obscure colonial regulations & charter acts prior to Regulating Act 1773',
+        'State Legislative Assembly minor procedural sub-rules & local municipal bylaws',
+        'Minute numerical quotas and subordinate court registry grade tables',
+        'Memorizing entire lists of all minor tribunals created by states'
+      ],
+      skipHi: [
+        '1773 से पहले के पुराने औपनिवेशिक चार्टर और गौण विनियम',
+        'राज्य विधानसभाओं के सूक्ष्म आंतरिक प्रक्रिया नियम और स्थानीय उप-नियम',
+        'अधीनस्थ न्यायालयों के आंतरिक प्रशासनिक पदों के बारीक आंकड़े',
+        'राज्यों द्वारा गठित सभी छोटे ट्रिब्यूनल की लंबी सूची रटना'
+      ],
+      sourcesEn: [
+        'M. Laxmikanth (Priority Chapters: 7 to 11, 17 to 23, 30, 42 to 55)',
+        'Class 11 NCERT: Indian Constitution at Work (Crucial for constitutional morality & separation of powers)',
+        'PRS Legislative Research briefs for recent constitutional amendment acts'
+      ],
+      sourcesHi: [
+        'एम. लक्ष्मीकांत (प्राथमिकता अध्याय: 7 से 11, 17 से 23, 30, 42 से 55)',
+        'कक्षा 11 एनसीईआरटी: भारत का संविधान: सिद्धांत और व्यवहार (संवैधानिक नैतिकता एवं शक्ति पृथक्करण)',
+        'पीआरएस लेजिस्लेटिव रिसर्च: नवीनतम संवैधानिक संशोधन अधिनियमों के मुख्य बिंदु'
+      ],
+      trapEn: 'UPSC Trap Alert: Statements stating "The Constitution explicitly defines..." when the term is governed purely by statute or convention (e.g. Office of Profit, Basic Structure, Shadow Cabinet, or removal grounds of CEC vs ECs).',
+      trapHi: 'यूपीएससी जाल चेतावनी: ऐसे विकल्प जो दावा करते हैं कि "संविधान स्पष्ट रूप से परिभाषित करता है..." जबकि वह विषय केवल परंपरा या कानून द्वारा शासित होता है (उदा. लाभ का पद, मूल ढांचा, चुनाव आयुक्तों को हटाना)।'
+    },
+
+    economy: {
+      titleEn: 'Economy & Banking',
+      titleHi: 'भारतीय अर्थव्यवस्था एवं बैंकिंग',
+      weightageEn: '~15–18 Questions (30–36 Marks) • Concept-Driven Engine',
+      weightageHi: '~15–18 प्रश्न (30–36 अंक) • पूर्णतः अवधारणा आधारित',
+      coreEn: [
+        'RBI Balance Sheet & Monetary Tools (Repo, Reverse Repo, MSF, SDF, OMO, Sterilization, CBDC liability nature)',
+        'Inflation Metrics & National Accounts (CPI vs WPI weights, Core vs Headline, GDP Deflator, Base Year mechanics)',
+        'External Sector & Forex (BOP, Current Account vs Capital Account, NEER vs REER, FDI vs FPI regulations)',
+        'Banking Frameworks (IBC 2016, Prompt Corrective Action, Priority Sector Lending norms, NBFC regulation)',
+        'Fiscal Architecture (Fiscal Deficit, Primary Deficit, FRBM Act escape clause, Revenue vs Capital Expenditure)'
+      ],
+      coreHi: [
+        'आरबीआई तुलन-पत्र एवं मौद्रिक उपकरण (रेपो, रिवर्स रेपो, एमएसएफ, एसडीएफ, ओएमओ, सीबीडीसी की देनदारी प्रकृति)',
+        'मुद्रास्फीति एवं राष्ट्रीय आय (सीपीआई बनाम डब्ल्यूपीआई भार, कोर बनाम हेडलाइन, जीडीपी डिफ्लेटर)',
+        'विदेशी क्षेत्र एवं भुगतान संतुलन (चालू खाता बनाम पूंजी खाता, नीर बनाम रीर, एफडीआई बनाम एफपीआई)',
+        'बैंकिंग ढांचा (आईबीसी 2016, पीसीए फ्रेमवर्क, प्राथमिकता प्राप्त क्षेत्र ऋण-पीएसएल, एनबीएफसी विनियमन)',
+        'राजकोषीय व्यवस्था (राजकोषीय घाटा, प्राथमिक घाटा, एफआरबीएम एस्केप क्लॉज, राजस्व बनाम पूंजीगत व्यय)'
+      ],
+      skipEn: [
+        'Daily stock market swings and quarterly corporate earnings releases',
+        'Minute budgetary sub-allocations under 5% for minor departmental programs',
+        'Complex econometric models and theoretical IS-LM / Phillips curves',
+        'Commercial brokerages short-term quarterly GDP projections'
+      ],
+      skipHi: [
+        'शेयर बाजार के दैनिक उतार-चढ़ाव और कॉर्पोरेट त्रैमासिक वित्तीय नतीजे',
+        'विभिन्न मंत्रालयों की गौण योजनाओं में 5% से कम का सूक्ष्म बजटीय आवंटन',
+        'जटिल अर्थमितीय समीकरण और सैद्धांतिक वक्र (जैसे आईएस-एलएम वक्र)',
+        'निजी रेटिंग एजेंसियों के अल्पकालिक त्रैमासिक जीडीपी अनुमान'
+      ],
+      sourcesEn: [
+        'Vivek Singh / Mrunal Patel Handouts / Nitin Singhania Macroeconomics',
+        'Latest Economic Survey (Chapters on State of the Economy, Prices, External Sector)',
+        'Union Budget Highlights (Tax slabs, fiscal deficit roadmap, capital expenditure thrust)'
+      ],
+      sourcesHi: [
+        'विवेक सिंह / मृणाल पटेल हैंडआउट्स / नितिन सिंघानिया भारतीय अर्थव्यवस्था',
+        'नवीनतम आर्थिक सर्वेक्षण (अर्थव्यवस्था की स्थिति, मूल्य, विदेशी क्षेत्र अध्याय)',
+        'केंद्रीय बजट के प्रमुख बिंदु (राजकोषीय घाटा, पूंजीगत व्यय लक्ष्य)'
+      ],
+      trapEn: 'UPSC Trap Alert: Inverting causal arrows (e.g. asserting that rising bond yields cause bond prices to increase, whereas they are strictly inversely related; or claiming FPI is long-term debt while FDI is speculative).',
+      trapHi: 'यूपीएससी जाल चेतावनी: कार्य-कारण संबंध को उलट देना (उदा. यह कहना कि बॉन्ड यील्ड बढ़ने से बॉन्ड की कीमतें बढ़ती हैं, जबकि वे परस्पर विपरीत अनुपात में होती हैं; या एफडीआई को सट्टा पूंजी बताना)।'
+    },
+
+    environment: {
+      titleEn: 'Environment & Ecology',
+      titleHi: 'पर्यावरण एवं पारिस्थितिकी',
+      weightageEn: '~16–20 Questions (32–40 Marks) • Static + Applied Dynamic',
+      weightageHi: '~16–20 प्रश्न (32–40 अंक) • सर्वाधिक प्रश्न योगदान',
+      coreEn: [
+        'Protected Area Dynamics (National Parks & Reserves with rivers passing through them, flagship species)',
+        'Environmental Legislations (Wildlife Protection Act 1972 Schedules 2022 amendment, EPA 1986, Biodiversity Act 2002, FRA 2006)',
+        'Global Conventions & Carbon Markets (UNFCCC COP decisions, Paris Agreement Art 6, Montreal Kigali Amendment, CBD Kunming)',
+        'Pollution & Bioremediation (Bioaccumulation vs Biomagnification, PM2.5 vs PM10, Microplastics, Bioremediation agents)'
+      ],
+      coreHi: [
+        'संरक्षित क्षेत्र नेटवर्क (राष्ट्रीय उद्यान जिनसे नदियाँ गुजरती हैं, प्रमुख प्रजातियाँ जैसे एक सींग वाला गैंडा, लायन-टेल्ड मकाक)',
+        'पर्यावरणीय कानून (वन्यजीव संरक्षण अधिनियम 1972 अनुसूचियाँ 2022 संशोधन, पर्यावरण संरक्षण अधिनियम 1986, जैव विविधता कानून 2002)',
+        'वैश्विक अभिसमय एवं कार्बन क्रेडिट (यूएनएफसीसीसी कॉप निर्णय, पेरिस समझौता अनुच्छेद 6, मॉन्ट्रियल किगाली संशोधन)',
+        'प्रदूषण एवं जैव-उपचार (बायोएक्यूमुलेशन बनाम बायोमैग्निफिकेशन, पीएम2.5, माइक्रोप्लास्टिक, जैव-उपचार सूक्ष्मजीव)'
+      ],
+      skipEn: [
+        'Obscure district-level local bird sanctuaries with zero news occurrence',
+        'Chemical IUPAC molecular formulas of obscure synthetic pollutants',
+        'Memorizing all 1,000+ global IUCN Red List species (focus strictly on Indian Critically Endangered flagships)'
+      ],
+      skipHi: [
+        'स्थानीय जिला स्तरीय छोटे पक्षी अभयारण्य जो कभी चर्चा में नहीं रहे',
+        'रासायनिक प्रदूषकों के आणविक सूत्र और रासायनिक अभिक्रियाएँ',
+        'दुनिया की सभी 1000+ आईयूसीएन प्रजातियों को रटना (केवल भारत की गंभीर रूप से संकटग्रस्त प्रजातियों पर ध्यान दें)'
+      ],
+      sourcesEn: [
+        'PMFIAS Environment or Shankar IAS (Core Chapters 1-9, 15-20)',
+        'Ministry of Environment, Forest and Climate Change (MoEFCC) Annual Summary'
+      ],
+      sourcesHi: [
+        'पीएमएफआईएएस पर्यावरण या शंकर आईएएस (मुख्य अध्याय 1-9, 15-20)',
+        'पर्यावरण, वन और जलवायु परिवर्तन मंत्रालय (MoEFCC) की वार्षिक रिपोर्ट का सार'
+      ],
+      trapEn: 'UPSC Trap Alert: Extreme absolute qualifiers like "It is found in the wild ONLY in India" or confusing Endangered with Critically Endangered categories.',
+      trapHi: 'यूपीएससी जाल चेतावनी: "यह प्राकृतिक रूप से केवल भारत में पाया जाता है" जैसे चरम निरपेक्ष शब्द, या संकटग्रस्त (Endangered) को गंभीर संकटग्रस्त (CR) बता देना।'
+    },
+
+    history: {
+      titleEn: 'History & Art & Culture',
+      titleHi: 'इतिहास एवं कला-संस्कृति',
+      weightageEn: '~14–16 Questions (28–32 Marks) • High-Yield Themes',
+      weightageHi: '~14–16 प्रश्न (28–32 अंक) • उच्च प्राथमिकता विषय',
+      coreEn: [
+        'Ancient Core: Indus Valley civilization, Buddhism & Jainism philosophies & councils, Bodhisattvas (Maitreya, Avalokiteshvara)',
+        'Medieval Administration & Terminology: Iqta, Mansabdari, Jagirdari, Vijayanagara Empire (foreign travelers, temple styles)',
+        'Bhakti & Sufi Movements: Philosophies of Kabir, Guru Nanak, Ramanuja, Shankaradeva, Chaitanya Mahaprabhu',
+        'Modern Nationalist Movement (1919–1947): Non-Cooperation, Civil Disobedience, Quit India, Cabinet Mission, Cripps proposals',
+        'Social-Religious Reformers (Jyotirao Phule, Raja Ram Mohan Roy, Ishwar Chandra Vidyasagar, Periyar)'
+      ],
+      coreHi: [
+        'प्राचीन भारत: सिंधु घाटी सभ्यता, बौद्ध एवं जैन दर्शन, बौद्ध संगीति, बोधिसत्व (मैत्रेय, अवलोकितेश्वर)',
+        'मध्यकालीन शब्दावली एवं प्रशासन: इक्ता, मनसबदारी, जागीरदारी, विजयनगर साम्राज्य (विदेशी यात्री, मंदिर स्थापत्य)',
+        'भक्ति एवं सूफी आंदोलन: कबीर, गुरु नानक, रामानुजाचार्य, शंकरदेव, चैतन्य महाप्रभु के दार्शनिक विचार',
+        'आधुनिक स्वतंत्रता आंदोलन (1919–1947): असहयोग, सविनय अवज्ञा, भारत छोड़ो, कैबिनेट मिशन, क्रिप्स प्रस्ताव',
+        'सामाजिक-धार्मिक सुधार आंदोलन (ज्योतिराव फुले, राजा राम मोहन राय, ईश्वर चंद्र विद्यासागर, पेरियार)'
+      ],
+      skipEn: [
+        'Obscure dynastic wars and succession battles of minor feudal principalities',
+        'Memorizing routine administrative dispatches of minor British viceroys',
+        'Detailed prehistoric tool typologies beyond basic Paleolithic/Mesolithic/Neolithic markers'
+      ],
+      skipHi: [
+        'छोटे सामंती रियासतों के आंतरिक युद्ध और वंशानुगत लड़ाइयाँ',
+        'ब्रिटिश वायसरायों के सामान्य प्रशासनिक पत्राचार और तारीखें',
+        'प्रागैतिहासिक काल के औजारों के अत्यंत विस्तृत वर्गीकरण'
+      ],
+      sourcesEn: [
+        'Spectrum Modern India by Rajiv Ahir (Chapters on 1919–1947, Reformers, Press & Education)',
+        'Class 11 Fine Arts NCERT: An Introduction to Indian Art (Vital for architecture & sculptures)',
+        'RS Sharma (Ancient India) & Satish Chandra (Medieval India)'
+      ],
+      sourcesHi: [
+        'स्पेक्ट्रम: आधुनिक भारत का इतिहास (राजीव अहीर)',
+        'कक्षा 11 ललित कला एनसीईआरटी: भारतीय कला का परिचय (मंदिर एवं मूर्तिकला के लिए अनिवार्य)',
+        'आर. एस. शर्मा (प्राचीन भारत) एवं सतीश चंद्र (मध्यकालीन भारत)'
+      ],
+      trapEn: 'UPSC Trap Alert: Chronological misattribution (e.g. attributing a Gupta structural temple innovation to the Mauryan or Harappan era, or misattributing classical authors).',
+      trapHi: 'यूपीएससी जाल चेतावनी: कालक्रम का हेरफेर (उदा. गुप्तकालीन मंदिर कला को मौर्यकालीन बताना, या प्राचीन ग्रंथों के रचयिताओं को आपस में बदल देना)।'
+    },
+
+    geography: {
+      titleEn: 'Geography & World Mapping',
+      titleHi: 'भूगोल एवं विश्व मानचित्र',
+      weightageEn: '~12–14 Questions (24–28 Marks) • Map-Centric Scoring',
+      weightageHi: '~12–14 प्रश्न (24–28 अंक) • मानचित्र आधारित',
+      coreEn: [
+        'Physical Fundamentals: Plate tectonics, earthquake P vs S waves, shadow zones, landforms (fluvial, glacial, arid)',
+        'Climatology & Indian Monsoon: Pressure belts, Jet streams, ITCZ movement, Somali Jet, El Niño / La Niña / IOD mechanism',
+        'Indian River Systems: Indus, Ganga, Brahmaputra, Godavari, Krishna, Cauvery (origins, left vs right bank tributaries)',
+        'Strategic World Mapping: Red Sea, Black Sea, Caspian Sea, Persian Gulf bordering nations, African Great Lakes, straits (Hormuz, Malacca, Bab-el-Mandeb)'
+      ],
+      coreHi: [
+        'भौतिक भूगोल: प्लेट विवर्तनिकी, भूकंप तरंगें (पी एवं एस तरंगें), छाया क्षेत्र, भू-आकृतियाँ (नदी, हिमनद, पवन निर्मित)',
+        'जलवायु विज्ञान एवं भारतीय मानसून: वायुदाब पेटियाँ, जेट स्ट्रीम, आईटीसीजेड, सोमाली जेट, अल नीनो/ला नीना/आईओडी',
+        'भारतीय नदी तंत्र: सिंधु, गंगा, ब्रह्मपुत्र, गोदावरी, कृष्णा, कावेरी (उद्गम, बाएँ व दाएँ तट की सहायक नदियाँ)',
+        'वैश्विक सामरिक मानचित्र: लाल सागर, काला सागर, कैस्पियन सागर, फारस की खाड़ी के सीमावर्ती देश, जलडमरूमध्य (मलक्का, होर्मुज)'
+      ],
+      skipEn: [
+        'District-level minor agricultural statistics and micro-crop yield tables',
+        'Minor stream rivulets without geographical or ecological significance',
+        'Minute percentage compositions of non-major commercial minerals'
+      ],
+      skipHi: [
+        'जिला स्तरीय छोटी कृषि सांख्यिकी और फसल उत्पादन के गौण आंकड़े',
+        'सूक्ष्म मौसमी नाले और अप्रमुख जलधाराएँ',
+        'गौण खनिजों के सूक्ष्म प्रतिशत वितरण'
+      ],
+      sourcesEn: [
+        'Class 11 NCERT: Fundamentals of Physical Geography & India: Physical Environment',
+        'Orient BlackSwan or Oxford Student Atlas (Daily 10-minute map visualization)'
+      ],
+      sourcesHi: [
+        'कक्षा 11 एनसीईआरटी: भौतिक भूगोल के मूल सिद्धांत एवं भारत: भौतिक पर्यावरण',
+        'ओरिएंट ब्लैकस्वॉन या ऑक्सफोर्ड एटलस (प्रतिदिन 10 मिनट मानचित्र अध्ययन)'
+      ],
+      trapEn: 'UPSC Trap Alert: North-to-South or West-to-East ordering distortions for seas, mountain passes, and confusion between left-bank and right-bank tributaries.',
+      trapHi: 'यूपीएससी जाल चेतावनी: उत्तर-से-दक्षिण या पश्चिम-से-पूर्व क्रम में हेरफेर (उदा. दर्रे, सागर, या नदियों के बाएँ व दाएँ तट की सहायक नदियों में अदला-बदली)।'
+    },
+
+    science: {
+      titleEn: 'Science & Emerging Tech',
+      titleHi: 'विज्ञान एवं उभरती प्रौद्योगिकी',
+      weightageEn: '~10–13 Questions (20–26 Marks) • Broad Application Focus',
+      weightageHi: '~10–13 प्रश्न (20–26 अंक) • व्यावहारिक अनुप्रयोग',
+      coreEn: [
+        'Biotechnology & Gene Editing: CRISPR-Cas9, Recombinant DNA, Stem cell therapies, mRNA vaccine mechanism, Mitochondrial replacement therapy',
+        'Space Technology: ISRO vehicles (PSLV vs GSLV vs LVM3), Orbits (LEO, GEO, Sun-Synchronous), James Webb Telescope, Gravitational waves',
+        'Emerging Technologies: Artificial Intelligence, Quantum Computing, Blockchain, LiDAR vs Radar vs Sonar, NFC vs RFID',
+        'Public Health & Pathogens: Zoonotic viruses, Antimicrobial Resistance (AMR), Vector-borne transmission dynamics'
+      ],
+      coreHi: [
+        'जैव प्रौद्योगिकी एवं जीन एडिटिंग: सीआरआईएसपीआर-कैस9, पुनः संयोजक डीएनए, स्टेम सेल, एमआरएनए वैक्सीन, माइटोकॉन्ड्रियल डोनेशन',
+        'अंतरिक्ष प्रौद्योगिकी: इसरो प्रक्षेपण यान (पीएसएलवी, जीएसएलवी, एलवीएम3), कक्षाएं (लियो, जियो), जेम्स वेब, गुरुत्वाकर्षण तरंगें',
+        'उभरती तकनीकें: आर्टिफिशियल इंटेलिजेंस, क्वांटम कम्प्यूटिंग, ब्लॉकचेन, लिडार (LiDAR) बनाम रडार, एनएफसी बनाम आरएफआईडी',
+        'सार्वजनिक स्वास्थ्य एवं रोग: जूनोटिक वायरस, रोगाणुरोधी प्रतिरोध (AMR), वेक्टर जनित बीमारियां'
+      ],
+      skipEn: [
+        'Complex theoretical physics derivations and academic quantum mechanics formulas',
+        'Commercial device hardware benchmark ratings of consumer electronics',
+        'Memorizing synthetic organic IUPAC naming rules'
+      ],
+      skipHi: [
+        'सैद्धांतिक भौतिकी के जटिल सूत्र और गणितीय व्युत्पत्ति',
+        'वाणिज्यिक इलेक्ट्रॉनिक गैजेट्स के हार्डवेयर विनिर्देश',
+        'रासायनिक यौगिकों के आईयूपीएसी नामकरण के जटिल नियम'
+      ],
+      sourcesEn: [
+        'The Hindu / The Indian Express Science & Technology Sunday edition',
+        'Down to Earth annual and monthly technology highlights'
+      ],
+      sourcesHi: [
+        'द हिंदू / इंडियन एक्सप्रेस का रविवार का विज्ञान-प्रौद्योगिकी पृष्ठ',
+        'डाउन टू अर्थ विज्ञान एवं तकनीक विशेष लेख'
+      ],
+      trapEn: 'UPSC Trap Alert: Statements declaring an emerging technology "CANNOT" be applied in a certain sector (e.g. agriculture, defense, finance). UPSC tech questions are almost always broad and permissive!',
+      trapHi: 'यूपीएससी जाल चेतावनी: ऐसे विकल्प जो दावा करते हैं कि किसी तकनीक का उपयोग अमुक क्षेत्र में "नहीं किया जा सकता"। यूपीएससी के विज्ञान के प्रश्न लगभग हमेशा सकारात्मक एवं समावेशी होते हैं।'
+    }
+  };
+
+  // Render Syllabus 80/20 Content into Modal
+  function renderReadVsSkipContent(subjectKey = 'polity') {
+    const area = document.getElementById('rvsContentArea');
+    if (!area) return;
+
+    const data = SYLLABUS_80_20[subjectKey] || SYLLABUS_80_20.polity;
+    const isHi = STATE.language === 'hi';
+
+    const title = isHi ? data.titleHi : data.titleEn;
+    const weightage = isHi ? data.weightageHi : data.weightageEn;
+    const coreList = isHi ? data.coreHi : data.coreEn;
+    const skipList = isHi ? data.skipHi : data.skipEn;
+    const sourcesList = isHi ? data.sourcesHi : data.sourcesEn;
+    const trapText = isHi ? data.trapHi : data.trapEn;
+
+    // Highlight active tab
+    document.querySelectorAll('.rvs-sub-tab').forEach(b => {
+      if (b.getAttribute('data-sub') === subjectKey) {
+        b.className = 'rvs-sub-tab px-3 py-1.5 rounded-lg bg-indigo-500 text-slate-950 font-black shrink-0 cursor-pointer shadow-md';
+      } else {
+        b.className = 'rvs-sub-tab px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-white shrink-0 cursor-pointer';
+      }
+    });
+
+    area.innerHTML = `
+      <div class="flex items-center justify-between p-3 rounded-xl bg-indigo-950/30 border border-indigo-500/30">
+        <div>
+          <h3 class="text-sm sm:text-base font-extrabold text-white">${escapeHtml(title)}</h3>
+          <p class="text-[11px] font-mono text-indigo-300 font-semibold mt-0.5">${escapeHtml(weightage)}</p>
+        </div>
+        <button type="button" class="rvs-quick-solve-btn px-3 py-1.5 rounded-lg bg-indigo-500 hover:bg-indigo-400 text-slate-950 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer" data-sub="${escapeHtml(subjectKey)}">
+          <span>🎯</span>
+          <span>${isHi ? 'इस विषय के PYQs हल करें' : 'Practice Subject PYQs'}</span>
+        </button>
+      </div>
+
+      <!-- Grid: High Yield Core vs What to SKIP -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        
+        <!-- High Yield (Must Read) -->
+        <div class="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/40 flex flex-col gap-2.5">
+          <div class="flex items-center gap-1.5 text-xs font-black text-emerald-400 uppercase tracking-wider">
+            <span>🟢</span>
+            <span>${isHi ? 'उच्च-प्राथमिकता वाले मुख्य विषय (80% ROI)' : 'High-Yield Core (Must Read — 80% ROI)'}</span>
+          </div>
+          <ul class="flex flex-col gap-2 text-[11px] text-slate-200">
+            ${coreList.map(item => `
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-400 font-bold shrink-0 mt-0.5">✓</span>
+                <span class="leading-normal">${escapeHtml(item)}</span>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+
+        <!-- Low Yield (What to SKIP) -->
+        <div class="p-4 rounded-xl bg-rose-950/20 border border-rose-500/40 flex flex-col gap-2.5">
+          <div class="flex items-center gap-1.5 text-xs font-black text-rose-400 uppercase tracking-wider">
+            <span>🔴</span>
+            <span>${isHi ? 'कम-प्राथमिकता वाले भ्रामक विषय (समय न गंवाएं)' : 'Low-Yield Traps (What to SKIP — Save Weeks)'}</span>
+          </div>
+          <ul class="flex flex-col gap-2 text-[11px] text-slate-300">
+            ${skipList.map(item => `
+              <li class="flex items-start gap-2">
+                <span class="text-rose-400 font-bold shrink-0 mt-0.5">✗</span>
+                <span class="leading-normal">${escapeHtml(item)}</span>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Authoritative Sources & Reading Priority -->
+      <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col gap-2">
+        <div class="flex items-center gap-1.5 text-xs font-bold text-amber-400">
+          <span>📚</span>
+          <span>${isHi ? 'मानक अनुशंसित पुस्तकें एवं अध्याय प्राथमिकता' : 'Standard Authoritative Sources & Chapter Priority'}</span>
+        </div>
+        <ul class="flex flex-col gap-1.5 text-[11px] text-slate-300">
+          ${sourcesList.map(item => `
+            <li class="flex items-start gap-2">
+              <span class="text-amber-400 shrink-0">•</span>
+              <span class="leading-normal">${escapeHtml(item)}</span>
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+
+      <!-- Psychological Trap Avoidance Rule -->
+      <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2 text-xs text-amber-200/95 leading-relaxed">
+        <span class="text-amber-400 shrink-0 mt-0.5 text-sm">🧠</span>
+        <span>${escapeHtml(trapText)}</span>
+      </div>
+    `;
+
+    // Hook up the quick solve button inside
+    const solveBtn = area.querySelector('.rvs-quick-solve-btn');
+    if (solveBtn) {
+      solveBtn.addEventListener('click', () => {
+        closeReadVsSkipModal();
+        const map = {
+          polity: 'Polity & Governance',
+          economy: 'Economy',
+          environment: 'Environment & Ecology',
+          history: 'History & Culture',
+          geography: 'Geography',
+          science: 'Science & Technology'
+        };
+        const targetSub = map[subjectKey] || 'all';
+        STATE.activeSubject = targetSub;
+        syncSubjectTabsUI();
+        const slug = REVERSE_SLUGS[targetSub] || '';
+        try {
+          window.history.pushState(null, '', slug ? `/prelims/${slug}` : '/prelims');
+        } catch (e) {}
+        applyFilters();
+        const container = document.getElementById('questionsContainer');
+        if (container) container.scrollIntoView({ behavior: 'smooth' });
+        showToast(isHi ? `${targetSub} के प्रश्न लोड किए गए!` : `Filtered to ${targetSub} PYQs!`);
+      });
+    }
+  }
+
+  // Cognitive Target Engine & Micro-Study Planner UI Updater
+  function updateTargetUI() {
+    const isHi = STATE.language === 'hi';
+    const statusBadge = document.getElementById('targetStatusBadge');
+    const subjectText = document.getElementById('targetSubjectText');
+    const ratioText = document.getElementById('targetProgressRatio');
+    const progressBar = document.getElementById('targetProgressBar');
+    const daysRemainingText = document.getElementById('targetDaysRemainingText');
+    const paceText = document.getElementById('targetPaceText');
+    const navBadge = document.getElementById('navTargetBadge');
+    const backlogAlert = document.getElementById('targetBacklogAlert');
+    const backlogTitle = document.getElementById('targetBacklogTitle');
+    const backlogDesc = document.getElementById('targetBacklogDesc');
+
+    // If no target or status is none
+    if (!STATE.target || STATE.target.status === 'none' || !STATE.target.status) {
+      if (statusBadge) {
+        statusBadge.textContent = isHi ? 'कोई लक्ष्य नहीं' : 'No Target Set';
+        statusBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700 font-bold';
+      }
+      if (subjectText) subjectText.textContent = isHi ? 'सभी विषय' : 'All Subjects';
+      if (ratioText) ratioText.textContent = '0 / 30 Qs';
+      if (progressBar) progressBar.style.width = '0%';
+      if (daysRemainingText) daysRemainingText.textContent = isHi ? '7 दिनों की समय सीमा' : '7 Days Window';
+      if (paceText) paceText.textContent = isHi ? 'गति: 5 प्रश्न/दिन' : 'Pace: 5 Qs / day';
+      if (navBadge) {
+        navBadge.textContent = isHi ? 'सेट करें' : 'Set';
+        navBadge.className = 'px-1.5 py-0.2 rounded-full bg-slate-700 text-slate-300 text-[10px] font-black';
+      }
+      if (backlogAlert) backlogAlert.classList.add('hidden');
+      return;
+    }
+
+    // Target is active or completed
+    const solved = STATE.target.solvedCount || 0;
+    const total = STATE.target.targetQuestions || 30;
+    const pct = Math.min(100, Math.round((solved / total) * 100));
+    const isCompleted = STATE.target.status === 'completed' || solved >= total;
+
+    if (statusBadge) {
+      if (isCompleted) {
+        statusBadge.textContent = isHi ? '✓ लक्ष्य पूर्ण' : '✓ Completed';
+        statusBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-500 text-slate-950 font-black';
+      } else {
+        statusBadge.textContent = isHi ? 'सक्रिय लक्ष्य' : 'Active Sprint';
+        statusBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold';
+      }
+    }
+
+    if (subjectText) {
+      subjectText.textContent = STATE.target.subject || (isHi ? 'सभी विषय' : 'All Subjects');
+    }
+    if (ratioText) {
+      ratioText.textContent = `${solved} / ${total} Qs (${pct}%)`;
+    }
+    if (progressBar) {
+      progressBar.style.width = `${pct}%`;
+      if (isCompleted) {
+        progressBar.className = 'h-full bg-emerald-400 rounded-full transition-all duration-500';
+      } else {
+        progressBar.className = 'h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500';
+      }
+    }
+
+    // Days remaining & Backlog calculation
+    let daysLeft = STATE.target.durationDays || 7;
+    let backlog = 0;
+    if (STATE.target.startDate) {
+      const msPerDay = 1000 * 60 * 60 * 24;
+      const startMs = new Date(STATE.target.startDate).getTime();
+      const elapsedDays = Math.max(1, Math.floor((Date.now() - startMs) / msPerDay) + 1);
+      const totalDays = STATE.target.durationDays || 7;
+      daysLeft = Math.max(0, totalDays - elapsedDays + 1);
+
+      const dailyGoal = STATE.target.dailyGoal || Math.ceil(total / totalDays);
+      const expected = Math.min(total, elapsedDays * dailyGoal);
+      backlog = Math.max(0, expected - solved);
+    }
+
+    if (daysRemainingText) {
+      daysRemainingText.textContent = isHi ? `${daysLeft} दिन शेष` : `${daysLeft} Days Left`;
+    }
+    if (paceText) {
+      const paceVal = STATE.target.dailyGoal || 5;
+      paceText.textContent = isHi ? `गति: ${paceVal} प्रश्न/दिन` : `Pace: ${paceVal} Qs/day`;
+    }
+
+    if (navBadge) {
+      navBadge.textContent = isCompleted ? '100%' : `${pct}%`;
+      navBadge.className = isCompleted 
+        ? 'px-1.5 py-0.2 rounded-full bg-emerald-400 text-slate-950 text-[10px] font-black'
+        : 'px-1.5 py-0.2 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black';
+    }
+
+    // Backlog Alert
+    if (backlogAlert) {
+      if (backlog > 0 && !isCompleted) {
+        backlogAlert.classList.remove('hidden');
+        if (backlogTitle) {
+          backlogTitle.textContent = isHi 
+            ? `⚠️ बैकलॉग रडार: ${backlog} प्रश्न पीछे चल रहे हैं!`
+            : `⚠️ Left-Out Backlog Radar: ${backlog} Qs Behind Schedule!`;
+        }
+        if (backlogDesc) {
+          backlogDesc.textContent = isHi
+            ? `यूपीएससी पाठ्यक्रम में बैकलॉग बढ़ने से अंतिम समय का दबाव बढ़ता है। अपने ${STATE.target.subject} के लक्ष्य को पूरा करने के लिए तुरंत 10-मिनट का अभ्यास करें।`
+            : `Syllabus drift happens quietly. Catch up on your ${STATE.target.subject} backlog now before your revision window shrinks.`;
+        }
+      } else {
+        backlogAlert.classList.add('hidden');
+      }
+    }
+
+    // Modal Active Tab Details
+    const activeSprintBadge = document.getElementById('activeSprintBadge');
+    const activeSprintDaysLeft = document.getElementById('activeSprintDaysLeft');
+    const activeSprintTitle = document.getElementById('activeSprintSubjectTitle');
+    const activeSprintRatio = document.getElementById('activeSprintCountRatio');
+    const activeSprintBar = document.getElementById('activeSprintProgressBar');
+    const activeSprintAcc = document.getElementById('activeSprintAccuracy');
+    const activeSprintBacklog = document.getElementById('activeSprintBacklogStatus');
+
+    if (activeSprintTitle) {
+      activeSprintTitle.textContent = STATE.target.title || `${STATE.target.subject} Sprint`;
+    }
+    if (activeSprintDaysLeft) {
+      activeSprintDaysLeft.textContent = isHi ? `${daysLeft} दिन शेष` : `${daysLeft} Days Left`;
+    }
+    if (activeSprintRatio) {
+      activeSprintRatio.textContent = `${solved} / ${total} (${pct}%)`;
+    }
+    if (activeSprintBar) {
+      activeSprintBar.style.width = `${pct}%`;
+    }
+    if (activeSprintAcc) {
+      const correct = STATE.target.correctCount || 0;
+      const acc = solved > 0 ? Math.round((correct / solved) * 100) : 0;
+      activeSprintAcc.textContent = `${acc}%`;
+    }
+    if (activeSprintBacklog) {
+      if (isCompleted) {
+        activeSprintBacklog.textContent = isHi ? 'लक्ष्य पूर्ण ✓' : 'Completed ✓';
+        activeSprintBacklog.className = 'text-sm font-extrabold text-emerald-400';
+      } else if (backlog > 0) {
+        activeSprintBacklog.textContent = isHi ? `${backlog} प्रश्न पीछे ⚠️` : `${backlog} Qs Behind ⚠️`;
+        activeSprintBacklog.className = 'text-sm font-extrabold text-rose-400';
+      } else {
+        activeSprintBacklog.textContent = isHi ? 'सही गति पर ✓' : 'On Track ✓';
+        activeSprintBacklog.className = 'text-sm font-extrabold text-emerald-400';
+      }
+    }
+  }
+
+  // Switch Goal Planner Modal Tabs
+  function switchGoalTab(tab) {
+    const tabAiBtn = document.getElementById('goalTabAiBtn');
+    const tabCustomBtn = document.getElementById('goalTabCustomBtn');
+    const tabActiveBtn = document.getElementById('goalTabActiveBtn');
+    const aiContent = document.getElementById('goalTabAiContent');
+    const customContent = document.getElementById('goalTabCustomContent');
+    const activeContent = document.getElementById('goalTabActiveContent');
+
+    const allBtns = [tabAiBtn, tabCustomBtn, tabActiveBtn];
+    const allContents = [aiContent, customContent, activeContent];
+
+    allBtns.forEach(b => {
+      if (b) b.className = 'goal-modal-tab-btn flex-1 py-2 px-3 rounded-lg text-center transition-all text-slate-400 hover:text-white cursor-pointer';
+    });
+    allContents.forEach(c => {
+      if (c) c.classList.add('hidden');
+    });
+
+    if (tab === 'ai') {
+      if (tabAiBtn) tabAiBtn.className = 'goal-modal-tab-btn flex-1 py-2 px-3 rounded-lg text-center transition-all bg-emerald-500 text-slate-950 font-black cursor-pointer';
+      if (aiContent) aiContent.classList.remove('hidden');
+    } else if (tab === 'custom') {
+      if (tabCustomBtn) tabCustomBtn.className = 'goal-modal-tab-btn flex-1 py-2 px-3 rounded-lg text-center transition-all bg-emerald-500 text-slate-950 font-black cursor-pointer';
+      if (customContent) customContent.classList.remove('hidden');
+    } else if (tab === 'active') {
+      if (tabActiveBtn) tabActiveBtn.className = 'goal-modal-tab-btn flex-1 py-2 px-3 rounded-lg text-center transition-all bg-emerald-500 text-slate-950 font-black cursor-pointer';
+      if (activeContent) activeContent.classList.remove('hidden');
+    }
+  }
+
+  // Open & Close Goal Modal
+  function openGoalModal(defaultTab = 'ai') {
+    const modal = document.getElementById('goalPlannerModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    // If active sprint exists and is active, switch to active tab, else default
+    if (STATE.target && STATE.target.status === 'active' && defaultTab === 'ai') {
+      switchGoalTab('active');
+    } else {
+      switchGoalTab(defaultTab);
+    }
+    updateTargetUI();
+  }
+
+  function closeGoalModal() {
+    const modal = document.getElementById('goalPlannerModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  // Open & Close Read vs Skip Modal
+  function openReadVsSkipModal(defaultSub = 'polity') {
+    const modal = document.getElementById('readVsSkipModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    renderReadVsSkipContent(defaultSub);
+  }
+
+  function closeReadVsSkipModal() {
+    const modal = document.getElementById('readVsSkipModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  // AI Diagnostic Target Generator
+  function generateAiDiagnosticTarget() {
+    const stageBtn = document.querySelector('#diagQ1Group .selected-diag-opt');
+    const hoursBtn = document.querySelector('#diagQ2Group .selected-diag-opt');
+    const leakBtn = document.querySelector('#diagQ3Group .selected-diag-opt');
+    const subjectEl = document.getElementById('diagSubjectSelect');
+
+    const stage = stageBtn ? stageBtn.getAttribute('data-val') : 'Intermediate';
+    const hours = hoursBtn ? hoursBtn.getAttribute('data-val') : '3-4';
+    const leak = leakBtn ? leakBtn.getAttribute('data-val') : '50_50_trap';
+    const subject = subjectEl ? subjectEl.value : 'Polity & Governance';
+
+    let totalQs = 35;
+    let daily = 5;
+    let days = 7;
+
+    if (hours === '1-2') {
+      totalQs = 25;
+      daily = 4;
+      days = 7;
+    } else if (hours === '3-4') {
+      totalQs = 45;
+      daily = 7;
+      days = 7;
+    } else if (hours === '5+') {
+      totalQs = 70;
+      daily = 10;
+      days = 7;
+    }
+
+    let directive = '';
+    let focus = '';
+
+    if (stage === 'Beginner') {
+      directive = `Focus strictly on building core conceptual intuition. Solve ${daily} questions daily, review 100% of standard book citations, and do not rush for speed.`;
+    } else if (stage === 'Intermediate') {
+      directive = `Target disciplined 50:50 elimination. Check your Expected Value (EV) on every educated guess to avoid leaking negative marks (-0.66).`;
+    } else {
+      directive = `Master rapid 10-Second Statement Slicing. Eliminate extreme trap qualifiers and dissect incorrect distractors to guarantee a 105+ score buffer.`;
+    }
+
+    if (leak === '50_50_trap') {
+      focus = `Train yourself to demand proof of factual inaccuracy before eliminating. Study the "Topper's Trap Detector" on every question.`;
+    } else if (leak === 'silly_reading') {
+      focus = `Always use the interactive Statement Slicer to cross out statements visually. Highlight directives like "NOT correct" before viewing options.`;
+    } else if (leak === 'static_memory') {
+      focus = `Refer to our 80/20 Read vs Skip cheat-sheet daily. Reinforce Constitutional Articles, Acts, and key statutory bodies.`;
+    } else {
+      focus = `Use our Cutoff Sweet Spot simulator to realize that attempting fewer than 75 questions carries severe mathematical risk. Build confidence by solving authentic PYQs.`;
+    }
+
+    TEMP_AI_TARGET = {
+      title: `${subject} Cognitive Mastery Sprint`,
+      subject: subject,
+      targetQuestions: totalQs,
+      durationDays: days,
+      dailyGoal: daily,
+      directive: directive,
+      highYieldFocus: focus,
+      stage: stage,
+      hours: hours,
+      leak: leak
+    };
+
+    // Render result card
+    const card = document.getElementById('aiTargetResultCard');
+    const titleEl = document.getElementById('aiPlanTitle');
+    const dirEl = document.getElementById('aiPlanDirective');
+    const focusEl = document.getElementById('aiPlanFocus');
+    const paceEl = document.getElementById('aiPlanPacingText');
+
+    if (titleEl) titleEl.textContent = TEMP_AI_TARGET.title;
+    if (dirEl) dirEl.textContent = directive;
+    if (focusEl) focusEl.textContent = focus;
+    if (paceEl) paceEl.textContent = `Target: ${totalQs} Questions • Pace: ${daily} Qs / day • 7 Days Window`;
+
+    if (card) card.classList.remove('hidden');
+  }
+
+  // Accept and Activate AI Target
+  function acceptAiTarget() {
+    if (!TEMP_AI_TARGET) return;
+
+    STATE.target = {
+      id: 'target_' + Date.now(),
+      title: TEMP_AI_TARGET.title,
+      subject: TEMP_AI_TARGET.subject,
+      targetQuestions: TEMP_AI_TARGET.targetQuestions,
+      solvedIds: [],
+      solvedCount: 0,
+      correctCount: 0,
+      startDate: new Date().toISOString(),
+      deadlineDate: new Date(Date.now() + TEMP_AI_TARGET.durationDays * 24 * 60 * 60 * 1000).toISOString(),
+      durationDays: TEMP_AI_TARGET.durationDays,
+      dailyGoal: TEMP_AI_TARGET.dailyGoal,
+      status: 'active',
+      strategyDirective: TEMP_AI_TARGET.directive,
+      highYieldFocus: TEMP_AI_TARGET.highYieldFocus,
+      diagnosticProfile: {
+        stage: TEMP_AI_TARGET.stage,
+        hours: TEMP_AI_TARGET.hours,
+        leak: TEMP_AI_TARGET.leak
+      }
+    };
+
+    persistState();
+    updateTargetUI();
+    closeGoalModal();
+    showToast(STATE.language === 'hi' ? '🎯 नया लक्ष्य सक्रिय कर दिया गया है!' : '🎯 Cognitive Target Activated!');
+  }
+
+  // Save Custom Target
+  function saveCustomTarget() {
+    const subEl = document.getElementById('customSubjectSelect');
+    const countEl = document.getElementById('customCountSelect');
+    const daysEl = document.getElementById('customDaysSelect');
+
+    const subject = subEl ? subEl.value : 'All Subjects';
+    const count = countEl ? parseInt(countEl.value, 10) : 30;
+    const days = daysEl ? parseInt(daysEl.value, 10) : 7;
+    const daily = Math.ceil(count / days);
+
+    STATE.target = {
+      id: 'target_' + Date.now(),
+      title: `${subject} Custom Target`,
+      subject: subject,
+      targetQuestions: count,
+      solvedIds: [],
+      solvedCount: 0,
+      correctCount: 0,
+      startDate: new Date().toISOString(),
+      deadlineDate: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString(),
+      durationDays: days,
+      dailyGoal: daily,
+      status: 'active',
+      strategyDirective: 'Self-directed daily study sprint.',
+      highYieldFocus: 'Solve authentic UPSC PYQs consistently.',
+      diagnosticProfile: null
+    };
+
+    persistState();
+    updateTargetUI();
+    closeGoalModal();
+    showToast(STATE.language === 'hi' ? '🎯 नया लक्ष्य सक्रिय कर दिया गया है!' : '🎯 Custom Target Saved & Activated!');
+  }
+
+  // Activate 10-Min Catch-Up Drill
+  function activateCatchUpDrill() {
+    if (!STATE.target || STATE.target.status === 'none') {
+      openGoalModal('ai');
+      return;
+    }
+
+    closeGoalModal();
+    const sub = STATE.target.subject;
+    if (sub && sub !== 'All Subjects') {
+      STATE.activeSubject = sub;
+      syncSubjectTabsUI();
+      const slug = REVERSE_SLUGS[sub] || '';
+      try {
+        window.history.pushState(null, '', slug ? `/prelims/${slug}` : '/prelims');
+      } catch (e) {}
+    } else {
+      STATE.activeSubject = 'all';
+      syncSubjectTabsUI();
+    }
+
+    applyFilters();
+    const container = document.getElementById('questionsContainer');
+    if (container) container.scrollIntoView({ behavior: 'smooth' });
+
+    showToast(STATE.language === 'hi'
+      ? `⚡ 10-मिनट कैच-अप ड्रिल: ${STATE.target.subject} के प्रश्न लोड किए गए!`
+      : `⚡ 10-Min Catch-Up Drill: Filtered to ${STATE.target.subject} PYQs!`);
+  }
+
+  // Setup Target Engine and Modals Listeners
+  function initTargetEngine() {
+    // Header Triggers
+    const openGoalsBtn = document.getElementById('openGoalsModalBtn');
+    if (openGoalsBtn) openGoalsBtn.addEventListener('click', () => openGoalModal());
+
+    const openReadVsSkipBtn = document.getElementById('openReadVsSkipBtn');
+    if (openReadVsSkipBtn) openReadVsSkipBtn.addEventListener('click', () => openReadVsSkipModal());
+
+    // Sidebar Triggers
+    const sidebarSetBtn = document.getElementById('sidebarSetTargetBtn');
+    if (sidebarSetBtn) sidebarSetBtn.addEventListener('click', () => openGoalModal());
+
+    const sidebarReadBtn = document.getElementById('sidebarReadVsSkipBtn');
+    if (sidebarReadBtn) sidebarReadBtn.addEventListener('click', () => openReadVsSkipModal());
+
+    const sidebarCatchUp = document.getElementById('targetCatchUpBtn');
+    if (sidebarCatchUp) sidebarCatchUp.addEventListener('click', activateCatchUpDrill);
+
+    // Mobile Dock Triggers
+    const mobTargetsBtn = document.getElementById('mobNavTargetsBtn');
+    if (mobTargetsBtn) mobTargetsBtn.addEventListener('click', () => openGoalModal());
+
+    const mobReadBtn = document.getElementById('mobNavReadSkipBtn');
+    if (mobReadBtn) mobReadBtn.addEventListener('click', () => openReadVsSkipModal());
+
+    // Close Buttons
+    const closeGoalBtn = document.getElementById('closeGoalModalBtn');
+    if (closeGoalBtn) closeGoalBtn.addEventListener('click', closeGoalModal);
+
+    const closeReadBtn = document.getElementById('closeReadVsSkipBtn');
+    if (closeReadBtn) closeReadBtn.addEventListener('click', closeReadVsSkipModal);
+
+    // Backdrop Click Closures
+    const goalModal = document.getElementById('goalPlannerModal');
+    if (goalModal) {
+      goalModal.addEventListener('click', (e) => {
+        if (e.target === goalModal) closeGoalModal();
+      });
+    }
+
+    const rvsModal = document.getElementById('readVsSkipModal');
+    if (rvsModal) {
+      rvsModal.addEventListener('click', (e) => {
+        if (e.target === rvsModal) closeReadVsSkipModal();
+      });
+    }
+
+    // Modal Tabs
+    const tabAiBtn = document.getElementById('goalTabAiBtn');
+    if (tabAiBtn) tabAiBtn.addEventListener('click', () => switchGoalTab('ai'));
+
+    const tabCustomBtn = document.getElementById('goalTabCustomBtn');
+    if (tabCustomBtn) tabCustomBtn.addEventListener('click', () => switchGoalTab('custom'));
+
+    const tabActiveBtn = document.getElementById('goalTabActiveBtn');
+    if (tabActiveBtn) tabActiveBtn.addEventListener('click', () => switchGoalTab('active'));
+
+    // Diagnostic Option Groups (Single Select per Group)
+    ['diagQ1Group', 'diagQ2Group', 'diagQ3Group'].forEach(groupId => {
+      const group = document.getElementById(groupId);
+      if (group) {
+        group.querySelectorAll('.diag-opt-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            group.querySelectorAll('.diag-opt-btn').forEach(b => {
+              b.classList.remove('selected-diag-opt');
+            });
+            e.currentTarget.classList.add('selected-diag-opt');
+          });
+        });
+      }
+    });
+
+    // Generate AI Target Button
+    const genAiBtn = document.getElementById('generateAiTargetBtn');
+    if (genAiBtn) genAiBtn.addEventListener('click', generateAiDiagnosticTarget);
+
+    // Accept AI Target Button
+    const acceptAiBtn = document.getElementById('acceptAiTargetBtn');
+    if (acceptAiBtn) acceptAiBtn.addEventListener('click', acceptAiTarget);
+
+    // Save Custom Target Button
+    const saveCustomBtn = document.getElementById('saveCustomTargetBtn');
+    if (saveCustomBtn) saveCustomBtn.addEventListener('click', saveCustomTarget);
+
+    // Custom Target Pace Live Calculator
+    const countSelect = document.getElementById('customCountSelect');
+    const daysSelect = document.getElementById('customDaysSelect');
+    const paceCalcEl = document.getElementById('customDailyPaceCalc');
+    const updateCustomPace = () => {
+      if (countSelect && daysSelect && paceCalcEl) {
+        const c = parseInt(countSelect.value, 10);
+        const d = parseInt(daysSelect.value, 10);
+        paceCalcEl.textContent = `~${Math.ceil(c / d)} Questions / day`;
+      }
+    };
+    if (countSelect) countSelect.addEventListener('change', updateCustomPace);
+    if (daysSelect) daysSelect.addEventListener('change', updateCustomPace);
+
+    // Active Sprint Tab Buttons
+    const jumpBtn = document.getElementById('activeSprintJumpBtn');
+    if (jumpBtn) jumpBtn.addEventListener('click', activateCatchUpDrill);
+
+    const resetBtn = document.getElementById('resetTargetBtn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        const isHi = STATE.language === 'hi';
+        if (confirm(isHi ? 'क्या आप सक्रिय लक्ष्य को हटाना चाहते हैं?' : 'Are you sure you want to clear your active sprint?')) {
+          STATE.target = {
+            id: null,
+            title: '',
+            subject: 'All Subjects',
+            targetQuestions: 30,
+            solvedIds: [],
+            solvedCount: 0,
+            correctCount: 0,
+            startDate: null,
+            deadlineDate: null,
+            durationDays: 7,
+            dailyGoal: 5,
+            status: 'none'
+          };
+          persistState();
+          updateTargetUI();
+          switchGoalTab('ai');
+          showToast(isHi ? 'सक्रिय लक्ष्य रीसेट कर दिया गया है' : 'Target has been reset');
+        }
+      });
+    }
+
+    // Read vs Skip Subject Tabs
+    document.querySelectorAll('.rvs-sub-tab').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const subKey = e.currentTarget.getAttribute('data-sub') || 'polity';
+        renderReadVsSkipContent(subKey);
+      });
+    });
+
+    // Initial UI update
+    updateTargetUI();
+  }
+
   // Bilingual UI Translations Dictionary
   const I18N = {
     en: {
@@ -1244,6 +2215,46 @@ https://cookedmains.com/prelims`;
     if (bannerTitle) bannerTitle.textContent = dict.microCorrectionTitle;
     const bannerBtn = document.getElementById('bannerExportFlashSheetBtn');
     if (bannerBtn) bannerBtn.innerHTML = `<span>${dict.exportFlashSheet}</span><span>→</span>`;
+
+    // Target Engine & Read vs Skip Header & Sidebar Labels
+    const isHi = lang === 'hi';
+    const headerTargetLabel = document.getElementById('headerTargetLabel');
+    if (headerTargetLabel) headerTargetLabel.textContent = isHi ? 'लक्ष्य' : 'Targets';
+    const headerReadVsSkipLabel = document.getElementById('headerReadVsSkipLabel');
+    if (headerReadVsSkipLabel) headerReadVsSkipLabel.textContent = isHi ? 'क्या पढ़ें / क्या छोड़ें' : 'Read vs Skip';
+    const sidebarSetBtnText = document.getElementById('sidebarSetTargetBtnText');
+    if (sidebarSetBtnText) sidebarSetBtnText.textContent = isHi ? 'लक्ष्य तय करें' : 'Set Target';
+    const sidebarReadBtnText = document.getElementById('sidebarReadVsSkipBtnText');
+    if (sidebarReadBtnText) sidebarReadBtnText.textContent = isHi ? 'क्या पढ़ें / छोड़ें' : 'Read vs Skip';
+
+    // Mobile nav dock labels
+    const mobNavPyqs = document.getElementById('mobNavPyqs');
+    if (mobNavPyqs) mobNavPyqs.textContent = isHi ? '100+ प्रश्न' : '100+ PYQs';
+    const mobNavTargets = document.getElementById('mobNavTargets');
+    if (mobNavTargets) mobNavTargets.textContent = isHi ? 'लक्ष्य' : 'Targets';
+    const mobNavReadSkip = document.getElementById('mobNavReadSkip');
+    if (mobNavReadSkip) mobNavReadSkip.textContent = isHi ? 'पढ़ें/छोड़ें' : 'Read/Skip';
+    const mobNavHeatmap = document.getElementById('mobNavHeatmap');
+    if (mobNavHeatmap) mobNavHeatmap.textContent = isHi ? 'हीटमैप' : 'Heatmap';
+    const mobNavMistakes = document.getElementById('mobNavMistakes');
+    if (mobNavMistakes) mobNavMistakes.textContent = isHi ? 'गलतियाँ' : 'Mistakes';
+
+    // Modals Header Labels
+    const goalModalTitle = document.getElementById('goalModalTitle');
+    const goalModalSub = document.getElementById('goalModalSubtitle');
+    if (goalModalTitle) goalModalTitle.textContent = isHi ? 'संज्ञानात्मक लक्ष्य इंजन एवं माइक्रो-स्टडी प्लानर' : 'Cognitive Target Engine';
+    if (goalModalSub) goalModalSub.textContent = isHi 
+      ? 'यूपीएससी पाठ्यक्रम की विशालता से विचलित होने से बचाने के लिए वैज्ञानिक रूप से कैलिब्रेटेड अध्ययन लक्ष्य।'
+      : 'Psychologically calibrated study targets designed to prevent syllabus drift and negative mark leaks.';
+
+    const rvsTitle = document.getElementById('readVsSkipTitle');
+    const rvsSub = document.getElementById('readVsSkipSubtitle');
+    if (rvsTitle) rvsTitle.textContent = isHi ? 'क्या पढ़ें और क्या छोड़ें (80/20 नियम)' : 'What to Read vs What to SKIP (80/20 Rule)';
+    if (rvsSub) rvsSub.textContent = isHi
+      ? '70% गैर-ज़रूरी अध्ययन तनाव को समाप्त करें। केवल उन्हीं विषयों पर ध्यान केंद्रित करें जहाँ से 80% प्रश्न आते हैं।'
+      : 'Eliminate 70% of low-yield preparation anxiety. Focus strictly on topics where UPSC actually sets 80% of prelims questions.';
+
+    updateTargetUI();
   }
 
   // Setup UI Listeners (Tabs, Filter, Clear, Share, Export, Mobile Dock)
@@ -1412,8 +2423,10 @@ https://cookedmains.com/prelims`;
     loadPersistedState();
     syncLanguageUI();
     setupUIListeners();
+    initTargetEngine();
     initRouting();
     initQuestions();
+    updateTargetUI();
   });
 
 })();

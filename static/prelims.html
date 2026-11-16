@@ -493,6 +493,43 @@
       background-color: #f1f5f9 !important;
       color: #0f172a !important;
     }
+
+    /* Cognitive Target Engine & Read-vs-Skip Light Mode Overrides */
+    html:not(.dark) #targetSetterSidebarCard {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), #ffffff, #f8fafc) !important;
+      border-color: #a7f3d0 !important;
+      color: #0f172a !important;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+    }
+    html:not(.dark) .modal-backdrop {
+      background-color: rgba(15, 23, 42, 0.6) !important;
+    }
+    html:not(.dark) .modal-content-card {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    }
+    html:not(.dark) .modal-tab-btn:not(.active-modal-tab) {
+      background-color: #f1f5f9 !important;
+      color: #475569 !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .modal-inner-card {
+      background-color: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+      color: #1e293b !important;
+    }
+    html:not(.dark) .diag-opt-btn:not(.selected-diag-opt) {
+      background-color: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      color: #334155 !important;
+    }
+    html:not(.dark) .diag-opt-btn.selected-diag-opt {
+      background-color: rgba(16, 185, 129, 0.1) !important;
+      border-color: #10b981 !important;
+      color: #065f46 !important;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-slate-950 transition-colors duration-200 overflow-x-hidden w-full max-w-full">
@@ -534,6 +571,19 @@
           <span>📝</span>
           <span class="text-[10px] font-bold">Mains</span>
         </a>
+
+        <!-- Target Planner Header Button -->
+        <button id="openGoalsModalBtn" class="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-bold px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer" title="Cognitive Target Engine">
+          <span>🎯</span>
+          <span class="hidden md:inline" id="headerTargetLabel">Targets</span>
+          <span id="navTargetBadge" class="px-1.5 py-0.2 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black">Set</span>
+        </button>
+
+        <!-- Read vs Skip Header Button -->
+        <button id="openReadVsSkipBtn" class="hidden sm:flex items-center gap-1.5 text-[11px] sm:text-xs font-bold px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 transition-all cursor-pointer" title="What to Read vs What to SKIP (80/20 Guide)">
+          <span>📖</span>
+          <span class="hidden lg:inline" id="headerReadVsSkipLabel">Read vs Skip</span>
+        </button>
 
         <!-- Bilingual English / Hindi Toggle Button -->
         <button id="toggleLangBtn" class="flex items-center gap-1 text-[11px] font-bold px-2 sm:px-2.5 py-1 rounded-lg bg-slate-900 dark:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 transition-all cursor-pointer" title="Toggle English / हिंदी">
@@ -770,6 +820,63 @@
     <!-- Right 4 Cols: Diagnostic Sidebar & Prelims-to-Mains Continuum -->
     <div class="lg:col-span-4 flex flex-col gap-6">
 
+      <!-- 0. Cognitive Target Engine & Micro-Study Planner Card -->
+      <div id="targetSetterSidebarCard" class="p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-slate-900 to-slate-950 border border-emerald-500/30 flex flex-col gap-3.5 shadow-lg">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-extrabold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+            <span>🎯</span> Cognitive Target Engine
+          </h3>
+          <span id="targetStatusBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold">
+            No Target Set
+          </span>
+        </div>
+
+        <!-- Target Metrics Box -->
+        <div id="targetDetailsBox" class="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 flex flex-col gap-2">
+          <div class="flex items-center justify-between text-xs">
+            <span id="targetSubjectText" class="font-bold text-white">All Subjects</span>
+            <span id="targetProgressRatio" class="font-mono text-emerald-400 font-extrabold">0 / 30 Qs</span>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+            <div id="targetProgressBar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style="width: 0%;"></div>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
+            <span id="targetDaysRemainingText">7 Days Window</span>
+            <span id="targetPaceText" class="font-semibold text-slate-300">Pace: 5 Qs / day</span>
+          </div>
+        </div>
+
+        <!-- Left-Out Backlog Radar Alert (Hidden by default, shown when backlog > 0) -->
+        <div id="targetBacklogAlert" class="hidden p-3 rounded-xl bg-rose-950/30 border border-rose-500/40 flex flex-col gap-2 text-xs">
+          <div class="flex items-center gap-1.5 text-rose-400 font-bold">
+            <span>⚠️</span>
+            <span id="targetBacklogTitle">Left-Out Backlog Radar</span>
+          </div>
+          <p id="targetBacklogDesc" class="text-[11px] text-rose-200/90 leading-relaxed">
+            You are falling behind your daily pace. Complete a rapid micro-drill now to prevent syllabus drift.
+          </p>
+          <button id="targetCatchUpBtn" type="button" class="w-full py-2 px-3 rounded-lg bg-rose-500 hover:bg-rose-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer">
+            <span>⚡</span>
+            <span>10-Min Catch-Up Drill</span>
+          </button>
+        </div>
+
+        <!-- Target Quick Levers -->
+        <div class="grid grid-cols-2 gap-2 pt-0.5">
+          <button id="sidebarSetTargetBtn" type="button" class="py-2 px-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1 transition-all cursor-pointer">
+            <span>🎯</span>
+            <span id="sidebarSetTargetBtnText">Set Target</span>
+          </button>
+          <button id="sidebarReadVsSkipBtn" type="button" class="py-2 px-2.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/40 text-indigo-300 font-bold text-xs flex items-center justify-center gap-1 transition-all cursor-pointer">
+            <span>📖</span>
+            <span id="sidebarReadVsSkipBtnText">Read vs Skip</span>
+          </button>
+        </div>
+      </div>
+
       <!-- 1. Behavioral Mistake Diagnostics (Pie Breakdown) -->
       <div id="diagSidebarCard" class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col gap-3">
         <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-2">
@@ -931,6 +1038,296 @@
   <!-- Hidden Print Flash Sheet Container -->
   <div id="printFlashSheetContainer" class="hidden print:block text-slate-900 bg-white"></div>
 
+  <!-- ========================================================
+       MODAL 1: Cognitive Target Engine & Micro-Study Planner
+       ======================================================== -->
+  <div id="goalPlannerModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 modal-backdrop bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+    <div class="relative w-full max-w-2xl rounded-2xl bg-slate-900 border border-slate-700/80 p-5 sm:p-7 shadow-2xl modal-content-card flex flex-col gap-5 my-8 max-h-[90vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between border-b border-slate-800 pb-4">
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">🎯</span>
+            <h2 id="goalModalTitle" class="text-base sm:text-lg font-extrabold text-white">Cognitive Target Engine</h2>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold border border-emerald-500/30">Science-Backed</span>
+          </div>
+          <p id="goalModalSubtitle" class="text-xs text-slate-400">
+            Psychologically calibrated study targets designed to prevent syllabus drift and negative mark leaks.
+          </p>
+        </div>
+        <button id="closeGoalModalBtn" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer text-lg leading-none" aria-label="Close Modal">✕</button>
+      </div>
+
+      <!-- Modal Tabs: 1. AI Recommendation, 2. Custom Target, 3. Active Sprint -->
+      <div class="flex items-center gap-1.5 p-1 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-bold">
+        <button id="goalTabAiBtn" type="button" class="goal-modal-tab-btn flex-1 py-2 px-3 rounded-lg text-center transition-all bg-emerald-500 text-slate-950 font-black cursor-pointer" data-tab="ai">
+          🤖 AI Diagnostic Plan
+        </button>
+        <button id="goalTabCustomBtn" type="button" class="goal-modal-tab-btn flex-1 py-2 px-3 rounded-lg text-center transition-all text-slate-400 hover:text-white cursor-pointer" data-tab="custom">
+          ✏️ Custom Target
+        </button>
+        <button id="goalTabActiveBtn" type="button" class="goal-modal-tab-btn flex-1 py-2 px-3 rounded-lg text-center transition-all text-slate-400 hover:text-white cursor-pointer" data-tab="active">
+          📋 Active Sprint
+        </button>
+      </div>
+
+      <!-- Tab 1: AI Diagnostic Plan -->
+      <div id="goalTabAiContent" class="flex flex-col gap-4">
+        <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 leading-relaxed">
+          <strong>How this works:</strong> Answer 4 quick diagnostic questions below. Our engine analyzes your current preparation phase and generates a custom 7-day pacing target with exact high-yield focus areas.
+        </div>
+
+        <!-- Diagnostic Q1 -->
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-bold text-slate-200">1. Current Preparation Stage:</label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" id="diagQ1Group">
+            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer selected-diag-opt" data-q="stage" data-val="Beginner">
+              <span class="font-bold text-white block">Beginner</span>
+              <span class="text-[11px] text-slate-400">0–6 mos • Building core static clarity</span>
+            </button>
+            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer" data-q="stage" data-val="Intermediate">
+              <span class="font-bold text-white block">Intermediate</span>
+              <span class="text-[11px] text-slate-400">1–2 revisions • Trapped in 50:50s</span>
+            </button>
+            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer" data-q="stage" data-val="Veteran">
+              <span class="font-bold text-white block">Veteran</span>
+              <span class="text-[11px] text-slate-400">Mains given • Eliminating negative marks</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Diagnostic Q2 -->
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-bold text-slate-200">2. Daily Available Prelims Study Hours:</label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" id="diagQ2Group">
+            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer" data-q="hours" data-val="1-2">
+              <span class="font-bold text-white block">1–2 Hours / Day</span>
+              <span class="text-[11px] text-slate-400">Micro-Burst: 5 Qs/day</span>
+            </button>
+            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer selected-diag-opt" data-q="hours" data-val="3-4">
+              <span class="font-bold text-white block">3–4 Hours / Day</span>
+              <span class="text-[11px] text-slate-400">Balanced: 7–10 Qs/day</span>
+            </button>
+            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer" data-q="hours" data-val="5+">
+              <span class="font-bold text-white block">5+ Hours / Day</span>
+              <span class="text-[11px] text-slate-400">Intensive: 15+ Qs/day</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Diagnostic Q3 -->
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-bold text-slate-200">3. Primary Pain Point / Subconscious Mark Leak:</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="diagQ3Group">
+            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer selected-diag-opt" data-q="leak" data-val="50_50_trap">
+              <span class="font-bold text-white block">50:50 Over-Elimination</span>
+              <span class="text-[11px] text-slate-400">Second-guessing &amp; cutting the right option</span>
+            </button>
+            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer" data-q="leak" data-val="silly_reading">
+              <span class="font-bold text-white block">Silly Reading Traps</span>
+              <span class="text-[11px] text-slate-400">Missed 'NOT correct' or extreme constraints</span>
+            </button>
+            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer" data-q="leak" data-val="static_memory">
+              <span class="font-bold text-white block">Static Memory Lapse</span>
+              <span class="text-[11px] text-slate-400">Forgot Articles, Acts, or standard facts</span>
+            </button>
+            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer" data-q="leak" data-val="low_attempts">
+              <span class="font-bold text-white block">Low Attempt Hesitation</span>
+              <span class="text-[11px] text-slate-400">Afraid to cross 75+ attempts due to fear</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Diagnostic Q4 -->
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-bold text-slate-200">4. Target Subject Focus for this Sprint:</label>
+          <select id="diagSubjectSelect" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500">
+            <option value="Polity & Governance">Polity &amp; Governance (Highest ROI: ~15 Qs)</option>
+            <option value="Economy">Economy &amp; Banking (~18 Qs)</option>
+            <option value="Environment & Ecology">Environment, Ecology &amp; Biodiversity (~18 Qs)</option>
+            <option value="History & Culture">Modern India, Ancient/Medieval &amp; Art &amp; Culture (~16 Qs)</option>
+            <option value="Geography">Geography &amp; World Mapping (~12 Qs)</option>
+            <option value="Science & Technology">Science &amp; Emerging Tech (~12 Qs)</option>
+            <option value="All Subjects">All Subjects Comprehensive Mix</option>
+          </select>
+        </div>
+
+        <button id="generateAiTargetBtn" type="button" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 cursor-pointer">
+          <span>✨</span>
+          <span>Generate Personalized Cognitive Target &amp; Strategy</span>
+        </button>
+
+        <!-- AI Plan Result Card (Hidden until generated) -->
+        <div id="aiTargetResultCard" class="hidden p-4 rounded-xl bg-slate-950 border border-emerald-500/40 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black text-emerald-400 uppercase tracking-wider">🎯 Recommended AI Target</span>
+            <span id="aiPlanDurationBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">7 Days Sprint</span>
+          </div>
+          <h3 id="aiPlanTitle" class="text-sm sm:text-base font-extrabold text-white"></h3>
+          <p id="aiPlanDirective" class="text-xs text-slate-300 leading-relaxed"></p>
+          <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 flex flex-col gap-1 text-xs">
+            <span class="font-bold text-amber-400">🔥 High-Yield Priority Focus:</span>
+            <span id="aiPlanFocus" class="text-slate-300 text-[11px] leading-relaxed"></span>
+          </div>
+          <div class="flex items-center justify-between text-xs text-slate-400 pt-1">
+            <span id="aiPlanPacingText">Target: 35 Questions • 5 Qs / day</span>
+            <button id="acceptAiTargetBtn" type="button" class="py-2 px-4 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer">
+              <span>🚀</span>
+              <span>Accept &amp; Activate Sprint</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tab 2: Custom Target Planner -->
+      <div id="goalTabCustomContent" class="hidden flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-bold text-slate-200">Select Target Subject:</label>
+          <select id="customSubjectSelect" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500">
+            <option value="All Subjects">All Subjects Integrated</option>
+            <option value="Polity & Governance">Polity &amp; Governance</option>
+            <option value="Economy">Economy</option>
+            <option value="Environment & Ecology">Environment &amp; Ecology</option>
+            <option value="History & Culture">History &amp; Art &amp; Culture</option>
+            <option value="Geography">Geography</option>
+            <option value="Science & Technology">Science &amp; Technology</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold text-slate-200">Target Question Count:</label>
+            <select id="customCountSelect" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500">
+              <option value="15">15 Questions (Quick Check)</option>
+              <option value="30" selected>30 Questions (Recommended Sprint)</option>
+              <option value="50">50 Questions (Deep Sectional Test)</option>
+              <option value="100">100 Questions (Full-Length Past Paper Simulation)</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-bold text-slate-200">Target Completion Window:</label>
+            <select id="customDaysSelect" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500">
+              <option value="3">3 Days (Sprint)</option>
+              <option value="7" selected>7 Days (1 Week Balanced)</option>
+              <option value="14">14 Days (2 Weeks Thorough)</option>
+              <option value="21">21 Days (3 Weeks Foundation)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 flex items-center justify-between">
+          <span>Required Daily Velocity:</span>
+          <span id="customDailyPaceCalc" class="font-mono font-bold text-emerald-400">~5 Questions / day</span>
+        </div>
+
+        <button id="saveCustomTargetBtn" type="button" class="w-full py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 cursor-pointer">
+          <span>💾</span>
+          <span>Save &amp; Activate Target</span>
+        </button>
+      </div>
+
+      <!-- Tab 3: Active Sprint & Performance Radar -->
+      <div id="goalTabActiveContent" class="hidden flex flex-col gap-4">
+        <div id="activeTargetDetailCard" class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <span id="activeSprintBadge" class="text-xs font-black uppercase tracking-wider text-emerald-400">Active Sprint</span>
+            <span id="activeSprintDaysLeft" class="text-[11px] font-mono text-slate-400">7 Days Left</span>
+          </div>
+
+          <h3 id="activeSprintSubjectTitle" class="text-base font-extrabold text-white">Polity &amp; Governance Sprint</h3>
+
+          <!-- Progress -->
+          <div class="flex flex-col gap-1.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-400">Questions Solved:</span>
+              <span id="activeSprintCountRatio" class="font-mono font-bold text-emerald-400">0 / 30 (0%)</span>
+            </div>
+            <div class="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden">
+              <div id="activeSprintProgressBar" class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- Accuracy & Backlog Grid -->
+          <div class="grid grid-cols-2 gap-2 pt-1 text-xs">
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80 flex flex-col">
+              <span class="text-[10px] text-slate-400">Sprint Accuracy:</span>
+              <span id="activeSprintAccuracy" class="text-sm font-extrabold text-white">0%</span>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80 flex flex-col">
+              <span class="text-[10px] text-slate-400">Backlog Status:</span>
+              <span id="activeSprintBacklogStatus" class="text-sm font-extrabold text-emerald-400">On Track</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+            <button id="resetTargetBtn" type="button" class="text-xs text-rose-400 hover:text-rose-300 underline font-semibold cursor-pointer">
+              Clear &amp; Set New Target
+            </button>
+            <button id="activeSprintJumpBtn" type="button" class="py-2 px-3 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer">
+              <span>⚡</span>
+              <span>Solve Target Questions Now</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ========================================================
+       MODAL 2: UPSC Prelims 80/20 Syllabus Mastery: Read vs SKIP
+       ======================================================== -->
+  <div id="readVsSkipModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 modal-backdrop bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+    <div class="relative w-full max-w-3xl rounded-2xl bg-slate-900 border border-slate-700/80 p-5 sm:p-7 shadow-2xl modal-content-card flex flex-col gap-5 my-8 max-h-[90vh] overflow-y-auto">
+
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between border-b border-slate-800 pb-4">
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">📖</span>
+            <h2 id="readVsSkipTitle" class="text-base sm:text-lg font-extrabold text-white">What to Read vs What to SKIP (80/20 Rule)</h2>
+            <span class="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-mono font-bold border border-indigo-500/30">High-Yield Syllabus</span>
+          </div>
+          <p id="readVsSkipSubtitle" class="text-xs text-slate-400">
+            Eliminate 70% of low-yield preparation anxiety. Focus strictly on topics where UPSC actually sets 80% of prelims questions.
+          </p>
+        </div>
+        <button id="closeReadVsSkipBtn" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer text-lg leading-none" aria-label="Close Modal">✕</button>
+      </div>
+
+      <!-- Subject Tabs -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-bold no-scrollbar">
+        <button class="rvs-sub-tab px-3 py-1.5 rounded-lg bg-indigo-500 text-slate-950 font-black shrink-0 cursor-pointer" data-sub="polity">
+          🏛️ Polity
+        </button>
+        <button class="rvs-sub-tab px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-white shrink-0 cursor-pointer" data-sub="economy">
+          📈 Economy
+        </button>
+        <button class="rvs-sub-tab px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-white shrink-0 cursor-pointer" data-sub="environment">
+          🌿 Environment
+        </button>
+        <button class="rvs-sub-tab px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-white shrink-0 cursor-pointer" data-sub="history">
+          📜 History &amp; Culture
+        </button>
+        <button class="rvs-sub-tab px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-white shrink-0 cursor-pointer" data-sub="geography">
+          🌍 Geography
+        </button>
+        <button class="rvs-sub-tab px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-white shrink-0 cursor-pointer" data-sub="science">
+          🔬 Sci-Tech
+        </button>
+      </div>
+
+      <!-- Dynamic Subject Content Area -->
+      <div id="rvsContentArea" class="flex flex-col gap-4 text-xs leading-relaxed">
+        <!-- Rendered dynamically by prelims.js in English or Hindi based on language toggle -->
+      </div>
+
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 bg-slate-900 border border-amber-500/40 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold">
     <span class="text-amber-400 text-base">✓</span>
@@ -938,26 +1335,26 @@
   </div>
 
   <!-- Mobile Sticky Bottom Navigation Dock -->
-  <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 px-3 py-2 flex items-center justify-around text-[10px] font-bold shadow-2xl transition-colors duration-200" id="mobileNavDock">
+  <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 px-2 py-1.5 flex items-center justify-around text-[10px] font-bold shadow-2xl transition-colors duration-200" id="mobileNavDock">
     <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-amber-400 cursor-pointer" data-target="questionsContainer">
       <span class="text-base">📝</span>
-      <span>100+ PYQs</span>
+      <span id="mobNavPyqs">100+ PYQs</span>
     </button>
-    <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer" data-target="heroSection">
-      <span class="text-base">📊</span>
-      <span>Sweet Spot</span>
+    <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer" id="mobNavTargetsBtn">
+      <span class="text-base">🎯</span>
+      <span id="mobNavTargets">Targets</span>
+    </button>
+    <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer" id="mobNavReadSkipBtn">
+      <span class="text-base">📖</span>
+      <span id="mobNavReadSkip">Read/Skip</span>
     </button>
     <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer" data-target="subTopicHeatmapCard">
       <span class="text-base">🔥</span>
-      <span>Heatmap</span>
-    </button>
-    <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer" data-target="diagSidebarCard">
-      <span class="text-base">🧠</span>
-      <span>Diagnostics</span>
+      <span id="mobNavHeatmap">Heatmap</span>
     </button>
     <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer" data-view="mistakes">
       <span class="text-base">📓</span>
-      <span>Mistakes</span>
+      <span id="mobNavMistakes">Mistakes</span>
     </button>
   </nav>
 
