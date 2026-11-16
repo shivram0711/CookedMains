@@ -108,8 +108,8 @@
   function renderDrillQuestion(container, q) {
     const letters = ['A', 'B', 'C', 'D'];
     const optionsHtml = q.options.map((opt, idx) => `
-      <button class="drill-opt-btn w-full text-left p-2.5 rounded-xl bg-slate-950 hover:bg-slate-850 border border-slate-800 text-xs text-slate-200 transition-all flex items-start gap-2.5 cursor-pointer" data-idx="${idx}">
-        <span class="w-5 h-5 rounded-md bg-slate-900 border border-slate-700 flex items-center justify-center text-[10px] font-bold text-amber-400 shrink-0 font-mono">
+      <button class="drill-opt-btn w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 dark:hover:bg-slate-850 border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 transition-all flex items-start gap-2.5 cursor-pointer shadow-xs" data-idx="${idx}">
+        <span class="w-5 h-5 rounded-md bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 flex items-center justify-center text-[10px] font-bold text-amber-700 dark:text-amber-400 shrink-0 font-mono">
           ${letters[idx]}
         </span>
         <span class="flex-1 leading-relaxed">${escapeHtml(opt)}</span>
@@ -117,16 +117,16 @@
     `).join('');
 
     container.innerHTML = `
-      <div class="flex items-center justify-between text-xs text-slate-400 pb-1">
-        <span class="font-mono font-bold text-amber-300">
+      <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pb-1">
+        <span class="font-mono font-bold text-amber-700 dark:text-amber-300">
           [${escapeHtml(q.subject)}] • ${q.year} (${escapeHtml(q.sub_topic)})
         </span>
-        <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold">
+        <span class="text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold border border-slate-200 dark:border-slate-700">
           Difficulty: ${escapeHtml(q.difficulty || 'Moderate')}
         </span>
       </div>
 
-      <div class="text-xs sm:text-sm font-semibold text-slate-100 leading-relaxed whitespace-pre-line py-1">
+      <div class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 leading-relaxed whitespace-pre-line py-1">
         ${escapeHtml(q.question_text)}
       </div>
 
@@ -135,18 +135,18 @@
       </div>
 
       <!-- Result & Explanation Box (Revealed on click) -->
-      <div id="drillResultBox" class="hidden mt-2 p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col gap-2 text-xs">
+      <div id="drillResultBox" class="hidden mt-2 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-2 text-xs">
         <div id="drillVerdictHeader" class="font-bold flex items-center gap-2"></div>
-        <div class="text-slate-300 leading-relaxed whitespace-pre-line text-[11px]" id="drillExplanationText"></div>
+        <div class="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line text-[11px]" id="drillExplanationText"></div>
         
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-2 border-t border-slate-800/80 text-[10px] text-slate-400">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800/80 text-[10px] text-slate-500 dark:text-slate-400">
           <div><strong>📖 Source:</strong> ${escapeHtml(q.standard_book_ref || 'NCERT / Laxmikanth')}</div>
           <div><strong>⚠️ Trap Alert:</strong> ${escapeHtml(q.elimination_trap || 'Carefully verify key assertions')}</div>
         </div>
 
         ${q.mains_linkage ? `
           <div class="mt-1 p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-2 text-[11px]">
-            <span class="text-amber-200"><strong>Mains Continuum:</strong> ${escapeHtml(q.mains_linkage.question)}</span>
+            <span class="text-amber-800 dark:text-amber-200"><strong>Mains Continuum:</strong> ${escapeHtml(q.mains_linkage.question)}</span>
             <button onclick="window.scrollToEvaluation()" class="shrink-0 px-2.5 py-1 rounded-md bg-amber-500 text-slate-950 font-bold text-[10px] hover:bg-amber-400 transition-all cursor-pointer">
               Upload Copy ↑
             </button>
