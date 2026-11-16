@@ -142,7 +142,14 @@
     const playerView = document.getElementById('questionPlayerView');
     const reportView = document.getElementById('mockReportView');
     const vaultView = document.getElementById('prelimsPyqVaultView');
+    const mistakesView = document.getElementById('mistakesNotebookView');
+    const cutoffEvView = document.getElementById('cutoffEVSimulatorView');
     const breadcrumb = document.getElementById('breadcrumbCurrent');
+
+    // Hide all views first
+    [dashView, playerView, reportView, vaultView, mistakesView, cutoffEvView].forEach(function (v) {
+      if (v) v.classList.add('hidden');
+    });
 
     if (mode === 'player') {
       if (dashView) dashView.classList.add('hidden');
@@ -163,13 +170,20 @@
       if (reportView) reportView.classList.remove('hidden');
       if (breadcrumb) breadcrumb.textContent = 'Forensic Mock Scorecard';
     } else if (mode === 'vault') {
-      if (dashView) dashView.classList.add('hidden');
-      if (playerView) playerView.classList.add('hidden');
-      if (reportView) reportView.classList.add('hidden');
       if (vaultView) vaultView.classList.remove('hidden');
       updateSidebarActive('sideNavPyqVault');
       if (breadcrumb) breadcrumb.textContent = 'Prelims PYQ Brainstorming Vault';
       renderPyqVault();
+    } else if (mode === 'mistakes') {
+      if (mistakesView) mistakesView.classList.remove('hidden');
+      updateSidebarActive('sideNavMistakes');
+      if (breadcrumb) breadcrumb.textContent = 'Mistakes Notebook & 10-Min Micro-Corrections';
+      renderMistakesModal();
+    } else if (mode === 'cutoff_ev') {
+      if (cutoffEvView) cutoffEvView.classList.remove('hidden');
+      updateSidebarActive('sideNavEV');
+      if (breadcrumb) breadcrumb.textContent = 'Cutoff Sweet Spot & EV Optimizer';
+      recalculateEV('total');
     } else {
       if (playerView) playerView.classList.add('hidden');
       if (reportView) reportView.classList.add('hidden');
@@ -2273,15 +2287,19 @@ function updateDashboardActivity() {
   // ==========================================================
 
   window.openMistakesModal = function () {
-    var modal = document.getElementById('mistakesNotebookModal');
-    if (!modal) return;
-    renderMistakesModal();
-    modal.classList.remove('hidden');
+    switchViewMode('mistakes');
   };
 
   window.closeMistakesModal = function () {
-    var modal = document.getElementById('mistakesNotebookModal');
-    if (modal) modal.classList.add('hidden');
+    switchViewMode('dashboard');
+  };
+
+  window.openEVSimulator = function () {
+    switchViewMode('cutoff_ev');
+  };
+
+  window.closeEVSimulator = function () {
+    switchViewMode('dashboard');
   };
 
   function renderMistakesModal() {
@@ -2852,7 +2870,18 @@ function updateDashboardActivity() {
 
     // Wire up Dashboard Cutoff EV Card
     document.getElementById('dashboardCutoffEVCard')?.addEventListener('click', function () {
-      window.openEVSimulator();
+      switchViewMode('cutoff_ev');
+    });
+
+    // Exit buttons for integrated views
+    document.getElementById('exitMistakesBtn')?.addEventListener('click', function () {
+      switchViewMode('dashboard');
+    });
+    document.getElementById('exitCutoffEVBtn')?.addEventListener('click', function () {
+      switchViewMode('dashboard');
+    });
+    document.getElementById('exitCutoffEVBtn2')?.addEventListener('click', function () {
+      switchViewMode('dashboard');
     });
 
     // Wire up Mistakes Notebook leak filter buttons
