@@ -37,6 +37,10 @@
     answers: {}, // { [qId]: { selectedIndex, isCorrect, timestamp, reason } }
     mistakes: new Set(),
     flagged: new Set(),
+    leakTags: {}, // { [qId]: 'concept' | 'silly' | 'elimination' | 'memory' }
+    mistakesFilter: 'all',
+    currentConfidence: 'sure', // 'sure' | 'fifty' | 'wild'
+    activeStrategy: null, // { isActive, targetTotal, targetSure, targetFifty, targetWild, plannedNet, counts: { sure, fifty, wild } }
     activity: {
       mcqCount: 0,
       correctCount: 0,
@@ -72,6 +76,8 @@
 
       const savedMocks = localStorage.getItem(STORAGE_KEYS.MOCKS);
       if (savedMocks) STATE.mockHistory = JSON.parse(savedMocks);
+      const savedTags = localStorage.getItem(STORAGE_KEYS.LEAK_TAGS);
+      if (savedTags) STATE.leakTags = JSON.parse(savedTags);
     } catch (e) {
       console.warn('Error loading persisted state:', e);
     }
@@ -84,6 +90,7 @@
       localStorage.setItem(STORAGE_KEYS.FLAGGED, JSON.stringify(Array.from(STATE.flagged)));
       localStorage.setItem(STORAGE_KEYS.ACTIVITY, JSON.stringify(STATE.activity));
       localStorage.setItem(STORAGE_KEYS.MOCKS, JSON.stringify(STATE.mockHistory));
+      localStorage.setItem(STORAGE_KEYS.LEAK_TAGS, JSON.stringify(STATE.leakTags || {}));
     } catch (e) {}
   }
 
@@ -658,7 +665,7 @@
 
     STATE.testResults = result;
 
-    // Save to Mock History in localStorage
+    // Save to Mock History in localStorage with complete metadata
     STATE.mockHistory.unshift({
       id: result.id,
       title: result.title,
@@ -668,7 +675,10 @@
       accuracy: result.accuracy,
       attemptedCount: result.attemptedCount,
       totalQuestions: result.totalQuestions,
-      isAboveCutoff: result.isAboveCutoff
+      isAboveCutoff: result.isAboveCutoff,
+      fullResult: result,
+      testAnswers: Object.assign({}, STATE.testAnswers),
+      questionIds: questions.map(function (q) { return q.id; })
     });
 
     if (STATE.mockHistory.length > 15) STATE.mockHistory.pop();
@@ -820,18 +830,28 @@
     container.innerHTML = history.slice(0, 4).map(function (h) {
       const dateStr = new Date(h.timestamp).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
       return (
-        '<div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between text-xs">' +
+        '<div class="mock-history-item p-3 rounded-xl bg-slate-50 hover:bg-amber-500/10 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 hover:border-amber-500/50 flex items-center justify-between text-xs cursor-pointer transition-all shadow-xs group" data-mockid="' + h.id + '">' +
           '<div class="flex flex-col">' +
-            '<span class="font-bold text-white truncate max-w-[140px]">' + escapeHtml(h.title) + '</span>' +
-            '<span class="text-[10px] text-slate-400 font-mono">' + dateStr + ' · ' + h.accuracy + '% acc</span>' +
+            '<div class="flex items-center gap-1.5">' +
+              '<span class="font-bold text-slate-800 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 truncate max-w-[140px]">' + escapeHtml(h.title) + '</span>' +
+              '<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold">View Scorecard →</span>' +
+            '</div>' +
+            '<span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">' + dateStr + ' · ' + h.accuracy + '% acc · ' + (h.attemptedCount || 'All') + ' attempted</span>' +
           '</div>' +
-          '<div class="flex flex-col items-end">' +
-            '<span class="font-black font-mono ' + (h.isAboveCutoff ? 'text-emerald-400' : 'text-amber-400') + '">' + (h.netScore > 0 ? '+' : '') + h.netScore + '</span>' +
-            '<span class="text-[9px] font-mono text-slate-500">/ ' + h.maxMarks + '</span>' +
+          '<div class="flex flex-col items-end shrink-0 pl-2">' +
+            '<span class="font-black font-mono text-sm ' + (h.isAboveCutoff ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400') + '">' + (h.netScore > 0 ? '+' : '') + h.netScore + '</span>' +
+            '<span class="text-[9px] font-mono text-slate-400">/ ' + h.maxMarks + ' Marks</span>' +
           '</div>' +
         '</div>'
       );
     }).join('');
+
+    container.querySelectorAll('.mock-history-item').forEach(function (item) {
+      item.addEventListener('click', function (e) {
+        const mockId = e.currentTarget.getAttribute('data-mockid');
+        window.openMockHistoryResult(mockId);
+      });
+    });
   }
 
   window.returnFromReportToDashboard = function () {
@@ -905,6 +925,184 @@ function getEliminatingStatementNum(optText, slicedMap) {
     return null;
   }
 
+
+  window.openMockHistoryResult = function (mockId) {
+    const item = (STATE.mockHistory || []).find(function (h) { return h.id === mockId; });
+    if (!item) return;
+
+    if (item.fullResult) {
+      STATE.testResults = item.fullResult;
+    } else {
+      const qTotal = item.totalQuestions || 25;
+      const att = item.attemptedCount || qTotal;
+      const acc = item.accuracy || 50;
+      const cor = Math.round((acc / 100) * att);
+      const wrg = att - cor;
+      const gross = cor * 2.0;
+      const bleed = Number((wrg * 0.66).toFixed(2));
+      const net = item.netScore !== undefined ? item.netScore : Number((gross - bleed).toFixed(2));
+      const maxM = item.maxMarks || (qTotal * 2.0);
+      const cutoff = Number(((qTotal / 100) * 88.0).toFixed(1));
+
+      STATE.testResults = {
+        id: item.id,
+        title: item.title,
+        timestamp: item.timestamp,
+        totalQuestions: qTotal,
+        attemptedCount: att,
+        correctCount: cor,
+        wrongCount: wrg,
+        grossScore: gross,
+        negativeBleed: bleed,
+        netScore: net,
+        maxMarks: maxM,
+        benchmarkCutoff: cutoff,
+        cutoffDelta: Number((net - cutoff).toFixed(2)),
+        isAboveCutoff: net >= cutoff,
+        accuracy: acc,
+        timeSpentSecs: 900,
+        subjectStats: {},
+        wrongQuestions: [],
+        leaks: {
+          concept: Math.ceil(wrg * 0.35),
+          silly: Math.ceil(wrg * 0.30),
+          elimination: Math.ceil(wrg * 0.20),
+          memory: Math.max(0, wrg - (Math.ceil(wrg * 0.35) + Math.ceil(wrg * 0.30) + Math.ceil(wrg * 0.20)))
+        }
+      };
+    }
+
+    if (item.questionIds && item.questionIds.length > 0) {
+      STATE.playerQuestions = item.questionIds.map(function (id) {
+        return STATE.pyqs.find(function (q) { return q.id === id; });
+      }).filter(Boolean);
+    }
+    if (!STATE.playerQuestions || STATE.playerQuestions.length === 0) {
+      STATE.playerQuestions = STATE.pyqs.slice(0, item.totalQuestions || 25);
+    }
+
+    STATE.testAnswers = item.testAnswers || {};
+    STATE.currentTest = { title: item.title };
+    STATE.isExamMode = false;
+    STATE.isReviewMode = true;
+    STATE.playerIndex = 0;
+
+    renderForensicScorecard(STATE.testResults);
+    switchViewMode('report');
+    showToast('📊 Loaded Forensic Scorecard for ' + item.title);
+  };
+
+
+  function renderBehavioralTagger(q) {
+    const group = document.getElementById('playerDiagTagGroup');
+    if (!group || !q) return;
+
+    const currentTag = STATE.leakTags[q.id];
+    const tagDefs = [
+      { id: 'concept', label: '🔴 Conceptual', color: 'rose' },
+      { id: 'silly', label: '🟡 Silly Trap', color: 'amber' },
+      { id: 'elimination', label: '🔵 Over-Elim', color: 'blue' },
+      { id: 'memory', label: '🟣 Memory', color: 'purple' }
+    ];
+
+    group.querySelectorAll('.player-tag-btn').forEach(function (btn) {
+      const tag = btn.getAttribute('data-tag');
+      const def = tagDefs.find(function (d) { return d.id === tag; });
+      if (!def) return;
+
+      if (currentTag === tag) {
+        if (tag === 'concept') btn.className = 'player-tag-btn p-2.5 rounded-xl bg-rose-500 text-white font-black border-2 border-rose-300 shadow-md cursor-pointer';
+        else if (tag === 'silly') btn.className = 'player-tag-btn p-2.5 rounded-xl bg-amber-500 text-slate-950 font-black border-2 border-amber-300 shadow-md cursor-pointer';
+        else if (tag === 'elimination') btn.className = 'player-tag-btn p-2.5 rounded-xl bg-blue-500 text-white font-black border-2 border-blue-300 shadow-md cursor-pointer';
+        else if (tag === 'memory') btn.className = 'player-tag-btn p-2.5 rounded-xl bg-purple-500 text-white font-black border-2 border-purple-300 shadow-md cursor-pointer';
+        btn.textContent = def.label + ' ✓';
+      } else {
+        btn.className = 'player-tag-btn p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-semibold hover:border-slate-400 cursor-pointer';
+        btn.textContent = def.label;
+      }
+
+      btn.onclick = function () {
+        if (STATE.leakTags[q.id] === tag) {
+          delete STATE.leakTags[q.id];
+          showToast('Tag removed');
+        } else {
+          STATE.leakTags[q.id] = tag;
+          STATE.mistakes.add(q.id);
+          showToast('Tagged as ' + def.label + ' error');
+        }
+        persistState();
+        renderBehavioralTagger(q);
+        updateDashboardActivity();
+        renderMistakesModal();
+      };
+    });
+  }
+
+  function updateStrategyHUD() {
+    const hud = document.getElementById('playerStrategyHUD');
+    const strat = STATE.activeStrategy;
+    if (!hud) return;
+
+    if (!strat || !strat.isActive) {
+      hud.classList.add('hidden');
+      return;
+    }
+
+    hud.classList.remove('hidden');
+
+    const totalAtt = (strat.counts.sure || 0) + (strat.counts.fifty || 0) + (strat.counts.wild || 0);
+    const attText = document.getElementById('playerStrategyAttemptsText');
+    const sureBadge = document.getElementById('hudSureBadge');
+    const fiftyBadge = document.getElementById('hudFiftyBadge');
+    const wildBadge = document.getElementById('hudWildBadge');
+
+    if (attText) attText.textContent = 'Attempts: ' + totalAtt + ' / ' + strat.targetTotal;
+    if (sureBadge) sureBadge.textContent = '🟢 Sure: ' + (strat.counts.sure || 0) + ' / ' + strat.targetSure;
+    if (fiftyBadge) fiftyBadge.textContent = '🟡 50:50: ' + (strat.counts.fifty || 0) + ' / ' + strat.targetFifty;
+    
+    if (wildBadge) {
+      const wildCount = strat.counts.wild || 0;
+      wildBadge.textContent = '🔴 Wild: ' + wildCount + ' / ' + strat.targetWild;
+      if (wildCount > strat.targetWild) {
+        wildBadge.className = 'px-2 py-0.5 rounded-lg bg-rose-500 text-white font-black border border-rose-400 animate-pulse';
+      } else {
+        wildBadge.className = 'px-2 py-0.5 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400 font-bold border border-slate-300 dark:border-slate-700';
+      }
+    }
+  }
+
+  function setupConfidenceButtons(q) {
+    const box = document.getElementById('playerConfidenceBox');
+    const warn = document.getElementById('playerWildWarning');
+    if (!box || !q) return;
+
+    box.querySelectorAll('.conf-btn').forEach(function (btn) {
+      const c = btn.getAttribute('data-conf');
+      const isSelected = (STATE.currentConfidence === c);
+
+      if (isSelected) {
+        if (c === 'sure') btn.className = 'conf-btn px-2.5 py-1 rounded-lg text-[11px] font-black border cursor-pointer bg-emerald-500 text-white border-emerald-400 shadow-xs';
+        else if (c === 'fifty') btn.className = 'conf-btn px-2.5 py-1 rounded-lg text-[11px] font-black border cursor-pointer bg-amber-500 text-slate-950 border-amber-400 shadow-xs';
+        else btn.className = 'conf-btn px-2.5 py-1 rounded-lg text-[11px] font-black border cursor-pointer bg-rose-500 text-white border-rose-400 shadow-xs';
+      } else {
+        btn.className = 'conf-btn px-2.5 py-1 rounded-lg text-[11px] font-bold border cursor-pointer transition-all bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-400';
+      }
+
+      btn.onclick = function () {
+        STATE.currentConfidence = c;
+        setupConfidenceButtons(q);
+
+        if (warn) {
+          if (c === 'wild') {
+            warn.classList.remove('hidden');
+          } else {
+            warn.classList.add('hidden');
+          }
+        }
+      };
+    });
+  }
+
   function renderCurrentPlayerQuestion() {
     const questions = STATE.playerQuestions;
     if (!questions || questions.length === 0) return;
@@ -912,6 +1110,9 @@ function getEliminatingStatementNum(optText, slicedMap) {
     const idx = STATE.playerIndex;
     const q = questions[idx];
     if (!q) return;
+
+    updateStrategyHUD();
+    setupConfidenceButtons(q);
 
     // Badges & Counters
     const qNumLabel = document.getElementById('playerQNumberLabel');
@@ -1120,6 +1321,7 @@ function getEliminatingStatementNum(optText, slicedMap) {
         const citEl = document.getElementById('playerCitationText');
         if (citEl && q.standard_book_ref) citEl.textContent = 'Standard Reference: ' + q.standard_book_ref;
         renderPlayerDistractorDeepDive(q);
+        renderBehavioralTagger(q);
       }
 
     } else {
@@ -1212,6 +1414,7 @@ function getEliminatingStatementNum(optText, slicedMap) {
           const citEl = document.getElementById('playerCitationText');
           if (citEl && q.standard_book_ref) citEl.textContent = 'Standard Reference: ' + q.standard_book_ref;
           renderPlayerDistractorDeepDive(q);
+          renderBehavioralTagger(q);
         } else {
           expBox.classList.add('hidden');
           const distractorBox = document.getElementById('playerDistractorDeepDiveBox');
@@ -1257,8 +1460,16 @@ function getEliminatingStatementNum(optText, slicedMap) {
     STATE.answers[q.id] = {
       selectedIndex: stagedIdx,
       isCorrect: isCorrect,
+      confidence: STATE.currentConfidence || 'sure',
       timestamp: Date.now()
     };
+
+    if (STATE.activeStrategy && STATE.activeStrategy.isActive) {
+      const conf = STATE.currentConfidence || 'sure';
+      if (!STATE.activeStrategy.counts) STATE.activeStrategy.counts = { sure: 0, fifty: 0, wild: 0 };
+      STATE.activeStrategy.counts[conf] = (STATE.activeStrategy.counts[conf] || 0) + 1;
+      updateStrategyHUD();
+    }
 
     if (isCorrect) {
       STATE.mistakes.delete(q.id);
@@ -2078,11 +2289,33 @@ function updateDashboardActivity() {
     var badge = document.getElementById('modalMistakesCountBadge');
     if (!container) return;
 
-    var mistakeQuestions = STATE.pyqs.filter(function (q) {
+    var allMistakes = STATE.pyqs.filter(function (q) {
       return STATE.mistakes.has(q.id);
     });
 
-    if (badge) badge.textContent = mistakeQuestions.length + ' Gap' + (mistakeQuestions.length === 1 ? '' : 's') + ' Logged';
+    var filter = STATE.mistakesFilter || 'all';
+    var mistakeQuestions = allMistakes.filter(function (q) {
+      if (filter === 'all') return true;
+      return STATE.leakTags[q.id] === filter;
+    });
+
+    if (badge) badge.textContent = allMistakes.length + ' Gap' + (allMistakes.length === 1 ? '' : 's') + ' Logged';
+
+    // Update filter buttons styling
+    document.querySelectorAll('.mistake-filter-btn').forEach(function (btn) {
+      const f = btn.getAttribute('data-filter');
+      const count = (f === 'all')
+        ? allMistakes.length
+        : allMistakes.filter(function (q) { return STATE.leakTags[q.id] === f; }).length;
+
+      btn.textContent = (f === 'all' ? 'All Gaps' : (f === 'concept' ? '🔴 Conceptual' : (f === 'silly' ? '🟡 Silly Trap' : (f === 'elimination' ? '🔵 Over-Elim' : '🟣 Memory')))) + ' (' + count + ')';
+
+      if (f === filter) {
+        btn.className = 'mistake-filter-btn px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-black text-[11px] cursor-pointer shadow-xs';
+      } else {
+        btn.className = 'mistake-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 font-bold text-[11px] cursor-pointer hover:border-slate-400';
+      }
+    });
 
     if (mistakeQuestions.length === 0) {
       container.innerHTML = (
@@ -2117,6 +2350,12 @@ function updateDashboardActivity() {
           '<div class="flex items-center justify-between gap-2 flex-wrap">' +
             '<div class="flex items-center gap-2">' +
               '<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-700 dark:text-rose-400 font-bold font-mono text-[10px]">Mark Leak (-0.66)</span>' +
+              (STATE.leakTags[q.id] ? (
+                STATE.leakTags[q.id] === 'concept' ? '<span class="px-2 py-0.5 rounded bg-rose-500 text-white font-bold text-[10px]">🔴 Conceptual Gap</span>' :
+                STATE.leakTags[q.id] === 'silly' ? '<span class="px-2 py-0.5 rounded bg-amber-500 text-slate-950 font-bold text-[10px]">🟡 Silly Trap</span>' :
+                STATE.leakTags[q.id] === 'elimination' ? '<span class="px-2 py-0.5 rounded bg-blue-500 text-white font-bold text-[10px]">🔵 Over-Elimination</span>' :
+                '<span class="px-2 py-0.5 rounded bg-purple-500 text-white font-bold text-[10px]">🟣 Memory Slip</span>'
+              ) : '') + '' +
               '<span class="font-bold text-slate-800 dark:text-slate-300">' + escapeHtml(q.subject || 'GS-1') + ' (' + q.year + ')</span>' +
               (q.sub_topic ? '<span class="text-slate-500 dark:text-slate-400 text-[10px]">· ' + escapeHtml(q.sub_topic) + '</span>' : '') +
             '</div>' +
@@ -2589,8 +2828,39 @@ function updateDashboardActivity() {
     document.getElementById('evWildSlider')?.addEventListener('input', function () { recalculateEV('pool'); });
 
     document.getElementById('launchSprintWithEVBtn')?.addEventListener('click', function () {
+      const total = parseInt(document.getElementById('evTotalSlider')?.value || 85, 10);
+      const sure = parseInt(document.getElementById('evSureSlider')?.value || 45, 10);
+      const fifty = parseInt(document.getElementById('evFiftySlider')?.value || 30, 10);
+      const wild = parseInt(document.getElementById('evWildSlider')?.value || 10, 10);
+      const netText = document.getElementById('evNetScoreText')?.textContent || '+95.0';
+      const plannedNet = parseFloat(netText.replace('+', ''));
+
+      STATE.activeStrategy = {
+        isActive: true,
+        targetTotal: total,
+        targetSure: sure,
+        targetFifty: fifty,
+        targetWild: wild,
+        plannedNet: plannedNet,
+        counts: { sure: 0, fifty: 0, wild: 0 }
+      };
+
       window.closeEVSimulator();
       window.startPracticeSession('all');
+      showToast('🎯 Active Strategy Loaded: Target ' + total + ' attempts (Sure: ' + sure + ', 50:50: ' + fifty + ', Wild: ' + wild + ')');
+    });
+
+    // Wire up Dashboard Cutoff EV Card
+    document.getElementById('dashboardCutoffEVCard')?.addEventListener('click', function () {
+      window.openEVSimulator();
+    });
+
+    // Wire up Mistakes Notebook leak filter buttons
+    document.querySelectorAll('.mistake-filter-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        STATE.mistakesFilter = e.currentTarget.getAttribute('data-filter');
+        renderMistakesModal();
+      });
     });
 
     // Post-Report Buttons
