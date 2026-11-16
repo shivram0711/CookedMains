@@ -528,6 +528,10 @@ async def robots_txt():
 async def prelims_page():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "prelims.html"))
 
+@app.api_route("/prelims/{subject_slug}", methods=["GET", "HEAD"])
+async def prelims_subject_page(subject_slug: str):
+    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "prelims.html"))
+
 @app.api_route("/sitemap-prelims.xml", methods=["GET", "HEAD"])
 async def sitemap_prelims_xml():
     return FileResponse(

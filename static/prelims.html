@@ -142,6 +142,27 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.25); border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.45); }
+
+    /* Print Optimization for Revision Flash-Sheet */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+      }
+      header, footer, nav, section, main, #toastNotification {
+        display: none !important;
+      }
+      #printFlashSheetContainer {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 20px !important;
+      }
+      .flash-card {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-slate-950">
@@ -241,6 +262,11 @@
             <span class="text-amber-400 shrink-0 mt-0.5">💡</span>
             <span>Tag each question as <strong>Sure-shot</strong>, <strong>50:50</strong>, or <strong>Guess</strong> as you solve below to compute your optimal attempt ceiling.</span>
           </div>
+
+          <!-- Share Cutoff Sweet Spot Button -->
+          <button id="shareSweetSpotBtn" class="w-full mt-0.5 py-2 px-3 rounded-xl bg-slate-950 hover:bg-slate-850 active:scale-[0.98] text-amber-300 border border-slate-700/60 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm">
+            <span>📲 Share My Cutoff Sweet Spot</span>
+          </button>
         </div>
 
       </div>
@@ -294,6 +320,11 @@
           <option value="mistakes">View: My Mistakes Only</option>
           <option value="guesses">View: My Flukes &amp; Guesses</option>
         </select>
+
+        <!-- 1-Click Flash Sheet Export Button -->
+        <button id="exportFlashSheetBtn" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 active:scale-95 transition-all cursor-pointer" title="Export printable 1-page summary of your mistakes with book references">
+          <span>🖨️ Export Revision Flash-Sheet</span>
+        </button>
       </div>
 
     </div>
@@ -455,6 +486,15 @@
       </div>
     </div>
   </footer>
+
+  <!-- Hidden Print Flash Sheet Container -->
+  <div id="printFlashSheetContainer" class="hidden print:block text-slate-900 bg-white"></div>
+
+  <!-- Toast Notification -->
+  <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 bg-slate-900 border border-amber-500/40 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold">
+    <span class="text-amber-400 text-base">✓</span>
+    <span id="toastMessage">Copied to clipboard!</span>
+  </div>
 
   <!-- Scripts -->
   <script src="/static/prelims.js"></script>

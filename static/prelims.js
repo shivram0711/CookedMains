@@ -127,9 +127,14 @@
     const container = document.getElementById('questionsContainer');
     const countEl = document.getElementById('questionCountText');
     const clearBtn = document.getElementById('clearMistakesBatchBtn');
+    const exportBtn = document.getElementById('exportFlashSheetBtn');
 
     if (clearBtn) {
       clearBtn.classList.toggle('hidden', STATE.activeView !== 'mistakes' || STATE.mistakes.size === 0);
+    }
+    if (exportBtn) {
+      exportBtn.classList.toggle('hidden', STATE.activeView !== 'mistakes' || STATE.mistakes.size === 0);
+      exportBtn.classList.toggle('flex', STATE.activeView === 'mistakes' && STATE.mistakes.size > 0);
     }
 
     if (countEl) {
@@ -563,16 +568,230 @@
     }
   }
 
-  // Setup UI Listeners (Tabs, Filter, Clear)
+  // Subject Slugs for Clean SEO URLs
+  const SUBJECT_SLUGS = {
+    'polity': 'Polity & Governance',
+    'economy': 'Economy',
+    'environment': 'Environment & Ecology',
+    'history': 'History & Culture',
+    'geography': 'Geography',
+    'science-tech': 'Science & Technology',
+    'science-and-tech': 'Science & Technology',
+    'sci-tech': 'Science & Technology'
+  };
+
+  const REVERSE_SLUGS = {
+    'Polity & Governance': 'polity',
+    'Economy': 'economy',
+    'Environment & Ecology': 'environment',
+    'History & Culture': 'history',
+    'Geography': 'geography',
+    'Science & Technology': 'science-and-tech'
+  };
+
+  // Toast Helper
+  function showToast(message) {
+    const toast = document.getElementById('toastNotification');
+    const msgEl = document.getElementById('toastMessage');
+    if (!toast || !msgEl) return;
+    msgEl.textContent = message;
+    toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+    toast.classList.add('translate-y-0', 'opacity-100');
+    setTimeout(() => {
+      toast.classList.remove('translate-y-0', 'opacity-100');
+      toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+    }, 3200);
+  }
+
+  // Update SEO Meta Titles & Descriptions dynamically
+  function updateSEOMeta() {
+    if (STATE.activeSubject && STATE.activeSubject !== 'all') {
+      document.title = `UPSC ${STATE.activeSubject} Prelims PYQs (2013-2026) with Solutions & Traps | CookedMains`;
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute('content', `Master official UPSC ${STATE.activeSubject} Prelims previous year questions (2013-2026). Features standard book citations, trap alerts, and instant error logging.`);
+      }
+    } else {
+      document.title = `UPSC Prelims PYQs (2013-2026) with Explanations & Negative Marking Engine | CookedMains`;
+    }
+  }
+
+  // Update Subject Tab Active Styles
+  function syncSubjectTabsUI() {
+    document.querySelectorAll('.subject-tab').forEach(b => {
+      const bSub = b.getAttribute('data-subject') || 'all';
+      if (bSub.toLowerCase() === STATE.activeSubject.toLowerCase()) {
+        b.className = 'subject-tab px-3 py-1.5 rounded-lg font-bold bg-amber-500 text-slate-950 shrink-0';
+      } else {
+        b.className = 'subject-tab px-3 py-1.5 rounded-lg font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0';
+      }
+    });
+  }
+
+  // Deep Routing Detection
+  function initRouting() {
+    const path = window.location.pathname.toLowerCase();
+    const parts = path.split('/').filter(Boolean);
+    const searchParams = new URLSearchParams(window.location.search);
+    const querySub = searchParams.get('subject');
+
+    if (querySub && SUBJECT_SLUGS[querySub.toLowerCase()]) {
+      STATE.activeSubject = SUBJECT_SLUGS[querySub.toLowerCase()];
+    } else if (parts[0] === 'prelims' && parts[1] && SUBJECT_SLUGS[parts[1]]) {
+      STATE.activeSubject = SUBJECT_SLUGS[parts[1]];
+    }
+    syncSubjectTabsUI();
+    updateSEOMeta();
+  }
+
+  // Share Cutoff Sweet Spot
+  function shareSweetSpot() {
+    let gross = 0, penalty = 0;
+    let tier50Count = 0, tier50Correct = 0;
+
+    Object.entries(STATE.answers).forEach(([qId, ans]) => {
+      const q = STATE.pyqs.find(item => item.id === qId);
+      if (!q) return;
+      const isCorrect = ans.optionIndex === q.correct_index;
+      if (isCorrect) gross += 2.0;
+      else penalty += 0.66;
+
+      if (ans.tier === '50_50') {
+        tier50Count++;
+        if (isCorrect) tier50Correct++;
+      }
+    });
+
+    const net = Math.max(0, gross - penalty);
+    const attempted = Object.keys(STATE.answers).length;
+    const acc50 = tier50Count > 0 ? Math.round((tier50Correct / tier50Count) * 100) : 0;
+    const net50 = (tier50Correct * 2.0) - ((tier50Count - tier50Correct) * 0.66);
+
+    const shareText = `🎯 My UPSC Prelims Cutoff Sweet Spot on CookedMains Radar:
+• Net Score: ${net.toFixed(2)} Marks (Gross: +${gross.toFixed(1)}M, Penalty: -${penalty.toFixed(1)}M)
+• Questions Attempted: ${attempted}
+• 50:50 Guess Accuracy: ${acc50}% (${net50 >= 0 ? '+' : ''}${net50.toFixed(1)}M net impact)
+• Live Verdict: Eliminate negative marking by calculating your risk ceiling!
+
+Calculate your attempt sweet spot & eliminate PYQ mistakes 100% free at:
+https://cookedmains.com/prelims`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(shareText).then(() => {
+        showToast('Cutoff Sweet Spot copied to clipboard! Share on WhatsApp or Telegram.');
+      }).catch(() => {
+        prompt('Copy your Cutoff Sweet Spot summary:', shareText);
+      });
+    } else {
+      prompt('Copy your Cutoff Sweet Spot summary:', shareText);
+    }
+  }
+
+  // Generate & Print Mistakes Flash-Sheet
+  function generateAndPrintFlashSheet() {
+    const wrongQuestions = STATE.pyqs.filter(q => STATE.mistakes.has(q.id));
+    if (wrongQuestions.length === 0) {
+      alert('Your Mistakes Notebook is currently empty! Solve questions below to auto-log your errors.');
+      return;
+    }
+
+    const printContainer = document.getElementById('printFlashSheetContainer');
+    if (!printContainer) return;
+
+    const dateStr = new Date().toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+
+    const cardsHtml = wrongQuestions.map((q, idx) => {
+      const diag = STATE.diagnostics[q.id] || 'Conceptual Blindspot';
+      const userChoice = STATE.answers[q.id] ? STATE.answers[q.id].optionIndex : -1;
+      const userLetter = userChoice >= 0 ? ['A', 'B', 'C', 'D'][userChoice] : 'Skipped';
+
+      return `
+        <div class="flash-card border border-slate-300 rounded-lg p-3 mb-3 bg-white text-slate-900 break-inside-avoid">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-1.5 mb-2 font-mono">
+            <span class="font-bold text-slate-800">#${idx + 1}. [${escapeHtml(q.subject)}] • ${q.year} (${escapeHtml(q.sub_topic)})</span>
+            <span class="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">
+              Trap: ${escapeHtml(diag)}
+            </span>
+          </div>
+
+          <div class="font-semibold text-slate-900 mb-2 leading-relaxed whitespace-pre-line text-xs">
+            ${escapeHtml(q.question_text)}
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 p-2 bg-slate-50 rounded border border-slate-200 mb-2 text-[11px]">
+            <div>
+              <span class="font-bold text-emerald-700">✓ Official Key:</span> Option ${escapeHtml(q.correct_option)}
+            </div>
+            <div>
+              <span class="font-bold text-rose-700">✗ Your Attempt:</span> Option ${escapeHtml(userLetter)}
+            </div>
+          </div>
+
+          <div class="text-[11px] text-slate-700 leading-normal mb-1.5">
+            <strong class="text-slate-900">Why It's Correct:</strong>
+            <p class="mt-0.5 whitespace-pre-line">${escapeHtml(q.explanation)}</p>
+          </div>
+
+          <div class="flex flex-col gap-1 mt-2 pt-1.5 border-t border-slate-200 text-[10px] text-slate-600">
+            <div><strong>⚠️ Trap Alert:</strong> ${escapeHtml(q.elimination_trap || 'Verify key assertions')}</div>
+            <div><strong>📖 Standard Citation:</strong> ${escapeHtml(q.standard_book_ref || 'NCERT / Laxmikanth')}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    printContainer.innerHTML = `
+      <div class="max-w-4xl mx-auto font-sans p-4">
+        <div class="border-b-2 border-slate-900 pb-3 mb-4 flex items-center justify-between">
+          <div>
+            <h1 class="text-xl font-black text-slate-950 uppercase tracking-tight">CookedMains Prelims Radar</h1>
+            <h2 class="text-xs font-bold text-amber-700 uppercase tracking-wider mt-0.5">Personal Mistake Elimination Flash-Sheet (10-Minute Delta Prep)</h2>
+          </div>
+          <div class="text-right text-[11px] text-slate-600">
+            <div>Date: <strong>${dateStr}</strong></div>
+            <div>Target Gaps to Clear: <strong>${wrongQuestions.length} Questions</strong></div>
+          </div>
+        </div>
+
+        <div class="mb-4 p-2.5 rounded bg-amber-50 border border-amber-200 text-[11px] text-amber-900">
+          <strong>Mandatory Exam-Eve Rule:</strong> Review strictly the standard citations and trap alerts below. Do NOT re-read full textbooks; master only the <em>delta</em> distinction that caused each error.
+        </div>
+
+        <div class="space-y-3">
+          ${cardsHtml}
+        </div>
+
+        <div class="mt-6 pt-3 border-t border-slate-300 text-center text-[10px] text-slate-500">
+          Generated via CookedMains Prelims Radar • https://cookedmains.com/prelims • Active Recall Revision Ledger
+        </div>
+      </div>
+    `;
+
+    setTimeout(() => {
+      window.print();
+    }, 150);
+  }
+
+  // Setup UI Listeners (Tabs, Filter, Clear, Share, Export)
   function setupUIListeners() {
     // Subject Tab Buttons
     document.querySelectorAll('.subject-tab').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.subject-tab').forEach(b => {
-          b.className = 'subject-tab px-3 py-1.5 rounded-lg font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0';
-        });
-        e.currentTarget.className = 'subject-tab px-3 py-1.5 rounded-lg font-bold bg-amber-500 text-slate-950 shrink-0';
-        STATE.activeSubject = e.currentTarget.getAttribute('data-subject') || 'all';
+        const sub = e.currentTarget.getAttribute('data-subject') || 'all';
+        STATE.activeSubject = sub;
+        syncSubjectTabsUI();
+        updateSEOMeta();
+
+        // Push URL without page reload
+        const slug = REVERSE_SLUGS[sub] || '';
+        try {
+          window.history.pushState(null, '', slug ? `/prelims/${slug}` : '/prelims');
+        } catch (err) {}
+
         applyFilters();
       });
     });
@@ -608,6 +827,18 @@
       });
     }
 
+    // Export Flash-Sheet Button
+    const exportBtn = document.getElementById('exportFlashSheetBtn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', generateAndPrintFlashSheet);
+    }
+
+    // Share Cutoff Sweet Spot Button
+    const shareBtn = document.getElementById('shareSweetSpotBtn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', shareSweetSpot);
+    }
+
     // Mode Switcher Buttons
     const pracBtn = document.getElementById('modePracticeBtn');
     const examBtn = document.getElementById('modeExamBtn');
@@ -632,6 +863,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     loadPersistedState();
     setupUIListeners();
+    initRouting();
     initQuestions();
   });
 
