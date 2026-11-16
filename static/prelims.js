@@ -172,6 +172,7 @@
       if (breadcrumb) breadcrumb.textContent = 'Prelims Dashboard';
       updateDashboardActivity();
       renderDashboardMockHistory();
+      updateSubTopicHeatmap();
       renderMatrixFeed();
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -847,7 +848,48 @@
 
   
   // Helper to check if an option is eliminated by sliced statements
-  function getEliminatingStatementNum(optText, slicedMap) {
+  
+  // Option-by-Option Distractor Deep Dive Analysis
+  function getDistractorAnalysis(q) {
+    if (!q || !q.options) return [];
+    const letters = ['A', 'B', 'C', 'D'];
+    const lines = (q.explanation || '').split('\n');
+
+    return q.options.map(function (opt, idx) {
+      const isCorrect = (idx === q.correct_index);
+      const letter = letters[idx] || String.fromCharCode(65 + idx);
+      let label = isCorrect ? 'Official UPSC Key' : 'Examiner Distractor';
+      let details = '';
+
+      if (isCorrect) {
+        details = lines[0] ? lines[0].replace(/^[•\-\*]\s*/, '') : 'Accurate assertion directly validated by official UPSC key.';
+      } else {
+        // Find matching line in explanation
+        const optMatch = lines.find(function (ln) {
+          const lnLower = ln.toLowerCase();
+          return lnLower.includes('statement ' + (idx + 1)) ||
+                 lnLower.includes('option ' + letter.toLowerCase()) ||
+                 lnLower.includes(opt.slice(0, 20).toLowerCase());
+        });
+
+        if (optMatch) {
+          details = optMatch.replace(/^[•\-\*]\s*/, '');
+        } else {
+          details = 'Crafted as an elimination distractor. UPSC commonly swaps constitutional with statutory bodies, reverses historical chronology, or injects extreme modifiers ("only", "exclusively") to test conceptual boundary precision.';
+        }
+      }
+
+      return {
+        letter: letter,
+        optionText: opt,
+        isCorrect: isCorrect,
+        label: label,
+        details: details
+      };
+    });
+  }
+
+function getEliminatingStatementNum(optText, slicedMap) {
     if (!slicedMap) return null;
     const slicedNums = Object.keys(slicedMap).filter(function (k) { return slicedMap[k]; });
     if (slicedNums.length === 0) return null;
@@ -1010,6 +1052,8 @@
       // Hide Explanation Box in Exam Mode
       const expBox = document.getElementById('playerExplanationBox');
       if (expBox) expBox.classList.add('hidden');
+      const distractorBox = document.getElementById('playerDistractorDeepDiveBox');
+      if (distractorBox) distractorBox.innerHTML = '';
 
     } else if (STATE.isReviewMode) {
       // POST-TEST REVIEW MODE: Show Candidate's Pick vs Official Key
@@ -1075,6 +1119,7 @@
         if (expTextEl) expTextEl.textContent = q.explanation || 'Official UPSC key validated explanation.';
         const citEl = document.getElementById('playerCitationText');
         if (citEl && q.standard_book_ref) citEl.textContent = 'Standard Reference: ' + q.standard_book_ref;
+        renderPlayerDistractorDeepDive(q);
       }
 
     } else {
@@ -1166,8 +1211,11 @@
           if (expTextEl) expTextEl.textContent = q.explanation || 'Official UPSC key validated explanation.';
           const citEl = document.getElementById('playerCitationText');
           if (citEl && q.standard_book_ref) citEl.textContent = 'Standard Reference: ' + q.standard_book_ref;
+          renderPlayerDistractorDeepDive(q);
         } else {
           expBox.classList.add('hidden');
+          const distractorBox = document.getElementById('playerDistractorDeepDiveBox');
+          if (distractorBox) distractorBox.innerHTML = '';
         }
       }
     }
@@ -1225,11 +1273,129 @@
     persistState();
     renderCurrentPlayerQuestion();
     updateDashboardActivity();
+    updateSubTopicHeatmap();
     // toast removed to prevent blocking next button
   }
 
   // Update Activity Numbers in Dashboard
-  function updateDashboardActivity() {
+  
+  // Compute & Render Sub-Topic Mark-Bleed Heatmap
+  function updateSubTopicHeatmap() {
+    const listEl = document.getElementById('subTopicHeatmapList');
+    const badgeEl = document.getElementById('heatmapThemesCountBadge');
+    const adviceBox = document.getElementById('heatmapAdviceBox');
+    const adviceText = document.getElementById('heatmapAdviceText');
+    const drillBtn = document.getElementById('heatmapDrillGapBtn');
+    if (!listEl) return;
+
+    const topicStats = {};
+    Object.keys(STATE.answers).forEach(function (qId) {
+      const ans = STATE.answers[qId];
+      const q = STATE.pyqs.find(function (item) { return item.id === qId; });
+      if (!q || !q.sub_topic) return;
+
+      const topic = q.sub_topic;
+      if (!topicStats[topic]) {
+        topicStats[topic] = {
+          topic: topic,
+          subject: q.subject || 'GS-1',
+          total: 0,
+          correct: 0,
+          incorrect: 0
+        };
+      }
+      topicStats[topic].total++;
+      if (ans.isCorrect) topicStats[topic].correct++;
+      else topicStats[topic].incorrect++;
+    });
+
+    const topics = Object.values(topicStats);
+    if (badgeEl) badgeEl.textContent = topics.length + ' Theme' + (topics.length === 1 ? '' : 's') + ' Logged';
+
+    if (topics.length === 0) {
+      listEl.innerHTML = (
+        '<div class="p-3 text-center text-xs text-slate-500 bg-slate-950/60 rounded-xl border border-slate-800/60">' +
+          'Solve questions to generate your personalized micro-theme accuracy heatmap.' +
+        '</div>'
+      );
+      if (adviceBox) adviceBox.classList.add('hidden');
+      return;
+    }
+
+    // Sort by lowest accuracy first, then by highest attempts
+    topics.sort(function (a, b) {
+      const accA = a.correct / a.total;
+      const accB = b.correct / b.total;
+      if (accA !== accB) return accA - accB;
+      return b.total - a.total;
+    });
+
+    let worstTopic = null;
+
+    listEl.innerHTML = topics.map(function (t) {
+      const acc = Math.round((t.correct / t.total) * 100);
+      const netMarks = (t.correct * 2.0) - (t.incorrect * 0.66);
+
+      let colorClass = 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 border-emerald-500/30';
+      let barColor = 'bg-emerald-500';
+      let statusLabel = 'Strong';
+
+      if (acc < 50) {
+        colorClass = 'text-rose-700 dark:text-rose-400 bg-rose-500/15 border-rose-500/30';
+        barColor = 'bg-rose-500';
+        statusLabel = 'Bleeding Marks';
+        if (!worstTopic || t.total >= 2) worstTopic = t;
+      } else if (acc < 75) {
+        colorClass = 'text-amber-700 dark:text-amber-400 bg-amber-500/15 border-amber-500/30';
+        barColor = 'bg-amber-500';
+        statusLabel = 'Vulnerable';
+      }
+
+      return (
+        '<div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-1.5 text-xs">' +
+          '<div class="flex items-center justify-between">' +
+            '<span class="font-bold text-slate-800 dark:text-slate-200 truncate pr-2">' + escapeHtml(t.topic) + '</span>' +
+            '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold font-mono border ' + colorClass + ' shrink-0">' +
+              acc + '% (' + (netMarks >= 0 ? '+' : '') + netMarks.toFixed(1) + 'M)' +
+            '</span>' +
+          '</div>' +
+          '<div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">' +
+            '<div class="h-full rounded-full ' + barColor + '" style="width: ' + acc + '%"></div>' +
+          '</div>' +
+          '<div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">' +
+            '<span>' + escapeHtml(t.subject) + '</span>' +
+            '<span>' + t.correct + '/' + t.total + ' Solved • ' + statusLabel + '</span>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+
+    if (adviceBox && adviceText) {
+      if (worstTopic && (worstTopic.correct / worstTopic.total) < 0.6) {
+        adviceBox.classList.remove('hidden');
+        adviceText.innerHTML = '<strong>⚠️ Priority Mark-Bleed Alert:</strong> You are losing marks in <strong>' + escapeHtml(worstTopic.topic) + '</strong> (' + Math.round((worstTopic.correct / worstTopic.total) * 100) + '% accuracy). Prioritize drilling this gap!';
+        if (drillBtn) {
+          drillBtn.onclick = function () {
+            const gapQuestions = STATE.pyqs.filter(function (q) {
+              return q.sub_topic && q.sub_topic.toLowerCase() === worstTopic.topic.toLowerCase();
+            });
+            if (gapQuestions.length > 0) {
+              STATE.playerQuestions = gapQuestions;
+              STATE.playerIndex = 0;
+              STATE.isExamMode = false;
+              STATE.isReviewMode = false;
+              STATE.currentTest = null;
+              switchViewMode('player');
+            }
+          };
+        }
+      } else {
+        adviceBox.classList.add('hidden');
+      }
+    }
+  }
+
+function updateDashboardActivity() {
     const mcqEl = document.getElementById('actMcqCount');
     const accEl = document.getElementById('actAccuracy');
     const badge = document.getElementById('sidebarMistakesBadge');
@@ -1471,6 +1637,620 @@
     }
   }
 
+
+  // ==========================================================
+  // OPTION-BY-OPTION DISTRACTOR DEEP DIVE (PLAYER)
+  // ==========================================================
+  function renderPlayerDistractorDeepDive(q) {
+    const distractorBox = document.getElementById('playerDistractorDeepDiveBox');
+    if (!distractorBox || !q) return;
+
+    const distractors = getDistractorAnalysis(q);
+    distractorBox.innerHTML = (
+      '<div class="flex items-center gap-2 pt-2 border-t border-slate-800">' +
+        '<span class="text-xs font-mono uppercase font-black text-amber-500 tracking-wider">🔬 Option-by-Option Distractor Deep Dive:</span>' +
+      '</div>' +
+      '<div class="grid grid-cols-1 gap-2">' +
+        distractors.map(function (d) {
+          const badgeClass = d.isCorrect
+            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+            : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30';
+          return (
+            '<div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 text-xs">' +
+              '<div class="flex items-center justify-between gap-2">' +
+                '<span class="font-bold text-slate-800 dark:text-white font-mono">Option ' + d.letter + '</span>' +
+                '<span class="px-2 py-0.5 rounded text-[10px] font-bold ' + badgeClass + '">' + escapeHtml(d.label) + '</span>' +
+              '</div>' +
+              '<p class="text-slate-700 dark:text-slate-300 font-medium">' + escapeHtml(d.optionText) + '</p>' +
+              '<p class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed border-t border-slate-200 dark:border-slate-900 pt-1 mt-0.5">' +
+                '<strong>Diagnosis:</strong> ' + escapeHtml(d.details) +
+              '</p>' +
+            '</div>'
+          );
+        }).join('') +
+      '</div>'
+    );
+  }
+
+  // ==========================================================
+  // PRELIMS PYQ BRAINSTORMING & ANALYSIS VAULT (2011–2026)
+  // ==========================================================
+
+  function getFilteredVaultQuestions() {
+    var list = STATE.pyqs || [];
+
+    // Filter by mode
+    if (STATE.vaultMode === 'subject') {
+      if (STATE.vaultSelectedSubject && STATE.vaultSelectedSubject !== 'all') {
+        list = list.filter(function (q) {
+          return q.subject === STATE.vaultSelectedSubject;
+        });
+      }
+    } else if (STATE.vaultMode === 'year') {
+      if (STATE.vaultSelectedYear && STATE.vaultSelectedYear !== 'all') {
+        list = list.filter(function (q) {
+          return String(q.year) === String(STATE.vaultSelectedYear);
+        });
+      }
+    }
+
+    // Filter by Difficulty
+    if (STATE.vaultSelectedDifficulty && STATE.vaultSelectedDifficulty !== 'all') {
+      list = list.filter(function (q) {
+        return (q.difficulty || '').toLowerCase() === STATE.vaultSelectedDifficulty.toLowerCase();
+      });
+    }
+
+    // Filter by Search Query
+    if (STATE.vaultSearchQuery) {
+      var query = STATE.vaultSearchQuery.toLowerCase();
+      list = list.filter(function (q) {
+        return (q.question_text || '').toLowerCase().includes(query) ||
+               (q.subject || '').toLowerCase().includes(query) ||
+               (q.sub_topic || '').toLowerCase().includes(query) ||
+               (q.standard_book_ref || '').toLowerCase().includes(query) ||
+               (q.explanation || '').toLowerCase().includes(query);
+      });
+    }
+
+    return list;
+  }
+
+  function renderPyqVault() {
+    var subjectBtn = document.getElementById('vaultModeSubjectBtn');
+    var yearBtn = document.getElementById('vaultModeYearBtn');
+    var subjectFilterRow = document.getElementById('vaultSubjectFilterContainer');
+    var yearFilterRow = document.getElementById('vaultYearFilterContainer');
+
+    if (STATE.vaultMode === 'subject') {
+      if (subjectBtn) subjectBtn.className = 'px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black shadow-xs transition-all cursor-pointer flex items-center gap-1.5';
+      if (yearBtn) yearBtn.className = 'px-4 py-2 rounded-xl text-slate-400 hover:text-white transition-all cursor-pointer flex items-center gap-1.5';
+      if (subjectFilterRow) subjectFilterRow.classList.remove('hidden');
+      if (yearFilterRow) yearFilterRow.classList.add('hidden');
+    } else {
+      if (subjectBtn) subjectBtn.className = 'px-4 py-2 rounded-xl text-slate-400 hover:text-white transition-all cursor-pointer flex items-center gap-1.5';
+      if (yearBtn) yearBtn.className = 'px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black shadow-xs transition-all cursor-pointer flex items-center gap-1.5';
+      if (subjectFilterRow) subjectFilterRow.classList.add('hidden');
+      if (yearFilterRow) yearFilterRow.classList.remove('hidden');
+    }
+
+    renderVaultSubjectPills();
+    renderVaultYearPills();
+
+    var filtered = getFilteredVaultQuestions();
+
+    var badge = document.getElementById('vaultTotalCountBadge');
+    if (badge) badge.textContent = filtered.length + ' Question' + (filtered.length === 1 ? '' : 's') + ' Available';
+
+    renderVaultAnalytics(filtered);
+    renderVaultQuestions(filtered);
+  }
+
+  function renderVaultSubjectPills() {
+    var container = document.getElementById('vaultSubjectPillsGroup');
+    if (!container) return;
+
+    var subjects = [
+      { id: 'all', label: 'All Subjects' },
+      { id: 'Polity & Governance', label: 'Polity & Governance' },
+      { id: 'Economy', label: 'Economy' },
+      { id: 'Environment & Ecology', label: 'Environment & Ecology' },
+      { id: 'History & Culture', label: 'History & Culture' },
+      { id: 'Geography', label: 'Geography' },
+      { id: 'Science & Technology', label: 'Sci-Tech' }
+    ];
+
+    container.innerHTML = subjects.map(function (s) {
+      var count = (s.id === 'all')
+        ? STATE.pyqs.length
+        : STATE.pyqs.filter(function (q) { return q.subject === s.id; }).length;
+
+      var isActive = (STATE.vaultSelectedSubject === s.id);
+      var btnClass = isActive
+        ? 'px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-black shadow-xs cursor-pointer text-xs'
+        : 'px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:text-amber-500 border border-slate-200 dark:border-slate-800 cursor-pointer text-xs transition-all';
+
+      return (
+        '<button type="button" class="vault-subj-pill ' + btnClass + '" data-subj="' + s.id + '">' +
+          escapeHtml(s.label) + ' <span class="opacity-70 font-mono text-[10px]">(' + count + ')</span>' +
+        '</button>'
+      );
+    }).join('');
+
+    container.querySelectorAll('.vault-subj-pill').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        STATE.vaultSelectedSubject = e.currentTarget.getAttribute('data-subj');
+        renderPyqVault();
+      });
+    });
+  }
+
+  function renderVaultYearPills() {
+    var container = document.getElementById('vaultYearPillsGroup');
+    if (!container) return;
+
+    var years = ['all', '2026', '2025', '2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016', '2015', '2014', '2013', '2012', '2011'];
+
+    container.innerHTML = years.map(function (y) {
+      var count = (y === 'all')
+        ? STATE.pyqs.length
+        : STATE.pyqs.filter(function (q) { return String(q.year) === y; }).length;
+
+      var isActive = (String(STATE.vaultSelectedYear) === y);
+      var btnClass = isActive
+        ? 'px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-black shadow-xs cursor-pointer text-xs'
+        : 'px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:text-amber-500 border border-slate-200 dark:border-slate-800 cursor-pointer text-xs font-mono transition-all';
+
+      return (
+        '<button type="button" class="vault-year-pill ' + btnClass + '" data-year="' + y + '">' +
+          (y === 'all' ? 'All Years' : y) + ' <span class="opacity-70 text-[10px]">(' + count + ')</span>' +
+        '</button>'
+      );
+    }).join('');
+
+    container.querySelectorAll('.vault-year-pill').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        STATE.vaultSelectedYear = e.currentTarget.getAttribute('data-year');
+        renderPyqVault();
+      });
+    });
+  }
+
+  function renderVaultAnalytics(questions) {
+    var total = questions.length;
+    var easy = 0, mod = 0, hard = 0;
+    var multi = 0, pairs = 0, direct = 0;
+    var topicFreq = {};
+
+    questions.forEach(function (q) {
+      var diff = (q.difficulty || 'Moderate').toLowerCase();
+      if (diff === 'easy') easy++;
+      else if (diff === 'hard') hard++;
+      else mod++;
+
+      var txt = (q.question_text || '').toLowerCase();
+      if (txt.includes('how many of the pairs') || txt.includes('pairs given above')) pairs++;
+      else if (txt.includes('1 and 2') || txt.includes('consider the following statements')) multi++;
+      else direct++;
+
+      if (q.sub_topic) {
+        topicFreq[q.sub_topic] = (topicFreq[q.sub_topic] || 0) + 1;
+      }
+    });
+
+    var easyPct = total ? Math.round((easy / total) * 100) : 0;
+    var modPct = total ? Math.round((mod / total) * 100) : 0;
+    var hardPct = total ? Math.round((hard / total) * 100) : 0;
+
+    var multiPct = total ? Math.round((multi / total) * 100) : 0;
+    var pairsPct = total ? Math.round((pairs / total) * 100) : 0;
+    var directPct = total ? Math.round((direct / total) * 100) : 0;
+
+    var easyEl = document.getElementById('vaultEasyText');
+    var modEl = document.getElementById('vaultModText');
+    var hardEl = document.getElementById('vaultHardText');
+    if (easyEl) easyEl.textContent = 'Easy: ' + easyPct + '% (' + easy + ')';
+    if (modEl) modEl.textContent = 'Moderate: ' + modPct + '% (' + mod + ')';
+    if (hardEl) hardEl.textContent = 'Hard: ' + hardPct + '% (' + hard + ')';
+
+    var multiEl = document.getElementById('vaultMultiText');
+    var pairsEl = document.getElementById('vaultPairsText');
+    var directEl = document.getElementById('vaultDirectText');
+    if (multiEl) multiEl.textContent = 'Multi-Stmt: ' + multiPct + '%';
+    if (pairsEl) pairsEl.textContent = 'Pairs/New: ' + pairsPct + '%';
+    if (directEl) directEl.textContent = 'Direct: ' + directPct + '%';
+
+    // SVG Donut 1: Difficulty
+    var diffDonut = document.getElementById('vaultDifficultyDonut');
+    if (diffDonut) {
+      diffDonut.innerHTML = (
+        '<svg viewBox="0 0 36 36" class="w-14 h-14 -rotate-90">' +
+          '<circle cx="18" cy="18" r="14" fill="none" stroke="#10b981" stroke-width="4" stroke-dasharray="' + easyPct + ' 100" stroke-dashoffset="0" />' +
+          '<circle cx="18" cy="18" r="14" fill="none" stroke="#f59e0b" stroke-width="4" stroke-dasharray="' + modPct + ' 100" stroke-dashoffset="-' + easyPct + '" />' +
+          '<circle cx="18" cy="18" r="14" fill="none" stroke="#ef4444" stroke-width="4" stroke-dasharray="' + hardPct + ' 100" stroke-dashoffset="-' + (easyPct + modPct) + '" />' +
+        '</svg>' +
+        '<div class="absolute text-[10px] font-mono font-bold text-slate-800 dark:text-white">' + total + 'Q</div>'
+      );
+    }
+
+    // SVG Donut 2: Question Pattern
+    var patternDonut = document.getElementById('vaultPatternDonut');
+    if (patternDonut) {
+      patternDonut.innerHTML = (
+        '<svg viewBox="0 0 36 36" class="w-14 h-14 -rotate-90">' +
+          '<circle cx="18" cy="18" r="14" fill="none" stroke="#3b82f6" stroke-width="4" stroke-dasharray="' + multiPct + ' 100" stroke-dashoffset="0" />' +
+          '<circle cx="18" cy="18" r="14" fill="none" stroke="#a855f7" stroke-width="4" stroke-dasharray="' + pairsPct + ' 100" stroke-dashoffset="-' + multiPct + '" />' +
+          '<circle cx="18" cy="18" r="14" fill="none" stroke="#14b8a6" stroke-width="4" stroke-dasharray="' + directPct + ' 100" stroke-dashoffset="-' + (multiPct + pairsPct) + '" />' +
+        '</svg>' +
+        '<div class="absolute text-[10px] font-mono font-bold text-slate-800 dark:text-white">' + (multiPct + pairsPct) + '%</div>'
+      );
+    }
+
+    // High Yield Micro-Topic Badges
+    var topTopicsGroup = document.getElementById('vaultTopTopicsPillGroup');
+    if (topTopicsGroup) {
+      var sortedTopics = Object.keys(topicFreq).sort(function (a, b) {
+        return topicFreq[b] - topicFreq[a];
+      }).slice(0, 5);
+
+      topTopicsGroup.innerHTML = sortedTopics.map(function (tp) {
+        return (
+          '<span class="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">' +
+            escapeHtml(tp) + ' (' + topicFreq[tp] + ')' +
+          '</span>'
+        );
+      }).join('');
+    }
+  }
+
+  function renderVaultQuestions(questions) {
+    var container = document.getElementById('vaultQuestionsContainer');
+    var statusText = document.getElementById('vaultFeedStatusText');
+    if (!container) return;
+
+    if (statusText) {
+      statusText.textContent = 'Showing ' + questions.length + ' authentic UPSC Prelims Questions';
+    }
+
+    if (questions.length === 0) {
+      container.innerHTML = (
+        '<div class="p-8 text-center rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col items-center gap-2">' +
+          '<span class="text-3xl">🔍</span>' +
+          '<span class="text-sm font-bold text-slate-800 dark:text-white">No questions found matching your filter</span>' +
+          '<span class="text-xs text-slate-500 dark:text-slate-400">Try adjusting your search query, subject, or year filter.</span>' +
+        '</div>'
+      );
+      return;
+    }
+
+    var letters = ['A', 'B', 'C', 'D'];
+
+    container.innerHTML = questions.map(function (q) {
+      var isExpanded = STATE.vaultExpandedQuestions.has(q.id);
+      var distractors = isExpanded ? getDistractorAnalysis(q) : [];
+
+      var diffBadgeColor = 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30';
+      if ((q.difficulty || '').toLowerCase() === 'easy') diffBadgeColor = 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30';
+      if ((q.difficulty || '').toLowerCase() === 'hard') diffBadgeColor = 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30';
+
+      return (
+        '<div class="light-card rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-md flex flex-col gap-4" id="vault-card-' + q.id + '">' +
+          
+          '<!-- Header Badges -->' +
+          '<div class="flex items-center justify-between gap-2 flex-wrap border-b border-slate-200 dark:border-slate-800 pb-3">' +
+            '<div class="flex items-center gap-2 flex-wrap">' +
+              '<span class="px-2.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-xs font-mono font-bold">UPSC ' + q.year + '</span>' +
+              '<span class="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">' + escapeHtml(q.subject || 'GS-1') + '</span>' +
+              (q.sub_topic ? '<span class="px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[11px] font-mono">' + escapeHtml(q.sub_topic) + '</span>' : '') +
+              '<span class="px-2 py-0.5 rounded-lg border text-[11px] font-bold font-mono ' + diffBadgeColor + '">' + escapeHtml(q.difficulty || 'Moderate') + '</span>' +
+            '</div>' +
+
+            '<button type="button" class="vault-solve-one-btn px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-xs transition-all cursor-pointer flex items-center gap-1 shrink-0" data-qid="' + q.id + '">' +
+              '<span>🎯 Solve in Focus Player</span>' +
+            '</button>' +
+          '</div>' +
+
+          '<!-- Question Statement -->' +
+          '<div class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 leading-relaxed">' +
+            '<p class="whitespace-pre-line">' + escapeHtml(q.question_text) + '</p>' +
+          '</div>' +
+
+          '<!-- Expand / Collapse Brainstorming Drawer -->' +
+          '<div class="flex items-center justify-between pt-1">' +
+            '<button type="button" class="vault-toggle-card-btn text-xs font-bold text-amber-600 dark:text-amber-500 hover:text-amber-700 dark:hover:text-amber-400 flex items-center gap-1.5 cursor-pointer" data-qid="' + q.id + '">' +
+              '<span>' + (isExpanded ? '▲ Hide Forensic Key & Traps' : '▼ 🧠 Brainstorm & Decoded Answer Key') + '</span>' +
+            '</button>' +
+          '</div>' +
+
+          (isExpanded ? (
+            '<div class="flex flex-col gap-3.5 pt-3 border-t border-slate-200 dark:border-slate-800">' +
+              
+              '<!-- Official Key Pill -->' +
+              '<div class="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-between text-xs">' +
+                '<span class="font-black text-emerald-700 dark:text-emerald-400">Official UPSC Answer Key:</span>' +
+                '<span class="px-2.5 py-0.5 rounded-md bg-emerald-500 text-slate-950 font-mono font-black text-xs">' +
+                  'Option (' + letters[q.correct_index] + ')' +
+                '</span>' +
+              '</div>' +
+
+              '<!-- Option-by-Option Distractor Deep Dive -->' +
+              '<div class="flex flex-col gap-2">' +
+                '<span class="text-xs font-mono uppercase font-black text-amber-600 dark:text-amber-500 tracking-wider">🔬 Option-by-Option Distractor Deep Dive:</span>' +
+                '<div class="grid grid-cols-1 gap-2">' +
+                  distractors.map(function (d) {
+                    var badgeClass = d.isCorrect
+                      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                      : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30';
+                    return (
+                      '<div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 text-xs">' +
+                        '<div class="flex items-center justify-between gap-2">' +
+                          '<span class="font-bold text-slate-800 dark:text-white font-mono">Option ' + d.letter + '</span>' +
+                          '<span class="px-2 py-0.5 rounded text-[10px] font-bold ' + badgeClass + '">' + escapeHtml(d.label) + '</span>' +
+                        '</div>' +
+                        '<p class="text-slate-800 dark:text-slate-300 font-medium">' + escapeHtml(d.optionText) + '</p>' +
+                        '<p class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed border-t border-slate-200 dark:border-slate-900 pt-1 mt-0.5">' +
+                          '<strong>Diagnosis:</strong> ' + escapeHtml(d.details) +
+                        '</p>' +
+                      '</div>'
+                    );
+                  }).join('') +
+                '</div>' +
+              '</div>' +
+
+              '<!-- Topper Elimination Trap -->' +
+              '<div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col gap-1 text-xs">' +
+                '<span class="font-bold text-amber-700 dark:text-amber-400 uppercase text-[10px] tracking-wider flex items-center gap-1">' +
+                  '<span>⚡</span> Topper Elimination Trap' +
+                '</span>' +
+                '<p class="text-amber-900 dark:text-amber-200 leading-relaxed text-[11px]">' +
+                  escapeHtml(q.elimination_trap || 'Pay close attention to subtle swaps between constitutional provisions and subordinate legislation.') +
+                '</p>' +
+              '</div>' +
+
+              '<!-- Forensic Explanation -->' +
+              '<div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1.5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">' +
+                '<span class="font-bold text-slate-900 dark:text-white text-xs">Official UPSC Forensic Breakdown:</span>' +
+                '<p class="whitespace-pre-line">' + escapeHtml(q.explanation || 'Official UPSC key validated explanation.') + '</p>' +
+                (q.standard_book_ref ? '<span class="text-[11px] text-amber-700 dark:text-amber-400 font-mono pt-1">📖 Standard Reference: ' + escapeHtml(q.standard_book_ref) + '</span>' : '') +
+              '</div>' +
+
+            '</div>'
+          ) : '') +
+
+        '</div>'
+      );
+    }).join('');
+
+    // Toggle single card
+    container.querySelectorAll('.vault-toggle-card-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        var qId = e.currentTarget.getAttribute('data-qid');
+        if (STATE.vaultExpandedQuestions.has(qId)) {
+          STATE.vaultExpandedQuestions.delete(qId);
+        } else {
+          STATE.vaultExpandedQuestions.add(qId);
+        }
+        renderVaultQuestions(questions);
+      });
+    });
+
+    // Solve in focus player
+    container.querySelectorAll('.vault-solve-one-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        var qId = e.currentTarget.getAttribute('data-qid');
+        var question = STATE.pyqs.find(function (item) { return item.id === qId; });
+        if (question) {
+          window.startPracticeWithSingleQuestion(question);
+        }
+      });
+    });
+  }
+
+  // Launch single question in focus player
+  window.startPracticeWithSingleQuestion = function (q) {
+    if (!q) return;
+    STATE.playerQuestions = [q];
+    STATE.playerIndex = 0;
+    STATE.isExamMode = false;
+    STATE.isReviewMode = false;
+    STATE.currentTest = null;
+    switchViewMode('player');
+  };
+
+  // ==========================================================
+  // MISTAKES NOTEBOOK & 10-MINUTE MICRO-CORRECTION GENERATOR
+  // ==========================================================
+
+  window.openMistakesModal = function () {
+    var modal = document.getElementById('mistakesNotebookModal');
+    if (!modal) return;
+    renderMistakesModal();
+    modal.classList.remove('hidden');
+  };
+
+  window.closeMistakesModal = function () {
+    var modal = document.getElementById('mistakesNotebookModal');
+    if (modal) modal.classList.add('hidden');
+  };
+
+  function renderMistakesModal() {
+    var container = document.getElementById('modalMistakesContainer');
+    var badge = document.getElementById('modalMistakesCountBadge');
+    if (!container) return;
+
+    var mistakeQuestions = STATE.pyqs.filter(function (q) {
+      return STATE.mistakes.has(q.id);
+    });
+
+    if (badge) badge.textContent = mistakeQuestions.length + ' Gap' + (mistakeQuestions.length === 1 ? '' : 's') + ' Logged';
+
+    if (mistakeQuestions.length === 0) {
+      container.innerHTML = (
+        '<div class="p-8 text-center rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col items-center gap-2">' +
+          '<span class="text-4xl">🎉</span>' +
+          '<span class="text-sm font-black text-emerald-600 dark:text-emerald-400">Zero Active Mark Leaks!</span>' +
+          '<p class="text-xs text-slate-600 dark:text-slate-400 max-w-md leading-relaxed">' +
+            'You currently have no recorded mistakes. Solve questions in Focus Player or take Mock Tests — any wrong attempts will be automatically organized here into high-yield micro-corrections.' +
+          '</p>' +
+        '</div>'
+      );
+      return;
+    }
+
+    var letters = ['A', 'B', 'C', 'D'];
+
+    container.innerHTML = mistakeQuestions.map(function (q) {
+      var userAns = STATE.answers[q.id];
+      var userPickText = (userAns && userAns.selectedIndex !== undefined && q.options)
+        ? ('Option (' + letters[userAns.selectedIndex] + '): ' + q.options[userAns.selectedIndex])
+        : 'Incorrect Attempt';
+      var correctText = (q.options && q.correct_index !== undefined)
+        ? ('Option (' + letters[q.correct_index] + '): ' + q.options[q.correct_index])
+        : 'Official Key';
+
+      var firstExpLine = (q.explanation || '').split('\n')[0] || '';
+
+      return (
+        '<div class="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-rose-300 dark:border-rose-500/30 flex flex-col gap-3 text-xs shadow-xs">' +
+          
+          '<!-- Top Header -->' +
+          '<div class="flex items-center justify-between gap-2 flex-wrap">' +
+            '<div class="flex items-center gap-2">' +
+              '<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-700 dark:text-rose-400 font-bold font-mono text-[10px]">Mark Leak (-0.66)</span>' +
+              '<span class="font-bold text-slate-800 dark:text-slate-300">' + escapeHtml(q.subject || 'GS-1') + ' (' + q.year + ')</span>' +
+              (q.sub_topic ? '<span class="text-slate-500 dark:text-slate-400 text-[10px]">· ' + escapeHtml(q.sub_topic) + '</span>' : '') +
+            '</div>' +
+            
+            '<button type="button" class="remove-mistake-gap-btn text-[11px] text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 cursor-pointer font-bold" data-qid="' + q.id + '">' +
+              'Remove Gap ✕' +
+            '</button>' +
+          '</div>' +
+
+          '<!-- Question statement -->' +
+          '<p class="font-medium text-slate-900 dark:text-slate-200 leading-relaxed line-clamp-3">' + escapeHtml(q.question_text) + '</p>' +
+
+          '<!-- Comparison: Your Pick vs Official Key -->' +
+          '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">' +
+            '<div class="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-800 dark:text-rose-300">' +
+              '<span class="font-bold block text-[10px] uppercase text-rose-600 dark:text-rose-400">Your Selection ✗:</span>' +
+              '<span class="line-clamp-2">' + escapeHtml(userPickText) + '</span>' +
+            '</div>' +
+            '<div class="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-300">' +
+              '<span class="font-bold block text-[10px] uppercase text-emerald-600 dark:text-emerald-400">Official UPSC Key ✓:</span>' +
+              '<span class="line-clamp-2">' + escapeHtml(correctText) + '</span>' +
+            '</div>' +
+          '</div>' +
+
+          '<!-- 10-Minute Micro-Correction Generator Box -->' +
+          '<div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col gap-1.5">' +
+            '<div class="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 font-bold text-[11px] uppercase font-mono">' +
+              '<span>⚡</span> 10-Minute Active Micro-Correction' +
+            '</div>' +
+            '<p class="text-amber-900 dark:text-amber-100 text-[11px] leading-relaxed">' +
+              '<strong>Factual Distinction:</strong> ' + escapeHtml(firstExpLine || q.explanation) +
+            '</p>' +
+            (q.standard_book_ref ? '<span class="text-[10px] text-amber-700 dark:text-amber-300 font-mono">📖 ' + escapeHtml(q.standard_book_ref) + '</span>' : '') +
+          '</div>' +
+
+          '<!-- Remedial Action Bar -->' +
+          '<div class="flex items-center justify-between pt-1 border-t border-slate-200 dark:border-slate-900">' +
+            '<button type="button" class="test-mistake-recall-btn px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs cursor-pointer flex items-center gap-1" data-qid="' + q.id + '">' +
+              '<span>🎯 Test Active Recall in Focus Mode</span>' +
+            '</button>' +
+            '<span class="text-[10px] text-slate-500">Correct attempt auto-clears this gap</span>' +
+          '</div>' +
+
+        '</div>'
+      );
+    }).join('');
+
+    // Remove single mistake
+    container.querySelectorAll('.remove-mistake-gap-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        var qId = e.currentTarget.getAttribute('data-qid');
+        STATE.mistakes.delete(qId);
+        persistState();
+        renderMistakesModal();
+        updateDashboardActivity();
+        showToast('Gap removed from notebook.');
+      });
+    });
+
+    // Test active recall in focus player
+    container.querySelectorAll('.test-mistake-recall-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        var qId = e.currentTarget.getAttribute('data-qid');
+        var question = STATE.pyqs.find(function (item) { return item.id === qId; });
+        if (question) {
+          window.closeMistakesModal();
+          window.startPracticeWithSingleQuestion(question);
+        }
+      });
+    });
+  }
+
+  // 1-Click Mistakes Flash-Sheet Generator & Print
+  function generateAndPrintFlashSheet() {
+    var mistakeQuestions = STATE.pyqs.filter(function (q) {
+      return STATE.mistakes.has(q.id);
+    });
+
+    if (mistakeQuestions.length === 0) {
+      showToast('No mistakes logged to export! Great job maintaining accuracy.');
+      return;
+    }
+
+    var printContainer = document.getElementById('printFlashSheetContainer');
+    if (!printContainer) return;
+
+    var letters = ['A', 'B', 'C', 'D'];
+    var dateStr = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+
+    printContainer.innerHTML = (
+      '<div style="padding: 24px; font-family: ui-sans-serif, system-ui, sans-serif; color: #0f172a; max-width: 800px; margin: 0 auto;">' +
+        '<div style="border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 20px;">' +
+          '<h1 style="font-size: 20px; font-weight: 900; margin: 0; color: #0f172a;">CookedMains UPSC Prelims 10-Minute Micro-Correction Flash-Sheet</h1>' +
+          '<div style="display: flex; justify-content: space-between; font-size: 11px; color: #475569; margin-top: 6px;">' +
+            '<span>Target: Active Recall &amp; 100% Mark Leak Recovery</span>' +
+            '<span>Generated: ' + dateStr + ' · ' + mistakeQuestions.length + ' High-Yield Gaps</span>' +
+          '</div>' +
+        '</div>' +
+
+        '<div style="display: flex; flex-direction: column; gap: 16px;">' +
+          mistakeQuestions.map(function (q, idx) {
+            var correctOpt = (q.options && q.correct_index !== undefined)
+              ? ('Option (' + letters[q.correct_index] + '): ' + q.options[q.correct_index])
+              : 'Official Key';
+            var firstLine = (q.explanation || '').split('\n')[0] || '';
+
+            return (
+              '<div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; page-break-inside: avoid;">' +
+                '<div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: bold; color: #64748b; margin-bottom: 6px;">' +
+                  '<span>GAP #' + (idx + 1) + ' · ' + escapeHtml(q.subject || 'GS') + ' (' + q.year + ')' + (q.sub_topic ? ' · ' + escapeHtml(q.sub_topic) : '') + '</span>' +
+                  '<span style="color: #b91c1c;">Mark Penalty: -0.66</span>' +
+                '</div>' +
+                '<p style="font-size: 12px; font-weight: 600; margin: 0 0 8px 0; line-height: 1.4;">' + escapeHtml(q.question_text) + '</p>' +
+                '<div style="background: #f1f5f9; padding: 8px; border-radius: 6px; font-size: 11px; margin-bottom: 6px;">' +
+                  '<strong>Official UPSC Answer Key:</strong> ' + escapeHtml(correctOpt) +
+                '</div>' +
+                '<div style="background: #fffbeb; border-left: 3px solid #f59e0b; padding: 8px; font-size: 11px;">' +
+                  '<strong>⚡ Micro-Correction Active Recall Fact:</strong> ' + escapeHtml(firstLine || q.explanation) +
+                  (q.standard_book_ref ? '<br><span style="color: #b45309; font-size: 10px;">📖 Reference: ' + escapeHtml(q.standard_book_ref) + '</span>' : '') +
+                '</div>' +
+              '</div>'
+            );
+          }).join('') +
+        '</div>' +
+
+        '<div style="margin-top: 24px; padding-top: 12px; border-top: 1px solid #cbd5e1; font-size: 10px; color: #94a3b8; text-align: center;">' +
+          'CookedMains Radar · UPSC CSE Prelims &amp; Mains Integrated Forensic Engine' +
+        '</div>' +
+      '</div>'
+    );
+
+    window.print();
+  }
+
   function setupListeners() {
     // Mobile Sidebar Drawer
     const openSideBtn = document.getElementById('openMobileSidebarBtn');
@@ -1507,16 +2287,36 @@
       toggleSidebar(false);
     });
     document.getElementById('sideNavMistakes')?.addEventListener('click', function () {
+      window.openMistakesModal();
+      toggleSidebar(false);
+    });
+
+    document.getElementById('closeMistakesModalBtn')?.addEventListener('click', window.closeMistakesModal);
+    document.getElementById('startMistakesPracticeBtn')?.addEventListener('click', function () {
       const mistakeList = STATE.pyqs.filter(function (q) { return STATE.mistakes.has(q.id); });
       if (mistakeList.length === 0) {
         showToast('No mistakes logged yet! Solve questions to track errors.');
         return;
       }
+      window.closeMistakesModal();
       STATE.playerQuestions = mistakeList;
       STATE.playerIndex = 0;
+      STATE.isExamMode = false;
+      STATE.isReviewMode = false;
+      STATE.currentTest = null;
       switchViewMode('player');
-      toggleSidebar(false);
     });
+
+    document.getElementById('exportMistakesFlashSheetBtn')?.addEventListener('click', generateAndPrintFlashSheet);
+    document.getElementById('clearAllMistakesBtn')?.addEventListener('click', function () {
+      STATE.mistakes.clear();
+      persistState();
+      renderMistakesModal();
+      updateDashboardActivity();
+      showToast('All mistakes cleared.');
+    });
+
+    const oldMistakesBlock = null;
 
     // Theme & Lang
     document.getElementById('sidebarThemeToggle')?.addEventListener('click', toggleTheme);

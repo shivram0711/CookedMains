@@ -242,6 +242,26 @@
       background-color: #fffbeb !important;
     }
 
+    /* Print Styles for 1-Click Mistakes Flash-Sheet */
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #printFlashSheetContainer,
+      #printFlashSheetContainer * {
+        visibility: visible !important;
+      }
+      #printFlashSheetContainer {
+        display: block !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+      }
+    }
+
     /* Statement Slicer Crossed Out Style */
     .stmt-sliced {
       text-decoration: line-through;
@@ -780,7 +800,38 @@
               </button>
             </div>
 
-<!-- Today's Activity Card -->
+<!-- Sub-Topic "Mark-Bleed" Heatmap Card -->
+            <div id="subTopicHeatmapCard" class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col gap-3">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🔥</span>
+                  <h3 class="text-xs font-extrabold text-white uppercase tracking-wider">Sub-Topic "Mark-Bleed" Heatmap</h3>
+                </div>
+                <span id="heatmapThemesCountBadge" class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 text-[10px] font-black font-mono">0 Themes Logged</span>
+              </div>
+
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                Pinpoints micro-themes where negative penalties (-0.66) are leaking marks so you stop over-revising strong areas.
+              </p>
+
+              <!-- Priority Fix Advice Box -->
+              <div id="heatmapAdviceBox" class="hidden p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs flex flex-col gap-2">
+                <p id="heatmapAdviceText" class="text-rose-800 dark:text-rose-300 text-[11px] leading-relaxed"></p>
+                <button type="button" id="heatmapDrillGapBtn" class="px-3 py-1.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs shadow-xs transition-all cursor-pointer self-start flex items-center gap-1">
+                  <span>🎯 Drill This Gap in Focus Mode</span>
+                  <span>→</span>
+                </button>
+              </div>
+
+              <!-- Heatmap Themes List -->
+              <div id="subTopicHeatmapList" class="flex flex-col gap-2 max-h-56 overflow-y-auto pr-1">
+                <div class="p-3 text-center text-xs text-slate-500 bg-slate-950/60 rounded-xl border border-slate-800/60">
+                  Solve questions to generate your personalized micro-theme accuracy heatmap.
+                </div>
+              </div>
+            </div>
+
+            <!-- Today's Activity Card -->
             <div class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col gap-3.5 shadow-lg">
               <h3 class="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold">
                 TODAY'S ACTIVITY
@@ -1181,6 +1232,11 @@
             <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col gap-2 text-xs leading-relaxed text-slate-300">
               <span class="font-bold text-white text-sm">Official UPSC Forensic Breakdown:</span>
               <p id="playerExplanationText" class="whitespace-pre-line"></p>
+            </div>
+
+            <!-- Option-by-Option Distractor Deep Dive -->
+            <div id="playerDistractorDeepDiveBox" class="flex flex-col gap-2.5">
+              <!-- Dynamically populated distractor analysis cards -->
             </div>
 
             <!-- 4-Pill Behavioral Mistake Tagger -->
@@ -1742,6 +1798,63 @@
 
     </div>
   </div>
+
+  <!-- ========================================================
+       MODAL: 10-MINUTE MICRO-CORRECTION GENERATOR & MISTAKES NOTEBOOK
+       ======================================================== -->
+  <div id="mistakesNotebookModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
+    <div class="light-card w-full max-w-3xl rounded-3xl bg-slate-900 border-2 border-amber-500/40 shadow-2xl p-6 sm:p-7 flex flex-col gap-5 my-8">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between border-b border-slate-800 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center text-2xl font-black shrink-0">
+            📓
+          </div>
+          <div class="flex flex-col">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="text-lg font-black text-white">Mistakes Notebook &amp; 10-Min "Micro-Correction" Generator</h3>
+              <span id="modalMistakesCountBadge" class="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-black uppercase font-mono">0 Gaps Logged</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Self-clearing remedial hub: master the missing conceptual link for questions you got wrong to permanently delete them.
+            </p>
+          </div>
+        </div>
+
+        <button type="button" id="closeMistakesModalBtn" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer text-lg font-bold">
+          ✕
+        </button>
+      </div>
+
+      <!-- Action Control Bar -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs">
+        <div class="flex items-center gap-2 flex-wrap">
+          <button type="button" id="startMistakesPracticeBtn" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black shadow-md transition-all cursor-pointer flex items-center gap-1.5">
+            <span>⚡ 1-Click Practice Mistakes</span>
+            <span>(Focus Player)</span>
+          </button>
+          <button type="button" id="exportMistakesFlashSheetBtn" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold border border-slate-700 transition-all cursor-pointer flex items-center gap-1.5">
+            <span>🖨️ Export 10-Min Flash-Sheet</span>
+            <span>(PDF / Print)</span>
+          </button>
+        </div>
+
+        <button type="button" id="clearAllMistakesBtn" class="text-xs font-bold text-rose-400 hover:text-rose-300 transition-colors cursor-pointer self-start sm:self-auto">
+          Clear All Mistakes 🗑️
+        </button>
+      </div>
+
+      <!-- Mistakes Cards Feed -->
+      <div id="modalMistakesContainer" class="flex flex-col gap-3.5 max-h-[60vh] overflow-y-auto pr-1">
+        <!-- Dynamically rendered via renderMistakesModal() -->
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Hidden Container for Printable 1-Click Flash-Sheet -->
+  <div id="printFlashSheetContainer" class="hidden"></div>
 
 </body>
 </html>
