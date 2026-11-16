@@ -2470,5 +2470,725 @@
       "question": "Explain the origin, trajectory, and agricultural significance of Western Disturbances for northern India's food security. (10M)",
       "paper": "GS1"
     }
+  },
+  {
+    "id": "2011-pol-01",
+    "year": 2011,
+    "subject": "Polity & Governance",
+    "sub_topic": "Right to Education & Fundamental Rights",
+    "difficulty": "Moderate",
+    "question_text": "Under the Constitution of India, which one of the following is not a fundamental duty?",
+    "options": [
+      "To vote in public elections",
+      "To develop the scientific temper and spirit of inquiry",
+      "To safeguard public property and abjure violence",
+      "To abide by the Constitution and respect its ideals"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2011 Key",
+    "explanation": "• Article 51A does not list voting in public elections as a fundamental duty. The Swaran Singh Committee had recommended making voting a fundamental duty, but it was not accepted by Parliament in the 42nd Constitutional Amendment Act, 1976.",
+    "standard_book_ref": "M. Laxmikanth, Indian Polity, Chapter on Fundamental Duties",
+    "elimination_trap": "Civic Duty vs Constitutional Duty: Voting is a civic duty/legal right under RPA 1951, but NOT an Article 51A Fundamental Duty.",
+    "mains_linkage": {
+      "question": "Critically analyze the enforceability of Fundamental Duties under Article 51A. (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2011-eco-02",
+    "year": 2011,
+    "subject": "Economy",
+    "sub_topic": "Inflation & RBI Monetary Levers",
+    "difficulty": "Moderate",
+    "question_text": "A rapid increase in the rate of inflation is sometimes attributed to the 'base effect'. What is 'base effect'?",
+    "options": [
+      "It is the impact of the drastic deficiency in supply due to failure of crops",
+      "It is the surge in demand due to rapid economic growth and liquidity expansion",
+      "It is the impact of the price levels of previous year on the calculation of inflation rate",
+      "It is the distortion in CPI caused by changes in dietary consumption baskets"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2011 Key",
+    "explanation": "• The base effect refers to the impact of the price level of the corresponding period in the previous year on the computation of current year-on-year inflation rate. If the base period had an unusually low price level, even a moderate price rise shows up as a high inflation rate.",
+    "standard_book_ref": "Ramesh Singh, Indian Economy, Chapter on Inflation and Business Cycle",
+    "elimination_trap": "Base effect is a purely statistical/arithmetic artifact of the denominator, not a real physical supply shortage.",
+    "mains_linkage": {
+      "question": "Explain how statistical base effects influence monetary policy decisions of the RBI Monetary Policy Committee. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2011-env-03",
+    "year": 2011,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Biodiversity Hotspots & Western Ghats",
+    "difficulty": "Moderate",
+    "question_text": "Biodiversity forms the basis for human existence in the following ways:\n1. Soil formation\n2. Prevention of soil erosion\n3. Recycling of waste\n4. Pollination of crops\nWhich of the statements given above are correct?",
+    "options": [
+      "1, 2 and 3 only",
+      "2, 3 and 4 only",
+      "1 and 4 only",
+      "1, 2, 3 and 4"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2011 Key",
+    "explanation": "• Millennium Ecosystem Assessment highlights that biodiversity provides provisioning, regulating, supporting, and cultural services: soil formation, nutrient cycling, prevention of soil erosion, and pollination are all fundamental ecological services.",
+    "standard_book_ref": "Shankar IAS Environment, Chapter on Biodiversity and Ecological Services",
+    "elimination_trap": "Over-elimination trap: All 4 are core supporting and regulating ecosystem services.",
+    "mains_linkage": {
+      "question": "Evaluate the economic value of ecosystem services in the context of national natural capital accounting. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2012-pol-04",
+    "year": 2012,
+    "subject": "Polity & Governance",
+    "sub_topic": "Preamble & Constitutional Philosophy",
+    "difficulty": "Moderate",
+    "question_text": "Which of the following are the objectives stated in the Preamble to the Constitution of India?\n1. Liberty of thought\n2. Liberty of expression\n3. Liberty of belief\n4. Economic liberty\nSelect the correct answer using the code given below:",
+    "options": [
+      "1, 2 and 3 only",
+      "2 and 4 only",
+      "1, 3 and 4 only",
+      "1, 2, 3 and 4"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2012 Key",
+    "explanation": "• The Preamble secures to all citizens: 'LIBERTY of thought, expression, belief, faith and worship'. Notice that 'Economic' is associated with JUSTICE (Social, Economic and Political), NOT with Liberty.",
+    "standard_book_ref": "Constitution of India, Text of the Preamble • M. Laxmikanth, Indian Polity",
+    "elimination_trap": "Word substitution trap: Preamble mentions 'Economic Justice', NOT 'Economic Liberty'.",
+    "mains_linkage": {
+      "question": "Discuss how the ideals enshrined in the Preamble guide judicial review of legislative enactments. (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2012-env-05",
+    "year": 2012,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Ramsar Wetlands & National Parks",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following protected areas:\n1. Bandipur\n2. Bhitarkanika\n3. Manas\n4. Sunderbans\nWhich of the above are declared Tiger Reserves?",
+    "options": [
+      "1 and 2 only",
+      "1, 3 and 4 only",
+      "2, 3 and 4 only",
+      "1, 2, 3 and 4"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2012 Key",
+    "explanation": "• Bandipur (Karnataka), Manas (Assam), and Sunderbans (West Bengal) are Project Tiger reserves. Bhitarkanika (Odisha) is a National Park and Ramsar wetland famous for saltwater crocodiles and Olive Ridley turtles, but NOT a designated Tiger Reserve.",
+    "standard_book_ref": "National Tiger Conservation Authority (NTCA) Database • Shankar IAS Environment",
+    "elimination_trap": "Bhitarkanika is famous for crocodiles and mangroves; eliminating 2 immediately gives option B.",
+    "mains_linkage": {
+      "question": "Evaluate the 50-year legacy of Project Tiger in conserving umbrella species and restoring contiguous ecological corridors in India. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2012-eco-06",
+    "year": 2012,
+    "subject": "Economy",
+    "sub_topic": "National Income & GDP Deflator",
+    "difficulty": "Moderate",
+    "question_text": "Economic growth in country X will necessarily have to occur if:",
+    "options": [
+      "there is technical progress in the world economy",
+      "there is population growth in X",
+      "there is capital formation in X",
+      "the volume of trade grows in the world economy"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2012 Key",
+    "explanation": "• Capital formation (investment in physical infrastructure, plant, machinery, and equipment) directly increases the productive capacity of an economy, necessarily leading to economic growth (Harrod-Domar growth formulation).",
+    "standard_book_ref": "NCERT Class XII Macroeconomics • Ramesh Singh, Indian Economy",
+    "elimination_trap": "Population growth without capital accumulation can reduce per capita income. Capital formation is the necessary domestic catalyst.",
+    "mains_linkage": {
+      "question": "Distinguish between Gross Fixed Capital Formation (GFCF) and consumption-led growth in post-pandemic India. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2013-his-07",
+    "year": 2013,
+    "subject": "History & Culture",
+    "sub_topic": "Buddhism & Jainism Doctrines",
+    "difficulty": "Moderate",
+    "question_text": "Which of the following statements is/are applicable to Jaina doctrine?\n1. The surest way of annihilating Karma is to practice penance.\n2. Every object, even the smallest particle, has a soul.\n3. Karma is the bane of the soul and must be ended.\nSelect the correct answer using the codes given below:",
+    "options": [
+      "1 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2013 Key",
+    "explanation": "• Jainism emphasizes that karma is a physical substance (pudgala) that adheres to the jiva (soul). Rigorous penance and asceticism burn past karma (nirjara), preventing inflow of new karma (samvara). Jainism also attributes souls (jiva) to all living beings, stones, water, and fire (panchabhuta).",
+    "standard_book_ref": "A.L. Basham, The Wonder That Was India • NCERT Class XI Ancient India",
+    "elimination_trap": "Pan-psychism is distinctive to Jainism: even inanimate matter and elements possess souls.",
+    "mains_linkage": {
+      "question": "Compare the metaphysical doctrines of anatta in Buddhism with jiva in Jainism. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2014-pol-08",
+    "year": 2014,
+    "subject": "Polity & Governance",
+    "sub_topic": "Cabinet System & Collective Responsibility",
+    "difficulty": "Moderate",
+    "question_text": "There is a Parliamentary System of Government in India because the:",
+    "options": [
+      "Lok Sabha is elected directly by the people",
+      "Parliament can amend the Constitution",
+      "Rajya Sabha cannot be dissolved",
+      "Council of Ministers is responsible to the Lok Sabha"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2014 Key",
+    "explanation": "• The hallmark and defining essence of a Parliamentary System (Westminster model) is the collective responsibility of the Executive (Council of Ministers) to the Legislature (specifically the Lok Sabha under Article 75(3)).",
+    "standard_book_ref": "M. Laxmikanth, Indian Polity, Chapter on Parliamentary System",
+    "elimination_trap": "Direct election (Option A) exists in Presidential systems too (e.g. USA). The cardinal test is executive accountability to the legislature.",
+    "mains_linkage": {
+      "question": "Assess how individual ministerial responsibility complements collective responsibility in contemporary Indian parliamentary democracy. (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2015-eco-09",
+    "year": 2015,
+    "subject": "Economy",
+    "sub_topic": "Monetary Policy & SLR / CRR",
+    "difficulty": "Moderate",
+    "question_text": "When the Reserve Bank of India reduces the Statutory Liquidity Ratio (SLR) by 50 basis points, which of the following is likely to happen?",
+    "options": [
+      "India's GDP growth rate increases drastically",
+      "Foreign Institutional Investors may bring more capital into our country",
+      "Scheduled Commercial Banks may cut their lending rates",
+      "It may drastically reduce the liquidity to the banking system"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2015 Key",
+    "explanation": "• Lowering the SLR frees up bank funds that were mandatorily locked in government securities. Banks now have more loanable funds, which increases credit supply and exerts downward pressure on lending interest rates.",
+    "standard_book_ref": "Reserve Bank of India Monetary Policy Framework • Ramesh Singh, Indian Economy",
+    "elimination_trap": "Extreme word trap: Words like 'drastically' (Options A & D) are classic UPSC wrong option indicators.",
+    "mains_linkage": {
+      "question": "Evaluate the monetary transmission mechanism in India under the External Benchmark Lending Rate (EBLR) regime. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2016-sct-10",
+    "year": 2016,
+    "subject": "Science & Technology",
+    "sub_topic": "Gravitational Waves & LIGO",
+    "difficulty": "Moderate",
+    "question_text": "What is the purpose of the 'Evolved Laser Interferometer Space Antenna' (eLISA) project?",
+    "options": [
+      "To detect neutrinos emitted from stellar explosions",
+      "To detect gravitational waves in outer space",
+      "To detect the presence of water on exoplanets",
+      "To measure solar magnetic field variations"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2016 Key",
+    "explanation": "• eLISA (LISA) is a European Space Agency (ESA) mission in collaboration with NASA designed to detect and measure gravitational waves from astrophysical sources in the low-frequency band (0.1 mHz to 1 Hz) using space-based laser interferometry.",
+    "standard_book_ref": "ESA Science Missions • The Hindu Science & Tech Section",
+    "elimination_trap": "Gravitational Waves vs Neutrinos: Earth-based LIGO and space-based LISA are dedicated to Einsteinian Gravitational Waves.",
+    "mains_linkage": {
+      "question": "Discuss the significance of gravitational wave astronomy in probing the early universe and black hole mergers. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2017-geo-11",
+    "year": 2017,
+    "subject": "Geography",
+    "sub_topic": "Monsoon & Indian Ocean Dipole (IOD)",
+    "difficulty": "Hard",
+    "question_text": "With reference to 'Indian Ocean Dipole (IOD)' sometimes mentioned in the news while forecasting Indian monsoon, which of the following statements is/are correct?\n1. IOD phenomenon is characterized by a difference in sea surface temperature between tropical Western Indian Ocean and tropical Eastern Pacific Ocean.\n2. An IOD phenomenon can influence an El Nino's impact on the monsoon.\nSelect the correct answer using the code given below:",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2017 Key",
+    "explanation": "• Statement 1 is incorrect: IOD involves the difference in sea surface temperatures between the tropical Western Indian Ocean (near Arabian Sea/Africa) and the tropical Eastern Indian Ocean (south of Indonesia), NOT the Pacific Ocean.\n• Statement 2 is correct: A positive IOD can counteract and mitigate the drying effects of an El Niño on the Indian summer monsoon.",
+    "standard_book_ref": "NCERT Class XI Physical Geography • IMD Climate Forecasting Reports",
+    "elimination_trap": "Ocean swap trap: IOD is an INDIAN OCEAN phenomenon on both ends (Western vs Eastern Indian Ocean).",
+    "mains_linkage": {
+      "question": "Explain the interaction between the Indian Ocean Dipole (IOD) and El Niño-Southern Oscillation (ENSO) in determining Indian monsoon variability. (15M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2018-env-12",
+    "year": 2018,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Carbon Cycle & Blue Carbon",
+    "difficulty": "Moderate",
+    "question_text": "Which of the following statements are correct about 'Blue Carbon'?\n1. It is the carbon captured by coastal, aquatic and marine ecosystems.\n2. Mangroves, tidal marshes and seagrass meadows sequester significantly more carbon per unit area than terrestrial forests.",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2018 Key",
+    "explanation": "• Blue carbon refers to the carbon stored in coastal and marine ecosystems (mangroves, salt marshes, seagrasses). Due to anaerobic sediment conditions, these coastal wetlands sequester carbon at rates up to 10 times higher per hectare than mature tropical rainforests and store it for millennia.",
+    "standard_book_ref": "IUCN Blue Carbon Reports • Shankar IAS Environment",
+    "elimination_trap": "Terrestrial vs Marine sequestration: Marine sediment traps lack oxygen, preventing microbial decomposition and locking carbon for centuries.",
+    "mains_linkage": {
+      "question": "Discuss the potential of Blue Carbon initiatives in helping India achieve its Net Zero target by 2070. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2019-his-13",
+    "year": 2019,
+    "subject": "History & Culture",
+    "sub_topic": "Charter Act 1813 & British Colonial Policy",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following statements regarding the Charter Act of 1813:\n1. It ended the trade monopoly of the East India Company in India except for trade in tea and trade with China.\n2. It asserted the sovereignty of the British Crown over the Indian territories held by the Company.\n3. The revenues of India were now controlled by the British Parliament.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2019 Key",
+    "explanation": "• Statements 1 & 2 are correct: The Charter Act of 1813 abolished the Company's commercial monopoly except in tea and trade with China, and explicitly asserted Crown sovereignty over Indian possessions.\n• Statement 3 is incorrect: The revenues of India were brought under direct British Parliamentary control only after the Government of India Act 1858 (Crown rule), not 1813.",
+    "standard_book_ref": "Bipan Chandra, Modern India • Spectrum's A Brief History of Modern India",
+    "elimination_trap": "1813 vs 1858: Parliamentary control over Indian budget and revenue came post-1857 Revolt in the 1858 Act.",
+    "mains_linkage": {
+      "question": "Trace the constitutional evolution of parliamentary oversight over the East India Company from 1773 to 1858. (15M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2020-sct-14",
+    "year": 2020,
+    "subject": "Science & Technology",
+    "sub_topic": "CRISPR-Cas9 & Genetic Engineering",
+    "difficulty": "Moderate",
+    "question_text": "What is the Cas9 protein that is often mentioned in the news?",
+    "options": [
+      "A molecular scissors used in targeted gene editing",
+      "A biosensor used in the accurate detection of infectious pathogens",
+      "A gene that makes plants resistant to pest attacks",
+      "A structural protein used in biodegradable bioplastics synthesis"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2020 Key",
+    "explanation": "• Cas9 (CRISPR-associated protein 9) is an RNA-guided endonuclease enzyme that acts as 'molecular scissors' capable of cutting DNA strands at precise target locations specified by a guide RNA sequence.",
+    "standard_book_ref": "Nobel Prize in Chemistry 2020 Citation • NCERT Class XII Biotechnology",
+    "elimination_trap": "CRISPR is the guide sequence; Cas9 is the cutting enzyme (molecular scissors).",
+    "mains_linkage": {
+      "question": "Examine the ethical and regulatory concerns surrounding somatic vs germline gene editing using CRISPR-Cas9 in India. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2021-pol-15",
+    "year": 2021,
+    "subject": "Polity & Governance",
+    "sub_topic": "Article 32 & Writs Jurisdiction",
+    "difficulty": "Moderate",
+    "question_text": "With reference to the writs issued by the Courts in India, consider the following statements:\n1. Mandamus will not lie against a private individual or body unless it is entrusted with a public duty.\n2. Mandamus will not lie against a company even though it may be a Government Company.\n3. Any public-minded person can be a petitioner to move the Court for the writ of Quo-Warranto.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2021 Key",
+    "explanation": "• Statement 1 is correct: Mandamus lies to compel the performance of a public duty, not purely private contractual duties.\n• Statement 2 is incorrect: Mandamus CAN lie against a government company or statutory corporation performing sovereign/public functions.\n• Statement 3 is correct: For Quo-Warranto, the rule of locus standi is relaxed; any interested citizen can challenge the usurper of a public office.",
+    "standard_book_ref": "M. Laxmikanth, Indian Polity, Chapter on Fundamental Rights (Writs)",
+    "elimination_trap": "Locus standi relaxation: Unlike Habeas Corpus or Certiorari, Quo-Warranto can be invoked by any public-minded person.",
+    "mains_linkage": {
+      "question": "Compare the writ jurisdiction of the Supreme Court under Article 32 with that of High Courts under Article 226. (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2022-eco-16",
+    "year": 2022,
+    "subject": "Economy",
+    "sub_topic": "Inflation Indexed Bonds (IIBs)",
+    "difficulty": "Hard",
+    "question_text": "With reference to Inflation-Indexed Bonds (IIBs), consider the following statements:\n1. Government can reduce its coupon rates on its borrowing by way of IIBs.\n2. IIBs provide protection to the investors from uncertainty regarding inflation.\n3. The interest received as well as capital gains on IIBs are not taxable.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2022 Key",
+    "explanation": "• Statement 1 is correct: Because investors receive an explicit inflation adjustment, government can issue IIBs at a lower real coupon rate.\n• Statement 2 is correct: Both principal and coupon payments are indexed to inflation (CPI/WPI), safeguarding real returns.\n• Statement 3 is incorrect: Interest income and capital gains on IIBs are subject to normal tax laws; they are NOT completely tax-free.",
+    "standard_book_ref": "RBI Circulars on Capital Indexed Bonds & IIBs • Ramesh Singh, Indian Economy",
+    "elimination_trap": "Absolute tax exemption: Indian sovereign bonds rarely confer blanket tax immunity unless specified as 54EC capital gains bonds.",
+    "mains_linkage": {
+      "question": "Analyze how sovereign debt instruments like IIBs shield retail savers from negative real interest rates. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2023-env-17",
+    "year": 2023,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Invasive Species & Biodiversity Threats",
+    "difficulty": "Moderate",
+    "question_text": "Which one of the following is an invasive weed that has infested vast stretches of grasslands and forest landscapes across India?",
+    "options": [
+      "Prosopis juliflora",
+      "Lantana camara",
+      "Parthenium hysterophorus",
+      "All of the above"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2023 Key",
+    "explanation": "• Prosopis juliflora (Vilayati Kikar), Lantana camara (introduced as an ornamental shrub), and Parthenium hysterophorus (Congress grass) are among the most destructive invasive alien plant species in India, choking native flora in Western Ghats, Coromandel coast, and central deciduous forests.",
+    "standard_book_ref": "National Biodiversity Authority (NBA) Invasive Species Compendium • Shankar IAS",
+    "elimination_trap": "Over-elimination trap: Many students look for only Lantana, but all 3 are notorious high-profile invasive weeds.",
+    "mains_linkage": {
+      "question": "Discuss the threat posed by invasive alien species to India's endemic biodiversity and examine strategies for ecological restoration. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2024-sct-18",
+    "year": 2024,
+    "subject": "Science & Technology",
+    "sub_topic": "Space Missions & Aditya-L1",
+    "difficulty": "Moderate",
+    "question_text": "With reference to the Aditya-L1 mission launched by ISRO, consider the following statements:\n1. It is positioned in a halo orbit around the Lagrangian point 1 (L1) of the Sun-Earth system.\n2. A major advantage of the L1 point is that the satellite can view the Sun continuously without any occultation or eclipses.\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2024 Key",
+    "explanation": "• Both statements are correct: Aditya-L1 is stationed in a halo orbit around the first Lagrange point (L1), located approximately 1.5 million km from Earth towards the Sun. The halo orbit provides an uninterrupted view of the Sun without atmospheric interference or planetary eclipses.",
+    "standard_book_ref": "ISRO Official Mission Profile for Aditya-L1 • The Hindu Sci-Tech",
+    "elimination_trap": "Both statements are authentic textbook facts about ISRO's solar coronagraph mission.",
+    "mains_linkage": {
+      "question": "Highlight the scientific objectives of India's Aditya-L1 mission in understanding space weather and Coronal Mass Ejections (CMEs). (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2024-eco-19",
+    "year": 2024,
+    "subject": "Economy",
+    "sub_topic": "Fiscal Deficit & FRBM Targets",
+    "difficulty": "Moderate",
+    "question_text": "With reference to public debt in India, which of the following statements is/are correct?\n1. External debt constitutes more than 50% of the total public debt of the Central Government.\n2. Most of India's external debt is denominated in US Dollars.\nSelect the correct answer using the code given below:",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2024 Key",
+    "explanation": "• Statement 1 is incorrect: India's external debt is less than 5% of Central Government total public debt; India's sovereign debt is overwhelmingly domestic-rupee denominated.\n• Statement 2 is correct: Over 54% of India's total external debt (including commercial borrowings) is denominated in US Dollars, followed by the Indian Rupee and SDRs.",
+    "standard_book_ref": "Union Budget 2024-25 Debt Status Report • Economic Survey 2023-24",
+    "elimination_trap": "India's sovereign vulnerability is shielded because sovereign debt is almost entirely internal (domestic).",
+    "mains_linkage": {
+      "question": "Evaluate the sustainability of India's general government debt-to-GDP ratio in the light of FRBM fiscal glide path targets. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2025-pol-20",
+    "year": 2025,
+    "subject": "Polity & Governance",
+    "sub_topic": "Delimitation & 84th Constitutional Amendment",
+    "difficulty": "Hard",
+    "question_text": "With reference to the Delimitation Commission in India, consider the following statements:\n1. Orders of the Delimitation Commission cannot be challenged in any court of law.\n2. The 84th Constitutional Amendment Act froze the allocation of seats in Lok Sabha to States based on the 1971 Census until after 2026.\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2025 Key",
+    "explanation": "• Under Article 329(a) and Delimitation Act provisions, orders of the Delimitation Commission, once published in the Gazette, have the full force of law and cannot be questioned in any court.\n• The 84th Amendment Act, 2001 extended the seat freeze up to the first census taken after the year 2026.",
+    "standard_book_ref": "M. Laxmikanth, Indian Polity, Chapter on Parliament (Delimitation) • Delimitation Commission Act",
+    "elimination_trap": "Judicial review bar: Delimitation orders have sovereign finality to prevent electoral delays.",
+    "mains_linkage": {
+      "question": "Discuss the federal and demographic challenges associated with the upcoming post-2026 Delimitation exercise in India. (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2011-his-21",
+    "year": 2011,
+    "subject": "History & Culture",
+    "sub_topic": "Indus Valley Civilization & Urban Planning",
+    "difficulty": "Moderate",
+    "question_text": "Regarding the Indus Valley Civilization, consider the following statements:\n1. It was predominantly a secular civilization and the religious element, though present, did not dominate the scene.\n2. During this period, cotton was used for manufacturing textiles in India.\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2011 Key",
+    "explanation": "• Both statements are correct: The Harappan civilization lacked monumental temples or royal tombs (unlike Egypt or Mesopotamia), demonstrating a secular civic orientation. Cotton textiles found at Mohenjo-daro prove that cotton weaving was well developed in the subcontinent by 2500 BCE.",
+    "standard_book_ref": "Upinder Singh, A History of Ancient and Early Medieval India • NCERT Class XI Ancient India",
+    "elimination_trap": "Absence of grand temples does not mean absence of religion; rather, religious priests did not dominate the state.",
+    "mains_linkage": {
+      "question": "Analyze the municipal planning and civic water management systems of the Harappan civilization. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2011-geo-22",
+    "year": 2011,
+    "subject": "Geography",
+    "sub_topic": "Himalayan Rivers & Antecedent Drainage",
+    "difficulty": "Moderate",
+    "question_text": "Which of the following are the Himalayan rivers that existed even before the upliftment of the Himalayas (Antecedent Rivers)?\n1. Indus\n2. Brahmaputra\n3. Sutlej\n4. Ganga\nSelect the correct answer using the code given below:",
+    "options": [
+      "1, 2 and 3 only",
+      "2 and 4 only",
+      "1 and 3 only",
+      "1, 2, 3 and 4"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2011 Key",
+    "explanation": "• The Indus, Brahmaputra, and Sutlej are classic antecedent rivers that originated prior to the rise of the Himalayan ranges and maintained their southward courses by cutting deep gorges across the rising mountains. The Ganga and Yamuna originated later from Himalayan glaciers.",
+    "standard_book_ref": "NCERT Class XI Indian Physical Environment • Majid Husain Geography of India",
+    "elimination_trap": "Ganga originated from the Gangotri glacier AFTER the elevation of the Greater Himalayas.",
+    "mains_linkage": {
+      "question": "Explain the characteristics of antecedent drainage with special reference to the trans-Himalayan rivers. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2012-his-23",
+    "year": 2012,
+    "subject": "History & Culture",
+    "sub_topic": "Rowlatt Act & Jallianwala Bagh",
+    "difficulty": "Moderate",
+    "question_text": "The Rowlatt Act aimed at:",
+    "options": [
+      "compulsory economic support to war efforts",
+      "imprisonment without trial and summary procedures for trial",
+      "suppression of the Khilafat Movement",
+      "imposition of restrictions on freedom of the press"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2012 Key",
+    "explanation": "• The Anarchical and Revolutionary Crimes Act of 1919 (Rowlatt Act) authorized the British colonial government to detain any person suspected of terrorism or sedition for up to two years without trial, popularly denounced as 'no dalil, no vakil, no appeal'.",
+    "standard_book_ref": "Bipan Chandra, India's Struggle for Independence • Spectrum Modern India",
+    "elimination_trap": "Rowlatt Act targeted political subversion and revolutionary terrorism, not wartime economic war bonds.",
+    "mains_linkage": {
+      "question": "Discuss how the Rowlatt Satyagraha transformed Mahatma Gandhi into a truly national leader of the Indian mass struggle. (15M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2013-pol-24",
+    "year": 2013,
+    "subject": "Polity & Governance",
+    "sub_topic": "Money Bills & Article 110",
+    "difficulty": "Moderate",
+    "question_text": "What will follow if a Money Bill is substantially amended by the Rajya Sabha?",
+    "options": [
+      "The Lok Sabha may still proceed with the Bill, accepting or not accepting the recommendations of the Rajya Sabha",
+      "The Lok Sabha cannot consider the Bill further",
+      "The Lok Sabha may send the Bill to the Rajya Sabha for reconsideration",
+      "The President may call a joint sitting of both Houses to pass the Bill"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2013 Key",
+    "explanation": "• Under Article 109, the Lok Sabha has exclusive primacy over Money Bills. The Lok Sabha may either accept or reject all or any of the recommendations of the Rajya Sabha. There is NO provision for a joint sitting of Parliament in the case of a Money Bill.",
+    "standard_book_ref": "Constitution of India, Article 109 • M. Laxmikanth, Indian Polity",
+    "elimination_trap": "No joint sitting for Money Bills (Article 108 applies only to Ordinary and Financial Bills Type II).",
+    "mains_linkage": {
+      "question": "Critically analyze the role of the Speaker's certificate under Article 110(3) in classifying legislative enactments as Money Bills. (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2014-eco-25",
+    "year": 2014,
+    "subject": "Economy",
+    "sub_topic": "Current Account Deficit (CAD) & Balance of Payments",
+    "difficulty": "Moderate",
+    "question_text": "Which of the following constitute the Capital Account of the Balance of Payments in India?\n1. Foreign Loans (External Commercial Borrowings)\n2. Foreign Direct Investment\n3. Private Remittances\n4. Portfolio Investment\nSelect the correct answer using the codes given below:",
+    "options": [
+      "1, 2 and 4 only",
+      "1, 2, 3 and 4",
+      "2, 3 and 4 only",
+      "1 and 3 only"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2014 Key",
+    "explanation": "• Foreign Direct Investment (FDI), Foreign Portfolio Investment (FPI), and External Commercial Borrowings (loans) alter the foreign asset/liability position and form part of the Capital Account. Private remittances (invisibles) form part of the Current Account.",
+    "standard_book_ref": "NCERT Class XII Macroeconomics • Ramesh Singh, Balance of Payments Chapter",
+    "elimination_trap": "Remittances trap: Inflow of NRI remittances is a unilateral transfer under Current Account (Invisibles), NOT capital account.",
+    "mains_linkage": {
+      "question": "Examine the structural vulnerability of India's Current Account Deficit to global crude oil price shocks. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2015-geo-26",
+    "year": 2015,
+    "subject": "Geography",
+    "sub_topic": "Straits & Strategic Maritime Chokepoints",
+    "difficulty": "Moderate",
+    "question_text": "Which one of the following pairs of islands is separated from each other by the 'Ten Degree Channel'?",
+    "options": [
+      "Andaman and Nicobar",
+      "Nicobar and Sumatra",
+      "Maldives and Lakshadweep",
+      "Sumatra and Java"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2015 Key",
+    "explanation": "• The Ten Degree (10°) Channel in the Bay of Bengal separates the Andaman Islands (specifically Little Andaman) to the north from the Nicobar Islands (specifically Car Nicobar) to the south.",
+    "standard_book_ref": "Oxford Student Atlas for India • NCERT Class XI Physical Geography",
+    "elimination_trap": "Channel numbers: 8° Channel separates Minicoy & Maldives; 9° Channel separates Minicoy & Lakshadweep; 10° separates Andaman & Nicobar.",
+    "mains_linkage": {
+      "question": "Highlight the geo-strategic significance of the Andaman and Nicobar Islands in securing India's Indo-Pacific maritime interests. (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2016-pol-27",
+    "year": 2016,
+    "subject": "Polity & Governance",
+    "sub_topic": "Uniform Civil Code & Article 44",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following statements regarding the Directive Principles of State Policy (DPSP):\n1. The Principles spell out the socio-economic democracy in the country.\n2. The provisions contained in these Principles are not enforceable by any court.\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2016 Key",
+    "explanation": "• Both statements are correct: Part IV DPSPs (Articles 36–51) aim to establish a welfare state and socio-economic democracy (unlike Fundamental Rights which establish political democracy). Article 37 explicitly states that DPSPs shall not be enforceable by any court, though they are fundamental in the governance of the country.",
+    "standard_book_ref": "Constitution of India, Article 37 • M. Laxmikanth, Indian Polity",
+    "elimination_trap": "Political vs Socio-economic democracy: Fundamental Rights guarantee political democracy; DPSPs establish socio-economic democracy.",
+    "mains_linkage": {
+      "question": "Evaluate the constitutional harmony between Fundamental Rights and Directive Principles in the post-Minerva Mills era. (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2017-env-28",
+    "year": 2017,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Wildlife Protection Act 1972 & Schedule Species",
+    "difficulty": "Moderate",
+    "question_text": "If a particular plant species is placed under Schedule VI of the Wildlife Protection Act, 1972, what is the implication?",
+    "options": [
+      "A licence is required to cultivate that plant",
+      "Such a plant cannot be cultivated under any circumstances",
+      "It is a Genetically Modified crop plant",
+      "Such a plant is invasive and harmful to the ecosystem"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2017 Key",
+    "explanation": "• Under Section 17A of the Wildlife (Protection) Act, 1972, no person shall cultivate specified plants listed in Schedule VI (e.g. Beddomes' cycad, Blue Vanda, Pitcher plant) except with a licence granted by the Chief Wildlife Warden.",
+    "standard_book_ref": "Wildlife (Protection) Act, 1972 Text • Shankar IAS Environment",
+    "elimination_trap": "Blanket prohibition trap: Cultivation is NOT completely banned under all circumstances; it is permissible with a statutory regulatory license.",
+    "mains_linkage": {
+      "question": "Analyze the amendments brought by the Wildlife (Protection) Amendment Act 2022 in rationalizing schedules and implementing CITES obligations. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2018-sct-29",
+    "year": 2018,
+    "subject": "Science & Technology",
+    "sub_topic": "Internet of Things & 5G Connectivity",
+    "difficulty": "Moderate",
+    "question_text": "When the term 'Internet of Things' (IoT) is used, which of the following applications does it signify?\n1. Remotely controlling home appliances\n2. Real-time traffic management using interconnected road sensors\n3. Smart grids regulating electricity distribution automatically\nSelect the correct answer using the code given below:",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2018 Key",
+    "explanation": "• The Internet of Things (IoT) encompasses interconnected physical computing devices and sensors communicating over networks without human intervention. Smart homes, intelligent transportation systems, and automated electrical smart grids are all core IoT use-cases.",
+    "standard_book_ref": "MeitY National Strategy for IoT • The Hindu Science & Tech",
+    "elimination_trap": "Ubiquitous technology: UPSC application questions on digital infrastructure (IoT, AI, 5G) rarely exclude practical real-world deployments.",
+    "mains_linkage": {
+      "question": "Discuss the cybersecurity vulnerabilities created by the proliferation of IoT devices in critical national infrastructure. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2019-eco-30",
+    "year": 2019,
+    "subject": "Economy",
+    "sub_topic": "Purchasing Power Parity & Exchange Rates",
+    "difficulty": "Moderate",
+    "question_text": "With reference to the Indian economy, consider the following statements:\n1. In terms of Purchasing Power Parity (PPP), India is the 3rd largest economy in the world.\n2. In nominal GDP terms, India has surpassed the $5 trillion threshold as of 2019.\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2019 Key",
+    "explanation": "• Statement 1 is correct: In Purchasing Power Parity (PPP) terms, India is the 3rd largest economy in the world behind China and the USA.\n• Statement 2 is incorrect: India's nominal GDP in 2019 was approximately $2.8 trillion, not $5 trillion.",
+    "standard_book_ref": "World Bank International Comparison Program • Economic Survey of India",
+    "elimination_trap": "Nominal GDP vs PPP: India ranks 5th in nominal terms, but 3rd in PPP terms.",
+    "mains_linkage": {
+      "question": "Evaluate the policy reforms required for India to transition from a $3.75 trillion economy to a $10 trillion economy by 2035. (15M)",
+      "paper": "GS3"
+    }
   }
 ]

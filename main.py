@@ -31,7 +31,7 @@ from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Any, Dict, Tuple, Set, Union
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request, BackgroundTasks, Response, Depends
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
+from fastapi.responses import JSONResponse, FileResponse, HTMLResponse, RedirectResponse
 import base64
 import tempfile
 import uuid
@@ -539,7 +539,7 @@ async def prelims_subject_page(subject_slug: str):
 @app.api_route("/roadmap", methods=["GET", "HEAD"])
 @app.api_route("/study-plan", methods=["GET", "HEAD"])
 async def planner_page():
-    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "planner.html"))
+    return RedirectResponse(url="/prelims", status_code=302)
 
 @app.api_route("/sitemap-prelims.xml", methods=["GET", "HEAD"])
 async def sitemap_prelims_xml():

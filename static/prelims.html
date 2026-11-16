@@ -243,10 +243,7 @@
 
         
 
-        <a href="/planner" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left">
-          <span class="text-base">🗺️</span>
-          <span id="sideLabelRoadmap">Syllabus Roadmap</span>
-        </a>
+        
 
         <!-- Section: PRELIMS -->
         <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold px-3 pt-4 pb-1">
@@ -259,6 +256,11 @@
             <span id="sideLabelMockTests">Adaptive Mock Tests</span>
           </div>
           <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 text-[9px] font-black uppercase">AI</span>
+        </button>
+
+        <button type="button" id="sideNavSearchMatrix" class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left cursor-pointer">
+          <span class="text-base">🔍</span>
+          <span>Topic Search &amp; Year Matrix</span>
         </button>
 
         <button type="button" id="sideNavPractice" class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left cursor-pointer">
@@ -294,10 +296,7 @@
           <span>Handwritten Copy Evaluation</span>
         </a>
 
-        <a href="/planner" class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left">
-          <span class="text-base">📦</span>
-          <span>Module Unlocks</span>
-        </a>
+        
 
       </nav>
     </div>
@@ -353,10 +352,7 @@
 
       <!-- Right Action Levers -->
       <div class="flex items-center gap-2 sm:gap-3">
-        <a href="/planner" class="hidden sm:flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all">
-          <span>🗺️</span>
-          <span>Syllabus Plan</span>
-        </a>
+        
 
         <a href="/" class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 transition-all shadow-md">
           <span>✍️</span>
@@ -403,6 +399,115 @@
               <span>EV Simulator</span>
             </button>
           </div>
+        </div>
+
+        
+        <!-- ====================================================
+             TOPIC SEARCH & 14-YEAR PYQ MATRIX WORKSPACE
+             ==================================================== -->
+        <div id="topicSearchMatrixSection" class="light-card p-6 sm:p-7 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col gap-5">
+          
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-xl shrink-0 font-black">
+                🔍
+              </div>
+              <div class="flex flex-col">
+                <h3 class="text-lg font-black text-white flex items-center gap-2">
+                  Global Topic Search &amp; 14-Year Matrix
+                  <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-black uppercase">2011–2026</span>
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">
+                  Search any specific topic or filter past UPSC questions by year and discipline.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span id="matrixMatchCountBadge" class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-xs font-mono font-bold">
+                103 Questions Found
+              </span>
+            </div>
+          </div>
+
+          <!-- Live Topic Search Input -->
+          <div class="relative w-full">
+            <input id="globalTopicSearchInput" type="text" placeholder="Search any topic, act, or keyword (e.g. Monetary Policy, Preamble, Wetlands, Governor, Inflation, CRISPR)..." class="light-input w-full pl-5 pr-12 py-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-slate-100 text-xs sm:text-sm font-semibold placeholder-slate-400 shadow-inner focus:outline-none focus:border-amber-500">
+            <button id="clearTopicSearchBtn" type="button" class="hidden absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer text-xs" title="Clear Search">
+              ✕
+            </button>
+          </div>
+
+          <!-- Quick Discovery Chips -->
+          <div class="flex items-center gap-2 flex-wrap text-xs font-bold">
+            <span class="text-slate-400 text-[10px] uppercase font-mono tracking-wider">High Yield:</span>
+            <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-300 transition-all cursor-pointer" data-kw="Preamble">🏛️ Preamble</button>
+            <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-300 transition-all cursor-pointer" data-kw="Monetary Policy">📈 Monetary Policy</button>
+            <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-300 transition-all cursor-pointer" data-kw="Wetland">🌿 Wetlands</button>
+            <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-300 transition-all cursor-pointer" data-kw="1857">📜 1857 Revolt</button>
+            <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-300 transition-all cursor-pointer" data-kw="River">🌍 River Basins</button>
+            <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-300 transition-all cursor-pointer" data-kw="CRISPR">🔬 CRISPR</button>
+            <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-300 transition-all cursor-pointer" data-kw="Article 21">⚖️ Article 21</button>
+            <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-300 transition-all cursor-pointer" data-kw="Inflation">🪙 Inflation</button>
+          </div>
+
+          <!-- 14-Year Matrix Filter Row -->
+          <div class="flex flex-col gap-1.5 pt-2 border-t border-slate-800">
+            <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">Filter By Year (2011–2026):</span>
+            <div id="matrixYearButtonGroup" class="flex items-center gap-1.5 flex-wrap text-xs">
+              <button type="button" class="matrix-year-btn px-3 py-1 rounded-xl bg-amber-500 text-slate-950 font-black cursor-pointer transition-all" data-year="all">All Years</button>
+              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2026">2026</button>
+              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2025">2025</button>
+              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2024">2024</button>
+              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2023">2023</button>
+              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2022">2022</button>
+              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2021">2021</button>
+              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2020">2020</button>
+              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2019">2019</button>
+              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2018">2018</button>
+              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2017">2017</button>
+              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2016">2016</button>
+              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2015">2015</button>
+              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2014">2014</button>
+              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2013">2013</button>
+              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2012">2012</button>
+              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2011">2011</button>
+            </div>
+          </div>
+
+          <!-- Subject Filter Pills Row -->
+          <div class="flex flex-col gap-1.5 pt-2 border-t border-slate-800">
+            <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">Filter By Subject:</span>
+            <div id="matrixSubjectButtonGroup" class="flex items-center gap-1.5 flex-wrap text-xs">
+              <button type="button" class="matrix-subj-btn px-3 py-1 rounded-xl bg-amber-500 text-slate-950 font-black cursor-pointer transition-all" data-subject="all">All Subjects</button>
+              <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all" data-subject="Polity">Polity &amp; Governance</button>
+              <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all" data-subject="Economy">Economy</button>
+              <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all" data-subject="Environment">Environment &amp; Ecology</button>
+              <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all" data-subject="History">History &amp; Culture</button>
+              <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all" data-subject="Geography">Geography</button>
+              <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all" data-subject="Science">Sci-Tech</button>
+            </div>
+          </div>
+
+          <!-- Header for Filtered Results -->
+          <div class="flex items-center justify-between pt-3 border-t border-slate-800">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-extrabold text-white">Matching Questions Feed</span>
+              <span id="matrixFeedStatusText" class="text-[11px] text-slate-400">Showing all questions</span>
+            </div>
+
+            <button type="button" id="solveAllFilteredBtn" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5">
+              <span>🎯</span>
+              <span>Solve Filtered Set in Focus Mode</span>
+              <span>→</span>
+            </button>
+          </div>
+
+          <!-- Filtered Questions List (Card Feed) -->
+          <div id="pyqSearchResultsContainer" class="flex flex-col gap-2.5 max-h-[550px] overflow-y-auto pr-1">
+            <!-- Dynamically populated question cards -->
+          </div>
+
         </div>
 
         <!-- 2-Column Dashboard Grid: Main Hub (8 Cols) + Right Activity (4 Cols) -->

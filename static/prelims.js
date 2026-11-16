@@ -19,6 +19,9 @@
     pyqs: [],
     activeSubject: 'all',
     activeYear: 'all',
+    matrixSearchQuery: '',
+    matrixSelectedYear: 'all',
+    matrixSelectedSubject: 'all',
     searchQuery: '',
     viewMode: 'dashboard', // 'dashboard' | 'player' | 'report'
     playerIndex: 0,
@@ -137,6 +140,7 @@
       if (breadcrumb) breadcrumb.textContent = 'Prelims Dashboard';
       updateDashboardActivity();
       renderDashboardMockHistory();
+    renderMatrixFeed();
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -179,6 +183,123 @@
     STATE.stagedSelection = null;
     switchViewMode('player');
   };
+
+  
+  // ==========================================================
+  // TOPIC SEARCH & 14-YEAR PYQ MATRIX ENGINE
+  // ==========================================================
+  function getFilteredMatrixQuestions() {
+    let list = STATE.pyqs.slice();
+
+    // Filter by year
+    if (STATE.matrixSelectedYear && STATE.matrixSelectedYear !== 'all') {
+      const yr = parseInt(STATE.matrixSelectedYear, 10);
+      list = list.filter(function (q) { return q.year === yr; });
+    }
+
+    // Filter by subject
+    if (STATE.matrixSelectedSubject && STATE.matrixSelectedSubject !== 'all') {
+      const subLower = STATE.matrixSelectedSubject.toLowerCase();
+      list = list.filter(function (q) {
+        return q.subject && q.subject.toLowerCase().indexOf(subLower) !== -1;
+      });
+    }
+
+    // Filter by search query
+    if (STATE.matrixSearchQuery && STATE.matrixSearchQuery.trim()) {
+      const qLower = STATE.matrixSearchQuery.toLowerCase().trim();
+      list = list.filter(function (q) {
+        const text = (q.question_text || '').toLowerCase();
+        const sub = (q.subject || '').toLowerCase();
+        const subTopic = (q.sub_topic || '').toLowerCase();
+        const exp = (q.explanation || '').toLowerCase();
+        return text.indexOf(qLower) !== -1 || sub.indexOf(qLower) !== -1 || subTopic.indexOf(qLower) !== -1 || exp.indexOf(qLower) !== -1;
+      });
+    }
+
+    return list;
+  }
+
+  function renderMatrixFeed() {
+    const container = document.getElementById('pyqSearchResultsContainer');
+    const badge = document.getElementById('matrixMatchCountBadge');
+    const statusText = document.getElementById('matrixFeedStatusText');
+    const clearBtn = document.getElementById('clearTopicSearchBtn');
+
+    if (!container) return;
+
+    if (clearBtn) {
+      if (STATE.matrixSearchQuery && STATE.matrixSearchQuery.trim()) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
+    }
+
+    const matches = getFilteredMatrixQuestions();
+
+    if (badge) badge.textContent = matches.length + ' Question' + (matches.length === 1 ? '' : 's') + ' Found';
+
+    if (statusText) {
+      let desc = [];
+      if (STATE.matrixSelectedYear !== 'all') desc.push('Year ' + STATE.matrixSelectedYear);
+      if (STATE.matrixSelectedSubject !== 'all') desc.push(STATE.matrixSelectedSubject);
+      if (STATE.matrixSearchQuery) desc.push('"' + STATE.matrixSearchQuery + '"');
+      statusText.textContent = desc.length > 0 ? ('Filtering: ' + desc.join(' · ')) : 'Showing all 1,280+ authentic questions';
+    }
+
+    if (matches.length === 0) {
+      container.innerHTML = (
+        '<div class="p-6 rounded-2xl bg-slate-950/60 border border-slate-800 text-center flex flex-col items-center gap-2">' +
+          '<span class="text-2xl">🔍</span>' +
+          '<span class="text-xs font-bold text-slate-300">No questions found matching your filter.</span>' +
+          '<span class="text-[11px] text-slate-500">Try searching another topic (e.g. "Monetary Policy", "Preamble", "Article 21") or select "All Years".</span>' +
+        '</div>'
+      );
+      return;
+    }
+
+    container.innerHTML = matches.map(function (q) {
+      const userAns = STATE.answers[q.id];
+      let statusBadge = '';
+      if (userAns) {
+        statusBadge = userAns.isCorrect 
+          ? '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">Solved Correct ✓</span>'
+          : '<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 text-[10px] font-bold">Mistake Logged ✗</span>';
+      }
+
+      return (
+        '<div class="matrix-q-item p-4 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-amber-500/60 transition-all flex flex-col gap-2.5 cursor-pointer group" data-qid="' + q.id + '">' +
+          '<div class="flex items-center justify-between text-xs flex-wrap gap-2">' +
+            '<div class="flex items-center gap-1.5 flex-wrap">' +
+              '<span class="px-2.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-mono font-bold">UPSC ' + (q.year || 'CSE') + '</span>' +
+              '<span class="px-2 py-0.5 rounded-lg bg-slate-800 text-slate-300 text-[10px] font-semibold">' + (q.subject || 'GS-1') + '</span>' +
+              (q.sub_topic ? ('<span class="px-2 py-0.5 rounded-lg bg-slate-800/60 text-slate-400 text-[10px]">' + escapeHtml(q.sub_topic) + '</span>') : '') +
+              statusBadge +
+            '</div>' +
+            '<span class="text-amber-400 text-xs font-bold group-hover:translate-x-1 transition-transform flex items-center gap-1">' +
+              '<span>Solve</span> <span>→</span>' +
+            '</span>' +
+          '</div>' +
+          '<p class="text-xs text-slate-200 line-clamp-2 leading-relaxed">' + escapeHtml(q.question_text) + '</p>' +
+        '</div>'
+      );
+    }).join('');
+
+    // Attach click to launch single question
+    container.querySelectorAll('.matrix-q-item').forEach(function (card) {
+      card.addEventListener('click', function (e) {
+        const qId = e.currentTarget.getAttribute('data-qid');
+        const qIdx = matches.findIndex(function (q) { return q.id === qId; });
+        STATE.playerQuestions = matches;
+        STATE.playerIndex = (qIdx !== -1 ? qIdx : 0);
+        STATE.isExamMode = false;
+        STATE.isReviewMode = false;
+        STATE.currentTest = null;
+        switchViewMode('player');
+      });
+    });
+  }
 
   // ==========================================================
   // PHASE 4: ADAPTIVE MOCK TEST GENERATOR ENGINE
@@ -1343,6 +1464,91 @@
       STATE.language = STATE.language === 'en' ? 'hi' : 'en';
       localStorage.setItem('cm_prelims_lang', STATE.language);
       showToast(STATE.language === 'hi' ? 'भाषा: हिंदी' : 'Language: English');
+    });
+
+    
+    // Topic Search & Matrix Listeners
+    const topicInput = document.getElementById('globalTopicSearchInput');
+    const clearTopicBtn = document.getElementById('clearTopicSearchBtn');
+
+    if (topicInput) {
+      topicInput.addEventListener('input', function (e) {
+        STATE.matrixSearchQuery = e.target.value.trim();
+        renderMatrixFeed();
+      });
+    }
+
+    if (clearTopicBtn) {
+      clearTopicBtn.addEventListener('click', function () {
+        if (topicInput) topicInput.value = '';
+        STATE.matrixSearchQuery = '';
+        renderMatrixFeed();
+      });
+    }
+
+    // Sidebar Search & Matrix Nav Link
+    document.getElementById('sideNavSearchMatrix')?.addEventListener('click', function () {
+      switchViewMode('dashboard');
+      toggleSidebar(false);
+      setTimeout(function () {
+        const sec = document.getElementById('topicSearchMatrixSection');
+        if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+        if (topicInput) topicInput.focus();
+      }, 100);
+    });
+
+    // Year Buttons
+    document.querySelectorAll('.matrix-year-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        const yr = e.currentTarget.getAttribute('data-year');
+        STATE.matrixSelectedYear = yr;
+        document.querySelectorAll('.matrix-year-btn').forEach(function (b) {
+          b.className = (b.getAttribute('data-year') === yr)
+            ? 'matrix-year-btn px-3 py-1 rounded-xl bg-amber-500 text-slate-950 font-black cursor-pointer transition-all'
+            : 'matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all';
+        });
+        renderMatrixFeed();
+      });
+    });
+
+    // Subject Buttons
+    document.querySelectorAll('.matrix-subj-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        const sub = e.currentTarget.getAttribute('data-subject');
+        STATE.matrixSelectedSubject = sub;
+        document.querySelectorAll('.matrix-subj-btn').forEach(function (b) {
+          b.className = (b.getAttribute('data-subject') === sub)
+            ? 'matrix-subj-btn px-3 py-1 rounded-xl bg-amber-500 text-slate-950 font-black cursor-pointer transition-all'
+            : 'matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all';
+        });
+        renderMatrixFeed();
+      });
+    });
+
+    // High-Yield Quick Chips
+    document.querySelectorAll('.matrix-chip-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        const kw = e.currentTarget.getAttribute('data-kw');
+        if (topicInput) topicInput.value = kw;
+        STATE.matrixSearchQuery = kw;
+        renderMatrixFeed();
+      });
+    });
+
+    // Solve All Filtered Button
+    document.getElementById('solveAllFilteredBtn')?.addEventListener('click', function () {
+      const matches = getFilteredMatrixQuestions();
+      if (matches.length === 0) {
+        showToast('No matching questions to solve.');
+        return;
+      }
+      STATE.playerQuestions = matches;
+      STATE.playerIndex = 0;
+      STATE.isExamMode = false;
+      STATE.isReviewMode = false;
+      STATE.currentTest = null;
+      switchViewMode('player');
+      showToast('🚀 Loaded ' + matches.length + ' questions into Focus Mode!');
     });
 
     // Subject Grid Cards
