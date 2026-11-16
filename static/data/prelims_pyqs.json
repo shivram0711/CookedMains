@@ -1078,5 +1078,1397 @@
       "question": "Examine the scientific mechanism and ethical dilemmas associated with mitochondrial replacement therapy (three-parent baby technology). (10M)",
       "paper": "GS3"
     }
+  },
+  {
+    "id": "2019-polity-01",
+    "year": 2019,
+    "subject": "Polity & Governance",
+    "sub_topic": "Ninth Schedule & Judicial Review",
+    "difficulty": "Moderate",
+    "question_text": "The Ninth Schedule was introduced in the Constitution of India during the prime ministership of:",
+    "options": [
+      "Jawaharlal Nehru",
+      "Lal Bahadur Shastri",
+      "Indira Gandhi",
+      "Morarji Desai"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2019 Key",
+    "explanation": "• The Ninth Schedule was added to the Constitution by the 1st Constitutional Amendment Act, 1951, under the Prime Ministership of Jawaharlal Nehru, to protect land reform laws from judicial review on the ground of violating Fundamental Rights.\n• In I.R. Coelho vs State of Tamil Nadu (2007), the Supreme Court ruled that laws placed in the 9th Schedule after April 24, 1973 (Kesavananda Bharati verdict) are open to judicial review if they violate the Basic Structure.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 3 (Salient Features of the Constitution) & Chapter 11 (Basic Structure) • 1st CAA 1951",
+    "elimination_trap": "Chronology Trap: Many assume 9th Schedule was created during the Emergency under Indira Gandhi; it was created in 1951 by Nehru for agrarian zamindari abolition.",
+    "mains_linkage": {
+      "question": "Examine the constitutional evolution of the Ninth Schedule from an absolute immunity shield to judicial review under the I.R. Coelho doctrine. (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2019-polity-02",
+    "year": 2019,
+    "subject": "Polity & Governance",
+    "sub_topic": "Constitutional Writs & Mandamus",
+    "difficulty": "Hard",
+    "question_text": "With reference to the Constitution of India, consider the following statements regarding the Writ of Mandamus:\n1. Mandamus will not lie against a private individual or body that does not have a public duty to perform.\n2. Mandamus can be issued by a High Court against the President of India or the Governor of a State in their official capacity.\n3. Mandamus lies against a commercial corporation that is not performing a statutory public obligation.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2019 Key",
+    "explanation": "• Statement 1 is correct: Mandamus ('we command') is issued to enforce a public or statutory duty; it does not lie against purely private persons/entities lacking public functions.\n• Statement 2 is incorrect: Under Article 361, Mandamus cannot be issued against the President of India or State Governors for the exercise and performance of their official powers.\n• Statement 3 is correct: If a commercial corporation is entrusted with a statutory public obligation, Mandamus lies to compel performance.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 7 (Fundamental Rights - Writs: Scope & Types) • Article 32 & 226",
+    "elimination_trap": "Constitutional Immunity Trap (Art. 361): President and Governors enjoy absolute immunity from writ of mandamus in their official capacities.",
+    "mains_linkage": {
+      "question": "Analyze the scope of prerogative writs under Article 32 and Article 226 in enforcing administrative accountability and protecting fundamental freedoms. (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2019-eco-03",
+    "year": 2019,
+    "subject": "Economy",
+    "sub_topic": "National Income & Purchasing Power Parity",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following statements regarding Purchasing Power Parity (PPP):\n1. In terms of Purchasing Power Parity (PPP) exchange rates, India is the third largest economy in the world.\n2. In terms of Nominal GDP in US Dollars, India is currently the third largest economy in the world.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2019 Key",
+    "explanation": "• Statement 1 is correct: In PPP terms, India is the 3rd largest economy in the world (behind China and the United States), as per IMF and World Bank data.\n• Statement 2 is incorrect: In nominal dollar GDP terms, India is the 5th largest economy (behind US, China, Germany, Japan), progressing towards 3rd.",
+    "standard_book_ref": "NCERT Class 12 Macroeconomics, Chapter 6 • Economic Survey (National Income Indicators)",
+    "elimination_trap": "PPP vs Nominal GDP: India is #3 in PPP terms due to low domestic price levels, but #5 in nominal market dollar terms.",
+    "mains_linkage": {
+      "question": "Explain the divergence between market exchange rate GDP and PPP-adjusted GDP in developing economies. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2019-eco-04",
+    "year": 2019,
+    "subject": "Economy",
+    "sub_topic": "Multilateral Banks & AIIB",
+    "difficulty": "Moderate",
+    "question_text": "With reference to the Asian Infrastructure Investment Bank (AIIB), consider the following statements:\n1. AIIB has more than 100 approved member countries across the world.\n2. India does not have any equity share or voting share in AIIB.\n3. AIIB does not have any members from outside the Asian continent.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2019 Key",
+    "explanation": "• Statement 1 is correct: AIIB has over 100 accredited member nations globally.\n• Statement 2 is incorrect: India is a founding member and the SECOND LARGEST shareholder in AIIB (after China) with ~7.6% voting share.\n• Statement 3 is incorrect: AIIB includes non-Asian non-regional members (UK, Germany, Canada, Australia, etc.).",
+    "standard_book_ref": "Economic Survey • International Financial Institutions (AIIB Charter)",
+    "elimination_trap": "Extreme Word ('does not have any non-Asian members'): AIIB is a global multilateral bank with members across Europe, Africa, and North America.",
+    "mains_linkage": {
+      "question": "Evaluate the role of the Asian Infrastructure Investment Bank (AIIB) in financing sustainable infrastructure and its strategic significance for India. (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2019-env-05",
+    "year": 2019,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Waste Governance & EPR",
+    "difficulty": "Easy",
+    "question_text": "The 'Extended Producer Responsibility' (EPR) was introduced as an important feature in which of the following regulations in India?",
+    "options": [
+      "The Bio-medical Waste (Management and Handling) Rules, 1998",
+      "The E-Waste (Management and Handling) Rules, 2011",
+      "The Hazardous and Other Wastes (Management and Transboundary Movement) Rules, 2016",
+      "The Coastal Regulation Zone Notification, 2011"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2019 Key",
+    "explanation": "• Extended Producer Responsibility (EPR) was formally mandated in India under the E-Waste (Management and Handling) Rules, 2011 (and reinforced in 2016/2022 and Plastic Waste Rules), holding manufacturers and brand owners accountable for collection, channelization, and end-of-life recycling.",
+    "standard_book_ref": "MoEFCC Environmental Rules • Shankar IAS (Solid & Electronic Waste)",
+    "elimination_trap": "Rule Association: EPR was first codified into Indian environmental law through electronic waste (E-Waste Rules 2011).",
+    "mains_linkage": {
+      "question": "Discuss the challenges in enforcing Extended Producer Responsibility (EPR) in the informal e-waste recycling sector in Indian urban clusters. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2019-env-06",
+    "year": 2019,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Nitrogen Cycle & Agriculture",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following statements regarding the release of Nitrogen into the environment:\n1. Agricultural soils release nitrogen oxides into the environment.\n2. Cattle and ruminant livestock release ammonia into the environment.\n3. Poultry industry releases reactive nitrogen compounds into the environment.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2019 Key",
+    "explanation": "• Statement 1 is correct: Nitrogen fertilizers in farm soils undergo microbial nitrification and denitrification, releasing nitrous oxide (N2O) and NOx.\n• Statement 2 is correct: Livestock manure and urine excrete urea which hydrolyzes into volatile ammonia (NH3).\n• Statement 3 is correct: Poultry manure contains high concentrations of uric acid, releasing ammonia and reactive nitrogen into air and water.",
+    "standard_book_ref": "Indian Nitrogen Assessment Report • NCERT Class 12 Biology (Ecosystems)",
+    "elimination_trap": "Broad Ecological Principle: In biogeochemical cycle questions, human/animal agricultural inputs almost universally emit trace reactive compounds across all three sectors.",
+    "mains_linkage": {
+      "question": "Nitrogen pollution is emerging as a silent planetary crisis. Assess the ecological impact of reactive nitrogen and suggest sustainable nutrient management practices. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2019-hist-07",
+    "year": 2019,
+    "subject": "History & Culture",
+    "sub_topic": "Modern India & Swadeshi Movement",
+    "difficulty": "Moderate",
+    "question_text": "With reference to the Swadeshi Movement, consider the following statements:\n1. It contributed to the revival of the indigenous artisan crafts and industries.\n2. The National Council of Education was established as a part of the Swadeshi Movement.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2019 Key",
+    "explanation": "• Both statements are correct:\n• Statement 1: The boycott of foreign textiles spurred domestic textile mills (e.g. Banga Lakshmi Cotton Mill), handloom weaving, soap, and match factories.\n• Statement 2: In August 1906, the National Council of Education (NCE) was established to organize a system of literary, scientific and technical education on national lines under national control (led by Satish Chandra Mukherjee, Aurobindo Ghosh).",
+    "standard_book_ref": "Bipin Chandra, India's Struggle for Independence, Chapter 10 • Spectrum Modern India",
+    "elimination_trap": "Educational Movement Link: National education (Bengal National College) was an integral wing of the Swadeshi struggle.",
+    "mains_linkage": {
+      "question": "How did the Swadeshi Movement mark a transition from moderate constitutional agitation to militant nationalism and self-reliance (Atmashakti)? (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2019-hist-08",
+    "year": 2019,
+    "subject": "History & Culture",
+    "sub_topic": "Colonial Enactments & Charter Act 1813",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following statements about 'the Charter Act of 1813':\n1. It ended the trade monopoly of the East India Company in India except for trade in tea and trade with China.\n2. It asserted the sovereignty of the British Crown over the Indian territories held by the Company.\n3. The revenues of India were now controlled by the British Parliament.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2019 Key",
+    "explanation": "• Statement 1 is correct: The Charter Act of 1813 stripped the EIC of commercial monopoly in India, opening it to private British merchants, keeping only tea trade and trade with China intact (which was later abolished in 1833).\n• Statement 2 is correct: It explicitly asserted Crown sovereignty over Indian territories.\n• Statement 3 is incorrect: The revenues of India were brought under direct parliamentary control only after the 1858 Government of India Act (Crown Rule), not in 1813.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 1 (Historical Background) • Spectrum Modern India",
+    "elimination_trap": "Direct Revenue Control: Direct parliamentary financial control happened after the 1857 Revolt in 1858, not in 1813.",
+    "mains_linkage": {
+      "question": "Examine the ideological and commercial motives behind the enactment of the Charter Act of 1813. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2019-geo-09",
+    "year": 2019,
+    "subject": "Geography",
+    "sub_topic": "World Geography & Marginal Seas",
+    "difficulty": "Moderate",
+    "question_text": "Which of the following countries does NOT border the Mediterranean Sea?",
+    "options": [
+      "Jordan",
+      "Syria",
+      "Lebanon",
+      "Israel"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2019 Key",
+    "explanation": "• Jordan is landlocked with respect to the Mediterranean Sea (it only has a narrow southern maritime outlet to the Gulf of Aqaba/Red Sea).\n• Syria, Lebanon, Israel, and Egypt directly border the Mediterranean Sea.",
+    "standard_book_ref": "Oxford School Atlas / Orient BlackSwan (Middle East Physical Map)",
+    "elimination_trap": "Levant Geography: Jordan is separated from the Mediterranean coast by Israel and the West Bank.",
+    "mains_linkage": {
+      "question": "Analyze the geopolitical significance of the Eastern Mediterranean basin in contemporary energy discoveries and trade routes. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2019-sct-10",
+    "year": 2019,
+    "subject": "Science & Technology",
+    "sub_topic": "Biotechnology & RNA Interference",
+    "difficulty": "Hard",
+    "question_text": "What is the importance of using 'RNA interference' (RNAi) technology?\n1. It is used in developing hormone replacement therapies.\n2. It can be used to produce crop plants that are resistant to viral and nematode pests.\n3. It is used for the treatment of cancer by silencing specific oncogenes.\n\nSelect the correct answer using the code given below:",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2019 Key",
+    "explanation": "• RNA interference (RNAi) is a biological mechanism in which double-stranded RNA triggers the targeted degradation/silencing of specific messenger RNA (mRNA) molecules.\n• Statement 2 is correct: Used in transgenic tobacco against nematode Meloidogyne incognita.\n• Statement 3 is correct: Used in oncology to selectively silence tumor-promoting oncogenes.\n• Statement 1 is incorrect: Hormone replacement therapy uses synthetic/purified hormones, not gene-silencing RNAi.",
+    "standard_book_ref": "NCERT Class 12 Biology, Chapter 12 (Biotechnology and its Applications)",
+    "elimination_trap": "Gene Silencing vs Hormone Addition: RNAi functions by SILENCING gene expression, not synthesizing hormone replacements.",
+    "mains_linkage": {
+      "question": "Explain the cellular mechanism of RNA interference (RNAi) and discuss its agricultural applications in sustainable pest management. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2018-polity-11",
+    "year": 2018,
+    "subject": "Polity & Governance",
+    "sub_topic": "Legislative Procedure & Money Bills",
+    "difficulty": "Moderate",
+    "question_text": "Regarding the Money Bill, which of the following statements is NOT correct?",
+    "options": [
+      "A bill shall be deemed to be a Money Bill if it contains only provisions relating to the imposition, abolition, remission, alteration or regulation of any tax.",
+      "A Money Bill has provisions for the custody of the Consolidated Fund of India or the Contingency Fund of India.",
+      "A Money Bill can be introduced in either House of Parliament.",
+      "The Speaker of the Lok Sabha endorses the bill as a Money Bill before transmitting it to the Rajya Sabha."
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2018 Key",
+    "explanation": "• Option C is incorrect (and hence the answer): Under Article 109(1), a Money Bill CANNOT be introduced in the Rajya Sabha; it can be introduced ONLY in the Lok Sabha with the prior recommendation of the President.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 22 (Parliament - Legislative Procedure in Parliament) • Article 109 & 110",
+    "elimination_trap": "Negative Question Trap ('is NOT correct'): Money bills can never originate in the Council of States (Rajya Sabha).",
+    "mains_linkage": {
+      "question": "The certification of bills as Money Bills has generated judicial controversy regarding parliamentary procedure. Discuss in the light of the Aadhaar judgment. (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2018-polity-12",
+    "year": 2018,
+    "subject": "Polity & Governance",
+    "sub_topic": "Fundamental Rights & Privacy",
+    "difficulty": "Easy",
+    "question_text": "The 'Right to Privacy' is protected as an intrinsic part of Life and Personal Liberty under which Article of the Constitution of India?",
+    "options": [
+      "Article 14",
+      "Article 19",
+      "Article 21",
+      "Article 29"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2018 Key",
+    "explanation": "• In the landmark nine-judge bench judgment in Justice K.S. Puttaswamy (Retd.) vs Union of India (2017), the Supreme Court held that the Right to Privacy is protected as a fundamental right under Article 21 and Part III.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 7 (Fundamental Rights - Article 21) • Puttaswamy (2017)",
+    "elimination_trap": "Direct Landmark Jurisprudence: Privacy is anchored directly in personal liberty under Article 21.",
+    "mains_linkage": {
+      "question": "Analyze the threefold test of legality, legitimate state aim, and proportionality laid down in the Puttaswamy privacy judgment. (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2018-eco-13",
+    "year": 2018,
+    "subject": "Economy",
+    "sub_topic": "Monetary Economics & Legal Tender",
+    "difficulty": "Easy",
+    "question_text": "Which of the following best describes the term 'Legal Tender Money'?",
+    "options": [
+      "The money which is tendered in courts of law to defray the fee of legal cases",
+      "The money which a creditor is under a legal obligation to accept in payment of debts",
+      "The bank money in the form of cheques, bank drafts and bills of exchange",
+      "The metallic money in circulation in a country"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2018 Key",
+    "explanation": "• Legal tender is sovereign fiat money (banknotes and coins issued by the central bank/government) which a creditor cannot legally refuse in settlement of financial transactions and debt claims.",
+    "standard_book_ref": "NCERT Class 12 Macroeconomics, Chapter 3 (Money and Banking) • Coinage Act 2011",
+    "elimination_trap": "Cheques Distractor: Cheques and drafts are 'Optional Money' / credit instruments; they can legally be refused and are NOT legal tender.",
+    "mains_linkage": {
+      "question": "Examine the economic implications of demonetization on the velocity of money and informal credit systems. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2018-eco-14",
+    "year": 2018,
+    "subject": "Economy",
+    "sub_topic": "Banking Regulation & Capital Adequacy",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following statements regarding 'Capital Adequacy Ratio' (CAR):\n1. Capital Adequacy Ratio is the ratio of a bank's capital to its risk-weighted assets.\n2. CAR is decided by each individual bank itself without any statutory minimum prescribed by the Reserve Bank of India.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2018 Key",
+    "explanation": "• Statement 1 is correct: CAR = (Tier 1 Capital + Tier 2 Capital) / Risk Weighted Assets.\n• Statement 2 is incorrect: The RBI mandates a statutory minimum CAR for Indian commercial banks (currently 9% for scheduled commercial banks and 11.5% including Capital Conservation Buffer), adhering to Basel III accords.",
+    "standard_book_ref": "RBI Prudential Norms • Ramesh Singh (Banking System)",
+    "elimination_trap": "Bank Discretion Trap: CAR is an internationally and centrally regulated macro-prudential requirement; banks cannot arbitrarily decide their own minimum capital.",
+    "mains_linkage": {
+      "question": "Discuss how Basel III capital and liquidity norms strengthen banking resilience against systemic financial contagion. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2018-env-15",
+    "year": 2018,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Climate Change & Carbon Fertilization",
+    "difficulty": "Easy",
+    "question_text": "Which of the following statements best describes 'Carbon Fertilization'?",
+    "options": [
+      "Increased plant growth due to increased concentration of carbon dioxide in the atmosphere",
+      "Increased temperature of Earth due to increased concentration of carbon dioxide in the atmosphere",
+      "Increased acidity of oceans as a result of increased concentration of carbon dioxide in the atmosphere",
+      "Adaptation of all living beings on Earth to the climate change brought about by the increased concentration of carbon dioxide in the atmosphere"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2018 Key",
+    "explanation": "• Carbon fertilization refers to the accelerated rate of photosynthesis and vegetative plant biomass growth in response to elevated levels of atmospheric carbon dioxide (acting as an airborne fertilizer).",
+    "standard_book_ref": "IPCC Assessment Reports • Shankar IAS Environment (Climate Change)",
+    "elimination_trap": "Fertilization vs Acidification: Carbon fertilization refers strictly to terrestrial plant photosynthesis enhancement, NOT ocean acidification.",
+    "mains_linkage": {
+      "question": "While carbon fertilization enhances crop canopy biomass, it often reduces nutritional density (zinc, iron, protein). Critically analyze. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2018-hist-16",
+    "year": 2018,
+    "subject": "History & Culture",
+    "sub_topic": "Gandhian Movements & Champaran",
+    "difficulty": "Easy",
+    "question_text": "Which one of the following is a very significant aspect of the Champaran Satyagraha of 1917?",
+    "options": [
+      "Active all-India participation of lawyers, students and women in the National Movement",
+      "Active involvement of Dalit and Tribal communities in the National Movement",
+      "Joining of peasant unrest to the National Movement of India",
+      "Drastic decrease in the cultivation of plantation crops and commercial crops"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2018 Key",
+    "explanation": "• Champaran Satyagraha (1917) was Mahatma Gandhi's first civil disobedience experiment in India. It bridged urban nationalist leadership directly with grassroots agrarian peasant grievances (Tinkathia indigo system), transforming the national movement into a mass peasant struggle.",
+    "standard_book_ref": "Bipin Chandra, India's Struggle for Independence, Chapter 14 • Spectrum Modern India",
+    "elimination_trap": "All-India vs Local: Champaran was geographically localized to Bihar; its national significance lay in incorporating the peasantry into the freedom struggle.",
+    "mains_linkage": {
+      "question": "Champaran was the laboratory where Gandhian Satyagraha was tested and refined into a potent instrument of mass mobilization. Discuss. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2018-geo-17",
+    "year": 2018,
+    "subject": "Geography",
+    "sub_topic": "Climatology & Indian Ocean Dipole",
+    "difficulty": "Moderate",
+    "question_text": "With reference to the 'Indian Ocean Dipole' (IOD), consider the following statements:\n1. IOD phenomenon is characterized by a difference in sea surface temperature between tropical Western Indian Ocean and tropical Eastern Indian Ocean.\n2. A positive IOD can offset the adverse impact of an El Niño on the Indian monsoon.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2018 Key",
+    "explanation": "• Both statements are correct:\n• Statement 1: The IOD (Indian Niño) is an irregular oscillation of sea-surface temperatures in which the western Indian Ocean becomes alternately warmer (positive phase) or colder (negative phase) than the eastern Indian Ocean.\n• Statement 2: A positive IOD brings warmer waters and convective rainfall near the Arabian Sea coast, helping compensate for rainfall deficits induced by Pacific El Niño events.",
+    "standard_book_ref": "NCERT Class 11 India: Physical Environment, Chapter 4 (Climate) • IMD Technical Reports",
+    "elimination_trap": "Positive vs Negative: Positive IOD favors the Indian monsoon; negative IOD suppresses it.",
+    "mains_linkage": {
+      "question": "Explain the interaction between the El Niño-Southern Oscillation (ENSO) and the Indian Ocean Dipole (IOD) in modulating southwest monsoon precipitation. (15M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2018-sct-18",
+    "year": 2018,
+    "subject": "Science & Technology",
+    "sub_topic": "Information Tech & Internet of Things",
+    "difficulty": "Easy",
+    "question_text": "When the alarm clock rings in the morning, you wake up, and your smart geyser automatically turns on, the coffee maker brews coffee, and your car warms up its engine. This seamless machine-to-machine communication is an example of:",
+    "options": [
+      "Border Gateway Protocol",
+      "Internet of Things (IoT)",
+      "Internet Protocol Suite",
+      "Virtual Private Network"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2018 Key",
+    "explanation": "• The Internet of Things (IoT) describes the network of physical objects (sensors, domestic appliances, vehicles) embedded with electronics, software, and connectivity, enabling autonomous data exchange and automated actuation without human intervention.",
+    "standard_book_ref": "Science & Technology Current Affairs Compendiums • IEEE Standards",
+    "elimination_trap": "Applied Scenario: Everyday appliances communicating directly to automate life is the textbook definition of IoT.",
+    "mains_linkage": {
+      "question": "Examine the privacy risks and cyber vulnerabilities arising from the rapid proliferation of IoT devices in smart urban infrastructure. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2017-polity-19",
+    "year": 2017,
+    "subject": "Polity & Governance",
+    "sub_topic": "Constitutional Law & Judicial Review",
+    "difficulty": "Moderate",
+    "question_text": "In India, 'Judicial Review' implies:",
+    "options": [
+      "The power of the Judiciary to pronounce upon the constitutionality of laws and executive orders",
+      "The power of the Judiciary to question the wisdom of the laws enacted by the Legislatures",
+      "The power of the Judiciary to review all the legislative enactments before they are assented to by the President",
+      "The power of the Judiciary to review its own judgments given earlier in similar or different cases"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2017 Key",
+    "explanation": "• Judicial Review in India refers to the constitutional power of the higher judiciary (Supreme Court under Art. 32/136 and High Courts under Art. 226/227) to examine the validity of legislative enactments and executive orders, and invalidate them if they violate constitutional provisions or the basic structure.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 27 (Judicial Review) • Articles 13, 32 & 226",
+    "elimination_trap": "Wisdom vs Constitutionality: Courts evaluate constitutional legality, NEVER the policy 'wisdom' or political advisability of statutes.",
+    "mains_linkage": {
+      "question": "Judicial review is the balance wheel of Indian federalism and constitutionalism. Distinguish between judicial review and judicial activism. (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2017-polity-20",
+    "year": 2017,
+    "subject": "Polity & Governance",
+    "sub_topic": "Electoral Rights & Constitution",
+    "difficulty": "Moderate",
+    "question_text": "Right to vote and to be elected in India is a:",
+    "options": [
+      "Fundamental Right",
+      "Natural Right",
+      "Constitutional Right",
+      "Legal / Statutory Right"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2017 Key",
+    "explanation": "• Right to vote is rooted in Article 326 of the Constitution (adult suffrage), making it a Constitutional Right (regulated in detailed procedures by the Representation of the People Act, 1951). In the official UPSC 2017 key, UPSC affirmed 'Constitutional Right'.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 80 (Elections) • Article 326 of the Constitution",
+    "elimination_trap": "Fundamental vs Constitutional: Right to vote is NOT in Part III (Fundamental Rights), but directly in Part XV (Article 326) of the Constitution.",
+    "mains_linkage": {
+      "question": "Examine whether the Right to Vote in India should be elevated to a fundamental right to insulate electoral participation from arbitrary statutory exclusions. (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2017-eco-21",
+    "year": 2017,
+    "subject": "Economy",
+    "sub_topic": "Taxation & Goods and Services Tax",
+    "difficulty": "Easy",
+    "question_text": "What is/are the most likely advantage/advantages of implementing 'Goods and Services Tax (GST)'?\n1. It will replace multiple taxes collected by multiple authorities and will thus create a single market in India.\n2. It will drastically reduce the 'Current Account Deficit' of India and enable it to increase its foreign exchange reserves rapidly.\n3. It will enormously increase the size of the GDP of India by over 50% in a single year.\n\nSelect the correct answer using the code given below:",
+    "options": [
+      "1 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2017 Key",
+    "explanation": "• Statement 1 is correct: GST subsumed 17 central and state indirect levies (excise, VAT, service tax, entry tax) into 'One Nation, One Tax', eliminating cascading effects.\n• Statements 2 and 3 are absurd exaggerations: GST does not directly control global commodity import prices (CAD) and no tax reform increases GDP by 50% in a single year.",
+    "standard_book_ref": "NCERT Class 12 Macroeconomics • 101st Constitutional Amendment Act, 2016",
+    "elimination_trap": "Hyperbolic Claims ('drastically reduce CAD', 'increase GDP by 50%'): Eliminate extreme economic exaggerations.",
+    "mains_linkage": {
+      "question": "Assess the achievements and persistent federal frictions in the functioning of the GST Council over the past decade. (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2017-env-22",
+    "year": 2017,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Aquatic Ecology & Water Quality",
+    "difficulty": "Easy",
+    "question_text": "Biological Oxygen Demand (BOD) is a standard criterion for:",
+    "options": [
+      "Measuring oxygen levels in blood",
+      "Computing oxygen levels in forest ecosystems",
+      "Pollution assay in aquatic ecosystems",
+      "Assessing oxygen levels in high altitude regions"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2017 Key",
+    "explanation": "• Biological Oxygen Demand (BOD) measures the amount of dissolved oxygen needed by aerobic biological organisms to break down organic material in a water sample. Higher BOD indicates greater organic pollution and depleted dissolved oxygen.",
+    "standard_book_ref": "NCERT Class 12 Biology, Chapter 16 (Environmental Issues) • Shankar IAS (Aquatic Ecosystems)",
+    "elimination_trap": "Direct Metric: BOD is the standard universal index for organic water pollution.",
+    "mains_linkage": {
+      "question": "Evaluate the Namami Gange programme in restoring the ecological flow (e-flow) and reducing BOD levels across the Ganga river basin. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2017-hist-23",
+    "year": 2017,
+    "subject": "History & Culture",
+    "sub_topic": "Land Revenue Systems & Ryotwari",
+    "difficulty": "Moderate",
+    "question_text": "With reference to the Ryotwari Settlement in colonial India, consider the following statements:\n1. The rent was paid directly by the peasants to the Government.\n2. The Government gave Pattas to the Ryots.\n3. The lands were surveyed and assessed before being taxed.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 only",
+      "1 and 2 only",
+      "1, 2 and 3",
+      "None"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2017 Key",
+    "explanation": "• All statements are correct:\n• Introduced by Thomas Munro and Alexander Read in Madras and Bombay Presidencies, the Ryotwari system eliminated intermediary zamindars; individual cultivators (ryots) held legal land title (Pattas), paid revenue directly to the state, and lands were surveyed and assessed periodically (though assessments were often extortionately high).",
+    "standard_book_ref": "Bipin Chandra, Modern India • Spectrum Modern India (Economic Impact of British Rule)",
+    "elimination_trap": "Zamindari vs Ryotwari: Ryotwari was characterized by direct peasant-state relation and periodic cadastral resurvey.",
+    "mains_linkage": {
+      "question": "Compare the socio-economic impacts of the Permanent Settlement in Bengal with the Ryotwari System in South India. (15M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2017-geo-24",
+    "year": 2017,
+    "subject": "Geography",
+    "sub_topic": "Indian Drainage Systems & Teesta",
+    "difficulty": "Moderate",
+    "question_text": "With reference to the river Teesta, consider the following statements:\n1. The source of river Teesta is the same as that of Brahmaputra, but it flows through Sikkim.\n2. River Rangeet originates in Sikkim and it is a tributary of river Teesta.\n3. River Teesta flows into the Bay of Bengal on the border of India and Bangladesh.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 3 only",
+      "2 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2017 Key",
+    "explanation": "• Statement 1 is incorrect: Teesta originates from Tso Lhamo lake / Kangse glacier in Sikkim, whereas Brahmaputra originates from Chemayungdung glacier near Mount Kailash in Tibet.\n• Statement 2 is correct: Rangeet river is Sikkim's largest river and a major tributary of Teesta.\n• Statement 3 is incorrect: Teesta merges with the Brahmaputra (Jamuna) in northern Bangladesh; it does NOT directly flow into the Bay of Bengal on the border.",
+    "standard_book_ref": "NCERT Class 11 India: Physical Environment, Chapter 3 (Drainage System)",
+    "elimination_trap": "Tributary vs Independent Outfall: Teesta is a tributary of Brahmaputra; it does not reach the ocean independently.",
+    "mains_linkage": {
+      "question": "Examine the geopolitical and hydrological friction between India and Bangladesh over the Teesta water-sharing treaty. (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2017-sct-25",
+    "year": 2017,
+    "subject": "Science & Technology",
+    "sub_topic": "Biotechnology & Somatic Cloning",
+    "difficulty": "Moderate",
+    "question_text": "In the context of developments in biotechnology, the term 'Somatic Cell Nuclear Transfer' (SCNT) is widely associated with:",
+    "options": [
+      "Production of biolarvicides",
+      "Manufacture of biodegradable plastics",
+      "Reproductive and therapeutic cloning of organisms",
+      "Production of organisms free of diseases"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2017 Key",
+    "explanation": "• SCNT is a cloning technique where the nucleus of an unfertilized oocyte is removed and replaced with the nucleus of an adult somatic cell (e.g. skin cell). It is used for reproductive cloning (like Dolly the sheep) and therapeutic cloning (generating stem cells).",
+    "standard_book_ref": "NCERT Class 12 Biology (Biotechnology Principles) • Nature Biotechnology",
+    "elimination_trap": "Core Keyword Link: 'Nuclear Transfer' in biological reproduction universally refers to somatic cloning.",
+    "mains_linkage": {
+      "question": "What are the therapeutic promises and ethical boundaries of somatic cell nuclear transfer (SCNT) and regenerative stem cell therapies? (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2016-polity-26",
+    "year": 2016,
+    "subject": "Polity & Governance",
+    "sub_topic": "Parliamentary System & Executive",
+    "difficulty": "Easy",
+    "question_text": "There is a Parliamentary System of Government in India because the:",
+    "options": [
+      "Lok Sabha is elected directly by the people",
+      "Parliament can amend the Constitution",
+      "Rajya Sabha cannot be dissolved",
+      "Council of Ministers is responsible to the Lok Sabha"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2016 Key",
+    "explanation": "• The defining hallmark of a Parliamentary system (as opposed to a Presidential system) is the collective responsibility of the Executive (Council of Ministers) to the Legislature (Lok Sabha), anchored in Article 75(3).",
+    "standard_book_ref": "M. Laxmikanth, Chapter 12 (Parliamentary System) • Article 75(3)",
+    "elimination_trap": "Direct Election Distractor: Presidential systems like the US can also have direct elections; collective executive accountability is what defines a parliamentary system.",
+    "mains_linkage": {
+      "question": "Why did the framers of the Indian Constitution prefer the British parliamentary model of executive accountability over the American presidential model of stability? (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2016-eco-27",
+    "year": 2016,
+    "subject": "Economy",
+    "sub_topic": "Banking & Core Banking Solutions",
+    "difficulty": "Easy",
+    "question_text": "The term 'Core Banking Solutions' (CBS) is frequently seen in the news. Which of the following statements best describes this term?",
+    "options": [
+      "It is a networking of a bank's branches which enables customers to operate their accounts from any branch of the bank on its network.",
+      "It is an effort to bring all commercial banks under the close supervision of the Reserve Bank of India through computer networks.",
+      "It is a detailed procedure by which a bank with huge non-performing assets is taken over by another bank.",
+      "It is a financial facility provided by scheduled banks to farmers for purchasing agricultural machinery."
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2016 Key",
+    "explanation": "• Core Banking Solution (CBS) is a centralized networking backend software allowing customers to access their bank account and conduct transactions from any branch of the bank globally ('customer of the bank, not just a customer of the branch').",
+    "standard_book_ref": "RBI Banking Awareness • Ramesh Singh (Indian Financial System)",
+    "elimination_trap": "Supervision vs Consumer Access: CBS is not a central bank surveillance tool; it is a branch networking software platform.",
+    "mains_linkage": {
+      "question": "Analyze the role of digital banking infrastructure and FinTech in expanding financial inclusion across Tier-3 and rural India. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2016-env-28",
+    "year": 2016,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Renewable Energy & Net Metering",
+    "difficulty": "Easy",
+    "question_text": "'Net metering' is sometimes seen in the news in the context of promoting the:",
+    "options": [
+      "Production and use of solar energy by the households/consumers",
+      "Use of piped natural gas in the kitchen of households",
+      "Installation of CNG kits in motor-cars",
+      "Installation of water meters in urban households"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2016 Key",
+    "explanation": "• Net metering is a billing mechanism that credits rooftop solar photovoltaic owners for electricity they generate and feed back into the electrical grid.",
+    "standard_book_ref": "Ministry of New and Renewable Energy (MNRE) • Shankar IAS (Renewable Energy)",
+    "elimination_trap": "Gas/Water Meters Distractor: Net metering is strictly an electrical grid bi-directional metering system for rooftop solar.",
+    "mains_linkage": {
+      "question": "Identify the structural bottlenecks in the widespread adoption of grid-connected rooftop solar systems among urban discoms. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2016-env-29",
+    "year": 2016,
+    "subject": "Environment & Ecology",
+    "sub_topic": "International Alliances & Solar Alliance",
+    "difficulty": "Easy",
+    "question_text": "Consider the following statements regarding the International Solar Alliance (ISA):\n1. The alliance was launched at the United Nations Climate Change Conference in Paris in 2015.\n2. The alliance initially targeted countries lying completely or partly between the Tropics of Cancer and Capricorn.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2016 Key",
+    "explanation": "• Both statements are correct:\n• ISA was jointly launched by Prime Minister Narendra Modi and French President François Hollande at COP21 Paris in November 2015, focusing on 'Suryaputras' (sunshine countries between the tropics). It has its headquarters in Gurugram, India.",
+    "standard_book_ref": "MoEFCC Annual Reports • Shankar IAS Environment (Climate Change)",
+    "elimination_trap": "Founding Venue: ISA was launched at COP21 Paris, but its permanent secretariat is located in India.",
+    "mains_linkage": {
+      "question": "Assess the role of the International Solar Alliance (ISA) and the 'One Sun, One World, One Grid' (OSOWOG) initiative in global energy diplomacy. (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2016-hist-30",
+    "year": 2016,
+    "subject": "History & Culture",
+    "sub_topic": "Modern India & Bengal Partition",
+    "difficulty": "Easy",
+    "question_text": "The 'Swadeshi' and 'Boycott' were adopted as methods of struggle for the first time in India during the:",
+    "options": [
+      "Agitation against the Partition of Bengal (1905)",
+      "Home Rule Movement (1916)",
+      "Non-Cooperation Movement (1920)",
+      "Visit of the Simon Commission to India (1928)"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2016 Key",
+    "explanation": "• The Boycott resolution was passed at the Calcutta Town Hall on August 7, 1905, in protest against Lord Curzon's decision to partition Bengal. Swadeshi and foreign cloth boycott were systematically deployed as mass weapons for the first time.",
+    "standard_book_ref": "Bipin Chandra, India's Struggle for Independence, Chapter 10 • Spectrum Modern India",
+    "elimination_trap": "NCM Distractor: While Non-Cooperation (1920) popularized boycott on an all-India scale, its origin was in 1905 anti-partition agitation.",
+    "mains_linkage": {
+      "question": "Examine how the Anti-Partition agitation of 1905 laid the intellectual and institutional foundation for subsequent mass nationalist struggles. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2016-geo-31",
+    "year": 2016,
+    "subject": "Geography",
+    "sub_topic": "Straits & Maritime Chokepoints",
+    "difficulty": "Easy",
+    "question_text": "Between which of the following does the 'Strait of Malacca' provide a critical shipping navigation lane?",
+    "options": [
+      "Andaman Sea and South China Sea",
+      "Red Sea and Gulf of Aden",
+      "Persian Gulf and Gulf of Oman",
+      "Sea of Japan and East China Sea"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2016 Key",
+    "explanation": "• The Strait of Malacca connects the Andaman Sea (Indian Ocean) with the South China Sea (Pacific Ocean), separating the Malay Peninsula from the Indonesian island of Sumatra.",
+    "standard_book_ref": "Oxford School Atlas (Southeast Asia Maritime Passages)",
+    "elimination_trap": "Bab-el-Mandeb vs Malacca: Bab-el-Mandeb connects Red Sea & Gulf of Aden; Malacca connects Indian Ocean/Andaman Sea to South China Sea.",
+    "mains_linkage": {
+      "question": "Discuss the geostrategic vulnerability of the 'Malacca Dilemma' in Indo-Pacific energy transit and maritime choke-point defense. (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2016-sct-32",
+    "year": 2016,
+    "subject": "Science & Technology",
+    "sub_topic": "Wireless Communications & Li-Fi",
+    "difficulty": "Moderate",
+    "question_text": "With reference to 'Li-Fi' (Light Fidelity) technology, consider the following statements:\n1. It uses light-emitting diodes (LEDs) for data transmission.\n2. It operates using radio waves just like Wi-Fi.\n3. Li-Fi can transmit data at speeds significantly faster than conventional Wi-Fi.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2016 Key",
+    "explanation": "• Statement 1 is correct: Li-Fi uses the visible light spectrum from LEDs for optical data transmission.\n• Statement 2 is incorrect: Wi-Fi uses radio frequency waves (2.4 GHz/5 GHz), whereas Li-Fi uses visible light spectrum (400–800 THz); it does NOT use radio waves.\n• Statement 3 is correct: Li-Fi has theoretical transmission speeds up to 100 times faster than Wi-Fi.",
+    "standard_book_ref": "Science & Technology Compendiums • IEEE Optical Wireless Standards",
+    "elimination_trap": "Electromagnetic Spectrum Inversion: Li-Fi uses VISIBLE LIGHT, not radio frequencies.",
+    "mains_linkage": {
+      "question": "Assess the comparative advantages and physical limitations of Visible Light Communication (Li-Fi) over RF-based Wi-Fi in high-security environments. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2015-polity-33",
+    "year": 2015,
+    "subject": "Polity & Governance",
+    "sub_topic": "Constitutional Amendments & Article 368",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following statements regarding a Constitutional Amendment Bill under Article 368:\n1. The prior recommendation of the President of India is required for introducing a Constitutional Amendment Bill in Parliament.\n2. In case of disagreement between the two Houses on a Constitutional Amendment Bill, there is a provision for a joint sitting.\n3. The President is constitutionally bound to give assent to a Constitutional Amendment Bill.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2015 Key",
+    "explanation": "• Statement 1 is incorrect: A Constitutional Amendment Bill does NOT require prior recommendation of the President.\n• Statement 2 is incorrect: Article 368 mandates that each House must pass the bill separately by special majority; there is NO provision for a joint sitting.\n• Statement 3 is correct: By the 24th Constitutional Amendment Act, 1971, it was made obligatory for the President to give assent to an amendment bill.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 10 (Amendment of the Constitution) • Article 368 & 24th CAA 1971",
+    "elimination_trap": "No Joint Sitting: Joint sitting (Article 108) applies ONLY to ordinary bills and financial bills, NEVER to Money Bills or Constitutional Amendment Bills.",
+    "mains_linkage": {
+      "question": "Explain the procedure for amending the Indian Constitution under Article 368. How does the basic structure doctrine limit amending power? (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2015-eco-34",
+    "year": 2015,
+    "subject": "Economy",
+    "sub_topic": "Industrial Production & Core Industries",
+    "difficulty": "Moderate",
+    "question_text": "In the 'Index of Eight Core Industries', which one of the following has been given the highest weight?",
+    "options": [
+      "Coal production",
+      "Electricity generation",
+      "Fertilizer production",
+      "Refinery products"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2015 Key",
+    "explanation": "• Petroleum Refinery Products carries the highest weight (~28.04%) in the Index of Eight Core Industries (ICI), followed by Electricity (~19.85%), Steel (~17.92%), and Coal (~10.33%). Fertilizers carries the lowest weight (~2.63%).",
+    "standard_book_ref": "Office of the Economic Adviser (DPIIT) • Ramesh Singh (Industry and Infrastructure)",
+    "elimination_trap": "Electricity vs Refinery: Many guess Electricity or Coal, but Petroleum Refinery Products consistently holds the largest share (over 28%).",
+    "mains_linkage": {
+      "question": "The Index of Eight Core Industries represents over 40% of the weight of items in IIP. Analyze its predictive power for industrial capital cycles. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2015-env-35",
+    "year": 2015,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Sustainable Development & Rio+20",
+    "difficulty": "Easy",
+    "question_text": "What was the official outcome document of the United Nations Conference on Sustainable Development (Rio+20) held in Rio de Janeiro in 2012?",
+    "options": [
+      "The Future We Want",
+      "Agenda 21",
+      "Kyoto Protocol",
+      "Johannesburg Declaration"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2015 Key",
+    "explanation": "• 'The Future We Want' was the official declaration adopted at the UN Rio+20 summit in 2012, which initiated the intergovernmental process that created the 2030 Sustainable Development Goals (SDGs).",
+    "standard_book_ref": "UN Sustainable Development Knowledge Platform • Shankar IAS (Sustainable Development)",
+    "elimination_trap": "Agenda 21 vs Rio+20: Agenda 21 was adopted at the 1992 Earth Summit; 'The Future We Want' was adopted 20 years later at Rio+20 (2012).",
+    "mains_linkage": {
+      "question": "Trace the evolution of international sustainable development commitments from the 1992 Rio Earth Summit to the 2030 Agenda for Sustainable Development. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2015-hist-36",
+    "year": 2015,
+    "subject": "History & Culture",
+    "sub_topic": "Colonial Constitutional Reforms & 1919 Act",
+    "difficulty": "Moderate",
+    "question_text": "The Government of India Act of 1919 clearly defined:",
+    "options": [
+      "The separation of power between the judiciary and the legislature",
+      "The jurisdiction of the central and provincial governments",
+      "The powers of the Secretary of State for India and the Viceroy",
+      "The complete abolition of separate communal electorates"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2015 Key",
+    "explanation": "• The Government of India Act 1919 (Montagu-Chelmsford Reforms) made central and provincial subjects demarcated by law. It introduced 'Dyarchy' in the provinces by dividing provincial subjects into 'Transferred' and 'Reserved' lists.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 1 (Historical Background) • Spectrum Modern India",
+    "elimination_trap": "Provincial Autonomy vs Dyarchy: Dyarchy in provinces came in 1919; full provincial autonomy came in 1935.",
+    "mains_linkage": {
+      "question": "Examine the institutional weaknesses of the system of Dyarchy introduced in the provinces under the Government of India Act, 1919. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2015-geo-37",
+    "year": 2015,
+    "subject": "Geography",
+    "sub_topic": "Soil Geography & Tropical Rainforests",
+    "difficulty": "Moderate",
+    "question_text": "Which of the following explains why the soils of tropical rainforests are surprisingly poor in nutrients despite luxuriant plant growth?",
+    "options": [
+      "The torrential rainfall in rainforests rapidly leaches nutrients from the topsoil",
+      "Rainforest plants do not shed leaves regularly",
+      "Rainforest soil bacteria are inactive due to high canopy shading",
+      "The topsoil is composed entirely of unweathered volcanic basalt"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2015 Key",
+    "explanation": "• High temperatures and extreme humidity cause rapid decomposition by microbes; warm rains constantly leach soluble soil nutrients deep down past the root zone (process of intense chemical leaching/laterization). Most nutrients reside in the living vegetative biomass rather than the soil.",
+    "standard_book_ref": "NCERT Class 11 Fundamentals of Physical Geography • G.C. Leong (Equatorial Climate)",
+    "elimination_trap": "Luxuriant Vegetation Paradox: Tropical rainforest soils are thin, acidic, and nutrient-poor because heavy rains continuously leach minerals away.",
+    "mains_linkage": {
+      "question": "Explain the paradox of luxuriant equatorial rainforest vegetation on nutrient-deficient lateritic soils. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2015-sct-38",
+    "year": 2015,
+    "subject": "Science & Technology",
+    "sub_topic": "Wireless Tech & NFC",
+    "difficulty": "Moderate",
+    "question_text": "With reference to 'Near Field Communication' (NFC) technology, consider the following statements:\n1. It is a contactless communication technology that uses electromagnetic radio fields.\n2. NFC is designed for use by devices which can be separated by a distance of up to 10 meters.\n3. NFC can use encryption when sending sensitive information like credit card data.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2015 Key",
+    "explanation": "• Statement 1 is correct: NFC uses electromagnetic radio induction at 13.56 MHz.\n• Statement 2 is incorrect: NFC is ultra-short range, typically requiring proximity within 4 cm (0.04 meters); 10 meters is the range of Bluetooth, NOT NFC.\n• Statement 3 is correct: Contactless tap-to-pay tokens use secure hardware elements and encryption.",
+    "standard_book_ref": "Science & Technology Current Affairs Compendiums • NFC Forum Technical Specs",
+    "elimination_trap": "Range Trap: 'Near Field' means centimeters (approx 4 cm), not 10 meters.",
+    "mains_linkage": {
+      "question": "Discuss the security safeguards and privacy implications of contactless tokenized transactions via NFC in digital payments. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2014-polity-01",
+    "year": 2014,
+    "subject": "Polity & Governance",
+    "sub_topic": "Discretionary Powers of Governor",
+    "difficulty": "Moderate",
+    "question_text": "Which of the following are the discretionary powers given to the Governor of a State?\n1. Sending a report to the President of India for imposing the President's rule\n2. Appointing the Ministers\n3. Reserving certain bills passed by the State Legislature for consideration of the President of India\n4. Making the rules to conduct the business of the State Government\n\nSelect the correct answer using the code given below:",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "2, 3 and 4 only",
+      "1, 2, 3 and 4"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2014 Key",
+    "explanation": "• Points 1 and 3 are constitutional discretionary powers: Under Article 356, the Governor sends a report to the President; under Article 200, reserving a bill is at the Governor's discretion.\n• Points 2 and 4 are NOT discretionary: The Governor appoints ministers ONLY on the advice of the Chief Minister (Art. 164), and rules of business are framed on the advice of the Council of Ministers (Art. 166).",
+    "standard_book_ref": "M. Laxmikanth, Chapter 30 (Governor - Discretionary Powers) • Articles 163, 200 & 356",
+    "elimination_trap": "Minister Appointment Trap: Ministers are appointed by the Governor strictly on the advice of the CM, never by personal discretion.",
+    "mains_linkage": {
+      "question": "Examine whether the discretionary powers of the Governor under Article 163 have been misused in state government formation and reservation of bills. (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2014-eco-02",
+    "year": 2014,
+    "subject": "Economy",
+    "sub_topic": "Balance of Payments & Current Account",
+    "difficulty": "Moderate",
+    "question_text": "Which of the following constitute the 'Capital Account' of the Balance of Payments in India?\n1. Foreign Direct Investment (FDI)\n2. Foreign Portfolio Investment (FPI)\n3. External Commercial Borrowings (ECB)\n4. Remittances from non-resident Indians\n\nSelect the correct answer using the code given below:",
+    "options": [
+      "1, 2 and 3 only",
+      "1, 2 and 4 only",
+      "2, 3 and 4 only",
+      "1, 2, 3 and 4"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2014 Key",
+    "explanation": "• Capital Account records cross-border claims on physical and financial assets: FDI, FPI, and commercial loans (ECBs) are Capital Account items.\n• Remittances, gifts, and grants are unilateral transfers classified under the CURRENT ACCOUNT (Invisibles), not the Capital Account.",
+    "standard_book_ref": "NCERT Class 12 Macroeconomics, Chapter 6 (Open Economy) • Balance of Payments Manual",
+    "elimination_trap": "Remittances vs NRI Deposits: Remittances sent to families are Current Account transfers. Only non-resident bank deposits (NRI deposits) are Capital Account.",
+    "mains_linkage": {
+      "question": "Analyze the composition of India's Current Account Deficit (CAD) and discuss the vulnerabilities of relying on volatile capital inflows for financing it. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2014-env-03",
+    "year": 2014,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Biodiversity & Endemic Species",
+    "difficulty": "Easy",
+    "question_text": "If you walk through the countryside in the Western Ghats, you are likely to see some amazing animals. Which of the following is/are endemic to the Western Ghats?\n1. Lion-tailed Macaque\n2. Malabar Civet\n3. Sambar\n\nSelect the correct answer using the code given below:",
+    "options": [
+      "1 only",
+      "1 and 2 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2014 Key",
+    "explanation": "• Lion-tailed Macaque and Malabar Large-spotted Civet are endemic strictly to the rainforests of the Western Ghats.\n• Sambar deer is widely distributed across the entire Indian subcontinent, Southeast Asia, and Central India, and is NOT endemic to the Western Ghats.",
+    "standard_book_ref": "ZSI Wildlife Inventory • Shankar IAS (Biodiversity Hotspots)",
+    "elimination_trap": "Common Species Trap: Sambar is the most common large deer across India (Ranthambore, Kanha, Corbett); it cannot be endemic to one mountain range.",
+    "mains_linkage": {
+      "question": "Evaluate the recommendations of the Madhav Gadgil and Kasturirangan committees regarding the ecological sensitivity of the Western Ghats. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2014-hist-04",
+    "year": 2014,
+    "subject": "History & Culture",
+    "sub_topic": "Freedom Struggle & Radhasoami / Ghadar Party",
+    "difficulty": "Easy",
+    "question_text": "The 'Ghadar Party' was a revolutionary association founded in 1913 with its headquarters at:",
+    "options": [
+      "San Francisco",
+      "Vancouver",
+      "Berlin",
+      "Tokyo"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2014 Key",
+    "explanation": "• The Ghadar Movement was founded in 1913 by Lala Har Dayal, Sohan Singh Bhakna, and others. The headquarters was established at 'Yugantar Ashram' in San Francisco, USA, and published the weekly newspaper 'The Ghadar'.",
+    "standard_book_ref": "Bipin Chandra, India's Struggle for Independence, Chapter 12 • Spectrum Modern India",
+    "elimination_trap": "Vancouver vs San Francisco: While it had many Punjabi immigrant members in British Columbia (Canada), the formal headquarters was in San Francisco (USA).",
+    "mains_linkage": {
+      "question": "Assess the secular and revolutionary ideology of the Ghadar Movement and analyze the causes behind its organizational failure in India. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2014-geo-05",
+    "year": 2014,
+    "subject": "Geography",
+    "sub_topic": "Oceanography & Tides",
+    "difficulty": "Moderate",
+    "question_text": "Tides occur in the oceans and seas due to which among the following?\n1. Gravitational force of the Sun\n2. Gravitational force of the Moon\n3. Centrifugal force of the Earth\n\nSelect the correct answer using the code given below:",
+    "options": [
+      "1 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2014 Key",
+    "explanation": "• Tides are generated by the combined tidal force: the differential gravitational attraction of the Moon and the Sun, and the counterbalancing centrifugal force arising from the revolution of the Earth-Moon system around their common center of mass (barycenter).",
+    "standard_book_ref": "NCERT Class 11 Fundamentals of Physical Geography, Chapter 14 (Movements of Ocean Water)",
+    "elimination_trap": "Centrifugal Force: Many students forget that the Earth's centrifugal force creates the secondary tidal bulge on the opposite side of the planet.",
+    "mains_linkage": {
+      "question": "Explain the celestial mechanics of Spring and Neap tides and assess the potential of tidal energy harnessing along the Gulf of Khambhat and Sundarbans. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2014-sct-06",
+    "year": 2014,
+    "subject": "Science & Technology",
+    "sub_topic": "Space Tech & Navigation Systems",
+    "difficulty": "Moderate",
+    "question_text": "With reference to the Indian Regional Navigation Satellite System (NavIC / IRNSS), consider the following statements:\n1. It has a constellation of 7 satellites in orbit.\n2. Three satellites are in Geostationary Orbit (GEO) and four are in Geosynchronous Orbit (GSO).\n3. It covers the entire globe with worldwide positional coverage.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2014 Key",
+    "explanation": "• Statement 1 and 2 are correct: NavIC constellation operates with 7 operational satellites (3 in GEO, 4 in inclined GSO).\n• Statement 3 is incorrect: NavIC is a REGIONAL navigation system, covering India and an area extending up to 1500 km beyond its borders; it is NOT a global system like GPS or GLONASS.",
+    "standard_book_ref": "ISRO Missions Documentation • Science & Technology Compendiums",
+    "elimination_trap": "Regional vs Global: The 'R' in IRNSS stands explicitly for Regional (1500 km coverage), not global.",
+    "mains_linkage": {
+      "question": "Examine the strategic and commercial significance of NavIC for India's defense autonomy and civil aviation infrastructure. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2013-polity-07",
+    "year": 2013,
+    "subject": "Polity & Governance",
+    "sub_topic": "Attorney General of India",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following statements regarding the Attorney-General for India:\n1. He is appointed by the President of India.\n2. He must have the same qualifications as are required for a Judge of the Supreme Court.\n3. He has the right to take part in the proceedings of either House of Parliament.\n4. He has the right to vote in parliamentary proceedings.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1, 2 and 3 only",
+      "2 and 4 only",
+      "1 and 3 only",
+      "1, 2, 3 and 4"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2013 Key",
+    "explanation": "• Statements 1, 2 and 3 are correct: Under Article 76, the AG is appointed by the President and qualified as a Supreme Court judge. Under Article 88, the AG has the right to speak and take part in parliamentary proceedings.\n• Statement 4 is incorrect: Article 88 explicitly states that the Attorney-General shall NOT be entitled to vote in Parliament.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 52 (Attorney General of India) • Articles 76 & 88",
+    "elimination_trap": "Right to Vote Trap: AG can participate and speak in Parliament, but can NEVER vote.",
+    "mains_linkage": {
+      "question": "Examine the constitutional role of the Attorney-General for India as the chief legal advisor to the Union Government. (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2013-eco-08",
+    "year": 2013,
+    "subject": "Economy",
+    "sub_topic": "Banking & Priority Sector Lending",
+    "difficulty": "Moderate",
+    "question_text": "Priority Sector Lending by banks in India constitutes the lending to:",
+    "options": [
+      "Agriculture",
+      "Micro and Small Enterprises",
+      "Weaker Sections",
+      "All of the above"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2013 Key",
+    "explanation": "• As per RBI PSL guidelines, categories eligible for Priority Sector Lending include Agriculture, MSMEs, Export Credit, Education, Housing, Social Infrastructure, Renewable Energy, and Weaker Sections.",
+    "standard_book_ref": "RBI Master Direction on Priority Sector Lending • Ramesh Singh",
+    "elimination_trap": "Comprehensive Coverage: PSL encompasses eight distinct socio-economic sectors including agriculture, MSMEs, and weaker sections.",
+    "mains_linkage": {
+      "question": "Evaluate the role of Priority Sector Lending Certificates (PSLCs) in driving credit flow to marginalized agriculturalists. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2013-env-09",
+    "year": 2013,
+    "subject": "Environment & Ecology",
+    "sub_topic": "National Parks & Wildlife Sanctuaries",
+    "difficulty": "Moderate",
+    "question_text": "Which one of the following is the first National Park established in India?",
+    "options": [
+      "Jim Corbett National Park",
+      "Kaziranga National Park",
+      "Gir National Park",
+      "Periyar National Park"
+    ],
+    "correct_index": 0,
+    "correct_option": "A",
+    "upsc_official_key": "Official UPSC Prelims 2013 Key",
+    "explanation": "• Jim Corbett National Park (originally established in 1936 as Hailey National Park in Nainital district, Uttarakhand) is India's and Asia's first National Park.",
+    "standard_book_ref": "MoEFCC Protected Area Network • Shankar IAS (Protected Area Network)",
+    "elimination_trap": "Corbett History: Hailey National Park was renamed Ramganga and finally Corbett in 1957.",
+    "mains_linkage": {
+      "question": "Critically examine the human-wildlife conflict around the fringe zones of tiger reserves in India. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2013-hist-10",
+    "year": 2013,
+    "subject": "History & Culture",
+    "sub_topic": "Buddhism & Chaityas vs Viharas",
+    "difficulty": "Easy",
+    "question_text": "What is the difference between a 'Chaitya' and a 'Vihara' in Buddhist rock-cut architecture?",
+    "options": [
+      "Vihara is a place of worship, while Chaitya is the dwelling place of the monks",
+      "Chaitya is a place of worship, while Vihara is the dwelling place of the monks",
+      "Chaitya is the stupa at the far end of the cave, while Vihara is the hall facing it",
+      "There is no material difference between the two"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2013 Key",
+    "explanation": "• A Chaitya (Chaityagriha) is a Buddhist shrine or prayer hall housing a stupa for veneration.\n• A Vihara is a monastery or residential retreat hall for monks with cells carved into the walls (e.g. at Ajanta, Karle, Kanheri).",
+    "standard_book_ref": "NCERT Class 11 An Introduction to Indian Art, Chapter 4 • Nitin Singhania",
+    "elimination_trap": "Pair Swap Trap: Option A inverts the two terms. Chaitya = Temple/Worship; Vihara = Residence/Monastery.",
+    "mains_linkage": {
+      "question": "Trace the architectural evolution of rock-cut Chaityas and Viharas in Western India from Hinayana to Mahayana phases. (15M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2013-geo-11",
+    "year": 2013,
+    "subject": "Geography",
+    "sub_topic": "Indian Physical Geography & Western Ghats",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following pairs of mountain ranges and their highest peaks:\n1. Nilgiri Hills : Anamudi\n2. Anaimalai Hills : Doddabetta\n3. Cardamom Hills : Agasthyamalai\n\nWhich of the pairs given above is/are correctly matched?",
+    "options": [
+      "1 and 2 only",
+      "None",
+      "3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2013 Key",
+    "explanation": "• Anamudi (2,695 m) is in the Anaimalai Hills (the highest peak in South India), NOT the Nilgiris.\n• Doddabetta (2,637 m) is the highest peak in the Nilgiri Hills, NOT the Anaimalai Hills (pairs 1 and 2 are completely inverted).\n• Therefore, None of the pairs are correctly matched.",
+    "standard_book_ref": "NCERT Class 11 India: Physical Environment, Chapter 2 (Structure and Physiography)",
+    "elimination_trap": "Inverted Pair Trap: Doddabetta belongs to Nilgiri; Anamudi belongs to Anaimalai. Both are cross-swapped.",
+    "mains_linkage": {
+      "question": "Describe the structural alignment and ecological fragmentation of the Western Ghats from Sahyadri to Cardamom Hills. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2013-sct-12",
+    "year": 2013,
+    "subject": "Science & Technology",
+    "sub_topic": "Biotechnology & Stem Cells",
+    "difficulty": "Moderate",
+    "question_text": "With reference to the 'Stem Cells', consider the following statements:\n1. Stem cells can be derived from mammals only.\n2. Stem cells can be used for screening new drugs.\n3. Stem cells can be used for medical therapies.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2013 Key",
+    "explanation": "• Statement 1 is incorrect: Stem cells exist in all multicellular organisms, including plants (plant meristematic tissue cells possess pluripotent stem cell properties).\n• Statement 2 and 3 are correct: Stem cells are extensively used in toxicology, drug screening, and regenerative medicine.",
+    "standard_book_ref": "NCERT Class 12 Biology • Nature Biotechnology",
+    "elimination_trap": "Absolute Word ('mammals only'): Plant meristems contain stem cells as well.",
+    "mains_linkage": {
+      "question": "Examine the potential of Induced Pluripotent Stem Cells (iPSCs) in precision medicine and organ regeneration. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2019-polity-13",
+    "year": 2019,
+    "subject": "Polity & Governance",
+    "sub_topic": "Constitutional Bodies & Finance Commission",
+    "difficulty": "Easy",
+    "question_text": "With reference to the Finance Commission of India, which of the following statements is correct?",
+    "options": [
+      "It encourages the inflow of foreign capital for infrastructure development.",
+      "It facilitates the proper distribution of finances among the Public Sector Undertakings.",
+      "It ensures transparency in financial administration.",
+      "None of the statements (a), (b) and (c) given above is correct in this context."
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2019 Key",
+    "explanation": "• Under Article 280, the Finance Commission is mandated to recommend: (a) distribution of net tax proceeds between Union and States (vertical devolution) and allocation among States (horizontal devolution), (b) principles governing grants-in-aid to States, and (c) measures to augment Consolidated Fund of a State to supplement resources of Panchayats/Municipalities.\n• None of the options (a), (b), or (c) reflect its constitutional mandate.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 45 (Finance Commission) • Article 280",
+    "elimination_trap": "None of the Above: When all specific distractors invent unrelated functions (FDI, PSUs), 'None of the above' is the correct answer.",
+    "mains_linkage": {
+      "question": "Evaluate the horizontal tax devolution formula adopted by the Fifteenth Finance Commission and its implications for fiscal federalism. (15M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2018-polity-14",
+    "year": 2018,
+    "subject": "Polity & Governance",
+    "sub_topic": "Preamble & Liberty of Thought",
+    "difficulty": "Easy",
+    "question_text": "Which one of the following is NOT embodied in the Preamble to the Constitution of India?",
+    "options": [
+      "Liberty of thought",
+      "Liberty of expression",
+      "Liberty of belief",
+      "Economic liberty"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2018 Key",
+    "explanation": "• The Preamble secures to all its citizens: 'LIBERTY of thought, expression, belief, faith and worship'.\n• 'Economic' is associated with JUSTICE ('JUSTICE, social, economic and political'), NOT Liberty.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 4 (Preamble of the Constitution)",
+    "elimination_trap": "Preamble Precision: Preamble mentions 'Economic Justice', NEVER 'Economic Liberty'.",
+    "mains_linkage": {
+      "question": "The Preamble embodies the philosophy and soul of the Constitution. How do its core ideals guide constitutional interpretation by the judiciary? (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2018-eco-15",
+    "year": 2018,
+    "subject": "Economy",
+    "sub_topic": "Foreign Exchange & Current Account Deficit",
+    "difficulty": "Moderate",
+    "question_text": "Which of the following actions can the Government/RBI take to reduce the Current Account Deficit (CAD)?\n1. Devaluing the domestic currency\n2. Reduction in the export subsidy\n3. Adopting suitable policies which attract greater FDI and more funds from FIIs\n\nSelect the correct answer using the code given below:",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2018 Key",
+    "explanation": "• Point 1 helps reduce CAD because currency devaluation makes domestic exports cheaper and imports costlier, boosting net exports.\n• Point 2 (reducing export subsidies) discourages exports and worsens the CAD.\n• Point 3 brings in external foreign capital to support financing and balance external payments.",
+    "standard_book_ref": "NCERT Class 12 Macroeconomics • Economic Survey",
+    "elimination_trap": "Export Subsidies: Reducing export subsidies suppresses export volume, which hurts trade balance.",
+    "mains_linkage": {
+      "question": "Discuss the structural drivers of India's merchandise trade deficit and examine policy interventions under the Foreign Trade Policy. (15M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2017-hist-16",
+    "year": 2017,
+    "subject": "History & Culture",
+    "sub_topic": "Ancient India & Buddhism / Jainism",
+    "difficulty": "Moderate",
+    "question_text": "With reference to the religious history of India, consider the following statements:\n1. Sautrantika and Sammitiya were the sects of Jainism.\n2. Sarvastivadin held that the constituents of phenomena were not wholly momentary, but existed forever in a latent form.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2017 Key",
+    "explanation": "• Statement 1 is incorrect: Sautrantika and Sammitiya were prominent early schools of BUDDHISM (Hinayana/Nikaya schools), not Jainism.\n• Statement 2 is correct: Sarvastivadins (literally 'those who say all exists') posited that past, present, and future dharmas (constituents of phenomena) exist in a real, continuous state.",
+    "standard_book_ref": "Upinder Singh, History of Ancient and Early Medieval India • NCERT Class 11",
+    "elimination_trap": "Cross-Tradition Swap: Sautrantika is Buddhist, not Jain.",
+    "mains_linkage": {
+      "question": "Examine the philosophical divergences between the Theravada, Mahayana, and Sarvastivada schools of Buddhist thought. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2016-polity-17",
+    "year": 2016,
+    "subject": "Polity & Governance",
+    "sub_topic": "Local Self Government & Gram Sabha",
+    "difficulty": "Easy",
+    "question_text": "Which of the following is/are the functions of the 'Gram Sabha' under the 73rd Constitutional Amendment Act?\n1. Approving the plans, programmes and projects for social and economic development before implementation by the Panchayat.\n2. Identification or selection of persons as beneficiaries under the poverty alleviation programmes.\n\nSelect the correct answer using the code given below:",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_index": 2,
+    "correct_option": "C",
+    "upsc_official_key": "Official UPSC Prelims 2016 Key",
+    "explanation": "• Both statements are correct: Under Article 243A and Section 4 of PESA, the Gram Sabha (body of all registered village voters) is statutorily empowered to approve village developmental plans and identify beneficiaries for social schemes.",
+    "standard_book_ref": "M. Laxmikanth, Chapter 38 (Panchayati Raj) • Articles 243A-243O",
+    "elimination_trap": "Direct Grassroots Democracy: Gram Sabha functions as the permanent electorate and oversight assembly in rural local governance.",
+    "mains_linkage": {
+      "question": "Evaluate the role of Gram Sabhas in participatory budgeting and social audits under the MGNREGA. (10M)",
+      "paper": "GS2"
+    }
+  },
+  {
+    "id": "2015-env-18",
+    "year": 2015,
+    "subject": "Environment & Ecology",
+    "sub_topic": "Biodiversity & National Parks",
+    "difficulty": "Moderate",
+    "question_text": "Which one of the following National Parks has a climate that varies from tropical to subtropical, temperate and arctic?",
+    "options": [
+      "Khangchendzonga National Park",
+      "Nanda Devi National Park",
+      "Neora Valley National Park",
+      "Namdapha National Park"
+    ],
+    "correct_index": 3,
+    "correct_option": "D",
+    "upsc_official_key": "Official UPSC Prelims 2015 Key",
+    "explanation": "• Located in the Changlang district of Arunachal Pradesh near the Myanmar border, Namdapha National Park spans altitudes from 200 m to 4,571 m at Daphabum, spanning tropical rainforests at low valleys to subtropical, temperate, alpine, and permanent arctic snow biomes at high altitudes.",
+    "standard_book_ref": "WII Protected Areas Directory • Shankar IAS (Biodiversity)",
+    "elimination_trap": "Altitude Gradient: Namdapha is unique because its base sits in tropical lowlands (200m) while its peaks reach arctic alpine heights (4500m+).",
+    "mains_linkage": {
+      "question": "Analyze the altitudinal zonation of vegetation in the Eastern Himalayas and assess conservation threats to endemic fauna like the Namdapha Flying Squirrel. (10M)",
+      "paper": "GS1"
+    }
+  },
+  {
+    "id": "2014-eco-19",
+    "year": 2014,
+    "subject": "Economy",
+    "sub_topic": "Financial Market & Venture Capital",
+    "difficulty": "Easy",
+    "question_text": "What does 'Venture Capital' mean?",
+    "options": [
+      "A short-term capital provided to industries for working capital requirements",
+      "A long-term start-up capital provided to new business projects entailing high risk and growth potential",
+      "Funds provided to sick industries for revival and restructuring",
+      "Funds provided for replacing aging industrial machinery"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2014 Key",
+    "explanation": "• Venture capital (VC) is high-risk equity funding provided to early-stage, high-potential emerging startups in exchange for an equity ownership stake.",
+    "standard_book_ref": "NCERT Class 12 Business Studies • Ramesh Singh (Financial Markets)",
+    "elimination_trap": "Working Capital vs Venture Capital: Short-term operational loans are working capital. Venture capital is early-stage risk equity.",
+    "mains_linkage": {
+      "question": "Assess the role of Alternative Investment Funds (AIFs) and domestic venture capital in supporting the Startup India ecosystem. (10M)",
+      "paper": "GS3"
+    }
+  },
+  {
+    "id": "2013-geo-20",
+    "year": 2013,
+    "subject": "Geography",
+    "sub_topic": "Indian Monsoons & Western Disturbances",
+    "difficulty": "Moderate",
+    "question_text": "The winter rains in northwestern India (Punjab, Haryana, Western Uttar Pradesh) are primarily caused by which of the following?",
+    "options": [
+      "Southwest Monsoon retreat",
+      "Western Disturbances originating in the Mediterranean region",
+      "Tropical cyclones originating in the Arabian Sea",
+      "Local convectional thunderstorms"
+    ],
+    "correct_index": 1,
+    "correct_option": "B",
+    "upsc_official_key": "Official UPSC Prelims 2013 Key",
+    "explanation": "• Western Disturbances are extratropical cyclonic weather systems originating in the Mediterranean and Caspian Seas, steered into northwestern India by subtropical westerly jet streams, bringing vital precipitation for Rabi crops (especially wheat).",
+    "standard_book_ref": "NCERT Class 11 India: Physical Environment, Chapter 4 (Climate)",
+    "elimination_trap": "Retreating Monsoon vs Western Disturbances: Retreating monsoon brings winter rain to the Coromandel coast (Tamil Nadu); Western Disturbances bring rain to the northwest (Punjab/Haryana).",
+    "mains_linkage": {
+      "question": "Explain the origin, trajectory, and agricultural significance of Western Disturbances for northern India's food security. (10M)",
+      "paper": "GS1"
+    }
   }
 ]

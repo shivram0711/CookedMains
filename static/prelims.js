@@ -566,6 +566,119 @@
       verdictBadge.textContent = badgeText;
       verdictBadge.className = badgeClass;
     }
+
+    // Update Sub-Topic Mark-Bleed Heatmap
+    updateSubTopicHeatmap();
+  }
+
+  // Compute & Render Sub-Topic Mark-Bleed Heatmap
+  function updateSubTopicHeatmap() {
+    const listEl = document.getElementById('subTopicHeatmapList');
+    const tagEl = document.getElementById('heatmapStatusTag');
+    const adviceBox = document.getElementById('subTopicAdviceBox');
+    const adviceText = document.getElementById('subTopicAdviceText');
+    if (!listEl) return;
+
+    const topicStats = {};
+    Object.entries(STATE.answers).forEach(([qId, ans]) => {
+      const q = STATE.pyqs.find(item => item.id === qId);
+      if (!q || !q.sub_topic) return;
+      const topic = q.sub_topic;
+      if (!topicStats[topic]) {
+        topicStats[topic] = {
+          topic,
+          subject: q.subject,
+          total: 0,
+          correct: 0,
+          incorrect: 0
+        };
+      }
+      topicStats[topic].total++;
+      if (ans.isCorrect) {
+        topicStats[topic].correct++;
+      } else {
+        topicStats[topic].incorrect++;
+      }
+    });
+
+    const topicsArray = Object.values(topicStats);
+    if (tagEl) {
+      tagEl.textContent = `${topicsArray.length} Themes Logged`;
+    }
+
+    if (topicsArray.length === 0) {
+      listEl.innerHTML = `
+        <div class="p-3 text-center text-xs text-slate-500 bg-slate-950/60 rounded-xl border border-slate-800/60">
+          Solve questions below to generate your micro-theme accuracy heatmap.
+        </div>
+      `;
+      if (adviceBox) adviceBox.classList.add('hidden');
+      return;
+    }
+
+    // Sort by lowest accuracy first, then by highest attempts
+    topicsArray.sort((a, b) => {
+      const accA = a.correct / a.total;
+      const accB = b.correct / b.total;
+      if (accA !== accB) return accA - accB;
+      return b.total - a.total;
+    });
+
+    let worstTopic = null;
+
+    const html = topicsArray.map(t => {
+      const acc = Math.round((t.correct / t.total) * 100);
+      const netMarks = (t.correct * 2.0) - (t.incorrect * 0.66);
+
+      let colorClass = 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30';
+      let barColor = 'bg-emerald-500';
+      let statusLabel = 'Strong';
+
+      if (acc < 50) {
+        colorClass = 'text-rose-400 bg-rose-500/15 border-rose-500/30';
+        barColor = 'bg-rose-500';
+        statusLabel = 'Bleeding Marks';
+        if (!worstTopic || t.total >= 2) worstTopic = t;
+      } else if (acc < 75) {
+        colorClass = 'text-amber-400 bg-amber-500/15 border-amber-500/30';
+        barColor = 'bg-amber-500';
+        statusLabel = 'Vulnerable';
+      }
+
+      return `
+        <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col gap-1.5 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-slate-200 truncate pr-2" title="${escapeHtml(t.topic)}">
+              ${escapeHtml(t.topic)}
+            </span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold font-mono border ${colorClass} shrink-0">
+              ${acc}% (${netMarks >= 0 ? '+' : ''}${netMarks.toFixed(1)}M)
+            </span>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+            <div class="h-full rounded-full ${barColor}" style="width: ${acc}%"></div>
+          </div>
+
+          <div class="flex items-center justify-between text-[10px] text-slate-400">
+            <span>${escapeHtml(t.subject)}</span>
+            <span>${t.correct}/${t.total} Solved • ${statusLabel}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    listEl.innerHTML = html;
+
+    if (adviceBox && adviceText) {
+      if (worstTopic && worstTopic.total >= 1 && (worstTopic.correct / worstTopic.total) < 0.6) {
+        adviceBox.classList.remove('hidden');
+        adviceText.innerHTML = `<strong>Priority Fix:</strong> You are bleeding marks in <strong>${escapeHtml(worstTopic.topic)}</strong> (${Math.round((worstTopic.correct / worstTopic.total) * 100)}% accuracy). Stop over-revising strong themes; prioritize this gap!`;
+      } else {
+        adviceBox.classList.add('hidden');
+      }
+    }
   }
 
   // Subject Slugs for Clean SEO URLs
