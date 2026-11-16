@@ -532,6 +532,13 @@ async def prelims_page():
 async def prelims_subject_page(subject_slug: str):
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "prelims.html"))
 
+@app.api_route("/planner", methods=["GET", "HEAD"])
+@app.api_route("/planner.html", methods=["GET", "HEAD"])
+@app.api_route("/roadmap", methods=["GET", "HEAD"])
+@app.api_route("/study-plan", methods=["GET", "HEAD"])
+async def planner_page():
+    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "planner.html"))
+
 @app.api_route("/sitemap-prelims.xml", methods=["GET", "HEAD"])
 async def sitemap_prelims_xml():
     return FileResponse(

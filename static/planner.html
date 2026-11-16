@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>UPSC Syllabus Roadmap & Daily Habit OS | CookedMains</title>
+  <meta name="description" content="Master UPSC Civil Services preparation with an authentic syllabus timeline roadmap, daily study habit tracker, planned vs done hours, and gamified PYQ unlock gates.">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            amber: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' },
+            emerald: { 400: '#34d399', 500: '#10b981', 600: '#059669' },
+            slate: { 850: '#0f172a', 900: '#0b1120', 950: '#060913' }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/static/favicon-32x32.png">
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* Brand Logo Responsive Toggle */
+    .brand-logo-light { display: block !important; }
+    .brand-logo-dark { display: none !important; }
+    html.dark .brand-logo-light { display: none !important; }
+    html.dark .brand-logo-dark { display: block !important; }
+
+    /* Light Mode Overrides */
+    html:not(.dark) {
+      background-color: #faf8f5 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) body {
+      background-color: #faf8f5 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) .light-card {
+      background-color: #ffffff !important;
+      border-color: #e5e7eb !important;
+      color: #111827 !important;
+      box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05) !important;
+    }
+    html:not(.dark) .light-hero-card {
+      background-color: #0f172a !important;
+      color: #ffffff !important;
+    }
+    html:not(.dark) .light-timeline-line {
+      background-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .light-inner-box {
+      background-color: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+      color: #1e293b !important;
+    }
+    html:not(.dark) .light-border {
+      border-color: #e5e7eb !important;
+    }
+    html:not(.dark) .light-input {
+      background-color: #ffffff !important;
+      border-color: #d1d5db !important;
+      color: #111827 !important;
+    }
+    html:not(.dark) .light-btn-subtle {
+      background-color: #f1f5f9 !important;
+      color: #475569 !important;
+      border-color: #e2e8f0 !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-slate-950 transition-colors duration-200">
+
+  <!-- ==========================================
+       HEADER & NAVIGATION
+       ========================================== -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-slate-950/90 dark:bg-slate-950/90 border-b border-slate-800 transition-colors duration-200">
+    <div class="max-w-5xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
+      
+      <!-- Logo + Brand -->
+      <a href="/" class="flex items-center gap-2 sm:gap-2.5 group shrink-0 select-none" title="Cooked Mains — Let Me Cook">
+        <img src="/static/brand_logo_light.png" alt="Cooked Mains Logo" class="brand-logo-light h-9 sm:h-11 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
+        <img src="/static/brand_logo_dark.png" alt="Cooked Mains Logo" class="brand-logo-dark h-9 sm:h-11 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
+        <div class="flex flex-col justify-center shrink-0">
+          <span class="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight flex items-center">
+            Cooked <span class="text-amber-500 ml-1">Mains</span> 
+            <span class="text-[9px] sm:text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-amber-400/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold ml-1.5">OS</span>
+          </span>
+          <span class="text-[9px] sm:text-[10px] font-mono font-bold tracking-wider text-amber-600 dark:text-amber-400 uppercase leading-none mt-0.5">
+            Study Planner
+          </span>
+        </div>
+      </a>
+
+      <!-- Center Nav Tabs (Desktop) -->
+      <nav class="hidden md:flex items-center gap-1 p-1 rounded-xl bg-slate-900/80 border border-slate-800 text-xs font-bold">
+        <button id="navTabToday" class="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black transition-all cursor-pointer">
+          📅 Today's Plan
+        </button>
+        <button id="navTabRoadmap" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all cursor-pointer">
+          🗺️ Syllabus Roadmap
+        </button>
+        <button id="navTabModule" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all cursor-pointer">
+          📦 Module Unlocks
+        </button>
+      </nav>
+
+      <!-- Right Utility Actions -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <!-- Link to Prelims Radar -->
+        <a href="/prelims" class="hidden sm:flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-slate-900 text-amber-400 border border-amber-500/30 hover:bg-slate-800 transition-all" title="Prelims 100+ PYQ Engine">
+          <span>🎯</span>
+          <span>Prelims Radar</span>
+        </a>
+
+        <!-- Link to Mains Evaluator -->
+        <a href="/" class="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-slate-900 text-slate-300 border border-slate-800 hover:text-white transition-all" title="Mains Studio">
+          <span>📝</span>
+          <span class="hidden sm:inline">Mains Studio</span>
+        </a>
+
+        <!-- Bilingual Language Toggle -->
+        <button id="toggleLangBtn" class="flex items-center gap-1 text-[11px] font-bold px-2 sm:px-2.5 py-1.5 rounded-lg bg-slate-900 text-slate-300 hover:text-white border border-slate-800 transition-all cursor-pointer" title="Toggle English / हिंदी">
+          <span class="text-xs font-mono font-bold text-amber-400">A/अ</span>
+          <span id="langLabel" class="text-[10px] hidden sm:inline">English</span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button id="toggleThemeBtn" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer" title="Toggle Light / Dark Mode">
+          <svg id="themeIconSun" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg id="themeIconMoon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==========================================
+       MAIN CONTENT CONTAINER
+       ========================================== -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-6 py-6 sm:py-8 flex flex-col gap-6">
+
+    <!-- VIEW 1: TODAY'S PLAN (DEFAULT) -->
+    <section id="viewTodaySection" class="flex flex-col gap-5">
+
+      <!-- Hero Welcome & Countdown Card -->
+      <div class="light-hero-card p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border border-slate-800 shadow-xl flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-slate-400">Welcome back,</span>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-bold border border-amber-500/30">🏆 Peers Top 15%</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-semibold border border-slate-700">🏁 Weekly Report &gt;</span>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <h1 id="userGreetingName" class="text-2xl sm:text-3xl font-black text-white tracking-tight cursor-pointer hover:underline" title="Click to rename">
+              Aspirant
+            </h1>
+            <span class="text-xs text-slate-500">✏️</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="countdownPill" class="text-xs font-mono font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              ⏳ 188 days to Prelims 2027
+            </span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs">
+          <span class="text-slate-400">Current Track:</span>
+          <button id="trackToggleBtn" class="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 cursor-pointer">
+            <span>Integrated (Prelims + Mains)</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 border border-amber-500/40">Change</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Section Title & Streak Header -->
+      <div class="flex items-center justify-between">
+        <div class="flex flex-col">
+          <span id="todayDateLabel" class="text-[11px] font-mono uppercase tracking-wider text-amber-500 font-bold">TODAY · 16 NOV</span>
+          <h2 id="todayPlanTitle" class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">My plan for today</h2>
+        </div>
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 font-extrabold text-xs shadow-xs">
+          <span class="text-base">🔥</span>
+          <span id="streakCount">12 day streak</span>
+        </div>
+      </div>
+
+      <!-- 2 PM Commitment Box -->
+      <div class="light-inner-box p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex flex-col gap-1.5 text-xs text-amber-900 dark:text-amber-200/90 leading-relaxed">
+        <div class="flex items-center gap-1.5 font-extrabold text-amber-800 dark:text-amber-400">
+          <span>⏰</span>
+          <span id="lockNoticeTitle">Plan your day before 2 PM.</span>
+        </div>
+        <p id="lockNoticeBody">
+          Add every target you plan to study today before 2 PM. You can change your plan as often as you like until then. At 2 PM your plan locks automatically. Missed 2 PM? You can still plan your day later, but late targets get half points in Peers. Whenever you finish a target, tap how much you actually studied.
+        </p>
+      </div>
+
+      <!-- Daily Progress Summary Bar -->
+      <div class="light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col gap-2">
+        <div class="flex items-center justify-between text-xs">
+          <span id="progressStatsText" class="font-bold text-slate-300">Planned 7h, Done 3h 45m (54%)</span>
+          <span id="progressPercentBadge" class="font-mono text-emerald-400 font-black">54%</span>
+        </div>
+        <div class="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden">
+          <div id="dailyProgressBar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style="width: 54%;"></div>
+        </div>
+      </div>
+
+      <!-- Daily Items Subheading -->
+      <span class="text-[11px] font-mono uppercase tracking-wider text-slate-500 font-bold">
+        FOR EACH ITEM, TAP HOW MUCH YOU STUDIED
+      </span>
+
+      <!-- Task Items List Container -->
+      <div id="todayTaskList" class="flex flex-col gap-3.5">
+        <!-- Rendered dynamically by JavaScript -->
+      </div>
+
+      <!-- Add Custom Target Box -->
+      <div class="light-card p-3 rounded-2xl bg-slate-900 border border-slate-800 flex items-center gap-2">
+        <input id="newTargetInput" type="text" placeholder="Add your own, e.g. Ethics Case Study, The Hindu Editorial, CSAT..." class="light-input flex-1 p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500">
+        <button id="addNewTargetBtn" type="button" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all cursor-pointer shrink-0">
+          + Add
+        </button>
+      </div>
+
+    </section>
+
+    <!-- VIEW 2: SYLLABUS ROADMAP (TIMELINE) -->
+    <section id="viewRoadmapSection" class="hidden flex flex-col gap-5">
+      
+      <div class="flex items-center justify-between">
+        <div class="flex flex-col">
+          <span class="text-[11px] font-mono uppercase tracking-wider text-amber-500 font-bold">MY TIMELINE</span>
+          <h2 id="roadmapTitle" class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Your syllabus plan</h2>
+        </div>
+        <button id="openModuleUnlocksBtn" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white text-xs font-bold transition-all cursor-pointer">
+          📦 View Active Module
+        </button>
+      </div>
+
+      <!-- Master Plan Status Card -->
+      <div class="light-hero-card p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border border-slate-800 shadow-xl flex flex-col gap-3">
+        <span class="text-[10px] font-mono uppercase font-black tracking-wider text-amber-400">YOUR PLAN WITH AI MENTOR</span>
+        
+        <div class="flex items-center justify-between">
+          <h3 class="text-2xl font-black text-white">On track</h3>
+          <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-mono font-bold border border-emerald-500/30">✓ Active</span>
+        </div>
+
+        <p class="text-xs text-slate-300">
+          Now on <strong class="text-amber-400">Geography</strong>, planned to finish on <strong class="text-white">10 Dec</strong>.
+        </p>
+
+        <!-- Stats Boxes Grid -->
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col">
+            <span class="text-[10px] text-slate-400">Targets done</span>
+            <span class="text-lg font-black text-white font-mono">2 of 10</span>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col">
+            <span class="text-[10px] text-slate-400">Plan ends</span>
+            <span class="text-lg font-black text-white font-mono">23 Jun 2027</span>
+          </div>
+        </div>
+
+        <p class="text-[11px] text-slate-400 pt-1 leading-relaxed">
+          Based on your daily targets: <strong>100% done</strong> over the last 17 days of this target.
+        </p>
+      </div>
+
+      <!-- Vertical Connected Timeline -->
+      <div class="relative pl-6 sm:pl-8 flex flex-col gap-4">
+        <!-- Connecting Line -->
+        <div class="light-timeline-line absolute left-3 sm:left-4 top-4 bottom-4 w-0.5 bg-slate-800 -translate-x-1/2"></div>
+
+        <!-- Milestones dynamically rendered -->
+        <div id="roadmapMilestoneList" class="flex flex-col gap-3.5">
+          <!-- Rendered dynamically by JavaScript -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- VIEW 3: MODULE UNLOCKS & CURATED PYQS -->
+    <section id="viewModuleSection" class="hidden flex flex-col gap-5">
+      
+      <!-- Module Header Card -->
+      <div class="light-card p-5 sm:p-6 rounded-2xl bg-slate-900 border border-amber-500/30 shadow-xl flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold text-amber-500">GS2 Part 2</span>
+            <span class="px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black uppercase">CURRENT</span>
+          </div>
+          <span class="text-xs text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">Active Unit</span>
+        </div>
+
+        <h2 class="text-xl sm:text-2xl font-black text-white">
+          Parliament, State Legislatures and the Election Commission
+        </h2>
+
+        <!-- Download Summary Card -->
+        <div class="light-inner-box p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">📄</span>
+            <span class="font-bold text-slate-200">GS2 Part 2 High-Yield Revision PDF</span>
+          </div>
+          <button type="button" onclick="alert('Downloading GS2 High-Yield Summary Notes PDF...')" class="text-amber-400 hover:text-amber-300 font-bold hover:underline cursor-pointer">
+            Download
+          </button>
+        </div>
+
+        <!-- Unlock Requirement Gate Box -->
+        <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col gap-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-emerald-300">Finish 40% of the PYQs to open the next part.</span>
+            <span class="font-mono text-emerald-400 font-extrabold">3 of 5 needed</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+            <div class="h-full bg-emerald-500 rounded-full" style="width: 60%;"></div>
+          </div>
+          <span class="text-[11px] text-slate-400">12 PYQs in this part (Answered 3)</span>
+        </div>
+      </div>
+
+      <!-- Curated PYQ List Subhead -->
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold">
+          ▼ ALL 12 PYQS IN THIS MODULE
+        </span>
+        <a href="/prelims" class="text-xs text-amber-400 hover:underline font-bold">
+          Open Full Prelims Radar →
+        </a>
+      </div>
+
+      <!-- Curated PYQ Cards -->
+      <div class="flex flex-col gap-4">
+        
+        <!-- Mains PYQ Card 1 -->
+        <div class="light-card p-5 rounded-2xl bg-slate-900 border border-emerald-500/40 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-bold text-xs">✓</span>
+              <span class="text-xs font-bold text-white">Q1 · 2023 · 15 marks</span>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Evaluated</span>
+          </div>
+
+          <p class="text-xs sm:text-sm font-semibold text-slate-200 leading-relaxed">
+            Discuss the role of the Election Commission of India in the light of the evolution of the Model Code of Conduct.
+          </p>
+
+          <p class="text-xs text-slate-400 leading-relaxed bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+            <strong>Writing Directive:</strong> For 10 marks write about 2 pages, for 15 marks about 3 pages. This one is 15 marks, so about 3 pages. Add photos or one PDF.
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            <a href="/" class="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md">
+              <span>📷</span>
+              <span>Upload Photos in Studio</span>
+            </a>
+            <a href="/" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all border border-slate-700">
+              <span>📄</span>
+              <span>Upload PDF Copy (up to 50 MB)</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Mains PYQ Card 2 -->
+        <div class="light-card p-5 rounded-2xl bg-slate-900 border border-emerald-500/40 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-bold text-xs">✓</span>
+              <span class="text-xs font-bold text-white">Q2 · 2022 · 10 marks</span>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Evaluated</span>
+          </div>
+
+          <p class="text-xs sm:text-sm font-semibold text-slate-200 leading-relaxed">
+            Discuss the procedures to decide disputes arising out of the election of the President of India.
+          </p>
+
+          <p class="text-xs text-slate-400 leading-relaxed bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+            <strong>Writing Directive:</strong> For 10 marks write about 2 pages. Add photos or one PDF.
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            <a href="/" class="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md">
+              <span>📷</span>
+              <span>Upload Photos in Studio</span>
+            </a>
+            <a href="/" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all border border-slate-700">
+              <span>📄</span>
+              <span>Upload PDF Copy (up to 50 MB)</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Prelims PYQ MCQ Card -->
+        <div class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-400 font-mono">Prelims MCQ · 2023 · 2 marks</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">Official UPSC Key</span>
+          </div>
+
+          <p class="text-xs sm:text-sm font-semibold text-white leading-relaxed">
+            With reference to the Election Commission of India, consider the following statements:
+            <br>1. The Election Commissioners have the same status and receive salary and perks as available to Judges of the Supreme Court.
+            <br>2. The Chief Election Commissioner cannot be removed from his office except in like manner and on like grounds as a Judge of the Supreme Court.
+            <br>3. An Election Commissioner cannot be removed from office except on the recommendation of the Chief Election Commissioner.
+            <br>Which of the statements given above are correct?
+          </p>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button type="button" class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-left hover:border-amber-500 transition-all text-slate-300">A. 1 and 2 only</button>
+            <button type="button" class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-left hover:border-amber-500 transition-all text-slate-300">B. 2 and 3 only</button>
+            <button type="button" class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-left hover:border-amber-500 transition-all text-slate-300">C. 1 and 3 only</button>
+            <button type="button" class="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-left text-emerald-300 font-bold">D. 1, 2 and 3 ✓</button>
+          </div>
+
+          <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200">
+            <strong>Topper's Trap Detector:</strong> UPSC frequently tests the fallacy that the CEC receives higher salary than other ECs (they are completely equal under law).
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ==========================================
+       MOBILE BOTTOM DOCK NAVIGATION
+       ========================================== -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 px-2 py-1.5 flex items-center justify-around text-[10px] font-bold shadow-2xl">
+    <button type="button" id="mobDockToday" class="flex flex-col items-center gap-0.5 text-amber-400 font-bold cursor-pointer">
+      <span class="text-base">📅</span>
+      <span>Today</span>
+    </button>
+    <button type="button" id="mobDockRoadmap" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer">
+      <span class="text-base">🗺️</span>
+      <span>Roadmap</span>
+    </button>
+    <button type="button" id="mobDockModule" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer">
+      <span class="text-base">📦</span>
+      <span>Modules</span>
+    </button>
+    <a href="/prelims" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer">
+      <span class="text-base">🎯</span>
+      <span>Prelims</span>
+    </a>
+    <a href="/" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer">
+      <span class="text-base">📝</span>
+      <span>Mains</span>
+    </a>
+  </nav>
+
+  <!-- ==========================================
+       CLIENT-SIDE SCRIPT LOGIC
+       ========================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      const STORAGE_KEY = 'cookedmains_study_os_v1';
+
+      // Default State
+      const DEFAULT_STATE = {
+        userName: 'Ananya',
+        targetYear: 2027,
+        streakDays: 12,
+        language: 'en',
+        theme: 'dark',
+        tasks: [
+          {
+            id: 't1',
+            type: 'prelims',
+            title: 'Prelims Planner: Modern History, 1857 to 1905 PYQs',
+            plannedMin: 90,
+            status: 'full', // 'none' | 'half' | 'full' | 'more'
+            doneMin: 90
+          },
+          {
+            id: 't2',
+            type: 'mains',
+            title: 'Daily Mains Answer Writing Practice',
+            paper: 'GS2',
+            answersCount: 2,
+            uploaded: true,
+            plannedMin: 60,
+            status: 'full',
+            doneMin: 60
+          },
+          {
+            id: 't3',
+            type: 'static',
+            title: 'Revise Modern History notes & Swadeshi Movement',
+            plannedMin: 45,
+            status: 'half',
+            doneMin: 25
+          },
+          {
+            id: 't4',
+            type: 'static',
+            title: 'Geography Drainage Systems NCERT Ch 3 Mapping',
+            plannedMin: 60,
+            status: 'none',
+            doneMin: 0
+          }
+        ],
+        milestones: [
+          { id: 'm1', subject: 'Polity & Governance', window: '13 Aug to 21 Sep', status: 'done', daysLeft: 0 },
+          { id: 'm2', subject: 'Economy & Banking', window: '22 Sep to 31 Oct', status: 'done', daysLeft: 0 },
+          { id: 'm3', subject: 'Geography & Mapping', window: '1 Nov to 10 Dec', status: 'active', daysLeft: 24 },
+          { id: 'm4', subject: 'Modern History', window: '11 Dec to 15 Jan', status: 'upcoming', daysLeft: 0 },
+          { id: 'm5', subject: 'Ethics (GS4)', window: '16 Jan to 15 Feb', status: 'upcoming', daysLeft: 0 },
+          { id: 'm6', subject: 'GS3 Internal Security, Disaster Mgmt & Agri', window: '16 Feb to 15 Mar', status: 'upcoming', daysLeft: 0 },
+          { id: 'm7', subject: 'GS2 Governance, Social Justice & IR', window: '16 Mar to 15 Apr', status: 'upcoming', daysLeft: 0 },
+          { id: 'm8', subject: 'GS1 Ancient, Medieval, Art & Culture', window: '16 Apr to 15 May', status: 'upcoming', daysLeft: 0 },
+          { id: 'm9', subject: 'Post-Independence & World History', window: '16 May to 31 May', status: 'upcoming', daysLeft: 0 },
+          { id: 'm10', subject: 'Indian Society & Social Issues', window: '1 Jun to 15 Jun', status: 'upcoming', daysLeft: 0 }
+        ]
+      };
+
+      let STATE = Object.assign({}, DEFAULT_STATE);
+
+      // Load State
+      function loadState() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            STATE = Object.assign({}, DEFAULT_STATE, parsed);
+          }
+          const themeSaved = localStorage.getItem('mainsmentor_theme');
+          if (themeSaved) STATE.theme = themeSaved;
+        } catch (e) {}
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+        } catch (e) {}
+      }
+
+      // Theme toggle
+      function initTheme() {
+        if (STATE.theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+
+      function toggleTheme() {
+        STATE.theme = STATE.theme === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('mainsmentor_theme', STATE.theme);
+        initTheme();
+      }
+
+      // Tab switching
+      function switchView(viewName) {
+        const todaySec = document.getElementById('viewTodaySection');
+        const roadmapSec = document.getElementById('viewRoadmapSection');
+        const moduleSec = document.getElementById('viewModuleSection');
+
+        const navToday = document.getElementById('navTabToday');
+        const navRoadmap = document.getElementById('navTabRoadmap');
+        const navModule = document.getElementById('navTabModule');
+
+        const mobToday = document.getElementById('mobDockToday');
+        const mobRoadmap = document.getElementById('mobDockRoadmap');
+        const mobModule = document.getElementById('mobDockModule');
+
+        [todaySec, roadmapSec, moduleSec].forEach(s => s && s.classList.add('hidden'));
+        
+        // Reset desktop tab styles
+        [navToday, navRoadmap, navModule].forEach(b => {
+          if (b) b.className = 'px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all cursor-pointer';
+        });
+
+        // Reset mobile dock styles
+        [mobToday, mobRoadmap, mobModule].forEach(b => {
+          if (b) b.className = 'flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer';
+        });
+
+        if (viewName === 'today') {
+          if (todaySec) todaySec.classList.remove('hidden');
+          if (navToday) navToday.className = 'px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black transition-all cursor-pointer';
+          if (mobToday) mobToday.className = 'flex flex-col items-center gap-0.5 text-amber-400 font-bold cursor-pointer';
+        } else if (viewName === 'roadmap') {
+          if (roadmapSec) roadmapSec.classList.remove('hidden');
+          if (navRoadmap) navRoadmap.className = 'px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black transition-all cursor-pointer';
+          if (mobRoadmap) mobRoadmap.className = 'flex flex-col items-center gap-0.5 text-amber-400 font-bold cursor-pointer';
+        } else if (viewName === 'module') {
+          if (moduleSec) moduleSec.classList.remove('hidden');
+          if (navModule) navModule.className = 'px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black transition-all cursor-pointer';
+          if (mobModule) mobModule.className = 'flex flex-col items-center gap-0.5 text-amber-400 font-bold cursor-pointer';
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // Render Today's Tasks
+      function renderTodayTasks() {
+        const container = document.getElementById('todayTaskList');
+        if (!container) return;
+
+        let totalPlannedMin = 0;
+        let totalDoneMin = 0;
+
+        container.innerHTML = STATE.tasks.map((task, idx) => {
+          totalPlannedMin += task.plannedMin;
+          totalDoneMin += task.doneMin;
+
+          const hoursPlanned = Math.floor(task.plannedMin / 60);
+          const minsPlanned = task.plannedMin % 60;
+          const timeDisplay = hoursPlanned > 0 ? `${hoursPlanned}h ${minsPlanned > 0 ? minsPlanned + 'm' : ''}` : `${minsPlanned}m`;
+
+          const isMains = task.type === 'mains';
+
+          return `
+            <div class="light-card p-4 sm:p-5 rounded-2xl bg-slate-900 border ${task.status === 'full' ? 'border-emerald-500/40' : 'border-slate-800'} flex flex-col gap-3 transition-all">
+              
+              <!-- Title & Remove -->
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex flex-col">
+                  <span class="text-[10px] font-mono uppercase font-bold text-amber-400">
+                    ${task.type === 'prelims' ? '🎯 Prelims Target' : task.type === 'mains' ? '✍️ Mains Studio Target' : '📚 Core Static Target'}
+                  </span>
+                  <h3 class="text-sm font-bold text-white mt-0.5">${escapeHtml(task.title)}</h3>
+                </div>
+                <button type="button" class="remove-task-btn text-slate-500 hover:text-rose-400 text-sm font-bold p-1 cursor-pointer" data-idx="${idx}" title="Remove task">✕</button>
+              </div>
+
+              ${isMains ? `
+                <!-- Mains Extra Controls -->
+                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col gap-2 text-xs">
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-300">How many answers did you write?</span>
+                    <div class="flex items-center gap-1.5">
+                      <button type="button" class="ans-minus-btn px-2 py-0.5 rounded bg-slate-800 text-white font-bold" data-idx="${idx}">-</button>
+                      <span class="font-mono font-bold text-white px-2">${task.answersCount || 0}</span>
+                      <button type="button" class="ans-plus-btn px-2 py-0.5 rounded bg-slate-800 text-white font-bold" data-idx="${idx}">+</button>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between pt-1 border-t border-slate-800">
+                    <span class="text-slate-400">Paper:</span>
+                    <span class="font-mono font-bold text-amber-400">${task.paper || 'GS2'}</span>
+                  </div>
+                  <a href="/" class="w-full mt-1 py-2 px-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all">
+                    <span>📎 Upload Written Answers for AI Evaluation</span>
+                  </a>
+                </div>
+              ` : ''}
+
+              <!-- Time & Completion Controls -->
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 border-t border-slate-800/60">
+                
+                <!-- Planned Time -->
+                <div class="flex items-center gap-2 text-xs">
+                  <span class="text-slate-400 uppercase text-[10px] font-bold">Planned:</span>
+                  <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
+                    <button type="button" class="time-minus-btn px-1.5 py-0.2 rounded hover:bg-slate-800 text-slate-300 font-bold" data-idx="${idx}">-</button>
+                    <span class="font-mono font-bold text-white min-w-[45px] text-center">${timeDisplay}</span>
+                    <button type="button" class="time-plus-btn px-1.5 py-0.2 rounded hover:bg-slate-800 text-slate-300 font-bold" data-idx="${idx}">+</button>
+                  </div>
+                </div>
+
+                <!-- Status Pills: None, Half, Full, More -->
+                <div class="flex items-center gap-1.5">
+                  <button type="button" class="status-btn px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${task.status === 'none' ? 'bg-amber-500 text-slate-950' : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-white'}" data-idx="${idx}" data-val="none">None</button>
+                  <button type="button" class="status-btn px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${task.status === 'half' ? 'bg-amber-500 text-slate-950' : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-white'}" data-idx="${idx}" data-val="half">Half</button>
+                  <button type="button" class="status-btn px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${task.status === 'full' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-white'}" data-idx="${idx}" data-val="full">Full</button>
+                  <button type="button" class="status-btn px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${task.status === 'more' ? 'bg-emerald-400 text-slate-950' : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-white'}" data-idx="${idx}" data-val="more">More</button>
+                </div>
+
+              </div>
+
+            </div>
+          `;
+        }).join('');
+
+        // Update overall summary bar
+        const totalPlannedH = (totalPlannedMin / 60).toFixed(1);
+        const totalDoneH = (totalDoneMin / 60).toFixed(1);
+        const pct = totalPlannedMin > 0 ? Math.min(100, Math.round((totalDoneMin / totalPlannedMin) * 100)) : 0;
+
+        const statsText = document.getElementById('progressStatsText');
+        const badge = document.getElementById('progressPercentBadge');
+        const bar = document.getElementById('dailyProgressBar');
+
+        if (statsText) statsText.textContent = `Planned ${totalPlannedH}h, Done ${totalDoneH}h (${pct}%)`;
+        if (badge) badge.textContent = `${pct}%`;
+        if (bar) bar.style.width = `${pct}%`;
+
+        attachTaskListeners();
+      }
+
+      function attachTaskListeners() {
+        // Remove task
+        document.querySelectorAll('.remove-task-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.currentTarget.getAttribute('data-idx'), 10);
+            STATE.tasks.splice(idx, 1);
+            saveState();
+            renderTodayTasks();
+          });
+        });
+
+        // Time adjustments
+        document.querySelectorAll('.time-minus-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.currentTarget.getAttribute('data-idx'), 10);
+            if (STATE.tasks[idx].plannedMin > 15) {
+              STATE.tasks[idx].plannedMin -= 15;
+              updateTaskDoneTime(idx);
+              saveState();
+              renderTodayTasks();
+            }
+          });
+        });
+        document.querySelectorAll('.time-plus-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.currentTarget.getAttribute('data-idx'), 10);
+            STATE.tasks[idx].plannedMin += 15;
+            updateTaskDoneTime(idx);
+            saveState();
+            renderTodayTasks();
+          });
+        });
+
+        // Status buttons (None, Half, Full, More)
+        document.querySelectorAll('.status-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.currentTarget.getAttribute('data-idx'), 10);
+            const val = e.currentTarget.getAttribute('data-val');
+            STATE.tasks[idx].status = val;
+            updateTaskDoneTime(idx);
+            saveState();
+            renderTodayTasks();
+          });
+        });
+
+        // Answer count minus/plus
+        document.querySelectorAll('.ans-minus-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.currentTarget.getAttribute('data-idx'), 10);
+            if (STATE.tasks[idx].answersCount > 0) {
+              STATE.tasks[idx].answersCount--;
+              saveState();
+              renderTodayTasks();
+            }
+          });
+        });
+        document.querySelectorAll('.ans-plus-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.currentTarget.getAttribute('data-idx'), 10);
+            STATE.tasks[idx].answersCount = (STATE.tasks[idx].answersCount || 0) + 1;
+            saveState();
+            renderTodayTasks();
+          });
+        });
+      }
+
+      function updateTaskDoneTime(idx) {
+        const task = STATE.tasks[idx];
+        if (task.status === 'none') task.doneMin = 0;
+        else if (task.status === 'half') task.doneMin = Math.round(task.plannedMin * 0.5);
+        else if (task.status === 'full') task.doneMin = task.plannedMin;
+        else if (task.status === 'more') task.doneMin = Math.round(task.plannedMin * 1.3);
+      }
+
+      // Render Syllabus Roadmap Milestones
+      function renderRoadmap() {
+        const container = document.getElementById('roadmapMilestoneList');
+        if (!container) return;
+
+        container.innerHTML = STATE.milestones.map((m, idx) => {
+          const isDone = m.status === 'done';
+          const isActive = m.status === 'active';
+
+          return `
+            <div class="relative flex items-start gap-4">
+              
+              <!-- Milestone Node Icon -->
+              <div class="absolute -left-6 sm:-left-8 top-3 -translate-x-1/2 w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 z-10 ${
+                isDone 
+                  ? 'bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/50' 
+                  : isActive 
+                    ? 'bg-amber-500 text-slate-950 ring-4 ring-amber-500/30 shadow-md shadow-amber-500/50' 
+                    : 'bg-slate-800 text-slate-400 border border-slate-700'
+              }">
+                ${isDone ? '✓' : isActive ? '●' : '○'}
+              </div>
+
+              <!-- Milestone Card -->
+              <div class="light-card flex-1 p-4 sm:p-5 rounded-2xl bg-slate-900 border ${
+                isActive ? 'border-amber-500/60 shadow-lg shadow-amber-500/10' : isDone ? 'border-emerald-500/30' : 'border-slate-800'
+              } flex items-center justify-between gap-3 cursor-pointer hover:border-slate-600 transition-all" onclick="window.openModuleDetail('${m.id}')">
+                <div class="flex flex-col">
+                  <h4 class="text-sm sm:text-base font-extrabold ${isActive ? 'text-amber-400' : 'text-white'}">
+                    ${escapeHtml(m.subject)}
+                  </h4>
+                  <span class="text-xs text-slate-400 mt-0.5">${escapeHtml(m.window)}</span>
+                </div>
+
+                <div>
+                  ${
+                    isDone 
+                      ? '<span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/40">Done</span>'
+                      : isActive 
+                        ? `<span class="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/50">Now · ${m.daysLeft} days left</span>`
+                        : '<span class="px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 text-xs font-semibold border border-slate-700">Upcoming</span>'
+                  }
+                </div>
+              </div>
+
+            </div>
+          `;
+        }).join('');
+      }
+
+      window.openModuleDetail = function (mId) {
+        switchView('module');
+      };
+
+      // Escape HTML
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      // Add New Custom Target
+      function setupCustomTargetAdder() {
+        const input = document.getElementById('newTargetInput');
+        const btn = document.getElementById('addNewTargetBtn');
+
+        const addAction = () => {
+          const val = input.value.trim();
+          if (!val) return;
+          STATE.tasks.push({
+            id: 't_' + Date.now(),
+            type: 'static',
+            title: val,
+            plannedMin: 45,
+            status: 'none',
+            doneMin: 0
+          });
+          input.value = '';
+          saveState();
+          renderTodayTasks();
+        };
+
+        if (btn) btn.addEventListener('click', addAction);
+        if (input) {
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') addAction();
+          });
+        }
+      }
+
+      // Setup Listeners
+      function setupListeners() {
+        // Nav Buttons
+        document.getElementById('navTabToday')?.addEventListener('click', () => switchView('today'));
+        document.getElementById('navTabRoadmap')?.addEventListener('click', () => switchView('roadmap'));
+        document.getElementById('navTabModule')?.addEventListener('click', () => switchView('module'));
+
+        document.getElementById('mobDockToday')?.addEventListener('click', () => switchView('today'));
+        document.getElementById('mobDockRoadmap')?.addEventListener('click', () => switchView('roadmap'));
+        document.getElementById('mobDockModule')?.addEventListener('click', () => switchView('module'));
+
+        document.getElementById('openModuleUnlocksBtn')?.addEventListener('click', () => switchView('module'));
+
+        // Theme Toggle
+        document.getElementById('toggleThemeBtn')?.addEventListener('click', toggleTheme);
+
+        // Language Toggle
+        document.getElementById('toggleLangBtn')?.addEventListener('click', () => {
+          STATE.language = STATE.language === 'en' ? 'hi' : 'en';
+          saveState();
+          const label = document.getElementById('langLabel');
+          if (label) label.textContent = STATE.language === 'hi' ? 'हिंदी' : 'English';
+          alert(STATE.language === 'hi' ? 'भाषा बदलकर हिंदी कर दी गई है' : 'Language set to English');
+        });
+
+        // Greeting Name Renaming
+        document.getElementById('userGreetingName')?.addEventListener('click', () => {
+          const newName = prompt('Enter your name for your UPSC Dashboard:', STATE.userName);
+          if (newName && newName.trim()) {
+            STATE.userName = newName.trim();
+            saveState();
+            document.getElementById('userGreetingName').textContent = STATE.userName;
+          }
+        });
+      }
+
+      // Initializer
+      document.addEventListener('DOMContentLoaded', () => {
+        loadState();
+        initTheme();
+        
+        const nameEl = document.getElementById('userGreetingName');
+        if (nameEl) nameEl.textContent = STATE.userName;
+
+        renderTodayTasks();
+        renderRoadmap();
+        setupCustomTargetAdder();
+        setupListeners();
+      });
+
+    })();
+  </script>
+</body>
+</html>
