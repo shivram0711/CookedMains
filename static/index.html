@@ -620,156 +620,84 @@
     </section>
 
     <!-- ================================================================= -->
-    <!-- 🎯 INTERACTIVE CUTOFF SWEET SPOT & NEGATIVE MARKING SIMULATOR     -->
+    <!-- 🏛️ COOKEDMAINS INTEGRATED ECOSYSTEM PORTAL (Prelims + Mains + OS) -->
     <!-- ================================================================= -->
-    <section id="prelimsEVSimulatorSection" class="w-full max-w-4xl mx-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-amber-500/30 p-4 sm:p-6 shadow-xl relative overflow-hidden my-6 transition-colors">
-      
-      <!-- Header -->
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-800">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 font-black text-lg flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0">
-            📊
-          </div>
-          <div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 font-mono">Live Strategy Engine</span>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30">GS-1 Mathematical EV Model</span>
-            </div>
-            <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight mt-0.5">
-              UPSC Cutoff Sweet Spot &amp; Negative Marking Simulator
-            </h3>
-          </div>
-        </div>
-
-        <a href="/prelims" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition-all shadow-md flex items-center gap-1.5 shrink-0 self-end sm:self-auto cursor-pointer">
-          <span>Explore 100+ PYQs</span>
-          <span>→</span>
-        </a>
+    <section class="w-full max-w-6xl mx-auto px-4 my-8">
+      <div class="text-center mb-6">
+        <span class="text-xs font-mono font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+          The Integrated UPSC CSE Preparation Ecosystem
+        </span>
+        <h2 class="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-2">
+          From Prelims Precision to Mains Mastery
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-2xl mx-auto">
+          Every tool is scientifically calibrated to eliminate mark leaks, automate syllabus consistency, and elevate your scores above the final cutoff.
+        </p>
       </div>
 
-      <!-- Explainer Subtext -->
-      <p class="text-xs text-slate-600 dark:text-slate-400 pt-3 leading-relaxed">
-        Why do thousands of serious aspirants get stuck at <strong>78–84 marks</strong> when the Prelims cutoff is ~88? Drag the sliders below to see in real-time how blind FOMO guesses bleed negative marks and destroy your cutoff chances.
-      </p>
-
-      <!-- Main Interactive Grid: Sliders on Left, Live Score Card on Right -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
         
-        <!-- Left 7 Cols: Interactive Attempt Allocation Sliders -->
-        <div class="lg:col-span-7 flex flex-col gap-3.5">
-          
-          <!-- Slider 1: Total Attempts -->
-          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1.5">
-            <div class="flex items-center justify-between text-xs">
-              <span class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                <span>📝</span> Total Questions Attempted
-              </span>
-              <span id="evTotalDisplay" class="font-mono font-black text-amber-700 dark:text-amber-400 text-sm">82 / 100</span>
+        <!-- Pillar 1: Prelims Dashboard & 1,280+ PYQs -->
+        <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between gap-5 shadow-lg hover:border-amber-500/50 transition-all group">
+          <div class="flex flex-col gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+              🎯
             </div>
-            <input type="range" id="evTotalSlider" min="65" max="95" value="82" step="1" class="w-full accent-amber-500 cursor-pointer">
-            <div class="flex justify-between text-[10px] text-slate-400 font-mono">
-              <span>65 (Conservative)</span>
-              <span>80–85 (Topper Avg)</span>
-              <span>95 (Aggressive)</span>
+            <div>
+              <span class="text-[10px] font-mono uppercase tracking-wider text-amber-600 dark:text-amber-400 font-bold">1,280+ UPSC PYQs (2011–2026)</span>
+              <h3 class="text-lg font-black text-slate-900 dark:text-white mt-0.5">Prelims Dashboard</h3>
             </div>
-          </div>
-
-          <!-- Slider 2: Sure-shot Pool (90% Accuracy) -->
-          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1.5">
-            <div class="flex items-center justify-between text-xs">
-              <span class="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span>Sure-Shot Pool (90% Accurate)</span>
-              </span>
-              <span id="evSureDisplay" class="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-xs">44 questions</span>
-            </div>
-            <input type="range" id="evSureSlider" min="25" max="60" value="44" step="1" class="w-full accent-emerald-500 cursor-pointer">
-          </div>
-
-          <!-- Slider 3: 50:50 Calculated Guesses (50% Accuracy) -->
-          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1.5">
-            <div class="flex items-center justify-between text-xs">
-              <span class="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                <span>50:50 Elimination Pool (50% Accurate)</span>
-              </span>
-              <span id="evFiftyDisplay" class="font-mono font-bold text-amber-600 dark:text-amber-400 text-xs">26 questions</span>
-            </div>
-            <input type="range" id="evFiftySlider" min="10" max="40" value="26" step="1" class="w-full accent-amber-500 cursor-pointer">
-          </div>
-
-          <!-- Slider 4: Wild / FOMO Guesses (25% Random Accuracy) -->
-          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1.5">
-            <div class="flex items-center justify-between text-xs">
-              <span class="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                <span>Blind / FOMO Guesses (25% Random)</span>
-              </span>
-              <span id="evWildDisplay" class="font-mono font-bold text-rose-600 dark:text-rose-400 text-xs">12 questions</span>
-            </div>
-            <input type="range" id="evWildSlider" min="0" max="25" value="12" step="1" class="w-full accent-rose-500 cursor-pointer">
-          </div>
-
-        </div>
-
-        <!-- Right 5 Cols: Live Calculated Math & Verdict -->
-        <div class="lg:col-span-5 flex flex-col justify-between gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-          
-          <!-- Score Summary Box -->
-          <div class="flex flex-col gap-2.5">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">Simulated Net Score</span>
-              <span id="evVerdictPill" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30">
-                Below Cutoff
-              </span>
-            </div>
-
-            <!-- Big Net Score -->
-            <div class="flex items-baseline gap-2">
-              <span id="evNetScoreText" class="text-3xl sm:text-4xl font-black font-mono text-slate-900 dark:text-white">83.4</span>
-              <span class="text-xs text-slate-500 font-mono">/ 200 Marks</span>
-            </div>
-
-            <!-- Marks Breakdown -->
-            <div class="grid grid-cols-2 gap-2 text-center pt-1 text-xs">
-              <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                <div class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Gross Marks Gained</div>
-                <div id="evGrossScoreText" class="text-sm font-bold text-emerald-600 dark:text-emerald-400 font-mono pt-0.5">+105.2</div>
-              </div>
-              <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                <div class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Negative Penalties (0.66)</div>
-                <div id="evPenaltyScoreText" class="text-sm font-bold text-rose-600 dark:text-rose-400 font-mono pt-0.5">-21.8</div>
-              </div>
-            </div>
-
-            <!-- Cutoff Delta Indicator -->
-            <div id="evCutoffDeltaNotice" class="text-[11px] p-2.5 rounded-lg font-semibold flex items-center gap-2 bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20">
-              <span>⚠️</span>
-              <span id="evCutoffDeltaText">Trailing the standard 88.0 cutoff by -4.6 marks.</span>
-            </div>
-          </div>
-
-          <!-- Dynamic Forensic Takeaway Insight -->
-          <div class="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
-            <div class="font-bold flex items-center gap-1.5 text-amber-800 dark:text-amber-300 mb-1">
-              <span>💡</span>
-              <span>Forensic Takeaway:</span>
-            </div>
-            <p id="evTacticalTakeaway" class="text-[11px] leading-normal">
-              Your 12 wild guesses lose -6.0 marks in pure negative marking while adding almost nothing. Cutting them puts you safely over 89.4 marks!
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              Distraction-free 1-at-a-time question player with 10-Second Statement Slicer, Topper's Trap Detector, and Cutoff EV Sweet Spot calculator. Zero endless scrolling.
             </p>
           </div>
-
-          <!-- Direct Launch CTA -->
-          <a href="/prelims" class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all active:scale-[0.98]">
-            <span>🎯 Launch Full Prelims Radar &amp; PYQs</span>
+          <a href="/prelims" class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md">
+            <span>Launch Prelims Dashboard</span>
             <span>→</span>
           </a>
+        </div>
 
+        <!-- Pillar 2: Mains Answer Writing Studio -->
+        <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between gap-5 shadow-lg hover:border-emerald-500/50 transition-all group">
+          <div class="flex flex-col gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+              ✍️
+            </div>
+            <div>
+              <span class="text-[10px] font-mono uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-bold">Instant Multimodal Evaluation</span>
+              <h3 class="text-lg font-black text-slate-900 dark:text-white mt-0.5">Mains Evaluator Studio</h3>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              Submit your handwritten copies (10 &amp; 15 markers) for instant line-by-line examiner annotations, 5-dimension rubric scores, and model answers calibrated to IAS benchmarks.
+            </p>
+          </div>
+          <a href="#mainsEvaluationSection" onclick="window.scrollTo({ top: 300, behavior: 'smooth' }); return false;" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 dark:bg-emerald-500 hover:bg-slate-800 dark:hover:bg-emerald-400 text-white dark:text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md">
+            <span>Evaluate Handwritten Copy</span>
+            <span>→</span>
+          </a>
+        </div>
+
+        <!-- Pillar 3: Syllabus Roadmap & Habit OS -->
+        <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between gap-5 shadow-lg hover:border-indigo-500/50 transition-all group">
+          <div class="flex flex-col gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+              🗺️
+            </div>
+            <div>
+              <span class="text-[10px] font-mono uppercase tracking-wider text-indigo-600 dark:text-indigo-400 font-bold">Habit OS &amp; Milestone Timeline</span>
+              <h3 class="text-lg font-black text-slate-900 dark:text-white mt-0.5">Syllabus Study Roadmap</h3>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              Never fall off track. Vertical connected milestone timeline across all 11 GS subjects, planned vs done study hours meter, streak counter, and gamified module unlocks.
+            </p>
+          </div>
+          <a href="/planner" class="w-full py-2.5 px-4 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md">
+            <span>Open Syllabus Roadmap</span>
+            <span>→</span>
+          </a>
         </div>
 
       </div>
-
     </section>
 
     <div id="scrollStorySection" class="cinematic-story-section">

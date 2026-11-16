@@ -2,1373 +2,711 @@
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UPSC Prelims PYQ Radar &amp; Risk-Attempt Optimizer | Cooked Mains</title>
-  
-  <!-- Primary Meta Tags -->
-  <meta name="title" content="UPSC Prelims PYQ Radar &amp; Risk-Attempt Optimizer | Cooked Mains">
-  <meta name="description" content="Master UPSC Prelims with authentic official PYQs, self-clearing personal mistakes notebook, and real-time Risk vs. Attempt Expected Value (EV) optimizer. Free practice mode with official keys and Prelims-to-Mains continuum.">
-  <meta name="keywords" content="UPSC Prelims PYQ, upsc prelims practice, upsc negative marking calculator, upsc pyq 2024, upsc mistake notebook, prelims attempt sweet spot, IAS prelims test series, upsc elimination technique">
-  <meta name="author" content="Cooked Mains AI">
-  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-  <link rel="canonical" href="https://cookedmains.com/prelims">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>UPSC Prelims Dashboard &amp; 1,200+ PYQ Practice Engine (2011–2026) | CookedMains</title>
+  <meta name="description" content="Master 1,200+ authentic UPSC CSE Prelims PYQs with focus question player, sideway dashboard, Topper's Trap Detector, Statement Slicer, and Cutoff EV optimizer.">
 
-  <!-- Open Graph / Social Media -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://cookedmains.com/prelims">
-  <meta property="og:site_name" content="Cooked Mains">
-  <meta property="og:title" content="UPSC Prelims PYQ Radar &amp; Risk-Attempt Optimizer">
-  <meta property="og:description" content="Eliminate negative marking blunders with the 14-Year UPSC PYQ Engine, personal self-clearing error ledger, and Expected Value attempt optimizer. 100% Free.">
-  <meta property="og:image" content="https://cookedmains.com/static/brand_logo_dark.png">
-  <meta property="og:locale" content="en_IN">
-
-  <!-- Twitter Meta Tags -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://cookedmains.com/prelims">
-  <meta name="twitter:title" content="UPSC Prelims PYQ Radar &amp; Risk-Attempt Optimizer">
-  <meta name="twitter:description" content="Master authentic UPSC past questions with mistake elimination and risk vs. attempt optimization.">
-  <meta name="twitter:image" content="https://cookedmains.com/static/brand_logo_dark.png">
-
-  <!-- Google Fonts & Tailwind CDN -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace'],
-            kalam: ['"Kalam"', 'cursive']
-          },
           colors: {
-            brand: {
-              50: '#fffbeb',
-              100: '#fef3c7',
-              500: '#f59e0b',
-              600: '#d97706',
-              700: '#b45309'
-            }
+            amber: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' },
+            emerald: { 400: '#34d399', 500: '#10b981', 600: '#059669' },
+            slate: { 850: '#0f172a', 900: '#0b1120', 950: '#060913' }
           }
         }
       }
     }
   </script>
 
-  <!-- Schema.org Rich Snippet for Google Search Knowledge Graph -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebApplication",
-        "@id": "https://cookedmains.com/prelims#app",
-        "name": "Cooked Mains Prelims Radar",
-        "url": "https://cookedmains.com/prelims",
-        "applicationCategory": "EducationalApplication",
-        "operatingSystem": "All",
-        "description": "Interactive UPSC Prelims PYQ engine with self-clearing mistake logging and Expected Value attempt optimization.",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "INR"
-        }
-      },
-      {
-        "@type": "Quiz",
-        "@id": "https://cookedmains.com/prelims#quiz",
-        "name": "Official UPSC CSE Prelims PYQ Bank",
-        "description": "Authentic official past preliminary examination questions for UPSC IAS exam with official answer keys.",
-        "hasPart": [
-          {
-            "@type": "Question",
-            "name": "With reference to the Union Executive in India, consider the following statements regarding Presidential discretion...",
-            "suggestedAnswer": [
-              { "@type": "Answer", "text": "1 and 2 only" },
-              { "@type": "Answer", "text": "2 only" },
-              { "@type": "Answer", "text": "2 and 3 only" },
-              { "@type": "Answer", "text": "1, 2 and 3" }
-            ],
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "2 only. Under Article 74(1), the President acts on the advice of the Council of Ministers, and under 44th CAA can return advice once for reconsideration."
-            }
-          }
-        ]
-      },
-      {
-        "@type": "FAQPage",
-        "@id": "https://cookedmains.com/prelims#faq",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "How does the Real-Time Risk vs. Attempt Sweet Spot Finder work for UPSC Prelims?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "The Risk vs. Attempt Sweet Spot Finder tracks your accuracy across 3 confidence tiers: Sure-shots, 50:50 eliminations, and Wild guesses. Using the formula EV = (P_correct * 2) - (P_incorrect * 0.66), it mathematically computes whether your guess attempts increase your net score or drop you below the cutoff."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "What is the Self-Clearing Personal Mistakes Notebook?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Whenever you answer a PYQ incorrectly, it is automatically logged into your subject-wise Mistakes Notebook. When you launch a targeted re-quiz and answer that question correctly, the system automatically removes it from the error log so your goal is to shrink your mistakes to zero."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How does Cooked Mains connect Prelims PYQs to Mains answer writing?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Every Prelims question on Cooked Mains features a 'Prelims-to-Mains Continuum' box that maps the underlying theme to an authentic Mains 10-marker or 15-marker question with a direct 1-click link to evaluate your handwritten response."
-            }
-          }
-        ]
-      }
-    ]
-  }
-  </script>
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/static/favicon-32x32.png">
 
   <style>
-    /* Smooth Transitions */
-    .fade-enter { opacity: 0; transform: translateY(6px); }
-    .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity 200ms ease, transform 200ms ease; }
     /* Custom Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.25); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.45); }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-    /* Print Optimization for Revision Flash-Sheet */
-    @media print {
-      body {
-        background: #ffffff !important;
-        color: #0f172a !important;
-      }
-      header, footer, nav, section, main, #toastNotification, #mobileNavDock {
-        display: none !important;
-      }
-      #printFlashSheetContainer {
-        display: block !important;
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 20px !important;
-      }
-      .flash-card {
-        page-break-inside: avoid;
-        break-inside: avoid;
-      }
+    /* Brand Logo Responsive Toggle */
+    .brand-logo-light { display: block !important; }
+    .brand-logo-dark { display: none !important; }
+    html.dark .brand-logo-light { display: none !important; }
+    html.dark .brand-logo-dark { display: block !important; }
+
+    /* Light Mode Overrides */
+    html:not(.dark) {
+      background-color: #faf8f5 !important;
+      color: #0f172a !important;
     }
-
-    /* ========================================================
-       LIGHT MODE COMPREHENSIVE HIGH-CONTRAST THEME OVERRIDES
-       ======================================================== */
     html:not(.dark) body {
+      background-color: #faf8f5 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) .light-card {
+      background-color: #ffffff !important;
+      border-color: #e5e7eb !important;
+      color: #111827 !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05) !important;
+    }
+    html:not(.dark) .light-sidebar {
+      background-color: #ffffff !important;
+      border-color: #e5e7eb !important;
+      color: #334155 !important;
+    }
+    html:not(.dark) .light-inner-box {
       background-color: #f8fafc !important;
-      color: #0f172a !important;
-    }
-
-    /* All slate-900 and slate-950 dark containers become crisp white */
-    html:not(.dark) [class*="bg-slate-950"],
-    html:not(.dark) [class*="bg-slate-900"],
-    html:not(.dark) article[id^="card-"] {
-      background-color: #ffffff !important;
-      box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05) !important;
-    }
-
-    /* All slate-800 and slate-700 dark badges, chips, and small buttons become soft light slate with dark text */
-    html:not(.dark) [class*="bg-slate-800"],
-    html:not(.dark) [class*="bg-slate-700"],
-    html:not(.dark) span[class*="bg-slate-800"],
-    html:not(.dark) span[class*="bg-slate-700"] {
-      background-color: #f1f5f9 !important;
-      color: #334155 !important;
-      border-color: #cbd5e1 !important;
-    }
-
-    /* Headers, Navs, Docks */
-    html:not(.dark) header {
-      background-color: rgba(255, 255, 255, 0.96) !important;
       border-color: #e2e8f0 !important;
-      box-shadow: 0 1px 4px 0 rgba(15, 23, 42, 0.04) !important;
-    }
-    html:not(.dark) #mobileNavDock {
-      background-color: rgba(255, 255, 255, 0.98) !important;
-      border-color: #e2e8f0 !important;
-      box-shadow: 0 -4px 16px 0 rgba(15, 23, 42, 0.08) !important;
-    }
-    html:not(.dark) footer {
-      background-color: #ffffff !important;
-      border-color: #e2e8f0 !important;
-    }
-
-    /* Borders */
-    html:not(.dark) [class*="border-slate-800"],
-    html:not(.dark) [class*="border-slate-700"],
-    html:not(.dark) [class*="border-slate-900"] {
-      border-color: #e2e8f0 !important;
-    }
-
-    /* General Typography */
-    html:not(.dark) h1,
-    html:not(.dark) h2,
-    html:not(.dark) h3,
-    html:not(.dark) h4,
-    html:not(.dark) .text-white,
-    html:not(.dark) .text-slate-100,
-    html:not(.dark) .text-slate-200 {
-      color: #0f172a !important;
-    }
-    html:not(.dark) .text-slate-300 {
-      color: #334155 !important;
-    }
-    html:not(.dark) .text-slate-400 {
-      color: #475569 !important;
-    }
-    html:not(.dark) .text-slate-500 {
-      color: #64748b !important;
-    }
-
-    /* Amber Text (High-contrast amber-800 in light mode, never washed-out yellow) */
-    html:not(.dark) .text-amber-400,
-    html:not(.dark) .text-amber-300,
-    html:not(.dark) .text-amber-200 {
-      color: #b45309 !important;
-    }
-    html:not(.dark) h1 span.bg-clip-text {
-      background: none !important;
-      -webkit-text-fill-color: #b45309 !important;
-      color: #b45309 !important;
-    }
-
-    /* Rose & Red Accent Text & Badges */
-    html:not(.dark) .text-rose-400,
-    html:not(.dark) .text-rose-300,
-    html:not(.dark) .text-rose-200 {
-      color: #be123c !important;
-    }
-    html:not(.dark) [class*="bg-rose-950"] {
-      background-color: #fff1f2 !important;
-    }
-    html:not(.dark) [class*="bg-rose-500/10"],
-    html:not(.dark) [class*="bg-rose-500/15"],
-    html:not(.dark) [class*="bg-rose-500/20"] {
-      background-color: #ffe4e6 !important;
-      color: #9f1239 !important;
-      border-color: #fecdd3 !important;
-    }
-
-    /* Emerald & Green Accent Text & Badges */
-    html:not(.dark) .text-emerald-400,
-    html:not(.dark) .text-emerald-300,
-    html:not(.dark) .text-emerald-200 {
-      color: #047857 !important;
-    }
-    html:not(.dark) [class*="bg-emerald-950"] {
-      background-color: #f0fdf4 !important;
-    }
-    html:not(.dark) [class*="bg-emerald-500/10"],
-    html:not(.dark) [class*="bg-emerald-500/15"],
-    html:not(.dark) [class*="bg-emerald-500/20"] {
-      background-color: #dcfce7 !important;
-      color: #065f46 !important;
-      border-color: #bbf7d0 !important;
-    }
-
-    /* Blue & Purple Accent Text */
-    html:not(.dark) .text-blue-400 { color: #1d4ed8 !important; }
-    html:not(.dark) .text-purple-400,
-    html:not(.dark) .text-purple-300 { color: #6b21a8 !important; }
-
-    /* Amber Tints (Backgrounds) */
-    html:not(.dark) [class*="bg-amber-500/10"],
-    html:not(.dark) [class*="bg-amber-500/15"],
-    html:not(.dark) [class*="bg-amber-500/20"],
-    html:not(.dark) [class*="bg-amber-400/10"],
-    html:not(.dark) [class*="bg-amber-400/20"] {
-      background-color: #fef3c7 !important;
-      color: #92400e !important;
-      border-color: #fde68a !important;
-    }
-
-    /* Hero Section Light Gradient */
-    html:not(.dark) #heroSection {
-      background: linear-gradient(to bottom, #ffffff, #f8fafc) !important;
-      border-color: #e2e8f0 !important;
-    }
-
-    /* 10-Minute Micro-Correction Banner */
-    html:not(.dark) #microCorrectionBanner {
-      background: linear-gradient(to right, #fffbeb, #ffffff, #f8fafc) !important;
-      border-color: #fcd34d !important;
-    }
-
-    /* Subject Tabs & View Filter */
-    html:not(.dark) .subject-tab:not(.bg-amber-500) {
-      background-color: #ffffff !important;
-      color: #475569 !important;
-      border-color: #e2e8f0 !important;
-    }
-    html:not(.dark) .subject-tab:not(.bg-amber-500):hover {
-      background-color: #f1f5f9 !important;
-      color: #0f172a !important;
-    }
-    html:not(.dark) select#viewFilterSelect {
-      background-color: #ffffff !important;
-      color: #0f172a !important;
-      border-color: #cbd5e1 !important;
-    }
-
-    /* Interactive Multiple Choice Option Buttons */
-    html:not(.dark) .opt-btn {
-      background-color: #ffffff !important;
-      border-color: #cbd5e1 !important;
       color: #1e293b !important;
     }
-    html:not(.dark) .opt-btn:hover:not([disabled]) {
-      background-color: #f8fafc !important;
-      border-color: #f59e0b !important;
-    }
-    html:not(.dark) .opt-btn span.opt-letter-badge {
-      background-color: #f1f5f9 !important;
-      color: #1e293b !important;
-      border: 1px solid #cbd5e1 !important;
-    }
-
-    /* Statement Slicer */
-    html:not(.dark) .slicer-container {
-      background-color: #f8fafc !important;
-      border-color: #e2e8f0 !important;
-    }
-    html:not(.dark) .statement-slice-item {
-      background-color: #ffffff !important;
-      border-color: #e2e8f0 !important;
-    }
-    html:not(.dark) .slice-stmt-btn:not(.bg-rose-500) {
-      background-color: #f1f5f9 !important;
-      color: #334155 !important;
-      border: 1px solid #cbd5e1 !important;
-    }
-
-    /* Confidence Selector */
-    html:not(.dark) .conf-picker-box {
-      background-color: #f8fafc !important;
-      border-color: #e2e8f0 !important;
-    }
-    html:not(.dark) .conf-btn:not([data-active="true"]) {
-      color: #475569 !important;
-    }
-
-    /* Topper's Trap Detector Box (Critical Fix for washed-out yellow) */
-    html:not(.dark) .topper-trap-card {
+    html:not(.dark) .light-nav-active {
       background-color: #fffbeb !important;
+      color: #d97706 !important;
       border-color: #fde68a !important;
     }
-    html:not(.dark) .topper-trap-card .trap-title {
-      color: #92400e !important;
-    }
-    html:not(.dark) .topper-trap-card .trap-tag {
-      background-color: #fef3c7 !important;
-      color: #78350f !important;
-      border-color: #fde68a !important;
-    }
-    html:not(.dark) .topper-trap-card .trap-text {
-      color: #451a03 !important;
-    }
-
-    /* Behavioral Diagnostics Tagger */
-    html:not(.dark) .diag-tag-card {
-      background-color: #f8fafc !important;
-      border-color: #e2e8f0 !important;
-    }
-    html:not(.dark) .diag-tag-btn:not(.bg-rose-500):not(.bg-amber-500):not(.bg-blue-500):not(.bg-purple-500) {
-      background-color: #ffffff !important;
-      color: #334155 !important;
-      border-color: #cbd5e1 !important;
-    }
-
-    /* Distractor Deep Dive */
-    html:not(.dark) .distractor-title {
-      color: #92400e !important;
-    }
-    html:not(.dark) .distractor-item {
-      background-color: #f8fafc !important;
-      border-color: #e2e8f0 !important;
-    }
-    html:not(.dark) .distractor-opt-title {
-      color: #0f172a !important;
-    }
-    html:not(.dark) .distractor-badge {
-      background-color: #e2e8f0 !important;
-      color: #475569 !important;
-    }
-    html:not(.dark) .distractor-text {
-      color: #475569 !important;
-    }
-
-    /* Standard Book Ref */
-    html:not(.dark) .standard-book-box {
-      background-color: #f8fafc !important;
-      border-color: #e2e8f0 !important;
-    }
-    html:not(.dark) .standard-book-box span.text-amber-400 {
-      color: #92400e !important;
-    }
-    html:not(.dark) .standard-book-box span.text-slate-300 {
-      color: #1e293b !important;
-    }
-
-    /* Sidebar Cards */
-    html:not(.dark) #subTopicAdviceBox {
-      background-color: #fff1f2 !important;
-      border-color: #fca5a5 !important;
-      color: #9f1239 !important;
-    }
-    html:not(.dark) #uniqueAdvantageCard {
-      background: linear-gradient(to bottom right, #fffbeb, #ffffff, #f8fafc) !important;
-      border-color: #fcd34d !important;
-    }
-    html:not(.dark) #selfClearingLedgerCard {
-      background-color: #ffffff !important;
-      border-color: #e2e8f0 !important;
-      color: #475569 !important;
-    }
-    html:not(.dark) #selfClearingLedgerCard h4 {
-      color: #0f172a !important;
-    }
-    html:not(.dark) #selfClearingLedgerCard p {
-      color: #475569 !important;
-    }
-
-    /* Staged Confirmation Bar */
-    html:not(.dark) .staged-confirm-bar {
-      background-color: #fffbeb !important;
-      border-color: #fcd34d !important;
-      color: #78350f !important;
-    }
-    html:not(.dark) .clear-staged-btn {
-      background-color: #ffffff !important;
-      color: #475569 !important;
-      border-color: #cbd5e1 !important;
-    }
-    html:not(.dark) .reattempt-btn {
-      background-color: #ffffff !important;
-      color: #334155 !important;
-      border-color: #cbd5e1 !important;
-    }
-
-    /* Authentic Brand Logo Responsive Toggle */
-    .brand-logo-light {
-      display: block !important;
-    }
-    .brand-logo-dark {
-      display: none !important;
-    }
-    html.dark .brand-logo-light {
-      display: none !important;
-    }
-    html.dark .brand-logo-dark {
-      display: block !important;
-    }
-
-    /* Global PYQ Topic Search & Year Matrix (Light Mode Overrides) */
-    html:not(.dark) input#topicSearchInput {
-      background-color: #ffffff !important;
-      color: #0f172a !important;
-      border-color: #cbd5e1 !important;
-    }
-    html:not(.dark) input#topicSearchInput::placeholder {
-      color: #94a3b8 !important;
-    }
-    html:not(.dark) .year-tab:not(.bg-amber-500) {
-      background-color: #ffffff !important;
-      color: #475569 !important;
-      border-color: #e2e8f0 !important;
-    }
-    html:not(.dark) .year-tab:not(.bg-amber-500):hover {
-      background-color: #f1f5f9 !important;
-      color: #0f172a !important;
-    }
-
-    /* Cognitive Target Engine & Read-vs-Skip Light Mode Overrides */
-    html:not(.dark) #targetSetterSidebarCard {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), #ffffff, #f8fafc) !important;
-      border-color: #a7f3d0 !important;
-      color: #0f172a !important;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
-    }
-    html:not(.dark) .modal-backdrop {
-      background-color: rgba(15, 23, 42, 0.6) !important;
-    }
-    html:not(.dark) .modal-content-card {
-      background-color: #ffffff !important;
-      border-color: #e2e8f0 !important;
-      color: #0f172a !important;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
-    }
-    html:not(.dark) .modal-tab-btn:not(.active-modal-tab) {
-      background-color: #f1f5f9 !important;
-      color: #475569 !important;
-      border-color: #e2e8f0 !important;
-    }
-    html:not(.dark) .modal-inner-card {
-      background-color: #f8fafc !important;
-      border-color: #e2e8f0 !important;
-      color: #1e293b !important;
-    }
-    html:not(.dark) .diag-opt-btn:not(.selected-diag-opt) {
+    html:not(.dark) .light-input {
       background-color: #ffffff !important;
       border-color: #cbd5e1 !important;
-      color: #334155 !important;
+      color: #0f172a !important;
     }
-    html:not(.dark) .diag-opt-btn.selected-diag-opt {
-      background-color: rgba(16, 185, 129, 0.1) !important;
-      border-color: #10b981 !important;
-      color: #065f46 !important;
+
+    /* Statement Slicer Crossed Out Style */
+    .stmt-sliced {
+      text-decoration: line-through;
+      opacity: 0.45;
+      background-color: rgba(244, 63, 94, 0.08) !important;
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-slate-950 transition-colors duration-200 overflow-x-hidden w-full max-w-full">
-
-  <!-- Top Sticky Navigation Bar -->
-  <header class="sticky top-0 z-50 backdrop-blur-md bg-slate-950/85 border-b border-slate-800 transition-colors duration-200">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
-      
-      <!-- Authentic Brand Logo for Light & Dark Mode + Brand Name -->
-      <a href="/" class="flex items-center gap-2 sm:gap-2.5 group shrink-0 py-1 select-none" title="Cooked Mains — Let Me Cook">
-        <img src="/static/brand_logo_light.png" alt="Cooked Mains Logo" class="brand-logo-light h-9 sm:h-11 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
-        <img src="/static/brand_logo_dark.png" alt="Cooked Mains Logo" class="brand-logo-dark h-9 sm:h-11 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
-        <div class="flex flex-col justify-center shrink-0">
-          <span class="text-sm sm:text-base md:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight whitespace-nowrap flex items-center">
-            Cooked <span class="text-amber-500 ml-1">Mains</span> <span class="text-[9px] sm:text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-amber-400/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold ml-1.5">Radar</span>
-          </span>
-          <span class="text-[9px] sm:text-[10px] md:text-[11px] font-mono sm:font-sans font-bold tracking-wider text-amber-600 dark:text-amber-400 uppercase leading-none mt-0.5 whitespace-nowrap">
-            Let Me Cook
-          </span>
-        </div>
-      </a>
-
-      <!-- Dual Track Navigation Switcher (Desktop & Tablet) -->
-      <div class="hidden md:flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1">
-        <a href="/planner" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400 hover:text-white transition-colors" title="UPSC Syllabus Roadmap & Daily Study OS">
-          <span>🗺️</span>
-          <span>Study Plan OS</span>
-        </a>
-        <a href="/" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-colors">
-          <span>📝</span>
-          <span>Mains Evaluator</span>
-        </a>
-        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 shadow-xs shadow-amber-500/30">
-          <span>🎯</span>
-          <span>Prelims Radar</span>
-        </div>
-      </div>
-
-      <!-- Action Utilities -->
-      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-        <!-- Quick Switch to Mains for mobile screens -->
-        <a href="/" class="md:hidden flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-slate-900 text-slate-300 border border-slate-800 hover:text-white transition-all" title="Switch to Mains Evaluator">
-          <span>📝</span>
-          <span class="text-[10px] font-bold">Mains</span>
-        </a>
-
-        <!-- Target Planner Header Button -->
-        <button id="openGoalsModalBtn" class="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-bold px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer" title="Cognitive Target Engine">
-          <span>🎯</span>
-          <span class="hidden md:inline" id="headerTargetLabel">Targets</span>
-          <span id="navTargetBadge" class="px-1.5 py-0.2 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black">Set</span>
-        </button>
-
-        <!-- Read vs Skip Header Button -->
-        <button id="openReadVsSkipBtn" class="hidden sm:flex items-center gap-1.5 text-[11px] sm:text-xs font-bold px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 transition-all cursor-pointer" title="What to Read vs What to SKIP (80/20 Guide)">
-          <span>📖</span>
-          <span class="hidden lg:inline" id="headerReadVsSkipLabel">Read vs Skip</span>
-        </button>
-
-        <!-- Bilingual English / Hindi Toggle Button -->
-        <button id="toggleLangBtn" class="flex items-center gap-1 text-[11px] font-bold px-2 sm:px-2.5 py-1 rounded-lg bg-slate-900 dark:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 transition-all cursor-pointer" title="Toggle English / हिंदी">
-          <span class="text-xs font-mono font-bold text-amber-400">A/अ</span>
-          <span id="langLabel" class="text-[10px] hidden sm:inline">English</span>
-        </button>
-
-        <!-- Mistakes Nav Button -->
-        <button id="viewMistakesNavBtn" class="flex items-center gap-1 text-[11px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-all cursor-pointer">
-          <span>📓</span>
-          <span class="hidden sm:inline">Mistakes</span>
-          <span id="navMistakesCount" class="px-1.5 py-0.2 rounded-full bg-rose-500 text-slate-950 text-[10px] font-black">0</span>
-        </button>
-
-        <!-- Theme Toggle Button -->
-        <button id="toggleThemeBtn" class="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer" title="Toggle Light / Dark Mode">
-          <!-- Sun Icon (shown in dark mode) -->
-          <svg id="themeIconSun" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-          <!-- Moon Icon (shown in light mode) -->
-          <svg id="themeIconMoon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-        </button>
-      </div>
-
-    </div>
-  </header>
-
-  <!-- Hero Section & Interactive Risk Sweet-Spot Banner -->
-  <section id="heroSection" class="border-b border-slate-800/80 bg-gradient-to-b from-slate-900/60 to-slate-950 px-4 sm:px-6 pt-8 pb-7">
-    <div class="max-w-7xl mx-auto">
-      <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-        
-        <!-- Left: Value Prop -->
-        <div class="max-w-2xl">
-          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-amber-400/10 text-amber-400 border border-amber-400/20 text-xs font-semibold mb-3">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-            14-Year UPSC Prelims Engine (2013–2026) • 100% Free
-          </div>
-          <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight mb-2">
-            Eliminate Negative Marking. <br class="hidden sm:inline">
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-200">Find Your Cutoff Sweet Spot.</span>
-          </h1>
-          <p class="text-slate-400 text-sm sm:text-base leading-relaxed">
-            Stop losing 15+ marks to wild guesses. Solve authentic UPSC questions, log errors into a <strong class="text-slate-200">Self-Clearing Notebook</strong>, and let our real-time <strong class="text-amber-300">Expected Value ($EV$) Calculator</strong> tell you your exact safe attempt ceiling.
-          </p>
-        </div>
-
-        <!-- Right: Live Expected Value (EV) Card -->
-        <div class="w-full lg:w-96 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl flex flex-col gap-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <span>📊</span> Risk vs. Attempt Sweet Spot
-            </span>
-            <span id="evVerdictBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-              Calibrating
-            </span>
-          </div>
-
-          <!-- Score Metrics Row -->
-          <div class="grid grid-cols-3 gap-2 text-center pt-1">
-            <div class="p-2 rounded-xl bg-slate-950 border border-slate-800/80">
-              <div class="text-[10px] text-slate-400 font-semibold">Gross Marks</div>
-              <div id="statGrossScore" class="text-base font-extrabold text-white font-mono">0.0</div>
-            </div>
-            <div class="p-2 rounded-xl bg-slate-950 border border-slate-800/80">
-              <div class="text-[10px] text-rose-400 font-semibold">Negative (0.66)</div>
-              <div id="statNegPenalty" class="text-base font-extrabold text-rose-400 font-mono">-0.0</div>
-            </div>
-            <div class="p-2 rounded-xl bg-slate-950 border border-amber-500/30 bg-amber-500/5">
-              <div class="text-[10px] text-amber-300 font-semibold">Net Marks</div>
-              <div id="statNetScore" class="text-base font-black text-amber-400 font-mono">0.0</div>
-            </div>
-          </div>
-
-          <!-- Dynamic Tactical Advice -->
-          <div id="statTacticalAdvice" class="text-[11px] text-slate-300 leading-normal p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 flex items-start gap-2">
-            <span class="text-amber-400 shrink-0 mt-0.5">💡</span>
-            <span>Tag each question as <strong>Sure-shot</strong>, <strong>50:50</strong>, or <strong>Guess</strong> as you solve below to compute your optimal attempt ceiling.</span>
-          </div>
-
-          <!-- Share Cutoff Sweet Spot Button -->
-          <button id="shareSweetSpotBtn" class="w-full mt-0.5 py-2 px-3 rounded-xl bg-slate-950 hover:bg-slate-850 active:scale-[0.98] text-amber-300 border border-slate-700/60 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm">
-            <span>📲 Share My Cutoff Sweet Spot</span>
-          </button>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- Global PYQ Topic Search & Year Matrix Bar -->
-  <section class="border-b border-slate-800 bg-slate-950/70 px-4 sm:px-6 py-3.5">
-    <div class="max-w-7xl mx-auto flex flex-col gap-3">
-      
-      <!-- Instant Topic Search -->
-      <div class="relative w-full">
-        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        </div>
-        <input type="text" id="topicSearchInput" placeholder="Search any topic, act, judgment, or theme (e.g. Preamble, Monetary Policy, Wetlands, Western Ghats, Harappan, Inflation, CBDC)..." class="w-full pl-10 pr-28 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs sm:text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-all">
-        <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center gap-1.5">
-          <span id="topicSearchCountBadge" class="hidden text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold"></span>
-          <button id="clearTopicSearchBtn" type="button" class="hidden text-slate-400 hover:text-white p-1 text-xs cursor-pointer font-bold" title="Clear Search">✕</button>
-        </div>
-      </div>
-
-      <!-- Year Filter Matrix (2013-2026) -->
-      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar" id="yearFilterContainer">
-        <span class="text-[11px] font-mono font-bold text-slate-400 shrink-0 mr-1 flex items-center gap-1">
-          <span>📅</span> Year:
-        </span>
-        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 shrink-0 cursor-pointer" data-year="all">
-          All Years (2013-2026)
-        </button>
-        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2026">2026</button>
-        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2025">2025</button>
-        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2024">2024</button>
-        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2023">2023</button>
-        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2022">2022</button>
-        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2021">2021</button>
-        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2020">2020</button>
-        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2019">2019</button>
-        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2018">2018</button>
-        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2017">2017</button>
-        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2016">2016</button>
-        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2015">2015</button>
-        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2014">2014</button>
-        <button class="year-tab px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0 cursor-pointer" data-year="2013">2013</button>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- Filter & Mode Control Bar -->
-  <section class="border-b border-slate-800 bg-slate-950/60 px-4 sm:px-6 py-3">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-      
-      <!-- Subject Tabs -->
-      <div id="subjectTabsContainer" class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 text-xs no-scrollbar">
-        <button class="subject-tab px-3 py-1.5 rounded-lg font-bold bg-amber-500 text-slate-950 shrink-0" data-subject="all">
-          All Subjects
-        </button>
-        <button class="subject-tab px-3 py-1.5 rounded-lg font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0" data-subject="Polity & Governance">
-          Polity
-        </button>
-        <button class="subject-tab px-3 py-1.5 rounded-lg font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0" data-subject="Economy">
-          Economy
-        </button>
-        <button class="subject-tab px-3 py-1.5 rounded-lg font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0" data-subject="Environment & Ecology">
-          Environment
-        </button>
-        <button class="subject-tab px-3 py-1.5 rounded-lg font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0" data-subject="History & Culture">
-          History
-        </button>
-        <button class="subject-tab px-3 py-1.5 rounded-lg font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0" data-subject="Geography">
-          Geography
-        </button>
-        <button class="subject-tab px-3 py-1.5 rounded-lg font-semibold bg-slate-900 text-slate-300 border border-slate-800 hover:text-white shrink-0" data-subject="Science & Technology">
-          Sci-Tech
-        </button>
-      </div>
-
-      <!-- Mode & View Switcher -->
-      <div class="flex items-center gap-2 self-end md:self-auto shrink-0">
-        <!-- Practice / Exam Switcher -->
-        <div class="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
-          <button id="modePracticeBtn" class="px-2.5 py-1 rounded-lg font-bold bg-slate-800 text-white shadow-xs">
-            📖 Practice
-          </button>
-          <button id="modeExamBtn" class="px-2.5 py-1 rounded-lg font-medium text-slate-400 hover:text-white">
-            ⏱️ Exam (Timed)
-          </button>
-        </div>
-
-        <!-- View Filter -->
-        <select id="viewFilterSelect" class="bg-slate-900 border border-slate-800 text-xs text-slate-300 rounded-xl px-2.5 py-1.5 font-semibold focus:outline-none focus:border-amber-500">
-          <option value="all">View: All PYQs</option>
-          <option value="mistakes">View: My Mistakes Only</option>
-          <option value="guesses">View: My Flukes &amp; Guesses</option>
-        </select>
-
-        <!-- 1-Click Flash Sheet Export Button -->
-        <button id="exportFlashSheetBtn" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 active:scale-95 transition-all cursor-pointer" title="Export printable 1-page summary of your mistakes with book references">
-          <span>🖨️ Export Revision Flash-Sheet</span>
-        </button>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- Main Question Feed & Sidebar Layout -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
-    
-    <!-- Left 8 Cols: Question Feed -->
-    <div class="lg:col-span-8 flex flex-col gap-6">
-      
-      <!-- 10-Minute Micro-Correction Generator Highlight Banner -->
-      <div id="microCorrectionBanner" class="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-slate-900 to-slate-950 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
-        <div class="flex items-center gap-3 min-w-0">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 font-black flex items-center justify-center text-lg shadow-md shadow-amber-500/20 shrink-0">
-            ⚡
-          </div>
-          <div class="min-w-0">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-xs font-black uppercase text-amber-400 tracking-tight sm:tracking-wider font-mono">10-Minute "Micro-Correction" Generator</span>
-              <span id="bannerMistakeCount" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 shrink-0">0 Gaps Logged</span>
-            </div>
-            <p class="text-xs text-slate-300 mt-0.5 leading-relaxed">Auto-extracts missing NCERT links, elimination traps, and behavioral diagnostics for 10-min active recall.</p>
-          </div>
-        </div>
-        <button id="bannerExportFlashSheetBtn" class="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5 shrink-0 cursor-pointer active:scale-95">
-          <span>🖨️ Export Revision Flash-Sheet</span>
-          <span>→</span>
-        </button>
-      </div>
-
-      <!-- Top Status Notice -->
-      <div id="feedHeaderNotice" class="flex items-center justify-between text-xs text-slate-400">
-        <span id="questionCountText">Showing authentic UPSC PYQs</span>
-        <button id="clearMistakesBatchBtn" class="hidden text-rose-400 hover:underline font-bold text-xs">
-          Clear All Logged Mistakes
-        </button>
-      </div>
-
-      <!-- Question Cards List -->
-      <div id="questionsContainer" class="flex flex-col gap-6">
-        <!-- Rendered dynamically by prelims.js -->
-        <div class="p-8 text-center text-slate-400 bg-slate-900/40 rounded-2xl border border-slate-800">
-          Loading authentic UPSC PYQs...
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Right 4 Cols: Diagnostic Sidebar & Prelims-to-Mains Continuum -->
-    <div class="lg:col-span-4 flex flex-col gap-6">
-
-      <!-- 0. Cognitive Target Engine & Micro-Study Planner Card -->
-      <div id="targetSetterSidebarCard" class="p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-slate-900 to-slate-950 border border-emerald-500/30 flex flex-col gap-3.5 shadow-lg">
-        <div class="flex items-center justify-between">
-          <h3 class="text-xs font-extrabold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-            <span>🎯</span> Cognitive Target Engine
-          </h3>
-          <span id="targetStatusBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold">
-            No Target Set
-          </span>
-        </div>
-
-        <!-- Target Metrics Box -->
-        <div id="targetDetailsBox" class="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 flex flex-col gap-2">
-          <div class="flex items-center justify-between text-xs">
-            <span id="targetSubjectText" class="font-bold text-white">All Subjects</span>
-            <span id="targetProgressRatio" class="font-mono text-emerald-400 font-extrabold">0 / 30 Qs</span>
-          </div>
-
-          <!-- Progress Bar -->
-          <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-            <div id="targetProgressBar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style="width: 0%;"></div>
-          </div>
-
-          <div class="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
-            <span id="targetDaysRemainingText">7 Days Window</span>
-            <span id="targetPaceText" class="font-semibold text-slate-300">Pace: 5 Qs / day</span>
-          </div>
-        </div>
-
-        <!-- Left-Out Backlog Radar Alert (Hidden by default, shown when backlog > 0) -->
-        <div id="targetBacklogAlert" class="hidden p-3 rounded-xl bg-rose-950/30 border border-rose-500/40 flex flex-col gap-2 text-xs">
-          <div class="flex items-center gap-1.5 text-rose-400 font-bold">
-            <span>⚠️</span>
-            <span id="targetBacklogTitle">Left-Out Backlog Radar</span>
-          </div>
-          <p id="targetBacklogDesc" class="text-[11px] text-rose-200/90 leading-relaxed">
-            You are falling behind your daily pace. Complete a rapid micro-drill now to prevent syllabus drift.
-          </p>
-          <button id="targetCatchUpBtn" type="button" class="w-full py-2 px-3 rounded-lg bg-rose-500 hover:bg-rose-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer">
-            <span>⚡</span>
-            <span>10-Min Catch-Up Drill</span>
-          </button>
-        </div>
-
-        <!-- Target Quick Levers -->
-        <div class="grid grid-cols-2 gap-2 pt-0.5">
-          <button id="sidebarSetTargetBtn" type="button" class="py-2 px-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1 transition-all cursor-pointer">
-            <span>🎯</span>
-            <span id="sidebarSetTargetBtnText">Set Target</span>
-          </button>
-          <button id="sidebarReadVsSkipBtn" type="button" class="py-2 px-2.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/40 text-indigo-300 font-bold text-xs flex items-center justify-center gap-1 transition-all cursor-pointer">
-            <span>📖</span>
-            <span id="sidebarReadVsSkipBtnText">Read vs Skip</span>
-          </button>
-        </div>
-
-        <a href="/planner" class="w-full py-2 px-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-bold flex items-center justify-between transition-all">
-          <span class="flex items-center gap-1.5">
-            <span>🗺️</span>
-            <span>Open Syllabus Roadmap &amp; Daily OS</span>
-          </span>
-          <span class="text-amber-400">→</span>
-        </a>
-      </div>
-
-      <!-- 1. Behavioral Mistake Diagnostics (Pie Breakdown) -->
-      <div id="diagSidebarCard" class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col gap-3">
-        <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-          <span>🧠</span> Behavioral Mistake Diagnostics
-        </h3>
-        <p class="text-xs text-slate-400 leading-relaxed">
-          Tag why you got a question wrong to uncover your subconscious mark leaks:
-        </p>
-        <div class="flex flex-col gap-2 pt-1 text-xs">
-          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-950 border border-slate-800">
-            <span class="flex items-center gap-1.5 text-rose-400 font-semibold">
-              <span class="w-2 h-2 rounded-full bg-rose-500"></span> Conceptual Blindspot
-            </span>
-            <span id="statDiagConcept" class="font-mono font-bold text-white">0</span>
-          </div>
-          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-950 border border-slate-800">
-            <span class="flex items-center gap-1.5 text-amber-400 font-semibold">
-              <span class="w-2 h-2 rounded-full bg-amber-500"></span> Silly / Misread Trap
-            </span>
-            <span id="statDiagSilly" class="font-mono font-bold text-white">0</span>
-          </div>
-          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-950 border border-slate-800">
-            <span class="flex items-center gap-1.5 text-blue-400 font-semibold">
-              <span class="w-2 h-2 rounded-full bg-blue-500"></span> Over-Elimination Trap
-            </span>
-            <span id="statDiagElim" class="font-mono font-bold text-white">0</span>
-          </div>
-          <div class="flex items-center justify-between p-2 rounded-lg bg-slate-950 border border-slate-800">
-            <span class="flex items-center gap-1.5 text-purple-400 font-semibold">
-              <span class="w-2 h-2 rounded-full bg-purple-500"></span> Memory Lapse
-            </span>
-            <span id="statDiagMemory" class="font-mono font-bold text-white">0</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. Sub-Topic "Mark-Bleed" Heatmap -->
-      <div id="subTopicHeatmapCard" class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col gap-3">
-        <div class="flex items-center justify-between">
-          <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <span>🔥</span> Sub-Topic "Mark-Bleed" Heatmap
-          </h3>
-          <span id="heatmapStatusTag" class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-950 text-slate-400 border border-slate-800 font-bold">
-            0 Themes Logged
-          </span>
-        </div>
-        <p class="text-xs text-slate-400 leading-relaxed">
-          Pinpoint the exact micro-concepts bleeding your negative marks:
-        </p>
-
-        <!-- Dynamic Micro-Themes List -->
-        <div id="subTopicHeatmapList" class="flex flex-col gap-2 pt-1 max-h-64 overflow-y-auto pr-1">
-          <div class="p-3 text-center text-xs text-slate-500 bg-slate-950/60 rounded-xl border border-slate-800/60">
-            Solve questions below to generate your micro-theme accuracy heatmap.
-          </div>
-        </div>
-
-        <!-- Dynamic Mark-Bleed Advice -->
-        <div id="subTopicAdviceBox" class="hidden text-[11px] text-rose-300 p-2.5 rounded-xl bg-rose-950/20 border border-rose-800/40 leading-normal flex items-start gap-2">
-          <span class="text-rose-400 shrink-0 mt-0.5">🚨</span>
-          <span id="subTopicAdviceText"></span>
-        </div>
-      </div>
-
-      <!-- 3. Prelims-to-Mains Integration Promotion -->
-      <div id="uniqueAdvantageCard" class="p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-slate-900 to-slate-950 border border-amber-500/30 flex flex-col gap-3">
-        <div class="flex items-center gap-2">
-          <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-500 text-slate-950 font-mono">
-            Unique Advantage
-          </span>
-        </div>
-        <h3 class="text-sm font-extrabold text-white leading-snug">
-          Integrated Prelims + Mains Preparation
-        </h3>
-        <p class="text-xs text-slate-300 leading-relaxed">
-          Mastering Prelims facts alone won’t get your name in the final PDF. Every Prelims topic connects to an authentic Mains question.
-        </p>
-        <a href="/" class="mt-1 w-full flex items-center justify-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 transition-all shadow-md shadow-amber-500/20">
-          <span>✍️ Test Handwritten Copy in Mains Studio</span>
-          <span>→</span>
-        </a>
-      </div>
-
-      <!-- 4. Self-Clearing Mistakes Rules Box -->
-      <div id="selfClearingLedgerCard" class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 flex flex-col gap-2">
-        <h4 class="font-bold text-slate-200">How the Self-Clearing Ledger Works:</h4>
-        <p>1. Any wrong answer is automatically saved in your Mistakes Notebook.</p>
-        <p>2. Filter by <strong>"My Mistakes Only"</strong> to re-attempt.</p>
-        <p>3. Solve correctly on re-attempt, and it <strong class="text-emerald-400">clears automatically</strong> from your list!</p>
-      </div>
-
-    </div>
-
-  </main>
-
-  <!-- Google SEO FAQ Section (Targeting Long-tail Search Queries) -->
-  <section class="border-t border-slate-800/80 bg-slate-900/40 px-4 sm:px-6 py-12">
-    <div class="max-w-4xl mx-auto flex flex-col gap-6">
-      <div>
-        <h2 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-          Frequently Asked Questions on UPSC CSE Prelims Strategy
-        </h2>
-        <p class="text-xs sm:text-sm text-slate-400 mt-1">
-          Evidence-backed insights on negative marking, safe attempt ranges, and error tracking.
-        </p>
-      </div>
-
-      <div class="flex flex-col gap-3">
-        <!-- FAQ 1 -->
-        <details class="group p-4 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-300">
-          <summary class="font-bold text-white cursor-pointer list-none flex items-center justify-between">
-            <span>What is the optimal question attempt range for UPSC CSE Prelims?</span>
-            <span class="transition group-open:rotate-180 text-amber-400">▾</span>
-          </summary>
-          <p class="mt-2 text-xs text-slate-400 leading-relaxed">
-            For General category cutoffs (typically 85–95 marks in recent years), most successful candidates attempt between 78 and 88 questions. Attempting fewer than 70 requires unrealistically high accuracy (&gt;85%), while attempting over 92 with low 50:50 confidence leads to severe negative marking penalty (-0.66 per blunder). CookedMains computes your personalized Expected Value ($EV$) so you know your exact optimal cutoff ceiling.
-          </p>
-        </details>
-
-        <!-- FAQ 2 -->
-        <details class="group p-4 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-300">
-          <summary class="font-bold text-white cursor-pointer list-none flex items-center justify-between">
-            <span>Why do commercial mock tests differ from actual UPSC Prelims questions?</span>
-            <span class="transition group-open:rotate-180 text-amber-400">▾</span>
-          </summary>
-          <p class="mt-2 text-xs text-slate-400 leading-relaxed">
-            Many commercial test series rely on factual triviality and extreme statement tricks rather than core conceptual mechanics. Actual UPSC past papers test constitutional doctrines, economic principles, and interdisciplinary causal relationships. Practicing on 100% verified UPSC past questions prevents false exam panic.
-          </p>
-        </details>
-
-        <!-- FAQ 3 -->
-        <details class="group p-4 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-300">
-          <summary class="font-bold text-white cursor-pointer list-none flex items-center justify-between">
-            <span>How does the Self-Clearing Mistakes Notebook help retention?</span>
-            <span class="transition group-open:rotate-180 text-amber-400">▾</span>
-          </summary>
-          <p class="mt-2 text-xs text-slate-400 leading-relaxed">
-            Passive reading of 80-page mock test solution PDFs has a low 10-day retention rate. Active recall testing with an auto-updating mistake ledger forces your brain to retrieve the correct distinction. When you answer the question correctly upon re-test, it vanishes from your error ledger, gamifying your journey to zero mistakes.
-          </p>
-        </details>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="border-t border-slate-800 bg-slate-950 px-4 sm:px-6 py-6 text-center text-xs text-slate-500">
-    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-      <span>© 2026 Cooked Mains. Empowering UPSC Aspirants with AI Precision &amp; Mathematical Clarity.</span>
-      <div class="flex items-center gap-4">
-        <a href="/" class="hover:text-slate-300">Mains Evaluator</a>
-        <a href="/prelims" class="text-amber-400 font-semibold">Prelims Radar</a>
-        <a href="/about-us" class="hover:text-slate-300">About</a>
-        <a href="/privacy-policy" class="hover:text-slate-300">Privacy</a>
-        <a href="/contact-us" class="hover:text-slate-300">Contact</a>
-      </div>
-    </div>
-  </footer>
-
-  <!-- Hidden Print Flash Sheet Container -->
-  <div id="printFlashSheetContainer" class="hidden print:block text-slate-900 bg-white"></div>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex font-sans antialiased selection:bg-amber-500 selection:text-slate-950 transition-colors duration-200 overflow-x-hidden">
 
   <!-- ========================================================
-       MODAL 1: Cognitive Target Engine & Micro-Study Planner
+       SIDEWAY NAVBAR (SuperKalam Style Collapsible Left Nav)
        ======================================================== -->
-  <div id="goalPlannerModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 modal-backdrop bg-slate-950/80 backdrop-blur-md overflow-y-auto">
-    <div class="relative w-full max-w-2xl rounded-2xl bg-slate-900 border border-slate-700/80 p-5 sm:p-7 shadow-2xl modal-content-card flex flex-col gap-5 my-8 max-h-[90vh] overflow-y-auto">
-      
-      <!-- Modal Header -->
-      <div class="flex items-start justify-between border-b border-slate-800 pb-4">
-        <div class="flex flex-col gap-1">
-          <div class="flex items-center gap-2">
-            <span class="text-xl">🎯</span>
-            <h2 id="goalModalTitle" class="text-base sm:text-lg font-extrabold text-white">Cognitive Target Engine</h2>
-            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold border border-emerald-500/30">Science-Backed</span>
+  <aside id="sidebarNav" class="light-sidebar fixed top-0 bottom-0 left-0 z-40 w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 transform -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none">
+    
+    <!-- Top Brand & Header -->
+    <div class="flex flex-col">
+      <div class="h-16 px-4 flex items-center justify-between border-b border-slate-800/80">
+        <a href="/" class="flex items-center gap-2.5 group select-none" title="Cooked Mains — Let Me Cook">
+          <img src="/static/brand_logo_light.png" alt="Cooked Mains Logo" class="brand-logo-light h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
+          <img src="/static/brand_logo_dark.png" alt="Cooked Mains Logo" class="brand-logo-dark h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
+          <div class="flex flex-col justify-center">
+            <span class="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight flex items-center">
+              Cooked <span class="text-amber-500 ml-1">Mains</span>
+            </span>
+            <span class="text-[9px] font-mono font-bold tracking-wider text-amber-500 uppercase leading-none mt-0.5">
+              Dashboard
+            </span>
           </div>
-          <p id="goalModalSubtitle" class="text-xs text-slate-400">
-            Psychologically calibrated study targets designed to prevent syllabus drift and negative mark leaks.
-          </p>
-        </div>
-        <button id="closeGoalModalBtn" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer text-lg leading-none" aria-label="Close Modal">✕</button>
-      </div>
+        </a>
 
-      <!-- Modal Tabs: 1. AI Recommendation, 2. Custom Target, 3. Active Sprint -->
-      <div class="flex items-center gap-1.5 p-1 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-bold">
-        <button id="goalTabAiBtn" type="button" class="goal-modal-tab-btn flex-1 py-2 px-3 rounded-lg text-center transition-all bg-emerald-500 text-slate-950 font-black cursor-pointer" data-tab="ai">
-          🤖 AI Diagnostic Plan
-        </button>
-        <button id="goalTabCustomBtn" type="button" class="goal-modal-tab-btn flex-1 py-2 px-3 rounded-lg text-center transition-all text-slate-400 hover:text-white cursor-pointer" data-tab="custom">
-          ✏️ Custom Target
-        </button>
-        <button id="goalTabActiveBtn" type="button" class="goal-modal-tab-btn flex-1 py-2 px-3 rounded-lg text-center transition-all text-slate-400 hover:text-white cursor-pointer" data-tab="active">
-          📋 Active Sprint
+        <!-- Mobile Close Drawer Button -->
+        <button id="closeSidebarMobileBtn" type="button" class="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer">
+          ✕
         </button>
       </div>
 
-      <!-- Tab 1: AI Diagnostic Plan -->
-      <div id="goalTabAiContent" class="flex flex-col gap-4">
-        <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 leading-relaxed">
-          <strong>How this works:</strong> Answer 4 quick diagnostic questions below. Our engine analyzes your current preparation phase and generates a custom 7-day pacing target with exact high-yield focus areas.
-        </div>
-
-        <!-- Diagnostic Q1 -->
-        <div class="flex flex-col gap-2">
-          <label class="text-xs font-bold text-slate-200">1. Current Preparation Stage:</label>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" id="diagQ1Group">
-            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer selected-diag-opt" data-q="stage" data-val="Beginner">
-              <span class="font-bold text-white block">Beginner</span>
-              <span class="text-[11px] text-slate-400">0–6 mos • Building core static clarity</span>
-            </button>
-            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer" data-q="stage" data-val="Intermediate">
-              <span class="font-bold text-white block">Intermediate</span>
-              <span class="text-[11px] text-slate-400">1–2 revisions • Trapped in 50:50s</span>
-            </button>
-            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer" data-q="stage" data-val="Veteran">
-              <span class="font-bold text-white block">Veteran</span>
-              <span class="text-[11px] text-slate-400">Mains given • Eliminating negative marks</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Diagnostic Q2 -->
-        <div class="flex flex-col gap-2">
-          <label class="text-xs font-bold text-slate-200">2. Daily Available Prelims Study Hours:</label>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" id="diagQ2Group">
-            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer" data-q="hours" data-val="1-2">
-              <span class="font-bold text-white block">1–2 Hours / Day</span>
-              <span class="text-[11px] text-slate-400">Micro-Burst: 5 Qs/day</span>
-            </button>
-            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer selected-diag-opt" data-q="hours" data-val="3-4">
-              <span class="font-bold text-white block">3–4 Hours / Day</span>
-              <span class="text-[11px] text-slate-400">Balanced: 7–10 Qs/day</span>
-            </button>
-            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer" data-q="hours" data-val="5+">
-              <span class="font-bold text-white block">5+ Hours / Day</span>
-              <span class="text-[11px] text-slate-400">Intensive: 15+ Qs/day</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Diagnostic Q3 -->
-        <div class="flex flex-col gap-2">
-          <label class="text-xs font-bold text-slate-200">3. Primary Pain Point / Subconscious Mark Leak:</label>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="diagQ3Group">
-            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer selected-diag-opt" data-q="leak" data-val="50_50_trap">
-              <span class="font-bold text-white block">50:50 Over-Elimination</span>
-              <span class="text-[11px] text-slate-400">Second-guessing &amp; cutting the right option</span>
-            </button>
-            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer" data-q="leak" data-val="silly_reading">
-              <span class="font-bold text-white block">Silly Reading Traps</span>
-              <span class="text-[11px] text-slate-400">Missed 'NOT correct' or extreme constraints</span>
-            </button>
-            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer" data-q="leak" data-val="static_memory">
-              <span class="font-bold text-white block">Static Memory Lapse</span>
-              <span class="text-[11px] text-slate-400">Forgot Articles, Acts, or standard facts</span>
-            </button>
-            <button type="button" class="diag-opt-btn text-left p-3 rounded-xl border border-slate-800 bg-slate-950 text-xs hover:border-emerald-500/50 transition-all cursor-pointer" data-q="leak" data-val="low_attempts">
-              <span class="font-bold text-white block">Low Attempt Hesitation</span>
-              <span class="text-[11px] text-slate-400">Afraid to cross 75+ attempts due to fear</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Diagnostic Q4 -->
-        <div class="flex flex-col gap-2">
-          <label class="text-xs font-bold text-slate-200">4. Target Subject Focus for this Sprint:</label>
-          <select id="diagSubjectSelect" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500">
-            <option value="Polity & Governance">Polity &amp; Governance (Highest ROI: ~15 Qs)</option>
-            <option value="Economy">Economy &amp; Banking (~18 Qs)</option>
-            <option value="Environment & Ecology">Environment, Ecology &amp; Biodiversity (~18 Qs)</option>
-            <option value="History & Culture">Modern India, Ancient/Medieval &amp; Art &amp; Culture (~16 Qs)</option>
-            <option value="Geography">Geography &amp; World Mapping (~12 Qs)</option>
-            <option value="Science & Technology">Science &amp; Emerging Tech (~12 Qs)</option>
-            <option value="All Subjects">All Subjects Comprehensive Mix</option>
-          </select>
-        </div>
-
-        <button id="generateAiTargetBtn" type="button" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 cursor-pointer">
-          <span>✨</span>
-          <span>Generate Personalized Cognitive Target &amp; Strategy</span>
+      <!-- Navigation Links -->
+      <nav class="flex flex-col gap-1 p-3 text-xs font-semibold overflow-y-auto max-h-[calc(100vh-140px)]">
+        
+        <!-- Main Section -->
+        <button type="button" id="sideNavHome" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30 transition-all text-left cursor-pointer">
+          <span class="text-base">🏠</span>
+          <span id="sideLabelHome">Home Dashboard</span>
         </button>
 
-        <!-- AI Plan Result Card (Hidden until generated) -->
-        <div id="aiTargetResultCard" class="hidden p-4 rounded-xl bg-slate-950 border border-emerald-500/40 flex flex-col gap-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-black text-emerald-400 uppercase tracking-wider">🎯 Recommended AI Target</span>
-            <span id="aiPlanDurationBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">7 Days Sprint</span>
-          </div>
-          <h3 id="aiPlanTitle" class="text-sm sm:text-base font-extrabold text-white"></h3>
-          <p id="aiPlanDirective" class="text-xs text-slate-300 leading-relaxed"></p>
-          <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 flex flex-col gap-1 text-xs">
-            <span class="font-bold text-amber-400">🔥 High-Yield Priority Focus:</span>
-            <span id="aiPlanFocus" class="text-slate-300 text-[11px] leading-relaxed"></span>
-          </div>
-          <div class="flex items-center justify-between text-xs text-slate-400 pt-1">
-            <span id="aiPlanPacingText">Target: 35 Questions • 5 Qs / day</span>
-            <button id="acceptAiTargetBtn" type="button" class="py-2 px-4 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer">
-              <span>🚀</span>
-              <span>Accept &amp; Activate Sprint</span>
-            </button>
-          </div>
-        </div>
+        <a href="#askDoubtInput" onclick="document.getElementById('askDoubtInput')?.focus(); return false;" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left">
+          <span class="text-base">✨</span>
+          <span id="sideLabelDoubt">Ask AI Mentor</span>
+        </a>
 
-      </div>
+        <a href="/planner" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left">
+          <span class="text-base">🗺️</span>
+          <span id="sideLabelRoadmap">Syllabus Roadmap</span>
+        </a>
 
-      <!-- Tab 2: Custom Target Planner -->
-      <div id="goalTabCustomContent" class="hidden flex flex-col gap-4">
-        <div class="flex flex-col gap-2">
-          <label class="text-xs font-bold text-slate-200">Select Target Subject:</label>
-          <select id="customSubjectSelect" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500">
-            <option value="All Subjects">All Subjects Integrated</option>
-            <option value="Polity & Governance">Polity &amp; Governance</option>
-            <option value="Economy">Economy</option>
-            <option value="Environment & Ecology">Environment &amp; Ecology</option>
-            <option value="History & Culture">History &amp; Art &amp; Culture</option>
-            <option value="Geography">Geography</option>
-            <option value="Science & Technology">Science &amp; Technology</option>
-          </select>
-        </div>
+        <!-- Section: PRELIMS -->
+        <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold px-3 pt-4 pb-1">
+          PRELIMS (1,280+ PYQS)
+        </span>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div class="flex flex-col gap-2">
-            <label class="text-xs font-bold text-slate-200">Target Question Count:</label>
-            <select id="customCountSelect" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500">
-              <option value="15">15 Questions (Quick Check)</option>
-              <option value="30" selected>30 Questions (Recommended Sprint)</option>
-              <option value="50">50 Questions (Deep Sectional Test)</option>
-              <option value="100">100 Questions (Full-Length Past Paper Simulation)</option>
-            </select>
-          </div>
-          <div class="flex flex-col gap-2">
-            <label class="text-xs font-bold text-slate-200">Target Completion Window:</label>
-            <select id="customDaysSelect" class="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500">
-              <option value="3">3 Days (Sprint)</option>
-              <option value="7" selected>7 Days (1 Week Balanced)</option>
-              <option value="14">14 Days (2 Weeks Thorough)</option>
-              <option value="21">21 Days (3 Weeks Foundation)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 flex items-center justify-between">
-          <span>Required Daily Velocity:</span>
-          <span id="customDailyPaceCalc" class="font-mono font-bold text-emerald-400">~5 Questions / day</span>
-        </div>
-
-        <button id="saveCustomTargetBtn" type="button" class="w-full py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 cursor-pointer">
-          <span>💾</span>
-          <span>Save &amp; Activate Target</span>
+        <button type="button" id="sideNavPractice" class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left cursor-pointer">
+          <span class="text-base">🎯</span>
+          <span id="sideLabelGS">GS Practice (2011–2026)</span>
         </button>
-      </div>
 
-      <!-- Tab 3: Active Sprint & Performance Radar -->
-      <div id="goalTabActiveContent" class="hidden flex flex-col gap-4">
-        <div id="activeTargetDetailCard" class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col gap-3">
-          <div class="flex items-center justify-between">
-            <span id="activeSprintBadge" class="text-xs font-black uppercase tracking-wider text-emerald-400">Active Sprint</span>
-            <span id="activeSprintDaysLeft" class="text-[11px] font-mono text-slate-400">7 Days Left</span>
+        <button type="button" id="sideNavCSAT" class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left cursor-pointer">
+          <span class="text-base">🧮</span>
+          <span id="sideLabelCSAT">CSAT Practice</span>
+        </button>
+
+        <button type="button" id="sideNavMistakes" class="flex items-center justify-between px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left cursor-pointer">
+          <div class="flex items-center gap-3">
+            <span class="text-base">📓</span>
+            <span id="sideLabelMistakes">Mistakes Notebook</span>
           </div>
+          <span id="sidebarMistakesBadge" class="px-1.5 py-0.2 rounded-full bg-rose-500 text-slate-950 text-[10px] font-black">0</span>
+        </button>
 
-          <h3 id="activeSprintSubjectTitle" class="text-base font-extrabold text-white">Polity &amp; Governance Sprint</h3>
+        <button type="button" id="sideNavEV" class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left cursor-pointer">
+          <span class="text-base">📊</span>
+          <span id="sideLabelEV">Cutoff EV Simulator</span>
+        </button>
 
-          <!-- Progress -->
-          <div class="flex flex-col gap-1.5">
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-slate-400">Questions Solved:</span>
-              <span id="activeSprintCountRatio" class="font-mono font-bold text-emerald-400">0 / 30 (0%)</span>
-            </div>
-            <div class="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden">
-              <div id="activeSprintProgressBar" class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width: 0%;"></div>
-            </div>
-          </div>
+        <!-- Section: MAINS -->
+        <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold px-3 pt-4 pb-1">
+          MAINS STUDIO
+        </span>
 
-          <!-- Accuracy & Backlog Grid -->
-          <div class="grid grid-cols-2 gap-2 pt-1 text-xs">
-            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80 flex flex-col">
-              <span class="text-[10px] text-slate-400">Sprint Accuracy:</span>
-              <span id="activeSprintAccuracy" class="text-sm font-extrabold text-white">0%</span>
-            </div>
-            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80 flex flex-col">
-              <span class="text-[10px] text-slate-400">Backlog Status:</span>
-              <span id="activeSprintBacklogStatus" class="text-sm font-extrabold text-emerald-400">On Track</span>
-            </div>
-          </div>
+        <a href="/" class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left">
+          <span class="text-base">✍️</span>
+          <span>Handwritten Copy Evaluation</span>
+        </a>
 
-          <div class="flex items-center justify-between pt-2 border-t border-slate-800">
-            <button id="resetTargetBtn" type="button" class="text-xs text-rose-400 hover:text-rose-300 underline font-semibold cursor-pointer">
-              Clear &amp; Set New Target
-            </button>
-            <button id="activeSprintJumpBtn" type="button" class="py-2 px-3 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer">
-              <span>⚡</span>
-              <span>Solve Target Questions Now</span>
-            </button>
-          </div>
-        </div>
-      </div>
+        <a href="/planner" class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left">
+          <span class="text-base">📦</span>
+          <span>Module Unlocks</span>
+        </a>
 
+      </nav>
     </div>
+
+    <!-- Bottom Profile & Utilities -->
+    <div class="p-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-xs font-mono">
+          A
+        </div>
+        <div class="flex flex-col">
+          <span id="sidebarUserName" class="font-bold text-white leading-tight">Aspirant</span>
+          <span class="text-[10px] text-emerald-400 font-mono">UPSC CSE 2027</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1">
+        <!-- Bilingual Toggle -->
+        <button id="sidebarLangToggle" class="p-1.5 rounded-lg bg-slate-900 text-amber-400 font-mono font-bold text-xs hover:bg-slate-800 cursor-pointer" title="Toggle English / हिंदी">
+          A/अ
+        </button>
+        <!-- Theme Toggle -->
+        <button id="sidebarThemeToggle" class="p-1.5 rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer" title="Toggle Light / Dark Mode">
+          🌓
+        </button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- Mobile Backdrop Overlay -->
+  <div id="mobileSidebarBackdrop" class="hidden fixed inset-0 z-30 bg-slate-950/70 backdrop-blur-xs md:hidden"></div>
+
+  <!-- ========================================================
+       MAIN APP WORKSPACE (Shifted right on desktop by w-64)
+       ======================================================== -->
+  <div class="flex-1 md:ml-64 flex flex-col min-h-screen">
+    
+    <!-- Top Sticky Bar -->
+    <header class="sticky top-0 z-30 h-16 backdrop-blur-md bg-slate-950/85 dark:bg-slate-950/85 border-b border-slate-800 px-4 sm:px-6 flex items-center justify-between gap-3">
+      
+      <!-- Left: Mobile Hamburger + Breadcrumb -->
+      <div class="flex items-center gap-3">
+        <button id="openMobileSidebarBtn" type="button" class="md:hidden p-2 rounded-lg bg-slate-900 text-slate-300 hover:text-white border border-slate-800 cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="flex items-center gap-2 text-xs font-semibold">
+          <span class="text-slate-500">CookedMains</span>
+          <span class="text-slate-600">/</span>
+          <span id="breadcrumbCurrent" class="text-amber-500 font-bold">Prelims Dashboard</span>
+        </div>
+      </div>
+
+      <!-- Right Action Levers -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="/planner" class="hidden sm:flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all">
+          <span>🗺️</span>
+          <span>Syllabus Plan</span>
+        </a>
+
+        <a href="/" class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 transition-all shadow-md">
+          <span>✍️</span>
+          <span>Mains Studio</span>
+        </a>
+      </div>
+
+    </header>
+
+    <!-- CONTENT CONTAINER -->
+    <main class="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col gap-6 max-w-7xl w-full mx-auto">
+
+      <!-- ====================================================
+           VIEW A: SUPERKALAM-STYLE DASHBOARD OVERVIEW (DEFAULT)
+           ==================================================== -->
+      <div id="dashboardOverviewView" class="flex flex-col gap-6">
+
+        <!-- Top Greeting Hero Banner (Amber Radiant Gradient like SuperKalam) -->
+        <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 shadow-xl flex flex-col gap-4 relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-950">
+              Hi, <span id="dashGreetingName">Aspirant</span> 👋
+            </h1>
+            <span class="hidden sm:inline-block px-3 py-1 rounded-full bg-slate-950/15 text-slate-950 text-xs font-black font-mono uppercase tracking-wider">
+              1,280+ UPSC PYQs (2011–2026)
+            </span>
+          </div>
+
+          <!-- Ask Any Doubt / Search Bar -->
+          <div class="relative w-full max-w-3xl">
+            <input id="askDoubtInput" type="text" placeholder="Ask any doubt or search 1,280+ PYQs (e.g. Monetary Policy, Preamble, Wetlands)..." class="w-full pl-5 pr-12 py-3.5 rounded-2xl bg-white text-slate-900 text-sm font-semibold placeholder-slate-400 shadow-md focus:outline-none focus:ring-2 focus:ring-slate-950">
+            <button id="searchDoubtBtn" type="button" class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xs hover:scale-105 transition-transform cursor-pointer" title="Ask AI Mentor">
+              ✨
+            </button>
+          </div>
+
+          <!-- Quick Discovery Chips -->
+          <div class="flex items-center gap-2 flex-wrap text-xs font-bold text-slate-950">
+            <span class="text-slate-900/70 text-[11px] uppercase tracking-wider font-mono">Popular:</span>
+            <button type="button" class="quick-chip-btn px-2.5 py-1 rounded-lg bg-white/70 hover:bg-white transition-all cursor-pointer" data-kw="Preamble">🏛️ Preamble</button>
+            <button type="button" class="quick-chip-btn px-2.5 py-1 rounded-lg bg-white/70 hover:bg-white transition-all cursor-pointer" data-kw="Monetary Policy">📈 Monetary Policy</button>
+            <button type="button" class="quick-chip-btn px-2.5 py-1 rounded-lg bg-white/70 hover:bg-white transition-all cursor-pointer" data-kw="National Parks">🌿 National Parks</button>
+            <button type="button" class="quick-chip-btn px-2.5 py-1 rounded-lg bg-white/70 hover:bg-white transition-all cursor-pointer" data-kw="1857 Revolt">📜 1857 Revolt</button>
+            <button type="button" class="quick-chip-btn px-2.5 py-1 rounded-lg bg-white/70 hover:bg-white transition-all cursor-pointer" data-kw="Drainage">🌍 River Systems</button>
+            <button type="button" class="quick-chip-btn px-2.5 py-1 rounded-lg bg-white/70 hover:bg-white transition-all cursor-pointer" data-kw="CRISPR">🔬 CRISPR</button>
+          </div>
+        </div>
+
+        <!-- 2-Column Dashboard Grid: Main Hub (8 Cols) + Right Activity (4 Cols) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- Left 8 Cols: Previous Year Questions & Practice Hub -->
+          <div class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- Section Header -->
+            <div class="flex flex-col">
+              <h2 class="text-lg sm:text-xl font-extrabold text-white">Previous Year Questions</h2>
+              <p class="text-xs text-slate-400 mt-0.5">
+                Understand the mindset of the UPSC examiner by practicing authentic past papers.
+              </p>
+            </div>
+
+            <!-- Two Master Hub Cards (SuperKalam Style) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              
+              <!-- Master Card 1: Prelims GS Practice -->
+              <div class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all flex flex-col justify-between gap-4 cursor-pointer group shadow-lg" onclick="window.startPracticeSession('all')">
+                <div class="flex items-start gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-2xl shrink-0 group-hover:scale-110 transition-transform">
+                    📄
+                  </div>
+                  <div class="flex flex-col">
+                    <h3 class="text-base font-extrabold text-white group-hover:text-amber-400 transition-colors">
+                      Prelims GS Practice
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">
+                      1,280+ Questions from 2011–2026
+                    </p>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs font-bold text-amber-400">
+                  <span>Start Practice (Focus Mode)</span>
+                  <span class="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </div>
+
+              <!-- Master Card 2: Mains Answer Writing -->
+              <a href="/" class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-emerald-500/50 transition-all flex flex-col justify-between gap-4 group shadow-lg">
+                <div class="flex items-start gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-2xl shrink-0 group-hover:scale-110 transition-transform">
+                    ✍️
+                  </div>
+                  <div class="flex flex-col">
+                    <h3 class="text-base font-extrabold text-white group-hover:text-emerald-400 transition-colors">
+                      Mains Model Answers
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">
+                      All GS1 to GS4 Model Answers (2013–2026)
+                    </p>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs font-bold text-emerald-400">
+                  <span>Open Mains Studio</span>
+                  <span class="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </a>
+
+            </div>
+
+            <!-- Subject-Wise Question Matrix (6 Core Disciplines) -->
+            <div class="flex flex-col gap-3">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold">
+                  PRACTICE BY SUBJECT (FOCUS 1-AT-A-TIME)
+                </h3>
+                <span class="text-xs text-amber-500 font-bold">Zero Infinite Scrolling ✓</span>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                
+                <!-- Polity Card -->
+                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all text-left flex flex-col gap-1 cursor-pointer group" data-subject="Polity & Governance">
+                  <span class="text-2xl">🏛️</span>
+                  <span class="text-xs sm:text-sm font-bold text-white group-hover:text-amber-400">Polity &amp; Governance</span>
+                  <span class="text-[11px] font-mono text-slate-400">240+ Questions</span>
+                </button>
+
+                <!-- Economy Card -->
+                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all text-left flex flex-col gap-1 cursor-pointer group" data-subject="Economy">
+                  <span class="text-2xl">📈</span>
+                  <span class="text-xs sm:text-sm font-bold text-white group-hover:text-amber-400">Economy &amp; Banking</span>
+                  <span class="text-[11px] font-mono text-slate-400">210+ Questions</span>
+                </button>
+
+                <!-- Environment Card -->
+                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all text-left flex flex-col gap-1 cursor-pointer group" data-subject="Environment & Ecology">
+                  <span class="text-2xl">🌿</span>
+                  <span class="text-xs sm:text-sm font-bold text-white group-hover:text-amber-400">Environment &amp; Ecology</span>
+                  <span class="text-[11px] font-mono text-slate-400">225+ Questions</span>
+                </button>
+
+                <!-- History Card -->
+                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all text-left flex flex-col gap-1 cursor-pointer group" data-subject="History & Culture">
+                  <span class="text-2xl">📜</span>
+                  <span class="text-xs sm:text-sm font-bold text-white group-hover:text-amber-400">History &amp; Art-Culture</span>
+                  <span class="text-[11px] font-mono text-slate-400">260+ Questions</span>
+                </button>
+
+                <!-- Geography Card -->
+                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all text-left flex flex-col gap-1 cursor-pointer group" data-subject="Geography">
+                  <span class="text-2xl">🌍</span>
+                  <span class="text-xs sm:text-sm font-bold text-white group-hover:text-amber-400">Geography &amp; Mapping</span>
+                  <span class="text-[11px] font-mono text-slate-400">180+ Questions</span>
+                </button>
+
+                <!-- Sci-Tech Card -->
+                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all text-left flex flex-col gap-1 cursor-pointer group" data-subject="Science & Technology">
+                  <span class="text-2xl">🔬</span>
+                  <span class="text-xs sm:text-sm font-bold text-white group-hover:text-amber-400">Science &amp; Tech</span>
+                  <span class="text-[11px] font-mono text-slate-400">165+ Questions</span>
+                </button>
+
+              </div>
+            </div>
+
+            <!-- Integrated Cutoff Sweet Spot & EV Calculator Card -->
+            <div class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col gap-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">📊</span>
+                  <h3 class="text-sm font-extrabold text-white">Cutoff Sweet Spot &amp; EV Optimizer</h3>
+                </div>
+                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold">Safe Attempts</span>
+              </div>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                Stop losing 15+ marks to wild guesses. Calibrate your educated guessing accuracy to find your mathematical attempt sweet spot.
+              </p>
+              <div class="grid grid-cols-3 gap-2 pt-1 text-center font-mono">
+                <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
+                  <span class="text-[10px] text-slate-400">Safe Attempts</span>
+                  <span class="text-base font-extrabold text-white">82–88</span>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
+                  <span class="text-[10px] text-rose-400">Negative Penalty</span>
+                  <span class="text-base font-extrabold text-rose-400">-0.66</span>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
+                  <span class="text-[10px] text-emerald-400">Target Net</span>
+                  <span class="text-base font-extrabold text-emerald-400">98+</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right 4 Cols: Today's Activity & Daily Streak (SuperKalam Style) -->
+          <div class="lg:col-span-4 flex flex-col gap-5">
+            
+            <!-- Today's Activity Card -->
+            <div class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col gap-3.5 shadow-lg">
+              <h3 class="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold">
+                TODAY'S ACTIVITY
+              </h3>
+
+              <!-- 4-Stat Metric Grid -->
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                
+                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col">
+                  <div class="flex items-center gap-1.5 text-amber-500 font-bold">
+                    <span>🟧</span>
+                    <span id="actMcqCount" class="text-lg font-black text-white font-mono">0</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 mt-0.5">MCQ Practiced</span>
+                </div>
+
+                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col">
+                  <div class="flex items-center gap-1.5 text-blue-400 font-bold">
+                    <span>🏋️</span>
+                    <span id="actAccuracy" class="text-lg font-black text-white font-mono">-</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 mt-0.5">Accuracy</span>
+                </div>
+
+                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col">
+                  <div class="flex items-center gap-1.5 text-emerald-400 font-bold">
+                    <span>📗</span>
+                    <span id="actMainsCount" class="text-lg font-black text-white font-mono">0</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 mt-0.5">Mains Answers</span>
+                </div>
+
+                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col">
+                  <div class="flex items-center gap-1.5 text-yellow-400 font-bold">
+                    <span>🚩</span>
+                    <span class="text-lg font-black text-white font-mono">Top 15%</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 mt-0.5">Your Rank</span>
+                </div>
+
+              </div>
+
+              <!-- Leaderboard link -->
+              <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs">
+                <span class="flex items-center gap-1.5 text-amber-400 font-bold">
+                  <span>🏆</span> Today's Leaderboard
+                </span>
+                <span class="text-slate-400 text-[11px] font-semibold hover:text-white cursor-pointer">View &gt;</span>
+              </div>
+            </div>
+
+            <!-- Daily Streak Card (SuperKalam Style) -->
+            <div class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col gap-3 shadow-lg">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-extrabold text-white flex items-center gap-1.5">
+                  <span class="text-amber-500">🔥</span>
+                  <span id="streakTitle">12-day streak</span>
+                </h3>
+                <span class="text-xs text-slate-400">&gt;</span>
+              </div>
+
+              <p class="text-xs text-slate-400 leading-normal">
+                Learn or practice to mark today's streak.
+              </p>
+
+              <!-- Day Pills (M T W Th F S Su) -->
+              <div class="flex items-center justify-between pt-1">
+                <div class="flex flex-col items-center gap-1">
+                  <span class="text-[10px] text-slate-500 font-mono">M</span>
+                  <span class="w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xs font-bold">✓</span>
+                </div>
+                <div class="flex flex-col items-center gap-1">
+                  <span class="text-[10px] text-slate-500 font-mono">T</span>
+                  <span class="w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xs font-bold">✓</span>
+                </div>
+                <div class="flex flex-col items-center gap-1">
+                  <span class="text-[10px] text-slate-500 font-mono">W</span>
+                  <span class="w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xs font-bold">✓</span>
+                </div>
+                <div class="flex flex-col items-center gap-1">
+                  <span class="text-[10px] text-slate-500 font-mono">Th</span>
+                  <span class="w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xs font-bold">✓</span>
+                </div>
+                <div class="flex flex-col items-center gap-1">
+                  <span class="text-[10px] text-slate-500 font-mono">F</span>
+                  <span class="w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xs font-bold">✓</span>
+                </div>
+                <div class="flex flex-col items-center gap-1">
+                  <span class="text-[10px] text-slate-500 font-mono">S</span>
+                  <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center text-xs font-bold">●</span>
+                </div>
+                <div class="flex flex-col items-center gap-1">
+                  <span class="text-[10px] text-slate-500 font-mono">Su</span>
+                  <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-500 flex items-center justify-center text-xs">○</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cognitive Target Sprint Card -->
+            <div id="targetSprintCard" class="light-card p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-slate-900 to-slate-950 border border-emerald-500/30 flex flex-col gap-3 shadow-lg">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                  <span>🎯</span> Active Target Sprint
+                </span>
+                <span id="targetCardBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">Active</span>
+              </div>
+
+              <h4 id="targetCardSubject" class="text-sm font-extrabold text-white">Polity &amp; Governance</h4>
+
+              <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                <div id="targetCardProgressBar" class="h-full bg-emerald-500 rounded-full" style="width: 45%;"></div>
+              </div>
+
+              <div class="flex items-center justify-between text-[11px] text-slate-400">
+                <span id="targetCardRatio">14 / 30 Solved</span>
+                <span id="targetCardDays">4 Days Left</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ====================================================
+           VIEW B: SMART QUESTION PLAYER FOCUS WORKSPACE (1 AT A TIME)
+           (Eliminates infinite scrolling completely!)
+           ==================================================== -->
+      <div id="questionPlayerView" class="hidden flex flex-col gap-5">
+        
+        <!-- Player Top Bar -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <button id="exitPlayerBtn" type="button" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer">
+            <span>←</span>
+            <span>Exit to Dashboard</span>
+          </button>
+
+          <!-- Current Metadata -->
+          <div class="flex items-center gap-2">
+            <span id="playerSubjectBadge" class="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-bold">Polity</span>
+            <span id="playerYearBadge" class="px-2 py-1 rounded-lg bg-slate-900 text-slate-300 border border-slate-800 text-xs font-mono">2023</span>
+            <span id="playerDiffBadge" class="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold">Moderate</span>
+          </div>
+
+          <!-- Question Palette Trigger -->
+          <button id="openPaletteBtn" type="button" class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer">
+            <span>🔢</span>
+            <span id="playerCounterText">Q 1 of 25</span>
+          </button>
+        </div>
+
+        <!-- Question Body Card (Focus Mode) -->
+        <div class="light-card p-6 sm:p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col gap-6">
+          
+          <!-- Question Statement Header -->
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center justify-between text-xs text-slate-400 font-mono">
+              <span id="playerQNumberLabel" class="font-bold text-amber-500">QUESTION #1</span>
+              <span>UPSC CSE Official GS Paper 1</span>
+            </div>
+            <h3 id="playerQuestionText" class="text-base sm:text-lg font-bold text-white leading-relaxed whitespace-pre-line">
+              Loading question...
+            </h3>
+          </div>
+
+          <!-- 10-Second Statement Slicer -->
+          <div id="playerStatementsContainer" class="flex flex-col gap-2">
+            <!-- Dynamically populated numbered statements with interactive strikethrough -->
+          </div>
+
+          <!-- Options Container (A, B, C, D) -->
+          <div id="playerOptionsContainer" class="grid grid-cols-1 gap-2.5 pt-2">
+            <!-- Dynamically populated options with click protection -->
+          </div>
+
+          <!-- Staged Confirmation Box -->
+          <div id="playerConfirmBox" class="hidden p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs">
+            <span class="text-amber-300 font-bold">Option staged. Click Confirm to submit:</span>
+            <div class="flex items-center gap-2">
+              <button id="playerClearStagedBtn" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold cursor-pointer">Cancel</button>
+              <button id="playerSubmitStagedBtn" class="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all cursor-pointer">Confirm &amp; Lock</button>
+            </div>
+          </div>
+
+          <!-- Answer Explanation & Trap Forensic (Shown when answered) -->
+          <div id="playerExplanationBox" class="hidden flex flex-col gap-4 pt-4 border-t border-slate-800">
+            
+            <!-- Result Banner -->
+            <div id="playerResultBanner" class="p-3.5 rounded-2xl flex items-center justify-between text-xs font-bold">
+              <span id="playerResultText">✓ Official UPSC Key Confirmed</span>
+              <span id="playerMarksDelta">+2.00 Marks</span>
+            </div>
+
+            <!-- Topper's Trap Detector Box -->
+            <div id="playerTrapBox" class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col gap-1.5 text-xs text-amber-200">
+              <div class="flex items-center gap-1.5 font-bold text-amber-400 uppercase tracking-wider text-[11px]">
+                <span>🎯</span>
+                <span>Topper's Trap Detector</span>
+              </div>
+              <p id="playerTrapText" class="leading-relaxed"></p>
+            </div>
+
+            <!-- Detailed Explanation Text -->
+            <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col gap-2 text-xs leading-relaxed text-slate-300">
+              <span class="font-bold text-white text-sm">Official UPSC Forensic Breakdown:</span>
+              <p id="playerExplanationText" class="whitespace-pre-line"></p>
+            </div>
+
+            <!-- 4-Pill Behavioral Mistake Tagger -->
+            <div id="playerDiagTagGroup" class="flex flex-col gap-2 pt-2">
+              <span class="text-xs font-bold text-slate-400">Why did you pick this option? (Subconscious leak tracking)</span>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <button type="button" class="player-tag-btn p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-rose-400 font-semibold hover:border-rose-500 cursor-pointer" data-tag="concept">🔴 Conceptual</button>
+                <button type="button" class="player-tag-btn p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-amber-400 font-semibold hover:border-amber-500 cursor-pointer" data-tag="silly">🟡 Silly Trap</button>
+                <button type="button" class="player-tag-btn p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-blue-400 font-semibold hover:border-blue-500 cursor-pointer" data-tag="elimination">🔵 Over-Elim</button>
+                <button type="button" class="player-tag-btn p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-purple-400 font-semibold hover:border-purple-500 cursor-pointer" data-tag="memory">🟣 Memory</button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Player Bottom Controls Bar -->
+        <div class="flex items-center justify-between pt-2">
+          <button id="playerPrevBtn" type="button" class="px-5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-30 disabled:pointer-events-none">
+            ← Previous Question
+          </button>
+
+          <button id="playerFlagBtn" type="button" class="px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-amber-400 text-xs font-bold hover:bg-slate-800 transition-all cursor-pointer">
+            🚩 Flag for Review
+          </button>
+
+          <button id="playerNextBtn" type="button" class="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all shadow-md cursor-pointer disabled:opacity-30 disabled:pointer-events-none">
+            Next Question →
+          </button>
+        </div>
+
+      </div>
+
+    </main>
+
   </div>
 
-
   <!-- ========================================================
-       MODAL 2: UPSC Prelims 80/20 Syllabus Mastery: Read vs SKIP
+       QUESTION NUMBER PALETTE MODAL (Jump to Any Question)
        ======================================================== -->
-  <div id="readVsSkipModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 modal-backdrop bg-slate-950/80 backdrop-blur-md overflow-y-auto">
-    <div class="relative w-full max-w-3xl rounded-2xl bg-slate-900 border border-slate-700/80 p-5 sm:p-7 shadow-2xl modal-content-card flex flex-col gap-5 my-8 max-h-[90vh] overflow-y-auto">
-
-      <!-- Modal Header -->
-      <div class="flex items-start justify-between border-b border-slate-800 pb-4">
-        <div class="flex flex-col gap-1">
-          <div class="flex items-center gap-2">
-            <span class="text-xl">📖</span>
-            <h2 id="readVsSkipTitle" class="text-base sm:text-lg font-extrabold text-white">What to Read vs What to SKIP (80/20 Rule)</h2>
-            <span class="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-mono font-bold border border-indigo-500/30">High-Yield Syllabus</span>
-          </div>
-          <p id="readVsSkipSubtitle" class="text-xs text-slate-400">
-            Eliminate 70% of low-yield preparation anxiety. Focus strictly on topics where UPSC actually sets 80% of prelims questions.
-          </p>
-        </div>
-        <button id="closeReadVsSkipBtn" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer text-lg leading-none" aria-label="Close Modal">✕</button>
+  <div id="paletteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+    <div class="light-card relative w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-800 p-6 shadow-2xl flex flex-col gap-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-sm font-extrabold text-white">Question Navigation Palette</h3>
+        <button id="closePaletteBtn" class="text-slate-400 hover:text-white text-lg">✕</button>
       </div>
 
-      <!-- Subject Tabs -->
-      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-bold no-scrollbar">
-        <button class="rvs-sub-tab px-3 py-1.5 rounded-lg bg-indigo-500 text-slate-950 font-black shrink-0 cursor-pointer" data-sub="polity">
-          🏛️ Polity
-        </button>
-        <button class="rvs-sub-tab px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-white shrink-0 cursor-pointer" data-sub="economy">
-          📈 Economy
-        </button>
-        <button class="rvs-sub-tab px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-white shrink-0 cursor-pointer" data-sub="environment">
-          🌿 Environment
-        </button>
-        <button class="rvs-sub-tab px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-white shrink-0 cursor-pointer" data-sub="history">
-          📜 History &amp; Culture
-        </button>
-        <button class="rvs-sub-tab px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-white shrink-0 cursor-pointer" data-sub="geography">
-          🌍 Geography
-        </button>
-        <button class="rvs-sub-tab px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-white shrink-0 cursor-pointer" data-sub="science">
-          🔬 Sci-Tech
-        </button>
+      <div class="flex items-center gap-3 text-xs font-mono text-slate-400">
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> Solved</span>
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-rose-500"></span> Incorrect</span>
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-500"></span> Flagged</span>
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-slate-800 border border-slate-700"></span> Unvisited</span>
       </div>
 
-      <!-- Dynamic Subject Content Area -->
-      <div id="rvsContentArea" class="flex flex-col gap-4 text-xs leading-relaxed">
-        <!-- Rendered dynamically by prelims.js in English or Hindi based on language toggle -->
+      <!-- Number Grid (Q1 to QN) -->
+      <div id="paletteNumberGrid" class="grid grid-cols-5 sm:grid-cols-8 gap-2 max-h-72 overflow-y-auto p-1">
+        <!-- Dynamically populated buttons -->
       </div>
-
     </div>
   </div>
 
   <!-- Toast Notification -->
   <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 bg-slate-900 border border-amber-500/40 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold">
     <span class="text-amber-400 text-base">✓</span>
-    <span id="toastMessage">Copied to clipboard!</span>
+    <span id="toastMessage">Done</span>
   </div>
-
-  <!-- Mobile Sticky Bottom Navigation Dock -->
-  <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 px-2 py-1.5 flex items-center justify-around text-[10px] font-bold shadow-2xl transition-colors duration-200" id="mobileNavDock">
-    <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-amber-400 cursor-pointer" data-target="questionsContainer">
-      <span class="text-base">📝</span>
-      <span id="mobNavPyqs">100+ PYQs</span>
-    </button>
-    <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer" id="mobNavTargetsBtn">
-      <span class="text-base">🎯</span>
-      <span id="mobNavTargets">Targets</span>
-    </button>
-    <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer" id="mobNavReadSkipBtn">
-      <span class="text-base">📖</span>
-      <span id="mobNavReadSkip">Read/Skip</span>
-    </button>
-    <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer" data-target="subTopicHeatmapCard">
-      <span class="text-base">🔥</span>
-      <span id="mobNavHeatmap">Heatmap</span>
-    </button>
-    <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer" data-view="mistakes">
-      <span class="text-base">📓</span>
-      <span id="mobNavMistakes">Mistakes</span>
-    </button>
-  </nav>
 
   <!-- Scripts -->
   <script src="/static/prelims.js"></script>

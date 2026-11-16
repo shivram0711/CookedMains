@@ -525,6 +525,8 @@ async def robots_txt():
 @app.api_route("/prelims", methods=["GET", "HEAD"])
 @app.api_route("/prelims.html", methods=["GET", "HEAD"])
 @app.api_route("/prelims-radar", methods=["GET", "HEAD"])
+@app.api_route("/dashboard", methods=["GET", "HEAD"])
+@app.api_route("/dashboard.html", methods=["GET", "HEAD"])
 async def prelims_page():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "prelims.html"))
 
