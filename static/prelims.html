@@ -136,6 +136,14 @@
           PRELIMS (1,280+ PYQS)
         </span>
 
+        <button type="button" id="sideNavMockTests" class="flex items-center justify-between px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left cursor-pointer">
+          <div class="flex items-center gap-3">
+            <span class="text-base">📝</span>
+            <span id="sideLabelMockTests">Adaptive Mock Tests</span>
+          </div>
+          <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 text-[9px] font-black uppercase">AI</span>
+        </button>
+
         <button type="button" id="sideNavPractice" class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left cursor-pointer">
           <span class="text-base">🎯</span>
           <span id="sideLabelGS">GS Practice (2011–2026)</span>
@@ -343,6 +351,58 @@
 
             </div>
 
+            <!-- Master Card 3: Adaptive Mock Test Generator (AI-Powered) -->
+            <div class="light-card p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/40 border-2 border-amber-500/40 hover:border-amber-500 transition-all shadow-xl flex flex-col gap-4 relative overflow-hidden">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-slate-950 flex items-center justify-center text-2xl font-black shadow-lg shrink-0">
+                    ⚡
+                  </div>
+                  <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                      <h3 class="text-lg font-black text-white">Adaptive UPSC Mock Test Generator</h3>
+                      <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-black uppercase">Phase 4 Engine</span>
+                    </div>
+                    <p class="text-xs text-slate-300 mt-0.5">
+                      Diagnostic weakness injection · Strict -0.66 penalty · Timed UPSC simulation &amp; forensic scorecard.
+                    </p>
+                  </div>
+                </div>
+
+                <button type="button" id="openMockGenBtn" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer shrink-0 flex items-center gap-2">
+                  <span>⚙️ Configure Test</span>
+                  <span>→</span>
+                </button>
+              </div>
+
+              <!-- Quick Launch Pills -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-800">
+                <button type="button" onclick="window.launchQuickMock('full')" class="light-inner-box p-3 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-amber-500/60 transition-all text-left flex flex-col gap-1 cursor-pointer group">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-amber-400">🏆 Full Simulation</span>
+                    <span class="text-[10px] font-mono text-slate-400">120m</span>
+                  </div>
+                  <span class="text-[11px] text-slate-300">100 Qs · 200 Marks · Standard UPSC mix</span>
+                </button>
+
+                <button type="button" onclick="window.launchQuickMock('sectional')" class="light-inner-box p-3 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-amber-500/60 transition-all text-left flex flex-col gap-1 cursor-pointer group">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-emerald-400">⚡ Sectional Sprint</span>
+                    <span class="text-[10px] font-mono text-slate-400">30m</span>
+                  </div>
+                  <span class="text-[11px] text-slate-300">25 Qs · 50 Marks · High-yield subjects</span>
+                </button>
+
+                <button type="button" onclick="window.launchQuickMock('weakness')" class="light-inner-box p-3 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-amber-500/60 transition-all text-left flex flex-col gap-1 cursor-pointer group">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-rose-400">🎯 Weakness Drill</span>
+                    <span class="text-[10px] font-mono text-slate-400">20m</span>
+                  </div>
+                  <span class="text-[11px] text-slate-300">15 Qs · Injects your logged mistakes</span>
+                </button>
+              </div>
+            </div>
+
             <!-- Subject-Wise Question Matrix (6 Core Disciplines) -->
             <div class="flex flex-col gap-3">
               <div class="flex items-center justify-between">
@@ -432,7 +492,29 @@
           <!-- Right 4 Cols: Today's Activity & Daily Streak (SuperKalam Style) -->
           <div class="lg:col-span-4 flex flex-col gap-5">
             
-            <!-- Today's Activity Card -->
+            
+            <!-- Mock Tests Scorecard & History Widget -->
+            <div class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col gap-3">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">📈</span>
+                  <h3 class="text-xs font-extrabold text-white uppercase tracking-wider">Mock Tests History</h3>
+                </div>
+                <span id="dashMockCountBadge" class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-black font-mono">0 Tests</span>
+              </div>
+
+              <div id="dashMockHistoryContainer" class="flex flex-col gap-2">
+                <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center text-xs text-slate-400">
+                  No mock tests completed yet. Take a 25-Q Sectional Sprint to benchmark your net score!
+                </div>
+              </div>
+
+              <button type="button" onclick="window.openMockGenerator()" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-xs transition-colors cursor-pointer text-center">
+                + Launch New Test
+              </button>
+            </div>
+
+<!-- Today's Activity Card -->
             <div class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col gap-3.5 shadow-lg">
               <h3 class="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold">
                 TODAY'S ACTIVITY
@@ -578,6 +660,18 @@
             <span id="playerDiffBadge" class="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold">Moderate</span>
           </div>
 
+          <!-- Live Exam Mode Timer & Finish Controls -->
+          <div id="playerExamControlsGroup" class="hidden flex items-center gap-2">
+            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 font-mono font-bold text-xs">
+              <span>⏱️</span>
+              <span id="playerExamTimerText">120:00</span>
+            </div>
+            <button id="playerSubmitExamBtn" type="button" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center gap-1">
+              <span>🏁</span>
+              <span class="hidden sm:inline">Submit</span> <span>Test</span>
+            </button>
+          </div>
+
           <!-- Question Palette Trigger -->
           <button id="openPaletteBtn" type="button" class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer">
             <span>🔢</span>
@@ -663,6 +757,9 @@
             ← Previous Question
           </button>
 
+          <button id="playerClearOptionBtn" type="button" class="hidden px-3 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold cursor-pointer">
+            Clear Choice
+          </button>
           <button id="playerFlagBtn" type="button" class="px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-amber-400 text-xs font-bold hover:bg-slate-800 transition-all cursor-pointer">
             🚩 Flag for Review
           </button>
@@ -670,6 +767,196 @@
           <button id="playerNextBtn" type="button" class="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all shadow-md cursor-pointer disabled:opacity-30 disabled:pointer-events-none">
             Next Question →
           </button>
+        </div>
+
+            </div>
+
+      <!-- ====================================================
+           FORENSIC POST-TEST SCORECARD VIEW (Phase 4)
+           ==================================================== -->
+      <div id="mockReportView" class="hidden flex flex-col gap-6">
+
+        <!-- Top Navigation / Return Bar -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <button type="button" onclick="window.returnFromReportToDashboard()" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer">
+            <span>←</span>
+            <span>Return to Dashboard</span>
+          </button>
+          <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold font-mono">
+            Official UPSC Marking (+2.00, -0.66)
+          </span>
+        </div>
+
+        <!-- Master Hero Score Banner -->
+        <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900 to-amber-950/50 border-2 border-amber-500/40 shadow-2xl flex flex-col gap-6 relative overflow-hidden">
+          
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex flex-col">
+              <span class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wider">Forensic Psychological Scorecard</span>
+              <h2 id="reportTestTitle" class="text-2xl sm:text-3xl font-black text-white mt-0.5">Full-Length UPSC Prelims Simulation</h2>
+              <p class="text-xs text-slate-400 mt-1">Calibrated against official UPSC 2024 Prelims General Cutoff (88.0 Marks).</p>
+            </div>
+
+            <!-- Net Score Badge -->
+            <div class="flex items-center gap-3">
+              <div class="flex flex-col items-end">
+                <span class="text-[10px] font-mono text-slate-400 uppercase">Net Final Score</span>
+                <span id="reportNetScore" class="text-3xl sm:text-4xl font-black text-amber-400">0.00</span>
+                <span id="reportMaxMarks" class="text-[11px] font-mono text-slate-400">/ 200 Marks</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cutoff Comparison Callout -->
+          <div id="reportCutoffCallout" class="p-4 rounded-2xl flex items-center justify-between text-xs sm:text-sm font-bold bg-emerald-500/15 border border-emerald-500/40 text-emerald-300">
+            <div class="flex items-center gap-2.5">
+              <span class="text-xl">🎯</span>
+              <span id="reportCutoffDeltaText">+12.4 Marks ABOVE UPSC 2024 Cutoff (88.0) — High Probability</span>
+            </div>
+            <span id="reportCutoffBadge" class="hidden sm:inline-block px-2.5 py-1 rounded-full bg-emerald-500 text-slate-950 font-black text-xs uppercase">Safe Zone</span>
+          </div>
+
+          <!-- 4 Core Quantitative Levers -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-800">
+            
+            <div class="light-inner-box p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col gap-1">
+              <span class="text-[10px] font-mono text-slate-400 uppercase">Gross Positive</span>
+              <span id="reportGrossScore" class="text-lg font-black text-emerald-400">+0.0</span>
+              <span id="reportCorrectCount" class="text-[11px] text-slate-400">0 Correct (+2.00 each)</span>
+            </div>
+
+            <div class="light-inner-box p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col gap-1">
+              <span class="text-[10px] font-mono text-rose-400 uppercase">Negative Bleed</span>
+              <span id="reportNegativeBleed" class="text-lg font-black text-rose-400">-0.00</span>
+              <span id="reportWrongCount" class="text-[11px] text-slate-400">0 Wrong (-0.66 each)</span>
+            </div>
+
+            <div class="light-inner-box p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col gap-1">
+              <span class="text-[10px] font-mono text-slate-400 uppercase">Accuracy Rate</span>
+              <span id="reportAccuracy" class="text-lg font-black text-amber-400">0%</span>
+              <span id="reportAttemptRate" class="text-[11px] text-slate-400">0 / 0 Attempted</span>
+            </div>
+
+            <div class="light-inner-box p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col gap-1">
+              <span class="text-[10px] font-mono text-slate-400 uppercase">Time Efficiency</span>
+              <span id="reportTimeSpent" class="text-lg font-black text-cyan-400">0m 0s</span>
+              <span id="reportSpeedPerQ" class="text-[11px] text-slate-400">~0s / question</span>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- 2-Column Psychological & Behavioral Diagnostics -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- Left Card: Behavioral Mistake Leak Detector -->
+          <div class="light-card p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col gap-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">🧠</span>
+                <h3 class="text-sm font-extrabold text-white">Subconscious Mistake Distribution</h3>
+              </div>
+              <span class="text-[10px] font-mono text-slate-400">UPSC Mark Leaks</span>
+            </div>
+
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Most aspirants fail prelims not from lack of reading, but from predictable psychological leaks: over-eliminating the correct option or falling for wording traps.
+            </p>
+
+            <div class="flex flex-col gap-3 pt-1">
+              
+              <!-- Conceptual -->
+              <div class="flex flex-col gap-1">
+                <div class="flex justify-between text-xs font-semibold">
+                  <span class="text-rose-400 flex items-center gap-1.5">🔴 Conceptual Blindspot</span>
+                  <span id="reportLeakConcept" class="font-mono text-slate-300">0 mistakes</span>
+                </div>
+                <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                  <div id="reportBarConcept" class="h-full bg-rose-500 rounded-full transition-all" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <!-- Silly Traps -->
+              <div class="flex flex-col gap-1">
+                <div class="flex justify-between text-xs font-semibold">
+                  <span class="text-amber-400 flex items-center gap-1.5">🟡 Silly Reading Traps</span>
+                  <span id="reportLeakSilly" class="font-mono text-slate-300">0 mistakes</span>
+                </div>
+                <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                  <div id="reportBarSilly" class="h-full bg-amber-500 rounded-full transition-all" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <!-- Over-Elimination -->
+              <div class="flex flex-col gap-1">
+                <div class="flex justify-between text-xs font-semibold">
+                  <span class="text-blue-400 flex items-center gap-1.5">🔵 Over-Elimination (50:50)</span>
+                  <span id="reportLeakElim" class="font-mono text-slate-300">0 mistakes</span>
+                </div>
+                <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                  <div id="reportBarElim" class="h-full bg-blue-500 rounded-full transition-all" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <!-- Memory Fatigue -->
+              <div class="flex flex-col gap-1">
+                <div class="flex justify-between text-xs font-semibold">
+                  <span class="text-purple-400 flex items-center gap-1.5">🟣 Memory Fatigue / Recall</span>
+                  <span id="reportLeakMemory" class="font-mono text-slate-300">0 mistakes</span>
+                </div>
+                <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                  <div id="reportBarMemory" class="h-full bg-purple-500 rounded-full transition-all" style="width: 0%"></div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Single Click Batch Save to Mistakes Notebook -->
+            <button type="button" id="reportSaveMistakesBtn" class="mt-2 w-full py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs border border-amber-500/40 transition-all cursor-pointer flex items-center justify-center gap-2">
+              <span>📓</span>
+              <span id="reportSaveMistakesText">Save All Wrong Answers to Mistakes Notebook</span>
+            </button>
+          </div>
+
+          <!-- Right Card: Subject Accuracy & High-Yield Breakdown -->
+          <div class="light-card p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col gap-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">📊</span>
+                <h3 class="text-sm font-extrabold text-white">Subject Accuracy &amp; Net Marks</h3>
+              </div>
+              <span class="text-[10px] font-mono text-slate-400">Sectional Audit</span>
+            </div>
+
+            <div id="reportSubjectBreakdownContainer" class="flex flex-col gap-3">
+              <!-- Dynamically populated subject rows -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Action Footer Bar -->
+        <div class="light-card p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">⚡</span>
+            <div class="flex flex-col">
+              <span class="text-xs font-extrabold text-white">Next Action Recommended:</span>
+              <span class="text-xs text-slate-400">Review line-by-line solutions or launch a 10-Q remedial drill to seal leaks.</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <button type="button" id="reportReviewSolutionsBtn" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5">
+              <span>🔍</span>
+              <span>Review Solutions</span>
+            </button>
+
+            <button type="button" id="reportRetakeDrillBtn" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5">
+              <span>🎯</span>
+              <span>Retake Remedial Drill</span>
+            </button>
+          </div>
         </div>
 
       </div>
@@ -710,5 +997,182 @@
 
   <!-- Scripts -->
   <script src="/static/prelims.js"></script>
+
+  <!-- ====================================================
+       ADAPTIVE MOCK TEST GENERATOR MODAL (Phase 4)
+       ==================================================== -->
+  <div id="mockGeneratorModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+    <div class="light-card relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 sm:p-8 flex flex-col gap-6">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between border-b border-slate-800 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-xl shrink-0">
+            ⚡
+          </div>
+          <div class="flex flex-col">
+            <h3 class="text-lg font-black text-white flex items-center gap-2">
+              Adaptive UPSC Prelims Mock Generator
+              <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-black uppercase">Phase 4</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Simulate actual UPSC pressure with authentic questions, timed exam mode, and forensic psychology reports.
+            </p>
+          </div>
+        </div>
+
+        <button type="button" id="closeMockGenBtn" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Step 1: Select Format -->
+      <div class="flex flex-col gap-2.5">
+        <label class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">
+          Step 1 · Select Test Format
+        </label>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          
+          <label class="light-inner-box p-3.5 rounded-2xl bg-slate-950 border border-amber-500/50 flex flex-col gap-1 cursor-pointer has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-amber-400">🏆 Full Simulation</span>
+              <input type="radio" name="mockFormat" value="full" checked class="accent-amber-500">
+            </div>
+            <span class="text-[11px] text-slate-300">100 Qs · 120 Mins · 200 Marks</span>
+            <span class="text-[10px] text-slate-400">Authentic GS-1 distribution</span>
+          </label>
+
+          <label class="light-inner-box p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col gap-1 cursor-pointer has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-emerald-400">⚡ Sectional Sprint</span>
+              <input type="radio" name="mockFormat" value="sectional" class="accent-amber-500">
+            </div>
+            <span class="text-[11px] text-slate-300">25 Qs · 30 Mins · 50 Marks</span>
+            <span class="text-[10px] text-slate-400">Quick subject deep-dive</span>
+          </label>
+
+          <label class="light-inner-box p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col gap-1 cursor-pointer has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-rose-400">🎯 Weakness Drill</span>
+              <input type="radio" name="mockFormat" value="weakness" class="accent-amber-500">
+            </div>
+            <span class="text-[11px] text-slate-300">15 Qs · 20 Mins · 30 Marks</span>
+            <span class="text-[10px] text-slate-400">Weighted to your mistakes</span>
+          </label>
+
+        </div>
+      </div>
+
+      <!-- Step 2: Subject Focus -->
+      <div class="flex flex-col gap-2.5">
+        <label class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">
+          Step 2 · Subject Distribution
+        </label>
+
+        <select id="mockSubjectSelect" class="light-input w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-slate-200 text-xs font-bold focus:outline-none focus:border-amber-500">
+          <option value="all">Balanced UPSC Standard (All 6 Core Subjects)</option>
+          <option value="adaptive">🧠 Adaptive Mark Leak Injection (Prioritize Low Accuracy)</option>
+          <option value="Polity & Governance">Polity & Governance (15-20% weightage)</option>
+          <option value="Economy">Economy & Banking (15-20% weightage)</option>
+          <option value="Environment & Ecology">Environment & Ecology (15-20% weightage)</option>
+          <option value="History & Culture">History & Culture (15% weightage)</option>
+          <option value="Geography">Geography & Mapping (12-15% weightage)</option>
+          <option value="Science & Technology">Science & Technology (10-12% weightage)</option>
+        </select>
+      </div>
+
+      <!-- Step 3: Exam Rules Mode -->
+      <div class="flex flex-col gap-2.5">
+        <label class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">
+          Step 3 · Cognitive Exam Mode
+        </label>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <label class="light-inner-box p-3.5 rounded-2xl bg-slate-950 border border-amber-500/50 flex flex-col gap-1 cursor-pointer has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-white">⏱️ Strict UPSC Simulation</span>
+              <input type="radio" name="mockMode" value="exam" checked class="accent-amber-500">
+            </div>
+            <span class="text-[11px] text-slate-400 leading-relaxed">
+              Countdown timer, answers hidden until submission, post-exam psychological scorecard.
+            </span>
+          </label>
+
+          <label class="light-inner-box p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col gap-1 cursor-pointer has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-white">💡 Practice / Tutor Mode</span>
+              <input type="radio" name="mockMode" value="tutor" class="accent-amber-500">
+            </div>
+            <span class="text-[11px] text-slate-400 leading-relaxed">
+              Instant feedback, Topper's Trap Detector revealed after each question.
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+        <button type="button" id="cancelMockGenBtn" class="px-4 py-2.5 rounded-xl text-slate-400 hover:text-white text-xs font-semibold cursor-pointer">
+          Cancel
+        </button>
+        <button type="button" id="startGeneratedMockBtn" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-lg transition-all cursor-pointer flex items-center gap-2">
+          <span>🚀 Launch Mock Test</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ====================================================
+       SUBMIT TEST CONFIRMATION MODAL (Phase 4)
+       ==================================================== -->
+  <div id="submitConfirmModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+    <div class="light-card relative w-full max-w-md rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 flex flex-col gap-5 text-center">
+      
+      <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-2xl mx-auto">
+        🏁
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <h3 class="text-lg font-black text-white">Submit Prelims Mock Test?</h3>
+        <p class="text-xs text-slate-400">
+          Review your attempt status before computing your official UPSC score and forensic report:
+        </p>
+      </div>
+
+      <!-- Status Summary Chips -->
+      <div class="grid grid-cols-3 gap-2 text-xs">
+        <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col">
+          <span id="confirmAnsweredCount" class="text-base font-black text-emerald-400">0</span>
+          <span class="text-[10px] text-slate-400 uppercase font-mono">Answered</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex flex-col">
+          <span id="confirmFlaggedCount" class="text-base font-black text-amber-400">0</span>
+          <span class="text-[10px] text-slate-400 uppercase font-mono">Flagged</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
+          <span id="confirmUnansweredCount" class="text-base font-black text-slate-400">0</span>
+          <span class="text-[10px] text-slate-400 uppercase font-mono">Unanswered</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-center gap-2 text-xs font-mono text-amber-400">
+        <span>⏱️ Time Remaining:</span>
+        <span id="confirmTimeRemaining" class="font-bold">00:00</span>
+      </div>
+
+      <div class="flex items-center justify-center gap-3 pt-2">
+        <button type="button" id="returnToTestBtn" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer">
+          Continue Test
+        </button>
+        <button type="button" id="confirmFinalSubmitBtn" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-lg cursor-pointer">
+          Submit &amp; View Report
+        </button>
+      </div>
+
+    </div>
+  </div>
+
 </body>
 </html>
