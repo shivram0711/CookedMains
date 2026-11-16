@@ -149,7 +149,7 @@
         background: #ffffff !important;
         color: #0f172a !important;
       }
-      header, footer, nav, section, main, #toastNotification {
+      header, footer, nav, section, main, #toastNotification, #mobileNavDock {
         display: none !important;
       }
       #printFlashSheetContainer {
@@ -163,12 +163,100 @@
         break-inside: avoid;
       }
     }
+
+    /* Light Mode Comprehensive Theme Overrides */
+    html:not(.dark) body {
+      background-color: #f8fafc !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) header {
+      background-color: rgba(255, 255, 255, 0.95) !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) header span.text-white,
+    html:not(.dark) h1.text-white,
+    html:not(.dark) h2.text-white,
+    html:not(.dark) h3.text-white,
+    html:not(.dark) .text-white {
+      color: #0f172a !important;
+    }
+    html:not(.dark) header span.text-slate-400,
+    html:not(.dark) .text-slate-400 {
+      color: #64748b !important;
+    }
+    html:not(.dark) .text-slate-300 {
+      color: #334155 !important;
+    }
+    html:not(.dark) .text-slate-200 {
+      color: #1e293b !important;
+    }
+    html:not(.dark) .text-slate-100 {
+      color: #0f172a !important;
+    }
+    html:not(.dark) .bg-slate-950,
+    html:not(.dark) .bg-slate-950\/60,
+    html:not(.dark) .bg-slate-950\/70,
+    html:not(.dark) .bg-slate-950\/80,
+    html:not(.dark) .bg-slate-950\/85 {
+      background-color: #ffffff !important;
+    }
+    html:not(.dark) .bg-slate-900,
+    html:not(.dark) .bg-slate-900\/40,
+    html:not(.dark) .bg-slate-900\/80,
+    html:not(.dark) .bg-slate-900\/90 {
+      background-color: #ffffff !important;
+      box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.06) !important;
+    }
+    html:not(.dark) .border-slate-800,
+    html:not(.dark) .border-slate-800\/60,
+    html:not(.dark) .border-slate-800\/80,
+    html:not(.dark) .border-slate-700\/60 {
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) section.bg-gradient-to-b {
+      background: linear-gradient(to bottom, #f1f5f9, #f8fafc) !important;
+    }
+    html:not(.dark) .subject-tab:not(.bg-amber-500) {
+      background-color: #ffffff !important;
+      color: #475569 !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .subject-tab:not(.bg-amber-500):hover {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) select#viewFilterSelect {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+    }
+    html:not(.dark) footer {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .opt-btn {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #1e293b !important;
+    }
+    html:not(.dark) .opt-btn:hover:not([disabled]) {
+      background-color: #f8fafc !important;
+      border-color: #f59e0b !important;
+    }
+    html:not(.dark) #mobileNavDock {
+      background-color: rgba(255, 255, 255, 0.95) !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .statement-slice-item {
+      background-color: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-slate-950">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-slate-950 transition-colors duration-200">
 
   <!-- Top Sticky Navigation Bar -->
-  <header class="sticky top-0 z-50 backdrop-blur-md bg-slate-950/85 border-b border-slate-800">
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-slate-950/85 border-b border-slate-800 transition-colors duration-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
       
       <!-- Brand Logo -->
@@ -198,12 +286,15 @@
 
       <!-- Action Utilities -->
       <div class="flex items-center gap-2">
-        <button id="viewMistakesNavBtn" class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-all">
+        <button id="viewMistakesNavBtn" class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-all cursor-pointer">
           <span>📓 Mistakes</span>
           <span id="navMistakesCount" class="px-1.5 py-0.2 rounded-full bg-rose-500 text-slate-950 text-[10px] font-black">0</span>
         </button>
-        <button id="toggleThemeBtn" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors" title="Toggle theme">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        <button id="toggleThemeBtn" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer" title="Toggle Light / Dark Mode">
+          <!-- Sun Icon (shown in dark mode) -->
+          <svg id="themeIconSun" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <!-- Moon Icon (shown in light mode) -->
+          <svg id="themeIconMoon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
         </button>
       </div>
 
@@ -211,7 +302,7 @@
   </header>
 
   <!-- Hero Section & Interactive Risk Sweet-Spot Banner -->
-  <section class="border-b border-slate-800/80 bg-gradient-to-b from-slate-900/60 to-slate-950 px-4 sm:px-6 pt-8 pb-7">
+  <section id="heroSection" class="border-b border-slate-800/80 bg-gradient-to-b from-slate-900/60 to-slate-950 px-4 sm:px-6 pt-8 pb-7">
     <div class="max-w-7xl mx-auto">
       <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         
@@ -331,11 +422,31 @@
   </section>
 
   <!-- Main Question Feed & Sidebar Layout -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
     
     <!-- Left 8 Cols: Question Feed -->
     <div class="lg:col-span-8 flex flex-col gap-6">
       
+      <!-- 10-Minute Micro-Correction Generator Highlight Banner -->
+      <div id="microCorrectionBanner" class="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-slate-900 to-slate-950 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 font-black flex items-center justify-center text-lg shadow-md shadow-amber-500/20 shrink-0">
+            ⚡
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-xs font-black uppercase text-amber-400 tracking-wider font-mono">10-Minute "Micro-Correction" Generator</span>
+              <span id="bannerMistakeCount" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">0 Gaps Logged</span>
+            </div>
+            <p class="text-xs text-slate-300 mt-0.5">Auto-extracts missing NCERT links, elimination traps, and behavioral diagnostics for 10-min active recall.</p>
+          </div>
+        </div>
+        <button id="bannerExportFlashSheetBtn" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-all shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95">
+          <span>🖨️ Export Revision Flash-Sheet</span>
+          <span>→</span>
+        </button>
+      </div>
+
       <!-- Top Status Notice -->
       <div id="feedHeaderNotice" class="flex items-center justify-between text-xs text-slate-400">
         <span id="questionCountText">Showing authentic UPSC PYQs</span>
@@ -358,7 +469,7 @@
     <div class="lg:col-span-4 flex flex-col gap-6">
 
       <!-- 1. Behavioral Mistake Diagnostics (Pie Breakdown) -->
-      <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col gap-3">
+      <div id="diagSidebarCard" class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col gap-3">
         <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-2">
           <span>🧠</span> Behavioral Mistake Diagnostics
         </h3>
@@ -523,6 +634,30 @@
     <span class="text-amber-400 text-base">✓</span>
     <span id="toastMessage">Copied to clipboard!</span>
   </div>
+
+  <!-- Mobile Sticky Bottom Navigation Dock -->
+  <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 px-3 py-2 flex items-center justify-around text-[10px] font-bold shadow-2xl transition-colors duration-200" id="mobileNavDock">
+    <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-amber-400 cursor-pointer" data-target="questionsContainer">
+      <span class="text-base">📝</span>
+      <span>100+ PYQs</span>
+    </button>
+    <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer" data-target="heroSection">
+      <span class="text-base">📊</span>
+      <span>Sweet Spot</span>
+    </button>
+    <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer" data-target="subTopicHeatmapCard">
+      <span class="text-base">🔥</span>
+      <span>Heatmap</span>
+    </button>
+    <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer" data-target="diagSidebarCard">
+      <span class="text-base">🧠</span>
+      <span>Diagnostics</span>
+    </button>
+    <button type="button" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-white cursor-pointer" data-view="mistakes">
+      <span class="text-base">📓</span>
+      <span>Mistakes</span>
+    </button>
+  </nav>
 
   <!-- Scripts -->
   <script src="/static/prelims.js"></script>
