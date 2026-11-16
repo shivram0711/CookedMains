@@ -269,19 +269,19 @@
       }
 
       return (
-        '<div class="matrix-q-item p-4 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-amber-500/60 transition-all flex flex-col gap-2.5 cursor-pointer group" data-qid="' + q.id + '">' +
+        '<div class="matrix-q-item light-card p-4 rounded-2xl bg-white dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 hover:border-amber-500/60 transition-all flex flex-col gap-2.5 cursor-pointer group shadow-xs" data-qid="' + q.id + '">' +
           '<div class="flex items-center justify-between text-xs flex-wrap gap-2">' +
             '<div class="flex items-center gap-1.5 flex-wrap">' +
-              '<span class="px-2.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-mono font-bold">UPSC ' + (q.year || 'CSE') + '</span>' +
-              '<span class="px-2 py-0.5 rounded-lg bg-slate-800 text-slate-300 text-[10px] font-semibold">' + (q.subject || 'GS-1') + '</span>' +
-              (q.sub_topic ? ('<span class="px-2 py-0.5 rounded-lg bg-slate-800/60 text-slate-400 text-[10px]">' + escapeHtml(q.sub_topic) + '</span>') : '') +
+              '<span class="px-2.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-[10px] font-mono font-bold">UPSC ' + (q.year || 'CSE') + '</span>' +
+              '<span class="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[10px] font-semibold">' + (q.subject || 'GS-1') + '</span>' +
+              (q.sub_topic ? ('<span class="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 text-[10px]">' + escapeHtml(q.sub_topic) + '</span>') : '') +
               statusBadge +
             '</div>' +
-            '<span class="text-amber-400 text-xs font-bold group-hover:translate-x-1 transition-transform flex items-center gap-1">' +
+            '<span class="text-amber-600 dark:text-amber-400 text-xs font-bold group-hover:translate-x-1 transition-transform flex items-center gap-1">' +
               '<span>Solve</span> <span>→</span>' +
             '</span>' +
           '</div>' +
-          '<p class="text-xs text-slate-200 line-clamp-2 leading-relaxed">' + escapeHtml(q.question_text) + '</p>' +
+          '<p class="text-xs text-slate-700 dark:text-slate-200 line-clamp-2 leading-relaxed">' + escapeHtml(q.question_text) + '</p>' +
         '</div>'
       );
     }).join('');
@@ -670,15 +670,15 @@
 
     if (calloutEl && deltaEl && badgeEl) {
       if (res.isAboveCutoff) {
-        calloutEl.className = 'p-4 rounded-2xl flex items-center justify-between text-xs sm:text-sm font-bold bg-emerald-500/15 border border-emerald-500/40 text-emerald-300';
-        deltaEl.textContent = '+' + res.cutoffDelta.toFixed(1) + ' Marks ABOVE Benchmark Cutoff (' + res.benchmarkCutoff + ') — High Probability of Clearing GS-1';
-        badgeEl.textContent = 'Safe Zone';
+        calloutEl.className = 'p-4 rounded-2xl flex items-center justify-between text-xs sm:text-sm font-bold bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/40 text-emerald-800 dark:text-emerald-300';
+        deltaEl.textContent = '🎉 You scored +' + res.cutoffDelta.toFixed(1) + ' marks ABOVE the cutoff target (' + res.benchmarkCutoff + '). Great job!';
+        badgeEl.textContent = 'Passed Cutoff';
         badgeEl.className = 'hidden sm:inline-block px-2.5 py-1 rounded-full bg-emerald-500 text-slate-950 font-black text-xs uppercase';
       } else {
-        calloutEl.className = 'p-4 rounded-2xl flex items-center justify-between text-xs sm:text-sm font-bold bg-rose-500/15 border border-rose-500/40 text-rose-300';
-        deltaEl.textContent = res.cutoffDelta.toFixed(1) + ' Marks BELOW Benchmark Cutoff (' + res.benchmarkCutoff + ') — Negative marks bleed detected';
-        badgeEl.textContent = 'Mark Leak Risk';
-        badgeEl.className = 'hidden sm:inline-block px-2.5 py-1 rounded-full bg-rose-500 text-slate-950 font-black text-xs uppercase';
+        calloutEl.className = 'p-4 rounded-2xl flex items-center justify-between text-xs sm:text-sm font-bold bg-rose-500/10 dark:bg-rose-500/20 border border-rose-500/40 text-rose-800 dark:text-rose-300';
+        deltaEl.textContent = '⚠️ You scored ' + Math.abs(res.cutoffDelta).toFixed(1) + ' marks BELOW the cutoff target (' + res.benchmarkCutoff + '). Avoiding wild guesses will quickly boost your score.';
+        badgeEl.textContent = 'Below Target';
+        badgeEl.className = 'hidden sm:inline-block px-2.5 py-1 rounded-full bg-rose-500 text-white font-black text-xs uppercase';
       }
     }
 
@@ -813,6 +813,24 @@
   // QUESTION PLAYER RENDERING (ZERO-SCROLL 1-AT-A-TIME)
   // ==========================================================
 
+  
+  // Helper to check if an option is eliminated by sliced statements
+  function getEliminatingStatementNum(optText, slicedMap) {
+    if (!slicedMap) return null;
+    const slicedNums = Object.keys(slicedMap).filter(function (k) { return slicedMap[k]; });
+    if (slicedNums.length === 0) return null;
+
+    for (let i = 0; i < slicedNums.length; i++) {
+      const num = slicedNums[i];
+      // Check if option text contains statement number (e.g. "1 and 2 only", "2 and 3", "2 only", "1, 2 and 3")
+      const regex = new RegExp('(?:^|\\D)' + num + '(?:\\D|$)');
+      if (regex.test(optText)) {
+        return num;
+      }
+    }
+    return null;
+  }
+
   function renderCurrentPlayerQuestion() {
     const questions = STATE.playerQuestions;
     if (!questions || questions.length === 0) return;
@@ -861,7 +879,7 @@
               statements.map(function (st) {
                 const isSliced = STATE.slicedStatements[q.id] && STATE.slicedStatements[q.id][st.num];
                 return (
-                  '<div class="slice-stmt-row flex items-start gap-2 p-2 rounded-xl text-xs text-slate-300 hover:bg-slate-900 cursor-pointer transition-all ' + (isSliced ? 'stmt-sliced' : '') + '" data-qid="' + q.id + '" data-snum="' + st.num + '">' +
+                  '<div class="slice-stmt-row flex items-start gap-2 p-2 rounded-xl text-xs text-slate-300 hover:bg-amber-500/10 dark:hover:bg-slate-800 cursor-pointer transition-all ' + (isSliced ? 'stmt-sliced' : '') + '" data-qid="' + q.id + '" data-snum="' + st.num + '">' +
                     '<span class="font-bold font-mono px-1.5 py-0.2 rounded bg-slate-800 text-amber-400 text-[10px] shrink-0">' + st.num + '</span>' +
                     '<span class="leading-relaxed">' + escapeHtml(st.text) + '</span>' +
                     '<span class="text-rose-400 text-xs ml-auto shrink-0">' + (isSliced ? '✕ Cut' : 'Slice') + '</span>' +
@@ -905,7 +923,7 @@
           clearOptBtn.onclick = function () {
             delete STATE.testAnswers[q.id];
             renderCurrentPlayerQuestion();
-            showToast('Response cleared.');
+            // toast removed
           };
         } else {
           clearOptBtn.classList.add('hidden');
@@ -917,7 +935,12 @@
           let optStyle = 'light-inner-box bg-slate-950 border border-slate-800 hover:border-amber-500/50 text-slate-200';
           let statusBadge = '';
 
-          if (isRecorded && recordedIdx === oIdx) {
+          const eliminatedByStmt = getEliminatingStatementNum(opt, STATE.slicedStatements[q.id]);
+
+          if (eliminatedByStmt !== null) {
+            optStyle = 'opacity-35 line-through border-dashed border-rose-400/50 bg-rose-500/5 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 pointer-events-none select-none';
+            statusBadge = '<span class="px-2 py-0.5 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 text-[10px] font-bold uppercase ml-auto">Ruled out (Stmt #' + eliminatedByStmt + ') ✗</span>';
+          } else if (isRecorded && recordedIdx === oIdx) {
             optStyle = 'bg-amber-500/20 border-2 border-amber-500 text-amber-300 font-bold shadow-md';
             statusBadge = '<span class="px-2 py-0.5 rounded bg-amber-500 text-slate-950 text-[10px] font-black uppercase ml-auto">Recorded Choice ✓</span>';
           } else if (stagedIdx === oIdx) {
@@ -1034,7 +1057,12 @@
           let optStyle = 'light-inner-box bg-slate-950 border border-slate-800 hover:border-amber-500/50 text-slate-200';
           let statusBadge = '';
 
-          if (isAnswered) {
+          const eliminatedByStmt = (!isAnswered) ? getEliminatingStatementNum(opt, STATE.slicedStatements[q.id]) : null;
+
+          if (eliminatedByStmt !== null) {
+            optStyle = 'opacity-35 line-through border-dashed border-rose-400/50 bg-rose-500/5 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 pointer-events-none select-none';
+            statusBadge = '<span class="px-2 py-0.5 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 text-[10px] font-bold uppercase ml-auto">Ruled out (Stmt #' + eliminatedByStmt + ') ✗</span>';
+          } else if (isAnswered) {
             const isCorrectChoice = oIdx === q.correct_index;
             const isUserChoice = oIdx === userAns.selectedIndex;
 
@@ -1140,7 +1168,7 @@
       STATE.testAnswers[q.id] = stagedIdx;
       STATE.stagedSelection = null;
       renderCurrentPlayerQuestion();
-      showToast('✓ Response recorded for this question');
+      // toast removed to prevent blocking next button
       return;
     }
 
@@ -1165,7 +1193,7 @@
     persistState();
     renderCurrentPlayerQuestion();
     updateDashboardActivity();
-    showToast(isCorrect ? '✓ Correct Answer!' : '✗ Negative marking logged (-0.66)');
+    // toast removed to prevent blocking next button
   }
 
   // Update Activity Numbers in Dashboard
@@ -1610,10 +1638,10 @@
       if (!q) return;
       if (STATE.flagged.has(q.id)) {
         STATE.flagged.delete(q.id);
-        showToast('Flag removed');
+        // toast removed
       } else {
         STATE.flagged.add(q.id);
-        showToast('Flagged for review');
+        // toast removed
       }
       persistState();
       renderCurrentPlayerQuestion();

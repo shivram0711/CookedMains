@@ -184,6 +184,16 @@
       border-color: #e2e8f0 !important;
     }
 
+    /* Matrix Feed Items in Light Mode */
+    html:not(.dark) .matrix-q-item {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) .matrix-q-item p {
+      color: #334155 !important;
+    }
+
     /* Player Options in Light Mode */
     html:not(.dark) .player-opt-btn {
       background-color: #ffffff !important;
@@ -877,9 +887,9 @@
 
           <!-- Current Metadata -->
           <div class="flex items-center gap-2">
-            <span id="playerSubjectBadge" class="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-bold">Polity</span>
-            <span id="playerYearBadge" class="px-2 py-1 rounded-lg bg-slate-900 text-slate-300 border border-slate-800 text-xs font-mono">2023</span>
-            <span id="playerDiffBadge" class="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold">Moderate</span>
+            <span id="playerSubjectBadge" class="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold">Polity</span>
+            <span id="playerYearBadge" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 text-xs font-mono font-bold">2023</span>
+            <span id="playerDiffBadge" class="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold">Moderate</span>
           </div>
 
           <!-- Live Exam Mode Timer & Finish Controls -->
@@ -1009,60 +1019,60 @@
           </span>
         </div>
 
-        <!-- Master Hero Score Banner -->
-        <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900 to-amber-950/50 border-2 border-amber-500/40 shadow-2xl flex flex-col gap-6 relative overflow-hidden">
+        <!-- Master Hero Score Banner (Crisp Contrast in Light & Dark Mode) -->
+        <div class="light-card p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border-2 border-amber-500/40 shadow-xl flex flex-col gap-6 relative overflow-hidden">
           
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div class="flex flex-col">
-              <span class="text-xs font-mono font-bold text-amber-500 uppercase tracking-wider">Forensic Psychological Scorecard</span>
-              <h2 id="reportTestTitle" class="text-2xl sm:text-3xl font-black text-white mt-0.5">Full-Length UPSC Prelims Simulation</h2>
-              <p class="text-xs text-slate-400 mt-1">Calibrated against official UPSC 2024 Prelims General Cutoff (88.0 Marks).</p>
+            <div class="flex flex-col gap-1">
+              <span class="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Test Summary &amp; Scorecard</span>
+              <h2 id="reportTestTitle" class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">UPSC Prelims Practice Test Result</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Based on UPSC Cutoff target (88.0 marks out of 200).</p>
             </div>
 
             <!-- Net Score Badge -->
             <div class="flex items-center gap-3">
               <div class="flex flex-col items-end">
-                <span class="text-[10px] font-mono text-slate-400 uppercase">Net Final Score</span>
-                <span id="reportNetScore" class="text-3xl sm:text-4xl font-black text-amber-400">0.00</span>
-                <span id="reportMaxMarks" class="text-[11px] font-mono text-slate-400">/ 200 Marks</span>
+                <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase">Net Final Score</span>
+                <span id="reportNetScore" class="text-3xl sm:text-4xl font-black text-amber-600 dark:text-amber-400">0.00</span>
+                <span id="reportMaxMarks" class="text-[11px] font-mono text-slate-500 dark:text-slate-400">/ 200 Marks</span>
               </div>
             </div>
           </div>
 
           <!-- Cutoff Comparison Callout -->
-          <div id="reportCutoffCallout" class="p-4 rounded-2xl flex items-center justify-between text-xs sm:text-sm font-bold bg-emerald-500/15 border border-emerald-500/40 text-emerald-300">
+          <div id="reportCutoffCallout" class="p-4 rounded-2xl flex items-center justify-between text-xs sm:text-sm font-bold bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300">
             <div class="flex items-center gap-2.5">
               <span class="text-xl">🎯</span>
-              <span id="reportCutoffDeltaText">+12.4 Marks ABOVE UPSC 2024 Cutoff (88.0) — High Probability</span>
+              <span id="reportCutoffDeltaText">You scored above the cutoff target. Good job!</span>
             </div>
             <span id="reportCutoffBadge" class="hidden sm:inline-block px-2.5 py-1 rounded-full bg-emerald-500 text-slate-950 font-black text-xs uppercase">Safe Zone</span>
           </div>
 
           <!-- 4 Core Quantitative Levers -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-800">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-200 dark:border-slate-800">
             
-            <div class="light-inner-box p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col gap-1">
-              <span class="text-[10px] font-mono text-slate-400 uppercase">Gross Positive</span>
-              <span id="reportGrossScore" class="text-lg font-black text-emerald-400">+0.0</span>
-              <span id="reportCorrectCount" class="text-[11px] text-slate-400">0 Correct (+2.00 each)</span>
+            <div class="light-inner-box p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1">
+              <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase">Correct Marks</span>
+              <span id="reportGrossScore" class="text-lg font-black text-emerald-600 dark:text-emerald-400">+0.0</span>
+              <span id="reportCorrectCount" class="text-[11px] text-slate-500 dark:text-slate-400">0 Correct (+2.00 each)</span>
             </div>
 
-            <div class="light-inner-box p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col gap-1">
-              <span class="text-[10px] font-mono text-rose-400 uppercase">Negative Bleed</span>
-              <span id="reportNegativeBleed" class="text-lg font-black text-rose-400">-0.00</span>
-              <span id="reportWrongCount" class="text-[11px] text-slate-400">0 Wrong (-0.66 each)</span>
+            <div class="light-inner-box p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1">
+              <span class="text-[10px] font-mono text-rose-600 dark:text-rose-400 uppercase">Negative Penalty</span>
+              <span id="reportNegativeBleed" class="text-lg font-black text-rose-600 dark:text-rose-400">-0.00</span>
+              <span id="reportWrongCount" class="text-[11px] text-slate-500 dark:text-slate-400">0 Wrong (-0.66 penalty)</span>
             </div>
 
-            <div class="light-inner-box p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col gap-1">
-              <span class="text-[10px] font-mono text-slate-400 uppercase">Accuracy Rate</span>
-              <span id="reportAccuracy" class="text-lg font-black text-amber-400">0%</span>
-              <span id="reportAttemptRate" class="text-[11px] text-slate-400">0 / 0 Attempted</span>
+            <div class="light-inner-box p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1">
+              <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase">Accuracy</span>
+              <span id="reportAccuracy" class="text-lg font-black text-amber-600 dark:text-amber-400">0%</span>
+              <span id="reportAttemptRate" class="text-[11px] text-slate-500 dark:text-slate-400">0 / 0 Attempted</span>
             </div>
 
-            <div class="light-inner-box p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col gap-1">
-              <span class="text-[10px] font-mono text-slate-400 uppercase">Time Efficiency</span>
-              <span id="reportTimeSpent" class="text-lg font-black text-cyan-400">0m 0s</span>
-              <span id="reportSpeedPerQ" class="text-[11px] text-slate-400">~0s / question</span>
+            <div class="light-inner-box p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1">
+              <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase">Time Taken</span>
+              <span id="reportTimeSpent" class="text-lg font-black text-cyan-600 dark:text-cyan-400">0m 0s</span>
+              <span id="reportSpeedPerQ" class="text-[11px] text-slate-500 dark:text-slate-400">~0s per question</span>
             </div>
 
           </div>
@@ -1077,13 +1087,13 @@
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
               <div class="flex items-center gap-2">
                 <span class="text-xl">🧠</span>
-                <h3 class="text-sm font-extrabold text-white">Subconscious Mistake Distribution</h3>
+                <h3 class="text-sm font-extrabold text-white">Why Did You Lose Marks?</h3>
               </div>
-              <span class="text-[10px] font-mono text-slate-400">UPSC Mark Leaks</span>
+              <span class="text-[10px] font-mono text-slate-400">Mistake Breakdown</span>
             </div>
 
             <p class="text-xs text-slate-300 leading-relaxed">
-              Most aspirants fail prelims not from lack of reading, but from predictable psychological leaks: over-eliminating the correct option or falling for wording traps.
+              Review your mistakes below so you avoid repeating them in future practice tests:
             </p>
 
             <div class="flex flex-col gap-3 pt-1">
@@ -1091,7 +1101,7 @@
               <!-- Conceptual -->
               <div class="flex flex-col gap-1">
                 <div class="flex justify-between text-xs font-semibold">
-                  <span class="text-rose-400 flex items-center gap-1.5">🔴 Conceptual Blindspot</span>
+                  <span class="text-rose-400 flex items-center gap-1.5">🔴 Concept Confusion (Did not know rule)</span>
                   <span id="reportLeakConcept" class="font-mono text-slate-300">0 mistakes</span>
                 </div>
                 <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
@@ -1102,7 +1112,7 @@
               <!-- Silly Traps -->
               <div class="flex flex-col gap-1">
                 <div class="flex justify-between text-xs font-semibold">
-                  <span class="text-amber-400 flex items-center gap-1.5">🟡 Silly Reading Traps</span>
+                  <span class="text-amber-400 flex items-center gap-1.5">🟡 Reading Mistake (Missed "Not" or "Only")</span>
                   <span id="reportLeakSilly" class="font-mono text-slate-300">0 mistakes</span>
                 </div>
                 <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
@@ -1113,7 +1123,7 @@
               <!-- Over-Elimination -->
               <div class="flex flex-col gap-1">
                 <div class="flex justify-between text-xs font-semibold">
-                  <span class="text-blue-400 flex items-center gap-1.5">🔵 Over-Elimination (50:50)</span>
+                  <span class="text-blue-400 flex items-center gap-1.5">🔵 50:50 Guess (Wrong remaining option)</span>
                   <span id="reportLeakElim" class="font-mono text-slate-300">0 mistakes</span>
                 </div>
                 <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
@@ -1124,7 +1134,7 @@
               <!-- Memory Fatigue -->
               <div class="flex flex-col gap-1">
                 <div class="flex justify-between text-xs font-semibold">
-                  <span class="text-purple-400 flex items-center gap-1.5">🟣 Memory Fatigue / Recall</span>
+                  <span class="text-purple-400 flex items-center gap-1.5">🟣 Forgot Fact (Could not recall)</span>
                   <span id="reportLeakMemory" class="font-mono text-slate-300">0 mistakes</span>
                 </div>
                 <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
@@ -1146,9 +1156,9 @@
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
               <div class="flex items-center gap-2">
                 <span class="text-xl">📊</span>
-                <h3 class="text-sm font-extrabold text-white">Subject Accuracy &amp; Net Marks</h3>
+                <h3 class="text-sm font-extrabold text-white">Subject Performance &amp; Accuracy</h3>
               </div>
-              <span class="text-[10px] font-mono text-slate-400">Sectional Audit</span>
+              <span class="text-[10px] font-mono text-slate-400">Subject Breakdown</span>
             </div>
 
             <div id="reportSubjectBreakdownContainer" class="flex flex-col gap-3">
