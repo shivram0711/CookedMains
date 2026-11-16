@@ -22,6 +22,12 @@
     matrixSearchQuery: '',
     matrixSelectedYear: 'all',
     matrixSelectedSubject: 'all',
+    vaultMode: 'subject', // 'subject' | 'year'
+    vaultSelectedSubject: 'all',
+    vaultSelectedYear: 'all',
+    vaultSelectedDifficulty: 'all',
+    vaultSearchQuery: '',
+    vaultExpandedQuestions: new Set(),
     searchQuery: '',
     viewMode: 'dashboard', // 'dashboard' | 'player' | 'report'
     playerIndex: 0,
@@ -111,17 +117,32 @@
   }
 
   // View Switcher (Dashboard vs Question Player Focus Mode vs Forensic Scorecard)
+  function updateSidebarActive(activeId) {
+    document.querySelectorAll('.sidebar-nav-item').forEach(function(item) {
+      if (item.id === activeId) {
+        item.classList.add('active', 'bg-amber-500/15', 'text-amber-900', 'dark:text-amber-400', 'border-amber-500/30');
+        item.classList.remove('text-slate-700', 'dark:text-slate-400', 'border-transparent');
+      } else {
+        item.classList.remove('active', 'bg-amber-500/15', 'text-amber-900', 'dark:text-amber-400', 'border-amber-500/30');
+        item.classList.add('text-slate-700', 'dark:text-slate-400', 'border-transparent');
+      }
+    });
+  }
+
   function switchViewMode(mode) {
     STATE.viewMode = mode;
     const dashView = document.getElementById('dashboardOverviewView');
     const playerView = document.getElementById('questionPlayerView');
     const reportView = document.getElementById('mockReportView');
+    const vaultView = document.getElementById('prelimsPyqVaultView');
     const breadcrumb = document.getElementById('breadcrumbCurrent');
 
     if (mode === 'player') {
       if (dashView) dashView.classList.add('hidden');
       if (reportView) reportView.classList.add('hidden');
+      if (vaultView) vaultView.classList.add('hidden');
       if (playerView) playerView.classList.remove('hidden');
+      updateSidebarActive('sideNavPractice');
       if (breadcrumb) {
         breadcrumb.textContent = STATE.isExamMode 
           ? (STATE.currentTest ? STATE.currentTest.title : 'Timed Exam Simulation')
@@ -131,16 +152,27 @@
     } else if (mode === 'report') {
       if (dashView) dashView.classList.add('hidden');
       if (playerView) playerView.classList.add('hidden');
+      if (vaultView) vaultView.classList.add('hidden');
       if (reportView) reportView.classList.remove('hidden');
       if (breadcrumb) breadcrumb.textContent = 'Forensic Mock Scorecard';
+    } else if (mode === 'vault') {
+      if (dashView) dashView.classList.add('hidden');
+      if (playerView) playerView.classList.add('hidden');
+      if (reportView) reportView.classList.add('hidden');
+      if (vaultView) vaultView.classList.remove('hidden');
+      updateSidebarActive('sideNavPyqVault');
+      if (breadcrumb) breadcrumb.textContent = 'Prelims PYQ Brainstorming Vault';
+      renderPyqVault();
     } else {
       if (playerView) playerView.classList.add('hidden');
       if (reportView) reportView.classList.add('hidden');
+      if (vaultView) vaultView.classList.add('hidden');
       if (dashView) dashView.classList.remove('hidden');
+      updateSidebarActive('sideNavHome');
       if (breadcrumb) breadcrumb.textContent = 'Prelims Dashboard';
       updateDashboardActivity();
       renderDashboardMockHistory();
-    renderMatrixFeed();
+      renderMatrixFeed();
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -1514,15 +1546,93 @@
       });
     }
 
-    // Sidebar Search & Matrix Nav Link
-    document.getElementById('sideNavSearchMatrix')?.addEventListener('click', function () {
-      switchViewMode('dashboard');
+    // Dedicated Sidebar Prelims PYQ Vault Nav Link
+    document.getElementById('sideNavPyqVault')?.addEventListener('click', function () {
+      switchViewMode('vault');
       toggleSidebar(false);
-      setTimeout(function () {
-        const sec = document.getElementById('topicSearchMatrixSection');
-        if (sec) sec.scrollIntoView({ behavior: 'smooth' });
-        if (topicInput) topicInput.focus();
-      }, 100);
+    });
+
+    // Vault Search Input
+    const vaultSearchInput = document.getElementById('vaultSearchInput');
+    const clearVaultSearchBtn = document.getElementById('clearVaultSearchBtn');
+    if (vaultSearchInput) {
+      vaultSearchInput.addEventListener('input', function (e) {
+        STATE.vaultSearchQuery = e.target.value.trim();
+        if (clearVaultSearchBtn) {
+          if (STATE.vaultSearchQuery) clearVaultSearchBtn.classList.remove('hidden');
+          else clearVaultSearchBtn.classList.add('hidden');
+        }
+        renderPyqVault();
+      });
+    }
+
+    if (clearVaultSearchBtn) {
+      clearVaultSearchBtn.addEventListener('click', function () {
+        if (vaultSearchInput) vaultSearchInput.value = '';
+        STATE.vaultSearchQuery = '';
+        clearVaultSearchBtn.classList.add('hidden');
+        renderPyqVault();
+      });
+    }
+
+    // Vault Mode Switcher (Subject vs Year)
+    document.getElementById('vaultModeSubjectBtn')?.addEventListener('click', function () {
+      STATE.vaultMode = 'subject';
+      renderPyqVault();
+    });
+
+    document.getElementById('vaultModeYearBtn')?.addEventListener('click', function () {
+      STATE.vaultMode = 'year';
+      renderPyqVault();
+    });
+
+    // Vault Difficulty Filter Buttons
+    document.querySelectorAll('.vault-diff-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        const diff = e.currentTarget.getAttribute('data-diff');
+        STATE.vaultSelectedDifficulty = diff;
+        document.querySelectorAll('.vault-diff-btn').forEach(function (b) {
+          b.className = (b.getAttribute('data-diff') === diff)
+            ? 'vault-diff-btn px-2 py-0.5 rounded-md bg-amber-500 text-slate-950 font-black cursor-pointer'
+            : 'vault-diff-btn px-2 py-0.5 rounded-md text-slate-400 hover:text-white cursor-pointer';
+        });
+        renderPyqVault();
+      });
+    });
+
+    // Vault Launch All Filtered in Focus Player
+    document.getElementById('vaultLaunchFilteredPracticeBtn')?.addEventListener('click', function () {
+      const filtered = getFilteredVaultQuestions();
+      if (filtered.length === 0) {
+        showToast('No questions in current filter to practice.');
+        return;
+      }
+      STATE.playerQuestions = filtered;
+      STATE.playerIndex = 0;
+      STATE.isExamMode = false;
+      STATE.isReviewMode = false;
+      STATE.currentTest = null;
+      switchViewMode('player');
+    });
+
+    // Vault Expand All Answers Button
+    document.getElementById('vaultToggleAllAnswersBtn')?.addEventListener('click', function () {
+      const filtered = getFilteredVaultQuestions();
+      const allExpanded = filtered.every(function (q) { return STATE.vaultExpandedQuestions.has(q.id); });
+      if (allExpanded) {
+        filtered.forEach(function (q) { STATE.vaultExpandedQuestions.delete(q.id); });
+        this.innerHTML = '<span>💡 Expand All Answers</span>';
+      } else {
+        filtered.forEach(function (q) { STATE.vaultExpandedQuestions.add(q.id); });
+        this.innerHTML = '<span>▲ Collapse All Answers</span>';
+      }
+      renderVaultQuestions(filtered);
+    });
+
+    // Fallback for Sidebar Search & Matrix Nav Link
+    document.getElementById('sideNavSearchMatrix')?.addEventListener('click', function () {
+      switchViewMode('vault');
+      toggleSidebar(false);
     });
 
     // Year Buttons

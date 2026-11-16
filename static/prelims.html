@@ -167,24 +167,61 @@
       color: #ffffff !important;
     }
 
-    /* Slate Background Overrides in Light Mode */
-    html:not(.dark) .bg-slate-950,
-    html:not(.dark) .bg-slate-900 {
+    /* Reset all dark gradients and slate surfaces in Light Mode */
+    html:not(.dark) [class*="bg-gradient-to-"],
+    html:not(.dark) [class*="from-slate-"],
+    html:not(.dark) [class*="via-slate-"],
+    html:not(.dark) [class*="to-slate-"],
+    html:not(.dark) .light-card {
+      background-image: none !important;
       background-color: #ffffff !important;
+    }
+
+    /* All Slate backgrounds become crisp light surfaces in Light Mode */
+    html:not(.dark) [class*="bg-slate-950"],
+    html:not(.dark) [class*="bg-slate-900"],
+    html:not(.dark) .light-inner-box {
+      background-color: #f8fafc !important;
       border-color: #e2e8f0 !important;
       color: #0f172a !important;
     }
-    html:not(.dark) .bg-slate-800 {
+    html:not(.dark) [class*="bg-slate-800"] {
       background-color: #f1f5f9 !important;
       border-color: #cbd5e1 !important;
       color: #0f172a !important;
     }
-    html:not(.dark) .border-slate-800,
-    html:not(.dark) .border-slate-700 {
+    html:not(.dark) [class*="border-slate-"] {
       border-color: #e2e8f0 !important;
     }
 
-    /* Matrix Feed Items in Light Mode */
+    /* Text contrast overrides in Light Mode */
+    html:not(.dark) .text-white,
+    html:not(.dark) [class*="bg-slate-"] .text-white,
+    html:not(.dark) .light-card .text-white {
+      color: #0f172a !important;
+    }
+    html:not(.dark) .text-slate-300,
+    html:not(.dark) .text-slate-400,
+    html:not(.dark) [class*="bg-slate-"] .text-slate-300,
+    html:not(.dark) [class*="bg-slate-"] .text-slate-400 {
+      color: #475569 !important;
+    }
+    html:not(.dark) .text-slate-500 {
+      color: #64748b !important;
+    }
+
+    /* Sidebar Navigation in Light Mode - No Black Hover! */
+    html:not(.dark) .sidebar-nav-item:hover {
+      background-color: rgba(245, 158, 11, 0.12) !important;
+      color: #92400e !important;
+    }
+    html:not(.dark) .sidebar-nav-item.active {
+      background-color: rgba(245, 158, 11, 0.18) !important;
+      color: #78350f !important;
+      border-color: rgba(245, 158, 11, 0.4) !important;
+    }
+
+    /* Matrix Feed & Vault Items in Light Mode */
     html:not(.dark) .matrix-q-item {
       background-color: #ffffff !important;
       border-color: #e2e8f0 !important;
@@ -243,71 +280,68 @@
       </div>
 
       <!-- Navigation Links -->
-      <nav class="flex flex-col gap-1 p-3 text-xs font-semibold overflow-y-auto max-h-[calc(100vh-140px)]">
+      <nav class="flex flex-col gap-1.5 p-3 text-xs font-semibold overflow-y-auto max-h-[calc(100vh-140px)]">
         
         <!-- Main Section -->
-        <button type="button" id="sideNavHome" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30 transition-all text-left cursor-pointer">
+        <button type="button" id="sideNavHome" class="sidebar-nav-item active flex items-center gap-3 px-3 py-2.5 rounded-xl bg-amber-500/15 text-amber-900 dark:text-amber-400 font-bold border border-amber-500/30 transition-all text-left cursor-pointer">
           <span class="text-base">🏠</span>
           <span id="sideLabelHome">Home Dashboard</span>
         </button>
 
-        
-
-        
-
         <!-- Section: PRELIMS -->
-        <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold px-3 pt-4 pb-1">
+        <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold px-3 pt-3 pb-1">
           PRELIMS (1,280+ PYQS)
         </span>
 
-        <button type="button" id="sideNavMockTests" class="flex items-center justify-between px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left cursor-pointer">
+        <!-- Dedicated Prelims PYQ Brainstorming Vault -->
+        <button type="button" id="sideNavPyqVault" class="sidebar-nav-item flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-500/10 dark:hover:bg-slate-800 transition-all text-left cursor-pointer border border-transparent">
+          <div class="flex items-center gap-3">
+            <span class="text-base">📚</span>
+            <span class="font-bold">Prelims PYQ Vault</span>
+          </div>
+          <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[9px] font-black uppercase">Deep Facts</span>
+        </button>
+
+        <button type="button" id="sideNavMockTests" class="sidebar-nav-item flex items-center justify-between px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-500/10 dark:hover:bg-slate-800 transition-all text-left cursor-pointer border border-transparent">
           <div class="flex items-center gap-3">
             <span class="text-base">📝</span>
             <span id="sideLabelMockTests">Adaptive Mock Tests</span>
           </div>
-          <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 text-[9px] font-black uppercase">AI</span>
+          <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[9px] font-black uppercase">AI</span>
         </button>
 
-        <button type="button" id="sideNavSearchMatrix" class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left cursor-pointer">
-          <span class="text-base">🔍</span>
-          <span>Topic Search &amp; Year Matrix</span>
-        </button>
-
-        <button type="button" id="sideNavPractice" class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left cursor-pointer">
+        <button type="button" id="sideNavPractice" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-500/10 dark:hover:bg-slate-800 transition-all text-left cursor-pointer border border-transparent">
           <span class="text-base">🎯</span>
-          <span id="sideLabelGS">GS Practice (2011–2026)</span>
+          <span id="sideLabelGS">Focus Player (Timed)</span>
         </button>
 
-        <button type="button" id="sideNavCSAT" class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left cursor-pointer">
+        <button type="button" id="sideNavCSAT" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-500/10 dark:hover:bg-slate-800 transition-all text-left cursor-pointer border border-transparent">
           <span class="text-base">🧮</span>
           <span id="sideLabelCSAT">CSAT Practice</span>
         </button>
 
-        <button type="button" id="sideNavMistakes" class="flex items-center justify-between px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left cursor-pointer">
+        <button type="button" id="sideNavMistakes" class="sidebar-nav-item flex items-center justify-between px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-500/10 dark:hover:bg-slate-800 transition-all text-left cursor-pointer border border-transparent">
           <div class="flex items-center gap-3">
             <span class="text-base">📓</span>
             <span id="sideLabelMistakes">Mistakes Notebook</span>
           </div>
-          <span id="sidebarMistakesBadge" class="px-1.5 py-0.2 rounded-full bg-rose-500 text-slate-950 text-[10px] font-black">0</span>
+          <span id="sidebarMistakesBadge" class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px] font-black">0</span>
         </button>
 
-        <button type="button" id="sideNavEV" class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left cursor-pointer">
+        <button type="button" id="sideNavEV" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-500/10 dark:hover:bg-slate-800 transition-all text-left cursor-pointer border border-transparent">
           <span class="text-base">📊</span>
           <span id="sideLabelEV">Cutoff EV Simulator</span>
         </button>
 
         <!-- Section: MAINS -->
-        <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold px-3 pt-4 pb-1">
+        <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold px-3 pt-3 pb-1">
           MAINS STUDIO
         </span>
 
-        <a href="/" class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-all text-left">
+        <a href="/" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-500/10 dark:hover:bg-slate-800 transition-all text-left border border-transparent">
           <span class="text-base">✍️</span>
           <span>Handwritten Copy Evaluation</span>
         </a>
-
-        
-
       </nav>
     </div>
 
@@ -396,7 +430,7 @@
           </div>
 
           <div class="flex items-center gap-2.5 shrink-0">
-            <button type="button" onclick="window.startPracticeSession('all')" class="px-4 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-2">
+            <button type="button" onclick="window.openPyqVault()" class="px-4 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-2">
               <span>🎯</span>
               <span>Start Practice</span>
             </button>
@@ -876,6 +910,187 @@
            VIEW B: SMART QUESTION PLAYER FOCUS WORKSPACE (1 AT A TIME)
            (Eliminates infinite scrolling completely!)
            ==================================================== -->
+      <!-- ====================================================
+           VIEW D: PRELIMS PYQ BRAINSTORMING & ANALYSIS VAULT (2011–2026)
+           (Beats SuperKalam with Deeper Insights, Decoded Traps, Facts & Mains Links)
+           ==================================================== -->
+      <div id="prelimsPyqVaultView" class="hidden flex flex-col gap-6">
+
+        <!-- Top Hero Card -->
+        <div class="light-card p-6 sm:p-7 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col gap-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-2xl shrink-0 font-black">
+                📚
+              </div>
+              <div class="flex flex-col">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h2 class="text-xl font-black text-white">Prelims PYQ Brainstorming &amp; Analysis Vault</h2>
+                  <span class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-black uppercase font-mono">14 Years · 2011–2026</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">
+                  Brainstorm authentic UPSC past questions with Topper's elimination traps, crucial conceptual facts, and official answer keys.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span id="vaultTotalCountBadge" class="px-3.5 py-1.5 rounded-xl bg-amber-500/20 text-amber-400 text-xs font-mono font-bold border border-amber-500/30">
+                133 Questions Available
+              </span>
+            </div>
+          </div>
+
+          <!-- Real-Time Search Bar -->
+          <div class="relative w-full">
+            <input id="vaultSearchInput" type="text" placeholder="Search by topic, keyword, act, committee, article, or question text (e.g. Monetary Policy, Preamble, Teesta, SMR, CRISPR)..." class="light-input w-full pl-5 pr-12 py-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-slate-100 text-xs sm:text-sm font-semibold placeholder-slate-400 shadow-inner focus:outline-none focus:border-amber-500">
+            <button id="clearVaultSearchBtn" type="button" class="hidden absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer text-xs" title="Clear Search">
+              ✕
+            </button>
+          </div>
+
+          <!-- Separate Mode Switcher (Subject-Wise vs Year-Wise) -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+            <div class="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-bold w-fit">
+              <button type="button" id="vaultModeSubjectBtn" class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black shadow-xs transition-all cursor-pointer flex items-center gap-1.5">
+                <span>📂</span>
+                <span>Subject-Wise Analysis</span>
+              </button>
+              <button type="button" id="vaultModeYearBtn" class="px-4 py-2 rounded-xl text-slate-400 hover:text-white transition-all cursor-pointer flex items-center gap-1.5">
+                <span>📅</span>
+                <span>Year-Wise Papers (2011–2026)</span>
+              </button>
+            </div>
+
+            <!-- Focus Mode Launcher Action -->
+            <button type="button" id="vaultLaunchFilteredPracticeBtn" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center gap-2 self-start sm:self-auto">
+              <span>🎯 Practice Current Set in Focus Player</span>
+              <span>→</span>
+            </button>
+          </div>
+
+          <!-- SUB-FILTER ROW A: SUBJECT-WISE TABS -->
+          <div id="vaultSubjectFilterContainer" class="flex flex-col gap-1.5 pt-2 border-t border-slate-800">
+            <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">Select Discipline:</span>
+            <div id="vaultSubjectPillsGroup" class="flex items-center gap-2 flex-wrap text-xs font-bold">
+              <!-- Dynamically populated subject buttons -->
+            </div>
+          </div>
+
+          <!-- SUB-FILTER ROW B: YEAR-WISE TABS -->
+          <div id="vaultYearFilterContainer" class="hidden flex flex-col gap-1.5 pt-2 border-t border-slate-800">
+            <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">Select UPSC CSE Exam Year:</span>
+            <div id="vaultYearPillsGroup" class="flex items-center gap-1.5 flex-wrap text-xs">
+              <!-- 2026..2011 buttons -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- EXAMINER MINDSET & PAPER INTEL DASHBOARD (Beating SuperKalam's basic donut) -->
+        <div id="vaultPaperIntelSection" class="light-card p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col gap-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="text-xl">🧠</span>
+              <div>
+                <h3 id="vaultIntelTitle" class="text-sm font-black text-white">Examiner Mindset &amp; Pattern Intel</h3>
+                <p id="vaultIntelSubtitle" class="text-[11px] text-slate-400">Deep structural breakdown of question archetypes &amp; trap density.</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 text-[11px] font-mono">
+              <span class="text-slate-400">Difficulty Filter:</span>
+              <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-950 border border-slate-800 text-[10px] font-bold">
+                <button type="button" class="vault-diff-btn px-2 py-0.5 rounded-md bg-amber-500 text-slate-950 font-black cursor-pointer" data-diff="all">All</button>
+                <button type="button" class="vault-diff-btn px-2 py-0.5 rounded-md text-slate-400 hover:text-white cursor-pointer" data-diff="Easy">Easy</button>
+                <button type="button" class="vault-diff-btn px-2 py-0.5 rounded-md text-slate-400 hover:text-white cursor-pointer" data-diff="Moderate">Moderate</button>
+                <button type="button" class="vault-diff-btn px-2 py-0.5 rounded-md text-slate-400 hover:text-white cursor-pointer" data-diff="Hard">Hard</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Visual Analytics 3-Column Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <!-- Donut 1: Difficulty Distribution -->
+            <div class="light-inner-box p-4 rounded-2xl bg-slate-950 border border-slate-800 flex items-center gap-4">
+              <div id="vaultDifficultyDonut" class="w-16 h-16 shrink-0 relative flex items-center justify-center">
+                <!-- SVG Circle Donut -->
+              </div>
+              <div class="flex flex-col gap-1 text-xs">
+                <span class="text-[10px] font-mono text-slate-400 font-bold uppercase">Difficulty Breakdown</span>
+                <div class="flex items-center gap-2 text-[11px]">
+                  <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span id="vaultEasyText" class="text-slate-300 font-semibold">Easy: 25%</span>
+                </div>
+                <div class="flex items-center gap-2 text-[11px]">
+                  <span class="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
+                  <span id="vaultModText" class="text-slate-300 font-semibold">Moderate: 55%</span>
+                </div>
+                <div class="flex items-center gap-2 text-[11px]">
+                  <span class="inline-block w-2 h-2 rounded-full bg-rose-500"></span>
+                  <span id="vaultHardText" class="text-slate-300 font-semibold">Hard: 20%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Donut 2: Pattern Archetypes -->
+            <div class="light-inner-box p-4 rounded-2xl bg-slate-950 border border-slate-800 flex items-center gap-4">
+              <div id="vaultPatternDonut" class="w-16 h-16 shrink-0 relative flex items-center justify-center">
+                <!-- SVG Circle Donut -->
+              </div>
+              <div class="flex flex-col gap-1 text-xs">
+                <span class="text-[10px] font-mono text-slate-400 font-bold uppercase">Question Archetypes</span>
+                <div class="flex items-center gap-2 text-[11px]">
+                  <span class="inline-block w-2 h-2 rounded-full bg-blue-500"></span>
+                  <span id="vaultMultiText" class="text-slate-300 font-semibold">Multi-Stmt: 62%</span>
+                </div>
+                <div class="flex items-center gap-2 text-[11px]">
+                  <span class="inline-block w-2 h-2 rounded-full bg-purple-500"></span>
+                  <span id="vaultPairsText" class="text-slate-300 font-semibold">Pairs/New: 24%</span>
+                </div>
+                <div class="flex items-center gap-2 text-[11px]">
+                  <span class="inline-block w-2 h-2 rounded-full bg-teal-500"></span>
+                  <span id="vaultDirectText" class="text-slate-300 font-semibold">Direct: 14%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Intel Card 3: Decoded Examiner Traps & Strategic Takeaway -->
+            <div class="light-inner-box p-4 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col justify-between gap-2">
+              <div class="flex flex-col gap-1">
+                <span class="text-[10px] font-mono text-amber-500 font-bold uppercase flex items-center gap-1">
+                  <span>⚡</span> Examiner Traps &amp; Key Trends
+                </span>
+                <p id="vaultKeyInsightText" class="text-xs text-slate-300 leading-relaxed font-sans">
+                  Statement-based questions dominate this section. Look out for subtle ministry substitutions and extreme qualifiers ("all", "only", "must").
+                </p>
+              </div>
+              <div id="vaultTopTopicsPillGroup" class="flex items-center gap-1.5 flex-wrap pt-1 text-[10px] font-mono">
+                <!-- High Yield Topic Badges -->
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- LIST OF QUESTIONS (WITH BRAINSTORM & DETAILS DRAWER) -->
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center justify-between text-xs">
+            <span id="vaultFeedStatusText" class="font-bold text-slate-300">
+              Showing questions...
+            </span>
+            <button type="button" id="vaultToggleAllAnswersBtn" class="text-amber-500 hover:text-amber-400 font-bold flex items-center gap-1 cursor-pointer">
+              <span>💡 Expand All Answers</span>
+            </button>
+          </div>
+
+          <div id="vaultQuestionsContainer" class="flex flex-col gap-4">
+            <!-- Dynamic Question Cards with Deep Anatomy -->
+          </div>
+        </div>
+
+      </div>
+
       <div id="questionPlayerView" class="hidden flex flex-col gap-5">
         
         <!-- Player Top Bar -->
