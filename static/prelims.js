@@ -383,7 +383,7 @@
 
           <!-- 10-Second Statement Slicer (If question has numbered statements) -->
           ${hasStatements && !isAnswered ? `
-            <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 flex flex-col gap-2">
+            <div class="slicer-container p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 flex flex-col gap-2">
               <div class="flex items-center justify-between">
                 <span class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5 font-mono">
                   <span>✂️</span> 10-Second Statement Slicer
@@ -397,7 +397,7 @@
                     <div class="statement-slice-item p-2 rounded-lg bg-slate-950 border border-slate-800/80 flex items-center justify-between gap-2 text-xs">
                       <div class="flex items-start gap-2 flex-1 min-w-0 ${isSliced ? 'line-through text-rose-400 opacity-60' : 'text-slate-200'}">
                         <span class="font-bold text-amber-400 font-mono">${s.num}.</span>
-                        <span class="truncate">${escapeHtml(s.text)}</span>
+                        <span class="break-words leading-relaxed">${escapeHtml(s.text)}</span>
                       </div>
                       <button type="button" class="slice-stmt-btn shrink-0 px-2 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer ${isSliced ? 'bg-rose-500 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'}" data-qid="${escapeHtml(q.id)}" data-snum="${s.num}">
                         ${isSliced ? 'Sliced ✕' : 'Slice Out ✂️'}
@@ -411,9 +411,9 @@
 
           <!-- Risk / Confidence Selector (Before Answering) -->
           ${!isAnswered ? `
-            <div class="flex items-center gap-2 pt-1">
+            <div class="flex flex-wrap items-center gap-2 pt-1">
               <span class="text-xs text-slate-400 font-medium shrink-0">Your Confidence:</span>
-              <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs" id="conf-picker-${escapeHtml(q.id)}">
+              <div class="conf-picker-box flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs" id="conf-picker-${escapeHtml(q.id)}">
                 <button type="button" class="conf-btn px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" data-qid="${escapeHtml(q.id)}" data-conf="sure" data-active="true">
                   🟢 Sure-shot
                 </button>
@@ -462,10 +462,10 @@
 
               return `
                 <button type="button" class="opt-btn ${optClass}" data-qid="${escapeHtml(q.id)}" data-oidx="${oIdx}" ${isAnswered ? 'disabled' : ''}>
-                  <span class="w-6 h-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold shrink-0 text-slate-300">
+                  <span class="opt-letter-badge w-6 h-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold shrink-0 text-slate-300">
                     ${optLetters[oIdx]}
                   </span>
-                  <span class="flex-1 min-w-0 pt-0.5">${escapeHtml(opt)}</span>
+                  <span class="flex-1 min-w-0 pt-0.5 break-words">${escapeHtml(opt)}</span>
                   ${stagedIdx === oIdx && !isAnswered ? '<span class="text-amber-400 font-bold text-xs shrink-0 font-mono">● Selected</span>' : ''}
                   ${isAnswered && oIdx === q.correct_index ? '<span class="text-emerald-400 font-bold shrink-0">✓ Correct Key</span>' : ''}
                   ${isAnswered && userAns.selectedIndex === oIdx && !isCorrect ? '<span class="text-rose-400 font-bold shrink-0">✗ Your Choice</span>' : ''}
@@ -476,7 +476,7 @@
 
           <!-- Accidental Click Confirmation Bar (When an option is staged) -->
           ${!isAnswered && stagedIdx !== undefined ? `
-            <div class="flex items-center justify-between p-3 rounded-xl bg-amber-500/15 border border-amber-500/40 text-xs animate-fade-in shadow-md">
+            <div class="staged-confirm-bar flex items-center justify-between p-3 rounded-xl bg-amber-500/15 border border-amber-500/40 text-xs animate-fade-in shadow-md">
               <div class="flex items-center gap-2">
                 <span class="w-5 h-5 rounded-md bg-amber-500 text-slate-950 font-black flex items-center justify-center text-[10px]">✓</span>
                 <span class="text-amber-200 font-medium">Selected: <strong>Option ${optLetters[stagedIdx]}</strong></span>
@@ -519,21 +519,21 @@
               ` : ''}
 
               <!-- Topper's Trap Detector Box -->
-              <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 flex flex-col gap-1 text-xs">
+              <div class="topper-trap-card p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 flex flex-col gap-1 text-xs">
                 <div class="flex items-center justify-between">
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400 font-mono flex items-center gap-1.5">
+                  <span class="trap-title text-[10px] font-bold uppercase tracking-wider text-amber-400 font-mono flex items-center gap-1.5">
                     <span>🎯</span> Topper's Trap Detector
                   </span>
-                  <span class="text-[10px] text-amber-300 font-semibold px-1.5 py-0.2 rounded bg-amber-400/20">How to Spot in 5s</span>
+                  <span class="trap-tag text-[10px] text-amber-300 font-semibold px-1.5 py-0.2 rounded bg-amber-400/20">How to Spot in 5s</span>
                 </div>
-                <p class="text-xs text-slate-200 leading-relaxed font-medium">
+                <p class="trap-text text-xs text-slate-200 leading-relaxed font-medium">
                   ${escapeHtml(q.elimination_trap || 'Carefully verify absolute terms and categorical claims.')}
                 </p>
               </div>
 
               <!-- Behavioral Diagnostic Tagger (If Answer was Wrong) -->
               ${!isCorrect ? `
-                <div class="p-3 rounded-lg bg-slate-950 border border-slate-800 flex flex-col gap-2">
+                <div class="diag-tag-card p-3 rounded-lg bg-slate-950 border border-slate-800 flex flex-col gap-2">
                   <div class="flex items-center justify-between">
                     <span class="text-xs font-bold text-rose-300">Why did you get this wrong?</span>
                     <span class="text-[10px] text-slate-500">Pick to track your error pattern</span>
@@ -564,37 +564,37 @@
               <!-- Option-by-Option Distractor Deep Dive -->
               <div class="border-t border-slate-800/80 pt-3 mt-1 flex flex-col gap-2">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                  <span class="distractor-title text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
                     <span>🔍</span> Distractor Deep Dive (Facts on Other Options)
                   </span>
                   <span class="text-[10px] text-slate-400">Context &amp; Traps</span>
                 </div>
                 <div class="grid grid-cols-1 gap-2 pt-1">
                   ${distractorAnalysis.map(d => `
-                    <div class="p-2.5 rounded-lg ${d.isCorrect ? 'bg-emerald-950/30 border border-emerald-500/30' : 'bg-slate-950/70 border border-slate-800/80'} text-xs">
+                    <div class="distractor-item p-2.5 rounded-lg ${d.isCorrect ? 'bg-emerald-950/30 border border-emerald-500/30' : 'bg-slate-950/70 border border-slate-800/80'} text-xs">
                       <div class="flex items-center justify-between mb-1">
-                        <span class="font-bold ${d.isCorrect ? 'text-emerald-400' : 'text-slate-200'} font-mono">
+                        <span class="distractor-opt-title font-bold ${d.isCorrect ? 'text-emerald-400' : 'text-slate-200'} font-mono">
                           Option ${d.letter}: ${escapeHtml(d.optionText)}
                         </span>
-                        <span class="text-[10px] font-semibold px-1.5 py-0.2 rounded ${d.isCorrect ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-400'}">
+                        <span class="distractor-badge text-[10px] font-semibold px-1.5 py-0.2 rounded ${d.isCorrect ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-400'}">
                           ${d.label}
                         </span>
                       </div>
-                      <p class="text-[11px] text-slate-400 leading-relaxed">${escapeHtml(d.details)}</p>
+                      <p class="distractor-text text-[11px] text-slate-400 leading-relaxed">${escapeHtml(d.details)}</p>
                     </div>
                   `).join('')}
                 </div>
               </div>
 
               <!-- Standard Reference -->
-              <div class="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 text-xs">
+              <div class="standard-book-box p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 text-xs">
                 <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block mb-0.5">📖 Standard Book Citation</span>
                 <span class="text-slate-300">${escapeHtml(q.standard_book_ref)}</span>
               </div>
 
               <!-- Prelims-to-Mains Continuum Box -->
               ${q.mains_linkage ? `
-                <div class="mt-1 p-3 rounded-lg bg-slate-950 border border-amber-500/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div class="prelims-mains-card mt-1 p-3 rounded-lg bg-slate-950 border border-amber-500/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-1.5 mb-0.5">
                       <span class="text-[10px] font-black uppercase px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">

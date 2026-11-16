@@ -164,58 +164,140 @@
       }
     }
 
-    /* Light Mode Comprehensive Theme Overrides */
+    /* ========================================================
+       LIGHT MODE COMPREHENSIVE HIGH-CONTRAST THEME OVERRIDES
+       ======================================================== */
     html:not(.dark) body {
       background-color: #f8fafc !important;
       color: #0f172a !important;
     }
+
+    /* All slate-900 and slate-950 dark containers become crisp white */
+    html:not(.dark) [class*="bg-slate-950"],
+    html:not(.dark) [class*="bg-slate-900"],
+    html:not(.dark) article[id^="card-"] {
+      background-color: #ffffff !important;
+      box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05) !important;
+    }
+
+    /* Headers, Navs, Docks */
     html:not(.dark) header {
-      background-color: rgba(255, 255, 255, 0.95) !important;
+      background-color: rgba(255, 255, 255, 0.96) !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 1px 4px 0 rgba(15, 23, 42, 0.04) !important;
+    }
+    html:not(.dark) #mobileNavDock {
+      background-color: rgba(255, 255, 255, 0.98) !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 -4px 16px 0 rgba(15, 23, 42, 0.08) !important;
+    }
+    html:not(.dark) footer {
+      background-color: #ffffff !important;
       border-color: #e2e8f0 !important;
     }
-    html:not(.dark) header span.text-white,
-    html:not(.dark) h1.text-white,
-    html:not(.dark) h2.text-white,
-    html:not(.dark) h3.text-white,
-    html:not(.dark) .text-white {
-      color: #0f172a !important;
+
+    /* Borders */
+    html:not(.dark) [class*="border-slate-800"],
+    html:not(.dark) [class*="border-slate-700"],
+    html:not(.dark) [class*="border-slate-900"] {
+      border-color: #e2e8f0 !important;
     }
-    html:not(.dark) header span.text-slate-400,
-    html:not(.dark) .text-slate-400 {
-      color: #64748b !important;
+
+    /* General Typography */
+    html:not(.dark) h1,
+    html:not(.dark) h2,
+    html:not(.dark) h3,
+    html:not(.dark) h4,
+    html:not(.dark) .text-white,
+    html:not(.dark) .text-slate-100,
+    html:not(.dark) .text-slate-200 {
+      color: #0f172a !important;
     }
     html:not(.dark) .text-slate-300 {
       color: #334155 !important;
     }
-    html:not(.dark) .text-slate-200 {
-      color: #1e293b !important;
+    html:not(.dark) .text-slate-400 {
+      color: #475569 !important;
     }
-    html:not(.dark) .text-slate-100 {
-      color: #0f172a !important;
+    html:not(.dark) .text-slate-500 {
+      color: #64748b !important;
     }
-    html:not(.dark) .bg-slate-950,
-    html:not(.dark) .bg-slate-950\/60,
-    html:not(.dark) .bg-slate-950\/70,
-    html:not(.dark) .bg-slate-950\/80,
-    html:not(.dark) .bg-slate-950\/85 {
-      background-color: #ffffff !important;
+
+    /* Amber Text (High-contrast amber-800 in light mode, never washed-out yellow) */
+    html:not(.dark) .text-amber-400,
+    html:not(.dark) .text-amber-300,
+    html:not(.dark) .text-amber-200 {
+      color: #b45309 !important;
     }
-    html:not(.dark) .bg-slate-900,
-    html:not(.dark) .bg-slate-900\/40,
-    html:not(.dark) .bg-slate-900\/80,
-    html:not(.dark) .bg-slate-900\/90 {
-      background-color: #ffffff !important;
-      box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.06) !important;
+    html:not(.dark) h1 span.bg-clip-text {
+      background: none !important;
+      -webkit-text-fill-color: #b45309 !important;
+      color: #b45309 !important;
     }
-    html:not(.dark) .border-slate-800,
-    html:not(.dark) .border-slate-800\/60,
-    html:not(.dark) .border-slate-800\/80,
-    html:not(.dark) .border-slate-700\/60 {
+
+    /* Rose & Red Accent Text & Badges */
+    html:not(.dark) .text-rose-400,
+    html:not(.dark) .text-rose-300,
+    html:not(.dark) .text-rose-200 {
+      color: #be123c !important;
+    }
+    html:not(.dark) [class*="bg-rose-950"] {
+      background-color: #fff1f2 !important;
+    }
+    html:not(.dark) [class*="bg-rose-500/10"],
+    html:not(.dark) [class*="bg-rose-500/15"],
+    html:not(.dark) [class*="bg-rose-500/20"] {
+      background-color: #ffe4e6 !important;
+      color: #9f1239 !important;
+      border-color: #fecdd3 !important;
+    }
+
+    /* Emerald & Green Accent Text & Badges */
+    html:not(.dark) .text-emerald-400,
+    html:not(.dark) .text-emerald-300,
+    html:not(.dark) .text-emerald-200 {
+      color: #047857 !important;
+    }
+    html:not(.dark) [class*="bg-emerald-950"] {
+      background-color: #f0fdf4 !important;
+    }
+    html:not(.dark) [class*="bg-emerald-500/10"],
+    html:not(.dark) [class*="bg-emerald-500/15"],
+    html:not(.dark) [class*="bg-emerald-500/20"] {
+      background-color: #dcfce7 !important;
+      color: #065f46 !important;
+      border-color: #bbf7d0 !important;
+    }
+
+    /* Blue & Purple Accent Text */
+    html:not(.dark) .text-blue-400 { color: #1d4ed8 !important; }
+    html:not(.dark) .text-purple-400,
+    html:not(.dark) .text-purple-300 { color: #6b21a8 !important; }
+
+    /* Amber Tints (Backgrounds) */
+    html:not(.dark) [class*="bg-amber-500/10"],
+    html:not(.dark) [class*="bg-amber-500/15"],
+    html:not(.dark) [class*="bg-amber-500/20"],
+    html:not(.dark) [class*="bg-amber-400/10"],
+    html:not(.dark) [class*="bg-amber-400/20"] {
+      background-color: #fef3c7 !important;
+      color: #92400e !important;
+      border-color: #fde68a !important;
+    }
+
+    /* Hero Section Light Gradient */
+    html:not(.dark) #heroSection {
+      background: linear-gradient(to bottom, #ffffff, #f8fafc) !important;
       border-color: #e2e8f0 !important;
     }
-    html:not(.dark) section.bg-gradient-to-b {
-      background: linear-gradient(to bottom, #f1f5f9, #f8fafc) !important;
+
+    /* 10-Minute Micro-Correction Banner */
+    html:not(.dark) #microCorrectionBanner {
+      background: linear-gradient(to right, #fffbeb, #ffffff, #f8fafc) !important;
+      border-color: #fcd34d !important;
     }
+
+    /* Subject Tabs & View Filter */
     html:not(.dark) .subject-tab:not(.bg-amber-500) {
       background-color: #ffffff !important;
       color: #475569 !important;
@@ -230,53 +312,170 @@
       color: #0f172a !important;
       border-color: #cbd5e1 !important;
     }
-    html:not(.dark) footer {
-      background-color: #ffffff !important;
-      border-color: #e2e8f0 !important;
-    }
+
+    /* Interactive Multiple Choice Option Buttons */
     html:not(.dark) .opt-btn {
       background-color: #ffffff !important;
-      border-color: #e2e8f0 !important;
+      border-color: #cbd5e1 !important;
       color: #1e293b !important;
     }
     html:not(.dark) .opt-btn:hover:not([disabled]) {
       background-color: #f8fafc !important;
       border-color: #f59e0b !important;
     }
-    html:not(.dark) #mobileNavDock {
-      background-color: rgba(255, 255, 255, 0.95) !important;
-      border-color: #e2e8f0 !important;
+    html:not(.dark) .opt-btn span.opt-letter-badge {
+      background-color: #f1f5f9 !important;
+      color: #1e293b !important;
+      border: 1px solid #cbd5e1 !important;
     }
-    html:not(.dark) .statement-slice-item {
+
+    /* Statement Slicer */
+    html:not(.dark) .slicer-container {
       background-color: #f8fafc !important;
       border-color: #e2e8f0 !important;
     }
+    html:not(.dark) .statement-slice-item {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .slice-stmt-btn:not(.bg-rose-500) {
+      background-color: #f1f5f9 !important;
+      color: #334155 !important;
+      border: 1px solid #cbd5e1 !important;
+    }
+
+    /* Confidence Selector */
+    html:not(.dark) .conf-picker-box {
+      background-color: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .conf-btn:not([data-active="true"]) {
+      color: #475569 !important;
+    }
+
+    /* Topper's Trap Detector Box (Critical Fix for washed-out yellow) */
+    html:not(.dark) .topper-trap-card {
+      background-color: #fffbeb !important;
+      border-color: #fde68a !important;
+    }
+    html:not(.dark) .topper-trap-card .trap-title {
+      color: #92400e !important;
+    }
+    html:not(.dark) .topper-trap-card .trap-tag {
+      background-color: #fef3c7 !important;
+      color: #78350f !important;
+      border-color: #fde68a !important;
+    }
+    html:not(.dark) .topper-trap-card .trap-text {
+      color: #451a03 !important;
+    }
+
+    /* Behavioral Diagnostics Tagger */
+    html:not(.dark) .diag-tag-card {
+      background-color: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .diag-tag-btn:not(.bg-rose-500):not(.bg-amber-500):not(.bg-blue-500):not(.bg-purple-500) {
+      background-color: #ffffff !important;
+      color: #334155 !important;
+      border-color: #cbd5e1 !important;
+    }
+
+    /* Distractor Deep Dive */
+    html:not(.dark) .distractor-title {
+      color: #92400e !important;
+    }
+    html:not(.dark) .distractor-item {
+      background-color: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .distractor-opt-title {
+      color: #0f172a !important;
+    }
+    html:not(.dark) .distractor-badge {
+      background-color: #e2e8f0 !important;
+      color: #475569 !important;
+    }
+    html:not(.dark) .distractor-text {
+      color: #475569 !important;
+    }
+
+    /* Standard Book Ref */
+    html:not(.dark) .standard-book-box {
+      background-color: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .standard-book-box span.text-amber-400 {
+      color: #92400e !important;
+    }
+    html:not(.dark) .standard-book-box span.text-slate-300 {
+      color: #1e293b !important;
+    }
+
+    /* Sidebar Cards */
+    html:not(.dark) #subTopicAdviceBox {
+      background-color: #fff1f2 !important;
+      border-color: #fca5a5 !important;
+      color: #9f1239 !important;
+    }
+    html:not(.dark) #uniqueAdvantageCard {
+      background: linear-gradient(to bottom right, #fffbeb, #ffffff, #f8fafc) !important;
+      border-color: #fcd34d !important;
+    }
+    html:not(.dark) #selfClearingLedgerCard {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #475569 !important;
+    }
+    html:not(.dark) #selfClearingLedgerCard h4 {
+      color: #0f172a !important;
+    }
+    html:not(.dark) #selfClearingLedgerCard p {
+      color: #475569 !important;
+    }
+
+    /* Staged Confirmation Bar */
+    html:not(.dark) .staged-confirm-bar {
+      background-color: #fffbeb !important;
+      border-color: #fcd34d !important;
+      color: #78350f !important;
+    }
+    html:not(.dark) .clear-staged-btn {
+      background-color: #ffffff !important;
+      color: #475569 !important;
+      border-color: #cbd5e1 !important;
+    }
+    html:not(.dark) .reattempt-btn {
+      background-color: #ffffff !important;
+      color: #334155 !important;
+      border-color: #cbd5e1 !important;
+    }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-slate-950 transition-colors duration-200">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-slate-950 transition-colors duration-200 overflow-x-hidden w-full max-w-full">
 
   <!-- Top Sticky Navigation Bar -->
   <header class="sticky top-0 z-50 backdrop-blur-md bg-slate-950/85 border-b border-slate-800 transition-colors duration-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
       
       <!-- Brand Logo -->
-      <a href="/" class="flex items-center gap-2.5 group shrink-0">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 font-black text-lg shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
+      <a href="/" class="flex items-center gap-2 sm:gap-2.5 group shrink-0">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 font-black text-base sm:text-lg shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
           CM
         </div>
         <div class="flex flex-col">
-          <span class="font-extrabold text-base tracking-tight text-white flex items-center gap-1.5">
-            CookedMains <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-amber-400/10 text-amber-400 border border-amber-400/20 font-bold">Radar</span>
+          <span class="font-extrabold text-sm sm:text-base tracking-tight text-white flex items-center gap-1 sm:gap-1.5">
+            CookedMains <span class="text-[9px] sm:text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-amber-400/10 text-amber-400 border border-amber-400/20 font-bold">Radar</span>
           </span>
-          <span class="text-[10px] text-slate-400 hidden sm:inline">UPSC CSE Prelims &amp; Mains Integrated</span>
+          <span class="text-[10px] text-slate-400 hidden lg:inline">UPSC CSE Prelims &amp; Mains Integrated</span>
         </div>
       </a>
 
-      <!-- Dual Track Navigation Switcher (Hero Integration) -->
-      <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1">
+      <!-- Dual Track Navigation Switcher (Desktop & Tablet) -->
+      <div class="hidden md:flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1">
         <a href="/" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-colors">
           <span>📝</span>
-          <span class="hidden sm:inline">Mains Evaluator</span>
+          <span>Mains Evaluator</span>
         </a>
         <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 shadow-xs shadow-amber-500/30">
           <span>🎯</span>
@@ -285,12 +484,22 @@
       </div>
 
       <!-- Action Utilities -->
-      <div class="flex items-center gap-2">
-        <button id="viewMistakesNavBtn" class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-all cursor-pointer">
-          <span>📓 Mistakes</span>
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <!-- Quick Switch to Mains for mobile screens -->
+        <a href="/" class="md:hidden flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-slate-900 text-slate-300 border border-slate-800 hover:text-white transition-all" title="Switch to Mains Evaluator">
+          <span>📝</span>
+          <span class="text-[10px] font-bold">Mains</span>
+        </a>
+
+        <!-- Mistakes Nav Button -->
+        <button id="viewMistakesNavBtn" class="flex items-center gap-1 text-[11px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-all cursor-pointer">
+          <span>📓</span>
+          <span class="hidden sm:inline">Mistakes</span>
           <span id="navMistakesCount" class="px-1.5 py-0.2 rounded-full bg-rose-500 text-slate-950 text-[10px] font-black">0</span>
         </button>
-        <button id="toggleThemeBtn" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer" title="Toggle Light / Dark Mode">
+
+        <!-- Theme Toggle Button -->
+        <button id="toggleThemeBtn" class="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer" title="Toggle Light / Dark Mode">
           <!-- Sun Icon (shown in dark mode) -->
           <svg id="themeIconSun" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
           <!-- Moon Icon (shown in light mode) -->
@@ -429,19 +638,19 @@
       
       <!-- 10-Minute Micro-Correction Generator Highlight Banner -->
       <div id="microCorrectionBanner" class="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-slate-900 to-slate-950 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 min-w-0">
           <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 font-black flex items-center justify-center text-lg shadow-md shadow-amber-500/20 shrink-0">
             ⚡
           </div>
-          <div>
+          <div class="min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-xs font-black uppercase text-amber-400 tracking-wider font-mono">10-Minute "Micro-Correction" Generator</span>
-              <span id="bannerMistakeCount" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">0 Gaps Logged</span>
+              <span class="text-xs font-black uppercase text-amber-400 tracking-tight sm:tracking-wider font-mono">10-Minute "Micro-Correction" Generator</span>
+              <span id="bannerMistakeCount" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 shrink-0">0 Gaps Logged</span>
             </div>
-            <p class="text-xs text-slate-300 mt-0.5">Auto-extracts missing NCERT links, elimination traps, and behavioral diagnostics for 10-min active recall.</p>
+            <p class="text-xs text-slate-300 mt-0.5 leading-relaxed">Auto-extracts missing NCERT links, elimination traps, and behavioral diagnostics for 10-min active recall.</p>
           </div>
         </div>
-        <button id="bannerExportFlashSheetBtn" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-all shadow-md flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95">
+        <button id="bannerExportFlashSheetBtn" class="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5 shrink-0 cursor-pointer active:scale-95">
           <span>🖨️ Export Revision Flash-Sheet</span>
           <span>→</span>
         </button>
@@ -533,7 +742,7 @@
       </div>
 
       <!-- 3. Prelims-to-Mains Integration Promotion -->
-      <div class="p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-slate-900 to-slate-950 border border-amber-500/30 flex flex-col gap-3">
+      <div id="uniqueAdvantageCard" class="p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-slate-900 to-slate-950 border border-amber-500/30 flex flex-col gap-3">
         <div class="flex items-center gap-2">
           <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-500 text-slate-950 font-mono">
             Unique Advantage
@@ -551,8 +760,8 @@
         </a>
       </div>
 
-      <!-- 3. Self-Clearing Mistakes Rules Box -->
-      <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 flex flex-col gap-2">
+      <!-- 4. Self-Clearing Mistakes Rules Box -->
+      <div id="selfClearingLedgerCard" class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 flex flex-col gap-2">
         <h4 class="font-bold text-slate-200">How the Self-Clearing Ledger Works:</h4>
         <p>1. Any wrong answer is automatically saved in your Mistakes Notebook.</p>
         <p>2. Filter by <strong>"My Mistakes Only"</strong> to re-attempt.</p>
