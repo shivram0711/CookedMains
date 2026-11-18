@@ -168,7 +168,12 @@ async def add_security_headers(request: Request, call_next):
 
     # Browser Cache-Control: prevent repeat visitors from re-downloading static files
     path = request.url.path
-    if re.search(r'\.(css|js|png|jpg|jpeg|gif|ico|woff2?|ttf|svg|webp)
+    if re.search(r'\.(css|js|png|jpg|jpeg|gif|ico|woff2?|ttf|svg|webp)$', path, re.IGNORECASE):
+        response.headers["Cache-Control"] = "public, max-age=604800, immutable"
+    elif path == "/api/samples":
+        response.headers["Cache-Control"] = "public, max-age=3600"
+    elif path.startswith("/api/samples/"):
+        response.headers["Cache-Control"] = "public, max-age=86400"
     return response
 
 

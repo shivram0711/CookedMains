@@ -21,7 +21,41 @@
     "mains_linkage": {
       "question": "Examine the role of Small Modular Reactors (SMRs) in decarbonizing hard-to-abate industrial sectors and addressing base-load clean energy requirements in India. (10M)",
       "paper": "GS3"
-    }
+    },
+    "option_analysis": [
+      {
+        "letter": "A",
+        "label": "⚡ Scope Narrowing & Absolute Qualifier",
+        "badge_type": "trap",
+        "diagnosis": "Falsely restricts SMRs to medical radioisotopes with the extreme qualifier 'exclusively'. Medical imaging radioisotopes (e.g. Technetium-99m) are synthesized in specialized research reactors (like BARC's Dhruva/Apsara), whereas SMRs are full-fledged grid power and industrial steam reactors.",
+        "examiner_craft": "Attaching 'exclusively' to a real nuclear application (nuclear medicine) to artificially constrict the scope of a commercial power reactor.",
+        "mental_filter": "The word 'exclusively' is a high-probability red flag in technological infrastructure questions."
+      },
+      {
+        "letter": "B",
+        "label": "✅ Official UPSC Key",
+        "badge_type": "correct",
+        "diagnosis": "According to the IAEA, Small Modular Reactors (SMRs) are advanced nuclear fission reactors with an electrical power capacity up to 300 MW(e) per unit (about one-third of traditional reactors). Their modular components can be factory-fabricated and transported by rail/truck directly to site.",
+        "examiner_craft": "Definitional standard conforming precisely to IAEA and DAE technical benchmarks.",
+        "mental_filter": "Small = up to 300 MW(e); Modular = factory-built assemblies shipped to site."
+      },
+      {
+        "letter": "C",
+        "label": "🔬 Sci-Fi Premature Leap (Fission vs Fusion)",
+        "badge_type": "trap",
+        "diagnosis": "Swaps existing commercial nuclear fission with experimental nuclear fusion. Tokamaks and stellarators (like ITER in Cadarache, France) remain decades away from domestic household commercialization. SMRs deployed today (e.g., Russia's KLT-40S Akademik Lomonosov or China's HTR-PM) are 100% fission-based.",
+        "examiner_craft": "Plausible futuristic jargon trap: substituting 'fusion micro-tokamaks' for practical fission to mislead aspirants fascinated by cutting-edge science headlines.",
+        "mental_filter": "Current commercial clean energy deployment always relies on fission; magnetic confinement fusion is not yet grid-commercial."
+      },
+      {
+        "letter": "D",
+        "label": "🔀 Technology Domain Mismatch",
+        "badge_type": "trap",
+        "diagnosis": "Conflates nuclear engineering with solar photovoltaic/battery storage technology. SMRs are nuclear fission reactors, not mobile solar batteries.",
+        "examiner_craft": "Elementary category distractor designed as a quick elimination sanity-check.",
+        "mental_filter": "Never lose sight of the core root word: 'Reactors' in clean energy always signifies nuclear power."
+      }
+    ]
   },
   {
     "id": "2025-hist-09",
@@ -69,7 +103,41 @@
     "mains_linkage": {
       "question": "How can India reconcile the 30x30 biodiversity conservation target under the Kunming-Montreal Framework with the community forest rights of indigenous tribal populations under the FRA 2006? (15M)",
       "paper": "GS3"
-    }
+    },
+    "option_analysis": [
+      {
+        "letter": "A",
+        "label": "🎯 Cross-Treaty Regime Swap",
+        "badge_type": "trap",
+        "diagnosis": "Conflates biodiversity conservation with climate mitigation. Reducing emissions by a percentage below 1990 levels is the classic architecture of the Kyoto Protocol and European Union Effort Sharing targets under UNFCCC. Kunming-Montreal is strictly a Convention on Biological Diversity (CBD) framework focused on species and habitats.",
+        "examiner_craft": "The examiner borrowed the headline '30%' figure and transposed it into UNFCCC climate change, betting that candidates recall the number '30' but confuse the international convention.",
+        "mental_filter": "Strictly segregate CBD treaties (biodiversity/ecosystems) from UNFCCC treaties (carbon emissions/energy)."
+      },
+      {
+        "letter": "B",
+        "label": "✅ Official UPSC Key (Target 3)",
+        "badge_type": "correct",
+        "diagnosis": "Target 3 of the Kunming-Montreal GBF (adopted at COP15 CBD in 2022) commits all 196 signatory parties to conserve and manage at least 30% of Earth's lands, inland waters, and coastal/marine areas by 2030 through Protected Areas and OECMs.",
+        "examiner_craft": "Accurate, unadulterated verbatim treaty commitment reflecting COP15 Target 3.",
+        "mental_filter": "30x30 = 30% of the planet's terrestrial and marine ecosystems conserved by the year 2030."
+      },
+      {
+        "letter": "C",
+        "label": "🔢 Symmetrical Decoy Invention",
+        "badge_type": "trap",
+        "diagnosis": "Completely synthetic distractor engineered from the '30x30' phonetic rhythm ('30 pesticides in 30 months'). In reality, Target 7 of the Kunming-Montreal Framework addresses agrochemicals by mandating 'reducing the overall risk from pesticides and highly hazardous chemicals by at least half (50%) by 2030', not eliminating 30 chemicals in 30 months.",
+        "examiner_craft": "When a topic has a famous numerical name ('30x30'), UPSC setters routinely fabricate parallel options with the same digits (30 units in 30 months) to bait uninformed guessers.",
+        "mental_filter": "Beware of false symmetry: international multilateral treaties never use arbitrary count-and-month pairing formulas."
+      },
+      {
+        "letter": "D",
+        "label": "🏛️ Plausible Current Affairs Smuggling",
+        "badge_type": "trap",
+        "diagnosis": "Smuggles energy transition benchmarks (IEA Net Zero 2050 and Powering Past Coal Alliance goals for OECD coal phase-down) into a biodiversity treaty. The Convention on Biological Diversity has no legal jurisdiction or mandate over thermal energy generation.",
+        "examiner_craft": "Transplanting an authentic international current affairs target from the power sector into a wildlife treaty to sound plausible.",
+        "mental_filter": "Jurisdictional check: verify whether the subject matter of the option belongs to the statutory mandate of the convention in the question stem."
+      }
+    ]
   },
   {
     "id": "2025-eco-07",
@@ -189,7 +257,41 @@
     "mains_linkage": {
       "question": "Evaluate the strategic and environmental significance of the BBNJ Agreement (High Seas Treaty) for global ocean conservation and India's Deep Ocean Mission. (10M)",
       "paper": "GS3"
-    }
+    },
+    "option_analysis": [
+      {
+        "letter": "A",
+        "label": "🎣 Commercial Deep-Sea Fisheries Distractor",
+        "badge_type": "trap",
+        "diagnosis": "The High Seas Treaty (BBNJ Agreement under UNCLOS) is an environmental biodiversity conservation treaty, NOT a commercial fisheries allocation pact. Commercial fish stocks continue to be managed by Regional Fisheries Management Organizations (RFMOs).",
+        "examiner_craft": "Conflating marine biodiversity conservation with commercial fishing quotas.",
+        "mental_filter": "BBNJ = Marine protected areas & marine genetic resources; RFMOs = commercial fish quotas."
+      },
+      {
+        "letter": "B",
+        "label": "⛏️ Deep Seabed Mining Regulatory Mismatch",
+        "badge_type": "trap",
+        "diagnosis": "Deep-sea polymetallic nodule mining in 'The Area' is regulated by the International Seabed Authority (ISA) in Kingston, Jamaica, under Part XI of UNCLOS. The BBNJ treaty covers biological diversity in the water column, not mining concession contracts.",
+        "examiner_craft": "Transposing the ISA's mineral mining jurisdiction onto the new biodiversity treaty.",
+        "mental_filter": "ISA = Minerals and seabed mining; BBNJ Treaty = Biodiversity and Marine Genetic Resources."
+      },
+      {
+        "letter": "C",
+        "label": "✅ Official UPSC Key",
+        "badge_type": "correct",
+        "diagnosis": "The BBNJ Agreement (High Seas Treaty adopted in 2023 under UNCLOS) establishes a legal framework for: (1) Marine Protected Areas (MPAs) in international waters (beyond 200 nautical miles EEZ), (2) Fair and equitable sharing of Marine Genetic Resources (MGRs) and digital sequence information, (3) Mandatory Environmental Impact Assessments (EIAs) for high seas activities, and (4) Capacity building and marine technology transfer.",
+        "examiner_craft": "Verbatim synthesis of the 4 core pillars of the landmark UN BBNJ Treaty.",
+        "mental_filter": "BBNJ Treaty = Conservation of international waters beyond national EEZs."
+      },
+      {
+        "letter": "D",
+        "label": "🚢 Maritime Boundary & UNCLOS Sovereignty Swap",
+        "badge_type": "trap",
+        "diagnosis": "The High Seas Treaty does NOT redraw EEZs (200 nautical miles) or territorial waters (12 nautical miles). Coastal sovereign jurisdictions remain strictly governed by the 1982 UNCLOS provisions.",
+        "examiner_craft": "Playing on fears that international treaties undermine national maritime sovereign boundaries.",
+        "mental_filter": "High Seas begins strictly outside national EEZs; it never infringes on coastal territorial waters."
+      }
+    ]
   },
   {
     "id": "2026-eco-02",
@@ -285,7 +387,41 @@
     "mains_linkage": {
       "question": "How will Central Bank Digital Currency (CBDC) transform cross-border remittances and domestic monetary transmission in India? (15M)",
       "paper": "GS3"
-    }
+    },
+    "option_analysis": [
+      {
+        "letter": "A",
+        "label": "⚡ Crypto / Decentralized Anarchy Trap",
+        "badge_type": "trap",
+        "diagnosis": "CBDC (Digital Rupee / e₹) is a centralized, sovereign legal tender issued directly by the Reserve Bank of India, functioning on an authorized ledger. It is the direct polar opposite of decentralized, permissionless, unregulated private cryptocurrencies (like Bitcoin or Ethereum).",
+        "examiner_craft": "Capitalizing on the common confusion between private decentralized crypto and sovereign central bank digital currency.",
+        "mental_filter": "CBDC is sovereign cash in digital form; private crypto has no sovereign issuer or legal tender status."
+      },
+      {
+        "letter": "B",
+        "label": "🏦 Commercial Bank Liability Swap",
+        "badge_type": "trap",
+        "diagnosis": "Commercial bank deposits are liabilities of commercial banks (subject to credit risk, insured up to ₹5 lakh by DICGC). CBDC is a direct sovereign liability of the Reserve Bank of India—identical in risk profile to physical paper banknotes.",
+        "examiner_craft": "Confusing commercial bank digital deposits (UPI/NEFT) with central bank direct liabilities.",
+        "mental_filter": "Bank balance = liability of bank; CBDC = direct sovereign liability of RBI."
+      },
+      {
+        "letter": "C",
+        "label": "✅ Official UPSC Key",
+        "badge_type": "correct",
+        "diagnosis": "The Digital Rupee (e₹) is sovereign legal tender issued by the RBI under the amended Section 22 of the RBI Act 1934. It appears on the RBI's balance sheet as a currency in circulation liability, interchangeable one-to-one with physical paper cash, and does not yield interest.",
+        "examiner_craft": "Exact statutory characterization of CBDC under RBI monetary architecture.",
+        "mental_filter": "CBDC = Digital cash = zero-interest direct central bank liability."
+      },
+      {
+        "letter": "D",
+        "label": "💳 Payment Gateway (UPI) Mechanism Swap",
+        "badge_type": "trap",
+        "diagnosis": "UPI is a retail payment settlement infrastructure / messaging rail that transfers commercial bank money between accounts. CBDC is the money itself. UPI transactions require bank account intermediation; CBDC can settle peer-to-peer token transactions directly without intermediary bank clearing.",
+        "examiner_craft": "Conflating the payment transaction rail (UPI) with the underlying legal currency asset (CBDC).",
+        "mental_filter": "UPI = Payment highway; CBDC = The currency vehicle driving on the highway."
+      }
+    ]
   },
   {
     "id": "2024-env-03",
@@ -333,7 +469,41 @@
     "mains_linkage": {
       "question": "Monetary monetization and urban market centers were the cornerstone of Vijayanagara's imperial prosperity. Elucidate with contemporary traveler accounts. (15M)",
       "paper": "GS1"
-    }
+    },
+    "option_analysis": [
+      {
+        "letter": "A",
+        "label": "⚔️ Weaponry / Martial Arts Distractor",
+        "badge_type": "trap",
+        "diagnosis": "Fanam was not a weapon. Weapon terms in medieval South India included 'Katti' (knife), 'Vaal' (sword), or 'Surul Katti'.",
+        "examiner_craft": "Pairs phonetic sounding historical words with common medieval material categories (weapons, armor).",
+        "mental_filter": "Link South Indian numismatic terms: Varaha (gold pagodas), Kasu (copper), and Fanam/Panam (gold/silver currency)."
+      },
+      {
+        "letter": "B",
+        "label": "✅ Official UPSC Key",
+        "badge_type": "correct",
+        "diagnosis": "'Fanam' (derived from Sanskrit 'Pana' / Tamil 'Panam') was a standard gold or silver currency coin widely circulated in medieval South India under the Cholas, Pandyas, Hoysalas, and Vijayanagara Empire (alongside the gold Varaha/Pagoda).",
+        "examiner_craft": "Direct historical numismatic term testing knowledge of medieval trade and currency.",
+        "mental_filter": "Panam in modern Malayalam/Tamil still directly translates to 'money/currency'."
+      },
+      {
+        "letter": "C",
+        "label": "📜 Revenue Administration Distractor",
+        "badge_type": "trap",
+        "diagnosis": "Land grants in medieval South India were called 'Brahmadeya' (to Brahmins), 'Devadana' (to temples), 'Shalabhoga' (for school maintenance), or 'Pallichchandam' (to Jain institutions), never Fanam.",
+        "examiner_craft": "Using land grants because agrarian revenue terms are high-frequency in UPSC History papers.",
+        "mental_filter": "Land grants always carry suffix markers like '-deya', '-dana', or '-bhoga'."
+      },
+      {
+        "letter": "D",
+        "label": "📐 Agrarian Measurement Distractor",
+        "badge_type": "trap",
+        "diagnosis": "Land and grain measurements in medieval South India were 'Veli', 'Maa', 'Kalam', and 'Marakkal', not Fanam.",
+        "examiner_craft": "Testing whether aspirants confuse agrarian land measures with monetary coins.",
+        "mental_filter": "Veli/Maa = area of land; Kalam = grain volume; Fanam = coin."
+      }
+    ]
   },
   {
     "id": "2023-polity-05",
@@ -405,7 +575,41 @@
     "mains_linkage": {
       "question": "Discuss the institutional mechanism of the Monetary Policy Committee (MPC) in balancing inflation management with economic growth impulses. (10M)",
       "paper": "GS3"
-    }
+    },
+    "option_analysis": [
+      {
+        "letter": "A",
+        "label": "🏬 Administrative Department Confusion",
+        "badge_type": "trap",
+        "diagnosis": "The Department of Consumer Affairs monitors retail and wholesale prices of essential commodities and manages buffer stocks (e.g. pulses/onions under Price Stabilization Fund), but has NO statutory mandate or monetary instruments for macroeconomic price stability.",
+        "examiner_craft": "Exploiting the literal name 'Consumer Affairs'—candidates assume consumer affairs controls consumer price inflation.",
+        "mental_filter": "Price monitoring of vegetables is executive administration; macroeconomic price stability is statutory monetary policy."
+      },
+      {
+        "letter": "B",
+        "label": "📜 Constitutional Inter-Governmental Trap",
+        "badge_type": "trap",
+        "diagnosis": "The Finance Commission is a constitutional body under Article 280 whose sole mandate is the devolution of tax revenues between the Union and States and grants-in-aid recommendations. It has zero monetary policy powers.",
+        "examiner_craft": "Inserting an eminent fiscal constitutional body to attract candidates confusing fiscal division with monetary inflation control.",
+        "mental_filter": "Finance Commission = revenue division (Art 280); Reserve Bank = price stability (RBI Act Section 45ZB)."
+      },
+      {
+        "letter": "C",
+        "label": "💡 Policy Think-Tank Distractor",
+        "badge_type": "trap",
+        "diagnosis": "NITI Aayog is an extra-constitutional, non-statutory think tank providing strategic policy advice. It has neither regulatory enforcement nor liquidity absorption mechanisms to stabilize prices.",
+        "examiner_craft": "Conflating broad national economic advisory with operational market intervention.",
+        "mental_filter": "NITI Aayog advises on long-term policy; it does not set interest rates or print/withdraw currency."
+      },
+      {
+        "letter": "D",
+        "label": "✅ Official UPSC Key",
+        "badge_type": "correct",
+        "diagnosis": "Under Section 45ZB of the Reserve Bank of India Act 1934 (amended in 2016), the primary objective of the monetary policy framework is to maintain price stability while keeping in mind the objective of growth. The Monetary Policy Committee (MPC) is statutorily mandated to maintain retail inflation (CPI) at 4% with a tolerance band of +/- 2%.",
+        "examiner_craft": "Direct statutory mandate under the amended RBI Act 1934.",
+        "mental_filter": "In India, inflation targeting (4% +/- 2% CPI) is legally the Reserve Bank's primary statutory responsibility."
+      }
+    ]
   },
   {
     "id": "2022-env-08",
@@ -573,7 +777,41 @@
     "mains_linkage": {
       "question": "Sangam literature serves as an invaluable window into the agrarian transitions, tribal institutions, and maritime trade of early historic South India. Discuss. (15M)",
       "paper": "GS1"
-    }
+    },
+    "option_analysis": [
+      {
+        "letter": "A",
+        "label": "✅ Official UPSC Key",
+        "badge_type": "correct",
+        "diagnosis": "'Tolkappiyam', authored by Tolkappiyar, is the earliest extant work of Tamil literature from the Second Sangam. It is an authoritative treatise on Tamil grammar (ezhuthu and sol) and poetics/rhetoric/societal life (porul), laying the foundation of classical Sangam poetics.",
+        "examiner_craft": "Direct foundational NCERT Class 11 ancient Indian history fact.",
+        "mental_filter": "Tolkappiyam = Grammar and Poetics (Sangam Age)."
+      },
+      {
+        "letter": "B",
+        "label": "🎭 Epic / Dramatic Literature Distractor",
+        "badge_type": "trap",
+        "diagnosis": "Ancient Tamil dramatic and epic poetry is represented by 'Silappadikaram' (by Ilango Adigal) and 'Manimekalai' (by Chithalai Chathanar), not Tolkappiyam.",
+        "examiner_craft": "Baiting aspirants who recognize Sangam literary names but confuse grammar treatises with heroic narrative epics.",
+        "mental_filter": "Silappadikaram = Story of the Anklet (Epic); Tolkappiyam = Grammar treatise."
+      },
+      {
+        "letter": "C",
+        "label": "🌿 Ancient Medicine (Siddha) Distractor",
+        "badge_type": "trap",
+        "diagnosis": "Traditional Tamil medicine (Siddha) is codified in texts attributed to Sage Agastya and Bogar, not Tolkappiyar. Tolkappiyam deals with phonetics, morphology, syntax, and poetic conventions.",
+        "examiner_craft": "Testing whether candidates confuse sage-scholars of linguistics with early medical treatises.",
+        "mental_filter": "Siddha literature = Medicine; Tolkappiyam = Linguistic and grammatical codification."
+      },
+      {
+        "letter": "D",
+        "label": "🎵 Carnatic Music Treatise Distractor",
+        "badge_type": "trap",
+        "diagnosis": "Ancient Tamil musicology is detailed in sections of the Silappadikaram (Punarai and Arangetru Kaathai) and medieval musical treatises, not Tolkappiyam.",
+        "examiner_craft": "Inventing a plausible fine-arts categorization for an ancient treatise.",
+        "mental_filter": "Tolkappiyam is always classified under linguistics, grammar, and literary conventions."
+      }
+    ]
   },
   {
     "id": "2024-geo-15",
@@ -2877,7 +3115,41 @@
     "mains_linkage": {
       "question": "Discuss the threat posed by invasive alien species to India's endemic biodiversity and examine strategies for ecological restoration. (15M)",
       "paper": "GS3"
-    }
+    },
+    "option_analysis": [
+      {
+        "letter": "A",
+        "label": "✅ Official UPSC Key",
+        "badge_type": "correct",
+        "diagnosis": "Prosopis juliflora (commonly known as 'Vilayati Kikar' or 'Seemai Karuvelam') is an aggressive invasive alien shrub native to Central and South America. Introduced in the 19th and early 20th century, it has violently infested grasslands (e.g. Banni grasslands of Gujarat) and scrub forests, depleting water tables and crowding out native forage species.",
+        "examiner_craft": "Direct high-frequency ecological threat repeatedly highlighted by the National Green Tribunal and forest departments.",
+        "mental_filter": "Prosopis juliflora = Vilayati Kikar = massive invasive shrub destroying native Indian grasslands."
+      },
+      {
+        "letter": "B",
+        "label": "🌱 Commercial Biofuel / Crop Distractor",
+        "badge_type": "trap",
+        "diagnosis": "Jatropha curcas was promoted as a commercial biodiesel feed crop under the National Biodiesel Mission. While hardy and unpalatable to cattle, it is not the notorious invasive shrub choking Indian arid grasslands.",
+        "examiner_craft": "Exploiting the fact that Jatropha is also a non-native drought-tolerant shrub frequently in the news.",
+        "mental_filter": "Jatropha = Biofuel crop; Prosopis juliflora = Destructive ecological invader."
+      },
+      {
+        "letter": "C",
+        "label": "🌾 Native Endangered Flora Distractor",
+        "badge_type": "trap",
+        "diagnosis": "Pterocarpus santalinus (Red Sanders) is an endemic, highly valued native tree species of the Eastern Ghats of Andhra Pradesh, not an invasive weed.",
+        "examiner_craft": "Inserting an iconic threatened Indian tree to trap aspirants on botanical taxonomy.",
+        "mental_filter": "Red Sanders is endemic and protected under CITES Appendix II—the opposite of a rampant invasive weed."
+      },
+      {
+        "letter": "D",
+        "label": "🌳 Native Arid Agro-Forestry Tree",
+        "badge_type": "trap",
+        "diagnosis": "Prosopis cineraria ('Khejri') is India's beloved native desert tree (sacred to the Bishnoi community and State tree of Rajasthan). It enriches soil with nitrogen and supports biodiversity—unlike its toxic invasive cousin Prosopis juliflora.",
+        "examiner_craft": "Classic genus confusion: pairing the villainous invader (Prosopis juliflora) with the revered sacred native tree (Prosopis cineraria / Khejri).",
+        "mental_filter": "Khejri (P. cineraria) = Sacred native lifeline of Thar Desert; Vilayati Kikar (P. juliflora) = Alien invasive pest."
+      }
+    ]
   },
   {
     "id": "2024-sct-18",
