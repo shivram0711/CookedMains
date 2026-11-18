@@ -940,7 +940,7 @@
         }
       }
 
-      const trapNumMatch = trapText.match(/Statement\\s*([1-4])|Stmt\\s*([1-4])/i);
+      const trapNumMatch = trapText.match(/Statement\s*([1-4])|Stmt\s*([1-4])/i);
       const trapNum = trapNumMatch ? (trapNumMatch[1] || trapNumMatch[2]) : null;
       if (trapNum && stmtStatus[trapNum] === undefined) {
         stmtStatus[trapNum] = false;
