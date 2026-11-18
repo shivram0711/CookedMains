@@ -4720,21 +4720,29 @@ html.dark #heroScoreBannerCard {
 .onpage-redpen-note {
   font-family: 'Kalam', 'Caveat', cursive, sans-serif !important;
   color: #991b1b !important;
-  font-size: clamp(12.5px, 1.3vw, 15px);
-  line-height: 1.38;
+  font-size: clamp(11.5px, 0.95vw, 13.5px);
+  line-height: 1.32;
   word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  box-sizing: border-box !important;
   user-select: text;
   z-index: 28;
   background: transparent;
-  padding: 2px 4px;
-  transition: transform 0.15s ease;
+  padding: 2px 5px;
+  transition: opacity 0.15s ease;
+}
+.onpage-redpen-note.compact-mode {
+  font-size: clamp(10.5px, 0.85vw, 12px) !important;
+  line-height: 1.25 !important;
+  padding: 1px 3px !important;
 }
 html.dark .onpage-redpen-note {
   color: #f87171 !important;
 }
 .onpage-redpen-note:hover {
-  transform: scale(1.02);
   z-index: 45 !important;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.15));
 }
 
 .redpen-lead {

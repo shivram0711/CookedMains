@@ -3854,47 +3854,85 @@ if (loadSample4Btn) {
   });
 }
 
-function loadSample(sample) {
+// In-memory cache for lazy-loaded sample details (pages + precomputed_evaluation)
+const _sampleDetailCache = {};
+
+async function fetchSampleDetail(sampleId) {
+  if (!sampleId) return null;
+  if (_sampleDetailCache[sampleId]) return _sampleDetailCache[sampleId];
+  try {
+    const res = await fetch('/api/samples/' + encodeURIComponent(sampleId));
+    if (res.ok) {
+      const data = await res.json();
+      _sampleDetailCache[sampleId] = data;
+      return data;
+    }
+  } catch (err) {
+    console.error('Failed to lazy load sample detail:', err);
+  }
+  return null;
+}
+
+async function loadSample(sample) {
+  if (!sample) return;
   state.activeSampleId = sample.id;
   state.uploadedFiles = [];
   state.question = sample.question;
-  questionInput.value = sample.question;
+  if (typeof questionInput !== 'undefined' && questionInput) questionInput.value = sample.question || '';
   state.paper = sample.paper;
   state.marks = sample.marks;
 
   // Sync paper tabs (Step 1)
-  paperTabs.forEach(t => {
-    const p = t.getAttribute("data-paper");
-    if (p === sample.paper || (sample.paper.startsWith("Optional") && p === "Optional")) {
-      t.click();
-    }
-  });
+  if (typeof paperTabs !== 'undefined' && paperTabs) {
+    paperTabs.forEach(t => {
+      const p = t.getAttribute('data-paper');
+      if (p === sample.paper || (sample.paper && sample.paper.startsWith('Optional') && p === 'Optional')) {
+        t.click();
+      }
+    });
+  }
 
-  if (sample.paper.startsWith("Optional") && optionalSubjectSelect) {
+  if (sample.paper && sample.paper.startsWith('Optional') && typeof optionalSubjectSelect !== 'undefined' && optionalSubjectSelect) {
     optionalSubjectSelect.value = sample.paper;
     state.paper = sample.paper;
   }
 
   // Sync marks buttons (Step 2: 10, 15, or 20)
-  marksBtns.forEach(b => {
-    if (parseInt(b.getAttribute("data-marks"), 10) === sample.marks) {
-      b.click();
-    }
-  });
+  if (typeof marksBtns !== 'undefined' && marksBtns) {
+    marksBtns.forEach(b => {
+      if (parseInt(b.getAttribute('data-marks'), 10) === sample.marks) {
+        b.click();
+      }
+    });
+  }
 
-  updateStepProgression();
-  detectDirectiveFromInput();
+  if (typeof updateStepProgression === 'function') updateStepProgression();
+  if (typeof detectDirectiveFromInput === 'function') detectDirectiveFromInput();
+
+  // Lazy-load sample pages and evaluation if not yet loaded
+  if (!sample.pages || !sample.precomputed_evaluation) {
+    const detail = await fetchSampleDetail(sample.id);
+    if (detail) {
+      sample.pages = detail.pages;
+      sample.precomputed_evaluation = detail.precomputed_evaluation;
+    }
+  }
 
   // Load pages into viewer
-  state.activePages = sample.pages;
+  state.activePages = sample.pages || [];
+  state.originalPages = [...(sample.pages || [])];
   state.currentPageIndex = 0;
-  updateViewer();
-  renderPreviewStrip();
+  if (typeof updateViewer === 'function') updateViewer();
+  if (typeof renderPreviewStrip === 'function') renderPreviewStrip();
 
   // Pre-render evaluation automatically for instant demo experience
-  renderEvaluation(sample.precomputed_evaluation);
-  window.switchStudioState("studio");
-  window.switchStudioState("studio");
+  if (sample.precomputed_evaluation && typeof renderEvaluation === 'function') {
+    state.originalEvaluation = sample.precomputed_evaluation;
+    state.currentEvaluation = sample.precomputed_evaluation;
+    state.activeCopyMode = 'original';
+    renderEvaluation(sample.precomputed_evaluation);
+  }
+  if (typeof window.switchStudioState === 'function') window.switchStudioState('studio');
 }
 
 window.trySampleEvaluationDemo = async function() {
@@ -10431,7 +10469,7 @@ window.addEventListener("resize", () => {
   }, 200);
 });
 
-window.loadSampleAnswerCopy = function(sampleId) {
+window.loadSampleAnswerCopy = async function(sampleId) {
   let sample = null;
   if (sampleId && state.samples) {
     sample = state.samples.find(s => s.id === sampleId);
@@ -10441,6 +10479,13 @@ window.loadSampleAnswerCopy = function(sampleId) {
     sample = state.samples.find(s => s.detected_paper === pTab || s.paper === pTab) || state.samples[0];
   }
   if (sample) {
+    if (!sample.pages || !sample.precomputed_evaluation) {
+      const detail = await fetchSampleDetail(sample.id);
+      if (detail) {
+        sample.pages = detail.pages;
+        sample.precomputed_evaluation = detail.precomputed_evaluation;
+      }
+    }
     state.activeSampleId = sample.id;
     const samplePageList = (sample.pages && sample.pages.length > 0) ? sample.pages : (sample.sample_pages || []);
     if (samplePageList && samplePageList.length > 0) {
@@ -10457,19 +10502,23 @@ window.loadSampleAnswerCopy = function(sampleId) {
     const switcher = document.getElementById("copySwitcherContainer");
     if (switcher) switcher.classList.add("hidden");
 
-    renderEvaluation(sample.precomputed_evaluation);
+    if (sample.precomputed_evaluation && typeof renderEvaluation === "function") {
+      renderEvaluation(sample.precomputed_evaluation);
+    }
     if (typeof updateViewer === "function") updateViewer();
-    window.switchStudioState("studio");
+    if (typeof window.switchStudioState === "function") window.switchStudioState("studio");
   } else {
-    fetch("/api/samples").then(r => r.json()).then(samples => {
+    try {
+      const r = await fetch("/api/samples");
+      const samples = await r.json();
       state.samples = samples;
       if (samples && samples.length > 0) {
-        window.loadSampleAnswerCopy(sampleId);
+        await window.loadSampleAnswerCopy(sampleId);
       }
-    }).catch(err => {
+    } catch (err) {
       console.warn("Could not load samples:", err);
-      flashStep("step3Wrapper", "⚠ Please drop or upload an answer copy PDF/JPG");
-    });
+      if (typeof flashStep === "function") flashStep("step3Wrapper", "⚠ Please drop or upload an answer copy PDF/JPG");
+    }
   }
 };
 
@@ -10589,8 +10638,17 @@ window.runEvaluation = async function(allowAutoAligned = false) {
   if (state.activeSampleId && (!state.uploadedFiles || state.uploadedFiles.length === 0)) {
     const sample = (state.samples || []).find(s => s.id === state.activeSampleId);
     if (sample) {
-      renderEvaluation(sample.precomputed_evaluation);
-      window.switchStudioState("studio");
+      if (!sample.precomputed_evaluation) {
+        const detail = await fetchSampleDetail(sample.id);
+        if (detail) {
+          sample.pages = detail.pages;
+          sample.precomputed_evaluation = detail.precomputed_evaluation;
+        }
+      }
+      if (sample.precomputed_evaluation && typeof renderEvaluation === "function") {
+        renderEvaluation(sample.precomputed_evaluation);
+      }
+      if (typeof window.switchStudioState === "function") window.switchStudioState("studio");
       return;
     }
   }
@@ -22129,7 +22187,32 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
 
   // 1. Separate Conclusion annotation from Body margin annotations
   const conclusionAnn = rawAnns.find(a => /concl|synthesis|निष्कर्ष|closing/i.test(a.tag || "") || /concl|synthesis|निष्कर्ष/i.test(a.type || ""));
-  const bodyAnns = rawAnns.filter(a => a !== conclusionAnn);
+  let bodyAnns = rawAnns.filter(a => a !== conclusionAnn);
+
+  // 1b. Deduplicate identical or redundant body annotations on the same page
+  const dedupedBodyAnns = [];
+  const seenNormTags = new Set();
+  bodyAnns.forEach(ann => {
+    const norm = String(ann.tag || "").toLowerCase()
+      .replace(/^body:\s*/i, "")
+      .replace(/^intro:\s*/i, "")
+      .replace(/^[✓✔✎✗×✘★⭐•\-\s]+/, "")
+      .replace(/\s*(analyzed|evaluated|assessment|point|section|audit|examined)\s*$/i, "")
+      .replace(/[^a-z0-9]/g, "");
+    
+    let isDup = false;
+    for (const prev of seenNormTags) {
+      if (norm && prev && (prev === norm || (prev.length > 8 && norm.length > 8 && (prev.includes(norm) || norm.includes(prev))))) {
+        isDup = true;
+        break;
+      }
+    }
+    if (!isDup) {
+      if (norm) seenNormTags.add(norm);
+      dedupedBodyAnns.push(ann);
+    }
+  });
+  bodyAnns = dedupedBodyAnns;
 
   // 2. Render Conclusion in Dedicated Expanded Bottom Space (Below student handwriting: zero clipping, zero cutting off)
   const bottomContainer = document.getElementById("bottomConclusionContainer");
@@ -22166,7 +22249,7 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
         if (actualGap) {
           fullRem = actualGap;
         } else {
-          fullRem = isHindi
+          fullRem = (typeof isHindi !== "undefined" && isHindi)
             ? "समापन सामान्य रहा; प्रश्न की मुख्य विश्लेषणात्मक मांग का सटीक संश्लेषण नहीं किया गया।"
             : "Concluded with broad general statements without directly synthesizing the core analytical demand of the question.";
         }
@@ -22204,43 +22287,126 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
     return def;
   }
 
-  // 3. Strict Anti-Overlap Layout Algorithm for Body Annotations in Dedicated 28% Margin
+  // 3. Precision Multi-Pass Anti-Overlap & Bounds-Fitting Layout Algorithm
+  // Dedicated Examiner Right Margin spans from 70% to 100% (canvas X: 700..1000)
   const sortedAnns = [...bodyAnns].sort((a, b) => {
     const ya = floatVal(a.approx_y_percent, a.start_y_percent, 20);
     const yb = floatVal(b.approx_y_percent, b.start_y_percent, 20);
     return ya - yb;
   });
 
-  const minDeltaY = 14.5;
+  const isCompact = sortedAnns.length >= 3;
   const layoutItems = [];
 
-  let runningBottom = 6.0;
-  for (let i = 0; i < sortedAnns.length; i++) {
-    const ann = sortedAnns[i];
-    const targetY = floatVal(ann.approx_y_percent, ann.start_y_percent, 16 + i * 22);
+  // Pass 1: Render DOM note cards with bounded width and responsive compact mode
+  sortedAnns.forEach((ann, idx) => {
+    const isError = ann.type === "cross" || ann.type === "warning" || String(ann.tag).includes("✗") || /inaccuracy|flaw|error|mistake|contradict|gap|missing/i.test(String(ann.margin_remark || ann.remark || ""));
+    const isSuggestion = ann.type === "suggestion" || String(ann.tag).includes("✎");
+    const markerType = ann.marker_type || (isError ? "circle" : (isSuggestion ? "bracket" : "tick"));
+
+    const rawTag = ann.tag ? String(ann.tag).replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, "").trim() : (isError ? "Factual Inaccuracy" : "Core Analysis");
+    const cleanTag = rawTag.replace(/^[✓✔✎✗×]\s*/, "");
+    const remStr = String(ann.margin_remark || ann.remark || "");
+    let cleanRem = remStr.replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
+
+    // In compact mode (3+ notes), prevent giant multi-sentence essays from forcing cards to collide
+    if (isCompact && cleanRem.length > 180) {
+      cleanRem = cleanRem.slice(0, 175).replace(/\s+\S*$/, "").replace(/[,;:\s]+$/, "") + ".";
+    }
+
+    let leadHtml = "";
+    if (isError) {
+      leadHtml = `<span class="redpen-lead error">✗ ${escapeHtml(cleanTag)}:</span>`;
+    } else if (isSuggestion) {
+      leadHtml = `<span class="redpen-lead suggestion">✎ ${escapeHtml(cleanTag)}:</span>`;
+    } else {
+      leadHtml = `<span class="redpen-lead success">✓ ${escapeHtml(cleanTag)}:</span>`;
+    }
+
+    const noteEl = document.createElement("div");
+    noteEl.className = `onpage-redpen-note absolute ${isCompact ? 'compact-mode' : ''}`;
+    // Positioned strictly inside the 30% margin track (70% - 100%) with 6px right gutter
+    noteEl.style.left = "71.5%";
+    noteEl.style.width = "27.2%";
+    noteEl.style.maxWidth = "calc(28.5% - 6px)";
+    noteEl.style.boxSizing = "border-box";
+    noteEl.style.top = "0px";
+    noteEl.style.visibility = "hidden"; // Hidden while measuring exact heights
+
+    noteEl.innerHTML = `
+      ${leadHtml}
+      <span class="redpen-body">${escapeHtml(cleanRem)}</span>
+    `;
+    overlay.appendChild(noteEl);
+
+    const targetY = floatVal(ann.approx_y_percent, ann.start_y_percent, 12 + idx * 24);
     const targetX = floatVal(ann.approx_x_percent, null, 30);
-    const placedY = Math.max(targetY, runningBottom + 2.0);
+
     layoutItems.push({
       ann,
-      // Target on candidate script (left 72%): map targetX to 0..720 on 1000-width canvas
-      targetCanvasX: Math.max(10, Math.min(68, targetX)) * 7.2,
-      targetCanvasY: Math.max(8, Math.min(88, targetY)) * 14.14,
-      placedY: Math.max(6, Math.min(86, placedY))
+      noteEl,
+      markerType,
+      targetY,
+      targetCanvasX: Math.max(10, Math.min(65, targetX)) * 7.0, // Maps candidate text target to 0..700 canvas
+      targetCanvasY: Math.max(6, Math.min(92, targetY)) * 14.14,
+      heightPercent: 12.0, // Measured in Pass 2
+      placedY: targetY
     });
-    runningBottom = placedY + minDeltaY;
+  });
+
+  // Pass 2: Measure actual rendered pixel heights and calculate exact height percentages
+  const overlayHeightPx = overlay.offsetHeight || (document.getElementById("activePageImage") ? document.getElementById("activePageImage").offsetHeight : 850) || 850;
+
+  layoutItems.forEach(item => {
+    const hPx = item.noteEl.offsetHeight || 80;
+    // Real percentage height of this note relative to evaluated sheet canvas
+    item.heightPercent = Math.max(6.5, (hPx / overlayHeightPx) * 100);
+  });
+
+  // Pass 3: Anti-Collision Layout Passes (Forward + Backward + Elastic Gap Compression)
+  const topBound = 3.5;
+  const bottomBound = 96.5;
+  let gapPct = isCompact ? 1.6 : 2.5;
+
+  // 3a. Forward pass: place notes as close to target points as possible without overlapping previous notes
+  let runningBottom = topBound;
+  for (let i = 0; i < layoutItems.length; i++) {
+    const it = layoutItems[i];
+    it.placedY = Math.max(it.targetY, runningBottom);
+    runningBottom = it.placedY + it.heightPercent + gapPct;
   }
 
+  // 3b. Backward pass: if trailing notes exceed bottom boundary, push upwards cleanly
   if (layoutItems.length > 0) {
-    const last = layoutItems[layoutItems.length - 1];
-    if (last.placedY > 86.0) {
-      const overflow = last.placedY - 86.0;
-      const shiftPerItem = overflow / layoutItems.length;
-      for (let i = 0; i < layoutItems.length; i++) {
-        layoutItems[i].placedY = Math.max(6.0 + i * minDeltaY, layoutItems[i].placedY - shiftPerItem * (i + 1));
+    const lastItem = layoutItems[layoutItems.length - 1];
+    let overflowBottom = (lastItem.placedY + lastItem.heightPercent) - bottomBound;
+
+    if (overflowBottom > 0) {
+      let ceiling = bottomBound;
+      for (let i = layoutItems.length - 1; i >= 0; i--) {
+        const it = layoutItems[i];
+        if (it.placedY + it.heightPercent > ceiling) {
+          it.placedY = ceiling - it.heightPercent;
+        }
+        ceiling = it.placedY - gapPct;
+      }
+
+      // 3c. If notes are so dense that the top note gets pushed past topBound, compress gaps uniformly
+      if (layoutItems[0].placedY < topBound) {
+        const totalNoteHeights = layoutItems.reduce((acc, it) => acc + it.heightPercent, 0);
+        const availableHeight = (bottomBound - topBound) - totalNoteHeights;
+        const compressedGap = Math.max(0.5, availableHeight / Math.max(1, layoutItems.length - 1));
+
+        let curY = topBound;
+        for (let i = 0; i < layoutItems.length; i++) {
+          layoutItems[i].placedY = curY;
+          curY += layoutItems[i].heightPercent + compressedGap;
+        }
       }
     }
   }
 
+  // Pass 4: Apply final positions, reveal notes, and render SVG connecting arrows
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("class", "onpage-arrow-svg");
   svg.setAttribute("viewBox", "0 0 1000 1414");
@@ -22254,22 +22420,21 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
   `;
   svg.appendChild(defs);
 
-  // 4. Render Body Margin Notes & Connecting Arrows
   layoutItems.forEach((item, idx) => {
-    const ann = item.ann;
+    // Reveal and pin note card
+    item.noteEl.style.top = `${item.placedY}%`;
+    item.noteEl.style.visibility = "visible";
+
     const tx = item.targetCanvasX;
     const ty = item.targetCanvasY;
-    // Dedicated Right Margin starts at 720 (72%): Arrow originates at 735
-    const mx = 735;
-    const my = item.placedY * 14.14 + 14;
-
-    const isError = ann.type === "cross" || ann.type === "warning" || String(ann.tag).includes("✗") || /inaccuracy|flaw|error|mistake|contradict|gap|missing/i.test(String(ann.margin_remark || ann.remark || ""));
-    const isSuggestion = ann.type === "suggestion" || String(ann.tag).includes("✎");
-    const markerType = ann.marker_type || (isError ? "circle" : (isSuggestion ? "bracket" : "tick"));
+    // Arrow starts at origin in dedicated right margin (canvas X: 712, 71.2%)
+    const mx = 712;
+    const my = item.placedY * 14.14 + 11;
+    const markerType = item.markerType;
 
     // Visual Marker on Candidate Script
     if (markerType === "circle") {
-      const rx = 52;
+      const rx = 50;
       const ry = 18;
       const rot = (idx % 2 === 0 ? -2.2 : 2.0);
       const circleEl = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
@@ -22284,7 +22449,7 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
       circleEl.setAttribute("transform", `rotate(${rot} ${tx} ${ty})`);
       svg.appendChild(circleEl);
     } else if (markerType === "bracket") {
-      const bh = 42;
+      const bh = 40;
       const bPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
       bPath.setAttribute("d", `M ${tx-25} ${ty-bh} Q ${tx-35} ${ty-bh/2} ${tx-40} ${ty} Q ${tx-35} ${ty+bh/2} ${tx-25} ${ty+bh}`);
       bPath.setAttribute("fill", "none");
@@ -22303,11 +22468,11 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
       svg.appendChild(tick);
     }
 
-    // Connecting Bezier Arrow: origin in dedicated right margin (735), sweeps to candidate text
+    // Connecting Bezier Arrow: origin in dedicated right margin (712), sweeps to candidate text
     const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
     const ctrlX = (mx + tx) / 2;
     const ctrlY = my + (ty - my) * 0.28;
-    const endX = tx + (markerType === "circle" ? 50 : 18);
+    const endX = tx + (markerType === "circle" ? 48 : 18);
     arrowPath.setAttribute("d", `M ${mx} ${my} Q ${ctrlX} ${ctrlY} ${endX} ${ty}`);
     arrowPath.setAttribute("fill", "none");
     arrowPath.setAttribute("stroke", "#dc2626");
@@ -22315,34 +22480,6 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
     arrowPath.setAttribute("stroke-linecap", "round");
     arrowPath.setAttribute("marker-end", "url(#redArrowhead)");
     svg.appendChild(arrowPath);
-
-    // Note placed in Dedicated Right Margin (left: 73.5%, width: 25%) - ZERO OVERWRITE ON CANDIDATE SCRIPT
-    const noteEl = document.createElement("div");
-    noteEl.className = "onpage-redpen-note absolute";
-    noteEl.style.left = "73.5%";
-    noteEl.style.width = "25%";
-    noteEl.style.top = `${item.placedY}%`;
-
-    const rawTag = ann.tag ? String(ann.tag).replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, "").trim() : (isError ? "Factual Inaccuracy" : "Core Analysis");
-    const cleanTag = rawTag.replace(/^[✓✔✎✗×]\s*/, "");
-    const remStr = ann.margin_remark || ann.remark || "";
-    const cleanRem = remStr.replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
-
-    let leadHtml = "";
-    if (isError) {
-      leadHtml = `<span class="redpen-lead error">✗ ${escapeHtml(cleanTag)}:</span>`;
-    } else if (isSuggestion) {
-      leadHtml = `<span class="redpen-lead suggestion">✎ ${escapeHtml(cleanTag)}:</span>`;
-    } else {
-      leadHtml = `<span class="redpen-lead success">✓ ${escapeHtml(cleanTag)}:</span>`;
-    }
-
-    noteEl.innerHTML = `
-      ${leadHtml}
-      <span class="redpen-body">${escapeHtml(cleanRem)}</span>
-    `;
-
-    overlay.appendChild(noteEl);
   });
 
   // 5. Connect Conclusion arrow if present
@@ -22385,21 +22522,70 @@ window.generatePrintRedPenOverlayHtml = function(pageAnns, sections, conclusionA
     }));
   }
 
-  const minDeltaY = 14.5;
+  // Deduplicate redundant tags
+  const dedupedAnns = [];
+  const seenNorm = new Set();
+  anns.forEach(a => {
+    const norm = String(a.tag || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (!seenNorm.has(norm)) {
+      seenNorm.add(norm);
+      dedupedAnns.push(a);
+    }
+  });
+  anns = dedupedAnns;
+
+  const isCompact = anns.length >= 3;
   const layout = [];
-  let curBottom = 6.0;
 
   for (let i = 0; i < anns.length; i++) {
     const a = anns[i];
-    const targetY = a.approx_y_percent || a.start_y_percent || (16 + i * 22);
-    const placedY = Math.max(targetY, curBottom + 2.0);
+    const targetY = a.approx_y_percent || a.start_y_percent || (12 + i * 24);
+    const rStr = (a.margin_remark || a.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
+    // Estimate height percentage based on remark character length
+    const estHeightPct = Math.max(9.0, Math.min(26.0, 7.5 + (rStr.length / 22) * 1.5));
+
     layout.push({
       ann: a,
-      targetCanvasX: Math.max(10, Math.min(68, a.approx_x_percent || 30)) * 7.2,
-      targetCanvasY: Math.max(8, Math.min(88, targetY)) * 14.14,
-      placedY: Math.max(6, Math.min(86, placedY))
+      targetCanvasX: Math.max(10, Math.min(65, a.approx_x_percent || 30)) * 7.0,
+      targetCanvasY: Math.max(6, Math.min(92, targetY)) * 14.14,
+      targetY: targetY,
+      heightPercent: estHeightPct,
+      placedY: targetY
     });
-    curBottom = placedY + minDeltaY;
+  }
+
+  // Anti-collision layout pass
+  const topBound = 3.5;
+  const bottomBound = 96.5;
+  const gapPct = isCompact ? 1.6 : 2.5;
+
+  let runningBottom = topBound;
+  for (let i = 0; i < layout.length; i++) {
+    layout[i].placedY = Math.max(layout[i].targetY, runningBottom);
+    runningBottom = layout[i].placedY + layout[i].heightPercent + gapPct;
+  }
+
+  if (layout.length > 0) {
+    const lastItem = layout[layout.length - 1];
+    if (lastItem.placedY + lastItem.heightPercent > bottomBound) {
+      let ceiling = bottomBound;
+      for (let i = layout.length - 1; i >= 0; i--) {
+        if (layout[i].placedY + layout[i].heightPercent > ceiling) {
+          layout[i].placedY = ceiling - layout[i].heightPercent;
+        }
+        ceiling = layout[i].placedY - gapPct;
+      }
+
+      if (layout[0].placedY < topBound) {
+        const totalHeights = layout.reduce((acc, it) => acc + it.heightPercent, 0);
+        const compGap = Math.max(0.5, ((bottomBound - topBound) - totalHeights) / Math.max(1, layout.length - 1));
+        let curY = topBound;
+        for (let i = 0; i < layout.length; i++) {
+          layout[i].placedY = curY;
+          curY += layout[i].heightPercent + compGap;
+        }
+      }
+    }
   }
 
   let pathsHtml = "";
@@ -22409,41 +22595,44 @@ window.generatePrintRedPenOverlayHtml = function(pageAnns, sections, conclusionA
     const a = it.ann;
     const tx = it.targetCanvasX;
     const ty = it.targetCanvasY;
-    const mx = 735;
-    const my = it.placedY * 14.14 + 14;
+    const mx = 712;
+    const my = it.placedY * 14.14 + 11;
 
     const isErr = a.type === "cross" || a.type === "warning" || String(a.tag).includes("✗") || /inaccuracy|flaw|error|mistake|contradict|gap|missing/i.test(String(a.margin_remark || a.remark || ""));
     const isSug = a.type === "suggestion" || String(a.tag).includes("✎");
     const mType = a.marker_type || (isErr ? "circle" : (isSug ? "bracket" : "tick"));
 
     if (mType === "circle") {
-      pathsHtml += `<ellipse cx="${tx}" cy="${ty}" rx="52" ry="18" fill="none" stroke="#dc2626" stroke-width="2.8" stroke-linecap="round" transform="rotate(-2 ${tx} ${ty})" />`;
+      pathsHtml += `<ellipse cx="${tx}" cy="${ty}" rx="50" ry="18" fill="none" stroke="#dc2626" stroke-width="2.8" stroke-linecap="round" transform="rotate(-2 ${tx} ${ty})" />`;
     } else if (mType === "bracket") {
-      pathsHtml += `<path d="M ${tx-25} ${ty-42} Q ${tx-35} ${ty-21} ${tx-40} ${ty} Q ${tx-35} ${ty+21} ${tx-25} ${ty+42}" fill="none" stroke="#dc2626" stroke-width="2.6" stroke-linecap="round" />`;
+      pathsHtml += `<path d="M ${tx-25} ${ty-40} Q ${tx-35} ${ty-20} ${tx-40} ${ty} Q ${tx-35} ${ty+20} ${tx-25} ${ty+40}" fill="none" stroke="#dc2626" stroke-width="2.6" stroke-linecap="round" />`;
     } else {
       pathsHtml += `<path d="M ${tx-14} ${ty+2} L ${tx-4} ${ty+12} L ${tx+16} ${ty-12}" fill="none" stroke="#dc2626" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />`;
     }
 
     const ctrlX = (mx + tx) / 2;
     const ctrlY = my + (ty - my) * 0.28;
-    const endX = tx + (mType === "circle" ? 50 : 18);
+    const endX = tx + (mType === "circle" ? 48 : 18);
     pathsHtml += `<path d="M ${mx} ${my} Q ${ctrlX} ${ctrlY} ${endX} ${ty}" fill="none" stroke="#dc2626" stroke-width="2.0" stroke-linecap="round" marker-end="url(#printRedArrowhead)" />`;
 
     const rawT = a.tag ? String(a.tag).replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, "").trim() : (isErr ? "Factual Inaccuracy" : "Examiner Point");
     const cTag = rawT.replace(/^[✓✔✎✗×]\s*/, "");
-    const rStr = (a.margin_remark || a.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
+    let rStr = (a.margin_remark || a.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
+    if (isCompact && rStr.length > 180) {
+      rStr = rStr.slice(0, 175).replace(/\s+\S*$/, "").replace(/[,;:\s]+$/, "") + ".";
+    }
 
     let lHtml = "";
     if (isErr) {
-      lHtml = `<span class="redpen-lead error" style="font-weight: 700; color: #dc2626; display: block;">✗ ${escapeHtml(cTag)}:</span>`;
+      lHtml = `<span class="redpen-lead error" style="font-weight: 700; color: #dc2626; display: block; margin-bottom: 2px;">✗ ${escapeHtml(cTag)}:</span>`;
     } else if (isSug) {
-      lHtml = `<span class="redpen-lead suggestion" style="font-weight: 700; color: #b45309; display: block;">✎ ${escapeHtml(cTag)}:</span>`;
+      lHtml = `<span class="redpen-lead suggestion" style="font-weight: 700; color: #b45309; display: block; margin-bottom: 2px;">✎ ${escapeHtml(cTag)}:</span>`;
     } else {
-      lHtml = `<span class="redpen-lead success" style="font-weight: 700; color: #047857; display: block;">✓ ${escapeHtml(cTag)}:</span>`;
+      lHtml = `<span class="redpen-lead success" style="font-weight: 700; color: #047857; display: block; margin-bottom: 2px;">✓ ${escapeHtml(cTag)}:</span>`;
     }
 
     notesHtml += `
-      <div class="onpage-redpen-note absolute" style="left: 73.5%; width: 25%; top: ${it.placedY}%; font-family: 'Kalam', 'Caveat', cursive, sans-serif; font-size: 10.5pt; line-height: 1.35; color: #991b1b;">
+      <div class="onpage-redpen-note absolute ${isCompact ? 'compact-mode' : ''}" style="left: 71.5%; width: 27.2%; max-width: calc(28.5% - 6px); box-sizing: border-box; top: ${it.placedY}%; font-family: 'Kalam', 'Caveat', cursive, sans-serif; font-size: ${isCompact ? '9.5pt' : '10.5pt'}; line-height: ${isCompact ? '1.25' : '1.32'}; color: #991b1b; padding: 2px 4px; word-break: break-word; overflow-wrap: break-word;">
         ${lHtml}
         <span class="redpen-body" style="display: block;">${escapeHtml(rStr)}</span>
       </div>

@@ -9,9 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
-  <!-- Local Offline-First Tailwind CSS -->
-  <link rel="stylesheet" href="/static/tailwind.min.css">
-  <!-- Optional Tailwind CDN (as fallback) -->
+  <!-- Tailwind CSS via CDN (0 byte server bandwidth) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     try {
@@ -31,9 +29,8 @@
     } catch(e) {}
   </script>
 
-  <!-- Local Lucide Icons + CDN Fallback -->
-  <script src="/static/lucide.min.js"></script>
-  <script>if (typeof lucide === 'undefined') { document.write('<script src="https://unpkg.com/lucide@latest"><\/script>'); }</script>
+  <!-- Lucide Icons via CDN (0 byte server bandwidth) -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
   <style>
     .hidden { display: none !important; }

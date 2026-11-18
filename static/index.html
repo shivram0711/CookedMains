@@ -138,9 +138,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png?v=20261022">
   <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png?v=20261022">
 
-  <!-- Local Offline-First Tailwind CSS -->
-  <link rel="stylesheet" href="/static/tailwind.min.css">
-  <!-- Optional Tailwind CDN (as fallback) -->
+  <!-- Tailwind CSS via CDN (0 byte server bandwidth) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     try {
@@ -149,12 +147,10 @@
       }
     } catch(e) {}
   </script>
-  <!-- Local Lucide Icons + CDN Fallback -->
-  <script src="/static/lucide.min.js"></script>
-  <script>if (typeof lucide === 'undefined') { document.write('<script src="https://unpkg.com/lucide@latest"><\/script>'); }</script>
-  <!-- Local Chart.js + CDN Fallback -->
-  <script src="/static/chart.min.js"></script>
-  <script>if (typeof Chart === 'undefined') { document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>'); }</script>
+  <!-- Lucide Icons via CDN (0 byte server bandwidth) -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- Chart.js via CDN (0 byte server bandwidth) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- PDF.js CDN for instant, zero-latency in-browser PDF rendering -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -3481,12 +3477,12 @@
                         <!-- Top Row: Candidate Script (72%) + Dedicated Examiner Right Margin (28%) -->
                         <div class="relative w-full flex flex-row items-stretch" id="evaluatedSheetMainRow">
                           <!-- Candidate Script Column: Scaled cleanly to 72% so student handwriting NEVER touches the margin -->
-                          <div class="relative min-w-0" style="width: 72%; flex: 0 0 72%; background-color: #fafafa;" id="candidateScriptCol">
+                          <div class="relative min-w-0" style="width: 70%; flex: 0 0 70%; background-color: #fafafa;" id="candidateScriptCol">
                             <img id="activePageImage" src="" alt="Answer Sheet Preview" class="w-full h-auto block shadow-xs select-none pointer-events-none">
                           </div>
 
                           <!-- Dedicated Examiner Margin Column (28%): Clean white margin with subtle dashed red guide line -->
-                          <div class="relative select-none flex flex-col justify-between" style="width: 28%; flex: 0 0 28%; background-color: #fdfdfd; border-left: 1.5px dashed rgba(220, 38, 38, 0.35);" id="examinerDedicatedMarginCol">
+                          <div class="relative select-none flex flex-col justify-between" style="width: 30%; flex: 0 0 30%; background-color: #fdfdfd; border-left: 1.5px dashed rgba(220, 38, 38, 0.35);" id="examinerDedicatedMarginCol">
                             <div class="p-2 text-[9px] font-mono font-bold tracking-widest text-rose-500/60 uppercase select-none flex items-center justify-between">
                               <span>Examiner Margin</span>
                               <i data-lucide="pen-tool" class="w-2.5 h-2.5 opacity-60"></i>
