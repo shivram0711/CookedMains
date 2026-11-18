@@ -884,46 +884,198 @@
   // Helper to check if an option is eliminated by sliced statements
   
   // Option-by-Option Distractor Deep Dive Analysis
+  // ==========================================================
+  // MULTI-ENGINE FORENSIC DISTRACTOR & COGNITIVE TRAP ANALYZER
+  // ==========================================================
   function getDistractorAnalysis(q) {
     if (!q || !q.options) return [];
     const letters = ['A', 'B', 'C', 'D'];
-    const lines = (q.explanation || '').split('\n');
+    const correctIdx = q.correct_index;
 
+    // ENGINE 1: Check for pre-computed bespoke option analysis
+    if (Array.isArray(q.option_analysis) && q.option_analysis.length === q.options.length) {
+      return q.option_analysis.map(function (item, idx) {
+        const isCorrect = (idx === correctIdx);
+        return {
+          letter: letters[idx] || item.letter,
+          optionText: q.options[idx],
+          isCorrect: isCorrect,
+          label: item.label || (isCorrect ? 'Official UPSC Key' : 'Examiner Distractor'),
+          badgeType: isCorrect ? 'correct' : (item.badge_type || 'trap'),
+          diagnosis: item.diagnosis || '',
+          examinerCraft: item.examiner_craft || '',
+          mentalFilter: item.mental_filter || ''
+        };
+      });
+    }
+
+    // Check if question is a statement combination (e.g. "1 and 2 only", "2 and 3", "1, 2 and 3")
+    const isStatementComb = q.options.some(function (o) {
+      return /^(?:1|2|3|4|only|none|all)/i.test(o.trim()) && /(?:only|and|\d)/i.test(o);
+    });
+
+    const rawExpl = q.explanation || '';
+    const trapText = q.elimination_trap || '';
+    const qText = q.question_text || '';
+
+    // ENGINE 2: Multi-Statement Bundle Contamination & Omission Resolver
+    if (isStatementComb) {
+      const stmtMap = {};
+      const stmtRegex = /(?:^|\n)\s*([1-4])\.\s*([\s\S]*?)(?=(?:\n\s*[1-4]\.|\n\s*Which of the statements|\n\s*Select the correct|$))/g;
+      let m;
+      while ((m = stmtRegex.exec(qText)) !== null) {
+        stmtMap[m[1]] = m[2].trim().replace(/\s+/g, ' ');
+      }
+
+      const stmtStatus = {};
+      for (let sNum = 1; sNum <= 4; sNum++) {
+        const sNumStr = String(sNum);
+        const isIncorrectPattern = new RegExp('(?:Statement\\s*' + sNumStr + '|Stmt\\s*' + sNumStr + '|Statement\\s*\\([a-z0-9,\\s]*' + sNumStr + '[a-z0-9,\\s]*\\))\\s*(?:is|are)?\\s*(?:not\\s*correct|incorrect|false|untrue)', 'i');
+        const isCorrectPattern = new RegExp('(?:Statement\\s*' + sNumStr + '|Stmt\\s*' + sNumStr + '|Statement\\s*\\([a-z0-9,\\s]*' + sNumStr + '[a-z0-9,\\s]*\\))\\s*(?:is|are)?\\s*(?:correct|true|valid)', 'i');
+
+        if (isIncorrectPattern.test(rawExpl)) {
+          stmtStatus[sNumStr] = false;
+        } else if (isCorrectPattern.test(rawExpl)) {
+          stmtStatus[sNumStr] = true;
+        }
+      }
+
+      const trapNumMatch = trapText.match(/Statement\\s*([1-4])|Stmt\\s*([1-4])/i);
+      const trapNum = trapNumMatch ? (trapNumMatch[1] || trapNumMatch[2]) : null;
+      if (trapNum && stmtStatus[trapNum] === undefined) {
+        stmtStatus[trapNum] = false;
+      }
+
+      return q.options.map(function (opt, idx) {
+        const isCorrect = (idx === correctIdx);
+        const letter = letters[idx];
+
+        if (isCorrect) {
+          const firstLine = (rawExpl.split('\n')[0] || '').replace(/^[•\-\*]\s*/, '');
+          return {
+            letter: letter,
+            optionText: opt,
+            isCorrect: true,
+            label: 'Official UPSC Key',
+            badgeType: 'correct',
+            diagnosis: 'Authentic combination directly ratified by the official UPSC key. ' + firstLine,
+            examinerCraft: 'Verifiable statutory, constitutional, and empirical alignment.',
+            mentalFilter: 'Confirm all assertions in this bundle independently withstand negative elimination checks.'
+          };
+        }
+
+        const numsInOpt = [];
+        for (let s = 1; s <= 4; s++) {
+          const re = new RegExp('(?:^|\\D)' + s + '(?:\\D|$)');
+          if (re.test(opt)) numsInOpt.push(String(s));
+        }
+
+        const badNum = numsInOpt.find(function (n) { return stmtStatus[n] === false; }) || trapNum;
+
+        if (badNum && numsInOpt.includes(badNum)) {
+          const badStmtSnippet = stmtMap[badNum] ? ' ("' + stmtMap[badNum].slice(0, 65) + '...")' : '';
+          return {
+            letter: letter,
+            optionText: opt,
+            isCorrect: false,
+            label: '🚫 Contaminated by Stmt ' + badNum,
+            badgeType: 'trap',
+            diagnosis: 'Option collapses because it includes false Statement ' + badNum + badStmtSnippet + '. ' + (trapText ? 'Trap breakdown: ' + trapText : 'Failed validation under official key criteria.'),
+            examinerCraft: 'Classic bundle contamination: pairing authentic statements with one subtle error to entrap candidates relying on partial knowledge.',
+            mentalFilter: 'Single-cut rule: verifying Statement ' + badNum + ' as false instantly knocks out this option without needing to review remaining statements.'
+          };
+        }
+
+        return {
+          letter: letter,
+          optionText: opt,
+          isCorrect: false,
+          label: '⚠️ Incomplete Bundle (Omission Trap)',
+          badgeType: 'omission',
+          diagnosis: 'Incomplete combination. Leaves out other valid statements verified by the official key. ' + (trapText ? 'Examine: ' + trapText : ''),
+          examinerCraft: 'Omission bait: testing whether candidates confirm the full scope of correct statements or stop prematurely.',
+          mentalFilter: 'When statements are independent, ensure the bundle captures every valid assertion.'
+        };
+      });
+    }
+
+    // ENGINE 3: Semantic Heuristic Classifier for Direct Concept Questions
     return q.options.map(function (opt, idx) {
-      const isCorrect = (idx === q.correct_index);
-      const letter = letters[idx] || String.fromCharCode(65 + idx);
-      let label = isCorrect ? 'Official UPSC Key' : 'Examiner Distractor';
-      let details = '';
+      const isCorrect = (idx === correctIdx);
+      const letter = letters[idx];
 
       if (isCorrect) {
-        details = lines[0] ? lines[0].replace(/^[•\-\*]\s*/, '') : 'Accurate assertion directly validated by official UPSC key.';
-      } else {
-        // Find matching line in explanation
-        const optMatch = lines.find(function (ln) {
-          const lnLower = ln.toLowerCase();
-          return lnLower.includes('statement ' + (idx + 1)) ||
-                 lnLower.includes('option ' + letter.toLowerCase()) ||
-                 lnLower.includes(opt.slice(0, 20).toLowerCase());
-        });
+        return {
+          letter: letter,
+          optionText: opt,
+          isCorrect: true,
+          label: 'Official UPSC Key',
+          badgeType: 'correct',
+          diagnosis: rawExpl.replace(/^[•\-\*]\s*/, '') || 'Accurate assertion directly validated by official UPSC key.',
+          examinerCraft: 'Statutorily accurate proposition reflecting authentic framework benchmarks.',
+          mentalFilter: 'Direct match with core syllabus benchmark.'
+        };
+      }
 
-        if (optMatch) {
-          details = optMatch.replace(/^[•\-\*]\s*/, '');
-        } else {
-          details = 'Crafted as an elimination distractor. UPSC commonly swaps constitutional with statutory bodies, reverses historical chronology, or injects extreme modifiers ("only", "exclusively") to test conceptual boundary precision.';
-        }
+      const optLower = opt.toLowerCase();
+      let label = 'Examiner Distractor';
+      let badgeType = 'trap';
+      let diagnosis = '';
+      let craft = '';
+      let filter = '';
+
+      // Pattern A: Extreme Absolute Qualifier
+      const extremeMatch = optLower.match(/\b(exclusively|only|all|never|none|solely|entirely|prohibits? any|mandatory for all|every)\b/);
+      if (extremeMatch) {
+        label = '⚡ Extreme Absolute Trap ("' + extremeMatch[1] + '")';
+        badgeType = 'extreme';
+        diagnosis = 'Injects an absolute categorical constraint ("' + extremeMatch[1] + '"). In ' + (q.subject || 'UPSC') + ', institutional mandates and empirical systems rarely operate in unconditional binaries.';
+        craft = 'Examiners take a nuanced general application and harden it with an extreme qualifier to force a false boundary.';
+        filter = 'The word "' + extremeMatch[1] + '" carries an overwhelmingly high failure rate in UPSC prelims unless grounded in strict constitutional mandates.';
+      }
+      // Pattern B: Numerical, Metric, or Baseline Year Decoy
+      else if (/\b\d+(?:\.\d+)?(?:%|x\d+|(?:\s*(?:years?|months?|days?|mw|g-secs?|bps|crore|billion|trillion|km|meters?)))\b/i.test(opt) || /\b(19\d\d|20\d\d)\b/.test(opt)) {
+        const numMatch = opt.match(/\b\d+(?:\.\d+)?(?:%|x\d+|(?:\s*(?:years?|months?|days?|mw|bps|crore|billion|trillion)))/i) || opt.match(/\b(19\d\d|20\d\d)\b/);
+        const val = numMatch ? numMatch[0] : 'metric';
+        label = '🔢 Numerical Decoy / Threshold Bait (' + val + ')';
+        badgeType = 'number';
+        diagnosis = 'Manipulates quantitative thresholds or baseline targets (' + val + '). ' + (trapText ? trapText + '. ' : '') + 'Examiners alter numerical deadlines or borrow figures from adjacent current affairs to test memory precision.';
+        craft = 'Borrowing numbers from an adjacent topic or inventing false numerical symmetry to bait half-prepared aspirants.';
+        filter = 'When numbers repeat across options or mimic the question title, check whether the figure belongs to a completely different convention.';
+      }
+      // Pattern C: Regulatory or Institutional Authority Swap
+      else if (/\b(ministry of|department of|niti aayog|rbi|sebi|unfccc|cbd|who|wto|world bank|imf|oecd|iea)\b/i.test(opt)) {
+        const instMatch = opt.match(/\b(ministry of\s+[\w\s]+|department of\s+[\w\s]+|niti aayog|rbi|sebi|unfccc|cbd|who|wto|world bank|imf|oecd|iea)\b/i);
+        const inst = instMatch ? instMatch[0] : 'institution';
+        label = '🏛️ Nodal Authority Swap (' + inst + ')';
+        badgeType = 'authority';
+        diagnosis = 'Substitutes "' + inst + '" as the operational authority. UPSC frequently swaps statutory boards, parent ministries, and multilateral agencies to test administrative governance boundaries.';
+        craft = 'Replacing the actual implementing body with a high-visibility agency that sounds plausible.';
+        filter = 'Always verify the statutory mandate: distinguish autonomous technical boards from parent executive ministries.';
+      }
+      // Pattern D: Contextual Domain or Category Transposition
+      else {
+        label = '🔀 Domain / Concept Transposition';
+        badgeType = 'trap';
+        diagnosis = trapText ? trapText + '. ' + 'Misattributes characteristics of a related concept to ' + (q.sub_topic || q.subject) + '.' : 'Plausible distractor borrowing terminology from related ' + (q.subject || 'GS') + ' topics to test conceptual boundary precision.';
+        craft = 'Examiners rarely invent nonsense; they transplant real facts from an adjacent syllabus chapter to make the distractor sound authoritative.';
+        filter = 'Anchor the question stem: verify whether the statement belongs to this specific subject matter or is imported from a related topic.';
       }
 
       return {
         letter: letter,
         optionText: opt,
-        isCorrect: isCorrect,
+        isCorrect: false,
         label: label,
-        details: details
+        badgeType: badgeType,
+        diagnosis: diagnosis,
+        examinerCraft: craft,
+        mentalFilter: filter
       };
     });
   }
 
-function getEliminatingStatementNum(optText, slicedMap) {
+  function getEliminatingStatementNum(optText, slicedMap) {
     if (!slicedMap) return null;
     const slicedNums = Object.keys(slicedMap).filter(function (k) { return slicedMap[k]; });
     if (slicedNums.length === 0) return null;
@@ -1866,30 +2018,65 @@ function updateDashboardActivity() {
   // ==========================================================
   // OPTION-BY-OPTION DISTRACTOR DEEP DIVE (PLAYER)
   // ==========================================================
-  function renderPlayerDistractorDeepDive(q) {
+function renderPlayerDistractorDeepDive(q) {
     const distractorBox = document.getElementById('playerDistractorDeepDiveBox');
     if (!distractorBox || !q) return;
 
     const distractors = getDistractorAnalysis(q);
     distractorBox.innerHTML = (
-      '<div class="flex items-center gap-2 pt-2 border-t border-slate-800">' +
-        '<span class="text-xs font-mono uppercase font-black text-amber-500 tracking-wider">🔬 Option-by-Option Distractor Deep Dive:</span>' +
+      '<div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">' +
+        '<span class="text-xs font-mono uppercase font-black text-amber-600 dark:text-amber-500 tracking-wider">🔬 Forensic Option-by-Option Breakdown & UPSC Decoys:</span>' +
+        '<span class="text-[10px] text-slate-500 font-mono">Cognitive Trap Analysis</span>' +
       '</div>' +
-      '<div class="grid grid-cols-1 gap-2">' +
+      '<div class="grid grid-cols-1 gap-2.5">' +
         distractors.map(function (d) {
-          const badgeClass = d.isCorrect
-            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-            : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30';
+          let badgeClass = 'bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30';
+          if (d.isCorrect) {
+            badgeClass = 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30';
+          } else if (d.badgeType === 'extreme') {
+            badgeClass = 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30';
+          } else if (d.badgeType === 'number') {
+            badgeClass = 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30';
+          } else if (d.badgeType === 'authority') {
+            badgeClass = 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border border-blue-500/30';
+          } else {
+            badgeClass = 'bg-orange-500/15 text-orange-700 dark:text-orange-400 border border-orange-500/30';
+          }
+
           return (
-            '<div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 text-xs">' +
-              '<div class="flex items-center justify-between gap-2">' +
-                '<span class="font-bold text-slate-800 dark:text-white font-mono">Option ' + d.letter + '</span>' +
-                '<span class="px-2 py-0.5 rounded text-[10px] font-bold ' + badgeClass + '">' + escapeHtml(d.label) + '</span>' +
+            '<div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-2 text-xs transition-all hover:border-slate-300 dark:hover:border-slate-700">' +
+              '<div class="flex items-center justify-between gap-2 flex-wrap">' +
+                '<div class="flex items-center gap-2">' +
+                  '<span class="w-6 h-6 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white font-mono font-black flex items-center justify-center text-xs">' + d.letter + '</span>' +
+                  '<span class="font-bold text-slate-800 dark:text-slate-200">' + (d.isCorrect ? 'Correct Assertion' : 'Examiner Decoy') + '</span>' +
+                '</div>' +
+                '<span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold font-mono ' + badgeClass + '">' + escapeHtml(d.label) + '</span>' +
               '</div>' +
-              '<p class="text-slate-700 dark:text-slate-300 font-medium">' + escapeHtml(d.optionText) + '</p>' +
-              '<p class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed border-t border-slate-200 dark:border-slate-900 pt-1 mt-0.5">' +
-                '<strong>Diagnosis:</strong> ' + escapeHtml(d.details) +
-              '</p>' +
+
+              '<p class="text-slate-700 dark:text-slate-300 font-medium pl-8 -mt-0.5 leading-relaxed">' + escapeHtml(d.optionText) + '</p>' +
+
+              '<div class="pl-8 pt-2 border-t border-slate-200/70 dark:border-slate-800/70 flex flex-col gap-1.5 text-[11px] leading-relaxed">' +
+                '<div class="text-slate-700 dark:text-slate-300">' +
+                  '<strong class="' + (d.isCorrect ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-rose-600 dark:text-rose-400 font-bold') + '">' +
+                    (d.isCorrect ? '✓ Verification: ' : '✗ Forensic Reality Check: ') +
+                  '</strong>' +
+                  '<span>' + escapeHtml(d.diagnosis) + '</span>' +
+                '</div>' +
+
+                (!d.isCorrect && d.examinerCraft ? (
+                  '<div class="text-amber-800 dark:text-amber-400/90 bg-amber-500/5 dark:bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">' +
+                    '<span class="font-bold font-mono uppercase text-[10px] tracking-wider text-amber-700 dark:text-amber-400">🧠 Examiner\'s Decoy Craft: </span>' +
+                    '<span>' + escapeHtml(d.examinerCraft) + '</span>' +
+                  '</div>'
+                ) : '') +
+
+                (!d.isCorrect && d.mentalFilter ? (
+                  '<div class="text-slate-600 dark:text-slate-400 italic pt-0.5">' +
+                    '<span class="font-semibold not-italic text-slate-700 dark:text-slate-300">💡 Topper\'s Elimination Rule: </span>' +
+                    '<span>' + escapeHtml(d.mentalFilter) + '</span>' +
+                  '</div>'
+                ) : '') +
+              '</div>' +
             '</div>'
           );
         }).join('') +
@@ -1897,7 +2084,7 @@ function updateDashboardActivity() {
     );
   }
 
-  // ==========================================================
+    // ==========================================================
   // PRELIMS PYQ BRAINSTORMING & ANALYSIS VAULT (2011–2026)
   // ==========================================================
 
@@ -2200,28 +2387,50 @@ function updateDashboardActivity() {
 
               '<!-- Option-by-Option Distractor Deep Dive -->' +
               '<div class="flex flex-col gap-2">' +
-                '<span class="text-xs font-mono uppercase font-black text-amber-600 dark:text-amber-500 tracking-wider">🔬 Option-by-Option Distractor Deep Dive:</span>' +
-                '<div class="grid grid-cols-1 gap-2">' +
+                '<span class="text-xs font-mono uppercase font-black text-amber-600 dark:text-amber-500 tracking-wider">🔬 Forensic Option-by-Option Breakdown & Traps:</span>' +
+                '<div class="grid grid-cols-1 gap-2.5">' +
                   distractors.map(function (d) {
-                    var badgeClass = d.isCorrect
-                      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
-                      : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30';
+                    let badgeClass = 'bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30';
+                    if (d.isCorrect) {
+                      badgeClass = 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30';
+                    } else if (d.badgeType === 'extreme') {
+                      badgeClass = 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30';
+                    } else if (d.badgeType === 'number') {
+                      badgeClass = 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30';
+                    } else if (d.badgeType === 'authority') {
+                      badgeClass = 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border border-blue-500/30';
+                    } else {
+                      badgeClass = 'bg-orange-500/15 text-orange-700 dark:text-orange-400 border border-orange-500/30';
+                    }
                     return (
-                      '<div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 text-xs">' +
-                        '<div class="flex items-center justify-between gap-2">' +
-                          '<span class="font-bold text-slate-800 dark:text-white font-mono">Option ' + d.letter + '</span>' +
-                          '<span class="px-2 py-0.5 rounded text-[10px] font-bold ' + badgeClass + '">' + escapeHtml(d.label) + '</span>' +
+                      '<div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-1.5 text-xs">' +
+                        '<div class="flex items-center justify-between gap-2 flex-wrap">' +
+                          '<div class="flex items-center gap-2">' +
+                            '<span class="w-5 h-5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white font-mono font-black flex items-center justify-center text-[11px]">' + d.letter + '</span>' +
+                            '<span class="font-bold text-slate-800 dark:text-slate-200">' + (d.isCorrect ? 'Correct Assertion' : 'Examiner Decoy') + '</span>' +
+                          '</div>' +
+                          '<span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono ' + badgeClass + '">' + escapeHtml(d.label) + '</span>' +
                         '</div>' +
-                        '<p class="text-slate-800 dark:text-slate-300 font-medium">' + escapeHtml(d.optionText) + '</p>' +
-                        '<p class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed border-t border-slate-200 dark:border-slate-900 pt-1 mt-0.5">' +
-                          '<strong>Diagnosis:</strong> ' + escapeHtml(d.details) +
-                        '</p>' +
+                        '<p class="text-slate-700 dark:text-slate-300 font-medium pl-7 leading-relaxed">' + escapeHtml(d.optionText) + '</p>' +
+                        '<div class="pl-7 pt-1.5 border-t border-slate-200/70 dark:border-slate-800/70 flex flex-col gap-1 text-[11px] leading-relaxed">' +
+                          '<div class="text-slate-700 dark:text-slate-300">' +
+                            '<strong class="' + (d.isCorrect ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400') + '">' +
+                              (d.isCorrect ? '✓ Verification: ' : '✗ Reality Check: ') +
+                            '</strong>' +
+                            '<span>' + escapeHtml(d.diagnosis) + '</span>' +
+                          '</div>' +
+                          (!d.isCorrect && d.examinerCraft ? (
+                            '<div class="text-amber-800 dark:text-amber-400/90 bg-amber-500/5 dark:bg-amber-500/10 p-1.5 rounded-lg border border-amber-500/20">' +
+                              '<span class="font-bold font-mono uppercase text-[9px] tracking-wider text-amber-700 dark:text-amber-400">🧠 Decoy Craft: </span>' +
+                              '<span>' + escapeHtml(d.examinerCraft) + '</span>' +
+                            '</div>'
+                          ) : '') +
+                        '</div>' +
                       '</div>'
                     );
                   }).join('') +
                 '</div>' +
               '</div>' +
-
               '<!-- Topper Elimination Trap -->' +
               '<div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col gap-1 text-xs">' +
                 '<span class="font-bold text-amber-700 dark:text-amber-400 uppercase text-[10px] tracking-wider flex items-center gap-1">' +
