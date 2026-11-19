@@ -2468,6 +2468,83 @@ class TestUPSCInterdisciplinarySyllabusOverlap(unittest.TestCase):
         # Verify scoring decoupling: overall_score remains exactly 8.0
         self.assertEqual(norm["overall_score"], 8.0)
 
+    def test_standard_upsc_source_whitelist_and_zero_obscure_jargon(self):
+        """
+        Validates that:
+        1. Geography/Environment land-use questions receive standard UPSC sources (ISRO Desertification Atlas, Bonn Challenge)
+           and NEVER obscure university jargon (Drainage Morphometry, Ekman Spiral, Dehydration Embrittlement).
+        2. Generic boilerplate fallbacks ('Integrate contemporary policy developments...') are never generated.
+        3. Weak/generic candidate points are converted to 'Replace' action cards with authentic UPSC sources.
+        """
+        raw_eval = {
+            "overall_score": 6.0,
+            "transcribed_text": "Land use change in India is happening due to urbanization and infrastructure. Trees are being cut for roads and buildings. Thus a landscape approach that balances livelihood, infrastructure & ecology can make land use change sustainable in India.",
+            "sub_part_step_marking": [
+                {
+                    "step_label": "1. Introduction",
+                    "awarded": 1.0,
+                    "max": 1.5,
+                    "quoted_written": "Land use change in India is happening due to urbanization and infrastructure."
+                },
+                {
+                    "step_label": "2. Body: Land Use Impacts",
+                    "awarded": 4.0,
+                    "max": 7.5,
+                    "quoted_written": "Trees are being cut for roads and buildings."
+                },
+                {
+                    "step_label": "3. Conclusion",
+                    "awarded": 1.0,
+                    "max": 1.0,
+                    "quoted_written": "Thus a landscape approach that balances livelihood, infrastructure & ecology can make land use change sustainable in India."
+                }
+            ],
+            "body_audit": {
+                "critical_gaps": [
+                    "**Generic Infrastructure Impact**: Candidate wrote 'Trees are being cut for roads and buildings' without citing Section 2 of Forest (Conservation) Act or CAMPA compensatory afforestation audits."
+                ]
+            },
+            "missing_keywords_cards": []
+        }
+
+        norm = normalize_evaluation_data(
+            raw_eval,
+            max_marks=10,
+            question="Examine the drivers and ecological impacts of land use change in India. How can land use change be made sustainable? (10 Marks)",
+            paper="GS1"
+        )
+
+        cards = norm.get("missing_keywords_cards", [])
+        self.assertGreaterEqual(len(cards), 1, "Must generate at least one UPSC improvement recommendation")
+
+        card_terms = [str(c.get("term", "")).lower() for c in cards]
+        card_defs = [str(c.get("definition", "")).lower() for c in cards]
+        card_hows = [str(c.get("how_to_use_one_line", "")).lower() for c in cards]
+
+        all_card_text = " ".join(card_terms + card_defs + card_hows)
+
+        # 1. Strict ban on obscure university PhD-level thesis jargon
+        self.assertNotIn("drainage morphometry", all_card_text, "Drainage morphometry is banned university jargon")
+        self.assertNotIn("ekman spiral", all_card_text, "Ekman spiral is banned university jargon")
+        self.assertNotIn("dehydration embrittlement", all_card_text, "Dehydration embrittlement is banned university jargon")
+        self.assertNotIn("geomorphic thresholds", all_card_text, "Geomorphic thresholds is banned university jargon")
+
+        # 2. Strict ban on generic boilerplate filler
+        ca_va = norm.get("current_affairs_value_add", {})
+        ex_ins = ca_va.get("current_example_insertion", {})
+        rec_ins = str(ex_ins.get("recommended_insertion", "")).lower()
+        curr_weak = str(ex_ins.get("current_weakness", "")).lower()
+
+        self.assertNotIn("integrate contemporary policy developments and official institutional frameworks", rec_ins)
+        self.assertNotIn("lacked domain-specific contemporary statutory or empirical anchor", curr_weak)
+
+        # 3. Must be grounded in standard UPSC source (e.g. Forest Conservation, CAMPA, Bonn Challenge, or ISRO Desertification)
+        has_standard_upsc_source = any(
+            src in all_card_text or src in rec_ins
+            for src in ["forest (conservation)", "campa", "bonn challenge", "isro desertification", "sendai", "pmksy"]
+        )
+        self.assertTrue(has_standard_upsc_source, "Suggestions must be drawn from standard UPSC Mains sources")
+
 
 
 class TestQuestionSpecificDemandEvaluation(unittest.TestCase):

@@ -1747,6 +1747,12 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
      * जैसे: यदि अभ्यर्थी ने लिखा है "2nd ARC के अनुसार सुझाव" या "प्रशासनिक सुधार आयोग के नागरिक केन्द्रित सात उपाय मॉडल", तो कभी भी यह मत कहिए कि "2nd ARC का संदर्भ छूटा" या "(जैसे 2nd ARC) के संदर्भों को और अधिक विस्तार दिया जाना चाहिए था"!
      * इसके स्थान पर अभ्यर्थी द्वारा उल्लिखित उस बिंदु की पुष्टि करें और उसकी सराहना करें: `✓ परीक्षार्थी ने 2nd ARC के सुझावों व 7-उपाय मॉडल का सटीक संदर्भ दिया।`
      * सुधार में केवल वही आयाम बताएं जो वास्तव में कॉपी में नहीं लिखे गए हैं (जैसे Right to Public Services विधिक ढांचा, सोशल ऑडिट मानक)।
+   - कमजोर व सामान्य बिंदुओं का सटीक प्रतिस्थापन (MANDATORY SURGICAL POINT REPLACEMENT IN HINDI):
+     * जब अभ्यर्थी सतही या सामान्य बातें लिखे (जैसे "प्रदूषण बढ़ रहा है", "जागरूकता की कमी है", "तकनीक का उपयोग होना चाहिए", "सरकार को कड़े कदम उठाने चाहिए"):
+     * केवल नए बिंदु जोड़ने का बोझ न डालें; बल्कि उस कमजोर बिंदु को मानक यूपीएससी स्रोतों (NCERTs, नीति आयोग, आर्थिक सर्वेक्षण, 2nd ARC, सर्वोच्च न्यायालय के ऐतिहासिक निर्णय, सेंदाई फ्रेमवर्क, बॉन चैलेंज) से सटीक रूप से प्रतिस्थापित (Replace) करें!
+     * 'missing_keywords_cards' में 'action_type': 'Replace' लिखें, 'target_point' में अभ्यर्थी की कमजोर पंक्ति उद्धृत करें, और 'how_to_use_one_line' में परीक्षा-उपयोगी 1-2 पंक्तियों का सटीक प्रतिस्थापन वाक्य दें।
+     * जटिल विश्वविद्यालयी या शोध-स्तरीय शब्दावली (जैसे Drainage Morphometry, Dehydration Embrittlement) का प्रयोग कदापि न करें। केवल वही शब्दावली दें जो मुख्य परीक्षा के सामान्य अध्ययन (GS) पाठ्यक्रम के अनुकूल हो।
+     * सुझावों की संख्या आवश्यकतानुसार स्वाभाविक रखें—यदि 3-4 कमजोर बिंदु हैं तो सभी के लिए ठोस प्रतिस्थापन दें; किंतु कृत्रिम रूप से अप्रासंगिक बिंदु न थोपें।
 
 9. यथार्थवादी, सुगम एवं परीक्षा-हॉल टॉपर मॉडल उत्तर (STRUCTURED TOPPER MODEL ANSWER - NO FOMO, STRICT WORD BUDGET & POINT DENSITY):
    - आयोग के वास्तविक परीक्षा हॉल मानकों का कड़ा पालन:
@@ -3224,11 +3230,28 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
      * 'Expand': Provide the missing causal mechanism or analytical implication for a concept mentioned shallowly.
      * 'Strengthen': Anchor an argument with a verified empirical metric, landmark report, case law, or official framework.
      * 'Enrich': Provide an optional high-level analytical refinement, comparative perspective, or forward-looking angle for an answer with no major omissions.
-   - SELECTION CRITERIA (MANDATORY):
-     1. Direct Evidence Chain: Question demand -> evidence in candidate's answer -> specific gap or error -> suggested improvement. Reject any recommendation where this chain is unclear.
-     2. Answer fit: Confirm what the candidate actually explained. If a point is shallow, recommend the missing mechanism; if already adequately explained, do not repeat it.
-     3. Priority & Grouping: Rank suggestions by importance ('High Priority' -> 'Medium Priority' -> 'Optional Enrichment').
-     4. Source-to-claim fit: Every source, committee, statistic, or framework must be verified and accurate. If unverified, use an analytical refinement instead of fabricating.
+   - SELECTION CRITERIA & STANDARD UPSC SOURCE WHITELIST (MANDATORY):
+     1. Direct Evidence Chain & Surgical Replacement: Question demand -> evidence in candidate's answer -> specific gap or error -> suggested improvement.
+        * MANDATORY POINT REPLACEMENT FOR WEAK / GENERIC WRITING: Whenever the aspirant writes vague, superficial, or generic claims (e.g., "pollution is high", "lack of awareness", "technology is needed", "government should take steps", "farmers face problems", "trade is growing due to globalization"):
+          - DO NOT merely tell them to add more content! Fixed booklet page space (2 pages for 10M, 3 pages for 15M) makes adding points impossible without exceeding word limits.
+          - SURGICALLY REPLACE the weak point using 'action_type': 'Replace':
+            * 'target_point': Verbatim quote of candidate's weak/generic sentence from their sheet.
+            * 'term': Authoritative standard UPSC anchor (e.g. "Section 2 of Forest (Conservation) Act & CAMPA", "NDMA Heat Action Plans (Ahmedabad Model)", "Article 39(b)", "NITI Aayog CWMI").
+            * 'how_to_use_one_line': The exact exam-ready sentence that seamlessly substitutes the weak line.
+            * 'where_to_use': Exact page & sub-heading (e.g. "Page 1 • Replace Point #2 under Causes").
+          - Reflect this in 'visual_annotations' at that exact physical location with tag "⚠️ Replace: Generic Point ➔ [Standard UPSC Anchor]" and include the replacement in the remark!
+     2. Standard UPSC Sources Whitelist (STRICT BAN ON ESOTERIC UNIVERSITY JARGON):
+        * Every suggested term, replacement, and framework MUST be drawn strictly from standard UPSC Mains preparation sources:
+          - NCERT Class 11 & 12 (Fundamentals of Physical/Human Geography, Indian Society, Macroeconomics).
+          - Core Standard Reference Texts: M. Laxmikanth, Spectrum, PMFIAS, Nitin Singhania.
+          - Official Government Reports & Indices: Economic Survey (latest), Union Budget, NITI Aayog Reports & Indices (MPI, CWMI, SDG India Index, Aspirational Districts/Blocks), 2nd ARC Reports (4th, 6th, 10th, 12th), Law Commission Reports, Finance Commission recommendations.
+          - Constitutional Baseline: Specific Articles (e.g. 14, 19, 21, 39b, 48A, 51A, 243, 279A, 324, 356), Landmark Supreme Court Judgments.
+          - Global Conventions: Sendai Framework (2015-2030), UNCCD Bonn Challenge (Land Degradation Neutrality), Paris Agreement NDCs & Panchamrit.
+        * ABSOLUTE BAN on university PhD-level thesis jargon that generalist UPSC examiners do not expect and candidates cannot memorize in 7 minutes (BANNED: "Drainage morphometry", "Ekman transport mass balance", "Dehydration embrittlement", "Slab detachment dynamics", "Geomorphic thresholds", "Economic telemetry"). Keep all keywords punchy, memorable, and 100% aligned with the UPSC GS syllabus.
+     3. Natural, Dynamic Count (NO Artificial Clamping, NO Forced Filler):
+        * If an answer has 3, 4, or 5 weak/generic points across different sub-parts, provide all 3, 4, or 5 replacements!
+        * If an answer is already strong, provide only 1 or 2 targeted suggestions without forcing irrelevant filler.
+     4. Answer fit: Confirm what the candidate actually explained. If a point is shallow, recommend the missing mechanism; if already adequately explained, do not repeat it.
      5. Proposed Answer Text ('how_to_use_one_line'): The EXACT, exam-ready sentence itself (plain language, concise for the question's word budget).
         - STRICT BAN on meta-instructions: NEVER write "Deploy [concept] to...", "Incorporate [report] to...", "Cite [source] to...", or "Anchor under [term] to...".
         - STRICT BAN on generic filler: NEVER write "reinforce policy delivery metrics", "grassroots institutional accountability", "fiscal sustainability and public expenditure efficiency", or "ground systemic governance reforms" unless directly demanded by the prompt.
@@ -5439,8 +5462,9 @@ def _ensure_topper_model_answer_quality(data: Dict[str, Any], max_marks: int = 1
 def _ensure_at_least_one_value_addition(data: Dict[str, Any], is_hindi: bool = False) -> None:
     """
     Guarantees that every completed evaluation has at least one personalized improvement suggestion.
-    For strong answers with no major omissions, provides an explicit 'Optional Enrichment' card
-    clearly badged as non-deductive, preventing any false claims of perfection or 'nothing to improve'.
+    Prioritizes surgical point replacement ('Replace') of weak/generic candidate points using standard UPSC sources
+    (NCERTs, Economic Survey, NITI Aayog, 2nd ARC, Supreme Court judgments).
+    Strictly bans obscure university PhD-level jargon (e.g. Drainage Morphometry, Ekman Spiral, Dehydration Embrittlement).
     """
     if not isinstance(data, dict):
         return
@@ -5452,81 +5476,127 @@ def _ensure_at_least_one_value_addition(data: Dict[str, Any], is_hindi: bool = F
     q_str = str(data.get("detected_question") or "").strip()
     q_low = q_str.lower()
     missing_dims = data.get("body_audit", {}).get("missing_dimensions") or []
+    crit_gaps = data.get("body_audit", {}).get("critical_gaps") or []
+    pbp_list = data.get("point_by_point_audit") if isinstance(data.get("point_by_point_audit"), list) else []
 
     enrichment_term = ""
     enrichment_def = ""
     enrichment_how = ""
     enrichment_where = ""
+    action_type = "Enrich"
+    priority = "Optional Enrichment"
+    target_point = ""
 
-    # Option A: Extract from missing_dimensions if a substantive forward-looking or comparative angle exists
-    for dim in missing_dims:
-        dim_str = str(dim).strip()
-        if dim_str and len(dim_str) > 10 and not any(w in dim_str.lower() for w in ["none", "nil", "no missing", "well covered", "thoroughly analyzed", "all substantive", "well addressed", "no major"]):
-            parts = re.split(r'[:—–-]\s*', dim_str, maxsplit=1)
-            enrichment_term = re.sub(r'[*_"]', '', parts[0]).strip()[:50]
-            desc = parts[1].strip() if len(parts) > 1 else dim_str
-            enrichment_def = (
-                f"इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: {desc}" if is_hindi else
-                f"No major omission was identified in this evaluation. Optional upgrade: {desc}"
-            )
-            enrichment_where = (
-                "अंतिम पृष्ठ • निष्कर्ष अथवा समाधान के अंतिम पैराग्राफ में जोड़ें" if is_hindi else
-                "Final Page • In your concluding evaluation or forward-looking synthesis"
-            )
-            enrichment_how = (
-                f"{enrichment_term} को अग्रगामी दृष्टिकोण के रूप में शामिल करने से उत्तर का विश्लेषणात्मक फलक विस्तृत होता है।" if is_hindi else
-                f"Integrating {enrichment_term} provides an advanced forward-looking dimension to substantiate long-term policy efficacy."
-            )
-            break
+    # Priority 1: Check if critical_gaps or point_by_point_audit identified a generic/weak candidate point to REPLACE
+    for g in crit_gaps:
+        g_str = str(g).strip()
+        m_q = re.search(r'["\']([^"\']{10,120})["\']', g_str)
+        if m_q and len(g_str) > 25:
+            cand_quote = m_q.group(1).strip()
+            # Clean up the upgrade from g_str
+            clean_upgrade = re.sub(r'^[^*]*\*\*:\s*', '', g_str).strip()
+            clean_upgrade = re.sub(r'^(?:Replace\s+with|Use|Deploy|Cite)\s+', '', clean_upgrade, flags=re.IGNORECASE).strip()
+            if len(clean_upgrade) > 20:
+                action_type = "Replace"
+                priority = "High Priority"
+                target_point = cand_quote
+                enrichment_term = "Standard UPSC High-Yield Upgrade" if not is_hindi else "मानक उच्च-अंकदायी संवर्धन"
+                enrichment_def = (
+                    f"Replace weak/generic point with standard UPSC authoritative anchor: {clean_upgrade}" if not is_hindi else
+                    f"कमजोर/सामान्य बिंदु को मानक यूपीएससी आधार से प्रतिस्थापित करें: {clean_upgrade}"
+                )
+                enrichment_where = "Page 2 • Replace weak point in Body" if not is_hindi else "पृष्ठ 2 • मुख्य भाग में कमजोर बिंदु को बदलें"
+                enrichment_how = clean_upgrade
+                break
 
-    # Option B: Question-discipline specific analytical link
+    # Priority 2: Extract from missing_dimensions if a substantive forward-looking or comparative angle exists
+    if not enrichment_term:
+        for dim in missing_dims:
+            dim_str = str(dim).strip()
+            if dim_str and len(dim_str) > 10 and not any(w in dim_str.lower() for w in ["none", "nil", "no missing", "well covered", "thoroughly analyzed", "all substantive", "well addressed", "no major"]):
+                # Sanitize any academic thesis jargon from dim_str
+                dim_str = re.sub(r'(?i)\b(?:drainage\s+morphometry|geomorphic\s+thresholds?|telemetry|dehydration\s+embrittlement|slab\s+detachment)\b', 'spatial resource mapping and hazard zonation', dim_str)
+                parts = re.split(r'[:—–-]\s*', dim_str, maxsplit=1)
+                enrichment_term = re.sub(r'[*_"]', '', parts[0]).strip()[:50]
+                desc = parts[1].strip() if len(parts) > 1 else dim_str
+                enrichment_def = (
+                    f"इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: {desc}" if is_hindi else
+                    f"No major omission was identified in this evaluation. Optional upgrade: {desc}"
+                )
+                enrichment_where = (
+                    "अंतिम पृष्ठ • निष्कर्ष अथवा समाधान के अंतिम पैराग्राफ में जोड़ें" if is_hindi else
+                    "Final Page • In your concluding evaluation or forward-looking synthesis"
+                )
+                enrichment_how = (
+                    f"{enrichment_term} को अग्रगामी दृष्टिकोण के रूप में शामिल करने से उत्तर का विश्लेषणात्मक फलक विस्तृत होता है।" if is_hindi else
+                    f"Integrating {enrichment_term} provides an advanced forward-looking dimension to substantiate long-term policy efficacy."
+                )
+                break
+
+    # Priority 3: Question-discipline specific standard UPSC sources whitelist (NCERTs, Economic Survey, NITI Aayog, 2nd ARC, NDMA)
     if not enrichment_term:
         if any(k in q_low for k in ["73rd", "panchayat", "local govern", "pri", "rural local"]):
-            enrichment_term = "Activity Mapping & 3Fs Devolution Matrix" if not is_hindi else "एक्टिविटी मैपिंग एवं 3F हस्तांतरण ढांचा"
+            enrichment_term = "2nd ARC 6th Report & 3Fs Activity Mapping" if not is_hindi else "2nd ARC 6वीं रिपोर्ट एवं 3F एक्टिविटी मैपिंग"
             enrichment_def = (
-                "No major omission was identified in this evaluation. Optional upgrade: Articulate clear activity mapping across 3Fs (Funds, Functions, Functionaries) to insulate Panchayats from bureaucratic encroachment." if not is_hindi else
-                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: पंचायतों को नौकरशाही के हस्तक्षेप से बचाने के लिए 3F (Funds, Functions, Functionaries) की स्पष्ट एक्टिविटी मैपिंग को रेखांकित करें।"
+                "No major omission was identified in this evaluation. Optional upgrade: Articulate clear Activity Mapping across 3Fs (Funds, Functions, Functionaries) under 2nd ARC 6th Report to protect Panchayati Raj Institutions' 11th Schedule jurisdiction." if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: 2nd ARC की 6वीं रिपोर्ट के अनुसार 3F (Funds, Functions, Functionaries) की स्पष्ट एक्टिविटी मैपिंग को रेखांकित करें।"
             )
             enrichment_where = "Page 2 • Under fiscal devolution and operational challenges" if not is_hindi else "पृष्ठ 2 • वित्तीय हस्तांतरण एवं प्रशासनिक चुनौतियों के अंतर्गत"
-            enrichment_how = "Clear activity mapping across Funds, Functions, and Functionaries prevents bureaucratic usurpation of PRIs' 11th Schedule jurisdiction." if not is_hindi else "फंड, फंक्शन और फंक्शनरी की स्पष्ट मैपिंग पंचायतों के संवैधानिक अधिकारों को सुरक्षित करती है।"
-        elif any(k in q_low for k in ["heatwave", "food security", "climate", "temperature"]):
-            enrichment_term = "Compound Climate Risk & Synchronous Crop Shock Framework" if not is_hindi else "संयुक्त जलवायु जोखिम एवं समकालिक फसल क्षति ढांचा"
+            enrichment_how = "Operationalizing 2nd ARC's Activity Mapping across Funds, Functions, and Functionaries prevents bureaucratic usurpation of PRIs' 11th Schedule constitutional jurisdiction." if not is_hindi else "फंड, फंक्शन और फंक्शनरी की स्पष्ट मैपिंग पंचायतों के 11वीं अनुसूची के संवैधानिक अधिकारों को सुरक्षित करती है।"
+        elif any(k in q_low for k in ["heatwave", "temperature"]) or (any(k in q_low for k in ["food security", "climate"]) and any(k in q_low for k in ["crop", "agri"])):
+            enrichment_term = "NDMA Heat Action Plans (Ahmedabad Model) & ICAR-NICRA" if not is_hindi else "NDMA हीट एक्शन प्लान (अहमदाबाद मॉडल) एवं ICAR-NICRA"
             enrichment_def = (
-                "No major omission was identified in this evaluation. Optional upgrade: Contrast single-hazard heatwaves with compound heat-drought events that trigger synchronous breadbasket production failures." if not is_hindi else
-                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: एकल लू की तुलना में संयुक्त लू-सूखा घटनाओं को रेखांकित करें जो समकालिक फसल विफलता को जन्म देती हैं।"
+                "No major omission was identified in this evaluation. Optional upgrade: Anchor heatwave and climate resilience in NDMA National Guidelines, Ahmedabad Cool Roofs model, and ICAR-NICRA climate-resilient crop varieties." if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: एनडीएमए (NDMA) राष्ट्रीय दिशानिर्देशों, अहमदाबाद कूल रूफ मॉडल तथा ICAR-NICRA जलवायु-अनुकूल फसल प्रजातियों का उल्लेख करें।"
             )
-            enrichment_where = "Page 2 • Under global food security vulnerabilities" if not is_hindi else "पृष्ठ 2 • वैश्विक खाद्य सुरक्षा सुभेद्यता के अंतर्गत"
-            enrichment_how = "Compound heat-drought events exponentially amplify crop desiccation compared to standalone temperature spikes." if not is_hindi else "संयुक्त लू और सूखा अकेले तापमान वृद्धि की तुलना में फसल क्षति को कई गुना बढ़ा देते हैं।"
-        elif any(k in q_low for k in ["poverty", "inequality", "deprivation", "capability"]):
-            enrichment_term = "Intersecting Deprivation Matrix (Social-Spatial Overlap)" if not is_hindi else "परस्पर जुड़ी वंचनाओं का सामाजिक-स्थानिक मैट्रिक्स"
+            enrichment_where = "Page 2 • Under climate adaptation and food security vulnerabilities" if not is_hindi else "पृष्ठ 2 • जलवायु अनुकूलन एवं खाद्य सुरक्षा चुनौतियों के अंतर्गत"
+            enrichment_how = "Scaling NDMA Heat Action Plans alongside ICAR-NICRA heat-tolerant crop germplasms buffers rural agro-economies against climate shocks." if not is_hindi else "NDMA हीट एक्शन प्लान और ICAR-NICRA की जलवायु-सहनशील फसलें कृषि को तापमान झटकों से सुरक्षा प्रदान करती हैं।"
+        elif any(k in q_low for k in ["water", "groundwater", "aquifer", "irrigation"]):
+            enrichment_term = "Mihir Shah Committee on Water Governance & CGWB Benchmarks" if not is_hindi else "मिहिर शाह समिति (जल शासन) एवं CGWB मानक"
             enrichment_def = (
-                "No major omission was identified in this evaluation. Optional upgrade: Link multidimensional poverty to spatial remote-district marginalization and marginalized social identities." if not is_hindi else
-                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: बहुआयामी निर्धनता को दूरस्थ क्षेत्रीय और सामाजिक पहचान के अंतर्संबंधों से जोड़कर देखें।"
+                "No major omission was identified in this evaluation. Optional upgrade: Anchor groundwater sustainability in Central Ground Water Board (CGWB) extraction baselines and Mihir Shah Committee's watershed-based participatory aquifer management." if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: केंद्रीय भूजल बोर्ड (CGWB) के दोहन आंकड़ों तथा मिहिर शाह समिति की सहभागी जल प्रबंधन अनुशंसाओं का संदर्भ दें।"
+            )
+            enrichment_where = "Page 2 • Under water resource management and agricultural reforms" if not is_hindi else "पृष्ठ 2 • जल संसाधन प्रबंधन एवं कृषि सुधारों के अंतर्गत"
+            enrichment_how = "Adopting the Mihir Shah Committee's ridge-to-valley watershed framework shifts groundwater management from unregulated extraction to participatory community stewardship." if not is_hindi else "मिहिर शाह समिति का रिज-टू-वैली वाटरशेड मॉडल भूजल प्रबंधन को अंधाधुंध दोहन से सामुदायिक संरक्षण की ओर ले जाता है।"
+        elif any(k in q_low for k in ["land use", "desertif", "soil", "degrad", "forest", "afforest"]):
+            enrichment_term = "ISRO Desertification Atlas & Bonn Challenge (26M ha LDN)" if not is_hindi else "इसरो मरुस्थलीकरण एटलस एवं बॉन चैलेंज (LDN लक्ष्य)"
+            enrichment_def = (
+                "No major omission was identified in this evaluation. Optional upgrade: Anchor land sustainability in the ISRO Desertification and Land Degradation Atlas (~30% degraded land) and India's Bonn Challenge commitment to restore 26M hectares by 2030." if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: इसरो मरुस्थलीकरण एटलस (लगभग 30% क्षरण) और भारत के बॉन चैलेंज संकल्प (2030 तक 26 मिलियन हेक्टेयर भूमि बहाली) का संदर्भ दें।"
+            )
+            enrichment_where = "Page 2 • Under land resource conservation and sustainable development" if not is_hindi else "पृष्ठ 2 • भूमि संसाधन संरक्षण एवं सतत विकास के अंतर्गत"
+            enrichment_how = "Aligning land reclamation with India's Bonn Challenge commitment (26M ha Land Degradation Neutrality by 2030) and PMKSY watershed treatment reconciles ecology with infrastructure." if not is_hindi else "बॉन चैलेंज के तहत 2030 तक 26 मिलियन हेक्टेयर भूमि बहाली और पीएमकेएसवाई वाटरशेड कार्यक्रम पारिस्थितिकी और विकास में संतुलन स्थापित करते हैं।"
+        elif any(k in q_low for k in ["poverty", "inequality", "deprivation", "capability"]):
+            enrichment_term = "NITI Aayog National MPI & Alkire-Foster Deprivation Matrix" if not is_hindi else "नीति आयोग राष्ट्रीय MPI एवं अलकायर-फॉस्टर वंचना ढांचा"
+            enrichment_def = (
+                "No major omission was identified in this evaluation. Optional upgrade: Corroborate poverty alleviation with NITI Aayog's National Multidimensional Poverty Index (12 indicators across health, education, standard of living) showing multidimensional deprivation declines." if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: नीति आयोग के राष्ट्रीय बहुआयामी निर्धनता सूचकांक (12 संकेतक) और अलकायर-फॉस्टर पद्धति से निर्धनता में कमी के आंकड़ों को पुष्ट करें।"
             )
             enrichment_where = "Page 2 • Beside multidimensional deprivation indicators" if not is_hindi else "पृष्ठ 2 • बहुआयामी वंचना संकेतकों के साथ"
-            enrichment_how = "Deprivations cluster disproportionately along intersecting axes of spatial remoteness and marginalized social identity." if not is_hindi else "वंचनाएं स्थानिक दूरी और सामाजिक हाशियाकरण के अंतर्संबंधों पर अधिक केंद्रित होती हैं।"
-        elif any(k in q_low for k in ["ocean", "circulation", "current", "gyre", "atmospheric cell", "hadley", "ferrel", "polar cell", "ekman", "thermohaline", "upwelling"]):
-            enrichment_term = "Ekman Spiral & Sverdrup Transport Mass Balance" if not is_hindi else "एकमान सर्पिल एवं स्वेरड्रप संचरण संतुलन"
+            enrichment_how = "NITI Aayog's National MPI demonstrates that multidimensional deprivation declined fastest in lagging rural districts through targeted basic amenity provisioning." if not is_hindi else "नीति आयोग का राष्ट्रीय MPI दर्शाता है कि मूलभूत सुविधाओं के लक्षित वितरण से पिछड़े जिलों में बहुआयामी निर्धनता में तीव्र गिरावट आई है।"
+        elif any(k in q_low for k in ["ocean", "circulation", "current", "gyre", "marine", "coastal", "blue economy"]):
+            enrichment_term = "UNCLOS Maritime Zoning & Blue Economy 2.0" if not is_hindi else "UNCLOS समुद्री क्षेत्रीय अधिकार एवं ब्लू इकोनॉमी 2.0"
             enrichment_def = (
-                "No major omission was identified in this evaluation. Optional upgrade: Clarify how surface wind stress generates a 45-degree deflection at the surface and 90-degree net mass transport (Ekman transport), powering subtropical convergence and geostrophic gyres." if not is_hindi else
-                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: स्पष्ट करें कि पवन घर्षण सतह पर 45° और शुद्ध जल द्रव्यमान को 90° पर विक्षेपित करता है (एकमान संचरण), जिससे उपोष्णकटिबंधीय अभिसरण और भंवर (gyres) बनते हैं।"
+                "No major omission was identified in this evaluation. Optional upgrade: Link ocean thermal circulation and resource exploration to UNCLOS sovereign seabed rights and India's Deep Ocean Mission." if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: समुद्री धाराओं और संसाधनों को UNCLOS सम्प्रभु अधिकारों तथा भारत के डीप ओशन मिशन से जोड़ें।"
             )
-            enrichment_where = "Page 2 • Under wind-current coupling mechanism" if not is_hindi else "पृष्ठ 2 • पवन-धारा अंतर्संबंध तंत्र के अंतर्गत"
-            enrichment_how = "Net Ekman transport pushes water toward the centre of subtropical gyres, producing sea surface elevation gradients that sustain geostrophic surface currents." if not is_hindi else "एकमान संचरण उपोष्णकटिबंधीय भंवरों के केंद्र में जल इकट्ठा करता है, जिससे प्रवणता बल भू-विक्षेपी धाराओं को संचालित रखता है।"
-        elif any(k in q_low for k in ["earthquake", "seismic", "wadati", "benioff", "convergent", "plate tectonics"]):
-            enrichment_term = "Dehydration Embrittlement & Slab Detachment Dynamics" if not is_hindi else "निर्जलीकरण भंगुरता एवं स्लैब पृथक्करण गतिकी"
+            enrichment_where = "Page 2 • Under maritime resource governance and economic potential" if not is_hindi else "पृष्ठ 2 • समुद्री संसाधन शासन एवं आर्थिक संभावनाओं के अंतर्गत"
+            enrichment_how = "Harnessing Deep Ocean Mission technologies within UNCLOS Exclusive Economic Zone frameworks advances sustainable Blue Economy development without marine ecological degradation." if not is_hindi else "UNCLOS विशेष आर्थिक क्षेत्र के तहत डीप ओशन मिशन समुद्री पारिस्थितिकी को नुकसान पहुंचाए बिना ब्लू इकोनॉमी को बढ़ावा देता है।"
+        elif any(k in q_low for k in ["earthquake", "seismic", "disaster", "hazard", "flood", "cyclone"]):
+            enrichment_term = "Sendai Framework Priority 4 & BIS IS 1893 Seismic Microzonation" if not is_hindi else "सेंदाई फ्रेमवर्क प्राथमिकता 4 एवं BIS IS 1893 भूकंपीय माइक्रोज़ोनेशन"
             enrichment_def = (
-                "No major omission was identified in this evaluation. Optional upgrade: Explain how high-pressure dehydration embrittlement of hydrous minerals enables brittle fracture seismicity beyond 300km depth." if not is_hindi else
-                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: स्पष्ट करें कि 300 किमी से अधिक गहराई पर जलयोजित खनिजों का निर्जलीकरण भंगुरता फ्रैक्चर कैसे संभव बनाता है।"
+                "No major omission was identified in this evaluation. Optional upgrade: Anchor structural disaster risk reduction in Sendai Framework Priority 4 (Build Back Better) and Bureau of Indian Standards (BIS IS 1893) engineering codes." if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: सेंदाई फ्रेमवर्क (प्राथमिकता 4: बिल्ड बैक बेटर) और भारतीय मानक ब्यूरो (BIS IS 1893) कोड का उल्लेख करें।"
             )
-            enrichment_where = "Page 2 • Under mantle transition zone dynamics" if not is_hindi else "पृष्ठ 2 • मेंटल संक्रमण क्षेत्र गतिकी के अंतर्गत"
-            enrichment_how = "Dehydration embrittlement of hydrous serpentinites releases pore fluid pressures, triggering brittle seismic rupture deep within the subducting lithosphere." if not is_hindi else "जलयोजित खनिजों से तरल पदार्थ मुक्त होने पर अत्यधिक गहराई में भी भंगुर भूकंपीय विखंडन संभव होता है।"
+            enrichment_where = "Page 2 • Under structural disaster mitigation and building codes" if not is_hindi else "पृष्ठ 2 • संरचनात्मक आपदा शमन एवं भवन निर्माण कोड के अंतर्गत"
+            enrichment_how = "Enforcing BIS IS 1893 earthquake engineering codes alongside Sendai Priority 4 (Build Back Better) transitions vulnerable zones from relief dependency to structural resilience." if not is_hindi else "BIS IS 1893 भूकंपरोधी मानकों और सेंदाई प्राथमिकता 4 को लागू करने से सुभेद्य क्षेत्र राहत-निर्भरता से ढांचागत लचीलेपन की ओर बढ़ते हैं।"
         elif any(k in q_low for k in ["sultanate", "rahat", "persian wheel", "charkha", "spinning wheel", "iqta"]) or (any(k in q_low for k in ["medieval", "मध्यकालीन"]) and any(k in q_low for k in ["technol", "तकनीक", "craft", "artisan", "उद्योग"])):
-            enrichment_term = "Technological Diffusion & Artisan Specialization Matrix" if not is_hindi else "तकनीकी प्रसार एवं शिल्पी विशेषज्ञता ढांचा"
+            enrichment_term = "NCERT Themes in Indian History & Irfan Habib's Urban Thesis" if not is_hindi else "NCERT मध्यकालीन इतिहास एवं इरफान हबीब की नगरीय क्रांति"
             enrichment_def = (
-                "No major omission was identified in this evaluation. Optional upgrade: Link the diffusion of the Persian wheel (Rahat), spinning wheel (charkha), and paper-making to agrarian surplus, royal karkhanas, and Irfan Habib's medieval urban revolution."
+                "No major omission was identified in this evaluation. Optional upgrade: Link the diffusion of the gear-wheel Rahat and spinning wheel to agrarian surplus, royal karkhanas, and Irfan Habib's 13th-14th century medieval urban revolution (NCERT Themes in Indian History)."
                 if not is_hindi else
-                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: रहट (पारसी पहिया), चरखा एवं कागज निर्माण के प्रसार को कृषि अधिशेष, शाही कारखानों तथा इरफान हबीब की मध्यकालीन नगरीय क्रांति से जोड़ें।"
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: रहट (पारसी पहिया) और चरखे के प्रसार को कृषि अधिशेष, शाही कारखानों तथा इरफान हबीब की मध्यकालीन नगरीय क्रांति से जोड़ें।"
             )
             enrichment_where = "Page 2 • Under How Technological Changes Influenced Society" if not is_hindi else "पृष्ठ 2 • समाज पर तकनीकी परिवर्तनों के प्रभाव के अंतर्गत"
             enrichment_how = (
@@ -5534,81 +5604,99 @@ def _ensure_at_least_one_value_addition(data: Dict[str, Any], is_hindi: bool = F
                 if not is_hindi else
                 "यांत्रिक गियर-पहियों (रहट) और लोहे की रकाबों के प्रसार ने 13वीं-14वीं शताब्दी की मध्यकालीन नगरीय क्रांति को प्रेरित किया, जिससे कृषि अधिशेष का उपयोग नगरीय शिल्पों में हुआ।"
             )
-        elif any(k in q_low for k in ["ancient", "medieval", "modern", "history", "culture", "heritage", "art", "monument", "civiliz", "प्राचीन", "इतिहास", "संस्कृति", "सभ्यता", "भौगोलिक"]):
-            enrichment_term = "Epigraphic Corroboration & Geomorphic Matrix" if not is_hindi else "पुरालेखीय साक्ष्य एवं भू-आकृतिक संरचना"
+        elif any(k in q_low for k in ["ancient", "medieval", "modern", "history", "culture", "heritage", "art", "monument", "civiliz", "प्राचीन", "इतिहास", "संस्कृति", "सभ्यता"]):
+            enrichment_term = "ASI Epigraphic Corpus & NCERT Art Architecture Matrix" if not is_hindi else "ASI अभिलेखीय साक्ष्य एवं NCERT कला व स्थापत्य मानक"
             enrichment_def = (
-                "No major omission was identified in this evaluation. Optional upgrade: Corroborate historical claims with primary epigraphic/literary sources (e.g. Arthashastra, Megasthenes' Indica) and geomorphic determinants."
+                "No major omission was identified in this evaluation. Optional upgrade: Corroborate historical claims with primary epigraphic records (e.g. Ashokan Edicts, Junagadh inscription) and archaeological excavation strata (NCERT Class 11 An Introduction to Indian Art)."
                 if not is_hindi else
-                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: ऐतिहासिक तर्कों को प्राथमिक पुरालेखीय/साहित्यिक स्रोतों (जैसे अर्थशास्त्र, मेगस्थनीज की इंडिका) एवं भू-आकृतिक कारकों से प्रमाणित करें।"
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: ऐतिहासिक तर्कों को प्राथमिक पुरालेखीय स्रोतों (जैसे अशोक के अभिलेख, रुद्रदामन का जूनागढ़ अभिलेख) एवं NCERT कला मानकों से प्रमाणित करें।"
             )
-            enrichment_where = "Page 2 • Under Trade, Economy or Administrative Evolution" if not is_hindi else "पृष्ठ 2 • व्यापार, अर्थव्यवस्था अथवा प्रशासनिक विकास के अंतर्गत"
+            enrichment_where = "Page 2 • Under Trade, Economy or Cultural Evolution" if not is_hindi else "पृष्ठ 2 • व्यापार, अर्थव्यवस्था अथवा सांस्कृतिक विकास के अंतर्गत"
             enrichment_how = (
                 "Fertile river basins (Indus-Ganga) generated agricultural surplus that sustained urbanization, corroborated by contemporary archaeological strata and epigraphic records."
                 if not is_hindi else
                 "उपजाऊ नदी घाटियों (सिंधु-गंगा) ने कृषि अधिशेष उत्पन्न किया जिससे द्वितीय नगरीकरण संभव हुआ, जिसकी पुष्टि तत्कालीन पुरातात्विक स्तरों एवं अभिलेखीय साक्ष्यों से होती है।"
             )
-        elif any(k in q_low for k in ["geograph", "climate", "monsoon", "plateau", "soil", "drainage", "river", "tectonic"]):
-            enrichment_term = "Drainage Morphometry & Spatial Resource Matrix" if not is_hindi else "अपवाह आकारिकी एवं स्थानिक संसाधन स्वरूप"
+        elif any(k in q_low for k in ["geograph", "climate", "monsoon", "plateau"]):
+            enrichment_term = "NCERT Physical Geography & NDMA Climate Action Guidelines" if not is_hindi else "NCERT भौतिक भूगोल एवं NDMA जलवायु दिशानिर्देश"
             enrichment_def = (
-                "No major omission was identified in this evaluation. Optional upgrade: Detail spatial drainage patterns and geomorphic thresholds that govern regional resource availability."
+                "No major omission was identified in this evaluation. Optional upgrade: Ground physical processes in NCERT Class 11 Fundamentals of Physical Geography (pressure gradients, jet streams) and NDMA regional vulnerability frameworks."
                 if not is_hindi else
-                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: स्थानिक अपवाह प्रतिरूपों एवं भू-आकृतिक सीमाओं को स्पष्ट करें जो क्षेत्रीय संसाधन उपलब्धता को निर्धारित करते हैं।"
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: भौतिक प्रक्रमों को NCERT भौतिक भूगोल (दाब प्रवणता, जेट स्ट्रीम) और NDMA क्षेत्रीय सुभेद्यता मानकों से पुष्ट करें।"
             )
             enrichment_where = "Page 2 • Under spatial analysis and regional impact" if not is_hindi else "पृष्ठ 2 • स्थानिक विश्लेषण एवं क्षेत्रीय प्रभाव के अंतर्गत"
             enrichment_how = (
-                "Perennial fluvial networks created dendritic drainage systems, establishing natural communication corridors and alluvial depositories across the terrain."
+                "Coupling atmospheric pressure gradients with seasonal ITCZ shifts explains regional precipitation variability, guiding targeted agro-climatic planning under PMKSY."
                 if not is_hindi else
-                "सदानीरा नदी तंत्रों ने वृक्षाकार अपवाह प्रणाली का निर्माण कर प्राकृतिक परिवहन गलियारे एवं जलोढ़ निक्षेप स्थापित किए।"
+                "वायुमंडलीय दाब प्रवणता और मौसमी ITCZ विस्थापन के संयोजन से क्षेत्रीय वर्षा की भिन्नता स्पष्ट होती है, जिससे PMKSY के तहत सटीक कृषि-जलवायु नियोजन संभव होता है।"
             )
         elif "GS4" in str(data.get("detected_paper") or "").upper() or any(k in q_low for k in ["ethics", "moral", "integrity", "nolan"]):
-            enrichment_term = "Deontological Duty vs Public Trust Matrix" if not is_hindi else "कर्तव्यशास्त्र बनाम लोकहित समन्वय"
+            enrichment_term = "2nd ARC 4th Report (Ethics in Governance) & Nolan Principles" if not is_hindi else "द्वितीय प्रशासनिक सुधार आयोग (2nd ARC 4th Report) एवं नोलन सिद्धांत"
             enrichment_def = (
-                "No major omission was identified in this evaluation. Optional upgrade: Anchor administrative dilemmas in Nolan Committee principles and constitutional morality."
+                "No major omission was identified in this evaluation. Optional upgrade: Anchor administrative dilemmas in Nolan Committee seven principles (Selflessness, Integrity, Objectivity, Accountability) and 2nd ARC Public Service Values."
                 if not is_hindi else
-                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: प्रशासनिक दुविधाओं को नोलन समिति के सिद्धांतों एवं संवैधानिक नैतिकता से जोड़ें।"
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: प्रशासनिक दुविधाओं को नोलन समिति के 7 सिद्धांतों (निःस्वार्थता, सत्यनिष्ठा, वस्तुनिष्ठता, जवाबदेही) और 2nd ARC नैतिक मानकों से जोड़ें।"
             )
-            enrichment_where = "Final Page • Beside your administrative dilemma resolution" if not is_hindi else "अंतिम पृष्ठ • प्रशासनिक दुविधा समाधान के साथ"
+            enrichment_where = "Final Page • Beside administrative dilemma resolution" if not is_hindi else "अंतिम पृष्ठ • प्रशासनिक दुविधा समाधान के साथ"
             enrichment_how = (
-                "Applying ethical deontology ensures that administrative expediency does not compromise statutory procedural fairness and public trust."
+                "Applying Nolan Committee principles of Objectivity and Integrity alongside 2nd ARC ethical standards ensures administrative discretion serves the public interest over executive expediency."
                 if not is_hindi else
-                "कर्तव्यशास्त्रीय सिद्धांतों का अनुप्रयोग यह सुनिश्चित करता है कि प्रशासनिक सुविधा के लिए प्रक्रियात्मक निष्पक्षता एवं जनविश्वास से समझौता न हो।"
+                "नोलन समिति की वस्तुनिष्ठता और 2nd ARC के नैतिक मानकों का अनुप्रयोग यह सुनिश्चित करता है कि प्रशासनिक विवेक लोकहित को प्राथमिकता दे।"
+            )
+        elif "GS3" in str(data.get("detected_paper") or "").upper() or any(k in q_low for k in ["economy", "gdp", "logistics", "manufacturing", "trade", "export", "growth"]):
+            enrichment_term = "Economic Survey Strategy & National Logistics Policy (NLP)" if not is_hindi else "आर्थिक सर्वेक्षण रणनीति एवं राष्ट्रीय लॉजिस्टिक्स नीति (NLP)"
+            enrichment_def = (
+                "No major omission was identified in this evaluation. Optional upgrade: Corroborate industrial arguments with Economic Survey supply-side insights and National Logistics Policy targets (reducing logistics costs from 14% to 8% of GDP via PM Gati Shakti)."
+                if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: आर्थिक सर्वेक्षण के आपूर्ति-पक्ष सुधारों और राष्ट्रीय लॉजिस्टिक्स नीति (पीएम गति शक्ति के माध्यम से लॉजिस्टिक्स लागत 14% से घटाकर 8% करना) का उल्लेख करें।"
+            )
+            enrichment_where = "Page 2 • Under industrial growth and economic infrastructure" if not is_hindi else "पृष्ठ 2 • औद्योगिक विकास एवं आर्थिक अवसंरचना के अंतर्गत"
+            enrichment_how = (
+                "Aligning supply-chain reforms with National Logistics Policy targets and PM Gati Shakti multimodal infrastructure reduces logistics friction from 14% to 8% of GDP, enhancing export competitiveness."
+                if not is_hindi else
+                "पीएम गति शक्ति और राष्ट्रीय लॉजिस्टिक्स नीति के तहत सुधार लॉजिस्टिक्स लागत को घटाकर विनिर्माण व निर्यात प्रतिस्पर्धात्मकता को बढ़ावा देते हैं।"
+            )
+        elif "GS2" in str(data.get("detected_paper") or "").upper() or any(k in q_low for k in ["polity", "constitution", "governance", "judiciary", "article", "court", "parliament"]):
+            enrichment_term = "2nd ARC Recommendations & Landmark Supreme Court Jurisprudence" if not is_hindi else "2nd ARC की अनुशंसाएं एवं सर्वोच्च न्यायालय के ऐतिहासिक निर्णय"
+            enrichment_def = (
+                "No major omission was identified in this evaluation. Optional upgrade: Anchor institutional reforms in 2nd ARC reports (Ethics in Governance / Local Governance) and Supreme Court constitutional benchmarks (Articles 14, 19, 21)."
+                if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: संस्थागत सुधारों को 2nd ARC रिपोर्टों तथा सर्वोच्च न्यायालय के संवैधानिक मानकों (अनुच्छेद 14, 19, 21) से पुष्ट करें।"
+            )
+            enrichment_where = "Page 2 • Under institutional reforms and constitutional safeguards" if not is_hindi else "पृष्ठ 2 • संस्थागत सुधार एवं संवैधानिक सुरक्षा उपायों के अंतर्गत"
+            enrichment_how = (
+                "Institutionalizing 2nd ARC recommendations and Supreme Court constitutional benchmarks reinforces institutional autonomy and checks against executive arbitrariness."
+                if not is_hindi else
+                "2nd ARC की अनुशंसाओं और सर्वोच्च न्यायालय के संवैधानिक मानकों को लागू करने से संस्थागत स्वायत्तता सुदृढ़ होती है।"
             )
         else:
-            p_curr = str(data.get("detected_paper") or "").upper()
-            if "GS1" in p_curr or any(k in q_low for k in ["history", "ancient", "medieval", "culture", "geograph", "society"]):
-                enrichment_term = "Epigraphic Corroboration & Materialist Linkages" if not is_hindi else "अभिलेखीय साक्ष्य एवं भौतिकवादी अंतर्संबंध"
-                enrichment_def = (
-                    "No major omission was identified in this evaluation. Optional upgrade: Corroborate historical arguments with primary textual references and material socio-economic formations."
-                    if not is_hindi else
-                    "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: ऐतिहासिक तर्कों को प्राथमिक ऐतिहासिक संदर्भों तथा भौतिक-आर्थिक स्वरूप से पुष्ट करें।"
-                )
-                enrichment_where = "Page 2 • Under Core Analytical Section" if not is_hindi else "पृष्ठ 2 • मुख्य विश्लेषणात्मक खंड के अंतर्गत"
-                enrichment_how = (
-                    "Primary epigraphical and archaeological records corroborate structural socio-economic transformations across the period."
-                    if not is_hindi else
-                    "प्राथमिक पुरातात्विक व अभिलेखीय साक्ष्य इस कालखंड के सामाजिक-आर्थिक परिवर्तनों की ठोस पुष्टि करते हैं।"
-                )
-            else:
-                enrichment_term = "Quasi-Judicial & Statutory Oversight Matrix" if not is_hindi else "अर्ध-न्यायिक एवं विधिक निगरानी ढांचा"
-                enrichment_def = (
-                    "No major omission was identified in this evaluation. Optional upgrade: Pair the primary statutory mechanism with an institutional accountability loop." if not is_hindi else
-                    "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: मुख्य वैधानिक तंत्र को संस्थागत जवाबदेही से जोड़ें।"
-                )
-                enrichment_where = "Final Page • Attach to your closing policy synthesis" if not is_hindi else "अंतिम पृष्ठ • अपने नीतिगत निष्कर्ष के साथ जोड़ें"
-                enrichment_how = "Institutionalizing inter-agency coordination ensures statutory mandates translate into measurable ground delivery." if not is_hindi else "अंतर-विभागीय समन्वय को संस्थागत रूप देने से वैधानिक प्रावधान प्रभावी होते हैं।"
+            enrichment_term = "Standard UPSC Constitutional & Institutional Benchmark" if not is_hindi else "मानक यूपीएससी संवैधानिक एवं संस्थागत आधार"
+            enrichment_def = (
+                "No major omission was identified in this evaluation. Optional upgrade: Corroborate arguments with specific Constitutional Articles, landmark judicial doctrines, or NITI Aayog policy frameworks."
+                if not is_hindi else
+                "इस मूल्यांकन में कोई मुख्य कमी नहीं पाई गई। ऐच्छिक संवर्धन: तर्कों को संबंधित संवैधानिक अनुच्छेदों, ऐतिहासिक न्यायिक निर्णयों अथवा नीति आयोग नीतिगत ढांचों से पुष्ट करें।"
+            )
+            enrichment_where = "Page 2 • Under core analytical section" if not is_hindi else "पृष्ठ 2 • मुख्य विश्लेषणात्मक खंड के अंतर्गत"
+            enrichment_how = (
+                "Substantiating points with specific constitutional provisions and NITI Aayog policy indicators elevates qualitative arguments into authoritative, evidence-backed answers."
+                if not is_hindi else
+                "संवैधानिक प्रावधानों और नीति आयोग संकेतकों से तर्कों को पुष्ट करने से उत्तर को ठोस प्रामाणिकता मिलती है।"
+            )
 
-    data["missing_keywords_cards"] = [
-        {
-            "number": 1,
-            "action_type": "Enrich",
-            "priority": "Optional Enrichment",
-            "term": enrichment_term,
-            "domain_or_thinker": "Optional Analytical Enrichment" if not is_hindi else "ऐच्छिक विश्लेषणात्मक संवर्धन",
-            "definition": enrichment_def,
-            "where_to_use": enrichment_where,
-            "how_to_use_one_line": enrichment_how
-        }
-    ]
+    card_obj = {
+        "number": 1,
+        "action_type": action_type,
+        "priority": priority,
+        "term": enrichment_term,
+        "domain_or_thinker": ("Surgical Point Replacement" if action_type == "Replace" else ("Optional Analytical Enrichment" if not is_hindi else "ऐच्छिक विश्लेषणात्मक संवर्धन")),
+        "definition": enrichment_def,
+        "where_to_use": enrichment_where,
+        "how_to_use_one_line": enrichment_how
+    }
+    if target_point:
+        card_obj["target_point"] = target_point
+
+    data["missing_keywords_cards"] = [card_obj]
 
 def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, question: str = "", paper: str = "", medium: str = "english") -> Dict[str, Any]:
     """
@@ -7576,16 +7664,25 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
             ex_ins["current_weakness"] = "Descriptive economic assertions without contemporary budget or survey data."
             ex_ins["recommended_insertion"] = "Anchor in **Economic Survey 2023-24** tripartite strategy and **Production Linked Incentive (PLI 2.0)** capex commitments to show tangible policy execution."
             ex_ins["marks_gain"] = "+0.5 to +1.0 Mark"
-        elif subj_meta["discipline"] == "GEOGRAPHY_DISASTER":
-            ex_ins["paragraph_target"] = "Page 2 • Under disaster risk reduction & mitigation sub-heading"
-            ex_ins["current_weakness"] = "General hazard management points lacking global disaster risk protocols."
-            ex_ins["recommended_insertion"] = "Operationalize **Sendai Framework (Priority 4: Build Back Better)** alongside **BIS IS 1893 seismic microzonation** guidelines."
+        elif any(k in str(subj_meta.get("discipline", "")).lower() for k in ["geograph", "disaster", "environment", "climat"]) or any(k in q_low for k in ["geograph", "climate", "monsoon", "land use", "soil", "flood", "disaster"]):
+            ex_ins["example_title"] = "Disaster Resilience & Land Conservation Protocols" if not is_hindi else "आपदा प्रबंधन एवं भूमि संरक्षण मानक"
+            ex_ins["paragraph_target"] = "Page 2 • Under environmental & resource conservation sub-heading" if not is_hindi else "पृष्ठ 2 • पर्यावरण एवं संसाधन संरक्षण उप-शीर्षक के अंतर्गत"
+            ex_ins["current_weakness"] = "General resource management points lacking standard UPSC disaster or land conservation frameworks." if not is_hindi else "सामान्य पर्यावरण बिंदु जिनमें मानक आपदा या भूमि संरक्षण रूपरेखा का अभाव है।"
+            ex_ins["recommended_insertion"] = (
+                "Anchor in **Sendai Framework Priority 4 (Build Back Better)** alongside **ISRO Desertification Atlas** and India's **Bonn Challenge (26M ha LDN target by 2030)**."
+                if not is_hindi else
+                "पर्यावरण संरक्षण को **सेंदाई फ्रेमवर्क (प्राथमिकता 4: बिल्ड बैक बेटर)**, **इसरो मरुस्थलीकरण एटलस** तथा **बॉन चैलेंज (2030 तक 26M हे. भूमि सुधार लक्ष्य)** से पुष्ट करें।"
+            )
             ex_ins["marks_gain"] = "+0.5 to +1.0 Mark"
         else:
             naf = data.get("next_attempt_focus", {})
-            ex_ins["paragraph_target"] = naf.get("target_section") or "Page 2 • Body Paragraph 2"
-            ex_ins["current_weakness"] = naf.get("student_draft_quote") or "Lacked domain-specific contemporary statutory or empirical anchor."
-            ex_ins["recommended_insertion"] = naf.get("topper_transformation") or "Integrate contemporary policy developments and official institutional frameworks directly tied to the question demand."
+            ex_ins["paragraph_target"] = naf.get("target_section") or ("Page 2 • Under core analytical sub-heading" if not is_hindi else "पृष्ठ 2 • मुख्य विश्लेषणात्मक उप-शीर्षक के अंतर्गत")
+            ex_ins["current_weakness"] = naf.get("student_draft_quote") or ("Descriptive assertions lacking standard UPSC institutional benchmarks or official data." if not is_hindi else "विवरणात्मक कथन जिनमें मानक संस्थागत अथवा आधिकारिक साक्ष्यों का अभाव है।")
+            ex_ins["recommended_insertion"] = naf.get("topper_transformation") or (
+                "Substantiate using relevant **Economic Survey / NITI Aayog** benchmarks or authoritative statutory guidelines directly linked to the question's core analytical demand."
+                if not is_hindi else
+                "तर्कों को संबंधित **आर्थिक सर्वेक्षण / नीति आयोग** संकेतकों अथवा आधिकारिक वैधानिक प्रावधानों से पुष्ट करें।"
+            )
             ex_ins["marks_gain"] = "+0.5 to +1.0 Mark"
     
     ca_va["current_example_insertion"] = ex_ins

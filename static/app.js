@@ -14313,14 +14313,26 @@ function renderEvaluation(evalData) {
         resolvedTarget = "Page 2 • Under 'Challenges to Autonomy / Executive Dominance'";
         resolvedWeakness = "Generic critique without citing the 2023 statutory mechanics or recent constitutional challenge.";
         resolvedInsertion = "Cite the **Chief Election Commissioner and Other ECs Act, 2023** section 7(1) replacing the CJI with a Union Minister, challenged in **Dr. Jaya Thakur v. Union of India (2024)** regarding institutional independence under **Article 324**.";
-      } else if (currentDiscipline === "POLITY_GOVERNANCE") {
+      } else if (currentDiscipline === "POLITY_GOVERNANCE" || /polity|constitution|governance|judiciary|article|court|parliament/i.test(qStrLow)) {
         resolvedTarget = "Page 2 • Under core institutional challenge";
-        resolvedInsertion = "Substantiate via recent Supreme Court Constitution Bench jurisprudence and statutory review benchmarks to demonstrate institutional check-and-balance safeguards.";
-      } else if (currentDiscipline === "ECONOMY_DEVELOPMENT") {
+        resolvedWeakness = "Theoretical critique lacking standard 2nd ARC or constitutional benchmarks.";
+        resolvedInsertion = "Substantiate via **2nd ARC Recommendations** and landmark **Supreme Court Constitution Bench** jurisprudence to demonstrate institutional check-and-balance safeguards.";
+      } else if (currentDiscipline === "ECONOMY_DEVELOPMENT" || /economy|gdp|logistics|manufacturing|trade|export|growth/i.test(qStrLow)) {
         resolvedTarget = "Page 2 • Under sectoral growth bottlenecks bullet";
-        resolvedInsertion = "Anchor in **Economic Survey 2023-24** tripartite strategy and **Production Linked Incentive (PLI 2.0)** capex commitments to show tangible policy execution.";
+        resolvedWeakness = "Descriptive economic assertions without contemporary budget or survey data.";
+        resolvedInsertion = "Anchor in **Economic Survey 2023-24** supply-side strategy and **National Logistics Policy (PM Gati Shakti)** benchmarks to demonstrate tangible policy execution.";
+      } else if (currentDiscipline === "GEOGRAPHY_DISASTER" || /geograph|climate|monsoon|land\s*use|soil|flood|disaster|hazard/i.test(qStrLow)) {
+        resolvedTarget = "Page 2 • Under environmental & resource conservation sub-heading";
+        resolvedWeakness = "General hazard management points lacking standard UPSC disaster or land conservation frameworks.";
+        resolvedInsertion = "Anchor in **Sendai Framework Priority 4 (Build Back Better)** alongside **ISRO Desertification Atlas** and India's **Bonn Challenge (26M ha LDN target by 2030)**.";
+      } else if (/society|social|caste|women|poverty|vulnerable/i.test(qStrLow)) {
+        resolvedTarget = "Page 2 • Beside social indicators";
+        resolvedWeakness = "Descriptive social assertions without empirical metrics.";
+        resolvedInsertion = "Substantiate using authoritative sociological benchmarks (**M.N. Srinivas**) alongside **PLFS & NFHS-5** empirical indicators.";
       } else {
-        resolvedInsertion = "Integrate contemporary policy developments and official institutional frameworks directly tied to the question demand.";
+        resolvedTarget = "Page 2 • Under core analytical sub-heading";
+        resolvedWeakness = "Descriptive assertions lacking standard UPSC institutional benchmarks or official data.";
+        resolvedInsertion = "Substantiate using relevant **Economic Survey / NITI Aayog** benchmarks or authoritative statutory guidelines directly linked to the question demand.";
       }
     }
 
@@ -14411,7 +14423,13 @@ function renderEvaluation(evalData) {
         if (!isSolarQuestion && /pm-surya|surya\s*ghar|tender\/regulatory/i.test(exText)) {
           exText = resolvedInsertion;
         }
+        if (/integrate contemporary policy developments and official institutional frameworks/i.test(exText)) {
+          exText = resolvedInsertion;
+        }
         let exWeak = ex.current_weakness;
+        if (!exWeak || /lacked domain-specific contemporary statutory or empirical anchor/i.test(exWeak)) {
+          exWeak = resolvedWeakness;
+        }
         if (!exWeak && rawExamples.length === 1) {
           // Strictly verify spatial alignment before borrowing resolvedWeakness from next_attempt_focus
           const naPlacement = String((na && (na.booklet_placement || na.target_section)) || "").toLowerCase();
