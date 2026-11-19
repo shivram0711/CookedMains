@@ -13802,13 +13802,7 @@ function renderEvaluation(evalData) {
         ? `${rawIntroCrit ? rawIntroCrit.replace(/\.?$/, ".") + " " : "प्रश्न की आरंभिक विषयवस्तु को छुआ गया है। "}प्रस्तावना में पूरे अंक प्राप्त करने हेतु, आरंभ में ही ${missList.slice(0, 2).join(" तथा ")} को समाहित करते हुए 1-2 पंक्तियां जोड़ें।`
         : `${rawIntroCrit ? rawIntroCrit.replace(/\.?$/, ".") + " " : "Addressed the opening theme of the prompt. "}To score full marks in the introduction, expand by 1–2 lines integrating ${missList.slice(0, 2).join(" and ")} to establish the foundational context upfront.`;
     }
-    const onPageIntro = (evalData.visual_annotations || []).find(a => (a.section === "intro") || /intro|भूमिका|प्रस्तावना/i.test(a.tag || ""));
-    let introSyncBadge = "";
-    if (onPageIntro && (onPageIntro.margin_remark || onPageIntro.remark)) {
-      const syncRem = String(onPageIntro.margin_remark || onPageIntro.remark).replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
-      introSyncBadge = `<div class="mb-2 p-2 rounded bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/50 dark:border-rose-900/40 text-[11px] flex items-center justify-between cursor-pointer hover:bg-rose-100/60 transition-all" onclick="window.scrollToOnPageAnnotation(${onPageIntro.page || 1})" title="Click to view red-pen marking on candidate answer copy"><span class="flex items-center gap-1.5 text-rose-800 dark:text-rose-300 font-medium"><i data-lucide="pen-tool" class="w-3 h-3 text-rose-500"></i><strong>Page ${onPageIntro.page || 1} On-Page Evaluation:</strong> <span style="font-family: 'Kalam', cursive; font-size: 12.5px;">"${escapeHtml(syncRem.slice(0, 130))}"</span></span><span class="text-rose-600 dark:text-rose-400 font-bold shrink-0 ml-2">View &rarr;</span></div>`;
-    }
-    document.getElementById("introCritiqueText").innerHTML = introSyncBadge + formatHighlightedText(rawIntroCrit);
+    document.getElementById("introCritiqueText").innerHTML = formatHighlightedText(rawIntroCrit);
     if (modelIntroCardEl) modelIntroCardEl.classList.remove("hidden");
     if (modelIntroHeadLbl) {
       modelIntroHeadLbl.textContent = isHindi
@@ -13921,20 +13915,6 @@ function renderEvaluation(evalData) {
   const gapsEl = document.getElementById("bodyGapsList");
   gapsEl.innerHTML = "";
   let sortedGaps = typeof window.sortPointsChronologically === "function" ? window.sortPointsChronologically(body.critical_gaps || []) : (body.critical_gaps || []);
-  if (!Array.isArray(sortedGaps)) sortedGaps = [];
-
-  // 100% Synchronization with on-page body annotations
-  const onPageBodyAnns = (evalData.visual_annotations || []).filter(a => a.section === "body" || (!/intro|concl/i.test(a.tag || "") && !/intro|concl/i.test(a.section || "")));
-  onPageBodyAnns.forEach(ann => {
-    if (ann.annotation_type === "bracket_merge" || ann.annotation_type === "box_highlight") {
-      const bRem = String(ann.margin_remark || ann.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
-      if (bRem && !isAlreadyInDeepEval(bRem)) {
-        const pTag = isHindi ? `पृष्ठ ${ann.page || 1}` : `Page ${ann.page || 1}`;
-        const prefix = ann.annotation_type === "bracket_merge" ? (isHindi ? "पुनरावृत्ति निवारण" : "Repetition & Line-Budget Lever") : (isHindi ? "आरेख संवर्धन" : "Diagram Enrichment Lever");
-        sortedGaps.unshift(`**${prefix} (${pTag})**: ${bRem}`);
-      }
-    }
-  });
 
   if (!sortedGaps || sortedGaps.length === 0) {
     const rawMissing = Array.isArray(body.missing_dimensions) ? body.missing_dimensions : [];
@@ -14045,14 +14025,7 @@ function renderEvaluation(evalData) {
       // Image 1: Keep single most precise, relevant evaluation point (preferring one with specific guidance/advice)
       finalConcCrit = parts.find(p => /(?:though|could\s+be|tie|refine|add|anchor|connect|morality|suggest|however|weakness)/i.test(p)) || parts[parts.length - 1];
     }
-    const onPageConc = (evalData.visual_annotations || []).find(a => (a.section === "conclusion") || /concl|निष्कर्ष|closing|synthesis/i.test(a.tag || ""));
-    let concSyncBadge = "";
-    if (onPageConc && (onPageConc.margin_remark || onPageConc.remark)) {
-      const syncRem = String(onPageConc.margin_remark || onPageConc.remark).replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
-      const pNum = onPageConc.page || (evalData.total_pages || 2);
-      concSyncBadge = `<div class="mb-2 p-2 rounded bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/50 dark:border-rose-900/40 text-[11px] flex items-center justify-between cursor-pointer hover:bg-rose-100/60 transition-all" onclick="window.scrollToOnPageAnnotation(${pNum})" title="Click to view closing marking on candidate copy"><span class="flex items-center gap-1.5 text-rose-800 dark:text-rose-300 font-medium"><i data-lucide="pen-tool" class="w-3 h-3 text-rose-500"></i><strong>Page ${pNum} On-Page Closing Evaluation:</strong> <span style="font-family: 'Kalam', cursive; font-size: 12.5px;">"${escapeHtml(syncRem.slice(0, 130))}"</span></span><span class="text-rose-600 dark:text-rose-400 font-bold shrink-0 ml-2">View &rarr;</span></div>`;
-    }
-    document.getElementById("conclusionCritiqueText").innerHTML = concSyncBadge + formatHighlightedText(finalConcCrit);
+    document.getElementById("conclusionCritiqueText").innerHTML = formatHighlightedText(finalConcCrit);
     if (modelConcCardEl) modelConcCardEl.classList.remove("hidden");
     if (modelConcHeadLbl) {
       modelConcHeadLbl.textContent = isHindi ? "✍️ लिखने का आदर्श प्रारूप (टॉपर मॉडल उत्तर के अनुसार):" : "✍️ How to Write (Matched with Topper Model Answer):";
@@ -17798,11 +17771,16 @@ function populatePrintAnnotatedCopies(evalData, pages, targetContainer) {
       <div class="print-copy-body">
         <div class="print-copy-img-wrap" style="width: 100%; flex: 1 1 100%; border-right: none;">
           <div class="print-page-canvas" style="position: relative; width: 100%; display: flex; flex-direction: column; background: #ffffff; border-radius: 6px; overflow: hidden; border: 1px solid #e2e8f0;">
-            <!-- Top Row: Full-Bleed 100% Candidate Script with Bilateral Red-Pen Overlay -->
-            <div style="position: relative; width: 100%; background: #ffffff;">
-              <img src="${dataUrl}" class="print-copy-img" alt="Answer Page ${pageNum}" style="width: 100%; display: block;">
+            <!-- Top Row: Candidate Script (72%) + Dedicated Examiner Right Margin (28%) -->
+            <div style="display: flex; flex-direction: row; position: relative; width: 100%;">
+              <div style="width: 72%; flex: 0 0 72%; background: #ffffff;">
+                <img src="${dataUrl}" class="print-copy-img" alt="Answer Page ${pageNum}" style="width: 100%; display: block;">
+              </div>
+              <div style="width: 28%; flex: 0 0 28%; background: #fafafa; border-left: 1.5px dashed rgba(220, 38, 38, 0.35); position: relative;">
+                <div style="padding: 6px 8px; font-size: 7.5pt; font-family: monospace; font-weight: bold; color: rgba(220, 38, 38, 0.6); text-transform: uppercase;">Examiner Margin</div>
+              </div>
               <div class="print-redpen-overlay" style="position: absolute; inset: 0; pointer-events: none; z-index: 10;">
-                ${(typeof window.generatePrintRedPenOverlayHtml === "function") ? window.generatePrintRedPenOverlayHtml(pageAnns, sections, conclAnn) : ""}
+                ${(typeof window.generatePrintRedPenOverlayHtml === "function") ? window.generatePrintRedPenOverlayHtml(bodyAnns, sections, conclAnn) : ""}
               </div>
             </div>
 
@@ -22185,39 +22163,6 @@ window.submitModalQuestionAndProceed = function() {
 // Incorporating Points 2 (Step Badges), 4 (Topper Model View), and 7 (Smart Tooltip)
 // =========================================================================
 
-// Global Navigation Bridge: Sync on-page notes directly with Deep Evaluation Tab
-window.navigateToDeepEvalSection = function(section) {
-  if (typeof window.switchStudioTab === "function") {
-    window.switchStudioTab("audit", true);
-  }
-  let targetId = "bodyAuditBox";
-  if (section === "intro") targetId = "introAuditBox";
-  else if (section === "conclusion") targetId = "conclusionAuditBox";
-
-  setTimeout(() => {
-    const targetEl = document.getElementById(targetId);
-    if (targetEl) {
-      targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
-      targetEl.classList.remove("highlight-pulse-active");
-      void targetEl.offsetWidth;
-      targetEl.classList.add("highlight-pulse-active");
-      setTimeout(() => {
-        targetEl.classList.remove("highlight-pulse-active");
-      }, 2600);
-    }
-  }, 60);
-};
-
-window.scrollToOnPageAnnotation = function(pageNum) {
-  if (typeof window.switchActivePage === "function" && pageNum) {
-    window.switchActivePage(pageNum);
-  }
-  const canvasEl = document.getElementById("evaluatedSheetCanvas") || document.getElementById("candidateScriptCol");
-  if (canvasEl) {
-    canvasEl.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-};
-
 window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, synthesizedSections) {
   const overlay = document.getElementById("onPageRedPenOverlay");
   if (!overlay) return;
@@ -22230,17 +22175,12 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
   if (rawAnns.length === 0 && Array.isArray(synthesizedSections) && synthesizedSections.length > 0) {
     rawAnns = synthesizedSections.map((sec, sIdx) => {
       const midY = (sec.startYPercent + sec.endYPercent) / 2;
-      const isFirst = (sIdx === 0 && currentPg === 1);
-      const isLast = (sIdx === synthesizedSections.length - 1 && currentPg === totalPages);
       return {
         page: currentPg,
-        section: isFirst ? "intro" : (isLast ? "conclusion" : "body"),
-        annotation_type: sec.isTick ? "tick" : "margin_note",
-        margin_side: isFirst ? "left" : "right",
         tag: sec.title,
         marker_type: sec.isTick ? "tick" : "circle",
         target_snippet: sec.title.replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, ""),
-        approx_x_percent: isFirst ? 24 : 35,
+        approx_x_percent: 32,
         approx_y_percent: Math.round(midY),
         start_y_percent: sec.startYPercent,
         end_y_percent: sec.endYPercent,
@@ -22250,91 +22190,14 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
     });
   }
 
-  function floatVal(v1, v2, def) {
-    if (v1 !== undefined && v1 !== null && !isNaN(Number(v1))) return Number(v1);
-    if (v2 !== undefined && v2 !== null && !isNaN(Number(v2))) return Number(v2);
-    return def;
-  }
+  // 1. Separate Conclusion annotation from Body margin annotations
+  const conclusionAnn = rawAnns.find(a => /concl|synthesis|निष्कर्ष|closing/i.test(a.tag || "") || /concl|synthesis|निष्कर्ष/i.test(a.type || ""));
+  let bodyAnns = rawAnns.filter(a => a !== conclusionAnn);
 
-  // 100% Two-Way Synchronization with Deep Evaluation (Body Upgrade Levers & Missing Dimensions)
-  // If an item in body_audit was NOT highlighted on this page, highlight it at its respective place without repeating already-highlighted points!
-  const bAudit = evalData.body_audit || {};
-  const allLevers = [
-    ...(Array.isArray(bAudit.critical_gaps) ? bAudit.critical_gaps : []),
-    ...(Array.isArray(bAudit.missing_dimensions) ? bAudit.missing_dimensions : [])
-  ];
-
-  if (allLevers.length > 0) {
-    const existingTokens = new Set();
-    rawAnns.forEach(a => {
-      const txt = (String(a.tag || "") + " " + String(a.margin_remark || a.remark || "")).toLowerCase();
-      (txt.match(/[a-zऀ-ॿ]{4,}/g) || []).forEach(t => existingTokens.add(t));
-    });
-
-    allLevers.forEach(lever => {
-      const lStr = String(lever || "").trim();
-      if (!lStr) return;
-
-      const pMatch = lStr.match(/\((?:page|पृष्ठ)\s*(\d+)\)/i);
-      const targetPgNum = pMatch ? parseInt(pMatch[1], 10) : (currentPg === 1 && totalPages > 1 ? 1 : currentPg);
-      if (targetPgNum !== currentPg) return;
-
-      const lTokens = (lStr.toLowerCase().match(/[a-zऀ-ॿ]{4,}/g) || []).filter(t => !["page", "point", "section", "candidate", "analysis", "written", "marks", "award", "lever", "upgrade", "dimension"].includes(t));
-      const matchCount = lTokens.filter(t => existingTokens.has(t)).length;
-      if (matchCount >= 2 || (lTokens.length <= 3 && matchCount >= 1)) {
-        return; // ALREADY HIGHLIGHTED ON THIS PAGE - STRICTLY DO NOT REPEAT!
-      }
-
-      const cleanL = lStr.replace(/^[✓✔✎✗×•★⭐\s\-]+/, "").trim();
-      const titleM = cleanL.match(/^\*\*([^*]+)\*\*:\s*(.*)/);
-      const cleanTitle = titleM ? titleM[1].trim() : cleanL.split(":")[0].trim();
-      const cleanBody = titleM ? titleM[2].trim() : (cleanL.split(":")[1] || cleanL).trim();
-
-      const low = (cleanTitle + " " + cleanBody).toLowerCase();
-      const isRep = /repeat|repetit|merge|दोहराव|पुनरावृत्ति/i.test(low);
-      const isDiag = /diagram|flowchart|spider|box|map|चित्र|आरेख/i.test(low);
-      const isFact = /inaccura|factual|misattribut|गलत|त्रुटि/i.test(low);
-
-      const aType = isRep ? "bracket_merge" : (isDiag ? "box_highlight" : (isFact ? "underline" : "margin_note"));
-      const mSide = isRep ? "left" : (isFact ? "inline" : "right");
-
-      const usedYs = rawAnns.map(a => floatVal(a.approx_y_percent, a.start_y_percent, 50));
-      let chosenY = 52;
-      for (const candY of [44, 60, 72, 32, 80]) {
-        if (!usedYs.some(uY => Math.abs(candY - uY) < 11)) {
-          chosenY = candY;
-          break;
-        }
-      }
-
-      const shortRem = cleanBody.length > 130 ? cleanBody.slice(0, 125).replace(/\s+\S*$/, "") + "..." : cleanBody;
-
-      rawAnns.push({
-        page: currentPg,
-        section: "body",
-        annotation_type: aType,
-        margin_side: mSide,
-        marker_type: isRep ? "bracket" : (isFact ? "circle" : (isDiag ? "circle" : "tick")),
-        tag: `Body: ${cleanTitle}`,
-        type: isFact ? "cross" : "suggestion",
-        target_snippet: cleanTitle.slice(0, 45),
-        approx_x_percent: mSide === "left" ? 22 : 72,
-        approx_y_percent: Math.round(chosenY),
-        start_y_percent: Math.max(6, Math.round(chosenY - 6)),
-        end_y_percent: Math.min(92, Math.round(chosenY + 8)),
-        marks_awarded: "+0.5 / 1.5",
-        margin_remark: `✎ ${cleanTitle}: ${shortRem}`,
-        remark: `✎ **${cleanTitle}**: ${cleanBody}`
-      });
-
-      lTokens.forEach(t => existingTokens.add(t));
-    });
-  }
-
-  // Deduplicate identical or redundant annotations
-  const dedupedAnns = [];
+  // 1b. Deduplicate identical or redundant body annotations on the same page
+  const dedupedBodyAnns = [];
   const seenNormTags = new Set();
-  rawAnns.forEach(ann => {
+  bodyAnns.forEach(ann => {
     const norm = String(ann.tag || "").toLowerCase()
       .replace(/^body:\s*/i, "")
       .replace(/^intro:\s*/i, "")
@@ -22351,18 +22214,12 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
     }
     if (!isDup) {
       if (norm) seenNormTags.add(norm);
-      dedupedAnns.push(ann);
+      dedupedBodyAnns.push(ann);
     }
   });
+  bodyAnns = dedupedBodyAnns;
 
-  // Separate Conclusion annotation from on-page margin annotations
-  const conclusionAnn = dedupedAnns.find(a => 
-    a.section === "conclusion" || 
-    /concl|synthesis|निष्कर्ष|closing/i.test(a.tag || "") || 
-    /concl|synthesis|निष्कर्ष/i.test(a.type || "")
-  );
-
-  // Render Conclusion in Dedicated Bottom Space
+  // 2. Render Conclusion in Dedicated Expanded Bottom Space (Below student handwriting: zero clipping, zero cutting off)
   const bottomContainer = document.getElementById("bottomConclusionContainer");
   if (bottomContainer) {
     if (conclusionAnn) {
@@ -22385,19 +22242,34 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
 
       let fullRem = String(conclusionAnn.margin_remark || conclusionAnn.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
 
+      // If low score (< 65%), scrub contradictory praise like "Solid", "Well-structured"
+      if (isLowScore && /solid|well-structured|good|comprehensive|effective/i.test(fullRem)) {
+        let actualGap = "";
+        if (evalData.conclusion_audit) {
+          const wList = evalData.conclusion_audit.weaknesses || evalData.conclusion_audit.critical_gaps || [];
+          if (Array.isArray(wList) && wList.length > 0 && wList[0] && !/solid|good|well-structured/i.test(String(wList[0]))) {
+            actualGap = String(wList[0]).replace(/^[✓✔✎✗×]\s*/, "").trim();
+          }
+        }
+        if (actualGap) {
+          fullRem = actualGap;
+        } else {
+          fullRem = (typeof isHindi !== "undefined" && isHindi)
+            ? "समापन सामान्य रहा; प्रश्न की मुख्य विश्लेषणात्मक मांग का सटीक संश्लेषण नहीं किया गया।"
+            : "Concluded with broad general statements without directly synthesizing the core analytical demand of the question.";
+        }
+      }
+
       bottomContainer.innerHTML = `
-        <div class="w-full flex items-start gap-3 p-3 rounded-lg ${isErr ? 'bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60' : 'bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60'} shadow-xs cursor-pointer hover:shadow-md transition-all" onclick="window.navigateToDeepEvalSection('conclusion')" title="Click to view detailed model conclusion in Deep Evaluation">
+        <div class="w-full flex items-start gap-3 p-3 rounded-lg ${isErr ? 'bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60' : 'bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60'} shadow-xs">
           <div class="shrink-0 pt-0.5">
             <span class="px-2 py-1 rounded text-[11px] font-bold uppercase tracking-wider ${isErr ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'} font-mono shadow-xs">
               ${isErr ? '✗ Conclusion Gap' : '✓ Conclusion Fulfilled'}
             </span>
           </div>
           <div class="flex-1 min-w-0" style="font-family: 'Kalam', 'Caveat', cursive, sans-serif; font-size: 13.5px; line-height: 1.4; color: ${isErr ? '#991b1b' : '#065f46'};">
-            <div class="font-bold ${isErr ? 'text-rose-950 dark:text-rose-200' : 'text-emerald-950 dark:text-emerald-200'} mb-0.5">${escapeHtml(cleanTag)} <span style="font-family: monospace; font-size: 11px; opacity: 0.85; margin-left: 6px;">(+${cScore.toFixed(1)} / ${cMax.toFixed(1)}M)</span></div>
+            <div class="font-bold ${isErr ? 'text-rose-950 dark:text-rose-200' : 'text-emerald-950 dark:text-emerald-200'} mb-0.5">${escapeHtml(cleanTag)} <span style="font-mono; font-size: 11px; opacity: 0.85; margin-left: 6px;">(+${cScore.toFixed(1)} / ${cMax.toFixed(1)}M)</span></div>
             <div class="${isErr ? 'text-[#991b1b] dark:text-[#f87171]' : 'text-[#065f46] dark:text-[#34d399]'}">${escapeHtml(fullRem)}</div>
-          </div>
-          <div class="shrink-0 self-center text-xs text-rose-500 font-bold opacity-75 hover:opacity-100 flex items-center gap-1 font-sans">
-            <span>Audit &rarr;</span>
           </div>
         </div>
       `;
@@ -22412,64 +22284,134 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
     if (window.lucide) { try { lucide.createIcons(); } catch(e) {} }
   }
 
-  // Active annotations to render directly on page canvas
-  const activeAnns = dedupedAnns.filter(a => a !== conclusionAnn);
-  if (activeAnns.length === 0 && !conclusionAnn) return;
+  if (bodyAnns.length === 0 && !conclusionAnn) return;
 
-  // Separate into Left Margin, Right Margin, and Inline Items
-  const leftItems = [];
-  const rightItems = [];
-  const inlineItems = [];
+  function floatVal(v1, v2, def) {
+    if (v1 !== undefined && v1 !== null && !isNaN(Number(v1))) return Number(v1);
+    if (v2 !== undefined && v2 !== null && !isNaN(Number(v2))) return Number(v2);
+    return def;
+  }
 
-  activeAnns.forEach((ann, idx) => {
-    const isError = ann.type === "cross" || ann.type === "warning" || String(ann.tag).includes("✗") || /inaccuracy|flaw|error|mistake|contradict|gap|missing/i.test(String(ann.margin_remark || ann.remark || ""));
-    const isSuggestion = ann.type === "suggestion" || String(ann.tag).includes("✎");
-    const secType = ann.section || (String(ann.tag).toLowerCase().includes("intro") ? "intro" : "body");
-
-    let aType = ann.annotation_type;
-    if (!aType) {
-      if (ann.marker_type === "bracket" || /merge|repetit/i.test(ann.tag || "")) aType = "bracket_merge";
-      else if (/diagram|flowchart|box/i.test(ann.tag || "")) aType = "box_highlight";
-      else if (/underline/i.test(ann.marker_type || "") || /underline/i.test(ann.tag || "")) aType = "underline";
-      else if (ann.marker_type === "tick" && (!ann.margin_remark || String(ann.margin_remark).length < 15)) aType = "tick";
-      else aType = "margin_note";
-    }
-
-    let mSide = ann.margin_side;
-    if (!mSide) {
-      if (aType === "tick" && (!ann.margin_remark || String(ann.margin_remark).length < 15)) mSide = "inline";
-      else if (aType === "bracket_merge" || secType === "intro" || (idx === 0 && currentPg === 1)) mSide = "left";
-      else if (floatVal(ann.approx_x_percent, null, 50) < 38) mSide = "left";
-      else mSide = "right";
-    }
-
-    const targetY = floatVal(ann.approx_y_percent, ann.start_y_percent, 12 + idx * 22);
-    const targetX = floatVal(ann.approx_x_percent, null, (mSide === "left" ? 22 : 68));
-
-    const item = {
-      ann,
-      idx,
-      secType,
-      aType,
-      mSide,
-      isError,
-      isSuggestion,
-      targetY,
-      targetX,
-      targetCanvasX: Math.max(100, Math.min(900, targetX * 10.0)),
-      targetCanvasY: Math.max(80, Math.min(1330, targetY * 14.14)),
-      startY: floatVal(ann.start_y_percent, targetY - 4, targetY - 4),
-      endY: floatVal(ann.end_y_percent, targetY + 8, targetY + 8),
-      heightPercent: 10.0,
-      placedY: targetY
-    };
-
-    if (mSide === "left") leftItems.push(item);
-    else if (mSide === "right") rightItems.push(item);
-    else inlineItems.push(item);
+  // 3. Precision Multi-Pass Anti-Overlap & Bounds-Fitting Layout Algorithm
+  // Dedicated Examiner Right Margin spans from 70% to 100% (canvas X: 700..1000)
+  const sortedAnns = [...bodyAnns].sort((a, b) => {
+    const ya = floatVal(a.approx_y_percent, a.start_y_percent, 20);
+    const yb = floatVal(b.approx_y_percent, b.start_y_percent, 20);
+    return ya - yb;
   });
 
-  // SVG Layer
+  const isCompact = sortedAnns.length >= 3;
+  const layoutItems = [];
+
+  // Pass 1: Render DOM note cards with bounded width and responsive compact mode
+  sortedAnns.forEach((ann, idx) => {
+    const isError = ann.type === "cross" || ann.type === "warning" || String(ann.tag).includes("✗") || /inaccuracy|flaw|error|mistake|contradict|gap|missing/i.test(String(ann.margin_remark || ann.remark || ""));
+    const isSuggestion = ann.type === "suggestion" || String(ann.tag).includes("✎");
+    const markerType = ann.marker_type || (isError ? "circle" : (isSuggestion ? "bracket" : "tick"));
+
+    const rawTag = ann.tag ? String(ann.tag).replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, "").trim() : (isError ? "Factual Inaccuracy" : "Core Analysis");
+    const cleanTag = rawTag.replace(/^[✓✔✎✗×]\s*/, "");
+    const remStr = String(ann.margin_remark || ann.remark || "");
+    let cleanRem = remStr.replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
+
+    // In compact mode (3+ notes), prevent giant multi-sentence essays from forcing cards to collide
+    if (isCompact && cleanRem.length > 180) {
+      cleanRem = cleanRem.slice(0, 175).replace(/\s+\S*$/, "").replace(/[,;:\s]+$/, "") + ".";
+    }
+
+    let leadHtml = "";
+    if (isError) {
+      leadHtml = `<span class="redpen-lead error">✗ ${escapeHtml(cleanTag)}:</span>`;
+    } else if (isSuggestion) {
+      leadHtml = `<span class="redpen-lead suggestion">✎ ${escapeHtml(cleanTag)}:</span>`;
+    } else {
+      leadHtml = `<span class="redpen-lead success">✓ ${escapeHtml(cleanTag)}:</span>`;
+    }
+
+    const noteEl = document.createElement("div");
+    noteEl.className = `onpage-redpen-note absolute ${isCompact ? 'compact-mode' : ''}`;
+    // Positioned strictly inside the 30% margin track (70% - 100%) with 6px right gutter
+    noteEl.style.left = "71.5%";
+    noteEl.style.width = "27.2%";
+    noteEl.style.maxWidth = "calc(28.5% - 6px)";
+    noteEl.style.boxSizing = "border-box";
+    noteEl.style.top = "0px";
+    noteEl.style.visibility = "hidden"; // Hidden while measuring exact heights
+
+    noteEl.innerHTML = `
+      ${leadHtml}
+      <span class="redpen-body">${escapeHtml(cleanRem)}</span>
+    `;
+    overlay.appendChild(noteEl);
+
+    const targetY = floatVal(ann.approx_y_percent, ann.start_y_percent, 12 + idx * 24);
+    const targetX = floatVal(ann.approx_x_percent, null, 30);
+
+    layoutItems.push({
+      ann,
+      noteEl,
+      markerType,
+      targetY,
+      targetCanvasX: Math.max(10, Math.min(65, targetX)) * 7.0, // Maps candidate text target to 0..700 canvas
+      targetCanvasY: Math.max(6, Math.min(92, targetY)) * 14.14,
+      heightPercent: 12.0, // Measured in Pass 2
+      placedY: targetY
+    });
+  });
+
+  // Pass 2: Measure actual rendered pixel heights and calculate exact height percentages
+  const overlayHeightPx = overlay.offsetHeight || (document.getElementById("activePageImage") ? document.getElementById("activePageImage").offsetHeight : 850) || 850;
+
+  layoutItems.forEach(item => {
+    const hPx = item.noteEl.offsetHeight || 80;
+    // Real percentage height of this note relative to evaluated sheet canvas
+    item.heightPercent = Math.max(6.5, (hPx / overlayHeightPx) * 100);
+  });
+
+  // Pass 3: Anti-Collision Layout Passes (Forward + Backward + Elastic Gap Compression)
+  const topBound = 3.5;
+  const bottomBound = 96.5;
+  let gapPct = isCompact ? 1.6 : 2.5;
+
+  // 3a. Forward pass: place notes as close to target points as possible without overlapping previous notes
+  let runningBottom = topBound;
+  for (let i = 0; i < layoutItems.length; i++) {
+    const it = layoutItems[i];
+    it.placedY = Math.max(it.targetY, runningBottom);
+    runningBottom = it.placedY + it.heightPercent + gapPct;
+  }
+
+  // 3b. Backward pass: if trailing notes exceed bottom boundary, push upwards cleanly
+  if (layoutItems.length > 0) {
+    const lastItem = layoutItems[layoutItems.length - 1];
+    let overflowBottom = (lastItem.placedY + lastItem.heightPercent) - bottomBound;
+
+    if (overflowBottom > 0) {
+      let ceiling = bottomBound;
+      for (let i = layoutItems.length - 1; i >= 0; i--) {
+        const it = layoutItems[i];
+        if (it.placedY + it.heightPercent > ceiling) {
+          it.placedY = ceiling - it.heightPercent;
+        }
+        ceiling = it.placedY - gapPct;
+      }
+
+      // 3c. If notes are so dense that the top note gets pushed past topBound, compress gaps uniformly
+      if (layoutItems[0].placedY < topBound) {
+        const totalNoteHeights = layoutItems.reduce((acc, it) => acc + it.heightPercent, 0);
+        const availableHeight = (bottomBound - topBound) - totalNoteHeights;
+        const compressedGap = Math.max(0.5, availableHeight / Math.max(1, layoutItems.length - 1));
+
+        let curY = topBound;
+        for (let i = 0; i < layoutItems.length; i++) {
+          layoutItems[i].placedY = curY;
+          curY += layoutItems[i].heightPercent + compressedGap;
+        }
+      }
+    }
+  }
+
+  // Pass 4: Apply final positions, reveal notes, and render SVG connecting arrows
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("class", "onpage-arrow-svg");
   svg.setAttribute("viewBox", "0 0 1000 1414");
@@ -22480,397 +22422,240 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
     <marker id="redArrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
       <path d="M 0 0 L 6 3 L 0 6 z" fill="#dc2626" />
     </marker>
-    <marker id="redArrowheadLeft" markerWidth="6" markerHeight="6" refX="1" refY="3" orient="auto">
-      <path d="M 6 0 L 0 3 L 6 6 z" fill="#dc2626" />
-    </marker>
   `;
   svg.appendChild(defs);
 
-  // Helper to create Note Element
-  function createNoteElement(item, sideClass) {
-    const isErr = item.isError;
-    const isSug = item.isSuggestion;
-    const rawTag = item.ann.tag ? String(item.ann.tag).replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, "").trim() : (isErr ? "Critical Gap" : "Core Analysis");
-    const cleanTag = rawTag.replace(/^[✓✔✎✗×]\s*/, "");
-    let cleanRem = String(item.ann.margin_remark || item.ann.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
-
-    if (cleanRem.length > 170) {
-      cleanRem = cleanRem.slice(0, 165).replace(/\s+\S*$/, "").replace(/[,;:\s]+$/, "") + ".";
-    }
-
-    let leadHtml = "";
-    if (isErr) {
-      leadHtml = `<span class="redpen-lead error">✗ ${escapeHtml(cleanTag)}:</span>`;
-    } else if (isSug) {
-      leadHtml = `<span class="redpen-lead suggestion">✎ ${escapeHtml(cleanTag)}:</span>`;
-    } else {
-      leadHtml = `<span class="redpen-lead success">✓ ${escapeHtml(cleanTag)}:</span>`;
-    }
-
-    const isCompact = (sideClass === "left-margin" && leftItems.length >= 3) || (sideClass === "right-margin" && rightItems.length >= 3);
-    const maxLen = isCompact ? 135 : 170;
-    if (cleanRem.length > maxLen) {
-      cleanRem = cleanRem.slice(0, maxLen - 5).replace(/\s+\S*$/, "").replace(/[,;:\s]+$/, "") + "...";
-    }
-
-    const noteEl = document.createElement("div");
-    noteEl.className = `onpage-redpen-note ${sideClass} ${isCompact ? 'compact-mode' : ''} absolute`;
-    noteEl.style.boxSizing = "border-box";
-    noteEl.style.top = "0px";
-    noteEl.style.visibility = "hidden";
-    noteEl.setAttribute("data-section", item.secType);
-    noteEl.setAttribute("title", "Click to examine detailed evaluation in Deep Evaluation tab");
-    noteEl.onclick = () => window.navigateToDeepEvalSection(item.secType);
-
-    noteEl.innerHTML = `
-      ${leadHtml}
-      <span class="redpen-body">${escapeHtml(cleanRem)}</span>
-    `;
-    overlay.appendChild(noteEl);
-    item.noteEl = noteEl;
-  }
-
-  // Create Left and Right note DOM elements
-  leftItems.forEach(it => createNoteElement(it, "left-margin"));
-  rightItems.forEach(it => createNoteElement(it, "right-margin"));
-
-  // Pass 2: Measure heights
-  const overlayHeightPx = overlay.offsetHeight || (document.getElementById("activePageImage") ? document.getElementById("activePageImage").offsetHeight : 850) || 850;
-  [...leftItems, ...rightItems].forEach(item => {
-    const hPx = item.noteEl.offsetHeight || 65;
-    item.heightPercent = Math.max(6.0, (hPx / overlayHeightPx) * 100);
-  });
-
-  // Anti-Collision Layout Pass for arbitrary side
-  function runAntiCollision(items) {
-    if (items.length === 0) return;
-    const topBound = 4.0;
-    const bottomBound = 95.0;
-    const gapPct = items.length >= 3 ? 1.5 : 2.5;
-
-    let runningBottom = topBound;
-    for (let i = 0; i < items.length; i++) {
-      items[i].placedY = Math.max(items[i].targetY, runningBottom);
-      runningBottom = items[i].placedY + items[i].heightPercent + gapPct;
-    }
-
-    const lastItem = items[items.length - 1];
-    if (lastItem.placedY + lastItem.heightPercent > bottomBound) {
-      let ceiling = bottomBound;
-      for (let i = items.length - 1; i >= 0; i--) {
-        if (items[i].placedY + items[i].heightPercent > ceiling) {
-          items[i].placedY = ceiling - items[i].heightPercent;
-        }
-        ceiling = items[i].placedY - gapPct;
-      }
-      if (items[0].placedY < topBound) {
-        const totalHeights = items.reduce((acc, it) => acc + it.heightPercent, 0);
-        const compGap = Math.max(0.4, ((bottomBound - topBound) - totalHeights) / Math.max(1, items.length - 1));
-        let curY = topBound;
-        for (let i = 0; i < items.length; i++) {
-          items[i].placedY = curY;
-          curY += items[i].heightPercent + compGap;
-        }
-      }
-    }
-  }
-
-  runAntiCollision(leftItems);
-  runAntiCollision(rightItems);
-
-  // Render Left Margin Notes & Visuals
-  leftItems.forEach(item => {
+  layoutItems.forEach((item, idx) => {
+    // Reveal and pin note card
     item.noteEl.style.top = `${item.placedY}%`;
     item.noteEl.style.visibility = "visible";
 
     const tx = item.targetCanvasX;
     const ty = item.targetCanvasY;
-    const my = item.placedY * 14.14 + 10;
-    const mx = 205; // Right edge of left margin
+    // Arrow starts at origin in dedicated right margin (canvas X: 712, 71.2%)
+    const mx = 712;
+    const my = item.placedY * 14.14 + 11;
+    const markerType = item.markerType;
 
-    if (item.aType === "bracket_merge") {
-      const sy = Math.max(50, item.startY * 14.14);
-      const ey = Math.min(1360, item.endY * 14.14);
-      const midY = (sy + ey) / 2;
-      const bx = 200;
-
-      const bracketPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      bracketPath.setAttribute("d", `M ${bx+10} ${sy} Q ${bx-5} ${midY-22} ${bx-15} ${midY} Q ${bx-5} ${midY+22} ${bx+10} ${ey}`);
-      bracketPath.setAttribute("fill", "none");
-      bracketPath.setAttribute("stroke", "#dc2626");
-      bracketPath.setAttribute("stroke-width", "2.8");
-      bracketPath.setAttribute("stroke-linecap", "round");
-      svg.appendChild(bracketPath);
-
-      // Connect bracket cusp to left note
-      const cuspLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      cuspLine.setAttribute("d", `M ${bx-15} ${midY} L ${mx-15} ${my}`);
-      cuspLine.setAttribute("fill", "none");
-      cuspLine.setAttribute("stroke", "#dc2626");
-      cuspLine.setAttribute("stroke-width", "1.8");
-      cuspLine.setAttribute("stroke-dasharray", "3 2");
-      svg.appendChild(cuspLine);
+    // Visual Marker on Candidate Script
+    if (markerType === "circle") {
+      const rx = 50;
+      const ry = 18;
+      const rot = (idx % 2 === 0 ? -2.2 : 2.0);
+      const circleEl = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+      circleEl.setAttribute("cx", tx);
+      circleEl.setAttribute("cy", ty);
+      circleEl.setAttribute("rx", rx);
+      circleEl.setAttribute("ry", ry);
+      circleEl.setAttribute("fill", "none");
+      circleEl.setAttribute("stroke", "#dc2626");
+      circleEl.setAttribute("stroke-width", "2.8");
+      circleEl.setAttribute("stroke-linecap", "round");
+      circleEl.setAttribute("transform", `rotate(${rot} ${tx} ${ty})`);
+      svg.appendChild(circleEl);
+    } else if (markerType === "bracket") {
+      const bh = 40;
+      const bPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      bPath.setAttribute("d", `M ${tx-25} ${ty-bh} Q ${tx-35} ${ty-bh/2} ${tx-40} ${ty} Q ${tx-35} ${ty+bh/2} ${tx-25} ${ty+bh}`);
+      bPath.setAttribute("fill", "none");
+      bPath.setAttribute("stroke", "#dc2626");
+      bPath.setAttribute("stroke-width", "2.6");
+      bPath.setAttribute("stroke-linecap", "round");
+      svg.appendChild(bPath);
     } else {
-      // Connect left margin note to text on left
-      const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      const ctrlX = (mx + tx) / 2;
-      const ctrlY = my + (ty - my) * 0.35;
-      arrowPath.setAttribute("d", `M ${mx} ${my} Q ${ctrlX} ${ctrlY} ${tx} ${ty}`);
-      arrowPath.setAttribute("fill", "none");
-      arrowPath.setAttribute("stroke", "#dc2626");
-      arrowPath.setAttribute("stroke-width", "2.0");
-      arrowPath.setAttribute("stroke-linecap", "round");
-      arrowPath.setAttribute("marker-end", "url(#redArrowhead)");
-      svg.appendChild(arrowPath);
-    }
-  });
-
-  // Render Right Margin Notes & Visuals
-  rightItems.forEach(item => {
-    item.noteEl.style.top = `${item.placedY}%`;
-    item.noteEl.style.visibility = "visible";
-
-    const tx = item.targetCanvasX;
-    const ty = item.targetCanvasY;
-    const my = item.placedY * 14.14 + 10;
-    const mx = 785; // Left edge of right margin
-
-    if (item.aType === "box_highlight") {
-      const rx = tx - 80;
-      const ry = ty - 35;
-      const box = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-      box.setAttribute("x", rx);
-      box.setAttribute("y", ry);
-      box.setAttribute("width", "160");
-      box.setAttribute("height", "70");
-      box.setAttribute("rx", "8");
-      box.setAttribute("ry", "8");
-      box.setAttribute("fill", "rgba(220, 38, 38, 0.04)");
-      box.setAttribute("stroke", "#dc2626");
-      box.setAttribute("stroke-width", "2.2");
-      box.setAttribute("stroke-dasharray", "5 3");
-      svg.appendChild(box);
-
-      const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      arrowPath.setAttribute("d", `M ${mx} ${my} Q ${(mx+rx+160)/2} ${my} ${rx+160} ${ty}`);
-      arrowPath.setAttribute("fill", "none");
-      arrowPath.setAttribute("stroke", "#dc2626");
-      arrowPath.setAttribute("stroke-width", "1.9");
-      arrowPath.setAttribute("stroke-linecap", "round");
-      arrowPath.setAttribute("marker-end", "url(#redArrowheadLeft)");
-      svg.appendChild(arrowPath);
-    } else {
-      const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      const ctrlX = (mx + tx) / 2;
-      const ctrlY = my + (ty - my) * 0.35;
-      arrowPath.setAttribute("d", `M ${mx} ${my} Q ${ctrlX} ${ctrlY} ${tx} ${ty}`);
-      arrowPath.setAttribute("fill", "none");
-      arrowPath.setAttribute("stroke", "#dc2626");
-      arrowPath.setAttribute("stroke-width", "2.0");
-      arrowPath.setAttribute("stroke-linecap", "round");
-      arrowPath.setAttribute("marker-end", "url(#redArrowheadLeft)");
-      svg.appendChild(arrowPath);
-    }
-  });
-
-  // Render Inline Items (Ticks, Underlines, Standalone Checks)
-  inlineItems.forEach(item => {
-    const tx = item.targetCanvasX;
-    const ty = item.targetCanvasY;
-
-    if (item.aType === "underline") {
-      const uLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      uLine.setAttribute("d", `M ${tx-60} ${ty+8} Q ${tx} ${ty+11} ${tx+60} ${ty+8}`);
-      uLine.setAttribute("fill", "none");
-      uLine.setAttribute("stroke", "#dc2626");
-      uLine.setAttribute("stroke-width", "2.6");
-      uLine.setAttribute("stroke-linecap", "round");
-      svg.appendChild(uLine);
-    } else {
-      // Standalone checkmark tick
       const tick = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      tick.setAttribute("d", `M ${tx-12} ${ty+2} L ${tx-4} ${ty+10} L ${tx+14} ${ty-10}`);
+      tick.setAttribute("d", `M ${tx-14} ${ty+2} L ${tx-4} ${ty+12} L ${tx+16} ${ty-12}`);
       tick.setAttribute("fill", "none");
-      tick.setAttribute("stroke", "#059669");
+      tick.setAttribute("stroke", "#dc2626");
       tick.setAttribute("stroke-width", "3.2");
       tick.setAttribute("stroke-linecap", "round");
       tick.setAttribute("stroke-linejoin", "round");
       svg.appendChild(tick);
-
-      if (item.ann.marks_awarded) {
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", tx + 18);
-        text.setAttribute("y", ty + 4);
-        text.setAttribute("font-family", "'Kalam', 'Caveat', cursive, sans-serif");
-        text.setAttribute("font-size", "15");
-        text.setAttribute("fill", "#059669");
-        text.setAttribute("font-weight", "bold");
-        text.textContent = String(item.ann.marks_awarded);
-        svg.appendChild(text);
-      }
     }
+
+    // Connecting Bezier Arrow: origin in dedicated right margin (712), sweeps to candidate text
+    const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    const ctrlX = (mx + tx) / 2;
+    const ctrlY = my + (ty - my) * 0.28;
+    const endX = tx + (markerType === "circle" ? 48 : 18);
+    arrowPath.setAttribute("d", `M ${mx} ${my} Q ${ctrlX} ${ctrlY} ${endX} ${ty}`);
+    arrowPath.setAttribute("fill", "none");
+    arrowPath.setAttribute("stroke", "#dc2626");
+    arrowPath.setAttribute("stroke-width", "2.0");
+    arrowPath.setAttribute("stroke-linecap", "round");
+    arrowPath.setAttribute("marker-end", "url(#redArrowhead)");
+    svg.appendChild(arrowPath);
   });
+
+  // 5. Connect Conclusion arrow if present
+  if (conclusionAnn) {
+    const c_tx = 350;
+    const c_ty = Math.min(1300, (floatVal(conclusionAnn.approx_y_percent, null, 80)) * 14.14);
+    const c_tick = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    c_tick.setAttribute("d", `M ${c_tx-16} ${c_ty+2} L ${c_tx-4} ${c_ty+14} L ${c_tx+18} ${c_ty-14}`);
+    c_tick.setAttribute("fill", "none");
+    c_tick.setAttribute("stroke", "#dc2626");
+    c_tick.setAttribute("stroke-width", "3.2");
+    c_tick.setAttribute("stroke-linecap", "round");
+    c_tick.setAttribute("stroke-linejoin", "round");
+    svg.appendChild(c_tick);
+
+    const c_arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    c_arrow.setAttribute("d", `M 500 1390 Q 420 1340 ${c_tx+20} ${c_ty}`);
+    c_arrow.setAttribute("fill", "none");
+    c_arrow.setAttribute("stroke", "#dc2626");
+    c_arrow.setAttribute("stroke-width", "1.9");
+    c_arrow.setAttribute("stroke-dasharray", "4 3");
+    c_arrow.setAttribute("marker-end", "url(#redArrowhead)");
+    svg.appendChild(c_arrow);
+  }
 
   overlay.appendChild(svg);
 };
 
-// Direct Native Evaluated Copy Print & PDF Export Overlay
+// Helper to generate on-page red pen SVG & notes HTML for Print & PDF Export
 window.generatePrintRedPenOverlayHtml = function(pageAnns, sections, conclusionAnn) {
   let anns = Array.isArray(pageAnns) && pageAnns.length > 0 ? pageAnns : [];
   if (anns.length === 0 && Array.isArray(sections) && sections.length > 0) {
     anns = sections.map((sec, idx) => ({
       tag: sec.title,
       marker_type: sec.isTick ? "tick" : "circle",
-      approx_x_percent: idx === 0 ? 24 : 70,
+      approx_x_percent: 32,
       approx_y_percent: Math.round((sec.startYPercent + sec.endYPercent) / 2),
-      start_y_percent: sec.startYPercent,
-      end_y_percent: sec.endYPercent,
       marks_awarded: sec.marks,
       margin_remark: sec.bodyHtml ? sec.bodyHtml.replace(/<[^>]*>/g, " ").trim() : "Direct assessment."
     }));
   }
 
-  const deduped = [];
-  const seen = new Set();
+  // Deduplicate redundant tags
+  const dedupedAnns = [];
+  const seenNorm = new Set();
   anns.forEach(a => {
     const norm = String(a.tag || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-    if (!seen.has(norm)) {
-      seen.add(norm);
-      deduped.push(a);
+    if (!seenNorm.has(norm)) {
+      seenNorm.add(norm);
+      dedupedAnns.push(a);
     }
   });
+  anns = dedupedAnns;
 
-  const leftItems = [];
-  const rightItems = [];
-  const inlineItems = [];
+  const isCompact = anns.length >= 3;
+  const layout = [];
 
-  deduped.forEach((a, idx) => {
-    const isErr = a.type === "cross" || a.type === "warning" || String(a.tag).includes("✗") || /inaccuracy|flaw|error|gap/i.test(String(a.margin_remark || a.remark || ""));
-    const secType = a.section || (String(a.tag).toLowerCase().includes("intro") ? "intro" : "body");
-    let aType = a.annotation_type || (a.marker_type === "bracket" ? "bracket_merge" : (a.marker_type === "tick" && !a.margin_remark ? "tick" : "margin_note"));
-    let mSide = a.margin_side || (aType === "tick" ? "inline" : (aType === "bracket_merge" || secType === "intro" ? "left" : "right"));
-
-    const targetY = a.approx_y_percent || a.start_y_percent || (12 + idx * 22);
-    const targetX = a.approx_x_percent || (mSide === "left" ? 22 : 68);
-
+  for (let i = 0; i < anns.length; i++) {
+    const a = anns[i];
+    const targetY = a.approx_y_percent || a.start_y_percent || (12 + i * 24);
     const rStr = (a.margin_remark || a.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
-    const estH = Math.max(7.0, Math.min(22.0, 6.0 + (rStr.length / 22) * 1.4));
+    // Estimate height percentage based on remark character length
+    const estHeightPct = Math.max(9.0, Math.min(26.0, 7.5 + (rStr.length / 22) * 1.5));
 
-    const item = {
+    layout.push({
       ann: a,
-      isErr,
-      aType,
-      mSide,
-      secType,
-      targetY,
-      targetX,
-      targetCanvasX: Math.max(100, Math.min(900, targetX * 10.0)),
-      targetCanvasY: Math.max(80, Math.min(1330, targetY * 14.14)),
-      startY: a.start_y_percent || targetY - 4,
-      endY: a.end_y_percent || targetY + 8,
-      heightPercent: estH,
+      targetCanvasX: Math.max(10, Math.min(65, a.approx_x_percent || 30)) * 7.0,
+      targetCanvasY: Math.max(6, Math.min(92, targetY)) * 14.14,
+      targetY: targetY,
+      heightPercent: estHeightPct,
       placedY: targetY
-    };
-
-    if (mSide === "left") leftItems.push(item);
-    else if (mSide === "right") rightItems.push(item);
-    else inlineItems.push(item);
-  });
-
-  function layoutSide(items) {
-    if (items.length === 0) return;
-    let running = 4.0;
-    items.forEach(it => {
-      it.placedY = Math.max(it.targetY, running);
-      running = it.placedY + it.heightPercent + 2.0;
     });
-    const last = items[items.length - 1];
-    if (last.placedY + last.heightPercent > 95.0) {
-      let ceil = 95.0;
-      for (let i = items.length - 1; i >= 0; i--) {
-        if (items[i].placedY + items[i].heightPercent > ceil) {
-          items[i].placedY = ceil - items[i].heightPercent;
+  }
+
+  // Anti-collision layout pass
+  const topBound = 3.5;
+  const bottomBound = 96.5;
+  const gapPct = isCompact ? 1.6 : 2.5;
+
+  let runningBottom = topBound;
+  for (let i = 0; i < layout.length; i++) {
+    layout[i].placedY = Math.max(layout[i].targetY, runningBottom);
+    runningBottom = layout[i].placedY + layout[i].heightPercent + gapPct;
+  }
+
+  if (layout.length > 0) {
+    const lastItem = layout[layout.length - 1];
+    if (lastItem.placedY + lastItem.heightPercent > bottomBound) {
+      let ceiling = bottomBound;
+      for (let i = layout.length - 1; i >= 0; i--) {
+        if (layout[i].placedY + layout[i].heightPercent > ceiling) {
+          layout[i].placedY = ceiling - layout[i].heightPercent;
         }
-        ceil = items[i].placedY - 2.0;
+        ceiling = layout[i].placedY - gapPct;
+      }
+
+      if (layout[0].placedY < topBound) {
+        const totalHeights = layout.reduce((acc, it) => acc + it.heightPercent, 0);
+        const compGap = Math.max(0.5, ((bottomBound - topBound) - totalHeights) / Math.max(1, layout.length - 1));
+        let curY = topBound;
+        for (let i = 0; i < layout.length; i++) {
+          layout[i].placedY = curY;
+          curY += layout[i].heightPercent + compGap;
+        }
       }
     }
   }
 
-  layoutSide(leftItems);
-  layoutSide(rightItems);
-
   let pathsHtml = "";
   let notesHtml = "";
 
-  // Left notes
-  leftItems.forEach(it => {
-    const rawT = it.ann.tag ? String(it.ann.tag).replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, "").trim() : (it.isErr ? "Critical Gap" : "Core Analysis");
+  layout.forEach((it, idx) => {
+    const a = it.ann;
+    const tx = it.targetCanvasX;
+    const ty = it.targetCanvasY;
+    const mx = 712;
+    const my = it.placedY * 14.14 + 11;
+
+    const isErr = a.type === "cross" || a.type === "warning" || String(a.tag).includes("✗") || /inaccuracy|flaw|error|mistake|contradict|gap|missing/i.test(String(a.margin_remark || a.remark || ""));
+    const isSug = a.type === "suggestion" || String(a.tag).includes("✎");
+    const mType = a.marker_type || (isErr ? "circle" : (isSug ? "bracket" : "tick"));
+
+    if (mType === "circle") {
+      pathsHtml += `<ellipse cx="${tx}" cy="${ty}" rx="50" ry="18" fill="none" stroke="#dc2626" stroke-width="2.8" stroke-linecap="round" transform="rotate(-2 ${tx} ${ty})" />`;
+    } else if (mType === "bracket") {
+      pathsHtml += `<path d="M ${tx-25} ${ty-40} Q ${tx-35} ${ty-20} ${tx-40} ${ty} Q ${tx-35} ${ty+20} ${tx-25} ${ty+40}" fill="none" stroke="#dc2626" stroke-width="2.6" stroke-linecap="round" />`;
+    } else {
+      pathsHtml += `<path d="M ${tx-14} ${ty+2} L ${tx-4} ${ty+12} L ${tx+16} ${ty-12}" fill="none" stroke="#dc2626" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />`;
+    }
+
+    const ctrlX = (mx + tx) / 2;
+    const ctrlY = my + (ty - my) * 0.28;
+    const endX = tx + (mType === "circle" ? 48 : 18);
+    pathsHtml += `<path d="M ${mx} ${my} Q ${ctrlX} ${ctrlY} ${endX} ${ty}" fill="none" stroke="#dc2626" stroke-width="2.0" stroke-linecap="round" marker-end="url(#printRedArrowhead)" />`;
+
+    const rawT = a.tag ? String(a.tag).replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, "").trim() : (isErr ? "Factual Inaccuracy" : "Examiner Point");
     const cTag = rawT.replace(/^[✓✔✎✗×]\s*/, "");
-    let rStr = (it.ann.margin_remark || it.ann.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
-    if (rStr.length > 160) rStr = rStr.slice(0, 155) + "...";
+    let rStr = (a.margin_remark || a.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
+    if (isCompact && rStr.length > 180) {
+      rStr = rStr.slice(0, 175).replace(/\s+\S*$/, "").replace(/[,;:\s]+$/, "") + ".";
+    }
+
+    let lHtml = "";
+    if (isErr) {
+      lHtml = `<span class="redpen-lead error" style="font-weight: 700; color: #dc2626; display: block; margin-bottom: 2px;">✗ ${escapeHtml(cTag)}:</span>`;
+    } else if (isSug) {
+      lHtml = `<span class="redpen-lead suggestion" style="font-weight: 700; color: #b45309; display: block; margin-bottom: 2px;">✎ ${escapeHtml(cTag)}:</span>`;
+    } else {
+      lHtml = `<span class="redpen-lead success" style="font-weight: 700; color: #047857; display: block; margin-bottom: 2px;">✓ ${escapeHtml(cTag)}:</span>`;
+    }
 
     notesHtml += `
-      <div class="onpage-redpen-note left-margin absolute" style="left: 1.5%; width: 19%; max-width: calc(20% - 4px); top: ${it.placedY}%; font-family: 'Kalam', 'Caveat', cursive, sans-serif; font-size: 9.5pt; line-height: 1.25; color: #991b1b; padding: 2px 4px; word-break: break-word;">
-        <span class="redpen-lead ${it.isErr ? 'error' : 'success'}" style="font-weight: 700; color: ${it.isErr ? '#dc2626' : '#047857'}; display: block; margin-bottom: 2px;">${it.isErr ? '✗' : '✓'} ${escapeHtml(cTag)}:</span>
+      <div class="onpage-redpen-note absolute ${isCompact ? 'compact-mode' : ''}" style="left: 71.5%; width: 27.2%; max-width: calc(28.5% - 6px); box-sizing: border-box; top: ${it.placedY}%; font-family: 'Kalam', 'Caveat', cursive, sans-serif; font-size: ${isCompact ? '9.5pt' : '10.5pt'}; line-height: ${isCompact ? '1.25' : '1.32'}; color: #991b1b; padding: 2px 4px; word-break: break-word; overflow-wrap: break-word;">
+        ${lHtml}
         <span class="redpen-body" style="display: block;">${escapeHtml(rStr)}</span>
       </div>
     `;
-
-    const my = it.placedY * 14.14 + 10;
-    const mx = 205;
-    const tx = it.targetCanvasX;
-    const ty = it.targetCanvasY;
-
-    if (it.aType === "bracket_merge") {
-      const sy = it.startY * 14.14;
-      const ey = it.endY * 14.14;
-      const midY = (sy + ey) / 2;
-      pathsHtml += `<path d="M 210 ${sy} Q 195 ${midY-20} 185 ${midY} Q 195 ${midY+20} 210 ${ey}" fill="none" stroke="#dc2626" stroke-width="2.8" stroke-linecap="round" />`;
-    } else {
-      pathsHtml += `<path d="M ${mx} ${my} Q ${(mx+tx)/2} ${my + (ty-my)*0.35} ${tx} ${ty}" fill="none" stroke="#dc2626" stroke-width="2.0" stroke-linecap="round" marker-end="url(#printRedArrowhead)" />`;
-    }
   });
 
-  // Right notes
-  rightItems.forEach(it => {
-    const rawT = it.ann.tag ? String(it.ann.tag).replace(/^Body:\s*/i, "").replace(/^Intro:\s*/i, "").trim() : (it.isErr ? "Critical Gap" : "Core Analysis");
-    const cTag = rawT.replace(/^[✓✔✎✗×]\s*/, "");
-    let rStr = (it.ann.margin_remark || it.ann.remark || "").replace(/^[✓✔✎✗×]\s*(?:\*\*[^*]+\*\*:?\s*)?/, "").replace(/\*\*/g, "").trim();
-    if (rStr.length > 160) rStr = rStr.slice(0, 155) + "...";
-
-    notesHtml += `
-      <div class="onpage-redpen-note right-margin absolute" style="left: 78.5%; width: 20%; max-width: calc(21% - 4px); top: ${it.placedY}%; font-family: 'Kalam', 'Caveat', cursive, sans-serif; font-size: 9.5pt; line-height: 1.25; color: #991b1b; padding: 2px 4px; word-break: break-word;">
-        <span class="redpen-lead ${it.isErr ? 'error' : 'success'}" style="font-weight: 700; color: ${it.isErr ? '#dc2626' : '#047857'}; display: block; margin-bottom: 2px;">${it.isErr ? '✗' : '✓'} ${escapeHtml(cTag)}:</span>
-        <span class="redpen-body" style="display: block;">${escapeHtml(rStr)}</span>
-      </div>
-    `;
-
-    const my = it.placedY * 14.14 + 10;
-    const mx = 785;
-    const tx = it.targetCanvasX;
-    const ty = it.targetCanvasY;
-    pathsHtml += `<path d="M ${mx} ${my} Q ${(mx+tx)/2} ${my + (ty-my)*0.35} ${tx} ${ty}" fill="none" stroke="#dc2626" stroke-width="2.0" stroke-linecap="round" marker-end="url(#printRedArrowheadLeft)" />`;
-  });
-
-  // Inline items
-  inlineItems.forEach(it => {
-    const tx = it.targetCanvasX;
-    const ty = it.targetCanvasY;
-    if (it.aType === "underline") {
-      pathsHtml += `<path d="M ${tx-50} ${ty+8} Q ${tx} ${ty+11} ${tx+50} ${ty+8}" fill="none" stroke="#dc2626" stroke-width="2.6" stroke-linecap="round" />`;
-    } else {
-      pathsHtml += `<path d="M ${tx-12} ${ty+2} L ${tx-4} ${ty+10} L ${tx+14} ${ty-10}" fill="none" stroke="#059669" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />`;
-    }
-  });
+  if (conclusionAnn) {
+    const c_tx = 350;
+    const c_ty = Math.min(1300, (conclusionAnn.approx_y_percent || 80) * 14.14);
+    pathsHtml += `<path d="M ${c_tx-16} ${c_ty+2} L ${c_tx-4} ${c_ty+14} L ${c_tx+18} ${c_ty-14}" fill="none" stroke="#dc2626" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />`;
+    pathsHtml += `<path d="M 500 1390 Q 420 1340 ${c_tx+20} ${c_ty}" fill="none" stroke="#dc2626" stroke-width="1.9" stroke-dasharray="4 3" marker-end="url(#printRedArrowhead)" />`;
+  }
 
   return `
     <svg class="onpage-arrow-svg" viewBox="0 0 1000 1414" preserveAspectRatio="none" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;">
       <defs>
         <marker id="printRedArrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
           <path d="M 0 0 L 6 3 L 0 6 z" fill="#dc2626" />
-        </marker>
-        <marker id="printRedArrowheadLeft" markerWidth="6" markerHeight="6" refX="1" refY="3" orient="auto">
-          <path d="M 6 0 L 0 3 L 6 6 z" fill="#dc2626" />
         </marker>
       </defs>
       ${pathsHtml}

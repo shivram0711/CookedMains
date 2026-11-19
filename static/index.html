@@ -3474,17 +3474,22 @@
                     <div class="relative w-full h-auto hidden flex flex-col items-stretch" id="pageImageWrapper">
                       <div class="relative w-full bg-white dark:bg-[#0E131F] rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden" id="evaluatedSheetCanvas">
                         
-                        <!-- Top Row: Full-Bleed 100% Candidate Script + On-Page Red-Pen Overlay -->
+                        <!-- Top Row: Candidate Script (72%) + Dedicated Examiner Right Margin (28%) -->
                         <div class="relative w-full flex flex-row items-stretch" id="evaluatedSheetMainRow">
-                          <!-- Candidate Script Column: 100% Full-Bleed authentic notebook canvas matching real UPSC QCAB -->
-                          <div class="relative w-full min-w-0 bg-white dark:bg-[#0E131F]" style="width: 100%; flex: 1 1 100%;" id="candidateScriptCol">
+                          <!-- Candidate Script Column: Scaled cleanly to 72% so student handwriting NEVER touches the margin -->
+                          <div class="relative min-w-0" style="width: 70%; flex: 0 0 70%; background-color: #fafafa;" id="candidateScriptCol">
                             <img id="activePageImage" src="" alt="Answer Sheet Preview" class="w-full h-auto block shadow-xs select-none pointer-events-none">
                           </div>
 
-                          <!-- Legacy Margin Column hidden to preserve 100% authentic page layout -->
-                          <div class="hidden" style="display: none !important;" id="examinerDedicatedMarginCol"></div>
+                          <!-- Dedicated Examiner Margin Column (28%): Clean white margin with subtle dashed red guide line -->
+                          <div class="relative select-none flex flex-col justify-between" style="width: 30%; flex: 0 0 30%; background-color: #fdfdfd; border-left: 1.5px dashed rgba(220, 38, 38, 0.35);" id="examinerDedicatedMarginCol">
+                            <div class="p-2 text-[9px] font-mono font-bold tracking-widest text-rose-500/60 uppercase select-none flex items-center justify-between">
+                              <span>Examiner Margin</span>
+                              <i data-lucide="pen-tool" class="w-2.5 h-2.5 opacity-60"></i>
+                            </div>
+                          </div>
 
-                          <!-- Full-Width Red-Pen SVG & Margin Notes Overlay covering the entire page canvas -->
+                          <!-- Full-Width Red-Pen SVG & Margin Notes Overlay covering script + margin -->
                           <div id="onPageRedPenOverlay" class="absolute inset-0 pointer-events-auto overflow-visible z-20"></div>
                         </div>
 
