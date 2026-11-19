@@ -1932,6 +1932,28 @@ class TestUPSCInterdisciplinarySyllabusOverlap(unittest.TestCase):
         self.assertTrue(self.is_paper_compatible("GS1", "GS4", q_gandhi))
         self.assertTrue(self.is_paper_compatible("GS4", "GS1", q_gandhi))
 
+    def test_gs1_gs2_gs3_global_trade_indo_pacific_overlap_compatibility(self):
+        """Question 16 (Global trade shifting from Atlantic to Indo-Pacific) must resolve to GS1 and be compatible across GS1, GS2, and GS3 in English and Hindi."""
+        q_en = '16. "The centre of global trade is gradually shifting from the Atlantic region to the Indo-Pacific region." Examine this statement. (Answer in 250 words) 15'
+        q_hi = '16. "वैश्विक व्यापार का केन्द्र अटलांटिक प्रदेश से हिन्द-प्रशान्त (इंडो-पैसिफिक) प्रदेश की ओर धीरे-धीरे स्थानान्तरित हो रहा है।" इस कथन का परीक्षण कीजिए। (उत्तर 250 शब्दों में दीजिए) 15'
+        
+        # 1. Inferred paper must resolve to GS1
+        self.assertEqual(self.infer_paper_from_question_content(q_en), "GS1")
+        self.assertEqual(self.infer_paper_from_question_content(q_hi), "GS1")
+        
+        # 2. Compatibility across GS1, GS2, GS3
+        self.assertTrue(self.is_paper_compatible("GS1", "GS2", q_en))
+        self.assertTrue(self.is_paper_compatible("GS2", "GS1", q_en))
+        self.assertTrue(self.is_paper_compatible("GS1", "GS3", q_en))
+        self.assertTrue(self.is_paper_compatible("GS3", "GS1", q_en))
+        self.assertTrue(self.is_paper_compatible("GS1", "GS1", q_en))
+        
+        # 3. Hindi compatibility
+        self.assertTrue(self.is_paper_compatible("GS1", "GS2", q_hi))
+        self.assertTrue(self.is_paper_compatible("GS2", "GS1", q_hi))
+        self.assertTrue(self.is_paper_compatible("GS1", "GS3", q_hi))
+        self.assertTrue(self.is_paper_compatible("GS1", "GS1", q_hi))
+
     def test_genuine_mismatch_strictly_blocked(self):
         """Confirm genuine subject mismatches (e.g. Volcanic Calderas in GS4) remain strictly blocked."""
         q_geo = "Explain the process of formation of volcanic calderas. How do they contribute to geothermal energy?"

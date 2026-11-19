@@ -1858,12 +1858,14 @@ window.showGuardModal = function(data) {
     if (data.error_type === "intake_mismatch") {
       exitBtn.classList.remove("hidden");
       exitBtn.innerHTML = `
-        <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
-        <span>Change Uploaded Copy</span>
+        <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+        <span>Evaluate as Selected [${data.selected_paper} (${data.selected_marks}M)]</span>
       `;
       exitBtn.onclick = () => {
         window.closeGuardModal();
-        window.clearPaperMarksAndAnswersheet(true);
+        if (typeof window.runEvaluation === "function") {
+          window.runEvaluation(false, true);
+        }
       };
     } else if (data.error_type === "identical_copy") {
       exitBtn.classList.remove("hidden");
@@ -1905,12 +1907,12 @@ window.showGuardModal = function(data) {
   if (cancelBtn) {
     if (data.error_type === "intake_mismatch") {
       cancelBtn.innerHTML = `
-        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
-        <span>Keep Intake & Dismiss</span>
+        <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+        <span>Change Uploaded Copy / Select Another File</span>
       `;
       cancelBtn.onclick = () => {
         window.closeGuardModal();
-        window.clearPaperMarksAndAnswersheet(false);
+        window.clearPaperMarksAndAnswersheet(true);
       };
     } else if (data.error_type === "identical_copy") {
       cancelBtn.innerHTML = `
@@ -10523,7 +10525,7 @@ window.loadSampleAnswerCopy = async function(sampleId) {
 };
 
 // Execute Evaluation
-window.runEvaluation = async function(allowAutoAligned = false) {
+window.runEvaluation = async function(allowAutoAligned = false, forceUserSelection = false) {
   let question = "";
   if (state.questionMode === "daily") {
     question = (state.dailyQuestion && state.dailyQuestion.question) || (document.getElementById("dawQuestionText") ? document.getElementById("dawQuestionText").textContent.trim() : "");
@@ -10675,6 +10677,9 @@ window.runEvaluation = async function(allowAutoAligned = false) {
   formData.append("medium", state.medium || "english");
   if (allowAutoAligned) {
     formData.append("allow_auto_aligned", "true");
+  }
+  if (forceUserSelection) {
+    formData.append("force_user_selection", "true");
   }
   if (state.apiKey) {
     formData.append("api_key", state.apiKey);

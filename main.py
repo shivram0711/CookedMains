@@ -2142,6 +2142,7 @@ async def evaluate_answer(
     baseline_marks: Optional[int] = Form(None),
     baseline_evaluation_json: Optional[str] = Form(None),
     allow_auto_aligned: bool = Form(False),
+    force_user_selection: bool = Form(False),
     page_range: Optional[str] = Form(None),
     files: List[UploadFile] = File(None)
 ):
@@ -2969,24 +2970,27 @@ async def evaluate_answer(
 
         paper_mismatch = False
         true_detected_paper = paper
-        if det_p_norm and det_p_norm in ["GS1", "GS2", "GS3", "GS4", "ESSAY", "OPTIONAL"] and det_p_norm != req_p_norm:
-            if not is_paper_compatible(paper, detected_p, final_question):
-                paper_mismatch = True
-                true_detected_paper = detected_p
-        elif inf_p_norm and inf_p_norm in ["GS1", "GS2", "GS3", "GS4", "ESSAY"] and inf_p_norm != req_p_norm:
-            if not is_paper_compatible(paper, inferred_p, final_question):
-                paper_mismatch = True
-                true_detected_paper = inferred_p
-
-        # If papers are academically compatible under the UPSC Interdisciplinary Overlap Matrix,
-        # clear any raw model mismatch flags so valid cross-disciplinary answers evaluate seamlessly!
-        if is_paper_compatible(paper, detected_p, final_question) and is_paper_compatible(paper, inferred_p, final_question):
+        
+        # Check interdisciplinary academic compatibility across candidate selection, model detection, and heuristic inference
+        det_compat = is_paper_compatible(paper, detected_p, final_question) if (detected_p and det_p_norm in ["GS1", "GS2", "GS3", "GS4", "ESSAY", "OPTIONAL"]) else True
+        inf_compat = is_paper_compatible(paper, inferred_p, final_question) if (inferred_p and inf_p_norm in ["GS1", "GS2", "GS3", "GS4", "ESSAY"]) else True
+        
+        # If the candidate's selected paper is academically compatible with either model detection or heuristic inference,
+        # respect the candidate's choice as legitimate UPSC interdisciplinary overlap (e.g. World Trade in GS1 vs IR in GS2)!
+        if det_compat or inf_compat:
             paper_mismatch = False
             true_detected_paper = paper
             if isinstance(evaluation_result, dict):
                 evaluation_result["is_intake_mismatch"] = False
                 evaluation_result["mismatch_details"] = ""
                 evaluation_result["detected_paper"] = paper
+        else:
+            if det_p_norm and det_p_norm in ["GS1", "GS2", "GS3", "GS4", "ESSAY", "OPTIONAL"] and det_p_norm != req_p_norm:
+                paper_mismatch = True
+                true_detected_paper = detected_p
+            elif inf_p_norm and inf_p_norm in ["GS1", "GS2", "GS3", "GS4", "ESSAY"] and inf_p_norm != req_p_norm:
+                paper_mismatch = True
+                true_detected_paper = inferred_p
 
         marks_mismatch = False
         true_detected_marks = req_m_int
@@ -2994,9 +2998,20 @@ async def evaluate_answer(
             marks_mismatch = True
             true_detected_marks = det_m_int
 
+        # If user explicitly opted to evaluate under their chosen intake parameters:
+        if force_user_selection:
+            paper_mismatch = False
+            marks_mismatch = False
+            true_detected_paper = paper
+            true_detected_marks = req_m_int
+            if isinstance(evaluation_result, dict):
+                evaluation_result["is_intake_mismatch"] = False
+                evaluation_result["mismatch_details"] = ""
+                evaluation_result["detected_paper"] = paper
+
         intake_flag = bool(evaluation_result.get("is_intake_mismatch", False)) and (paper_mismatch or marks_mismatch)
 
-        if not is_rewrite and not allow_auto_aligned and (paper_mismatch or marks_mismatch or intake_flag):
+        if not is_rewrite and not allow_auto_aligned and not force_user_selection and (paper_mismatch or marks_mismatch or intake_flag):
             # DO NOT CONSUME CREDITS, DO NOT SAVE MISMATCHED EVALUATION!
             return JSONResponse(
                 status_code=400,
@@ -3011,7 +3026,8 @@ async def evaluate_answer(
                     "detected_marks": true_detected_marks,
                     "detected_question": final_question,
                     "warning": f"⚠️ Evaluation Guard: Evaluating a {true_detected_paper} question under {paper} ({max_marks}M) corrupts UPSC marks calibration and percentile analytics. Zero credits were deducted.",
-                    "action_hint": f"Click 'Switch to {true_detected_paper} ({true_detected_marks}M) & Evaluate' to evaluate this copy correctly, or upload your matching {paper} answer sheet.",
+                    "action_hint": f"Click 'Switch to {true_detected_paper} ({true_detected_marks}M) & Evaluate' to evaluate this copy correctly, or 'Proceed as Selected {paper} ({max_marks}M)' to evaluate under your intake.",
+                    "can_evaluate_as_selected": True,
                     "credits_deducted": 0
                 }
             )
@@ -3076,9 +3092,9 @@ async def evaluate_answer(
 
         eval_id = None
         user_info = None
-        final_paper = true_detected_paper if (allow_auto_aligned and (paper_mismatch or marks_mismatch)) else (evaluation_result.get("detected_paper") or paper)
+        final_paper = paper if force_user_selection else (true_detected_paper if (allow_auto_aligned and (paper_mismatch or marks_mismatch)) else (evaluation_result.get("detected_paper") or paper))
         final_paper_display = evaluation_result.get("detected_paper_display") or final_paper
-        final_max_marks = true_detected_marks if (allow_auto_aligned and (paper_mismatch or marks_mismatch)) else max_marks
+        final_max_marks = max_marks if force_user_selection else (true_detected_marks if (allow_auto_aligned and (paper_mismatch or marks_mismatch)) else max_marks)
 
         if is_rewrite and prev_record:
             prev_eval_clean = copy.deepcopy(prev_record.get("evaluation") or {})

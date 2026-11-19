@@ -165,7 +165,8 @@ PAPER_TAXONOMIES = {
     "GS1": {
         "name": "General Studies I (Heritage, History, Geography & Society)",
         "expected_elements": [
-            "Geographical maps & geomorphic schematics",
+            "Geographical maps, trade routes & geomorphic schematics",
+            "World Economic & Maritime Geography (ocean trade routes, choke points, locational factors of industries, resources)",
             "Chronological markers & socio-cultural impacts in History",
             "Sociological concepts (Sanskritization, Modernization, Demographics)",
             "Census statistics & vulnerable section data"
@@ -608,6 +609,9 @@ def are_questions_semantically_mismatched(q1: str, q2: str) -> tuple[bool, float
 def has_phrase(text: str, kw: str) -> bool:
     if not text or not kw:
         return False
+    # Safe multi-lingual support: if keyword contains non-ASCII (e.g. Hindi Devanagari)
+    if any(ord(c) > 127 for c in kw):
+        return kw.lower() in text.lower()
     pattern = r'\b' + re.escape(kw.lower()) + r'\b'
     return bool(re.search(pattern, text.lower()))
 
@@ -706,7 +710,30 @@ def is_paper_compatible(selected_paper: str, detected_or_inferred_paper: str, qu
         return True
         
     # Interdisciplinary Overlap Matrix for UPSC Mains:
-    # 1. GS2 <-> GS3 Overlap:
+    # 0. Essay compatibility with all GS papers:
+    # Any analytical or thematic GS question can legitimately be practiced as a UPSC Essay
+    if "ESSAY" in (s_norm, d_norm):
+        return True
+
+    # 1. Cross-cutting Tri-Paper Overlap: GS1 <-> GS2 <-> GS3
+    # Economic Geography, Global Trade Corridors, Maritime Security & Supply Chains (e.g. Atlantic to Indo-Pacific shift, IMEC, INSTC, Blue Economy, Critical Minerals, Energy Security)
+    tri_paper_keywords = [
+        "global trade", "trade", "trade shift", "trade route", "trade routes", "centre of global trade", "center of global trade",
+        "atlantic", "atlantic region", "indo-pacific", "indo pacific", "indopacific", "pacific", "pacific rim", "indian ocean",
+        "maritime", "maritime trade", "sea lines of communication", "sloc", "sea lanes", "choke point", "choke points", "chokepoints",
+        "strait", "malacca", "hormuz", "suez", "panama", "shipping lanes", "ports", "geoeconomics", "geopolitics", "quad", "aukus",
+        "unclos", "south china sea", "blue economy", "ocean resources", "strategic geography", "critical minerals", "rare earth", "rare earths",
+        "energy security", "strategic petroleum", "supply chain", "supply chain resilience", "logistics", "freight corridor",
+        "industrial corridor", "industrial location", "location of industries", "resource distribution", "polar route", "arctic",
+        "disaster management", "climate change", "urbanization", "migration", "sustainable development",
+        "वैश्विक व्यापार", "व्यापार", "अटलांटिक", "हिन्द-प्रशान्त", "इंडो-पैसिफिक", "स्थानिक वितरण", "व्यापारिक मार्ग", "सामुद्रिक",
+        "समुद्री व्यापार", "जलडमरूमध्य", "मलक्का", "भू-राजनीति", "भू-आर्थिक", "आपूर्ति श्रृंखला", "लॉजिस्टिक्स", "ऊर्जा सुरक्षा"
+    ]
+    if (s_norm in ["GS1", "GS2", "GS3"]) and (d_norm in ["GS1", "GS2", "GS3"]):
+        if question_text and has_any_phrase(question_text.lower(), tri_paper_keywords):
+            return True
+
+    # 2. GS2 <-> GS3 Overlap:
     #    - Anti-terror laws, internal security vs civil liberties (NSA, UAPA, PMLA, AFSPA, NIA, police reforms vs Art 19/21/22)
     #    - Federalism vs Resource mobilization (GST, Finance Commission, PMLA federal impact)
     #    - Environmental rights vs Tribals/Forest Rights (FRA, PESA vs Wildlife Protection)
@@ -717,29 +744,66 @@ def is_paper_compatible(selected_paper: str, detected_or_inferred_paper: str, qu
         "human rights", "police reform", "police reforms", "prakash singh", "sedition", "section 124a",
         "surveillance", "pegasus", "privacy", "data protection", "dpdpa", "right to privacy", "article 21",
         "forest rights act", "fra", "pesa", "tribal", "green tribunal", "ngt", "environmental governance",
-        "gst council", "fiscal federalism", "finance commission", "disaster management"
+        "gst council", "fiscal federalism", "finance commission", "disaster management",
+        "foreign trade policy", "export promotion", "free trade agreement", "fta", "bilateral trade", "wto",
+        "supply chain resilience", "imec", "instc", "regulatory governance", "rbi", "sebi", "cci", "trai",
+        "national food security act", "nfsa", "pds", "aadhaar", "dbt", "pm-kisan", "cyber warfare", "internal security",
+        "सीमा सुरक्षा", "आतंकवाद", "मनी लॉन्ड्रिंग", "वित्तीय संघवाद", "सूचना का अधिकार"
     ]
     if (s_norm in ["GS2", "GS3"]) and (d_norm in ["GS2", "GS3"]):
         if question_text and has_any_phrase(question_text.lower(), gs2_gs3_overlap_keywords):
             return True
 
-    # 2. GS1 <-> GS2 Overlap:
+    # 3. GS1 <-> GS2 Overlap:
+    #    - World Economic & Maritime Geography vs Geopolitics & IR (Global Trade shift from Atlantic to Indo-Pacific, Sea Lanes, Choke points, Geoeconomics)
     #    - Society vs Social Justice / Vulnerable Sections (caste, women, secularism, urbanization, population vs schemes/rights)
+    #    - Constitutional History / Freedom Struggle vs Indian Constitution (GOI Acts, Constituent Assembly, historical civil rights)
     gs1_gs2_overlap_keywords = [
-        "secularism", "communalism", "regionalism", "caste", "women empowerment", "child labor",
-        "elderly", "transgender", "vulnerable sections", "social justice", "poverty", "urbanization",
-        "social empowerment", "tribal", "scheduled caste", "scheduled tribe", "minority", "minorities"
+        "global trade", "trade", "trade shift", "trade route", "trade routes", "centre of global trade", "center of global trade",
+        "atlantic", "atlantic region", "indo-pacific", "indo pacific", "indopacific", "pacific", "pacific rim", "indian ocean",
+        "maritime", "maritime trade", "sea lines of communication", "sloc", "sea lanes", "choke point", "choke points", "chokepoints",
+        "strait", "malacca", "hormuz", "suez", "panama", "shipping lanes", "ports", "geoeconomics", "geopolitics", "quad", "aukus",
+        "unclos", "south china sea", "blue economy", "ocean resources", "strategic geography", "critical minerals", "rare earth",
+        "polar route", "arctic", "diaspora", "globalization", "effects of globalization", "locational factors", "spatial distribution",
+        "secularism", "communalism", "regionalism", "caste", "women empowerment", "child labor", "child labour",
+        "elderly", "transgender", "vulnerable sections", "social justice", "poverty", "urbanization", "migration",
+        "social empowerment", "tribal", "scheduled caste", "scheduled tribe", "minority", "minorities", "human development",
+        "population", "fertility", "demographic dividend", "gender", "gender disparity", "patriarchy",
+        "constituent assembly", "cabinet mission", "cripps mission", "government of india act", "goi act", "morley-minto",
+        "montagu-chelmsford", "nehru report", "karachi resolution", "historical underpinnings", "evolution of constitution",
+        "preamble origins", "fundamental rights evolution", "dr b r ambedkar", "b.r. ambedkar", "poona pact",
+        "वैश्विक व्यापार", "व्यापार", "अटलांटिक", "हिन्द-प्रशान्त", "इंडो-पैसिफिक", "स्थानिक वितरण", "व्यापारिक मार्ग", "सामुद्रिक",
+        "समुद्री व्यापार", "जलडमरूमध्य", "मलक्का", "भू-राजनीति", "भू-आर्थिक", "वैश्वीकरण",
+        "भारतीय समाज", "धर्मनिरपेक्षता", "सांप्रदायिकता", "क्षेत्रीयता", "जाति व्यवस्था", "महिला सशक्तिकरण", "सामाजिक न्याय", "गरीबी", "शहरीकरण", "प्रवासन",
+        "संविधान सभा", "संविधान निर्माण", "ऐतिहासिक आधार", "भारत शासन अधिनियम"
     ]
     if (s_norm in ["GS1", "GS2"]) and (d_norm in ["GS1", "GS2"]):
         if question_text and has_any_phrase(question_text.lower(), ["sultanate", "delhi sultanate", "medieval", "ancient", "mughal", "maurya", "gupta", "chola", "harappa", "indus valley", "vedic", "1857", "swadeshi", "colonial rule", "british rule"]):
-            return False
+            if not has_any_phrase(question_text.lower(), ["constituent assembly", "constitution", "fundamental rights", "secularism", "caste", "women"]):
+                return False
         if question_text and has_any_phrase(question_text.lower(), gs1_gs2_overlap_keywords):
             return True
+        if question_text and not has_any_phrase(question_text.lower(), ["case study", "you are a district", "ethics", "moral dilemma", "dilemma"]):
+            return True
 
-    # 3. GS1 Geography <-> GS3 Disaster / Agriculture / Environment:
+    # 4. GS1 Geography <-> GS3 Disaster / Agriculture / Environment / Infrastructure / Energy / Resources:
     gs1_gs3_overlap_keywords = [
-        "cyclone", "flood", "landslide", "earthquake", "drought", "monsoon", "el nino", "climate change",
-        "soil degradation", "crop pattern", "irrigation", "water resource", "renewable energy"
+        "global trade", "trade", "trade route", "trade shift", "atlantic", "indo-pacific", "indian ocean",
+        "supply chain", "logistics", "freight corridor", "industrial corridor", "industrial location",
+        "location of industries", "mineral resources", "natural resources", "iron and steel", "textile",
+        "ports", "sagarmala", "bharatmala", "inland waterways", "blue economy", "shipping", "strategic petroleum",
+        "energy security", "offshore", "critical minerals", "rare earths", "renewable energy",
+        "cyclone", "flood", "landslide", "earthquake", "drought", "monsoon", "el nino", "la nina", "climate change",
+        "soil degradation", "disaster management", "ndma", "sendai framework", "urban flood", "urban flooding",
+        "heatwave", "heat wave", "cloudburst", "glacier lake outburst", "glof", "tsunami", "forest fire",
+        "western disturbances", "ipcc", "cop28", "cop29", "biodiversity", "wetlands", "desertification",
+        "coastal regulation zone", "crz", "caldera", "volcano",
+        "crop pattern", "cropping pattern", "crop diversification", "irrigation", "water resource", "water resources",
+        "groundwater", "millets", "shree anna", "pmksy", "micro-irrigation", "food security", "agro-climatic",
+        "soil health", "fertilizer", "msp", "apmc",
+        "औद्योगिक अवस्थिति", "आपूर्ति श्रृंखला", "लॉजिस्टिक्स", "बंदरगाह", "ब्लू इकोनॉमी", "खनिज संसाधन", "ऊर्जा सुरक्षा",
+        "आपदा प्रबंधन", "शहरी बाढ़", "लू", "ग्लोफ", "बादल फटना", "सुनामी", "वनाग्नि", "जलवायु परिवर्तन", "जैव विविधता",
+        "फसल प्रारूप", "सिंचाई", "भूजल", "खाद्य सुरक्षा", "मोटा अनाज"
     ]
     if (s_norm in ["GS1", "GS3"]) and (d_norm in ["GS1", "GS3"]):
         if question_text and has_any_phrase(question_text.lower(), gs1_gs3_overlap_keywords):
@@ -886,11 +950,31 @@ def infer_paper_from_question_content(question_text: str) -> Optional[str]:
         "scenic beauty", "geomorphic", "landform", "landforms", "magma", "lava", "crater", "pyroclastic", "geomorph",
         "geographical", "geography", "oil reserves", "off-shore", "offshore", "on-shore", "onshore", "hydrocarbon",
         "continental shelf", "mineral distribution", "resource distribution", "sedimentary basin", "deltaic",
-        "spatial distribution", "oceanic", "marine resources", "offshore petroleum", "petroleum occurrence"
+        "spatial distribution", "oceanic", "marine resources", "offshore petroleum", "petroleum occurrence",
+        # Economic Geography & Global Trade shifts (GS-1 Syllabus: Distribution of key natural resources & locational factors of industries)
+        "global trade", "centre of global trade", "center of global trade", "trade shift", "shifting of global trade", "shifting from the atlantic",
+        "trade route", "trade routes", "atlantic region", "atlantic", "indo-pacific", "indo pacific", "indopacific", "pacific rim",
+        "maritime trade", "sea lines of communication", "sloc", "sea lanes", "choke points", "chokepoints", "strait of malacca", "malacca strait",
+        "strait of hormuz", "suez canal", "panama canal", "economic geography", "locational factors", "location of industries",
+        "spatial distribution", "oceanic routes", "shipping routes", "shipping lanes", "ports",
+        # Hindi signals for GS-1:
+        "वैश्विक व्यापार", "व्यापार का केन्द्र", "व्यापार केंद्र", "अटलांटिक", "हिन्द-प्रशान्त", "इंडो-पैसिफिक", "स्थानिक वितरण",
+        "व्यापारिक मार्ग", "सामुद्रिक मार्ग", "मलक्का", "स्वेज नहर", "पनामा नहर", "भौतिक भूगोल", "भू-आकृतिक", "भू-आकृति",
+        "प्लेट विवर्तनिकी", "भूकंप", "ज्वालामुखी", "काल्डेरा", "मानसून", "चक्रवात", "अल नीनो", "ला नीना", "महासागरीय धाराएं",
+        "अपवाह तंत्र", "भारतीय समाज", "धर्मनिरपेक्षता", "सांप्रदायिकता", "क्षेत्रीयता", "जाति व्यवस्था", "महिला सशक्तिकरण",
+        "लिंग असमानता", "प्राचीन भारत", "मध्यकालीन भारत", "आधुनिक भारत", "कला एवं संस्कृति", "मंदिर स्थापत्य", "स्वतंत्रता संग्राम",
+        "1857", "गांधी", "असहयोग", "सविनय अवज्ञा", "भारत छोड़ो", "उपनिवेशवाद"
     ]
     gs1_score = sum(2 if has_phrase(text, w) else 0 for w in gs1_signals)
     # Unequivocal History boost
     if has_any_phrase(text, ["sultanate", "delhi sultanate", "medieval", "ancient", "maurya", "gupta", "chola", "mughal", "harappa", "indus valley", "vedic", "1857", "swadeshi", "gandhian", "colonial rule", "british rule", "archaeological", "epigraphy", "numismatic", "temple architecture"]):
+        gs1_score += 6
+    # Unequivocal Economic Geography & Global Trade Corridors boost (GS-1 Geography)
+    if has_any_phrase(text, [
+        "centre of global trade", "center of global trade", "global trade", "trade route", "trade routes",
+        "maritime trade", "shifting from the atlantic", "atlantic to the indo-pacific", "atlantic to indo-pacific",
+        "वैश्विक व्यापार", "व्यापार का केन्द्र", "व्यापार केंद्र"
+    ]):
         gs1_score += 6
 
     # Contextual Demands Analysis for Overlap Resolution (e.g. Security laws vs Civil Liberties)
@@ -1177,6 +1261,20 @@ def detect_precise_subject(question_text: str, current_paper: str = "GS2") -> Di
             "discipline": "Indian Society & Social Issues",
             "full_display": "GS-1 (Indian Society & Social Issues)",
             "syllabus_subheading": "Salient Features of Indian Society, Diversity, Social Empowerment & Communalism"
+        }
+    elif has_any_phrase(text, [
+        "global trade", "centre of global trade", "center of global trade", "trade shift", "trade route", "trade routes",
+        "atlantic", "indo-pacific", "pacific rim", "indian ocean", "maritime", "maritime trade", "sea lines of communication",
+        "sloc", "choke point", "choke points", "chokepoints", "strait of malacca", "malacca", "hormuz", "suez", "panama",
+        "shipping lanes", "ports", "locational factors", "location of industries", "spatial distribution", "oceanic routes",
+        "वैश्विक व्यापार", "व्यापार", "अटलांटिक", "हिन्द-प्रशान्त", "इंडो-पैसिफिक", "व्यापारिक मार्ग"
+    ]):
+        return {
+            "paper_code": "GS1",
+            "paper_label": "General Studies Paper - I",
+            "discipline": "World Economic Geography & Global Trade Corridors",
+            "full_display": "GS-1 (Economic Geography: Global Trade & Maritime Routes)",
+            "syllabus_subheading": "Distribution of Key Natural Resources, Locational Factors of Industries & Global Maritime Trade Shifts"
         }
     elif has_any_phrase(text, ["urban", "urbanization", "heat island", "critical minerals", "mineral", "resource distribution", "migration", "spatial", "oil reserves", "off-shore", "offshore", "on-shore", "onshore", "hydrocarbon", "continental shelf", "sedimentary basin"]):
         return {
@@ -2811,12 +2909,20 @@ MANDATORY CURRENT AFFAIRS VALUE-ADDITION INSTRUCTIONS:
 - Identify the true academic GS Paper (GS1, GS2, GS3, GS4, Essay, or Optional) based on the question prompt.
 - UPSC SYLLABUS INTERDISCIPLINARY OVERLAP MATRIX (CRITICAL LAW):
   * UPSC Mains questions routinely interconnect syllabus areas across papers.
+  * GS1 <-> GS2 Overlap:
+    - World Economic & Maritime Geography (shift of global trade from Atlantic to Indo-Pacific, Sea Lines of Communication, choke points, maritime trade routes, geoeconomics) vs Geopolitics & International Relations.
+    - Indian Society & Social Issues (secularism, communalism, regionalism, caste, women empowerment, vulnerable sections, urbanization, migration) vs Social Justice & Governance.
+    - Constitutional History & Freedom Struggle vs Indian Constitution (GOI Acts, Constituent Assembly, historical civil liberties).
+  * GS1 <-> GS3 Overlap:
+    - Economic Geography & Industrial Location vs Infrastructure, Logistics & Economy (ports, Sagarmala, freight corridors, mineral resources, blue economy).
+    - Physical Geography & Natural Hazards vs Disaster Management & Environment (cyclones, landslides, earthquakes, floods, heatwaves, NDMA, Sendai Framework, climate change).
+    - Agricultural Geography vs Agriculture Economy (cropping patterns, irrigation, water resources, food security).
+  * GS2 <-> GS3 Overlap: Security laws vs fundamental rights (UAPA, NSA, PMLA, AFSPA vs Art 19/21/22), fiscal federalism, disaster management, Forest Rights Act, foreign trade policy, tech/cyber governance.
   * GS2 <-> GS4 Overlap: Representation of the People Act (RPA), electoral ethics/reforms, criminalisation of politics, probity in governance, anti-corruption (Lokpal, CVC, POCA), RTI, codes of conduct/ethics, 2nd ARC Report 4 ("Ethics in Governance"), constitutional morality.
-  * GS3 <-> GS4 Overlap: Corporate governance, CSR, business ethics, climate justice, environmental ethics, AI ethics, bioethics, data privacy.
+  * GS3 <-> GS4 Overlap: Corporate governance, CSR, business ethics, climate justice, environmental ethics, AI ethics, bioethics, data privacy, economic crimes.
   * GS1 <-> GS4 Overlap: Moral & ethical philosophies of historical thinkers (Gandhi, Ambedkar, Vivekananda, Buddha, Ashoka, Kautilya).
-  * GS1 <-> GS2 Overlap: Secularism, communalism, regionalism, caste, women empowerment, vulnerable sections, social justice.
-  * GS2 <-> GS3 Overlap: Security laws vs fundamental rights (UAPA, NSA, PMLA, AFSPA vs Art 19/21/22), fiscal federalism, disaster management, Forest Rights Act.
-  If the question falls under any of these legitimate UPSC interdisciplinary overlap areas and is compatible with the selected "{paper_key}", DO NOT flag a mismatch! Set "is_intake_mismatch": false, and calibrate evaluation to the selected paper's disciplinary perspective.
+  * Essay <-> Any GS Paper: Any analytical or thematic GS question can legitimately be practiced as an Essay.
+  If the question falls under any of these legitimate UPSC interdisciplinary overlap areas and is compatible with the selected "{paper_key}", DO NOT flag a mismatch! Set "detected_paper": "{paper_key}", set "is_intake_mismatch": false, and calibrate evaluation strictly to the selected paper's disciplinary perspective.
 """
 
     return f"""You are an expert UPSC Mains Evaluator & Mentor evaluating an authentic candidate answer copy.
@@ -6379,7 +6485,16 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                     real_conc_end = min(78.0, max(real_conc_start + 4.0, float(conc_ann.get("end_y_percent", 77.0) or 77.0) if conc_ann else 77.0))
 
                     # Conclusion remark & annotation (Strict score-verdict consistency: NO praise for low marks)
-                    c_aw = float(conc_audit_obj.get("score") if conc_audit_obj.get("score") is not None else (conc_ann.get("marks_awarded") if conc_ann else 0.5) or 0.5)
+                    def _safe_float(val, default=0.5):
+                        if val is None:
+                            return default
+                        try:
+                            return float(val)
+                        except (ValueError, TypeError):
+                            m = re.search(r'([0-9]+(?:\.[0-9]+)?)', str(val))
+                            return float(m.group(1)) if m else default
+
+                    c_aw = _safe_float(conc_audit_obj.get("score") if conc_audit_obj.get("score") is not None else (conc_ann.get("marks_awarded") if conc_ann else 0.5), 0.5)
                     c_mx = float(conc_audit_obj.get("max") if conc_audit_obj.get("max") is not None else (1.5 if max_marks <= 10 else 2.0))
                     c_ded = max(0.0, c_mx - c_aw)
                     is_low_conc = c_aw < (c_mx * 0.65)
