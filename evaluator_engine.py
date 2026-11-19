@@ -1724,6 +1724,10 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
    - 5 निष्कर्ष दोषों का कड़ाई से निषेध (5 CONCLUSION FAILURE MODES):
      (1) केवल मुख्य भाग के बिंदुओं की पुनरावृत्ति ("अतः यह कहा जा सकता है कि..."), (2) सतही आशावाद ("2047 तक विकसित भारत बन जाएगा" जैसे नारों का अंधानुकरण), (3) बलात उद्धरण ("Be the change..."), (4) अंतिम पंक्ति में नया अप्रमाणित तर्क या समिति पेश करना, (5) शब्द सीमा समाप्त होने पर 6 नए नीतिगत नुस्खे थोपना।
    - प्रत्येक निष्कर्ष 20 से 30 शब्दों में प्रश्न के मुख्य विषय और संस्थागत तंत्र के 100% अनुकूल होना चाहिए।
+   - लिखित निष्कर्ष का निष्पक्ष मूल्यांकन (MANDATORY ATTEMPTED CONCLUSION RULE):
+     * यदि अभ्यर्थी ने निष्कर्ष (जैसे 'अतः...', 'निष्कर्षतः...', या 1-2 पंक्तियों का संक्षिप्त संश्लेषण) लिखा है, तो उसे कभी भी 0.0 अंक न दें और न ही 'मांग अधूरी' (Demand Missed) या 'निष्कर्ष अनुत्तरित' कहें!
+     * एक सामान्य या संक्षिप्त निष्कर्ष को भी आंशिक अंक (10-अंकीय में कम से कम +0.5 अंक, 15-अंकीय में कम से कम +0.5 से +1.0 अंक) अवश्य दें और सुधार का रचनात्मक सुझाव दें।
+     * 0.0 अंक और 'निष्कर्ष अनुत्तरित' (Demand Missed) केवल तभी दें जब कॉपी में निष्कर्ष पूरी तरह से खाली / नदारद हो (समय समाप्त होने पर)।
 
 7. मार्जिन मूल्यांकन एवं गतिशील शीर्षक पहचान (MANDATORY DYNAMIC MARGIN EVALUATION IN HINGLISH):
    - प्रत्येक पृष्ठ के मार्जिन कार्ड्स (visual_annotations) में अभ्यर्थी द्वारा लिखे गए वास्तविक बक्सेदार शीर्षक (Boxed Headings), रेखांकित शीर्षक (Underlined Headings) या आरेख के नाम (Diagram Titles) को tag में लिखें (जैसे: "Body: जिम्मेदार कारक (फ्लोचार्ट)", "Body: 2nd ARC के अनुसार सुझाव", "Body: शुचिता से सामाजिक-आर्थिक विकास", "Body: चुनौतियाँ: Celebrity कल्चर")। कभी भी जेनेरिक सांचा (जैसे "मुख्य भाग: [अभ्यर्थी का प्रथम शीर्षक]" या "मुख्य भाग — आयाम A") न लिखें!
@@ -3080,6 +3084,10 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
      * NEVER flatten a multi-column answer into text in a way that ignores side-by-side content or treats it as absent.
      * If a candidate includes a "Way Forward" or solutions section (whether side-by-side with issues, as bullet points, arrows, or near the end), evaluate it on its substantive merits and award marks under the relevant solutions demand.
      * STRICTLY PROHIBITED: Awarding 0.0 or "Demand Missed" to a present way forward, or mislabeling it as an unwritten conclusion!
+     * STRICTLY PROHIBITED: Awarding 0.0 marks or "Demand Missed" to an attempted conclusion! If the candidate wrote ANY closing sentence or synthesis (e.g. starting with "Thus", "Hence", "Therefore", "Overall", or stating a balanced forward-looking stance):
+       - For 10M: award at least 0.5M out of 1.0M/1.5M (never 0.0M!), and mark demand_status as "Partially Fulfilled".
+       - For 15M / 20M: award at least 0.5M to 1.0M out of 1.5M/2.0M (never 0.0M!), and mark demand_status as "Partially Fulfilled".
+       - NEVER mark "Demand Missed" or "Conclusion Not Attempted" when a conclusion is written! 0.0 marks, "Demand Missed", and "Conclusion Not Attempted" are STRICTLY reserved for when the conclusion is completely unwritten / blank (the student ran out of time).
    - DEDUPLICATION & PAGE OVERLAP PROCTORING:
      * If duplicated or overlapping page images are uploaded, verify that points from repeated material are credited only once.
    - EXAMINER SCORING VS COACHING FEEDBACK:
@@ -3532,7 +3540,7 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       * E. STRICT CONCLUSION SCORING & EASY-TO-UNDERSTAND LANGUAGE (ZERO JARGON LIKE 'VISIONARY SYNTHESIS'):
         - Read the candidate's actual final concluding sentence(s) at the bottom of the last page.
         - If the candidate wrote a simple, generic 1-line closing sentence without topic-specific keywords, schemes, or metrics (e.g., *"Thus, there is a need for holistic development on part of government and society"*, *"Hence, government should take steps for inclusive growth"*, or *"This is the need of the hour"*):
-          1. Award **ONLY `0.5` out of `1.5` for 10M (or `0.5 / 2.0` for 15M)** in `rubric_scores.conclusion_score` and in the `Conclusion` margin card (`"+0.5 / 1.5"` for 10M or `"+0.5 / 2.0"` for 15M). NEVER award full marks to a generic conclusion that lacks keywords!
+          1. Award **ONLY `0.5` out of `1.5` for 10M (or `0.5 / 2.0` for 15M)** in `rubric_scores.conclusion_score` and in the `Conclusion` margin card (`"+0.5 / 1.5"` for 10M or `"+0.5 / 2.0"` for 15M). NEVER award full marks to a generic conclusion that lacks keywords, and NEVER award 0.0 marks or "Demand Missed" to an attempted conclusion (any attempted closing synthesis earns at least +0.5M)!
           2. Quote the candidate's actual generic words in `conclusion_audit.current_critique` and the `Conclusion` margin card:
              `"✗ **Too General (No Keywords)**: You wrote 'Thus, there is a need for holistic development on part of government and society', which has no topic keywords and can fit any answer (only +0.5 mark).\n✎ **How to Get Full Marks Here**: Mention 1–2 topic-specific keywords and the core institutional/committee anchor in your last line (NEVER use a generic 'Viksit Bharat @2047' slogan)."`
         - NEVER use heavy, confusing AI phrases like `"Visionary Synthesis"`, `"Constructive Synthesis"`, `"Empirical Substantiation"`, `"Contextual Premise"`, or `"Lexical"`. Always write every card heading and remark in simple, clear English (`"Too General (No Keywords)"`, `"Good Closing Line"`, `"How to Get Full Marks Here"`).
@@ -6371,18 +6379,35 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                             m = re.search(r'([0-9]+(?:\.[0-9]+)?)', str(val))
                             return float(m.group(1)) if m else default
 
-                    c_aw = _safe_float(conc_audit_obj.get("score") if conc_audit_obj.get("score") is not None else (conc_ann.get("marks_awarded") if conc_ann else 0.5), 0.5)
+                    is_unwritten_conc = bool(
+                        data.get("is_incomplete_answer") or
+                        data.get("is_candidate_incomplete_answer") or
+                        conc_audit_obj.get("is_unwritten")
+                    )
+                    raw_c_aw = _safe_float(conc_audit_obj.get("score") if conc_audit_obj.get("score") is not None else (conc_ann.get("marks_awarded") if conc_ann else 0.5), 0.5)
                     c_mx = float(conc_audit_obj.get("max") if conc_audit_obj.get("max") is not None else (1.5 if max_marks <= 10 else 2.0))
+                    if is_unwritten_conc:
+                        c_aw = 0.0
+                        is_low_conc = True
+                    else:
+                        # Guaranteed floor of 0.5M for an attempted conclusion in UPSC Mains!
+                        c_aw = min(c_mx, max(0.5, raw_c_aw))
+                        is_low_conc = c_aw < (c_mx * 0.65)
                     c_ded = max(0.0, c_mx - c_aw)
-                    is_low_conc = c_aw < (c_mx * 0.65)
 
                     c_crit = str(conc_audit_obj.get("current_critique") or "")
                     c_rew = str(conc_audit_obj.get("model_conclusion_rewrite") or "")
                     clean_close = _clean_quote_snippet(closing_line, 120)
                     clean_topper = c_rew.strip() if len(c_rew.strip()) >= 25 else ('अंतिम पंक्ति में मुख्य प्रश्न मांग का ठोस व संतुलित संश्लेषण दें।' if is_hindi else 'Anchor closing line with a precise forward-looking synthesis addressing the core directive.')
 
-                    if is_low_conc:
-                        # Low score: MUST highlight the exact mistake / gap; NEVER write "Solid" or "Well-structured"
+                    if is_unwritten_conc:
+                        real_conc_rem = (
+                            f"✗ **निष्कर्ष अनुत्तरित (Incomplete Answer)**: उत्तर बिना अंतिम संश्लेषित निष्कर्ष लिखे समाप्त हुआ (+{c_mx:.1f} अंक छूटे)।\n✎ **60-सेकंड समाधान**: {clean_topper}"
+                            if is_hindi else
+                            f"✗ **Conclusion Not Attempted (Incomplete Answer)**: Answer stopped without a closing synthesis paragraph (forfeits +{c_mx:.1f}M).\n✎ **60-Second Recovery Strategy**: In the initial phase of answer writing, practice reserving the last 60 seconds to write a 2-line synthesis: {clean_topper}"
+                        )
+                    elif is_low_conc:
+                        # Attempted but broad: Highlight exact mistake constructively; NEVER call it unwritten!
                         gap_msg = ""
                         w_list = conc_audit_obj.get("weaknesses") or conc_audit_obj.get("critical_gaps") or []
                         if isinstance(w_list, list) and w_list and not re.search(r'(?i)solid|well-structured|good|comprehensive', str(w_list[0])):
@@ -6400,13 +6425,13 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                                     if is_hindi else
                                     "Broad, generic closing statement; did not directly synthesize the core analytical demand of the question."
                                 )
-                        real_conc_rem = f"✗ **Conclusion Gap & Deduction**: {gap_msg}\n✎ **Topper Finish**: {clean_topper}"
+                        real_conc_rem = f"⚠️ **Closing Synthesis (Broad)**: {gap_msg}\n✎ **Topper Finish**: {clean_topper}"
                     else:
                         # High score (>= 65%): Highlight the effective synthesis that earned marks
                         if clean_close:
                             real_conc_rem = f"✓ **Effective Closing Synthesis**: Concluded with decisive forward-looking synthesis (*\"{clean_close}\"*), tying together key arguments from the body.\n✎ **Topper Finish**: {clean_topper}"
                         elif c_crit and len(c_crit) >= 30 and not _has_meta_placeholder(c_crit) and not re.search(r'(?i)solid|good', c_crit):
-                            clean_crit = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:\*\*(?:Closing|Concluding)\s*Synthesis\s*Evaluated\*\*:?\s*)+', '', c_crit).strip()
+                            clean_crit = re.sub(r'(?i)^(?:[✓✔✎✗×⚠️]\s*)?(?:\*\*(?:Closing|Concluding)\s*Synthesis\s*(?:Evaluated|Attempted)?\*\*:?\s*)+', '', c_crit).strip()
                             real_conc_rem = f"✓ **Effective Closing Synthesis**: {clean_crit}\n✎ **Topper Finish**: {clean_topper}"
                         else:
                             real_conc_rem = f"✓ **Effective Closing Synthesis**: Substantive and well-rounded synthesis connecting core directive to long-term impact.\n✎ **Topper Finish**: {clean_topper}"
@@ -6415,13 +6440,19 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
                         if "Missing Required Mitigation" not in real_conc_rem:
                             real_conc_rem += "\n✗ **Missing Required Mitigation**: The question demanded practical measures/mitigation, but no remedial points were provided before concluding."
 
+                    conc_tag = (
+                        ("✗ निष्कर्ष: अनुत्तरित" if is_hindi else "✗ Conclusion: Not Attempted")
+                        if is_unwritten_conc else
+                        (("⚠️ निष्कर्ष (सामान्य)" if is_hindi else "⚠️ Conclusion: Synthesis (Broad)") if is_low_conc else ("✓ निष्कर्ष" if is_hindi else "✓ Conclusion: Synthesis"))
+                    )
+                    conc_type = "cross" if is_unwritten_conc else ("warning" if is_low_conc else "suggestion")
                     real_conc_ann = {
                         "page": pg,
                         "approx_y_percent": int(round((real_conc_start + real_conc_end) / 2)),
                         "start_y_percent": real_conc_start,
                         "end_y_percent": real_conc_end,
-                        "tag": ("✗ निष्कर्ष में कमी" if is_low_conc else "✓ निष्कर्ष") if is_hindi else ("✗ Conclusion Gap" if is_low_conc else "✓ Conclusion: Synthesis"),
-                        "type": "cross" if is_low_conc else "suggestion",
+                        "tag": conc_tag,
+                        "type": conc_type,
                         "marks_awarded": f"+{c_aw:.1f} / {c_mx:.1f}",
                         "remark": real_conc_rem
                     }
@@ -10187,6 +10218,19 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
         )
     )
 
+    has_conc_step = any(
+        any(k in str(s.get("step_label") or s.get("part_name") or s.get("name") or "").lower() for k in ["concl", "निष्कर्ष", "closing synthesis"])
+        and not any(wf in str(s.get("step_label") or s.get("part_name") or s.get("name") or "").lower() for wf in ["intro", "premise", "part a", "part b", "part c", "part 1", "part 2"])
+        for s in sub_steps if isinstance(s, dict)
+    )
+
+    has_authentic_conc = bool(
+        gemini_has_evaluated_conc or
+        has_concluding_keywords or
+        is_last_line_narrative or
+        has_conc_step
+    )
+
     is_incomplete_conc = (
         not gemini_has_evaluated_conc and
         not has_concluding_keywords and
@@ -10250,10 +10294,20 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
         # Determine authentic conclusion marks (matching Section 1 sub_part_step_marking!)
         conc_cands = [gemini_step_conc_aw, rubric_c_score, c_audit_score, ann_conc_aw]
         valid_conc_cands = [x for x in conc_cands if x is not None and x > 0]
-        assigned_conc = max(valid_conc_cands) if valid_conc_cands else 0.0
+        if valid_conc_cands:
+            assigned_conc = max(valid_conc_cands)
+        elif has_authentic_conc:
+            raw_os_val = float(data.get("overall_score", 0.0) or 0.0)
+            assigned_conc = min(c_max, max(0.5, round(raw_os_val * (c_max / max(1.0, mm_eval)) * 2) / 2))
+        else:
+            assigned_conc = 0.0
+
         if is_generic_conc and assigned_conc > 0.5:
             assigned_conc = 0.5
 
+        if has_authentic_conc:
+            # Guaranteed floor of 0.5M for an attempted conclusion in UPSC Mains!
+            assigned_conc = max(0.5, assigned_conc)
         assigned_conc = min(c_max, round(assigned_conc * 2) / 2)
         rubric_d["conclusion_score"] = assigned_conc
         c_audit["score"] = assigned_conc
@@ -10357,9 +10411,9 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
                         "Broad, generic closing statement; did not directly synthesize the core analytical demand of the question."
                     )
             if is_hindi:
-                c_audit["current_critique"] = f"{'✗ **निष्कर्ष में कमी (Conclusion Gap)**' if is_low_c else '✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**'}: {clean_c_crit}"
+                c_audit["current_critique"] = f"{'⚠️ **निष्कर्ष में सुधार (Synthesis Broad)**' if is_low_c else '✓ **निष्कर्ष का मूल्यांकन (Closing Synthesis)**'}: {clean_c_crit}"
             else:
-                c_audit["current_critique"] = f"{'✗ **Conclusion Gap & Weakness**' if is_low_c else '✓ **Closing Synthesis Evaluated**'}: {clean_c_crit}"
+                c_audit["current_critique"] = f"{'⚠️ **Closing Synthesis Attempted (Broad)**' if is_low_c else '✓ **Closing Synthesis Evaluated**'}: {clean_c_crit}"
 
         data["conclusion_audit"] = c_audit
         data["rubric_scores"] = rubric_d
@@ -10367,15 +10421,16 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
         # Synchronize visual annotations for conclusion
         for ann in anns_list:
             t_low = str(ann.get("tag") or "").lower()
-            if "concl" in t_low or "synthesis" in t_low or "finish" in t_low:
+            if "concl" in t_low or "synthesis" in t_low or "finish" in t_low or "निष्कर्ष" in t_low:
                 ann["marks_awarded"] = f"+{assigned_conc:.1f} / {c_max:.1f}"
-                ann["type"] = "success" if assigned_conc >= c_max - 0.1 else "warning"
-                if "not attempted" in t_low:
-                    ann["tag"] = "Conclusion: Closing Synthesis"
+                is_low_c = assigned_conc < (c_max * 0.65)
+                ann["type"] = "suggestion" if not is_low_c else "warning"
+                if "not attempted" in t_low or "अनुत्तरित" in t_low or "gap" in t_low or "कमी" in t_low:
+                    ann["tag"] = ("⚠️ निष्कर्ष (सामान्य)" if is_low_c else "✓ निष्कर्ष") if is_hindi else ("⚠️ Conclusion: Synthesis (Broad)" if is_low_c else "✓ Conclusion: Synthesis")
                 crit_clean = str(c_audit.get("current_critique") or "").splitlines()[0]
-                crit_body = re.sub(r'(?i)^(?:[✓✔✎✗×]\s*)?(?:(?:\*\*)?(?:Closing|Concluding|निष्कर्ष)\s*(?:Synthesis|का\s*मूल्यांकन)?(?:\s*Evaluated)?(?:\*\*)?:?\s*)+', '', crit_clean).strip()
+                crit_body = re.sub(r'(?i)^(?:[✓✔✎✗×⚠️]\s*)?(?:(?:\*\*)?(?:Closing|Concluding|निष्कर्ष)\s*(?:Synthesis|का\s*मूल्यांकन|Attempted)?(?:\s*Evaluated)?(?:\*\*)?:?\s*)+', '', crit_clean).strip()
                 ann["remark"] = (
-                    f"✓ **Closing Synthesis Evaluated**: {crit_body}\n"
+                    f"{'⚠️ **Closing Synthesis (Broad)**' if is_low_c else '✓ **Closing Synthesis Evaluated**'}: {crit_body}\n"
                     f"✎ **To Score Full Marks**: {domain_conc}"
                 )
 
@@ -10388,9 +10443,9 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             if any(k in lbl for k in ["concl", "निष्कर्ष", "closing synthesis"]) and not any(k in lbl for k in ["intro", "premise", "part a", "part b", "part c", "part 1", "part 2"]):
                 conc_step_target = st
                 break
-    if not conc_step_target and sub_steps and isinstance(sub_steps[-1], dict):
+    if not conc_step_target and has_authentic_conc and sub_steps and isinstance(sub_steps[-1], dict):
         last_lbl = str(sub_steps[-1].get("step_label") or sub_steps[-1].get("part_name") or "").lower()
-        if not any(k in last_lbl for k in ["intro", "part a", "part b"]):
+        if not any(k in last_lbl for k in ["intro", "part a", "part b", "part c", "part 1", "part 2", "example", "उदाहरण"]):
             conc_step_target = sub_steps[-1]
 
     if conc_step_target:
@@ -10939,14 +10994,20 @@ def _enforce_canonical_mathematical_reconciliation(data: Dict[str, Any], max_mar
             for s in steps if isinstance(s, dict)
         )
 
-        conc_ceiling = 1.0 if max_m == 10 else (1.5 if max_m == 15 else 2.0)
+        conc_ceiling = 1.5 if max_m == 10 else (2.0 if max_m == 15 else 2.5)
 
         # If conclusion step is missing, synthesize and append it
         if not has_conc:
             rubric_scores = data.get("rubric_scores") if isinstance(data.get("rubric_scores"), dict) else {}
             conc_audit = data.get("conclusion_audit") if isinstance(data.get("conclusion_audit"), dict) else {}
-            conc_target_max = float(rubric_scores.get("conclusion_max") or conc_ceiling)
-            conc_target_aw = float(rubric_scores.get("conclusion_score") if rubric_scores.get("conclusion_score") is not None else (conc_audit.get("score") if conc_audit.get("score") is not None else (0.5 if max_m == 10 else 1.0)))
+            conc_target_max = float(rubric_scores.get("conclusion_max") or (1.0 if max_m == 10 else (1.5 if max_m == 15 else 2.0)))
+            sum_existing_aw = sum(float(s.get("awarded", 0.0) or 0.0) for s in steps if isinstance(s, dict))
+            raw_os_float = float(raw_overall) if (raw_overall is not None and raw_overall != "") else 0.0
+            if raw_os_float > 0 and sum_existing_aw >= raw_os_float:
+                conc_target_aw = 0.0
+            else:
+                rem_for_conc = max(0.0, raw_os_float - sum_existing_aw) if raw_os_float > 0 else (0.5 if max_m == 10 else 1.0)
+                conc_target_aw = float(rubric_scores.get("conclusion_score") if rubric_scores.get("conclusion_score") is not None else (conc_audit.get("score") if conc_audit.get("score") is not None else min(conc_target_max, rem_for_conc)))
             conc_quote = str(conc_audit.get("current_critique") or conc_audit.get("model_conclusion_rewrite") or ("समापन संश्लेषण का निष्पक्ष मूल्यांकन।" if is_hindi else "Closing synthesis evaluated.")).strip()
 
             conc_step = {
@@ -10958,28 +11019,34 @@ def _enforce_canonical_mathematical_reconciliation(data: Dict[str, Any], max_mar
                 "quoted_written": conc_quote
             }
             steps.append(conc_step)
-        else:
-            last_s = steps[-1] if isinstance(steps[-1], dict) else {}
-            last_lbl = str(last_s.get("step_label") or last_s.get("part_name") or last_s.get("name") or "").lower()
-            if any(k in last_lbl for k in ["conclusion", "synthesis", "निष्कर्ष", "closing"]) and not any(wf in last_lbl for wf in ["way forward", "solutions", "reforms", "measures", "आगे की राह", "सुझाव"]):
-                cur_conc_m = float(last_s.get("max", 0.0) or 0.0)
-                if cur_conc_m > conc_ceiling:
-                    diff_c = cur_conc_m - conc_ceiling
-                    last_s["max"] = conc_ceiling
-                    if float(last_s.get("awarded", 0.0) or 0.0) > conc_ceiling:
-                        last_s["awarded"] = conc_ceiling
 
-        # Rebalance body step denominators so body steps share the remaining body budget evenly and realistically
-        intro_m = float(steps[0].get("max", 1.5) or 1.5) if isinstance(steps[0], dict) else 1.5
-        conc_m = float(steps[-1].get("max", 1.5) or 1.5) if isinstance(steps[-1], dict) else 1.5
-        rem_body_budget = round(max_m - intro_m - conc_m, 1)
         body_indices = [i for i in range(1, len(steps) - 1)]
-        if body_indices and rem_body_budget > 0:
-            even_b = round(rem_body_budget / len(body_indices), 1)
-            for bi in body_indices:
-                steps[bi]["max"] = even_b
-            b_diff = round(rem_body_budget - sum(float(steps[bi].get("max", 0.0) or 0.0) for bi in body_indices), 1)
-            steps[body_indices[0]]["max"] = round(float(steps[body_indices[0]]["max"]) + b_diff, 1)
+
+        # Only rebalance denominators if the total sum of max marks does not equal max_m
+        total_steps_max = round(sum(float(s.get("max", 0.0) or 0.0) for s in steps if isinstance(s, dict)), 1)
+        if abs(total_steps_max - max_m) > 0.1:
+            if has_conc:
+                last_s = steps[-1] if isinstance(steps[-1], dict) else {}
+                last_lbl = str(last_s.get("step_label") or last_s.get("part_name") or last_s.get("name") or "").lower()
+                if any(k in last_lbl for k in ["conclusion", "synthesis", "निष्कर्ष", "closing"]) and not any(wf in last_lbl for wf in ["way forward", "solutions", "reforms", "measures", "आगे की राह", "सुझाव"]):
+                    cur_conc_m = float(last_s.get("max", 0.0) or 0.0)
+                    if cur_conc_m > conc_ceiling:
+                        diff_c = cur_conc_m - conc_ceiling
+                        last_s["max"] = conc_ceiling
+                        if float(last_s.get("awarded", 0.0) or 0.0) > conc_ceiling:
+                            last_s["awarded"] = conc_ceiling
+
+            # Rebalance body step denominators so body steps share the remaining body budget evenly and realistically
+            intro_m = float(steps[0].get("max", 1.5) or 1.5) if isinstance(steps[0], dict) else 1.5
+            conc_m = float(steps[-1].get("max", 1.5) or 1.5) if isinstance(steps[-1], dict) else 1.5
+            rem_body_budget = round(max_m - intro_m - conc_m, 1)
+            cur_body_max_sum = round(sum(float(steps[bi].get("max", 0.0) or 0.0) for bi in body_indices), 1)
+            if body_indices and rem_body_budget > 0 and abs(cur_body_max_sum - rem_body_budget) > 0.05:
+                even_b = round(rem_body_budget / len(body_indices), 1)
+                for bi in body_indices:
+                    steps[bi]["max"] = even_b
+                b_diff = round(rem_body_budget - sum(float(steps[bi].get("max", 0.0) or 0.0) for bi in body_indices), 1)
+                steps[body_indices[0]]["max"] = round(float(steps[body_indices[0]]["max"]) + b_diff, 1)
 
         # Preserve exact evidence-grounded criteria marks & format precise summaries
         for s in steps:
@@ -11004,6 +11071,11 @@ def _enforce_canonical_mathematical_reconciliation(data: Dict[str, Any], max_mar
         if raw_overall is not None and raw_overall != "":
             stated_sc = round(float(raw_overall), 1)
             diff_aw = round(stated_sc - sum_aw, 1)
+            if 0 < abs(diff_aw) <= 0.25 and body_indices:
+                # Reconcile tiny rounding discrepancy (<= 0.25M) onto the primary body step
+                steps[body_indices[0]]["awarded"] = max(0.0, min(float(steps[body_indices[0]]["max"]), round(float(steps[body_indices[0]]["awarded"]) + diff_aw, 1)))
+                sum_aw = round(sum(float(s.get("awarded", 0.0)) for s in steps if isinstance(s, dict)), 1)
+                diff_aw = round(stated_sc - sum_aw, 1)
             if abs(diff_aw) > 0.001:
                 inconsistencies.append({
                     "type": "subtotal_overall_mismatch",

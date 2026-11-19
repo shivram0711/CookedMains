@@ -6360,11 +6360,17 @@ function renderAnnotationsOverlay() {
       const isAspirationalDistrictsCopy = false;
       const isFederalismCopy = false;
 
-      const isCandidateIncompleteCopy = (scheme.conclusion && scheme.conclusion.score === 0) && Boolean(
-        evalData.is_incomplete_answer ||
-        evalData.is_candidate_incomplete_answer ||
-        (concAudit && (concAudit.score === 0 || concAudit.is_unwritten || /not attempted|unwritten|unaddressed|incomplete answer|missing conclusion/i.test(String(concAudit.current_critique || "")))) ||
-        (syncedRubric.conclusion_score === 0 || parseFloat(syncedRubric.conclusion_score) === 0)
+      const hasWrittenCandidateConc = Boolean(
+        (concAudit && !concAudit.is_unwritten && concAudit.score > 0) ||
+        (Array.isArray(evalData.sub_part_step_marking) && evalData.sub_part_step_marking.some(s => /concl|निष्कर्ष/i.test(s.step_label || s.part_name || "") && parseFloat(s.awarded) > 0)) ||
+        (syncedRubric && parseFloat(syncedRubric.conclusion_score) > 0) ||
+        /\b(?:thus|hence|therefore|in\s+conclusion|overall|consequently|to\s+conclude|अतः|निष्कर्षतः|landscape\s+approach|sustainable|imperative|essential|vital|realis[ei]|promot[ei]|ensur[ei])\b/i.test(String(evalData.transcribed_text || ""))
+      );
+
+      const isCandidateIncompleteCopy = !hasWrittenCandidateConc && Boolean(
+        evalData.is_incomplete_answer === true ||
+        evalData.is_candidate_incomplete_answer === true ||
+        (concAudit && concAudit.is_unwritten === true)
       );
 
       // Semantic & Keyword Deduplication Engine across all Margin Cards (Zero intra-card or cross-card echo)
@@ -12298,13 +12304,20 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
     }
 
     if (!evalData.conclusion_audit || typeof evalData.conclusion_audit !== "object") evalData.conclusion_audit = {};
-    const hasGenConc = (
-      (evalData.rubric_scores && evalData.rubric_scores.conclusion_score > 0) ||
-      (Array.isArray(evalData.sub_part_step_marking) && evalData.sub_part_step_marking.some(s => /concl/i.test(s.step_label || "") && s.awarded > 0)) ||
-      (evalData.conclusion_audit && evalData.conclusion_audit.score > 0) ||
-      /\b(?:thus|hence|therefore|in\s+conclusion|imperative|essential|vital|realis[ei]|promot[ei]|ensur[ei]|industrial\s*revolution)\b/i.test(String(evalData.transcribed_text || "").slice(-350))
+    const hasGenConc = Boolean(
+      (evalData.rubric_scores && parseFloat(evalData.rubric_scores.conclusion_score) > 0) ||
+      (Array.isArray(evalData.sub_part_step_marking) && evalData.sub_part_step_marking.some(s => /concl|निष्कर्ष/i.test(s.step_label || s.part_name || "") && parseFloat(s.awarded) > 0)) ||
+      (evalData.conclusion_audit && parseFloat(evalData.conclusion_audit.score) > 0 && !evalData.conclusion_audit.is_unwritten) ||
+      (evalData.conclusion_audit && evalData.conclusion_audit.is_unwritten === false) ||
+      evalData.is_incomplete_answer === false ||
+      evalData.is_candidate_incomplete_answer === false ||
+      /\b(?:thus|hence|therefore|in\s+conclusion|overall|consequently|to\s+conclude|अतः|निष्कर्षतः|landscape\s+approach|sustainable|imperative|essential|vital|realis[ei]|promot[ei]|ensur[ei]|industrial\s*revolution)\b/i.test(String(evalData.transcribed_text || ""))
     );
-    const isIncomp = !hasGenConc && Boolean(evalData.is_incomplete_answer || evalData.is_candidate_incomplete_answer || evalData.conclusion_audit.is_unwritten || evalData.conclusion_audit.score === 0);
+    const isIncomp = !hasGenConc && Boolean(
+      evalData.is_incomplete_answer === true ||
+      evalData.is_candidate_incomplete_answer === true ||
+      (evalData.conclusion_audit && evalData.conclusion_audit.is_unwritten === true)
+    );
     if (isIncomp) {
       evalData.conclusion_audit.score = 0.0;
       evalData.conclusion_audit.is_unwritten = true;
@@ -12315,13 +12328,13 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
     } else {
       let rawCCrit = String(evalData.conclusion_audit.current_critique || "").trim();
       // Strip duplicated prefixes like "Closing Synthesis Evaluated: Concluding Synthesis Evaluated**:"
-      rawCCrit = rawCCrit.replace(/^(?:[✓✔✎✗×]\s*)?(?:\*\*(?:Closing|Concluding)\s*Synthesis\s*Evaluated\*\*:?\s*)+/gi, "").trim();
+      rawCCrit = rawCCrit.replace(/^(?:[✓✔✎✗×⚠️]\s*)?(?:\*\*(?:Closing|Concluding)\s*Synthesis\s*(?:Evaluated|Attempted)?\*\*:?\s*)+/gi, "").trim();
       if (!rawCCrit || rawCCrit.length < 35 || /balanced conclusion|connect to sustainable development goals/i.test(rawCCrit)) {
         const transLines = String(evalData.transcribed_text || "").replace(/\[Page\s*\d+\]/gi, "").split(/\n+/).map(s => s.trim()).filter(s => s.length >= 20);
         let closingLine = "";
         for (let idx = transLines.length - 1; idx >= 0; idx--) {
           const tl = transLines[idx];
-          if (/^(?:thus|hence|therefore|in\s+conclusion|overall|consequently|to\s+conclude)\b/i.test(tl)) {
+          if (/^(?:thus|hence|therefore|in\s+conclusion|overall|consequently|to\s+conclude|अतः|निष्कर्षतः)\b/i.test(tl)) {
             closingLine = tl;
             break;
           } else if (!closingLine && !/^[-*•–—]|^\d+[\.\)]|^point\s*\d+/i.test(tl)) {
@@ -12332,7 +12345,11 @@ function sanitizeAndSimplifyEvaluationFeedback(evalData) {
         const quoteClosing = cleanClosing ? ` Concluded with *"${cleanClosing}"*, summarizing core stance.` : " Your closing paragraph summarizes your stance on the topic.";
         evalData.conclusion_audit.current_critique = `✓ **Concluding Synthesis Evaluated**:${quoteClosing}<br>✎ **How to Score Full Conclusion Marks**: Anchor your final lines in a specific institutional framework, national guideline, or statutory benchmark rather than a broad generalization.`;
       } else {
-        evalData.conclusion_audit.current_critique = `✓ **Concluding Synthesis Evaluated**: ${rawCCrit}`;
+        if (/^(?:[✓✔✎⚠️✗×]|\*\*)/.test(rawCCrit)) {
+          evalData.conclusion_audit.current_critique = rawCCrit;
+        } else {
+          evalData.conclusion_audit.current_critique = `✓ **Concluding Synthesis Evaluated**: ${rawCCrit}`;
+        }
       }
     }
   }

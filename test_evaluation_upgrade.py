@@ -3163,6 +3163,112 @@ class TestQuestionSpecificDemandEvaluation(unittest.TestCase):
         self.assertGreaterEqual(stats["total_evaluations"], 0)
         self.assertGreaterEqual(stats["total_aspirants"], 0)
 
+    def test_attempted_broad_conclusion_receives_partial_credit_and_never_unwritten(self):
+        """
+        Regression Test: A candidate who handwrites an authentic 2-line conclusion
+        (e.g., 'Thus a landscape approach that balances livelihood, infrastructure & ecology can make land use change sustainable in India.')
+        must:
+        1. Receive at least +0.5M partial credit (never 0.0M).
+        2. Never be labeled 'Demand Missed' in sub_part_step_marking (marked 'Partially Fulfilled').
+        3. Never be overwritten with 'Conclusion Not Attempted (Incomplete Answer)'.
+        4. In visual annotations, receive tag '⚠️ Conclusion: Synthesis (Broad)' and marks '+0.5 / 1.0M'.
+        5. Zero contradiction between Section 1 step marking, Section 3 audit, and visual annotations.
+        """
+        raw_eval = {
+            "overall_score": 4.5,
+            "max_marks": 10,
+            "detected_question": "Examine the impacts of land use change on ecological sustainability in India. Suggest a balanced approach.",
+            "detected_paper": "GS1",
+            "transcribed_text": (
+                "[Page 1]\n"
+                "Land use change in India is driven by urbanization, industrial corridors and infrastructure.\n"
+                "Impacts on Ecology:\n"
+                "- Forest fragmentation in Western Ghats\n"
+                "- Soil degradation and biodiversity loss\n"
+                "[Page 2]\n"
+                "- Wetland conversion in East Kolkata\n"
+                "Balanced Approach:\n"
+                "1. Spatial planning and zoning\n"
+                "2. Environmental impact assessments\n"
+                "Thus a landscape approach that balances livelihood, infrastructure & ecology can make land use change 'sustainable' in India."
+            ),
+            "sub_part_step_marking": [
+                {
+                    "step_label": "1. Introduction (Context & Baseline Hook)",
+                    "awarded": 1.0,
+                    "max": 1.5,
+                    "demand_status": "Partially Fulfilled"
+                },
+                {
+                    "step_label": "2. Part A — Ecological Impacts of Land Use Change",
+                    "awarded": 1.5,
+                    "max": 4.0,
+                    "demand_status": "Partially Fulfilled"
+                },
+                {
+                    "step_label": "3. Part B — Balanced Approach & Mitigation",
+                    "awarded": 1.5,
+                    "max": 3.5,
+                    "demand_status": "Partially Fulfilled"
+                },
+                {
+                    "step_label": "4. Conclusion (Closing Synthesis)",
+                    "awarded": 0.0,
+                    "max": 1.0,
+                    "demand_status": "Demand Missed",
+                    "quoted_written": "Concluded with a relevant synthesis statement, but it remained somewhat broad"
+                }
+            ],
+            "conclusion_audit": {
+                "score": 0.0,
+                "current_critique": "Concluded with a relevant synthesis statement, but it remained somewhat broad",
+                "model_conclusion_rewrite": "Integrating spatial resource mapping, climate-resilient engineering, and early-warning telemetry under the Sendai Framework (2015–2030) and NDMA Guidelines is imperative to transition vulnerable ecologies from risk exposure to sustainable resilience."
+            },
+            "visual_annotations": [
+                {
+                    "page": 2,
+                    "tag": "Conclusion Gap",
+                    "type": "cross",
+                    "marks_awarded": "+0.0 / 1.0M",
+                    "remark": "Broad, generic closing statement; did not directly synthesize the core analytical demand of the question."
+                }
+            ]
+        }
+
+        norm = normalize_evaluation_data(
+            raw_eval,
+            max_marks=10,
+            question="Examine the impacts of land use change on ecological sustainability in India. Suggest a balanced approach.",
+            paper="GS1"
+        )
+
+        # 1. Not incomplete or unwritten
+        self.assertFalse(norm.get("is_incomplete_answer"), "Must not mark answer as incomplete")
+        self.assertFalse(norm.get("is_candidate_incomplete_answer"), "Must not mark candidate as incomplete")
+        self.assertFalse(norm["conclusion_audit"].get("is_unwritten"), "Conclusion audit must not be unwritten")
+
+        # 2. Floor of at least 0.5M awarded for attempted conclusion
+        conc_score = norm["rubric_scores"]["conclusion_score"]
+        self.assertGreaterEqual(conc_score, 0.5, "Attempted conclusion must receive at least 0.5M partial credit")
+        self.assertEqual(norm["conclusion_audit"]["score"], conc_score)
+
+        # 3. Section 1 Step Marking: NOT 'Demand Missed'
+        conc_step = norm["sub_part_step_marking"][-1]
+        self.assertEqual(conc_step["awarded"], conc_score)
+        self.assertIn("Partially", conc_step["demand_status"])
+        self.assertNotIn("Demand Missed", conc_step["demand_status"])
+
+        # 4. Section 3 Critique: NOT 'Conclusion Not Attempted'
+        c_crit = norm["conclusion_audit"]["current_critique"]
+        self.assertNotIn("Conclusion Not Attempted", c_crit)
+        self.assertNotIn("without writing a concluding synthesis", c_crit)
+
+        # 5. Visual Annotations: NOT 0.0M and NOT Conclusion Gap
+        conc_anns = [a for a in norm.get("visual_annotations", []) if "concl" in str(a.get("tag", "")).lower() or "synthesis" in str(a.get("tag", "")).lower()]
+        self.assertTrue(len(conc_anns) >= 1)
+        self.assertNotIn("+0.0", conc_anns[0]["marks_awarded"])
+        self.assertNotIn("Conclusion Gap", conc_anns[0]["tag"])
+
 
 if __name__ == "__main__":
     unittest.main()
