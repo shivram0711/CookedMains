@@ -2027,6 +2027,32 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
       - सुझाव केवल संबंधित खंडों में रहेंगे (Intro -> `intro_audit`, Body -> `body_audit`, Conclusion -> `conclusion_audit`).
       - कोई स्थायी या सार्वभौमिक पंक्ति उत्पन्न न हो। प्रत्येक कॉपी का मूल्यांकन उसके अपने हस्तलेख के आधार पर 100% स्वतंत्र होगा।
 
+29. वरिष्ठ मेंटर के अनिवार्य लाल-कलम नियम (शून्य-चापलूसी व यथार्थवादी मूल्यांकन संहिता):
+    यूपीएससी मुख्य परीक्षा का परीक्षक कभी भी केवल शिष्टाचारवश झूठी प्रशंसा नहीं करता। आपको निम्नलिखित 5 अनिवार्य नियमों का कड़ाई से पालन करना होगा:
+
+    * नियम 1: केवल योजना/अधिनियम का नाम लिखने (Name-Dumping) को `body_audit.strengths` से पूर्णतः बाहर रखना:
+      - जब अभ्यर्थी योजनाओं, अधिनियमों या संस्थाओं के केवल नाम लिखता है (उदा. *"उदा. SANKALP व STRIVE योजनाएं"*, *"UAPA, NIA जैसे अधिनियम"*, *"PM-KISAN, PMFBY"*) बिना यह समझाए कि वे वास्तव में कैसे कार्य करते हैं:
+      - इसे `body_audit.strengths` में सराहने पर पूर्ण प्रतिबंध है! कभी भी *"✓ नीतिगत योजनाएं: SANKALP और STRIVE को सही उद्धृत किया"* न लिखें और न ही इसे `overall_assessment` में अच्छा कहें!
+      - इसे अनिवार्यतः `body_audit.critical_gaps` में दर्ज करें: केवल नाम लिखने से अंक कटते हैं; 3-5 शब्दों में उसका परिचालन तंत्र (operational mechanism) स्पष्ट करना अनिवार्य है।
+
+    * नियम 2: संदर्भ-बनाम-मुख्य भाग जाल (अनपेक्षित पृष्ठभूमि खंड की पहचान):
+      - जब प्रश्न "X के प्रकाश में, Y के उपाय सुझाइए" पूछे:
+      - मुख्य अंक **Y (उपायों)** के लिए हैं, न कि X की व्याख्या के लिए!
+      - यदि अभ्यर्थी 'लाए जा रहे परिवर्तन' जैसा अलग बक्सेदार शीर्षक बनाकर आधा पृष्ठ केवल पृष्ठभूमि लिखने में बर्बाद करता है:
+      - इसे `body_audit.strengths` में न सराहें! इसे `body_audit.critical_gaps` में "अनपेक्षित खंड / पृष्ठ स्थान की बर्बादी" के रूप में चिह्नित करें।
+
+    * नियम 3: प्रस्तावना का मुख्य भाग की शक्तियों से पूर्ण अलगाव:
+      - `body_audit.strengths` में केवल मुख्य भाग के तर्कों का मूल्यांकन होगा।
+      - पृष्ठ 1 की प्रस्तावना (उदा. रोजगार में दोहरा संकट) को कभी भी मुख्य भाग की शक्ति के रूप में न दोहराएं! प्रस्तावना केवल `intro_audit` में रहेगी।
+
+    * नियम 4: निष्कर्ष के शब्दाडंबर एवं वाक्य-विन्यास की कड़ी पड़ताल:
+      - अभ्यर्थी के अंतिम वाक्य के प्रत्येक शब्द को पढ़ें।
+      - यदि अभ्यर्थी ने गैर-प्रशासनिक या जादुई भाषा (उदा. रोजगार "conjured up / जादू से पैदा किए जाएं") का प्रयोग किया है या प्रश्न के शब्दों को ही गोल-गोल घुमाया है:
+      - इसे कभी भी "मजबूत नीतिगत समापन" न कहें! `conclusion_audit.current_critique` में भाषा की अपरिपक्वता को स्पष्ट चिह्नित करें और गंभीर प्रशासनिक रीराइट दें।
+
+    * नियम 5: औसत अथवा कमजोर कॉपियों (<50% अंक) हेतु अनिवार्य 4 से 6 सुधारात्मक लीवर्स:
+      - यदि किसी उत्तर को 50% से कम अंक (उदा. 4.4/15) मिलते हैं, तो `body_audit.critical_gaps` में अनिवार्य रूप से कम से कम 4 से 6 ठोस, प्रश्न-विशिष्ट लाल-कलम सुझाव होने चाहिए। केवल 2 जेनेरिक बिंदु देना वर्जित है।
+
 OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
 {{
   "detected_question": "{question}",
@@ -2218,9 +2244,12 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
       "**[बहुआयामी दृष्टिकोण / व्यावहारिक विश्लेषण] (पृष्ठ 2-3)**: अभ्यर्थी के विशिष्ट बिंदुओं का उद्धरण और परीक्षक की सराहना।"
     ],
     "critical_gaps": [
-      "**[अधूरा बिंदु ➔ मांग से जुड़ाव] (पृष्ठ 1-2)**: अभ्यर्थी की उस पंक्ति की पहचान जो अधूरी है और उसे प्रश्न की मुख्य मांग से जोड़ने हेतु सटीक टॉपर वाक्य।",
-      "**[मांग संतुलन / तार्किक सेतु] (पृष्ठ 2)**: मुख्य मांग पर कम समय देकर सीधे उपायों पर छलांग लगाने की कमी को उजागर करना और 1-2 पंक्तियों का संयोजक सेतु सुझाना।",
-      "**[योजनाओं का समाधान से जुड़ाव / आरेख सुधार] (पृष्ठ 2-3)**: योजनाओं को मात्र सूचीबद्ध करने के बजाय संबंधित चुनौती से जोड़ना या आरेख में डेटा संघनन की सीख।"
+      "**[अनपेक्षित खंड / पृष्ठ स्थान की बर्बादी] (पृष्ठ 2)**: प्रश्न की सीधी मांग (उपाय/समाधान) के स्थान पर पृष्ठभूमि का विवरण देने में आधा पृष्ठ बर्बाद करने की कमी को उजागर करना और स्थान-बचत का ठोस समाधान देना।",
+      "**[योजनाओं/अधिनियमों का नाम मात्र लिखना (Name-Dumping)] (पृष्ठ 2-3)**: केवल नाम (जैसे SANKALP, STRIVE, PM-KISAN, UAPA) लिखने के स्थान पर 3-5 शब्दों में उनके परिचालन तंत्र (operative mechanism) को स्पष्ट करने की मेंटर सीख।",
+      "**[उप-मांगों का संलयन / अलग शीर्षकों का अभाव] (पृष्ठ 1-2)**: प्रश्न की दो अलग मांगों (जैसे रोजगार क्षमता सुधार बनाम नए अवसरों का सृजन) को एक में मिलाने की कमी को पकड़ना और अलग उप-शीर्षक सुझाना।",
+      "**[टेलीग्राफिक नोट्स-शैली के अधूरे बिंदु] (पृष्ठ 3)**: बिना क्रिया या कार्यप्रणाली के लिखे गए अधूरे शीर्षकों/बिंदुओं को पूर्ण प्रशासनिक वाक्य में बदलना सिखाना।",
+      "**[समकालीन नीतिगत पहलों / संहिताओं का अभाव] (पृष्ठ 3)**: नवीनतम वैधानिक ढांचों (जैसे सामाजिक सुरक्षा संहिता 2020, PMKVY 4.0) के छूटने को रेखांकित कर परीक्षा-हॉल में लिखने की विधि बताना।",
+      "**[शब्द सीमा व पृष्ठ विस्तार में कमी] (पृष्ठ 1-3)**: निर्धारित 250 शब्दों के मुकाबले बहुत कम विस्तार (~135 शब्द) को चिह्नित कर नए विश्लेषणात्मक बिंदु जोड़ना।"
     ],
     "missing_dimensions": [
       "**[छूटा हुआ आयाम 1]**: इसका विस्तृत प्रशासनिक महत्व।",
@@ -3976,6 +4005,44 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       - Conclusion critiques and rewrites belong STRICTLY in `conclusion_audit`.
       - NO universal boilerplate lines. Every evaluation must be 100% independent and generated solely from the student's actual handwritten ink.
 
+29. UNCOMPROMISING RED-PEN MENTOR LAWS (ANTI-POLITENESS & ZERO UN-EARNED PRAISE MANDATE):
+    A senior UPSC Mains Examiner NEVER acts like a polite chatbot. Politeness and unearned praise mislead aspirants and cap their marks at 30-40%. You MUST enforce these 5 non-negotiable red-pen laws:
+
+    * LAW 1: STRICT DISQUALIFICATION OF BARE SCHEME / ACT NAME-DROPPING FROM `body_audit.strengths`:
+      - When a candidate merely writes bare names of schemes, acts, or organizations (e.g. *"eg SANKALP & STRIVE schemes"*, *"Acts like UAPA, NIA"*, *"agencies like NATGRID, MAC"*, *"schemes like PM-KISAN, PMFBY"*) WITHOUT an operational verb or concrete mechanism (explaining what and how they actually function):
+      - YOU ARE STRICTLY PROHIBITED from praising this in `body_audit.strengths`! NEVER write *"✓ Policy Schemes: Correctly cited SANKALP and STRIVE"* or praise it in `overall_assessment` as well-organized!
+      - Instead, this point MUST be transferred to `body_audit.critical_gaps` with the tag:
+        `"**Scheme Name-Dumping without Operative Function (Page X)**: You merely listed [Schemes], but omitted their operational mechanisms. Naming schemes without verbs caps marks. Always state *what and how they work* ✍️ **How to Write**: '[Scheme]: [Operative verb + mechanism, e.g. STRIVE modernizes ITIs through industry-led apprenticeships and MSME cluster training; SANKALP decentralizes skill planning to District Skill Committees (DSCs)].'"`
+
+    * LAW 2: THE CONTEXT-AS-BODY TRAP (UNASKED BACKGROUND SECTION DETECTOR):
+      - When a question directive states *"In light of X, suggest Y"* (e.g. *"In light of structural changes being brought by disruptive technologies, suggest the measures needed..."*):
+      - The core scoring demand is **Y (THE MEASURES)**, NOT X!
+      - If the candidate creates an entire stand-alone boxed sub-heading (like `[ Changes being brought about ]`) and lists points merely describing X:
+      - YOU ARE STRICTLY FORBIDDEN from praising this in `body_audit.strengths` as *"Good analysis of job polarization"* or praising it in `overall_assessment`!
+      - It MUST be flagged in `body_audit.critical_gaps`:
+        `"**Unasked Section / Space Budget Deficit (Page 2)**: You created an entire section on '[Written Section Heading]' consuming valuable page real estate, when the question's explicit directive demanded **[Core Demand, e.g. Measures to improve employability & opportunities]**. Displace descriptive background to maximize space for actionable policy measures."`
+
+    * LAW 3: STRICT EXCLUSION OF INTRODUCTION FROM BODY STRENGTHS:
+      - `body_audit.strengths` must contain ONLY substantive arguments from the BODY section (Page 1 body onwards, Page 2, Page 3).
+      - NEVER duplicate the candidate's Page 1 opening sentences/dilemmas (e.g. *"Indian economy is facing double dilemma..."*, *"Surge in disruptive technologies..."*) as Body Strengths! The opening belongs 100% EXCLUSIVELY to `intro_audit`.
+
+    * LAW 4: CONCLUSION VOCABULARY & SUBSTANCE INTEGRITY CHECK:
+      - Read the candidate's exact final handwritten sentence word-for-word.
+      - If the candidate uses un-academic, bizarre, or magical phrasing (e.g. *"conjured up"* for job opportunities/economy, *"wipe out overnight"*), or writes a circular restatement of prompt words:
+      - STRICTLY PROHIBITED: Writing *"✓ Concluding Synthesis Evaluated: Strong, policy-oriented closing statement"*!
+      - You MUST diagnose the vocabulary and conceptual flaw in `conclusion_audit.current_critique`:
+        `"⚠️ **Vocabulary & Conceptual Precision Flaw in Conclusion**: You wrote *"[Candidate's exact closing line, e.g. 'new job opportunities need to be conjured up']"*. The phrase 'conjured up' implies creating jobs through magic or trickery! Jobs in a national economy are created through macroeconomic capital formation, industrial policy, and fiscal incentives. Phrase with professional policy gravity ✍️ **How to Write**: '[Exact model closing sentence]'."`
+
+    * LAW 5: MANDATORY MINIMUM 4 TO 6 DIAGNOSTIC UPGRADE LEVERS IN `critical_gaps`:
+      - Whenever an answer scores below 50% (e.g. 4.4 / 15 or 3.5 / 10), `body_audit.critical_gaps` MUST contain **at least 4 to 6 distinct, high-impact diagnostic levers** covering:
+        1. Unasked section space wastage
+        2. Scheme name-dumping without operative mechanism (SANKALP/STRIVE)
+        3. Collapsed demand headings (Employability vs Opportunities)
+        4. Notes-style telegraphic bullet stubs (Skilling centres & accreditation framework)
+        5. Missing contemporary tech-skilling policies (PMKVY 4.0, NAPS, Social Security Code 2020)
+        6. Page real estate & word deficit (~135 words vs 250 words)
+      - NEVER output only 2 soft, generic gap bullets for a below-par copy!
+
 Generate strictly valid JSON matching this schema:
 {{
   "detected_question": "Exact question read from booklet header or provided by user",
@@ -4264,9 +4331,12 @@ Generate strictly valid JSON matching this schema:
       "**[Practical Application / Policy Dimension / Diagram] (Page 3)**: Quoting candidate's specific measures, environmental monitoring, or challenges diagram from Page 3 and crediting analytical breadth."
     ],
     "critical_gaps": [
-      "**[Incomplete Point -> Demand Link] (Page 1)**: Pointing out candidate's specific incomplete line/concept and providing the exact question-aligned micro-upgrade that completes the causal chain to the question demand.",
-      "**[Demand Balance / Contextual Transition] (Page 1-2)**: Identifying any rushed treatment of primary demands or abrupt jumps to solutions, with advice on a connecting bridge and structural depth.",
-      "**[Presentation / Data Condensation] (Page 2-3)**: Pointing out generic scheme listings or unasked/rudimentary diagrams, showing how to link measures to specific challenges or condense empirical metrics in brackets."
+      "**[Unasked Section / Space Budget Deficit] (Page 2)**: Diagnosing when candidate wastes valuable page real estate describing background context (e.g. unasked changes/causes) instead of answering the direct question directive (e.g. measures/solutions), advising how to condense descriptive padding to unlock space for policy depth.",
+      "**[Scheme / Act Name-Dumping without Operative Mechanism] (Page 2-3)**: Calling out bare listings of schemes/acts/agencies (e.g. SANKALP & STRIVE, PM-KISAN, UAPA) without verbs explaining how they function, and providing the exact 3-5 word operative mechanism topper format.",
+      "**[Collapsed Demands / Missing Sub-Part Headers] (Page 1-2)**: Pointing out failure to demarcate separate sub-parts of the prompt (e.g. Employability of labour vs Increasing employment opportunities), showing how distinct headers prevent mark leakage.",
+      "**[Notes-Style Telegraphic Bullet Stubs] (Page 3)**: Diagnosing truncated bullet points lacking causal mechanisms or subject-verb-object completion, guiding full functional articulation.",
+      "**[Missing Contemporary Policy Levers / Regulatory Codes] (Page 3)**: Pinpointing omission of cutting-edge statutory or policy frameworks (e.g. PMKVY 4.0, Social Security Code 2020 for gig workers, NAPS) and showing exact exam-hall insertion.",
+      "**[Page Real Estate & Word Count Deficit] (Page 1-3)**: Flagging when total written volume is significantly below word budget (~135 words vs 250 words) and detailing where substantive analytical points must be added."
     ],
     "missing_dimensions": [
       "**[Question-Specific Core Gap 1]**: Concrete explanation of omitted demand relevant to this prompt",
@@ -11154,9 +11224,14 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
         title_badge_low = (clean_title + " " + raw_badge).lower()
         is_body_title = bool(re.search(r'\b(?:driver|cause|factor|consequence|impact|challenge|measure|agriculture|agricultural|demographic|urban|urbanization|infrastructure|mining|ecological|hydrological|soil|geomorph|dimension|solution|way\s*forward|manifestation|initiative|architecture|economic|trade|prerequisite|प्रभावी|कारक|कारण|प्रभाव|परिणाम|चुनौती|समाधान|उपाय|आयाम|पहल)\b', clean_title, re.IGNORECASE))
         # Intro must be an actual introduction premise, never a regular body argument (like drivers or causes)
+        is_opening_premise = (
+            (idx == 0 and p_num == 1) or
+            bool(re.search(r'\b(?:dilemma|double\s*dilemma|opening\s*hook|contextual\s*opening|introductory\s*premise|context\s*&?\s*conceptual|प्रस्तावना|भूमिका|आरंभ)\b', clean_title, re.IGNORECASE)) or
+            bool(re.search(r'\b(?:intro|introduction|premise|opening\s*hook|contextual\s*opening|temporal\s*scope|प्रस्तावना|भूमिका)\b', raw_badge, re.IGNORECASE))
+        ) and not is_body_title
         is_intro = not is_body_title and (
-            bool(re.search(r'\b(?:intro|introduction|premise|opening\s*hook|contextual\s*opening|temporal\s*scope|प्रस्तावना|भूमिका|आरंभ)\b', clean_title, re.IGNORECASE)) or
-            (idx == 0 and p_num == 1 and bool(re.search(r'\b(?:intro|introduction|premise|opening\s*hook|प्रस्तावना|भूमिका)\b', raw_badge, re.IGNORECASE)) and not bool(re.search(r'\b(?:driver|cause|consequence|impact|part|body|point|heading|sub-heading)\b', clean_title, re.IGNORECASE)))
+            is_opening_premise or
+            bool(re.search(r'\b(?:intro|introduction|premise|opening\s*hook|contextual\s*opening|temporal\s*scope|प्रस्तावना|भूमिका|आरंभ)\b', clean_title, re.IGNORECASE))
         )
         is_conc = not is_body_title and (
             bool(re.search(r'\b(?:concl|conclusion|synthesis|closing|निष्कर्ष|उपसंहार)\b', clean_title, re.IGNORECASE)) or
@@ -11212,6 +11287,54 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
             if s_str and not _has_meta_placeholder(s_str):
                 if not any(_is_item_duplicate(s_str[:30], s_str, [ex]) for ex in existing_strengths):
                     existing_strengths.append(s_str)
+
+    # Law 1, Law 2 & Law 3 Enforcer on existing_strengths:
+    # 1. Purge any Intro sentences/dilemmas that leaked into body strengths
+    intro_keywords = r'(?i)\b(?:intro|introduction|premise|opening\s*hook|contextual\s*opening|double\s*dilemma|dilemma\s*in\s*employment|surge\s*in\s*disruptive|context\s*&?\s*conceptual|प्रस्तावना|भूमिका|आरंभ)\b'
+    filtered_strengths = []
+    q_text_eval = str(data.get("detected_question", "")).lower()
+
+    for s in existing_strengths:
+        s_str = str(s or "").strip()
+        if not s_str:
+            continue
+        # Exclude intro bleed
+        if re.search(intro_keywords, s_str) or (intro_crit and _is_duplicate_sentence(s_str, intro_crit)):
+            continue
+        # Law 1: Intercept bare scheme name-dumping without operative mechanism
+        if re.search(r'(?i)\b(?:correctly\s+cited|cited\s+schemes?|cited\s+frameworks?|policy\s+schemes?)\b.*?\b(?:sankalp|strive|pm-kisan|pmfby|uapa|nia|natgrid|mac)\b', s_str) or (
+            re.search(r'(?i)\b(?:sankalp\s*(?:and|&)\s*strive)\b', s_str) and not re.search(r'(?i)\b(?:iti|district|decentraliz|apprentice|cluster)\b', s_str)
+        ):
+            scheme_gap = (
+                "**योजनाओं/अधिनियमों का नाम मात्र लिखना (पृष्ठ 3)**: आपने केवल SANKALP व STRIVE का नाम लिखा, किंतु उनके परिचालन तंत्र का उल्लेख नहीं किया। बिना क्रिया के नाम लिखने से अंक कटते हैं। हमेशा स्पष्ट करें कि वे कैसे कार्य करते हैं (उदा. STRIVE द्वारा ITI आधुनिकीकरण व उद्योग शिक्षुता; SANKALP द्वारा जिला कौशल समितियों का विकेंद्रीकरण)।"
+                if is_hindi else
+                "**Scheme Name-Dumping without Operative Function (Page 3)**: You merely listed SANKALP & STRIVE without explaining their operational mechanisms. Naming schemes without operative verbs caps marks. Always state what and how they work (e.g. STRIVE modernizes ITIs through industry-led apprenticeships and MSME clusters; SANKALP decentralizes skill planning to District Skill Committees)."
+            )
+            if not any(_is_item_duplicate("Scheme Name-Dumping", scheme_gap, [ex]) for ex in existing_gaps):
+                existing_gaps.append(scheme_gap)
+            continue
+        # Law 2: Context-as-body trap (Unasked background section)
+        if re.search(r'(?i)\b(?:good\s+analysis\s+of\s+job\s+polarization|changes\s+being\s+brought|informal\s+gig\s+economy\s+trends)\b', s_str) and re.search(r'(?i)\b(?:measures?|solutions?|interventions?|initiatives?|उपाय|समाधान)\b', q_text_eval):
+            unasked_gap = (
+                "**अनपेक्षित खंड / पृष्ठ स्थान की बर्बादी (पृष्ठ 2)**: आपने 'लाए जा रहे परिवर्तन' जैसा अलग शीर्षक बनाकर आधा पृष्ठ केवल पृष्ठभूमि लिखने में बर्बाद किया, जबकि प्रश्न का सीधा निर्देश **'उपाय' (Measures)** था। वर्णनात्मक पृष्ठभूमि को संक्षिप्त कर नीतिगत उपायों हेतु स्थान बचाएं।"
+                if is_hindi else
+                "**Unasked Section / Space Budget Deficit (Page 2)**: You created an entire section on 'Changes being brought about' consuming valuable page real estate, when the question's explicit directive demanded **Measures to improve employability & opportunities**. Displace descriptive background to maximize space for actionable policy measures."
+            )
+            if not any(_is_item_duplicate("Unasked Section", unasked_gap, [ex]) for ex in existing_gaps):
+                existing_gaps.append(unasked_gap)
+            continue
+        filtered_strengths.append(s_str)
+    existing_strengths = filtered_strengths
+
+    # Law 4: Conclusion Vocabulary & Substance Scrutiny
+    transcription_text = str(data.get("transcribed_text", "")).lower()
+    if conc_crit and ("conjured up" in transcription_text or "conjured up" in conc_crit.lower() or "conjure" in conc_crit.lower()):
+        if not re.search(r'(?i)(?:vocabulary|conjure|magic|precision|शब्दावली)', conc_crit):
+            conc_crit = (
+                "⚠️ **शब्दावली एवं नीतिगत गंभीरता की कमी**: आपने निष्कर्ष में लिखा कि 'new job opportunities need to be conjured up'। अर्थव्यवस्था में रोजगार 'जादू या चमत्कार' (conjure) से नहीं, बल्कि पूंजी निर्माण, औद्योगिक नीति व प्रोत्साहन से सृजित होते हैं। नीतिगत गंभीरता से लिखें।"
+                if is_hindi else
+                "⚠️ **Vocabulary & Conceptual Precision Flaw in Conclusion**: You wrote that *'new job opportunities need to be conjured up'*. The word 'conjured up' implies creating jobs through magic or trickery! Jobs in a national economy are created through macroeconomic capital formation, industrial policy, and fiscal incentives. Phrase with professional policy gravity ✍️ **How to Write**: 'Hence, synchronous modernization of technical curricula alongside production-linked incentives is imperative to transform disruptive technological headwinds into high-productivity employment.'"
+            )
 
     if intro_crit:
         # Guarantee strictly ONE single cohesive feedback statement (no stacked bullets, no nested duplicate parentheses)

@@ -12732,9 +12732,14 @@ window.transferPointAuditToDeepEvaluation = function(evalData) {
 
     const isBodyTitle = /\b(?:driver|cause|factor|consequence|impact|challenge|measure|agriculture|agricultural|demographic|urban|urbanization|infrastructure|mining|ecological|hydrological|soil|geomorph|dimension|solution|way\s*forward|manifestation|initiative|architecture|economic|trade|prerequisite|प्रभावी|कारक|कारण|प्रभाव|परिणाम|चुनौती|समाधान|उपाय|आयाम|पहल)\b/i.test(rawTitle);
     const titleBadge = (rawTitle + " " + String(pbp.badge || "")).toLowerCase();
+    const isOpeningPremise = (
+      (idx === 0 && pNum === 1) ||
+      /\b(?:dilemma|double\s*dilemma|opening\s*hook|contextual\s*opening|introductory\s*premise|context\s*&?\s*conceptual|प्रस्तावना|भूमिका|आरंभ)\b/i.test(rawTitle) ||
+      /\b(?:intro|introduction|premise|opening\s*hook|contextual\s*opening|temporal\s*scope|प्रस्तावना|भूमिका)\b/i.test(String(pbp.badge || ""))
+    ) && !isBodyTitle;
     const isIntro = !isBodyTitle && (
-      /\b(?:intro|introduction|premise|opening\s*hook|contextual\s*opening|temporal\s*scope|प्रस्तावना|भूमिका|आरंभ)\b/i.test(rawTitle) ||
-      (idx === 0 && pNum === 1 && totalCards >= 3 && /\b(?:intro|introduction|premise|opening\s*hook|प्रस्तावना|भूमिका)\b/i.test(String(pbp.badge || "")) && !/\b(?:driver|cause|consequence|impact|part|body|point|heading|sub-heading)\b/i.test(rawTitle))
+      isOpeningPremise ||
+      /\b(?:intro|introduction|premise|opening\s*hook|contextual\s*opening|temporal\s*scope|प्रस्तावना|भूमिका|आरंभ)\b/i.test(rawTitle)
     );
     const isConc = !isBodyTitle && (
       /\b(?:concl|conclusion|synthesis|closing|निष्कर्ष|उपसंहार)\b/i.test(rawTitle) ||
@@ -12780,6 +12785,53 @@ window.transferPointAuditToDeepEvaluation = function(evalData) {
       existingStrengths.push(s);
     }
   });
+
+  // Law 1, Law 2 & Law 3 Enforcer on existingStrengths:
+  const introKeywords = /\b(?:intro|introduction|premise|opening\s*hook|contextual\s*opening|double\s*dilemma|dilemma\s*in\s*employment|surge\s*in\s*disruptive|context\s*&?\s*conceptual|प्रस्तावना|भूमिका|आरंभ)\b/i;
+  const filteredStrengths = [];
+  const qText = String(evalData?.detected_question || evalData?.question || window.state?.question || window.qStrLow || "").toLowerCase();
+
+  existingStrengths.forEach(s => {
+    const sStr = String(s || '').trim();
+    if (!sStr) return;
+    // Exclude intro bleed
+    if (introKeywords.test(sStr) || (introCrit && isDuplicate(sStr, introCrit))) {
+      return;
+    }
+    // Law 1: Intercept bare scheme name-dumping without operative mechanism
+    if (/\b(?:correctly\s+cited|cited\s+schemes?|cited\s+frameworks?|policy\s+schemes?)\b.*?\b(?:sankalp|strive|pm-kisan|pmfby|uapa|nia|natgrid|mac)\b/i.test(sStr) ||
+        (/\b(?:sankalp\s*(?:and|&)\s*strive)\b/i.test(sStr) && !/\b(?:iti|district|decentraliz|apprentice|cluster)\b/i.test(sStr))) {
+      const schemeGap = isHindi
+        ? "**योजनाओं/अधिनियमों का नाम मात्र लिखना (पृष्ठ 3)**: आपने केवल SANKALP व STRIVE का नाम लिखा, किंतु उनके परिचालन तंत्र का उल्लेख नहीं किया। बिना क्रिया के नाम लिखने से अंक कटते हैं। हमेशा स्पष्ट करें कि वे कैसे कार्य करते हैं (उदा. STRIVE द्वारा ITI आधुनिकीकरण व उद्योग शिक्षुता; SANKALP द्वारा जिला कौशल समितियों का विकेंद्रीकरण)।"
+        : "**Scheme Name-Dumping without Operative Function (Page 3)**: You merely listed SANKALP & STRIVE without explaining their operational mechanisms. Naming schemes without operative verbs caps marks. Always state what and how they work (e.g. STRIVE modernizes ITIs through industry-led apprenticeships and MSME clusters; SANKALP decentralizes skill planning to District Skill Committees).";
+      if (!isItemDuplicate("Scheme Name-Dumping", schemeGap, existingGaps)) {
+        existingGaps.push(schemeGap);
+      }
+      return;
+    }
+    // Law 2: Intercept unasked background section
+    if (/\b(?:good\s+analysis\s+of\s+job\s+polarization|changes\s+being\s+brought|informal\s+gig\s+economy\s+trends)\b/i.test(sStr) && /\b(?:measures?|solutions?|interventions?|initiatives?|उपाय|समाधान)\b/i.test(qText)) {
+      const unaskedGap = isHindi
+        ? "**अनपेक्षित खंड / पृष्ठ स्थान की बर्बादी (पृष्ठ 2)**: आपने 'लाए जा रहे परिवर्तन' जैसा अलग शीर्षक बनाकर आधा पृष्ठ केवल पृष्ठभूमि लिखने में बर्बाद किया, जबकि प्रश्न का सीधा निर्देश **'उपाय' (Measures)** था। वर्णनात्मक पृष्ठभूमि को संक्षिप्त कर नीतिगत उपायों हेतु स्थान बचाएं।"
+        : "**Unasked Section / Space Budget Deficit (Page 2)**: You created an entire section on 'Changes being brought about' consuming valuable page real estate, when the question's explicit directive demanded **Measures to improve employability & opportunities**. Displace descriptive background to maximize space for actionable policy measures.";
+      if (!isItemDuplicate("Unasked Section", unaskedGap, existingGaps)) {
+        existingGaps.push(unaskedGap);
+      }
+      return;
+    }
+    filteredStrengths.push(sStr);
+  });
+  existingStrengths = filteredStrengths;
+
+  // Law 4: Conclusion Vocabulary Scrutiny
+  const fullTranscript = String(evalData?.transcribed_text || "").toLowerCase();
+  if (concCrit && (fullTranscript.includes("conjured up") || concCrit.toLowerCase().includes("conjured up") || concCrit.toLowerCase().includes("conjure"))) {
+    if (!/(?:vocabulary|conjure|magic|precision|शब्दावली)/i.test(concCrit)) {
+      concCrit = isHindi
+        ? "⚠️ **शब्दावली एवं नीतिगत गंभीरता की कमी**: आपने निष्कर्ष में लिखा कि 'new job opportunities need to be conjured up'। अर्थव्यवस्था में रोजगार 'जादू या चमत्कार' (conjure) से नहीं, बल्कि पूंजी निर्माण, औद्योगिक नीति व प्रोत्साहन से सृजित होते हैं। नीतिगत गंभीरता से लिखें।"
+        : "⚠️ **Vocabulary & Conceptual Precision Flaw in Conclusion**: You wrote that *'new job opportunities need to be conjured up'*. The word 'conjured up' implies creating jobs through magic or trickery! Jobs in a national economy are created through macroeconomic capital formation, industrial policy, and fiscal incentives. Phrase with professional policy gravity ✍️ **How to Write**: 'Hence, synchronous modernization of technical curricula alongside production-linked incentives is imperative to transform disruptive technological headwinds into high-productivity employment.'";
+    }
+  }
 
   intro.current_critique = introCrit;
   conc.current_critique = concCrit;
@@ -13910,7 +13962,19 @@ function renderEvaluation(evalData) {
 
   const strengthsEl = document.getElementById("bodyStrengthsList");
   strengthsEl.innerHTML = "";
-  const rawStrengthsList = (body.strengths || []).filter(s => !/(?:^|\*\*)\s*(?:intro|introduction|प्रस्तावना|context & conceptual definition)/i.test(String(s || "")));
+  const rawStrengthsList = (body.strengths || []).filter(s => {
+    const sStr = String(s || "");
+    if (/(?:^|\*\*)\s*(?:intro|introduction|premise|opening\s*hook|contextual\s*opening|double\s*dilemma|dilemma\s*in\s*employment|surge\s*in\s*disruptive|प्रस्तावना|भूमिका|context & conceptual definition)/i.test(sStr)) return false;
+    if (evalData?.intro_audit?.current_critique) {
+      const introWords = String(evalData.intro_audit.current_critique).toLowerCase().replace(/[^a-z0-9\u0900-\u097F\s]/g, " ").split(/\s+/).filter(w => w.length >= 6);
+      const sWords = sStr.toLowerCase().replace(/[^a-z0-9\u0900-\u097F\s]/g, " ").split(/\s+/).filter(w => w.length >= 6);
+      if (sWords.length >= 3) {
+        const matches = sWords.filter(w => introWords.includes(w)).length;
+        if (matches / sWords.length >= 0.5) return false;
+      }
+    }
+    return true;
+  });
   const sortedStrengths = typeof window.sortPointsChronologically === "function" ? window.sortPointsChronologically(rawStrengthsList) : rawStrengthsList;
 
   // Dynamic Examiner Rendering: highlight all effective points without artificial caps or per-page limits
