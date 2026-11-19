@@ -1345,13 +1345,16 @@ def build_hindi_evaluation_prompt(
         hindi_prompt_visual_annotations_example = f'''    {{{{
       "page": 1,
       "page_number": 1,
+      "section": "intro",
+      "annotation_type": "margin_note",
+      "margin_side": "left",
       "marker_type": "tick",
       "target_snippet": "[परीक्षार्थी की आरंभिक पंक्ति से 2-7 शब्द]",
-      "approx_x_percent": 32,
-      "approx_y_percent": 28,
+      "approx_x_percent": 24,
+      "approx_y_percent": 26,
       "tag": "प्रस्तावना (भूमिका)",
-      "start_y_percent": 24,
-      "end_y_percent": 38,
+      "start_y_percent": 22,
+      "end_y_percent": 36,
       "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
       "margin_remark": "✓ सटीक अवधारणात्मक शुरुआत।\\n✎ [1 विषय-विशिष्ट सुधार]",
       "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — सटीक Conceptual Baseline के साथ प्रभावी शुरुआत।\\n✎ **सुधार**: 1 विषय-सटीक संवर्धन जोड़ें।"
@@ -1359,6 +1362,9 @@ def build_hindi_evaluation_prompt(
     {{{{
       "page": 1,
       "page_number": 1,
+      "section": "body",
+      "annotation_type": "underline",
+      "margin_side": "inline",
       "marker_type": "circle",
       "target_snippet": "[परीक्षार्थी द्वारा लिखा गया कोई त्रुटिपूर्ण तथ्य या कमजोर दावा]",
       "approx_x_percent": 36,
@@ -1374,43 +1380,70 @@ def build_hindi_evaluation_prompt(
     {{{{
       "page": 2,
       "page_number": 2,
+      "section": "body",
+      "annotation_type": "bracket_merge",
+      "margin_side": "left",
+      "marker_type": "bracket",
+      "target_snippet": "[द्वितीय पृष्ठ पर दो दोहराए गए बिंदु]",
+      "approx_x_percent": 22,
+      "approx_y_percent": 35,
+      "tag": "Body: बिंदुओं का दोहराव (Merge Points)",
+      "type": "suggestion",
+      "start_y_percent": 26,
+      "end_y_percent": 48,
+      "marks_awarded": "+{d3_aw:.1f} / {d3_m:.1f}",
+      "margin_remark": "✎ बिंदु 2 व 3 एक ही तर्क दोहरा रहे हैं; दोनों को एक बिंदु में संक्षिप्त करें।",
+      "remark": "✎ **पुनरावृत्ति निवारण**: परीक्षार्थी ने एक ही विचार को दो अलग बिंदुओं में लिखा — दोनों को मिलाकर एक ठोस बिंदु बनाएं ताकि नए आयाम हेतु स्थान बचे।"
+    }}}},
+    {{{{
+      "page": 2,
+      "page_number": 2,
+      "section": "body",
+      "annotation_type": "tick",
+      "margin_side": "inline",
       "marker_type": "tick",
-      "target_snippet": "[द्वितीय पृष्ठ से परीक्षार्थी का मुख्य तर्क]",
+      "target_snippet": "[द्वितीय पृष्ठ से परीक्षार्थी का मुख्य तर्क/उप-शीर्षक]",
       "approx_x_percent": 34,
-      "approx_y_percent": 45,
+      "approx_y_percent": 62,
       "tag": "Body: [द्वितीय उप-शीर्षक / मुख्य विश्लेषण]",
       "type": "tick",
-      "start_y_percent": 10,
-      "end_y_percent": 88,
-      "marks_awarded": "+{d3_aw:.1f} / {d3_m:.1f}",
-      "margin_remark": "✓ बहु-आयामी विश्लेषण व स्पष्ट बिंदुवार प्रस्तुति।\\n✎ संवैधानिक प्रावधान जोड़ें।",
-      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — बहु-आयामी विश्लेषण।\\n✎ **सुधार**: ठोस उदाहरण एवं संवैधानिक प्रावधान जोड़ें।"
+      "start_y_percent": 52,
+      "end_y_percent": 86,
+      "marks_awarded": "+{round(d_c_aw, 1):.1f} / {round(d_c_m, 1):.1f}",
+      "margin_remark": "✓ बहु-आयामी विश्लेषण व स्पष्ट प्रस्तुति।",
+      "remark": "✓ **सकारात्मक**: परीक्षार्थी ने लिखा: \"[सटीक हस्तलिखित वाक्य]\" — बहु-आयामी विश्लेषण।"
     }}}},
     {{{{
       "page": 3,
       "page_number": 3,
+      "section": "body",
+      "annotation_type": "margin_note",
+      "margin_side": "right",
       "marker_type": "circle",
-      "target_snippet": "[तृतीय पृष्ठ पर अस्पष्ट या गलत संदर्भ]",
-      "approx_x_percent": 38,
+      "target_snippet": "[तृतीय पृष्ठ पर अस्पष्ट या अधूरा संस्थागत संदर्भ]",
+      "approx_x_percent": 76,
       "approx_y_percent": 38,
       "tag": "✗ संदर्भ / आंकड़े की कमी",
       "type": "cross",
-      "start_y_percent": 10,
-      "end_y_percent": 64,
-      "marks_awarded": "+{round(d_c_aw, 1):.1f} / {round(d_c_m, 1):.1f}",
+      "start_y_percent": 14,
+      "end_y_percent": 58,
+      "marks_awarded": "+0.5 / 1.5",
       "margin_remark": "✗ अस्पष्ट संदर्भ: [सटीक समिति/नीतिगत सुधार का उल्लेख करें]।",
       "remark": "✗ **कमी**: परीक्षार्थी ने सुधारों में केवल सामान्य बातें लिखीं — [सटीक नीतिगत ढांचे का उल्लेख करें]।"
     }}}},
     {{{{
       "page": 3,
       "page_number": 3,
+      "section": "conclusion",
+      "annotation_type": "bottom_note",
+      "margin_side": "bottom",
       "marker_type": "tick",
       "target_snippet": "[तृतीय पृष्ठ से निष्कर्ष का अंतिम वाक्य]",
       "approx_x_percent": 34,
-      "approx_y_percent": 76,
+      "approx_y_percent": 82,
       "tag": "निष्कर्ष (आगे की राह)",
       "type": "suggestion",
-      "start_y_percent": 68,
+      "start_y_percent": 72,
       "end_y_percent": 86,
       "marks_awarded": "+{round(d4_aw, 1):.1f} / {round(d4_m, 1):.1f}",
       "margin_remark": "✓ उत्तर का संतुलित समापन।\\n✎ 1 दूरदर्शी संस्थागत सुधार जोड़ें।",
@@ -1420,12 +1453,15 @@ def build_hindi_evaluation_prompt(
         hindi_prompt_visual_annotations_example = f'''    {{{{
       "page": 1,
       "page_number": 1,
+      "section": "intro",
+      "annotation_type": "margin_note",
+      "margin_side": "left",
       "marker_type": "tick",
       "target_snippet": "[परीक्षार्थी की आरंभिक पंक्ति से 2-7 शब्द]",
-      "approx_x_percent": 32,
+      "approx_x_percent": 24,
       "approx_y_percent": 28,
       "tag": "प्रस्तावना (भूमिका)",
-      "start_y_percent": 24,
+      "start_y_percent": 22,
       "end_y_percent": 38,
       "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
       "margin_remark": "✓ सटीक अवधारणात्मक शुरुआत।\\n✎ [1 विषय-विशिष्ट सुधार]",
@@ -1434,6 +1470,9 @@ def build_hindi_evaluation_prompt(
     {{{{
       "page": 1,
       "page_number": 1,
+      "section": "body",
+      "annotation_type": "underline",
+      "margin_side": "inline",
       "marker_type": "circle",
       "target_snippet": "[प्रथम पृष्ठ से तथ्यात्मक या अवधारणात्मक कमी]",
       "approx_x_percent": 36,
@@ -1449,6 +1488,9 @@ def build_hindi_evaluation_prompt(
     {{{{
       "page": 2,
       "page_number": 2,
+      "section": "body",
+      "annotation_type": "tick",
+      "margin_side": "inline",
       "marker_type": "tick",
       "target_snippet": "[द्वितीय पृष्ठ से मुख्य तर्क]",
       "approx_x_percent": 34,
@@ -1464,10 +1506,13 @@ def build_hindi_evaluation_prompt(
     {{{{
       "page": 2,
       "page_number": 2,
-      "marker_type": "tick",
+      "section": "conclusion",
+      "annotation_type": "bottom_note",
+      "margin_side": "bottom",
+      "marker_type": "suggestion",
       "target_snippet": "[द्वितीय पृष्ठ से निष्कर्ष का वाक्य]",
       "approx_x_percent": 34,
-      "approx_y_percent": 74,
+      "approx_y_percent": 78,
       "tag": "निष्कर्ष (आगे की राह)",
       "type": "suggestion",
       "start_y_percent": 70,
@@ -2510,13 +2555,16 @@ def build_evaluation_prompt(
     if max_marks >= 15:
         eng_prompt_visual_annotations_example = f'''    {{{{
       "page": 1,
+      "section": "intro",
+      "annotation_type": "margin_note",
+      "margin_side": "left",
       "marker_type": "tick",
       "target_snippet": "[Extract 2-7 words from candidate's opening line]",
-      "approx_x_percent": 32,
-      "approx_y_percent": 28,
-      "start_y_percent": 24,
-      "end_y_percent": 40,
-      "tag": "Intro: Conceptual Definition",
+      "approx_x_percent": 24,
+      "approx_y_percent": 26,
+      "start_y_percent": 22,
+      "end_y_percent": 36,
+      "tag": "Intro: Context & Conceptual Definition",
       "type": "tick",
       "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
       "margin_remark": "✓ Direct conceptual framing establishing core thesis.\\n✎ [1 discipline-specific elevation].",
@@ -2524,11 +2572,14 @@ def build_evaluation_prompt(
     }}}},
     {{{{
       "page": 1,
+      "section": "body",
+      "annotation_type": "underline",
+      "margin_side": "inline",
       "marker_type": "circle",
       "target_snippet": "[Extract 2-5 words of candidate's flawed/vague claim on Page 1]",
       "approx_x_percent": 36,
       "approx_y_percent": 68,
-      "start_y_percent": 50,
+      "start_y_percent": 48,
       "end_y_percent": 86,
       "tag": "✗ Factual Inaccuracy / Critical Gap",
       "type": "cross",
@@ -2538,39 +2589,65 @@ def build_evaluation_prompt(
     }}}},
     {{{{
       "page": 2,
+      "section": "body",
+      "annotation_type": "bracket_merge",
+      "margin_side": "left",
+      "marker_type": "bracket",
+      "target_snippet": "[Extract 3-6 words of repetitive points on Page 2]",
+      "approx_x_percent": 22,
+      "approx_y_percent": 35,
+      "start_y_percent": 26,
+      "end_y_percent": 48,
+      "tag": "Body: Redundant Argument Merge",
+      "type": "suggestion",
+      "marks_awarded": "+{d3_aw:.1f} / {d3_m:.1f}",
+      "margin_remark": "✎ Points 2 & 3 repeat the same core idea; merge into 1 concise point to preserve line budget.",
+      "remark": "✎ **Repetition Redundancy**: Points 2 and 3 duplicate the same institutional bottleneck. Merge into 1 concise bullet to free booklet space for missing governance levers."
+    }}}},
+    {{{{
+      "page": 2,
+      "section": "body",
+      "annotation_type": "tick",
+      "margin_side": "inline",
       "marker_type": "tick",
       "target_snippet": "[Extract 2-6 words of strong argument on Page 2]",
       "approx_x_percent": 34,
-      "approx_y_percent": 45,
-      "start_y_percent": 10,
+      "approx_y_percent": 62,
+      "start_y_percent": 52,
       "end_y_percent": 86,
       "tag": "Body: [Candidate's Actual Heading on Page 2]",
       "type": "tick",
-      "marks_awarded": "+{d3_aw:.1f} / {d3_m:.1f}",
-      "margin_remark": "✓ Substantive dimension with relevant examples.\\n✎ Support with official data.",
-      "remark": "✓ **Analytical Dimension**: Examined *\"[Page 2 argument quote]\"*.\\n✎ **Elevation**: [Concrete upgrade]."
+      "marks_awarded": "+{round(d_c_aw, 1):.1f} / {round(d_c_m, 1):.1f}",
+      "margin_remark": "✓ Substantive dimension with relevant examples.",
+      "remark": "✓ **Analytical Dimension**: Examined *\"[Page 2 argument quote]\"* with substantive depth."
     }}}},
     {{{{
       "page": 3,
+      "section": "body",
+      "annotation_type": "margin_note",
+      "margin_side": "right",
       "marker_type": "circle",
       "target_snippet": "[Extract 2-5 words of inaccurate fact/citation on Page 3]",
-      "approx_x_percent": 38,
+      "approx_x_percent": 76,
       "approx_y_percent": 38,
-      "start_y_percent": 10,
-      "end_y_percent": 64,
+      "start_y_percent": 14,
+      "end_y_percent": 58,
       "tag": "✗ Data / Citation Inaccuracy",
       "type": "cross",
-      "marks_awarded": "+{round(d_c_aw, 1):.1f} / {round(d_c_m, 1):.1f}",
+      "marks_awarded": "+0.5 / 1.5",
       "margin_remark": "✗ Misattributed Data: [Point out candidate's exact data error on Page 3 and supply correct citation].",
       "remark": "✗ **Citation Flaw**: Candidate wrote *\"[Flawed Page 3 quote]\"* — [Supply correct report/study]."
     }}}},
     {{{{
       "page": 3,
+      "section": "conclusion",
+      "annotation_type": "bottom_note",
+      "margin_side": "bottom",
       "marker_type": "tick",
       "target_snippet": "[Extract closing sentence from student's conclusion on Page 3]",
       "approx_x_percent": 34,
-      "approx_y_percent": 76,
-      "start_y_percent": 68,
+      "approx_y_percent": 82,
+      "start_y_percent": 72,
       "end_y_percent": 86,
       "tag": "Conclusion: Synthesis",
       "type": "suggestion",
@@ -2581,12 +2658,15 @@ def build_evaluation_prompt(
     else:
         eng_prompt_visual_annotations_example = f'''    {{{{
       "page": 1,
+      "section": "intro",
+      "annotation_type": "margin_note",
+      "margin_side": "left",
       "marker_type": "tick",
       "target_snippet": "[Extract 2-7 words from candidate's opening line]",
-      "approx_x_percent": 32,
+      "approx_x_percent": 24,
       "approx_y_percent": 28,
-      "start_y_percent": 24,
-      "end_y_percent": 40,
+      "start_y_percent": 22,
+      "end_y_percent": 38,
       "tag": "Intro: Context & Definition",
       "type": "tick",
       "marks_awarded": "+{d1_aw:.1f} / {d1_m:.1f}",
@@ -2595,6 +2675,9 @@ def build_evaluation_prompt(
     }}}},
     {{{{
       "page": 1,
+      "section": "body",
+      "annotation_type": "underline",
+      "margin_side": "inline",
       "marker_type": "circle",
       "target_snippet": "[Extract 2-5 words of candidate's flawed/vague claim on Page 1]",
       "approx_x_percent": 36,
@@ -2609,6 +2692,9 @@ def build_evaluation_prompt(
     }}}},
     {{{{
       "page": 2,
+      "section": "body",
+      "annotation_type": "tick",
+      "margin_side": "inline",
       "marker_type": "tick",
       "target_snippet": "[Extract 2-6 words of strong argument on Page 2]",
       "approx_x_percent": 34,
@@ -2623,10 +2709,13 @@ def build_evaluation_prompt(
     }}}},
     {{{{
       "page": 2,
-      "marker_type": "tick",
+      "section": "conclusion",
+      "annotation_type": "bottom_note",
+      "margin_side": "bottom",
+      "marker_type": "suggestion",
       "target_snippet": "[Extract closing sentence from student's conclusion]",
       "approx_x_percent": 34,
-      "approx_y_percent": 74,
+      "approx_y_percent": 78,
       "start_y_percent": 70,
       "end_y_percent": 86,
       "tag": "Conclusion: Synthesis",
@@ -4158,55 +4247,40 @@ Generate strictly valid JSON matching this schema:
   }},
   "visual_annotations": [
     // CRITICAL RULES FOR HUMAN UPSC EXAMINER MARGIN EVALUATION & ZERO-BOILERPLATE MANDATE:
-    // 0. ABSOLUTE ZERO-BOILERPLATE MANDATE: Every margin remark MUST evaluate the candidate's ACTUAL handwritten content on that specific page!
-    //    NEVER EVER output generic boilerplate or stock phrases like:
-    //    - "Covered relevant analytical points and structured dimensions in this section"
-    //    - "Substantive arguments evaluated: Evaluated candidate's handwritten points with clear thematic categorization"
-    //    - "Page 1 Arguments" / "Page 2 Arguments"
-    //    - "Value Addition: Substantiate points with specific case studies, official data, or statutory frameworks"
-    //    - "Good Chronological Premise", "Clearly situated the core theme and historical timeline", "Balanced Stand", or "Forward Anchor"
-    //    Instead, quote the candidate's actual written sub-heading, analyze their actual arguments (Point 1, Point 2, Point 3, diagrams, data points), and provide concrete UPSC examiner feedback!
-    // 1. DYNAMIC BRACE TRACING & BOUNDARIES (NO FIXED RATIOS):
+    // 0. ABSOLUTE ZERO-BOILERPLATE & NO-FORCED-QUOTA MANDATE:
+    //    - Highlight ONLY genuine, high-yield strengths, gaps, repetitions, or missing dimensions based strictly on what the candidate wrote.
+    //    - NEVER force artificial quotas or fixed numbers of annotations. Quality and authenticity over artificial count! If a page has 2 genuine observations, output 2. If it has 4, output 4.
+    //    - Every margin remark MUST evaluate the candidate's ACTUAL handwritten content on that specific page!
+    //    - NEVER EVER output generic boilerplate or stock phrases. Quote candidate's actual written words in *"..."* and provide actionable UPSC examiner guidance.
+    // 1. ZERO MISMATCH GUARANTEE WITH DEEP EVALUATION (STRICT SYNCHRONIZATION):
+    //    - Every annotation MUST have a "section" field ("intro" | "body" | "conclusion"):
+    //      * "intro": Belongs STRICTLY to Introduction; must synchronize 100% with `intro_audit.current_critique` and `intro_audit.model_intro_rewrite`.
+    //      * "body": Belongs STRICTLY to Body; must synchronize 100% with `body_audit.strengths`, `body_audit.critical_gaps`, or `body_audit.missing_dimensions`.
+    //      * "conclusion": Belongs STRICTLY to Conclusion; must synchronize 100% with `conclusion_audit.current_critique` and `conclusion_audit.model_conclusion_rewrite`.
+    //    - ZERO cross-attribution: Never place intro feedback in body/conclusion, and never place body notes in intro/conclusion!
+    // 2. BILATERAL MARGINS & DIVERSE VISUAL MARKS PALETTE (AUTHENTIC RED-PEN EXAMINER FEEL):
+    //    - "annotation_type":
+    //      * "tick": Standalone checkmark (✓) placed beside strong headings, accurate constitutional provisions, or well-structured points.
+    //      * "margin_note": Red-pen examiner critique or elevation written in the margin.
+    //      * "bracket_merge": Curly bracket (}} or ]]) drawn in the left margin grouping 2 or more repetitive/redundant points together, instructing to merge them.
+    //      * "box_highlight": Rounded bounding box around candidate diagrams or flowcharts with targeted improvement feedback.
+    //      * "underline": Red underline directly beneath critical claims, misquoted data, or key phrases.
+    //      * "bottom_note": Summary or missed-points takeaway placed at the bottom margin.
+    //    - "margin_side": "left" (for structural flow, intro critique, repetition bracket merges, challenge notes) | "right" (for analytical feedback, scheme linkages, data additions, diagram notes) | "bottom" (for concluding synthesis or missed dimensions) | "inline" (for standalone ticks, underlines, diagram boxes).
+    // 3. DYNAMIC BRACE TRACING & BOUNDARIES (NO FIXED RATIOS):
     //    - Candidates write anywhere on the page! You MUST measure the actual physical vertical position (0% = page top, 100% = page bottom) of each section:
-    //    - start_y_percent: Exact percentage where candidate handwriting for this section begins (e.g. 24% on Page 1 below question header; 6% on Page 2 if starting at top).
+    //    - start_y_percent: Exact percentage where candidate handwriting for this section begins (e.g. 22% on Page 1 below question header; 6% on Page 2 if starting at top).
     //    - end_y_percent: Exact percentage where candidate handwriting for this section ends.
-    // 2. CRITICAL CONCLUSION BOTTOM STOP (NEVER EXTEND INTO PRINTED BOX):
-    //    - The Conclusion section on the final page MUST tightly encompass ONLY the candidate's actual handwritten concluding sentences (typically spanning ~6%–8% of the page height, e.g. start_y_percent: 68, end_y_percent: 74).
-    //    - UPSC QCAB and mock test booklets (Vajiram, ForumIAS, Vision, Insights, Drishti, etc.) have a pre-printed table, marks rubric, or "Students should not write anything inside the box" in the bottom 20%–25% (usually y >= 75%–80%).
-    //    - Conclusion end_y_percent MUST STOP ABOVE THIS PRINTED BOX (typically 74%–76%)! NEVER include the printed box or blank bottom margin in end_y_percent!
-    // 3. AUTHENTIC CANDIDATE HEADINGS & ZERO HEADING SPLITTING (CRITICAL):
-    //    - NEVER split a single candidate heading or compound phrase into two separate tags on "and", "&", or "/"! (e.g. if candidate writes "[Relevance and need of UAPA and National Security Act]", output ONE single tag "Body: Relevance and need of UAPA and National Security Act". NEVER split it into "Relevance" and "Need"!).
-    //    - Do NOT make up static headings or frameworks. UPSC questions are dynamic; trace EXACTLY what the candidate wrote in brackets [..] or as underlined headings.
-    // 4. ACCURATE MARGIN POSITIONING (NEVER PLACE HEADING ABOVE HANDWRITING):
-    //    - Margin annotations MUST start at the exact vertical location where that section actually begins!
-    //    - On Page 1: If candidate writes an Intro in lines 1-4, the top card MUST be tagged "Intro" (start_y_percent: ~24%-28%). NEVER place a Body heading in the margin next to the Intro! The candidate's Body heading must start where that heading actually begins (y >= 40%).
-    //    - On Page 2 / Final Page (10-Markers & 15-Markers): Strictly respect top-to-bottom physical order on the page! If candidate writes "[Challenges in such law]" at the top and "[Way Forward]" in the middle, Card 1 MUST be "Body: Challenges in such law" (y: ~10%-48%), Card 2 MUST be "Body: Way Forward & Solutions" (y: ~50%-72%), and Card 3 MUST be "Conclusion" (y: ~74%-80%). NEVER place "Way Forward" at the top over "Challenges"!
-    // 5. CRITICAL CONCLUSION BOTTOM STOP (NEVER EXTEND INTO PRINTED BOX):
-    //    - The Conclusion section on the final page MUST tightly encompass ONLY the candidate's actual handwritten concluding sentences (typically spanning ~6%–8% of the page height, e.g. start_y_percent: 72, end_y_percent: 78).
-    //    - UPSC QCAB and mock test booklets (Vajiram, ForumIAS, Vision, Insights, Drishti, etc.) have a pre-printed table, marks rubric, or "Students should not write anything inside the box" in the bottom 20%–25% (usually y >= 75%–80%).
-    //    - Conclusion end_y_percent MUST STOP ABOVE THIS PRINTED BOX (typically 76%–78%)! NEVER include the printed box or blank bottom margin in end_y_percent!
-    // 6. SUBJECT-DISCIPLINED CONCLUSION:
-    //    - In Conclusion, evaluate the candidate's actual closing recommendation. Connect Geography to IPCC/NDMA/Sendai or planetary balance; History/Culture to living cultural continuity; Ethics to Nolan principles or constitutional morality; Polity to 2nd ARC or constitutional accountability.
+    // 4. CRITICAL CONCLUSION BOTTOM STOP (NEVER EXTEND INTO PRINTED BOX):
+    //    - The Conclusion section on the final page MUST tightly encompass ONLY the candidate's actual handwritten concluding sentences (typically spanning ~6%–8% of the page height, e.g. start_y_percent: 70, end_y_percent: 78).
+    //    - UPSC QCAB booklets have a pre-printed table/rubric in the bottom 20% (y >= 80%). Conclusion end_y_percent MUST STOP ABOVE THIS PRINTED BOX (typically 76%–78%)!
+    // 5. AUTHENTIC CANDIDATE HEADINGS & ZERO HEADING SPLITTING:
+    //    - Trace EXACTLY what candidate wrote as headings. Never split compound phrases on 'and' or '&'.
+    // 6. SYNCHRONIZED MARKS CEILING:
+    //    - Marks awarded on each annotation must strictly align with sub-part step marking.
     // 7. PRECISE & CONCISE EXAMINER FEEDBACK (NEVER USE META-PLACEHOLDERS!):
-    //    - NEVER write generic placeholders like "Point [X]", "Point [Y]", "[Point 1 / Point 2 topics]", or "Directly engaged the core directive by quoting...".
     //    - Quote candidate's ACTUAL handwritten words in quotation marks *"..."* in the first sentence.
     //    - Follow with 1 concise, specific upgrade citing the exact missing constitutional article, landmark case law, official committee recommendation, or empirical metric.
-    // 8. SYNCHRONIZED MARKS CEILING:
-    //    - The marks awarded on each visual annotation MUST strictly equal its sub-part allocation from sub_part_step_marking!
-    //    - For Sub-Part 1: "+{d1_aw:.1f} / {d1_m:.1f}"
-    //    - For Body Sub-Parts: allocate the body ceiling across distinct sub-parts so the sum of all body annotations equals the body ceiling!
-    //    - For Synthesis / Final Demand: "+{d4_aw:.1f} / {d4_m:.1f}"
-    // 9. THEMATIC INTEGRITY (NEVER SWAP TAGS AND QUOTES ACROSS SECTIONS):
-    //    - The candidate's handwritten quote in every annotation card MUST 100% semantically match the tag of that card!
-    //    - If Annotation 1 is tagged with the upper theme, its quote MUST come from the upper region.
-    //    - If Annotation 2 is tagged with the lower theme, its quote MUST come from the lower region.
-    //    - NEVER invert or cross-attribute quotes between cards (e.g. placing an Exchange Rate quote into an Oil Dynamics card, or placing an OPEC oil quote into an Exchange Rate card)!
-    // [MANDATORY REAL CANDIDATE QUOTE EXTRACTION]:
-    // In EVERY annotation card:
-    // - Card 1 (Intro): Quote the candidate's ACTUAL opening words in *"..."* from their handwriting on Page 1. The feedback must directly address the question's core subject!
-    // - Card 2 & 3 (Body): Quote candidate's ACTUAL handwritten points/arguments on that page in *"..."*. The feedback must be strictly subject-specific (History: historical actors, reform movements, social debates, primary texts; Geography: geomorphic processes, climate mechanisms, spatial distribution; Polity: constitutional provisions, institutional mechanisms; Ethics: ethical theories, thinkers, dilemmas). NEVER give case laws/committee recommendations on History questions!
-    // - Card 4 (Conclusion on Final Page): Quote candidate's ACTUAL concluding sentence in *"..."* from the bottom of their answer. Provide subject-tailored elevation.
-    // ZERO STATIC PHRASES ALLOWED: NEVER copy "Opened by defining the core concept", "Articulated key mechanisms", "Evaluated practical implications", "establishing direct analytical context", "addressing primary question dimension", "demonstrating multidimensional coverage", or "Back argument with 1 concrete empirical metric, committee recommendation, or case law".
 {eng_prompt_visual_annotations_example}
   ]
 }}
@@ -5494,7 +5568,56 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
         return clean
 
     annotations = data.get("visual_annotations", [])
-    if annotations:
+    if annotations and isinstance(annotations, list):
+        for ann in annotations:
+            if not isinstance(ann, dict):
+                continue
+            # 1. Normalize Section ("intro" | "body" | "conclusion") for 100% sync with Deep Evaluation
+            sec = str(ann.get("section") or "").lower().strip()
+            if sec not in ["intro", "body", "conclusion"]:
+                tag_t = (str(ann.get("tag") or "") + " " + str(ann.get("remark") or "") + " " + str(ann.get("margin_remark") or "")).lower()
+                if any(k in tag_t for k in ["intro", "भूमिका", "प्रस्तावना", "opening", "premise"]):
+                    sec = "intro"
+                elif any(k in tag_t for k in ["concl", "निष्कर्ष", "समापन", "synthesis", "closing", "आगे की राह"]):
+                    sec = "conclusion"
+                else:
+                    sec = "body"
+            ann["section"] = sec
+
+            # 2. Normalize Annotation Type
+            a_type = str(ann.get("annotation_type") or "").lower().strip()
+            if a_type not in ["tick", "margin_note", "bracket_merge", "box_highlight", "underline", "bottom_note"]:
+                m_type = str(ann.get("marker_type") or "").lower()
+                tag_t = (str(ann.get("tag") or "") + " " + str(ann.get("remark") or "") + " " + str(ann.get("margin_remark") or "")).lower()
+                if "bracket" in m_type or "merge" in tag_t or "repetit" in tag_t or "पुनरावृत्ति" in tag_t or "दोहराव" in tag_t:
+                    a_type = "bracket_merge"
+                elif any(k in tag_t for k in ["diagram", "flowchart", "box", "चित्र", "आरेख"]):
+                    a_type = "box_highlight"
+                elif "underline" in m_type or "underline" in tag_t or "रेखांकित" in tag_t:
+                    a_type = "underline"
+                elif m_type == "tick" and not ann.get("margin_remark") and len(str(ann.get("remark") or "")) < 15:
+                    a_type = "tick"
+                elif sec == "conclusion" or float(ann.get("start_y_percent", 0.0) or 0.0) >= 82.0:
+                    a_type = "bottom_note"
+                else:
+                    a_type = "margin_note"
+            ann["annotation_type"] = a_type
+
+            # 3. Normalize Margin Side ("left" | "right" | "bottom" | "inline")
+            m_side = str(ann.get("margin_side") or "").lower().strip()
+            if m_side not in ["left", "right", "bottom", "inline"]:
+                if a_type == "bottom_note" or sec == "conclusion":
+                    m_side = "bottom"
+                elif a_type in ["tick", "underline"] and (not ann.get("margin_remark") or len(str(ann.get("margin_remark") or "")) < 12):
+                    m_side = "inline"
+                elif a_type == "bracket_merge" or sec == "intro":
+                    m_side = "left"
+                elif float(ann.get("approx_x_percent", 50.0) or 50.0) < 38.0:
+                    m_side = "left"
+                else:
+                    m_side = "right"
+            ann["margin_side"] = m_side
+
         intro_audit_obj = data.get("intro_audit") if isinstance(data.get("intro_audit"), dict) else {}
         body_audit_obj = data.get("body_audit") if isinstance(data.get("body_audit"), dict) else {}
         b_strengths = [str(s).strip() for s in (body_audit_obj.get("strengths") or []) if s]

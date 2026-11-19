@@ -4805,3 +4805,59 @@ html.dark .redpen-lead.success {
     overflow-x: auto !important;
   }
 }
+
+
+/* =========================================================================
+   BILATERAL MARGIN TRACKS & INTERACTIVE DEEP EVALUATION BRIDGING
+   ========================================================================= */
+.onpage-redpen-note.left-margin {
+  left: 1.5% !important;
+  width: 19% !important;
+  max-width: calc(20% - 4px) !important;
+  text-align: left;
+}
+
+.onpage-redpen-note.right-margin {
+  left: 78.5% !important;
+  width: 20% !important;
+  max-width: calc(21% - 4px) !important;
+  text-align: left;
+}
+
+.onpage-redpen-note.bottom-margin {
+  left: 8% !important;
+  width: 84% !important;
+  text-align: left;
+}
+
+.onpage-redpen-note.inline-marker {
+  background: rgba(254, 242, 242, 0.95);
+  border: 1px dashed rgba(220, 38, 38, 0.5);
+  border-radius: 4px;
+  padding: 2px 6px;
+  max-width: 45%;
+}
+
+.onpage-redpen-note {
+  cursor: pointer;
+}
+.onpage-redpen-note:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.18);
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-radius: 5px;
+}
+html.dark .onpage-redpen-note:hover {
+  background: rgba(15, 23, 42, 0.96) !important;
+}
+
+@keyframes deepEvalPulse {
+  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); transform: scale(1); }
+  50% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); transform: scale(1.015); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); transform: scale(1); }
+}
+
+.highlight-pulse-active {
+  animation: deepEvalPulse 1.2s ease-out 2 !important;
+  border-color: #dc2626 !important;
+}
