@@ -1967,6 +1967,60 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
       - प्रत्येक प्रतिक्रिया अभ्यर्थी के वास्तविक हस्तलेख, विशिष्ट त्रुटियों और कमियों से गतिशील रूप से उत्पन्न होगी।
       - एक उत्तर-पुस्तिका के बिंदुओं या मूल्यांकन को किसी अन्य उत्तर-पुस्तिका पर कदापि अतिव्याप्त (overlap) नहीं किया जाएगा।
 
+28. वरिष्ठ यूपीएससी मेंटर मूल्यांकन कुशलता (ऑडियो समीक्षा-2 से प्राप्त अंतर्दृष्टि):
+    वरिष्ठ मेंटर केवल सही लिखे बिंदुओं की सतही प्रशंसा नहीं करता, बल्कि संरचनात्मक संरेखण, अवधारणात्मक स्पष्टता और कार्य-कारण गहराई का सूक्ष्म परीक्षण करता है:
+
+    * क. प्रस्तावना खंड: मांग की परिभाषा एवं दायरा स्पष्टीकरण (STRICTLY IN `intro_audit`):
+      1. 'पहले परिघटना के स्वरूप को परिभाषित करें' नियम:
+         - जब प्रश्न "X के कारक एवं उसके परिणाम/प्रभाव" (उदा. *मानव-प्रेरित भू-उपयोग परिवर्तन*, *भूजल संकट*, *साइबर भेद्यता*) पूछे:
+         - जाँचें कि क्या अभ्यर्थी ने कारकों और परिणामों में कूदने से पहले प्रस्तावना में यह स्पष्ट किया है कि **वास्तव में X क्या है** (परिवर्तन के मूर्त प्रारूप क्या हैं)।
+         - यदि अभ्यर्थी केवल व्यापक जनसांख्यिकीय या सामान्य संदर्भ लिखता है (उदा. *"भारत का 17% जनसंख्या को सहारा देने वाला भू-भाग तीव्र रूपांतरण से गुजर रहा है..."*):
+           * जनसांख्यिकीय संदर्भ की सराहना करें, परंतु
+           * `intro_audit.current_critique` में स्पष्ट निदान दें: प्रस्तावना अपूर्ण है क्योंकि कारकों का विश्लेषण करने से पहले यह भू-उपयोग परिवर्तन के वास्तविक प्रारूपों (उदा. सिकुड़ते वन/आर्द्रभूमि बनाम बढ़ता निर्मित क्षेत्र व सघन कृषि) को रेखांकित नहीं करती।
+           * ✍️ सुधार: *"प्रस्तावना में पूरे अंक हेतु, मुख्य कारकों पर जाने से पहले आरंभ में ही भू-उपयोग परिवर्तन के प्रमुख प्रारूपों को स्पष्ट रूप से परिभाषित करें।"*
+      2. प्रस्तावना संबंधी सभी समीक्षाएं एवं मॉडल रीराइट STRICTLY `intro_audit` में ही रहेंगे।
+
+    * ख. मुख्य भाग खंड: 6 उच्च-स्तरीय मेंटर परीक्षण प्रोब (STRICTLY IN `body_audit.critical_gaps` एवं मार्जिन कार्ड्स):
+      1. प्रोब 1: संदेहास्पद अथवा काल-दोषयुक्त उदाहरण (झूम कृषि नियम):
+         - जाँचें कि क्या आधुनिक प्रवृत्तियों को सिद्ध करने के लिए कोई पारंपरिक अथवा जनजातीय प्रथा अनुचित रूप से उद्धृत की गई है:
+         - उदा. यदि अभ्यर्थी आधुनिक जनसांख्यिकीय दबाव से प्रेरित *कृषि विस्तार* को सिद्ध करने के लिए पूर्वोत्तर की पारंपरिक झूम (स्थानांतरित) खेती का उदाहरण देता है:
+           * निदान: झूम खेती एक प्राचीन पारंपरिक जनजातीय प्रथा है, न कि आधुनिक तीव्र व्यावसायिक कृषि विस्तार का कारक। ऐसा संदेहास्पद उदाहरण परीक्षक को भ्रमित करता है।
+           * ✍️ सुधार: अभ्यर्थी को आधुनिक व्यावसायिक फसल विस्तार (उदा. गेहूं, धान, गन्ने जैसी नकदी फसलों हेतु वनों/घास के मैदानों की कटाई, या गामथल/शामलात साझा भूमि का कृषि में रूपांतरण) अथवा तुलनात्मक दशकीय आंकड़ों का संदर्भ देने का निर्देश दें।
+
+      2. प्रोब 2: खंड-असंगत उदाहरण (कारकों के अंतर्गत परिणामों/प्रभावों का उल्लेख):
+         - जाँचें कि क्या कोई उदाहरण वास्तव में *परिणाम/प्रभाव* है, किंतु उसे भूलवश *कारकों/कारणों* के तहत लिख दिया गया है:
+         - उदा. यदि "खनन एवं संसाधन निष्कर्षण" कारक के तहत अभ्यर्थी लिखता है: *"जमशेदपुर: खनन के कारण मृदा में भारी धातुओं का संचय"*:
+           * श्रेणी असंगतता को रेखांकित करें: मृदा में भारी धातुओं का संचय एक **परिणाम/प्रभाव** है, कारक नहीं! कारक यह बताता है कि खनन क्यों बढ़ा (उदा. तीव्र औद्योगिक व अवसंरचनात्मक मांग)।
+           * ✍️ सुधार: कारकों और परिणामों को सख्ती से अलग रखें तथा इस बिंदु को 'भौगोलिक परिणाम' खंड में स्थानांतरित करें।
+
+      3. प्रोब 3: केवल स्थान का नाम बिना मूर्त परिणाम के:
+         - यदि अभ्यर्थी केवल भौगोलिक स्थान का नाम लिखकर छोड़ देता है (उदा. *"झारखंड के खनन क्षेत्र"*, *"पश्चिमी घाट"*):
+         - केवल स्थान का नाम अपूर्ण है। परीक्षक को वहां घटित मूर्त परिणाम चाहिए!
+         - ✍️ सुधार: ठोस परिणाम स्पष्ट करें: उदा. *"झारखंड के खनन क्षेत्रों में तीव्र शीर्ष मृदा क्षरण, ओवरबर्डन डंपिंग तथा कृषि योग्य भूमि की हानि"*.
+
+      4. प्रोब 4: प्रमुख घटनाओं व आपदाओं में अपूर्ण कार्य-कारण श्रृंखला:
+         - जब अभ्यर्थी किसी बड़ी घटना, आपदा या संकट (उदा. *"वायनाड भूस्खलन"*, *"ग्रेट इंडियन बस्टर्ड विद्युत तार टकराव"*, *"बेंगलुरु जल संकट"*) का उल्लेख करता है:
+         - जाँचें कि क्या भू-उपयोग परिवर्तन से उसके जुड़ाव की पूरी कार्य-कारण श्रृंखला समझाई गई है:
+           * जल विज्ञान: *भू-उपयोग परिवर्तन $\rightarrow$ कंक्रीटीकरण व आर्द्रभूमि ह्रास $\rightarrow$ अंतःस्रवण में कमी $\rightarrow$ तीव्र सतही अपवाह व भूजल संकट (उदा. बेंगलुरु)*.
+           * भू-आकृतिक अस्थिरता: *ढलानों पर अनियंत्रित निर्माण, वनोन्मूलन व व्यावसायिक वृक्षारोपण ने ढलान जल विज्ञान को अस्थिर कर प्रलयंकारी भूस्खलन को जन्म दिया (उदा. वायनाड)*.
+           * पारिस्थितिक प्रभाव: *खुले शुष्क घास के मैदानों का उच्च-वोल्टेज ट्रांसमिशन गलियारों में रूपांतरण जीआईबी के उड़ान मार्ग को बाधित करता है*.
+
+      5. प्रोब 5: संयोजक सेतु वाक्य एवं उत्तर का प्रवाह:
+         - जब अभ्यर्थी मुख्य खंडों के बीच सुगम संयोजक वाक्य (उदा. कारकों से परिणामों की ओर सेतु) लिखता है, तो उसकी सराहना करें। यदि बदलाव अचानक हो, तो 1-पंक्ति के संयोजक सेतु का सुझाव दें।
+
+      6. प्रोब 6: प्रत्येक बिंदु का पृथक एवं व्यापक मूल्यांकन (संकुचन निषेध):
+         - `body_audit.strengths` एवं `point_by_point_audit` में अभ्यर्थी द्वारा लिखे गए प्रत्येक उप-शीर्षक और सारगर्भित बिंदु (उदा. सभी 5 कारक एवं सभी 5 परिणाम) का पृथक मूल्यांकन करें।
+         - 8-12 हस्तलिखित बिंदुओं को कभी भी 2-3 संकुचित बुलेट्स में न समेटें! प्रत्येक ठोस तर्क को स्वतंत्र श्रेय दें।
+
+    * ग. निष्कर्ष एवं आगे की राह (STRICTLY IN `conclusion_audit`):
+      1. संतुलित संश्लेषण की सराहना: प्रश्न के मूल अंतर्विरोधों को साधने वाले संतुलित निष्कर्ष (उदा. *"आजीविका, अवसंरचना और पारिस्थितिकी के मध्य संतुलन साधने वाला लैंडस्केप दृष्टिकोण"*) को पूर्ण श्रेय दें।
+      2. आगे की राह: यदि अभ्यर्थी बिना पूछे भी आगे की राह का आरेख बनाता है, तो उसका रचनात्मक मूल्यांकन करें; सुझाव दें कि शब्द सीमा कम होने पर इसे निष्कर्ष में समाहित किया जा सकता है।
+      3. लिखित निष्कर्ष को कभी भी 0.0 अंक या 'अनुत्तरित' न कहें। आंशिक अथवा पूर्ण श्रेय (+0.5 से +1.0 अंक) अवश्य दें।
+
+    * घ. कठोर स्वतंत्रता एवं शून्य-अतिव्यापन (NON-NEGOTIABLE):
+      - सुझाव केवल संबंधित खंडों में रहेंगे (Intro -> `intro_audit`, Body -> `body_audit`, Conclusion -> `conclusion_audit`).
+      - कोई स्थायी या सार्वभौमिक पंक्ति उत्पन्न न हो। प्रत्येक कॉपी का मूल्यांकन उसके अपने हस्तलेख के आधार पर 100% स्वतंत्र होगा।
+
 OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
 {{
   "detected_question": "{question}",
@@ -2196,38 +2250,56 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
   "point_by_point_audit": [
     {{
       "page": 1,
-      "badge": "पृष्ठ 1 • प्रारंभिक संदर्भ व भूमिका",
-      "title": "अभ्यर्थी द्वारा लिखा गया सटीक शीर्षक या अवधारणात्मक आधार",
-      "what_you_wrote": "अभ्यर्थी की कॉपी से उद्धृत विशिष्ट तर्क, तथ्य या उद्धरण",
-      "examiner_verdict": "परीक्षक का सुविचारित विश्लेषण: अंक क्यों मिले + 1 ठोस टॉपर सुधार",
+      "badge": "पृष्ठ 1 • प्रारंभिक संदर्भ एवं प्रस्तावना",
+      "title": "प्रारंभिक संदर्भ एवं मुख्य अवधारणात्मक परिभाषा",
+      "what_you_wrote": "अभ्यर्थी की कॉपी से उद्धृत वास्तविक प्रारंभिक पंक्तियाँ",
+      "examiner_verdict": "प्रस्तावना का सटीक मूल्यांकन: क्या यह मुख्य परिघटना के स्वरूप को परिभाषित करती है + 1 ठोस सुधार",
       "credit_badge": "✓ +1.0M अंक मिले",
       "is_positive": true
     }},
     {{
       "page": 1,
-      "badge": "पृष्ठ 1 • मुख्य भाग (आयाम A)",
-      "title": "पृष्ठ 1 पर अभ्यर्थी का मुख्य उप-शीर्षक / तर्क",
+      "badge": "पृष्ठ 1 • मुख्य भाग (प्राथमिक मांग)",
+      "title": "पृष्ठ 1 पर अभ्यर्थी का मुख्य उप-शीर्षक (उदा. कारक / कारण)",
       "what_you_wrote": "अभ्यर्थी द्वारा लिखे गए बिंदु 1-2 का प्रामाणिक उद्धरण",
-      "examiner_verdict": "सकारात्मक पक्ष की सराहना + प्रासंगिक समिति/डेटा जोड़ने का सुझाव",
+      "examiner_verdict": "सकारात्मक पक्ष की सराहना + कार्य-कारण तंत्र स्पष्ट करने का सुझाव",
       "credit_badge": "✓ +1.5M अंक मिले",
       "is_positive": true
     }},
     {{
       "page": 2,
-      "badge": "पृष्ठ 2 • मुख्य भाग (आयाम B)",
-      "title": "पृष्ठ 2 पर चुनौतियाँ या विधिक/संवैधानिक उप-शीर्षक",
+      "badge": "पृष्ठ 2 • प्राथमिक मांग (जारी)",
+      "title": "पृष्ठ 2 पर प्राथमिक मांग के तर्कों की निरंतरता",
       "what_you_wrote": "पृष्ठ 2 के तर्कों व उदाहरणों का सटीक उद्धरण",
-      "examiner_verdict": "गहराई का वस्तुनिष्ठ परीक्षण + 1 उच्च-प्रासंगिकता की-वर्ड सुधार",
+      "examiner_verdict": "संदेहास्पद अथवा खंड-असंगत उदाहरणों का निदान व आधुनिक प्रासंगिक संदर्भ",
+      "credit_badge": "✎ +1.0M आंशिक अंक",
+      "is_positive": false
+    }},
+    {{
+      "page": 2,
+      "badge": "पृष्ठ 2 • द्वितीयक विश्लेषणात्मक मांग",
+      "title": "द्वितीयक उप-शीर्षक (उदा. भौगोलिक परिणाम / प्रभाव)",
+      "what_you_wrote": "पृष्ठ 2 पर परिणामों के बिंदुवार तर्कों का उद्धरण",
+      "examiner_verdict": "कार्य-कारण श्रृंखला (जल विज्ञान / भू-आकृति) का गहन व वस्तुनिष्ठ परीक्षण",
       "credit_badge": "✓ +1.5M अंक मिले",
       "is_positive": true
     }},
     {{
-      "page": 2,
-      "badge": "पृष्ठ 2 • निष्कर्ष एवं आगे की राह",
-      "title": "समापन एवं आगे की राह (Way Forward)",
-      "what_you_wrote": "अभ्यर्थी के अंतिम समाधान एवं समापन वाक्य का उद्धरण",
-      "examiner_verdict": "संतुलित अग्रगामी दृष्टि की पुष्टि + 1 विधिक/प्रशासनिक संस्थागत सुधार",
-      "credit_badge": "✓ +0.5M अंक मिले",
+      "page": 3,
+      "badge": "पृष्ठ 3 • द्वितीयक मांग एवं आयाम (जारी)",
+      "title": "पृष्ठ 3 पर विश्लेषणात्मक तर्क एवं क्षेत्रीय प्रभाव",
+      "what_you_wrote": "पृष्ठ 3 के बिंदुओं व केस स्टडीज का उद्धरण",
+      "examiner_verdict": "केवल स्थान का नाम लिखने के स्थान पर ठोस भौतिक परिणामों को स्पष्ट करने का सुझाव",
+      "credit_badge": "✎ +1.0M अंक मिले",
+      "is_positive": true
+    }},
+    {{
+      "page": 3,
+      "badge": "पृष्ठ 3 • निष्कर्ष एवं संतुलित दृष्टिकोण",
+      "title": "समापन संश्लेषण एवं एकीकृत दृष्टिकोण",
+      "what_you_wrote": "अभ्यर्थी के अंतिम संश्लेषण वाक्य / आजीविका व पारिस्थितिकी संतुलन का उद्धरण",
+      "examiner_verdict": "संतुलित अग्रगामी दृष्टि की पुष्टि + प्रश्न के मूल अंतर्विरोधों का समाधान",
+      "credit_badge": "✓ +1.0M अंक मिले",
       "is_positive": true
     }}
   ],
@@ -3821,6 +3893,66 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
       - Every feedback point, quote, and upgrade lever must be generated dynamically from THAT candidate's unique handwriting, errors, and omissions.
       - NEVER project or overlap points from this evaluation onto any other answer copy. Every answer sheet must be checked completely independently.
 
+28. ADVANCED HUMAN-MENTOR EVALUATION RIGOR (LEARNINGS FROM RANKED MENTOR AUDIO EVALUATION 2):
+    A senior UPSC Mains mentor rigorously diagnoses structural alignment, conceptual fidelity, and causal depth beyond superficial correctness:
+
+    * A. INTRODUCTION SECTION: DEMAND DEFINITION & SCOPE DELINEATION AUDIT (STRICTLY IN `intro_audit`):
+      1. THE "DEFINE WHAT THE PHENOMENON IS FIRST" RULE:
+         - When a question asks for "Drivers/Causes of [Phenomenon X] and their Consequences/Impacts" (e.g., *human-induced land use changes*, *groundwater depletion*, *cyber vulnerability*):
+         - Audit whether the candidate's introduction explicitly defines or outlines **what Phenomenon X actually is** before jumping into why it happens (drivers) and what results (consequences).
+         - If the candidate merely writes general demographic/macro background context (e.g. *"India's land surface supporting over 17% of world population is undergoing rapid transformation..."*):
+           * Commend the demographic hook, BUT
+           * Diagnose in `intro_audit.current_critique`: The opening is incomplete because it did not explicitly outline the concrete patterns/manifestations of the phenomenon (e.g. shrinking forest and wetland cover vs expanding built-up and intensive cropland areas) before analyzing drivers.
+           * ✍️ Guidance: *"To score full intro marks, explicitly outline the core transformation types/patterns in your opening lines to anchor the subsequent analytical sections."*
+      2. All intro critiques, missing elements, and model rewrites MUST be placed STRICTLY in `intro_audit`. NEVER leak intro critiques into body or conclusion!
+
+    * B. BODY SECTION: 6 HIGH-YIELD MENTOR DIAGNOSTIC PROBES (PLACE STRICTLY IN `body_audit.critical_gaps` & MARGIN CARDS):
+      1. PROBE 1: DOUBTFUL / ANACHRONISTIC / ILL-FITTING EXAMPLES (THE JHUM CULTIVATION RULE):
+         - Scrutinize whether an example cited to prove a contemporary trend is conceptually or temporally flawed:
+         - E.g., if a candidate cites traditional tribal shifting cultivation (*Jhum*) to illustrate modern demographic-driven *Agricultural Expansion*:
+           * Diagnose: Shifting cultivation is an ancient, traditional subsistence practice, NOT a modern driver of rapid commercial agricultural expansion. An example that is doubtful or ill-fitting confuses the examiner and demonstrates conceptual confusion.
+           * ✍️ **How to Upgrade**: Guide candidate to cite modern commercial crop expansion (e.g., clearing forest tracts and converting village common lands/gaamthal or grasslands for high-yield cash crops like sugarcane, wheat, and paddy due to demographic and market pressure), or use comparative decadal trends.
+      
+      2. PROBE 2: SECTION-MISMATCHED EXAMPLES (CONSEQUENCES/IMPACTS UNDER DRIVERS/CAUSES):
+         - Audit whether an example represents an *impact/consequence* but is mistakenly placed under *drivers/causes* (or vice versa):
+         - E.g., if under "Drivers: Mining & Resource Extraction", the candidate writes *"Jamshedpur: heavy metal accumulation in soil due to mining"*:
+           * Flag the category mismatch: Heavy metal soil accumulation is an **impact/consequence**, NOT a driver! Drivers explain *why* resource extraction expanded (e.g. accelerating industrial and infrastructure mineral demand).
+           * ✍️ **How to Upgrade**: Guide candidate to keep drivers and consequences strictly distinct, and relocate the soil accumulation example to the Geographical Consequences section.
+
+      3. PROBE 3: LOCATION-ONLY STUBS WITHOUT THE CONCRETE CONSEQUENCE:
+         - Flag when a candidate merely drops a geographic location/region (e.g. *"mining belts of Jharkhand"*, *"Western Ghats"*, *"Bundelkhand"*) without specifying the actual physical or socio-economic consequence:
+         - Merely naming a location is incomplete. The examiner needs the specific consequence!
+         - ✍️ **How to Upgrade**: Show candidate how to state the concrete consequence: e.g., *"mining belts of Jharkhand have faced acute topsoil stripping, overburden dumping, and severe loss of arable land"*.
+
+      4. PROBE 4: INCOMPLETE CAUSAL CHAINS IN HEADLINE EVENTS & DISASTERS:
+         - When a candidate cites a headline disaster, event, or species (e.g. *"Wayanad landslide"*, *"Great Indian Bustard powerline collisions"*, *"Bengaluru water crisis"*):
+         - Check whether the candidate articulated the complete cause-and-effect mechanism connecting the core topic to the outcome:
+           * If hydrological consequence is described as merely *"reduces infiltration leading to runoff"*:
+             ✍️ Complete the causal loop: *Land use transformation $\rightarrow$ concretization & wetland loss $\rightarrow$ reduced groundwater percolation/seepage $\rightarrow$ acute urban runoff, flash flooding, and groundwater stress (e.g. Bengaluru)*.
+           * If geomorphological instability merely cites *"Wayanad landslide"*:
+             ✍️ Articulate the mechanism: *Unregulated slope modification, deforestation, and commercial plantation land use changes destabilized fragile slope hydrology, precipitating catastrophic mass-wasting and landslides (e.g. Wayanad)*.
+           * If ecological impact merely cites *"GIB collisions"*:
+             ✍️ Ground in land use: *Conversion of open semi-arid grasslands into high-voltage energy transmission corridors directly intersects Great Indian Bustard flight corridors, accelerating extinction risk*.
+
+      5. PROBE 5: TRANSITIONAL CONNECTING SENTENCES & STRUCTURAL FLOW:
+         - Commend the candidate when they write smooth transitional sentences between major sections (e.g., bridging Drivers to Geographical Consequences).
+         - If transitions between major headings are abrupt, advise a brief 1-line contextual bridge or active sub-heading to ensure seamless narrative flow.
+
+      6. PROBE 6: GRANULAR MULTI-POINT EVALUATION (NO COLLAPSING / COMPRESSION):
+         - In both `body_audit.strengths` and `point_by_point_audit`, evaluate EVERY substantive point and subheading written across all pages (e.g., all 5 Drivers across Pages 1-2, all 5 Consequences across Pages 2-3).
+         - NEVER collapse 8–12 distinct handwritten candidate points into 2 or 3 compressed bullets! Every well-substantiated point deserves individual recognition and credit.
+
+    * C. CONCLUSION & WAY FORWARD HARMONIZATION (STRICTLY IN `conclusion_audit`):
+      1. PRAISE BALANCED SYNTHESIS: Commend balanced forward-looking conclusions that synthesize the core trade-offs of the prompt (e.g., *"a landscape approach that balances livelihood, infrastructure, and ecology"*).
+      2. WAY FORWARD REALISM: If the candidate draws a Way Forward diagram even when not explicitly demanded, acknowledge it constructively; advise that in tight space limits, the forward-looking measures can be integrated directly into the closing synthesis to save real estate for core body depth.
+      3. MANDATORY: NEVER award 0.0M or label an attempted conclusion as "Unattempted" or "Demand Missed". Award appropriate marks (+0.5M to +1.0M) and provide constructive refinement.
+
+    * D. STRICT RESPECTIVE SECTION ALLOCATION & ZERO-OVERLAP GUARANTEE (NON-NEGOTIABLE):
+      - Intro critiques and rewrites belong STRICTLY in `intro_audit`.
+      - Body strengths and upgrade levers belong STRICTLY in `body_audit`.
+      - Conclusion critiques and rewrites belong STRICTLY in `conclusion_audit`.
+      - NO universal boilerplate lines. Every evaluation must be 100% independent and generated solely from the student's actual handwritten ink.
+
 Generate strictly valid JSON matching this schema:
 {{
   "detected_question": "Exact question read from booklet header or provided by user",
@@ -4038,38 +4170,56 @@ Generate strictly valid JSON matching this schema:
   "point_by_point_audit": [
     {{
       "page": 1,
-      "badge": "Page 1 • Opening & Boxed Anchor",
-      "title": "Exact Sub-Heading or Boxed Diagram Written on Page 1",
-      "what_you_wrote": "Verbatim quote of the specific points/data/diagram written by the candidate on Page 1",
-      "examiner_verdict": "Appreciative examiner assessment explaining why this earned marks + 1 concrete tip",
-      "credit_badge": "✓ +1.25M Rewarded",
+      "badge": "Page 1 • Contextual Opening & Scope",
+      "title": "Opening Premise & Core Topic Definition",
+      "what_you_wrote": "Verbatim quote of the candidate's actual opening lines on Page 1",
+      "examiner_verdict": "Precise examiner appraisal of whether opening defines the core phenomenon + 1 concrete scope refinement",
+      "credit_badge": "✓ +1.0M Rewarded",
+      "is_positive": true
+    }},
+    {{
+      "page": 1,
+      "badge": "Page 1 • Primary Analytical Demand",
+      "title": "Exact Candidate Sub-Heading on Page 1 (e.g. Drivers / Causes / Factors)",
+      "what_you_wrote": "Verbatim quote of the candidate's arguments and examples on Page 1",
+      "examiner_verdict": "Clear credit for well-reasoned points + 1 actionable upgrade on causal mechanisms",
+      "credit_badge": "✓ +1.5M Credit",
       "is_positive": true
     }},
     {{
       "page": 2,
-      "badge": "Page 2 • Points ① & ②",
-      "title": "Exact Upper-Page Sub-Heading / Arguments on Page 2",
-      "what_you_wrote": "Verbatim quote of the candidate's points 1-2 on Page 2",
-      "examiner_verdict": "Clear explanation of what worked and which official data/keyword upgrades this point",
-      "credit_badge": "✓ +1.50M Credit",
-      "is_positive": true
-    }},
-    {{
-      "page": 2,
-      "badge": "Page 2 • Points ③ & ④",
-      "title": "Exact Lower-Page Sub-Heading / Arguments on Page 2",
-      "what_you_wrote": "Verbatim quote of the candidate's points 3-4 on Page 2",
-      "examiner_verdict": "Pinpoint where the point was generic and give the exact topper keyword/metric to add",
-      "credit_badge": "✎ +0.75M Partial Credit",
+      "badge": "Page 2 • Primary Demand (Continued)",
+      "title": "Continuation of Primary Demand Arguments on Page 2",
+      "what_you_wrote": "Verbatim quote of candidate's middle-page arguments/examples",
+      "examiner_verdict": "Diagnose doubtful or section-mismatched examples and guide replacement with modern empirical evidence",
+      "credit_badge": "✎ +1.0M Partial Credit",
       "is_positive": false
     }},
     {{
+      "page": 2,
+      "badge": "Page 2 • Secondary Analytical Demand",
+      "title": "Exact Candidate Sub-Heading for Sub-Part 2 (e.g. Geographical Consequences / Impacts)",
+      "what_you_wrote": "Verbatim quote of candidate's second demand arguments on Page 2",
+      "examiner_verdict": "Detailed evaluation of causal chains (e.g. completing hydrological or ecological loops)",
+      "credit_badge": "✓ +1.5M Credit",
+      "is_positive": true
+    }},
+    {{
       "page": 3,
-      "badge": "Page 3 • Final Sub-Part & Closing",
-      "title": "Exact Final Section Heading & Closing Written on Page 3",
-      "what_you_wrote": "Verbatim quote of candidate's final page section/arguments and closing line",
-      "examiner_verdict": "Appreciation for the closing arguments + 1 high-impact policy anchor for full marks",
-      "credit_badge": "✓ +1.25M Credit",
+      "badge": "Page 3 • Secondary Demand & Dimensions",
+      "title": "Substantive Analytical Arguments on Page 3",
+      "what_you_wrote": "Verbatim quote of candidate's final page points and case studies",
+      "examiner_verdict": "Flag location-only stubs and show how to articulate concrete consequences (e.g. topsoil loss)",
+      "credit_badge": "✎ +1.0M Credit",
+      "is_positive": true
+    }},
+    {{
+      "page": 3,
+      "badge": "Page 3 • Concluding Synthesis & Stance",
+      "title": "Closing Synthesis & Forward-Looking Balance",
+      "what_you_wrote": "Verbatim quote of candidate's closing lines / integrated approach",
+      "examiner_verdict": "Appreciation of balanced forward-looking stance synthesizing the core trade-offs of the prompt",
+      "credit_badge": "✓ +1.0M Credit",
       "is_positive": true
     }}
   ],
@@ -4488,10 +4638,18 @@ def _build_domain_specific_intro(question_text: str, paper_name: str, existing_t
                 "**अनुच्छेद 243ZD** (74वां संविधान संशोधन अधिनियम) के तहत परिकल्पित **जिला योजना समिति (DPC)** का मुख्य कार्य "
                 "पंचायतों एवं नगरपालिकाओं द्वारा तैयार की गई विकास योजनाओं को समेकित कर जिले हेतु एक समग्र प्रारूप विकास योजना तैयार करना है।"
             )
-        if ("GS1" in p_up or "GS-1" in p_up) or any(k in q_low for k in ["प्राचीन", "भूगोल", "भौगोलिक", "इतिहास", "सभ्यता", "सिंधु", "वैदिक", "मौर्य", "गुप्त"]):
+        if any(k in q_low for k in ["प्राचीन", "इतिहास", "सभ्यता", "सिंधु", "वैदिक", "मौर्य", "गुप्त", "चोल", "मुगल", "सल्तनत"]):
             return (
                 "**प्राचीन भारत** का सभ्यतागत विकास उसके **भू-आकृतिक स्वरूप** से प्रत्यक्षतः निर्धारित हुआ — जहाँ उपजाऊ नदी घाटियों (सिंधु एवं गंगा) ने नगरीकरण हेतु कृषि अधिशेष प्रदान किया, "
                 "वहीं प्राकृतिक हिमालयी सीमाओं एवं प्रायद्वीपीय तटरेखा ने सुरक्षा तथा सामुद्रिक व्यापार को दिशा दी।"
+            )
+        if any(k in q_low for k in ["भू-उपयोग", "भूमि उपयोग", "भूगोल", "भौगोलिक", "मृदा", "शहरीकरण", "अपवाह", "नदी तंत्र", "मानसून", "जलवायु", "संसाधन", "भू-आकृतिक"]):
+            clean_q = re.sub(r'^(?:चर्चा\s+कीजिए|परीक्षण\s+कीजिए|समीक्षा\s+कीजिए|विश्लेषण\s+कीजिए|प्रकाश\s+डालिए|व्याख्या\s+कीजिए|स्पष्ट\s+कीजिए)\s*', '', question_text, flags=re.I).strip()
+            words = clean_q.split()
+            core_topic = " ".join(words[:6]).rstrip(",;:") if words else "भू-उपयोग परिवर्तन एवं भौगोलिक परिणाम"
+            return (
+                f"**{core_topic}** भारत में जनसांख्यिकीय दबाव, तीव्र आर्थिक विस्तार एवं पारिस्थितिक वहन क्षमता के मध्य उत्पन्न स्थानिक अंतर्संबंधों को "
+                f"दर्शाता है, जिसका सीधा प्रभाव जल विज्ञान, मृदा क्षरण तथा क्षेत्रीय जैव विविधता पर परिलक्षित होता है।"
             )
         if "GS2" in p_up or "POLITY" in p_up or any(k in q_low for k in ["संविधान", "न्यायपालिका", "अधिकार", "संसद", "आयोग", "राज्यपाल", "निर्वाचन"]):
             return (
@@ -4577,10 +4735,19 @@ def _build_domain_specific_intro(question_text: str, paper_name: str, existing_t
             "The **Ahom Kingdom (1228–1826)** established enduring political and cultural sovereignty in the Brahmaputra valley, sustained by the unique **Paik mobilization system**, "
             "indigenous chronicles (**Buranjis**), and syncretic socio-administrative institutions."
         )
-    if ("GS1" in p_up or "GS-1" in p_up) and any(k in q_low for k in ["ancient", "civiliz", "geograph", "indus", "vedic", "magadh", "history", "culture", "art", "temple", "movement", "heritage"]):
+    if any(k in q_low for k in ["ancient", "civiliz", "indus", "vedic", "magadh", "harappa", "mauryan", "gupta", "chola", "mughal", "sultanate"]):
         return (
             "The civilizational development of **Ancient India** was fundamentally shaped by its **geomorphic matrix** — where fertile riverine plains (Indus and Ganga) "
             "generated agrarian surpluses for urbanization, while natural Himalayan ramparts and peninsular sea lanes guided strategic security and maritime commerce."
+        )
+    if any(k in q_low for k in ["land use", "land-use", "geograph", "urbanization", "corridor", "forest", "drainage", "river", "mineral", "resource", "soil", "climate", "monsoon", "plate tectonics", "volcan", "earthquake", "cyclone", "tsunami"]):
+        clean_q = re.sub(r'^(?:discuss|examine|critically\s+examine|analyze|evaluate|elucidate|comment\s+on|explain|what\s+is|what\s+are)\s+', '', question_text, flags=re.I).strip()
+        clean_q = re.sub(r'\s*\d{4}\s*,?\s*\d+\s*words?.*$', '', clean_q, flags=re.I).strip()
+        words = clean_q.split()
+        core_topic = " ".join(words[:6]).rstrip(",;:") if words else "human-induced land use changes"
+        return (
+            f"**{core_topic}** reflects the intense socio-economic and demographic pressures transforming India's spatial landscape, "
+            f"directly restructuring regional ecological buffers, hydrological infiltration, and long-term geomorphic stability."
         )
     if ("GS1" in p_up or "GS-1" in p_up) and any(k in q_low for k in ["history", "culture", "art", "temple", "movement", "heritage"]):
         return (
@@ -4619,10 +4786,15 @@ def _build_domain_specific_intro(question_text: str, paper_name: str, existing_t
     words = clean_q.split()
     core_topic = " ".join(words[:6]).rstrip(",;:") if words else "the core subject"
 
-    if ("GS1" in p_up or "GS-1" in p_up) or any(k in q_low for k in ["ancient", "medieval", "modern", "history", "culture", "geograph", "heritage", "monument", "civiliz"]):
+    if any(k in q_low for k in ["ancient", "medieval", "modern", "history", "culture", "heritage", "monument", "civiliz"]):
         return (
-            f"Examining **{core_topic}** reveals the fundamental interplay between physical geographical determinants, socio-cultural evolution, "
-            f"and regional civilizational milestones in India's historical trajectory."
+            f"Examining **{core_topic}** reveals the fundamental interplay between historical determinants, socio-cultural evolution, "
+            f"and regional civilizational milestones in India's developmental trajectory."
+        )
+    if any(k in q_low for k in ["land use", "geograph", "urbanization", "soil", "climate", "drainage", "resource"]):
+        return (
+            f"Examining **{core_topic}** underscores the critical interplay between anthropogenic drivers, ecological stability, "
+            f"and sustainable spatial resource management across India's diverse geographical zones."
         )
     if "GS4" in p_up or "ETHICS" in p_up:
         return (
@@ -9993,7 +10165,7 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             
             clean_missing_dims.append(dim.strip())
 
-        body_audit["missing_dimensions"] = clean_missing_dims[:3]
+        body_audit["missing_dimensions"] = clean_missing_dims[:5]
         data["body_audit"] = body_audit
 
     # 3. Overall Body Assessment synthesis
@@ -10883,10 +11055,15 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
         is_pos = bool(pbp.get("is_positive", True))
 
         title_badge_low = (clean_title + " " + raw_badge).lower()
-        # Intro must be an actual introduction premise, never a regular body argument (like temple architecture or causes)
-        is_intro = bool(re.search(r'\b(?:intro|introduction|premise|opening|contextual\s*opening|temporal\s*scope|प्रस्तावना|भूमिका|आरंभ)\b', title_badge_low))
-        is_conc = bool(re.search(r'\b(?:concl|conclusion|synthesis|closing|way\s*forward\s*&?\s*concl|निष्कर्ष|उपसंहार)\b', title_badge_low)) or (
-            idx == total_cards - 1 and p_num >= total_pages and total_cards >= 3 and bool(re.search(r'\b(?:concl|conclusion|synthesis|closing|way\s*forward|way\s*ahead|निष्कर्ष|उपसंहार|आगे\s*की\s*राह)\b', title_badge_low))
+        is_body_title = bool(re.search(r'\b(?:driver|cause|factor|consequence|impact|challenge|measure|agriculture|agricultural|demographic|urban|urbanization|infrastructure|mining|ecological|hydrological|soil|geomorph|dimension|solution|way\s*forward|manifestation|initiative|architecture|economic|trade|prerequisite|प्रभावी|कारक|कारण|प्रभाव|परिणाम|चुनौती|समाधान|उपाय|आयाम|पहल)\b', clean_title, re.IGNORECASE))
+        # Intro must be an actual introduction premise, never a regular body argument (like drivers or causes)
+        is_intro = not is_body_title and (
+            bool(re.search(r'\b(?:intro|introduction|premise|opening\s*hook|contextual\s*opening|temporal\s*scope|प्रस्तावना|भूमिका|आरंभ)\b', clean_title, re.IGNORECASE)) or
+            (idx == 0 and p_num == 1 and bool(re.search(r'\b(?:intro|introduction|premise|opening\s*hook|प्रस्तावना|भूमिका)\b', raw_badge, re.IGNORECASE)) and not bool(re.search(r'\b(?:driver|cause|consequence|impact|part|body|point|heading|sub-heading)\b', clean_title, re.IGNORECASE)))
+        )
+        is_conc = not is_body_title and (
+            bool(re.search(r'\b(?:concl|conclusion|synthesis|closing|निष्कर्ष|उपसंहार)\b', clean_title, re.IGNORECASE)) or
+            (idx == total_cards - 1 and p_num >= total_pages and total_cards >= 3 and bool(re.search(r'\b(?:concl|conclusion|synthesis|closing|way\s*forward\s*&?\s*concl|निष्कर्ष|उपसंहार)\b', title_badge_low)))
         )
 
         if is_intro:
@@ -10922,10 +11099,22 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
                 if not _is_item_duplicate(clean_title, verdict, existing_gaps):
                     existing_gaps.append(formatted_entry)
 
-    if not existing_gaps:
-        raw_critical = body_audit.get("critical_gaps")
-        if isinstance(raw_critical, list) and raw_critical:
-            existing_gaps = [_strip_candidate_quotes(g) for g in raw_critical if g and not _has_meta_placeholder(str(g))]
+    # Seamlessly merge all substantive points from body_audit without losing candidate points
+    raw_critical = body_audit.get("critical_gaps")
+    if isinstance(raw_critical, list) and raw_critical:
+        for g in raw_critical:
+            g_str = _strip_candidate_quotes(str(g or ""))
+            if g_str and not _has_meta_placeholder(g_str):
+                if not any(_is_item_duplicate(g_str[:30], g_str, [ex]) for ex in existing_gaps):
+                    existing_gaps.append(g_str)
+
+    raw_str_list = body_audit.get("strengths")
+    if isinstance(raw_str_list, list) and raw_str_list:
+        for s in raw_str_list:
+            s_str = _strip_candidate_quotes(str(s or ""))
+            if s_str and not _has_meta_placeholder(s_str):
+                if not any(_is_item_duplicate(s_str[:30], s_str, [ex]) for ex in existing_strengths):
+                    existing_strengths.append(s_str)
 
     if intro_crit:
         # Guarantee strictly ONE single cohesive feedback statement (no stacked bullets, no nested duplicate parentheses)

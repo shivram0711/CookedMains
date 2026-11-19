@@ -11747,7 +11747,7 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
     });
   }
 
-  body.strengths = formattedStrengths.slice(0, 6);
+  body.strengths = formattedStrengths.slice(0, 12);
 
   // 3. Unpack and clean critical gaps into 3 to 4 distinct structured points
   let rawGaps = Array.isArray(body.critical_gaps) ? body.critical_gaps : [];
@@ -11790,9 +11790,9 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
     }
   });
 
-  if (formattedGaps.length < 3) {
+  if (formattedGaps.length < 5) {
     pbpList.forEach(pbp => {
-      if (formattedGaps.length >= 4) return;
+      if (formattedGaps.length >= 8) return;
       if (pbp && !pbp.is_positive && pbp.title && !/conclusion|unwritten/i.test(pbp.title)) {
         const titleClean = pbp.title.replace(/[*_#`]/g, '').trim();
         const alreadyHas = formattedGaps.some(fg => fg.toLowerCase().includes(titleClean.toLowerCase().slice(0, 15)));
@@ -11806,9 +11806,9 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
   }
 
   // Harvest from missing_dimensions if critical gaps is still under-populated
-  if (formattedGaps.length < 2 && Array.isArray(body.missing_dimensions)) {
+  if (formattedGaps.length < 4 && Array.isArray(body.missing_dimensions)) {
     body.missing_dimensions.forEach(dim => {
-      if (formattedGaps.length >= 3) return;
+      if (formattedGaps.length >= 6) return;
       const dStr = String(dim || "").trim();
       if (!dStr || dStr.length < 8) return;
       const pgTag = isHindi ? " (पृष्ठ 2)" : " (Page 2)";
@@ -11884,15 +11884,15 @@ window.normalizeAndEnrichBodyAudit = function(evalData) {
     }
   }
 
-  // Dynamic mistake tracking: allow up to 5 genuine mistake points across all pages without artificial suppression
-  body.critical_gaps = formattedGaps.slice(0, 5);
+  // Dynamic mistake tracking: allow up to 8 genuine mistake points across all pages without artificial suppression
+  body.critical_gaps = formattedGaps.slice(0, 8);
 
   // 4. Clean missing dimensions: strictly filter out generic catalogue boilerplate
   if (Array.isArray(body.missing_dimensions)) {
     const isGenericBoilerplate = (txt) => {
       return /(?:institutional\s*&\s*statutory\s*anchor|empirical\s*metric\s*&\s*regional\s*disaggregation|forward-looking\s*implementation\s*strategy|संस्थागत\s*एवं\s*विधिक\s*आधार|प्रामाणिक\s*साक्ष्य\s*एवं\s*क्षेत्रीय\s*विभाजन|अग्रगामी\s*क्रियान्वयन\s*रणनीति|official\s*committee\s*recommendations|authoritative\s*surveys,\s*baseline\s*percentages|systemic\s*operational\s*bottlenecks)/i.test(String(txt || ""));
     };
-    body.missing_dimensions = body.missing_dimensions.filter(d => d && !isGenericBoilerplate(d)).slice(0, 3);
+    body.missing_dimensions = body.missing_dimensions.filter(d => d && !isGenericBoilerplate(d)).slice(0, 5);
   } else {
     body.missing_dimensions = [];
   }
@@ -12730,12 +12730,15 @@ window.transferPointAuditToDeepEvaluation = function(evalData) {
       rawTitle = isHindi ? `पृष्ठ ${pNum} विश्लेषण` : `Page ${pNum} Analysis`;
     }
 
+    const isBodyTitle = /\b(?:driver|cause|factor|consequence|impact|challenge|measure|agriculture|agricultural|demographic|urban|urbanization|infrastructure|mining|ecological|hydrological|soil|geomorph|dimension|solution|way\s*forward|manifestation|initiative|architecture|economic|trade|prerequisite|प्रभावी|कारक|कारण|प्रभाव|परिणाम|चुनौती|समाधान|उपाय|आयाम|पहल)\b/i.test(rawTitle);
     const titleBadge = (rawTitle + " " + String(pbp.badge || "")).toLowerCase();
-    const isIntro = /\b(?:intro|introduction|premise|opening|प्रस्तावना|भूमिका|आरंभ)\b/i.test(titleBadge) || (
-      idx === 0 && pNum === 1 && totalCards >= 3 && !/\b(?:body|part\s*[b-z]|dimension\s*[2-9])\b/i.test(titleBadge)
+    const isIntro = !isBodyTitle && (
+      /\b(?:intro|introduction|premise|opening\s*hook|contextual\s*opening|temporal\s*scope|प्रस्तावना|भूमिका|आरंभ)\b/i.test(rawTitle) ||
+      (idx === 0 && pNum === 1 && totalCards >= 3 && /\b(?:intro|introduction|premise|opening\s*hook|प्रस्तावना|भूमिका)\b/i.test(String(pbp.badge || "")) && !/\b(?:driver|cause|consequence|impact|part|body|point|heading|sub-heading)\b/i.test(rawTitle))
     );
-    const isConc = /\b(?:concl|conclusion|synthesis|closing|way\s*forward\s*&?\s*concl|निष्कर्ष|उपसंहार)\b/i.test(titleBadge) || (
-      idx === totalCards - 1 && pNum >= totalPages && totalCards >= 3 && /\b(?:concl|conclusion|synthesis|closing|way\s*forward|way\s*ahead|आगे\s*की\s*राह|निष्कर्ष|उपसंहार)\b/i.test(titleBadge)
+    const isConc = !isBodyTitle && (
+      /\b(?:concl|conclusion|synthesis|closing|निष्कर्ष|उपसंहार)\b/i.test(rawTitle) ||
+      (idx === totalCards - 1 && pNum >= totalPages && totalCards >= 3 && /\b(?:concl|conclusion|synthesis|closing|way\s*forward\s*&?\s*concl|आगे\s*की\s*राह|निष्कर्ष|उपसंहार)\b/i.test(titleBadge))
     );
 
     if (isIntro) {
@@ -12763,12 +12766,20 @@ window.transferPointAuditToDeepEvaluation = function(evalData) {
     }
   });
 
-  if (existingGaps.length === 0) {
-    const rawG = Array.isArray(body.critical_gaps) ? body.critical_gaps.map(cleanQuotes).filter(Boolean) : [];
-    if (rawG.length > 0) {
-      existingGaps = rawG;
+  // Seamlessly merge all body points without losing candidate points
+  const rawCritical = Array.isArray(body.critical_gaps) ? body.critical_gaps.map(cleanQuotes).filter(Boolean) : [];
+  rawCritical.forEach(g => {
+    if (g && !isItemDuplicate(g.slice(0, 30), g, existingGaps)) {
+      existingGaps.push(g);
     }
-  }
+  });
+
+  const rawStrengths = Array.isArray(body.strengths) ? body.strengths.map(cleanQuotes).filter(Boolean) : [];
+  rawStrengths.forEach(s => {
+    if (s && !isItemDuplicate(s.slice(0, 30), s, existingStrengths)) {
+      existingStrengths.push(s);
+    }
+  });
 
   intro.current_critique = introCrit;
   conc.current_critique = concCrit;
