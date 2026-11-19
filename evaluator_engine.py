@@ -1815,6 +1815,56 @@ NON-NEGOTIABLE UPSC HINDI EVALUATION LAWS (कॉपियों के वि�
           * प्रत्येक उत्तर-पुस्तिका का मूल्यांकन केवल उस विशिष्ट प्रश्न के विषय और अभ्यर्थी के वास्तविक हस्तलेख के आधार पर 100% स्वतंत्र रूप से होगा। एक कॉपी की कमजोरियां दूसरी कॉपी पर कभी भी आरोपित नहीं की जाएंगी।
 
 
+12. वरिष्ठ मेंटर लाल-कलम मूल्यांकन पद्धति (कमियों, त्रुटियों एवं अभावों का विस्तृत व सूक्ष्म परीक्षण):
+    एक वरिष्ठ यूपीएससी परीक्षक केवल सही लिखे अंशों (`✓`) की प्रशंसा नहीं करता, बल्कि उत्तर-पुस्तिका में छिपी उन सूक्ष्म त्रुटियों, सतही कथनों एवं अभावों (`✗`) को उजागर करता है जो प्राप्तांक को 35-45% पर सीमित कर देते हैं।
+    प्रत्येक भाग में यह सूक्ष्म मेंटर प्रोटोकॉल अनिवार्यतः लागू करें:
+
+    * क. मुख्य भाग (BODY SECTION) हेतु 5 उच्च-प्रभाव मेंटर अन्वेषण (स्थान: STRICTLY IN `body_audit.critical_gaps` एवं मार्जिन कार्ड):
+      1. "नाम + कार्यात्मक तंत्र / उद्देश्य" नियम (केवल नाम लिखने का निषेध):
+         - जब भी अभ्यर्थी सुरक्षा एजेंसियों, खुफिया संस्थाओं, विशेष ऑपरेशनों, कानूनों, योजनाओं या समितियों का केवल नाम लिखता है (जैसे NATGRID, MAC, NIA, ऑपरेशन सद्भावना, ऑपरेशन ऑल-आउट, UAPA, PMLA, CIBMS, वाइब्रेंट विलेज, 2nd ARC, PLI आदि):
+         - कठोर परीक्षण: क्या अभ्यर्थी ने केवल संज्ञा/नाम लिखा है, अथवा 3-5 शब्दों में उसका *परिचालन तंत्र* स्पष्ट किया है?
+         - यदि बिना क्रिया के केवल नाम लिखे गए हैं, तो अंक काटें और सुधार दें:
+           `"**बिना कार्यात्मक तंत्र के केवल नामोल्लेख (पृष्ठ X)**: आपने [संस्था/ऑपरेशन/अधिनियम] का नाम लिखा है, किंतु उसके परिचालन तंत्र का उल्लेख नहीं किया। केवल नाम लिखना अंक सीमित करता है। 3-5 शब्दों में स्पष्ट करें कि यह वास्तव में क्या करता है ✍️ **लिखने का सटीक प्रारूप**: '[नाम]: [सटीक कार्य, उदा. NATGRID एवं MAC आतंकी हमलों को पहले ही रोकने हेतु वास्तविक समय में खुफिया सूचनाओं का संकलन व साझाकरण करते हैं; ऑपरेशन सद्भावना स्थानीय युवाओं में अलगाव कम कर उन्हें ओवर-ग्राउंड वर्कर बनने से रोकता है].'"`
+
+      2. समकालीन उदाहरणों का अभाव एवं क्षेत्रीय/स्थानिक गलियारा रणनीति:
+         - जब प्रश्न "समकालीन उदाहरणों सहित" मांग करता है अथवा समकालीन चुनौतियों (नार्को-आतंकवाद, साइबर घुसपैठ, सीमा पार तस्करी) का विश्लेषण हो:
+         - कठोर परीक्षण: यदि अभ्यर्थी ने केवल अमूर्त परिभाषा लिखी है और कोई समकालीन उदाहरण नहीं दिया, तो तुरंत इस कमी को रेखांकित करें!
+         - मेंटर की परीक्षा-हॉल रणनीति: यदि परीक्षा के दबाव में सटीक ऑपरेशन या तारीख याद न आए, तो बिंदु को कभी भी अमूर्त न छोड़ें! एक **भौगोलिक/क्षेत्रीय गलियारे** को प्रामाणिक उदाहरण के रूप में प्रस्तुत करें:
+           `"**समकालीन उदाहरण का अभाव (पृष्ठ X)**: [उप-शीर्षक] के अंतर्गत आपने केवल सैद्धांतिक परिभाषा लिखी किंतु समकालीन उदाहरण छोड़ दिया। यदि सटीक ऑपरेशन नाम याद न हो, तो क्षेत्रीय गलियारे का प्रयोग करें ✍️ **लिखने का सटीक प्रारूप**: 'उदा. नार्को-आतंकवाद के तहत लिखें: पंजाब एवं पश्चिमी सीमावर्ती गलियारा सीमा पार नेटवर्क से ड्रोन द्वारा गिराए जाने वाले सिंथेटिक नशीले पदार्थों एवं हथियारों के पारगमन का मुख्य केंद्र बना हुआ है.'"`
+
+      3. नोट्स-शैली के कॉमा-युक्त बुलेट बनाम पूर्ण विश्लेषणात्मक वाक्य:
+         - अभ्यर्थी समय के दबाव में कॉमा लगाकर 3-4 संज्ञा शब्द लिख देते हैं (जैसे: *"ऑनलाइन भर्ती, टेरर फाइनेंसिंग और साइबर हमले"* अथवा *"सूखा, लवणता, किसान ऋण"*).
+         - यह उत्तर-पुस्तिका में परीक्षा-स्तरीय विश्लेषणात्मक उत्तर के बजाय अध्ययन नोट्स जैसा प्रतीत होता है।
+         - सुधार दें:
+           `"**संक्षिप्त नोट्स बनाम विश्लेषणात्मक वाक्य (पृष्ठ X)**: बिंदु *"[अभ्यर्थी का कॉमा-युक्त वाक्यांश]"* परीक्षा उत्तर के स्थान पर रिवीजन नोट्स जैसा प्रतीत होता है। इसे पूर्ण विश्लेषणात्मक वाक्य में बदलें ✍️ **लिखने का सटीक प्रारूप**: '[मुख्य शब्द] समकालीन असममित युद्ध में प्राथमिक बल-गुणक के रूप में उभरे हैं.' परीक्षक तार्किक तर्कों पर अंक देता है, कच्चे नोट्स पर नहीं."`
+
+      4. अभिव्यक्तियों/लक्षणों के पीछे मूल कारण (Genesis) की गहराई:
+         - जब अभ्यर्थी केवल बाह्य लक्षण या संघर्ष (नक्सलवाद, पूर्वोत्तर उग्रवाद जैसे उल्फा/एनएससीएन, जातीय हिंसा, क्षेत्रीय असंतोष) का नाम लिखता है, तो केवल सतही विवरण पर अंक न दें।
+         - उसके अंतर्निहित सामाजिक-आर्थिक व विकासात्मक मूल कारणों को जोड़ना अनिवार्य करें:
+           `"**मूल कारण (Genesis) के बिना केवल लक्षण (पृष्ठ X)**: आपने [उग्रवाद/संघर्ष] का उल्लेख किया किंतु इसके उद्भव के कारणों को छोड़ दिया। इसे मूल कारणों से पुष्ट करें ✍️ **लिखने का सटीक प्रारूप**: 'रेड कॉरिडोर में नक्सली हिंसा एवं पूर्वोत्तर में उग्रवाद मूलतः ऐतिहासिक वन अलगाव, शासन की कमी तथा अधूरी सामाजिक-राजनीतिक व जनजातीय आकांक्षाओं से उपजे हैं.'"`
+
+      5. स्थानिक ज्यामिति एवं उप-मांगों का पृष्ठ बजटिंग (Spatial Balance):
+         - यदि प्रश्न में 2 समान भार वाली उप-मांगें हैं (जैसे मांग 1: प्रकटीकरण ~50%; मांग 2: राज्य द्वारा किए गए उपाय ~50%):
+         - यदि अभ्यर्थी 1.5 पृष्ठ पहली मांग पर खर्च कर देता है और दूसरी मांग को पृष्ठ 2 के निचले हिस्से में 4 संकीर्ण बुलेट्स में समेट देता है, तो इस असंतुलन को स्पष्ट रेखांकित करें:
+           `"**स्थानिक असंतुलन एवं पृष्ठ-बजट घाटा**: प्रश्न की दोनों उप-मांगों में समान अंक भार (~50:50) है। आपने 75% स्थान [मांग 1] को दे दिया जिससे [मांग 2] संकीर्ण बुलेट्स में सिमट गई। लिखने से पूर्व पंक्तियों का बजट बनाएं (2-पृष्ठ के उत्तर में ~1 पृष्ठ प्रति मांग) ताकि उच्च-अंकदायी समाधानों को संतुलित गहराई मिले."`
+
+    * ख. प्रस्तावना (INTRO SECTION): विषय सीमांकन एवं शुरुआत की त्रुटियां (STRICTLY IN `intro_audit`):
+      1. आवश्यकता से अधिक लंबी परिभाषा द्वारा पृष्ठ स्थान घेरना: 2-पंक्ति के हुक के स्थान पर 5-7 पंक्तियाँ खर्च करने पर टोकें।
+      2. प्रस्तावना संबंधी सभी सुधार व मॉडल रीराइट STRICTLY `intro_audit` में ही दर्ज होंगे।
+
+    * ग. निष्कर्ष (CONCLUSION SECTION): तर्क एवं वाक्य-विन्यास त्रुटि निवारण (STRICTLY IN `conclusion_audit`):
+      1. तर्क व वाक्य-विन्यास का विपर्यय (सरकारी लक्ष्यों को खतरे के रूप में प्रस्तुत करना):
+         - निष्कर्ष में भाषा व तर्क की सूक्ष्म पड़ताल करें। यदि अभ्यर्थी अनजाने में किसी राष्ट्रीय लक्ष्य/योजना को ही खतरे का लक्षण बता देता है (जैसे: *"आतंकवाद के विभिन्न रूपों जैसे नक्सल-मुक्त भारत को कम करने में मदद मिली"*):
+         - तुरंत सुधारें:
+           `"**निष्कर्ष में तर्क व वाक्य-विन्यास त्रुटि**: आपने लिखा *"[अभ्यर्थी का वाक्य]"*। ध्यान दें कि [उदा. नक्सल-मुक्त भारत] भारत सरकार का आधिकारिक राष्ट्रीय लक्ष्य है, न कि आतंकवाद का रूप! ऐसा लिखना यह दर्शाता है कि लक्ष्य ही आतंकवाद है। भाषा में सावधानी बरतें ✍️ **लिखने का सटीक प्रारूप**: '...आतंकवाद के विविध रूपों पर अंकुश लगाते हुए नक्सल-मुक्त भारत के राष्ट्रीय संकल्प को गति प्रदान की है.'"`
+      2. निष्कर्ष संबंधी सभी समीक्षाएं एवं मॉडल रीराइट STRICTLY `conclusion_audit` में ही दर्ज होंगे।
+
+    * घ. कठोर स्वतंत्रता एवं शून्य-अतिव्यापन / शून्य-स्थायी पंक्तियाँ (NON-NEGOTIABLE):
+      - प्रत्येक भाग के सुझाव केवल उसी भाग में रहेंगे (Intro -> `intro_audit`, Body -> `body_audit`, Conclusion -> `conclusion_audit`).
+      - कोई भी स्थायी, रटी-रटाई या सार्वभौमिक पंक्ति उत्पन्न नहीं की जाएगी।
+      - प्रत्येक प्रतिक्रिया अभ्यर्थी के वास्तविक हस्तलेख, विशिष्ट त्रुटियों और कमियों से गतिशील रूप से उत्पन्न होगी।
+      - एक उत्तर-पुस्तिका के बिंदुओं या मूल्यांकन को किसी अन्य उत्तर-पुस्तिका पर कदापि अतिव्याप्त (overlap) नहीं किया जाएगा।
+
 OUTPUT FORMAT: Return ONLY a valid JSON object matching this exact schema:
 {{
   "detected_question": "{question}",
@@ -3604,6 +3654,58 @@ CRITICAL MANDATES (NON-NEGOTIABLE):
         - **DYNAMIC, NON-STATIC SITUATIONAL APPLICATION**:
           * This is a diagnostic lens applied ONLY when that specific flaw actually appears in the candidate's script.
           * NEVER output rigid, canned sentences or universal boilerplate. Every critique and reframe must be dynamically synthesized from the student's exact handwriting and the specific question asked across GS1, GS2, GS3, GS4.
+
+27. ADVANCED HUMAN-MENTOR RED-PEN EVALUATION PEDAGOGY (CRITICAL MISTAKE & DEFICIT IDENTIFICATION ACROSS INTRO, BODY & CONCLUSION):
+    A senior UPSC Mains faculty does not merely praise what is written correctly (`✓`); their primary transformative value is in unmasking subtle mistakes, superficial formulations, and deficits (`✗`) that quietly cap candidate scores at 35–45%.
+    You MUST apply this discerning red-pen mentor protocol across all parts of the answer copy:
+
+    * A. BODY SECTION: 5 HIGH-YIELD MENTOR DIAGNOSTIC PROBES (PLACE STRICTLY IN `body_audit.critical_gaps` & MARGIN CARDS):
+      1. THE "NAME + OPERATIONAL FUNCTION / OPERATIVE PURPOSE" MANDATE (ANTI-NAME-DUMPING):
+         - Whenever a candidate lists or name-drops security agencies, intelligence wings, special operations, statutory acts, economic schemes, or committees (e.g. NATGRID, MAC, NIA, Op Sadbhavana, Op All Out, UAPA, PMLA, CIBMS, Vibrant Villages, NITI Aayog, 2nd ARC, PLI, PM-KUSUM):
+         - STRICT TEST: Did the candidate merely name-drop the agency/operation/scheme as a bare noun, or did they explain its *3–5 word operative mechanism*?
+         - If only names are listed without operative verbs, heavily penalize and flag:
+           `"**Name without Operative Function (Page X)**: You named [Institution/Operation/Act], but omitted its operational function. Name-dropping without operative verbs caps marks. Always state *what it actually does* in 3–5 words ✍️ **How to Write**: '[Name]: [Operative verb + concrete function, e.g. NATGRID & MAC collect and share intelligence to preemptively thwart attacks; Operation Sadbhavana conducts civic engagement with local youth to reduce alienation and prevent radicalization into Over-Ground Workers (OGWs)].'"`
+      
+      2. MISSING CONTEMPORARY EXAMPLES & THE REGIONAL/SPATIAL DECOY STRATEGY:
+         - When the question prompt explicitly instructs "Elaborate with contemporary examples" (or when analyzing real-world manifestations like narco-terrorism, cyber attacks, cross-border infiltration, communal flashpoints, or agrarian stress):
+         - STRICT TEST: Check every thematic bullet or sub-heading. If the candidate provided an abstract definition/claim with ZERO contemporary example, immediately flag the omission!
+         - MENTOR'S STRATEGIC DECOY COACHING: If a candidate forgets an exact operation code-name or attack date in the exam hall, they must NEVER leave the point abstract! Teach them to deploy a **geographical/regional contemporary corridor** as an empirical anchor:
+           `"**Missing Contemporary Example (Page X)**: Under [Sub-Heading/Theme], you provided a conceptual definition but omitted a contemporary example as demanded by the prompt. If an exact operation name is forgotten under exam pressure, use a regional/geographical corridor ✍️ **How to Write**: 'e.g. Under Narco-terrorism, write: The Punjab and Western border corridor acts as a primary conduit for drone-dropped synthetic narcotics and arms from cross-border networks.'"`
+
+      3. NOTES-STYLE COMMA-SEPARATED TELEGRAPHIC KEYWORDS VS COMPLETE EXAM PROSE:
+         - Candidates under time pressure often jot down 3–4 comma-separated nouns or fragmented phrases as a bullet (e.g. *"Online recruitment, terror financing and cyber attacks"* or *"Drought, soil salinity, farmer debt"*).
+         - In an examination booklet, this reads like personal revision notes rather than a UPSC-grade analytical answer.
+         - Flag and upgrade:
+           `"**Telegraphic Notes vs Analytical Sentence (Page X)**: Point *"[Candidate's comma-separated phrase]"* reads like revision notes rather than an analytical exam answer. Transform into a complete analytical sentence ✍️ **How to Write**: '[Keywords] have emerged as primary force-multipliers in contemporary asymmetric warfare.' The examiner awards marks for reasoned arguments, not raw study notes."`
+
+      4. GENESIS & ROOT-CAUSE DEPTH BEHIND MANIFESTATIONS:
+         - When candidate describes external symptoms, conflicts, or manifestations (e.g. LWE / Red Corridor, Northeast insurgent groups like ULFA/NSCN, ethnic clashes, agrarian protests, regionalism), do NOT allow purely external or geographical descriptions.
+         - Demand structural socio-political, institutional, and economic genesis:
+           `"**Manifestation without Genesis (Page X)**: You identified [Insurgency/LWE/Conflict manifestation], but omitted its underlying genesis. Ground the manifestation in root causes ✍️ **How to Write**: 'Naxalite-Maoist insurgency across the Red Corridor and ethnic militancy in the Northeast stem fundamentally from historical forest alienation, governance deficits, and unmet socio-political and tribal aspirations.'"`
+
+      5. SPATIAL GEOMETRY & SUB-DEMAND LINE BUDGETING (PRE-WRITING PROPORTION AUDIT):
+         - Measure the physical page real estate allocated to each sub-demand.
+         - When a question contains multiple sub-demands carrying equal or proportional weight (e.g. Demand 1: Manifestations ~50%; Demand 2: Counter-measures ~50%):
+         - If the candidate spends 1.5 pages on Demand 1 and compresses Demand 2 into half a page at the bottom with 4 cramped bullets, explicitly diagnose:
+           `"**Spatial Imbalance & Line-Budget Deficit**: The question's sub-demands carry equal weight (~50:50). You allocated ~75% of your booklet real estate to [Demand 1], forcing [Demand 2] to be squeezed into half a page. Budget your booklet lines before writing (~1 page per demand in a 2-page copy) so high-scoring counter-measures receive balanced analytical depth."`
+
+    * B. INTRODUCTION SECTION: SCOPE DEMARCATION & OPENING TRAP AUDIT (STRICTLY IN `intro_audit`):
+      1. Over-lengthy definitions eating page budget: If candidate spends 5–7 lines defining a concept when a 2-line hook was required, flag it.
+      2. Premature Assumption in evaluative questions: Flag if candidate assumes the conclusion as settled fact before evaluating competing dimensions.
+      3. All intro critiques and suggestions MUST be placed STRICTLY in `intro_audit.current_critique`, `intro_audit.missing_elements`, and `intro_audit.model_intro_rewrite`. NEVER place intro feedback in the body or conclusion!
+
+    * C. CONCLUSION SECTION: LOGIC & SYNTAX INVERSION POLICE (STRICTLY IN `conclusion_audit`):
+      1. LOGIC & SYNTAX INVERSION (CONFLATING STATE GOALS WITH THREAT MANIFESTATIONS):
+         - Actively audit concluding sentences for grammatical or conceptual inversions where a candidate accidentally equates an Indian government initiative, state vision, or policy goal with a problem or threat (e.g., writing *"...helped India reduce different manifestations of terrorism like Naxal-Mukt Bharat"*).
+         - Flag immediately in `conclusion_audit.current_critique`:
+           `"**Logic & Phrasing Error in Conclusion**: You wrote *"[verbatim candidate line]"*. Note that [State Goal/Mission, e.g. Naxal-Mukt Bharat] is an official national goal / state vision, NOT a manifestation of terrorism! Writing this implies the goal itself is terrorism. Phrase with precision ✍️ **How to Write**: '...curbed diverse manifestations of terrorism while accelerating India's progress toward the national vision of a Naxal-Mukt Bharat.' Precision of expression is essential in UPSC Mains."`
+      2. All conclusion critiques and model rewrites MUST be placed STRICTLY in `conclusion_audit.current_critique` and `conclusion_audit.model_conclusion_rewrite`. NEVER place conclusion feedback in intro or body!
+
+    * D. STRICT INDEPENDENCE & ZERO OVERLAPPING/STATIC BOILERPLATE GUARANTEE (NON-NEGOTIABLE):
+      - Suggestions for each part MUST belong to their respective sections ONLY (Intro -> `intro_audit`, Body -> `body_audit`, Conclusion -> `conclusion_audit`).
+      - NO permanent, canned, or universal lines or templates to be generated.
+      - Every feedback point, quote, and upgrade lever must be generated dynamically from THAT candidate's unique handwriting, errors, and omissions.
+      - NEVER project or overlap points from this evaluation onto any other answer copy. Every answer sheet must be checked completely independently.
 
 Generate strictly valid JSON matching this schema:
 {{
@@ -9892,6 +9994,8 @@ def _sanitize_and_simplify_feedback(data: Dict[str, Any], is_hindi: bool = False
             c_audit["failure_mode"] = "जबरन उद्धरण" if is_hindi else "Forced quotation"
         elif any(k in crit_c for k in ["excessive", "wish-list", "wishlist", "अत्यधिक"]):
             c_audit["failure_mode"] = "अत्यधिक नीतिगत नुस्खेबाजी" if is_hindi else "Excessive prescription"
+        elif any(k in crit_c for k in ["logic", "syntax", "inversion", "conflate", "तर्क", "वाक्य-विन्यास"]):
+            c_audit["failure_mode"] = "तर्क या वाक्य-विन्यास त्रुटि" if is_hindi else "Logic or syntax inversion"
         else:
             c_audit["failure_mode"] = "कोई नहीं (संतुलित)" if is_hindi else "None (Well-synthesized)"
 
