@@ -4798,7 +4798,7 @@ html.dark .redpen-lead.success {
 }
 
 #evaluatedSheetCanvas {
-  min-width: 580px;
+  min-width: 620px !important;
 }
 @media (max-width: 640px) {
   #bookletScrollArea {

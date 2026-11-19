@@ -22251,6 +22251,81 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
     return def;
   }
 
+  // 100% Two-Way Synchronization with Deep Evaluation (Body Upgrade Levers & Missing Dimensions)
+  // If an item in body_audit was NOT highlighted on this page, highlight it at its respective place without repeating already-highlighted points!
+  const bAudit = evalData.body_audit || {};
+  const allLevers = [
+    ...(Array.isArray(bAudit.critical_gaps) ? bAudit.critical_gaps : []),
+    ...(Array.isArray(bAudit.missing_dimensions) ? bAudit.missing_dimensions : [])
+  ];
+
+  if (allLevers.length > 0) {
+    const existingTokens = new Set();
+    rawAnns.forEach(a => {
+      const txt = (String(a.tag || "") + " " + String(a.margin_remark || a.remark || "")).toLowerCase();
+      (txt.match(/[a-zऀ-ॿ]{4,}/g) || []).forEach(t => existingTokens.add(t));
+    });
+
+    allLevers.forEach(lever => {
+      const lStr = String(lever || "").trim();
+      if (!lStr) return;
+
+      const pMatch = lStr.match(/\((?:page|पृष्ठ)\s*(\d+)\)/i);
+      const targetPgNum = pMatch ? parseInt(pMatch[1], 10) : (currentPg === 1 && totalPages > 1 ? 1 : currentPg);
+      if (targetPgNum !== currentPg) return;
+
+      const lTokens = (lStr.toLowerCase().match(/[a-zऀ-ॿ]{4,}/g) || []).filter(t => !["page", "point", "section", "candidate", "analysis", "written", "marks", "award", "lever", "upgrade", "dimension"].includes(t));
+      const matchCount = lTokens.filter(t => existingTokens.has(t)).length;
+      if (matchCount >= 2 || (lTokens.length <= 3 && matchCount >= 1)) {
+        return; // ALREADY HIGHLIGHTED ON THIS PAGE - STRICTLY DO NOT REPEAT!
+      }
+
+      const cleanL = lStr.replace(/^[✓✔✎✗×•★⭐\s\-]+/, "").trim();
+      const titleM = cleanL.match(/^\*\*([^*]+)\*\*:\s*(.*)/);
+      const cleanTitle = titleM ? titleM[1].trim() : cleanL.split(":")[0].trim();
+      const cleanBody = titleM ? titleM[2].trim() : (cleanL.split(":")[1] || cleanL).trim();
+
+      const low = (cleanTitle + " " + cleanBody).toLowerCase();
+      const isRep = /repeat|repetit|merge|दोहराव|पुनरावृत्ति/i.test(low);
+      const isDiag = /diagram|flowchart|spider|box|map|चित्र|आरेख/i.test(low);
+      const isFact = /inaccura|factual|misattribut|गलत|त्रुटि/i.test(low);
+
+      const aType = isRep ? "bracket_merge" : (isDiag ? "box_highlight" : (isFact ? "underline" : "margin_note"));
+      const mSide = isRep ? "left" : (isFact ? "inline" : "right");
+
+      const usedYs = rawAnns.map(a => floatVal(a.approx_y_percent, a.start_y_percent, 50));
+      let chosenY = 52;
+      for (const candY of [44, 60, 72, 32, 80]) {
+        if (!usedYs.some(uY => Math.abs(candY - uY) < 11)) {
+          chosenY = candY;
+          break;
+        }
+      }
+
+      const shortRem = cleanBody.length > 130 ? cleanBody.slice(0, 125).replace(/\s+\S*$/, "") + "..." : cleanBody;
+
+      rawAnns.push({
+        page: currentPg,
+        section: "body",
+        annotation_type: aType,
+        margin_side: mSide,
+        marker_type: isRep ? "bracket" : (isFact ? "circle" : (isDiag ? "circle" : "tick")),
+        tag: `Body: ${cleanTitle}`,
+        type: isFact ? "cross" : "suggestion",
+        target_snippet: cleanTitle.slice(0, 45),
+        approx_x_percent: mSide === "left" ? 22 : 72,
+        approx_y_percent: Math.round(chosenY),
+        start_y_percent: Math.max(6, Math.round(chosenY - 6)),
+        end_y_percent: Math.min(92, Math.round(chosenY + 8)),
+        marks_awarded: "+0.5 / 1.5",
+        margin_remark: `✎ ${cleanTitle}: ${shortRem}`,
+        remark: `✎ **${cleanTitle}**: ${cleanBody}`
+      });
+
+      lTokens.forEach(t => existingTokens.add(t));
+    });
+  }
+
   // Deduplicate identical or redundant annotations
   const dedupedAnns = [];
   const seenNormTags = new Set();
@@ -22427,8 +22502,14 @@ window.renderOnPageRedPenEvaluation = function(evalObj, currentPg, totalPages, s
       leadHtml = `<span class="redpen-lead success">✓ ${escapeHtml(cleanTag)}:</span>`;
     }
 
+    const isCompact = (sideClass === "left-margin" && leftItems.length >= 3) || (sideClass === "right-margin" && rightItems.length >= 3);
+    const maxLen = isCompact ? 135 : 170;
+    if (cleanRem.length > maxLen) {
+      cleanRem = cleanRem.slice(0, maxLen - 5).replace(/\s+\S*$/, "").replace(/[,;:\s]+$/, "") + "...";
+    }
+
     const noteEl = document.createElement("div");
-    noteEl.className = `onpage-redpen-note ${sideClass} absolute`;
+    noteEl.className = `onpage-redpen-note ${sideClass} ${isCompact ? 'compact-mode' : ''} absolute`;
     noteEl.style.boxSizing = "border-box";
     noteEl.style.top = "0px";
     noteEl.style.visibility = "hidden";

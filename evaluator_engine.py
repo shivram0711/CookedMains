@@ -7668,6 +7668,7 @@ def normalize_evaluation_data(data: Dict[str, Any], max_marks: int = 10, questio
     _normalize_prioritized_feedback(data, max_marks=max_marks, is_hindi=is_hindi)
     _run_release_validation_and_consistency(data, max_marks=max_marks, is_hindi=is_hindi)
     transfer_point_audit_to_deep_evaluation(data, is_hindi=is_hindi)
+    _ensure_body_gaps_and_missing_dims_on_page(data, is_hindi=is_hindi)
 
     # Enforce 100% strict mathematical reconciliation across overall score, sub-part steps, and rubric scores
     _enforce_canonical_mathematical_reconciliation(data, max_marks=max_marks, is_hindi=is_hindi)
@@ -10743,6 +10744,161 @@ def sort_points_chronologically(points_list: List[str]) -> List[str]:
     indexed = list(enumerate(points_list))
     indexed.sort(key=_extract_page_key)
     return [item for _, item in indexed]
+
+
+def _ensure_body_gaps_and_missing_dims_on_page(data: Dict[str, Any], is_hindi: bool = False) -> None:
+    """
+    Guarantees 100% synchronization between Deep Evaluation (Body Upgrade Levers & Missing Dimensions)
+    and on-page visual annotations:
+    1. Audits body_audit.critical_gaps and body_audit.missing_dimensions against visual_annotations.
+    2. If a gap or missing dimension is already represented in an on-page annotation -> STRICTLY PRESERVES IT (DO NOT REPEAT).
+    3. If a gap or missing dimension was forgotten/omitted from on-page annotations -> Dynamically creates
+       an on-page annotation placed at the respective page and vertical region matching candidate's handwriting.
+    """
+    if not isinstance(data, dict):
+        return
+
+    body_audit = data.get("body_audit") if isinstance(data.get("body_audit"), dict) else {}
+    gaps_list = body_audit.get("critical_gaps") if isinstance(body_audit.get("critical_gaps"), list) else []
+    missing_list = body_audit.get("missing_dimensions") if isinstance(body_audit.get("missing_dimensions"), list) else []
+
+    if not gaps_list and not missing_list:
+        return
+
+    annotations = data.setdefault("visual_annotations", [])
+    if not isinstance(annotations, list):
+        annotations = []
+        data["visual_annotations"] = annotations
+
+    # Extract all covered topics from existing annotations to avoid ANY repetition
+    covered_signatures = []
+    for ann in annotations:
+        text_corpus = (
+            str(ann.get("tag") or "") + " " + 
+            str(ann.get("margin_remark") or "") + " " + 
+            str(ann.get("remark") or "") + " " + 
+            str(ann.get("target_snippet") or "")
+        ).lower()
+        tokens = set(re.findall(r'[a-zA-Zऀ-ॿ]{4,}', text_corpus))
+        tokens -= {'this', 'that', 'with', 'from', 'your', 'page', 'point', 'section', 'candidate', 'analysis', 'written', 'marks', 'award', 'lever', 'upgrade', 'dimension'}
+        if tokens:
+            covered_signatures.append(tokens)
+
+    def _is_already_covered(item_txt: str) -> bool:
+        low = str(item_txt or "").lower()
+        item_tokens = set(re.findall(r'[a-zA-Zऀ-ॿ]{4,}', low)) - {'this', 'that', 'with', 'from', 'your', 'page', 'point', 'section', 'candidate', 'analysis', 'written', 'marks', 'award', 'lever', 'upgrade', 'dimension'}
+        if not item_tokens:
+            return False
+        for sig in covered_signatures:
+            common = item_tokens & sig
+            if len(common) >= 3 or (len(item_tokens) <= 4 and len(common) >= 2):
+                return True
+        return False
+
+    total_pages = max(1, int(data.get("total_pages", 0) or len(data.get("processed_pages", [])) or 2))
+
+    all_levers = []
+    for g in gaps_list:
+        all_levers.append({"text": str(g).strip(), "is_gap": True})
+    for m in missing_list:
+        all_levers.append({"text": str(m).strip(), "is_gap": False})
+
+    for lever_item in all_levers:
+        raw_text = lever_item["text"]
+        if not raw_text or _has_meta_placeholder(raw_text):
+            continue
+
+        # Check if already covered on page
+        if _is_already_covered(raw_text):
+            continue  # STRICTLY PREVENT REPETITION
+
+        # Respective page targeting
+        target_page = 2 if total_pages >= 2 else 1
+        m_pg = re.search(r'\(?(?:page|पृष्ठ)\s*(\d+)\)?', raw_text, re.IGNORECASE)
+        if m_pg:
+            try:
+                p_cand = int(m_pg.group(1))
+                if 1 <= p_cand <= total_pages:
+                    target_page = p_cand
+            except Exception:
+                pass
+        elif total_pages >= 3 and not lever_item["is_gap"]:
+            target_page = 3
+
+        clean_s = re.sub(r'^[✓✔✎✗×•★⭐\s\-]+', '', raw_text).strip()
+        title_m = re.match(r'^\*\*([^*]+)\*\*:\s*(.*)', clean_s)
+        if title_m:
+            title_part = title_m.group(1).strip()
+            body_part = title_m.group(2).strip()
+        else:
+            parts = clean_s.split(":", 1)
+            title_part = parts[0].strip()
+            body_part = parts[1].strip() if len(parts) > 1 else clean_s
+
+        clean_title = re.sub(r'[*_#`]', '', title_part).strip()
+        clean_body = re.sub(r'[*_#`]', '', body_part).strip()
+
+        low_txt = (clean_title + " " + clean_body).lower()
+        is_rep = bool(re.search(r'(repeat|repetit|merge|दोहराव|पुनरावृत्ति)', low_txt))
+        is_diag = bool(re.search(r'(diagram|flowchart|spider|box|map|चित्र|आरेख|मानचित्र)', low_txt))
+        is_fact = bool(re.search(r'(inaccura|factual|misattribut|गलत|त्रुटि|तथ्य)', low_txt))
+
+        if is_rep:
+            a_type = "bracket_merge"
+            m_side = "left"
+            m_type = "bracket"
+            tag_name = f"Body: {clean_title}" if "body" not in clean_title.lower() else clean_title
+            lead_icon = "✎"
+        elif is_diag:
+            a_type = "box_highlight"
+            m_side = "right"
+            m_type = "circle"
+            tag_name = f"Body: {clean_title}" if "body" not in clean_title.lower() else clean_title
+            lead_icon = "✓"
+        elif is_fact:
+            a_type = "underline"
+            m_side = "inline"
+            m_type = "circle"
+            tag_name = f"✗ {clean_title}"
+            lead_icon = "✗"
+        else:
+            a_type = "margin_note"
+            m_side = "right"
+            m_type = "circle" if lever_item["is_gap"] else "tick"
+            tag_name = f"Body: {clean_title}" if "body" not in clean_title.lower() else clean_title
+            lead_icon = "✎" if lever_item["is_gap"] else "✓"
+
+        existing_on_pg = [a for a in annotations if int(a.get("page", 1) or 1) == target_page]
+        used_ys = [float(a.get("approx_y_percent", a.get("start_y_percent", 50.0)) or 50.0) for a in existing_on_pg]
+
+        chosen_y = 52.0
+        for cand_y in [42.0, 58.0, 70.0, 32.0, 78.0]:
+            if not any(abs(cand_y - u_y) < 11.0 for u_y in used_ys):
+                chosen_y = cand_y
+                break
+
+        short_rem = clean_body[:125].rsplit(" ", 1)[0] + "..." if len(clean_body) > 130 else clean_body
+
+        new_ann = {
+            "page": target_page,
+            "section": "body",
+            "annotation_type": a_type,
+            "margin_side": m_side,
+            "marker_type": m_type,
+            "tag": tag_name,
+            "type": "cross" if is_fact else ("suggestion" if lever_item["is_gap"] else "tick"),
+            "target_snippet": clean_title[:45],
+            "approx_x_percent": 22 if m_side == "left" else 72,
+            "approx_y_percent": int(round(chosen_y)),
+            "start_y_percent": max(6, int(round(chosen_y - 6))),
+            "end_y_percent": min(92, int(round(chosen_y + 8))),
+            "marks_awarded": "+0.5 / 1.5",
+            "margin_remark": f"{lead_icon} {clean_title}: {short_rem}",
+            "remark": f"{lead_icon} **{clean_title}**: {clean_body}"
+        }
+        annotations.append(new_ann)
+        new_tokens = set(re.findall(r'[a-zA-Zऀ-ॿ]{4,}', (clean_title + " " + clean_body).lower()))
+        covered_signatures.append(new_tokens)
 
 
 def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool = False) -> None:
