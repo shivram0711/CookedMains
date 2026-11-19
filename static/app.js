@@ -15340,7 +15340,7 @@ function renderBatch1ExaminerMastery(evalData) {
     const sList = (Array.isArray(bAudit.strengths) ? bAudit.strengths : []).filter(s => !window.isMetaPlaceholderText(s));
     const gList = (Array.isArray(bAudit.critical_gaps) ? bAudit.critical_gaps : []).filter(g => !window.isMetaPlaceholderText(g));
 
-    sList.slice(0, 3).forEach((sText, idx) => {
+    sList.slice(0, 10).forEach((sText, idx) => {
       const cleanS = String(sText).replace(/^[✓✔✎✗×]\s*/, "");
       const pgNum = Math.min(idx + 1, (state.activePages && state.activePages.length) || 2);
       const titleCandidate = cleanS.split(":")[0].replace(/\*\*/g, "").trim();
@@ -15359,7 +15359,7 @@ function renderBatch1ExaminerMastery(evalData) {
       });
     });
 
-    gList.slice(0, 2).forEach((gText, idx) => {
+    gList.slice(0, 8).forEach((gText, idx) => {
       let cleanG = String(gText).replace(/^[✓✔✎✗×]\s*/, "");
       if (/add\s+([^*]+)\*([^:]+:\s*)?([^.]+\.)?\s*(?:as a keyword)?/i.test(cleanG)) {
         cleanG = cleanG.replace(/add\s+([^*]+)\*([^:]+:\s*)?([^.]+\.)?\s*(?:as a keyword)?/i, (m, term, dTitle, def) => {
@@ -15929,7 +15929,7 @@ function populatePrintDossier(evalData) {
     const strengths = (bodyAudit.strengths && bodyAudit.strengths.length > 0)
       ? bodyAudit.strengths
       : ["Structured subheadings dividing autonomy erosion and Way Ahead."];
-    strengths.slice(0, 3).forEach(s => {
+    strengths.slice(0, 8).forEach(s => {
       const cleanS = String(s || '').replace(/^[✓✔•★⭐\s\-]+/, '').replace(/\s*\((?:Ref|उत्तर संदर्भ|उत्तर)\s*:\s*[^)]+\)/gi, '').trim();
       const li = document.createElement("li");
       li.className = "flex items-start space-x-1";
@@ -15943,7 +15943,7 @@ function populatePrintDossier(evalData) {
     const gaps = (bodyAudit.critical_gaps && bodyAudit.critical_gaps.length > 0)
       ? bodyAudit.critical_gaps
       : ["Need specific state parastatals (BDA, HUDA, BWSSB) to ground the critique."];
-    gaps.slice(0, 3).forEach(g => {
+    gaps.slice(0, 6).forEach(g => {
       const cleanG = String(g || '').replace(/^[✎🧭✗×•\s\-]+/, '').trim();
       const li = document.createElement("li");
       li.className = "flex items-start space-x-1";
@@ -15957,7 +15957,7 @@ function populatePrintDossier(evalData) {
     const dims = (bodyAudit.missing_dimensions && bodyAudit.missing_dimensions.length > 0)
       ? bodyAudit.missing_dimensions
       : ["Institutional: Parastatals under Mayor-in-Council", "Fiscal: Property tax collection vs State SFC devolution"];
-    dims.slice(0, 3).forEach(d => {
+    dims.slice(0, 5).forEach(d => {
       const span = document.createElement("span");
       span.className = "px-1.5 py-0.2 rounded bg-slate-100 border border-slate-200 text-slate-800 font-medium text-[6.5pt]";
       span.innerHTML = formatHighlightedText(d);
