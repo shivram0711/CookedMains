@@ -2367,6 +2367,30 @@ function renderPlayerDistractorDeepDive(q) {
             '<p class="whitespace-pre-line">' + escapeHtml(q.question_text) + '</p>' +
           '</div>' +
 
+          '<!-- Options List -->' +
+          (Array.isArray(q.options) && q.options.length ? (
+            '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">' +
+              q.options.map(function (opt, oIdx) {
+                var letter = letters[oIdx] || String.fromCharCode(65 + oIdx);
+                var cleanOpt = String(opt || '').replace(/^\([a-dA-D]\)\s*/, '');
+                var isOfficial = isExpanded && (oIdx === q.correct_index);
+                var optCardClass = isOfficial
+                  ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-950 dark:text-emerald-200 font-semibold shadow-xs ring-1 ring-emerald-500/30'
+                  : 'light-inner-box bg-slate-50 dark:bg-slate-950/70 border-slate-200 dark:border-slate-800/80 text-slate-800 dark:text-slate-200';
+                var badgeClass = isOfficial
+                  ? 'bg-emerald-500 text-slate-950 font-black'
+                  : 'bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold';
+                return (
+                  '<div class="p-3 rounded-xl border flex items-start gap-2.5 text-xs sm:text-[13px] leading-relaxed transition-all ' + optCardClass + '">' +
+                    '<span class="w-5 h-5 rounded-md font-mono text-[11px] flex items-center justify-center shrink-0 mt-0.5 ' + badgeClass + '">' + letter + '</span>' +
+                    '<span class="flex-1">' + escapeHtml(cleanOpt) + '</span>' +
+                    (isOfficial ? '<span class="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/20 px-1.5 py-0.5 rounded shrink-0">Official Key ✓</span>' : '') +
+                  '</div>'
+                );
+              }).join('') +
+            '</div>'
+          ) : '') +
+
           '<!-- Expand / Collapse Brainstorming Drawer -->' +
           '<div class="flex items-center justify-between pt-1">' +
             '<button type="button" class="vault-toggle-card-btn text-xs font-bold text-amber-600 dark:text-amber-500 hover:text-amber-700 dark:hover:text-amber-400 flex items-center gap-1.5 cursor-pointer" data-qid="' + q.id + '">' +
