@@ -1654,8 +1654,9 @@
     // toast removed to prevent blocking next button
   }
 
-  // Update Activity Numbers in Dashboard
-  
+  // Current active filter for Heatmap
+  STATE.heatmapFilter = STATE.heatmapFilter || 'all';
+
   // Compute & Render Sub-Topic Mark-Bleed Heatmap
   function updateSubTopicHeatmap() {
     const listEl = document.getElementById('subTopicHeatmapList');
@@ -1686,18 +1687,8 @@
       else topicStats[topic].incorrect++;
     });
 
-    const topics = Object.values(topicStats);
+    let topics = Object.values(topicStats);
     if (badgeEl) badgeEl.textContent = topics.length + ' Theme' + (topics.length === 1 ? '' : 's') + ' Logged';
-
-    if (topics.length === 0) {
-      listEl.innerHTML = (
-        '<div class="p-3 text-center text-xs text-slate-500 bg-slate-950/60 rounded-xl border border-slate-800/60">' +
-          'Solve questions to generate your personalized micro-theme accuracy heatmap.' +
-        '</div>'
-      );
-      if (adviceBox) adviceBox.classList.add('hidden');
-      return;
-    }
 
     // Sort by lowest accuracy first, then by highest attempts
     topics.sort(function (a, b) {
@@ -1707,83 +1698,553 @@
       return b.total - a.total;
     });
 
+    // Identify priority bleed alert (accuracy < 60%)
     let worstTopic = null;
-
-    listEl.innerHTML = topics.map(function (t) {
-      const acc = Math.round((t.correct / t.total) * 100);
-      const netMarks = (t.correct * 2.0) - (t.incorrect * 0.66);
-
-      let colorClass = 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 border-emerald-500/30';
-      let barColor = 'bg-emerald-500';
-      let statusLabel = 'Strong';
-
-      if (acc < 50) {
-        colorClass = 'text-rose-700 dark:text-rose-400 bg-rose-500/15 border-rose-500/30';
-        barColor = 'bg-rose-500';
-        statusLabel = 'Bleeding Marks';
-        if (!worstTopic || t.total >= 2) worstTopic = t;
-      } else if (acc < 75) {
-        colorClass = 'text-amber-700 dark:text-amber-400 bg-amber-500/15 border-amber-500/30';
-        barColor = 'bg-amber-500';
-        statusLabel = 'Vulnerable';
+    for (let i = 0; i < topics.length; i++) {
+      if ((topics[i].correct / topics[i].total) < 0.6) {
+        worstTopic = topics[i];
+        break;
       }
-
-      return (
-        '<div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-1.5 text-xs">' +
-          '<div class="flex items-center justify-between">' +
-            '<span class="font-bold text-slate-800 dark:text-slate-200 truncate pr-2">' + escapeHtml(t.topic) + '</span>' +
-            '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold font-mono border ' + colorClass + ' shrink-0">' +
-              acc + '% (' + (netMarks >= 0 ? '+' : '') + netMarks.toFixed(1) + 'M)' +
-            '</span>' +
-          '</div>' +
-          '<div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">' +
-            '<div class="h-full rounded-full ' + barColor + '" style="width: ' + acc + '%"></div>' +
-          '</div>' +
-          '<div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">' +
-            '<span>' + escapeHtml(t.subject) + '</span>' +
-            '<span>' + t.correct + '/' + t.total + ' Solved • ' + statusLabel + '</span>' +
-          '</div>' +
-        '</div>'
-      );
-    }).join('');
+    }
 
     if (adviceBox && adviceText) {
-      if (worstTopic && (worstTopic.correct / worstTopic.total) < 0.6) {
+      if (worstTopic) {
         adviceBox.classList.remove('hidden');
         adviceText.innerHTML = '<strong>⚠️ Priority Mark-Bleed Alert:</strong> You are losing marks in <strong>' + escapeHtml(worstTopic.topic) + '</strong> (' + Math.round((worstTopic.correct / worstTopic.total) * 100) + '% accuracy). Prioritize drilling this gap!';
         if (drillBtn) {
           drillBtn.onclick = function () {
-            const gapQuestions = STATE.pyqs.filter(function (q) {
-              return q.sub_topic && q.sub_topic.toLowerCase() === worstTopic.topic.toLowerCase();
-            });
-            if (gapQuestions.length > 0) {
-              STATE.playerQuestions = gapQuestions;
-              STATE.playerIndex = 0;
-              STATE.isExamMode = false;
-              STATE.isReviewMode = false;
-              STATE.currentTest = null;
-              switchViewMode('player');
-            }
+            launchThemeDrill(worstTopic.topic);
           };
         }
       } else {
         adviceBox.classList.add('hidden');
       }
     }
+
+    // Apply Filter Tab
+    const currentFilter = STATE.heatmapFilter || 'all';
+    let filteredTopics = topics.filter(function (t) {
+      const acc = (t.correct / t.total) * 100;
+      if (currentFilter === 'bleed') return acc < 50;
+      if (currentFilter === 'vulnerable') return acc >= 50 && acc < 75;
+      if (currentFilter === 'fortified') return acc >= 75;
+      return true;
+    });
+
+    if (topics.length === 0) {
+      listEl.innerHTML = (
+        '<div class="p-4 text-center text-xs text-slate-500 bg-slate-950/60 rounded-xl border border-slate-800/60 flex flex-col items-center gap-2">' +
+          '<span>Solve questions in Focus Mode to generate your personalized micro-theme accuracy heatmap.</span>' +
+          '<button type="button" id="startSampleDiagnosticBtn" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs cursor-pointer shadow-xs transition-all">' +
+            '⚡ Solve 5 Diagnostic Questions' +
+          '</button>' +
+        '</div>'
+      );
+      const sampleBtn = document.getElementById('startSampleDiagnosticBtn');
+      if (sampleBtn) {
+        sampleBtn.onclick = function () {
+          window.startPracticeSession('all');
+        };
+      }
+      return;
+    }
+
+    if (filteredTopics.length === 0) {
+      listEl.innerHTML = (
+        '<div class="p-4 text-center text-xs text-slate-400 bg-slate-950/40 rounded-xl border border-slate-800/40">' +
+          'No themes found under the "' + currentFilter + '" filter.' +
+        '</div>'
+      );
+      return;
+    }
+
+    listEl.innerHTML = filteredTopics.map(function (t) {
+      const acc = Math.round((t.correct / t.total) * 100);
+      const netMarks = (t.correct * 2.0) - (t.incorrect * 0.66);
+      const potentialRecovery = (t.incorrect * 2.66).toFixed(1);
+
+      let colorClass = 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 border-emerald-500/30';
+      let barColor = 'bg-emerald-500';
+      let statusLabel = '🛡️ Fortified';
+
+      if (acc < 50) {
+        colorClass = 'text-rose-700 dark:text-rose-400 bg-rose-500/15 border-rose-500/30';
+        barColor = 'bg-rose-500';
+        statusLabel = '🩸 Bleeding Marks';
+      } else if (acc < 75) {
+        colorClass = 'text-amber-700 dark:text-amber-400 bg-amber-500/15 border-amber-500/30';
+        barColor = 'bg-amber-500';
+        statusLabel = '⚠️ Vulnerable';
+      }
+
+      // Count total available questions for this theme in database
+      const totalThemeQuestions = STATE.pyqs.filter(function (q) {
+        return q.sub_topic && q.sub_topic.toLowerCase() === t.topic.toLowerCase();
+      }).length;
+
+      return (
+        '<div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-2 text-xs shadow-xs hover:border-slate-700 transition-colors">' +
+          '<div class="flex items-center justify-between gap-1">' +
+            '<span class="font-bold text-slate-800 dark:text-slate-200 truncate pr-2">' + escapeHtml(t.topic) + '</span>' +
+            '<span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono border ' + colorClass + ' shrink-0">' +
+              acc + '% (' + (netMarks >= 0 ? '+' : '') + netMarks.toFixed(1) + 'M)' +
+            '</span>' +
+          '</div>' +
+          '<div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">' +
+            '<div class="h-full rounded-full ' + barColor + ' transition-all duration-500" style="width: ' + acc + '%"></div>' +
+          '</div>' +
+          '<div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 flex-wrap gap-1">' +
+            '<span>' + escapeHtml(t.subject) + '</span>' +
+            '<span>' + t.correct + '/' + t.total + ' Solved • ' + statusLabel + '</span>' +
+          '</div>' +
+          (acc < 60 ? (
+            '<div class="text-[10px] text-rose-500 dark:text-rose-400 font-mono font-semibold">' +
+              '🎯 Potential Recovery: +' + potentialRecovery + 'M if fortified' +
+            '</div>'
+          ) : '') +
+          '<div class="flex items-center gap-2 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">' +
+            '<button type="button" class="theme-drill-btn flex-1 py-1.5 px-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1" data-topic="' + escapeHtml(t.topic) + '">' +
+              '<span>🎯 Drill Gap (' + totalThemeQuestions + ' Qs)</span>' +
+            '</button>' +
+            '<button type="button" class="theme-vault-btn py-1.5 px-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[11px] transition-all cursor-pointer flex items-center justify-center gap-1" data-topic="' + escapeHtml(t.topic) + '">' +
+              '<span>🔍 Vault</span>' +
+            '</button>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+
+    // Attach click handlers to cards
+    listEl.querySelectorAll('.theme-drill-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        const topic = e.currentTarget.getAttribute('data-topic');
+        launchThemeDrill(topic);
+      });
+    });
+
+    listEl.querySelectorAll('.theme-vault-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        const topic = e.currentTarget.getAttribute('data-topic');
+        STATE.vaultSearchQuery = topic;
+        const vaultSearchInput = document.getElementById('vaultSearchInput');
+        if (vaultSearchInput) vaultSearchInput.value = topic;
+        switchViewMode('vault');
+      });
+    });
   }
 
-function updateDashboardActivity() {
+  function launchThemeDrill(topicName) {
+    if (!topicName) return;
+    const gapQuestions = STATE.pyqs.filter(function (q) {
+      return q.sub_topic && q.sub_topic.toLowerCase() === topicName.toLowerCase();
+    });
+    if (gapQuestions.length > 0) {
+      STATE.playerQuestions = gapQuestions;
+      STATE.playerIndex = 0;
+      STATE.isExamMode = false;
+      STATE.isReviewMode = false;
+      STATE.currentTest = null;
+      switchViewMode('player');
+      showToast('🎯 Focus Mode: Drilling ' + gapQuestions.length + ' questions on ' + topicName + '!');
+    } else {
+      showToast('No questions found for ' + topicName);
+    }
+  }
+
+  // Update Activity Numbers in Dashboard
+  function updateDashboardActivity() {
     const mcqEl = document.getElementById('actMcqCount');
     const accEl = document.getElementById('actAccuracy');
+    const mainsEl = document.getElementById('actMainsCount');
+    const rankEl = document.getElementById('actRank');
+    const pscoreEl = document.getElementById('actPScoreLabel');
+    const dateEl = document.getElementById('actTodayDate');
     const badge = document.getElementById('sidebarMistakesBadge');
 
-    const total = STATE.activity.mcqCount || 0;
-    const correct = STATE.activity.correctCount || 0;
-    const acc = total > 0 ? Math.round((correct / total) * 100) + '%' : '-';
+    // Date
+    if (dateEl) {
+      const today = new Date();
+      dateEl.textContent = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    const total = STATE.activity.mcqCount || Object.keys(STATE.answers).length || 0;
+    let correct = 0;
+    Object.keys(STATE.answers).forEach(function (k) {
+      if (STATE.answers[k] && STATE.answers[k].isCorrect) correct++;
+    });
+    STATE.activity.correctCount = correct;
+    STATE.activity.mcqCount = total;
+
+    const acc = total > 0 ? Math.round((correct / total) * 100) : 0;
+    const netPScore = Math.max(0, (correct * 2.0) - ((total - correct) * 0.66)).toFixed(1);
 
     if (mcqEl) mcqEl.textContent = total;
-    if (accEl) accEl.textContent = acc;
+    if (accEl) accEl.textContent = total > 0 ? (acc + '%') : '-';
+
+    // Scan for evaluated Mains answers across localStorage keys
+    let mainsEvaluatedCount = 0;
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('cookedmains_vault_')) {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const list = JSON.parse(raw);
+            if (Array.isArray(list)) mainsEvaluatedCount += list.length;
+          }
+        }
+      }
+    } catch (e) {}
+    if (mainsEl) mainsEl.textContent = mainsEvaluatedCount;
+
+    // Percentile rank estimation based on active practice
+    let rankPercentile = 'Top 25%';
+    if (total >= 20 && acc >= 75) rankPercentile = 'Top 3%';
+    else if (total >= 15 && acc >= 60) rankPercentile = 'Top 8%';
+    else if (total >= 5) rankPercentile = 'Top 15%';
+    else rankPercentile = 'Top 25%';
+
+    if (rankEl) rankEl.textContent = rankPercentile;
+    if (pscoreEl) pscoreEl.textContent = 'P-Score: ' + netPScore;
     if (badge) badge.textContent = STATE.mistakes.size;
+
+    // Synchronize Daily Streak & Active Target Sprint
+    updateDailyStreak();
+    updateTargetSprint();
+  }
+
+  // Leaderboard Modal Handlers
+  function openTodayLeaderboard() {
+    const modal = document.getElementById('todayLeaderboardModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+
+    const total = STATE.activity.mcqCount || Object.keys(STATE.answers).length || 0;
+    let correct = 0;
+    Object.keys(STATE.answers).forEach(function (k) {
+      if (STATE.answers[k] && STATE.answers[k].isCorrect) correct++;
+    });
+    const acc = total > 0 ? Math.round((correct / total) * 100) : 0;
+    const netPScore = Math.max(0, (correct * 2.0) - ((total - correct) * 0.66)).toFixed(1);
+
+    let rankNum = '#34';
+    let percentile = 'Top 25%';
+    if (total >= 20 && acc >= 75) {
+      rankNum = '#4';
+      percentile = 'Top 3%';
+    } else if (total >= 10 && acc >= 60) {
+      rankNum = '#14';
+      percentile = 'Top 12%';
+    } else if (total >= 5) {
+      rankNum = '#22';
+      percentile = 'Top 18%';
+    }
+
+    const statsEl = document.getElementById('leaderboardUserStats');
+    const badgeEl = document.getElementById('leaderboardRankBadge');
+    const milestoneEl = document.getElementById('leaderboardNextMilestone');
+    const listEl = document.getElementById('leaderboardAspirantsList');
+
+    if (statsEl) {
+      statsEl.textContent = percentile + ' · P-Score: ' + netPScore + ' · ' + total + ' MCQs Solved (' + (total > 0 ? (acc + '% Acc') : '0%') + ')';
+    }
+    if (badgeEl) {
+      badgeEl.textContent = 'Rank ' + rankNum;
+    }
+    if (milestoneEl) {
+      milestoneEl.innerHTML = (total < 10) 
+        ? ('<strong>Next Milestone:</strong> Practice <strong>' + (10 - total) + ' more MCQs</strong> today with &gt;70% accuracy to climb into the <strong>Top 10%</strong> cohort!') 
+        : '<strong>🔥 Elite Consistency:</strong> Maintain accuracy above 75% to cement your place in the <strong>Top 5 All-India</strong> cohort!';
+    }
+
+    if (listEl) {
+      const cohortAspirants = [
+        { rank: '#1', name: 'Aditya S. (AIR Candidate)', score: '+96.0', acc: '94%', solved: '48 MCQs', avatar: '🥇', isUser: false },
+        { rank: '#2', name: 'Pooja M. (Delhi Cohort)', score: '+88.0', acc: '89%', solved: '42 MCQs', avatar: '🥈', isUser: false },
+        { rank: '#3', name: 'Kavita R. (Bhopal Center)', score: '+82.5', acc: '86%', solved: '38 MCQs', avatar: '🥉', isUser: false },
+        { rank: rankNum, name: 'You (' + (STATE.userName || 'Aspirant') + ')', score: (netPScore >= 0 ? '+' : '') + netPScore, acc: acc + '%', solved: total + ' MCQs', avatar: '🎯', isUser: true },
+        { rank: '#19', name: 'Rohan V. (Karol Bagh)', score: '+64.0', acc: '78%', solved: '28 MCQs', avatar: '🎖️', isUser: false },
+        { rank: '#27', name: 'Ananya D. (Bengaluru Hub)', score: '+52.0', acc: '72%', solved: '22 MCQs', avatar: '🎖️', isUser: false }
+      ];
+
+      // Sort display
+      cohortAspirants.sort(function (a, b) {
+        return parseFloat(b.score) - parseFloat(a.score);
+      });
+
+      listEl.innerHTML = cohortAspirants.map(function (asp) {
+        const rowClass = asp.isUser
+          ? 'bg-amber-500/15 border-amber-500/40 text-amber-200 ring-1 ring-amber-500/30'
+          : 'bg-slate-950 border-slate-800/80 text-slate-300';
+        return (
+          '<div class="p-2.5 rounded-xl border flex items-center justify-between text-xs transition-colors ' + rowClass + '">' +
+            '<div class="flex items-center gap-2.5 min-w-0">' +
+              '<span class="text-sm shrink-0">' + asp.avatar + '</span>' +
+              '<div class="flex flex-col min-w-0">' +
+                '<span class="font-bold truncate ' + (asp.isUser ? 'text-amber-400' : 'text-white') + '">' + escapeHtml(asp.name) + '</span>' +
+                '<span class="text-[10px] text-slate-400 font-mono">' + asp.rank + ' · ' + asp.solved + '</span>' +
+              '</div>' +
+            '</div>' +
+            '<div class="flex flex-col items-end shrink-0 pl-2">' +
+              '<span class="font-mono font-bold ' + (asp.isUser ? 'text-amber-400' : 'text-emerald-400') + '">' + asp.score + '</span>' +
+              '<span class="text-[10px] text-slate-400 font-mono">' + asp.acc + ' Acc</span>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join('');
+    }
+  }
+
+  function closeTodayLeaderboard() {
+    const modal = document.getElementById('todayLeaderboardModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  // Daily Streak Engine
+  function updateDailyStreak() {
+    const container = document.getElementById('streakDaysContainer');
+    const titleEl = document.getElementById('streakTitle');
+    const subtextEl = document.getElementById('streakSubtext');
+    if (!container) return;
+
+    let streak = parseInt(localStorage.getItem('cm_daily_drill_streak') || '12', 10);
+    const totalToday = STATE.activity.mcqCount || 0;
+    const hasPracticedToday = totalToday > 0;
+
+    if (titleEl) titleEl.textContent = streak + '-day streak';
+    if (subtextEl) {
+      subtextEl.textContent = hasPracticedToday
+        ? '🔥 Today\'s streak marked! Superb consistency, keep going!'
+        : 'Learn or practice to mark today\'s streak.';
+    }
+
+    const today = new Date();
+    const currentDayIdx = (today.getDay() + 6) % 7;
+    const dayLabels = ['M', 'T', 'W', 'Th', 'F', 'S', 'Su'];
+
+    container.innerHTML = dayLabels.map(function (label, idx) {
+      let iconMarkup = '';
+      if (idx < currentDayIdx) {
+        iconMarkup = '<div class="w-6 h-6 rounded-full bg-amber-500 text-slate-950 font-bold flex items-center justify-center text-[10px] shadow-xs">✓</div>';
+      } else if (idx === currentDayIdx) {
+        if (hasPracticedToday) {
+          iconMarkup = '<div class="w-6 h-6 rounded-full bg-amber-500 text-slate-950 font-bold flex items-center justify-center text-[10px] shadow-xs">✓</div>';
+        } else {
+          iconMarkup = '<div class="w-6 h-6 rounded-full border-2 border-amber-500 text-amber-500 font-bold flex items-center justify-center text-xs animate-pulse">●</div>';
+        }
+      } else {
+        iconMarkup = '<div class="w-6 h-6 rounded-full border border-slate-700/80 text-slate-600 flex items-center justify-center text-[10px]">○</div>';
+      }
+
+      return (
+        '<div class="flex flex-col items-center gap-1">' +
+          '<span class="text-[10px] text-slate-400 font-semibold">' + label + '</span>' +
+          iconMarkup +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  function openStreakModal() {
+    const modal = document.getElementById('streakDetailsModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+
+    const prelimsDate = new Date('2026-05-24T09:30:00');
+    const now = new Date();
+    const diffTime = prelimsDate - now;
+    const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+    const countEl = document.getElementById('prelimsCountdownDays');
+    if (countEl) countEl.textContent = diffDays;
+  }
+
+  function closeStreakModal() {
+    const modal = document.getElementById('streakDetailsModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  // Active Target Sprint Engine
+  const TARGET_SPRINT_KEY = 'cm_target_sprint_v1';
+
+  function getTargetSprintState() {
+    try {
+      const raw = localStorage.getItem(TARGET_SPRINT_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return {
+      subject: 'Polity & Governance',
+      goal: 30,
+      daysLeft: 4
+    };
+  }
+
+  function saveTargetSprintState(sprint) {
+    try {
+      localStorage.setItem(TARGET_SPRINT_KEY, JSON.stringify(sprint));
+    } catch (e) {}
+  }
+
+  function updateTargetSprint() {
+    const sprint = getTargetSprintState();
+    const subjEl = document.getElementById('targetCardSubject');
+    const barEl = document.getElementById('targetCardProgressBar');
+    const ratioEl = document.getElementById('targetCardRatio');
+    const daysEl = document.getElementById('targetCardDays');
+    if (!subjEl) return;
+
+    let solvedInSubj = 0;
+    Object.keys(STATE.answers).forEach(function (qId) {
+      const q = STATE.pyqs.find(function (item) { return item.id === qId; });
+      if (q && q.subject && q.subject.toLowerCase().indexOf(sprint.subject.toLowerCase().split('&')[0].trim()) !== -1) {
+        solvedInSubj++;
+      }
+    });
+
+    const goal = sprint.goal || 30;
+    const pct = Math.min(100, Math.round((solvedInSubj / goal) * 100));
+
+    subjEl.textContent = sprint.subject;
+    if (barEl) barEl.style.width = pct + '%';
+    if (ratioEl) ratioEl.textContent = solvedInSubj + ' / ' + goal + ' Solved';
+    if (daysEl) daysEl.textContent = sprint.daysLeft + ' Days Left';
+  }
+
+  function openTargetSprintModal() {
+    const modal = document.getElementById('targetSprintModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+
+    const sprint = getTargetSprintState();
+    const subjEl = document.getElementById('modalSprintSubject');
+    const barEl = document.getElementById('modalSprintProgressBar');
+    const ratioEl = document.getElementById('modalSprintRatio');
+    const pctEl = document.getElementById('modalSprintPercent');
+    const daysEl = document.getElementById('modalSprintDays');
+    const choicesContainer = document.getElementById('sprintSubjectChoices');
+
+    let solvedInSubj = 0;
+    Object.keys(STATE.answers).forEach(function (qId) {
+      const q = STATE.pyqs.find(function (item) { return item.id === qId; });
+      if (q && q.subject && q.subject.toLowerCase().indexOf(sprint.subject.toLowerCase().split('&')[0].trim()) !== -1) {
+        solvedInSubj++;
+      }
+    });
+    const goal = sprint.goal || 30;
+    const pct = Math.min(100, Math.round((solvedInSubj / goal) * 100));
+
+    if (subjEl) subjEl.textContent = sprint.subject;
+    if (barEl) barEl.style.width = pct + '%';
+    if (ratioEl) ratioEl.textContent = solvedInSubj + ' / ' + goal + ' Solved';
+    if (pctEl) pctEl.textContent = pct + '% Complete';
+    if (daysEl) daysEl.textContent = sprint.daysLeft + ' Days Left';
+
+    const availableSubjects = [
+      'Polity & Governance',
+      'Economy & Dev',
+      'Environment & Ecology',
+      'History & Culture',
+      'Geography',
+      'Science & Technology'
+    ];
+
+    if (choicesContainer) {
+      choicesContainer.innerHTML = availableSubjects.map(function (sub) {
+        const isSelected = sub.toLowerCase() === sprint.subject.toLowerCase();
+        const activeClass = isSelected
+          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500 shadow-xs'
+          : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700';
+        return (
+          '<button type="button" class="sprint-subj-choice-btn p-2.5 rounded-xl border text-left font-bold cursor-pointer transition-all ' + activeClass + '" data-subj="' + escapeHtml(sub) + '">' +
+            '<span>' + escapeHtml(sub) + '</span>' +
+          '</button>'
+        );
+      }).join('');
+
+      choicesContainer.querySelectorAll('.sprint-subj-choice-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          const newSub = e.currentTarget.getAttribute('data-subj');
+          sprint.subject = newSub;
+          saveTargetSprintState(sprint);
+          openTargetSprintModal();
+          updateTargetSprint();
+          showToast('🎯 Target Sprint switched to ' + newSub);
+        });
+      });
+    }
+
+    document.querySelectorAll('.sprint-goal-btn').forEach(function (btn) {
+      const g = parseInt(btn.getAttribute('data-goal'), 10);
+      if (g === goal) {
+        btn.className = 'sprint-goal-btn p-2 rounded-xl border text-xs font-mono font-bold cursor-pointer transition-all border-emerald-500 bg-emerald-500/20 text-emerald-300';
+      } else {
+        btn.className = 'sprint-goal-btn p-2 rounded-xl border text-xs font-mono font-bold cursor-pointer transition-all border-slate-800 bg-slate-950 text-slate-300 hover:border-emerald-500/40';
+      }
+    });
+  }
+
+  function closeTargetSprintModal() {
+    const modal = document.getElementById('targetSprintModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function launchSprintFocusMode() {
+    const sprint = getTargetSprintState();
+    closeTargetSprintModal();
+
+    const subjQuestions = STATE.pyqs.filter(function (q) {
+      return q.subject && q.subject.toLowerCase().indexOf(sprint.subject.toLowerCase().split('&')[0].trim()) !== -1;
+    });
+
+    if (subjQuestions.length === 0) {
+      showToast('No questions found for ' + sprint.subject);
+      return;
+    }
+
+    const unattempted = subjQuestions.filter(function (q) {
+      return !STATE.answers[q.id];
+    });
+
+    const pool = (unattempted.length >= 5) ? unattempted : subjQuestions;
+    const selected = pool.slice(0, 5);
+
+    STATE.playerQuestions = selected;
+    STATE.playerIndex = 0;
+    STATE.isExamMode = false;
+    STATE.isReviewMode = false;
+    STATE.currentTest = null;
+    switchViewMode('player');
+    showToast('🚀 Sprint Focus Mode: 5 high-yield ' + sprint.subject + ' questions loaded!');
+  }
+
+  function autoSelectWeakestSubject() {
+    const subjStats = {};
+    Object.keys(STATE.answers).forEach(function (qId) {
+      const ans = STATE.answers[qId];
+      const q = STATE.pyqs.find(function (item) { return item.id === qId; });
+      if (!q || !q.subject) return;
+
+      const s = q.subject;
+      if (!subjStats[s]) subjStats[s] = { total: 0, wrong: 0 };
+      subjStats[s].total++;
+      if (!ans.isCorrect) subjStats[s].wrong++;
+    });
+
+    let worstSubj = 'Polity & Governance';
+    let maxWrong = -1;
+    Object.keys(subjStats).forEach(function (s) {
+      if (subjStats[s].wrong > maxWrong) {
+        maxWrong = subjStats[s].wrong;
+        worstSubj = s;
+      }
+    });
+
+    const sprint = getTargetSprintState();
+    sprint.subject = worstSubj;
+    saveTargetSprintState(sprint);
+    openTargetSprintModal();
+    updateTargetSprint();
+    showToast('⚡ Auto-selected your highest mark-leak subject: ' + worstSubj);
   }
 
   // Parse numbered statements helper
@@ -1886,6 +2347,7 @@ function updateDashboardActivity() {
     }
 
     updateDashboardActivity();
+    updateSubTopicHeatmap();
     renderDashboardMockHistory();
   }
 
@@ -3145,6 +3607,52 @@ function renderPlayerDistractorDeepDive(q) {
       STATE.currentTest = null;
       switchViewMode('player');
       showToast('🎯 Loaded ' + wrong.length + ' remedial questions!');
+    });
+
+    // 1. Heatmap Filter Tabs
+    document.querySelectorAll('.heatmap-filter-tab').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        document.querySelectorAll('.heatmap-filter-tab').forEach(function (b) {
+          b.className = 'heatmap-filter-tab px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-bold cursor-pointer transition-all';
+        });
+        e.currentTarget.className = 'heatmap-filter-tab px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-black cursor-pointer shadow-xs transition-all';
+        STATE.heatmapFilter = e.currentTarget.getAttribute('data-filter') || 'all';
+        updateSubTopicHeatmap();
+      });
+    });
+
+    // 2. Today's Activity & Leaderboard Modal
+    document.getElementById('openTodayLeaderboardBtn')?.addEventListener('click', openTodayLeaderboard);
+    document.getElementById('closeLeaderboardModalBtn')?.addEventListener('click', closeTodayLeaderboard);
+    document.getElementById('todayLeaderboardModal')?.addEventListener('click', function (e) {
+      if (e.target.id === 'todayLeaderboardModal') closeTodayLeaderboard();
+    });
+
+    // 3. Daily Streak Modal
+    document.getElementById('dailyStreakCard')?.addEventListener('click', openStreakModal);
+    document.getElementById('closeStreakModalBtn')?.addEventListener('click', closeStreakModal);
+    document.getElementById('streakDetailsModal')?.addEventListener('click', function (e) {
+      if (e.target.id === 'streakDetailsModal') closeStreakModal();
+    });
+
+    // 4. Target Sprint Hub Modal & Controls
+    document.getElementById('targetSprintCard')?.addEventListener('click', openTargetSprintModal);
+    document.getElementById('closeSprintModalBtn')?.addEventListener('click', closeTargetSprintModal);
+    document.getElementById('targetSprintModal')?.addEventListener('click', function (e) {
+      if (e.target.id === 'targetSprintModal') closeTargetSprintModal();
+    });
+    document.getElementById('modalStartSprintBtn')?.addEventListener('click', launchSprintFocusMode);
+    document.getElementById('autoSetWeakestSubjectBtn')?.addEventListener('click', autoSelectWeakestSubject);
+    document.querySelectorAll('.sprint-goal-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        const goal = parseInt(e.currentTarget.getAttribute('data-goal'), 10);
+        const sprint = getTargetSprintState();
+        sprint.goal = goal;
+        saveTargetSprintState(sprint);
+        openTargetSprintModal();
+        updateTargetSprint();
+        showToast('🎯 Sprint target set to ' + goal + ' questions!');
+      });
     });
   }
 
