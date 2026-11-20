@@ -11222,14 +11222,15 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
         is_pos = bool(pbp.get("is_positive", True))
 
         title_badge_low = (clean_title + " " + raw_badge).lower()
+        is_body_badge = bool(re.search(r'\b(?:body\s*argument|body|मुख्य\s*भाग)\b', raw_badge, re.IGNORECASE))
         is_body_title = bool(re.search(r'\b(?:driver|cause|factor|consequence|impact|challenge|measure|agriculture|agricultural|demographic|urban|urbanization|infrastructure|mining|ecological|hydrological|soil|geomorph|dimension|solution|way\s*forward|manifestation|initiative|architecture|economic|trade|prerequisite|प्रभावी|कारक|कारण|प्रभाव|परिणाम|चुनौती|समाधान|उपाय|आयाम|पहल)\b', clean_title, re.IGNORECASE))
         # Intro must be an actual introduction premise, never a regular body argument (like drivers or causes)
-        is_opening_premise = (
+        is_opening_premise = not is_body_badge and (
             (idx == 0 and p_num == 1) or
             bool(re.search(r'\b(?:dilemma|double\s*dilemma|opening\s*hook|contextual\s*opening|introductory\s*premise|context\s*&?\s*conceptual|प्रस्तावना|भूमिका|आरंभ)\b', clean_title, re.IGNORECASE)) or
             bool(re.search(r'\b(?:intro|introduction|premise|opening\s*hook|contextual\s*opening|temporal\s*scope|प्रस्तावना|भूमिका)\b', raw_badge, re.IGNORECASE))
         ) and not is_body_title
-        is_intro = not is_body_title and (
+        is_intro = not is_body_badge and not is_body_title and (
             is_opening_premise or
             bool(re.search(r'\b(?:intro|introduction|premise|opening\s*hook|contextual\s*opening|temporal\s*scope|प्रस्तावना|भूमिका|आरंभ)\b', clean_title, re.IGNORECASE))
         )
@@ -11339,7 +11340,7 @@ def transfer_point_audit_to_deep_evaluation(data: Dict[str, Any], is_hindi: bool
     if intro_crit:
         # Guarantee strictly ONE single cohesive feedback statement (no stacked bullets, no nested duplicate parentheses)
         # Purge nested duplicate statements: e.g. "A: B. (A: B. (C))" -> "C" or clean sentence
-        nested_inner_match = re.search(r'\(\s*\((.*?)\)\s*\)', intro_crit)
+        nested_inner_match = re.search(r'\(\s*(?:[^()]*\(\s*)+([^()]+)(?:\s*\))+\s*\)', intro_crit) or re.search(r'\(\s*\((.*?)\)\s*\)', intro_crit)
         if nested_inner_match:
             inner_txt = nested_inner_match.group(1).strip()
             if re.search(r'(?i)(?:opening|temporal scope|premise|contextualiz|thesis)', inner_txt):
