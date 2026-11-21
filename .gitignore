@@ -34,6 +34,7 @@ Thumbs.db
 # Large data files
 sample_ts_data.json
 *.json
+!static/data/*.json
 
 # Minified vendor libraries & assets
 static/*.min.css

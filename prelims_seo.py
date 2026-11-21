@@ -158,14 +158,16 @@ def render_subject_page(meta: Dict[str, Any], questions: List[Dict[str, Any]]) -
             "@type": "Question",
             "name": f"UPSC {q.get('year', 2024)} {subject_name} Question {idx + 1}",
             "text": q_text,
+            "learningResourceType": "Practice problem",
+            "educationalLevel": "Competitive exam",
             "suggestedAnswer": [{"@type": "Answer", "text": opt} for opt in opts],
             "acceptedAnswer": {
                 "@type": "Answer",
-                "text": correct_answer_text
-            },
-            "comment": {
-                "@type": "Comment",
-                "text": q.get("explanation", "")
+                "text": correct_answer_text,
+                "comment": {
+                    "@type": "Comment",
+                    "text": q.get("explanation", "")
+                }
             }
         })
 
@@ -463,9 +465,17 @@ def render_year_page(year: int, questions: List[Dict[str, Any]]) -> str:
             "@type": "Question",
             "name": f"UPSC Prelims {year} GS1 Question {idx + 1}",
             "text": q_text,
+            "learningResourceType": "Practice problem",
+            "educationalLevel": "Competitive exam",
             "suggestedAnswer": [{"@type": "Answer", "text": opt} for opt in opts],
-            "acceptedAnswer": {"@type": "Answer", "text": ans_text},
-            "comment": {"@type": "Comment", "text": q.get("explanation", "")}
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": ans_text,
+                "comment": {
+                    "@type": "Comment",
+                    "text": q.get("explanation", "")
+                }
+            }
         })
 
     quiz_schema = {

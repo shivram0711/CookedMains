@@ -541,6 +541,13 @@ async def robots_txt():
         headers={"Cache-Control": "public, max-age=3600"}
     )
 
+@app.api_route("/google{token}.html", methods=["GET", "HEAD"])
+async def google_site_verification_file(token: str):
+    return Response(
+        content=f"google-site-verification: google{token}.html",
+        media_type="text/html; charset=utf-8"
+    )
+
 @app.api_route("/prelims", methods=["GET", "HEAD"])
 @app.api_route("/prelims.html", methods=["GET", "HEAD"])
 @app.api_route("/prelims-radar", methods=["GET", "HEAD"])

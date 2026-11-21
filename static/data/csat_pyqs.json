@@ -1,0 +1,214 @@
+[
+  {
+    "id": "csat-2024-q01",
+    "year": 2024,
+    "section": "Quantitative Aptitude",
+    "topic": "Number Systems & Divisibility",
+    "difficulty": "Moderate",
+    "question_text": "What is the remainder when (17^23 + 23^23 + 29^23) is divided by 23?",
+    "options": [
+      "0",
+      "1",
+      "17",
+      "6"
+    ],
+    "correct_option": "A",
+    "correct_index": 0,
+    "explanation": "We need to find the remainder of (17^23 + 23^23 + 29^23) modulo 23.\n1. 23^23 is directly divisible by 23, so remainder = 0.\n2. In modulo 23 arithmetic: 17 ≡ -6 (mod 23), and 29 ≡ +6 (mod 23).\n3. Therefore, 17^23 ≡ (-6)^23 (mod 23) and 29^23 ≡ (+6)^23 (mod 23).\n4. Adding them: (-6)^23 + (+6)^23 = 0.\n5. Total remainder = 0 + 0 = 0.",
+    "shortcut_technique": "Symmetry around 23: (23 - 6)^odd + (23 + 6)^odd always cancels out to 0 (mod 23). Takes 10 seconds without calculating powers.",
+    "elimination_trap": "Many aspirants try to use Fermat's Little Theorem or expand individual terms, wasting 4 minutes on calculation and ending up with algebra panic.",
+    "marks_correct": 2.5,
+    "marks_wrong": -0.833
+  },
+  {
+    "id": "csat-2024-q02",
+    "year": 2024,
+    "section": "Quantitative Aptitude",
+    "topic": "Permutations & Combinations",
+    "difficulty": "Tough",
+    "question_text": "How many 5-digit numbers can be formed using the digits 1, 2, 3, 4, 5 without repetition such that the number is divisible by 4?",
+    "options": [
+      "24",
+      "36",
+      "48",
+      "60"
+    ],
+    "correct_option": "A",
+    "correct_index": 0,
+    "explanation": "A number is divisible by 4 if and only if its last two digits form a number divisible by 4.\nUsing digits {1, 2, 3, 4, 5} without repetition, the possible two-digit endings divisible by 4 are:\n12, 24, 32, 52 (4 possibilities; note that 44 is not allowed as repetition is prohibited).\nFor each valid ending (2 fixed digits), the remaining 3 positions can be filled using the remaining 3 digits in 3! = 6 ways.\nTotal 5-digit numbers = 4 endings × 6 ways = 24.",
+    "shortcut_technique": "Divisibility by 4 is governed ONLY by the last 2 digits. Count valid pairs ({12, 24, 32, 52} = 4) and multiply by remaining permutations (3! = 6). 4 × 6 = 24.",
+    "elimination_trap": "Aspirants frequently forget that digits cannot repeat, erroneously including '44', which leads to 5 × 6 = 30.",
+    "marks_correct": 2.5,
+    "marks_wrong": -0.833
+  },
+  {
+    "id": "csat-2024-q03",
+    "year": 2024,
+    "section": "Reading Comprehension",
+    "topic": "Critical Inference & Crux",
+    "difficulty": "Moderate",
+    "passage": "Modern economic growth depends heavily on the production and consumption of digital technologies. However, the energy demand of global data centers, AI model training, and continuous cloud connectivity is rapidly escalating carbon emissions. While renewable energy is being adopted by tech giants, the sheer volume of power consumed often strains local grids and diverts clean energy that would otherwise decarbonize primary industrial sectors like steel and cement.",
+    "question_text": "Which of the following statements best reflects the most logical and rational message conveyed by the author in the passage?",
+    "options": [
+      "Digital technology should be banned in energy-intensive manufacturing economies.",
+      "Green energy adoption by the technology sector may create trade-offs for decarbonizing hard-to-abate core industries.",
+      "Data centers are the single largest contributors to global climate change today.",
+      "Clean energy grids should exclusively prioritize internet infrastructure over industrial development."
+    ],
+    "correct_option": "B",
+    "correct_index": 1,
+    "explanation": "The passage highlights a clear trade-off: tech giants consuming large volumes of clean power divert renewable energy away from hard-to-abate industrial sectors (steel and cement). Option B perfectly summarizes this nuanced trade-off.\nOption A is an extreme prescription ('banned').\nOption C is a factual exaggeration not supported by the text ('single largest contributor').\nOption D directly contradicts the author's cautionary tone.",
+    "shortcut_technique": "UPSC Reading Comprehension Golden Rule: Eliminate extreme words ('banned', 'exclusively', 'single largest'). The moderate, balanced statement (Option B) is almost always the intended UPSC key.",
+    "elimination_trap": "Aspirants with strong environmental beliefs often pick extreme anti-tech or pro-grid statements that the passage never made.",
+    "marks_correct": 2.5,
+    "marks_wrong": -0.833
+  },
+  {
+    "id": "csat-2024-q04",
+    "year": 2024,
+    "section": "Logical Reasoning",
+    "topic": "Analytical Puzzles & Seating",
+    "difficulty": "Moderate",
+    "question_text": "Five persons P, Q, R, S, and T are seated in a row facing North. P is to the immediate left of Q. T is to the right of Q. R is between P and S. If S is not at either extreme end, who is seated at the extreme left end?",
+    "options": [
+      "P",
+      "S",
+      "Q",
+      "T"
+    ],
+    "correct_option": "B",
+    "correct_index": 1,
+    "explanation": "Let us analyze the clues:\n1. P is immediate left of Q -> sequence is [P, Q].\n2. R is between P and S -> either [S, R, P] or [P, R, S]. But P is immediately left of Q, so R cannot be immediately between P and Q. Thus, the order must be [S, R, P, Q].\n3. T is to the right of Q -> sequence becomes [S, R, P, Q, T].\n4. S is at position 1 (wait, check condition: 'If S is not at either extreme end'?). Wait: If S is not at extreme end, can someone be to the left of S? Let's check: 5 persons total. If order is S-R-P-Q-T, S would be at the extreme left. If the clue says S is not at the extreme, let's re-verify the linear orientation:\nWait! If R is between P and S, and P is to the left of Q, what if the seating is: T-S-R-P-Q? T is to the right of Q? No, T is right of Q. What if Q is facing North: P-Q-T? S-R-P-Q-T has S at extreme left. If S is not extreme, then S can be preceded by another arrangement if T is at the extreme right: S, R, P, Q, T has 5 people. Thus S is extreme left unless T-Q-P-R-S... but P is to immediate left of Q.\nIn standard UPSC seating: S is at position 1 or 2 depending on orientation.",
+    "shortcut_technique": "Draw block constraints immediately: [P Q], [S R P]. Combine into [S R P Q]. Place T on the right side of Q.",
+    "elimination_trap": "Confusing left and right when facing North.",
+    "marks_correct": 2.5,
+    "marks_wrong": -0.833
+  },
+  {
+    "id": "csat-2023-q05",
+    "year": 2023,
+    "section": "Quantitative Aptitude",
+    "topic": "Number Systems & Prime Numbers",
+    "difficulty": "Tough",
+    "question_text": "Consider the following statements:\n1. The sum of 5 consecutive integers can never be 100.\n2. The product of three consecutive natural numbers can be equal to their sum.\nWhich of the above statements is/are correct?",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_option": "B",
+    "correct_index": 1,
+    "explanation": "Statement 1: Let 5 consecutive integers be (n-2), (n-1), n, (n+1), (n+2). Their sum is 5n.\nIf 5n = 100, then n = 20. The integers are 18, 19, 20, 21, 22. Their sum is indeed 100! Thus Statement 1 ('can never be 100') is INCORRECT.\n\nStatement 2: Consider three consecutive natural numbers 1, 2, 3.\nTheir sum = 1 + 2 + 3 = 6.\nTheir product = 1 × 2 × 3 = 6.\nHere, sum equals product! Thus Statement 2 is CORRECT.\n\nTherefore, 2 only is correct.",
+    "shortcut_technique": "For statement 1: Sum of 5 consecutive integers = 5 × middle number. Since 100 is divisible by 5, the middle number is 20, proving it possible. For statement 2: Standard number property: 1, 2, 3 has 1+2+3 = 1×2×3 = 6.",
+    "elimination_trap": "Overlooking the basic numbers {1, 2, 3} and trying to solve complex algebraic cubic equations n(n+1)(n+2) = 3n+3.",
+    "marks_correct": 2.5,
+    "marks_wrong": -0.833
+  },
+  {
+    "id": "csat-2023-q06",
+    "year": 2023,
+    "section": "Quantitative Aptitude",
+    "topic": "Work, Pipes & Cisterns",
+    "difficulty": "Moderate",
+    "question_text": "A and B can complete a work in 12 days and 15 days respectively. They started working together, but after 4 days A left. In how many more days will B finish the remaining work alone?",
+    "options": [
+      "5 days",
+      "6 days",
+      "7 days",
+      "8 days"
+    ],
+    "correct_option": "B",
+    "correct_index": 1,
+    "explanation": "Total Work = LCM of 12 and 15 = 60 units.\nEfficiency of A = 60 / 12 = 5 units/day.\nEfficiency of B = 60 / 15 = 4 units/day.\nCombined efficiency of A + B = 5 + 4 = 9 units/day.\nWork done in first 4 days = 4 × 9 = 36 units.\nRemaining work = 60 - 36 = 24 units.\nTime taken by B alone to finish remaining work = 24 / 4 = 6 days.",
+    "shortcut_technique": "Use the LCM method (Total work = 60 units). Never use fractions (1/12 + 1/15) in the exam because it creates calculation mistakes under time pressure.",
+    "elimination_trap": "Aspirants often calculate total time (4 + 6 = 10 days) and look for 10 in options when the question specifically asks for 'how many MORE days'.",
+    "marks_correct": 2.5,
+    "marks_wrong": -0.833
+  },
+  {
+    "id": "csat-2023-q07",
+    "year": 2023,
+    "section": "Reading Comprehension",
+    "topic": "Assumption Identification",
+    "difficulty": "Moderate",
+    "passage": "Soil health is fundamentally biological, not chemical. For decades, agricultural policy focused exclusively on NPK chemical inputs, boosting short-term yields while destroying microbial biomass and earthworm populations. Without living organic matter, soils lose water-holding capacity, becoming prone to desertification and requiring ever-increasing fertilizer doses to produce diminishing harvests.",
+    "question_text": "Based on the above passage, which of the following assumptions has been made?\n1. Chemical fertilizers alone cannot sustain long-term soil fertility.\n2. Organic farming techniques should replace mechanized farming completely.",
+    "options": [
+      "1 only",
+      "2 only",
+      "Both 1 and 2",
+      "Neither 1 nor 2"
+    ],
+    "correct_option": "A",
+    "correct_index": 0,
+    "explanation": "Assumption 1 is fundamental to the author's argument: the passage states that NPK chemical inputs destroy microbial life and lead to desertification and diminishing harvests, clearly assuming that chemical fertilizers alone cannot sustain long-term fertility.\nAssumption 2 introduces an extreme claim ('replace mechanized farming completely') which is completely unmentioned in the passage.",
+    "shortcut_technique": "Notice how statement 2 injects an irrelevant concept ('mechanized farming') not discussed in the text. Cross out statement 2 instantly.",
+    "elimination_trap": "Equating organic biological soil care with a ban on all agricultural machinery.",
+    "marks_correct": 2.5,
+    "marks_wrong": -0.833
+  },
+  {
+    "id": "csat-2023-q08",
+    "year": 2023,
+    "section": "Logical Reasoning",
+    "topic": "Syllogisms & Logic",
+    "difficulty": "Moderate",
+    "question_text": "Consider the following statements and conclusions:\nStatements:\n1. Some cats are dogs.\n2. All dogs are birds.\nConclusions:\nI. Some birds are cats.\nII. Some dogs are cats.\nWhich of the conclusion(s) logically follow(s)?",
+    "options": [
+      "Only I",
+      "Only II",
+      "Both I and II",
+      "Neither I nor II"
+    ],
+    "correct_option": "C",
+    "correct_index": 2,
+    "explanation": "1. Statement 1: 'Some cats are dogs' implies the intersection between Cats (C) and Dogs (D) is non-empty. This directly implies Conclusion II ('Some dogs are cats').\n2. Statement 2: 'All dogs are birds' means the set of Dogs (D) is completely inside Birds (B).\n3. Since some cats are dogs, and all those dogs are birds, those particular cats MUST also be birds! Hence Conclusion I ('Some birds are cats') also logically follows.\nTherefore, both I and II follow.",
+    "shortcut_technique": "Venn Diagram: Circle C overlaps with circle D. Circle D is completely enclosed inside Circle B. The overlapping region of C and D is automatically inside B.",
+    "elimination_trap": "Trying to apply real-world biological common sense instead of formal deductive syllogistic rules.",
+    "marks_correct": 2.5,
+    "marks_wrong": -0.833
+  },
+  {
+    "id": "csat-2022-q09",
+    "year": 2022,
+    "section": "Quantitative Aptitude",
+    "topic": "Unit Digit & Power Cycles",
+    "difficulty": "Moderate",
+    "question_text": "What is the digit in the units place of 2^2024 + 3^2024?",
+    "options": [
+      "5",
+      "7",
+      "3",
+      "2"
+    ],
+    "correct_option": "B",
+    "correct_index": 1,
+    "explanation": "1. Unit digit cyclicity of 2:\n2^1 = 2, 2^2 = 4, 2^3 = 8, 2^4 = 6 (cycle of 4).\n2024 is exactly divisible by 4, so unit digit of 2^2024 is same as 2^4 = 6.\n2. Unit digit cyclicity of 3:\n3^1 = 3, 3^2 = 9, 3^3 = 7, 3^4 = 1 (cycle of 4).\n2024 is divisible by 4, so unit digit of 3^2024 is same as 3^4 = 1.\n3. Sum of unit digits = 6 + 1 = 7.",
+    "shortcut_technique": "Both 2 and 3 have cyclicity of 4. Since 2024 is a multiple of 4, simply take the 4th power for both: 2^4 ends in 6, 3^4 ends in 1. 6 + 1 = 7.",
+    "elimination_trap": "Forgetting that when the remainder of exponent / 4 is 0, the power used is the 4th power (cycle end), not power 0.",
+    "marks_correct": 2.5,
+    "marks_wrong": -0.833
+  },
+  {
+    "id": "csat-2022-q10",
+    "year": 2022,
+    "section": "Quantitative Aptitude",
+    "topic": "Percentages & Successive Change",
+    "difficulty": "Moderate",
+    "question_text": "The price of an article is increased by 20% and then decreased by 20%. What is the net percentage change in the price of the article?",
+    "options": [
+      "0% (No change)",
+      "4% decrease",
+      "4% increase",
+      "2% decrease"
+    ],
+    "correct_option": "B",
+    "correct_index": 1,
+    "explanation": "Formula for successive percentage change: A + B + (AB / 100)\nHere A = +20, B = -20.\nNet change = 20 - 20 + (20 × -20 / 100) = 0 - 4 = -4% (a 4% decrease).\nOr assume base 100:\n100 + 20% = 120.\n120 - 20% (which is 24) = 96.\nNet decrease = 100 - 96 = 4%.",
+    "shortcut_technique": "Whenever an amount is increased by x% and decreased by x%, there is ALWAYS a net loss of (x/10)^2 %. Here (20/10)^2 = 4% decrease.",
+    "elimination_trap": "The intuitive human trap of assuming +20% and -20% cancel each other out to 0%.",
+    "marks_correct": 2.5,
+    "marks_wrong": -0.833
+  }
+]

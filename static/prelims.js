@@ -144,10 +144,11 @@
     const vaultView = document.getElementById('prelimsPyqVaultView');
     const mistakesView = document.getElementById('mistakesNotebookView');
     const cutoffEvView = document.getElementById('cutoffEVSimulatorView');
+    const csatView = document.getElementById('csatPracticeView');
     const breadcrumb = document.getElementById('breadcrumbCurrent');
 
     // Hide all views first
-    [dashView, playerView, reportView, vaultView, mistakesView, cutoffEvView].forEach(function (v) {
+    [dashView, playerView, reportView, vaultView, mistakesView, cutoffEvView, csatView].forEach(function (v) {
       if (v) v.classList.add('hidden');
     });
 
@@ -184,6 +185,11 @@
       updateSidebarActive('sideNavEV');
       if (breadcrumb) breadcrumb.textContent = 'Cutoff Sweet Spot & EV Optimizer';
       recalculateEV('total');
+    } else if (mode === 'csat') {
+      if (csatView) csatView.classList.remove('hidden');
+      updateSidebarActive('sideNavCSAT');
+      if (breadcrumb) breadcrumb.textContent = 'CSAT Qualifying Practice & 66.67 Cutoff Optimizer';
+      initCsatPractice();
     } else {
       if (playerView) playerView.classList.add('hidden');
       if (reportView) reportView.classList.add('hidden');
@@ -2729,6 +2735,11 @@
       const mode = params.get('mode') || params.get('action');
       const kw = params.get('q') || params.get('keyword');
 
+      if (mode === 'csat' || subject === 'csat') {
+        switchViewMode('csat');
+        return;
+      }
+
       if (mode === 'mock') {
         const format = params.get('format') || 'full';
         if (typeof window.openMockGenerator === 'function') {
@@ -2907,6 +2918,210 @@
         takeawayText.textContent = '🎯 Competitive Threshold: You are at ' + net.toFixed(1) + ' marks. Converting just 3 more 50:50 questions into correct keys with Topper Trap elimination gives you a safe 92+ buffer!';
       }
     }
+  }
+
+
+  // ==========================================================
+  // CSAT GS PAPER 2 PRACTICE & QUALIFYING ENGINE
+  // ==========================================================
+  let csatQuestions = [];
+  let csatFilterSec = 'all';
+
+  async function loadCsatQuestions() {
+    if (csatQuestions && csatQuestions.length > 0) return csatQuestions;
+    try {
+      const res = await fetch('/static/data/csat_pyqs.json');
+      if (res.ok) {
+        csatQuestions = await res.json();
+      }
+    } catch (e) {
+      console.warn('Could not load csat_pyqs.json:', e);
+    }
+    return csatQuestions;
+  }
+
+  function recalculateCsatSimulator() {
+    const attemptSlider = document.getElementById('csatAttemptSlider');
+    const accuracySlider = document.getElementById('csatAccuracySlider');
+    const attemptVal = document.getElementById('csatAttemptVal');
+    const accuracyVal = document.getElementById('csatAccuracyVal');
+    const netScoreEl = document.getElementById('csatNetScore');
+    const verdictBadge = document.getElementById('csatVerdictBadge');
+    const correctCountEl = document.getElementById('csatCorrectCount');
+    const wrongCountEl = document.getElementById('csatWrongCount');
+
+    if (!attemptSlider || !accuracySlider || !netScoreEl) return;
+
+    const attempts = parseInt(attemptSlider.value, 10);
+    const accuracy = parseInt(accuracySlider.value, 10);
+
+    if (attemptVal) attemptVal.textContent = attempts + ' Questions';
+    if (accuracyVal) accuracyVal.textContent = accuracy + '%';
+
+    const correct = Math.round(attempts * (accuracy / 100));
+    const wrong = attempts - correct;
+    const positiveMarks = correct * 2.5;
+    const negativeMarks = wrong * (2.5 / 3); // 0.8333
+    const net = Math.max(0, positiveMarks - negativeMarks);
+
+    netScoreEl.textContent = net.toFixed(1);
+
+    if (correctCountEl) correctCountEl.textContent = correct + ' Qs (+' + positiveMarks.toFixed(1) + ')';
+    if (wrongCountEl) wrongCountEl.textContent = wrong + ' Qs (-' + negativeMarks.toFixed(1) + ')';
+
+    if (verdictBadge) {
+      if (net >= 80) {
+        verdictBadge.className = 'p-3 rounded-xl border text-center text-xs font-black transition-all bg-emerald-950/60 border-emerald-800/80 text-emerald-300';
+        verdictBadge.innerHTML = '✅ SAFE QUALIFIED (Above 66.67 Cutoff by +' + (net - 66.67).toFixed(1) + ' buffer)';
+        netScoreEl.className = 'text-2xl font-black font-mono text-emerald-400';
+      } else if (net >= 66.67) {
+        verdictBadge.className = 'p-3 rounded-xl border text-center text-xs font-black transition-all bg-amber-950/60 border-amber-800/80 text-amber-300';
+        verdictBadge.innerHTML = '⚠️ BORDERLINE ZONE (' + net.toFixed(1) + ' Marks) — Risky under negative mark variance!';
+        netScoreEl.className = 'text-2xl font-black font-mono text-amber-400';
+      } else {
+        verdictBadge.className = 'p-3 rounded-xl border text-center text-xs font-black transition-all bg-rose-950/60 border-rose-800/80 text-rose-300';
+        verdictBadge.innerHTML = '❌ DANGER: DISQUALIFIED (' + (66.67 - net).toFixed(1) + ' marks below 66.67 Cutoff)';
+        netScoreEl.className = 'text-2xl font-black font-mono text-rose-400';
+      }
+    }
+  }
+
+  async function initCsatPractice() {
+    recalculateCsatSimulator();
+    await loadCsatQuestions();
+    renderCsatQuestions();
+  }
+
+  function renderCsatQuestions() {
+    const container = document.getElementById('csatQuestionsContainer');
+    const badge = document.getElementById('csatQuestionCountBadge');
+    if (!container) return;
+
+    let filtered = (csatQuestions || []).slice();
+    if (csatFilterSec !== 'all') {
+      filtered = filtered.filter(function (q) {
+        return q.section === csatFilterSec;
+      });
+    }
+
+    if (badge) badge.textContent = filtered.length + ' Questions';
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="p-8 text-center text-sm text-slate-400 rounded-2xl bg-slate-900 border border-slate-800">No questions found for this section.</div>';
+      return;
+    }
+
+    const letters = ['A', 'B', 'C', 'D'];
+    container.innerHTML = filtered.map(function (q, idx) {
+      const secIcon = q.section === 'Quantitative Aptitude' ? '📐' : (q.section === 'Logical Reasoning' ? '🧩' : '📖');
+      const diffColor = q.difficulty === 'Tough' ? 'text-rose-400 bg-rose-950/60 border-rose-800/60' : 'text-amber-400 bg-amber-950/60 border-amber-800/60';
+      
+      const passageHtml = q.passage ? (
+        '<div class="p-4 rounded-xl bg-slate-950/90 border border-slate-800 text-xs sm:text-sm text-slate-300 leading-relaxed mb-3 italic">' +
+          '<span class="font-bold text-amber-400 not-italic block mb-1">Passage (UPSC CSE Prelims ' + q.year + '):</span>' +
+          q.passage +
+        '</div>'
+      ) : '';
+
+      const optsHtml = (q.options || []).map(function (opt, oIdx) {
+        const letter = letters[oIdx] || String(oIdx + 1);
+        const isCorrect = (letter === q.correct_option || oIdx === q.correct_index);
+        const keyBadge = isCorrect ? '<span class="ml-auto text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800">UPSC Key (' + q.correct_option + ')</span>' : '';
+        return (
+          '<div class="flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/50 text-xs sm:text-sm text-slate-200">' +
+            '<span class="flex-shrink-0 w-6 h-6 rounded bg-slate-800 font-mono font-bold text-xs flex items-center justify-center text-slate-300">' + letter + '</span>' +
+            '<div class="flex-1">' + opt + '</div>' +
+            keyBadge +
+          '</div>'
+        );
+      }).join('');
+
+      const trapBlock = q.elimination_trap ? (
+        '<div class="p-3 rounded-lg bg-rose-950/40 border border-rose-900/60 text-xs text-rose-200 leading-relaxed">' +
+          '<span class="font-bold text-rose-400">⚠️ Elimination Trap:</span> ' + q.elimination_trap +
+        '</div>'
+      ) : '';
+
+      const shortcutBlock = q.shortcut_technique ? (
+        '<div class="p-3 rounded-lg bg-indigo-950/40 border border-indigo-900/60 text-xs text-indigo-200 leading-relaxed">' +
+          '<span class="font-bold text-indigo-400">⚡ 10-Second Shortcut Technique:</span> ' + q.shortcut_technique +
+        '</div>'
+      ) : '';
+
+      return (
+        '<article class="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col gap-4" id="' + q.id + '">' +
+          '<div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">' +
+            '<div class="flex flex-wrap items-center gap-2">' +
+              '<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">' + secIcon + ' ' + q.section + '</span>' +
+              '<span class="px-2.5 py-1 rounded-md text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">UPSC ' + q.year + '</span>' +
+              '<span class="px-2 py-0.5 rounded text-xs font-semibold border ' + diffColor + '">' + q.difficulty + '</span>' +
+            '</div>' +
+            '<button type="button" class="csat-solve-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-amber-300 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 transition cursor-pointer" data-qid="' + q.id + '">' +
+              '<span>🎯 Solve with Timer</span>' +
+              '<span>→</span>' +
+            '</button>' +
+          '</div>' +
+          passageHtml +
+          '<p class="text-sm sm:text-base font-medium text-slate-100 leading-relaxed">' +
+            '<span class="font-black text-amber-400 mr-1.5">Q' + (idx + 1) + '.</span>' + q.question_text.replace(/\n/g, '<br>') +
+          '</p>' +
+          '<div class="grid grid-cols-1 gap-2.5">' + optsHtml + '</div>' +
+          '<details class="group rounded-xl border border-slate-800 bg-slate-950/60 p-4">' +
+            '<summary class="flex items-center justify-between cursor-pointer text-xs sm:text-sm font-semibold text-slate-300 hover:text-amber-400 transition select-none">' +
+              '<span class="flex items-center gap-2">' +
+                '<span>🧠 Decoded Explanation & UPSC Key</span>' +
+                '<span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Official Key: ' + q.correct_option + '</span>' +
+              '</span>' +
+              '<span class="text-slate-500 group-open:rotate-180 transition">▼</span>' +
+            '</summary>' +
+            '<div class="mt-4 pt-3 border-t border-slate-800 text-xs sm:text-sm text-slate-300 leading-relaxed space-y-3">' +
+              '<div>' +
+                '<p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Step-by-Step Logic</p>' +
+                '<p class="leading-relaxed">' + q.explanation.replace(/\n/g, '<br>') + '</p>' +
+              '</div>' +
+              shortcutBlock +
+              trapBlock +
+            '</div>' +
+          '</details>' +
+        '</article>'
+      );
+    }).join('');
+
+    container.querySelectorAll('.csat-solve-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        const qid = e.currentTarget.getAttribute('data-qid');
+        launchCsatFocusMode(qid);
+      });
+    });
+  }
+
+  function launchCsatFocusMode(singleQid) {
+    if (!csatQuestions || csatQuestions.length === 0) {
+      showToast('Loading CSAT questions...');
+      loadCsatQuestions().then(function () {
+        launchCsatFocusMode(singleQid);
+      });
+      return;
+    }
+
+    let list = csatQuestions.slice();
+    let startIndex = 0;
+    if (singleQid) {
+      const idx = list.findIndex(function (q) { return q.id === singleQid; });
+      if (idx !== -1) startIndex = idx;
+    }
+
+    STATE.playerQuestions = list;
+    STATE.playerIndex = startIndex;
+    STATE.isExamMode = false;
+    STATE.isReviewMode = false;
+    STATE.currentTest = {
+      title: 'CSAT Practice (Paper 2)',
+      totalQuestions: list.length,
+      timeLimitMinutes: 30
+    };
+    switchViewMode('player');
+    showToast('🚀 CSAT Sprint Loaded into Focus Mode!');
   }
 
 
@@ -3674,6 +3889,32 @@ function renderPlayerDistractorDeepDive(q) {
     document.getElementById('sideNavMistakes')?.addEventListener('click', function () {
       window.openMistakesModal();
       toggleSidebar(false);
+    });
+
+    document.getElementById('sideNavCSAT')?.addEventListener('click', function () {
+      switchViewMode('csat');
+      toggleSidebar(false);
+    });
+    document.getElementById('exitCsatBtn')?.addEventListener('click', function () {
+      switchViewMode('dashboard');
+    });
+    document.getElementById('launchCsatSprintBtn')?.addEventListener('click', function () {
+      launchCsatFocusMode();
+    });
+    document.getElementById('csatAttemptSlider')?.addEventListener('input', recalculateCsatSimulator);
+    document.getElementById('csatAccuracySlider')?.addEventListener('input', recalculateCsatSimulator);
+    document.getElementById('exportCsatDiagnosticBtn')?.addEventListener('click', function () {
+      window.print();
+    });
+    document.querySelectorAll('.csat-filter-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        document.querySelectorAll('.csat-filter-btn').forEach(function (b) {
+          b.className = 'csat-filter-btn px-3 py-1.5 rounded-lg font-semibold text-slate-400 hover:text-white transition cursor-pointer';
+        });
+        e.currentTarget.className = 'csat-filter-btn px-3 py-1.5 rounded-lg font-bold bg-amber-500 text-slate-950 transition cursor-pointer';
+        csatFilterSec = e.currentTarget.getAttribute('data-sec') || 'all';
+        renderCsatQuestions();
+      });
     });
 
     document.getElementById('closeMistakesModalBtn')?.addEventListener('click', window.closeMistakesModal);
