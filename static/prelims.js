@@ -359,9 +359,31 @@
   // PHASE 4: ADAPTIVE MOCK TEST GENERATOR ENGINE
   // ==========================================================
 
-  window.openMockGenerator = function () {
+  // ==========================================================
+  // ADVANCED UPSC MOCK TEST GENERATOR ENGINE (FULL CUSTOMIZATION)
+  // ==========================================================
+
+  let mockConfigState = {
+    format: 'sectional',
+    selectedSubjects: new Set(['Polity & Governance', 'Economy']),
+    topicQuery: '',
+    questionCount: 25,
+    mode: 'exam'
+  };
+
+  window.openMockGenerator = function (defaultFormat) {
     const modal = document.getElementById('mockGeneratorModal');
-    if (modal) modal.classList.remove('hidden');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+
+    if (defaultFormat) {
+      const radio = document.querySelector('input[name="mockFormat"][value="' + defaultFormat + '"]');
+      if (radio) {
+        radio.checked = true;
+        window.onMockFormatChange(defaultFormat);
+      }
+    }
+    window.updateMockLiveSummary();
   };
 
   window.closeMockGenerator = function () {
@@ -369,71 +391,221 @@
     if (modal) modal.classList.add('hidden');
   };
 
-  window.launchQuickMock = function (type) {
-    if (type === 'full') {
-      generateAndStartMock('full', 'all', 'exam');
-    } else if (type === 'sectional') {
-      generateAndStartMock('sectional', 'all', 'exam');
-    } else if (type === 'weakness') {
-      generateAndStartMock('weakness', 'adaptive', 'exam');
+  window.onMockFormatChange = function (format) {
+    mockConfigState.format = format;
+    const subjSec = document.getElementById('mockCustomSubjectsSection');
+    const topicSec = document.getElementById('mockCustomTopicSection');
+    const volSec = document.getElementById('mockCustomVolumeSection');
+
+    if (format === 'full') {
+      if (subjSec) subjSec.classList.add('hidden');
+      if (topicSec) topicSec.classList.add('hidden');
+      if (volSec) volSec.classList.add('hidden');
+      mockConfigState.questionCount = 100;
+    } else if (format === 'weakness') {
+      if (subjSec) subjSec.classList.add('hidden');
+      if (topicSec) topicSec.classList.add('hidden');
+      if (volSec) volSec.classList.add('hidden');
+      mockConfigState.questionCount = 15;
+    } else {
+      // sectional / custom
+      if (subjSec) subjSec.classList.remove('hidden');
+      if (topicSec) topicSec.classList.remove('hidden');
+      if (volSec) volSec.classList.remove('hidden');
+      const activeCountBtn = document.querySelector('.mock-qcount-pill.active');
+      const count = activeCountBtn ? parseInt(activeCountBtn.getAttribute('data-count'), 10) : 25;
+      mockConfigState.questionCount = count || 25;
+    }
+    window.updateMockLiveSummary();
+  };
+
+  window.selectMockSubjects = function (preset) {
+    const checkboxes = document.querySelectorAll('.mock-subj-check');
+    if (preset === 'all') {
+      checkboxes.forEach(function (cb) { cb.checked = true; });
+    } else if (preset === 'clear') {
+      checkboxes.forEach(function (cb) { cb.checked = false; });
+    } else if (preset === 'polity_eco') {
+      checkboxes.forEach(function (cb) {
+        cb.checked = (cb.value === 'Polity & Governance' || cb.value === 'Economy');
+      });
+    } else if (preset === 'env_geo') {
+      checkboxes.forEach(function (cb) {
+        cb.checked = (cb.value === 'Environment & Ecology' || cb.value === 'Geography');
+      });
+    } else if (preset === 'hist_art') {
+      checkboxes.forEach(function (cb) {
+        cb.checked = (cb.value === 'History & Culture');
+      });
+    }
+    window.updateMockLiveSummary();
+  };
+
+  window.applyMockTopicChip = function (topic) {
+    const input = document.getElementById('mockCustomTopicInput');
+    if (input) {
+      input.value = topic;
+      window.updateMockLiveSummary();
     }
   };
 
-  function generateAndStartMock(format, subjectFilter, mode) {
-    format = format || 'full';
-    subjectFilter = subjectFilter || 'all';
+  window.setMockQuestionCount = function (count) {
+    mockConfigState.questionCount = count;
+    document.querySelectorAll('.mock-qcount-pill').forEach(function (pill) {
+      if (parseInt(pill.getAttribute('data-count'), 10) === count) {
+        pill.classList.add('active', 'border-emerald-500', 'bg-emerald-500/20', 'text-emerald-300');
+        pill.classList.remove('border-slate-800', 'bg-slate-950', 'text-slate-300');
+      } else {
+        pill.classList.remove('active', 'border-emerald-500', 'bg-emerald-500/20', 'text-emerald-300');
+        pill.classList.add('border-slate-800', 'bg-slate-950', 'text-slate-300');
+      }
+    });
+    const customInput = document.getElementById('mockCustomCountInput');
+    if (customInput) customInput.value = count;
+    window.updateMockLiveSummary();
+  };
+
+  window.onMockCustomCountInput = function (val) {
+    let count = parseInt(val, 10);
+    if (isNaN(count) || count < 5) count = 5;
+    if (count > 100) count = 100;
+    mockConfigState.questionCount = count;
+
+    document.querySelectorAll('.mock-qcount-pill').forEach(function (pill) {
+      if (parseInt(pill.getAttribute('data-count'), 10) === count) {
+        pill.classList.add('active', 'border-emerald-500', 'bg-emerald-500/20', 'text-emerald-300');
+        pill.classList.remove('border-slate-800', 'bg-slate-950', 'text-slate-300');
+      } else {
+        pill.classList.remove('active', 'border-emerald-500', 'bg-emerald-500/20', 'text-emerald-300');
+        pill.classList.add('border-slate-800', 'bg-slate-950', 'text-slate-300');
+      }
+    });
+    window.updateMockLiveSummary();
+  };
+
+  window.updateMockLiveSummary = function () {
+    const format = document.querySelector('input[name="mockFormat"]:checked')?.value || mockConfigState.format;
+    const topicInput = document.getElementById('mockCustomTopicInput');
+    const topicQuery = topicInput ? topicInput.value.trim().toLowerCase() : '';
+    
+    // Checked subjects
+    const checked = [];
+    document.querySelectorAll('.mock-subj-check:checked').forEach(function (cb) {
+      checked.push(cb.value);
+    });
+
+    let qCount = mockConfigState.questionCount || 25;
+    if (format === 'full') qCount = 100;
+    if (format === 'weakness') qCount = 15;
+
+    const durationMins = Math.max(5, Math.round(qCount * 1.2));
+    const marks = qCount * 2;
+
+    // Count matching in question bank
+    let matchingPool = STATE.pyqs || [];
+    if (format === 'weakness') {
+      matchingPool = matchingPool.filter(function (q) { return STATE.mistakes.has(q.id); });
+    } else if (format === 'sectional') {
+      if (checked.length > 0) {
+        matchingPool = matchingPool.filter(function (q) {
+          return checked.some(function (subj) {
+            return q.subject && q.subject.toLowerCase().indexOf(subj.toLowerCase().split('&')[0].trim()) !== -1;
+          });
+        });
+      }
+      if (topicQuery) {
+        const queryMatches = matchingPool.filter(function (q) {
+          const sub = (q.subTopic || '').toLowerCase();
+          const txt = (q.question || '').toLowerCase();
+          return sub.indexOf(topicQuery) !== -1 || txt.indexOf(topicQuery) !== -1;
+        });
+        if (queryMatches.length > 0) {
+          matchingPool = queryMatches;
+        }
+      }
+    }
+
+    const qBadge = document.getElementById('mockLiveQuestionsBadge');
+    const mBadge = document.getElementById('mockLiveMarksBadge');
+    const tBadge = document.getElementById('mockLiveTimeBadge');
+    const bankText = document.getElementById('mockLiveMatchingBankText');
+    const calcDur = document.getElementById('mockCustomCalcDuration');
+
+    if (qBadge) qBadge.textContent = qCount + ' Questions';
+    if (mBadge) mBadge.textContent = marks + ' Marks (+2.0 / -0.66)';
+    if (tBadge) tBadge.textContent = durationMins + ' Mins';
+    if (bankText) bankText.innerHTML = 'Available in Bank: <strong class="text-white">' + matchingPool.length + ' PYQs</strong>';
+    if (calcDur) calcDur.textContent = '~' + durationMins + ' Mins (1.2m / Q)';
+  };
+
+  window.launchQuickMock = function (type) {
+    if (type === 'full') {
+      generateAndStartMock('full', ['all'], 'exam', { questionCount: 100, durationMins: 120 });
+    } else if (type === 'sectional') {
+      window.openMockGenerator('sectional');
+    } else if (type === 'weakness') {
+      generateAndStartMock('weakness', ['adaptive'], 'exam', { questionCount: 15, durationMins: 20 });
+    }
+  };
+
+  window.launchConfiguredMockTest = function () {
+    const format = document.querySelector('input[name="mockFormat"]:checked')?.value || 'sectional';
+    const mode = document.querySelector('input[name="mockMode"]:checked')?.value || 'exam';
+    const topicInput = document.getElementById('mockCustomTopicInput');
+    const topicQuery = topicInput ? topicInput.value.trim() : '';
+
+    const selectedSubjects = [];
+    document.querySelectorAll('.mock-subj-check:checked').forEach(function (cb) {
+      selectedSubjects.push(cb.value);
+    });
+
+    let qCount = mockConfigState.questionCount || 25;
+    if (format === 'full') qCount = 100;
+    if (format === 'weakness') qCount = 15;
+
+    const durationMins = Math.max(5, Math.round(qCount * 1.2));
+
+    generateAndStartMock(format, selectedSubjects, mode, {
+      questionCount: qCount,
+      topicQuery: topicQuery,
+      durationMins: durationMins
+    });
+  };
+
+  function generateAndStartMock(format, subjectFilter, mode, options) {
+    format = format || 'sectional';
     mode = mode || 'exam';
+    options = options || {};
     closeMockGenerator();
 
     if (!STATE.pyqs || STATE.pyqs.length === 0) {
-      showToast('Questions are still loading, please wait...');
+      showToast('Questions are still loading, please wait a moment...');
       return;
     }
 
-    let targetCount = 100;
-    let durationMins = 120;
-    let title = 'Full-Length UPSC Prelims Simulation';
+    let targetCount = options.questionCount || (format === 'full' ? 100 : (format === 'weakness' ? 15 : 25));
+    let durationMins = options.durationMins || Math.max(5, Math.round(targetCount * 1.2));
+    let title = 'Custom UPSC Prelims Test';
 
-    if (format === 'sectional') {
-      targetCount = 25;
-      durationMins = 30;
-      title = (subjectFilter !== 'all' && subjectFilter !== 'adaptive')
-        ? ('Sectional Sprint: ' + subjectFilter)
-        : 'Sectional High-Yield Sprint (25 Qs)';
-    } else if (format === 'weakness') {
-      targetCount = 15;
-      durationMins = 20;
-      title = 'Diagnostic Mark Leak Remedial Drill';
-    }
+    let selectedSubjects = Array.isArray(subjectFilter) ? subjectFilter : [subjectFilter || 'all'];
+    if (selectedSubjects.length === 0) selectedSubjects = ['all'];
 
-    // Adaptive Sampling Strategy
     let sampleQuestions = [];
 
-    if (format === 'weakness' || subjectFilter === 'adaptive') {
-      // Prioritize mistakes notebook & missed questions
+    if (format === 'weakness' || (selectedSubjects.length === 1 && selectedSubjects[0] === 'adaptive')) {
+      title = 'Diagnostic Weakness Remedial Drill (' + targetCount + ' Qs)';
       const mistakeList = STATE.pyqs.filter(function (q) { return STATE.mistakes.has(q.id); });
-      const pool = shuffleArray(mistakeList);
-      sampleQuestions = pool.slice(0, targetCount);
+      sampleQuestions = shuffleArray(mistakeList).slice(0, targetCount);
 
-      // Pad if needed
       if (sampleQuestions.length < targetCount) {
-        const remainingNeeded = targetCount - sampleQuestions.length;
-        const remainingPool = shuffleArray(STATE.pyqs.filter(function (q) {
+        const rem = targetCount - sampleQuestions.length;
+        const pad = shuffleArray(STATE.pyqs.filter(function (q) {
           return !sampleQuestions.some(function (sq) { return sq.id === q.id; });
-        }));
-        sampleQuestions = sampleQuestions.concat(remainingPool.slice(0, remainingNeeded));
+        })).slice(0, rem);
+        sampleQuestions = sampleQuestions.concat(pad);
       }
-    } else if (subjectFilter !== 'all') {
-      // Filter by specified subject
-      const subjectPool = shuffleArray(STATE.pyqs.filter(function (q) {
-        return q.subject && q.subject.toLowerCase().indexOf(subjectFilter.toLowerCase()) !== -1;
-      }));
-      sampleQuestions = subjectPool.slice(0, targetCount);
-      if (sampleQuestions.length < targetCount) {
-        sampleQuestions = subjectPool;
-      }
-    } else {
-      // Balanced UPSC distribution across all 6 disciplines
+    } else if (format === 'full' || (selectedSubjects.length === 1 && selectedSubjects[0] === 'all')) {
+      title = 'Full-Length GS-1 Mock (' + targetCount + ' Qs · ' + durationMins + 'm)';
       const subjects = [
         'Polity & Governance',
         'Economy',
@@ -442,30 +614,81 @@
         'Geography',
         'Science & Technology'
       ];
-
-      const perSubject = Math.max(2, Math.floor(targetCount / subjects.length));
+      const perSubj = Math.max(2, Math.floor(targetCount / subjects.length));
       subjects.forEach(function (sub) {
-        const subPool = shuffleArray(STATE.pyqs.filter(function (q) {
-          return q.subject && q.subject.toLowerCase().indexOf(sub.toLowerCase()) !== -1;
+        const pool = shuffleArray(STATE.pyqs.filter(function (q) {
+          return q.subject && q.subject.toLowerCase().indexOf(sub.toLowerCase().split('&')[0].trim()) !== -1;
         }));
-        sampleQuestions = sampleQuestions.concat(subPool.slice(0, perSubject));
+        sampleQuestions = sampleQuestions.concat(pool.slice(0, perSubj));
       });
 
       if (sampleQuestions.length < targetCount) {
-        const remainingNeeded = targetCount - sampleQuestions.length;
-        const remainingPool = shuffleArray(STATE.pyqs.filter(function (q) {
+        const rem = targetCount - sampleQuestions.length;
+        const pad = shuffleArray(STATE.pyqs.filter(function (q) {
           return !sampleQuestions.some(function (sq) { return sq.id === q.id; });
-        }));
-        sampleQuestions = sampleQuestions.concat(remainingPool.slice(0, remainingNeeded));
+        })).slice(0, rem);
+        sampleQuestions = sampleQuestions.concat(pad);
+      }
+    } else {
+      // Custom / Sectional Mix
+      const subjTitles = selectedSubjects.map(function (s) { return s.split('&')[0].trim(); }).join(' + ');
+      title = 'Sectional: ' + subjTitles + ' (' + targetCount + ' Qs)';
+
+      let candidatePool = STATE.pyqs.filter(function (q) {
+        return selectedSubjects.some(function (sub) {
+          return q.subject && q.subject.toLowerCase().indexOf(sub.toLowerCase().split('&')[0].trim()) !== -1;
+        });
+      });
+
+      // Filter by topic query if provided
+      if (options.topicQuery) {
+        const tq = options.topicQuery.toLowerCase();
+        const topicMatches = candidatePool.filter(function (q) {
+          const sub = (q.subTopic || '').toLowerCase();
+          const txt = (q.question || '').toLowerCase();
+          return sub.indexOf(tq) !== -1 || txt.indexOf(tq) !== -1;
+        });
+        if (topicMatches.length >= targetCount) {
+          candidatePool = topicMatches;
+          title = 'Topic Drill: ' + options.topicQuery + ' (' + targetCount + ' Qs)';
+        } else if (topicMatches.length > 0) {
+          sampleQuestions = shuffleArray(topicMatches);
+          title = 'Topic Drill: ' + options.topicQuery + ' (' + targetCount + ' Qs)';
+        }
       }
 
-      if (sampleQuestions.length === 0) {
-        sampleQuestions = shuffleArray(STATE.pyqs.slice());
+      // Sample evenly across subjects
+      const perSub = Math.max(1, Math.floor((targetCount - sampleQuestions.length) / selectedSubjects.length));
+      selectedSubjects.forEach(function (sub) {
+        const subPool = shuffleArray(candidatePool.filter(function (q) {
+          return q.subject && q.subject.toLowerCase().indexOf(sub.toLowerCase().split('&')[0].trim()) !== -1;
+        }));
+        sampleQuestions = sampleQuestions.concat(subPool.slice(0, perSub));
+      });
+
+      // Pad up to targetCount
+      if (sampleQuestions.length < targetCount) {
+        const rem = targetCount - sampleQuestions.length;
+        const pad = shuffleArray(candidatePool.filter(function (q) {
+          return !sampleQuestions.some(function (sq) { return sq.id === q.id; });
+        })).slice(0, rem);
+        sampleQuestions = sampleQuestions.concat(pad);
       }
+
+      // Deduplicate
+      const seenIds = new Set();
+      sampleQuestions = sampleQuestions.filter(function (q) {
+        if (seenIds.has(q.id)) return false;
+        seenIds.add(q.id);
+        return true;
+      });
     }
 
-    // Final shuffle so subjects are interspersed like authentic UPSC GS-1
-    sampleQuestions = shuffleArray(sampleQuestions);
+    sampleQuestions = shuffleArray(sampleQuestions).slice(0, targetCount);
+    if (sampleQuestions.length === 0) {
+      showToast('No matching questions found for this configuration.');
+      return;
+    }
 
     // Initialize Test Session State
     STATE.isExamMode = (mode === 'exam');
@@ -479,7 +702,7 @@
       id: 'mock_' + Date.now(),
       title: title,
       format: format,
-      subjectFilter: subjectFilter,
+      subjectFilter: selectedSubjects.join(', '),
       mode: mode,
       totalQuestions: sampleQuestions.length,
       durationSeconds: durationMins * 60,
@@ -494,7 +717,7 @@
     }
 
     switchViewMode('player');
-    showToast('🚀 ' + title + ' Started! Best of luck.');
+    showToast('🚀 ' + title + ' Started!');
   }
 
   // Shuffle Helper (Fisher-Yates)
@@ -2201,128 +2424,138 @@
     const barEl = document.getElementById('targetCardProgressBar');
     const ratioEl = document.getElementById('targetCardRatio');
     const daysEl = document.getElementById('targetCardDays');
+    const paceEl = document.getElementById('targetSprintPaceText');
+    const accEl = document.getElementById('targetSprintAccuracyBadge');
     if (!subjEl) return;
 
     let solvedInSubj = 0;
+    let correctInSubj = 0;
     Object.keys(STATE.answers).forEach(function (qId) {
       const q = STATE.pyqs.find(function (item) { return item.id === qId; });
       if (q && q.subject && q.subject.toLowerCase().indexOf(sprint.subject.toLowerCase().split('&')[0].trim()) !== -1) {
         solvedInSubj++;
+        if (STATE.answers[qId] === q.correct) correctInSubj++;
       }
     });
 
     const goal = sprint.goal || 30;
+    const remaining = Math.max(0, goal - solvedInSubj);
     const pct = Math.min(100, Math.round((solvedInSubj / goal) * 100));
+    const daysLeft = sprint.daysLeft || 4;
+    const dailyPace = Math.ceil(remaining / Math.max(1, daysLeft));
+    const accPct = solvedInSubj > 0 ? Math.round((correctInSubj / solvedInSubj) * 100) : 0;
 
     subjEl.textContent = sprint.subject;
     if (barEl) barEl.style.width = pct + '%';
     if (ratioEl) ratioEl.textContent = solvedInSubj + ' / ' + goal + ' Solved';
-    if (daysEl) daysEl.textContent = sprint.daysLeft + ' Days Left';
+    if (daysEl) daysEl.textContent = daysLeft + ' Days Left';
+    if (paceEl) {
+      paceEl.textContent = remaining > 0 ? ('Need ' + dailyPace + ' Qs/day to hit goal') : '🎉 Weekly goal achieved! Excellent!';
+    }
+    if (accEl) {
+      accEl.textContent = (solvedInSubj > 0 ? accPct : '--') + '% Acc';
+    }
 
-    // Highlight active subject in inline picker
-    document.querySelectorAll('.sprint-subj-btn').forEach(function (btn) {
-      const s = btn.getAttribute('data-subject');
-      if (s && s.toLowerCase().split('&')[0].trim() === sprint.subject.toLowerCase().split('&')[0].trim()) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
+    // Modal elements if open
+    const mSubj = document.getElementById('modalSprintSubject');
+    const mBar = document.getElementById('modalSprintProgressBar');
+    const mRatio = document.getElementById('modalSprintRatio');
+    const mRem = document.getElementById('modalSprintRemaining');
+    const mPace = document.getElementById('modalSprintPace');
+    const mDays = document.getElementById('modalSprintDays');
 
-    // Highlight active goal in inline picker
-    document.querySelectorAll('.sprint-goal-btn').forEach(function (btn) {
-      const g = parseInt(btn.getAttribute('data-goal'), 10);
-      if (g === goal) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
+    if (mSubj) mSubj.textContent = sprint.subject;
+    if (mBar) mBar.style.width = pct + '%';
+    if (mRatio) mRatio.textContent = solvedInSubj + ' / ' + goal;
+    if (mRem) mRem.textContent = remaining + ' Qs';
+    if (mPace) mPace.textContent = dailyPace + ' Qs / Day';
+    if (mDays) mDays.textContent = daysLeft + ' Days Left';
   }
 
-  function openTargetSprintModal() {
+  window.openTargetSprintModal = function (e) {
+    if (e && e.stopPropagation) e.stopPropagation();
     const modal = document.getElementById('targetSprintModal');
     if (!modal) return;
     modal.classList.remove('hidden');
 
     const sprint = getTargetSprintState();
-    const subjEl = document.getElementById('modalSprintSubject');
-    const barEl = document.getElementById('modalSprintProgressBar');
-    const ratioEl = document.getElementById('modalSprintRatio');
-    const pctEl = document.getElementById('modalSprintPercent');
-    const daysEl = document.getElementById('modalSprintDays');
-    const choicesContainer = document.getElementById('sprintSubjectChoices');
-
-    let solvedInSubj = 0;
-    Object.keys(STATE.answers).forEach(function (qId) {
-      const q = STATE.pyqs.find(function (item) { return item.id === qId; });
-      if (q && q.subject && q.subject.toLowerCase().indexOf(sprint.subject.toLowerCase().split('&')[0].trim()) !== -1) {
-        solvedInSubj++;
-      }
-    });
-    const goal = sprint.goal || 30;
-    const pct = Math.min(100, Math.round((solvedInSubj / goal) * 100));
-
-    if (subjEl) subjEl.textContent = sprint.subject;
-    if (barEl) barEl.style.width = pct + '%';
-    if (ratioEl) ratioEl.textContent = solvedInSubj + ' / ' + goal + ' Solved';
-    if (pctEl) pctEl.textContent = pct + '% Complete';
-    if (daysEl) daysEl.textContent = sprint.daysLeft + ' Days Left';
+    updateTargetSprint();
 
     const availableSubjects = [
       'Polity & Governance',
-      'Economy & Dev',
+      'Economy',
       'Environment & Ecology',
       'History & Culture',
       'Geography',
       'Science & Technology'
     ];
 
+    const choicesContainer = document.getElementById('sprintSubjectChoices');
     if (choicesContainer) {
       choicesContainer.innerHTML = availableSubjects.map(function (sub) {
-        const isSelected = sub.toLowerCase() === sprint.subject.toLowerCase();
+        let count = 0;
+        let cor = 0;
+        Object.keys(STATE.answers).forEach(function (qId) {
+          const q = STATE.pyqs.find(function (item) { return item.id === qId; });
+          if (q && q.subject && q.subject.toLowerCase().indexOf(sub.toLowerCase().split('&')[0].trim()) !== -1) {
+            count++;
+            if (STATE.answers[qId] === q.correct) cor++;
+          }
+        });
+        const acc = count > 0 ? Math.round((cor / count) * 100) + '%' : 'New';
+        const isSelected = sub.toLowerCase().split('&')[0].trim() === sprint.subject.toLowerCase().split('&')[0].trim();
         const activeClass = isSelected
           ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500 shadow-xs'
           : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700';
+
         return (
-          '<button type="button" class="sprint-subj-choice-btn p-2.5 rounded-xl border text-left font-bold cursor-pointer transition-all ' + activeClass + '" data-subj="' + escapeHtml(sub) + '">' +
+          '<button type="button" class="sprint-subj-choice-btn p-2.5 rounded-xl border flex items-center justify-between font-bold cursor-pointer transition-all ' + activeClass + '" data-subj="' + escapeHtml(sub) + '">' +
             '<span>' + escapeHtml(sub) + '</span>' +
+            '<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">' + acc + '</span>' +
           '</button>'
         );
       }).join('');
 
       choicesContainer.querySelectorAll('.sprint-subj-choice-btn').forEach(function (btn) {
-        btn.addEventListener('click', function (e) {
-          const newSub = e.currentTarget.getAttribute('data-subj');
+        btn.addEventListener('click', function (ev) {
+          const newSub = ev.currentTarget.getAttribute('data-subj');
           sprint.subject = newSub;
           saveTargetSprintState(sprint);
-          openTargetSprintModal();
+          window.openTargetSprintModal();
           updateTargetSprint();
-          showToast('🎯 Target Sprint switched to ' + newSub);
+          showToast('🎯 Target Sprint set to ' + newSub);
         });
       });
     }
 
+    // Goal buttons
     document.querySelectorAll('.sprint-goal-btn').forEach(function (btn) {
       const g = parseInt(btn.getAttribute('data-goal'), 10);
-      if (g === goal) {
+      if (g === sprint.goal) {
         btn.className = 'sprint-goal-btn p-2 rounded-xl border text-xs font-mono font-bold cursor-pointer transition-all border-emerald-500 bg-emerald-500/20 text-emerald-300';
       } else {
         btn.className = 'sprint-goal-btn p-2 rounded-xl border text-xs font-mono font-bold cursor-pointer transition-all border-slate-800 bg-slate-950 text-slate-300 hover:border-emerald-500/40';
       }
+      btn.onclick = function () {
+        sprint.goal = g;
+        saveTargetSprintState(sprint);
+        window.openTargetSprintModal();
+        updateTargetSprint();
+        showToast('🎯 Weekly goal set to ' + g + ' questions!');
+      };
     });
-  }
+  };
 
-  function closeTargetSprintModal() {
+  window.closeTargetSprintModal = function () {
     const modal = document.getElementById('targetSprintModal');
     if (modal) modal.classList.add('hidden');
-  }
+  };
 
-  function launchSprintFocusMode() {
+  window.launchSprintFocusMode = function () {
     const sprint = getTargetSprintState();
-    closeTargetSprintModal();
+    window.closeTargetSprintModal();
 
-    const subjQuestions = STATE.pyqs.filter(function (q) {
+    const subjQuestions = (STATE.pyqs || []).filter(function (q) {
       return q.subject && q.subject.toLowerCase().indexOf(sprint.subject.toLowerCase().split('&')[0].trim()) !== -1;
     });
 
@@ -2336,16 +2569,21 @@
     });
 
     const pool = (unattempted.length >= 5) ? unattempted : subjQuestions;
-    const selected = pool.slice(0, 5);
+    const selected = shuffleArray(pool).slice(0, 5);
 
     STATE.playerQuestions = selected;
     STATE.playerIndex = 0;
     STATE.isExamMode = false;
     STATE.isReviewMode = false;
-    STATE.currentTest = null;
+    STATE.currentTest = {
+      id: 'sprint_' + Date.now(),
+      title: 'Target Sprint: ' + sprint.subject + ' (5 Qs)',
+      totalQuestions: selected.length,
+      durationSeconds: 0
+    };
     switchViewMode('player');
     showToast('🚀 Sprint Focus Mode: 5 high-yield ' + sprint.subject + ' questions loaded!');
-  }
+  };
 
   function autoSelectWeakestSubject() {
     const subjStats = {};
