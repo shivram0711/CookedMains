@@ -44,6 +44,12 @@ except ImportError:
     Image = None
     HAS_PIL = False
 
+try:
+    from prelims_seo import get_prelims_seo_page
+except Exception as _e_seo:
+    def get_prelims_seo_page(slug: str):
+        return None
+
 # Load .env file if present
 env_path = os.path.join(os.path.dirname(__file__), ".env")
 if os.path.exists(env_path):
@@ -543,8 +549,73 @@ async def robots_txt():
 async def prelims_page():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "prelims.html"))
 
+@app.api_route("/prelims/cutoff-calculator", methods=["GET", "HEAD"])
+@app.api_route("/cutoff-calculator", methods=["GET", "HEAD"])
+async def prelims_cutoff_page():
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "static", "prelims-cutoff-calculator.html"),
+        media_type="text/html; charset=utf-8",
+        headers={"Cache-Control": "public, max-age=3600"}
+    )
+
+@app.api_route("/prelims/mock-tests", methods=["GET", "HEAD"])
+@app.api_route("/mock-tests", methods=["GET", "HEAD"])
+async def prelims_mock_tests_page():
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "static", "prelims-mock-tests.html"),
+        media_type="text/html; charset=utf-8",
+        headers={"Cache-Control": "public, max-age=3600"}
+    )
+
+@app.api_route("/prelims/pyqs", methods=["GET", "HEAD"])
+async def prelims_pyqs_hub_page():
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "static", "prelims-pyqs.html"),
+        media_type="text/html; charset=utf-8",
+        headers={"Cache-Control": "public, max-age=3600"}
+    )
+
+@app.api_route("/prelims/pyqs/{sub_slug}", methods=["GET", "HEAD"])
+async def prelims_pyqs_sub_page(sub_slug: str):
+    seo_html = get_prelims_seo_page(sub_slug)
+    if seo_html:
+        return HTMLResponse(
+            content=seo_html,
+            status_code=200,
+            headers={"Cache-Control": "public, max-age=3600"}
+        )
+    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "prelims.html"))
+
 @app.api_route("/prelims/{subject_slug}", methods=["GET", "HEAD"])
 async def prelims_subject_page(subject_slug: str):
+    slug_clean = subject_slug.strip().lower()
+    if slug_clean in ["cutoff-calculator", "ev-calculator", "cutoff"]:
+        return FileResponse(
+            os.path.join(os.path.dirname(__file__), "static", "prelims-cutoff-calculator.html"),
+            media_type="text/html; charset=utf-8",
+            headers={"Cache-Control": "public, max-age=3600"}
+        )
+    if slug_clean in ["mock-tests", "mocks", "test-series"]:
+        return FileResponse(
+            os.path.join(os.path.dirname(__file__), "static", "prelims-mock-tests.html"),
+            media_type="text/html; charset=utf-8",
+            headers={"Cache-Control": "public, max-age=3600"}
+        )
+    if slug_clean in ["pyqs", "previous-year-questions", "vault"]:
+        return FileResponse(
+            os.path.join(os.path.dirname(__file__), "static", "prelims-pyqs.html"),
+            media_type="text/html; charset=utf-8",
+            headers={"Cache-Control": "public, max-age=3600"}
+        )
+
+    seo_html = get_prelims_seo_page(slug_clean)
+    if seo_html:
+        return HTMLResponse(
+            content=seo_html,
+            status_code=200,
+            headers={"Cache-Control": "public, max-age=3600"}
+        )
+
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "prelims.html"))
 
 @app.api_route("/planner", methods=["GET", "HEAD"])
