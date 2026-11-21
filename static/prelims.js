@@ -2717,6 +2717,71 @@
     updateDashboardActivity();
     updateSubTopicHeatmap();
     renderDashboardMockHistory();
+    handleUrlQueryParams();
+  }
+
+  function handleUrlQueryParams() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const qid = params.get('qid');
+      const subject = params.get('subject');
+      const year = params.get('year');
+      const mode = params.get('mode') || params.get('action');
+      const kw = params.get('q') || params.get('keyword');
+
+      if (mode === 'mock') {
+        const format = params.get('format') || 'full';
+        if (typeof window.openMockGenerator === 'function') {
+          window.openMockGenerator(format);
+        }
+        return;
+      }
+
+      if (mode === 'ev') {
+        if (typeof window.openEVSimulator === 'function') {
+          window.openEVSimulator();
+        }
+        return;
+      }
+
+      if (qid && STATE.pyqs && STATE.pyqs.length > 0) {
+        const targetIdx = STATE.pyqs.findIndex(function (q) { return q.id === qid; });
+        if (targetIdx !== -1) {
+          STATE.playerQuestions = STATE.pyqs;
+          STATE.playerIndex = targetIdx;
+          STATE.isExamMode = false;
+          STATE.isReviewMode = false;
+          STATE.currentTest = null;
+          switchViewMode('player');
+          showToast('🎯 Loaded Question in Focus Mode');
+          return;
+        }
+      }
+
+      if (subject && STATE.pyqs && STATE.pyqs.length > 0) {
+        if (typeof window.startPracticeSession === 'function') {
+          window.startPracticeSession(subject, kw || '');
+        }
+        return;
+      }
+
+      if (year && STATE.pyqs && STATE.pyqs.length > 0) {
+        const yrNum = parseInt(year, 10);
+        const yrList = STATE.pyqs.filter(function (q) { return q.year === yrNum; });
+        if (yrList.length > 0) {
+          STATE.playerQuestions = yrList;
+          STATE.playerIndex = 0;
+          STATE.isExamMode = false;
+          STATE.isReviewMode = false;
+          STATE.currentTest = null;
+          switchViewMode('player');
+          showToast('🎯 Loaded ' + yrList.length + ' questions from UPSC ' + yrNum + '!');
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('URL parameter handling error:', e);
+    }
   }
 
   // Setup UI Listeners
