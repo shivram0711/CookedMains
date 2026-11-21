@@ -1908,9 +1908,119 @@
     if (pscoreEl) pscoreEl.textContent = 'P-Score: ' + netPScore;
     if (badge) badge.textContent = STATE.mistakes.size;
 
-    // Synchronize Daily Streak & Active Target Sprint
+    // Synchronize Daily Streak, Target Sprint & Today's High-Yield Mission
     updateDailyStreak();
     updateTargetSprint();
+    updateDailyMissionCard();
+  }
+
+  // Update Today's Prescribed High-Yield Mission Hero Card
+  function updateDailyMissionCard() {
+    const daysBadge = document.getElementById('heroDaysToPrelimsBadge');
+    const pscoreBadge = document.getElementById('heroPScoreBadge');
+    const step1TopicEl = document.getElementById('missionStep1Topic');
+    const step1RecoveryEl = document.getElementById('missionStep1Recovery');
+    const step2TopicEl = document.getElementById('missionStep2Topic');
+
+    // 1. Prelims 2026 Countdown
+    const prelimsDate = new Date('2026-05-24T09:30:00');
+    const now = new Date();
+    const diffDays = Math.max(0, Math.ceil((prelimsDate - now) / (1000 * 60 * 60 * 24)));
+    if (daysBadge) daysBadge.textContent = diffDays + ' Days Left';
+
+    // 2. P-Score
+    let correct = 0;
+    const answeredKeys = Object.keys(STATE.answers);
+    answeredKeys.forEach(function (k) {
+      if (STATE.answers[k] && STATE.answers[k].isCorrect) correct++;
+    });
+    const total = answeredKeys.length;
+    const netPScore = Math.max(0, (correct * 2.0) - ((total - correct) * 0.66)).toFixed(1);
+    if (pscoreBadge) pscoreBadge.textContent = (netPScore > 0 ? ('+' + netPScore) : netPScore) + 'M P-Score';
+
+    // 3. Worst Bleeding Topic for Step 1
+    const topicStats = {};
+    answeredKeys.forEach(function (qId) {
+      const ans = STATE.answers[qId];
+      const q = STATE.pyqs.find(function (item) { return item.id === qId; });
+      if (!q || !q.sub_topic) return;
+      const t = q.sub_topic;
+      if (!topicStats[t]) topicStats[t] = { topic: t, correct: 0, total: 0, wrong: 0 };
+      topicStats[t].total++;
+      if (ans.isCorrect) topicStats[t].correct++;
+      else topicStats[t].wrong++;
+    });
+
+    let worstTheme = null;
+    let maxWrong = -1;
+    Object.values(topicStats).forEach(function (st) {
+      if (st.wrong > maxWrong && (st.correct / st.total) < 0.6) {
+        maxWrong = st.wrong;
+        worstTheme = st;
+      }
+    });
+
+    if (step1TopicEl) {
+      step1TopicEl.textContent = worstTheme ? worstTheme.topic : 'Electoral Ethics & RPA';
+    }
+    if (step1RecoveryEl) {
+      const rec = worstTheme ? (worstTheme.wrong * 2.66).toFixed(1) : '2.4';
+      step1RecoveryEl.textContent = '+' + rec + 'M Recovery';
+    }
+
+    // 4. Sprint Subject for Step 2
+    const sprint = getTargetSprintState();
+    if (step2TopicEl) {
+      step2TopicEl.textContent = sprint.subject || 'Economy & Banking';
+    }
+  }
+
+  // Launch Today's 15-Minute High-Yield Mission in Focus Mode
+  function launchDailyMission() {
+    if (!STATE.pyqs || STATE.pyqs.length === 0) {
+      showToast('Questions are still loading, please wait...');
+      return;
+    }
+
+    const sprint = getTargetSprintState();
+    const sprintSubj = (sprint && sprint.subject) ? sprint.subject : 'Economy';
+
+    // Step 1: 3 questions from worst topic or error pool
+    const step1Topic = document.getElementById('missionStep1Topic')?.textContent || 'Electoral Ethics & RPA';
+    let pool1 = STATE.pyqs.filter(function (q) {
+      return q.sub_topic && q.sub_topic.toLowerCase().indexOf(step1Topic.toLowerCase().split('&')[0].trim()) !== -1;
+    });
+    if (pool1.length === 0) {
+      pool1 = STATE.pyqs.filter(function (q) { return q.difficulty === 'Tough' || q.difficulty === 'Moderate'; });
+    }
+    const q1 = shuffleArray(pool1).slice(0, 3);
+
+    // Step 2: 5 questions from active sprint subject
+    let pool2 = STATE.pyqs.filter(function (q) {
+      return q.subject && q.subject.toLowerCase().indexOf(sprintSubj.toLowerCase().split('&')[0].trim()) !== -1;
+    });
+    if (pool2.length === 0) pool2 = STATE.pyqs;
+    const q2 = shuffleArray(pool2.filter(function (q) { return !q1.find(function (x) { return x.id === q.id; }); })).slice(0, 5);
+
+    // Step 3: 2 50:50 educated guessing / elimination questions
+    const q3 = shuffleArray(STATE.pyqs.filter(function (q) {
+      return !q1.find(function (x) { return x.id === q.id; }) && !q2.find(function (x) { return x.id === q.id; });
+    })).slice(0, 2);
+
+    const missionSet = [].concat(q1, q2, q3);
+
+    if (missionSet.length === 0) {
+      showToast('No mission questions could be selected.');
+      return;
+    }
+
+    STATE.playerQuestions = missionSet;
+    STATE.playerIndex = 0;
+    STATE.isExamMode = false;
+    STATE.isReviewMode = false;
+    STATE.currentTest = null;
+    switchViewMode('player');
+    showToast('🎯 Today\'s 15-Minute Mission Active: 10 curated questions loaded into Focus Mode!');
   }
 
   // Leaderboard Modal Handlers
@@ -3608,6 +3718,9 @@ function renderPlayerDistractorDeepDive(q) {
       switchViewMode('player');
       showToast('🎯 Loaded ' + wrong.length + ' remedial questions!');
     });
+
+    // 0. Today's Prescribed High-Yield Mission Launcher
+    document.getElementById('startDailyMissionBtn')?.addEventListener('click', launchDailyMission);
 
     // 1. Heatmap Filter Tabs
     document.querySelectorAll('.heatmap-filter-tab').forEach(function (btn) {

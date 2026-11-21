@@ -100,12 +100,33 @@
       background-color: #ffffff !important;
       border-color: #e2e8f0 !important;
       color: #0f172a !important;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03) !important;
     }
     html:not(.dark) .light-inner-box {
       background-color: #f8fafc !important;
       border-color: #e2e8f0 !important;
       color: #0f172a !important;
+    }
+    html:not(.dark) .hero-mission-card {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 65%, #292524 100%) !important;
+      border: 1px solid rgba(245, 158, 11, 0.45) !important;
+      color: #ffffff !important;
+      box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.22), 0 4px 12px -2px rgba(245, 158, 11, 0.12) !important;
+    }
+    html:not(.dark) .hero-mission-card .text-white {
+      color: #ffffff !important;
+    }
+    html:not(.dark) .hero-mission-card .text-slate-200,
+    html:not(.dark) .hero-mission-card .text-slate-300 {
+      color: #cbd5e1 !important;
+    }
+    html:not(.dark) .hero-mission-card .text-slate-400 {
+      color: #94a3b8 !important;
+    }
+    html:not(.dark) .hero-mission-card .light-inner-box {
+      background-color: rgba(15, 23, 42, 0.75) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      color: #ffffff !important;
     }
     html:not(.dark) .light-input {
       background-color: #ffffff !important;
@@ -453,248 +474,368 @@
     <main class="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col gap-6 max-w-7xl w-full mx-auto">
 
       <!-- ====================================================
-           VIEW A: SUPERKALAM-STYLE DASHBOARD OVERVIEW (DEFAULT)
+           VIEW A: SUPERKALAM-STYLE DASHBOARD OVERVIEW (OPTION A: DAILY HIGH-YIELD MISSION)
            ==================================================== -->
       <div id="dashboardOverviewView" class="flex flex-col gap-6">
 
-        <!-- Top Greeting Hero Banner (High-Impact Command Center) -->
-        <div class="p-6 sm:p-7 rounded-3xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
-          <div class="flex flex-col gap-1">
+        <!-- Top Context Bar: Target CSE 2026 Readiness Micro-Bar -->
+        <div id="prelimsContextBar" class="light-card p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between gap-3 flex-wrap text-xs">
+          <div class="flex items-center gap-3 flex-wrap">
             <div class="flex items-center gap-2">
-              <span class="text-[11px] font-mono font-black uppercase tracking-wider text-slate-950/70">UPSC CSE Prelims Command Center</span>
-              <span class="px-2 py-0.5 rounded-full bg-slate-950/15 text-slate-950 text-[10px] font-black font-mono uppercase">1,280+ PYQs (2011–2026)</span>
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="font-bold text-slate-800 dark:text-slate-200">UPSC CSE Prelims 2026:</span>
+              <span class="text-slate-500 dark:text-slate-400">May 24, 2026</span>
+              <span id="heroDaysToPrelimsBadge" class="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-400 font-mono font-bold text-[11px] border border-amber-500/25">184 Days Left</span>
             </div>
-            <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-950">
-              Hi, <span id="dashGreetingName">Aspirant</span> 👋
-            </h1>
-            <p class="text-xs sm:text-sm font-semibold text-slate-900/90 max-w-xl leading-relaxed">
-              Master authentic UPSC questions, eliminate negative marking bleed (-0.66 per error), and find your cutoff sweet spot.
-            </p>
+            <span class="hidden sm:inline text-slate-300 dark:text-slate-700">|</span>
+            <div class="flex items-center gap-1.5">
+              <span class="text-slate-500 dark:text-slate-400">Readiness:</span>
+              <span id="heroPScoreBadge" class="font-bold font-mono text-emerald-600 dark:text-emerald-400">84.5M P-Score</span>
+              <span class="text-[10px] text-slate-400 font-mono">(Target Cutoff ~88M)</span>
+            </div>
           </div>
 
-          <div class="flex items-center gap-2.5 shrink-0">
-            <button type="button" onclick="window.openPyqVault()" class="px-4 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-2">
-              <span>🎯</span>
-              <span>Start Practice</span>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="window.openPyqVault()" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[11px] transition-all cursor-pointer flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+              <span>PYQ Vault (1,280+)</span>
             </button>
-            <button type="button" onclick="window.openMockGenerator()" class="px-4 py-2.5 rounded-xl bg-white/90 hover:bg-white text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center gap-2">
-              <span>⚡</span>
-              <span>Adaptive Mock</span>
-            </button>
-            <button type="button" onclick="window.openEVSimulator()" class="px-4 py-2.5 rounded-xl bg-slate-950/15 hover:bg-slate-950/25 text-slate-950 font-black text-xs transition-all cursor-pointer flex items-center gap-1.5" title="Open Cutoff EV Simulator">
-              <span>📊</span>
+            <button type="button" onclick="window.openEVSimulator()" class="px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 font-bold text-[11px] border border-amber-500/20 transition-all cursor-pointer flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
               <span>EV Simulator</span>
             </button>
           </div>
         </div>
 
-        
         <!-- ====================================================
-             TOPIC SEARCH & 14-YEAR PYQ MATRIX WORKSPACE
+             HERO: TODAY'S PRESCRIBED HIGH-YIELD MISSION (15 MINS)
              ==================================================== -->
-        <div id="topicSearchMatrixSection" class="light-card p-6 sm:p-7 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col gap-5">
-          
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-xl shrink-0 font-black">
-                🔍
-              </div>
-              <div class="flex flex-col">
-                <h3 class="text-lg font-black text-white flex items-center gap-2">
-                  Global Topic Search &amp; 14-Year Matrix
-                  <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-black uppercase">2011–2026</span>
-                </h3>
-                <p class="text-xs text-slate-400 mt-0.5">
-                  Search any specific topic or filter past UPSC questions by year and discipline.
-                </p>
-              </div>
-            </div>
+        <div id="dailyPrescribedMissionHero" class="hero-mission-card p-6 sm:p-7 rounded-3xl relative overflow-hidden flex flex-col gap-5 text-white">
+          <!-- Ambient Glow Flares -->
+          <div class="absolute -right-24 -top-24 w-80 h-80 rounded-full bg-amber-500/15 blur-3xl pointer-events-none"></div>
+          <div class="absolute -left-24 -bottom-24 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
 
+          <!-- Header Row -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
             <div class="flex items-center gap-2">
-              <span id="matrixMatchCountBadge" class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-xs font-mono font-bold">
-                103 Questions Found
+              <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black uppercase font-mono tracking-wider flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                TODAY'S PRESCRIBED MISSION · 15 MINS
               </span>
+              <span class="px-2 py-0.5 rounded bg-white/10 text-slate-300 text-[10px] font-mono">10 Curated MCQs</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs font-mono text-slate-300">
+              <span>Goal:</span>
+              <span class="text-amber-400 font-bold">+4.6 Marks Recovery</span>
             </div>
           </div>
 
-          <!-- Live Topic Search Input -->
-          <div class="relative w-full">
-            <input id="globalTopicSearchInput" type="text" placeholder="Search any topic, act, or keyword (e.g. Monetary Policy, Preamble, Wetlands, Governor, Inflation, CRISPR)..." class="light-input w-full pl-5 pr-12 py-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-slate-100 text-xs sm:text-sm font-semibold placeholder-slate-400 shadow-inner focus:outline-none focus:border-amber-500">
-            <button id="clearTopicSearchBtn" type="button" class="hidden absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer text-xs" title="Clear Search">
-              ✕
-            </button>
+          <!-- Title & Subtitle -->
+          <div class="flex flex-col gap-1.5 relative z-10">
+            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2 flex-wrap">
+              <span>Plug Mark-Bleed &amp; Lock In 2026 Core</span>
+              <span class="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">Targeting Cutoff Zone</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+              Your personalized daily micro-routine: eliminate repetitive traps in your highest error themes and practice high-yield 2026 question patterns.
+            </p>
           </div>
 
-          <!-- Quick Discovery Chips -->
-          <div class="flex items-center gap-2 flex-wrap text-xs font-bold">
-            <span class="text-slate-400 text-[10px] uppercase font-mono tracking-wider">High Yield:</span>
-            <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-300 transition-all cursor-pointer" data-kw="Preamble">🏛️ Preamble</button>
-            <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-300 transition-all cursor-pointer" data-kw="Monetary Policy">📈 Monetary Policy</button>
-            <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-300 transition-all cursor-pointer" data-kw="Wetland">🌿 Wetlands</button>
-            <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-300 transition-all cursor-pointer" data-kw="1857">📜 1857 Revolt</button>
-            <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-300 transition-all cursor-pointer" data-kw="River">🌍 River Basins</button>
-            <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-300 transition-all cursor-pointer" data-kw="CRISPR">🔬 CRISPR</button>
-            <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-300 transition-all cursor-pointer" data-kw="Article 21">⚖️ Article 21</button>
-            <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-amber-500/20 hover:text-amber-400 text-slate-300 transition-all cursor-pointer" data-kw="Inflation">🪙 Inflation</button>
-          </div>
-
-          <!-- 14-Year Matrix Filter Row -->
-          <div class="flex flex-col gap-1.5 pt-2 border-t border-slate-800">
-            <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">Filter By Year (2011–2026):</span>
-            <div id="matrixYearButtonGroup" class="flex items-center gap-1.5 flex-wrap text-xs">
-              <button type="button" class="matrix-year-btn px-3 py-1 rounded-xl bg-amber-500 text-slate-950 font-black cursor-pointer transition-all" data-year="all">All Years</button>
-              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2026">2026</button>
-              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2025">2025</button>
-              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2024">2024</button>
-              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2023">2023</button>
-              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2022">2022</button>
-              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2021">2021</button>
-              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2020">2020</button>
-              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2019">2019</button>
-              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2018">2018</button>
-              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2017">2017</button>
-              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2016">2016</button>
-              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2015">2015</button>
-              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2014">2014</button>
-              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2013">2013</button>
-              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2012">2012</button>
-              <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all" data-year="2011">2011</button>
-            </div>
-          </div>
-
-          <!-- Subject Filter Pills Row -->
-          <div class="flex flex-col gap-1.5 pt-2 border-t border-slate-800">
-            <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">Filter By Subject:</span>
-            <div id="matrixSubjectButtonGroup" class="flex items-center gap-1.5 flex-wrap text-xs">
-              <button type="button" class="matrix-subj-btn px-3 py-1 rounded-xl bg-amber-500 text-slate-950 font-black cursor-pointer transition-all" data-subject="all">All Subjects</button>
-              <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all" data-subject="Polity">Polity &amp; Governance</button>
-              <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all" data-subject="Economy">Economy</button>
-              <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all" data-subject="Environment">Environment &amp; Ecology</button>
-              <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all" data-subject="History">History &amp; Culture</button>
-              <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all" data-subject="Geography">Geography</button>
-              <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all" data-subject="Science">Sci-Tech</button>
-            </div>
-          </div>
-
-          <!-- Header for Filtered Results -->
-          <div class="flex items-center justify-between pt-3 border-t border-slate-800">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-extrabold text-white">Matching Questions Feed</span>
-              <span id="matrixFeedStatusText" class="text-[11px] text-slate-400">Showing all questions</span>
+          <!-- 3-Step Mission Breakdown Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 relative z-10 pt-1">
+            
+            <!-- Step 1: Plug Error Bleed -->
+            <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-rose-500/30 flex flex-col gap-2 shadow-xs hover:border-rose-500/60 transition-colors">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-mono uppercase tracking-wider text-rose-400 font-bold flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-rose-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                  Step 1: Plug Leak
+                </span>
+                <span id="missionStep1Recovery" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">+2.4M Recovery</span>
+              </div>
+              <h3 id="missionStep1Topic" class="text-xs sm:text-sm font-bold text-white truncate">Electoral Ethics &amp; RPA</h3>
+              <p class="text-[11px] text-slate-400 leading-normal">
+                3 diagnostic questions to eliminate repetitive -0.66 penalty traps.
+              </p>
             </div>
 
-            <button type="button" id="solveAllFilteredBtn" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5">
-              <span>🎯</span>
-              <span>Solve Filtered Set in Focus Mode</span>
+            <!-- Step 2: High-Yield Topic Sprint -->
+            <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-blue-500/30 flex flex-col gap-2 shadow-xs hover:border-blue-500/60 transition-colors">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-mono uppercase tracking-wider text-blue-400 font-bold flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-blue-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  Step 2: Core Sprint
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">5 Core MCQs</span>
+              </div>
+              <h3 id="missionStep2Topic" class="text-xs sm:text-sm font-bold text-white truncate">Economy &amp; Banking</h3>
+              <p class="text-[11px] text-slate-400 leading-normal">
+                High-probability 2026 concepts: Monetary transmission &amp; balance of payments.
+              </p>
+            </div>
+
+            <!-- Step 3: Educated Guessing Test -->
+            <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-emerald-500/30 flex flex-col gap-2 shadow-xs hover:border-emerald-500/60 transition-colors">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  Step 3: EV Test
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Strict -0.66</span>
+              </div>
+              <h3 class="text-xs sm:text-sm font-bold text-white truncate">2 Educated Guessing Qs</h3>
+              <p class="text-[11px] text-slate-400 leading-normal">
+                Test your 50:50 instinct and eliminate examiner distractors under timer.
+              </p>
+            </div>
+
+          </div>
+
+          <!-- Mission Launch Actions -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-800/80 relative z-10">
+            <button type="button" id="startDailyMissionBtn" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black text-xs sm:text-sm shadow-xl hover:shadow-amber-500/25 transition-all cursor-pointer flex items-center justify-center gap-2">
+              <span>▶️ Launch Today's 15-Minute Mission (10 Qs)</span>
               <span>→</span>
             </button>
-          </div>
 
-          <!-- Filtered Questions List (Card Feed) -->
-          <div id="pyqSearchResultsContainer" class="flex flex-col gap-2.5 max-h-[550px] overflow-y-auto pr-1">
-            <!-- Dynamically populated question cards -->
+            <div class="flex items-center gap-2 shrink-0">
+              <button type="button" onclick="window.openMockGenerator()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>Adaptive Mock</span>
+              </button>
+              <button type="button" onclick="window.startPracticeSession('all')" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                <span>Browse All PYQs</span>
+              </button>
+            </div>
           </div>
 
         </div>
 
-        <!-- 2-Column Dashboard Grid: Main Hub (8 Cols) + Right Activity (4 Cols) -->
+        <!-- ====================================================
+             BALANCED 2-COLUMN WORKSPACE: LEFT 7 COLS (ENGINES) + RIGHT 5 COLS (FORENSICS)
+             ==================================================== -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-          <!-- Left 8 Cols: Previous Year Questions & Practice Hub -->
-          <div class="lg:col-span-8 flex flex-col gap-6">
+          <!-- Left 7 Cols: Primary Assessment & Search Engines -->
+          <div class="lg:col-span-7 flex flex-col gap-6">
             
-            <!-- Section Header -->
-            <div class="flex flex-col">
-              <h2 class="text-lg sm:text-xl font-extrabold text-white">Previous Year Questions</h2>
-              <p class="text-xs text-slate-400 mt-0.5">
-                Understand the mindset of the UPSC examiner by practicing authentic past papers.
-              </p>
-            </div>
-
-            <!-- Two Master Hub Cards (SuperKalam Style) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              
-              <!-- Master Card 1: Prelims GS Practice -->
-              <div class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all flex flex-col justify-between gap-4 cursor-pointer group shadow-lg" onclick="window.startPracticeSession('all')">
-                <div class="flex items-start gap-3">
-                  <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-2xl shrink-0 group-hover:scale-110 transition-transform">
-                    📄
+            <!-- 1. Precision Topic Search & 14-Year Matrix -->
+            <div id="topicSearchMatrixSection" class="light-card p-5 sm:p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col gap-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                   </div>
                   <div class="flex flex-col">
-                    <h3 class="text-base font-extrabold text-white group-hover:text-amber-400 transition-colors">
-                      Prelims GS Practice
+                    <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+                      Precision PYQ Search &amp; 14-Year Matrix
+                      <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-black uppercase font-mono">2011–2026</span>
                     </h3>
-                    <p class="text-xs text-slate-400 mt-0.5">
-                      1,280+ Questions from 2011–2026
-                    </p>
+                    <p class="text-xs text-slate-400">Search any theme, constitutional article, case, or keyword instantly.</p>
                   </div>
                 </div>
 
-                <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs font-bold text-amber-400">
-                  <span>Start Practice (Focus Mode)</span>
-                  <span class="group-hover:translate-x-1 transition-transform">→</span>
+                <span id="matrixMatchCountBadge" class="px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-400 text-xs font-mono font-bold self-start sm:self-auto border border-amber-500/30">
+                  103 Questions Found
+                </span>
+              </div>
+
+              <!-- Search Input -->
+              <div class="relative w-full">
+                <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+                <input id="globalTopicSearchInput" type="text" placeholder="Search any topic, act, or keyword (e.g. Monetary Policy, Preamble, Wetlands, Governor, Inflation, CRISPR)..." class="light-input w-full pl-10 pr-12 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-slate-100 text-xs sm:text-sm font-semibold placeholder-slate-400 shadow-inner focus:outline-none focus:border-amber-500">
+                <button id="clearTopicSearchBtn" type="button" class="hidden absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer text-xs" title="Clear Search">
+                  ✕
+                </button>
+              </div>
+
+              <!-- High-Yield Quick Chips -->
+              <div class="flex items-center gap-1.5 flex-wrap text-xs">
+                <span class="text-slate-400 text-[10px] uppercase font-mono tracking-wider font-bold">High Yield:</span>
+                <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-amber-500/10 text-xs font-medium transition-all cursor-pointer" data-kw="Preamble">Preamble</button>
+                <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-amber-500/10 text-xs font-medium transition-all cursor-pointer" data-kw="Monetary Policy">Monetary Policy</button>
+                <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-amber-500/10 text-xs font-medium transition-all cursor-pointer" data-kw="Wetland">Wetlands</button>
+                <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-amber-500/10 text-xs font-medium transition-all cursor-pointer" data-kw="1857">1857 Revolt</button>
+                <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-amber-500/10 text-xs font-medium transition-all cursor-pointer" data-kw="River">River Basins</button>
+                <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-amber-500/10 text-xs font-medium transition-all cursor-pointer" data-kw="CRISPR">CRISPR</button>
+                <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-amber-500/10 text-xs font-medium transition-all cursor-pointer" data-kw="Article 21">Article 21</button>
+                <button type="button" class="matrix-chip-btn px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-amber-500/10 text-xs font-medium transition-all cursor-pointer" data-kw="Inflation">Inflation</button>
+              </div>
+
+              <!-- 14-Year Matrix Filter Row -->
+              <div class="flex flex-col gap-1.5 pt-2 border-t border-slate-800">
+                <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">Filter By Year (2011–2026):</span>
+                <div id="matrixYearButtonGroup" class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+                  <button type="button" class="matrix-year-btn px-3 py-1 rounded-xl bg-amber-500 text-slate-950 font-black cursor-pointer transition-all shrink-0" data-year="all">All Years</button>
+                  <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all shrink-0" data-year="2026">2026</button>
+                  <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all shrink-0" data-year="2025">2025</button>
+                  <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all shrink-0" data-year="2024">2024</button>
+                  <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all shrink-0" data-year="2023">2023</button>
+                  <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all shrink-0" data-year="2022">2022</button>
+                  <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all shrink-0" data-year="2021">2021</button>
+                  <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all shrink-0" data-year="2020">2020</button>
+                  <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all shrink-0" data-year="2019">2019</button>
+                  <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all shrink-0" data-year="2018">2018</button>
+                  <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all shrink-0" data-year="2017">2017</button>
+                  <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all shrink-0" data-year="2016">2016</button>
+                  <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all shrink-0" data-year="2015">2015</button>
+                  <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all shrink-0" data-year="2014">2014</button>
+                  <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all shrink-0" data-year="2013">2013</button>
+                  <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all shrink-0" data-year="2012">2012</button>
+                  <button type="button" class="matrix-year-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-mono cursor-pointer transition-all shrink-0" data-year="2011">2011</button>
                 </div>
               </div>
 
-              <!-- Master Card 2: Mains Answer Writing -->
-              <a href="/" class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-emerald-500/50 transition-all flex flex-col justify-between gap-4 group shadow-lg">
-                <div class="flex items-start gap-3">
-                  <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-2xl shrink-0 group-hover:scale-110 transition-transform">
-                    ✍️
-                  </div>
-                  <div class="flex flex-col">
-                    <h3 class="text-base font-extrabold text-white group-hover:text-emerald-400 transition-colors">
-                      Mains Model Answers
-                    </h3>
-                    <p class="text-xs text-slate-400 mt-0.5">
-                      All GS1 to GS4 Model Answers (2013–2026)
-                    </p>
-                  </div>
+              <!-- Subject Filter Pills Row -->
+              <div class="flex flex-col gap-1.5 pt-2 border-t border-slate-800">
+                <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">Filter By Subject:</span>
+                <div id="matrixSubjectButtonGroup" class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+                  <button type="button" class="matrix-subj-btn px-3 py-1 rounded-xl bg-amber-500 text-slate-950 font-black cursor-pointer transition-all shrink-0" data-subject="all">All Subjects</button>
+                  <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all shrink-0" data-subject="Polity">Polity &amp; Governance</button>
+                  <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all shrink-0" data-subject="Economy">Economy</button>
+                  <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all shrink-0" data-subject="Environment">Environment &amp; Ecology</button>
+                  <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all shrink-0" data-subject="History">History &amp; Culture</button>
+                  <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all shrink-0" data-subject="Geography">Geography</button>
+                  <button type="button" class="matrix-subj-btn px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-semibold cursor-pointer transition-all shrink-0" data-subject="Science">Sci-Tech</button>
+                </div>
+              </div>
+
+              <!-- Filtered Results Action Header -->
+              <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-white">Matching Feed</span>
+                  <span id="matrixFeedStatusText" class="text-[11px] text-slate-400">Showing all questions</span>
                 </div>
 
-                <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs font-bold text-emerald-400">
-                  <span>Open Mains Studio</span>
-                  <span class="group-hover:translate-x-1 transition-transform">→</span>
-                </div>
-              </a>
-
-            </div>
-
-            <!-- Master Card 3: Adaptive Mock Test Generator (AI-Powered) -->
-            <div class="light-card p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/40 border-2 border-amber-500/40 hover:border-amber-500 transition-all shadow-xl flex flex-col gap-4 relative overflow-hidden">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-slate-950 flex items-center justify-center text-2xl font-black shadow-lg shrink-0">
-                    ⚡
-                  </div>
-                  <div class="flex flex-col">
-                    <div class="flex items-center gap-2">
-                      <h3 class="text-lg font-black text-white">Adaptive UPSC Mock Test Generator</h3>
-                      <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-black uppercase">Phase 4 Engine</span>
-                    </div>
-                    <p class="text-xs text-slate-300 mt-0.5">
-                      Diagnostic weakness injection · Strict -0.66 penalty · Timed UPSC simulation &amp; forensic scorecard.
-                    </p>
-                  </div>
-                </div>
-
-                <button type="button" id="openMockGenBtn" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer shrink-0 flex items-center gap-2">
-                  <span>⚙️ Configure Test</span>
+                <button type="button" id="solveAllFilteredBtn" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-xs transition-all cursor-pointer flex items-center gap-1.5">
+                  <span>🎯 Solve in Focus Mode</span>
                   <span>→</span>
                 </button>
               </div>
 
-              <!-- Quick Launch Pills -->
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-800">
-                <button type="button" onclick="window.launchQuickMock('full')" class="light-inner-box p-3 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-amber-500/60 transition-all text-left flex flex-col gap-1 cursor-pointer group">
+              <!-- Filtered Questions List (Card Feed) -->
+              <div id="pyqSearchResultsContainer" class="flex flex-col gap-2 max-h-96 overflow-y-auto pr-1">
+                <!-- Dynamically populated question cards -->
+              </div>
+            </div>
+
+            <!-- 2. Subject-Wise Question Matrix (6 Core Disciplines) -->
+            <div class="flex flex-col gap-3">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1.5">
+                  <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                  <span>PRACTICE BY SUBJECT (FOCUS 1-AT-A-TIME)</span>
+                </h3>
+                <span class="text-[11px] text-amber-500 font-bold">Zero Infinite Scrolling ✓</span>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                
+                <!-- Polity Card -->
+                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all text-left flex flex-col justify-between gap-2 cursor-pointer group shadow-sm hover:shadow-md" data-subject="Polity & Governance">
+                  <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11m4-11v11m4-11v11m4-11v11m4-11v11"/></svg>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-xs sm:text-sm font-bold text-white group-hover:text-amber-400 transition-colors">Polity &amp; Governance</span>
+                    <span class="text-[11px] font-mono text-slate-400">240+ Questions</span>
+                  </div>
+                </button>
+
+                <!-- Economy Card -->
+                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500/50 transition-all text-left flex flex-col justify-between gap-2 cursor-pointer group shadow-sm hover:shadow-md" data-subject="Economy">
+                  <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-xs sm:text-sm font-bold text-white group-hover:text-blue-400 transition-colors">Economy &amp; Banking</span>
+                    <span class="text-[11px] font-mono text-slate-400">210+ Questions</span>
+                  </div>
+                </button>
+
+                <!-- Environment Card -->
+                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-emerald-500/50 transition-all text-left flex flex-col justify-between gap-2 cursor-pointer group shadow-sm hover:shadow-md" data-subject="Environment & Ecology">
+                  <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 01-9-9c0-4.97 4.03-9 9-9 4.97 0 9 4.03 9 9 0 2.12-.74 4.07-1.97 5.61L12 21z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v9l4 4"/></svg>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-xs sm:text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">Environment &amp; Ecology</span>
+                    <span class="text-[11px] font-mono text-slate-400">225+ Questions</span>
+                  </div>
+                </button>
+
+                <!-- History Card -->
+                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-orange-500/50 transition-all text-left flex flex-col justify-between gap-2 cursor-pointer group shadow-sm hover:shadow-md" data-subject="History & Culture">
+                  <div class="w-9 h-9 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-xs sm:text-sm font-bold text-white group-hover:text-orange-400 transition-colors">History &amp; Culture</span>
+                    <span class="text-[11px] font-mono text-slate-400">260+ Questions</span>
+                  </div>
+                </button>
+
+                <!-- Geography Card -->
+                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-teal-500/50 transition-all text-left flex flex-col justify-between gap-2 cursor-pointer group shadow-sm hover:shadow-md" data-subject="Geography">
+                  <div class="w-9 h-9 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-xs sm:text-sm font-bold text-white group-hover:text-teal-400 transition-colors">Geography &amp; Mapping</span>
+                    <span class="text-[11px] font-mono text-slate-400">180+ Questions</span>
+                  </div>
+                </button>
+
+                <!-- Sci-Tech Card -->
+                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-purple-500/50 transition-all text-left flex flex-col justify-between gap-2 cursor-pointer group shadow-sm hover:shadow-md" data-subject="Science & Technology">
+                  <div class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-xs sm:text-sm font-bold text-white group-hover:text-purple-400 transition-colors">Science &amp; Tech</span>
+                    <span class="text-[11px] font-mono text-slate-400">165+ Questions</span>
+                  </div>
+                </button>
+
+              </div>
+            </div>
+
+            <!-- 3. Adaptive UPSC Mock Test Hub -->
+            <div class="light-card p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col gap-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  </div>
+                  <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                      <h3 class="text-base font-extrabold text-white">Adaptive UPSC Mock Test Generator</h3>
+                      <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-black uppercase font-mono">Phase 4 Engine</span>
+                    </div>
+                    <p class="text-xs text-slate-400">Diagnostic weakness injection · Strict -0.66 penalty · Timed UPSC simulation &amp; forensic scorecard.</p>
+                  </div>
+                </div>
+
+                <button type="button" id="openMockGenBtn" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-xs transition-all cursor-pointer shrink-0 flex items-center gap-1.5 self-start sm:self-auto">
+                  <span>⚙️ Configure</span>
+                  <span>→</span>
+                </button>
+              </div>
+
+              <!-- 3 Quick Launch Cards -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                <button type="button" onclick="window.launchQuickMock('full')" class="light-inner-box p-3 rounded-2xl bg-slate-950 border border-slate-800 hover:border-amber-500/60 transition-all text-left flex flex-col gap-1 cursor-pointer group">
                   <div class="flex items-center justify-between">
                     <span class="text-xs font-black text-amber-400">🏆 Full Simulation</span>
                     <span class="text-[10px] font-mono text-slate-400">120m</span>
                   </div>
-                  <span class="text-[11px] text-slate-300">100 Qs · 200 Marks · Standard UPSC mix</span>
+                  <span class="text-[11px] text-slate-300">100 Qs · 200 Marks · Standard mix</span>
                 </button>
 
-                <button type="button" onclick="window.launchQuickMock('sectional')" class="light-inner-box p-3 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-amber-500/60 transition-all text-left flex flex-col gap-1 cursor-pointer group">
+                <button type="button" onclick="window.launchQuickMock('sectional')" class="light-inner-box p-3 rounded-2xl bg-slate-950 border border-slate-800 hover:border-emerald-500/60 transition-all text-left flex flex-col gap-1 cursor-pointer group">
                   <div class="flex items-center justify-between">
                     <span class="text-xs font-black text-emerald-400">⚡ Sectional Sprint</span>
                     <span class="text-[10px] font-mono text-slate-400">30m</span>
@@ -702,7 +843,7 @@
                   <span class="text-[11px] text-slate-300">25 Qs · 50 Marks · High-yield subjects</span>
                 </button>
 
-                <button type="button" onclick="window.launchQuickMock('weakness')" class="light-inner-box p-3 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-amber-500/60 transition-all text-left flex flex-col gap-1 cursor-pointer group">
+                <button type="button" onclick="window.launchQuickMock('weakness')" class="light-inner-box p-3 rounded-2xl bg-slate-950 border border-slate-800 hover:border-rose-500/60 transition-all text-left flex flex-col gap-1 cursor-pointer group">
                   <div class="flex items-center justify-between">
                     <span class="text-xs font-black text-rose-400">🎯 Weakness Drill</span>
                     <span class="text-[10px] font-mono text-slate-400">20m</span>
@@ -712,73 +853,19 @@
               </div>
             </div>
 
-            <!-- Subject-Wise Question Matrix (6 Core Disciplines) -->
-            <div class="flex flex-col gap-3">
-              <div class="flex items-center justify-between">
-                <h3 class="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold">
-                  PRACTICE BY SUBJECT (FOCUS 1-AT-A-TIME)
-                </h3>
-                <span class="text-xs text-amber-500 font-bold">Zero Infinite Scrolling ✓</span>
-              </div>
-
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                
-                <!-- Polity Card -->
-                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all text-left flex flex-col gap-1 cursor-pointer group" data-subject="Polity & Governance">
-                  <span class="text-2xl">🏛️</span>
-                  <span class="text-xs sm:text-sm font-bold text-white group-hover:text-amber-400">Polity &amp; Governance</span>
-                  <span class="text-[11px] font-mono text-slate-400">240+ Questions</span>
-                </button>
-
-                <!-- Economy Card -->
-                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all text-left flex flex-col gap-1 cursor-pointer group" data-subject="Economy">
-                  <span class="text-2xl">📈</span>
-                  <span class="text-xs sm:text-sm font-bold text-white group-hover:text-amber-400">Economy &amp; Banking</span>
-                  <span class="text-[11px] font-mono text-slate-400">210+ Questions</span>
-                </button>
-
-                <!-- Environment Card -->
-                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all text-left flex flex-col gap-1 cursor-pointer group" data-subject="Environment & Ecology">
-                  <span class="text-2xl">🌿</span>
-                  <span class="text-xs sm:text-sm font-bold text-white group-hover:text-amber-400">Environment &amp; Ecology</span>
-                  <span class="text-[11px] font-mono text-slate-400">225+ Questions</span>
-                </button>
-
-                <!-- History Card -->
-                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all text-left flex flex-col gap-1 cursor-pointer group" data-subject="History & Culture">
-                  <span class="text-2xl">📜</span>
-                  <span class="text-xs sm:text-sm font-bold text-white group-hover:text-amber-400">History &amp; Art-Culture</span>
-                  <span class="text-[11px] font-mono text-slate-400">260+ Questions</span>
-                </button>
-
-                <!-- Geography Card -->
-                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all text-left flex flex-col gap-1 cursor-pointer group" data-subject="Geography">
-                  <span class="text-2xl">🌍</span>
-                  <span class="text-xs sm:text-sm font-bold text-white group-hover:text-amber-400">Geography &amp; Mapping</span>
-                  <span class="text-[11px] font-mono text-slate-400">180+ Questions</span>
-                </button>
-
-                <!-- Sci-Tech Card -->
-                <button type="button" class="subj-grid-card light-card p-4 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all text-left flex flex-col gap-1 cursor-pointer group" data-subject="Science & Technology">
-                  <span class="text-2xl">🔬</span>
-                  <span class="text-xs sm:text-sm font-bold text-white group-hover:text-amber-400">Science &amp; Tech</span>
-                  <span class="text-[11px] font-mono text-slate-400">165+ Questions</span>
-                </button>
-
-              </div>
-            </div>
-
-            <!-- Integrated Cutoff Sweet Spot & EV Calculator Card -->
-            <div id="dashboardCutoffEVCard" class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 flex flex-col gap-3 cursor-pointer transition-all shadow-md group">
+            <!-- 4. Cutoff Sweet Spot & EV Calculator Card -->
+            <div id="dashboardCutoffEVCard" class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 flex flex-col gap-3 cursor-pointer transition-all shadow-md group">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <span class="text-lg">📊</span>
+                  <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                  </div>
                   <h3 class="text-sm font-extrabold text-white group-hover:text-amber-400 transition-colors">Cutoff Sweet Spot &amp; EV Optimizer</h3>
                 </div>
                 <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold">Safe Attempts</span>
               </div>
               <p class="text-xs text-slate-400 leading-relaxed">
-                Stop losing 15+ marks to wild guesses. Calibrate your educated guessing accuracy to find your mathematical attempt sweet spot.
+                Stop losing 15+ marks to wild guesses. Calibrate educated guessing accuracy to find your mathematical attempt sweet spot.
               </p>
               <div class="grid grid-cols-3 gap-2 pt-1 text-center font-mono">
                 <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
@@ -805,36 +892,75 @@
 
           </div>
 
-          <!-- Right 4 Cols: Today's Activity & Daily Streak (SuperKalam Style) -->
-          <div class="lg:col-span-4 flex flex-col gap-5">
+          <!-- Right 5 Cols: Forensics, Consistency & Real-Time Tracking -->
+          <div class="lg:col-span-5 flex flex-col gap-6">
             
-            
-            <!-- Mock Tests Scorecard & History Widget -->
-            <div class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col gap-3">
-              <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <!-- 1. Today's Activity & Live All-India Cohort Rank -->
+            <div id="todayActivityCard" class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col gap-3.5 shadow-lg">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
                 <div class="flex items-center gap-2">
-                  <span class="text-base">📈</span>
-                  <h3 class="text-xs font-extrabold text-white uppercase tracking-wider">Mock Tests History</h3>
+                  <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                  <h3 class="text-xs font-mono uppercase tracking-wider text-slate-300 font-bold">
+                    TODAY'S ACTIVITY
+                  </h3>
                 </div>
-                <span id="dashMockCountBadge" class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-black font-mono">0 Tests</span>
+                <span id="actTodayDate" class="text-[10px] font-mono text-slate-400 font-semibold">Today</span>
               </div>
 
-              <div id="dashMockHistoryContainer" class="flex flex-col gap-2">
-                <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center text-xs text-slate-400">
-                  No mock tests completed yet. Take a 25-Q Sectional Sprint to benchmark your net score!
+              <!-- 4-Stat Metric Grid -->
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                
+                <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800/80 flex flex-col hover:border-amber-500/40 transition-colors">
+                  <div class="flex items-center gap-1.5 text-amber-500 font-bold">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span id="actMcqCount" class="text-lg font-black text-white font-mono">0</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 mt-0.5">MCQ Practiced</span>
                 </div>
+
+                <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800/80 flex flex-col hover:border-blue-500/40 transition-colors">
+                  <div class="flex items-center gap-1.5 text-blue-400 font-bold">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span id="actAccuracy" class="text-lg font-black text-white font-mono">-</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 mt-0.5">Accuracy</span>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800/80 flex flex-col hover:border-emerald-500/40 transition-colors">
+                  <div class="flex items-center gap-1.5 text-emerald-400 font-bold">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    <span id="actMainsCount" class="text-lg font-black text-white font-mono">0</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 mt-0.5">Mains Evaluated</span>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800/80 flex flex-col hover:border-amber-500/40 transition-colors">
+                  <div class="flex items-center gap-1.5 text-amber-400 font-bold">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
+                    <span id="actRank" class="text-lg font-black text-white font-mono">Top 25%</span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 mt-0.5" id="actPScoreLabel">P-Score: 0.0</span>
+                </div>
+
               </div>
 
-              <button type="button" onclick="window.openMockGenerator()" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-xs transition-colors cursor-pointer text-center">
-                + Launch New Test
-              </button>
+              <!-- Leaderboard Trigger -->
+              <div id="openTodayLeaderboardBtn" class="flex items-center justify-between pt-2.5 border-t border-slate-800/80 text-xs cursor-pointer hover:bg-slate-800/40 p-2 rounded-xl transition-all">
+                <span class="flex items-center gap-1.5 text-amber-400 font-bold">
+                  <span>🏆</span> Today's Leaderboard
+                </span>
+                <span class="text-slate-400 text-[11px] font-semibold hover:text-white flex items-center gap-1">
+                  <span>View All-India Cohort</span>
+                  <span>&gt;</span>
+                </span>
+              </div>
             </div>
 
-<!-- Sub-Topic "Mark-Bleed" Heatmap Card -->
-            <div id="subTopicHeatmapCard" class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col gap-3">
+            <!-- 2. Sub-Topic "Mark-Bleed" Heatmap -->
+            <div id="subTopicHeatmapCard" class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col gap-3">
               <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                 <div class="flex items-center gap-2">
-                  <span class="text-base">🔥</span>
+                  <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343a7.975 7.975 0 010 11.314z"/></svg>
                   <h3 class="text-xs font-extrabold text-white uppercase tracking-wider">Sub-Topic "Mark-Bleed" Heatmap</h3>
                 </div>
                 <span id="heatmapThemesCountBadge" class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 text-[10px] font-black font-mono">0 Themes Logged</span>
@@ -853,82 +979,24 @@
               </div>
 
               <!-- Priority Fix Advice Box -->
-              <div id="heatmapAdviceBox" class="hidden p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs flex flex-col gap-2">
+              <div id="heatmapAdviceBox" class="hidden p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs flex flex-col gap-2">
                 <p id="heatmapAdviceText" class="text-rose-800 dark:text-rose-300 text-[11px] leading-relaxed"></p>
-                <button type="button" id="heatmapDrillGapBtn" class="px-3 py-1.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs shadow-xs transition-all cursor-pointer self-start flex items-center gap-1">
+                <button type="button" id="heatmapDrillGapBtn" class="px-3 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs shadow-xs transition-all cursor-pointer self-start flex items-center gap-1">
                   <span>🎯 Drill This Gap in Focus Mode</span>
                   <span>→</span>
                 </button>
               </div>
 
               <!-- Heatmap Themes List -->
-              <div id="subTopicHeatmapList" class="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
-                <div class="p-3 text-center text-xs text-slate-500 bg-slate-950/60 rounded-xl border border-slate-800/60">
+              <div id="subTopicHeatmapList" class="flex flex-col gap-2 max-h-60 overflow-y-auto pr-1">
+                <div class="p-4 text-center text-xs text-slate-500 bg-slate-950/60 rounded-2xl border border-slate-800/60">
                   Solve questions to generate your personalized micro-theme accuracy heatmap.
                 </div>
               </div>
             </div>
 
-            <!-- Today's Activity Card -->
-            <div class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col gap-3.5 shadow-lg">
-              <div class="flex items-center justify-between">
-                <h3 class="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold">
-                  TODAY'S ACTIVITY
-                </h3>
-                <span id="actTodayDate" class="text-[10px] font-mono text-slate-400 font-semibold">Today</span>
-              </div>
-
-              <!-- 4-Stat Metric Grid -->
-              <div class="grid grid-cols-2 gap-2 text-xs">
-                
-                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col hover:border-amber-500/40 transition-colors">
-                  <div class="flex items-center gap-1.5 text-amber-500 font-bold">
-                    <span>🟧</span>
-                    <span id="actMcqCount" class="text-lg font-black text-white font-mono">0</span>
-                  </div>
-                  <span class="text-[10px] text-slate-400 mt-0.5">MCQ Practiced</span>
-                </div>
-
-                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col hover:border-blue-500/40 transition-colors">
-                  <div class="flex items-center gap-1.5 text-blue-400 font-bold">
-                    <span>🏋️</span>
-                    <span id="actAccuracy" class="text-lg font-black text-white font-mono">-</span>
-                  </div>
-                  <span class="text-[10px] text-slate-400 mt-0.5">Accuracy</span>
-                </div>
-
-                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col hover:border-emerald-500/40 transition-colors">
-                  <div class="flex items-center gap-1.5 text-emerald-400 font-bold">
-                    <span>📗</span>
-                    <span id="actMainsCount" class="text-lg font-black text-white font-mono">0</span>
-                  </div>
-                  <span class="text-[10px] text-slate-400 mt-0.5">Mains Answers</span>
-                </div>
-
-                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col hover:border-yellow-500/40 transition-colors">
-                  <div class="flex items-center gap-1.5 text-yellow-400 font-bold">
-                    <span>🚩</span>
-                    <span id="actRank" class="text-lg font-black text-white font-mono">Top 15%</span>
-                  </div>
-                  <span class="text-[10px] text-slate-400 mt-0.5" id="actPScoreLabel">P-Score: 78</span>
-                </div>
-
-              </div>
-
-              <!-- Leaderboard link -->
-              <div id="openTodayLeaderboardBtn" class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs cursor-pointer hover:bg-slate-800/40 p-1.5 rounded-xl transition-all">
-                <span class="flex items-center gap-1.5 text-amber-400 font-bold">
-                  <span>🏆</span> Today's Leaderboard
-                </span>
-                <span class="text-slate-400 text-[11px] font-semibold hover:text-white flex items-center gap-1">
-                  <span>View All-India Cohort</span>
-                  <span>&gt;</span>
-                </span>
-              </div>
-            </div>
-
-            <!-- Daily Streak Card (Active Live Tracker) -->
-            <div id="dailyStreakCard" class="light-card p-5 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col gap-3 shadow-lg cursor-pointer hover:border-amber-500/50 transition-all">
+            <!-- 3. Daily Streak & Prelims 2026 Engine -->
+            <div id="dailyStreakCard" class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col gap-3 shadow-lg cursor-pointer hover:border-amber-500/50 transition-all">
               <div class="flex items-center justify-between">
                 <h3 class="text-sm font-extrabold text-white flex items-center gap-1.5">
                   <span class="text-amber-500">🔥</span>
@@ -947,11 +1015,12 @@
               </div>
             </div>
 
-            <!-- Cognitive Target Sprint Card -->
-            <div id="targetSprintCard" class="light-card p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-slate-900 to-slate-950 border border-emerald-500/30 flex flex-col gap-3 shadow-lg cursor-pointer hover:border-emerald-500/60 transition-all">
+            <!-- 4. Cognitive Target Sprint Card -->
+            <div id="targetSprintCard" class="light-card p-5 rounded-3xl bg-gradient-to-br from-emerald-500/10 via-slate-900 to-slate-950 border border-emerald-500/30 flex flex-col gap-3 shadow-lg cursor-pointer hover:border-emerald-500/60 transition-all">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                  <span>🎯</span> Active Target Sprint
+                  <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  <span>Active Target Sprint</span>
                 </span>
                 <span id="targetCardBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">Active</span>
               </div>
