@@ -2403,99 +2403,350 @@
     if (modal) modal.classList.add('hidden');
   }
 
-  // Active Target Sprint Engine
-  const TARGET_SPRINT_KEY = 'cm_target_sprint_v1';
+  // ==========================================================
+  // MULTI-TARGET SPRINT, SUB-TOPIC & PENDING TRACKER ENGINE (v2)
+  // ==========================================================
+  const TARGET_SPRINTS_KEY = 'cm_multi_target_sprints_v2';
 
-  function getTargetSprintState() {
+  const SUBJECT_TOPIC_CLUSTERS = {
+    'Polity & Governance': [
+      'Fundamental Rights, DPSP & Basic Structure',
+      'Parliament, State Legislature & Executive',
+      'Judiciary & Constitutional Bodies',
+      'Preamble, Constitutional History & Federalism',
+      'Elections, Representation & Governance'
+    ],
+    'Economy': [
+      'Monetary Policy, Inflation & RBI Framework',
+      'Banking, Financial Markets & NBFCs',
+      'Balance of Payments, Forex & External Trade',
+      'Fiscal Policy, Budget, Taxation & Deficits',
+      'Agriculture, Industry, Infrastructure & Schemes'
+    ],
+    'History & Culture': [
+      'Modern Freedom Struggle (1857-1947) & British Rule',
+      'Ancient India (Vedic, Mauryan, Gupta & Sangam)',
+      'Buddhism, Jainism & Indian Philosophies',
+      'Art, Architecture, Paintings & Classical Music',
+      'Medieval India (Mughals, Sultanate & Bhakti)'
+    ],
+    'Environment & Ecology': [
+      'Protected Areas (National Parks, Sanctuaries, Wetlands)',
+      'Biodiversity, Endangered Flora/Fauna & IUCN Status',
+      'Climate Treaties, COP Summits, REDD+ & UNFCCC',
+      'Pollution, Waste Rules & Environmental Acts'
+    ],
+    'Geography': [
+      'River Basins, Drainage Systems & Water Resources',
+      'Geomorphology, Landforms & Peninsular Geology',
+      'Indian Climatology, Monsoons & Island Geography',
+      'World Mapping, Strategic Chokepoints & Straits'
+    ],
+    'Science & Technology': [
+      'Biotechnology, Genetics, CRISPR & Health',
+      'Space Technology, ISRO Missions & Satellites',
+      'Defense Systems, Missiles & Stealth Tech',
+      'Emerging Tech: AI, Semiconductors & Quantum'
+    ]
+  };
+
+  function getTargetSprintsData() {
     try {
-      const raw = localStorage.getItem(TARGET_SPRINT_KEY);
+      const raw = localStorage.getItem(TARGET_SPRINTS_KEY);
       if (raw) return JSON.parse(raw);
     } catch (e) {}
-    return {
-      subject: 'Polity & Governance',
+
+    // Migration from old single sprint key
+    let initialSubject = 'History & Culture';
+    let initialGoal = 30;
+    try {
+      const oldRaw = localStorage.getItem('cm_target_sprint_v1');
+      if (oldRaw) {
+        const oldObj = JSON.parse(oldRaw);
+        if (oldObj.subject) initialSubject = oldObj.subject;
+        if (oldObj.goal) initialGoal = oldObj.goal;
+      }
+    } catch (e) {}
+
+    const defaultData = {
+      activeId: 'target_1',
+      targets: [
+        {
+          id: 'target_1',
+          subject: initialSubject,
+          topic: 'all',
+          topicLabel: 'All Topics',
+          goal: initialGoal,
+          daysLeft: 4,
+          daysTotal: 7
+        }
+      ]
+    };
+    saveTargetSprintsData(defaultData);
+    return defaultData;
+  }
+
+  function saveTargetSprintsData(data) {
+    try {
+      localStorage.setItem(TARGET_SPRINTS_KEY, JSON.stringify(data));
+    } catch (e) {}
+  }
+
+  function getActiveSprint() {
+    const data = getTargetSprintsData();
+    let found = (data.targets || []).find(function (t) { return t.id === data.activeId; });
+    if (!found && data.targets && data.targets.length > 0) {
+      found = data.targets[0];
+      data.activeId = found.id;
+      saveTargetSprintsData(data);
+    }
+    return found || {
+      id: 'target_1',
+      subject: 'History & Culture',
+      topic: 'all',
+      topicLabel: 'All Topics',
       goal: 30,
-      daysLeft: 4
+      daysLeft: 4,
+      daysTotal: 7
     };
   }
 
-  function saveTargetSprintState(sprint) {
-    try {
-      localStorage.setItem(TARGET_SPRINT_KEY, JSON.stringify(sprint));
-    } catch (e) {}
+  function getSprintQuestions(sprint) {
+    const subClean = (sprint.subject || '').toLowerCase().split('&')[0].trim();
+    return (STATE.pyqs || []).filter(function (q) {
+      if (!q.subject || q.subject.toLowerCase().indexOf(subClean) === -1) return false;
+      if (!sprint.topic || sprint.topic === 'all') return true;
+
+      const topicLower = sprint.topic.toLowerCase();
+      const qSubTopic = (q.sub_topic || '').toLowerCase();
+      const qText = (q.question_text || '').toLowerCase();
+
+      const keywords = topicLower.split(/[,&\s/]+/).filter(function (w) { return w.length > 3; });
+      return keywords.some(function (kw) {
+        return qSubTopic.indexOf(kw) !== -1 || qText.indexOf(kw) !== -1;
+      });
+    });
   }
 
-  function updateTargetSprint() {
-    const sprint = getTargetSprintState();
-    const subjEl = document.getElementById('targetCardSubject');
-    const barEl = document.getElementById('targetCardProgressBar');
-    const ratioEl = document.getElementById('targetCardRatio');
-    const daysEl = document.getElementById('targetCardDays');
-    const paceEl = document.getElementById('targetSprintPaceText');
-    const accEl = document.getElementById('targetSprintAccuracyBadge');
-    if (!subjEl) return;
+  function calculateSprintStats(sprint) {
+    const pool = getSprintQuestions(sprint);
+    let solved = [];
+    let correct = [];
+    let unattempted = [];
 
-    let solvedInSubj = 0;
-    let correctInSubj = 0;
-    Object.keys(STATE.answers).forEach(function (qId) {
-      const q = STATE.pyqs.find(function (item) { return item.id === qId; });
-      if (q && q.subject && q.subject.toLowerCase().indexOf(sprint.subject.toLowerCase().split('&')[0].trim()) !== -1) {
-        solvedInSubj++;
-        if (STATE.answers[qId] === q.correct) correctInSubj++;
+    pool.forEach(function (q) {
+      if (STATE.answers[q.id]) {
+        solved.push(q);
+        if (STATE.answers[q.id] === q.correct) correct.push(q);
+      } else {
+        unattempted.push(q);
       }
     });
 
     const goal = sprint.goal || 30;
-    const remaining = Math.max(0, goal - solvedInSubj);
-    const pct = Math.min(100, Math.round((solvedInSubj / goal) * 100));
+    const completedCount = solved.length;
+    const pendingCount = Math.max(0, goal - completedCount);
     const daysLeft = sprint.daysLeft || 4;
-    const dailyPace = Math.ceil(remaining / Math.max(1, daysLeft));
-    const accPct = solvedInSubj > 0 ? Math.round((correctInSubj / solvedInSubj) * 100) : 0;
+    const pace = Math.ceil(pendingCount / Math.max(1, daysLeft));
+    const accuracy = completedCount > 0 ? Math.round((correct.length / completedCount) * 100) : 0;
+    const pct = Math.min(100, Math.round((completedCount / goal) * 100));
 
-    subjEl.textContent = sprint.subject;
-    if (barEl) barEl.style.width = pct + '%';
-    if (ratioEl) ratioEl.textContent = solvedInSubj + ' / ' + goal + ' Solved';
-    if (daysEl) daysEl.textContent = daysLeft + ' Days Left';
+    return {
+      pool: pool,
+      solved: solved,
+      correct: correct,
+      unattempted: unattempted,
+      goal: goal,
+      completedCount: completedCount,
+      pendingCount: pendingCount,
+      unattemptedInPool: unattempted.length,
+      daysLeft: daysLeft,
+      pace: pace,
+      accuracy: accuracy,
+      pct: pct
+    };
+  }
+
+  function updateTargetSprint() {
+    const data = getTargetSprintsData();
+    const sprint = getActiveSprint();
+    const stats = calculateSprintStats(sprint);
+
+    // Render Dashboard Tabs
+    const tabsContainer = document.getElementById('targetSprintTabs');
+    if (tabsContainer) {
+      const tabsHtml = (data.targets || []).map(function (t, idx) {
+        const tStats = calculateSprintStats(t);
+        const isActive = t.id === sprint.id;
+        const activeCls = isActive
+          ? 'bg-emerald-500 text-slate-950 font-black shadow-xs'
+          : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/80';
+        const shortSubj = t.subject.split('&')[0].trim();
+        return (
+          '<button type="button" class="sprint-tab-btn px-2.5 py-1 rounded-lg text-[11px] whitespace-nowrap transition cursor-pointer flex items-center gap-1 ' + activeCls + '" data-tid="' + t.id + '">' +
+            '<span>🎯 ' + shortSubj + '</span>' +
+            '<span class="text-[9px] font-mono opacity-80">(' + tStats.completedCount + '/' + t.goal + ')</span>' +
+          '</button>'
+        );
+      }).join('');
+
+      const addBtnHtml = (data.targets || []).length < 3
+        ? '<button type="button" id="addNewTargetTabBtn" class="px-2 py-1 rounded-lg text-[11px] font-bold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 whitespace-nowrap transition cursor-pointer flex items-center gap-1">+ Add Target</button>'
+        : '';
+
+      tabsContainer.innerHTML = tabsHtml + addBtnHtml;
+
+      tabsContainer.querySelectorAll('.sprint-tab-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          const tid = e.currentTarget.getAttribute('data-tid');
+          data.activeId = tid;
+          saveTargetSprintsData(data);
+          updateTargetSprint();
+        });
+      });
+
+      document.getElementById('addNewTargetTabBtn')?.addEventListener('click', function (e) {
+        window.openTargetSprintModal(e, true);
+      });
+    }
+
+    // Dashboard Widget Card Fields
+    const subjEl = document.getElementById('targetCardSubject');
+    const topicTextEl = document.getElementById('targetCardTopicText');
+    const barEl = document.getElementById('targetCardProgressBar');
+    const ratioEl = document.getElementById('targetCardRatio');
+    const pendingEl = document.getElementById('targetCardPending');
+    const daysEl = document.getElementById('targetCardDays');
+    const paceEl = document.getElementById('targetSprintPaceText');
+    const accEl = document.getElementById('targetSprintAccuracyBadge');
+    const btnPendingEl = document.getElementById('btnPendingCount');
+
+    if (subjEl) subjEl.textContent = sprint.subject;
+    if (topicTextEl) topicTextEl.textContent = sprint.topicLabel || 'All Topics';
+    if (barEl) barEl.style.width = stats.pct + '%';
+    if (ratioEl) ratioEl.textContent = stats.completedCount + ' / ' + stats.goal;
+    if (pendingEl) pendingEl.textContent = stats.pendingCount + ' Qs';
+    if (daysEl) daysEl.textContent = stats.daysLeft + ' Days';
+    if (btnPendingEl) btnPendingEl.textContent = stats.pendingCount;
+
     if (paceEl) {
-      paceEl.textContent = remaining > 0 ? ('Need ' + dailyPace + ' Qs/day to hit goal') : '🎉 Weekly goal achieved! Excellent!';
+      if (stats.completedCount >= stats.goal) {
+        paceEl.textContent = '🎉 Goal Completed! Reset or add next sprint!';
+      } else {
+        paceEl.textContent = 'Need ' + stats.pace + ' Qs/day to hit goal';
+      }
     }
     if (accEl) {
-      accEl.textContent = (solvedInSubj > 0 ? accPct : '--') + '% Acc';
+      accEl.textContent = (stats.completedCount > 0 ? stats.accuracy : '--') + '% Acc';
     }
 
     // Modal elements if open
     const mSubj = document.getElementById('modalSprintSubject');
+    const mTopic = document.getElementById('modalSprintTopic');
     const mBar = document.getElementById('modalSprintProgressBar');
     const mRatio = document.getElementById('modalSprintRatio');
     const mRem = document.getElementById('modalSprintRemaining');
     const mPace = document.getElementById('modalSprintPace');
     const mDays = document.getElementById('modalSprintDays');
+    const mAcc = document.getElementById('modalSprintAcc');
+    const mPendingBtnText = document.getElementById('modalPendingCountText');
 
     if (mSubj) mSubj.textContent = sprint.subject;
-    if (mBar) mBar.style.width = pct + '%';
-    if (mRatio) mRatio.textContent = solvedInSubj + ' / ' + goal;
-    if (mRem) mRem.textContent = remaining + ' Qs';
-    if (mPace) mPace.textContent = dailyPace + ' Qs / Day';
-    if (mDays) mDays.textContent = daysLeft + ' Days Left';
+    if (mTopic) mTopic.textContent = '📚 ' + (sprint.topicLabel || 'All Topics');
+    if (mBar) mBar.style.width = stats.pct + '%';
+    if (mRatio) mRatio.textContent = stats.completedCount + ' / ' + stats.goal;
+    if (mRem) mRem.textContent = stats.pendingCount + ' Qs';
+    if (mPace) mPace.textContent = stats.pace + ' Qs / Day';
+    if (mDays) mDays.textContent = stats.daysLeft + ' Days Left';
+    if (mAcc) mAcc.textContent = 'Accuracy: ' + (stats.completedCount > 0 ? stats.accuracy : 0) + '%';
+    if (mPendingBtnText) mPendingBtnText.textContent = stats.pendingCount;
   }
 
-  window.openTargetSprintModal = function (e) {
+  window.openTargetSprintModal = function (e, createNew) {
     if (e && e.stopPropagation) e.stopPropagation();
     const modal = document.getElementById('targetSprintModal');
     if (!modal) return;
     modal.classList.remove('hidden');
 
-    const sprint = getTargetSprintState();
+    const data = getTargetSprintsData();
+
+    if (createNew) {
+      const newId = 'target_' + Date.now();
+      const existingSubjects = (data.targets || []).map(function (t) { return t.subject; });
+      const allSubjs = Object.keys(SUBJECT_TOPIC_CLUSTERS);
+      const nextSubj = allSubjs.find(function (s) { return !existingSubjects.includes(s); }) || allSubjs[0];
+
+      const newTarget = {
+        id: newId,
+        subject: nextSubj,
+        topic: 'all',
+        topicLabel: 'All Topics',
+        goal: 25,
+        daysLeft: 7,
+        daysTotal: 7
+      };
+      data.targets.push(newTarget);
+      data.activeId = newId;
+      saveTargetSprintsData(data);
+    }
+
+    let sprint = getActiveSprint();
     updateTargetSprint();
 
-    const availableSubjects = [
-      'Polity & Governance',
-      'Economy',
-      'Environment & Ecology',
-      'History & Culture',
-      'Geography',
-      'Science & Technology'
-    ];
+    // 1. Render Modal Target Tabs
+    const modalTabsContainer = document.getElementById('modalTargetTabs');
+    if (modalTabsContainer) {
+      const mTabsHtml = (data.targets || []).map(function (t, idx) {
+        const isActive = t.id === sprint.id;
+        const activeCls = isActive
+          ? 'bg-emerald-500 text-slate-950 font-black'
+          : 'bg-slate-800 text-slate-300 hover:bg-slate-700';
+        return (
+          '<button type="button" class="modal-target-tab-btn px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer transition ' + activeCls + '" data-tid="' + t.id + '">' +
+            'Target ' + (idx + 1) + ': ' + t.subject.split('&')[0].trim() +
+          '</button>'
+        );
+      }).join('');
 
+      const mAddHtml = (data.targets || []).length < 3
+        ? '<button type="button" id="modalAddTargetBtn" class="px-2 py-1 rounded-lg text-xs font-bold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 cursor-pointer">+ Add Target</button>'
+        : '';
+
+      modalTabsContainer.innerHTML = mTabsHtml + mAddHtml;
+
+      modalTabsContainer.querySelectorAll('.modal-target-tab-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (ev) {
+          const tid = ev.currentTarget.getAttribute('data-tid');
+          data.activeId = tid;
+          saveTargetSprintsData(data);
+          window.openTargetSprintModal();
+        });
+      });
+
+      document.getElementById('modalAddTargetBtn')?.addEventListener('click', function () {
+        window.openTargetSprintModal(null, true);
+      });
+    }
+
+    // Delete Target Button
+    const deleteBtn = document.getElementById('deleteSprintTargetBtn');
+    if (deleteBtn) {
+      if ((data.targets || []).length > 1) {
+        deleteBtn.classList.remove('hidden');
+        deleteBtn.onclick = function () {
+          data.targets = data.targets.filter(function (t) { return t.id !== sprint.id; });
+          data.activeId = data.targets[0].id;
+          saveTargetSprintsData(data);
+          window.openTargetSprintModal();
+          showToast('🗑️ Target deleted');
+        };
+      } else {
+        deleteBtn.classList.add('hidden');
+      }
+    }
+
+    // 2. Render Step 1: Subjects Grid
+    const availableSubjects = Object.keys(SUBJECT_TOPIC_CLUSTERS);
     const choicesContainer = document.getElementById('sprintSubjectChoices');
     if (choicesContainer) {
       choicesContainer.innerHTML = availableSubjects.map(function (sub) {
@@ -2515,9 +2766,9 @@
           : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700';
 
         return (
-          '<button type="button" class="sprint-subj-choice-btn p-2.5 rounded-xl border flex items-center justify-between font-bold cursor-pointer transition-all ' + activeClass + '" data-subj="' + escapeHtml(sub) + '">' +
-            '<span>' + escapeHtml(sub) + '</span>' +
-            '<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">' + acc + '</span>' +
+          '<button type="button" class="sprint-subj-choice-btn p-2 rounded-xl border flex flex-col justify-between gap-1 text-left cursor-pointer transition-all ' + activeClass + '" data-subj="' + escapeHtml(sub) + '">' +
+            '<span class="font-bold text-[11px] leading-tight">' + escapeHtml(sub) + '</span>' +
+            '<span class="text-[9px] font-mono px-1 py-0.2 rounded bg-slate-800 text-slate-400 w-fit">' + acc + '</span>' +
           '</button>'
         );
       }).join('');
@@ -2526,15 +2777,94 @@
         btn.addEventListener('click', function (ev) {
           const newSub = ev.currentTarget.getAttribute('data-subj');
           sprint.subject = newSub;
-          saveTargetSprintState(sprint);
+          sprint.topic = 'all';
+          sprint.topicLabel = 'All Topics';
+          saveTargetSprintsData(data);
           window.openTargetSprintModal();
-          updateTargetSprint();
-          showToast('🎯 Target Sprint set to ' + newSub);
+          showToast('🎯 Focus subject set to ' + newSub);
         });
       });
     }
 
-    // Goal buttons
+    // 3. Render Step 2: Sub-Topics for Current Subject
+    const topicContainer = document.getElementById('sprintTopicChoices');
+    const topicCountEl = document.getElementById('topicQuestionCount');
+    if (topicContainer) {
+      const clusters = SUBJECT_TOPIC_CLUSTERS[sprint.subject] || [];
+      const isAll = (!sprint.topic || sprint.topic === 'all');
+
+      let topicsHtml = [];
+
+      // "All Topics" Pill
+      const allActiveCls = isAll
+        ? 'bg-emerald-500 text-slate-950 font-black'
+        : 'bg-slate-950 text-slate-300 border border-slate-800 hover:border-slate-700';
+      topicsHtml.push(
+        '<button type="button" class="sprint-topic-btn px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition ' + allActiveCls + '" data-topic="all" data-label="All Topics">' +
+          '📚 All ' + sprint.subject.split('&')[0].trim() + ' Topics' +
+        '</button>'
+      );
+
+      // Thematic Clusters
+      clusters.forEach(function (cl) {
+        const isSel = (sprint.topic === cl);
+        const selCls = isSel
+          ? 'bg-emerald-500 text-slate-950 font-black'
+          : 'bg-slate-950 text-slate-300 border border-slate-800 hover:border-slate-700';
+
+        // Count how many questions match this cluster
+        const clKeywords = cl.toLowerCase().split(/[,&\s/]+/).filter(function (w) { return w.length > 3; });
+        const subClean = sprint.subject.toLowerCase().split('&')[0].trim();
+        const matchCount = (STATE.pyqs || []).filter(function (q) {
+          if (!q.subject || q.subject.toLowerCase().indexOf(subClean) === -1) return false;
+          const qSubTopic = (q.sub_topic || '').toLowerCase();
+          const qText = (q.question_text || '').toLowerCase();
+          return clKeywords.some(function (kw) { return qSubTopic.indexOf(kw) !== -1 || qText.indexOf(kw) !== -1; });
+        }).length;
+
+        topicsHtml.push(
+          '<button type="button" class="sprint-topic-btn px-2.5 py-1.5 rounded-xl text-xs font-medium cursor-pointer transition flex items-center gap-1 ' + selCls + '" data-topic="' + escapeHtml(cl) + '" data-label="' + escapeHtml(cl) + '">' +
+            '<span>' + escapeHtml(cl) + '</span>' +
+            '<span class="text-[9px] font-mono px-1 py-0.2 rounded bg-slate-800/80 text-slate-300">(' + matchCount + ')</span>' +
+          '</button>'
+        );
+      });
+
+      topicContainer.innerHTML = topicsHtml.join('');
+
+      if (topicCountEl) {
+        const stats = calculateSprintStats(sprint);
+        topicCountEl.textContent = stats.pool.length + ' Qs available (' + stats.unattemptedInPool + ' pending)';
+      }
+
+      topicContainer.querySelectorAll('.sprint-topic-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (ev) {
+          const tVal = ev.currentTarget.getAttribute('data-topic');
+          const tLabel = ev.currentTarget.getAttribute('data-label');
+          sprint.topic = tVal;
+          sprint.topicLabel = tLabel;
+          saveTargetSprintsData(data);
+          window.openTargetSprintModal();
+          showToast('🎯 Focused on: ' + tLabel);
+        });
+      });
+    }
+
+    // 4. Step 3: Question Target Buttons & Custom Input
+    const customInput = document.getElementById('sprintCustomGoalInput');
+    if (customInput) {
+      customInput.value = sprint.goal || 30;
+      customInput.onchange = function () {
+        const val = parseInt(customInput.value, 10);
+        if (val && val >= 5) {
+          sprint.goal = val;
+          saveTargetSprintsData(data);
+          updateTargetSprint();
+          window.openTargetSprintModal();
+        }
+      };
+    }
+
     document.querySelectorAll('.sprint-goal-btn').forEach(function (btn) {
       const g = parseInt(btn.getAttribute('data-goal'), 10);
       if (g === sprint.goal) {
@@ -2544,12 +2874,37 @@
       }
       btn.onclick = function () {
         sprint.goal = g;
-        saveTargetSprintState(sprint);
+        if (customInput) customInput.value = g;
+        saveTargetSprintsData(data);
         window.openTargetSprintModal();
-        updateTargetSprint();
-        showToast('🎯 Weekly goal set to ' + g + ' questions!');
+        showToast('🎯 Goal set to ' + g + ' questions!');
       };
     });
+
+    // Duration Buttons
+    document.querySelectorAll('.sprint-duration-btn').forEach(function (btn) {
+      const days = parseInt(btn.getAttribute('data-days'), 10);
+      if (days === sprint.daysTotal) {
+        btn.className = 'sprint-duration-btn px-2.5 py-1 rounded-lg border text-[11px] font-mono cursor-pointer transition border-emerald-500 bg-emerald-500/20 text-emerald-300 font-bold';
+      } else {
+        btn.className = 'sprint-duration-btn px-2.5 py-1 rounded-lg border text-[11px] font-mono cursor-pointer transition border-slate-800 bg-slate-950 text-slate-300 hover:border-slate-700';
+      }
+      btn.onclick = function () {
+        sprint.daysTotal = days;
+        sprint.daysLeft = days;
+        saveTargetSprintsData(data);
+        window.openTargetSprintModal();
+        showToast('🎯 Target timeline set to ' + days + ' days');
+      };
+    });
+
+    // Action button in modal to drill pending queue
+    const modalPendingBtn = document.getElementById('modalStartPendingSprintBtn');
+    if (modalPendingBtn) {
+      modalPendingBtn.onclick = function () {
+        window.launchSprintFocusMode(true);
+      };
+    }
   };
 
   window.closeTargetSprintModal = function () {
@@ -2557,25 +2912,39 @@
     if (modal) modal.classList.add('hidden');
   };
 
-  window.launchSprintFocusMode = function () {
-    const sprint = getTargetSprintState();
+  window.launchSprintFocusMode = function (onlyPending, targetId) {
+    const data = getTargetSprintsData();
+    let sprint = getActiveSprint();
+    if (targetId) {
+      const match = (data.targets || []).find(function (t) { return t.id === targetId; });
+      if (match) sprint = match;
+    }
+
     window.closeTargetSprintModal();
 
-    const subjQuestions = (STATE.pyqs || []).filter(function (q) {
-      return q.subject && q.subject.toLowerCase().indexOf(sprint.subject.toLowerCase().split('&')[0].trim()) !== -1;
-    });
+    const stats = calculateSprintStats(sprint);
 
-    if (subjQuestions.length === 0) {
-      showToast('No questions found for ' + sprint.subject);
+    if (stats.pool.length === 0) {
+      showToast('No questions found matching ' + sprint.subject + ' (' + (sprint.topicLabel || 'All Topics') + ')');
       return;
     }
 
-    const unattempted = subjQuestions.filter(function (q) {
-      return !STATE.answers[q.id];
-    });
-
-    const pool = (unattempted.length >= 5) ? unattempted : subjQuestions;
-    const selected = shuffleArray(pool).slice(0, 5);
+    let selected = [];
+    if (onlyPending) {
+      if (stats.unattempted.length === 0) {
+        showToast('🎉 All questions in this target have been solved! Launching revision set.');
+        selected = shuffleArray(stats.pool).slice(0, 10);
+      } else {
+        // Take up to 15 pending questions for focused backlog clearing
+        selected = stats.unattempted.slice(0, Math.min(15, stats.unattempted.length));
+        showToast('⚡ Clearing Backlog: Loaded ' + selected.length + ' pending questions!');
+      }
+    } else {
+      // 5-Question quick daily pace sprint
+      const source = stats.unattempted.length >= 5 ? stats.unattempted : stats.pool;
+      selected = shuffleArray(source).slice(0, 5);
+      showToast('🚀 Sprint Focus Mode: 5 high-yield ' + sprint.subject + ' questions loaded!');
+    }
 
     STATE.playerQuestions = selected;
     STATE.playerIndex = 0;
@@ -2583,12 +2952,11 @@
     STATE.isReviewMode = false;
     STATE.currentTest = {
       id: 'sprint_' + Date.now(),
-      title: 'Target Sprint: ' + sprint.subject + ' (5 Qs)',
+      title: (onlyPending ? 'Pending Backlog: ' : 'Target Sprint: ') + sprint.subject + (sprint.topicLabel && sprint.topic !== 'all' ? ' (' + sprint.topicLabel + ')' : ''),
       totalQuestions: selected.length,
       durationSeconds: 0
     };
     switchViewMode('player');
-    showToast('🚀 Sprint Focus Mode: 5 high-yield ' + sprint.subject + ' questions loaded!');
   };
 
   function autoSelectWeakestSubject() {
@@ -2604,7 +2972,7 @@
       if (!ans.isCorrect) subjStats[s].wrong++;
     });
 
-    let worstSubj = 'Polity & Governance';
+    let worstSubj = 'History & Culture';
     let maxWrong = -1;
     Object.keys(subjStats).forEach(function (s) {
       if (subjStats[s].wrong > maxWrong) {
@@ -2613,12 +2981,20 @@
       }
     });
 
-    const sprint = getTargetSprintState();
+    const data = getTargetSprintsData();
+    const sprint = getActiveSprint();
     sprint.subject = worstSubj;
-    saveTargetSprintState(sprint);
-    openTargetSprintModal();
+    sprint.topic = 'all';
+    sprint.topicLabel = 'All Topics';
+    saveTargetSprintsData(data);
+    window.openTargetSprintModal();
     updateTargetSprint();
     showToast('⚡ Auto-selected your highest mark-leak subject: ' + worstSubj);
+  }
+
+  // Backward compatibility alias
+  function getTargetSprintState() {
+    return getActiveSprint();
   }
 
   // Parse numbered statements helper
@@ -4357,10 +4733,14 @@ function renderPlayerDistractorDeepDive(q) {
       });
     });
 
-    // Direct On-Card Practice Button
+    // Direct On-Card Practice Buttons
     document.getElementById('cardStartSprintBtn')?.addEventListener('click', function (e) {
       e.stopPropagation();
-      launchSprintFocusMode();
+      launchSprintFocusMode(false);
+    });
+    document.getElementById('cardSolvePendingBtn')?.addEventListener('click', function (e) {
+      e.stopPropagation();
+      launchSprintFocusMode(true);
     });
 
     // Secondary Modal handlers (if opened elsewhere)

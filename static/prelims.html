@@ -1100,58 +1100,75 @@
               </div>
             </div>
 
-            <!-- 4. Weekly Sprint Target Card (With Direct Controls & Goal Planner) -->
+            <!-- 4. Multi-Target Sprint Manager (Dynamic Subjects, Topics & Pending Tracker) -->
             <div id="targetSprintCard" class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col gap-3.5 shadow-sm">
               <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
                 <span class="text-xs font-mono uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1.5">
                   <span>🎯</span>
-                  <span>WEEKLY SPRINT TARGET</span>
+                  <span>ACTIVE TARGET SPRINTS</span>
                 </span>
                 <span id="targetCardBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-bold border border-emerald-500/30">Active</span>
               </div>
 
-              <!-- Subject and explicit Change button -->
-              <div class="flex items-center justify-between gap-2">
+              <!-- Multi-Target Switcher Tabs -->
+              <div id="targetSprintTabs" class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                <!-- Dynamically populated target tabs (e.g. Target 1, Target 2, + Add Target) -->
+              </div>
+
+              <!-- Subject and Micro-Topic Heading -->
+              <div class="flex items-center justify-between gap-2 pt-0.5">
                 <div class="flex flex-col">
-                  <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wide">Focus Subject</span>
-                  <h4 id="targetCardSubject" class="text-sm sm:text-base font-extrabold text-white">Polity &amp; Governance</h4>
+                  <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wide">Focus Subject &amp; Topic</span>
+                  <h4 id="targetCardSubject" class="text-sm sm:text-base font-extrabold text-white">History &amp; Culture</h4>
+                  <span id="targetCardTopic" class="text-xs font-semibold text-emerald-400 flex items-center gap-1">
+                    <span>📚</span> <span id="targetCardTopicText">All Topics</span>
+                  </span>
                 </div>
                 <button type="button" id="toggleSprintChangeBtn" onclick="window.openTargetSprintModal(event)" class="px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold cursor-pointer transition-all flex items-center gap-1 shadow-xs">
-                  <span>Change ⚙️</span>
+                  <span>Configure ⚙️</span>
                 </button>
               </div>
 
               <!-- Progress Bar & Forensics -->
               <div class="flex flex-col gap-2">
                 <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                  <div id="targetCardProgressBar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 45%;"></div>
+                  <div id="targetCardProgressBar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 10%;"></div>
                 </div>
-                <div class="grid grid-cols-2 gap-2 text-[11px] font-mono">
+                <div class="grid grid-cols-3 gap-1.5 text-center text-[11px] font-mono">
                   <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
-                    <span class="text-[10px] text-slate-500 dark:text-slate-400">Progress</span>
-                    <span id="targetCardRatio" class="font-bold text-slate-800 dark:text-white">14 / 30 Solved</span>
+                    <span class="text-[9px] text-slate-500 dark:text-slate-400">Solved</span>
+                    <span id="targetCardRatio" class="font-bold text-slate-800 dark:text-white">1 / 30</span>
                   </div>
                   <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
-                    <span class="text-[10px] text-slate-500 dark:text-slate-400">Time Left</span>
-                    <span id="targetCardDays" class="font-bold text-slate-800 dark:text-white">4 Days Left</span>
+                    <span class="text-[9px] text-amber-500 dark:text-amber-400 font-bold">Pending</span>
+                    <span id="targetCardPending" class="font-bold text-amber-600 dark:text-amber-400">29 Qs</span>
+                  </div>
+                  <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
+                    <span class="text-[9px] text-slate-500 dark:text-slate-400">Time Left</span>
+                    <span id="targetCardDays" class="font-bold text-slate-800 dark:text-white">4 Days</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Required Daily Pace & Subject Accuracy Indicator -->
+              <!-- Daily Pace Alert -->
               <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between text-xs">
                 <div class="flex items-center gap-1.5">
                   <span class="text-sm">⚡</span>
-                  <span id="targetSprintPaceText" class="text-[11px] text-emerald-800 dark:text-emerald-300 font-semibold">Need 4 Qs/day to hit goal</span>
+                  <span id="targetSprintPaceText" class="text-[11px] text-emerald-800 dark:text-emerald-300 font-semibold">Need 8 Qs/day to hit goal</span>
                 </div>
-                <span id="targetSprintAccuracyBadge" class="text-[10px] font-mono font-bold text-emerald-700 dark:text-emerald-400">72% Acc</span>
+                <span id="targetSprintAccuracyBadge" class="text-[10px] font-mono font-bold text-emerald-700 dark:text-emerald-400">0% Acc</span>
               </div>
 
-              <!-- Direct Practice Button right on the card -->
-              <button type="button" id="cardStartSprintBtn" onclick="window.launchSprintFocusMode()" class="btn-action-emerald w-full py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5">
-                <span>▶ Practice 5 Questions</span>
-                <span>→</span>
-              </button>
+              <!-- Dual Action Buttons -->
+              <div class="grid grid-cols-2 gap-2 pt-1">
+                <button type="button" id="cardStartSprintBtn" onclick="window.launchSprintFocusMode(false)" class="py-2.5 rounded-xl font-bold text-xs bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1">
+                  <span>▶ Quick 5 Qs</span>
+                </button>
+                <button type="button" id="cardSolvePendingBtn" onclick="window.launchSprintFocusMode(true)" class="btn-action-emerald py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1">
+                  <span>⚡ Solve Pending (<span id="btnPendingCount">29</span>)</span>
+                  <span>→</span>
+                </button>
+              </div>
             </div>
 
           </div>
@@ -2047,7 +2064,7 @@
   </div>
 
   <!-- Scripts -->
-  <script src="/static/prelims.js?v=1795247800000"></script>
+  <script src="/static/prelims.js?v=1795251500000"></script>
 
   <!-- ====================================================
        ADAPTIVE MOCK TEST GENERATOR MODAL (Phase 4)
@@ -2454,10 +2471,10 @@
   </div>
 
   <!-- ====================================================
-       WEEKLY GOAL & TARGET SPRINT PLANNER MODAL
+       WEEKLY GOAL & MULTI-TARGET SPRINT PLANNER MODAL
        ==================================================== -->
   <div id="targetSprintModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm animate-fade-in">
-    <div class="light-card relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-5 sm:p-7 flex flex-col gap-5">
+    <div class="light-card relative w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-5 sm:p-7 flex flex-col gap-5">
       
       <!-- Modal Header -->
       <div class="flex items-start justify-between border-b border-slate-800 pb-3">
@@ -2467,38 +2484,52 @@
           </div>
           <div class="flex flex-col">
             <h3 class="text-base font-extrabold text-white flex items-center gap-2">
-              Weekly Goal &amp; Target Sprint Planner
+              Multi-Target Sprint &amp; Topic Goal Planner
             </h3>
-            <p class="text-xs text-slate-400">Set your focus subject, customize question volume, and track your daily target pace.</p>
+            <p class="text-xs text-slate-400">Set multiple subject goals, drill down into micro-topics, and clear pending backlogs.</p>
           </div>
         </div>
         <button type="button" onclick="window.closeTargetSprintModal()" class="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer">✕</button>
       </div>
 
-      <!-- Current Sprint Status & Full Vision Forensics -->
+      <!-- Target Selection Bar (Switch or Add Target) -->
+      <div class="flex items-center justify-between gap-2 pb-1 border-b border-slate-800/80">
+        <span class="text-[11px] font-mono uppercase text-slate-400 font-bold">Manage Targets:</span>
+        <div id="modalTargetTabs" class="flex items-center gap-1.5 flex-wrap">
+          <!-- Populated by JS: [Target 1] [Target 2] [+ Add Target] -->
+        </div>
+      </div>
+
+      <!-- Current Sprint Status & Pending Forensics -->
       <div class="p-4 rounded-2xl bg-slate-950 border border-emerald-500/30 flex flex-col gap-3">
         <div class="flex items-center justify-between">
-          <span class="text-[10px] uppercase font-mono tracking-wider text-emerald-400 font-bold">Active Sprint Subject</span>
+          <span class="text-[10px] uppercase font-mono tracking-wider text-emerald-400 font-bold">Selected Sprint Target</span>
           <span id="modalSprintDays" class="text-[11px] font-mono text-slate-400">4 Days Left</span>
         </div>
-        <h4 id="modalSprintSubject" class="text-base font-black text-white">Polity &amp; Governance</h4>
+        <div class="flex items-baseline justify-between gap-2">
+          <div>
+            <h4 id="modalSprintSubject" class="text-base font-black text-white">History &amp; Culture</h4>
+            <span id="modalSprintTopic" class="text-xs font-semibold text-emerald-400">📚 All Topics</span>
+          </div>
+          <span id="modalSprintAcc" class="text-xs font-mono text-slate-400 font-bold">Accuracy: 0%</span>
+        </div>
         
         <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-          <div id="modalSprintProgressBar" class="h-full bg-emerald-500 rounded-full transition-all" style="width: 45%;"></div>
+          <div id="modalSprintProgressBar" class="h-full bg-emerald-500 rounded-full transition-all" style="width: 10%;"></div>
         </div>
 
         <div class="grid grid-cols-3 gap-2 text-center text-xs font-mono pt-1">
           <div class="p-2 rounded-xl bg-slate-900 border border-slate-800 flex flex-col">
             <span class="text-[10px] text-slate-400">Completed</span>
-            <span id="modalSprintRatio" class="font-bold text-white">14 / 30</span>
+            <span id="modalSprintRatio" class="font-bold text-white">1 / 30</span>
           </div>
           <div class="p-2 rounded-xl bg-slate-900 border border-slate-800 flex flex-col">
-            <span class="text-[10px] text-slate-400">Remaining</span>
-            <span id="modalSprintRemaining" class="font-bold text-amber-400">16 Qs</span>
+            <span class="text-[10px] text-amber-400 font-bold">Pending Backlog</span>
+            <span id="modalSprintRemaining" class="font-bold text-amber-400">29 Qs</span>
           </div>
           <div class="p-2 rounded-xl bg-slate-900 border border-slate-800 flex flex-col">
             <span class="text-[10px] text-slate-400">Required Pace</span>
-            <span id="modalSprintPace" class="font-bold text-emerald-400">4 Qs / Day</span>
+            <span id="modalSprintPace" class="font-bold text-emerald-400">8 Qs / Day</span>
           </div>
         </div>
       </div>
@@ -2506,31 +2537,66 @@
       <!-- Step 1: Switch Target Subject -->
       <div class="flex flex-col gap-2">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] font-mono uppercase text-slate-400 font-bold">1. Select Target Subject:</span>
+          <span class="text-[11px] font-mono uppercase text-slate-400 font-bold">1. Select Subject:</span>
           <button type="button" id="autoSetWeakestSubjectBtn" class="text-[10px] text-amber-400 hover:text-amber-300 font-bold underline cursor-pointer">⚡ Auto-Pick Weakest Subject</button>
         </div>
-        <div class="grid grid-cols-2 gap-2 text-xs" id="sprintSubjectChoices">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs" id="sprintSubjectChoices">
           <!-- Populated by JS -->
         </div>
       </div>
 
-      <!-- Step 2: Target Question Volume -->
+      <!-- Step 2: Choose Sub-Topic (The Dynamic Thematic Targeter!) -->
       <div class="flex flex-col gap-2 pt-2 border-t border-slate-800">
-        <span class="text-[11px] font-mono uppercase text-slate-400 font-bold">2. Set Weekly Question Target:</span>
-        <div class="grid grid-cols-3 gap-2" id="sprintGoalOptions">
-          <button type="button" class="sprint-goal-btn p-2 rounded-xl border text-xs font-mono font-bold cursor-pointer transition-all border-slate-800 bg-slate-950 text-slate-300 hover:border-emerald-500/40" data-goal="20">20 Qs</button>
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-mono uppercase text-slate-400 font-bold">2. Target Specific Topic (Optional):</span>
+          <span class="text-[10px] text-slate-500 font-mono" id="topicQuestionCount">All Topics Selected</span>
+        </div>
+        <!-- Topic Selection Pills & Search -->
+        <div class="flex flex-wrap gap-1.5" id="sprintTopicChoices">
+          <!-- Populated dynamically based on selected subject -->
+        </div>
+      </div>
+
+      <!-- Step 3: Target Question Volume & Duration -->
+      <div class="flex flex-col gap-3 pt-2 border-t border-slate-800">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-mono uppercase text-slate-400 font-bold">3. Set Question Volume:</span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs text-slate-400">Custom:</span>
+            <input type="number" id="sprintCustomGoalInput" min="5" max="200" value="30" class="w-16 px-2 py-1 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono text-xs text-center font-bold">
+          </div>
+        </div>
+        <div class="grid grid-cols-5 gap-1.5" id="sprintGoalOptions">
+          <button type="button" class="sprint-goal-btn p-2 rounded-xl border text-xs font-mono font-bold cursor-pointer transition-all border-slate-800 bg-slate-950 text-slate-300 hover:border-emerald-500/40" data-goal="15">15 Qs</button>
+          <button type="button" class="sprint-goal-btn p-2 rounded-xl border text-xs font-mono font-bold cursor-pointer transition-all border-slate-800 bg-slate-950 text-slate-300 hover:border-emerald-500/40" data-goal="25">25 Qs</button>
           <button type="button" class="sprint-goal-btn p-2 rounded-xl border text-xs font-mono font-bold cursor-pointer transition-all border-emerald-500 bg-emerald-500/20 text-emerald-300" data-goal="30">30 Qs</button>
           <button type="button" class="sprint-goal-btn p-2 rounded-xl border text-xs font-mono font-bold cursor-pointer transition-all border-slate-800 bg-slate-950 text-slate-300 hover:border-emerald-500/40" data-goal="50">50 Qs</button>
+          <button type="button" class="sprint-goal-btn p-2 rounded-xl border text-xs font-mono font-bold cursor-pointer transition-all border-slate-800 bg-slate-950 text-slate-300 hover:border-emerald-500/40" data-goal="75">75 Qs</button>
+        </div>
+
+        <!-- Duration Picker -->
+        <div class="flex items-center justify-between pt-1">
+          <span class="text-[11px] font-mono uppercase text-slate-400 font-bold">Target Duration:</span>
+          <div class="flex items-center gap-1.5" id="sprintDurationOptions">
+            <button type="button" class="sprint-duration-btn px-2.5 py-1 rounded-lg border text-[11px] font-mono cursor-pointer transition border-slate-800 bg-slate-950 text-slate-300 hover:border-slate-700" data-days="3">3 Days</button>
+            <button type="button" class="sprint-duration-btn px-2.5 py-1 rounded-lg border text-[11px] font-mono cursor-pointer transition border-emerald-500 bg-emerald-500/20 text-emerald-300 font-bold" data-days="7">7 Days</button>
+            <button type="button" class="sprint-duration-btn px-2.5 py-1 rounded-lg border text-[11px] font-mono cursor-pointer transition border-slate-800 bg-slate-950 text-slate-300 hover:border-slate-700" data-days="14">14 Days</button>
+          </div>
         </div>
       </div>
 
       <!-- Action Buttons -->
       <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-800">
-        <button type="button" onclick="window.closeTargetSprintModal()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 text-xs font-semibold cursor-pointer">
-          Done
-        </button>
-        <button type="button" id="modalStartSprintBtn" class="w-full sm:w-auto px-6 py-2.5 rounded-xl btn-action-emerald text-xs font-bold shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2">
-          <span>▶ Solve 5 Questions Now →</span>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <button type="button" onclick="window.closeTargetSprintModal()" class="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 text-xs font-semibold cursor-pointer">
+            Done
+          </button>
+          <button type="button" id="deleteSprintTargetBtn" class="px-3 py-2.5 rounded-xl border border-rose-900/60 text-rose-400 hover:bg-rose-950/40 text-xs font-semibold cursor-pointer hidden">
+            🗑️ Delete Target
+          </button>
+        </div>
+        <button type="button" id="modalStartPendingSprintBtn" class="w-full sm:w-auto px-6 py-2.5 rounded-xl btn-action-emerald text-xs font-bold shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2">
+          <span>⚡ Solve Pending (<span id="modalPendingCountText">29</span> Qs) Now →</span>
         </button>
       </div>
 
