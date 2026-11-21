@@ -1710,7 +1710,7 @@
     if (adviceBox && adviceText) {
       if (worstTopic) {
         adviceBox.classList.remove('hidden');
-        adviceText.innerHTML = '<strong>⚠️ Priority Mark-Bleed Alert:</strong> You are losing marks in <strong>' + escapeHtml(worstTopic.topic) + '</strong> (' + Math.round((worstTopic.correct / worstTopic.total) * 100) + '% accuracy). Prioritize drilling this gap!';
+        adviceText.innerHTML = '<strong>⚠️ Focus Topic:</strong> Low accuracy in <strong>' + escapeHtml(worstTopic.topic) + '</strong> (' + Math.round((worstTopic.correct / worstTopic.total) * 100) + '%). Practice this topic to reduce negative marks:';
         if (drillBtn) {
           drillBtn.onclick = function () {
             launchThemeDrill(worstTopic.topic);
@@ -1765,16 +1765,16 @@
 
       let colorClass = 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 border-emerald-500/30';
       let barColor = 'bg-emerald-500';
-      let statusLabel = '🛡️ Fortified';
+      let statusLabel = 'Strong Topic';
 
       if (acc < 50) {
         colorClass = 'text-rose-700 dark:text-rose-400 bg-rose-500/15 border-rose-500/30';
         barColor = 'bg-rose-500';
-        statusLabel = '🩸 Bleeding Marks';
+        statusLabel = 'Needs Revision';
       } else if (acc < 75) {
         colorClass = 'text-amber-700 dark:text-amber-400 bg-amber-500/15 border-amber-500/30';
         barColor = 'bg-amber-500';
-        statusLabel = '⚠️ Vulnerable';
+        statusLabel = 'Moderate Accuracy';
       }
 
       // Count total available questions for this theme in database
@@ -2218,6 +2218,26 @@
     if (barEl) barEl.style.width = pct + '%';
     if (ratioEl) ratioEl.textContent = solvedInSubj + ' / ' + goal + ' Solved';
     if (daysEl) daysEl.textContent = sprint.daysLeft + ' Days Left';
+
+    // Highlight active subject in inline picker
+    document.querySelectorAll('.sprint-subj-btn').forEach(function (btn) {
+      const s = btn.getAttribute('data-subject');
+      if (s && s.toLowerCase().split('&')[0].trim() === sprint.subject.toLowerCase().split('&')[0].trim()) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    // Highlight active goal in inline picker
+    document.querySelectorAll('.sprint-goal-btn').forEach(function (btn) {
+      const g = parseInt(btn.getAttribute('data-goal'), 10);
+      if (g === goal) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
   }
 
   function openTargetSprintModal() {
@@ -3741,32 +3761,71 @@ function renderPlayerDistractorDeepDive(q) {
       if (e.target.id === 'todayLeaderboardModal') closeTodayLeaderboard();
     });
 
-    // 3. Daily Streak Modal
-    document.getElementById('dailyStreakCard')?.addEventListener('click', openStreakModal);
+    // 3. Daily Streak Tracker (Clean display, no intrusive modal)
     document.getElementById('closeStreakModalBtn')?.addEventListener('click', closeStreakModal);
     document.getElementById('streakDetailsModal')?.addEventListener('click', function (e) {
       if (e.target.id === 'streakDetailsModal') closeStreakModal();
     });
 
-    // 4. Target Sprint Hub Modal & Controls
-    document.getElementById('targetSprintCard')?.addEventListener('click', openTargetSprintModal);
+    // 4. Target Sprint Inline Controls (Direct on-card interaction)
+    const toggleSprintBtn = document.getElementById('toggleSprintChangeBtn');
+    const sprintPicker = document.getElementById('sprintInlinePicker');
+    const sprintChevron = document.getElementById('sprintChevron');
+    if (toggleSprintBtn && sprintPicker) {
+      toggleSprintBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const isHidden = sprintPicker.classList.contains('hidden');
+        if (isHidden) {
+          sprintPicker.classList.remove('hidden');
+          if (sprintChevron) sprintChevron.classList.add('rotate-180');
+        } else {
+          sprintPicker.classList.add('hidden');
+          if (sprintChevron) sprintChevron.classList.remove('rotate-180');
+        }
+      });
+    }
+
+    // Inline Subject Selectors
+    document.querySelectorAll('.sprint-subj-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const newSub = e.currentTarget.getAttribute('data-subject');
+        const sprint = getTargetSprintState();
+        sprint.subject = newSub;
+        saveTargetSprintState(sprint);
+        updateTargetSprint();
+        if (sprintPicker) sprintPicker.classList.add('hidden');
+        if (sprintChevron) sprintChevron.classList.remove('rotate-180');
+        showToast('Target subject set to ' + newSub);
+      });
+    });
+
+    // Inline Goal Selectors
+    document.querySelectorAll('.sprint-goal-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const goal = parseInt(e.currentTarget.getAttribute('data-goal'), 10);
+        const sprint = getTargetSprintState();
+        sprint.goal = goal;
+        saveTargetSprintState(sprint);
+        updateTargetSprint();
+        showToast('Target set to ' + goal + ' questions');
+      });
+    });
+
+    // Direct On-Card Practice Button
+    document.getElementById('cardStartSprintBtn')?.addEventListener('click', function (e) {
+      e.stopPropagation();
+      launchSprintFocusMode();
+    });
+
+    // Secondary Modal handlers (if opened elsewhere)
     document.getElementById('closeSprintModalBtn')?.addEventListener('click', closeTargetSprintModal);
     document.getElementById('targetSprintModal')?.addEventListener('click', function (e) {
       if (e.target.id === 'targetSprintModal') closeTargetSprintModal();
     });
     document.getElementById('modalStartSprintBtn')?.addEventListener('click', launchSprintFocusMode);
     document.getElementById('autoSetWeakestSubjectBtn')?.addEventListener('click', autoSelectWeakestSubject);
-    document.querySelectorAll('.sprint-goal-btn').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        const goal = parseInt(e.currentTarget.getAttribute('data-goal'), 10);
-        const sprint = getTargetSprintState();
-        sprint.goal = goal;
-        saveTargetSprintState(sprint);
-        openTargetSprintModal();
-        updateTargetSprint();
-        showToast('🎯 Sprint target set to ' + goal + ' questions!');
-      });
-    });
   }
 
   // Initialize
