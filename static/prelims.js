@@ -4607,6 +4607,139 @@ function renderPlayerDistractorDeepDive(q) {
     }
   }
 
+  const DEFAULT_GOOGLE_CLIENT_ID = "610996841285-045j5s501e74o7k2088p7lruaap9cca1.apps.googleusercontent.com";
+  let authOAuthConfig = {
+    google_client_id: DEFAULT_GOOGLE_CLIENT_ID,
+    supabase_google_enabled: false,
+    supabase_oauth_url: ""
+  };
+
+  fetch("/api/auth/config")
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (cfg) {
+      if (cfg && cfg.google_client_id) {
+        authOAuthConfig = cfg;
+      }
+    })
+    .catch(function () {});
+
+  function getOrCreateDeviceId() {
+    let devId = localStorage.getItem("cookedmains_device_id");
+    if (!devId || devId.length < 12) {
+      devId = "dev_" + Date.now().toString(36) + "_" + Math.random().toString(36).substring(2, 12);
+      localStorage.setItem("cookedmains_device_id", devId);
+    }
+    return devId;
+  }
+
+  function ensureGoogleGsiLoaded() {
+    return new Promise(function (resolve, reject) {
+      if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+        return resolve(window.google);
+      }
+      const existingScript = document.querySelector('script[src*="accounts.google.com/gsi/client"]');
+      if (!existingScript) {
+        const s = document.createElement("script");
+        s.src = "https://accounts.google.com/gsi/client";
+        s.async = true;
+        document.head.appendChild(s);
+      }
+      let attempts = 0;
+      const timer = setInterval(function () {
+        attempts++;
+        if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+          clearInterval(timer);
+          resolve(window.google);
+        } else if (attempts > 40) {
+          clearInterval(timer);
+          reject(new Error("Google Sign-In script took too long to load. Please check your internet connection."));
+        }
+      }, 100);
+    });
+  }
+
+  async function completeVerifiedGoogleLogin(payload) {
+    const errBox = document.getElementById('authFormError');
+    const errText = document.getElementById('authFormErrorText');
+    if (errBox) errBox.classList.add('hidden');
+
+    try {
+      const res = await fetch("/api/auth/google/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(Object.assign({}, payload, { device_id: getOrCreateDeviceId() }))
+      });
+      if (res.ok) {
+        const user = await res.json();
+        STATE.user = user;
+        sessionStorage.setItem("mainsmentor_user", JSON.stringify(user));
+        localStorage.setItem("mainsmentor_user", JSON.stringify(user));
+        if (user.email) localStorage.setItem("cookedmains_bound_email", user.email);
+        if (user.name) localStorage.setItem("cookedmains_bound_name", user.name);
+        updateAuthUI();
+        closeAuthModal();
+        closeFreemiumGateModal();
+        showToast("✓ Signed in with Google as " + (user.name || user.email) + "!");
+      } else {
+        const err = await res.json();
+        if (errBox && errText) {
+          errBox.classList.remove('hidden');
+          errText.textContent = err.detail || err.error || "Google sign-in failed.";
+        }
+      }
+    } catch (e) {
+      if (errBox && errText) {
+        errBox.classList.remove('hidden');
+        errText.textContent = "Google verification error: " + e.message;
+      }
+    }
+  }
+
+  // Check if returning from Supabase Google OAuth redirect (#access_token=...)
+  if (window.location.hash && window.location.hash.includes("access_token=")) {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const supaAccessToken = hashParams.get("access_token");
+    if (supaAccessToken) {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      completeVerifiedGoogleLogin({ supabase_access_token: supaAccessToken });
+    }
+  }
+
+  function handleGoogleSignInClick() {
+    const errBox = document.getElementById('authFormError');
+    const errText = document.getElementById('authFormErrorText');
+    if (errBox) errBox.classList.add('hidden');
+
+    ensureGoogleGsiLoaded().then(function () {
+      const clientId = authOAuthConfig.google_client_id || DEFAULT_GOOGLE_CLIENT_ID;
+      const tokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: "openid email profile",
+        prompt: "select_account",
+        callback: function (tokenResponse) {
+          if (tokenResponse && tokenResponse.access_token) {
+            completeVerifiedGoogleLogin({ access_token: tokenResponse.access_token });
+          } else if (tokenResponse && tokenResponse.error) {
+            if (errBox && errText) {
+              errBox.classList.remove('hidden');
+              errText.textContent = "Google login cancelled or failed: " + tokenResponse.error;
+            }
+          }
+        }
+      });
+      tokenClient.requestAccessToken({ prompt: "select_account" });
+    }).catch(function (err) {
+      if (authOAuthConfig.supabase_google_enabled && authOAuthConfig.supabase_oauth_url) {
+        window.location.href = authOAuthConfig.supabase_oauth_url;
+        return;
+      }
+      if (errBox && errText) {
+        errBox.classList.remove('hidden');
+        errText.textContent = err.message || "Unable to open Google Sign-In popup.";
+      }
+    });
+  }
+
   async function handlePrelimsAuthSubmit(e) {
     if (e) e.preventDefault();
     const mode = document.getElementById('authModeInput')?.value || 'login';
@@ -4751,6 +4884,7 @@ function renderPlayerDistractorDeepDive(q) {
   window.closeAuthModal = closeAuthModal;
   window.setAuthFormMode = setAuthFormMode;
   window.handlePrelimsAuthSubmit = handlePrelimsAuthSubmit;
+  window.handleGoogleSignInClick = handleGoogleSignInClick;
   window.openFreemiumGateModal = openFreemiumGateModal;
   window.closeFreemiumGateModal = closeFreemiumGateModal;
   window.onSidebarUserClick = onSidebarUserClick;
@@ -4758,6 +4892,8 @@ function renderPlayerDistractorDeepDive(q) {
   window.signOutUser = signOutUser;
 
   function setupListeners() {
+    // Google Sign-In Trigger
+    document.getElementById('googleSignInBtn')?.addEventListener('click', handleGoogleSignInClick);
     // Mobile Sidebar Drawer
     const openSideBtn = document.getElementById('openMobileSidebarBtn');
     const closeSideBtn = document.getElementById('closeSidebarMobileBtn');
