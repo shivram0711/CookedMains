@@ -218,7 +218,6 @@
     var search = searchQuery || '';
     STATE.isExamMode = false;
     STATE.isReviewMode = false;
-    STATE.currentTest = null;
     stopExamTimer();
 
     var list = STATE.pyqs.slice();
@@ -244,6 +243,21 @@
       showToast('No questions found matching criteria.');
       return;
     }
+
+    var sessionTitle = (filter && filter !== 'all' ? filter : 'UPSC Prelims') + (search ? ' ("' + search + '")' : '') + ' Practice (' + list.length + ' Qs)';
+    STATE.currentTest = {
+      id: 'practice_' + Date.now(),
+      title: sessionTitle,
+      mode: 'practice',
+      totalQuestions: list.length,
+      startTime: Date.now()
+    };
+    STATE.testAnswers = {};
+    list.forEach(function (q) {
+      if (STATE.answers[q.id] && STATE.answers[q.id].selectedIndex !== undefined) {
+        STATE.testAnswers[q.id] = STATE.answers[q.id].selectedIndex;
+      }
+    });
 
     STATE.playerQuestions = list;
     STATE.playerIndex = 0;
@@ -362,7 +376,20 @@
         STATE.playerIndex = (qIdx !== -1 ? qIdx : 0);
         STATE.isExamMode = false;
         STATE.isReviewMode = false;
-        STATE.currentTest = null;
+        var subName = matches[0] && matches[0].subject ? matches[0].subject : 'Topic';
+        STATE.currentTest = {
+          id: 'practice_' + Date.now(),
+          title: subName + ' Practice (' + matches.length + ' Qs)',
+          mode: 'practice',
+          totalQuestions: matches.length,
+          startTime: Date.now()
+        };
+        STATE.testAnswers = {};
+        matches.forEach(function (q) {
+          if (STATE.answers[q.id] && STATE.answers[q.id].selectedIndex !== undefined) {
+            STATE.testAnswers[q.id] = STATE.answers[q.id].selectedIndex;
+          }
+        });
         switchViewMode('player');
       });
     });
@@ -813,7 +840,13 @@
     if (!modal) return;
 
     const total = STATE.playerQuestions.length;
-    const answered = Object.keys(STATE.testAnswers).length;
+    let answered = 0;
+    STATE.playerQuestions.forEach(function (q) {
+      if (STATE.testAnswers[q.id] !== undefined || (STATE.answers[q.id] && STATE.answers[q.id].selectedIndex !== undefined)) {
+        answered++;
+      }
+    });
+
     const flagged = STATE.flagged.size;
     const unanswered = Math.max(0, total - answered);
 
@@ -821,12 +854,40 @@
     const flagEl = document.getElementById('confirmFlaggedCount');
     const unansEl = document.getElementById('confirmUnansweredCount');
     const timeEl = document.getElementById('confirmTimeRemaining');
+    const timeLabelEl = document.getElementById('confirmTimeLabel');
+    const titleEl = document.getElementById('confirmModalTitle');
+    const descEl = document.getElementById('confirmModalDesc');
+    const submitBtnText = document.getElementById('confirmFinalSubmitBtnText');
 
     if (ansEl) ansEl.textContent = answered;
     if (flagEl) flagEl.textContent = flagged;
     if (unansEl) unansEl.textContent = unanswered;
-    if (timeEl && STATE.currentTest) {
-      timeEl.textContent = formatTime(STATE.currentTest.remainingSeconds);
+
+    const isExam = STATE.isExamMode;
+    if (titleEl) {
+      titleEl.textContent = isExam ? 'Submit Prelims Mock Test?' : 'Finish Practice Session & View Scorecard?';
+    }
+    if (descEl) {
+      descEl.textContent = isExam
+        ? 'Review your attempt status before computing your official UPSC score and forensic report:'
+        : 'Analyze your net score (+2.00, -0.66), accuracy rate, subject strengths, and save mistakes to your Notebook:';
+    }
+    if (submitBtnText) {
+      submitBtnText.textContent = isExam ? 'Submit Test & View Report' : 'Finish & View Scorecard';
+    }
+
+    if (timeEl) {
+      if (isExam && STATE.currentTest && STATE.currentTest.remainingSeconds !== undefined) {
+        if (timeLabelEl) timeLabelEl.textContent = '⏱️ Time Remaining:';
+        timeEl.textContent = formatTime(STATE.currentTest.remainingSeconds);
+      } else if (STATE.currentTest && STATE.currentTest.startTime) {
+        if (timeLabelEl) timeLabelEl.textContent = '⏱️ Practice Time:';
+        const elapsed = Math.max(1, Math.round((Date.now() - STATE.currentTest.startTime) / 1000));
+        timeEl.textContent = formatTime(elapsed);
+      } else {
+        if (timeLabelEl) timeLabelEl.textContent = '⏱️ Pace:';
+        timeEl.textContent = 'Self-Paced';
+      }
     }
 
     modal.classList.remove('hidden');
@@ -856,7 +917,12 @@
       }
       subjectStats[sub].total++;
 
-      const selectedIdx = STATE.testAnswers[q.id];
+      let selectedIdx = STATE.testAnswers[q.id];
+      if (selectedIdx === undefined && STATE.answers[q.id] && STATE.answers[q.id].selectedIndex !== undefined) {
+        selectedIdx = STATE.answers[q.id].selectedIndex;
+        STATE.testAnswers[q.id] = selectedIdx;
+      }
+
       if (selectedIdx !== undefined) {
         subjectStats[sub].attempted++;
         if (selectedIdx === q.correct_index) {
@@ -871,28 +937,61 @@
     });
 
     const attemptedCount = correctCount + wrongCount;
-    const grossScore = correctCount * 2.0;
+    const grossScore = Number((correctCount * 2.0).toFixed(2));
     const negativeBleed = Number((wrongCount * 0.66).toFixed(2));
     const netScore = Number((grossScore - negativeBleed).toFixed(2));
-    const maxMarks = questions.length * 2.0;
+    const maxMarks = Number((questions.length * 2.0).toFixed(1));
 
-    // Official UPSC 2024 Cutoff benchmark (88.0 marks for 100 Qs)
+    // Official UPSC Cutoff benchmark (88.0 marks for 100 Qs = 0.88 marks per Q)
     const benchmarkCutoff = Number(((questions.length / 100) * 88.0).toFixed(1));
     const cutoffDelta = Number((netScore - benchmarkCutoff).toFixed(2));
     const isAboveCutoff = cutoffDelta >= 0;
 
     const accuracy = attemptedCount > 0 ? Math.round((correctCount / attemptedCount) * 100) : 0;
-    const timeSpentSecs = test.durationSeconds ? (test.durationSeconds - (test.remainingSeconds || 0)) : 0;
+    
+    // Time spent calculation (works for both timed exams and self-paced practice)
+    let timeSpentSecs = 0;
+    if (test.durationSeconds && test.remainingSeconds !== undefined) {
+      timeSpentSecs = Math.max(0, test.durationSeconds - test.remainingSeconds);
+    } else if (test.startTime) {
+      timeSpentSecs = Math.max(1, Math.round((Date.now() - test.startTime) / 1000));
+    } else {
+      timeSpentSecs = Math.max(1, attemptedCount * 45); // default ~45s per Q
+    }
 
-    // Behavioral Leak Estimation
-    const conceptLeaks = Math.ceil(wrongCount * 0.35);
-    const sillyLeaks = Math.ceil(wrongCount * 0.30);
-    const elimLeaks = Math.ceil(wrongCount * 0.25);
-    const memoryLeaks = Math.max(0, wrongCount - (conceptLeaks + sillyLeaks + elimLeaks));
+    // Behavioral Leak Estimation from actual student tagging + intelligent heuristic
+    let conceptLeaks = 0;
+    let sillyLeaks = 0;
+    let elimLeaks = 0;
+    let memoryLeaks = 0;
+    let untaggedWrongs = 0;
+
+    wrongQuestions.forEach(function (q) {
+      const tag = STATE.leakTags[q.id];
+      if (tag === 'concept') conceptLeaks++;
+      else if (tag === 'silly') sillyLeaks++;
+      else if (tag === 'elimination') elimLeaks++;
+      else if (tag === 'memory') memoryLeaks++;
+      else untaggedWrongs++;
+    });
+
+    if (untaggedWrongs > 0) {
+      const cEst = Math.ceil(untaggedWrongs * 0.35);
+      const sEst = Math.ceil(untaggedWrongs * 0.30);
+      const eEst = Math.ceil(untaggedWrongs * 0.25);
+      const mEst = Math.max(0, untaggedWrongs - (cEst + sEst + eEst));
+      conceptLeaks += cEst;
+      sillyLeaks += sEst;
+      elimLeaks += eEst;
+      memoryLeaks += mEst;
+    }
+
+    const defaultTitle = (questions.length === 100 ? 'Full Length UPSC Mock Test' : ('UPSC Prelims Practice (' + questions.length + ' Qs)'));
+    const sessionTitle = test.title || defaultTitle;
 
     const result = {
-      id: test.id || ('mock_' + Date.now()),
-      title: test.title || 'UPSC Prelims Mock Test',
+      id: test.id || ('practice_' + Date.now()),
+      title: sessionTitle,
       timestamp: Date.now(),
       totalQuestions: questions.length,
       attemptedCount: attemptedCount,
@@ -919,7 +1018,7 @@
 
     STATE.testResults = result;
 
-    // Save to Mock History in localStorage with complete metadata
+    // Save to Mock & Practice History in localStorage with complete metadata
     STATE.mockHistory.unshift({
       id: result.id,
       title: result.title,
@@ -935,12 +1034,13 @@
       questionIds: questions.map(function (q) { return q.id; })
     });
 
-    if (STATE.mockHistory.length > 15) STATE.mockHistory.pop();
+    if (STATE.mockHistory.length > 25) STATE.mockHistory.pop();
     persistState();
 
     // Render Forensic Scorecard
     renderForensicScorecard(result);
     switchViewMode('report');
+    showToast('📊 Practice Report Card Generated!');
   };
 
   // Render Post-Test Scorecard View
@@ -1051,44 +1151,53 @@
     const saveBtn = document.getElementById('reportSaveMistakesBtn');
     const saveText = document.getElementById('reportSaveMistakesText');
     if (saveBtn && saveText) {
-      saveText.textContent = 'Save ' + res.wrongCount + ' Wrong Answers to Mistakes Notebook';
-      saveBtn.onclick = function () {
-        res.wrongQuestions.forEach(function (q) { STATE.mistakes.add(q.id); });
-        persistState();
-        updateDashboardActivity();
-        saveText.textContent = '✓ ' + res.wrongCount + ' Wrong Answers Saved!';
-        saveBtn.className = 'mt-2 w-full py-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 font-bold text-xs border border-emerald-500/40 cursor-default flex items-center justify-center gap-2';
-        showToast('Saved ' + res.wrongCount + ' mistakes to your Notebook!');
-      };
+      if (res.wrongCount > 0) {
+        saveText.textContent = 'Save ' + res.wrongCount + ' Wrong Answers to Mistakes Notebook';
+        saveBtn.disabled = false;
+        saveBtn.className = 'mt-2 w-full py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs border border-amber-500/40 transition-all cursor-pointer flex items-center justify-center gap-2';
+        saveBtn.onclick = function () {
+          res.wrongQuestions.forEach(function (q) { STATE.mistakes.add(q.id); });
+          persistState();
+          updateDashboardActivity();
+          saveText.textContent = '✓ ' + res.wrongCount + ' Wrong Answers Saved to Notebook!';
+          saveBtn.className = 'mt-2 w-full py-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 font-bold text-xs border border-emerald-500/40 cursor-default flex items-center justify-center gap-2';
+          showToast('Saved ' + res.wrongCount + ' mistakes to your Mistakes Notebook!');
+        };
+      } else {
+        saveText.textContent = '🎉 100% Accuracy! Zero Mistakes Recorded!';
+        saveBtn.disabled = true;
+        saveBtn.className = 'mt-2 w-full py-2.5 rounded-xl bg-slate-800/60 text-slate-400 font-bold text-xs border border-slate-700/60 cursor-default flex items-center justify-center gap-2 opacity-70';
+        saveBtn.onclick = null;
+      }
     }
   }
 
-  // Dashboard Mock Tests History Widget
+  // Dashboard Mock Tests & Practice Sessions History Widget
   function renderDashboardMockHistory() {
     const badge = document.getElementById('dashMockCountBadge');
     const container = document.getElementById('dashMockHistoryContainer');
     if (!container) return;
 
     const history = STATE.mockHistory || [];
-    if (badge) badge.textContent = history.length + ' Test' + (history.length === 1 ? '' : 's');
+    if (badge) badge.textContent = history.length + ' Session' + (history.length === 1 ? '' : 's');
 
     if (history.length === 0) {
       container.innerHTML = (
-        '<div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center text-xs text-slate-400">' +
-          'No mock tests completed yet. Take a 25-Q Sectional Sprint to benchmark your net score!' +
+        '<div class="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 text-center text-xs text-slate-400 leading-relaxed">' +
+          'No practice reports yet. Complete any PYQ practice or mock test to generate your performance scorecard!' +
         '</div>'
       );
       return;
     }
 
-    container.innerHTML = history.slice(0, 4).map(function (h) {
-      const dateStr = new Date(h.timestamp).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+    container.innerHTML = history.slice(0, 5).map(function (h) {
+      const dateStr = new Date(h.timestamp).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
       return (
-        '<div class="mock-history-item p-3 rounded-xl bg-slate-50 hover:bg-amber-500/10 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 hover:border-amber-500/50 flex items-center justify-between text-xs cursor-pointer transition-all shadow-xs group" data-mockid="' + h.id + '">' +
+        '<div class="mock-history-item p-3.5 rounded-2xl bg-slate-50 hover:bg-amber-500/10 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 hover:border-amber-500/50 flex items-center justify-between text-xs cursor-pointer transition-all shadow-xs group" data-mockid="' + h.id + '">' +
           '<div class="flex flex-col">' +
             '<div class="flex items-center gap-1.5">' +
-              '<span class="font-bold text-slate-800 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 truncate max-w-[140px]">' + escapeHtml(h.title) + '</span>' +
-              '<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold">View Scorecard →</span>' +
+              '<span class="font-bold text-slate-800 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 truncate max-w-[150px] sm:max-w-[180px]">' + escapeHtml(h.title) + '</span>' +
+              '<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold">Scorecard →</span>' +
             '</div>' +
             '<span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">' + dateStr + ' · ' + h.accuracy + '% acc · ' + (h.attemptedCount || 'All') + ' attempted</span>' +
           '</div>' +
@@ -1531,14 +1640,35 @@
     if (yearBadge) yearBadge.textContent = q.year || '2023';
     if (diffBadge) diffBadge.textContent = q.difficulty || 'Moderate';
 
-    // Exam Mode Controls Top Bar
+    // Exam Mode vs Practice Mode Controls Top Bar
     const examControls = document.getElementById('playerExamControlsGroup');
+    const practiceControls = document.getElementById('playerPracticeControlsGroup');
+    const finishPracticeBtn = document.getElementById('playerFinishPracticeBtn');
+
     if (examControls) {
       if (STATE.isExamMode && !STATE.isReviewMode) {
         examControls.classList.remove('hidden');
         updateTimerDisplay();
       } else {
         examControls.classList.add('hidden');
+      }
+    }
+
+    if (practiceControls) {
+      if (STATE.isReviewMode) {
+        practiceControls.classList.remove('hidden');
+        if (finishPracticeBtn) {
+          finishPracticeBtn.innerHTML = '<span>📊</span><span>View Scorecard</span>';
+          finishPracticeBtn.className = 'px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5';
+        }
+      } else if (!STATE.isExamMode) {
+        practiceControls.classList.remove('hidden');
+        if (finishPracticeBtn) {
+          finishPracticeBtn.innerHTML = '<span>🏁</span><span class="hidden sm:inline">Finish &amp; View</span> <span>Report</span>';
+          finishPracticeBtn.className = 'px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5';
+        }
+      } else {
+        practiceControls.classList.add('hidden');
       }
     }
 
@@ -1829,13 +1959,44 @@
       }
     }
 
-    // Bottom Navigation Buttons (Prev / Next / Flag)
+    // Bottom Navigation Buttons (Prev / Next / Flag / Finish Early)
     const prevBtn = document.getElementById('playerPrevBtn');
     const nextBtn = document.getElementById('playerNextBtn');
     const flagBtn = document.getElementById('playerFlagBtn');
+    const finishEarlyBtn = document.getElementById('playerFinishEarlyBtn');
 
-    if (prevBtn) prevBtn.disabled = idx === 0;
-    if (nextBtn) nextBtn.disabled = idx === questions.length - 1;
+    if (prevBtn) prevBtn.disabled = (idx === 0);
+
+    const isLastQ = (idx === questions.length - 1);
+
+    if (nextBtn) {
+      if (isLastQ) {
+        if (STATE.isReviewMode) {
+          nextBtn.disabled = false;
+          nextBtn.innerHTML = '<span>📊 Back to Scorecard →</span>';
+          nextBtn.className = 'px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all shadow-md cursor-pointer';
+        } else {
+          nextBtn.disabled = false;
+          nextBtn.innerHTML = '<span>🏁 Finish Practice &amp; View Report Card →</span>';
+          nextBtn.className = 'px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs font-black transition-all shadow-lg shadow-emerald-500/25 ring-2 ring-emerald-400/50 cursor-pointer animate-pulse';
+        }
+      } else {
+        nextBtn.disabled = false;
+        nextBtn.innerHTML = '<span>Next Question →</span>';
+        nextBtn.className = 'px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all shadow-md cursor-pointer';
+      }
+    }
+
+    if (finishEarlyBtn) {
+      const anyAnswered = questions.some(function (quest) {
+        return STATE.testAnswers[quest.id] !== undefined || (STATE.answers[quest.id] && STATE.answers[quest.id].selectedIndex !== undefined);
+      });
+      if (!isLastQ && !STATE.isReviewMode && anyAnswered) {
+        finishEarlyBtn.classList.remove('hidden');
+      } else {
+        finishEarlyBtn.classList.add('hidden');
+      }
+    }
 
     if (flagBtn) {
       const isFlagged = STATE.flagged.has(q.id);
@@ -1878,6 +2039,7 @@
       confidence: STATE.currentConfidence || 'sure',
       timestamp: Date.now()
     };
+    STATE.testAnswers[q.id] = stagedIdx;
 
     if (STATE.activeStrategy && STATE.activeStrategy.isActive) {
       const conf = STATE.currentConfidence || 'sure';
@@ -2092,7 +2254,19 @@
       STATE.playerIndex = 0;
       STATE.isExamMode = false;
       STATE.isReviewMode = false;
-      STATE.currentTest = null;
+      STATE.currentTest = {
+        id: 'drill_' + Date.now(),
+        title: 'Focus Drill: ' + topicName + ' (' + gapQuestions.length + ' Qs)',
+        mode: 'practice',
+        totalQuestions: gapQuestions.length,
+        startTime: Date.now()
+      };
+      STATE.testAnswers = {};
+      gapQuestions.forEach(function (q) {
+        if (STATE.answers[q.id] && STATE.answers[q.id].selectedIndex !== undefined) {
+          STATE.testAnswers[q.id] = STATE.answers[q.id].selectedIndex;
+        }
+      });
       switchViewMode('player');
       showToast('🎯 Focus Mode: Drilling ' + gapQuestions.length + ' questions on ' + topicName + '!');
     } else {
@@ -2267,7 +2441,19 @@
     STATE.playerIndex = 0;
     STATE.isExamMode = false;
     STATE.isReviewMode = false;
-    STATE.currentTest = null;
+    STATE.currentTest = {
+      id: 'mission_' + Date.now(),
+      title: "Today's 15-Minute Daily Mission (10 Qs)",
+      mode: 'practice',
+      totalQuestions: missionSet.length,
+      startTime: Date.now()
+    };
+    STATE.testAnswers = {};
+    missionSet.forEach(function (q) {
+      if (STATE.answers[q.id] && STATE.answers[q.id].selectedIndex !== undefined) {
+        STATE.testAnswers[q.id] = STATE.answers[q.id].selectedIndex;
+      }
+    });
     switchViewMode('player');
     showToast('🎯 Today\'s 15-Minute Mission Active: 10 curated questions loaded into Focus Mode!');
   }
@@ -3158,7 +3344,19 @@
           STATE.playerIndex = targetIdx;
           STATE.isExamMode = false;
           STATE.isReviewMode = false;
-          STATE.currentTest = null;
+          STATE.currentTest = {
+            id: 'practice_' + Date.now(),
+            title: 'PYQ Focus Practice (' + STATE.pyqs.length + ' Qs)',
+            mode: 'practice',
+            totalQuestions: STATE.pyqs.length,
+            startTime: Date.now()
+          };
+          STATE.testAnswers = {};
+          STATE.pyqs.forEach(function (q) {
+            if (STATE.answers[q.id] && STATE.answers[q.id].selectedIndex !== undefined) {
+              STATE.testAnswers[q.id] = STATE.answers[q.id].selectedIndex;
+            }
+          });
           switchViewMode('player');
           showToast('🎯 Loaded Question in Focus Mode');
           return;
@@ -3180,7 +3378,19 @@
           STATE.playerIndex = 0;
           STATE.isExamMode = false;
           STATE.isReviewMode = false;
-          STATE.currentTest = null;
+          STATE.currentTest = {
+            id: 'pyq_' + yrNum + '_' + Date.now(),
+            title: 'UPSC CSE ' + yrNum + ' Official PYQs (' + yrList.length + ' Qs)',
+            mode: 'practice',
+            totalQuestions: yrList.length,
+            startTime: Date.now()
+          };
+          STATE.testAnswers = {};
+          yrList.forEach(function (q) {
+            if (STATE.answers[q.id] && STATE.answers[q.id].selectedIndex !== undefined) {
+              STATE.testAnswers[q.id] = STATE.answers[q.id].selectedIndex;
+            }
+          });
           switchViewMode('player');
           showToast('🎯 Loaded ' + yrList.length + ' questions from UPSC ' + yrNum + '!');
           return;
@@ -4625,7 +4835,19 @@ function renderPlayerDistractorDeepDive(q) {
       STATE.playerIndex = 0;
       STATE.isExamMode = false;
       STATE.isReviewMode = false;
-      STATE.currentTest = null;
+      STATE.currentTest = {
+        id: 'mistakes_' + Date.now(),
+        title: 'Mistakes Notebook Drill (' + mistakeList.length + ' Qs)',
+        mode: 'practice',
+        totalQuestions: mistakeList.length,
+        startTime: Date.now()
+      };
+      STATE.testAnswers = {};
+      mistakeList.forEach(function (q) {
+        if (STATE.answers[q.id] && STATE.answers[q.id].selectedIndex !== undefined) {
+          STATE.testAnswers[q.id] = STATE.answers[q.id].selectedIndex;
+        }
+      });
       switchViewMode('player');
     });
 
@@ -4733,7 +4955,19 @@ function renderPlayerDistractorDeepDive(q) {
       STATE.playerIndex = 0;
       STATE.isExamMode = false;
       STATE.isReviewMode = false;
-      STATE.currentTest = null;
+      STATE.currentTest = {
+        id: 'vault_' + Date.now(),
+        title: 'PYQ Vault Filtered Drill (' + filtered.length + ' Qs)',
+        mode: 'practice',
+        totalQuestions: filtered.length,
+        startTime: Date.now()
+      };
+      STATE.testAnswers = {};
+      filtered.forEach(function (q) {
+        if (STATE.answers[q.id] && STATE.answers[q.id].selectedIndex !== undefined) {
+          STATE.testAnswers[q.id] = STATE.answers[q.id].selectedIndex;
+        }
+      });
       switchViewMode('player');
     });
 
@@ -4806,7 +5040,19 @@ function renderPlayerDistractorDeepDive(q) {
       STATE.playerIndex = 0;
       STATE.isExamMode = false;
       STATE.isReviewMode = false;
-      STATE.currentTest = null;
+      STATE.currentTest = {
+        id: 'matrix_' + Date.now(),
+        title: 'Matrix Filtered Practice (' + matches.length + ' Qs)',
+        mode: 'practice',
+        totalQuestions: matches.length,
+        startTime: Date.now()
+      };
+      STATE.testAnswers = {};
+      matches.forEach(function (q) {
+        if (STATE.answers[q.id] && STATE.answers[q.id].selectedIndex !== undefined) {
+          STATE.testAnswers[q.id] = STATE.answers[q.id].selectedIndex;
+        }
+      });
       switchViewMode('player');
       showToast('🚀 Loaded ' + matches.length + ' questions into Focus Mode!');
     });
@@ -4840,7 +5086,14 @@ function renderPlayerDistractorDeepDive(q) {
 
     // Player Controls
     document.getElementById('exitPlayerBtn')?.addEventListener('click', function () {
-      if (STATE.isExamMode && !STATE.isReviewMode) {
+      if (STATE.isReviewMode) {
+        switchViewMode('report');
+        return;
+      }
+      var anyAnswered = STATE.playerQuestions && STATE.playerQuestions.some(function (quest) {
+        return STATE.testAnswers[quest.id] !== undefined || (STATE.answers[quest.id] && STATE.answers[quest.id].selectedIndex !== undefined);
+      });
+      if (anyAnswered) {
         window.openSubmitConfirmModal();
       } else {
         switchViewMode('dashboard');
@@ -4848,6 +5101,16 @@ function renderPlayerDistractorDeepDive(q) {
     });
 
     document.getElementById('playerSubmitExamBtn')?.addEventListener('click', window.openSubmitConfirmModal);
+    document.getElementById('playerFinishPracticeBtn')?.addEventListener('click', function () {
+      if (STATE.isReviewMode) {
+        switchViewMode('report');
+      } else {
+        window.openSubmitConfirmModal();
+      }
+    });
+    document.getElementById('playerFinishEarlyBtn')?.addEventListener('click', function () {
+      window.openSubmitConfirmModal();
+    });
     document.getElementById('returnToTestBtn')?.addEventListener('click', window.closeSubmitConfirmModal);
     document.getElementById('confirmFinalSubmitBtn')?.addEventListener('click', window.submitExamSession);
 
@@ -4863,6 +5126,13 @@ function renderPlayerDistractorDeepDive(q) {
         STATE.playerIndex++;
         STATE.stagedSelection = null;
         renderCurrentPlayerQuestion();
+      } else {
+        // Last question reached!
+        if (STATE.isReviewMode) {
+          switchViewMode('report');
+        } else {
+          window.openSubmitConfirmModal();
+        }
       }
     });
     document.getElementById('playerFlagBtn')?.addEventListener('click', function () {
@@ -4974,9 +5244,17 @@ function renderPlayerDistractorDeepDive(q) {
       STATE.playerIndex = 0;
       STATE.isExamMode = false;
       STATE.isReviewMode = false;
-      STATE.currentTest = null;
+      STATE.stagedSelection = null;
+      STATE.testAnswers = {};
+      STATE.currentTest = {
+        id: 'remedial_' + Date.now(),
+        title: 'Remedial Retest (' + wrong.length + ' Mistakes)',
+        mode: 'practice',
+        totalQuestions: wrong.length,
+        startTime: Date.now()
+      };
       switchViewMode('player');
-      showToast('🎯 Loaded ' + wrong.length + ' remedial questions!');
+      showToast('🎯 Loaded ' + wrong.length + ' remedial questions to master!');
     });
 
     // 0. Today's Prescribed High-Yield Mission Launcher

@@ -1199,6 +1199,23 @@
               </div>
             </div>
 
+            <!-- 5. Recent Practice Sessions & Mock Reports History -->
+            <div id="dashMockHistoryCard" class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col gap-3.5 shadow-sm">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                <span class="text-xs font-mono uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1.5">
+                  <span>📊</span>
+                  <span>Practice &amp; Mock Scorecards</span>
+                </span>
+                <span id="dashMockCountBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-bold border border-amber-500/30">0 Sessions</span>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                Track your net marks (+2.00, -0.66), accuracy rate, and inspect behavioral mistake leaks from your recent sessions.
+              </p>
+              <div id="dashMockHistoryContainer" class="flex flex-col gap-2 max-h-60 overflow-y-auto pr-1">
+                <!-- Dynamically populated by renderDashboardMockHistory() -->
+              </div>
+            </div>
+
           </div>
 
         </div>
@@ -1471,6 +1488,14 @@
             <span id="playerDiffBadge" class="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold">Moderate</span>
           </div>
 
+          <!-- Practice Mode Finish Controls -->
+          <div id="playerPracticeControlsGroup" class="flex items-center gap-2">
+            <button id="playerFinishPracticeBtn" type="button" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5">
+              <span>🏁</span>
+              <span class="hidden sm:inline">Finish &amp; View</span> <span>Report</span>
+            </button>
+          </div>
+
           <!-- Live Exam Mode Timer & Finish Controls -->
           <div id="playerExamControlsGroup" class="hidden flex items-center gap-2">
             <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 font-mono font-bold text-xs">
@@ -1568,7 +1593,7 @@
         </div>
 
         <!-- Player Bottom Controls Bar -->
-        <div class="flex items-center justify-between pt-2">
+        <div class="flex items-center justify-between pt-2 gap-2 flex-wrap sm:flex-nowrap">
           <button id="playerPrevBtn" type="button" class="px-5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-30 disabled:pointer-events-none">
             ← Previous Question
           </button>
@@ -1580,7 +1605,12 @@
             🚩 Flag for Review
           </button>
 
-          <button id="playerNextBtn" type="button" class="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all shadow-md cursor-pointer disabled:opacity-30 disabled:pointer-events-none">
+          <button id="playerFinishEarlyBtn" type="button" class="hidden px-4 py-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-400 hover:text-emerald-300 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5">
+            <span>🏁</span>
+            <span>Finish &amp; View Report</span>
+          </button>
+
+          <button id="playerNextBtn" type="button" class="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all shadow-md cursor-pointer">
             Next Question →
           </button>
         </div>
@@ -2383,8 +2413,8 @@
       </div>
 
       <div class="flex flex-col gap-1">
-        <h3 class="text-lg font-black text-white">Submit Prelims Mock Test?</h3>
-        <p class="text-xs text-slate-400">
+        <h3 id="confirmModalTitle" class="text-lg font-black text-white">Finish Practice Session &amp; View Report?</h3>
+        <p id="confirmModalDesc" class="text-xs text-slate-400">
           Review your attempt status before computing your official UPSC score and forensic report:
         </p>
       </div>
@@ -2406,16 +2436,17 @@
       </div>
 
       <div class="flex items-center justify-center gap-2 text-xs font-mono text-amber-400">
-        <span>⏱️ Time Remaining:</span>
+        <span id="confirmTimeLabel">⏱️ Practice Time:</span>
         <span id="confirmTimeRemaining" class="font-bold">00:00</span>
       </div>
 
       <div class="flex items-center justify-center gap-3 pt-2">
         <button type="button" id="returnToTestBtn" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer">
-          Continue Test
+          Continue
         </button>
-        <button type="button" id="confirmFinalSubmitBtn" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-lg cursor-pointer">
-          Submit &amp; View Report
+        <button type="button" id="confirmFinalSubmitBtn" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-lg cursor-pointer flex items-center gap-1.5">
+          <span>🏁</span>
+          <span id="confirmFinalSubmitBtnText">Submit &amp; View Report</span>
         </button>
       </div>
 
