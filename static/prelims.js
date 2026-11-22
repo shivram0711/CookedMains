@@ -3310,6 +3310,7 @@
 
   function handleUrlQueryParams() {
     try {
+      const path = (window.location.pathname || '').toLowerCase();
       const params = new URLSearchParams(window.location.search);
       const qid = params.get('qid');
       const subject = params.get('subject');
@@ -3317,8 +3318,13 @@
       const mode = params.get('mode') || params.get('action');
       const kw = params.get('q') || params.get('keyword');
 
-      if (mode === 'csat' || subject === 'csat') {
+      if (mode === 'csat' || subject === 'csat' || path.includes('/csat')) {
         switchViewMode('csat');
+        return;
+      }
+
+      if (mode === 'vault' || path.endsWith('/pyqs')) {
+        switchViewMode('vault');
         return;
       }
 
@@ -3577,17 +3583,17 @@
 
     if (verdictBadge) {
       if (net >= 80) {
-        verdictBadge.className = 'p-3 rounded-xl border text-center text-xs font-black transition-all bg-emerald-950/60 border-emerald-800/80 text-emerald-300';
+        verdictBadge.className = 'csat-safe p-3 rounded-xl border text-center text-xs font-black transition-all bg-emerald-100 dark:bg-emerald-950/60 border-emerald-400 dark:border-emerald-800/80 text-emerald-800 dark:text-emerald-300';
         verdictBadge.innerHTML = '✅ SAFE QUALIFIED (Above 66.67 Cutoff by +' + (net - 66.67).toFixed(1) + ' buffer)';
-        netScoreEl.className = 'text-2xl font-black font-mono text-emerald-400';
+        netScoreEl.className = 'text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400';
       } else if (net >= 66.67) {
-        verdictBadge.className = 'p-3 rounded-xl border text-center text-xs font-black transition-all bg-amber-950/60 border-amber-800/80 text-amber-300';
+        verdictBadge.className = 'csat-borderline p-3 rounded-xl border text-center text-xs font-black transition-all bg-amber-100 dark:bg-amber-950/60 border-amber-400 dark:border-amber-800/80 text-amber-900 dark:text-amber-300';
         verdictBadge.innerHTML = '⚠️ BORDERLINE ZONE (' + net.toFixed(1) + ' Marks) — Risky under negative mark variance!';
-        netScoreEl.className = 'text-2xl font-black font-mono text-amber-400';
+        netScoreEl.className = 'text-2xl font-black font-mono text-amber-600 dark:text-amber-400';
       } else {
-        verdictBadge.className = 'p-3 rounded-xl border text-center text-xs font-black transition-all bg-rose-950/60 border-rose-800/80 text-rose-300';
+        verdictBadge.className = 'csat-danger p-3 rounded-xl border text-center text-xs font-black transition-all bg-rose-100 dark:bg-rose-950/60 border-rose-400 dark:border-rose-800/80 text-rose-900 dark:text-rose-300';
         verdictBadge.innerHTML = '❌ DANGER: DISQUALIFIED (' + (66.67 - net).toFixed(1) + ' marks below 66.67 Cutoff)';
-        netScoreEl.className = 'text-2xl font-black font-mono text-rose-400';
+        netScoreEl.className = 'text-2xl font-black font-mono text-rose-600 dark:text-rose-400';
       }
     }
   }

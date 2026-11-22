@@ -193,7 +193,7 @@
     }
 
     /* Reset all dark gradients and slate surfaces in Light Mode */
-    html:not(.dark) [class*="bg-gradient-to-"],
+    html:not(.dark) [class*="bg-gradient-to-"]:not(button):not(a):not(.btn),
     html:not(.dark) [class*="from-slate-"],
     html:not(.dark) [class*="via-slate-"],
     html:not(.dark) [class*="to-slate-"],
@@ -410,6 +410,35 @@
       background-color: rgba(16, 185, 129, 0.25) !important;
       color: #6ee7b7 !important;
       font-weight: 700 !important;
+    }
+
+  
+    /* CSAT Verdict Badge & Calibration outputs in Light Mode */
+    html:not(.dark) #csatVerdictBadge {
+      border-width: 1.5px !important;
+    }
+    html:not(.dark) #csatVerdictBadge.csat-borderline,
+    html:not(.dark) #csatVerdictBadge[class*="bg-amber-"] {
+      background-color: #fef3c7 !important;
+      border-color: #f59e0b !important;
+      color: #92400e !important;
+    }
+    html:not(.dark) #csatVerdictBadge.csat-safe,
+    html:not(.dark) #csatVerdictBadge[class*="bg-emerald-"] {
+      background-color: #d1fae5 !important;
+      border-color: #10b981 !important;
+      color: #065f46 !important;
+    }
+    html:not(.dark) #csatVerdictBadge.csat-danger,
+    html:not(.dark) #csatVerdictBadge[class*="bg-rose-"] {
+      background-color: #ffe4e6 !important;
+      border-color: #f43f5e !important;
+      color: #9f1239 !important;
+    }
+    html:not(.dark) #launchCsatSprintBtn {
+      background-color: #f59e0b !important;
+      background-image: linear-gradient(to right, #fbbf24, #f59e0b) !important;
+      color: #0f172a !important;
     }
 
   </style>
