@@ -19632,6 +19632,30 @@ if (evalIdParam) {
   }, 400);
 }
 
+// Check for incoming Mains Question Bridge from Prelims Dashboard (?paper=GS2&question=...)
+const qParam = urlParams.get("question");
+const pParam = urlParams.get("paper");
+if (qParam) {
+  setTimeout(() => {
+    const cleanPaper = (pParam || "GS1").toUpperCase().replace(/\s+/g, "");
+    if (typeof window.setPaperAndMarks === "function") {
+      window.setPaperAndMarks(cleanPaper, 15);
+    }
+    if (typeof window.activateCustomQuestionMode === "function") {
+      window.activateCustomQuestionMode();
+    }
+    const customInput = document.getElementById("customQuestionInput");
+    if (customInput) {
+      customInput.value = decodeURIComponent(qParam);
+      customInput.dispatchEvent(new Event("input", { bubbles: true }));
+      customInput.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    if (typeof window.showAppToast === "function") {
+      window.showAppToast(`🎯 Loaded ${cleanPaper} question from Prelims Vault. Upload your answersheet to evaluate!`, 6000);
+    }
+  }, 500);
+}
+
 // Global Keyboard Shortcut: Print feature paused temporarily
 document.addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {

@@ -507,18 +507,21 @@
     </div>
 
     <!-- Bottom Profile & Utilities -->
-    <div class="p-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-xs font-mono">
+    <div id="sidebarAuthContainer" class="p-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+      <div id="sidebarProfileDetails" class="flex items-center gap-2 cursor-pointer" onclick="window.onSidebarUserClick()">
+        <div id="sidebarUserAvatar" class="w-8 h-8 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-xs font-mono">
           A
         </div>
         <div class="flex flex-col">
           <span id="sidebarUserName" class="font-bold text-white leading-tight">Aspirant</span>
-          <span class="text-[10px] text-emerald-400 font-mono">UPSC CSE 2027</span>
+          <span id="sidebarUserSubtext" class="text-[10px] text-emerald-400 font-mono">5 Free Trial Qs</span>
         </div>
       </div>
 
       <div class="flex items-center gap-1">
+        <button id="sidebarAuthActionBtn" onclick="window.onSidebarAuthBtnClick()" class="px-2 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-[10px] border border-amber-500/40 cursor-pointer transition">
+          Sign In
+        </button>
         <!-- Bilingual Toggle -->
         <button id="sidebarLangToggle" class="p-1.5 rounded-lg bg-slate-900 text-amber-400 font-mono font-bold text-xs hover:bg-slate-800 cursor-pointer" title="Toggle English / हिंदी">
           A/अ
@@ -557,14 +560,12 @@
 
       <!-- Right Action Levers -->
       <div class="flex items-center gap-2 sm:gap-3">
-        
-
+        <div id="headerAuthContainer" class="flex items-center gap-2"></div>
         <a href="/" class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 transition-all shadow-md">
           <span>✍️</span>
           <span>Mains Studio</span>
         </a>
       </div>
-
     </header>
 
     <!-- CONTENT CONTAINER -->
@@ -1439,6 +1440,17 @@
               <span id="playerMarksDelta">+2.00 Marks</span>
             </div>
 
+            <!-- 4-Pill Behavioral Mistake Tagger (Immediately below options & result, above explanations) -->
+            <div id="playerDiagTagGroup" class="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col gap-2.5">
+              <span class="text-xs font-bold text-slate-300">Why did you pick this option?</span>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <button type="button" class="player-tag-btn p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-rose-400 font-semibold hover:border-rose-500 cursor-pointer" data-tag="concept">🔴 Conceptual</button>
+                <button type="button" class="player-tag-btn p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-amber-400 font-semibold hover:border-amber-500 cursor-pointer" data-tag="silly">🟡 Silly Trap</button>
+                <button type="button" class="player-tag-btn p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-blue-400 font-semibold hover:border-blue-500 cursor-pointer" data-tag="elimination">🔵 Over-Elim</button>
+                <button type="button" class="player-tag-btn p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-purple-400 font-semibold hover:border-purple-500 cursor-pointer" data-tag="memory">🟣 Memory</button>
+              </div>
+            </div>
+
             <!-- Topper's Trap Detector Box -->
             <div id="playerTrapBox" class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col gap-1.5 text-xs text-amber-950 dark:text-amber-200">
               <div class="flex items-center gap-1.5 font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider text-[11px]">
@@ -1457,17 +1469,6 @@
             <!-- Option-by-Option Distractor Deep Dive -->
             <div id="playerDistractorDeepDiveBox" class="flex flex-col gap-2.5">
               <!-- Dynamically populated distractor analysis cards -->
-            </div>
-
-            <!-- 4-Pill Behavioral Mistake Tagger -->
-            <div id="playerDiagTagGroup" class="flex flex-col gap-2 pt-2">
-              <span class="text-xs font-bold text-slate-400">Why did you pick this option? (Subconscious leak tracking)</span>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                <button type="button" class="player-tag-btn p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-rose-400 font-semibold hover:border-rose-500 cursor-pointer" data-tag="concept">🔴 Conceptual</button>
-                <button type="button" class="player-tag-btn p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-amber-400 font-semibold hover:border-amber-500 cursor-pointer" data-tag="silly">🟡 Silly Trap</button>
-                <button type="button" class="player-tag-btn p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-blue-400 font-semibold hover:border-blue-500 cursor-pointer" data-tag="elimination">🔵 Over-Elim</button>
-                <button type="button" class="player-tag-btn p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-purple-400 font-semibold hover:border-purple-500 cursor-pointer" data-tag="memory">🟣 Memory</button>
-              </div>
             </div>
 
           </div>
@@ -2058,13 +2059,13 @@
   </div>
 
   <!-- Toast Notification -->
-  <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 bg-slate-900 border border-amber-500/40 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold">
+  <div id="toastNotification" class="fixed top-6 right-6 z-50 transform -translate-y-10 opacity-0 pointer-events-none transition-all duration-300 bg-slate-900/95 backdrop-blur-md border border-amber-500/40 text-white px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold">
     <span class="text-amber-400 text-base">✓</span>
     <span id="toastMessage">Done</span>
   </div>
 
   <!-- Scripts -->
-  <script src="/static/prelims.js?v=1795251500000"></script>
+  <script src="/static/prelims.js?v=1795334000000"></script>
 
   <!-- ====================================================
        ADAPTIVE MOCK TEST GENERATOR MODAL (Phase 4)
@@ -2598,6 +2599,137 @@
         <button type="button" id="modalStartPendingSprintBtn" class="w-full sm:w-auto px-6 py-2.5 rounded-xl btn-action-emerald text-xs font-bold shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2">
           <span>⚡ Solve Pending (<span id="modalPendingCountText">29</span> Qs) Now →</span>
         </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ====================================================
+       FREEMIUM ACCESS GATE MODAL (Model A)
+       ==================================================== -->
+  <div id="freemiumGateModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in">
+    <div class="relative w-full max-w-md rounded-3xl bg-slate-900 border border-amber-500/40 shadow-2xl p-6 sm:p-7 flex flex-col gap-4 text-center my-auto">
+      
+      <!-- Close Button -->
+      <button type="button" onclick="window.closeFreemiumGateModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xs font-bold p-1 rounded-lg hover:bg-slate-800 cursor-pointer">
+        ✕
+      </button>
+
+      <!-- Badge & Icon -->
+      <div class="mx-auto w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-3xl">
+        🎯
+      </div>
+
+      <div>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-[10px] font-bold font-mono tracking-wider uppercase mb-2">
+          <span>Freemium Preview Completed</span>
+        </div>
+        <h3 id="freemiumGateTitle" class="text-xl font-black text-white tracking-tight">Unlock All 1,600+ Authentic PYQs</h3>
+        <p id="freemiumGateDescription" class="text-xs text-slate-300 mt-2 leading-relaxed">
+          You have completed your 5 free trial questions! Sign in to save your <strong class="text-amber-400">Mistake Notebook</strong>, connect with your <strong class="text-emerald-400">Mains Evaluation</strong> account, and unlock all 16 years (2011–2026).
+        </p>
+      </div>
+
+      <!-- Feature Highlights -->
+      <div class="grid grid-cols-2 gap-2 text-left text-[11px] text-slate-300 py-1">
+        <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-2">
+          <span class="text-emerald-400 font-bold">✓</span>
+          <span>1,600 Verified Questions</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-2">
+          <span class="text-emerald-400 font-bold">✓</span>
+          <span>Cloud Mistake Notebook</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-2">
+          <span class="text-emerald-400 font-bold">✓</span>
+          <span>Official UPSC Final Keys</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-2">
+          <span class="text-emerald-400 font-bold">✓</span>
+          <span>Prelims ⇄ Mains Bridge</span>
+        </div>
+      </div>
+
+      <!-- Sign In Button -->
+      <button type="button" onclick="window.openAuthModal('Sign in or register to unlock all 1,600 PYQs & save your Mistake Notebook')" class="w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/20 transition cursor-pointer flex items-center justify-center gap-2">
+        <span>🔑 Sign In or Create Free Account →</span>
+      </button>
+
+      <p class="text-[10px] text-slate-500 font-mono">
+        Takes 10 seconds • Syncs seamlessly with your Mains Evaluation account
+      </p>
+
+    </div>
+  </div>
+
+  <!-- ====================================================
+       AUTHENTICATION MODAL (Unified with Mains Evaluation)
+       ==================================================== -->
+  <div id="authModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in" role="dialog" aria-modal="true">
+    <div class="bg-slate-900/95 border border-amber-500/35 rounded-3xl max-w-md w-full max-h-[92vh] overflow-y-auto p-5 sm:p-7 shadow-2xl shadow-amber-500/10 space-y-4 relative my-auto">
+      
+      <!-- Top Bar: Close Button -->
+      <div class="flex items-center justify-between">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold font-mono tracking-wider uppercase">
+          <span>CookedMains Cadet Portal</span>
+        </div>
+        <button type="button" onclick="window.closeAuthModal()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 text-xs font-bold border border-slate-700 hover:border-rose-500/40 transition cursor-pointer" title="Cancel & Close">
+          <span>✕ Close</span>
+        </button>
+      </div>
+
+      <!-- Header -->
+      <div class="text-center space-y-1.5 pt-1">
+        <h3 id="authModalTitle" class="text-xl sm:text-2xl font-bold text-white font-serif tracking-tight">Sign In to CookedMains</h3>
+        <p id="authIntentAlertText" class="text-xs text-slate-300 leading-relaxed max-w-sm mx-auto">
+          One account for both <strong class="text-amber-400">Prelims PYQ Vault</strong> &amp; <strong class="text-emerald-400">Mains Copy Evaluation</strong>.
+        </p>
+      </div>
+
+      <!-- Mode Switcher: Sign In vs Create New Account -->
+      <div class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-slate-950 border border-slate-800">
+        <button type="button" id="authTabLoginBtn" onclick="window.setAuthFormMode('login')" class="py-1.5 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 shadow transition cursor-pointer">
+          Sign In
+        </button>
+        <button type="button" id="authTabRegisterBtn" onclick="window.setAuthFormMode('register')" class="py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">
+          Create Account
+        </button>
+      </div>
+
+      <input type="hidden" id="authModeInput" value="login">
+
+      <!-- Error Alert -->
+      <div id="authFormError" class="hidden p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/40 text-[11px] text-rose-300 font-medium flex items-center gap-2">
+        <span class="text-rose-400">⚠️</span>
+        <span id="authFormErrorText">Error message here</span>
+      </div>
+
+      <!-- Form -->
+      <form id="prelimsAuthForm" onsubmit="window.handlePrelimsAuthSubmit(event)" class="space-y-3">
+        <div id="authNameFieldWrap" class="hidden">
+          <label class="block text-[11px] font-semibold text-slate-300 mb-1">Aspirant Full Name</label>
+          <input type="text" id="authNameInput" placeholder="e.g. Priya Sharma" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-300 mb-1">Email ID</label>
+          <input type="email" id="authEmailInput" required placeholder="aspirant@gmail.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-300 mb-1">Password</label>
+          <input type="password" id="authPasswordInput" required placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+        </div>
+
+        <button type="submit" id="authSubmitBtn" class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition cursor-pointer flex items-center justify-center gap-2">
+          <span id="authSubmitBtnText">Sign In →</span>
+        </button>
+      </form>
+
+      <div class="pt-2 border-t border-slate-800/60 text-center">
+        <p class="text-[10px] text-slate-500 font-mono">
+          🔒 Secure 256-bit encrypted authentication • CookedMains
+        </p>
       </div>
 
     </div>

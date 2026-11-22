@@ -56,11 +56,13 @@
     mockHistory: [],
     language: localStorage.getItem('cm_prelims_lang') || 'en',
     theme: localStorage.getItem('mainsmentor_theme') || 'dark',
-    userName: localStorage.getItem('cm_aspirant_name') || 'Aspirant'
+    userName: localStorage.getItem('cm_aspirant_name') || 'Aspirant',
+    user: null
   };
 
   // Load Persisted LocalStorage Data
   function loadPersistedState() {
+    initAuthSession();
     try {
       const savedAnswers = localStorage.getItem(STORAGE_KEYS.ANSWERS);
       if (savedAnswers) STATE.answers = JSON.parse(savedAnswers);
@@ -109,18 +111,19 @@
     initTheme();
   }
 
-  // Toast Helper
+  // Toast Helper (Top-Right notification, stays away from bottom player buttons)
   function showToast(msg) {
     const toast = document.getElementById('toastNotification');
     const msgEl = document.getElementById('toastMessage');
     if (!toast || !msgEl) return;
     msgEl.textContent = msg;
-    toast.classList.remove('translate-y-20', 'opacity-0');
+    toast.classList.remove('-translate-y-10', 'opacity-0');
     toast.classList.add('translate-y-0', 'opacity-100');
-    setTimeout(() => {
-      toast.classList.add('translate-y-20', 'opacity-0');
+    if (window._cmToastTimeout) clearTimeout(window._cmToastTimeout);
+    window._cmToastTimeout = setTimeout(() => {
+      toast.classList.add('-translate-y-10', 'opacity-0');
       toast.classList.remove('translate-y-0', 'opacity-100');
-    }, 2400);
+    }, 2000);
   }
 
   // View Switcher (Dashboard vs Question Player Focus Mode vs Forensic Scorecard)
@@ -137,6 +140,10 @@
   }
 
   function switchViewMode(mode) {
+    if (!STATE.user && (mode === 'mistakes' || mode === 'csat' || mode === 'cutoff')) {
+      openFreemiumGateModal(mode);
+      return;
+    }
     STATE.viewMode = mode;
     const dashView = document.getElementById('dashboardOverviewView');
     const playerView = document.getElementById('questionPlayerView');
@@ -378,6 +385,10 @@
   };
 
   window.openMockGenerator = function (defaultFormat) {
+    if (!STATE.user) {
+      openFreemiumGateModal('mock');
+      return;
+    }
     const modal = document.getElementById('mockGeneratorModal');
     if (!modal) return;
     modal.classList.remove('hidden');
@@ -1419,11 +1430,9 @@
       btn.onclick = function () {
         if (STATE.leakTags[q.id] === tag) {
           delete STATE.leakTags[q.id];
-          showToast('Tag removed');
         } else {
           STATE.leakTags[q.id] = tag;
           STATE.mistakes.add(q.id);
-          showToast('Tagged as ' + def.label + ' error');
         }
         persistState();
         renderBehavioralTagger(q);
@@ -1717,6 +1726,7 @@
         if (citEl && q.standard_book_ref) citEl.textContent = 'Standard Reference: ' + q.standard_book_ref;
         renderPlayerDistractorDeepDive(q);
         renderBehavioralTagger(q);
+        renderPlayerMainsLinkage(q);
       }
 
     } else {
@@ -1810,6 +1820,7 @@
           if (citEl && q.standard_book_ref) citEl.textContent = 'Standard Reference: ' + q.standard_book_ref;
           renderPlayerDistractorDeepDive(q);
           renderBehavioralTagger(q);
+          renderPlayerMainsLinkage(q);
         } else {
           expBox.classList.add('hidden');
           const distractorBox = document.getElementById('playerDistractorDeepDiveBox');
@@ -1840,6 +1851,15 @@
     const q = STATE.playerQuestions[STATE.playerIndex];
     const stagedIdx = STATE.stagedSelection;
     if (!q || stagedIdx === null) return;
+
+    // Freemium Gate (Model A: 5 questions trial for unauthenticated users)
+    if (!STATE.user && !STATE.answers[q.id]) {
+      const answeredCount = Object.keys(STATE.answers || {}).length;
+      if (answeredCount >= 5) {
+        openFreemiumGateModal('solve');
+        return;
+      }
+    }
 
     if (STATE.isExamMode && !STATE.isReviewMode) {
       // Record answer in Exam Session
@@ -3958,6 +3978,17 @@ function renderPlayerDistractorDeepDive(q) {
                 (q.standard_book_ref ? '<span class="text-[11px] text-amber-700 dark:text-amber-400 font-mono pt-1">📖 Standard Reference: ' + escapeHtml(q.standard_book_ref) + '</span>' : '') +
               '</div>' +
 
+              (q.mains_linkage && q.mains_linkage.question ? 
+                '<div class="p-3 rounded-xl bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-slate-950 border border-amber-500/30 flex items-center justify-between gap-3 flex-wrap">' +
+                  '<div class="flex flex-col gap-0.5">' +
+                    '<span class="text-[10px] font-bold text-amber-400 flex items-center gap-1"><span>✍️</span> GS Mains Linkage (' + escapeHtml(q.mains_linkage.paper || 'GS') + ')</span>' +
+                    '<p class="text-[11px] text-slate-300 italic line-clamp-1">"' + escapeHtml(q.mains_linkage.question) + '"</p>' +
+                  '</div>' +
+                  '<a href="/?paper=' + encodeURIComponent(q.mains_linkage.paper || 'GS1') + '&question=' + encodeURIComponent(q.mains_linkage.question) + '" target="_blank" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[10px] transition shrink-0">' +
+                    'Evaluate Mains Copy →' +
+                  '</a>' +
+                '</div>' : '') +
+
             '</div>'
           ) : '') +
 
@@ -4226,6 +4257,295 @@ function renderPlayerDistractorDeepDive(q) {
 
     window.print();
   }
+
+  /* ====================================================
+     CADET AUTHENTICATION & FREEMIUM ACCESS GATE (Model A)
+     Unified with CookedMains Mains Copy Evaluation System
+     ==================================================== */
+  function initAuthSession() {
+    try {
+      const sessionUser = sessionStorage.getItem("mainsmentor_user") || localStorage.getItem("mainsmentor_user");
+      if (sessionUser) {
+        STATE.user = JSON.parse(sessionUser);
+      } else {
+        STATE.user = null;
+      }
+    } catch (e) {
+      STATE.user = null;
+    }
+    updateAuthUI();
+  }
+
+  function updateAuthUI() {
+    const avatarEl = document.getElementById('sidebarUserAvatar');
+    const nameEl = document.getElementById('sidebarUserName');
+    const subtextEl = document.getElementById('sidebarUserSubtext');
+    const actionBtn = document.getElementById('sidebarAuthActionBtn');
+    const headerAuth = document.getElementById('headerAuthContainer');
+
+    if (STATE.user && STATE.user.email) {
+      const displayName = STATE.user.name || STATE.user.email.split('@')[0];
+      const initial = (displayName.charAt(0) || 'A').toUpperCase();
+
+      if (avatarEl) {
+        avatarEl.textContent = initial;
+        avatarEl.className = 'w-8 h-8 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-bold text-xs font-mono shadow-sm';
+      }
+      if (nameEl) {
+        nameEl.textContent = displayName;
+        nameEl.title = STATE.user.email;
+      }
+      if (subtextEl) {
+        subtextEl.textContent = 'Mains Cadet • Active';
+        subtextEl.className = 'text-[10px] text-emerald-400 font-mono';
+      }
+      if (actionBtn) {
+        actionBtn.textContent = 'Sign Out';
+        actionBtn.className = 'px-2 py-1 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 font-bold text-[10px] border border-slate-700 hover:border-rose-500/40 cursor-pointer transition';
+      }
+
+      if (headerAuth) {
+        headerAuth.innerHTML = `
+          <div class="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="font-bold text-white text-[11px]">${escapeHtml(displayName)}</span>
+          </div>
+          <button onclick="window.signOutUser()" class="text-[11px] text-slate-400 hover:text-rose-400 font-bold px-2 py-1 transition cursor-pointer">
+            Sign Out
+          </button>
+        `;
+      }
+    } else {
+      const answeredCount = Object.keys(STATE.answers || {}).length;
+      const remainingTrial = Math.max(0, 5 - answeredCount);
+
+      if (avatarEl) {
+        avatarEl.textContent = '?';
+        avatarEl.className = 'w-8 h-8 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-xs font-mono';
+      }
+      if (nameEl) {
+        nameEl.textContent = 'Guest Aspirant';
+      }
+      if (subtextEl) {
+        subtextEl.textContent = remainingTrial > 0 ? `${remainingTrial} Free Trial Qs Left` : 'Trial Limit Reached';
+        subtextEl.className = remainingTrial > 0 ? 'text-[10px] text-amber-400 font-mono' : 'text-[10px] text-rose-400 font-mono font-bold';
+      }
+      if (actionBtn) {
+        actionBtn.textContent = 'Sign In';
+        actionBtn.className = 'px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[10px] cursor-pointer transition shadow-sm';
+      }
+
+      if (headerAuth) {
+        headerAuth.innerHTML = `
+          <button onclick="window.openAuthModal('Sign in to save your Prelims practice history & sync with Mains copy evaluation')" class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 transition-all cursor-pointer">
+            <span>🔑</span>
+            <span>Sign In</span>
+          </button>
+        `;
+      }
+    }
+  }
+
+  function signOutUser() {
+    sessionStorage.removeItem("mainsmentor_user");
+    localStorage.removeItem("mainsmentor_user");
+    STATE.user = null;
+    updateAuthUI();
+    showToast("Signed out successfully");
+  }
+
+  function openAuthModal(intentMessage) {
+    closeFreemiumGateModal();
+    const modal = document.getElementById('authModal');
+    const intentEl = document.getElementById('authIntentAlertText');
+    if (!modal) return;
+    if (intentMessage && intentEl) {
+      intentEl.textContent = intentMessage;
+    }
+    modal.classList.remove('hidden');
+  }
+
+  function closeAuthModal() {
+    const modal = document.getElementById('authModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function setAuthFormMode(mode) {
+    const modeInput = document.getElementById('authModeInput');
+    const nameWrap = document.getElementById('authNameFieldWrap');
+    const title = document.getElementById('authModalTitle');
+    const submitText = document.getElementById('authSubmitBtnText');
+    const tabLogin = document.getElementById('authTabLoginBtn');
+    const tabRegister = document.getElementById('authTabRegisterBtn');
+    const errBox = document.getElementById('authFormError');
+
+    if (errBox) errBox.classList.add('hidden');
+    if (modeInput) modeInput.value = mode;
+
+    if (mode === 'register') {
+      if (nameWrap) nameWrap.classList.remove('hidden');
+      if (title) title.textContent = 'Create Free Account';
+      if (submitText) submitText.textContent = 'Create Account →';
+      if (tabLogin) tabLogin.className = 'py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer';
+      if (tabRegister) tabRegister.className = 'py-1.5 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 shadow transition cursor-pointer';
+    } else {
+      if (nameWrap) nameWrap.classList.add('hidden');
+      if (title) title.textContent = 'Sign In to CookedMains';
+      if (submitText) submitText.textContent = 'Sign In →';
+      if (tabLogin) tabLogin.className = 'py-1.5 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 shadow transition cursor-pointer';
+      if (tabRegister) tabRegister.className = 'py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer';
+    }
+  }
+
+  async function handlePrelimsAuthSubmit(e) {
+    if (e) e.preventDefault();
+    const mode = document.getElementById('authModeInput')?.value || 'login';
+    const email = (document.getElementById('authEmailInput')?.value || '').trim();
+    const password = document.getElementById('authPasswordInput')?.value || '';
+    const name = (document.getElementById('authNameInput')?.value || '').trim();
+    const errBox = document.getElementById('authFormError');
+    const errText = document.getElementById('authFormErrorText');
+    const submitBtn = document.getElementById('authSubmitBtn');
+    const submitText = document.getElementById('authSubmitBtnText');
+
+    if (!email || !password) {
+      if (errBox && errText) {
+        errBox.classList.remove('hidden');
+        errText.textContent = 'Please enter both email and password.';
+      }
+      return;
+    }
+
+    if (mode === 'register' && !name) {
+      if (errBox && errText) {
+        errBox.classList.remove('hidden');
+        errText.textContent = 'Please enter your full name.';
+      }
+      return;
+    }
+
+    if (errBox) errBox.classList.add('hidden');
+    if (submitBtn) submitBtn.disabled = true;
+    if (submitText) submitText.textContent = 'Authenticating...';
+
+    try {
+      const res = await fetch('/api/user/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name, mode })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || data.error || 'Authentication failed');
+      }
+
+      const user = data.user || { email, name: name || email.split('@')[0] };
+      sessionStorage.setItem("mainsmentor_user", JSON.stringify(user));
+      localStorage.setItem("mainsmentor_user", JSON.stringify(user));
+      localStorage.setItem("cookedmains_bound_email", user.email);
+      if (user.name) localStorage.setItem("cookedmains_bound_name", user.name);
+      STATE.user = user;
+
+      closeAuthModal();
+      closeFreemiumGateModal();
+      updateAuthUI();
+      showToast(`Welcome ${user.name || user.email}! Unlocked all 1,600 PYQs.`);
+    } catch (err) {
+      if (errBox && errText) {
+        errBox.classList.remove('hidden');
+        errText.textContent = err.message;
+      }
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+      if (submitText) submitText.textContent = mode === 'register' ? 'Create Account →' : 'Sign In →';
+    }
+  }
+
+  function openFreemiumGateModal(reason) {
+    const modal = document.getElementById('freemiumGateModal');
+    const desc = document.getElementById('freemiumGateDescription');
+    const title = document.getElementById('freemiumGateTitle');
+    if (!modal) return;
+
+    if (reason === 'solve') {
+      if (title) title.textContent = 'Trial Limit Reached (5 Free Questions)';
+      if (desc) desc.innerHTML = 'You have practiced your 5 free preview questions! Sign in to save your <strong class="text-amber-400">Mistake Notebook</strong>, connect with your <strong class="text-emerald-400">Mains Evaluation</strong> account, and unlock all 1,600+ authentic PYQs.';
+    } else if (reason === 'mistakes') {
+      if (title) title.textContent = 'Personal Mistake Notebook';
+      if (desc) desc.innerHTML = 'Your Mistake Notebook automatically tracks traps you fell for and weak syllabus areas. <strong class="text-amber-400">Sign in for free</strong> to save and review your mistakes across all devices.';
+    } else if (reason === 'mock') {
+      if (title) title.textContent = 'Full Timed Mock Simulator';
+      if (desc) desc.innerHTML = 'Adaptive Mock Tests generate forensic exam-hall scorecards and negative mark analysis. <strong class="text-amber-400">Sign in for free</strong> to access unlimited mock test generation.';
+    } else {
+      if (title) title.textContent = 'Unlock All 1,600+ Authentic PYQs';
+      if (desc) desc.innerHTML = 'Sign in or create a free account to unlock all 16 years (2011–2026), full explanations, and cross-sync with your Mains copy evaluations.';
+    }
+    modal.classList.remove('hidden');
+  }
+
+  function closeFreemiumGateModal() {
+    const modal = document.getElementById('freemiumGateModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function onSidebarUserClick() {
+    if (STATE.user) {
+      showToast(`Logged in as ${STATE.user.name || STATE.user.email}`);
+    } else {
+      openAuthModal('Sign in to sync your Prelims practice with your Mains evaluation account.');
+    }
+  }
+
+  function onSidebarAuthBtnClick() {
+    if (STATE.user) {
+      signOutUser();
+    } else {
+      openAuthModal('Sign in to sync your Prelims practice with your Mains evaluation account.');
+    }
+  }
+
+  function renderPlayerMainsLinkage(q) {
+    let box = document.getElementById('playerMainsLinkageBox');
+    if (!box) {
+      const parent = document.getElementById('playerExplanationBox');
+      if (parent) {
+        box = document.createElement('div');
+        box.id = 'playerMainsLinkageBox';
+        parent.appendChild(box);
+      }
+    }
+    if (!box) return;
+    if (!q.mains_linkage || !q.mains_linkage.question) {
+      box.innerHTML = '';
+      box.classList.add('hidden');
+      return;
+    }
+    box.classList.remove('hidden');
+    box.className = 'mt-3 p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-slate-900 border border-amber-500/30 flex items-center justify-between gap-3 flex-wrap';
+    box.innerHTML = `
+      <div class="flex flex-col gap-0.5 flex-1 min-w-[200px]">
+        <div class="flex items-center gap-1.5 text-[11px] font-bold text-amber-400">
+          <span>✍️ Related Mains Question</span>
+          <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-[10px] font-mono text-amber-300">${escapeHtml(q.mains_linkage.paper || 'GS')}</span>
+        </div>
+        <p class="text-xs text-slate-300 italic line-clamp-2">"${escapeHtml(q.mains_linkage.question)}"</p>
+      </div>
+      <a href="/?paper=${encodeURIComponent(q.mains_linkage.paper || 'GS1')}&question=${encodeURIComponent(q.mains_linkage.question)}" target="_blank" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-md shrink-0 flex items-center gap-1.5">
+        <span>Evaluate Mains Copy →</span>
+      </a>
+    `;
+  }
+
+  // Expose global handlers to window
+  window.openAuthModal = openAuthModal;
+  window.closeAuthModal = closeAuthModal;
+  window.setAuthFormMode = setAuthFormMode;
+  window.handlePrelimsAuthSubmit = handlePrelimsAuthSubmit;
+  window.openFreemiumGateModal = openFreemiumGateModal;
+  window.closeFreemiumGateModal = closeFreemiumGateModal;
+  window.onSidebarUserClick = onSidebarUserClick;
+  window.onSidebarAuthBtnClick = onSidebarAuthBtnClick;
+  window.signOutUser = signOutUser;
 
   function setupListeners() {
     // Mobile Sidebar Drawer
