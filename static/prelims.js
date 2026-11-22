@@ -420,14 +420,8 @@
     if (!modal) return;
     modal.classList.remove('hidden');
 
-    if (defaultFormat) {
-      const radio = document.querySelector('input[name="mockFormat"][value="' + defaultFormat + '"]');
-      if (radio) {
-        radio.checked = true;
-        window.onMockFormatChange(defaultFormat);
-      }
-    }
-    window.updateMockLiveSummary();
+    const fmt = defaultFormat || mockConfigState.format || 'sectional';
+    window.onMockFormatChange(fmt);
   };
 
   window.closeMockGenerator = function () {
@@ -437,25 +431,41 @@
 
   window.onMockFormatChange = function (format) {
     mockConfigState.format = format;
-    const subjSec = document.getElementById('mockCustomSubjectsSection');
-    const topicSec = document.getElementById('mockCustomTopicSection');
-    const volSec = document.getElementById('mockCustomVolumeSection');
+
+    // 1. Update Segmented Nav Tabs Styling
+    document.querySelectorAll('.mock-tab-btn').forEach(function (btn) {
+      if (btn.getAttribute('data-format') === format) {
+        btn.className = 'mock-tab-btn py-2 px-2 sm:px-3 rounded-xl transition flex items-center justify-center gap-1.5 bg-amber-500 text-slate-950 font-extrabold shadow-md cursor-pointer';
+      } else {
+        btn.className = 'mock-tab-btn py-2 px-2 sm:px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white font-bold cursor-pointer';
+      }
+    });
+
+    // 2. Blueprint / Sectional Containers
+    const fullBlueprint = document.getElementById('mockFullExamBlueprint');
+    const remedialBlueprint = document.getElementById('mockRemedialBlueprint');
+    const customControls = document.getElementById('mockCustomSectionalControls');
+    const remedialCountEl = document.getElementById('mockRemedialMistakesCount');
 
     if (format === 'full') {
-      if (subjSec) subjSec.classList.add('hidden');
-      if (topicSec) topicSec.classList.add('hidden');
-      if (volSec) volSec.classList.add('hidden');
+      if (fullBlueprint) fullBlueprint.classList.remove('hidden');
+      if (remedialBlueprint) remedialBlueprint.classList.add('hidden');
+      if (customControls) customControls.classList.add('hidden');
       mockConfigState.questionCount = 100;
     } else if (format === 'weakness') {
-      if (subjSec) subjSec.classList.add('hidden');
-      if (topicSec) topicSec.classList.add('hidden');
-      if (volSec) volSec.classList.add('hidden');
+      if (fullBlueprint) fullBlueprint.classList.add('hidden');
+      if (remedialBlueprint) remedialBlueprint.classList.remove('hidden');
+      if (customControls) customControls.classList.add('hidden');
+      if (remedialCountEl) {
+        const mCount = STATE.mistakes ? STATE.mistakes.size : 0;
+        remedialCountEl.textContent = mCount + (mCount === 1 ? ' Logged Mistake' : ' Logged Mistakes');
+      }
       mockConfigState.questionCount = 15;
     } else {
       // sectional / custom
-      if (subjSec) subjSec.classList.remove('hidden');
-      if (topicSec) topicSec.classList.remove('hidden');
-      if (volSec) volSec.classList.remove('hidden');
+      if (fullBlueprint) fullBlueprint.classList.add('hidden');
+      if (remedialBlueprint) remedialBlueprint.classList.add('hidden');
+      if (customControls) customControls.classList.remove('hidden');
       const activeCountBtn = document.querySelector('.mock-qcount-pill.active');
       const count = activeCountBtn ? parseInt(activeCountBtn.getAttribute('data-count'), 10) : 25;
       mockConfigState.questionCount = count || 25;
@@ -528,7 +538,7 @@
   };
 
   window.updateMockLiveSummary = function () {
-    const format = document.querySelector('input[name="mockFormat"]:checked')?.value || mockConfigState.format;
+    const format = mockConfigState.format || 'sectional';
     const topicInput = document.getElementById('mockCustomTopicInput');
     const topicQuery = topicInput ? topicInput.value.trim().toLowerCase() : '';
     
@@ -539,16 +549,22 @@
     });
 
     let qCount = mockConfigState.questionCount || 25;
-    if (format === 'full') qCount = 100;
-    if (format === 'weakness') qCount = 15;
+    let durationMins = Math.max(5, Math.round(qCount * 1.2));
 
-    const durationMins = Math.max(5, Math.round(qCount * 1.2));
+    if (format === 'full') {
+      qCount = 100;
+      durationMins = 120;
+    } else if (format === 'weakness') {
+      qCount = 15;
+      durationMins = 20;
+    }
+
     const marks = qCount * 2;
 
     // Count matching in question bank
     let matchingPool = STATE.pyqs || [];
     if (format === 'weakness') {
-      matchingPool = matchingPool.filter(function (q) { return STATE.mistakes.has(q.id); });
+      matchingPool = matchingPool.filter(function (q) { return STATE.mistakes && STATE.mistakes.has(q.id); });
     } else if (format === 'sectional') {
       if (checked.length > 0) {
         matchingPool = matchingPool.filter(function (q) {
@@ -574,12 +590,26 @@
     const tBadge = document.getElementById('mockLiveTimeBadge');
     const bankText = document.getElementById('mockLiveMatchingBankText');
     const calcDur = document.getElementById('mockCustomCalcDuration');
+    const launchBtnText = document.getElementById('startGeneratedMockBtnText');
 
     if (qBadge) qBadge.textContent = qCount + ' Questions';
     if (mBadge) mBadge.textContent = marks + ' Marks (+2.0 / -0.66)';
     if (tBadge) tBadge.textContent = durationMins + ' Mins';
-    if (bankText) bankText.innerHTML = 'Available in Bank: <strong class="text-white">' + matchingPool.length + ' PYQs</strong>';
+    if (bankText) {
+      const poolCount = (format === 'full' ? (STATE.pyqs ? STATE.pyqs.length : 1600) : (format === 'weakness' ? (STATE.mistakes ? STATE.mistakes.size : 0) : matchingPool.length));
+      bankText.innerHTML = 'Pool: <strong class="text-slate-200">' + poolCount + ' Questions</strong>';
+    }
     if (calcDur) calcDur.textContent = '~' + durationMins + ' Mins (1.2m / Q)';
+
+    if (launchBtnText) {
+      if (format === 'full') {
+        launchBtnText.textContent = 'Launch Full 100-Q Mock (120 Mins)';
+      } else if (format === 'weakness') {
+        launchBtnText.textContent = 'Launch Mistake Drill (15 Qs)';
+      } else {
+        launchBtnText.textContent = 'Launch Custom Test (' + qCount + ' Qs · ' + durationMins + 'm)';
+      }
+    }
   };
 
   window.launchQuickMock = function (type) {
@@ -593,21 +623,32 @@
   };
 
   window.launchConfiguredMockTest = function () {
-    const format = document.querySelector('input[name="mockFormat"]:checked')?.value || 'sectional';
+    const format = mockConfigState.format || 'sectional';
     const mode = document.querySelector('input[name="mockMode"]:checked')?.value || 'exam';
     const topicInput = document.getElementById('mockCustomTopicInput');
     const topicQuery = topicInput ? topicInput.value.trim() : '';
 
-    const selectedSubjects = [];
+    let selectedSubjects = [];
     document.querySelectorAll('.mock-subj-check:checked').forEach(function (cb) {
       selectedSubjects.push(cb.value);
     });
 
     let qCount = mockConfigState.questionCount || 25;
-    if (format === 'full') qCount = 100;
-    if (format === 'weakness') qCount = 15;
+    let durationMins = Math.max(5, Math.round(qCount * 1.2));
 
-    const durationMins = Math.max(5, Math.round(qCount * 1.2));
+    if (format === 'full') {
+      qCount = 100;
+      durationMins = 120;
+      selectedSubjects = ['all'];
+    } else if (format === 'weakness') {
+      qCount = 15;
+      durationMins = 20;
+      selectedSubjects = ['adaptive'];
+    } else {
+      if (selectedSubjects.length === 0) {
+        selectedSubjects = ['all'];
+      }
+    }
 
     generateAndStartMock(format, selectedSubjects, mode, {
       questionCount: qCount,
@@ -5222,12 +5263,10 @@ function renderPlayerDistractorDeepDive(q) {
     document.getElementById('openMockGenBtn')?.addEventListener('click', window.openMockGenerator);
     document.getElementById('closeMockGenBtn')?.addEventListener('click', window.closeMockGenerator);
     document.getElementById('cancelMockGenBtn')?.addEventListener('click', window.closeMockGenerator);
-    document.getElementById('startGeneratedMockBtn')?.addEventListener('click', function () {
-      const format = document.querySelector('input[name="mockFormat"]:checked')?.value || 'full';
-      const subject = document.getElementById('mockSubjectSelect')?.value || 'all';
-      const mode = document.querySelector('input[name="mockMode"]:checked')?.value || 'exam';
-      generateAndStartMock(format, subject, mode);
-    });
+    const startMockBtn = document.getElementById('startGeneratedMockBtn');
+    if (startMockBtn && !startMockBtn.getAttribute('onclick')) {
+      startMockBtn.addEventListener('click', window.launchConfiguredMockTest);
+    }
 
     // Player Controls
     document.getElementById('exitPlayerBtn')?.addEventListener('click', function () {

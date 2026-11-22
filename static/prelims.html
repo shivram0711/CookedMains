@@ -2194,216 +2194,319 @@
   </div>
 
   <!-- Scripts -->
-  <script src="/static/prelims.js?v=1795337800000"></script>
+  <script src="/static/prelims.js?v=1795345000000"></script>
 
   <!-- ====================================================
        ADAPTIVE MOCK TEST GENERATOR MODAL (Phase 4)
        ==================================================== -->
-  <div id="mockGeneratorModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-    <div class="light-card relative w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 sm:p-7 flex flex-col gap-5">
+  <div id="mockGeneratorModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in" role="dialog" aria-modal="true">
+    <div class="light-card relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden my-auto">
       
-      <!-- Modal Header -->
-      <div class="flex items-start justify-between border-b border-slate-800 pb-3.5">
+      <!-- Modal Header (Fixed Top) -->
+      <div class="px-5 sm:px-7 py-4 border-b border-slate-800/80 flex items-center justify-between shrink-0 bg-slate-900/90 dark:bg-slate-900/90 backdrop-blur-md">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-xl shrink-0 font-bold">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center text-xl shrink-0 font-bold shadow-inner">
             ⚡
           </div>
           <div class="flex flex-col">
-            <h3 class="text-base sm:text-lg font-black text-white flex items-center gap-2">
-              Custom UPSC Mock Test Generator
-              <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 dark:text-amber-400 text-[10px] font-bold font-mono">1,600+ PYQs</span>
-            </h3>
-            <p class="text-xs text-slate-400 mt-0.5">
-              Customize subjects, mix multiple disciplines, drill specific topics, and test under official exam conditions.
-            </p>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="text-base sm:text-lg font-black text-white">UPSC Mock Test Simulator</h3>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-bold font-mono border border-emerald-500/30">1,600+ Authentic PYQs</span>
+            </div>
+            <p class="text-xs text-slate-400">Timed UPSC simulation with strict negative penalty &amp; forensic scorecard.</p>
           </div>
         </div>
 
-        <button type="button" onclick="window.closeMockGenerator()" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer">
+        <button type="button" onclick="window.closeMockGenerator()" class="p-2 rounded-xl bg-slate-800/60 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 text-xs font-bold transition cursor-pointer" title="Close">
           ✕
         </button>
       </div>
 
-      <!-- Step 1: Select Format / Preset -->
-      <div class="flex flex-col gap-2">
-        <label class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">
-          Step 1 · Select Test Format
-        </label>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-          
-          <label class="mock-format-card light-inner-box p-3 rounded-2xl bg-slate-950 border-2 border-amber-500/50 flex flex-col gap-1 cursor-pointer has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10 transition-all">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-black text-amber-500 dark:text-amber-400">🏆 Full GS-1 Mock</span>
-              <input type="radio" name="mockFormat" value="full" class="accent-amber-500" onchange="window.onMockFormatChange('full')">
-            </div>
-            <span class="text-[11px] text-slate-300">100 Qs · 120 Mins · 200 Marks</span>
-            <span class="text-[10px] text-slate-400">All 6 core subjects mix</span>
-          </label>
-
-          <label class="mock-format-card light-inner-box p-3 rounded-2xl bg-slate-950 border-2 border-slate-800 flex flex-col gap-1 cursor-pointer has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/10 transition-all">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-black text-emerald-400">⚡ Sectional / Custom</span>
-              <input type="radio" name="mockFormat" value="sectional" checked class="accent-emerald-500" onchange="window.onMockFormatChange('sectional')">
-            </div>
-            <span class="text-[11px] text-slate-300">Choose subjects &amp; questions</span>
-            <span class="text-[10px] text-slate-400">Custom multi-subject sprint</span>
-          </label>
-
-          <label class="mock-format-card light-inner-box p-3 rounded-2xl bg-slate-950 border-2 border-slate-800 flex flex-col gap-1 cursor-pointer has-[:checked]:border-rose-500 has-[:checked]:bg-rose-500/10 transition-all">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-black text-rose-400">🎯 Mistake Remedial</span>
-              <input type="radio" name="mockFormat" value="weakness" class="accent-rose-500" onchange="window.onMockFormatChange('weakness')">
-            </div>
-            <span class="text-[11px] text-slate-300">15 Qs · 20 Mins</span>
-            <span class="text-[10px] text-slate-400">Weighted to logged errors</span>
-          </label>
-
+      <!-- Segmented Mode Switcher (Fixed Top Nav) -->
+      <div class="px-5 sm:px-7 pt-4 pb-2 shrink-0">
+        <div class="grid grid-cols-3 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-bold shadow-inner" id="mockFormatTabGroup">
+          <button type="button" class="mock-tab-btn py-2 px-2 sm:px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white cursor-pointer" data-format="full" onclick="window.onMockFormatChange('full')">
+            <span>🏆</span>
+            <span class="truncate">Full Simulation</span>
+          </button>
+          <button type="button" class="mock-tab-btn py-2 px-2 sm:px-3 rounded-xl transition flex items-center justify-center gap-1.5 bg-amber-500 text-slate-950 shadow-md cursor-pointer" data-format="sectional" onclick="window.onMockFormatChange('sectional')">
+            <span>⚡</span>
+            <span class="truncate">Custom Sectional</span>
+          </button>
+          <button type="button" class="mock-tab-btn py-2 px-2 sm:px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white cursor-pointer" data-format="weakness" onclick="window.onMockFormatChange('weakness')">
+            <span>🎯</span>
+            <span class="truncate">Mistake Drill</span>
+          </button>
         </div>
       </div>
 
-      <!-- Step 2: Subject Multi-Selection & Mixing (Visible when Sectional/Custom is chosen) -->
-      <div id="mockCustomSubjectsSection" class="flex flex-col gap-2.5">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-          <label class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">
-            Step 2 · Select &amp; Mix Subjects (Pick any combination)
-          </label>
-          <div class="flex items-center gap-1.5 flex-wrap text-[10px]">
-            <button type="button" onclick="window.selectMockSubjects('all')" class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 hover:text-white font-bold cursor-pointer">All 6</button>
-            <button type="button" onclick="window.selectMockSubjects('polity_eco')" class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 hover:text-white font-bold cursor-pointer">Polity+Eco</button>
-            <button type="button" onclick="window.selectMockSubjects('env_geo')" class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 hover:text-white font-bold cursor-pointer">Env+Geo</button>
-            <button type="button" onclick="window.selectMockSubjects('hist_art')" class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 hover:text-white font-bold cursor-pointer">Hist+Art</button>
-            <button type="button" onclick="window.selectMockSubjects('clear')" class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 hover:text-rose-400 font-bold cursor-pointer">Clear</button>
+      <!-- Scrollable Configuration Body -->
+      <div class="overflow-y-auto px-5 sm:px-7 py-3 flex-1 flex flex-col gap-5">
+        
+        <!-- 1. FULL GS-1 SIMULATION BLUEPRINT CARD (Visible when format === 'full') -->
+        <div id="mockFullExamBlueprint" class="hidden p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-slate-950 to-slate-950 border border-amber-500/30 flex flex-col gap-4">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🏆</span>
+              <div>
+                <h4 class="text-sm font-black text-white">Official UPSC Prelims Paper 1 Blueprint</h4>
+                <p class="text-xs text-slate-400">Strict 120-minute timed simulation with official 6-pillar standard distribution.</p>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 font-mono text-xs font-bold">100 Qs · 200 Marks · 120 Mins</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+            <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+              <span class="text-slate-300">🏛️ Polity &amp; Gov</span>
+              <span class="font-bold text-amber-400 font-mono">18 Qs</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+              <span class="text-slate-300">📈 Economy &amp; Dev</span>
+              <span class="font-bold text-amber-400 font-mono">17 Qs</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+              <span class="text-slate-300">🌿 Environment</span>
+              <span class="font-bold text-amber-400 font-mono">20 Qs</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+              <span class="text-slate-300">📜 History &amp; Culture</span>
+              <span class="font-bold text-amber-400 font-mono">16 Qs</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+              <span class="text-slate-300">🌍 Geography</span>
+              <span class="font-bold text-amber-400 font-mono">15 Qs</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+              <span class="text-slate-300">🔬 Science &amp; Tech</span>
+              <span class="font-bold text-amber-400 font-mono">14 Qs</span>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between text-xs font-mono">
+            <span class="text-slate-400">Scoring Rules:</span>
+            <span class="text-emerald-400 font-bold">+2.00 Marks per Correct</span>
+            <span class="text-rose-400 font-bold">-0.66 Penalty per Error</span>
           </div>
         </div>
 
-        <!-- 6 Subject Checkbox Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="mockSubjectCheckboxes">
-          <label class="mock-subj-pill p-2.5 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between cursor-pointer text-xs font-semibold hover:border-amber-500/50 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/15">
-            <span class="text-slate-200">Polity &amp; Gov</span>
-            <input type="checkbox" value="Polity & Governance" checked class="mock-subj-check accent-amber-500" onchange="window.updateMockLiveSummary()">
-          </label>
-          <label class="mock-subj-pill p-2.5 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between cursor-pointer text-xs font-semibold hover:border-blue-500/50 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-500/15">
-            <span class="text-slate-200">Economy</span>
-            <input type="checkbox" value="Economy" checked class="mock-subj-check accent-blue-500" onchange="window.updateMockLiveSummary()">
-          </label>
-          <label class="mock-subj-pill p-2.5 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between cursor-pointer text-xs font-semibold hover:border-emerald-500/50 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/15">
-            <span class="text-slate-200">Environment</span>
-            <input type="checkbox" value="Environment & Ecology" class="mock-subj-check accent-emerald-500" onchange="window.updateMockLiveSummary()">
-          </label>
-          <label class="mock-subj-pill p-2.5 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between cursor-pointer text-xs font-semibold hover:border-orange-500/50 has-[:checked]:border-orange-500 has-[:checked]:bg-orange-500/15">
-            <span class="text-slate-200">History &amp; Art</span>
-            <input type="checkbox" value="History & Culture" class="mock-subj-check accent-orange-500" onchange="window.updateMockLiveSummary()">
-          </label>
-          <label class="mock-subj-pill p-2.5 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between cursor-pointer text-xs font-semibold hover:border-teal-500/50 has-[:checked]:border-teal-500 has-[:checked]:bg-teal-500/15">
-            <span class="text-slate-200">Geography</span>
-            <input type="checkbox" value="Geography" class="mock-subj-check accent-teal-500" onchange="window.updateMockLiveSummary()">
-          </label>
-          <label class="mock-subj-pill p-2.5 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between cursor-pointer text-xs font-semibold hover:border-purple-500/50 has-[:checked]:border-purple-500 has-[:checked]:bg-purple-500/15">
-            <span class="text-slate-200">Sci-Tech</span>
-            <input type="checkbox" value="Science & Technology" class="mock-subj-check accent-purple-500" onchange="window.updateMockLiveSummary()">
-          </label>
-        </div>
-      </div>
-
-      <!-- Step 3: High-Yield Topic Drill-Down (Optional) -->
-      <div id="mockCustomTopicSection" class="flex flex-col gap-2">
-        <label class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-          <span>Step 3 · Topic or Keyword Filter (Optional)</span>
-          <span class="text-[10px] text-slate-500 lowercase">e.g. Monetary Policy, Wetlands, 1857</span>
-        </label>
-        
-        <div class="relative w-full">
-          <input type="text" id="mockCustomTopicInput" placeholder="Filter specific topic (leave blank for all topics in selected subjects)..." class="light-input w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs font-medium placeholder-slate-500 focus:outline-none focus:border-amber-500" oninput="window.updateMockLiveSummary()">
-        </div>
-
-        <!-- Quick Topic Chips -->
-        <div class="flex items-center gap-1.5 flex-wrap text-[11px] pt-1">
-          <span class="text-[10px] text-slate-500 uppercase font-mono font-bold">Quick:</span>
-          <button type="button" onclick="window.applyMockTopicChip('Preamble')" class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-slate-700 cursor-pointer">Preamble</button>
-          <button type="button" onclick="window.applyMockTopicChip('Monetary Policy')" class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-slate-700 cursor-pointer">Monetary Policy</button>
-          <button type="button" onclick="window.applyMockTopicChip('Wetlands')" class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-slate-700 cursor-pointer">Wetlands</button>
-          <button type="button" onclick="window.applyMockTopicChip('1857')" class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-slate-700 cursor-pointer">1857 Revolt</button>
-          <button type="button" onclick="window.applyMockTopicChip('Article 21')" class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-slate-700 cursor-pointer">Article 21</button>
-          <button type="button" onclick="window.applyMockTopicChip('CRISPR')" class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 hover:text-amber-400 hover:bg-slate-700 cursor-pointer">CRISPR</button>
-        </div>
-      </div>
-
-      <!-- Step 4: Number of Questions & Exam Timer -->
-      <div id="mockCustomVolumeSection" class="flex flex-col gap-2.5">
-        <label class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">
-          Step 4 · Number of Questions &amp; Time
-        </label>
-
-        <!-- Question Count Pills + Custom Input -->
-        <div class="flex items-center gap-2 flex-wrap" id="mockQuestionCountGroup">
-          <button type="button" class="mock-qcount-pill px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 text-xs font-mono font-bold hover:border-amber-500 cursor-pointer transition-all" data-count="10" onclick="window.setMockQuestionCount(10)">10 Qs (12m)</button>
-          <button type="button" class="mock-qcount-pill px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 text-xs font-mono font-bold hover:border-amber-500 cursor-pointer transition-all" data-count="20" onclick="window.setMockQuestionCount(20)">20 Qs (24m)</button>
-          <button type="button" class="mock-qcount-pill px-3 py-1.5 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-300 text-xs font-mono font-bold cursor-pointer transition-all active" data-count="25" onclick="window.setMockQuestionCount(25)">25 Qs (30m)</button>
-          <button type="button" class="mock-qcount-pill px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 text-xs font-mono font-bold hover:border-amber-500 cursor-pointer transition-all" data-count="30" onclick="window.setMockQuestionCount(30)">30 Qs (36m)</button>
-          <button type="button" class="mock-qcount-pill px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 text-xs font-mono font-bold hover:border-amber-500 cursor-pointer transition-all" data-count="50" onclick="window.setMockQuestionCount(50)">50 Qs (60m)</button>
-          <button type="button" class="mock-qcount-pill px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 text-xs font-mono font-bold hover:border-amber-500 cursor-pointer transition-all" data-count="100" onclick="window.setMockQuestionCount(100)">100 Qs (120m)</button>
-        </div>
-
-        <div class="flex items-center gap-3 pt-1">
-          <label class="text-xs text-slate-400">Or Custom Count:</label>
-          <input type="number" id="mockCustomCountInput" min="5" max="100" value="25" class="light-input w-24 px-3 py-1 rounded-xl bg-slate-950 border border-slate-800 text-center text-xs font-bold font-mono text-white focus:outline-none focus:border-amber-500" oninput="window.onMockCustomCountInput(this.value)">
-          <span class="text-xs text-slate-500 font-mono" id="mockCustomCalcDuration">~30 Mins (1.2m / Q)</span>
-        </div>
-      </div>
-
-      <!-- Step 5: Cognitive Exam Mode -->
-      <div class="flex flex-col gap-2">
-        <label class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">
-          Step 5 · Exam Mode
-        </label>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          <label class="light-inner-box p-3 rounded-2xl bg-slate-950 border border-amber-500/50 flex flex-col gap-1 cursor-pointer has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10 transition-all">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-black text-white">⏱️ Official UPSC Timer Mode</span>
-              <input type="radio" name="mockMode" value="exam" checked class="accent-amber-500">
+        <!-- 2. MISTAKE REMEDIAL BLUEPRINT CARD (Visible when format === 'weakness') -->
+        <div id="mockRemedialBlueprint" class="hidden p-5 rounded-2xl bg-gradient-to-br from-rose-500/10 via-slate-950 to-slate-950 border border-rose-500/30 flex flex-col gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center text-xl shrink-0 font-bold">
+              🎯
             </div>
-            <span class="text-[11px] text-slate-400">
-              Exam countdown timer, questions hidden until submit, strict +2.0 / -0.66 marks.
-            </span>
-          </label>
-
-          <label class="light-inner-box p-3 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col gap-1 cursor-pointer has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10 transition-all">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-black text-white">💡 Practice / Tutor Mode</span>
-              <input type="radio" name="mockMode" value="tutor" class="accent-amber-500">
+            <div>
+              <h4 class="text-sm font-black text-white">Diagnostic Mistake Remedial Drill</h4>
+              <p class="text-xs text-slate-300">Exclusively targets questions you previously answered incorrectly or tagged with behavioral traps.</p>
             </div>
-            <span class="text-[11px] text-slate-400">
-              Untimed practice with instant explanations and trap breakdown after every question.
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
+            <span class="text-slate-400">Active Mistakes in Your Notebook:</span>
+            <span id="mockRemedialMistakesCount" class="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 font-bold font-mono">0 Logged Mistakes</span>
+          </div>
+
+          <p class="text-[11px] text-slate-400 leading-relaxed italic">
+            *If fewer than 15 mistakes are logged in your notebook, the engine automatically injects high-yield tricky distractor questions from standard UPSC papers.
+          </p>
+        </div>
+
+        <!-- 3. CUSTOM SECTIONAL CONTROLS (Visible when format === 'sectional') -->
+        <div id="mockCustomSectionalControls" class="flex flex-col gap-5">
+          
+          <!-- Subject Tiles Selection -->
+          <div class="flex flex-col gap-2.5">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <span>📚</span>
+                <span>Select Subjects to Mix:</span>
+              </span>
+              
+              <!-- Quick Combo Shortcuts -->
+              <div class="flex items-center gap-1 flex-wrap text-[10px] font-bold">
+                <button type="button" onclick="window.selectMockSubjects('all')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer">All 6 Core</button>
+                <button type="button" onclick="window.selectMockSubjects('polity_eco')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer">Polity+Eco</button>
+                <button type="button" onclick="window.selectMockSubjects('env_geo')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer">Env+Geo</button>
+                <button type="button" onclick="window.selectMockSubjects('hist_art')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer">Hist+Art</button>
+                <button type="button" onclick="window.selectMockSubjects('clear')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition cursor-pointer">Reset</button>
+              </div>
+            </div>
+
+            <!-- Subject Visual Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="mockSubjectCheckboxes">
+              <label class="mock-subj-pill p-3 rounded-2xl border border-slate-800 bg-slate-950 hover:border-amber-500/50 flex items-center justify-between cursor-pointer transition-all has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/15 group">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🏛️</span>
+                  <span class="text-xs font-bold text-slate-200 group-hover:text-white">Polity &amp; Gov</span>
+                </div>
+                <input type="checkbox" value="Polity & Governance" checked class="mock-subj-check accent-amber-500 w-4 h-4 rounded cursor-pointer" onchange="window.updateMockLiveSummary()">
+              </label>
+
+              <label class="mock-subj-pill p-3 rounded-2xl border border-slate-800 bg-slate-950 hover:border-amber-500/50 flex items-center justify-between cursor-pointer transition-all has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/15 group">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">📈</span>
+                  <span class="text-xs font-bold text-slate-200 group-hover:text-white">Economy</span>
+                </div>
+                <input type="checkbox" value="Economy" checked class="mock-subj-check accent-amber-500 w-4 h-4 rounded cursor-pointer" onchange="window.updateMockLiveSummary()">
+              </label>
+
+              <label class="mock-subj-pill p-3 rounded-2xl border border-slate-800 bg-slate-950 hover:border-emerald-500/50 flex items-center justify-between cursor-pointer transition-all has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/15 group">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🌿</span>
+                  <span class="text-xs font-bold text-slate-200 group-hover:text-white">Environment</span>
+                </div>
+                <input type="checkbox" value="Environment & Ecology" class="mock-subj-check accent-emerald-500 w-4 h-4 rounded cursor-pointer" onchange="window.updateMockLiveSummary()">
+              </label>
+
+              <label class="mock-subj-pill p-3 rounded-2xl border border-slate-800 bg-slate-950 hover:border-orange-500/50 flex items-center justify-between cursor-pointer transition-all has-[:checked]:border-orange-500 has-[:checked]:bg-orange-500/15 group">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">📜</span>
+                  <span class="text-xs font-bold text-slate-200 group-hover:text-white">History &amp; Art</span>
+                </div>
+                <input type="checkbox" value="History & Culture" class="mock-subj-check accent-orange-500 w-4 h-4 rounded cursor-pointer" onchange="window.updateMockLiveSummary()">
+              </label>
+
+              <label class="mock-subj-pill p-3 rounded-2xl border border-slate-800 bg-slate-950 hover:border-teal-500/50 flex items-center justify-between cursor-pointer transition-all has-[:checked]:border-teal-500 has-[:checked]:bg-teal-500/15 group">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🌍</span>
+                  <span class="text-xs font-bold text-slate-200 group-hover:text-white">Geography</span>
+                </div>
+                <input type="checkbox" value="Geography" class="mock-subj-check accent-teal-500 w-4 h-4 rounded cursor-pointer" onchange="window.updateMockLiveSummary()">
+              </label>
+
+              <label class="mock-subj-pill p-3 rounded-2xl border border-slate-800 bg-slate-950 hover:border-purple-500/50 flex items-center justify-between cursor-pointer transition-all has-[:checked]:border-purple-500 has-[:checked]:bg-purple-500/15 group">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🔬</span>
+                  <span class="text-xs font-bold text-slate-200 group-hover:text-white">Sci-Tech</span>
+                </div>
+                <input type="checkbox" value="Science & Technology" class="mock-subj-check accent-purple-500 w-4 h-4 rounded cursor-pointer" onchange="window.updateMockLiveSummary()">
+              </label>
+            </div>
+          </div>
+
+          <!-- Question Count & Time -->
+          <div class="flex flex-col gap-2">
+            <span class="text-xs font-bold text-white flex items-center gap-1.5">
+              <span>⏱️</span>
+              <span>Test Volume &amp; Duration:</span>
             </span>
-          </label>
+
+            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2" id="mockQuestionCountGroup">
+              <button type="button" class="mock-qcount-pill p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 text-xs font-mono font-bold hover:border-amber-500 cursor-pointer transition text-center" data-count="10" onclick="window.setMockQuestionCount(10)">
+                <span class="block text-sm font-black">10 Qs</span>
+                <span class="block text-[10px] text-slate-500">12m</span>
+              </button>
+              <button type="button" class="mock-qcount-pill p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 text-xs font-mono font-bold hover:border-amber-500 cursor-pointer transition text-center" data-count="20" onclick="window.setMockQuestionCount(20)">
+                <span class="block text-sm font-black">20 Qs</span>
+                <span class="block text-[10px] text-slate-500">24m</span>
+              </button>
+              <button type="button" class="mock-qcount-pill p-2 rounded-xl border-2 border-emerald-500 bg-emerald-500/20 text-emerald-300 text-xs font-mono font-bold cursor-pointer transition text-center active" data-count="25" onclick="window.setMockQuestionCount(25)">
+                <span class="block text-sm font-black">25 Qs</span>
+                <span class="block text-[10px] text-emerald-400">30m</span>
+              </button>
+              <button type="button" class="mock-qcount-pill p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 text-xs font-mono font-bold hover:border-amber-500 cursor-pointer transition text-center" data-count="30" onclick="window.setMockQuestionCount(30)">
+                <span class="block text-sm font-black">30 Qs</span>
+                <span class="block text-[10px] text-slate-500">36m</span>
+              </button>
+              <button type="button" class="mock-qcount-pill p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 text-xs font-mono font-bold hover:border-amber-500 cursor-pointer transition text-center" data-count="50" onclick="window.setMockQuestionCount(50)">
+                <span class="block text-sm font-black">50 Qs</span>
+                <span class="block text-[10px] text-slate-500">60m</span>
+              </button>
+              <button type="button" class="mock-qcount-pill p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 text-xs font-mono font-bold hover:border-amber-500 cursor-pointer transition text-center" data-count="100" onclick="window.setMockQuestionCount(100)">
+                <span class="block text-sm font-black">100 Qs</span>
+                <span class="block text-[10px] text-slate-500">120m</span>
+              </button>
+            </div>
+
+            <!-- Custom Count Input Inline -->
+            <div class="flex items-center justify-between pt-1 text-xs">
+              <span class="text-slate-400">Or type custom question count:</span>
+              <div class="flex items-center gap-2">
+                <input type="number" id="mockCustomCountInput" min="5" max="100" value="25" class="light-input w-20 px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 text-center font-mono font-bold text-white text-xs focus:outline-none focus:border-amber-500" oninput="window.onMockCustomCountInput(this.value)">
+                <span class="text-slate-500 font-mono text-[11px]" id="mockCustomCalcDuration">~30 Mins (1.2m / Q)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Topic or Keyword Filter (Optional) -->
+          <div class="flex flex-col gap-2">
+            <span class="text-xs font-bold text-white flex items-center justify-between">
+              <span class="flex items-center gap-1.5">
+                <span>🔍</span>
+                <span>Specific Topic / Keyword (Optional):</span>
+              </span>
+              <span class="text-[10px] text-slate-500 font-normal">Leave blank for all topics</span>
+            </span>
+
+            <input type="text" id="mockCustomTopicInput" placeholder="e.g. Monetary Policy, Wetlands, 1857 Revolt, Article 21, CRISPR..." class="light-input w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs font-medium placeholder-slate-500 focus:outline-none focus:border-amber-500" oninput="window.updateMockLiveSummary()">
+
+            <!-- Topic Quick Tags -->
+            <div class="flex items-center gap-1.5 flex-wrap text-[10px] pt-0.5">
+              <span class="text-slate-500 font-mono">Popular:</span>
+              <button type="button" onclick="window.applyMockTopicChip('Preamble')" class="px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-300 hover:text-amber-400 hover:bg-slate-700 cursor-pointer">Preamble</button>
+              <button type="button" onclick="window.applyMockTopicChip('Monetary Policy')" class="px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-300 hover:text-amber-400 hover:bg-slate-700 cursor-pointer">Monetary Policy</button>
+              <button type="button" onclick="window.applyMockTopicChip('Wetlands')" class="px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-300 hover:text-amber-400 hover:bg-slate-700 cursor-pointer">Wetlands</button>
+              <button type="button" onclick="window.applyMockTopicChip('1857')" class="px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-300 hover:text-amber-400 hover:bg-slate-700 cursor-pointer">1857 Revolt</button>
+              <button type="button" onclick="window.applyMockTopicChip('Article 21')" class="px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-300 hover:text-amber-400 hover:bg-slate-700 cursor-pointer">Article 21</button>
+              <button type="button" onclick="window.applyMockTopicChip('CRISPR')" class="px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-300 hover:text-amber-400 hover:bg-slate-700 cursor-pointer">CRISPR</button>
+            </div>
+          </div>
+
         </div>
+
+        <!-- 4. EXAM MODE (Common to all formats) -->
+        <div class="flex flex-col gap-2 pt-2 border-t border-slate-800/80">
+          <span class="text-xs font-bold text-white flex items-center gap-1.5">
+            <span>⚙️</span>
+            <span>Simulation Mode:</span>
+          </span>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <label class="p-3 rounded-2xl bg-slate-950 border-2 border-amber-500/50 flex items-start gap-3 cursor-pointer has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10 transition group">
+              <input type="radio" name="mockMode" value="exam" checked class="accent-amber-500 mt-1 cursor-pointer">
+              <div class="flex flex-col gap-0.5">
+                <span class="text-xs font-bold text-white group-hover:text-amber-400">⏱️ Official Exam Mode</span>
+                <span class="text-[11px] text-slate-400 leading-snug">Strict countdown timer, solutions hidden until final submission, -0.66 penalty.</span>
+              </div>
+            </label>
+
+            <label class="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-start gap-3 cursor-pointer has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10 transition group">
+              <input type="radio" name="mockMode" value="tutor" class="accent-amber-500 mt-1 cursor-pointer">
+              <div class="flex flex-col gap-0.5">
+                <span class="text-xs font-bold text-white group-hover:text-amber-400">💡 Practice / Tutor Mode</span>
+                <span class="text-[11px] text-slate-400 leading-snug">Untimed practice with instant official answers, trap breakdowns &amp; references after each question.</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Live Specification Summary Bar -->
-      <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between flex-wrap gap-2 text-xs">
-        <div class="flex items-center gap-2 flex-wrap font-mono">
-          <span id="mockLiveQuestionsBadge" class="font-bold text-white">25 Questions</span>
-          <span class="text-slate-600">·</span>
-          <span id="mockLiveMarksBadge" class="text-amber-500 font-bold">50 Marks</span>
-          <span class="text-slate-600">·</span>
-          <span id="mockLiveTimeBadge" class="text-emerald-400 font-bold">30 Mins</span>
+      <!-- Sticky Live Action Footer Bar (ALWAYS VISIBLE!) -->
+      <div class="sticky bottom-0 bg-slate-900/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-800 p-4 sm:px-7 flex items-center justify-between flex-wrap gap-3 shrink-0 z-10 shadow-lg">
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2 text-xs font-mono font-bold">
+            <span id="mockLiveQuestionsBadge" class="text-white">25 Questions</span>
+            <span class="text-slate-600">·</span>
+            <span id="mockLiveMarksBadge" class="text-amber-400">50 Marks</span>
+            <span class="text-slate-600">·</span>
+            <span id="mockLiveTimeBadge" class="text-emerald-400">30 Mins</span>
+          </div>
+          <span id="mockLiveMatchingBankText" class="text-[10px] text-slate-400 font-mono">
+            Pool: <strong class="text-slate-200">619 Questions</strong>
+          </span>
         </div>
-        <span id="mockLiveMatchingBankText" class="text-[11px] text-slate-400 font-mono">
-          Available in Bank: <strong class="text-white">450+ PYQs</strong>
-        </span>
-      </div>
 
-      <!-- Action Buttons -->
-      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
-        <button type="button" onclick="window.closeMockGenerator()" class="px-4 py-2.5 rounded-xl text-slate-400 hover:text-white text-xs font-semibold cursor-pointer">
-          Cancel
-        </button>
-        <button type="button" id="startGeneratedMockBtn" onclick="window.launchConfiguredMockTest()" class="px-6 py-3 rounded-2xl btn-action-primary text-xs sm:text-sm shadow-xl transition-all cursor-pointer flex items-center gap-2">
-          <span>🚀 Launch Custom Mock Test</span>
-          <span>→</span>
-        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="window.closeMockGenerator()" class="px-3.5 py-2 rounded-xl text-slate-400 hover:text-white text-xs font-semibold cursor-pointer transition">
+            Cancel
+          </button>
+          <button type="button" id="startGeneratedMockBtn" onclick="window.launchConfiguredMockTest()" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-500/20 transition-all cursor-pointer flex items-center gap-2 active:scale-95">
+            <span id="startGeneratedMockBtnText">Launch Custom Test (25 Qs)</span>
+            <span>→</span>
+          </button>
+        </div>
       </div>
 
     </div>
