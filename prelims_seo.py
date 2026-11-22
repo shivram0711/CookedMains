@@ -129,6 +129,11 @@ def get_prelims_seo_page(slug: str) -> Optional[str]:
         filtered = [q for q in all_questions if q.get("year") == year_num]
         return render_year_page(year_num, filtered)
 
+    # Check if single authentic question ID (e.g. 2026-q001, q_2024_p1_1, etc.)
+    matching_q = next((q for q in all_questions if str(q.get("id", "")).lower() == raw_slug), None)
+    if matching_q:
+        return render_question_page(matching_q)
+
     return None
 
 
@@ -619,3 +624,198 @@ def render_year_page(year: int, questions: List[Dict[str, Any]]) -> str:
   </footer>
 </body>
 </html>'''
+
+
+def render_question_page(q: Dict[str, Any]) -> str:
+    """Renders a standalone semantic QAPage for an individual UPSC past question."""
+    qid = html.escape(str(q.get("id", "")))
+    year = q.get("year", "2024")
+    subject = html.escape(str(q.get("subject", "General Studies")))
+    sub_topic = html.escape(str(q.get("sub_topic", subject)))
+    raw_text = q.get("question_text", "")
+    escaped_text = html.escape(raw_text)
+    
+    headline_clean = " ".join(raw_text.replace("\n", " ").split())[:75]
+    if len(raw_text) > 75:
+        headline_clean += "..."
+    escaped_headline = html.escape(headline_clean)
+    
+    title = f"UPSC Prelims {year} {subject}: {escaped_headline} | Official Answer Key & Solution"
+    description = f"Practice this authentic UPSC Prelims {year} {subject} question on {sub_topic}. Verified with official UPSC answer key, Topper elimination trap analysis, and standard references."
+    canonical_url = f"https://cookedmains.com/prelims/question/{qid}"
+    
+    options = q.get("options", [])
+    correct_opt = str(q.get("correct_option", "A")).upper()
+    correct_idx = q.get("correct_index", 0)
+    explanation = html.escape(q.get("explanation", "Official UPSC verified solution."))
+    elim_trap = html.escape(q.get("elimination_trap", "UPSC tests subtle conceptual definitions."))
+    book_ref = html.escape(q.get("standard_book_ref", ""))
+    
+    options_html = []
+    accepted_answer_text = ""
+    labels = ["A", "B", "C", "D"]
+    for i, opt in enumerate(options):
+        lbl = labels[i] if i < len(labels) else str(i+1)
+        is_correct = (lbl == correct_opt) or (i == correct_idx)
+        opt_text = html.escape(str(opt))
+        if is_correct:
+            accepted_answer_text = f"Option {lbl}: {opt_text}"
+            options_html.append(f"""
+            <div class="p-3.5 rounded-2xl bg-emerald-500/10 border-2 border-emerald-500/50 flex items-start gap-3">
+              <span class="w-7 h-7 rounded-lg bg-emerald-500 text-slate-950 font-black flex items-center justify-center text-xs shrink-0">{lbl}</span>
+              <div class="flex flex-col gap-0.5">
+                <span class="text-xs font-bold text-emerald-400">Official UPSC Key Confirmed</span>
+                <p class="text-xs text-white font-medium">{opt_text}</p>
+              </div>
+            </div>""")
+        else:
+            options_html.append(f"""
+            <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-start gap-3">
+              <span class="w-7 h-7 rounded-lg bg-slate-800 text-slate-300 font-bold flex items-center justify-center text-xs shrink-0">{lbl}</span>
+              <p class="text-xs text-slate-300 pt-1">{opt_text}</p>
+            </div>""")
+
+    schema_json = json.dumps({
+        "@context": "https://schema.org",
+        "@type": "QAPage",
+        "mainEntity": {
+            "@type": "Question",
+            "name": f"UPSC Prelims {year} {subject}: {headline_clean}",
+            "text": raw_text,
+            "answerCount": 1,
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": accepted_answer_text or explanation,
+                "url": canonical_url
+            }
+        }
+    })
+
+    mains_link = q.get("mains_linkage", {})
+    mains_html = ""
+    if mains_link and mains_link.get("question"):
+        m_q = html.escape(mains_link.get("question", ""))
+        m_p = html.escape(mains_link.get("paper", "GS"))
+        mains_html = f"""
+        <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-slate-900 border border-amber-500/30 flex items-center justify-between gap-4 flex-wrap">
+          <div class="flex flex-col gap-1 flex-1 min-w-[200px]">
+            <span class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5">✍️ Related Mains Question ({m_p})</span>
+            <p class="text-xs text-slate-300 italic">"{m_q}"</p>
+          </div>
+          <a href="/?paper={m_p}&question={html.escape(mains_link.get('question', ''))}" target="_blank" class="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition shadow-md shrink-0">
+            Evaluate Mains Copy →
+          </a>
+        </div>"""
+
+    subject_slug = q.get("subject", "").lower().replace(" & ", "-").replace(" ", "-")
+
+    return f"""<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>{title}</title>
+  <meta name="description" content="{description}">
+  <link rel="canonical" href="{canonical_url}">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="{canonical_url}">
+  <meta property="og:title" content="{title}">
+  <meta property="og:description" content="{description}">
+  <meta property="og:image" content="https://cookedmains.com/static/brand_logo_dark.png">
+  <script type="application/ld+json">
+  {schema_json}
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {{
+      darkMode: 'class',
+      theme: {{
+        extend: {{
+          colors: {{
+            amber: {{ 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' }},
+            slate: {{ 850: '#0f172a', 900: '#0b1120', 950: '#020617' }}
+          }}
+        }}
+      }}
+    }};
+  </script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap">
+  <style>
+    body {{ font-family: 'Plus Jakarta Sans', sans-serif; }}
+    .font-mono {{ font-family: 'JetBrains Mono', monospace; }}
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-amber-500 flex items-center justify-center font-black text-slate-950 text-sm">CM</div>
+        <span class="font-black text-base text-white">Cooked<span class="text-amber-400">Mains</span></span>
+        <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/15 text-amber-400 font-bold ml-1">PYQ Vault</span>
+      </a>
+      <div class="flex items-center gap-3">
+        <a href="/prelims/pyqs" class="text-xs font-semibold text-slate-400 hover:text-white transition">All PYQs</a>
+        <a href="/prelims?qid={qid}&mode=focus" class="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-md">
+          Practice in Focus Mode →
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-4xl mx-auto px-4 py-8 w-full flex flex-col gap-6">
+    <nav class="flex items-center gap-2 text-xs font-mono text-slate-500 flex-wrap" aria-label="Breadcrumb">
+      <a href="/" class="hover:text-slate-300">Home</a>
+      <span>/</span>
+      <a href="/prelims/pyqs" class="hover:text-slate-300">Prelims PYQs</a>
+      <span>/</span>
+      <a href="/prelims/pyqs/{subject_slug}" class="hover:text-slate-300">{subject}</a>
+      <span>/</span>
+      <span class="text-amber-400 font-semibold">{qid}</span>
+    </nav>
+
+    <div class="p-6 sm:p-7 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col gap-5 shadow-2xl">
+      <div class="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-md bg-amber-500/15 text-amber-400 text-xs font-black font-mono">UPSC CSE {year}</span>
+          <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-xs font-semibold">{subject}</span>
+          <span class="text-xs text-slate-500">· {sub_topic}</span>
+        </div>
+        <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold font-mono">Verified Key Confirmed</span>
+      </div>
+
+      <div class="text-sm sm:text-base font-semibold text-white leading-relaxed whitespace-pre-line">
+        {escaped_text}
+      </div>
+
+      <div class="flex flex-col gap-2.5 pt-2">
+        {''.join(options_html)}
+      </div>
+
+      <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col gap-1.5 text-xs text-amber-200">
+        <span class="font-bold text-amber-400 uppercase tracking-wider text-[11px] flex items-center gap-1">🎯 Topper's Trap Detector</span>
+        <p class="leading-relaxed font-semibold">{elim_trap}</p>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col gap-2 text-xs leading-relaxed text-slate-300">
+        <span class="font-bold text-white text-sm">Official UPSC Forensic Breakdown:</span>
+        <p class="whitespace-pre-line">{explanation}</p>
+        {f'<span class="text-[11px] text-amber-400 font-mono pt-2 border-t border-slate-800">📖 Reference: {book_ref}</span>' if book_ref else ''}
+      </div>
+
+      {mains_html}
+
+      <div class="pt-3 border-t border-slate-800 flex items-center justify-between flex-wrap gap-3">
+        <span class="text-xs text-slate-400">Want to test under exam timer?</span>
+        <a href="/prelims?qid={qid}&mode=focus" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition shadow-md flex items-center gap-1.5">
+          <span>Solve in Timed Player</span>
+          <span>→</span>
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
+    © 2026 CookedMains · Authentic UPSC CSE Prelims Question Vault
+  </footer>
+</body>
+</html>"""

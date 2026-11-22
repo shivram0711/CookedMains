@@ -105,3 +105,5 @@ Sitemap: https://cookedmains.com/sitemap-index.xml
 Sitemap: https://cookedmains.com/sitemap-prelims.xml
 Sitemap: https://cookedmains.com/sitemap.xml
 Sitemap: https://cookedmains.com/sitemap-0.xml
+
+Sitemap: https://cookedmains.com/sitemap-prelims-questions.xml

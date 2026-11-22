@@ -556,6 +556,19 @@ async def google_site_verification_file(token: str):
 async def prelims_page():
     return FileResponse(os.path.join(os.path.dirname(__file__), "static", "prelims.html"))
 
+@app.api_route("/prelims/question/{qid}", methods=["GET", "HEAD"])
+@app.api_route("/prelims/pyq/{qid}", methods=["GET", "HEAD"])
+async def prelims_single_question_page(qid: str):
+    seo_html = get_prelims_seo_page(qid)
+    if seo_html:
+        return HTMLResponse(
+            content=seo_html,
+            status_code=200,
+            headers={"Cache-Control": "public, max-age=86400"}
+        )
+    return RedirectResponse(url="/prelims/pyqs", status_code=302)
+
+
 @app.api_route("/prelims/cutoff-calculator", methods=["GET", "HEAD"])
 @app.api_route("/cutoff-calculator", methods=["GET", "HEAD"])
 async def prelims_cutoff_page():
@@ -614,6 +627,12 @@ async def prelims_subject_page(subject_slug: str):
             media_type="text/html; charset=utf-8",
             headers={"Cache-Control": "public, max-age=3600"}
         )
+    if slug_clean in ["csat", "csat-calculator", "csat-cutoff"]:
+        return FileResponse(
+            os.path.join(os.path.dirname(__file__), "static", "prelims-csat.html"),
+            media_type="text/html; charset=utf-8",
+            headers={"Cache-Control": "public, max-age=3600"}
+        )
 
     seo_html = get_prelims_seo_page(slug_clean)
     if seo_html:
@@ -631,6 +650,14 @@ async def prelims_subject_page(subject_slug: str):
 @app.api_route("/study-plan", methods=["GET", "HEAD"])
 async def planner_page():
     return RedirectResponse(url="/prelims", status_code=302)
+
+@app.api_route("/sitemap-prelims-questions.xml", methods=["GET", "HEAD"])
+async def sitemap_prelims_questions_xml():
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "static", "sitemap-prelims-questions.xml"),
+        media_type="application/xml; charset=utf-8",
+        headers={"Cache-Control": "public, max-age=3600"}
+    )
 
 @app.api_route("/sitemap-prelims.xml", methods=["GET", "HEAD"])
 async def sitemap_prelims_xml():
