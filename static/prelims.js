@@ -28,6 +28,10 @@
     vaultSelectedDifficulty: 'all',
     vaultSearchQuery: '',
     vaultExpandedQuestions: new Set(),
+    vaultPageSize: 25,
+    vaultDisplayedCount: 25,
+    matrixPageSize: 20,
+    pyqMap: {},
     searchQuery: '',
     viewMode: 'dashboard', // 'dashboard' | 'player' | 'report'
     playerIndex: 0,
@@ -301,6 +305,27 @@
     return list;
   }
 
+  function renderMatrixLoadingSkeletons() {
+    const container = document.getElementById('pyqSearchResultsContainer');
+    if (!container) return;
+    const skeleton = (
+      '<div class="animate-pulse p-4 rounded-2xl bg-white dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 flex flex-col gap-2.5">' +
+        '<div class="flex items-center justify-between">' +
+          '<div class="flex gap-2">' +
+            '<div class="h-4 w-16 bg-slate-200 dark:bg-slate-800 rounded"></div>' +
+            '<div class="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded"></div>' +
+          '</div>' +
+          '<div class="h-4 w-12 bg-amber-500/20 rounded"></div>' +
+        '</div>' +
+        '<div class="space-y-1.5">' +
+          '<div class="h-3.5 bg-slate-200 dark:bg-slate-800 rounded w-full"></div>' +
+          '<div class="h-3.5 bg-slate-200 dark:bg-slate-800 rounded w-3/4"></div>' +
+        '</div>' +
+      '</div>'
+    );
+    container.innerHTML = skeleton + skeleton + skeleton;
+  }
+
   function renderMatrixFeed() {
     const container = document.getElementById('pyqSearchResultsContainer');
     const badge = document.getElementById('matrixMatchCountBadge');
@@ -308,6 +333,11 @@
     const clearBtn = document.getElementById('clearTopicSearchBtn');
 
     if (!container) return;
+
+    if (!STATE.pyqs || STATE.pyqs.length === 0) {
+      renderMatrixLoadingSkeletons();
+      return;
+    }
 
     if (clearBtn) {
       if (STATE.matrixSearchQuery && STATE.matrixSearchQuery.trim()) {
@@ -326,7 +356,7 @@
       if (STATE.matrixSelectedYear !== 'all') desc.push('Year ' + STATE.matrixSelectedYear);
       if (STATE.matrixSelectedSubject !== 'all') desc.push(STATE.matrixSelectedSubject);
       if (STATE.matrixSearchQuery) desc.push('"' + STATE.matrixSearchQuery + '"');
-      statusText.textContent = desc.length > 0 ? ('Filtering: ' + desc.join(' · ')) : 'Showing all 1,600+ authentic questions';
+      statusText.textContent = desc.length > 0 ? ('Filtering: ' + desc.join(' · ')) : 'Showing 1,600+ authentic questions';
     }
 
     if (matches.length === 0) {
@@ -340,7 +370,11 @@
       return;
     }
 
-    container.innerHTML = matches.map(function (q) {
+    // Limit initial display to 20 questions for maximum speed
+    const maxVisible = 20;
+    const visibleMatches = matches.slice(0, maxVisible);
+
+    let html = visibleMatches.map(function (q) {
       const userAns = STATE.answers[q.id];
       let statusBadge = '';
       if (userAns) {
@@ -367,32 +401,18 @@
       );
     }).join('');
 
-    // Attach click to launch single question
-    container.querySelectorAll('.matrix-q-item').forEach(function (card) {
-      card.addEventListener('click', function (e) {
-        const qId = e.currentTarget.getAttribute('data-qid');
-        const qIdx = matches.findIndex(function (q) { return q.id === qId; });
-        STATE.playerQuestions = matches;
-        STATE.playerIndex = (qIdx !== -1 ? qIdx : 0);
-        STATE.isExamMode = false;
-        STATE.isReviewMode = false;
-        var subName = matches[0] && matches[0].subject ? matches[0].subject : 'Topic';
-        STATE.currentTest = {
-          id: 'practice_' + Date.now(),
-          title: subName + ' Practice (' + matches.length + ' Qs)',
-          mode: 'practice',
-          totalQuestions: matches.length,
-          startTime: Date.now()
-        };
-        STATE.testAnswers = {};
-        matches.forEach(function (q) {
-          if (STATE.answers[q.id] && STATE.answers[q.id].selectedIndex !== undefined) {
-            STATE.testAnswers[q.id] = STATE.answers[q.id].selectedIndex;
-          }
-        });
-        switchViewMode('player');
-      });
-    });
+    if (matches.length > maxVisible) {
+      html += (
+        '<div class="p-2 text-center">' +
+          '<button type="button" id="matrixViewAllInVaultBtn" class="w-full py-2.5 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-bold cursor-pointer transition flex items-center justify-center gap-1.5">' +
+            '<span>⚡ View all ' + matches.length + ' matching questions in PYQ Vault</span>' +
+            '<span>→</span>' +
+          '</button>' +
+        '</div>'
+      );
+    }
+
+    container.innerHTML = html;
   }
 
   // ==========================================================
@@ -3259,6 +3279,19 @@
     return stmts;
   }
 
+  // Debounce Utility for fast input responsiveness
+  function debounce(func, wait) {
+    let timeout;
+    return function () {
+      const context = this;
+      const args = arguments;
+      clearTimeout(timeout);
+      timeout = setTimeout(function () {
+        func.apply(context, args);
+      }, wait);
+    };
+  }
+
   // Escape HTML
   function escapeHtml(str) {
     if (!str) return '';
@@ -3334,10 +3367,18 @@
 
   // Fetch Questions
   async function initQuestions() {
+    if (!STATE.pyqs || STATE.pyqs.length === 0) {
+      renderVaultLoadingSkeletons();
+      renderMatrixLoadingSkeletons();
+    }
     try {
       const res = await fetch('/static/data/prelims_pyqs.json');
       if (res.ok) {
         STATE.pyqs = await res.json();
+        STATE.pyqMap = {};
+        STATE.pyqs.forEach(function (q) {
+          if (q && q.id) STATE.pyqMap[q.id] = q;
+        });
       }
     } catch (e) {
       console.warn('Could not fetch prelims_pyqs.json:', e);
@@ -3347,6 +3388,12 @@
     updateSubTopicHeatmap();
     renderDashboardMockHistory();
     handleUrlQueryParams();
+
+    if (STATE.viewMode === 'vault') {
+      renderPyqVault();
+    } else if (STATE.viewMode === 'dashboard') {
+      renderMatrixFeed();
+    }
   }
 
   function handleUrlQueryParams() {
@@ -3891,7 +3938,40 @@ function renderPlayerDistractorDeepDive(q) {
     return list;
   }
 
-  function renderPyqVault() {
+  function renderVaultLoadingSkeletons() {
+    var container = document.getElementById('vaultQuestionsContainer');
+    if (!container) return;
+    var skeletonCard = (
+      '<div class="animate-pulse rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-md flex flex-col gap-4">' +
+        '<div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-200 dark:border-slate-800">' +
+          '<div class="flex items-center gap-2">' +
+            '<div class="h-5 w-20 bg-amber-500/20 rounded-lg"></div>' +
+            '<div class="h-5 w-24 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>' +
+            '<div class="h-5 w-16 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>' +
+          '</div>' +
+          '<div class="h-7 w-32 bg-amber-500/20 rounded-xl"></div>' +
+        '</div>' +
+        '<div class="space-y-2">' +
+          '<div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-11/12"></div>' +
+          '<div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-4/5"></div>' +
+          '<div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-2/3"></div>' +
+        '</div>' +
+        '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">' +
+          '<div class="h-12 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800/80"></div>' +
+          '<div class="h-12 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800/80"></div>' +
+          '<div class="h-12 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800/80"></div>' +
+          '<div class="h-12 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800/80"></div>' +
+        '</div>' +
+        '<div class="h-4 w-48 bg-amber-500/20 rounded"></div>' +
+      '</div>'
+    );
+    container.innerHTML = skeletonCard + skeletonCard + skeletonCard;
+  }
+
+  function renderPyqVault(resetPagination) {
+    if (resetPagination !== false) {
+      STATE.vaultDisplayedCount = STATE.vaultPageSize;
+    }
     var subjectBtn = document.getElementById('vaultModeSubjectBtn');
     var yearBtn = document.getElementById('vaultModeYearBtn');
     var subjectFilterRow = document.getElementById('vaultSubjectFilterContainer');
@@ -3955,6 +4035,7 @@ function renderPlayerDistractorDeepDive(q) {
     container.querySelectorAll('.vault-subj-pill').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         STATE.vaultSelectedSubject = e.currentTarget.getAttribute('data-subj');
+        STATE.vaultDisplayedCount = STATE.vaultPageSize;
         renderPyqVault();
       });
     });
@@ -3986,6 +4067,7 @@ function renderPlayerDistractorDeepDive(q) {
     container.querySelectorAll('.vault-year-pill').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         STATE.vaultSelectedYear = e.currentTarget.getAttribute('data-year');
+        STATE.vaultDisplayedCount = STATE.vaultPageSize;
         renderPyqVault();
       });
     });
@@ -4078,16 +4160,307 @@ function renderPlayerDistractorDeepDive(q) {
     }
   }
 
+  function renderVaultDrawerContent(q) {
+    var letters = ['A', 'B', 'C', 'D'];
+    var distractors = getDistractorAnalysis(q);
+
+    return (
+      '<div class="flex flex-col gap-3.5 pt-3 border-t border-slate-200 dark:border-slate-800">' +
+        
+        '<!-- Official Key Pill -->' +
+        '<div class="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-between text-xs">' +
+          '<span class="font-black text-emerald-700 dark:text-emerald-400">Official UPSC Answer Key:</span>' +
+          '<span class="px-2.5 py-0.5 rounded-md bg-emerald-500 text-slate-950 font-mono font-black text-xs">' +
+            'Option (' + (letters[q.correct_index] || '?') + ')' +
+          '</span>' +
+        '</div>' +
+
+        '<!-- Option-by-Option Distractor Deep Dive -->' +
+        '<div class="flex flex-col gap-2">' +
+          '<span class="text-xs font-mono uppercase font-black text-amber-600 dark:text-amber-500 tracking-wider">🔬 Forensic Option-by-Option Breakdown &amp; Traps:</span>' +
+          '<div class="grid grid-cols-1 gap-2.5">' +
+            distractors.map(function (d) {
+              var badgeClass = 'bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30';
+              if (d.isCorrect) {
+                badgeClass = 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30';
+              } else if (d.badgeType === 'extreme') {
+                badgeClass = 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30';
+              } else if (d.badgeType === 'number') {
+                badgeClass = 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30';
+              } else if (d.badgeType === 'authority') {
+                badgeClass = 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border border-blue-500/30';
+              } else {
+                badgeClass = 'bg-orange-500/15 text-orange-700 dark:text-orange-400 border border-orange-500/30';
+              }
+              return (
+                '<div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-1.5 text-xs">' +
+                  '<div class="flex items-center justify-between gap-2 flex-wrap">' +
+                    '<div class="flex items-center gap-2">' +
+                      '<span class="w-5 h-5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white font-mono font-black flex items-center justify-center text-[11px]">' + d.letter + '</span>' +
+                      '<span class="font-bold text-slate-800 dark:text-slate-200">' + (d.isCorrect ? 'Correct Assertion' : 'Examiner Decoy') + '</span>' +
+                    '</div>' +
+                    '<span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono ' + badgeClass + '">' + escapeHtml(d.label) + '</span>' +
+                  '</div>' +
+                  '<p class="text-slate-700 dark:text-slate-300 font-medium pl-7 leading-relaxed">' + escapeHtml(d.optionText) + '</p>' +
+                  '<div class="pl-7 pt-1.5 border-t border-slate-200/70 dark:border-slate-800/70 flex flex-col gap-1 text-[11px] leading-relaxed">' +
+                    '<div class="text-slate-700 dark:text-slate-300">' +
+                      '<strong class="' + (d.isCorrect ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400') + '">' +
+                        (d.isCorrect ? '✓ Verification: ' : '✗ Reality Check: ') +
+                      '</strong>' +
+                      '<span>' + escapeHtml(d.diagnosis) + '</span>' +
+                    '</div>' +
+                    (!d.isCorrect && d.examinerCraft ? (
+                      '<div class="text-amber-800 dark:text-amber-400/90 bg-amber-500/5 dark:bg-amber-500/10 p-1.5 rounded-lg border border-amber-500/20">' +
+                        '<span class="font-bold font-mono uppercase text-[9px] tracking-wider text-amber-700 dark:text-amber-400">🧠 Decoy Craft: </span>' +
+                        '<span>' + escapeHtml(d.examinerCraft) + '</span>' +
+                      '</div>'
+                    ) : '') +
+                  '</div>' +
+                '</div>'
+              );
+            }).join('') +
+          '</div>' +
+        '</div>' +
+
+        '<!-- Topper Elimination Trap -->' +
+        '<div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col gap-1 text-xs">' +
+          '<span class="font-bold text-amber-700 dark:text-amber-400 uppercase text-[10px] tracking-wider flex items-center gap-1">' +
+            '<span>⚡</span> Topper Elimination Trap' +
+          '</span>' +
+          '<p class="text-amber-900 dark:text-amber-200 leading-relaxed text-[11px]">' +
+            escapeHtml(q.elimination_trap || 'Pay close attention to subtle swaps between constitutional provisions and subordinate legislation.') +
+          '</p>' +
+        '</div>' +
+
+        '<!-- Forensic Explanation -->' +
+        '<div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1.5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">' +
+          '<span class="font-bold text-slate-900 dark:text-white text-xs">Official UPSC Forensic Breakdown:</span>' +
+          '<p class="whitespace-pre-line">' + escapeHtml(q.explanation || 'Official UPSC key validated explanation.') + '</p>' +
+          (q.standard_book_ref ? '<span class="text-[11px] text-amber-700 dark:text-amber-400 font-mono pt-1">📖 Standard Reference: ' + escapeHtml(q.standard_book_ref) + '</span>' : '') +
+        '</div>' +
+
+        (q.mains_linkage && q.mains_linkage.question ? 
+          '<div class="p-3 rounded-xl bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-slate-950 border border-amber-500/30 flex items-center justify-between gap-3 flex-wrap">' +
+            '<div class="flex flex-col gap-0.5">' +
+              '<span class="text-[10px] font-bold text-amber-400 flex items-center gap-1"><span>✍️</span> GS Mains Linkage (' + escapeHtml(q.mains_linkage.paper || 'GS') + ')</span>' +
+              '<p class="text-[11px] text-slate-300 italic line-clamp-1">"' + escapeHtml(q.mains_linkage.question) + '"</p>' +
+            '</div>' +
+            '<a href="/?paper=' + encodeURIComponent(q.mains_linkage.paper || 'GS1') + '&amp;question=' + encodeURIComponent(q.mains_linkage.question) + '" target="_blank" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[10px] transition shrink-0">' +
+              'Evaluate Mains Copy →' +
+            '</a>' +
+          '</div>' : '') +
+
+      '</div>'
+    );
+  }
+
+  function renderVaultQuestionCard(q) {
+    var letters = ['A', 'B', 'C', 'D'];
+    var isExpanded = STATE.vaultExpandedQuestions.has(q.id);
+
+    var diffBadgeColor = 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30';
+    if ((q.difficulty || '').toLowerCase() === 'easy') diffBadgeColor = 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30';
+    if ((q.difficulty || '').toLowerCase() === 'hard') diffBadgeColor = 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30';
+
+    return (
+      '<div class="light-card rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-md flex flex-col gap-4" id="vault-card-' + q.id + '">' +
+        
+        '<!-- Header Badges -->' +
+        '<div class="flex items-center justify-between gap-2 flex-wrap border-b border-slate-200 dark:border-slate-800 pb-3">' +
+          '<div class="flex items-center gap-2 flex-wrap">' +
+            '<span class="px-2.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-xs font-mono font-bold">UPSC ' + q.year + '</span>' +
+            '<span class="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">' + escapeHtml(q.subject || 'GS-1') + '</span>' +
+            (q.sub_topic ? '<span class="px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[11px] font-mono">' + escapeHtml(q.sub_topic) + '</span>' : '') +
+            '<span class="px-2 py-0.5 rounded-lg border text-[11px] font-bold font-mono ' + diffBadgeColor + '">' + escapeHtml(q.difficulty || 'Moderate') + '</span>' +
+          '</div>' +
+
+          '<button type="button" class="vault-solve-one-btn px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-xs transition-all cursor-pointer flex items-center gap-1 shrink-0" data-qid="' + q.id + '">' +
+            '<span>🎯 Solve in Focus Player</span>' +
+          '</button>' +
+        '</div>' +
+
+        '<!-- Question Statement -->' +
+        '<div class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 leading-relaxed">' +
+          '<p class="whitespace-pre-line">' + escapeHtml(q.question_text) + '</p>' +
+        '</div>' +
+
+        '<!-- Options List -->' +
+        (Array.isArray(q.options) && q.options.length ? (
+          '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">' +
+            q.options.map(function (opt, oIdx) {
+              var letter = letters[oIdx] || String.fromCharCode(65 + oIdx);
+              var cleanOpt = String(opt || '').replace(/^\([a-dA-D]\)\s*/, '');
+              var isOfficial = isExpanded && (oIdx === q.correct_index);
+              var optCardClass = isOfficial
+                ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-950 dark:text-emerald-200 font-semibold shadow-xs ring-1 ring-emerald-500/30'
+                : 'light-inner-box bg-slate-50 dark:bg-slate-950/70 border-slate-200 dark:border-slate-800/80 text-slate-800 dark:text-slate-200';
+              var badgeClass = isOfficial
+                ? 'bg-emerald-500 text-slate-950 font-black'
+                : 'bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold';
+              return (
+                '<div class="vault-opt-item p-3 rounded-xl border flex items-start gap-2.5 text-xs sm:text-[13px] leading-relaxed transition-all ' + optCardClass + '" data-oidx="' + oIdx + '">' +
+                  '<span class="vault-opt-badge w-5 h-5 rounded-md font-mono text-[11px] flex items-center justify-center shrink-0 mt-0.5 ' + badgeClass + '">' + letter + '</span>' +
+                  '<span class="flex-1">' + escapeHtml(cleanOpt) + '</span>' +
+                  (isOfficial ? '<span class="vault-official-tag text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/20 px-1.5 py-0.5 rounded shrink-0">Official Key ✓</span>' : '') +
+                '</div>'
+              );
+            }).join('') +
+          '</div>'
+        ) : '') +
+
+        '<!-- Expand / Collapse Brainstorming Drawer -->' +
+        '<div class="flex items-center justify-between pt-1">' +
+          '<button type="button" class="vault-toggle-card-btn text-xs font-bold text-amber-600 dark:text-amber-500 hover:text-amber-700 dark:hover:text-amber-400 flex items-center gap-1.5 cursor-pointer" data-qid="' + q.id + '">' +
+            '<span>' + (isExpanded ? '▲ Hide Forensic Key &amp; Traps' : '▼ 🧠 Brainstorm &amp; Decoded Answer Key') + '</span>' +
+          '</button>' +
+        '</div>' +
+
+        '<div class="vault-card-drawer ' + (isExpanded ? '' : 'hidden') + '" id="vault-drawer-' + q.id + '">' +
+          (isExpanded ? renderVaultDrawerContent(q) : '') +
+        '</div>' +
+
+      '</div>'
+    );
+  }
+
+  function toggleSingleVaultCard(qId) {
+    var card = document.getElementById('vault-card-' + qId);
+    if (!card) return;
+
+    var isExpanded = STATE.vaultExpandedQuestions.has(qId);
+    var q = (STATE.pyqMap && STATE.pyqMap[qId]) || STATE.pyqs.find(function (item) { return item.id === qId; });
+    if (!q) return;
+
+    var toggleBtn = card.querySelector('.vault-toggle-card-btn');
+    var drawer = document.getElementById('vault-drawer-' + qId);
+
+    if (isExpanded) {
+      STATE.vaultExpandedQuestions.delete(qId);
+      if (drawer) drawer.classList.add('hidden');
+      if (toggleBtn) {
+        toggleBtn.innerHTML = '<span>▼ 🧠 Brainstorm &amp; Decoded Answer Key</span>';
+      }
+      card.querySelectorAll('.vault-opt-item').forEach(function (optEl) {
+        optEl.className = 'vault-opt-item p-3 rounded-xl border flex items-start gap-2.5 text-xs sm:text-[13px] leading-relaxed transition-all light-inner-box bg-slate-50 dark:bg-slate-950/70 border-slate-200 dark:border-slate-800/80 text-slate-800 dark:text-slate-200';
+        var badge = optEl.querySelector('.vault-opt-badge');
+        if (badge) badge.className = 'vault-opt-badge w-5 h-5 rounded-md font-mono text-[11px] flex items-center justify-center shrink-0 mt-0.5 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold';
+        var tag = optEl.querySelector('.vault-official-tag');
+        if (tag) tag.remove();
+      });
+    } else {
+      STATE.vaultExpandedQuestions.add(qId);
+      if (!drawer) {
+        drawer = document.createElement('div');
+        drawer.id = 'vault-drawer-' + qId;
+        drawer.className = 'vault-card-drawer';
+        card.appendChild(drawer);
+      }
+      drawer.innerHTML = renderVaultDrawerContent(q);
+      drawer.classList.remove('hidden');
+
+      if (toggleBtn) {
+        toggleBtn.innerHTML = '<span>▲ Hide Forensic Key &amp; Traps</span>';
+      }
+      card.querySelectorAll('.vault-opt-item').forEach(function (optEl) {
+        var oIdx = parseInt(optEl.getAttribute('data-oidx'), 10);
+        if (oIdx === q.correct_index) {
+          optEl.className = 'vault-opt-item p-3 rounded-xl border flex items-start gap-2.5 text-xs sm:text-[13px] leading-relaxed transition-all bg-emerald-500/10 border-emerald-500/50 text-emerald-950 dark:text-emerald-200 font-semibold shadow-xs ring-1 ring-emerald-500/30';
+          var badge = optEl.querySelector('.vault-opt-badge');
+          if (badge) badge.className = 'vault-opt-badge w-5 h-5 rounded-md font-mono text-[11px] flex items-center justify-center shrink-0 mt-0.5 bg-emerald-500 text-slate-950 font-black';
+          if (!optEl.querySelector('.vault-official-tag')) {
+            var tag = document.createElement('span');
+            tag.className = 'vault-official-tag text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/20 px-1.5 py-0.5 rounded shrink-0';
+            tag.textContent = 'Official Key ✓';
+            optEl.appendChild(tag);
+          }
+        }
+      });
+    }
+  }
+
+  function loadMoreVaultQuestions() {
+    var filtered = STATE.vaultCurrentFiltered || getFilteredVaultQuestions();
+    if (!filtered || STATE.vaultDisplayedCount >= filtered.length) {
+      var sentinel = document.getElementById('vaultLoadMoreSentinel');
+      if (sentinel) sentinel.remove();
+      return;
+    }
+
+    var start = STATE.vaultDisplayedCount;
+    var nextBatch = filtered.slice(start, start + STATE.vaultPageSize);
+    STATE.vaultDisplayedCount += nextBatch.length;
+
+    var container = document.getElementById('vaultQuestionsContainer');
+    var sentinel = document.getElementById('vaultLoadMoreSentinel');
+    if (!container || nextBatch.length === 0) return;
+
+    var htmlString = nextBatch.map(function (q) {
+      return renderVaultQuestionCard(q);
+    }).join('');
+
+    if (sentinel) {
+      sentinel.insertAdjacentHTML('beforebegin', htmlString);
+    } else {
+      container.insertAdjacentHTML('beforeend', htmlString);
+    }
+
+    var statusText = document.getElementById('vaultFeedStatusText');
+    if (statusText) {
+      statusText.textContent = 'Showing ' + Math.min(STATE.vaultDisplayedCount, filtered.length) + ' of ' + filtered.length + ' authentic UPSC Prelims Questions';
+    }
+
+    if (STATE.vaultDisplayedCount >= filtered.length) {
+      if (sentinel) sentinel.remove();
+      if (vaultObserver) {
+        vaultObserver.disconnect();
+        vaultObserver = null;
+      }
+    } else {
+      var loadMoreBtn = document.getElementById('vaultLoadMoreBtn');
+      if (loadMoreBtn) {
+        var btnSpan = loadMoreBtn.querySelector('span');
+        if (btnSpan) {
+          btnSpan.textContent = 'Load More Questions (' + Math.min(STATE.vaultDisplayedCount, filtered.length) + ' of ' + filtered.length + ')';
+        }
+      }
+    }
+  }
+
+  var vaultObserver = null;
+
+  function setupVaultInfiniteScroll() {
+    if (vaultObserver) {
+      vaultObserver.disconnect();
+      vaultObserver = null;
+    }
+    var sentinel = document.getElementById('vaultLoadMoreSentinel');
+    if (!sentinel || typeof window.IntersectionObserver !== 'function') return;
+
+    vaultObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          loadMoreVaultQuestions();
+        }
+      });
+    }, { rootMargin: '400px' });
+
+    vaultObserver.observe(sentinel);
+  }
+
   function renderVaultQuestions(questions) {
     var container = document.getElementById('vaultQuestionsContainer');
     var statusText = document.getElementById('vaultFeedStatusText');
     if (!container) return;
 
-    if (statusText) {
-      statusText.textContent = 'Showing ' + questions.length + ' authentic UPSC Prelims Questions';
+    STATE.vaultCurrentFiltered = questions;
+
+    if (vaultObserver) {
+      vaultObserver.disconnect();
+      vaultObserver = null;
     }
 
-    if (questions.length === 0) {
+    if (!questions || questions.length === 0) {
+      if (statusText) statusText.textContent = '0 Questions Found';
       container.innerHTML = (
         '<div class="p-8 text-center rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col items-center gap-2">' +
           '<span class="text-3xl">🔍</span>' +
@@ -4098,184 +4471,35 @@ function renderPlayerDistractorDeepDive(q) {
       return;
     }
 
-    var letters = ['A', 'B', 'C', 'D'];
+    var total = questions.length;
+    var visibleCount = Math.min(STATE.vaultDisplayedCount || STATE.vaultPageSize, total);
+    if (statusText) {
+      statusText.textContent = 'Showing ' + visibleCount + ' of ' + total + ' authentic UPSC Prelims Questions';
+    }
 
-    container.innerHTML = questions.map(function (q) {
-      var isExpanded = STATE.vaultExpandedQuestions.has(q.id);
-      var distractors = isExpanded ? getDistractorAnalysis(q) : [];
-
-      var diffBadgeColor = 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30';
-      if ((q.difficulty || '').toLowerCase() === 'easy') diffBadgeColor = 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30';
-      if ((q.difficulty || '').toLowerCase() === 'hard') diffBadgeColor = 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30';
-
-      return (
-        '<div class="light-card rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-md flex flex-col gap-4" id="vault-card-' + q.id + '">' +
-          
-          '<!-- Header Badges -->' +
-          '<div class="flex items-center justify-between gap-2 flex-wrap border-b border-slate-200 dark:border-slate-800 pb-3">' +
-            '<div class="flex items-center gap-2 flex-wrap">' +
-              '<span class="px-2.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-xs font-mono font-bold">UPSC ' + q.year + '</span>' +
-              '<span class="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">' + escapeHtml(q.subject || 'GS-1') + '</span>' +
-              (q.sub_topic ? '<span class="px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[11px] font-mono">' + escapeHtml(q.sub_topic) + '</span>' : '') +
-              '<span class="px-2 py-0.5 rounded-lg border text-[11px] font-bold font-mono ' + diffBadgeColor + '">' + escapeHtml(q.difficulty || 'Moderate') + '</span>' +
-            '</div>' +
-
-            '<button type="button" class="vault-solve-one-btn px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-xs transition-all cursor-pointer flex items-center gap-1 shrink-0" data-qid="' + q.id + '">' +
-              '<span>🎯 Solve in Focus Player</span>' +
-            '</button>' +
-          '</div>' +
-
-          '<!-- Question Statement -->' +
-          '<div class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 leading-relaxed">' +
-            '<p class="whitespace-pre-line">' + escapeHtml(q.question_text) + '</p>' +
-          '</div>' +
-
-          '<!-- Options List -->' +
-          (Array.isArray(q.options) && q.options.length ? (
-            '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">' +
-              q.options.map(function (opt, oIdx) {
-                var letter = letters[oIdx] || String.fromCharCode(65 + oIdx);
-                var cleanOpt = String(opt || '').replace(/^\([a-dA-D]\)\s*/, '');
-                var isOfficial = isExpanded && (oIdx === q.correct_index);
-                var optCardClass = isOfficial
-                  ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-950 dark:text-emerald-200 font-semibold shadow-xs ring-1 ring-emerald-500/30'
-                  : 'light-inner-box bg-slate-50 dark:bg-slate-950/70 border-slate-200 dark:border-slate-800/80 text-slate-800 dark:text-slate-200';
-                var badgeClass = isOfficial
-                  ? 'bg-emerald-500 text-slate-950 font-black'
-                  : 'bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold';
-                return (
-                  '<div class="p-3 rounded-xl border flex items-start gap-2.5 text-xs sm:text-[13px] leading-relaxed transition-all ' + optCardClass + '">' +
-                    '<span class="w-5 h-5 rounded-md font-mono text-[11px] flex items-center justify-center shrink-0 mt-0.5 ' + badgeClass + '">' + letter + '</span>' +
-                    '<span class="flex-1">' + escapeHtml(cleanOpt) + '</span>' +
-                    (isOfficial ? '<span class="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/20 px-1.5 py-0.5 rounded shrink-0">Official Key ✓</span>' : '') +
-                  '</div>'
-                );
-              }).join('') +
-            '</div>'
-          ) : '') +
-
-          '<!-- Expand / Collapse Brainstorming Drawer -->' +
-          '<div class="flex items-center justify-between pt-1">' +
-            '<button type="button" class="vault-toggle-card-btn text-xs font-bold text-amber-600 dark:text-amber-500 hover:text-amber-700 dark:hover:text-amber-400 flex items-center gap-1.5 cursor-pointer" data-qid="' + q.id + '">' +
-              '<span>' + (isExpanded ? '▲ Hide Forensic Key & Traps' : '▼ 🧠 Brainstorm & Decoded Answer Key') + '</span>' +
-            '</button>' +
-          '</div>' +
-
-          (isExpanded ? (
-            '<div class="flex flex-col gap-3.5 pt-3 border-t border-slate-200 dark:border-slate-800">' +
-              
-              '<!-- Official Key Pill -->' +
-              '<div class="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-between text-xs">' +
-                '<span class="font-black text-emerald-700 dark:text-emerald-400">Official UPSC Answer Key:</span>' +
-                '<span class="px-2.5 py-0.5 rounded-md bg-emerald-500 text-slate-950 font-mono font-black text-xs">' +
-                  'Option (' + letters[q.correct_index] + ')' +
-                '</span>' +
-              '</div>' +
-
-              '<!-- Option-by-Option Distractor Deep Dive -->' +
-              '<div class="flex flex-col gap-2">' +
-                '<span class="text-xs font-mono uppercase font-black text-amber-600 dark:text-amber-500 tracking-wider">🔬 Forensic Option-by-Option Breakdown & Traps:</span>' +
-                '<div class="grid grid-cols-1 gap-2.5">' +
-                  distractors.map(function (d) {
-                    let badgeClass = 'bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30';
-                    if (d.isCorrect) {
-                      badgeClass = 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30';
-                    } else if (d.badgeType === 'extreme') {
-                      badgeClass = 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30';
-                    } else if (d.badgeType === 'number') {
-                      badgeClass = 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30';
-                    } else if (d.badgeType === 'authority') {
-                      badgeClass = 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border border-blue-500/30';
-                    } else {
-                      badgeClass = 'bg-orange-500/15 text-orange-700 dark:text-orange-400 border border-orange-500/30';
-                    }
-                    return (
-                      '<div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-1.5 text-xs">' +
-                        '<div class="flex items-center justify-between gap-2 flex-wrap">' +
-                          '<div class="flex items-center gap-2">' +
-                            '<span class="w-5 h-5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white font-mono font-black flex items-center justify-center text-[11px]">' + d.letter + '</span>' +
-                            '<span class="font-bold text-slate-800 dark:text-slate-200">' + (d.isCorrect ? 'Correct Assertion' : 'Examiner Decoy') + '</span>' +
-                          '</div>' +
-                          '<span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono ' + badgeClass + '">' + escapeHtml(d.label) + '</span>' +
-                        '</div>' +
-                        '<p class="text-slate-700 dark:text-slate-300 font-medium pl-7 leading-relaxed">' + escapeHtml(d.optionText) + '</p>' +
-                        '<div class="pl-7 pt-1.5 border-t border-slate-200/70 dark:border-slate-800/70 flex flex-col gap-1 text-[11px] leading-relaxed">' +
-                          '<div class="text-slate-700 dark:text-slate-300">' +
-                            '<strong class="' + (d.isCorrect ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400') + '">' +
-                              (d.isCorrect ? '✓ Verification: ' : '✗ Reality Check: ') +
-                            '</strong>' +
-                            '<span>' + escapeHtml(d.diagnosis) + '</span>' +
-                          '</div>' +
-                          (!d.isCorrect && d.examinerCraft ? (
-                            '<div class="text-amber-800 dark:text-amber-400/90 bg-amber-500/5 dark:bg-amber-500/10 p-1.5 rounded-lg border border-amber-500/20">' +
-                              '<span class="font-bold font-mono uppercase text-[9px] tracking-wider text-amber-700 dark:text-amber-400">🧠 Decoy Craft: </span>' +
-                              '<span>' + escapeHtml(d.examinerCraft) + '</span>' +
-                            '</div>'
-                          ) : '') +
-                        '</div>' +
-                      '</div>'
-                    );
-                  }).join('') +
-                '</div>' +
-              '</div>' +
-              '<!-- Topper Elimination Trap -->' +
-              '<div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col gap-1 text-xs">' +
-                '<span class="font-bold text-amber-700 dark:text-amber-400 uppercase text-[10px] tracking-wider flex items-center gap-1">' +
-                  '<span>⚡</span> Topper Elimination Trap' +
-                '</span>' +
-                '<p class="text-amber-900 dark:text-amber-200 leading-relaxed text-[11px]">' +
-                  escapeHtml(q.elimination_trap || 'Pay close attention to subtle swaps between constitutional provisions and subordinate legislation.') +
-                '</p>' +
-              '</div>' +
-
-              '<!-- Forensic Explanation -->' +
-              '<div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1.5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">' +
-                '<span class="font-bold text-slate-900 dark:text-white text-xs">Official UPSC Forensic Breakdown:</span>' +
-                '<p class="whitespace-pre-line">' + escapeHtml(q.explanation || 'Official UPSC key validated explanation.') + '</p>' +
-                (q.standard_book_ref ? '<span class="text-[11px] text-amber-700 dark:text-amber-400 font-mono pt-1">📖 Standard Reference: ' + escapeHtml(q.standard_book_ref) + '</span>' : '') +
-              '</div>' +
-
-              (q.mains_linkage && q.mains_linkage.question ? 
-                '<div class="p-3 rounded-xl bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-slate-950 border border-amber-500/30 flex items-center justify-between gap-3 flex-wrap">' +
-                  '<div class="flex flex-col gap-0.5">' +
-                    '<span class="text-[10px] font-bold text-amber-400 flex items-center gap-1"><span>✍️</span> GS Mains Linkage (' + escapeHtml(q.mains_linkage.paper || 'GS') + ')</span>' +
-                    '<p class="text-[11px] text-slate-300 italic line-clamp-1">"' + escapeHtml(q.mains_linkage.question) + '"</p>' +
-                  '</div>' +
-                  '<a href="/?paper=' + encodeURIComponent(q.mains_linkage.paper || 'GS1') + '&question=' + encodeURIComponent(q.mains_linkage.question) + '" target="_blank" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[10px] transition shrink-0">' +
-                    'Evaluate Mains Copy →' +
-                  '</a>' +
-                '</div>' : '') +
-
-            '</div>'
-          ) : '') +
-
-        '</div>'
-      );
+    var visibleQuestions = questions.slice(0, visibleCount);
+    var cardsHtml = visibleQuestions.map(function (q) {
+      return renderVaultQuestionCard(q);
     }).join('');
 
-    // Toggle single card
-    container.querySelectorAll('.vault-toggle-card-btn').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        var qId = e.currentTarget.getAttribute('data-qid');
-        if (STATE.vaultExpandedQuestions.has(qId)) {
-          STATE.vaultExpandedQuestions.delete(qId);
-        } else {
-          STATE.vaultExpandedQuestions.add(qId);
-        }
-        renderVaultQuestions(questions);
-      });
-    });
+    var sentinelHtml = '';
+    if (total > visibleCount) {
+      sentinelHtml = (
+        '<div id="vaultLoadMoreSentinel" class="pt-4 pb-8 flex flex-col items-center justify-center gap-2">' +
+          '<button type="button" id="vaultLoadMoreBtn" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-md cursor-pointer transition-all flex items-center gap-2">' +
+            '<span>Load More Questions (' + visibleCount + ' of ' + total + ')</span>' +
+            '<span>↓</span>' +
+          '</button>' +
+          '<span class="text-[11px] text-slate-400">Scroll down or tap to reveal next batch</span>' +
+        '</div>'
+      );
+    }
 
-    // Solve in focus player
-    container.querySelectorAll('.vault-solve-one-btn').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        var qId = e.currentTarget.getAttribute('data-qid');
-        var question = STATE.pyqs.find(function (item) { return item.id === qId; });
-        if (question) {
-          window.startPracticeWithSingleQuestion(question);
-        }
-      });
-    });
+    container.innerHTML = cardsHtml + sentinelHtml;
+
+    if (total > visibleCount) {
+      setupVaultInfiniteScroll();
+    }
   }
 
   // Launch single question in focus player
@@ -5056,15 +5280,15 @@ function renderPlayerDistractorDeepDive(q) {
     });
 
     
-    // Topic Search & Matrix Listeners
+    // Topic Search & Matrix Listeners (Debounced 180ms)
     const topicInput = document.getElementById('globalTopicSearchInput');
     const clearTopicBtn = document.getElementById('clearTopicSearchBtn');
 
     if (topicInput) {
-      topicInput.addEventListener('input', function (e) {
+      topicInput.addEventListener('input', debounce(function (e) {
         STATE.matrixSearchQuery = e.target.value.trim();
         renderMatrixFeed();
-      });
+      }, 180));
     }
 
     if (clearTopicBtn) {
@@ -5075,6 +5299,51 @@ function renderPlayerDistractorDeepDive(q) {
       });
     }
 
+    // High-Performance Event Delegation for Matrix Results Container
+    const matrixContainer = document.getElementById('pyqSearchResultsContainer');
+    if (matrixContainer && !matrixContainer.dataset.delegated) {
+      matrixContainer.dataset.delegated = 'true';
+      matrixContainer.addEventListener('click', function (e) {
+        const viewVaultBtn = e.target.closest('#matrixViewAllInVaultBtn');
+        if (viewVaultBtn) {
+          e.preventDefault();
+          STATE.vaultSearchQuery = STATE.matrixSearchQuery;
+          STATE.vaultSelectedSubject = STATE.matrixSelectedSubject;
+          STATE.vaultSelectedYear = STATE.matrixSelectedYear;
+          const vaultSearchInput = document.getElementById('vaultSearchInput');
+          if (vaultSearchInput) vaultSearchInput.value = STATE.vaultSearchQuery;
+          switchViewMode('vault');
+          return;
+        }
+        const item = e.target.closest('.matrix-q-item');
+        if (item) {
+          e.preventDefault();
+          const qId = item.getAttribute('data-qid');
+          const matches = getFilteredMatrixQuestions();
+          const qIdx = matches.findIndex(function (q) { return q.id === qId; });
+          STATE.playerQuestions = matches;
+          STATE.playerIndex = (qIdx !== -1 ? qIdx : 0);
+          STATE.isExamMode = false;
+          STATE.isReviewMode = false;
+          var subName = matches[0] && matches[0].subject ? matches[0].subject : 'Topic';
+          STATE.currentTest = {
+            id: 'matrix_' + Date.now(),
+            title: (STATE.matrixSearchQuery ? ('"' + STATE.matrixSearchQuery + '"') : subName) + ' Practice (' + matches.length + ' Qs)',
+            mode: 'practice',
+            totalQuestions: matches.length,
+            startTime: Date.now()
+          };
+          STATE.testAnswers = {};
+          matches.forEach(function (q) {
+            if (STATE.answers[q.id] && STATE.answers[q.id].selectedIndex !== undefined) {
+              STATE.testAnswers[q.id] = STATE.answers[q.id].selectedIndex;
+            }
+          });
+          switchViewMode('player');
+        }
+      });
+    }
+
     // Dedicated Sidebar Prelims PYQ Vault Nav Link
     document.getElementById('sideNavPyqVault')?.addEventListener('click', function (e) {
       if (e) e.preventDefault();
@@ -5082,18 +5351,19 @@ function renderPlayerDistractorDeepDive(q) {
       toggleSidebar(false);
     });
 
-    // Vault Search Input
+    // Vault Search Input (Debounced 180ms)
     const vaultSearchInput = document.getElementById('vaultSearchInput');
     const clearVaultSearchBtn = document.getElementById('clearVaultSearchBtn');
     if (vaultSearchInput) {
-      vaultSearchInput.addEventListener('input', function (e) {
+      vaultSearchInput.addEventListener('input', debounce(function (e) {
         STATE.vaultSearchQuery = e.target.value.trim();
         if (clearVaultSearchBtn) {
           if (STATE.vaultSearchQuery) clearVaultSearchBtn.classList.remove('hidden');
           else clearVaultSearchBtn.classList.add('hidden');
         }
+        STATE.vaultDisplayedCount = STATE.vaultPageSize;
         renderPyqVault();
-      });
+      }, 180));
     }
 
     if (clearVaultSearchBtn) {
@@ -5101,18 +5371,50 @@ function renderPlayerDistractorDeepDive(q) {
         if (vaultSearchInput) vaultSearchInput.value = '';
         STATE.vaultSearchQuery = '';
         clearVaultSearchBtn.classList.add('hidden');
+        STATE.vaultDisplayedCount = STATE.vaultPageSize;
         renderPyqVault();
+      });
+    }
+
+    // High-Performance Event Delegation for PYQ Vault Container
+    const vaultContainer = document.getElementById('vaultQuestionsContainer');
+    if (vaultContainer && !vaultContainer.dataset.delegated) {
+      vaultContainer.dataset.delegated = 'true';
+      vaultContainer.addEventListener('click', function (e) {
+        const toggleBtn = e.target.closest('.vault-toggle-card-btn');
+        if (toggleBtn) {
+          e.preventDefault();
+          const qId = toggleBtn.getAttribute('data-qid');
+          if (qId) toggleSingleVaultCard(qId);
+          return;
+        }
+        const solveBtn = e.target.closest('.vault-solve-one-btn');
+        if (solveBtn) {
+          e.preventDefault();
+          const qId = solveBtn.getAttribute('data-qid');
+          const question = (STATE.pyqMap && STATE.pyqMap[qId]) || STATE.pyqs.find(function (item) { return item.id === qId; });
+          if (question) window.startPracticeWithSingleQuestion(question);
+          return;
+        }
+        const loadMoreBtn = e.target.closest('#vaultLoadMoreBtn');
+        if (loadMoreBtn) {
+          e.preventDefault();
+          loadMoreVaultQuestions();
+          return;
+        }
       });
     }
 
     // Vault Mode Switcher (Subject vs Year)
     document.getElementById('vaultModeSubjectBtn')?.addEventListener('click', function () {
       STATE.vaultMode = 'subject';
+      STATE.vaultDisplayedCount = STATE.vaultPageSize;
       renderPyqVault();
     });
 
     document.getElementById('vaultModeYearBtn')?.addEventListener('click', function () {
       STATE.vaultMode = 'year';
+      STATE.vaultDisplayedCount = STATE.vaultPageSize;
       renderPyqVault();
     });
 
@@ -5121,6 +5423,7 @@ function renderPlayerDistractorDeepDive(q) {
       btn.addEventListener('click', function (e) {
         const diff = e.currentTarget.getAttribute('data-diff');
         STATE.vaultSelectedDifficulty = diff;
+        STATE.vaultDisplayedCount = STATE.vaultPageSize;
         document.querySelectorAll('.vault-diff-btn').forEach(function (b) {
           b.className = (b.getAttribute('data-diff') === diff)
             ? 'vault-diff-btn px-2 py-0.5 rounded-md bg-amber-500 text-slate-950 font-black cursor-pointer'
@@ -5157,18 +5460,28 @@ function renderPlayerDistractorDeepDive(q) {
       switchViewMode('player');
     });
 
-    // Vault Expand All Answers Button
+    // Vault Expand All Answers Button (Fast In-Place Batch Toggle)
     document.getElementById('vaultToggleAllAnswersBtn')?.addEventListener('click', function () {
-      const filtered = getFilteredVaultQuestions();
-      const allExpanded = filtered.every(function (q) { return STATE.vaultExpandedQuestions.has(q.id); });
-      if (allExpanded) {
-        filtered.forEach(function (q) { STATE.vaultExpandedQuestions.delete(q.id); });
-        this.innerHTML = '<span>💡 Expand All Answers</span>';
-      } else {
-        filtered.forEach(function (q) { STATE.vaultExpandedQuestions.add(q.id); });
-        this.innerHTML = '<span>▲ Collapse All Answers</span>';
-      }
-      renderVaultQuestions(filtered);
+      const container = document.getElementById('vaultQuestionsContainer');
+      if (!container) return;
+      const visibleCards = container.querySelectorAll('.light-card[id^="vault-card-"]');
+      if (visibleCards.length === 0) return;
+
+      const firstCardId = visibleCards[0].id.replace('vault-card-', '');
+      const shouldCollapse = STATE.vaultExpandedQuestions.has(firstCardId);
+
+      visibleCards.forEach(function (card) {
+        const qId = card.id.replace('vault-card-', '');
+        if (shouldCollapse) {
+          if (STATE.vaultExpandedQuestions.has(qId)) toggleSingleVaultCard(qId);
+        } else {
+          if (!STATE.vaultExpandedQuestions.has(qId)) toggleSingleVaultCard(qId);
+        }
+      });
+
+      this.innerHTML = shouldCollapse
+        ? '<span>💡 Expand All Answers</span>'
+        : '<span>▲ Collapse All Answers</span>';
     });
 
     // Fallback for Sidebar Search & Matrix Nav Link
