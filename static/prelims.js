@@ -267,7 +267,7 @@
 
   
   // ==========================================================
-  // TOPIC SEARCH & 14-YEAR PYQ MATRIX ENGINE
+  // TOPIC SEARCH & 16-YEAR PYQ MATRIX ENGINE
   // ==========================================================
   function getFilteredMatrixQuestions() {
     let list = STATE.pyqs.slice();
@@ -326,7 +326,7 @@
       if (STATE.matrixSelectedYear !== 'all') desc.push('Year ' + STATE.matrixSelectedYear);
       if (STATE.matrixSelectedSubject !== 'all') desc.push(STATE.matrixSelectedSubject);
       if (STATE.matrixSearchQuery) desc.push('"' + STATE.matrixSearchQuery + '"');
-      statusText.textContent = desc.length > 0 ? ('Filtering: ' + desc.join(' · ')) : 'Showing all 1,280+ authentic questions';
+      statusText.textContent = desc.length > 0 ? ('Filtering: ' + desc.join(' · ')) : 'Showing all 1,600+ authentic questions';
     }
 
     if (matches.length === 0) {
@@ -4924,7 +4924,8 @@ function renderPlayerDistractorDeepDive(q) {
       window.startPracticeSession('all');
       toggleSidebar(false);
     });
-    document.getElementById('sideNavMockTests')?.addEventListener('click', function () {
+    document.getElementById('sideNavMockTests')?.addEventListener('click', function (e) {
+      if (e) e.preventDefault();
       window.openMockGenerator();
       toggleSidebar(false);
     });
@@ -4933,7 +4934,8 @@ function renderPlayerDistractorDeepDive(q) {
       toggleSidebar(false);
     });
 
-    document.getElementById('sideNavCSAT')?.addEventListener('click', function () {
+    document.getElementById('sideNavCSAT')?.addEventListener('click', function (e) {
+      if (e) e.preventDefault();
       switchViewMode('csat');
       toggleSidebar(false);
     });
@@ -5027,7 +5029,8 @@ function renderPlayerDistractorDeepDive(q) {
     }
 
     // Dedicated Sidebar Prelims PYQ Vault Nav Link
-    document.getElementById('sideNavPyqVault')?.addEventListener('click', function () {
+    document.getElementById('sideNavPyqVault')?.addEventListener('click', function (e) {
+      if (e) e.preventDefault();
       switchViewMode('vault');
       toggleSidebar(false);
     });
@@ -5301,7 +5304,8 @@ function renderPlayerDistractorDeepDive(q) {
 
     
     // Cutoff EV Simulator Triggers
-    document.getElementById('sideNavEV')?.addEventListener('click', function () {
+    document.getElementById('sideNavEV')?.addEventListener('click', function (e) {
+      if (e) e.preventDefault();
       window.openEVSimulator();
       toggleSidebar(false);
     });

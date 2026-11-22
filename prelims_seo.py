@@ -393,7 +393,7 @@ def render_subject_page(meta: Dict[str, Any], questions: List[Dict[str, Any]]) -
     <section class="mb-8" aria-label="Browse all subjects">
       <div class="flex items-center justify-between mb-2">
         <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Filter by Core UPSC Disciplines</h2>
-        <a href="/prelims/pyqs" class="text-xs font-semibold text-amber-400 hover:underline">View All 14 Years →</a>
+        <a href="/prelims/pyqs" class="text-xs font-semibold text-amber-400 hover:underline">View All 16 Years →</a>
       </div>
       <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         {''.join(subject_links)}
