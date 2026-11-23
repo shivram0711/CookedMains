@@ -2665,8 +2665,8 @@
     const step1RecoveryEl = document.getElementById('missionStep1Recovery');
     const step2TopicEl = document.getElementById('missionStep2Topic');
 
-    // 1. Prelims 2026 Countdown
-    const prelimsDate = new Date('2026-05-24T09:30:00');
+    // 1. Prelims 2027 Countdown
+    const prelimsDate = new Date('2027-05-23T09:30:00');
     const now = new Date();
     const diffDays = Math.max(0, Math.ceil((prelimsDate - now) / (1000 * 60 * 60 * 24)));
     if (daysBadge) daysBadge.textContent = diffDays + ' Days Left';
@@ -2915,7 +2915,7 @@
     if (!modal) return;
     modal.classList.remove('hidden');
 
-    const prelimsDate = new Date('2026-05-24T09:30:00');
+    const prelimsDate = new Date('2027-05-23T09:30:00');
     const now = new Date();
     const diffTime = prelimsDate - now;
     const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
@@ -4324,7 +4324,7 @@ function renderPlayerDistractorDeepDive(q) {
         : 'px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:text-amber-500 border border-slate-200 dark:border-slate-800 cursor-pointer text-xs transition-all';
 
       return (
-        '<button type="button" class="vault-subj-pill ' + btnClass + '" data-subj="' + s.id + '">' +
+        '<button type="button" class="vault-subj-pill ' + btnClass + '" data-subj="' + s.id + '" onclick="window.setVaultSubject(\'' + s.id + '\')">' +
           escapeHtml(s.label) + ' <span class="opacity-70 font-mono text-[10px]">(' + count + ')</span>' +
         '</button>'
       );
@@ -4356,7 +4356,7 @@ function renderPlayerDistractorDeepDive(q) {
         : 'px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:text-amber-500 border border-slate-200 dark:border-slate-800 cursor-pointer text-xs font-mono transition-all';
 
       return (
-        '<button type="button" class="vault-year-pill ' + btnClass + '" data-year="' + y + '">' +
+        '<button type="button" class="vault-year-pill ' + btnClass + '" data-year="' + y + '" onclick="window.setVaultYear(\'' + y + '\')">' +
           (y === 'all' ? 'All Years' : y) + ' <span class="opacity-70 text-[10px]">(' + count + ')</span>' +
         '</button>'
       );
@@ -4397,7 +4397,7 @@ function renderPlayerDistractorDeepDive(q) {
         : 'px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:text-emerald-400 border border-slate-200 dark:border-slate-800 cursor-pointer text-xs font-mono transition-all';
 
       return (
-        '<button type="button" class="vault-ca-month-pill ' + btnClass + '" data-month="' + m.id + '">' +
+        '<button type="button" class="vault-ca-month-pill ' + btnClass + '" data-month="' + m.id + '" onclick="window.setVaultCaMonth(\'' + m.id + '\')">' +
           m.label + ' <span class="opacity-70 text-[10px]">(' + count + ')</span>' +
         '</button>'
       );
@@ -6459,8 +6459,181 @@ function renderPlayerDistractorDeepDive(q) {
     showToast('Launched ' + month + ' (' + targetCount + ' Qs · ' + (mode === 'exam' ? 'Exam Mode' : 'Tutor Mode') + ')');
   };
 
-  // Expose to window
+  async function ensureCaQuestionsLoaded() {
+    if (STATE.ca_pyqs && STATE.ca_pyqs.length > 0) return STATE.ca_pyqs;
+    try {
+      const res = await fetch('/static/data/current_affairs_pyqs.json');
+      if (res.ok) {
+        STATE.ca_pyqs = await res.json();
+        if (!STATE.pyqMap) STATE.pyqMap = {};
+        STATE.ca_pyqs.forEach(function (q) {
+          if (q && q.id) STATE.pyqMap[q.id] = q;
+        });
+      }
+    } catch (e) {
+      console.warn('Could not load CA questions:', e);
+    }
+    return STATE.ca_pyqs || [];
+  }
+
+  // Expose to window for resilient direct invocation
+  window.switchViewMode = switchViewMode;
+
+  window.switchVaultMode = function (mode) {
+    STATE.vaultMode = mode;
+    STATE.vaultDisplayedCount = STATE.vaultPageSize;
+    if (mode === 'ca' && (!STATE.ca_pyqs || STATE.ca_pyqs.length === 0)) {
+      ensureCaQuestionsLoaded().then(function () {
+        renderPyqVault();
+      });
+      return;
+    }
+    renderPyqVault();
+  };
+
+  window.setVaultCaMonth = function (month) {
+    STATE.vaultSelectedCaMonth = month;
+    STATE.vaultDisplayedCount = STATE.vaultPageSize;
+    renderPyqVault();
+  };
+
+  window.setVaultSubject = function (subj) {
+    STATE.vaultSelectedSubject = subj;
+    STATE.vaultDisplayedCount = STATE.vaultPageSize;
+    renderPyqVault();
+  };
+
+  window.setVaultYear = function (year) {
+    STATE.vaultSelectedYear = year;
+    STATE.vaultDisplayedCount = STATE.vaultPageSize;
+    renderPyqVault();
+  };
+
+  window.openCurrentAffairsArena = function (e) {
+    if (e && e.preventDefault) e.preventDefault();
+    if (window.history && window.history.pushState) {
+      try {
+        window.history.pushState({}, '', '/prelims/current-affairs');
+      } catch (err) {}
+    }
+    switchViewMode('current_affairs');
+    if (!STATE.ca_pyqs || STATE.ca_pyqs.length === 0) {
+      ensureCaQuestionsLoaded().then(function () {
+        renderCurrentAffairsArena();
+      });
+    }
+  };
+
+  window.openDynamicCaGeneratorModal = function () {
+    const modal = document.getElementById('dynamicCaGeneratorModal');
+    if (modal) modal.classList.remove('hidden');
+    const progressBox = document.getElementById('dynamicCaProgressBox');
+    if (progressBox) progressBox.classList.add('hidden');
+    const startBtn = document.getElementById('startDynamicCaBtn');
+    if (startBtn) startBtn.disabled = false;
+  };
+
+  window.closeDynamicCaGeneratorModal = function () {
+    const modal = document.getElementById('dynamicCaGeneratorModal');
+    if (modal) modal.classList.add('hidden');
+  };
+
+  window.triggerDynamicCaGeneration = async function () {
+    const monthSelect = document.getElementById('dynamicCaMonthSelect');
+    const subjectSelect = document.getElementById('dynamicCaSubjectSelect');
+    const countSelect = document.getElementById('dynamicCaCountSelect');
+    const difficultySelect = document.getElementById('dynamicCaDifficultySelect');
+    const topicInput = document.getElementById('dynamicCaCustomTopicInput');
+    const progressBox = document.getElementById('dynamicCaProgressBox');
+    const progressMsg = document.getElementById('dynamicCaProgressMsg');
+    const startBtn = document.getElementById('startDynamicCaBtn');
+
+    const month = monthSelect ? monthSelect.value : 'January 2026';
+    const subject = subjectSelect ? subjectSelect.value : 'all';
+    const count = countSelect ? parseInt(countSelect.value, 10) : 5;
+    const difficulty = difficultySelect ? difficultySelect.value : 'Tough';
+    const topic = topicInput ? topicInput.value.trim() : '';
+
+    if (progressBox) progressBox.classList.remove('hidden');
+    if (startBtn) startBtn.disabled = true;
+
+    // Animated progress simulation
+    const steps = [
+      'Analyzing trusted UPSC news triggers (The Hindu, PIB, UNEP)...',
+      'Reverse-engineering static roots (NCERT Class 11/12 & standard acts)...',
+      'Synthesizing UPSC examiner distractors & Topper elimination traps...',
+      'Verifying 4-option forensic keys & Mains linkages...'
+    ];
+    let stepIdx = 0;
+    const progressTimer = setInterval(function () {
+      stepIdx = (stepIdx + 1) % steps.length;
+      if (progressMsg) progressMsg.textContent = steps[stepIdx];
+    }, 2200);
+
+    try {
+      const formData = new FormData();
+      formData.append('month', month);
+      formData.append('subject', subject);
+      formData.append('count', String(count));
+      formData.append('difficulty', difficulty);
+      if (topic) formData.append('topic', topic);
+
+      const res = await fetch('/api/prelims/generate-dynamic-ca', {
+        method: 'POST',
+        body: formData
+      });
+      clearInterval(progressTimer);
+
+      if (!res.ok) throw new Error('Server returned status ' + res.status);
+      const data = await res.json();
+
+      if (data.status === 'success' && Array.isArray(data.questions) && data.questions.length > 0) {
+        if (!STATE.ca_pyqs) STATE.ca_pyqs = [];
+        if (!STATE.pyqMap) STATE.pyqMap = {};
+
+        // Prepend new questions
+        data.questions.forEach(function (q) {
+          STATE.ca_pyqs.unshift(q);
+          STATE.pyqMap[q.id] = q;
+        });
+
+        window.closeDynamicCaGeneratorModal();
+        showToast('Generated ' + data.questions.length + ' authentic UPSC questions dynamically!');
+        renderCurrentAffairsArena();
+        if (STATE.viewMode === 'vault') renderPyqVault();
+
+        // Optional prompt to solve immediately
+        if (confirm('Successfully synthesized ' + data.questions.length + ' fresh UPSC Reverse-Osmosis Questions!\n\nWould you like to practice them right now in the Timed Focus Player?')) {
+          STATE.playerQuestions = data.questions;
+          STATE.playerIndex = 0;
+          STATE.isExamMode = false;
+          STATE.isReviewMode = false;
+          STATE.currentTest = {
+            id: 'dyn_ca_' + Date.now(),
+            title: month + ' Dynamic AI Cohort (' + data.questions.length + ' Qs)',
+            format: 'current_affairs',
+            durationSeconds: data.questions.length * 72,
+            remainingSeconds: data.questions.length * 72,
+            totalQuestions: data.questions.length,
+            startTime: Date.now()
+          };
+          switchViewMode('player');
+        }
+      } else {
+        alert(data.message || 'Failed to generate dynamic questions. Please verify API key configuration.');
+      }
+    } catch (err) {
+      clearInterval(progressTimer);
+      console.error('Error generating dynamic CA:', err);
+      alert('Error generating questions: ' + err.message);
+    } finally {
+      if (progressBox) progressBox.classList.add('hidden');
+      if (startBtn) startBtn.disabled = false;
+    }
+  };
+
   window.renderCurrentAffairsArena = renderCurrentAffairsArena;
+  window.ensureCaQuestionsLoaded = ensureCaQuestionsLoaded;
 
   // Initialize
   document.addEventListener('DOMContentLoaded', function () {

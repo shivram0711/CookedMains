@@ -635,6 +635,12 @@ async def prelims_subject_page(subject_slug: str):
             media_type="text/html; charset=utf-8",
             headers={"Cache-Control": "public, max-age=3600"}
         )
+    if slug_clean in ["current-affairs", "currentaffairs", "ca", "monthly-ca", "current-affairs-arena"]:
+        return FileResponse(
+            os.path.join(os.path.dirname(__file__), "static", "prelims.html"),
+            media_type="text/html; charset=utf-8",
+            headers={"Cache-Control": "no-cache, must-revalidate"}
+        )
 
     seo_html = get_prelims_seo_page(slug_clean)
     if seo_html:
@@ -931,6 +937,42 @@ async def api_refresh_current_affairs(background_tasks: BackgroundTasks, paper: 
             "message": "Live news synchronized successfully with latest national editorials.",
             "question": new_q,
             "offset": fresh_offset
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@app.post("/api/prelims/generate-dynamic-ca")
+async def api_generate_dynamic_ca(
+    request: Request,
+    month: str = Form("January 2026"),
+    subject: str = Form("all"),
+    difficulty: str = Form("Tough"),
+    count: int = Form(3),
+    topic: Optional[str] = Form(None)
+):
+    """
+    Dynamically generates authentic UPSC Prelims Reverse-Osmosis Current Affairs questions.
+    Extracts high-yield triggers from The Hindu, PIB, Down to Earth, PRS, and NCERTs,
+    and returns questions with full forensic 4-option distractor breakdown.
+    """
+    from prelims_ca_generator import generate_dynamic_prelims_ca_batch
+    try:
+        count_clean = max(1, min(int(count), 10))
+        questions = generate_dynamic_prelims_ca_batch(
+            count=count_clean,
+            month=month,
+            subject=subject,
+            difficulty=difficulty,
+            custom_topic=topic,
+            save_to_disk=True
+        )
+        return {
+            "status": "success",
+            "generated_count": len(questions),
+            "month": month,
+            "subject": subject,
+            "questions": questions
         }
     except Exception as e:
         return {"status": "error", "message": str(e)}
