@@ -161,9 +161,6 @@ Output raw JSON only."""
         opt_char = parsed.get("correct_option", "A").upper()
         char_map = {"A": 0, "B": 1, "C": 2, "D": 3}
         parsed["correct_index"] = char_map.get(opt_char, 0)
-        parsed["question"] = parsed.get("question_text", "")
-        if "answer" not in parsed:
-            parsed["answer"] = parsed["options"][parsed["correct_index"]]
 
         return parsed
     except Exception as e:

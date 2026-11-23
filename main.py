@@ -556,10 +556,7 @@ async def google_site_verification_file(token: str):
 @app.api_route("/dashboard", methods=["GET", "HEAD"])
 @app.api_route("/dashboard.html", methods=["GET", "HEAD"])
 async def prelims_page():
-    return FileResponse(
-        os.path.join(os.path.dirname(__file__), "static", "prelims.html"),
-        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"}
-    )
+    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "prelims.html"))
 
 @app.api_route("/prelims/question/{qid}", methods=["GET", "HEAD"])
 @app.api_route("/prelims/pyq/{qid}", methods=["GET", "HEAD"])
@@ -609,10 +606,7 @@ async def prelims_pyqs_sub_page(sub_slug: str):
             status_code=200,
             headers={"Cache-Control": "public, max-age=3600"}
         )
-    return FileResponse(
-        os.path.join(os.path.dirname(__file__), "static", "prelims.html"),
-        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"}
-    )
+    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "prelims.html"))
 
 @app.api_route("/prelims/{subject_slug}", methods=["GET", "HEAD"])
 async def prelims_subject_page(subject_slug: str):
@@ -656,10 +650,7 @@ async def prelims_subject_page(subject_slug: str):
             headers={"Cache-Control": "public, max-age=3600"}
         )
 
-    return FileResponse(
-        os.path.join(os.path.dirname(__file__), "static", "prelims.html"),
-        headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"}
-    )
+    return FileResponse(os.path.join(os.path.dirname(__file__), "static", "prelims.html"))
 
 @app.api_route("/planner", methods=["GET", "HEAD"])
 @app.api_route("/planner.html", methods=["GET", "HEAD"])
