@@ -30,7 +30,7 @@ import hashlib
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Any, Dict, Tuple, Set, Union
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request, BackgroundTasks, Response, Depends
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request, BackgroundTasks, Response, Depends, Query, Body
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse, RedirectResponse
 import base64
@@ -176,7 +176,7 @@ async def add_security_headers(request: Request, call_next):
 
     # Browser Cache-Control: prevent repeat visitors from re-downloading static files
     path = request.url.path
-    if re.search(r'\.(css|js|png|jpg|jpeg|gif|ico|woff2?|ttf|svg|webp)$', path, re.IGNORECASE):
+    if re.search(r'\.(css|js|png|jpg|jpeg|gif|ico|woff2?|ttf|svg|webp|json)$', path, re.IGNORECASE) or path.startswith("/static/data/"):
         response.headers["Cache-Control"] = "public, max-age=604800, immutable"
     elif path == "/api/samples":
         response.headers["Cache-Control"] = "public, max-age=3600"
@@ -2354,10 +2354,29 @@ async def evaluate_answer(
 
         if files and len(files) > 0 and files[0].filename != "":
             from PIL import ImageOps
+            total_upload_size = 0
+            MAX_TOTAL_UPLOAD_BYTES = 40 * 1024 * 1024  # 40MB total cap
+            MAX_SINGLE_FILE_BYTES = 25 * 1024 * 1024   # 25MB single file cap
+
             for file in files:
                 content = await file.read()
                 if not content:
                     continue
+                if len(content) > MAX_SINGLE_FILE_BYTES:
+                    return JSONResponse(
+                        status_code=413,
+                        content={
+                            "error": f"File '{file.filename}' exceeds 25MB limit. Please upload answer copies under 25MB."
+                        }
+                    )
+                total_upload_size += len(content)
+                if total_upload_size > MAX_TOTAL_UPLOAD_BYTES:
+                    return JSONResponse(
+                        status_code=413,
+                        content={
+                            "error": "Total uploaded files exceed 40MB limit. Please upload answer copies within 40MB."
+                        }
+                    )
                 filename = (file.filename or "").lower()
                 ctype = (file.content_type or "").lower()
                 file_hashes.append(hashlib.sha256(content).hexdigest())
@@ -3579,6 +3598,8 @@ async def evaluate_essay_async(
     # Ingest files
     first_file = files[0]
     content = await first_file.read()
+    if len(content) > 30 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Essay file exceeds 30MB limit. Please upload an essay booklet under 30MB.")
     filename = (first_file.filename or "").lower()
     ctype = (first_file.content_type or "").lower()
 
@@ -3594,15 +3615,20 @@ async def evaluate_essay_async(
     else:
         # Multi-image list
         images_bytes = [content]
+        total_img_size = len(content)
         for f in files[1:]:
             b = await f.read()
             if b:
+                total_img_size += len(b)
+                if total_img_size > 40 * 1024 * 1024:
+                    raise HTTPException(status_code=413, detail="Total uploaded essay photos exceed 40MB limit.")
                 images_bytes.append(b)
         try:
             ingest_result = ingest_essay_images(images_bytes, page_range=page_range)
         except Exception as ie:
             raise HTTPException(status_code=400, detail=f"Failed to process essay images: {str(ie)}")
 
+    release_process_memory()
     pages_data = ingest_result.get("pages") or []
     if not pages_data:
         raise HTTPException(status_code=400, detail="No readable pages found in uploaded booklet.")
