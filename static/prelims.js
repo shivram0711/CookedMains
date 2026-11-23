@@ -194,6 +194,10 @@
     } else {
       document.documentElement.classList.remove('dark');
     }
+    const themeLabel = document.getElementById('sidebarThemeLabel');
+    if (themeLabel) themeLabel.textContent = STATE.theme === 'dark' ? 'Dark' : 'Light';
+    const themeIcon = document.getElementById('sidebarThemeIcon');
+    if (themeIcon) themeIcon.textContent = STATE.theme === 'dark' ? '🌙' : '☀️';
   }
 
   function toggleTheme() {
@@ -202,19 +206,24 @@
     initTheme();
   }
 
-  // Toast Helper (Top-Right notification, stays away from bottom player buttons)
+  function updateLangUI() {
+    const langLabel = document.getElementById('sidebarLangLabel');
+    if (langLabel) langLabel.textContent = STATE.language === 'hi' ? 'हिंदी' : 'English';
+  }
+
+  // Toast Helper (Top-Center floating badge, clean & non-intrusive)
   function showToast(msg) {
     const toast = document.getElementById('toastNotification');
     const msgEl = document.getElementById('toastMessage');
     if (!toast || !msgEl) return;
     msgEl.textContent = msg;
-    toast.classList.remove('-translate-y-10', 'opacity-0');
+    toast.classList.remove('-translate-y-16', '-translate-y-14', '-translate-y-10', 'opacity-0', 'pointer-events-none');
     toast.classList.add('translate-y-0', 'opacity-100');
     if (window._cmToastTimeout) clearTimeout(window._cmToastTimeout);
     window._cmToastTimeout = setTimeout(() => {
-      toast.classList.add('-translate-y-10', 'opacity-0');
+      toast.classList.add('-translate-y-16', 'opacity-0', 'pointer-events-none');
       toast.classList.remove('translate-y-0', 'opacity-100');
-    }, 2000);
+    }, 2200);
   }
 
   // View Switcher (Dashboard vs Question Player Focus Mode vs Forensic Scorecard)
@@ -4846,10 +4855,13 @@ function renderPlayerDistractorDeepDive(q) {
 
   function updateAuthUI() {
     const avatarEl = document.getElementById('sidebarUserAvatar');
+    const onlineIndicator = document.getElementById('sidebarOnlineIndicator');
     const nameEl = document.getElementById('sidebarUserName');
     const subtextEl = document.getElementById('sidebarUserSubtext');
     const actionBtn = document.getElementById('sidebarAuthActionBtn');
     const headerAuth = document.getElementById('headerAuthContainer');
+
+    updateLangUI();
 
     if (STATE.user && STATE.user.email) {
       syncFromCloudIfLoggedIn();
@@ -4858,7 +4870,10 @@ function renderPlayerDistractorDeepDive(q) {
 
       if (avatarEl) {
         avatarEl.textContent = initial;
-        avatarEl.className = 'w-8 h-8 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-bold text-xs font-mono shadow-sm';
+        avatarEl.className = 'w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-white flex items-center justify-center font-bold text-sm font-mono shadow-xs ring-2 ring-emerald-500/20';
+      }
+      if (onlineIndicator) {
+        onlineIndicator.className = 'absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900';
       }
       if (nameEl) {
         nameEl.textContent = displayName;
@@ -4866,20 +4881,20 @@ function renderPlayerDistractorDeepDive(q) {
       }
       if (subtextEl) {
         subtextEl.textContent = 'Mains Cadet • Active';
-        subtextEl.className = 'text-[10px] text-emerald-400 font-mono';
+        subtextEl.className = 'text-[10px] text-emerald-600 dark:text-emerald-400 font-mono font-medium truncate mt-0.5';
       }
       if (actionBtn) {
         actionBtn.textContent = 'Sign Out';
-        actionBtn.className = 'px-2 py-1 rounded-lg bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 font-bold text-[10px] border border-slate-700 hover:border-rose-500/40 cursor-pointer transition';
+        actionBtn.className = 'shrink-0 px-2.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-[11px] border border-rose-500/20 hover:border-rose-500/40 cursor-pointer transition-all active:scale-95';
       }
 
       if (headerAuth) {
         headerAuth.innerHTML = `
-          <div class="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+          <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs shadow-xs">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span class="font-bold text-white text-[11px]">${escapeHtml(displayName)}</span>
+            <span class="font-bold text-slate-800 dark:text-white text-[11px]">${escapeHtml(displayName)}</span>
           </div>
-          <button onclick="window.signOutUser()" class="text-[11px] text-slate-400 hover:text-rose-400 font-bold px-2 py-1 transition cursor-pointer">
+          <button onclick="window.signOutUser()" class="text-[11px] text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 font-bold px-2.5 py-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 transition cursor-pointer">
             Sign Out
           </button>
         `;
@@ -4890,23 +4905,26 @@ function renderPlayerDistractorDeepDive(q) {
 
       if (avatarEl) {
         avatarEl.textContent = '?';
-        avatarEl.className = 'w-8 h-8 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-xs font-mono';
+        avatarEl.className = 'w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-400 text-slate-950 flex items-center justify-center font-bold text-sm font-mono shadow-xs';
+      }
+      if (onlineIndicator) {
+        onlineIndicator.className = 'absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white dark:ring-slate-900';
       }
       if (nameEl) {
         nameEl.textContent = 'Guest Aspirant';
       }
       if (subtextEl) {
-        subtextEl.textContent = remainingTrial > 0 ? `${remainingTrial} Free Trial Qs Left` : 'Trial Limit Reached';
-        subtextEl.className = remainingTrial > 0 ? 'text-[10px] text-amber-400 font-mono' : 'text-[10px] text-rose-400 font-mono font-bold';
+        subtextEl.textContent = remainingTrial > 0 ? `${remainingTrial} Free Trials` : 'Trial Limit Reached';
+        subtextEl.className = remainingTrial > 0 ? 'text-[10px] text-amber-600 dark:text-amber-400 font-mono font-medium truncate mt-0.5' : 'text-[10px] text-rose-600 dark:text-rose-400 font-mono font-bold truncate mt-0.5';
       }
       if (actionBtn) {
         actionBtn.textContent = 'Sign In';
-        actionBtn.className = 'px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[10px] cursor-pointer transition shadow-sm';
+        actionBtn.className = 'shrink-0 px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] shadow-xs cursor-pointer transition-all active:scale-95';
       }
 
       if (headerAuth) {
         headerAuth.innerHTML = `
-          <button onclick="window.openAuthModal('Sign in to save your Prelims practice history & sync with Mains copy evaluation')" class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 transition-all cursor-pointer">
+          <button onclick="window.openAuthModal('Sign in to save your Prelims practice history & sync with Mains copy evaluation')" class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 transition-all cursor-pointer">
             <span>🔑</span>
             <span>Sign In</span>
           </button>
@@ -5365,6 +5383,7 @@ function renderPlayerDistractorDeepDive(q) {
     document.getElementById('sidebarLangToggle')?.addEventListener('click', function () {
       STATE.language = STATE.language === 'en' ? 'hi' : 'en';
       localStorage.setItem('cm_prelims_lang', STATE.language);
+      updateLangUI();
       showToast(STATE.language === 'hi' ? 'भाषा: हिंदी' : 'Language: English');
     });
 

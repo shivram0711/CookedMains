@@ -214,6 +214,30 @@
       -webkit-backdrop-filter: blur(4px) !important;
     }
 
+    /* Light Mode Floating Toasts & Popups */
+    html:not(.dark) #toastNotification {
+      background-color: rgba(255, 255, 255, 0.98) !important;
+      color: #0f172a !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08) !important;
+    }
+    html:not(.dark) #toastNotification #toastMessage {
+      color: #0f172a !important;
+    }
+    html:not(.dark) #headerAuthContainer > div {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+    }
+    html:not(.dark) #headerAuthContainer span {
+      color: #0f172a !important;
+    }
+    html:not(.dark) #sidebarAuthContainer {
+      background-color: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
+
     /* All Slate backgrounds become crisp light surfaces in Light Mode (NEVER match modal overlays!) */
     html:not(.dark) [class*="bg-slate-950"]:not(.modal-backdrop-overlay):not(.fixed),
     html:not(.dark) [class*="bg-slate-900"]:not(.modal-backdrop-overlay):not(.fixed),
@@ -540,31 +564,45 @@
       </nav>
     </div>
 
-    <!-- Bottom Profile & Utilities -->
-    <div id="sidebarAuthContainer" class="p-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
-      <div id="sidebarProfileDetails" class="flex items-center gap-2 cursor-pointer" onclick="window.onSidebarUserClick()">
-        <div id="sidebarUserAvatar" class="w-8 h-8 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-xs font-mono">
-          A
+    <!-- Bottom Profile & Utilities (Executive Cadet Card) -->
+    <div id="sidebarAuthContainer" class="p-3.5 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-950/80 flex flex-col gap-2.5">
+      
+      <!-- Tier 1: Cadet Identity & Status Card -->
+      <div class="flex items-center justify-between gap-2.5 p-2 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-amber-500/30 transition-all">
+        <div id="sidebarProfileDetails" class="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1" onclick="window.onSidebarUserClick()" title="View Profile">
+          <div class="relative shrink-0">
+            <div id="sidebarUserAvatar" class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-400 text-slate-950 flex items-center justify-center font-bold text-sm font-mono shadow-xs">
+              A
+            </div>
+            <span id="sidebarOnlineIndicator" class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900"></span>
+          </div>
+          <div class="flex flex-col min-w-0 leading-tight">
+            <span id="sidebarUserName" class="font-bold text-xs text-slate-900 dark:text-white truncate">Aspirant</span>
+            <span id="sidebarUserSubtext" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono font-medium truncate mt-0.5">5 Free Trial Qs</span>
+          </div>
         </div>
-        <div class="flex flex-col">
-          <span id="sidebarUserName" class="font-bold text-white leading-tight">Aspirant</span>
-          <span id="sidebarUserSubtext" class="text-[10px] text-emerald-400 font-mono">5 Free Trial Qs</span>
-        </div>
-      </div>
 
-      <div class="flex items-center gap-1">
-        <button id="sidebarAuthActionBtn" onclick="window.onSidebarAuthBtnClick()" class="px-2 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-[10px] border border-amber-500/40 cursor-pointer transition">
+        <!-- Auth Action: Sign In or Sign Out -->
+        <button id="sidebarAuthActionBtn" onclick="window.onSidebarAuthBtnClick()" class="shrink-0 px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 font-bold text-[11px] border border-amber-500/30 cursor-pointer transition-all active:scale-95">
           Sign In
         </button>
-        <!-- Bilingual Toggle -->
-        <button id="sidebarLangToggle" class="p-1.5 rounded-lg bg-slate-900 text-amber-400 font-mono font-bold text-xs hover:bg-slate-800 cursor-pointer" title="Toggle English / हिंदी">
-          A/अ
+      </div>
+
+      <!-- Tier 2: Precision Utility Dock (Bilingual + Theme Switcher) -->
+      <div class="grid grid-cols-2 gap-2">
+        <!-- Language Switcher Pill -->
+        <button id="sidebarLangToggle" class="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-amber-500/40 text-slate-700 dark:text-slate-300 text-[11px] font-semibold cursor-pointer transition-all shadow-xs hover:text-amber-600 dark:hover:text-amber-400" title="Toggle English / हिंदी">
+          <span class="font-mono font-bold text-amber-600 dark:text-amber-400">A/अ</span>
+          <span id="sidebarLangLabel" class="text-[10px]">English</span>
         </button>
-        <!-- Theme Toggle -->
-        <button id="sidebarThemeToggle" class="p-1.5 rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer" title="Toggle Light / Dark Mode">
-          🌓
+
+        <!-- Theme Switcher Pill -->
+        <button id="sidebarThemeToggle" class="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-amber-500/40 text-slate-700 dark:text-slate-300 text-[11px] font-semibold cursor-pointer transition-all shadow-xs hover:text-amber-600 dark:hover:text-amber-400" title="Toggle Light / Dark Mode">
+          <span id="sidebarThemeIcon">🌓</span>
+          <span id="sidebarThemeLabel" class="text-[10px]">Theme</span>
         </button>
       </div>
+
     </div>
 
   </aside>
@@ -2233,10 +2271,10 @@
     </div>
   </div>
 
-  <!-- Toast Notification -->
-  <div id="toastNotification" class="fixed top-6 right-6 z-50 transform -translate-y-10 opacity-0 pointer-events-none transition-all duration-300 bg-slate-900/95 backdrop-blur-md border border-amber-500/40 text-white px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold">
-    <span class="text-amber-400 text-base">✓</span>
-    <span id="toastMessage">Done</span>
+  <!-- Toast Notification (Top-Center Floating Notification, Clean & Never Overlaps Header Controls) -->
+  <div id="toastNotification" class="fixed top-5 left-1/2 -translate-x-1/2 z-[100] transform -translate-y-16 opacity-0 pointer-events-none transition-all duration-300 ease-out bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white px-4 py-2.5 rounded-2xl shadow-xl shadow-slate-900/10 dark:shadow-black/50 flex items-center gap-2.5 text-xs font-semibold">
+    <span class="w-5 h-5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs font-black shrink-0">✓</span>
+    <span id="toastMessage" class="tracking-wide text-slate-800 dark:text-slate-100">Done</span>
   </div>
 
   <!-- Scripts -->
