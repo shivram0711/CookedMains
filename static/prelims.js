@@ -4555,6 +4555,10 @@ function renderPlayerDistractorDeepDive(q) {
       { id: 'May 2026', label: '🔥 May 2026' },
       { id: 'June 2026', label: '🌧️ Jun 2026' },
       { id: 'July 2026', label: '⚡ Jul 2026' }
+    },
+      { id: 'August 2026', label: '🌾 Aug 2026' },
+      { id: 'September 2026', label: '🍁 Sep 2026' },
+      { id: 'October 2026', label: '🍂 Oct 2026' }
     ];
 
     container.innerHTML = months.map(function (m) {
@@ -6451,367 +6455,33 @@ function renderPlayerDistractorDeepDive(q) {
       topics: ['Patrice Lumumba Congo Crisis & Indian UN Peacekeepers', 'India-UK CETA Double Contribution Convention', 'US-Saudi 123 Agreement & Non-Proliferation', 'Index of Services Production (ISP / GST Data)', 'Nifty500 Ahimsa Ethical Index', 'Index of Eight Core Industries Weightages', 'Vikram-1 Rocket (Skyroot Aerospace)', 'eVTOL e200X Urban Air Mobility', 'Qdenga Tetravalent Dengue Vaccine', 'Borophene 2D Allotrope Solid Lubricant', 'Puga Valley Geothermal Power Project (Ladakh)', 'Borjuli Wetland Wild Rice Progenitor', 'Teesta River Tso Lhamo Hydrology', 'Kamarajar Port Landlord Port Model', 'Karlapat Bauxite & Khondalite Topography'],
       source: 'InsightsIAS Jul 2026 / MoSPI / DGCA / IN-SPACe'
     }
+  
+    },
+    {
+      month: 'August 2026',
+      icon: '🌾',
+      color: 'amber',
+      title: 'August 2026 Comprehensive Dossier',
+      leadTheme: 'Glaw Lake Ramsar, Asan ESZ & IPMDA',
+      topics: ['Glaw Lake (101st Ramsar)', 'SC 10-km Buffer on Ramsar Mining (Asan)', 'Asiatic Lion Barda Sanctuary & Babarkot', 'Houbara / MacQueens Bustard', 'Clouded Leopard Arboreal Adaptations', 'Vulture Recovery (NSAIDs Bans)', 'Danube River Capitals', 'Lake Mead & Hoover Dam', 'Nauru & Ceuta Enclave', 'IPMDA Quad Maritime Awareness', 'GOBARdhan SATAT Bioenergy Offtake', 'Open Natural Ecosystems (ONEs)', 'Makkah Pact', 'PM Surya Sarovar Floating Solar', 'National Honour Act 1971'],
+      source: 'InsightsIAS Aug 2026 / PIB / MoEFCC / SC Judgments'
+    },
+    {
+      month: 'September 2026',
+      icon: '🍁',
+      color: 'emerald',
+      title: 'September 2026 Comprehensive Dossier',
+      leadTheme: 'Coral Bleaching GCRMN & DSR Soil Carbon',
+      topics: ['GCRMN Global Coral Reef Status (4th Bleaching)', 'Neelakurinji (WPA Sch III & Shola Masting)', 'Ammannia telanganensis (Amrabad TR)', 'Trishuli River Antecedent Drainage', 'Lake Ontario & St. Lawrence Seaway', 'Larak Island Salt Diapirs & Strait of Hormuz', 'Lake Magadi Trona Kenya Rift', 'Mount Anak Krakatau Sunda Strait', 'Kathmandu Declaration (SAWEN)', 'ECI Totaliser Machines in EVMs', 'Article 371K Ladakh Proposals', 'Lipulekh Pass & Kali River', 'Sohar Port (Gulf of Oman)', 'Djibouti & Lake Assal (-155m)', 'Indus Waters Treaty PCA Ruling', 'Direct Seeded Rice (DSR) Carbon Credits', 'Badri Cattle OPU-IVF'],
+      source: 'InsightsIAS Sep 2026 / ICRI / ECI / PCA The Hague'
+    },
+    {
+      month: 'October 2026',
+      icon: '🍂',
+      color: 'indigo',
+      title: 'October 2026 Comprehensive Dossier',
+      leadTheme: 'Sukhna & Sauj Jheel Ramsar & BNSS 163',
+      topics: ['Sukhna Lake & Sauj Jheel (102nd & 103rd Ramsar)', 'Buxa Tiger Reserve Reintroduction', 'Kallakkadal Swell Surge Waves (INCOIS)', 'Himalayan Tahr Hoof Adaptations', 'Sarus Crane Non-Migratory Ecology', 'Black Sea Anoxic Deep Meromictic Basin', 'Caspian Sea Volga Drainage & Littorals', 'Dakhla Oasis Nubian Sandstone Aquifer', 'Section 163 BNSS (CrPC 144 Evolution)', 'Supreme Court Collegium Three Judges Cases', 'SIOFA Southern Indian Ocean Fisheries', 'Eight Core Industries Index Weightages', 'Quantum Key Distribution (QKD) Free-Space', 'UN Declaration on Sea Level Rise & UNCLOS Baselines', 'Kufri Jamunia Anthocyanin Potato'],
+      source: 'InsightsIAS Oct 2026 / UNCLOS / NTCA / INCOIS / CPRI'
+    }
   ];
-
-  function renderCurrentAffairsArena() {
-    var cardsGrid = document.getElementById('caMonthlyCardsGrid');
-    if (!cardsGrid) return;
-
-    var caQuestions = STATE.ca_pyqs || [];
-
-    // Render 7 Monthly Dossier Hub Cards
-    cardsGrid.innerHTML = MONTHLY_DOSSIERS_METADATA.map(function (meta) {
-      var count = caQuestions.filter(function (q) { return q.month === meta.month; }).length || 15;
-      return (
-        '<div class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between gap-4 transition-all hover:border-emerald-500/50 group">' +
-          '<div class="flex flex-col gap-3">' +
-            '<div class="flex items-center justify-between gap-2">' +
-              '<div class="flex items-center gap-2.5">' +
-                '<span class="text-2xl">' + meta.icon + '</span>' +
-                '<div>' +
-                  '<h3 class="text-sm font-black text-white group-hover:text-emerald-400 transition">' + escapeHtml(meta.month) + '</h3>' +
-                  '<span class="text-[10px] text-slate-400 font-mono">' + escapeHtml(meta.leadTheme) + '</span>' +
-                '</div>' +
-              '</div>' +
-              '<span class="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-mono font-bold border border-emerald-500/30">' +
-                count + ' Qs' +
-              '</span>' +
-            '</div>' +
-
-            '<div class="flex items-center gap-1.5 flex-wrap pt-1">' +
-              meta.topics.slice(0, 4).map(function (tp) {
-                return '<span class="px-2 py-0.5 rounded-md bg-slate-800/80 text-[10px] text-slate-300 font-medium">' + escapeHtml(tp) + '</span>';
-              }).join('') +
-              (meta.topics.length > 4 ? '<span class="text-[10px] text-slate-400 font-mono">+' + (meta.topics.length - 4) + ' more</span>' : '') +
-            '</div>' +
-          '</div>' +
-
-          '<div class="pt-3 border-t border-slate-800 flex items-center justify-between gap-2 flex-wrap">' +
-            '<button type="button" onclick="window.startMonthlyCaMock(\'' + meta.month + '\', \'exam\')" class="flex-1 py-2 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition shadow-md shadow-emerald-500/10 cursor-pointer flex items-center justify-center gap-1.5 active:scale-95">' +
-              '<span>▶️ 15 Qs Timed Mock</span>' +
-            '</button>' +
-            '<button type="button" onclick="window.startMonthlyCaMock(\'' + meta.month + '\', \'tutor\')" class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs transition cursor-pointer" title="Tutor Practice Mode with instant explanations">' +
-              '<span>💡 Tutor</span>' +
-            '</button>' +
-          '</div>' +
-        '</div>'
-      );
-    }).join('');
-
-    renderCaFeedQuestions();
-  }
-
-  function renderCaFeedQuestions() {
-    var feedList = document.getElementById('caQuestionsFeedList');
-    var badge = document.getElementById('caFilteredCountBadge');
-    if (!feedList) return;
-
-    var questions = STATE.ca_pyqs || [];
-
-    // Filter by selected month
-    if (STATE.caArenaSelectedMonth && STATE.caArenaSelectedMonth !== 'all') {
-      questions = questions.filter(function (q) { return q.month === STATE.caArenaSelectedMonth; });
-    }
-
-    // Filter by keyword query
-    if (STATE.caArenaSearchQuery) {
-      var query = STATE.caArenaSearchQuery.toLowerCase();
-      questions = questions.filter(function (q) {
-        return (q.question_text || '').toLowerCase().includes(query) ||
-               (q.subject || '').toLowerCase().includes(query) ||
-               (q.sub_topic || '').toLowerCase().includes(query) ||
-               (q.static_root || '').toLowerCase().includes(query) ||
-               (q.explanation || '').toLowerCase().includes(query);
-      });
-    }
-
-    if (badge) {
-      badge.textContent = questions.length + ' Question' + (questions.length === 1 ? '' : 's');
-    }
-
-    if (questions.length === 0) {
-      feedList.innerHTML = (
-        '<div class="p-8 text-center text-slate-400 text-xs font-mono rounded-2xl bg-slate-950 border border-slate-800">' +
-          'No matching current affairs questions found. Try resetting month filters or search term.' +
-        '</div>'
-      );
-      return;
-    }
-
-    var letters = ['A', 'B', 'C', 'D'];
-
-    feedList.innerHTML = questions.slice(0, 30).map(function (q) {
-      return (
-        '<div class="light-card p-5 sm:p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-md flex flex-col gap-3 transition-all hover:border-slate-700">' +
-          '<div class="flex items-center justify-between gap-2 flex-wrap border-b border-slate-800/80 pb-2.5">' +
-            '<div class="flex items-center gap-2 flex-wrap">' +
-              '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase font-mono">' + escapeHtml(q.month) + '</span>' +
-              '<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px] font-bold font-mono">' + escapeHtml(q.subject) + '</span>' +
-              (q.difficulty ? '<span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[10px] font-bold font-mono">' + escapeHtml(q.difficulty) + '</span>' : '') +
-            '</div>' +
-            '<button type="button" onclick="window.startPracticeWithSingleQuestion(STATE.pyqMap[\'' + q.id + '\'])" class="px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-slate-950 text-xs font-bold transition cursor-pointer flex items-center gap-1">' +
-              '<span>Solve in Focus Player →</span>' +
-            '</button>' +
-          '</div>' +
-
-          '<p class="text-xs sm:text-sm font-semibold text-slate-100 whitespace-pre-line leading-relaxed">' +
-            escapeHtml(q.question_text) +
-          '</p>' +
-
-          '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">' +
-            q.options.map(function (opt, oIdx) {
-              return (
-                '<div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 text-xs text-slate-300 flex items-start gap-2">' +
-                  '<span class="w-5 h-5 rounded-md bg-slate-800 text-slate-200 font-mono font-black flex items-center justify-center text-[10px] shrink-0">' + letters[oIdx] + '</span>' +
-                  '<span class="leading-relaxed">' + escapeHtml(opt) + '</span>' +
-                '</div>'
-              );
-            }).join('') +
-          '</div>' +
-
-          (q.static_root ? (
-            '<div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">' +
-              '<span class="text-amber-400 font-mono text-[11px] font-bold">🏛️ Static Root Concept:</span>' +
-              '<span class="text-slate-300 text-[11px]">' + escapeHtml(q.static_root) + '</span>' +
-            '</div>'
-          ) : '') +
-        '</div>'
-      );
-    }).join('') + (questions.length > 30 ? '<div class="text-center text-xs text-slate-400 font-mono py-2">Showing 30 of ' + questions.length + ' questions. Launch mock simulator to practice complete sets.</div>' : '');
-  }
-
-  window.filterCaByMonth = function (month) {
-    STATE.caArenaSelectedMonth = month;
-    document.querySelectorAll('.ca-month-pill').forEach(function (pill) {
-      if (pill.getAttribute('data-month') === month) {
-        pill.className = 'ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 shadow-md transition cursor-pointer';
-      } else {
-        pill.className = 'ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer';
-      }
-    });
-    renderCaFeedQuestions();
-  };
-
-  window.onCaFeedSearch = function (query) {
-    STATE.caArenaSearchQuery = (query || '').trim();
-    renderCaFeedQuestions();
-  };
-
-  window.startMonthlyCaMock = function (month, mode) {
-    mode = mode || 'exam';
-    var pool = (STATE.ca_pyqs || []).filter(function (q) { return q.month === month; });
-    if (pool.length === 0) {
-      showToast('No questions found for ' + month);
-      return;
-    }
-    var targetCount = Math.min(15, pool.length);
-    var durationMins = (mode === 'exam') ? 18 : Math.round(targetCount * 1.2);
-
-    STATE.isExamMode = (mode === 'exam');
-    STATE.isReviewMode = false;
-    STATE.testAnswers = {};
-    STATE.playerQuestions = shuffleArray(pool).slice(0, targetCount);
-    STATE.playerIndex = 0;
-    STATE.currentTest = {
-      id: 'ca_mock_' + Date.now(),
-      title: month + ' - Official CA Mock (' + targetCount + ' Qs)',
-      format: 'current_affairs',
-      durationSeconds: durationMins * 60,
-      remainingSeconds: durationMins * 60,
-      totalQuestions: targetCount,
-      startTime: Date.now(),
-      mode: mode
-    };
-
-    if (STATE.isExamMode) {
-      startExamTimer();
-    }
-    switchViewMode('player');
-    showToast('Launched ' + month + ' (' + targetCount + ' Qs · ' + (mode === 'exam' ? 'Exam Mode' : 'Tutor Mode') + ')');
-  };
-
-  async function ensureCaQuestionsLoaded() {
-    if (STATE.ca_pyqs && STATE.ca_pyqs.length > 0) return STATE.ca_pyqs;
-    try {
-      const res = await fetch('/static/data/current_affairs_pyqs.json');
-      if (res.ok) {
-        STATE.ca_pyqs = await res.json();
-        if (!STATE.pyqMap) STATE.pyqMap = {};
-        STATE.ca_pyqs.forEach(function (q) {
-          if (q && q.id) STATE.pyqMap[q.id] = q;
-        });
-      }
-    } catch (e) {
-      console.warn('Could not load CA questions:', e);
-    }
-    return STATE.ca_pyqs || [];
-  }
-
-  // Expose to window for resilient direct invocation
-  window.switchViewMode = switchViewMode;
-
-  window.switchVaultMode = function (mode) {
-    STATE.vaultMode = mode;
-    STATE.vaultDisplayedCount = STATE.vaultPageSize;
-    if (mode === 'ca' && (!STATE.ca_pyqs || STATE.ca_pyqs.length === 0)) {
-      ensureCaQuestionsLoaded().then(function () {
-        renderPyqVault();
-      });
-      return;
-    }
-    renderPyqVault();
-  };
-
-  window.setVaultCaMonth = function (month) {
-    STATE.vaultSelectedCaMonth = month;
-    STATE.vaultDisplayedCount = STATE.vaultPageSize;
-    renderPyqVault();
-  };
-
-  window.setVaultSubject = function (subj) {
-    STATE.vaultSelectedSubject = subj;
-    STATE.vaultDisplayedCount = STATE.vaultPageSize;
-    renderPyqVault();
-  };
-
-  window.setVaultYear = function (year) {
-    STATE.vaultSelectedYear = year;
-    STATE.vaultDisplayedCount = STATE.vaultPageSize;
-    renderPyqVault();
-  };
-
-  window.openCurrentAffairsArena = function (e) {
-    if (e && e.preventDefault) e.preventDefault();
-    if (window.history && window.history.pushState) {
-      try {
-        window.history.pushState({}, '', '/prelims/current-affairs');
-      } catch (err) {}
-    }
-    switchViewMode('current_affairs');
-    if (!STATE.ca_pyqs || STATE.ca_pyqs.length === 0) {
-      ensureCaQuestionsLoaded().then(function () {
-        renderCurrentAffairsArena();
-      });
-    }
-  };
-
-  window.openDynamicCaGeneratorModal = function () {
-    const modal = document.getElementById('dynamicCaGeneratorModal');
-    if (modal) modal.classList.remove('hidden');
-    const progressBox = document.getElementById('dynamicCaProgressBox');
-    if (progressBox) progressBox.classList.add('hidden');
-    const startBtn = document.getElementById('startDynamicCaBtn');
-    if (startBtn) startBtn.disabled = false;
-  };
-
-  window.closeDynamicCaGeneratorModal = function () {
-    const modal = document.getElementById('dynamicCaGeneratorModal');
-    if (modal) modal.classList.add('hidden');
-  };
-
-  window.triggerDynamicCaGeneration = async function () {
-    const monthSelect = document.getElementById('dynamicCaMonthSelect');
-    const subjectSelect = document.getElementById('dynamicCaSubjectSelect');
-    const countSelect = document.getElementById('dynamicCaCountSelect');
-    const difficultySelect = document.getElementById('dynamicCaDifficultySelect');
-    const topicInput = document.getElementById('dynamicCaCustomTopicInput');
-    const progressBox = document.getElementById('dynamicCaProgressBox');
-    const progressMsg = document.getElementById('dynamicCaProgressMsg');
-    const startBtn = document.getElementById('startDynamicCaBtn');
-
-    const month = monthSelect ? monthSelect.value : 'January 2026';
-    const subject = subjectSelect ? subjectSelect.value : 'all';
-    const count = countSelect ? parseInt(countSelect.value, 10) : 5;
-    const difficulty = difficultySelect ? difficultySelect.value : 'Tough';
-    const topic = topicInput ? topicInput.value.trim() : '';
-
-    if (progressBox) progressBox.classList.remove('hidden');
-    if (startBtn) startBtn.disabled = true;
-
-    // Animated progress simulation
-    const steps = [
-      'Analyzing trusted UPSC news triggers (The Hindu, PIB, UNEP)...',
-      'Reverse-engineering static roots (NCERT Class 11/12 & standard acts)...',
-      'Synthesizing UPSC examiner distractors & Topper elimination traps...',
-      'Verifying 4-option forensic keys & Mains linkages...'
-    ];
-    let stepIdx = 0;
-    const progressTimer = setInterval(function () {
-      stepIdx = (stepIdx + 1) % steps.length;
-      if (progressMsg) progressMsg.textContent = steps[stepIdx];
-    }, 2200);
-
-    try {
-      const formData = new FormData();
-      formData.append('month', month);
-      formData.append('subject', subject);
-      formData.append('count', String(count));
-      formData.append('difficulty', difficulty);
-      if (topic) formData.append('topic', topic);
-
-      const res = await fetch('/api/prelims/generate-dynamic-ca', {
-        method: 'POST',
-        body: formData
-      });
-      clearInterval(progressTimer);
-
-      if (!res.ok) throw new Error('Server returned status ' + res.status);
-      const data = await res.json();
-
-      if (data.status === 'success' && Array.isArray(data.questions) && data.questions.length > 0) {
-        if (!STATE.ca_pyqs) STATE.ca_pyqs = [];
-        if (!STATE.pyqMap) STATE.pyqMap = {};
-
-        // Prepend new questions
-        data.questions.forEach(function (q) {
-          STATE.ca_pyqs.unshift(q);
-          STATE.pyqMap[q.id] = q;
-        });
-
-        window.closeDynamicCaGeneratorModal();
-        showToast('Generated ' + data.questions.length + ' authentic UPSC questions dynamically!');
-        renderCurrentAffairsArena();
-        if (STATE.viewMode === 'vault') renderPyqVault();
-
-        // Optional prompt to solve immediately
-        if (confirm('Successfully synthesized ' + data.questions.length + ' fresh UPSC Reverse-Osmosis Questions!\n\nWould you like to practice them right now in the Timed Focus Player?')) {
-          STATE.playerQuestions = data.questions;
-          STATE.playerIndex = 0;
-          STATE.isExamMode = false;
-          STATE.isReviewMode = false;
-          STATE.currentTest = {
-            id: 'dyn_ca_' + Date.now(),
-            title: month + ' Dynamic AI Cohort (' + data.questions.length + ' Qs)',
-            format: 'current_affairs',
-            durationSeconds: data.questions.length * 72,
-            remainingSeconds: data.questions.length * 72,
-            totalQuestions: data.questions.length,
-            startTime: Date.now()
-          };
-          switchViewMode('player');
-        }
-      } else {
-        alert(data.message || 'Failed to generate dynamic questions. Please verify API key configuration.');
-      }
-    } catch (err) {
-      clearInterval(progressTimer);
-      console.error('Error generating dynamic CA:', err);
-      alert('Error generating questions: ' + err.message);
-    } finally {
-      if (progressBox) progressBox.classList.add('hidden');
-      if (startBtn) startBtn.disabled = false;
-    }
-  };
-
-  window.renderCurrentAffairsArena = renderCurrentAffairsArena;
-  window.ensureCaQuestionsLoaded = ensureCaQuestionsLoaded;
-
-  // Initialize
-  document.addEventListener('DOMContentLoaded', function () {
-    loadPersistedState();
-    initTheme();
-    setupListeners();
-    initQuestions();
-  });
-
-})();
