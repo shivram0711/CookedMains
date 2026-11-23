@@ -87,6 +87,92 @@
     } catch (e) {
       console.warn('Error loading persisted state:', e);
     }
+    syncFromCloudIfLoggedIn();
+  }
+
+  let _prelimsCloudSyncTimer = null;
+  function debouncedCloudSync() {
+    if (!STATE.user || !STATE.user.email) return;
+    if (_prelimsCloudSyncTimer) clearTimeout(_prelimsCloudSyncTimer);
+    _prelimsCloudSyncTimer = setTimeout(async function () {
+      try {
+        const payload = {
+          email: STATE.user.email,
+          data: {
+            answers: STATE.answers,
+            mistakes: Array.from(STATE.mistakes || []),
+            flagged: Array.from(STATE.flagged || []),
+            activity: STATE.activity,
+            mockHistory: STATE.mockHistory,
+            leakTags: STATE.leakTags || {}
+          }
+        };
+        await fetch('/api/prelims/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.warn('Prelims cloud sync background save error:', err);
+      }
+    }, 1500);
+  }
+
+  let _prelimsCloudSyncedEmail = null;
+  async function syncFromCloudIfLoggedIn(force = false) {
+    if (!STATE.user || !STATE.user.email) return;
+    if (!force && _prelimsCloudSyncedEmail === STATE.user.email) return;
+    _prelimsCloudSyncedEmail = STATE.user.email;
+    try {
+      const res = await fetch('/api/prelims/sync?email=' + encodeURIComponent(STATE.user.email));
+      if (!res.ok) return;
+      const json = await res.json();
+      if (json.status === 'success' && json.data) {
+        const cloudData = json.data;
+        let changed = false;
+        if (cloudData.answers && typeof cloudData.answers === 'object') {
+          STATE.answers = Object.assign({}, cloudData.answers, STATE.answers);
+          changed = true;
+        }
+        if (Array.isArray(cloudData.mistakes)) {
+          cloudData.mistakes.forEach(function (m) { STATE.mistakes.add(m); });
+          changed = true;
+        }
+        if (Array.isArray(cloudData.flagged)) {
+          cloudData.flagged.forEach(function (f) { STATE.flagged.add(f); });
+          changed = true;
+        }
+        if (Array.isArray(cloudData.mockHistory) && cloudData.mockHistory.length > 0) {
+          const existingIds = new Set(STATE.mockHistory.map(function (m) { return m.id || m.testId || m.timestamp; }));
+          cloudData.mockHistory.forEach(function (m) {
+            const id = m.id || m.testId || m.timestamp;
+            if (!existingIds.has(id)) {
+              STATE.mockHistory.push(m);
+              existingIds.add(id);
+              changed = true;
+            }
+          });
+        }
+        if (cloudData.leakTags && typeof cloudData.leakTags === 'object') {
+          STATE.leakTags = Object.assign({}, cloudData.leakTags, STATE.leakTags || {});
+          changed = true;
+        }
+        if (changed) {
+          try {
+            localStorage.setItem(STORAGE_KEYS.ANSWERS, JSON.stringify(STATE.answers));
+            localStorage.setItem(STORAGE_KEYS.MISTAKES, JSON.stringify(Array.from(STATE.mistakes)));
+            localStorage.setItem(STORAGE_KEYS.FLAGGED, JSON.stringify(Array.from(STATE.flagged)));
+            localStorage.setItem(STORAGE_KEYS.MOCKS, JSON.stringify(STATE.mockHistory));
+            localStorage.setItem(STORAGE_KEYS.LEAK_TAGS, JSON.stringify(STATE.leakTags || {}));
+          } catch (e) {}
+          if (typeof updateDashboardActivity === 'function') updateDashboardActivity();
+          if (typeof renderDashboardMockHistory === 'function') renderDashboardMockHistory();
+          if (typeof updateSubTopicHeatmap === 'function') updateSubTopicHeatmap();
+        }
+      }
+    } catch (err) {
+      console.warn('Prelims cloud sync load error:', err);
+    }
   }
 
   function persistState() {
@@ -98,6 +184,7 @@
       localStorage.setItem(STORAGE_KEYS.MOCKS, JSON.stringify(STATE.mockHistory));
       localStorage.setItem(STORAGE_KEYS.LEAK_TAGS, JSON.stringify(STATE.leakTags || {}));
     } catch (e) {}
+    debouncedCloudSync();
   }
 
   // Theme Handling
@@ -4765,6 +4852,7 @@ function renderPlayerDistractorDeepDive(q) {
     const headerAuth = document.getElementById('headerAuthContainer');
 
     if (STATE.user && STATE.user.email) {
+      syncFromCloudIfLoggedIn();
       const displayName = STATE.user.name || STATE.user.email.split('@')[0];
       const initial = (displayName.charAt(0) || 'A').toUpperCase();
 
@@ -4830,6 +4918,7 @@ function renderPlayerDistractorDeepDive(q) {
   function signOutUser() {
     sessionStorage.removeItem("mainsmentor_user");
     localStorage.removeItem("mainsmentor_user");
+    _prelimsCloudSyncedEmail = null;
     STATE.user = null;
     updateAuthUI();
     showToast("Signed out successfully");

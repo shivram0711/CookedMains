@@ -113,7 +113,9 @@ from storage import (
     sync_supabase_to_sqlite, is_created_today_ist,
     get_admin_session_history, purge_all_dummy_and_demo_accounts,
     cleanup_expired_guest_sessions,
-    push_sqlite_to_supabase
+    push_sqlite_to_supabase,
+    save_user_prelims_progress,
+    get_user_prelims_progress
 )
 import copy
 from news_ingestion import ingest_all_feeds, get_top_editorial_articles
@@ -1973,6 +1975,70 @@ async def api_admin_sync():
     """Forces an immediate synchronization of persistent Supabase data into local SQLite."""
     res = await asyncio.to_thread(sync_supabase_to_sqlite, True)
     return {"status": "success", "sync_result": res}
+
+@app.get("/api/admin/supabase-diag")
+@app.post("/api/admin/supabase-diag")
+async def api_admin_supabase_diag(auth: bool = Depends(verify_admin_token)):
+    """Health diagnostic for Supabase reads, writes, storage, and self-healing circuit breaker status."""
+    from storage import (
+        supabase,
+        is_supabase_circuit_broken,
+        reset_supabase_circuit_breaker,
+        _SUPABASE_CIRCUIT_BROKEN_UNTIL,
+        _SUPABASE_CIRCUIT_BROKEN_REASON
+    )
+    import time
+    diag = {
+        "supabase_configured": bool(supabase_url and supabase_key),
+        "supabase_initialized": supabase is not None,
+        "circuit_broken": is_supabase_circuit_broken(),
+        "circuit_cooldown_remaining_sec": max(0, round(_SUPABASE_CIRCUIT_BROKEN_UNTIL - time.time(), 1)),
+        "circuit_broken_reason": _SUPABASE_CIRCUIT_BROKEN_REASON,
+        "read_check": None,
+        "storage_check": None,
+        "error": None
+    }
+    if supabase is not None:
+        try:
+            reset_supabase_circuit_breaker()
+            # 1. PostgREST Read Check
+            r_res = supabase.table("evaluations").select("id, question, created_at").neq("question", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(3).execute()
+            diag["read_check"] = {
+                "status": "ok",
+                "count": len(r_res.data) if r_res and r_res.data else 0,
+                "sample": r_res.data if r_res and r_res.data else []
+            }
+            # 2. Storage Bucket List Check
+            try:
+                b_res = supabase.storage.list_buckets()
+                diag["storage_check"] = {
+                    "status": "ok",
+                    "buckets": [b.name if hasattr(b, "name") else str(b) for b in (b_res or [])]
+                }
+            except Exception as be:
+                diag["storage_check"] = {"status": "error", "message": str(be)}
+        except Exception as e:
+            diag["error"] = str(e)
+            diag["error_type"] = type(e).__name__
+    return diag
+
+@app.get("/api/prelims/sync")
+async def api_get_prelims_sync(email: str = Query(...)):
+    """Fetches cloud-synced Prelims attempts, mock test scores, and mistakes notebook."""
+    if not email or not email.strip():
+        raise HTTPException(status_code=400, detail="Email is required")
+    data = await asyncio.to_thread(get_user_prelims_progress, email.strip())
+    return {"status": "success", "data": data or {}}
+
+@app.post("/api/prelims/sync")
+async def api_post_prelims_sync(payload: Dict[str, Any] = Body(...)):
+    """Persists student Prelims attempts, mock scorecards, and mistakes notebook to SQLite and Supabase."""
+    email = (payload.get("email") or payload.get("user_email") or "").strip()
+    data = payload.get("data") or payload
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+    res = await asyncio.to_thread(save_user_prelims_progress, email, data)
+    return res
 
 @app.get("/api/admin/stats")
 async def api_admin_stats(sync: Optional[int] = 0, auth: bool = Depends(verify_admin_token)):

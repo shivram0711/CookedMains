@@ -22,6 +22,20 @@ except ImportError:
     Image = None
     HAS_PIL = False
 
+# Load .env file if present
+_env_path = os.path.join(os.path.dirname(__file__), ".env")
+if os.path.exists(_env_path):
+    try:
+        with open(_env_path, "r", encoding="utf-8") as _ef:
+            for _line in _ef:
+                _line = _line.strip()
+                if _line and not _line.startswith("#") and "=" in _line:
+                    _k, _v = _line.split("=", 1)
+                    if _k.strip() not in os.environ:
+                        os.environ[_k.strip()] = _v.strip().strip('"').strip("'")
+    except Exception:
+        pass
+
 # Supabase Client Initialization
 try:
     from supabase import create_client, Client
@@ -39,18 +53,23 @@ SUPABASE_KEY = (
 )
 
 supabase: Optional[Client] = None
-_SUPABASE_CIRCUIT_BROKEN: bool = False
+_SUPABASE_CIRCUIT_BROKEN_UNTIL: float = 0.0
 _SUPABASE_CIRCUIT_BROKEN_REASON: str = ""
 
-def mark_supabase_circuit_broken(reason: str = "") -> None:
-    global _SUPABASE_CIRCUIT_BROKEN, _SUPABASE_CIRCUIT_BROKEN_REASON
-    if not _SUPABASE_CIRCUIT_BROKEN:
-        _SUPABASE_CIRCUIT_BROKEN = True
-        _SUPABASE_CIRCUIT_BROKEN_REASON = str(reason)
-        print(f"[SUPABASE CIRCUIT BREAKER] Disabled outbound Supabase requests: {reason}")
+def mark_supabase_circuit_broken(reason: str = "", cooldown_seconds: float = 60.0) -> None:
+    global _SUPABASE_CIRCUIT_BROKEN_UNTIL, _SUPABASE_CIRCUIT_BROKEN_REASON
+    _SUPABASE_CIRCUIT_BROKEN_UNTIL = time.time() + max(15.0, cooldown_seconds)
+    _SUPABASE_CIRCUIT_BROKEN_REASON = str(reason)
+    print(f"[SUPABASE CIRCUIT BREAKER] Throttling outbound Supabase calls for {cooldown_seconds}s: {reason}")
 
 def is_supabase_circuit_broken() -> bool:
-    return _SUPABASE_CIRCUIT_BROKEN
+    global _SUPABASE_CIRCUIT_BROKEN_UNTIL
+    return time.time() < _SUPABASE_CIRCUIT_BROKEN_UNTIL
+
+def reset_supabase_circuit_breaker() -> None:
+    global _SUPABASE_CIRCUIT_BROKEN_UNTIL, _SUPABASE_CIRCUIT_BROKEN_REASON
+    _SUPABASE_CIRCUIT_BROKEN_UNTIL = 0.0
+    _SUPABASE_CIRCUIT_BROKEN_REASON = "" 
 
 if SUPABASE_URL and SUPABASE_KEY:
     try:
@@ -906,7 +925,7 @@ def _safe_supabase_insert(table_name: str, payload: Dict[str, Any]) -> Optional[
     it dynamically strips the offending column and retries.
     Guarantees inserts never crash or get discarded due to schema column drift.
     """
-    if not supabase or _SUPABASE_CIRCUIT_BROKEN:
+    if not supabase or is_supabase_circuit_broken():
         return None
     curr_payload = dict(payload)
     for attempt in range(6):
@@ -918,7 +937,7 @@ def _safe_supabase_insert(table_name: str, payload: Dict[str, Any]) -> Optional[
         except Exception as e:
             err_msg = str(e).lower()
             if any(term in err_msg for term in ["402", "payment required", "restricted", "over quota", "fair use"]):
-                mark_supabase_circuit_broken(f"Quota restricted: {e}")
+                mark_supabase_circuit_broken(f"Quota restricted: {e}", cooldown_seconds=60.0)
                 return None
             stripped_any = False
             for col_cand in ["id", "question_title", "total_marks", "question", "max_marks", "file_url", "pages_json", "user_email", "paper", "thumbnail"]:
@@ -946,7 +965,7 @@ def _safe_supabase_eval_select(
     Selects from Supabase evaluations table with automatic fallback between 'question_title' and 'question',
     and between 'total_marks' and 'max_marks'. Prevents PostgreSQL code 42703 from breaking queries.
     """
-    if not supabase or _SUPABASE_CIRCUIT_BROKEN:
+    if not supabase or is_supabase_circuit_broken():
         return []
     queries_to_try = [
         (columns, filter_col, neq_col),
@@ -975,7 +994,7 @@ def _safe_supabase_eval_select(
         except Exception as e:
             err_low = str(e).lower()
             if any(term in err_low for term in ["402", "payment required", "restricted", "over quota", "fair use"]):
-                mark_supabase_circuit_broken(f"Quota restricted: {e}")
+                mark_supabase_circuit_broken(f"Quota restricted: {e}", cooldown_seconds=60.0)
                 return []
             if "42703" in str(e) or "does not exist" in str(e):
                 continue
@@ -1550,7 +1569,7 @@ def add_user_credits(email: str, credits_to_add: int, set_pro: bool = False) -> 
 
 def upload_file_to_supabase(user_id: str, file_bytes: bytes, file_ext: str = ".pdf", content_type: str = "application/pdf") -> Optional[str]:
     """Uploads student PDF/image to Supabase storage bucket 'answer-sheets' and returns public URL."""
-    if not supabase or _SUPABASE_CIRCUIT_BROKEN:
+    if not supabase or is_supabase_circuit_broken():
         return None
     try:
         clean_ext = file_ext if file_ext.startswith(".") else f".{file_ext}"
@@ -1593,7 +1612,7 @@ def upload_file_to_supabase(user_id: str, file_bytes: bytes, file_ext: str = ".p
 
 def insert_supabase_evaluation(user_id: str, question_title: str, file_url: Optional[str], total_marks: int, result_json: Dict[str, Any], eval_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """Inserts evaluation record into Supabase 'evaluations' table with automatic schema resilience."""
-    if not supabase or _SUPABASE_CIRCUIT_BROKEN:
+    if not supabase or is_supabase_circuit_broken():
         return None
     # Cloud payload slimming: Strip heavy base64 page images to keep row <10KB, reducing egress by 99%
     slim_result = dict(result_json) if isinstance(result_json, dict) else {}
@@ -1601,6 +1620,10 @@ def insert_supabase_evaluation(user_id: str, question_title: str, file_url: Opti
         slim_result["pages"] = [p for p in slim_result.get("pages", []) if isinstance(p, str) and not p.startswith("data:image")]
     if "_meta_pages" in slim_result:
         slim_result["_meta_pages"] = [p for p in slim_result.get("_meta_pages", []) if isinstance(p, str) and not p.startswith("data:image")]
+    if "_meta_thumbnail" in slim_result and str(slim_result.get("_meta_thumbnail", "")).startswith("data:image"):
+        slim_result.pop("_meta_thumbnail", None)
+    if "thumbnail" in slim_result and str(slim_result.get("thumbnail", "")).startswith("data:image"):
+        slim_result.pop("thumbnail", None)
     payload = {
         "user_id": user_id,
         "question": question_title,
@@ -1608,7 +1631,7 @@ def insert_supabase_evaluation(user_id: str, question_title: str, file_url: Opti
         "file_url": file_url or "",
         "max_marks": total_marks,
         "total_marks": total_marks,
-        "evaluation_json": result_json
+        "evaluation_json": slim_result
     }
     resolved_id = eval_id or (result_json.get("_meta_eval_id") if isinstance(result_json, dict) else None)
     if resolved_id:
@@ -4023,11 +4046,16 @@ def sync_supabase_to_sqlite(force: bool = False) -> Dict[str, Any]:
     """
     global _last_supabase_sync_ts
     now = time.time()
-    if not force and (now - _last_supabase_sync_ts < 45.0):
+    if force:
+        reset_supabase_circuit_breaker()
+    elif (now - _last_supabase_sync_ts < 45.0):
         return {"status": "skipped", "reason": "debounce_active", "age_seconds": round(now - _last_supabase_sync_ts, 1)}
 
-    if supabase is None or _SUPABASE_CIRCUIT_BROKEN:
-        return {"status": "skipped", "reason": "supabase_circuit_broken" if _SUPABASE_CIRCUIT_BROKEN else "supabase_not_initialized"}
+    if supabase is None:
+        return {"status": "skipped", "reason": "supabase_not_initialized"}
+
+    if is_supabase_circuit_broken() and not force:
+        return {"status": "skipped", "reason": "supabase_circuit_broken", "detail": _SUPABASE_CIRCUIT_BROKEN_REASON}
 
     if not _supabase_sync_lock.acquire(blocking=False):
         return {"status": "skipped", "reason": "sync_in_progress"}
@@ -5360,3 +5388,98 @@ def mark_essay_job_credit_deducted(job_id: str) -> bool:
     return changed
 
 
+
+
+# ==========================================================
+# PRELIMS USER DOSSIER & PROGRESS CLOUD SYNC
+# ==========================================================
+def save_user_prelims_progress(email: str, progress_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Saves student Prelims mock scores, question attempts, and mistakes notebook into SQLite and Supabase."""
+    clean_email = canonicalize_email(email)
+    if not clean_email or not progress_data:
+        return {"status": "error", "message": "Invalid email or data"}
+
+    user = get_or_create_user(clean_email)
+    uid = user.get("id") or get_deterministic_user_id(clean_email)
+
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS prelims_progress (
+                user_email TEXT PRIMARY KEY,
+                user_id TEXT,
+                data_json TEXT,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("""
+            INSERT OR REPLACE INTO prelims_progress (user_email, user_id, data_json, updated_at)
+            VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+        """, (clean_email, uid, json.dumps(progress_data)))
+        conn.commit()
+    except Exception as e:
+        print(f"Error saving prelims progress in SQLite: {e}")
+    finally:
+        conn.close()
+
+    # Mirror to Supabase if connected and not circuit broken
+    if supabase and not is_supabase_circuit_broken():
+        try:
+            dossier_rows = _safe_supabase_eval_select("id", filter_col="question_title", filter_val="__USER_PRELIMS_DOSSIER__", limit=100)
+            existing_dossier_id = None
+            if dossier_rows:
+                for dr in dossier_rows:
+                    if dr.get("user_id") == uid:
+                        existing_dossier_id = dr.get("id")
+                        break
+            if existing_dossier_id:
+                supabase.table("evaluations").update({"evaluation_json": progress_data}).eq("id", existing_dossier_id).execute()
+            else:
+                payload = {
+                    "user_id": uid,
+                    "question": "__USER_PRELIMS_DOSSIER__",
+                    "question_title": "__USER_PRELIMS_DOSSIER__",
+                    "file_url": "",
+                    "max_marks": 0,
+                    "total_marks": 0,
+                    "evaluation_json": progress_data
+                }
+                _safe_supabase_insert("evaluations", payload)
+        except Exception as se:
+            print(f"Notice: Supabase prelims progress sync notice: {se}")
+
+    return {"status": "success", "user_email": clean_email}
+
+def get_user_prelims_progress(email: str) -> Optional[Dict[str, Any]]:
+    """Retrieves student Prelims mock scores, attempts, and mistakes notebook from SQLite or Supabase fallback."""
+    clean_email = canonicalize_email(email)
+    if not clean_email:
+        return None
+
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT data_json FROM prelims_progress WHERE user_email = ?", (clean_email,))
+        row = cursor.fetchone()
+        if row and row[0]:
+            conn.close()
+            return json.loads(row[0])
+    except Exception:
+        pass
+    finally:
+        conn.close()
+
+    if supabase and not is_supabase_circuit_broken():
+        try:
+            uid = get_deterministic_user_id(clean_email)
+            rows = _safe_supabase_eval_select("evaluation_json", filter_col="user_id", filter_val=uid, limit=10)
+            for r in (rows or []):
+                ev = r.get("evaluation_json") or {}
+                if isinstance(ev, str):
+                    ev = json.loads(ev)
+                if ev.get("answers") or ev.get("mockHistory") or ev.get("mistakes"):
+                    return ev
+        except Exception:
+            pass
+    return None

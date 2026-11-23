@@ -154,7 +154,7 @@ async function clearDummyDataAdmin() {
 async function loadAllAdminData(force = false) {
   if (force) {
     try {
-      await fetch("/api/admin/sync", { method: "POST" });
+      await fetch("/api/admin/sync", { method: "POST", headers: getAdminAuthHeaders() });
     } catch (e) {
       console.warn("Manual sync error:", e);
     }
@@ -173,13 +173,20 @@ async function loadAllAdminData(force = false) {
 }
 
 async function forceSyncCloud() {
+  const btn = document.getElementById("btnForceSyncCloud");
+  if (btn) btn.innerHTML = "<span>Syncing...</span>";
   try {
-    const res = await fetch("/api/admin/sync", { method: "POST" });
+    const res = await fetch("/api/admin/sync", {
+      method: "POST",
+      headers: getAdminAuthHeaders()
+    });
     const data = await res.json();
     alert("Supabase Cloud Sync completed successfully!");
     loadAllAdminData();
   } catch (err) {
     alert("Sync error: " + err.message);
+  } finally {
+    if (btn) btn.innerHTML = "<span>Sync Now</span>";
   }
 }
 
@@ -187,7 +194,10 @@ async function pushLocalToCloud() {
   const btn = document.getElementById("btnPushToCloud");
   if (btn) btn.innerHTML = "<span>Uploading...</span>";
   try {
-    const res = await fetch("/api/admin/push-to-supabase", { method: "POST" });
+    const res = await fetch("/api/admin/push-to-supabase", {
+      method: "POST",
+      headers: getAdminAuthHeaders()
+    });
     const data = await res.json();
     if (data.status === "success") {
       alert(data.message || `Successfully synced ${data.pushed_users} users and ${data.pushed_evaluations} evaluations to Supabase!`);
@@ -198,6 +208,50 @@ async function pushLocalToCloud() {
     alert("Push error: " + err.message);
   } finally {
     if (btn) btn.innerHTML = "<span>Upload to Cloud</span>";
+  }
+}
+
+async function runSupabaseDiag() {
+  const btn = document.getElementById("btnSupabaseDiag");
+  const resultDiv = document.getElementById("supaDiagResult");
+  if (btn) btn.innerHTML = "<span>Checking...</span>";
+  if (resultDiv) {
+    resultDiv.classList.remove("hidden");
+    resultDiv.innerHTML = '<span class="text-slate-400">Pinging Supabase PostgREST & Storage APIs...</span>';
+  }
+  try {
+    const res = await fetch("/api/admin/supabase-diag", {
+      method: "POST",
+      headers: getAdminAuthHeaders(),
+      cache: "no-store"
+    });
+    const data = await res.json();
+    if (!resultDiv) return;
+
+    if (data.error) {
+      resultDiv.innerHTML = `
+        <div class="text-rose-400 font-bold">❌ Supabase Diagnostic Error</div>
+        <div class="text-slate-400">Type: ${data.error_type || "Unknown"}</div>
+        <div class="text-slate-300 break-all">${data.error}</div>
+        <div class="text-amber-400 mt-1">Circuit Breaker: ${data.circuit_broken ? `Active (${data.circuit_cooldown_remaining_sec}s remaining)` : "Standby (Ready)"}</div>
+      `;
+    } else {
+      const readOk = data.read_check && data.read_check.status === "ok";
+      const storageOk = data.storage_check && data.storage_check.status === "ok";
+      resultDiv.innerHTML = `
+        <div class="text-emerald-400 font-bold">✅ Supabase Health Verified</div>
+        <div class="text-slate-300">⚡ PostgREST Read: <span class="${readOk ? 'text-emerald-400' : 'text-rose-400'}">${readOk ? 'Healthy (' + data.read_check.count + ' copies sampled)' : 'Failed'}</span></div>
+        <div class="text-slate-300">📦 Cloud Storage: <span class="${storageOk ? 'text-emerald-400' : 'text-rose-400'}">${storageOk ? 'Accessible (Buckets: ' + ((data.storage_check.buckets || []).join(', ') || 'none') + ')' : (data.storage_check?.message || 'Unavailable')}</span></div>
+        <div class="text-slate-400">🛡️ Circuit Breaker: <span class="text-emerald-300">${data.circuit_broken ? 'Active (' + data.circuit_cooldown_remaining_sec + 's cooldown)' : 'Nominal / Armed'}</span></div>
+        <div class="text-sky-400 text-[10px]">Zero base64 egress filter is active. Cloud payload stays &lt;10KB.</div>
+      `;
+    }
+  } catch (err) {
+    if (resultDiv) {
+      resultDiv.innerHTML = `<div class="text-rose-400 font-bold">❌ Connection Error: ${err.message}</div>`;
+    }
+  } finally {
+    if (btn) btn.innerHTML = "<span>Run Diagnostic</span>";
   }
 }
 

@@ -603,8 +603,8 @@
             </div>
             <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
               <span class="text-slate-400">Force Cloud Sync:</span>
-              <button disabled class="px-3 py-1 rounded-lg bg-slate-800 text-slate-500 border border-slate-700 font-bold text-[11px] cursor-not-allowed opacity-50 transition" title="Cloud sync is temporarily disabled">
-                Sync Now
+              <button onclick="forceSyncCloud()" id="btnForceSyncCloud" class="px-3 py-1 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 font-bold text-[11px] transition flex items-center space-x-1" title="Pull latest cloud records to SQLite">
+                <span>Sync Now</span>
               </button>
             </div>
             <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
@@ -616,6 +616,16 @@
                 <span>Upload to Cloud</span>
               </button>
             </div>
+            <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+              <div>
+                <span class="text-slate-300 font-semibold block text-xs">Supabase Health Diagnostic:</span>
+                <span class="text-[10px] text-slate-500">Verify live read/storage latency & circuit status</span>
+              </div>
+              <button onclick="runSupabaseDiag()" id="btnSupabaseDiag" class="px-3 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 font-bold text-[11px] transition flex items-center space-x-1">
+                <span>Run Diagnostic</span>
+              </button>
+            </div>
+            <div id="supaDiagResult" class="hidden p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-[11px] font-mono space-y-1"></div>
           </div>
         </div>
 
