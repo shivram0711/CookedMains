@@ -2846,9 +2846,11 @@
 
     </div>
   </div>
+
+  <!-- ====================================================
        ADAPTIVE MOCK TEST GENERATOR MODAL (Phase 4)
        ==================================================== -->
-  <div id="mockGeneratorModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-fade-in" role="dialog" aria-modal="true">
+  <div id="mockGeneratorModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 md:p-6 bg-slate-950/85 backdrop-blur-md animate-fade-in" role="dialog" aria-modal="true" aria-labelledby="mockModalTitle">
     <div class="light-card relative w-full max-w-3xl lg:max-w-4xl max-h-[92vh] flex flex-col rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden my-auto">
       
       <!-- Modal Header (Fixed Top) -->
@@ -2859,14 +2861,14 @@
           </div>
           <div class="flex flex-col">
             <div class="flex items-center gap-2 flex-wrap">
-              <h3 class="text-base sm:text-lg font-black text-white">UPSC Mock Test Simulator</h3>
+              <h3 id="mockModalTitle" class="text-base sm:text-lg font-black text-white">UPSC Mock Test Simulator</h3>
               <span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-bold font-mono border border-emerald-500/30">1,600+ Authentic PYQs</span>
             </div>
             <p class="text-xs text-slate-400">Timed UPSC simulation with strict negative penalty &amp; forensic scorecard.</p>
           </div>
         </div>
 
-        <button type="button" onclick="window.closeMockGenerator()" class="p-2 rounded-xl bg-slate-800/60 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 text-xs font-bold transition cursor-pointer" title="Close">
+        <button type="button" onclick="window.closeMockGenerator()" class="p-2 rounded-xl bg-slate-800/60 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 text-xs font-bold transition cursor-pointer" title="Close" aria-label="Close UPSC Mock Test Simulator">
           ✕
         </button>
       </div>
@@ -2968,9 +2970,7 @@
             </div>
           </div>
 
-            </label>
-            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold font-mono">2026 Ready</span>
-          </div>
+
         </div>
 
         <!-- 2. MISTAKE REMEDIAL BLUEPRINT CARD (Visible when format === 'weakness') -->
@@ -3166,9 +3166,7 @@
             </div>
           </div>
 
-            </label>
-            <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[10px] font-bold font-mono">Optional Blend</span>
-          </div>
+
 
         </div>
 
