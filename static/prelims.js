@@ -564,9 +564,11 @@
     // 1. Update Segmented Nav Tabs Styling
     document.querySelectorAll('.mock-tab-btn').forEach(function (btn) {
       if (btn.getAttribute('data-format') === format) {
-        btn.className = 'mock-tab-btn py-2 px-2 sm:px-3 rounded-xl transition flex items-center justify-center gap-1.5 bg-amber-500 text-slate-950 font-extrabold shadow-md cursor-pointer';
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
       } else {
-        btn.className = 'mock-tab-btn py-2 px-2 sm:px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white font-bold cursor-pointer';
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
       }
     });
 
