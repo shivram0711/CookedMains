@@ -1,5 +1,495 @@
 [
   {
+    "id": "ca-wam-2026-05-004",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Discretionary Powers of the Governor in Government Formation & Hung Assemblies",
+    "difficulty": "Tough",
+    "correct_option": "D",
+    "correct_index": 3,
+    "upsc_official_key": "Verified from Sarkaria Commission (1988) Order of Preference & S.R. Bommai v. Union of India (1994)",
+    "question_text": "According to the recommendations of the Sarkaria Commission (1988) on the appointment of a Chief Minister in the event of a hung assembly, what is the prescribed order of preference for the Governor?\n1. An alliance of parties formed prior to the elections.\n2. The single largest party staking claim to form the government with the support of others.\n3. A post-electoral coalition of parties where all partners join the government.\n4. A post-electoral alliance of parties where some join the government and others support from outside.\nSelect the correct answer using the code given below:",
+    "options": [
+      "2 — 1 — 3 — 4",
+      "1 — 3 — 2 — 4",
+      "2 — 3 — 1 — 4",
+      "1 — 2 — 3 — 4"
+    ],
+    "explanation": "Option D is correct: The Sarkaria Commission (1988), endorsed by the Punchhi Commission (2007) and the Supreme Court in Rameshwar Prasad (2006), laid down an unambiguous sequence of preference for a Governor in a hung assembly:\n1. First: An alliance of parties that was formed prior to the elections (as voters cast votes knowing this coalition).\n2. Second: The single largest party staking a claim to form the government with the support of others (including independents).\n3. Third: A post-electoral coalition of parties, with all the partners joining the government.\n4. Fourth: A post-electoral alliance of parties, with some partners joining the government and others (including independents) supporting the government from outside.",
+    "standard_book_ref": "Sarkaria Commission Report on Centre-State Relations (Chapter IV: The Governor); M. Laxmikanth (Governor); S.R. Bommai v. Union of India (1994).",
+    "elimination_trap": "A common misconception is that the single largest party ALWAYS has first right. Sarkaria Commission explicitly placed pre-poll alliances ahead of the single largest party.",
+    "mains_linkage": {
+      "paper": "GS2",
+      "question": "The office of the Governor often becomes contentious in situations of electoral fragmentation. In light of judicial pronouncements, evaluate the limits of gubernatorial discretion."
+    },
+    "source_tag": "What A Month (May 2026) / Sarkaria Commission Framework",
+    "static_root": "Article 163, Article 164 & Sarkaria-Punchhi Guidelines on Hung Assemblies",
+    "option_analysis": [
+      {
+        "option": "A",
+        "status": "Incorrect",
+        "verdict": "Places single largest party ahead of pre-poll alliances."
+      },
+      {
+        "option": "B",
+        "status": "Incorrect",
+        "verdict": "Inverts post-poll coalition ahead of the single largest party."
+      },
+      {
+        "option": "C",
+        "status": "Incorrect",
+        "verdict": "Incorrect sequence."
+      },
+      {
+        "option": "D",
+        "status": "Correct",
+        "verdict": "Matches the exact 4-tier hierarchy formulated by the Sarkaria Commission."
+      }
+    ]
+  },
+  {
+    "id": "ca-wam-2026-05-003",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Environment & Ecology",
+    "sub_topic": "Nine Planetary Boundaries Framework & Ocean Acidification Transgression",
+    "difficulty": "Tough",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Verified from Stockholm Resilience Centre / Johan Rockström Planetary Boundaries Update",
+    "question_text": "According to the updated Planetary Boundaries framework developed by the Stockholm Resilience Centre, consider the following statements:\n1. As of 2026, seven out of the nine planetary boundaries have been transgressed, with ocean acidification being the most recent to cross the safe operating boundary.\n2. Atmospheric aerosol loading and stratospheric ozone depletion currently remain within the safe operating limits globally.\n3. The planetary boundary for 'Novel Entities' relates exclusively to radioactive waste and nuclear fallout.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 only",
+      "2 and 3 only",
+      "1 and 2 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statement 1 is correct: The State of India's Environment / Stockholm Resilience Centre assessment shows 7 of the 9 boundaries have now been breached: Climate change, Biosphere integrity, Land-system change, Freshwater change, Biogeochemical flows, Novel entities, and Ocean acidification (acidity increased by 30-40% since the industrial revolution).\nStatement 2 is correct: Only two boundaries remain within safe global limits: Stratospheric ozone depletion (recovering due to the Montreal Protocol) and Atmospheric aerosol loading (though aerosol loading exhibits dangerous regional transgressions, globally it remains within the threshold).\nStatement 3 is incorrect: The boundary for 'Novel Entities' is NOT restricted to radioactive waste; it encompasses all synthetic chemicals, plastics, persistent pesticides (PFAS/POPs), and genetically modified organisms introduced into the Earth system without prior ecological safety thresholds.",
+    "standard_book_ref": "Stockholm Resilience Centre (Planetary Boundaries Framework); CSE State of India's Environment Report 2026; NCERT Class 12 Biology (Environmental Issues).",
+    "elimination_trap": "Look out for absolute restrictive qualifiers like 'exclusively to radioactive waste'. Modern environmental science classifies plastics and synthetic chemicals under 'Novel Entities'.",
+    "mains_linkage": {
+      "paper": "GS3",
+      "question": "How does the concept of Planetary Boundaries redefine the conventional economic growth paradigm for developing countries?"
+    },
+    "source_tag": "What A Month (May 2026) / CSE Down To Earth",
+    "static_root": "Planetary Boundaries (Rockström), Ocean Chemistry & Carbonate Saturation",
+    "option_analysis": [
+      {
+        "option": "A",
+        "status": "Incorrect",
+        "verdict": "Overlooks the verified fact that ozone depletion and global aerosols remain within limits."
+      },
+      {
+        "option": "B",
+        "status": "Incorrect",
+        "verdict": "Statement 3 contains an overly restrictive definition of Novel Entities."
+      },
+      {
+        "option": "C",
+        "status": "Correct",
+        "verdict": "Accurately captures both the 7 breached boundaries and the 2 within safe operating limits."
+      },
+      {
+        "option": "D",
+        "status": "Incorrect",
+        "verdict": "Includes the flawed assertion in statement 3."
+      }
+    ]
+  },
+  {
+    "id": "ca-wam-2026-05-002",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "International Relations",
+    "sub_topic": "Indus Waters Treaty 1960 Three-Tier Dispute Settlement Architecture",
+    "difficulty": "Tough",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Verified from the Indus Waters Treaty 1960 (Article IX) Text & Permanent Court of Arbitration Proceedings",
+    "question_text": "Under the provisions of Article IX of the Indus Waters Treaty (1960), which of the following represents the correct hierarchical sequence for resolving differences and disputes between India and Pakistan?",
+    "options": [
+      "International Court of Justice (ICJ) → Neutral Expert → Permanent Indus Commission",
+      "Permanent Indus Commission → United Nations Security Council → Court of Arbitration",
+      "Permanent Indus Commission → Neutral Expert (appointed by World Bank) → Court of Arbitration",
+      "World Bank Conciliation Commission → Permanent Indus Commission → International Court of Arbitration"
+    ],
+    "explanation": "Option C is correct: Article IX of the Indus Waters Treaty (1960) specifies an explicit, three-tiered dispute settlement mechanism:\n1. First Tier: Questions are first examined bilaterally by the Permanent Indus Commission (PIC).\n2. Second Tier: If the Commission cannot resolve a technical issue ('Difference'), either government can request the World Bank to appoint an independent Neutral Expert.\n3. Third Tier: If the Neutral Expert deems the issue a legal or contractual 'Dispute' rather than a technical difference, or if the dispute cannot be settled at tier 2, it is referred to a seven-member Court of Arbitration (CoA) constituted under Annexure G.",
+    "standard_book_ref": "Indus Waters Treaty 1960 (Article IX & Annexure F/G); International Law on Transboundary Freshwater by Stephen McCaffrey; MEA Treaty Series.",
+    "elimination_trap": "Neither the International Court of Justice (ICJ) nor the UN Security Council is an arbiter under the Indus Waters Treaty. The World Bank acts only as a facilitator and appointing authority, not as an adjudicative court.",
+    "mains_linkage": {
+      "paper": "GS2",
+      "question": "Examine the challenges confronting the 1960 Indus Waters Treaty in the wake of climate-induced hydrological variability and unilateral dispute escalations."
+    },
+    "source_tag": "What A Month (May 2026) / Permanent Court of Arbitration Proceedings",
+    "static_root": "Indus River Hydrology, Treaty Law & Article IX Dispute Mechanism",
+    "option_analysis": [
+      {
+        "option": "A",
+        "status": "Incorrect",
+        "verdict": "ICJ has no jurisdiction under the bilateral IWT 1960 text."
+      },
+      {
+        "option": "B",
+        "status": "Incorrect",
+        "verdict": "UNSC is not part of the treaty-stipulated mechanism."
+      },
+      {
+        "option": "C",
+        "status": "Correct",
+        "verdict": "Correctly outlines the three tiers: PIC -> Neutral Expert -> Court of Arbitration."
+      },
+      {
+        "option": "D",
+        "status": "Incorrect",
+        "verdict": "Inverts the order and invents non-existent treaty bodies."
+      }
+    ]
+  },
+  {
+    "id": "ca-wam-2026-06-004",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Wolbachia Bacterial Endosymbiosis & Cytoplasmic Incompatibility",
+    "difficulty": "Tough",
+    "correct_option": "B",
+    "correct_index": 1,
+    "upsc_official_key": "Verified from World Mosquito Program (WMP) & WHO Vector Control Guidelines",
+    "question_text": "In the context of recent biotechnology interventions using Wolbachia bacteria to control mosquito-borne viral diseases, consider the following statements:\n1. Wolbachia is a naturally occurring bacterium found in nearly all wild Aedes aegypti populations in tropical countries.\n2. When male mosquitoes carrying Wolbachia mate with wild female mosquitoes lacking the bacteria, the resulting eggs do not hatch due to cytoplasmic incompatibility.\n3. The release of Wolbachia-carrying mosquitoes poses a documented ecological risk of bacterial transmission to humans through mosquito bites.\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statement 1 is incorrect: Wolbachia naturally occurs in roughly 50% of insect species (fruit flies, moths, butterflies), but it is naturally ABSENT in Aedes aegypti (the primary dengue and yellow fever vector). Scientists have to artificially introduce Wolbachia into Ae. aegypti eggs in laboratory conditions.\nStatement 2 is correct: This is the phenomenon of Cytoplasmic Incompatibility (CI). When a Wolbachia-infected male mates with an uninfected female, the sperm chromatin fails to decondense normally, resulting in embryonic death (eggs fail to hatch), thereby crashing wild populations.\nStatement 3 is incorrect: Wolbachia is an obligate intracellular endosymbiont adapted strictly to invertebrates; it cannot survive in vertebrate cells and cannot be transmitted to humans or other mammals through mosquito bites.",
+    "standard_book_ref": "NCERT Class 12 Biology (Biotechnology and its Applications); WHO Vector Control Advisory Group (VCAG) Reports; World Mosquito Program Research.",
+    "elimination_trap": "The primary trap is believing Wolbachia is naturally found in Aedes aegypti; the entire bio-technological breakthrough hinges on the fact that Ae. aegypti lacks it naturally, requiring artificial micro-injection.",
+    "mains_linkage": {
+      "paper": "GS3",
+      "question": "Discuss the advantages and biosafety aspects of non-chemical biological vector control methods over conventional pesticide fogging in managing urban vector-borne epidemics."
+    },
+    "source_tag": "What A Month (June 2026) / WHO Vector Control",
+    "static_root": "Bacterial Endosymbiosis, Cytoplasmic Incompatibility & Vector Biology",
+    "option_analysis": [
+      {
+        "option": "A",
+        "status": "Incorrect",
+        "verdict": "Statement 1 falsely claims Wolbachia is naturally present in Aedes aegypti."
+      },
+      {
+        "option": "B",
+        "status": "Correct",
+        "verdict": "Accurately identifies Cytoplasmic Incompatibility as the true biocontrol mechanism."
+      },
+      {
+        "option": "C",
+        "status": "Incorrect",
+        "verdict": "Falsely alleges human infection risk from an invertebrate-adapted bacterium."
+      },
+      {
+        "option": "D",
+        "status": "Incorrect",
+        "verdict": "Includes both major factual traps."
+      }
+    ]
+  },
+  {
+    "id": "ca-wam-2026-04-002",
+    "year": 2026,
+    "month": "April 2026",
+    "subject": "History & Culture",
+    "sub_topic": "Samrat Samprati (Jain Ashoka) & Post-Ashokan Mauryan Succession",
+    "difficulty": "Tough",
+    "correct_option": "D",
+    "correct_index": 3,
+    "upsc_official_key": "Verified from Ancient Indian History (Upinder Singh / RS Sharma) & Shvetambara Jain Canonical Tradition",
+    "question_text": "With reference to the ancient ruler Samrat Samprati, often regarded in historical and religious traditions as the 'Jain Ashoka', consider the following statements:\n1. He was the fifth emperor of the Mauryan dynasty and the grandson of Emperor Ashoka.\n2. In the Shvetambara Jain tradition, he is credited with dispatching Jain monastic emissaries beyond the borders of India to Central Asia and Sri Lanka.\n3. While Chandragupta Maurya patronized Jainism and Ashoka embraced Buddhism, Dasharatha patronized the Ajivika sect by dedicating caves in the Barabar hills.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "All statements are correct:\nStatement 1 is correct: Samrat Samprati was the son of Kunala (Ashoka's son) and reigned as the fifth Mauryan emperor (circa 224–215 BCE). Following Ashoka's death in 232 BCE, the empire was partitioned between Dasharatha (ruling from Pataliputra) and Samprati (ruling from Ujjain).\nStatement 2 is correct: According to Hemachandra's Parishishtaparvan and Shvetambara monastic chronicles, Samprati sent soldiers disguised as Jain monks to foreign lands including Gandhara, Nepal, and Central Asia to establish safe routes and alms (Sada-vratas) for ascetics, replicating Ashoka's Dhamma-dutas.\nStatement 3 is correct: The Mauryan dynasty reflected pluralistic religious patronage: Chandragupta associated with Bhadrabahu (Digambara tradition at Shravanabelagola), Ashoka patronized the Sangha, and Dasharatha inscribed dedications at the Nagarjuni / Barabar caves for the Ajivikas.",
+    "standard_book_ref": "Upinder Singh, A History of Ancient and Early Medieval India; R.S. Sharma, India's Ancient Past; Parishishtaparvan by Acharya Hemachandra.",
+    "elimination_trap": "Many candidates confuse Dasharatha's Nagarjuni cave donations with Ashoka's Barabar caves; in reality, both rulers made rock-cut dedications for the Ajivikas. Samprati's unique role as the primary imperial royal patron of Jainism is a high-yield UPSC focal point.",
+    "mains_linkage": {
+      "paper": "GS1",
+      "question": "Assess the nature of religious pluralism and royal patronage under the Mauryan Empire from Chandragupta Maurya to Samrat Samprati."
+    },
+    "source_tag": "What A Month (April 2026) / National Heritage Commemoration",
+    "static_root": "Mauryan Lineage, Barabar-Nagarjuni Inscriptions & Spread of Jainism",
+    "option_analysis": [
+      {
+        "option": "A",
+        "status": "Incorrect",
+        "verdict": "Overlooks the verified historical fact of Dasharatha's patronage to the Ajivikas."
+      },
+      {
+        "option": "B",
+        "status": "Incorrect",
+        "verdict": "Omits the genealogical link between Samprati, Kunala, and Ashoka."
+      },
+      {
+        "option": "C",
+        "status": "Incorrect",
+        "verdict": "Misses the missionary trade/emissary aspects of Samprati's reign."
+      },
+      {
+        "option": "D",
+        "status": "Correct",
+        "verdict": "All three statements are historically accurate and aligned with standard academic texts."
+      }
+    ]
+  },
+  {
+    "id": "ca-wam-2026-04-001",
+    "year": 2026,
+    "month": "April 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "PFBR Kalpakkam Criticality & India's Three-Stage Nuclear Power Programme",
+    "difficulty": "Tough",
+    "correct_option": "A",
+    "correct_index": 0,
+    "upsc_official_key": "Verified from Department of Atomic Energy (DAE) & IGCAR Technical Overview",
+    "question_text": "With reference to the Prototype Fast Breeder Reactor (PFBR) at Kalpakkam attaining criticality, consider the following statements:\n1. The PFBR utilizes liquid sodium as a primary coolant, operating without a neutron moderator to sustain fission via fast neutrons.\n2. The reactor core utilizes Uranium-Plutonium Mixed Oxide (MOX) fuel surrounded by a fertile blanket of depleted Uranium-238.\n3. Commercial operation of the PFBR marks India's successful transition into Stage 3 of Homi Bhabha's Three-Stage Nuclear Power Programme.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statement 1 is correct: Fast Breeder Reactors do not use a moderator (such as heavy water or graphite) because high-energy fast neutrons are required to transmute fertile material into fissile isotopes. Liquid sodium is chosen as coolant for its excellent thermal conductivity and high boiling point at atmospheric pressure.\nStatement 2 is correct: The fissile core contains MOX (Plutonium-239 derived from reprocessed spent fuel of Stage-1 PHWRs and natural uranium), surrounded by a fertile blanket of U-238 which captures fast neutrons to breed more Plutonium-239 than it consumes.\nStatement 3 is incorrect: The PFBR represents STAGE 2 (Fast Breeder Reactors) of India's Three-Stage Nuclear Programme, NOT Stage 3. Stage 3 consists of Advanced Heavy Water Reactors / Thorium-based reactors utilizing Uranium-233 bred from Thorium-232 blankets.",
+    "standard_book_ref": "Department of Atomic Energy Technical Papers; NCERT Class 12 Physics (Nuclei & Fission); Dr. Homi Bhabha Nuclear Strategy Document.",
+    "elimination_trap": "UPSC tests sequential stage confusion. Fast Breeder Reactors constitute Stage 2; Thorium-U233 systems are Stage 3. Eliminating statement 3 immediately rules out B, C, and D.",
+    "mains_linkage": {
+      "paper": "GS3",
+      "question": "How does the commercialization of Fast Breeder Reactors serve as the technological lynchpin for unlocking India's vast thorium reserves?"
+    },
+    "source_tag": "What A Month (April 2026) / DAE Press Release",
+    "static_root": "Nuclear Fission Physics, Fast Neutrons vs Thermal Neutrons & 3-Stage Programme",
+    "option_analysis": [
+      {
+        "option": "A",
+        "status": "Correct",
+        "verdict": "Statements 1 and 2 accurately reflect the engineering physics of the PFBR."
+      },
+      {
+        "option": "B",
+        "status": "Incorrect",
+        "verdict": "Mistakes Stage 2 for Stage 3."
+      },
+      {
+        "option": "C",
+        "status": "Incorrect",
+        "verdict": "Incorrectly attributes Stage 3 status to the PFBR."
+      },
+      {
+        "option": "D",
+        "status": "Incorrect",
+        "verdict": "Fails to identify the sequential staging error in statement 3."
+      }
+    ]
+  },
+  {
+    "id": "ca-wam-2026-06-003",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Environment & Ecology",
+    "sub_topic": "Jai Prakash Narayan Bird Sanctuary & Ramsar Convention 9 Criteria",
+    "difficulty": "Tough",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Verified from MoEFCC Ramsar Notification & Ramsar Convention Bureau Guidelines",
+    "question_text": "Consider the following statements regarding the Ramsar wetland network in India:\n1. Jai Prakash Narayan Bird Sanctuary (Surha Tal), designated as India's 100th Ramsar site, is a natural perennial oxbow lake formed by the meandering of the Ghaghara River.\n2. Under the Ramsar Convention, a wetland can be designated as a site of international importance only if it regularly supports a minimum of 50,000 waterbirds.\n3. India has the highest number of Ramsar sites in Asia, with Tamil Nadu hosting the maximum number of designated sites among Indian States.\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "3 only",
+      "1 and 3 only",
+      "2 only"
+    ],
+    "explanation": "Statement 1 is incorrect: While Jai Prakash Narayan Bird Sanctuary in Ballia, Uttar Pradesh is indeed India's 100th Ramsar site, it is an oxbow lake formed by the Ganga River, NOT the Ghaghara River.\nStatement 2 is incorrect: Under Criterion 5 of the Ramsar Convention's nine criteria, a wetland is recognized if it regularly supports 20,000 or more waterbirds, NOT 50,000. Furthermore, satisfying any ONE of the nine criteria (not solely bird count) qualifies a site.\nStatement 3 is correct: With 100 Ramsar sites, India ranks first in Asia and third globally (after the UK and Mexico). Tamil Nadu leads Indian states with 20 designated Ramsar sites.",
+    "standard_book_ref": "MoEFCC Annual Report 2025-26; Shankar IAS Environment (Wetlands & Ramsar Convention); Ramsar Convention 1971 Official Criteria.",
+    "elimination_trap": "UPSC often tests numerical thresholds in convention criteria (switching 20,000 to 50,000) and switches river origins of oxbow lakes (Ganga vs Ghaghara). Eliminating 1 and 2 leads directly to Option B/C.",
+    "mains_linkage": {
+      "paper": "GS3",
+      "question": "Examine the ecological significance of oxbow lake ecosystems in flood plains and evaluate India's compliance with the Montreux Record."
+    },
+    "source_tag": "What A Month (June 2026) / MoEFCC Official Release",
+    "static_root": "Ramsar Convention 1971 Criteria, Oxbow Lake Geomorphology & Wetland Ecology",
+    "option_analysis": [
+      {
+        "option": "A",
+        "status": "Incorrect",
+        "verdict": "Both statements 1 and 2 contain factual and threshold inversions."
+      },
+      {
+        "option": "B",
+        "status": "Correct",
+        "verdict": "Statement 3 is factually sound on both Asian ranking and Tamil Nadu's tally."
+      },
+      {
+        "option": "C",
+        "status": "Incorrect",
+        "verdict": "Statement 1 incorrectly attributes the oxbow lake formation to the Ghaghara."
+      },
+      {
+        "option": "D",
+        "status": "Incorrect",
+        "verdict": "Statement 2 doubles the actual threshold of Criterion 5."
+      }
+    ]
+  },
+  {
+    "id": "ca-wam-2026-05-001",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Economy",
+    "sub_topic": "16th Finance Commission Horizontal Devolution Formula & Criteria",
+    "difficulty": "Tough",
+    "correct_option": "A",
+    "correct_index": 0,
+    "upsc_official_key": "Verified from Report of the 16th Finance Commission (2026–31) chaired by Dr. Arvind Panagariya",
+    "question_text": "With reference to the recommendations of the 16th Finance Commission (chaired by Dr. Arvind Panagariya) for the award period 2026–31, consider the following statements:\n1. The vertical devolution share to States from the Central Government's divisible pool of taxes has been maintained at 41%.\n2. In the horizontal devolution formula, the Commission introduced a new 10% weightage for 'Contribution to GDP', replacing the earlier 'Tax and Fiscal Effort' criterion.\n3. The calculation of the 'Forest and Ecology' criterion now includes open forest cover alongside dense and moderately dense forests.\nWhich of the statements given above are correct?",
+    "options": [
+      "1, 2 and 3",
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only"
+    ],
+    "explanation": "All statements are correct:\nStatement 1 is correct: The 16th Finance Commission retained the vertical devolution share at 41%, maintaining continuity from the 15th FC (where 1% was adjusted for the Union Territories of J&K and Ladakh).\nStatement 2 is correct: A major structural innovation of the 16th FC was introducing a 10% weightage for a state's economic contribution to national GDP, explicitly rewarding economic output and discarding the 15th FC's 'tax and fiscal effort' (2.5%) metric.\nStatement 3 is correct: Unlike the 15th FC which assigned weight strictly to dense and moderately dense forests, the 16th FC broadened the forest criteria to recognize total forest cover including open forest and increment between 2015 and 2023, balancing conservation incentives for dry and scrub-dominant states.",
+    "standard_book_ref": "Report of the 16th Finance Commission (2026–31); Indian Economy by Ramesh Singh (Fiscal Federalism); Article 280.",
+    "elimination_trap": "Aspirants might assume open forests are neglected as in previous commissions, but the 16th FC specifically updated this to prevent bias against dry/scrub-forested peninsular states.",
+    "mains_linkage": {
+      "paper": "GS3",
+      "question": "Analyze how the 16th Finance Commission balances the competing principles of equity and economic efficiency in horizontal tax devolution."
+    },
+    "source_tag": "What A Month (May 2026) / 16th Finance Commission Award",
+    "static_root": "Article 280, Fiscal Federalism & Horizontal Devolution Formula",
+    "option_analysis": [
+      {
+        "option": "A",
+        "status": "Correct",
+        "verdict": "All three statements accurately reflect the official 16th FC award."
+      },
+      {
+        "option": "B",
+        "status": "Incorrect",
+        "verdict": "Fails to recognize the expanded forest coverage metric."
+      },
+      {
+        "option": "C",
+        "status": "Incorrect",
+        "verdict": "Omits the unchanged 41% vertical devolution baseline."
+      },
+      {
+        "option": "D",
+        "status": "Incorrect",
+        "verdict": "Omits the newly created 10% Contribution to GDP criterion."
+      }
+    ]
+  },
+  {
+    "id": "ca-wam-2026-06-002",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "75th Anniversary of the First Constitutional Amendment Act, 1951",
+    "difficulty": "Tough",
+    "correct_option": "B",
+    "correct_index": 1,
+    "upsc_official_key": "Verified from Constitutional History & Supreme Court Judgments in Romesh Thappar and Champakam Dorairajan",
+    "question_text": "In the context of the 75th anniversary of the Constitution (First Amendment) Act, 1951, consider the following statements:\n1. The insertion of Article 15(4) was enacted to overcome the Supreme Court's ruling in State of Madras v. Champakam Dorairajan.\n2. The grounds of 'public order', 'friendly relations with foreign States', and 'incitement to an offence' were originally present in Article 19(2) as enacted in 1950.\n3. Article 31B and the Ninth Schedule were introduced by this amendment to grant retrospective validation to state agrarian reform enactments.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statement 1 is correct: In State of Madras v. Champakam Dorairajan (1951), the Supreme Court struck down caste-based communal quotas in medical/engineering colleges. The provisional Parliament enacted the First Amendment inserting Article 15(4), enabling special provisions for advancement of socially and educationally backward classes.\nStatement 2 is incorrect: In Romesh Thappar v. State of Madras (1950), the Supreme Court held that freedom of speech under 19(1)(a) could only be curtailed for 'security of the State', not mere 'public order'. The First Amendment of 1951 specifically amended Article 19(2) by inserting 'public order', 'friendly relations with foreign States', and 'incitement to an offence', along with the qualifier 'reasonable restrictions'. These were NOT in the original 1950 text.\nStatement 3 is correct: Articles 31A and 31B, along with the Ninth Schedule, were added by the First Amendment Act, 1951 to insulate Zamindari Abolition and land reform laws from judicial review on fundamental rights grounds, operating with retrospective validation.",
+    "standard_book_ref": "M. Laxmikanth (Constitutional Framework & Amendments); Granville Austin (The Indian Constitution: Cornerstone of a Nation); First Amendment Act, 1951 text.",
+    "elimination_trap": "UPSC frequently tests whether phrases in Article 19(2) were present in the original Constitution or added via the First Amendment. Remembering that Romesh Thappar forced the addition of 'public order' into 19(2) eliminates Statement 2 immediately.",
+    "mains_linkage": {
+      "paper": "GS2",
+      "question": "The First Amendment Act of 1951 set the institutional precedent for executive-judiciary contestation over constitutional fundamental rights. Critically discuss."
+    },
+    "source_tag": "What A Month (June 2026) / 75 Years of First Amendment",
+    "static_root": "Article 15(4), Article 19(2) Amendment & Ninth Schedule Genesis",
+    "option_analysis": [
+      {
+        "option": "A",
+        "status": "Incorrect",
+        "verdict": "Erroneously claims 'public order' was part of the original 1950 text of Article 19(2)."
+      },
+      {
+        "option": "B",
+        "status": "Correct",
+        "verdict": "Accurately identifies the historical triggers for Article 15(4) and the inception of the Ninth Schedule."
+      },
+      {
+        "option": "C",
+        "status": "Incorrect",
+        "verdict": "Overlooks the direct link between Champakam Dorairajan and Article 15(4)."
+      },
+      {
+        "option": "D",
+        "status": "Incorrect",
+        "verdict": "Includes the historical inaccuracy in Statement 2."
+      }
+    ]
+  },
+  {
+    "id": "ca-wam-2026-06-001",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Election Commission Plenary Powers & Special Intensive Revision (SIR)",
+    "difficulty": "Tough",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Verified under Article 324(1) and Section 21(3) of the Representation of the People Act, 1950",
+    "question_text": "With reference to the Special Intensive Revision (SIR) of electoral rolls and the constitutional powers of the Election Commission of India (ECI), consider the following statements:\n1. The power to order a special revision of electoral rolls for any constituency or part thereof is statutory, explicitly provided under the Representation of the People Act, 1951.\n2. Article 324(1) of the Constitution vests the superintendence, direction, and control of the preparation of electoral rolls for both Parliamentary elections and local Panchayat elections exclusively in the ECI.\n3. The Supreme Court has upheld that the plenary powers under Article 324 cannot override existing statutory enactments passed by Parliament.\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statement 1 is incorrect: The statutory authority to order a special revision of the electoral roll for any constituency is granted under Section 21(3) of the Representation of the People Act, 1950 (which deals with allocation of seats and electoral rolls), NOT the Representation of the People Act, 1951 (which deals with conduct of elections and qualifications).\nStatement 2 is incorrect: Article 324(1) vests the preparation of electoral rolls for elections to Parliament, State Legislatures, and the offices of President and Vice-President in the ECI. Electoral rolls and conduct of elections for Municipalities and Panchayats are vested exclusively in the State Election Commission under Articles 243K and 243ZA.\nStatement 3 is correct: In A.C. Jose v. Sivan Pillai (1984) and reiterated in Mohinder Singh Gill (1978), the Supreme Court ruled that while Article 324 grants plenary powers to the ECI to operate where the law is silent, it cannot override or bypass existing statutory provisions enacted by Parliament.",
+    "standard_book_ref": "M. Laxmikanth (Election Commission of India); Representation of the People Act, 1950 Section 21(3); Supreme Court Ruling on Special Intensive Revision (2026).",
+    "elimination_trap": "A classic UPSC trap tests the boundary between RPA 1950 (electoral roll preparation) and RPA 1951 (conduct of elections). Once Statement 1 is eliminated, candidates avoid trap options (A and D). Recognizing that local body rolls belong to the State Election Commission eliminates Statement 2, leading straight to Option C.",
+    "mains_linkage": {
+      "paper": "GS2",
+      "question": "Examine the constitutional tension between the plenary powers of the Election Commission under Article 324 and parliamentary sovereignty in framing electoral laws."
+    },
+    "source_tag": "What A Month (June 2026) / Supreme Court Ruling",
+    "static_root": "Article 324 vs State Election Commission (243K) & RPA 1950 vs RPA 1951",
+    "option_analysis": [
+      {
+        "option": "A",
+        "status": "Incorrect",
+        "verdict": "Confuses RPA 1950 with RPA 1951 and attributes local body rolls to central ECI."
+      },
+      {
+        "option": "B",
+        "status": "Incorrect",
+        "verdict": "Statement 2 falsely merges central ECI jurisdiction with State Election Commissions."
+      },
+      {
+        "option": "C",
+        "status": "Correct",
+        "verdict": "Accurately articulates the judicial limitation on Article 324 plenary powers established in A.C. Jose."
+      },
+      {
+        "option": "D",
+        "status": "Incorrect",
+        "verdict": "Contains multiple statutory and constitutional attribution errors."
+      }
+    ]
+  },
+  {
     "id": "ca-2026-01-001",
     "year": 2026,
     "month": "January 2026",
@@ -5143,5 +5633,365 @@
         "verdict": "Contains deceptive distractors, factual inaccuracies, or conceptual inversions."
       }
     ]
+  },
+  {
+    "id": "ca-2026-02-016",
+    "year": 2026,
+    "month": "February 2026",
+    "subject": "Polity & Governance",
+    "question": "With reference to the Governor's address under Article 176 of the Constitution of India, consider the following statements:\n1. The Governor is constitutionally bound to deliver the address prepared by the Council of Ministers without omitting or altering any portion.\n2. The discussion on the Governor's address in the Legislative Assembly concludes with a vote on the Motion of Thanks, the defeat of which amounts to a defeat of the government.\n3. The Governor addresses a joint sitting of both Houses of the State Legislature at the commencement of the first session after each general election and at the commencement of the first session of each year.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1, 2 and 3",
+    "explanation": "Statement 1 is correct: As affirmed by the Supreme Court in Shamsher Singh (1974) and Nabam Rebia (2016), the Governor functions as a constitutional head acting on the aid and advice of the Council of Ministers (Article 163). The Address under Article 176 contains the policies and legislative agenda of the elected government, and the Governor cannot unilaterally omit, amend, or refuse to read portions approved by the Cabinet.\nStatement 2 is correct: Under Assembly rules of procedure, the address is debated through a Motion of Thanks. An amendment or rejection of the Motion of Thanks signifies loss of majority confidence, compelling the Ministry to resign.\nStatement 3 is correct: Article 176(1) explicitly mandates this special address at the commencement of the first session after each general election to the legislative assembly and at the commencement of the first session of each calendar year.",
+    "option_analysis": {
+      "Option A": "Incorrect because statement 3 is also an explicit constitutional provision under Article 176(1).",
+      "Option B": "Incorrect because statement 1 is established constitutional law regarding the bound nature of the address.",
+      "Option C": "Incorrect because statement 2 is standard parliamentary procedure governing the Motion of Thanks.",
+      "Option D": "Correct. All three statements accurately state the constitutional mandate and parliamentary conventions."
+    },
+    "static_root": "Constitution of India, Articles 163 & 176; Rules of Procedure of State Legislative Assemblies; Shamsher Singh v. State of Punjab (1974).",
+    "standard_book_ref": "M. Laxmikanth, Indian Polity, Chapter on 'Governor' & 'State Legislature'.",
+    "elimination_trap": "Aspirants frequently get trapped assuming the Governor possesses personal editorial discretion to delete unpalatable political remarks in the address. Under constitutional law, the Governor speaks the voice of the Ministry."
+  },
+  {
+    "id": "ca-2026-02-017",
+    "year": 2026,
+    "month": "February 2026",
+    "subject": "Polity & Governance",
+    "question": "With reference to Tribunals established under Part XIV-A of the Constitution of India, consider the following statements:\n1. While tribunals under Article 323A can be established only by Parliament, tribunals under Article 323B can be established by both Parliament and State Legislatures.\n2. Tribunals under Article 323A can be established for public service matters only, whereas Article 323B covers diverse matters such as taxation, foreign exchange, land reforms, and foodstuffs.\n3. In the landmark L. Chandra Kumar case (1997), the Supreme Court ruled that decisions of tribunals are subject to judicial review by a Division Bench of the High Court under Article 226/227.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1, 2 and 3",
+    "explanation": "Statement 1 is correct: Article 323A empowers only Parliament to establish administrative tribunals for the Union and States. Under Article 323B, both Parliament and State Legislatures (within their respective legislative competence under the Seventh Schedule) can establish tribunals for specified subjects.\nStatement 2 is correct: Article 323A is confined exclusively to service matters of public servants. Article 323B covers taxation, foreign exchange, industrial disputes, ceiling on urban property, elections to legislatures, and rent/tenancy.\nStatement 3 is correct: The 7-judge Constitution Bench in L. Chandra Kumar v. Union of India held that the power of judicial review under Articles 226/227 (High Courts) and Article 32 (Supreme Court) is an inviolable basic structure feature. Thus, clauses excluding High Court jurisdiction were struck down unconstitutional, making tribunals courts of first instance whose orders must be challenged before a Division Bench of the respective High Court.",
+    "option_analysis": {
+      "Option A": "Incorrect because statement 3 is the foundational judicial ruling on tribunal jurisdiction.",
+      "Option B": "Incorrect because statement 1 accurately delineates the legislative competence between Parliament and State Legislatures.",
+      "Option C": "Incorrect because statement 2 captures the exact thematic scope of 323A vs 323B.",
+      "Option D": "Correct. All three statements capture essential constitutional nuances."
+    },
+    "static_root": "Constitution (42nd Amendment) Act 1976; Articles 323A and 323B; L. Chandra Kumar v. Union of India (1997).",
+    "standard_book_ref": "M. Laxmikanth, Indian Polity, Chapter on 'Tribunals'.",
+    "elimination_trap": "Examiners often flip the legislative powers, claiming State Legislatures can establish Article 323A tribunals. Remember: 323A is Parliament-exclusive."
+  },
+  {
+    "id": "ca-2026-02-018",
+    "year": 2026,
+    "month": "February 2026",
+    "subject": "Polity & Governance",
+    "question": "Regarding the constitutional procedure for altering the name of a State (such as the proposal to rename 'Kerala' to 'Keralam'), consider the following statements:\n1. A bill for altering the name of any State can be introduced in either House of Parliament only on the prior recommendation of the President.\n2. Before recommending the bill, the President must refer it to the legislature of the State concerned for expressing its views within a specified period.\n3. The opinion expressed by the State Legislature is legally binding on the President and Parliament.\n4. Such a law is passed by Parliament by a simple majority and is not deemed to be an amendment of the Constitution for the purposes of Article 368.\nHow many of the statements given above are correct?",
+    "options": [
+      "Only one",
+      "Only two",
+      "Only three",
+      "All four"
+    ],
+    "answer": "Only three",
+    "explanation": "Statements 1, 2, and 4 are correct; Statement 3 is incorrect.\nStatement 1 is correct: Article 3 explicitly mandates that no bill for the formation of new states, alteration of areas, boundaries, or names can be introduced except on the recommendation of the President.\nStatement 2 is correct: Proviso to Article 3 mandates that where the proposal affects the area, boundaries, or name of any State, the President must refer the bill to the State Legislature for expressing its views within a specified period.\nStatement 3 is incorrect: The Supreme Court in Babulal Parate v. State of Bombay (1960) affirmed that the views expressed by the State Legislature are purely consultative and NOT legally binding on Parliament or the President. Parliament may accept, reject, or ignore them.\nStatement 4 is correct: Under Article 4(2), laws made under Articles 2 and 3 require only a simple majority in both Houses and are expressly declared not to be constitutional amendments under Article 368.",
+    "option_analysis": {
+      "Option A": "Incorrect. Three statements are correct.",
+      "Option B": "Incorrect. Statements 1, 2, and 4 are all correct.",
+      "Option C": "Correct. Exactly 3 statements (1, 2, and 4) are correct.",
+      "Option D": "Incorrect because statement 3 is false."
+    },
+    "static_root": "Constitution of India, Articles 3 and 4; Babulal Parate v. State of Bombay (1960).",
+    "standard_book_ref": "M. Laxmikanth, Indian Polity, Chapter on 'Union and its Territory'.",
+    "elimination_trap": "Aspirants intuitively believe that since federalism is a basic structure, a State's consent must be binding when changing its name or boundaries. In Indian federalism, Parliament has plenary power over internal reorganization ('indestructible Union of destructible States')."
+  },
+  {
+    "id": "ca-2026-02-019",
+    "year": 2026,
+    "month": "February 2026",
+    "subject": "Polity & Governance",
+    "question": "With reference to elections to the Council of States (Rajya Sabha), consider the following statements:\n1. Voting in Rajya Sabha elections is conducted through an open ballot system where an elector belonging to a political party is required to show their marked ballot paper to the authorized agent of their party.\n2. Cross-voting by an MLA against party directions in a Rajya Sabha election results in automatic disqualification under the Tenth Schedule (Anti-Defection Law).\n3. An elector who chooses the NOTA (None of the Above) option cannot be disqualified under the Tenth Schedule.\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "1 and 3 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 only",
+    "explanation": "Statement 1 is correct: The Representation of the People (Amendment) Act 2003 introduced an open ballot system for Rajya Sabha elections to prevent corruption and cross-voting. The constitutional validity of this amendment was upheld by a 5-judge Constitution Bench of the Supreme Court in Kuldip Nayar v. Union of India (2006).\nStatement 2 is incorrect: In Kuldip Nayar (2006), the Supreme Court clearly held that elections to the Rajya Sabha are held outside the legislative proceedings of the House; an MLA voting in an RS election is acting as an elector in an electoral college, not participating in legislative assembly business. Therefore, a party whip does not apply and cross-voting does NOT attract disqualification under the Tenth Schedule. The party may take internal disciplinary action (expulsion from the party), but the legislator remains an MLA.\nStatement 3 is incorrect in its foundation: In Shailesh Manubhai Parmar v. Election Commission of India (2018), the Supreme Court held that the NOTA option cannot be made available in Rajya Sabha elections because it violates the proportional representation system by single transferable vote under Article 80(4). Hence, NOTA does not apply to RS ballots at all.",
+    "option_analysis": {
+      "Option A": "Correct. Only statement 1 is factually and constitutionally accurate.",
+      "Option B": "Incorrect because NOTA was removed from Rajya Sabha elections by the Supreme Court in 2018.",
+      "Option C": "Incorrect because statement 2 is wrong (10th Schedule does not apply to RS voting).",
+      "Option D": "Incorrect because statements 2 and 3 are incorrect."
+    },
+    "static_root": "Constitution of India, Article 80(4) & Tenth Schedule; Representation of the People Act 1951; Kuldip Nayar v. Union of India (2006); Shailesh Manubhai Parmar (2018).",
+    "standard_book_ref": "M. Laxmikanth, Indian Polity, Chapter on 'Elections' & 'Parliament'.",
+    "elimination_trap": "This is one of the classic UPSC traps: candidates assume that defying party orders anywhere automatically invokes the Anti-Defection Law. The Tenth Schedule applies strictly to voting or abstaining inside the House on legislative proceedings, not in the RS electoral college."
+  },
+  {
+    "id": "ca-2026-02-020",
+    "year": 2026,
+    "month": "February 2026",
+    "subject": "Science & Technology",
+    "question": "In the context of biochemistry and the origin of life, the phenomenon of 'Chirality' has been in the news. Consider the following statements:\n1. A molecule is said to be chiral if its mirror image cannot be superimposed onto itself.\n2. In terrestrial biological systems, almost all naturally occurring proteins are synthesized exclusively from D-enantiomers of amino acids.\n3. The phenomenon where biological systems selectively utilize only one mirror-image form of organic molecules is known as homochirality.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 3 only",
+    "explanation": "Statement 1 is correct: Chirality refers to geometric asymmetry where a molecule and its mirror image are non-superimposable (like left and right hands). These pairs are known as enantiomers.\nStatement 2 is incorrect: In terrestrial biochemistry, naturally occurring proteins are composed almost exclusively of L-amino acids (levorotatory/left-handed enantiomers), while nucleic acid sugars (ribose in RNA and deoxyribose in DNA) are exclusively D-sugars (dextrorotatory/right-handed enantiomers). The statement inverts this foundational rule.\nStatement 3 is correct: Homochirality (exclusive uniformity of one chiral handedness across all living organisms) is considered one of the primary signatures of biological life and a central mystery in chemical evolution and astrobiology.",
+    "option_analysis": {
+      "Option A": "Incorrect because statement 2 swaps L-amino acids with D-amino acids.",
+      "Option B": "Correct. Statements 1 and 3 are accurate.",
+      "Option C": "Incorrect because statement 2 is false.",
+      "Option D": "Incorrect because statement 2 is chemically inaccurate."
+    },
+    "static_root": "NCERT Class 12 Chemistry, Chapter 10: 'Haloalkanes and Haloarenes' (Optical Isomerism) & Chapter 14: 'Biomolecules'.",
+    "standard_book_ref": "NCERT Chemistry Class 12; Lehninger Principles of Biochemistry.",
+    "elimination_trap": "Remember the fundamental mnemonic: 'L for Living amino acids, D for DNA/RNA sugars'. UPSC loves reversing biochemical enantiomers."
+  },
+  {
+    "id": "ca-2026-02-021",
+    "year": 2026,
+    "month": "February 2026",
+    "subject": "Science & Technology",
+    "question": "Regarding M-dwarf (Red Dwarf) stars such as LHS 1903 and their planetary systems, consider the following statements:\n1. Red dwarf stars are the most abundant type of stars in the Milky Way galaxy.\n2. Due to their low mass and low rate of hydrogen fusion, red dwarfs have lifespans far exceeding the current age of the Universe.\n3. Because their habitable zones are located very close to the star, exoplanets orbiting within this zone are frequently tidally locked, presenting permanent day and night sides.\nHow many of the statements given above are correct?",
+    "options": [
+      "Only one",
+      "Only two",
+      "All three",
+      "None"
+    ],
+    "answer": "All three",
+    "explanation": "All three statements are correct.\nStatement 1 is correct: Red dwarfs (spectral class M) comprise roughly 70% to 75% of all stars in our galaxy.\nStatement 2 is correct: Because of their low core temperatures and convective mixing of hydrogen throughout their volume, they consume hydrogen very slowly, possessing stellar lifespans ranging from hundreds of billions to trillions of years (far exceeding the 13.8-billion-year age of the universe).\nStatement 3 is correct: Because red dwarfs are intrinsically dim, their circumstellar habitable zone lies extremely close to the parent star (often within 0.05 to 0.2 AU). At such close proximity, tidal gravitational dissipation rapidly synchronizes the planet's rotation with its orbital period, locking one hemisphere in perpetual daylight and the other in perpetual freezing darkness.",
+    "option_analysis": {
+      "Option A": "Incorrect. All three statements are correct.",
+      "Option B": "Incorrect. Statements 1, 2, and 3 are all scientifically sound.",
+      "Option C": "Correct. All three statements are true.",
+      "Option D": "Incorrect."
+    },
+    "static_root": "NCERT Class 11 Physics, Gravitation; ISRO & NASA Exoplanet Mission Archives.",
+    "standard_book_ref": "Science & Technology Compendium; Astronomy & Astrophysics Principles.",
+    "elimination_trap": "Candidates often think that since red dwarfs are smaller and cooler, they must have shorter lifespans. In astrophysics, the lower the stellar mass, the longer the main-sequence lifespan."
+  },
+  {
+    "id": "ca-2026-02-022",
+    "year": 2026,
+    "month": "February 2026",
+    "subject": "Science & Technology",
+    "question": "With reference to Sodium-ion (Na-ion) battery technology currently emerging as an alternative to Lithium-ion (Li-ion) batteries, consider the following statements:\n1. Sodium is significantly more abundant and evenly distributed in the Earth's crust than lithium, drastically reducing raw material geopolitical supply risks.\n2. Sodium-ion cells can be fully discharged to zero volts for transport and storage without damaging the electrodes, unlike Lithium-ion cells.\n3. Sodium-ion batteries offer higher gravimetric energy density (Wh/kg) than standard Nickel-Manganese-Cobalt (NMC) Lithium-ion batteries, making them ideal for long-range commercial aviation.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect.\nStatement 1 is correct: Sodium is the sixth most abundant element in the Earth's crust (~2.6% by mass), whereas Lithium is scarce (~0.002%) and concentrated in the 'Lithium Triangle' (Chile, Bolivia, Argentina) and Australia.\nStatement 2 is correct: Li-ion batteries use copper current collectors on the anode, which dissolve into the electrolyte if discharged below 2.0V (causing internal shorts). In contrast, Na-ion cells use aluminum current collectors on both cathode and anode because sodium does not alloy with aluminum at low potentials, allowing Na-ion batteries to be safely shipped and stored at 0V (zero volts).\nStatement 3 is incorrect: Sodium ions are larger and heavier than lithium ions (atomic mass 23 vs 6.94), resulting in inherently lower gravimetric energy density (~150-160 Wh/kg for Na-ion vs 250-300 Wh/kg for Li-ion NMC). Therefore, Na-ion batteries are suited for stationary grid storage and budget 2-wheelers/city EVs, but NOT for weight-critical long-range aviation.",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 are true, while statement 3 overstates the energy density.",
+      "Option B": "Incorrect because statement 3 is technically false.",
+      "Option C": "Incorrect because statement 3 is false and statement 2 is true.",
+      "Option D": "Incorrect because statement 3 is false."
+    },
+    "static_root": "NCERT Class 12 Chemistry, Electrochemistry; Renewable Energy and Storage Technologies.",
+    "standard_book_ref": "Science & Technology Reference; NITI Aayog Advanced Chemistry Cell (ACC) Reports.",
+    "elimination_trap": "Beware of 'silver-bullet' claims for new technologies. Sodium-ion's weakness is its heavier atomic weight, making its energy density lower than high-end lithium chemistries."
+  },
+  {
+    "id": "ca-2026-02-023",
+    "year": 2026,
+    "month": "February 2026",
+    "subject": "Environment & Ecology",
+    "question": "The Great Nicobar Holistic Development Project has been in intense public debate. With reference to the ecology and indigenous communities of Great Nicobar Island, consider the following statements:\n1. Galathea Bay on Great Nicobar Island is one of the world's most significant nesting sites for the Giant Leatherback Sea Turtle.\n2. The Shompen, a Particularly Vulnerable Tribal Group (PVTG) inhabiting the interior rainforests of Great Nicobar, are traditionally hunter-gatherers.\n3. The Nicobar Megapode is a mound-building bird endemic to the Nicobar Islands and is classified as Vulnerable on the IUCN Red List.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1, 2 and 3",
+    "explanation": "All three statements are correct.\nStatement 1 is correct: Galathea Bay Wildlife Sanctuary (part of Great Nicobar Biosphere Reserve) is a globally vital nesting ground for the Leatherback turtle (Dermochelys coriacea), the largest living turtle.\nStatement 2 is correct: The Shompen are an indigenous semi-nomadic PVTG residing in the interior dense tropical forests of Great Nicobar. Unlike the coastal Nicobarese (who engage in horticulture and pig-rearing), the Shompen have remained largely isolated hunter-gatherers.\nStatement 3 is correct: The Nicobar Megapode (Megapodius nicobariensis) is an incubator bird endemic to the Nicobar group that builds massive mounds of sand and decaying leaf litter to incubate its eggs using geothermal/decomposition heat.",
+    "option_analysis": {
+      "Option A": "Incorrect because statement 3 is also correct.",
+      "Option B": "Incorrect because statement 1 is a premier ecological fact about Galathea Bay.",
+      "Option C": "Incorrect because statement 2 is an accurate anthropological description of Shompen PVTG.",
+      "Option D": "Correct. All three statements are accurate."
+    },
+    "static_root": "NCERT Class 12 Biology, Ecology and Environment; Ministry of Tribal Affairs PVTG classifications; Wildlife Institute of India surveys.",
+    "standard_book_ref": "Shankar IAS / PMF IAS, Chapter on 'Biodiversity & Protected Areas'; Ministry of Tribal Affairs.",
+    "elimination_trap": "Do not confuse the Shompen (interior hunter-gatherers, PVTG) with the Nicobarese (coastal, scheduled tribe, agrarian/horticultural, not a PVTG)."
+  },
+  {
+    "id": "ca-2026-02-024",
+    "year": 2026,
+    "month": "February 2026",
+    "subject": "Environment & Ecology",
+    "question": "Consider the following statements regarding the Eurasian Otter (Lutra lutra):\n1. It is a semi-aquatic mammalian carnivore that serves as a keystone and bioindicator species for clean, unpolluted freshwater ecosystems.\n2. In India, it is listed under Schedule I of the Wildlife (Protection) Act, 1972.\n3. Along with the Eurasian otter, the Smooth-coated otter and the Asian small-clawed otter are also native to the Indian subcontinent.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1, 2 and 3",
+    "explanation": "All three statements are correct.\nStatement 1 is correct: The Eurasian otter (Lutra lutra) sits at the apex of freshwater food chains. Because it is highly sensitive to water contamination, habitat fragmentation, and prey depletion, its presence denotes healthy riverine ecosystems.\nStatement 2 is correct: Following the 2022 amendment to the Wildlife (Protection) Act 1972, the Eurasian otter enjoys the highest level of legal protection under Schedule I.\nStatement 3 is correct: India is home to three otter species: Eurasian Otter (Lutra lutra), Smooth-coated Otter (Lutrogale perspicillata), and the Asian Small-clawed Otter (Aonyx cinereus - the smallest otter in the world).",
+    "option_analysis": {
+      "Option A": "Incorrect because statement 3 is also true.",
+      "Option B": "Incorrect because statement 1 is accurate.",
+      "Option C": "Incorrect because statement 2 is accurate.",
+      "Option D": "Correct. All three statements are valid."
+    },
+    "static_root": "Wildlife (Protection) Act 1972 (as amended 2022); IUCN Otter Specialist Group; Freshwater Ecology.",
+    "standard_book_ref": "PMF IAS / Shankar IAS, Chapter on 'Fauna of India' & 'Protected Species'.",
+    "elimination_trap": "UPSC frequently asks multi-species presence questions (e.g., 'Which of the following are naturally found in India?'). Remember that all three species (Eurasian, Smooth-coated, and Asian small-clawed) are native to India."
+  },
+  {
+    "id": "ca-2026-02-025",
+    "year": 2026,
+    "month": "February 2026",
+    "subject": "Environment & Ecology",
+    "question": "In the context of green energy transition and maritime decarbonization, consider the following statements regarding 'Green Ammonia':\n1. Green ammonia is produced by reacting nitrogen separated from air with green hydrogen obtained via water electrolysis powered by renewable electricity.\n2. Unlike liquid hydrogen, green ammonia can be stored and transported under much milder refrigeration conditions and utilizes existing global fertilizer infrastructure.\n3. When combusted directly in marine engines, green ammonia emits completely zero nitrogen oxides (NOx).\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect.\nStatement 1 is correct: Green ammonia (NH3) is produced using the Haber-Bosch process powered 100% by renewable energy, combining nitrogen from cryogenic air separation with green hydrogen produced from water electrolysis.\nStatement 2 is correct: Liquid hydrogen requires extreme cryogenic chilling to -253°C, whereas liquid ammonia condenses at just -33°C (or moderate pressure of 8-10 bar at ambient temperature). Furthermore, world trade already moves over 20 million tonnes of ammonia annually for fertilizers, providing established transport corridors and terminal infrastructure.\nStatement 3 is incorrect: While ammonia combustion produces zero carbon dioxide (CO2) because the NH3 molecule has no carbon atoms, high-temperature combustion in air causes reaction between nitrogen and atmospheric oxygen, producing toxic nitrogen oxides (NO and NO2, collectively NOx). Specialized Selective Catalytic Reduction (SCR) systems are required to eliminate NOx emissions.",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 are scientifically accurate, whereas statement 3 is false.",
+      "Option B": "Incorrect because statement 3 is false.",
+      "Option C": "Incorrect because statement 3 is false.",
+      "Option D": "Incorrect because statement 3 is false."
+    },
+    "static_root": "NCERT Class 12 Chemistry, Chapter 7: 'p-Block Elements' (Nitrogen & Ammonia); National Green Hydrogen Mission.",
+    "standard_book_ref": "Science & Environment Compendium; Ministry of New and Renewable Energy.",
+    "elimination_trap": "Aspirants assume 'zero carbon fuel' means 'zero all emissions'. Ammonia has no carbon, so CO2 is zero, but burning anything with nitrogen in atmospheric air produces NOx."
+  },
+  {
+    "id": "ca-2026-02-026",
+    "year": 2026,
+    "month": "February 2026",
+    "subject": "History, Art & Culture",
+    "question": "With reference to the National Song of India, 'Vande Mataram', consider the following statements:\n1. It was originally composed in Sanskrit by Bankim Chandra Chattopadhyay in his 1882 novel 'Anandamath'.\n2. The background of the novel 'Anandamath' was the Sanyasi Rebellion against the British East India Company in late 18th century Bengal.\n3. It was first sung on a political platform by Rabindranath Tagore at the 1896 Calcutta session of the Indian National Congress.\n4. The Constituent Assembly of India declared that 'Vande Mataram' shall have equal status with the National Anthem 'Jana Gana Mana'.\nHow many of the statements given above are correct?",
+    "options": [
+      "Only one",
+      "Only two",
+      "Only three",
+      "All four"
+    ],
+    "answer": "All four",
+    "explanation": "All four statements are historical facts.\nStatement 1 is correct: Bankim Chandra Chattopadhyay composed the poem in the 1870s and later integrated it into his celebrated 1882 political-historical novel Anandamath.\nStatement 2 is correct: Anandamath is set against the devastating Bengal famine of 1770 and the subsequent Sanyasi-Fakir Rebellion against East India Company rule.\nStatement 3 is correct: Rabindranath Tagore set the tune and sang Vande Mataram for the first time at the 12th annual session of the Indian National Congress held in Calcutta in 1896 (presided over by Rahimtulla M. Sayani).\nStatement 4 is correct: On January 24, 1950, Dr. Rajendra Prasad, President of the Constituent Assembly, stated in a formal declaration: 'The song Vande Mataram, which has played a historic part in the struggle for Indian freedom, shall be honoured equally with Jana Gana Mana and shall have equal status with it.'",
+    "option_analysis": {
+      "Option A": "Incorrect. All four statements are correct.",
+      "Option B": "Incorrect. Statements 1, 2, 3, and 4 are all documented historical facts.",
+      "Option C": "Incorrect.",
+      "Option D": "Correct. All four statements are authentic historical facts."
+    },
+    "static_root": "Modern Indian History, Socio-Religious Reform Movements and Nationalist Literature; Constituent Assembly Debates (Vol. XII, Jan 24, 1950).",
+    "standard_book_ref": "Bipan Chandra, India's Struggle for Independence; Spectrum's Modern India.",
+    "elimination_trap": "Many aspirants incorrectly believe Vande Mataram has lower constitutional status than Jana Gana Mana. The Constituent Assembly president's formal declaration gave it equal status."
+  },
+  {
+    "id": "ca-2026-02-027",
+    "year": 2026,
+    "month": "February 2026",
+    "subject": "Polity & Governance",
+    "question": "Regarding the Arbitration Council of India (ACI), consider the following statements:\n1. It is a statutory body established under the Arbitration and Conciliation (Amendment) Act, 2019.\n2. The Council is headed by a Chairperson who has been a Judge of the Supreme Court or Chief Justice of a High Court, appointed by the Central Government in consultation with the Chief Justice of India.\n3. One of its primary statutory functions is the grading of arbitral institutions and framing policies for accreditation of arbitrators.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1, 2 and 3",
+    "explanation": "All three statements are correct.\nStatement 1 is correct: The Arbitration and Conciliation (Amendment) Act 2019 inserted Part 1A into the principal 1996 Act to establish the Arbitration Council of India (ACI) as an independent body corporate.\nStatement 2 is correct: As per Section 43C, the Chairperson is appointed by the Central Government in consultation with the Chief Justice of India, and must be an individual who has been a Judge of the Supreme Court, or Chief Justice of a High Court, or Judge of a High Court, or an eminent person having substantial knowledge in arbitration.\nStatement 3 is correct: Under Section 43D and 43I, the ACI is mandated to frame criteria for grading arbitral institutions and issuing accreditation certificates to arbitrators to promote institutional arbitration in India.",
+    "option_analysis": {
+      "Option A": "Incorrect because statement 3 is also true.",
+      "Option B": "Incorrect because statement 1 is also true.",
+      "Option C": "Incorrect because statement 2 is also true.",
+      "Option D": "Correct. All three statements accurately describe the statutory framework."
+    },
+    "static_root": "Arbitration and Conciliation (Amendment) Act 2019; Justice B.N. Srikrishna High-Level Committee Recommendations (2017).",
+    "standard_book_ref": "M. Laxmikanth, Indian Polity, Chapter on 'Statutory, Regulatory and Quasi-Judicial Bodies'.",
+    "elimination_trap": "Aspirants often confuse whether ACI itself adjudicates disputes. ACI does NOT arbitrate cases; it acts as a regulator grading arbitral bodies and accrediting professional arbitrators."
+  },
+  {
+    "id": "ca-2026-02-028",
+    "year": 2026,
+    "month": "February 2026",
+    "subject": "Economy",
+    "question": "With reference to the National Industrial Corridor Development Programme (NICDP) overseen by DPIIT, consider the following statements:\n1. It is implemented through the National Industrial Corridor Development and Implementation Trust (NICDIT).\n2. Smart industrial cities under NICDP are planned based on the principles of the PM GatiShakti National Master Plan.\n3. Financing for industrial corridor trunk infrastructure is provided entirely through 100% budgetary grants without any Special Purpose Vehicles (SPVs).\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect.\nStatement 1 is correct: The NICDP is an apex infrastructure programme monitored under the National Industrial Corridor Development and Implementation Trust (NICDIT) under DPIIT, Ministry of Commerce and Industry.\nStatement 2 is correct: All new greenfield smart industrial nodes under NICDP are mapped and executed leveraging the GIS-based PM GatiShakti National Master Plan to ensure multimodal rail, road, and port connectivity.\nStatement 3 is incorrect: The projects are executed via dedicated project-specific Special Purpose Vehicles (SPVs) established as joint ventures between the Government of India (through NICDIT) and the respective State Governments, with equity contribution from both partners (typically 50:50) where states provide contiguous land as equity.",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 are correct, while statement 3 mischaracterizes the SPV model.",
+      "Option B": "Incorrect because statement 1 is also correct.",
+      "Option C": "Incorrect because statement 3 is false.",
+      "Option D": "Incorrect because statement 3 is false."
+    },
+    "static_root": "Indian Economy, Industrial Policy and Infrastructure; PM GatiShakti National Master Plan.",
+    "standard_book_ref": "Ramesh Singh, Indian Economy, Chapter on 'Industry and Infrastructure'.",
+    "elimination_trap": "Industrial corridors in India are quintessential SPV partnerships between the Centre and States. Watch out for absolute terms like 'without any Special Purpose Vehicles'."
+  },
+  {
+    "id": "ca-2026-02-029",
+    "year": 2026,
+    "month": "February 2026",
+    "subject": "Security & Defence",
+    "question": "Consider the following statements regarding the Long-Range Anti-Ship Missile (LR-AShM) developed by the Defence Research and Development Organisation (DRDO):\n1. It is designed to strike both moving marine vessels and static coastal targets at extended standoff ranges.\n2. It can be launched from naval surface combatants as well as ground-based mobile launchers.\n3. It operates purely on an unguided ballistic trajectory without any mid-course or terminal guidance seekers.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect.\nStatement 1 is correct: LR-AShM is a next-generation standoff strike missile engineered to engage high-value naval combatants (aircraft carriers, destroyers) as well as fortified coastal defense installations.\nStatement 2 is correct: It features a modular launch configuration deployable from front-line Indian Navy surface warships (destroyers/frigates) and mobile truck-based shore battery launch platforms.\nStatement 3 is incorrect: Engaging moving ships in rough seas requires precision guidance. LR-AShM utilizes advanced inertial navigation systems integrated with satellite updates for mid-course navigation and active radar/imaging infrared (IIR) terminal seekers to track moving targets and overcome electronic countermeasures.",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 are true, while statement 3 is false.",
+      "Option B": "Incorrect because statement 3 is false.",
+      "Option C": "Incorrect because statement 3 is false.",
+      "Option D": "Incorrect because statement 3 is false."
+    },
+    "static_root": "Defence Technology, Anti-Ship Cruise and Ballistic Missiles; DRDO Indigenous Missile Programme.",
+    "standard_book_ref": "Science & Technology / Defence Compendium; DRDO Annual Publications.",
+    "elimination_trap": "No modern anti-ship missile capable of hitting moving ships is 'purely unguided'. Terminal seekers are indispensable."
+  },
+  {
+    "id": "ca-2026-02-030",
+    "year": 2026,
+    "month": "February 2026",
+    "subject": "International Relations",
+    "question": "With reference to the International Criminal Court (ICC), consider the following statements:\n1. It was established under the Rome Statute of 1998 and is an official principal organ of the United Nations.\n2. The ICC operates on the principle of 'complementarity', meaning it exercises jurisdiction only when a state is unwilling or unable genuinely to carry out the investigation or prosecution.\n3. Neither India nor the United States is a state party to the Rome Statute of the ICC.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "2 and 3 only",
+    "explanation": "Statements 2 and 3 are correct; Statement 1 is incorrect.\nStatement 1 is incorrect: While the ICC was indeed established by the Rome Statute (1998) and cooperates with the UN under a negotiated relationship agreement, it is NOT an official organ of the United Nations (unlike the International Court of Justice - ICJ, which is one of the six principal UN organs).\nStatement 2 is correct: Article 17 of the Rome Statute enshrines the bedrock principle of complementarity. The ICC does not replace national judicial systems; it only intervenes when sovereign domestic courts are genuinely unwilling or unable to investigate or prosecute genocide, crimes against humanity, war crimes, and crimes of aggression.\nStatement 3 is correct: Neither India, the United States, Russia, China, nor Israel is a party to the Rome Statute. India declined to sign citing concerns over state sovereignty, independent prosecutor powers, and non-inclusion of terrorism and nuclear weapons.",
+    "option_analysis": {
+      "Option A": "Incorrect because statement 1 is false (ICC is not a UN principal organ).",
+      "Option B": "Correct. Statements 2 and 3 are valid.",
+      "Option C": "Incorrect because statement 1 is false.",
+      "Option D": "Incorrect because statement 1 is false."
+    },
+    "static_root": "International Law & Organizations; Rome Statute of the International Criminal Court (1998); ICJ vs ICC distinctions.",
+    "standard_book_ref": "Pushpesh Pant / Pavneet Singh, International Relations; UN Charter Overview.",
+    "elimination_trap": "A perennial UPSC favorite: confusing the ICJ (The Hague, principal UN organ, inter-state civil disputes) with the ICC (The Hague, treaty-based independent court, individual criminal prosecution)."
   }
 ]
