@@ -237,6 +237,20 @@
       background-color: #f8fafc !important;
       border-color: #e2e8f0 !important;
     }
+    html:not(.dark) #sidebarAuthContainer button,
+    html:not(.dark) #sidebarAuthContainer .bg-white {
+      background-color: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+    }
+    html:not(.dark) #sidebarAuthContainer button:hover {
+      background-color: #f1f5f9 !important;
+      border-color: #94a3b8 !important;
+    }
+    html:not(.dark) #sidebarAuthContainer span {
+      color: #0f172a !important;
+    }
 
     /* All Slate backgrounds become crisp light surfaces in Light Mode (NEVER match modal overlays!) */
     html:not(.dark) [class*="bg-slate-950"]:not(.modal-backdrop-overlay):not(.fixed),
@@ -472,32 +486,31 @@
   <!-- ========================================================
        SIDEWAY NAVBAR (SuperKalam Style Collapsible Left Nav)
        ======================================================== -->
-  <aside id="sidebarNav" class="light-sidebar fixed top-0 bottom-0 left-0 z-40 w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 transform -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none">
+  <aside id="sidebarNav" class="light-sidebar fixed top-0 bottom-0 left-0 z-40 w-64 h-full max-h-screen bg-slate-950 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 transform -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none overflow-hidden">
     
-    <!-- Top Brand & Header -->
-    <div class="flex flex-col">
-      <div class="h-16 px-4 flex items-center justify-between border-b border-slate-800/80">
-        <a href="/" class="flex items-center gap-2.5 group select-none" title="Cooked Mains — Let Me Cook">
-          <img src="/static/brand_logo_light.png" alt="Cooked Mains Logo" class="brand-logo-light h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
-          <img src="/static/brand_logo_dark.png" alt="Cooked Mains Logo" class="brand-logo-dark h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
-          <div class="flex flex-col justify-center">
-            <span class="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight flex items-center">
-              Cooked <span class="text-amber-500 ml-1">Mains</span>
-            </span>
-            <span class="text-[9px] font-mono font-bold tracking-wider text-amber-500 uppercase leading-none mt-0.5">
-              Dashboard
-            </span>
-          </div>
-        </a>
+    <!-- Top Brand & Header (Fixed, never shrinks) -->
+    <div class="h-16 shrink-0 px-4 flex items-center justify-between border-b border-slate-800/80">
+      <a href="/" class="flex items-center gap-2.5 group select-none" title="Cooked Mains — Let Me Cook">
+        <img src="/static/brand_logo_light.png" alt="Cooked Mains Logo" class="brand-logo-light h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
+        <img src="/static/brand_logo_dark.png" alt="Cooked Mains Logo" class="brand-logo-dark h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
+        <div class="flex flex-col justify-center">
+          <span class="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight flex items-center">
+            Cooked <span class="text-amber-500 ml-1">Mains</span>
+          </span>
+          <span class="text-[9px] font-mono font-bold tracking-wider text-amber-500 uppercase leading-none mt-0.5">
+            Dashboard
+          </span>
+        </div>
+      </a>
 
-        <!-- Mobile Close Drawer Button -->
-        <button id="closeSidebarMobileBtn" type="button" class="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer">
-          ✕
-        </button>
-      </div>
+      <!-- Mobile Close Drawer Button -->
+      <button id="closeSidebarMobileBtn" type="button" class="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer">
+        ✕
+      </button>
+    </div>
 
-      <!-- Navigation Links -->
-      <nav class="flex flex-col gap-1.5 p-3 text-xs font-semibold overflow-y-auto max-h-[calc(100vh-140px)]">
+    <!-- Navigation Links (Middle flex-1 scrollable area, adjusts to any screen height) -->
+    <nav class="flex-1 min-h-0 overflow-y-auto p-3 flex flex-col gap-1.5 text-xs font-semibold custom-scrollbar">
         
         <!-- Main Section -->
         <button type="button" id="sideNavHome" class="sidebar-nav-item active flex items-center gap-3 px-3 py-2.5 rounded-xl bg-amber-500/15 text-amber-900 dark:text-amber-400 font-bold border border-amber-500/30 transition-all text-left cursor-pointer">
@@ -562,10 +575,9 @@
           <span>Handwritten Copy Evaluation</span>
         </a>
       </nav>
-    </div>
 
-    <!-- Bottom Profile & Utilities (Executive Cadet Card) -->
-    <div id="sidebarAuthContainer" class="p-3.5 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-950/80 flex flex-col gap-2.5">
+    <!-- Bottom Profile & Utilities (Executive Cadet Card - ALWAYS PINNED AT BOTTOM, SHRINK-0) -->
+    <div id="sidebarAuthContainer" class="shrink-0 p-3 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/90 dark:bg-slate-950/90 flex flex-col gap-2 shadow-xs">
       
       <!-- Tier 1: Cadet Identity & Status Card -->
       <div class="flex items-center justify-between gap-2.5 p-2 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-amber-500/30 transition-all">

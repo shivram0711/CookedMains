@@ -807,6 +807,15 @@
       }
     } else if (format === 'full' || (selectedSubjects.length === 1 && selectedSubjects[0] === 'all')) {
       title = 'Full-Length GS-1 Mock (' + targetCount + ' Qs · ' + durationMins + 'm)';
+      const blueprintQuotas = (targetCount === 100) ? {
+        'Environment & Ecology': 20,
+        'Polity & Governance': 18,
+        'Economy': 17,
+        'History & Culture': 16,
+        'Geography': 15,
+        'Science & Technology': 14
+      } : null;
+
       const subjects = [
         'Polity & Governance',
         'Economy',
@@ -815,13 +824,24 @@
         'Geography',
         'Science & Technology'
       ];
-      const perSubj = Math.max(2, Math.floor(targetCount / subjects.length));
-      subjects.forEach(function (sub) {
-        const pool = shuffleArray(STATE.pyqs.filter(function (q) {
-          return q.subject && q.subject.toLowerCase().indexOf(sub.toLowerCase().split('&')[0].trim()) !== -1;
-        }));
-        sampleQuestions = sampleQuestions.concat(pool.slice(0, perSubj));
-      });
+
+      if (blueprintQuotas) {
+        Object.keys(blueprintQuotas).forEach(function (sub) {
+          const quota = blueprintQuotas[sub];
+          const pool = shuffleArray(STATE.pyqs.filter(function (q) {
+            return q.subject && q.subject.toLowerCase().indexOf(sub.toLowerCase().split('&')[0].trim()) !== -1;
+          }));
+          sampleQuestions = sampleQuestions.concat(pool.slice(0, quota));
+        });
+      } else {
+        const perSubj = Math.max(2, Math.floor(targetCount / subjects.length));
+        subjects.forEach(function (sub) {
+          const pool = shuffleArray(STATE.pyqs.filter(function (q) {
+            return q.subject && q.subject.toLowerCase().indexOf(sub.toLowerCase().split('&')[0].trim()) !== -1;
+          }));
+          sampleQuestions = sampleQuestions.concat(pool.slice(0, perSubj));
+        });
+      }
 
       if (sampleQuestions.length < targetCount) {
         const rem = targetCount - sampleQuestions.length;
