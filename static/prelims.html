@@ -2522,7 +2522,7 @@
               <div class="flex flex-col">
                 <div class="flex items-center gap-2 flex-wrap">
                   <h2 class="text-xl font-black text-white">Monthly Current Affairs &amp; Reverse-Osmosis Arena</h2>
-                  <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase font-mono">2026 Dossiers · 105 Qs</span>
+                  <span id="caArenaHeaderBadge" class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase font-mono">10 Dossiers · 230 Qs</span>
                 </div>
                 <p class="text-xs text-slate-400 mt-1">
                   Authentic UPSC-grade questions reverse-engineered from high-yield monthly magazines and verified contemporary dossiers, testing root statutory acts, physiological mechanisms, and deceptive distractors.
@@ -2567,11 +2567,11 @@
           <div class="flex flex-col gap-2 pt-1">
             <div class="flex items-center justify-between text-xs">
               <span class="font-bold text-slate-300">Browse by Monthly Dossier:</span>
-              <span class="text-[11px] text-slate-400 font-mono">7 Comprehensive Dossiers</span>
+              <span id="caDossiersCountSubtext" class="text-[11px] text-slate-400 font-mono">10 Comprehensive Dossiers (230 Qs)</span>
             </div>
             <div class="flex items-center gap-2 flex-wrap" id="caMonthPillsContainer">
-              <button type="button" class="ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 shadow-md transition cursor-pointer" data-month="all" onclick="window.filterCaByMonth('all')">
-                All Months (105 Qs)
+              <button type="button" id="caMonthPillAll" class="ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 shadow-md transition cursor-pointer" data-month="all" onclick="window.filterCaByMonth('all')">
+                All Months (230 Qs)
               </button>
               <button type="button" class="ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer" data-month="January 2026" onclick="window.filterCaByMonth('January 2026')">
                 ❄️ Jan 2026 (15 Qs)
@@ -2593,6 +2593,15 @@
               </button>
               <button type="button" class="ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer" data-month="July 2026" onclick="window.filterCaByMonth('July 2026')">
                 ⚡ Jul 2026 (15 Qs)
+              </button>
+              <button type="button" class="ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer" data-month="August 2026" onclick="window.filterCaByMonth('August 2026')">
+                🌾 Aug 2026 (15 Qs)
+              </button>
+              <button type="button" class="ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer" data-month="September 2026" onclick="window.filterCaByMonth('September 2026')">
+                🍁 Sep 2026 (15 Qs)
+              </button>
+              <button type="button" class="ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer" data-month="October 2026" onclick="window.filterCaByMonth('October 2026')">
+                🍂 Oct 2026 (15 Qs)
               </button>
             </div>
           </div>
@@ -2659,7 +2668,7 @@
   </div>
 
   <!-- Scripts -->
-  <script src="/static/prelims.js?v=1795448885345"></script>
+  <script src="/static/prelims.js?v=1795451688851"></script>
 
   <!-- ====================================================
        DYNAMIC REVERSE-OSMOSIS CURRENT AFFAIRS GENERATOR MODAL (Phase 5)
@@ -2752,6 +2761,9 @@
             <option value="May 2026">🔥 May Dossier Deep-Dive</option>
             <option value="June 2026">🌧️ June Dossier Deep-Dive</option>
             <option value="July 2026">⚡ July Dossier Deep-Dive</option>
+            <option value="August 2026">🌾 August Dossier Deep-Dive</option>
+            <option value="September 2026">🍁 September Dossier Deep-Dive</option>
+            <option value="October 2026">🍂 October Dossier Deep-Dive</option>
           </select>
         </div>
 

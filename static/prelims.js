@@ -3887,10 +3887,10 @@
     }
     try {
       const [resPyqs, resCa, resOther, resAi] = await Promise.all([
-        fetch('/static/data/prelims_pyqs.json'),
-        fetch('/static/data/current_affairs_pyqs.json'),
-        fetch('/static/data/upsc_other_exams_pyqs.json'),
-        fetch('/static/data/ai_mock_questions_2026.json')
+        fetch('/static/data/prelims_pyqs.json?v=20261123v2'),
+        fetch('/static/data/current_affairs_pyqs.json?v=230qs_20261123v2'),
+        fetch('/static/data/upsc_other_exams_pyqs.json?v=20261123v2'),
+        fetch('/static/data/ai_mock_questions_2026.json?v=20261123v2')
       ]);
       STATE.pyqMap = {};
       if (resPyqs.ok) {
@@ -6603,6 +6603,15 @@ function renderPlayerDistractorDeepDive(q) {
     if (!cardsGrid) return;
 
     var caQuestions = STATE.ca_pyqs || [];
+    var totalCaCount = caQuestions.length || 230;
+
+    // Dynamically update header badges and labels
+    var badge = document.getElementById('caArenaHeaderBadge');
+    if (badge) badge.textContent = '10 Dossiers · ' + totalCaCount + ' Qs';
+    var subtext = document.getElementById('caDossiersCountSubtext');
+    if (subtext) subtext.textContent = '10 Comprehensive Dossiers (' + totalCaCount + ' Qs)';
+    var allBtn = document.getElementById('caMonthPillAll');
+    if (allBtn) allBtn.textContent = 'All Months (' + totalCaCount + ' Qs)';
 
     // Render 7 Monthly Dossier Hub Cards
     cardsGrid.innerHTML = MONTHLY_DOSSIERS_METADATA.map(function (meta) {
@@ -6778,7 +6787,7 @@ function renderPlayerDistractorDeepDive(q) {
   async function ensureCaQuestionsLoaded() {
     if (STATE.ca_pyqs && STATE.ca_pyqs.length > 0) return STATE.ca_pyqs;
     try {
-      const res = await fetch('/static/data/current_affairs_pyqs.json');
+      const res = await fetch('/static/data/current_affairs_pyqs.json?v=230qs_20261123v2');
       if (res.ok) {
         STATE.ca_pyqs = await res.json();
         if (!STATE.pyqMap) STATE.pyqMap = {};
