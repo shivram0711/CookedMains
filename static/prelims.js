@@ -711,6 +711,118 @@
     window.updateMockLiveSummary();
   };
 
+  
+  // ====================================================
+  // MULTI-TOPIC PARSER & MATCHER (Upgraded Phase 4)
+  // Supports combining multiple topics typed with commas
+  // ====================================================
+  function parseMultipleTopics(str) {
+    if (!str || typeof str !== 'string') return [];
+    return str
+      .split(/[,;+&|]/)
+      .map(function (s) { return s.trim(); })
+      .filter(function (s) { return s.length > 0; });
+  }
+
+  function matchQuestionMultipleTopics(q, topicList) {
+    if (!topicList || topicList.length === 0) return true;
+    const searchable = [
+      q.sub_topic,
+      q.subTopic,
+      q.topic,
+      q.subject,
+      q.question_text,
+      q.question,
+      q.explanation,
+      Array.isArray(q.tags) ? q.tags.join(' ') : ''
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    return topicList.some(function (t) {
+      return searchable.includes(t.toLowerCase());
+    });
+  }
+
+  window.toggleMockTopicChip = function (topic) {
+    const input = document.getElementById('mockCustomTopicInput');
+    if (!input) return;
+    let topics = parseMultipleTopics(input.value);
+    const existsIdx = topics.findIndex(function (t) { return t.toLowerCase() === topic.toLowerCase(); });
+    if (existsIdx !== -1) {
+      topics.splice(existsIdx, 1);
+    } else {
+      topics.push(topic);
+    }
+    input.value = topics.join(', ');
+    window.updateMockLiveSummary();
+  };
+
+  window.clearMockTopics = function () {
+    const input = document.getElementById('mockCustomTopicInput');
+    if (input) input.value = '';
+    window.updateMockLiveSummary();
+  };
+
+  window.toggleAiMockTopicChip = function (topic) {
+    const input = document.getElementById('aiMockTopicInput');
+    if (!input) return;
+    let topics = parseMultipleTopics(input.value);
+    const existsIdx = topics.findIndex(function (t) { return t.toLowerCase() === topic.toLowerCase(); });
+    if (existsIdx !== -1) {
+      topics.splice(existsIdx, 1);
+    } else {
+      topics.push(topic);
+    }
+    input.value = topics.join(', ');
+    window.updateMockLiveSummary();
+  };
+
+  window.clearAiMockTopics = function () {
+    const input = document.getElementById('aiMockTopicInput');
+    if (input) input.value = '';
+    window.updateMockLiveSummary();
+  };
+
+  window.toggleDynamicCaTopicChip = function (topic) {
+    const input = document.getElementById('dynamicCaCustomTopicInput');
+    if (!input) return;
+    let topics = parseMultipleTopics(input.value);
+    const existsIdx = topics.findIndex(function (t) { return t.toLowerCase() === topic.toLowerCase(); });
+    if (existsIdx !== -1) {
+      topics.splice(existsIdx, 1);
+    } else {
+      topics.push(topic);
+    }
+    input.value = topics.join(', ');
+  };
+
+  window.clearDynamicCaTopics = function () {
+    const input = document.getElementById('dynamicCaCustomTopicInput');
+    if (input) input.value = '';
+  };
+
+  window.setDynamicCaQuestionCount = function (count) {
+    const countInput = document.getElementById('dynamicCaCountSelect');
+    if (countInput) countInput.value = count;
+    document.querySelectorAll('.dyn-ca-qcount-pill').forEach(function (pill) {
+      if (parseInt(pill.getAttribute('data-count'), 10) === count) {
+        pill.classList.add('active', 'border-amber-500', 'bg-amber-500/20', 'text-amber-300');
+        pill.classList.remove('border-slate-800', 'bg-slate-950', 'text-slate-300');
+        const sub = pill.querySelector('.font-mono');
+        if (sub) { sub.className = 'text-[10px] text-amber-400/80 font-mono'; }
+      } else {
+        pill.classList.remove('active', 'border-amber-500', 'bg-amber-500/20', 'text-amber-300');
+        pill.classList.add('border-slate-800', 'bg-slate-950', 'text-slate-300');
+        const sub = pill.querySelector('.font-mono');
+        if (sub) { sub.className = 'text-[10px] text-slate-500 font-mono'; }
+      }
+    });
+    const dur = Math.round(count * 1.2);
+    const timeEl = document.getElementById('dynamicCaCalculatedTime');
+    if (timeEl) timeEl.textContent = '~' + dur + ' Mins (1.2m / Q)';
+    const btnText = document.getElementById('startDynamicCaBtnText');
+    if (btnText) btnText.textContent = '🚀 Synthesize Dynamic UPSC Questions (' + count + ' Qs · ' + dur + 'm)';
+  };
+
   window.applyAiMockTopicChip = function (topic) {
     const input = document.getElementById('aiMockTopicInput');
     if (input) {
@@ -839,6 +951,14 @@
           return checked.some(function (subj) {
             return q.subject && q.subject.toLowerCase().indexOf(subj.toLowerCase().split('&')[0].trim()) !== -1;
           });
+        });
+      }
+      const topicInput = document.getElementById('mockCustomTopicInput');
+      const rawTopics = topicInput ? topicInput.value.trim() : '';
+      const topicList = parseMultipleTopics(rawTopics);
+      if (topicList.length > 0) {
+        pPool = pPool.filter(function (q) {
+          return matchQuestionMultipleTopics(q, topicList);
         });
       }
       poolCount = pPool.length;
@@ -995,11 +1115,13 @@
       if (staticTarget > 0) {
         let aiPool = (STATE.ai_mock_questions || []).slice();
         if (scope === 'topic' && options.topicQuery) {
-          const tq = options.topicQuery.toLowerCase();
-          const tMatches = aiPool.filter(function (q) {
-            return (q.sub_topic || '').toLowerCase().includes(tq) || (q.question_text || '').toLowerCase().includes(tq);
-          });
-          if (tMatches.length > 0) aiPool = tMatches;
+          const topicList = parseMultipleTopics(options.topicQuery);
+          if (topicList.length > 0) {
+            const tMatches = aiPool.filter(function (q) {
+              return matchQuestionMultipleTopics(q, topicList);
+            });
+            if (tMatches.length > 0) aiPool = tMatches;
+          }
         }
 
         sampleQuestions = sampleQuestions.concat(shuffleArray(aiPool).slice(0, staticTarget));
@@ -1033,16 +1155,7 @@
         candidatePool = candidatePool.filter(function (q) { return sources.includes(q.exam || 'UPSC CSE'); });
       }
 
-      const blendCa = document.getElementById('mockFullBlendCaCheckbox')?.checked;
-      let caTarget = 0;
-      if (blendCa && STATE.ca_pyqs && STATE.ca_pyqs.length > 0) {
-        caTarget = 25;
-        title = 'Full GS-1 Simulation (75% Static + 25% 2026 CA · 120m)';
-        const caSample = shuffleArray(STATE.ca_pyqs).slice(0, caTarget);
-        sampleQuestions = sampleQuestions.concat(caSample);
-      }
-
-      const staticTarget = targetCount - caTarget;
+      const staticTarget = targetCount;
       const blueprintQuotas = {
         'Environment & Ecology': Math.round(staticTarget * 0.20),
         'Polity & Governance': Math.round(staticTarget * 0.18),
@@ -1089,13 +1202,13 @@
       }
 
       if (options.topicQuery) {
-        const tq = options.topicQuery.toLowerCase();
-        const topicMatches = candidatePool.filter(function (q) {
-          const sub = (q.sub_topic || q.subTopic || '').toLowerCase();
-          const txt = (q.question_text || q.question || '').toLowerCase();
-          return sub.includes(tq) || txt.includes(tq);
-        });
-        if (topicMatches.length > 0) candidatePool = topicMatches;
+        const topicList = parseMultipleTopics(options.topicQuery);
+        if (topicList.length > 0) {
+          const topicMatches = candidatePool.filter(function (q) {
+            return matchQuestionMultipleTopics(q, topicList);
+          });
+          if (topicMatches.length > 0) candidatePool = topicMatches;
+        }
       }
 
       sampleQuestions = shuffleArray(candidatePool).slice(0, targetCount);
@@ -4555,6 +4668,10 @@ function renderPlayerDistractorDeepDive(q) {
       { id: 'May 2026', label: '🔥 May 2026' },
       { id: 'June 2026', label: '🌧️ Jun 2026' },
       { id: 'July 2026', label: '⚡ Jul 2026' }
+    ,
+      { id: 'August 2026', label: '🌾 Aug 2026' },
+      { id: 'September 2026', label: '🍁 Sep 2026' },
+      { id: 'October 2026', label: '🍂 Oct 2026' }
     ];
 
     container.innerHTML = months.map(function (m) {
@@ -6450,6 +6567,34 @@ function renderPlayerDistractorDeepDive(q) {
       leadTheme: 'Decolonization Heritage, Vikram-1 & 8 Core Index',
       topics: ['Patrice Lumumba Congo Crisis & Indian UN Peacekeepers', 'India-UK CETA Double Contribution Convention', 'US-Saudi 123 Agreement & Non-Proliferation', 'Index of Services Production (ISP / GST Data)', 'Nifty500 Ahimsa Ethical Index', 'Index of Eight Core Industries Weightages', 'Vikram-1 Rocket (Skyroot Aerospace)', 'eVTOL e200X Urban Air Mobility', 'Qdenga Tetravalent Dengue Vaccine', 'Borophene 2D Allotrope Solid Lubricant', 'Puga Valley Geothermal Power Project (Ladakh)', 'Borjuli Wetland Wild Rice Progenitor', 'Teesta River Tso Lhamo Hydrology', 'Kamarajar Port Landlord Port Model', 'Karlapat Bauxite & Khondalite Topography'],
       source: 'InsightsIAS Jul 2026 / MoSPI / DGCA / IN-SPACe'
+    }
+  ,
+    {
+      month: 'August 2026',
+      icon: '🌾',
+      color: 'amber',
+      title: 'August 2026 Comprehensive Dossier',
+      leadTheme: 'Glaw Lake Ramsar, Asan ESZ & IPMDA',
+      topics: ['Glaw Lake (101st Ramsar)', 'SC 10-km Buffer on Ramsar Mining (Asan)', 'Asiatic Lion Barda Sanctuary & Babarkot', 'Houbara / MacQueens Bustard', 'Clouded Leopard Arboreal Adaptations', 'Vulture Recovery (NSAIDs Bans)', 'Danube River Capitals', 'Lake Mead & Hoover Dam', 'Nauru & Ceuta Enclave', 'IPMDA Quad Maritime Awareness', 'GOBARdhan SATAT Bioenergy Offtake', 'Open Natural Ecosystems (ONEs)', 'Makkah Pact', 'PM Surya Sarovar Floating Solar', 'National Honour Act 1971'],
+      source: 'InsightsIAS Aug 2026 / PIB / MoEFCC / SC Judgments'
+    },
+    {
+      month: 'September 2026',
+      icon: '🍁',
+      color: 'emerald',
+      title: 'September 2026 Comprehensive Dossier',
+      leadTheme: 'Coral Bleaching GCRMN & DSR Soil Carbon',
+      topics: ['GCRMN Global Coral Reef Status (4th Bleaching)', 'Neelakurinji (WPA Sch III & Shola Masting)', 'Ammannia telanganensis (Amrabad TR)', 'Trishuli River Antecedent Drainage', 'Lake Ontario & St. Lawrence Seaway', 'Larak Island Salt Diapirs & Strait of Hormuz', 'Lake Magadi Trona Kenya Rift', 'Mount Anak Krakatau Sunda Strait', 'Kathmandu Declaration (SAWEN)', 'ECI Totaliser Machines in EVMs', 'Article 371K Ladakh Proposals', 'Lipulekh Pass & Kali River', 'Sohar Port (Gulf of Oman)', 'Djibouti & Lake Assal (-155m)', 'Indus Waters Treaty PCA Ruling', 'Direct Seeded Rice (DSR) Carbon Credits', 'Badri Cattle OPU-IVF'],
+      source: 'InsightsIAS Sep 2026 / ICRI / ECI / PCA The Hague'
+    },
+    {
+      month: 'October 2026',
+      icon: '🍂',
+      color: 'indigo',
+      title: 'October 2026 Comprehensive Dossier',
+      leadTheme: 'Sukhna & Sauj Jheel Ramsar & BNSS 163',
+      topics: ['Sukhna Lake & Sauj Jheel (102nd & 103rd Ramsar)', 'Buxa Tiger Reserve Reintroduction', 'Kallakkadal Swell Surge Waves (INCOIS)', 'Himalayan Tahr Hoof Adaptations', 'Sarus Crane Non-Migratory Ecology', 'Black Sea Anoxic Deep Meromictic Basin', 'Caspian Sea Volga Drainage & Littorals', 'Dakhla Oasis Nubian Sandstone Aquifer', 'Section 163 BNSS (CrPC 144 Evolution)', 'Supreme Court Collegium Three Judges Cases', 'SIOFA Southern Indian Ocean Fisheries', 'Eight Core Industries Index Weightages', 'Quantum Key Distribution (QKD) Free-Space', 'UN Declaration on Sea Level Rise & UNCLOS Baselines', 'Kufri Jamunia Anthocyanin Potato'],
+      source: 'InsightsIAS Oct 2026 / UNCLOS / NTCA / INCOIS / CPRI'
     }
   ];
 

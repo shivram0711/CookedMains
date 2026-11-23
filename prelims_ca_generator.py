@@ -5,6 +5,7 @@ import re
 import uuid
 import random
 from typing import List, Dict, Any, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from google import genai
 from google.genai import types
 
@@ -182,9 +183,31 @@ def generate_dynamic_prelims_ca_batch(
     """
     questions = []
     # Cap batch count between 1 and 10 to ensure high quality and prevent timeouts
-    target_count = max(1, min(count, 10))
+    target_count = max(1, min(count, 30))
 
-    for i in range(target_count):
+    # Generate in parallel for high speed and scale up to 30 Qs
+    max_workers = min(6, target_count)
+    if max_workers > 1:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [
+                executor.submit(
+                    generate_single_dynamic_ca_question,
+                    month=month,
+                    subject=subject,
+                    difficulty=difficulty,
+                    custom_topic=custom_topic,
+                    api_key=api_key
+                )
+                for _ in range(target_count)
+            ]
+            for fut in as_completed(futures):
+                try:
+                    res = fut.result()
+                    if res:
+                        questions.append(res)
+                except Exception as e:
+                    print(f"Parallel CA generation worker error: {e}")
+    else:
         q = generate_single_dynamic_ca_question(
             month=month,
             subject=subject,
@@ -194,6 +217,35 @@ def generate_dynamic_prelims_ca_batch(
         )
         if q:
             questions.append(q)
+
+    # Fallback padding from verified monthly magazines if AI returns fewer than requested
+    if len(questions) < target_count and os.path.exists(CA_DATA_PATH):
+        try:
+            with open(CA_DATA_PATH, "r", encoding="utf-8") as f:
+                curated_ca = json.load(f)
+            
+            pool = curated_ca
+            if subject and subject.lower() != "all":
+                pool = [q for q in curated_ca if subject.lower() in (q.get("subject") or "").lower()]
+                if not pool:
+                    pool = curated_ca
+
+            if custom_topic:
+                tokens = [t.strip().lower() for t in custom_topic.split(",") if t.strip()]
+                t_matches = [
+                    q for q in pool
+                    if any(t in (q.get("sub_topic") or "").lower() or t in (q.get("question_text") or "").lower() for t in tokens)
+                ]
+                if t_matches:
+                    pool = t_matches
+
+            existing_ids = {q.get("id") for q in questions}
+            remaining_pool = [q for q in pool if q.get("id") not in existing_ids]
+            random.shuffle(remaining_pool)
+            needed = target_count - len(questions)
+            questions.extend(remaining_pool[:needed])
+        except Exception as err:
+            print(f"Could not load fallback CA questions: {err}")
 
     if save_to_disk and questions:
         try:

@@ -958,7 +958,7 @@ async def api_generate_dynamic_ca(
     """
     from prelims_ca_generator import generate_dynamic_prelims_ca_batch
     try:
-        count_clean = max(1, min(int(count), 10))
+        count_clean = max(1, min(int(count), 30))
         questions = generate_dynamic_prelims_ca_batch(
             count=count_clean,
             month=month,
