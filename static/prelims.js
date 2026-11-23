@@ -17,16 +17,20 @@
 
   const STATE = {
     pyqs: [],
+    ca_pyqs: [],
     activeSubject: 'all',
     activeYear: 'all',
     matrixSearchQuery: '',
     matrixSelectedYear: 'all',
     matrixSelectedSubject: 'all',
-    vaultMode: 'subject', // 'subject' | 'year'
+    vaultMode: 'subject', // 'subject' | 'year' | 'ca'
     vaultSelectedSubject: 'all',
     vaultSelectedYear: 'all',
+    vaultSelectedCaMonth: 'all',
     vaultSelectedDifficulty: 'all',
     vaultSearchQuery: '',
+    caArenaSelectedMonth: 'all',
+    caArenaSearchQuery: '',
     vaultExpandedQuestions: new Set(),
     vaultPageSize: 25,
     vaultDisplayedCount: 25,
@@ -252,10 +256,11 @@
     const mistakesView = document.getElementById('mistakesNotebookView');
     const cutoffEvView = document.getElementById('cutoffEVSimulatorView');
     const csatView = document.getElementById('csatPracticeView');
+    const caView = document.getElementById('prelimsCurrentAffairsView');
     const breadcrumb = document.getElementById('breadcrumbCurrent');
 
     // Hide all views first
-    [dashView, playerView, reportView, vaultView, mistakesView, cutoffEvView, csatView].forEach(function (v) {
+    [dashView, playerView, reportView, vaultView, mistakesView, cutoffEvView, csatView, caView].forEach(function (v) {
       if (v) v.classList.add('hidden');
     });
 
@@ -297,6 +302,11 @@
       updateSidebarActive('sideNavCSAT');
       if (breadcrumb) breadcrumb.textContent = 'CSAT Qualifying Practice & 66.67 Cutoff Optimizer';
       initCsatPractice();
+    } else if (mode === 'current_affairs' || mode === 'ca') {
+      if (caView) caView.classList.remove('hidden');
+      updateSidebarActive('sideNavCurrentAffairs');
+      if (breadcrumb) breadcrumb.textContent = 'Monthly Current Affairs Arena (2026)';
+      renderCurrentAffairsArena();
     } else {
       if (playerView) playerView.classList.add('hidden');
       if (reportView) reportView.classList.add('hidden');
@@ -561,31 +571,67 @@
     const fullBlueprint = document.getElementById('mockFullExamBlueprint');
     const remedialBlueprint = document.getElementById('mockRemedialBlueprint');
     const customControls = document.getElementById('mockCustomSectionalControls');
+    const caControls = document.getElementById('mockCurrentAffairsControls');
     const remedialCountEl = document.getElementById('mockRemedialMistakesCount');
 
     if (format === 'full') {
       if (fullBlueprint) fullBlueprint.classList.remove('hidden');
       if (remedialBlueprint) remedialBlueprint.classList.add('hidden');
       if (customControls) customControls.classList.add('hidden');
+      if (caControls) caControls.classList.add('hidden');
       mockConfigState.questionCount = 100;
     } else if (format === 'weakness') {
       if (fullBlueprint) fullBlueprint.classList.add('hidden');
       if (remedialBlueprint) remedialBlueprint.classList.remove('hidden');
       if (customControls) customControls.classList.add('hidden');
+      if (caControls) caControls.classList.add('hidden');
       if (remedialCountEl) {
         const mCount = STATE.mistakes ? STATE.mistakes.size : 0;
         remedialCountEl.textContent = mCount + (mCount === 1 ? ' Logged Mistake' : ' Logged Mistakes');
       }
       mockConfigState.questionCount = 15;
+    } else if (format === 'current_affairs') {
+      if (fullBlueprint) fullBlueprint.classList.add('hidden');
+      if (remedialBlueprint) remedialBlueprint.classList.add('hidden');
+      if (customControls) customControls.classList.add('hidden');
+      if (caControls) caControls.classList.remove('hidden');
+      const activeCaPill = document.querySelector('.mock-ca-qcount-pill.active');
+      const count = activeCaPill ? parseInt(activeCaPill.getAttribute('data-count'), 10) : 15;
+      mockConfigState.questionCount = count || 15;
     } else {
       // sectional / custom
       if (fullBlueprint) fullBlueprint.classList.add('hidden');
       if (remedialBlueprint) remedialBlueprint.classList.add('hidden');
       if (customControls) customControls.classList.remove('hidden');
+      if (caControls) caControls.classList.add('hidden');
       const activeCountBtn = document.querySelector('.mock-qcount-pill.active');
       const count = activeCountBtn ? parseInt(activeCountBtn.getAttribute('data-count'), 10) : 25;
       mockConfigState.questionCount = count || 25;
     }
+    window.updateMockLiveSummary();
+  };
+
+  window.selectMockCaMonths = function (action) {
+    const checkboxes = document.querySelectorAll('.mock-ca-month-check');
+    if (action === 'all') {
+      checkboxes.forEach(function (cb) { cb.checked = true; });
+    } else if (action === 'clear') {
+      checkboxes.forEach(function (cb, idx) { cb.checked = (idx === 0); }); // keep Jan selected
+    }
+    window.updateMockLiveSummary();
+  };
+
+  window.setMockCaQuestionCount = function (count) {
+    mockConfigState.questionCount = count;
+    document.querySelectorAll('.mock-ca-qcount-pill').forEach(function (pill) {
+      if (parseInt(pill.getAttribute('data-count'), 10) === count) {
+        pill.classList.add('active', 'border-emerald-500', 'bg-emerald-500/20', 'text-emerald-300');
+        pill.classList.remove('border-slate-800', 'bg-slate-950', 'text-slate-300');
+      } else {
+        pill.classList.remove('active', 'border-emerald-500', 'bg-emerald-500/20', 'text-emerald-300');
+        pill.classList.add('border-slate-800', 'bg-slate-950', 'text-slate-300');
+      }
+    });
     window.updateMockLiveSummary();
   };
 
@@ -673,6 +719,10 @@
     } else if (format === 'weakness') {
       qCount = 15;
       durationMins = 20;
+    } else if (format === 'current_affairs') {
+      const activeCaPill = document.querySelector('.mock-ca-qcount-pill.active');
+      qCount = activeCaPill ? parseInt(activeCaPill.getAttribute('data-count'), 10) : (mockConfigState.questionCount || 15);
+      durationMins = Math.max(5, Math.round(qCount * 1.2));
     }
 
     const marks = qCount * 2;
@@ -681,6 +731,19 @@
     let matchingPool = STATE.pyqs || [];
     if (format === 'weakness') {
       matchingPool = matchingPool.filter(function (q) { return STATE.mistakes && STATE.mistakes.has(q.id); });
+    } else if (format === 'current_affairs') {
+      const caMonths = [];
+      document.querySelectorAll('.mock-ca-month-check:checked').forEach(function (cb) {
+        caMonths.push(cb.value);
+      });
+      matchingPool = STATE.ca_pyqs || [];
+      if (caMonths.length > 0) {
+        matchingPool = matchingPool.filter(function (q) { return caMonths.includes(q.month); });
+      }
+      const caSubj = document.getElementById('mockCaSubjectSelect')?.value;
+      if (caSubj && caSubj !== 'all') {
+        matchingPool = matchingPool.filter(function (q) { return q.subject === caSubj; });
+      }
     } else if (format === 'sectional') {
       if (checked.length > 0) {
         matchingPool = matchingPool.filter(function (q) {
@@ -712,16 +775,25 @@
     if (mBadge) mBadge.textContent = marks + ' Marks (+2.0 / -0.66)';
     if (tBadge) tBadge.textContent = durationMins + ' Mins';
     if (bankText) {
-      const poolCount = (format === 'full' ? (STATE.pyqs ? STATE.pyqs.length : 1600) : (format === 'weakness' ? (STATE.mistakes ? STATE.mistakes.size : 0) : matchingPool.length));
+      let poolCount = matchingPool.length;
+      if (format === 'full') {
+        const fullBlend = document.getElementById('mockFullBlendCaCheckbox')?.checked;
+        poolCount = fullBlend ? ((STATE.pyqs ? STATE.pyqs.length : 1600) + (STATE.ca_pyqs ? STATE.ca_pyqs.length : 105)) : (STATE.pyqs ? STATE.pyqs.length : 1600);
+      } else if (format === 'weakness') {
+        poolCount = STATE.mistakes ? STATE.mistakes.size : 0;
+      }
       bankText.innerHTML = 'Pool: <strong class="text-slate-200">' + poolCount + ' Questions</strong>';
     }
     if (calcDur) calcDur.textContent = '~' + durationMins + ' Mins (1.2m / Q)';
 
     if (launchBtnText) {
       if (format === 'full') {
-        launchBtnText.textContent = 'Launch Full 100-Q Mock (120 Mins)';
+        const fullBlend = document.getElementById('mockFullBlendCaCheckbox')?.checked;
+        launchBtnText.textContent = fullBlend ? 'Launch Blended GS-1 Mock (75% Static + 25% CA)' : 'Launch Full 100-Q Mock (120 Mins)';
       } else if (format === 'weakness') {
         launchBtnText.textContent = 'Launch Mistake Drill (15 Qs)';
+      } else if (format === 'current_affairs') {
+        launchBtnText.textContent = 'Launch Monthly CA Test (' + qCount + ' Qs · ' + durationMins + 'm)';
       } else {
         launchBtnText.textContent = 'Launch Custom Test (' + qCount + ' Qs · ' + durationMins + 'm)';
       }
@@ -733,6 +805,8 @@
       generateAndStartMock('full', ['all'], 'exam', { questionCount: 100, durationMins: 120 });
     } else if (type === 'sectional') {
       window.openMockGenerator('sectional');
+    } else if (type === 'current_affairs') {
+      window.openMockGenerator('current_affairs');
     } else if (type === 'weakness') {
       generateAndStartMock('weakness', ['adaptive'], 'exam', { questionCount: 15, durationMins: 20 });
     }
@@ -760,6 +834,11 @@
       qCount = 15;
       durationMins = 20;
       selectedSubjects = ['adaptive'];
+    } else if (format === 'current_affairs') {
+      const activeCaPill = document.querySelector('.mock-ca-qcount-pill.active');
+      qCount = activeCaPill ? parseInt(activeCaPill.getAttribute('data-count'), 10) : (mockConfigState.questionCount || 15);
+      durationMins = Math.max(5, Math.round(qCount * 1.2));
+      selectedSubjects = ['current_affairs'];
     } else {
       if (selectedSubjects.length === 0) {
         selectedSubjects = ['all'];
@@ -784,7 +863,7 @@
       return;
     }
 
-    let targetCount = options.questionCount || (format === 'full' ? 100 : (format === 'weakness' ? 15 : 25));
+    let targetCount = options.questionCount || (format === 'full' ? 100 : (format === 'weakness' ? 15 : (format === 'current_affairs' ? 15 : 25)));
     let durationMins = options.durationMins || Math.max(5, Math.round(targetCount * 1.2));
     let title = 'Custom UPSC Prelims Test';
 
@@ -793,7 +872,29 @@
 
     let sampleQuestions = [];
 
-    if (format === 'weakness' || (selectedSubjects.length === 1 && selectedSubjects[0] === 'adaptive')) {
+    if (format === 'current_affairs' || (selectedSubjects.length === 1 && selectedSubjects[0] === 'current_affairs')) {
+      title = '2026 Monthly Current Affairs Mock (' + targetCount + ' Qs · ' + durationMins + 'm)';
+      const selectedMonths = [];
+      document.querySelectorAll('.mock-ca-month-check:checked').forEach(function (cb) {
+        selectedMonths.push(cb.value);
+      });
+      let caPool = STATE.ca_pyqs || [];
+      if (selectedMonths.length > 0) {
+        caPool = caPool.filter(function (q) { return selectedMonths.includes(q.month); });
+      }
+      const caSubj = document.getElementById('mockCaSubjectSelect')?.value;
+      if (caSubj && caSubj !== 'all') {
+        caPool = caPool.filter(function (q) { return q.subject === caSubj; });
+      }
+      sampleQuestions = shuffleArray(caPool).slice(0, targetCount);
+      if (sampleQuestions.length < targetCount && (STATE.ca_pyqs || []).length > 0) {
+        const rem = targetCount - sampleQuestions.length;
+        const pad = shuffleArray((STATE.ca_pyqs || []).filter(function (q) {
+          return !sampleQuestions.some(function (sq) { return sq.id === q.id; });
+        })).slice(0, rem);
+        sampleQuestions = sampleQuestions.concat(pad);
+      }
+    } else if (format === 'weakness' || (selectedSubjects.length === 1 && selectedSubjects[0] === 'adaptive')) {
       title = 'Diagnostic Weakness Remedial Drill (' + targetCount + ' Qs)';
       const mistakeList = STATE.pyqs.filter(function (q) { return STATE.mistakes.has(q.id); });
       sampleQuestions = shuffleArray(mistakeList).slice(0, targetCount);
@@ -806,41 +907,67 @@
         sampleQuestions = sampleQuestions.concat(pad);
       }
     } else if (format === 'full' || (selectedSubjects.length === 1 && selectedSubjects[0] === 'all')) {
-      title = 'Full-Length GS-1 Mock (' + targetCount + ' Qs · ' + durationMins + 'm)';
-      const blueprintQuotas = (targetCount === 100) ? {
-        'Environment & Ecology': 20,
-        'Polity & Governance': 18,
-        'Economy': 17,
-        'History & Culture': 16,
-        'Geography': 15,
-        'Science & Technology': 14
-      } : null;
-
-      const subjects = [
-        'Polity & Governance',
-        'Economy',
-        'Environment & Ecology',
-        'History & Culture',
-        'Geography',
-        'Science & Technology'
-      ];
-
-      if (blueprintQuotas) {
-        Object.keys(blueprintQuotas).forEach(function (sub) {
-          const quota = blueprintQuotas[sub];
+      const blendCa = document.getElementById('mockFullBlendCaCheckbox')?.checked;
+      
+      if (blendCa && STATE.ca_pyqs && STATE.ca_pyqs.length > 0) {
+        title = 'Full GS-1 Simulation (75% Static + 25% 2026 CA · 120m)';
+        const staticTarget = 75;
+        const caTarget = 25;
+        const staticQuotas = {
+          'Environment & Ecology': 15,
+          'Polity & Governance': 14,
+          'Economy': 13,
+          'History & Culture': 12,
+          'Geography': 11,
+          'Science & Technology': 10
+        };
+        Object.keys(staticQuotas).forEach(function (sub) {
+          const quota = staticQuotas[sub];
           const pool = shuffleArray(STATE.pyqs.filter(function (q) {
             return q.subject && q.subject.toLowerCase().indexOf(sub.toLowerCase().split('&')[0].trim()) !== -1;
           }));
           sampleQuestions = sampleQuestions.concat(pool.slice(0, quota));
         });
+        const caSample = shuffleArray(STATE.ca_pyqs || []).slice(0, caTarget);
+        sampleQuestions = sampleQuestions.concat(caSample);
+        sampleQuestions = shuffleArray(sampleQuestions);
       } else {
-        const perSubj = Math.max(2, Math.floor(targetCount / subjects.length));
-        subjects.forEach(function (sub) {
-          const pool = shuffleArray(STATE.pyqs.filter(function (q) {
-            return q.subject && q.subject.toLowerCase().indexOf(sub.toLowerCase().split('&')[0].trim()) !== -1;
-          }));
-          sampleQuestions = sampleQuestions.concat(pool.slice(0, perSubj));
-        });
+        title = 'Full-Length GS-1 Mock (' + targetCount + ' Qs · ' + durationMins + 'm)';
+        const blueprintQuotas = (targetCount === 100) ? {
+          'Environment & Ecology': 20,
+          'Polity & Governance': 18,
+          'Economy': 17,
+          'History & Culture': 16,
+          'Geography': 15,
+          'Science & Technology': 14
+        } : null;
+
+        const subjects = [
+          'Polity & Governance',
+          'Economy',
+          'Environment & Ecology',
+          'History & Culture',
+          'Geography',
+          'Science & Technology'
+        ];
+
+        if (blueprintQuotas) {
+          Object.keys(blueprintQuotas).forEach(function (sub) {
+            const quota = blueprintQuotas[sub];
+            const pool = shuffleArray(STATE.pyqs.filter(function (q) {
+              return q.subject && q.subject.toLowerCase().indexOf(sub.toLowerCase().split('&')[0].trim()) !== -1;
+            }));
+            sampleQuestions = sampleQuestions.concat(pool.slice(0, quota));
+          });
+        } else {
+          const perSubj = Math.max(2, Math.floor(targetCount / subjects.length));
+          subjects.forEach(function (sub) {
+            const pool = shuffleArray(STATE.pyqs.filter(function (q) {
+              return q.subject && q.subject.toLowerCase().indexOf(sub.toLowerCase().split('&')[0].trim()) !== -1;
+            }));
+            sampleQuestions = sampleQuestions.concat(pool.slice(0, perSubj));
+          });
+        }
       }
 
       if (sampleQuestions.length < targetCount) {
@@ -860,6 +987,22 @@
           return q.subject && q.subject.toLowerCase().indexOf(sub.toLowerCase().split('&')[0].trim()) !== -1;
         });
       });
+
+      const blendSectionalCa = document.getElementById('mockSectionalBlendCaCheckbox')?.checked;
+      let sectionalCaCount = 0;
+      if (blendSectionalCa && STATE.ca_pyqs && STATE.ca_pyqs.length > 0) {
+        sectionalCaCount = Math.max(3, Math.round(targetCount * 0.25));
+        title = 'Sectional + 2026 CA Blend: ' + subjTitles + ' (' + targetCount + ' Qs)';
+        const matchingCa = (STATE.ca_pyqs || []).filter(function (q) {
+          return selectedSubjects.some(function (sub) {
+            return q.subject && q.subject.toLowerCase().indexOf(sub.toLowerCase().split('&')[0].trim()) !== -1;
+          });
+        });
+        const caSample = shuffleArray(matchingCa.length > 0 ? matchingCa : STATE.ca_pyqs).slice(0, sectionalCaCount);
+        sampleQuestions = sampleQuestions.concat(caSample);
+      }
+
+      const remainingStatic = targetCount - sampleQuestions.length;
 
       // Filter by topic query if provided
       if (options.topicQuery) {
@@ -3488,16 +3631,25 @@
       renderMatrixLoadingSkeletons();
     }
     try {
-      const res = await fetch('/static/data/prelims_pyqs.json');
-      if (res.ok) {
-        STATE.pyqs = await res.json();
+      const [resPyqs, resCa] = await Promise.all([
+        fetch('/static/data/prelims_pyqs.json'),
+        fetch('/static/data/current_affairs_pyqs.json')
+      ]);
+      if (resPyqs.ok) {
+        STATE.pyqs = await resPyqs.json();
         STATE.pyqMap = {};
         STATE.pyqs.forEach(function (q) {
           if (q && q.id) STATE.pyqMap[q.id] = q;
         });
       }
+      if (resCa && resCa.ok) {
+        STATE.ca_pyqs = await resCa.json();
+        STATE.ca_pyqs.forEach(function (q) {
+          if (q && q.id) STATE.pyqMap[q.id] = q;
+        });
+      }
     } catch (e) {
-      console.warn('Could not fetch prelims_pyqs.json:', e);
+      console.warn('Could not fetch prelims/CA questions data:', e);
     }
 
     updateDashboardActivity();
@@ -3507,6 +3659,8 @@
 
     if (STATE.viewMode === 'vault') {
       renderPyqVault();
+    } else if (STATE.viewMode === 'current_affairs') {
+      renderCurrentAffairsArena();
     } else if (STATE.viewMode === 'dashboard') {
       renderMatrixFeed();
     }
@@ -3521,6 +3675,11 @@
       const year = params.get('year');
       const mode = params.get('mode') || params.get('action');
       const kw = params.get('q') || params.get('keyword');
+
+      if (mode === 'current_affairs' || mode === 'ca' || path.includes('/current-affairs')) {
+        switchViewMode('current_affairs');
+        return;
+      }
 
       if (mode === 'csat' || subject === 'csat' || path.includes('/csat')) {
         switchViewMode('csat');
@@ -4015,7 +4174,7 @@ function renderPlayerDistractorDeepDive(q) {
   // ==========================================================
 
   function getFilteredVaultQuestions() {
-    var list = STATE.pyqs || [];
+    var list = (STATE.vaultMode === 'ca') ? (STATE.ca_pyqs || []) : (STATE.pyqs || []);
 
     // Filter by mode
     if (STATE.vaultMode === 'subject') {
@@ -4028,6 +4187,12 @@ function renderPlayerDistractorDeepDive(q) {
       if (STATE.vaultSelectedYear && STATE.vaultSelectedYear !== 'all') {
         list = list.filter(function (q) {
           return String(q.year) === String(STATE.vaultSelectedYear);
+        });
+      }
+    } else if (STATE.vaultMode === 'ca') {
+      if (STATE.vaultSelectedCaMonth && STATE.vaultSelectedCaMonth !== 'all') {
+        list = list.filter(function (q) {
+          return q.month === STATE.vaultSelectedCaMonth;
         });
       }
     }
@@ -4090,23 +4255,40 @@ function renderPlayerDistractorDeepDive(q) {
     }
     var subjectBtn = document.getElementById('vaultModeSubjectBtn');
     var yearBtn = document.getElementById('vaultModeYearBtn');
+    var caBtn = document.getElementById('vaultModeCaBtn');
     var subjectFilterRow = document.getElementById('vaultSubjectFilterContainer');
     var yearFilterRow = document.getElementById('vaultYearFilterContainer');
+    var caFilterRow = document.getElementById('vaultCaFilterContainer');
+
+    var activeBtnCls = 'px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 font-black shadow-xs transition-all cursor-pointer flex items-center gap-1.5';
+    var inactiveBtnCls = 'px-3.5 py-2 rounded-xl text-slate-400 hover:text-white transition-all cursor-pointer flex items-center gap-1.5';
 
     if (STATE.vaultMode === 'subject') {
-      if (subjectBtn) subjectBtn.className = 'px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black shadow-xs transition-all cursor-pointer flex items-center gap-1.5';
-      if (yearBtn) yearBtn.className = 'px-4 py-2 rounded-xl text-slate-400 hover:text-white transition-all cursor-pointer flex items-center gap-1.5';
+      if (subjectBtn) subjectBtn.className = activeBtnCls;
+      if (yearBtn) yearBtn.className = inactiveBtnCls;
+      if (caBtn) caBtn.className = inactiveBtnCls;
       if (subjectFilterRow) subjectFilterRow.classList.remove('hidden');
       if (yearFilterRow) yearFilterRow.classList.add('hidden');
-    } else {
-      if (subjectBtn) subjectBtn.className = 'px-4 py-2 rounded-xl text-slate-400 hover:text-white transition-all cursor-pointer flex items-center gap-1.5';
-      if (yearBtn) yearBtn.className = 'px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black shadow-xs transition-all cursor-pointer flex items-center gap-1.5';
+      if (caFilterRow) caFilterRow.classList.add('hidden');
+    } else if (STATE.vaultMode === 'year') {
+      if (subjectBtn) subjectBtn.className = inactiveBtnCls;
+      if (yearBtn) yearBtn.className = activeBtnCls;
+      if (caBtn) caBtn.className = inactiveBtnCls;
       if (subjectFilterRow) subjectFilterRow.classList.add('hidden');
       if (yearFilterRow) yearFilterRow.classList.remove('hidden');
+      if (caFilterRow) caFilterRow.classList.add('hidden');
+    } else if (STATE.vaultMode === 'ca') {
+      if (subjectBtn) subjectBtn.className = inactiveBtnCls;
+      if (yearBtn) yearBtn.className = inactiveBtnCls;
+      if (caBtn) caBtn.className = activeBtnCls;
+      if (subjectFilterRow) subjectFilterRow.classList.add('hidden');
+      if (yearFilterRow) yearFilterRow.classList.add('hidden');
+      if (caFilterRow) caFilterRow.classList.remove('hidden');
     }
 
     renderVaultSubjectPills();
     renderVaultYearPills();
+    renderVaultCaPills();
 
     var filtered = getFilteredVaultQuestions();
 
@@ -4183,6 +4365,47 @@ function renderPlayerDistractorDeepDive(q) {
     container.querySelectorAll('.vault-year-pill').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         STATE.vaultSelectedYear = e.currentTarget.getAttribute('data-year');
+        STATE.vaultDisplayedCount = STATE.vaultPageSize;
+        renderPyqVault();
+      });
+    });
+  }
+
+  function renderVaultCaPills() {
+    var container = document.getElementById('vaultCaPillsGroup');
+    if (!container) return;
+
+    var months = [
+      { id: 'all', label: 'All 2026 Months' },
+      { id: 'January 2026', label: '❄️ Jan 2026' },
+      { id: 'February 2026', label: '🌱 Feb 2026' },
+      { id: 'March 2026', label: '🌸 Mar 2026' },
+      { id: 'April 2026', label: '☀️ Apr 2026' },
+      { id: 'May 2026', label: '🔥 May 2026' },
+      { id: 'June 2026', label: '🌧️ Jun 2026' },
+      { id: 'July 2026', label: '⚡ Jul 2026' }
+    ];
+
+    container.innerHTML = months.map(function (m) {
+      var count = (m.id === 'all')
+        ? (STATE.ca_pyqs || []).length
+        : (STATE.ca_pyqs || []).filter(function (q) { return q.month === m.id; }).length;
+
+      var isActive = (STATE.vaultSelectedCaMonth === m.id);
+      var btnClass = isActive
+        ? 'px-3 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-black shadow-xs cursor-pointer text-xs'
+        : 'px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:text-emerald-400 border border-slate-200 dark:border-slate-800 cursor-pointer text-xs font-mono transition-all';
+
+      return (
+        '<button type="button" class="vault-ca-month-pill ' + btnClass + '" data-month="' + m.id + '">' +
+          m.label + ' <span class="opacity-70 text-[10px]">(' + count + ')</span>' +
+        '</button>'
+      );
+    }).join('');
+
+    container.querySelectorAll('.vault-ca-month-pill').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        STATE.vaultSelectedCaMonth = e.currentTarget.getAttribute('data-month');
         STATE.vaultDisplayedCount = STATE.vaultPageSize;
         renderPyqVault();
       });
@@ -5479,6 +5702,13 @@ function renderPlayerDistractorDeepDive(q) {
       toggleSidebar(false);
     });
 
+    // Dedicated Sidebar Current Affairs Arena Nav Link
+    document.getElementById('sideNavCurrentAffairs')?.addEventListener('click', function (e) {
+      if (e) e.preventDefault();
+      switchViewMode('current_affairs');
+      toggleSidebar(false);
+    });
+
     // Vault Search Input (Debounced 180ms)
     const vaultSearchInput = document.getElementById('vaultSearchInput');
     const clearVaultSearchBtn = document.getElementById('clearVaultSearchBtn');
@@ -5542,6 +5772,12 @@ function renderPlayerDistractorDeepDive(q) {
 
     document.getElementById('vaultModeYearBtn')?.addEventListener('click', function () {
       STATE.vaultMode = 'year';
+      STATE.vaultDisplayedCount = STATE.vaultPageSize;
+      renderPyqVault();
+    });
+
+    document.getElementById('vaultModeCaBtn')?.addEventListener('click', function () {
+      STATE.vaultMode = 'ca';
       STATE.vaultDisplayedCount = STATE.vaultPageSize;
       renderPyqVault();
     });
@@ -5975,6 +6211,256 @@ function renderPlayerDistractorDeepDive(q) {
     document.getElementById('modalStartSprintBtn')?.addEventListener('click', launchSprintFocusMode);
     document.getElementById('autoSetWeakestSubjectBtn')?.addEventListener('click', autoSelectWeakestSubject);
   }
+
+  // ==========================================================
+  // DEDICATED MONTHLY CURRENT AFFAIRS & REVERSE-OSMOSIS ARENA (2026)
+  // ==========================================================
+
+  const MONTHLY_DOSSIERS_METADATA = [
+    {
+      month: 'January 2026',
+      icon: '❄️',
+      color: 'emerald',
+      title: 'January 2026 Comprehensive Dossier',
+      leadTheme: 'Grasslands C3/C4 & BBNJ Treaty',
+      topics: ['Grasslands IYRP 2026 (C3 vs C4)', 'BBNJ High Seas Treaty', 'PESA Rules (Jharkhand)', 'NATGRID GANDIVA AI', 'Sakhya Sagar & Madhav NP', 'Mpemba Effect', 'Bio-Bitumen & Lignin', 'Bharat 6G Terahertz', 'Sovereign Green Bonds', 'PVTGs Criteria', 'Indian Star Tortoise (CITES I)', 'National Quantum Mission', 'Deep Sea Mining (ISA)', 'EU Deforestation Reg (EUDR)'],
+      source: 'InsightsIAS Jan 2026 / PIB / FAO'
+    },
+    {
+      month: 'February 2026',
+      icon: '🌱',
+      color: 'amber',
+      title: 'February 2026 Comprehensive Dossier',
+      leadTheme: '16th Finance Commission & Deepfakes IT Rules',
+      topics: ['16th FC Terms of Reference (Art 280)', 'IT Rules 2026 (Deepfakes & Safe Harbor Sec 79)', 'Denotified Tribes & Criminal Tribes Act 1871', 'Battle of Serengsia 1837 (Ho Rebellion)', 'CPI Base Year 2024=100 & Engel\'s Law', 'GDP Base 2022-23 (MCA-21)', 'Project Vault (RBI Post-Quantum)', 'Sawalkot RoR (Chenab River)', 'Graphene Desalination Membranes', 'Great Nicobar Galathea Bay Port', 'Primary Deficit Dynamics', 'Antarctic Treaty Madrid Protocol', 'Rare Earth Permanent Magnets (NdFeB)', 'ONDC Beckn Protocol', 'Hanle Dark Sky Reserve'],
+      source: 'InsightsIAS Feb 2026 / MoF / RBI'
+    },
+    {
+      month: 'March 2026',
+      icon: '🌸',
+      color: 'rose',
+      title: 'March 2026 Comprehensive Dossier',
+      leadTheme: 'Solid Waste 2026 & Kunming-Montreal Target 3',
+      topics: ['Solid Waste Rules 2026 (4-Stream)', 'Kunming-Montreal GBF (30x30 / OECMs)', 'Steppe Eagle CMS COP15', 'OPU-IVF-ET Bovine Genomics', 'e-Sankhyiki Portal (MoSPI)', 'WTO MC14 (Fisheries & Food Stockholding)', 'Solar Radiation Management (SRM / SAI)', 'Battery Waste EPR Recycled Mandates', 'Art 262 Inter-State River Disputes', 'EU CBAM Scope & Non-Discrimination', 'Unified Lending Interface (ULI)', 'Ocean Anoxic Events & Black Shales', 'Art 355 & CAPF Powers', 'CAR-T Cell NexCAR19', 'Sendai Framework & CDRI'],
+      source: 'InsightsIAS Mar 2026 / MoEFCC / CBD'
+    },
+    {
+      month: 'April 2026',
+      icon: '☀️',
+      color: 'orange',
+      title: 'April 2026 Comprehensive Dossier',
+      leadTheme: '131st Amendment Delimitation & 500 Yrs Panipat',
+      topics: ['131st Amendment (Delimitation Freeze & Art 334A)', 'ECI Art 324 Superintendence vs Art 311', '500 Yrs First Battle of Panipat (Tulughma & Araba)', 'Amaravati Stupa & Satavahanas', 'Elephanta Island 1,500-Yr Stepped Reservoir', 'Lanjia Saora Idital Murals (GI Tag)', 'Adi Shankaracharya & Amnaya Peethas', 'Kelvin Waves & El Niño Teleconnections', '3D Glass Semiconductor Substrates', 'Prototype Fast Breeder Reactor (PFBR Kalpakkam)', 'Nagoya Protocol IRCCs', 'Strait of Malacca & Indo-Pacific Chokepoints', 'Mount Semeru & Sunda Arc', 'Litani River & UNSCR 1701', 'Colorado River Basin Aridification'],
+      source: 'InsightsIAS Apr 2026 / Gazette / ASI'
+    },
+    {
+      month: 'May 2026',
+      icon: '🔥',
+      color: 'red',
+      title: 'May 2026 Comprehensive Dossier',
+      leadTheme: 'Thousand Pillar Sandbox & AMOC Tipping Point',
+      topics: ['Thousand Pillar Kakatiya Sandbox Foundation', 'Chola Leiden Plates Repatriation', 'Five Dhyani Buddhas (Tathagatas)', 'Somnath Temple Māru-Gurjara Style', 'Bhojshala Complex Raja Bhoja Grammar Epigraphs', 'AMOC Collapse & Global Monsoon Impacts', 'Nilgiri Prehistoric Rock Art (Irula/Kurumba)', '11th NPT Review Conference & Art VI', 'India-Nordic Clean Energy Partnership', 'PaRRVA Algorithmic Surveillance (SEBI)', 'E-PRAAPTI DISCOM Arrears Settlement', 'Methane Alert & Response System (MARS)', 'Asiatic Lion Barda Translocation', 'Nilgiri Tahr Shola Grassland Ecology', 'Conocarpus Mangrove Exotic Weed Ban'],
+      source: 'InsightsIAS May 2026 / ASI / UNEP'
+    },
+    {
+      month: 'June 2026',
+      icon: '🌧️',
+      color: 'blue',
+      title: 'June 2026 Comprehensive Dossier',
+      leadTheme: 'Sanchi Relic Diplomacy & Mohenjo-daro Centenary',
+      topics: ['Sanchi Stupa & Sariputra Relics', 'Mohenjo-daro Dancing Girl Centenary (Lost-Wax)', 'Rakhigarhi Mature Harappan Urban Planning', 'Thewa Art Pratapgarh 24k Gold Glasscraft', 'Sushruta Samhita Shalya-tantra Rhinoplasty', 'Vijayanagara Sadasiva Raya Tirumala Inscriptions', 'Chapekar Brothers 1897 Rand Assassination', 'June 3rd Mountbatten Plan & Boundary Commissions', 'Maulana Barkatullah Kabul Provisional Govt 1915', 'Andaman Deepwater Eocene Hydrocarbons', 'RBI Surplus Transfer (Jalan ECF & CRB)', 'Netra AEW&C Mk-II AESA Radar', 'RudraM-II Hypersonic Anti-Radiation Missile', 'Gandhi Sagar Cheetah Sanctuary Expansion', 'Project UDAYAK Arunachal Strategic Roads'],
+      source: 'InsightsIAS Jun 2026 / National Museum / DRDO'
+    },
+    {
+      month: 'July 2026',
+      icon: '⚡',
+      color: 'purple',
+      title: 'July 2026 Comprehensive Dossier',
+      leadTheme: 'Decolonization Heritage, Vikram-1 & 8 Core Index',
+      topics: ['Patrice Lumumba Congo Crisis & Indian UN Peacekeepers', 'India-UK CETA Double Contribution Convention', 'US-Saudi 123 Agreement & Non-Proliferation', 'Index of Services Production (ISP / GST Data)', 'Nifty500 Ahimsa Ethical Index', 'Index of Eight Core Industries Weightages', 'Vikram-1 Rocket (Skyroot Aerospace)', 'eVTOL e200X Urban Air Mobility', 'Qdenga Tetravalent Dengue Vaccine', 'Borophene 2D Allotrope Solid Lubricant', 'Puga Valley Geothermal Power Project (Ladakh)', 'Borjuli Wetland Wild Rice Progenitor', 'Teesta River Tso Lhamo Hydrology', 'Kamarajar Port Landlord Port Model', 'Karlapat Bauxite & Khondalite Topography'],
+      source: 'InsightsIAS Jul 2026 / MoSPI / DGCA / IN-SPACe'
+    }
+  ];
+
+  function renderCurrentAffairsArena() {
+    var cardsGrid = document.getElementById('caMonthlyCardsGrid');
+    if (!cardsGrid) return;
+
+    var caQuestions = STATE.ca_pyqs || [];
+
+    // Render 7 Monthly Dossier Hub Cards
+    cardsGrid.innerHTML = MONTHLY_DOSSIERS_METADATA.map(function (meta) {
+      var count = caQuestions.filter(function (q) { return q.month === meta.month; }).length || 15;
+      return (
+        '<div class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between gap-4 transition-all hover:border-emerald-500/50 group">' +
+          '<div class="flex flex-col gap-3">' +
+            '<div class="flex items-center justify-between gap-2">' +
+              '<div class="flex items-center gap-2.5">' +
+                '<span class="text-2xl">' + meta.icon + '</span>' +
+                '<div>' +
+                  '<h3 class="text-sm font-black text-white group-hover:text-emerald-400 transition">' + escapeHtml(meta.month) + '</h3>' +
+                  '<span class="text-[10px] text-slate-400 font-mono">' + escapeHtml(meta.leadTheme) + '</span>' +
+                '</div>' +
+              '</div>' +
+              '<span class="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-mono font-bold border border-emerald-500/30">' +
+                count + ' Qs' +
+              '</span>' +
+            '</div>' +
+
+            '<div class="flex items-center gap-1.5 flex-wrap pt-1">' +
+              meta.topics.slice(0, 4).map(function (tp) {
+                return '<span class="px-2 py-0.5 rounded-md bg-slate-800/80 text-[10px] text-slate-300 font-medium">' + escapeHtml(tp) + '</span>';
+              }).join('') +
+              (meta.topics.length > 4 ? '<span class="text-[10px] text-slate-400 font-mono">+' + (meta.topics.length - 4) + ' more</span>' : '') +
+            '</div>' +
+          '</div>' +
+
+          '<div class="pt-3 border-t border-slate-800 flex items-center justify-between gap-2 flex-wrap">' +
+            '<button type="button" onclick="window.startMonthlyCaMock(\'' + meta.month + '\', \'exam\')" class="flex-1 py-2 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition shadow-md shadow-emerald-500/10 cursor-pointer flex items-center justify-center gap-1.5 active:scale-95">' +
+              '<span>▶️ 15 Qs Timed Mock</span>' +
+            '</button>' +
+            '<button type="button" onclick="window.startMonthlyCaMock(\'' + meta.month + '\', \'tutor\')" class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs transition cursor-pointer" title="Tutor Practice Mode with instant explanations">' +
+              '<span>💡 Tutor</span>' +
+            '</button>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+
+    renderCaFeedQuestions();
+  }
+
+  function renderCaFeedQuestions() {
+    var feedList = document.getElementById('caQuestionsFeedList');
+    var badge = document.getElementById('caFilteredCountBadge');
+    if (!feedList) return;
+
+    var questions = STATE.ca_pyqs || [];
+
+    // Filter by selected month
+    if (STATE.caArenaSelectedMonth && STATE.caArenaSelectedMonth !== 'all') {
+      questions = questions.filter(function (q) { return q.month === STATE.caArenaSelectedMonth; });
+    }
+
+    // Filter by keyword query
+    if (STATE.caArenaSearchQuery) {
+      var query = STATE.caArenaSearchQuery.toLowerCase();
+      questions = questions.filter(function (q) {
+        return (q.question_text || '').toLowerCase().includes(query) ||
+               (q.subject || '').toLowerCase().includes(query) ||
+               (q.sub_topic || '').toLowerCase().includes(query) ||
+               (q.static_root || '').toLowerCase().includes(query) ||
+               (q.explanation || '').toLowerCase().includes(query);
+      });
+    }
+
+    if (badge) {
+      badge.textContent = questions.length + ' Question' + (questions.length === 1 ? '' : 's');
+    }
+
+    if (questions.length === 0) {
+      feedList.innerHTML = (
+        '<div class="p-8 text-center text-slate-400 text-xs font-mono rounded-2xl bg-slate-950 border border-slate-800">' +
+          'No matching current affairs questions found. Try resetting month filters or search term.' +
+        '</div>'
+      );
+      return;
+    }
+
+    var letters = ['A', 'B', 'C', 'D'];
+
+    feedList.innerHTML = questions.slice(0, 30).map(function (q) {
+      return (
+        '<div class="light-card p-5 sm:p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-md flex flex-col gap-3 transition-all hover:border-slate-700">' +
+          '<div class="flex items-center justify-between gap-2 flex-wrap border-b border-slate-800/80 pb-2.5">' +
+            '<div class="flex items-center gap-2 flex-wrap">' +
+              '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase font-mono">' + escapeHtml(q.month) + '</span>' +
+              '<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px] font-bold font-mono">' + escapeHtml(q.subject) + '</span>' +
+              (q.difficulty ? '<span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[10px] font-bold font-mono">' + escapeHtml(q.difficulty) + '</span>' : '') +
+            '</div>' +
+            '<button type="button" onclick="window.startPracticeWithSingleQuestion(STATE.pyqMap[\'' + q.id + '\'])" class="px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-slate-950 text-xs font-bold transition cursor-pointer flex items-center gap-1">' +
+              '<span>Solve in Focus Player →</span>' +
+            '</button>' +
+          '</div>' +
+
+          '<p class="text-xs sm:text-sm font-semibold text-slate-100 whitespace-pre-line leading-relaxed">' +
+            escapeHtml(q.question_text) +
+          '</p>' +
+
+          '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">' +
+            q.options.map(function (opt, oIdx) {
+              return (
+                '<div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 text-xs text-slate-300 flex items-start gap-2">' +
+                  '<span class="w-5 h-5 rounded-md bg-slate-800 text-slate-200 font-mono font-black flex items-center justify-center text-[10px] shrink-0">' + letters[oIdx] + '</span>' +
+                  '<span class="leading-relaxed">' + escapeHtml(opt) + '</span>' +
+                '</div>'
+              );
+            }).join('') +
+          '</div>' +
+
+          (q.static_root ? (
+            '<div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">' +
+              '<span class="text-amber-400 font-mono text-[11px] font-bold">🏛️ Static Root Concept:</span>' +
+              '<span class="text-slate-300 text-[11px]">' + escapeHtml(q.static_root) + '</span>' +
+            '</div>'
+          ) : '') +
+        '</div>'
+      );
+    }).join('') + (questions.length > 30 ? '<div class="text-center text-xs text-slate-400 font-mono py-2">Showing 30 of ' + questions.length + ' questions. Launch mock simulator to practice complete sets.</div>' : '');
+  }
+
+  window.filterCaByMonth = function (month) {
+    STATE.caArenaSelectedMonth = month;
+    document.querySelectorAll('.ca-month-pill').forEach(function (pill) {
+      if (pill.getAttribute('data-month') === month) {
+        pill.className = 'ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 shadow-md transition cursor-pointer';
+      } else {
+        pill.className = 'ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer';
+      }
+    });
+    renderCaFeedQuestions();
+  };
+
+  window.onCaFeedSearch = function (query) {
+    STATE.caArenaSearchQuery = (query || '').trim();
+    renderCaFeedQuestions();
+  };
+
+  window.startMonthlyCaMock = function (month, mode) {
+    mode = mode || 'exam';
+    var pool = (STATE.ca_pyqs || []).filter(function (q) { return q.month === month; });
+    if (pool.length === 0) {
+      showToast('No questions found for ' + month);
+      return;
+    }
+    var targetCount = Math.min(15, pool.length);
+    var durationMins = (mode === 'exam') ? 18 : Math.round(targetCount * 1.2);
+
+    STATE.isExamMode = (mode === 'exam');
+    STATE.isReviewMode = false;
+    STATE.testAnswers = {};
+    STATE.playerQuestions = shuffleArray(pool).slice(0, targetCount);
+    STATE.playerIndex = 0;
+    STATE.currentTest = {
+      id: 'ca_mock_' + Date.now(),
+      title: month + ' - Official CA Mock (' + targetCount + ' Qs)',
+      format: 'current_affairs',
+      durationSeconds: durationMins * 60,
+      remainingSeconds: durationMins * 60,
+      totalQuestions: targetCount,
+      startTime: Date.now(),
+      mode: mode
+    };
+
+    if (STATE.isExamMode) {
+      startExamTimer();
+    }
+    switchViewMode('player');
+    showToast('Launched ' + month + ' (' + targetCount + ' Qs · ' + (mode === 'exam' ? 'Exam Mode' : 'Tutor Mode') + ')');
+  };
+
+  // Expose to window
+  window.renderCurrentAffairsArena = renderCurrentAffairsArena;
 
   // Initialize
   document.addEventListener('DOMContentLoaded', function () {

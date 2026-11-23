@@ -539,6 +539,15 @@
           <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[9px] font-black uppercase">Deep Facts</span>
         </a>
 
+        <!-- Dedicated Current Affairs Arena -->
+        <a href="/prelims/current-affairs" id="sideNavCurrentAffairs" class="sidebar-nav-item flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-500/10 dark:hover:bg-slate-800 transition-all text-left cursor-pointer border border-transparent">
+          <div class="flex items-center gap-3">
+            <span class="text-base">📰</span>
+            <span class="font-bold">Current Affairs Arena</span>
+          </div>
+          <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[9px] font-black uppercase">2026 Mocks</span>
+        </a>
+
         <a href="/prelims/mock-tests" id="sideNavMockTests" class="sidebar-nav-item flex items-center justify-between px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-500/10 dark:hover:bg-slate-800 transition-all text-left cursor-pointer border border-transparent">
           <div class="flex items-center gap-3">
             <span class="text-base">📝</span>
@@ -1354,16 +1363,20 @@
             </button>
           </div>
 
-          <!-- Separate Mode Switcher (Subject-Wise vs Year-Wise) -->
+          <!-- Separate Mode Switcher (Subject-Wise vs Year-Wise vs Monthly CA) -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-            <div class="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-bold w-fit">
-              <button type="button" id="vaultModeSubjectBtn" class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black shadow-xs transition-all cursor-pointer flex items-center gap-1.5">
+            <div class="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-bold w-fit flex-wrap">
+              <button type="button" id="vaultModeSubjectBtn" class="px-3.5 py-2 rounded-xl bg-amber-500 text-slate-950 font-black shadow-xs transition-all cursor-pointer flex items-center gap-1.5">
                 <span>📂</span>
                 <span>Subject-Wise Analysis</span>
               </button>
-              <button type="button" id="vaultModeYearBtn" class="px-4 py-2 rounded-xl text-slate-400 hover:text-white transition-all cursor-pointer flex items-center gap-1.5">
+              <button type="button" id="vaultModeYearBtn" class="px-3.5 py-2 rounded-xl text-slate-400 hover:text-white transition-all cursor-pointer flex items-center gap-1.5">
                 <span>📅</span>
-                <span>Year-Wise Papers (2011–2026)</span>
+                <span>Year-Wise (2011–2026)</span>
+              </button>
+              <button type="button" id="vaultModeCaBtn" class="px-3.5 py-2 rounded-xl text-slate-400 hover:text-white transition-all cursor-pointer flex items-center gap-1.5">
+                <span>📰</span>
+                <span>Monthly CA (2026)</span>
               </button>
             </div>
 
@@ -1387,6 +1400,14 @@
             <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">Select UPSC CSE Exam Year:</span>
             <div id="vaultYearPillsGroup" class="flex items-center gap-1.5 flex-wrap text-xs">
               <!-- 2026..2011 buttons -->
+            </div>
+          </div>
+
+          <!-- SUB-FILTER ROW C: MONTHLY CURRENT AFFAIRS TABS -->
+          <div id="vaultCaFilterContainer" class="hidden flex flex-col gap-1.5 pt-2 border-t border-slate-800">
+            <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">Select Monthly Dossier (2026):</span>
+            <div id="vaultCaPillsGroup" class="flex items-center gap-1.5 flex-wrap text-xs">
+              <!-- Dynamically populated month chips -->
             </div>
           </div>
 
@@ -2262,6 +2283,124 @@
 
       </div>
 
+      <!-- ====================================================
+           VIEW H: MONTHLY CURRENT AFFAIRS & REVERSE-OSMOSIS ARENA (2026)
+           ==================================================== -->
+      <div id="prelimsCurrentAffairsView" class="hidden flex flex-col gap-6">
+
+        <!-- Top Hero Card -->
+        <div class="light-card p-6 sm:p-7 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col gap-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-2xl shrink-0 font-black border border-emerald-500/20 shadow-inner">
+                📰
+              </div>
+              <div class="flex flex-col">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h2 class="text-xl font-black text-white">Monthly Current Affairs &amp; Reverse-Osmosis Arena</h2>
+                  <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase font-mono">2026 Dossiers · 105 Qs</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">
+                  Authentic UPSC-grade questions reverse-engineered from monthly notes (Jan–Jul 2026), testing root statutory acts, physiological mechanisms, and deceptive distractors.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 flex-wrap">
+              <button type="button" onclick="window.openMockGenerator('current_affairs')" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 transition-all cursor-pointer flex items-center gap-2">
+                <span>⚡ Configure CA Mock Test</span>
+                <span>→</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- UPSC Reverse Osmosis Pattern Banner -->
+          <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-800/80 flex flex-col gap-3">
+            <div class="flex items-center gap-2 text-xs font-bold text-amber-400">
+              <span>🧠</span>
+              <span>UPSC Examiner Reverse-Osmosis Blueprint (2026 Pattern)</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex flex-col gap-1">
+                <span class="font-bold text-rose-400 flex items-center gap-1.5">
+                  <span>❌</span> What Coaching Tests (Trivial Trivia):
+                </span>
+                <p class="text-slate-300 text-[11px] leading-relaxed">
+                  Superficial single-fact queries ("Who was appointed director?", "What is the budget outlay of scheme X?"), rote headline recall without conceptual roots.
+                </p>
+              </div>
+              <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col gap-1">
+                <span class="font-bold text-emerald-400 flex items-center gap-1.5">
+                  <span>✅</span> What UPSC Asks (Root Static Concepts):
+                </span>
+                <p class="text-slate-300 text-[11px] leading-relaxed">
+                  The news item is merely a trigger. UPSC tests the underlying static foundation (e.g. C3 vs C4 photosynthetic pathway, Article 82 delimitation, UNCLOS Part XI, or lost-wax metallurgy).
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Monthly Magazine Filter Chips -->
+          <div class="flex flex-col gap-2 pt-1">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-300">Browse by Monthly Dossier:</span>
+              <span class="text-[11px] text-slate-400 font-mono">7 Comprehensive Dossiers</span>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap" id="caMonthPillsContainer">
+              <button type="button" class="ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 shadow-md transition cursor-pointer" data-month="all" onclick="window.filterCaByMonth('all')">
+                All Months (105 Qs)
+              </button>
+              <button type="button" class="ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer" data-month="January 2026" onclick="window.filterCaByMonth('January 2026')">
+                ❄️ Jan 2026 (15 Qs)
+              </button>
+              <button type="button" class="ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer" data-month="February 2026" onclick="window.filterCaByMonth('February 2026')">
+                🌱 Feb 2026 (15 Qs)
+              </button>
+              <button type="button" class="ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer" data-month="March 2026" onclick="window.filterCaByMonth('March 2026')">
+                🌸 Mar 2026 (15 Qs)
+              </button>
+              <button type="button" class="ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer" data-month="April 2026" onclick="window.filterCaByMonth('April 2026')">
+                ☀️ Apr 2026 (15 Qs)
+              </button>
+              <button type="button" class="ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer" data-month="May 2026" onclick="window.filterCaByMonth('May 2026')">
+                🔥 May 2026 (15 Qs)
+              </button>
+              <button type="button" class="ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer" data-month="June 2026" onclick="window.filterCaByMonth('June 2026')">
+                🌧️ Jun 2026 (15 Qs)
+              </button>
+              <button type="button" class="ca-month-pill px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white transition cursor-pointer" data-month="July 2026" onclick="window.filterCaByMonth('July 2026')">
+                ⚡ Jul 2026 (15 Qs)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monthly Dossier Cards Grid (High-Yield Practice Hub) -->
+        <div id="caMonthlyCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamically populated via renderCurrentAffairsArena() -->
+        </div>
+
+        <!-- Live Question Feed & Search Container -->
+        <div class="light-card p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col gap-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">📜</span>
+              <h3 class="text-sm font-black text-white">Current Affairs Questions Feed</h3>
+              <span id="caFilteredCountBadge" class="px-2 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700">105 Questions</span>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <input type="text" id="caFeedSearchInput" placeholder="Filter questions by keyword (e.g. Grassland, Delimitation, PFBR)..." class="light-input px-3.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs placeholder-slate-500 focus:outline-none focus:border-emerald-500 w-64" oninput="window.onCaFeedSearch(this.value)">
+            </div>
+          </div>
+
+          <div id="caQuestionsFeedList" class="flex flex-col gap-4">
+            <!-- Dynamically populated with question cards -->
+          </div>
+        </div>
+
+      </div>
+
     </main>
 
   </div>
@@ -2327,16 +2466,20 @@
 
       <!-- Segmented Mode Switcher (Fixed Top Nav) -->
       <div class="px-5 sm:px-7 pt-4 pb-2 shrink-0">
-        <div class="grid grid-cols-3 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-bold shadow-inner" id="mockFormatTabGroup">
-          <button type="button" class="mock-tab-btn py-2 px-2 sm:px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white cursor-pointer" data-format="full" onclick="window.onMockFormatChange('full')">
+        <div class="grid grid-cols-2 sm:grid-cols-4 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-bold shadow-inner gap-1" id="mockFormatTabGroup">
+          <button type="button" class="mock-tab-btn py-2 px-2 rounded-xl transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white cursor-pointer" data-format="full" onclick="window.onMockFormatChange('full')">
             <span>🏆</span>
             <span class="truncate">Full Simulation</span>
           </button>
-          <button type="button" class="mock-tab-btn py-2 px-2 sm:px-3 rounded-xl transition flex items-center justify-center gap-1.5 bg-amber-500 text-slate-950 shadow-md cursor-pointer" data-format="sectional" onclick="window.onMockFormatChange('sectional')">
+          <button type="button" class="mock-tab-btn py-2 px-2 rounded-xl transition flex items-center justify-center gap-1.5 bg-amber-500 text-slate-950 shadow-md cursor-pointer" data-format="sectional" onclick="window.onMockFormatChange('sectional')">
             <span>⚡</span>
-            <span class="truncate">Custom Sectional</span>
+            <span class="truncate">Sectional</span>
           </button>
-          <button type="button" class="mock-tab-btn py-2 px-2 sm:px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white cursor-pointer" data-format="weakness" onclick="window.onMockFormatChange('weakness')">
+          <button type="button" class="mock-tab-btn py-2 px-2 rounded-xl transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white cursor-pointer" data-format="current_affairs" onclick="window.onMockFormatChange('current_affairs')">
+            <span>📰</span>
+            <span class="truncate">Monthly CA</span>
+          </button>
+          <button type="button" class="mock-tab-btn py-2 px-2 rounded-xl transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white cursor-pointer" data-format="weakness" onclick="window.onMockFormatChange('weakness')">
             <span>🎯</span>
             <span class="truncate">Mistake Drill</span>
           </button>
@@ -2390,6 +2533,23 @@
             <span class="text-slate-400">Scoring Rules:</span>
             <span class="text-emerald-400 font-bold">+2.00 Marks per Correct</span>
             <span class="text-rose-400 font-bold">-0.66 Penalty per Error</span>
+          </div>
+
+          <!-- Hybrid Current Affairs Blending Toggle (2026 Innovation) -->
+          <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-amber-500/30 flex items-center justify-between flex-wrap gap-2">
+            <label class="flex items-center gap-2.5 cursor-pointer">
+              <input type="checkbox" id="mockFullBlendCaCheckbox" checked class="accent-amber-500 w-4 h-4 rounded cursor-pointer" onchange="window.updateMockLiveSummary()">
+              <div class="flex flex-col">
+                <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span>📰</span>
+                  <span>Blend 2026 Current Affairs (25% CA + 75% Static PYQs)</span>
+                </span>
+                <span class="text-[11px] text-slate-400">
+                  Allocates 25 questions to 2026 reverse-osmosis current affairs across all 6 core pillars.
+                </span>
+              </div>
+            </label>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold font-mono">2026 Ready</span>
           </div>
         </div>
 
@@ -2556,6 +2716,120 @@
             </div>
           </div>
 
+          <!-- Sectional Current Affairs Blending Toggle -->
+          <div class="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between flex-wrap gap-2">
+            <label class="flex items-center gap-2.5 cursor-pointer">
+              <input type="checkbox" id="mockSectionalBlendCaCheckbox" class="accent-amber-500 w-4 h-4 rounded cursor-pointer" onchange="window.updateMockLiveSummary()">
+              <div class="flex flex-col">
+                <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <span>📰</span>
+                  <span>Blend 2026 Current Affairs (25% CA)</span>
+                </span>
+                <span class="text-[11px] text-slate-400">
+                  Adds authentic 2026 current affairs questions matching your selected subjects.
+                </span>
+              </div>
+            </label>
+            <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[10px] font-bold font-mono">Optional Blend</span>
+          </div>
+
+        </div>
+
+        <!-- 4. DEDICATED MONTHLY CURRENT AFFAIRS CONTROLS (Visible when format === 'current_affairs') -->
+        <div id="mockCurrentAffairsControls" class="hidden flex flex-col gap-5">
+          <!-- Month Selection -->
+          <div class="flex flex-col gap-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <span>🗓️</span>
+                <span>Select Target Monthly Dossier(s):</span>
+              </span>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="window.selectMockCaMonths('all')" class="text-[10px] font-bold text-emerald-400 hover:underline cursor-pointer">Select All (Jan–Jul)</button>
+                <span class="text-slate-600">·</span>
+                <button type="button" onclick="window.selectMockCaMonths('clear')" class="text-[10px] font-bold text-slate-400 hover:text-rose-400 cursor-pointer">Reset</button>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="mockCaMonthCheckboxes">
+              <label class="mock-ca-month-pill p-2.5 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between cursor-pointer transition hover:border-emerald-500/50 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/15">
+                <span class="text-xs font-bold text-slate-200">❄️ Jan 2026</span>
+                <input type="checkbox" value="January 2026" checked class="mock-ca-month-check accent-emerald-500 w-3.5 h-3.5 rounded cursor-pointer" onchange="window.updateMockLiveSummary()">
+              </label>
+              <label class="mock-ca-month-pill p-2.5 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between cursor-pointer transition hover:border-emerald-500/50 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/15">
+                <span class="text-xs font-bold text-slate-200">🌱 Feb 2026</span>
+                <input type="checkbox" value="February 2026" checked class="mock-ca-month-check accent-emerald-500 w-3.5 h-3.5 rounded cursor-pointer" onchange="window.updateMockLiveSummary()">
+              </label>
+              <label class="mock-ca-month-pill p-2.5 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between cursor-pointer transition hover:border-emerald-500/50 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/15">
+                <span class="text-xs font-bold text-slate-200">🌸 Mar 2026</span>
+                <input type="checkbox" value="March 2026" checked class="mock-ca-month-check accent-emerald-500 w-3.5 h-3.5 rounded cursor-pointer" onchange="window.updateMockLiveSummary()">
+              </label>
+              <label class="mock-ca-month-pill p-2.5 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between cursor-pointer transition hover:border-emerald-500/50 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/15">
+                <span class="text-xs font-bold text-slate-200">☀️ Apr 2026</span>
+                <input type="checkbox" value="April 2026" checked class="mock-ca-month-check accent-emerald-500 w-3.5 h-3.5 rounded cursor-pointer" onchange="window.updateMockLiveSummary()">
+              </label>
+              <label class="mock-ca-month-pill p-2.5 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between cursor-pointer transition hover:border-emerald-500/50 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/15">
+                <span class="text-xs font-bold text-slate-200">🔥 May 2026</span>
+                <input type="checkbox" value="May 2026" checked class="mock-ca-month-check accent-emerald-500 w-3.5 h-3.5 rounded cursor-pointer" onchange="window.updateMockLiveSummary()">
+              </label>
+              <label class="mock-ca-month-pill p-2.5 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between cursor-pointer transition hover:border-emerald-500/50 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/15">
+                <span class="text-xs font-bold text-slate-200">🌧️ Jun 2026</span>
+                <input type="checkbox" value="June 2026" checked class="mock-ca-month-check accent-emerald-500 w-3.5 h-3.5 rounded cursor-pointer" onchange="window.updateMockLiveSummary()">
+              </label>
+              <label class="mock-ca-month-pill p-2.5 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between cursor-pointer transition hover:border-emerald-500/50 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/15">
+                <span class="text-xs font-bold text-slate-200">⚡ Jul 2026</span>
+                <input type="checkbox" value="July 2026" checked class="mock-ca-month-check accent-emerald-500 w-3.5 h-3.5 rounded cursor-pointer" onchange="window.updateMockLiveSummary()">
+              </label>
+              <label class="mock-ca-month-pill p-2.5 rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-between cursor-pointer transition hover:border-emerald-500/50 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/15">
+                <span class="text-xs font-bold text-slate-200">📚 All Months</span>
+                <span class="text-[10px] font-mono text-emerald-400 font-bold">105 Qs</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Question Count for CA -->
+          <div class="flex flex-col gap-2">
+            <span class="text-xs font-bold text-white flex items-center gap-1.5">
+              <span>⏱️</span>
+              <span>Test Volume &amp; Duration:</span>
+            </span>
+
+            <div class="grid grid-cols-3 gap-2" id="mockCaQuestionCountGroup">
+              <button type="button" class="mock-ca-qcount-pill p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-500/20 text-emerald-300 text-xs font-mono font-bold cursor-pointer transition text-center active" data-count="15" onclick="window.setMockCaQuestionCount(15)">
+                <span class="block text-sm font-black">15 Qs</span>
+                <span class="block text-[10px] text-emerald-400">18 Mins</span>
+              </button>
+              <button type="button" class="mock-ca-qcount-pill p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 text-xs font-mono font-bold hover:border-emerald-500 cursor-pointer transition text-center" data-count="25" onclick="window.setMockCaQuestionCount(25)">
+                <span class="block text-sm font-black">25 Qs</span>
+                <span class="block text-[10px] text-slate-500">30 Mins</span>
+              </button>
+              <button type="button" class="mock-ca-qcount-pill p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-300 text-xs font-mono font-bold hover:border-emerald-500 cursor-pointer transition text-center" data-count="50" onclick="window.setMockCaQuestionCount(50)">
+                <span class="block text-sm font-black">50 Qs</span>
+                <span class="block text-[10px] text-slate-500">60 Mins</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Focus Subject for CA (Optional) -->
+          <div class="flex flex-col gap-2">
+            <span class="text-xs font-bold text-white flex items-center justify-between">
+              <span class="flex items-center gap-1.5">
+                <span>📚</span>
+                <span>Focus Subject in Current Affairs (Optional):</span>
+              </span>
+              <span class="text-[10px] text-slate-400 font-normal">Leave as All for balanced mix</span>
+            </span>
+            <select id="mockCaSubjectSelect" class="light-input w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-xs font-medium focus:outline-none focus:border-emerald-500" onchange="window.updateMockLiveSummary()">
+              <option value="all">🌐 All Disciplines (Polity, Economy, Env, Sci-Tech, IR, History)</option>
+              <option value="Environment & Ecology">🌿 Environment & Ecology</option>
+              <option value="Economy">📈 Economy & Agriculture</option>
+              <option value="Science & Technology">🔬 Science & Technology</option>
+              <option value="Polity & Governance">🏛️ Polity & Governance</option>
+              <option value="International Relations">🌐 International Relations</option>
+              <option value="History & Culture">📜 History & Culture</option>
+              <option value="Geography">🌍 Geography</option>
+            </select>
+          </div>
         </div>
 
         <!-- 4. EXAM MODE (Common to all formats) -->
