@@ -322,10 +322,11 @@
     const cutoffEvView = document.getElementById('cutoffEVSimulatorView');
     const csatView = document.getElementById('csatPracticeView');
     const caView = document.getElementById('prelimsCurrentAffairsView');
+    const trackerView = document.getElementById('progressTrackerView');
     const breadcrumb = document.getElementById('breadcrumbCurrent');
 
     // Hide all views first
-    [dashView, playerView, reportView, vaultView, mistakesView, cutoffEvView, csatView, caView].forEach(function (v) {
+    [dashView, playerView, reportView, vaultView, mistakesView, cutoffEvView, csatView, caView, trackerView].forEach(function (v) {
       if (v) v.classList.add('hidden');
     });
 
@@ -374,6 +375,13 @@
       updateSidebarActive('sideNavCurrentAffairs');
       if (breadcrumb) breadcrumb.textContent = 'Monthly Current Affairs Arena (2026)';
       renderCurrentAffairsArena();
+    } else if (mode === 'progress' || mode === 'progress_tracker') {
+      if (trackerView) trackerView.classList.remove('hidden');
+      updateSidebarActive('sideNavProgressTracker');
+      if (breadcrumb) breadcrumb.textContent = '📈 Progress Tracker & Continuity Cockpit';
+      if (typeof window.renderProgressTracker === 'function') {
+        window.renderProgressTracker();
+      }
     } else {
       if (playerView) playerView.classList.add('hidden');
       if (reportView) reportView.classList.add('hidden');
@@ -388,6 +396,263 @@
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+
+
+  // ==========================================================
+  // PROGRESS TRACKER & SESSION RESUMPTION ENGINE (v1)
+  // Preserves interrupted mocks, drills, and PYQs in localStorage
+  // ==========================================================
+  const STORAGE_IN_PROGRESS_KEY = 'cm_in_progress_session_v1';
+
+  function getInProgressSession() {
+    try {
+      const raw = localStorage.getItem(STORAGE_IN_PROGRESS_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (!data || !Array.isArray(data.questions) || data.questions.length === 0) return null;
+      return data;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function saveInProgressSession() {
+    try {
+      if (!STATE.playerQuestions || !STATE.playerQuestions.length) return;
+      if (STATE.viewMode !== 'player') return;
+
+      const sessionData = {
+        title: (STATE.currentTest && STATE.currentTest.title) || (STATE.isExamMode ? 'Timed Simulation Mock' : 'Sectional Focus Practice'),
+        isExamMode: !!STATE.isExamMode,
+        isReviewMode: !!STATE.isReviewMode,
+        currentTest: STATE.currentTest ? {
+          id: STATE.currentTest.id,
+          title: STATE.currentTest.title,
+          totalQuestions: STATE.currentTest.totalQuestions,
+          totalSeconds: STATE.currentTest.totalSeconds,
+          remainingSeconds: STATE.currentTest.remainingSeconds,
+          startTime: STATE.currentTest.startTime,
+          discipline: STATE.currentTest.discipline,
+          mode: STATE.currentTest.mode
+        } : null,
+        playerIndex: STATE.playerIndex || 0,
+        previousView: STATE.previousView || 'dashboard',
+        timestamp: Date.now(),
+        questions: STATE.playerQuestions.map(function(q) {
+          return {
+            id: q.id,
+            question: q.question,
+            options: q.options,
+            correct_index: q.correct_index,
+            explanation: q.explanation,
+            subject: q.subject,
+            sub_topic: q.sub_topic,
+            year: q.year,
+            exam: q.exam,
+            elimination_trap: q.elimination_trap,
+            crucial_fact: q.crucial_fact,
+            standard_book_ref: q.standard_book_ref,
+            difficulty: q.difficulty
+          };
+        }),
+        testAnswers: Object.assign({}, STATE.testAnswers || {}),
+        flagged: Array.from(STATE.flagged || [])
+      };
+
+      localStorage.setItem(STORAGE_IN_PROGRESS_KEY, JSON.stringify(sessionData));
+      updateProgressTrackerBadge();
+    } catch (e) {
+      console.warn('Failed to save in-progress session', e);
+    }
+  }
+
+  function clearInProgressSession() {
+    try {
+      localStorage.removeItem(STORAGE_IN_PROGRESS_KEY);
+      updateProgressTrackerBadge();
+    } catch (e) {
+      console.warn('Failed to clear in-progress session', e);
+    }
+  }
+
+  function updateProgressTrackerBadge() {
+    const badge = document.getElementById('sidebarProgressResumeBadge');
+    if (!badge) return;
+    const session = getInProgressSession();
+    if (session) {
+      badge.textContent = 'RESUME';
+      badge.className = 'px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 text-[9px] font-black uppercase font-mono animate-pulse shadow-sm';
+    } else {
+      badge.textContent = 'TRACK';
+      badge.className = 'px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[9px] font-black uppercase font-mono';
+    }
+  }
+
+  window.openProgressTracker = function () {
+    switchViewMode('progress');
+  };
+
+  window.resumeInProgressSession = function () {
+    const session = getInProgressSession();
+    if (!session) {
+      showToast('No active session found to resume.', 'info');
+      return;
+    }
+
+    STATE.playerQuestions = session.questions;
+    STATE.playerIndex = Math.min(session.playerIndex || 0, session.questions.length - 1);
+    STATE.testAnswers = session.testAnswers || {};
+    STATE.isExamMode = !!session.isExamMode;
+    STATE.isReviewMode = !!session.isReviewMode;
+    STATE.currentTest = session.currentTest;
+    STATE.previousView = session.previousView || 'progress';
+
+    if (Array.isArray(session.flagged)) {
+      STATE.flagged = new Set(session.flagged);
+    }
+
+    // Synchronize STATE.answers for answered questions
+    Object.keys(STATE.testAnswers).forEach(function (qId) {
+      const q = STATE.playerQuestions.find(function (it) { return it.id === qId; });
+      const selIdx = STATE.testAnswers[qId];
+      if (q && selIdx !== undefined) {
+        STATE.answers[qId] = {
+          selectedIndex: selIdx,
+          isCorrect: selIdx === q.correct_index,
+          confidence: 'sure',
+          timestamp: Date.now()
+        };
+      }
+    });
+
+    switchViewMode('player');
+
+    if (STATE.isExamMode && !STATE.isReviewMode && STATE.currentTest && STATE.currentTest.remainingSeconds > 0) {
+      startExamTimer();
+    }
+
+    showToast('⚡ Resumed ' + (session.title || 'Session') + ' at Question #' + (STATE.playerIndex + 1));
+  };
+
+  window.discardInProgressSession = function () {
+    if (confirm('Are you sure you want to discard this in-progress session? Any unsubmitted responses will be cleared.')) {
+      clearInProgressSession();
+      if (typeof window.renderProgressTracker === 'function') {
+        window.renderProgressTracker();
+      }
+      showToast('🗑️ Session discarded.');
+    }
+  };
+
+  window.renderProgressTracker = function () {
+    updateProgressTrackerBadge();
+
+    // 1. Update Momentum Strip Cards
+    const sprint = typeof getActiveSprint === 'function' ? getActiveSprint() : null;
+    const sprintStats = (sprint && typeof calculateSprintStats === 'function') ? calculateSprintStats(sprint) : null;
+
+    const sSubjEl = document.getElementById('trackerSprintSubject');
+    const sRatioEl = document.getElementById('trackerSprintRatio');
+    const sPaceBadge = document.getElementById('trackerPaceBadge');
+    const sPaceAdvice = document.getElementById('trackerPaceAdvice');
+    const sMockCount = document.getElementById('trackerScorecardsCount');
+    const sWeakCount = document.getElementById('trackerWeakTopicsCount');
+
+    if (sprint && sprintStats) {
+      if (sSubjEl) sSubjEl.textContent = sprint.subject + (sprint.topicLabel && sprint.topicLabel !== 'All Topics' ? ' (' + sprint.topicLabel + ')' : '');
+      if (sRatioEl) sRatioEl.textContent = sprintStats.completedCount + ' / ' + sprintStats.goal + ' Qs Completed (' + sprintStats.pct + '%)';
+      if (sPaceBadge) {
+        if (sprintStats.completedCount >= sprintStats.goal) {
+          sPaceBadge.textContent = 'Goal Met! 🎉';
+          sPaceBadge.className = 'text-sm font-extrabold text-emerald-600 dark:text-emerald-400';
+        } else {
+          sPaceBadge.textContent = 'On Track ⚡';
+          sPaceBadge.className = 'text-sm font-extrabold text-amber-600 dark:text-amber-400';
+        }
+      }
+      if (sPaceAdvice) {
+        sPaceAdvice.textContent = sprintStats.completedCount >= sprintStats.goal ? 'Ready for next sprint!' : (sprintStats.pace + ' Qs/day needed');
+      }
+    }
+
+    const history = STATE.mockHistory || [];
+    if (sMockCount) sMockCount.textContent = history.length + ' Mock' + (history.length === 1 ? '' : 's');
+
+    const badgeText = document.getElementById('heatmapThemesCountBadge')?.textContent || 'Live Analysis';
+    if (sWeakCount) sWeakCount.textContent = badgeText;
+
+    // 2. Render In-Progress Sessions Container
+    const container = document.getElementById('inProgressSessionsContainer');
+    if (container) {
+      const session = getInProgressSession();
+      if (session) {
+        const total = session.questions.length;
+        let answered = 0;
+        session.questions.forEach(function (q) {
+          if (session.testAnswers && session.testAnswers[q.id] !== undefined) answered++;
+        });
+        const pct = Math.round((answered / Math.max(1, total)) * 100);
+        const remQs = Math.max(0, total - answered);
+        const timeAgoMins = Math.max(1, Math.round((Date.now() - (session.timestamp || Date.now())) / 60000));
+        const timeAgoStr = timeAgoMins === 1 ? 'Just now' : (timeAgoMins + ' mins ago');
+
+        container.innerHTML = (
+          '<div class="p-5 rounded-2xl bg-amber-500/5 dark:bg-slate-950 border border-amber-500/30 flex flex-col gap-4 shadow-sm transition-all">' +
+            '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">' +
+              '<div class="flex items-center gap-3">' +
+                '<div class="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg font-bold">' +
+                  '⚡' +
+                '</div>' +
+                '<div class="flex flex-col">' +
+                  '<div class="flex items-center gap-2">' +
+                    '<h4 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">' + escapeHtml(session.title || 'In-Progress Practice') + '</h4>' +
+                    '<span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[10px] font-bold font-mono uppercase">In Progress</span>' +
+                  '</div>' +
+                  '<span class="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">' +
+                    'Question ' + (session.playerIndex + 1) + ' of ' + total + ' &bull; ' + answered + ' Answered &bull; ' + (session.flagged ? session.flagged.length : 0) + ' Flagged &bull; Saved ' + timeAgoStr +
+                  '</span>' +
+                '</div>' +
+              '</div>' +
+              '<div class="flex items-center gap-2">' +
+                '<button type="button" onclick="window.discardInProgressSession()" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer flex items-center gap-1">' +
+                  '<span>🗑 Discard</span>' +
+                '</button>' +
+                '<button type="button" onclick="window.resumeInProgressSession()" class="btn-action-emerald px-5 py-2 rounded-xl text-xs font-bold shadow-md transition cursor-pointer flex items-center gap-1.5">' +
+                  '<span>▶ Resume Session</span>' +
+                  '<span>→</span>' +
+                '</button>' +
+              '</div>' +
+            '</div>' +
+            '<div class="w-full flex flex-col gap-1.5">' +
+              '<div class="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-slate-400">' +
+                '<span>Progress: ' + pct + '% Complete</span>' +
+                '<span class="text-emerald-600 dark:text-emerald-400 font-bold">' + remQs + ' Qs Remaining</span>' +
+              '</div>' +
+              '<div class="w-full h-2.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">' +
+                '<div class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width: ' + pct + '%;"></div>' +
+              '</div>' +
+            '</div>' +
+          '</div>'
+        );
+      } else {
+        container.innerHTML = (
+          '<div class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-center flex flex-col items-center justify-center gap-2">' +
+            '<div class="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg">' +
+              '✓' +
+            '</div>' +
+            '<h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">No Interrupted Sessions</h4>' +
+            '<p class="text-xs text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">' +
+              'All your mocks and drills are completely up to date. Start a new test or sprint whenever you are ready.' +
+            '</p>' +
+          '</div>'
+        );
+      }
+    }
+
+    // 3. Render Diagnostics (Topic Accuracy & Scorecard History)
+    if (typeof updateSubTopicHeatmap === 'function') updateSubTopicHeatmap();
+    if (typeof renderDashboardMockHistory === 'function') renderDashboardMockHistory();
+  };
 
   // Start a Practice Session
   window.startPracticeSession = function (subjectFilter, searchQuery) {
@@ -1466,6 +1731,7 @@
   window.submitExamSession = function () {
     window.closeSubmitConfirmModal();
     stopExamTimer();
+    clearInProgressSession();
 
     const questions = STATE.playerQuestions;
     const test = STATE.currentTest || {};
@@ -2729,6 +2995,7 @@
     renderCurrentPlayerQuestion();
     updateDashboardActivity();
     updateSubTopicHeatmap();
+    saveInProgressSession();
     // toast removed to prevent blocking next button
   }
 
@@ -6271,6 +6538,10 @@ function renderPlayerDistractorDeepDive(q) {
       switchViewMode('dashboard');
       toggleSidebar(false);
     });
+    document.getElementById('sideNavProgressTracker')?.addEventListener('click', function () {
+      switchViewMode('progress');
+      toggleSidebar(false);
+    });
     document.getElementById('sideNavPractice')?.addEventListener('click', function () {
       window.startPracticeSession('all');
       toggleSidebar(false);
@@ -6726,7 +6997,8 @@ function renderPlayerDistractorDeepDive(q) {
     document.getElementById('confirmExitPracticeBtn')?.addEventListener('click', function () {
       window.closeSubmitConfirmModal();
       stopExamTimer();
-      showToast('Exited practice session.', 'info');
+      saveInProgressSession();
+      showToast('Practice paused & saved. You can resume anytime from Progress Tracker!', 'info');
       window.returnToPreviousSection();
     });
     document.getElementById('confirmFinalSubmitBtn')?.addEventListener('click', window.submitExamSession);

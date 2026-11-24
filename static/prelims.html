@@ -691,6 +691,15 @@
           <span id="sideLabelHome">Home Dashboard</span>
         </button>
 
+        <!-- Progress Tracker (New Dedicated Continuity & Analytics Hub) -->
+        <button type="button" id="sideNavProgressTracker" onclick="window.openProgressTracker()" class="sidebar-nav-item flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-500/10 dark:hover:bg-slate-800 transition-all text-left cursor-pointer border border-transparent">
+          <div class="flex items-center gap-3">
+            <span class="text-base">📈</span>
+            <span class="font-bold">Progress Tracker</span>
+          </div>
+          <span id="sidebarProgressResumeBadge" class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[9px] font-black uppercase font-mono">TRACK</span>
+        </button>
+
         <!-- Section: PRELIMS -->
         <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold px-3 pt-3 pb-1">
           PRELIMS (1,600+ PYQS)
@@ -868,6 +877,88 @@
               <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
               <span>EV Simulator</span>
             </button>
+          </div>
+        </div>
+
+        <!-- ====================================================
+             ACTIVE TARGET SPRINTS (Elevated to Prime Top Position)
+             ==================================================== -->
+        <div id="targetSprintCard" class="light-card p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-4 shadow-sm transition-all">
+          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+              <span class="text-base">🎯</span>
+              <span class="text-xs font-mono uppercase tracking-wider text-slate-800 dark:text-slate-200 font-bold">ACTIVE TARGET SPRINTS</span>
+              <span id="targetCardBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold border border-emerald-500/30">Active</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="window.openTargetSprintModal(null, true)" class="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                <span>+ Add Target</span>
+              </button>
+              <button type="button" id="toggleSprintChangeBtn" onclick="window.openTargetSprintModal(event)" class="px-3 py-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                <span>Configure ⚙️</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Multi-Target Switcher Tabs -->
+          <div id="targetSprintTabs" class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            <!-- Dynamically populated target tabs (e.g. Target 1, Target 2, + Add Target) -->
+          </div>
+
+          <!-- Subject, Topic & Stats Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+            <div class="lg:col-span-5 flex flex-col gap-1">
+              <span class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wide">Focus Subject &amp; Topic</span>
+              <h4 id="targetCardSubject" class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">History &amp; Culture</h4>
+              <span id="targetCardTopic" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <span>📚</span> <span id="targetCardTopicText">All Topics</span>
+              </span>
+            </div>
+
+            <div class="lg:col-span-7 flex flex-col gap-2.5">
+              <!-- Progress Bar -->
+              <div class="flex items-center justify-between text-xs font-mono">
+                <span class="text-slate-500 dark:text-slate-400">Sprint Target Completion</span>
+                <span id="targetCardRatio" class="font-bold text-slate-800 dark:text-white">1 / 30 Qs</span>
+              </div>
+              <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                <div id="targetCardProgressBar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 10%;"></div>
+              </div>
+
+              <!-- Quick Metrics & Daily Pace -->
+              <div class="grid grid-cols-3 gap-2 text-center text-xs font-mono">
+                <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
+                  <span class="text-[10px] text-slate-500 dark:text-slate-400">Pending</span>
+                  <span id="targetCardPending" class="font-bold text-amber-600 dark:text-amber-400">29 Qs</span>
+                </div>
+                <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
+                  <span class="text-[10px] text-slate-500 dark:text-slate-400">Time Left</span>
+                  <span id="targetCardDays" class="font-bold text-slate-800 dark:text-slate-200">4 Days</span>
+                </div>
+                <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
+                  <span class="text-[10px] text-slate-500 dark:text-slate-400">Accuracy</span>
+                  <span id="targetSprintAccuracyBadge" class="font-bold text-emerald-600 dark:text-emerald-400">0% Acc</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Actions & Pace Advice -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+            <div class="flex items-center gap-2 text-xs">
+              <span class="text-emerald-500 text-sm">⚡</span>
+              <span id="targetSprintPaceText" class="text-[11px] text-emerald-700 dark:text-emerald-300 font-semibold">Need 8 Qs/day to hit goal</span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button type="button" id="cardStartSprintBtn" onclick="window.launchSprintFocusMode(false)" class="px-4 py-2 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-300 dark:border-slate-700 shadow-xs transition cursor-pointer flex items-center gap-1">
+                <span>▶ Quick 5 Qs</span>
+              </button>
+              <button type="button" id="cardSolvePendingBtn" onclick="window.launchSprintFocusMode(true)" class="btn-action-emerald px-5 py-2 rounded-xl font-bold text-xs shadow-md transition cursor-pointer flex items-center gap-1.5">
+                <span>⚡ Solve Pending (<span id="btnPendingCount">29</span>)</span>
+                <span>→</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1349,153 +1440,6 @@
               </div>
             </div>
 
-            <!-- 2. Topic Accuracy & Weak Areas -->
-            <div id="subTopicHeatmapCard" class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col gap-3">
-              <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343a7.975 7.975 0 010 11.314z"/></svg>
-                  <h3 class="text-xs font-extrabold text-white uppercase tracking-wider">Topic Accuracy & Weak Areas</h3>
-                </div>
-                <span id="heatmapThemesCountBadge" class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 text-[10px] font-black font-mono">0 Themes Logged</span>
-              </div>
-
-              <p class="text-[11px] text-slate-400 leading-relaxed">
-                Identifies topics where incorrect answers are causing negative marks.
-              </p>
-
-              <!-- Interactive Heatmap Filter Tabs -->
-              <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[10px] font-mono scrollbar-none" id="heatmapFilterTabs">
-                <button type="button" class="heatmap-filter-tab px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-black cursor-pointer shadow-xs transition-all" data-filter="all">All</button>
-                <button type="button" class="heatmap-filter-tab px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-bold cursor-pointer transition-all" data-filter="bleed">⚠️ Weak Areas</button>
-                <button type="button" class="heatmap-filter-tab px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-bold cursor-pointer transition-all" data-filter="vulnerable">Moderate</button>
-                <button type="button" class="heatmap-filter-tab px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-bold cursor-pointer transition-all" data-filter="fortified">Strong</button>
-              </div>
-
-              <!-- Priority Fix Advice Box -->
-              <div id="heatmapAdviceBox" class="hidden p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs flex flex-col gap-2">
-                <p id="heatmapAdviceText" class="text-rose-800 dark:text-rose-300 text-[11px] leading-relaxed"></p>
-                <button type="button" id="heatmapDrillGapBtn" class="px-3 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs shadow-xs transition-all cursor-pointer self-start flex items-center gap-1">
-                  <span>🎯 Drill This Gap in Focus Mode</span>
-                  <span>→</span>
-                </button>
-              </div>
-
-              <!-- Heatmap Themes List -->
-              <div id="subTopicHeatmapList" class="flex flex-col gap-2 max-h-60 overflow-y-auto pr-1">
-                <div class="p-4 text-center text-xs text-slate-500 bg-slate-950/60 rounded-2xl border border-slate-800/60">
-                  Solve questions to generate your personalized micro-theme accuracy heatmap.
-                </div>
-              </div>
-            </div>
-
-            <!-- 3. Daily Streak Indicator -->
-            <div id="dailyStreakCard" class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col gap-3 shadow-sm">
-              <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                <h3 class="text-xs font-mono uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1.5">
-                  <span class="text-amber-500">🔥</span>
-                  <span id="streakTitle">12-Day Streak</span>
-                </h3>
-                <span class="text-[10px] font-bold text-amber-500 uppercase tracking-wide">Weekly Record</span>
-              </div>
-
-              <p id="streakSubtext" class="text-xs text-slate-400 leading-normal">
-                Practice daily to maintain your streak.
-              </p>
-
-              <!-- Day Pills Container (M T W Th F S Su) -->
-              <div id="streakDaysContainer" class="flex items-center justify-between pt-1">
-                <!-- Dynamically generated by JS -->
-              </div>
-            </div>
-
-            <!-- 4. Multi-Target Sprint Manager (Dynamic Subjects, Topics & Pending Tracker) -->
-            <div id="targetSprintCard" class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col gap-3.5 shadow-sm">
-              <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                <span class="text-xs font-mono uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1.5">
-                  <span>🎯</span>
-                  <span>ACTIVE TARGET SPRINTS</span>
-                </span>
-                <span id="targetCardBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-bold border border-emerald-500/30">Active</span>
-              </div>
-
-              <!-- Multi-Target Switcher Tabs -->
-              <div id="targetSprintTabs" class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-                <!-- Dynamically populated target tabs (e.g. Target 1, Target 2, + Add Target) -->
-              </div>
-
-              <!-- Subject and Micro-Topic Heading -->
-              <div class="flex items-center justify-between gap-2 pt-0.5">
-                <div class="flex flex-col">
-                  <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wide">Focus Subject &amp; Topic</span>
-                  <h4 id="targetCardSubject" class="text-sm sm:text-base font-extrabold text-white">History &amp; Culture</h4>
-                  <span id="targetCardTopic" class="text-xs font-semibold text-emerald-400 flex items-center gap-1">
-                    <span>📚</span> <span id="targetCardTopicText">All Topics</span>
-                  </span>
-                </div>
-                <button type="button" id="toggleSprintChangeBtn" onclick="window.openTargetSprintModal(event)" class="px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold cursor-pointer transition-all flex items-center gap-1 shadow-xs">
-                  <span>Configure ⚙️</span>
-                </button>
-              </div>
-
-              <!-- Progress Bar & Forensics -->
-              <div class="flex flex-col gap-2">
-                <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                  <div id="targetCardProgressBar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 10%;"></div>
-                </div>
-                <div class="grid grid-cols-3 gap-1.5 text-center text-[11px] font-mono">
-                  <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
-                    <span class="text-[9px] text-slate-500 dark:text-slate-400">Solved</span>
-                    <span id="targetCardRatio" class="font-bold text-slate-800 dark:text-white">1 / 30</span>
-                  </div>
-                  <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
-                    <span class="text-[9px] text-amber-500 dark:text-amber-400 font-bold">Pending</span>
-                    <span id="targetCardPending" class="font-bold text-amber-600 dark:text-amber-400">29 Qs</span>
-                  </div>
-                  <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
-                    <span class="text-[9px] text-slate-500 dark:text-slate-400">Time Left</span>
-                    <span id="targetCardDays" class="font-bold text-slate-800 dark:text-white">4 Days</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Daily Pace Alert -->
-              <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between text-xs">
-                <div class="flex items-center gap-1.5">
-                  <span class="text-sm">⚡</span>
-                  <span id="targetSprintPaceText" class="text-[11px] text-emerald-800 dark:text-emerald-300 font-semibold">Need 8 Qs/day to hit goal</span>
-                </div>
-                <span id="targetSprintAccuracyBadge" class="text-[10px] font-mono font-bold text-emerald-700 dark:text-emerald-400">0% Acc</span>
-              </div>
-
-              <!-- Dual Action Buttons -->
-              <div class="grid grid-cols-2 gap-2 pt-1">
-                <button type="button" id="cardStartSprintBtn" onclick="window.launchSprintFocusMode(false)" class="py-2.5 rounded-xl font-bold text-xs bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1">
-                  <span>▶ Quick 5 Qs</span>
-                </button>
-                <button type="button" id="cardSolvePendingBtn" onclick="window.launchSprintFocusMode(true)" class="btn-action-emerald py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1">
-                  <span>⚡ Solve Pending (<span id="btnPendingCount">29</span>)</span>
-                  <span>→</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- 5. Recent Practice Sessions & Mock Reports History -->
-            <div id="dashMockHistoryCard" class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col gap-3.5 shadow-sm">
-              <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                <span class="text-xs font-mono uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1.5">
-                  <span>📊</span>
-                  <span>Practice &amp; Mock Scorecards</span>
-                </span>
-                <span id="dashMockCountBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-bold border border-amber-500/30">0 Sessions</span>
-              </div>
-              <p class="text-[11px] text-slate-400 leading-relaxed">
-                Track your net marks (+2.00, -0.66), accuracy rate, and inspect behavioral mistake leaks from your recent sessions.
-              </p>
-              <div id="dashMockHistoryContainer" class="flex flex-col gap-2 max-h-60 overflow-y-auto pr-1">
-                <!-- Dynamically populated by renderDashboardMockHistory() -->
-              </div>
-            </div>
-
           </div>
 
         </div>
@@ -1510,6 +1454,156 @@
            VIEW D: PRELIMS PYQ BRAINSTORMING & ANALYSIS VAULT (2011–2026)
            (Beats SuperKalam with Deeper Insights, Decoded Traps, Facts & Mains Links)
            ==================================================== -->
+      <!-- ====================================================
+           VIEW: 📈 PROGRESS TRACKER & CONTINUITY COCKPIT
+           (Track in-progress sessions, sprint velocity, weak areas, and scorecards)
+           ==================================================== -->
+      <div id="progressTrackerView" class="hidden flex flex-col gap-6">
+
+        <!-- Top Header Hero Banner -->
+        <div class="light-card p-6 sm:p-7 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-2xl shrink-0 font-black">
+                📈
+              </div>
+              <div class="flex flex-col">
+                <div class="flex items-center gap-2">
+                  <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                    Progress Tracker &amp; Continuity Cockpit
+                  </h1>
+                  <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold font-mono uppercase">
+                    Live Diagnostics
+                  </span>
+                </div>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                  Resume interrupted practice sessions, monitor target sprint velocity, and review topic accuracy diagnostics.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="window.switchViewMode('dashboard')" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                <span>← Home Dashboard</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick High-Yield Continuity & Momentum Strip -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-1">
+              <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Active Sprint Target</span>
+              <span id="trackerSprintSubject" class="text-sm font-extrabold text-slate-900 dark:text-white truncate">Polity &amp; Gov</span>
+              <span id="trackerSprintRatio" class="text-[11px] text-emerald-600 dark:text-emerald-400 font-mono font-bold">1 / 30 Qs Completed</span>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-1">
+              <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Sprint Pace Status</span>
+              <span id="trackerPaceBadge" class="text-sm font-extrabold text-amber-600 dark:text-amber-400">On Track ⚡</span>
+              <span id="trackerPaceAdvice" class="text-[11px] text-slate-500 dark:text-slate-400">8 Qs/day needed</span>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-1">
+              <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Mock Scorecards</span>
+              <span id="trackerScorecardsCount" class="text-sm font-extrabold text-slate-900 dark:text-white">0 Mocks</span>
+              <span class="text-[11px] text-slate-500 dark:text-slate-400">Logged in History</span>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-1">
+              <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Weak Topics Identified</span>
+              <span id="trackerWeakTopicsCount" class="text-sm font-extrabold text-rose-600 dark:text-rose-400">0 Themes</span>
+              <span class="text-[11px] text-slate-500 dark:text-slate-400">In Accuracy Heatmap</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1. "CONTINUE WHERE YOU LEFT OFF" (In-Progress Sessions Section) -->
+        <div id="continueLeftOffSection" class="light-card p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
+          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+              <span class="text-lg">⏳</span>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Continue Where You Left Off</h3>
+                <span id="inProgressStatusBadge" class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 text-[10px] font-bold font-mono uppercase">
+                  Session Resumption
+                </span>
+              </div>
+            </div>
+            <span class="text-xs text-slate-500 dark:text-slate-400">Interrupted mocks, PYQ vaults, or drills auto-saved</span>
+          </div>
+
+          <!-- Dynamic Container for Active Resumable Session or Empty State -->
+          <div id="inProgressSessionsContainer">
+            <!-- Populated dynamically by window.renderProgressTracker() -->
+          </div>
+        </div>
+
+        <!-- 2-Column Diagnostics Grid: Topic Accuracy & Mock Scorecards -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- Left Column (lg:col-span-7): Relocated Topic Accuracy & Weak Areas -->
+          <div class="lg:col-span-7 flex flex-col gap-6">
+
+            <div id="subTopicHeatmapCard" class="light-card p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343a7.975 7.975 0 010 11.314z"/></svg>
+                  <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Topic Accuracy &amp; Weak Areas</h3>
+                </div>
+                <span id="heatmapThemesCountBadge" class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[10px] font-black font-mono">0 Themes Logged</span>
+              </div>
+
+              <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                Pinpoints high-yield topics where negative mark leaks (-0.66) are occurring so you can fortify them before exam day.
+              </p>
+
+              <!-- Interactive Heatmap Filter Tabs -->
+              <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-xs font-mono scrollbar-none" id="heatmapFilterTabs">
+                <button type="button" class="heatmap-filter-tab px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-black cursor-pointer shadow-xs transition-all" data-filter="all">All Topics</button>
+                <button type="button" class="heatmap-filter-tab px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold cursor-pointer transition-all" data-filter="bleed">⚠️ Weak Areas</button>
+                <button type="button" class="heatmap-filter-tab px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold cursor-pointer transition-all" data-filter="vulnerable">Moderate</button>
+                <button type="button" class="heatmap-filter-tab px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold cursor-pointer transition-all" data-filter="fortified">Strong</button>
+              </div>
+
+              <!-- Priority Fix Advice Box -->
+              <div id="heatmapAdviceBox" class="hidden p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs flex flex-col gap-2">
+                <p id="heatmapAdviceText" class="text-rose-800 dark:text-rose-300 text-xs leading-relaxed"></p>
+                <button type="button" id="heatmapDrillGapBtn" onclick="window.launchPriorityTopicFix()" class="self-start px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">
+                  <span>⚡ Practice This Weak Area Now</span>
+                  <span>→</span>
+                </button>
+              </div>
+
+              <!-- Heatmap Grid -->
+              <div id="subTopicHeatmapList" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-96 overflow-y-auto pr-1">
+                <!-- Dynamically populated by updateSubTopicHeatmap() -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right Column (lg:col-span-5): Relocated Practice & Mock Scorecards History -->
+          <div class="lg:col-span-5 flex flex-col gap-6">
+
+            <div id="dashMockHistoryCard" class="light-card p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-4 shadow-sm">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <span class="text-xs font-mono uppercase tracking-wider text-slate-800 dark:text-slate-200 font-bold flex items-center gap-1.5">
+                  <span>📊</span>
+                  <span>Practice &amp; Mock Scorecards</span>
+                </span>
+                <span id="dashMockCountBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/30">0 Sessions</span>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                Track your net marks (+2.00, -0.66), accuracy rate, and inspect behavioral mistake leaks from your recent sessions.
+              </p>
+              <div id="dashMockHistoryContainer" class="flex flex-col gap-2.5 max-h-[460px] overflow-y-auto pr-1">
+                <!-- Dynamically populated by renderDashboardMockHistory() -->
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
       <div id="prelimsPyqVaultView" class="hidden flex flex-col gap-6">
 
         <!-- Top Hero Card -->
