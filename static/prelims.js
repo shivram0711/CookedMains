@@ -9,6 +9,7 @@
   const STORAGE_KEYS = {
     ANSWERS: 'cookedmains_prelims_answers_v1',
     MISTAKES: 'cookedmains_prelims_mistakes_v1',
+    CUSTOM_MISTAKES: 'cookedmains_custom_mistakes_v1',
     FLAGGED: 'cookedmains_prelims_flagged_v1',
     ACTIVITY: 'cookedmains_prelims_activity_v1',
     TARGET: 'cookedmains_prelims_target_v1',
@@ -44,6 +45,7 @@
     slicedStatements: {}, // { [qId]: { [stmtNum]: true/false } }
     answers: {}, // { [qId]: { selectedIndex, isCorrect, timestamp, reason } }
     mistakes: new Set(),
+    customMistakes: {}, // { [qId]: questionObject }
     flagged: new Set(),
     leakTags: {}, // { [qId]: 'concept' | 'silly' | 'elimination' | 'memory' }
     mistakesFilter: 'all',
@@ -77,6 +79,8 @@
 
       const savedMistakes = localStorage.getItem(STORAGE_KEYS.MISTAKES);
       if (savedMistakes) STATE.mistakes = new Set(JSON.parse(savedMistakes));
+      const savedCustomMistakes = localStorage.getItem(STORAGE_KEYS.CUSTOM_MISTAKES);
+      if (savedCustomMistakes) { try { STATE.customMistakes = JSON.parse(savedCustomMistakes); } catch (e) { STATE.customMistakes = {}; } }
 
       const savedFlagged = localStorage.getItem(STORAGE_KEYS.FLAGGED);
       if (savedFlagged) STATE.flagged = new Set(JSON.parse(savedFlagged));
@@ -165,6 +169,7 @@
           try {
             localStorage.setItem(STORAGE_KEYS.ANSWERS, JSON.stringify(STATE.answers));
             localStorage.setItem(STORAGE_KEYS.MISTAKES, JSON.stringify(Array.from(STATE.mistakes)));
+      if (STATE.customMistakes) localStorage.setItem(STORAGE_KEYS.CUSTOM_MISTAKES, JSON.stringify(STATE.customMistakes));
             localStorage.setItem(STORAGE_KEYS.FLAGGED, JSON.stringify(Array.from(STATE.flagged)));
             localStorage.setItem(STORAGE_KEYS.MOCKS, JSON.stringify(STATE.mockHistory));
             localStorage.setItem(STORAGE_KEYS.LEAK_TAGS, JSON.stringify(STATE.leakTags || {}));
@@ -656,7 +661,7 @@
       if (aiMockControls) aiMockControls.classList.add('hidden');
       if (caControls) caControls.classList.add('hidden');
       if (remedialCountEl) {
-        const mCount = STATE.mistakes ? STATE.mistakes.size : 0;
+        const mCount = getAllMistakeQuestions().length;
         remedialCountEl.textContent = mCount + (mCount === 1 ? ' Logged Mistake' : ' Logged Mistakes');
       }
       mockConfigState.questionCount = 15;
@@ -1034,7 +1039,7 @@
     } else if (format === 'weakness') {
       qCount = 15;
       durationMins = 20;
-      poolCount = STATE.mistakes ? STATE.mistakes.size : 0;
+      poolCount = getAllMistakeQuestions().length;
     }
 
     const marks = qCount * 2;
@@ -1430,18 +1435,7 @@
         ? 'Review your attempt status before computing your official UPSC score and forensic report:'
         : 'Analyze your net score (+2.00, -0.66), accuracy rate, subject strengths, and save mistakes to your Notebook:';
     }
-    const minWarningEl = document.getElementById('confirmMinQuestionsWarning');
-    if (minWarningEl) {
-      if (answered === 1) {
-        minWarningEl.classList.remove('hidden');
-        if (submitBtnText) submitBtnText.textContent = 'Finish (1 Q Attempted)';
-      } else {
-        minWarningEl.classList.add('hidden');
-        if (submitBtnText) {
-          submitBtnText.textContent = isExam ? 'Submit Test & View Report' : 'Finish & View Scorecard';
-        }
-      }
-    } else if (submitBtnText) {
+    if (submitBtnText) {
       submitBtnText.textContent = isExam ? 'Submit Test & View Report' : 'Finish & View Scorecard';
     }
     updatePlayerExitButton();
@@ -1508,9 +1502,9 @@
 
     const attemptedCount = correctCount + wrongCount;
 
-    // GUARD: Do NOT generate a scorecard for 1 question only!
-    if (attemptedCount < 2) {
-      showToast('Practice ended (1 question attempted). Scorecards require at least 2 questions to evaluate accuracy.', 'info');
+    // GUARD: Report card is generated for mocks of 5 or above questions!
+    if (attemptedCount < 5) {
+      showToast('Practice ended (' + attemptedCount + ' Qs attempted). Scorecards are generated for mocks of 5 or more questions.', 'info');
       window.returnToPreviousSection();
       return;
     }
@@ -1791,7 +1785,13 @@
         saveBtn.disabled = false;
         saveBtn.className = 'mt-2 w-full py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs border border-amber-500/40 transition-all cursor-pointer flex items-center justify-center gap-2';
         saveBtn.onclick = function () {
-          res.wrongQuestions.forEach(function (q) { STATE.mistakes.add(q.id); });
+          res.wrongQuestions.forEach(function (q) {
+            STATE.mistakes.add(q.id);
+            if (!STATE.pyqMap || !STATE.pyqMap[q.id]) {
+              if (!STATE.customMistakes) STATE.customMistakes = {};
+              STATE.customMistakes[q.id] = q;
+            }
+          });
           persistState();
           updateDashboardActivity();
           saveText.textContent = '✓ ' + res.wrongCount + ' Wrong Answers Saved to Notebook!';
@@ -2996,7 +2996,8 @@
 
     if (rankEl) rankEl.textContent = rankPercentile;
     if (pscoreEl) pscoreEl.textContent = 'P-Score: ' + netPScore;
-    if (badge) badge.textContent = STATE.mistakes.size;
+    const mistakeCount = getAllMistakeQuestions().length;
+    if (badge) badge.textContent = mistakeCount;
 
     // Synchronize Daily Streak, Target Sprint & Today's High-Yield Mission
     updateDailyStreak();
@@ -5260,7 +5261,7 @@ function renderPlayerDistractorDeepDive(q) {
   // State defaults for Mistakes Notebook
   STATE.mistakesSubjectFilter = 'all';
   STATE.mistakesSort = 'recent';
-  STATE.mistakesBlindMode = false;
+  STATE.mistakesBlindMode = true; // Default to Active Recall (solutions hidden)
   STATE.mistakesSearchQuery = '';
 
   function getAllMistakeQuestions() {
@@ -5270,6 +5271,7 @@ function renderPlayerDistractorDeepDive(q) {
       STATE.mistakes.forEach(function (id) {
         if (seen.has(id)) return;
         var q = (STATE.pyqMap && STATE.pyqMap[id])
+          || (STATE.customMistakes && STATE.customMistakes[id])
           || (STATE.pyqs && STATE.pyqs.find(function (item) { return item.id === id; }))
           || (STATE.ca_pyqs && STATE.ca_pyqs.find(function (item) { return item.id === id; }))
           || (STATE.other_pyqs && STATE.other_pyqs.find(function (item) { return item.id === id; }))
@@ -5283,21 +5285,39 @@ function renderPlayerDistractorDeepDive(q) {
     return list;
   }
 
+  function syncAndCleanMistakes() {
+    if (!STATE.mistakes || STATE.mistakes.size === 0) return 0;
+    var validIds = new Set();
+    var resolvable = getAllMistakeQuestions();
+    resolvable.forEach(function (q) {
+      if (q && q.id) validIds.add(q.id);
+    });
+    if (STATE.mistakes.size !== validIds.size) {
+      STATE.mistakes = validIds;
+      persistState();
+    }
+    return validIds.size;
+  }
+
   window.toggleMistakesBlindMode = function () {
     STATE.mistakesBlindMode = !STATE.mistakesBlindMode;
     var btn = document.getElementById('toggleBlindRecallBtn');
     var icon = document.getElementById('blindRecallIcon');
     var txt = document.getElementById('blindRecallText');
+    var banner = document.getElementById('activeRecallInfoBanner');
     if (btn) {
       if (STATE.mistakesBlindMode) {
-        btn.className = 'px-3.5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5';
+        btn.className = 'px-3.5 py-2.5 rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-500/40 shadow-sm transition-all cursor-pointer flex items-center gap-1.5';
         if (icon) icon.textContent = '🙈';
-        if (txt) txt.textContent = 'Blind Mode: ON';
-        showToast('Blind Recall Active: answers masked to test retrieval!');
+        if (txt) txt.textContent = 'Hide Solutions (Active Recall)';
+        if (banner) banner.classList.remove('hidden');
+        showToast('Active Recall ON: Solutions hidden to test your memory.');
       } else {
         btn.className = 'px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-all cursor-pointer flex items-center gap-1.5';
         if (icon) icon.textContent = '👁️';
-        if (txt) txt.textContent = 'Blind Recall Mode';
+        if (txt) txt.textContent = 'Show Solutions';
+        if (banner) banner.classList.add('hidden');
+        showToast('Active Recall OFF: Official solutions and explanations visible.');
       }
     }
     renderMistakesModal();
@@ -5332,13 +5352,21 @@ function renderPlayerDistractorDeepDive(q) {
     STATE.leakTags[qId] = tag;
     persistState();
     renderMistakesModal();
-    showToast('Root-cause updated to: ' + (tag === 'concept' ? '🔴 Conceptual' : (tag === 'silly' ? '🟡 Silly Trap' : (tag === 'elimination' ? '🔵 Over-Elim' : '🟣 Memory'))));
+    var tagLabels = {
+      concept: '🔴 Conceptual',
+      silly: '🟡 Misread Question',
+      elimination: '🔵 Over-Elimination',
+      memory: '🟣 Factual Recall'
+    };
+    showToast('Updated category: ' + (tagLabels[tag] || 'Categorized'));
   };
 
   window.testMistakeOptionInline = function (qId, selectedIdx) {
     var question = (STATE.pyqMap && STATE.pyqMap[qId])
+      || (STATE.customMistakes && STATE.customMistakes[qId])
       || (STATE.pyqs && STATE.pyqs.find(function (item) { return item.id === qId; }))
-      || (STATE.ca_pyqs && STATE.ca_pyqs.find(function (item) { return item.id === qId; }));
+      || (STATE.ca_pyqs && STATE.ca_pyqs.find(function (item) { return item.id === qId; }))
+      || (STATE.other_pyqs && STATE.other_pyqs.find(function (item) { return item.id === qId; }));
     if (!question) return;
 
     var isCorrect = (selectedIdx === question.correct_index);
@@ -5347,21 +5375,21 @@ function renderPlayerDistractorDeepDive(q) {
 
     if (isCorrect) {
       feedbackEl.innerHTML = (
-        '<div class="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 flex items-center justify-between gap-2 animate-fade-in">' +
+        '<div class="p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in">' +
           '<div class="flex items-center gap-2">' +
-            '<span class="text-base">🎉</span>' +
-            '<span class="font-black text-xs">Flawless! You mastered this conceptual gap.</span>' +
+            '<span class="text-lg">✅</span>' +
+            '<span class="font-bold text-xs">Correct! You solved this question correctly.</span>' +
           '</div>' +
-          '<button type="button" onclick="window.dismissMistakeGap(\'' + qId + '\')" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-xs cursor-pointer active:scale-95 transition">' +
-            '🏆 Dismiss Gap &amp; Restore Marks' +
+          '<button type="button" onclick="window.dismissMistakeGap(\'' + qId + '\')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm cursor-pointer active:scale-95 transition">' +
+            'Remove from Notebook' +
           '</button>' +
         '</div>'
       );
     } else {
       feedbackEl.innerHTML = (
-        '<div class="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-800 dark:text-rose-300 flex items-center gap-2 animate-fade-in text-xs">' +
+        '<div class="p-3 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-800 dark:text-rose-300 flex items-center gap-2 animate-fade-in text-xs">' +
           '<span>❌</span>' +
-          '<span>Option ' + ['A','B','C','D'][selectedIdx] + ' is still incorrect. Study the Topper Antidote box below!</span>' +
+          '<span>Option ' + ['A','B','C','D'][selectedIdx] + ' is incorrect. Review the explanation below and try again.</span>' +
         '</div>'
       );
     }
@@ -5369,10 +5397,13 @@ function renderPlayerDistractorDeepDive(q) {
 
   window.dismissMistakeGap = function (qId) {
     STATE.mistakes.delete(qId);
+    if (STATE.customMistakes && STATE.customMistakes[qId]) {
+      delete STATE.customMistakes[qId];
+    }
     persistState();
     renderMistakesModal();
     updateDashboardActivity();
-    showToast('🏆 Gap dismissed! 0.66 marks restored to your projected score.');
+    showToast('Question removed from Mistakes Notebook.');
   };
 
   window.revealMistakeAutopsy = function (qId) {
@@ -5390,7 +5421,7 @@ function renderPlayerDistractorDeepDive(q) {
     var allMistakes = getAllMistakeQuestions();
     var totalGaps = allMistakes.length;
 
-    // 1. Update Executive Bleed Diagnostic Stats
+    // 1. Update Diagnostic Stats
     var penaltyMarks = (totalGaps * 0.66).toFixed(2);
     var recoverableSwing = (totalGaps * 2.66).toFixed(1);
 
@@ -5404,18 +5435,18 @@ function renderPlayerDistractorDeepDive(q) {
     if (statSwing) statSwing.textContent = '+' + recoverableSwing;
 
     var penaltyHeader = document.getElementById('mistakesLivePenaltyText');
-    if (penaltyHeader) penaltyHeader.textContent = '-' + penaltyMarks + 'M Penalty Active';
+    if (penaltyHeader) penaltyHeader.textContent = '-' + penaltyMarks + ' Marks Penalty';
 
-    if (badge) badge.textContent = totalGaps + ' Gap' + (totalGaps === 1 ? '' : 's') + ' Logged';
+    if (badge) badge.textContent = totalGaps + ' Question' + (totalGaps === 1 ? '' : 's') + ' Recorded';
 
-    // Subject Breakdown & Top Bleeder
+    // Subject Breakdown
     var subjCounts = {};
     allMistakes.forEach(function (q) {
       var s = q.subject || 'Other Disciplines';
       subjCounts[s] = (subjCounts[s] || 0) + 1;
     });
 
-    var topSubj = 'No Active Leaks';
+    var topSubj = 'All Clear';
     var topSubjCount = 0;
     Object.keys(subjCounts).forEach(function (s) {
       if (subjCounts[s] > topSubjCount) {
@@ -5425,16 +5456,16 @@ function renderPlayerDistractorDeepDive(q) {
     });
 
     var statTopSubj = document.getElementById('statTopBleedSubjectName');
-    if (statTopSubj) statTopSubj.textContent = topSubjCount > 0 ? topSubj : 'Clean Accuracy';
+    if (statTopSubj) statTopSubj.textContent = topSubjCount > 0 ? topSubj : 'All Clear';
 
     var statTopSubjShare = document.getElementById('statTopBleedSubjectShare');
     if (statTopSubjShare) {
       statTopSubjShare.textContent = topSubjCount > 0
-        ? (topSubjCount + ' Gaps (' + Math.round((topSubjCount / totalGaps) * 100) + '% of errors)')
-        : '0 Marks Leaking';
+        ? (topSubjCount + ' Questions (' + Math.round((topSubjCount / totalGaps) * 100) + '% of total)')
+        : '0 Questions Recorded';
     }
 
-    // Dominant Error Archetype
+    // Mistake Cause Categorization
     var trapCounts = { concept: 0, silly: 0, elimination: 0, memory: 0, uncategorized: 0 };
     allMistakes.forEach(function (q) {
       var tag = STATE.leakTags ? STATE.leakTags[q.id] : null;
@@ -5444,7 +5475,7 @@ function renderPlayerDistractorDeepDive(q) {
 
     var dominantTrap = 'Uncategorized';
     var dominantTrapMax = trapCounts.uncategorized;
-    var trapNames = { concept: 'Conceptual Gap', silly: 'Silly / Stem Trap', elimination: 'Over-Elimination', memory: 'Memory / Fact Slip' };
+    var trapNames = { concept: 'Conceptual', silly: 'Misread Question', elimination: 'Over-Elimination', memory: 'Factual Recall' };
 
     ['concept', 'silly', 'elimination', 'memory'].forEach(function (k) {
       if (trapCounts[k] > dominantTrapMax) {
@@ -5459,11 +5490,11 @@ function renderPlayerDistractorDeepDive(q) {
     var statTrapSubtext = document.getElementById('statDominantTrapSubtext');
     if (statTrapSubtext) {
       statTrapSubtext.textContent = dominantTrapMax > 0
-        ? (dominantTrapMax + ' Gaps tagged')
-        : 'Tag errors on card to refine';
+        ? (dominantTrapMax + ' Questions categorized')
+        : 'Tag errors on cards to track patterns';
     }
 
-    // 2. Render Subject Discipline Pills
+    // 2. Render Subject Pills
     var subjContainer = document.getElementById('mistakesSubjectPillsContainer');
     if (subjContainer) {
       var uniqueSubjs = ['all'].concat(Object.keys(subjCounts));
@@ -5472,33 +5503,33 @@ function renderPlayerDistractorDeepDive(q) {
       subjContainer.innerHTML = uniqueSubjs.map(function (s) {
         var count = (s === 'all') ? totalGaps : (subjCounts[s] || 0);
         var isActive = (s === currentSubj);
-        var label = (s === 'all') ? 'All Disciplines' : s;
+        var label = (s === 'all') ? 'All Subjects' : s;
         var btnClass = isActive
-          ? 'px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-black text-xs shadow-xs cursor-pointer'
-          : 'px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-amber-500 border border-slate-200 dark:border-slate-800 font-bold text-xs cursor-pointer transition-colors';
+          ? 'px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow-xs cursor-pointer'
+          : 'px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-amber-500 border border-slate-200 dark:border-slate-800 font-medium text-xs cursor-pointer transition-colors';
         return '<button type="button" onclick="window.filterMistakesBySubject(\'' + escapeHtml(s) + '\')" class="' + btnClass + '">' +
           escapeHtml(label) + ' <span class="opacity-75 font-mono text-[10px]">(' + count + ')</span>' +
         '</button>';
       }).join('');
     }
 
-    // 3. Render Leak Type Filter Pills
+    // 3. Render Mistake Reason Pills
     var leakContainer = document.getElementById('mistakesLeakFilterBar');
     if (leakContainer) {
       var leaks = [
-        { id: 'all', label: 'All Error Triggers', count: totalGaps },
-        { id: 'concept', label: '🔴 Conceptual Gap', count: trapCounts.concept },
-        { id: 'silly', label: '🟡 Silly / Stem Trap', count: trapCounts.silly },
+        { id: 'all', label: 'All Reasons', count: totalGaps },
+        { id: 'concept', label: '🔴 Conceptual', count: trapCounts.concept },
+        { id: 'silly', label: '🟡 Misread Question', count: trapCounts.silly },
         { id: 'elimination', label: '🔵 Over-Elimination', count: trapCounts.elimination },
-        { id: 'memory', label: '🟣 Memory / Fact Slip', count: trapCounts.memory }
+        { id: 'memory', label: '🟣 Factual Recall', count: trapCounts.memory }
       ];
       var currentLeak = STATE.mistakesFilter || 'all';
 
       leakContainer.innerHTML = leaks.map(function (item) {
         var isActive = (item.id === currentLeak);
         var btnClass = isActive
-          ? 'px-3 py-1.5 rounded-xl bg-slate-900 text-amber-400 dark:bg-amber-500 dark:text-slate-950 font-black text-xs shadow-xs cursor-pointer'
-          : 'px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-amber-500 border border-slate-200 dark:border-slate-800 font-bold text-xs cursor-pointer transition-colors';
+          ? 'px-3 py-1.5 rounded-xl bg-slate-900 text-amber-400 dark:bg-amber-500 dark:text-slate-950 font-bold text-xs shadow-xs cursor-pointer'
+          : 'px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-amber-500 border border-slate-200 dark:border-slate-800 font-medium text-xs cursor-pointer transition-colors';
         return '<button type="button" onclick="window.filterMistakesByLeak(\'' + item.id + '\')" class="' + btnClass + '">' +
           item.label + ' <span class="opacity-75 font-mono text-[10px]">(' + item.count + ')</span>' +
         '</button>';
@@ -5508,21 +5539,18 @@ function renderPlayerDistractorDeepDive(q) {
     // 4. Filter and Sort Questions
     var filtered = allMistakes.slice();
 
-    // Subject Filter
     if (STATE.mistakesSubjectFilter && STATE.mistakesSubjectFilter !== 'all') {
       filtered = filtered.filter(function (q) {
         return (q.subject || '') === STATE.mistakesSubjectFilter;
       });
     }
 
-    // Leak Type Filter
     if (STATE.mistakesFilter && STATE.mistakesFilter !== 'all') {
       filtered = filtered.filter(function (q) {
         return (STATE.leakTags && STATE.leakTags[q.id]) === STATE.mistakesFilter;
       });
     }
 
-    // Keyword Search Filter
     if (STATE.mistakesSearchQuery) {
       var qry = STATE.mistakesSearchQuery.toLowerCase();
       filtered = filtered.filter(function (q) {
@@ -5536,7 +5564,6 @@ function renderPlayerDistractorDeepDive(q) {
       });
     }
 
-    // Sort Questions
     var sortMode = STATE.mistakesSort || 'recent';
     if (sortMode === 'oldest') {
       filtered.reverse();
@@ -5551,22 +5578,21 @@ function renderPlayerDistractorDeepDive(q) {
       });
     }
 
-    // Update Practice Filtered Button Count
     var practiceCountBadge = document.getElementById('practiceFilteredCountBadge');
     if (practiceCountBadge) practiceCountBadge.textContent = filtered.length + ' Qs';
 
-    // 5. Render Empty State or Question Cards
+    // 5. Render Question Cards
     if (filtered.length === 0) {
       container.innerHTML = (
         '<div class="p-12 text-center rounded-3xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-3 my-4">' +
           '<div class="w-16 h-16 rounded-3xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-3xl font-black shadow-sm">' +
-            '🎉' +
+            '✨' +
           '</div>' +
-          '<h3 class="text-base font-black text-slate-900 dark:text-white">Zero Mark Leaks in this Category!</h3>' +
+          '<h3 class="text-base font-bold text-slate-900 dark:text-white">No Mistakes Found</h3>' +
           '<p class="text-xs text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">' +
             (allMistakes.length === 0
-              ? 'You currently have zero active mistakes. Attempt questions in Focus Player or take mock simulations — any question you miss will be automatically autopsied and logged here.'
-              : 'No mistakes match your selected filter criteria. Try resetting your search or selecting "All Disciplines".') +
+              ? 'You do not have any logged mistakes right now. Any questions you answer incorrectly during practice or mocks will automatically be recorded here for revision.'
+              : 'No questions match your current filter selection. Try selecting "All Subjects" or clearing your search query.') +
           '</p>' +
           (allMistakes.length > 0 ? (
             '<button type="button" onclick="window.filterMistakesBySubject(\x27all\x27); window.filterMistakesByLeak(\x27all\x27); window.clearMistakesSearch();" class="mt-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition cursor-pointer">' +
@@ -5590,27 +5616,27 @@ function renderPlayerDistractorDeepDive(q) {
         : 'Official Key';
 
       var currentTag = (STATE.leakTags && STATE.leakTags[q.id]) || null;
-      var tagBadge = currentTag === 'concept' ? '<span class="px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] font-bold">🔴 Conceptual Gap</span>' :
-                     currentTag === 'silly' ? '<span class="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-[10px] font-bold">🟡 Silly Trap</span>' :
+      var tagBadge = currentTag === 'concept' ? '<span class="px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] font-bold">🔴 Conceptual</span>' :
+                     currentTag === 'silly' ? '<span class="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-[10px] font-bold">🟡 Misread Question</span>' :
                      currentTag === 'elimination' ? '<span class="px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-700 dark:text-blue-400 border border-blue-500/30 text-[10px] font-bold">🔵 Over-Elimination</span>' :
-                     currentTag === 'memory' ? '<span class="px-2 py-0.5 rounded-md bg-purple-500/15 text-purple-700 dark:text-purple-400 border border-purple-500/30 text-[10px] font-bold">🟣 Memory Slip</span>' :
-                     '<span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-medium">⚪ Uncategorized</span>';
+                     currentTag === 'memory' ? '<span class="px-2 py-0.5 rounded-md bg-purple-500/15 text-purple-700 dark:text-purple-400 border border-purple-500/30 text-[10px] font-bold">🟣 Factual Recall</span>' :
+                     '<span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-medium border border-slate-200 dark:border-slate-700">Uncategorized</span>';
 
       var firstLine = (q.explanation || '').split('\n')[0] || '';
       var coreConcept = q.static_root || firstLine || q.explanation;
-      var trapAntidote = q.elimination_trap || (q.option_analysis ? JSON.stringify(q.option_analysis) : 'Eliminate extreme generalizations and verify statutory provisions carefully.');
+      var trapAntidote = q.elimination_trap || (q.option_analysis ? JSON.stringify(q.option_analysis) : 'Eliminate extreme qualifiers and carefully verify statutory provisions.');
 
       var isBlind = STATE.mistakesBlindMode;
 
       return (
-        '<div class="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md hover:border-amber-500/40 transition-all flex flex-col gap-4 group">' +
+        '<div class="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-amber-500/40 transition-all flex flex-col gap-4 group">' +
           
-          '<!-- Top Header -->' +
-          '<div class="flex items-start justify-between gap-3 flex-wrap border-b border-slate-100 dark:border-slate-800/80 pb-3.5">' +
+          '<!-- Card Top Header -->' +
+          '<div class="flex items-start justify-between gap-3 flex-wrap border-b border-slate-100 dark:border-slate-800 pb-3">' +
             '<div class="flex items-center gap-2 flex-wrap">' +
               '<span class="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center gap-1.5 border border-slate-200 dark:border-slate-700">' +
                 '<span>' + (q.subject && q.subject.includes('Polity') ? '🏛️' : (q.subject && q.subject.includes('Economy') ? '📈' : (q.subject && q.subject.includes('Environment') ? '🌿' : (q.subject && q.subject.includes('History') ? '📜' : (q.subject && q.subject.includes('Geo') ? '🌍' : '🔬'))))) + '</span>' +
-                '<span>' + escapeHtml(q.subject || 'GS-1') + ' (' + q.year + ')</span>' +
+                '<span>' + escapeHtml(q.subject || 'GS-1') + (q.year ? ' (' + q.year + ')' : '') + '</span>' +
               '</span>' +
               (q.sub_topic ? '<span class="px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 text-[11px] font-semibold border border-amber-500/20">' + escapeHtml(q.sub_topic) + '</span>' : '') +
               (q.standard_book_ref ? '<span class="text-[11px] text-slate-500 dark:text-slate-400 font-mono hidden md:inline">📖 ' + escapeHtml(q.standard_book_ref.split(';')[0]) + '</span>' : '') +
@@ -5618,81 +5644,80 @@ function renderPlayerDistractorDeepDive(q) {
 
             '<div class="flex items-center gap-2">' +
               tagBadge +
-              '<span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-mono font-bold text-[10px] border border-rose-500/20">-0.66 Mark Bleed</span>' +
-              '<button type="button" onclick="window.dismissMistakeGap(\'' + q.id + '\')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer" title="Dismiss gap from notebook">' +
+              '<span class="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 font-mono font-bold text-[10px] border border-rose-500/20">-0.66 Neg.</span>' +
+              '<button type="button" onclick="window.dismissMistakeGap(\'' + q.id + '\')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer" title="Remove question from notebook">' +
                 '✕' +
               '</button>' +
             '</div>' +
           '</div>' +
 
           '<!-- Question Text -->' +
-          '<div class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 leading-relaxed">' +
+          '<div class="text-xs sm:text-sm font-medium text-slate-900 dark:text-slate-100 leading-relaxed">' +
             escapeHtml(q.question_text) +
           '</div>' +
 
-          '<!-- Inline Feedback Placeholder -->' +
+          '<!-- Inline Feedback -->' +
           '<div id="inlineFeedback_' + q.id + '"></div>' +
 
-          '<!-- Interactive Comparison & Autopsy Box -->' +
+          '<!-- Active Recall Mode Solution Mask -->' +
           (isBlind ? (
-            '<div class="p-4 rounded-2xl bg-purple-500/5 border border-purple-500/20 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">' +
-              '<div class="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-bold">' +
+            '<div class="p-3.5 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">' +
+              '<div class="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-medium">' +
                 '<span>🙈</span>' +
-                '<span>Blind Recall Mode Active: Previous pick &amp; official answer are masked.</span>' +
+                '<span>Active Recall Active: Test yourself using the buttons below, or reveal the solution.</span>' +
               '</div>' +
-              '<button type="button" id="revealAutopsyBtn_' + q.id + '" onclick="window.revealMistakeAutopsy(\'' + q.id + '\')" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-xs cursor-pointer transition">' +
-                '👁️ Reveal Answer Autopsy' +
+              '<button type="button" id="revealAutopsyBtn_' + q.id + '" onclick="window.revealMistakeAutopsy(\'' + q.id + '\')" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-xs cursor-pointer transition">' +
+                '👁️ Reveal Solution' +
               '</button>' +
             '</div>'
           ) : '') +
 
           '<div id="autopsyBox_' + q.id + '" class="' + (isBlind ? 'hidden ' : '') + 'flex flex-col gap-3.5">' +
             
-            '<!-- Split: Your Attempt vs Official Answer -->' +
+            '<!-- Split: Your Attempt vs Correct Answer -->' +
             '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">' +
               '<div class="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 flex flex-col gap-1">' +
                 '<span class="text-[10px] font-mono font-bold uppercase text-rose-600 dark:text-rose-400 flex items-center gap-1">' +
-                  '<span>❌</span> What You Picked (Error Trigger):' +
+                  '<span>❌</span> Your Previous Answer:' +
                 '</span>' +
                 '<span class="font-medium text-slate-800 dark:text-slate-200 text-[11px] leading-relaxed">' + escapeHtml(userPickText) + '</span>' +
               '</div>' +
 
               '<div class="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 flex flex-col gap-1">' +
                 '<span class="text-[10px] font-mono font-bold uppercase text-emerald-600 dark:text-emerald-400 flex items-center gap-1">' +
-                  '<span>✅</span> Official UPSC Standard Key:' +
+                  '<span>✅</span> Correct Answer:' +
                 '</span>' +
                 '<span class="font-medium text-slate-800 dark:text-slate-200 text-[11px] leading-relaxed">' + escapeHtml(correctText) + '</span>' +
               '</div>' +
             '</div>' +
 
-            '<!-- 10-Min Micro-Correction Autopsy -->' +
-            '<div class="p-4 rounded-2xl bg-gradient-to-br from-amber-500/10 via-slate-50 to-amber-500/5 dark:from-amber-500/10 dark:via-slate-950 dark:to-slate-950 border border-amber-500/30 flex flex-col gap-2 text-xs">' +
-              '<div class="flex items-center justify-between text-amber-700 dark:text-amber-400 font-black text-[11px] uppercase font-mono border-b border-amber-500/20 pb-2">' +
+            '<!-- Detailed Explanation & Conceptual Rule -->' +
+            '<div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 flex flex-col gap-2.5 text-xs">' +
+              '<div class="flex items-center justify-between text-slate-700 dark:text-slate-300 font-bold text-[11px] border-b border-slate-200 dark:border-slate-800 pb-2">' +
                 '<span class="flex items-center gap-1.5">' +
-                  '<span>⚡</span> 10-Minute Active Micro-Correction &amp; Root Law' +
+                  '<span>💡</span> Explanation &amp; Core Concept' +
                 '</span>' +
-                '<span class="text-[10px] opacity-75 font-normal">Read once, remember permanently</span>' +
               '</div>' +
               
               '<div class="text-slate-800 dark:text-slate-200 text-[11px] leading-relaxed">' +
-                '<strong>Core Static Law:</strong> ' + escapeHtml(coreConcept) +
+                '<strong>Core Concept:</strong> ' + escapeHtml(coreConcept) +
               '</div>' +
 
-              '<div class="p-2.5 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-amber-500/20 text-amber-900 dark:text-amber-200 text-[11px] leading-relaxed">' +
-                '<strong>🛡️ Topper Distractor Antidote:</strong> ' + escapeHtml(trapAntidote) +
+              '<div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-950 dark:text-amber-200 text-[11px] leading-relaxed">' +
+                '<strong>Distractor &amp; Trap Analysis:</strong> ' + escapeHtml(trapAntidote) +
               '</div>' +
 
-              (q.standard_book_ref ? '<div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">📖 <strong>Standard Authority:</strong> ' + escapeHtml(q.standard_book_ref) + '</div>' : '') +
+              (q.standard_book_ref ? '<div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">📖 <strong>Reference Source:</strong> ' + escapeHtml(q.standard_book_ref) + '</div>' : '') +
             '</div>' +
 
           '</div>' +
 
-          '<!-- Interactive Re-Attempt & Tagging Footer -->' +
+          '<!-- Card Footer: Re-Attempt & Categorize -->' +
           '<div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">' +
             
-            '<!-- Inline Test Recall Buttons -->' +
+            '<!-- Inline Test Options (Active Recall) -->' +
             '<div class="flex items-center gap-1.5 flex-wrap">' +
-              '<span class="text-[10px] font-mono font-bold text-slate-400 uppercase mr-1">Test Recall:</span>' +
+              '<span class="text-[10px] font-bold text-slate-400 uppercase mr-1">Test Yourself:</span>' +
               letters.map(function (ltr, ltrIdx) {
                 return '<button type="button" onclick="window.testMistakeOptionInline(\'' + q.id + '\', ' + ltrIdx + ')" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-slate-700 dark:text-slate-300 font-bold text-xs transition cursor-pointer flex items-center justify-center border border-slate-200 dark:border-slate-700 active:scale-90" title="Click to test option ' + ltr + '">' +
                   ltr +
@@ -5700,13 +5725,13 @@ function renderPlayerDistractorDeepDive(q) {
               }).join('') +
             '</div>' +
 
-            '<!-- Tag Root Cause Selector -->' +
+            '<!-- Tag Mistake Reason -->' +
             '<div class="flex items-center gap-1 flex-wrap">' +
-              '<span class="text-[10px] font-mono text-slate-400 mr-1">Tag Trigger:</span>' +
+              '<span class="text-[10px] text-slate-400 mr-1">Reason:</span>' +
               '<button type="button" onclick="window.setMistakeLeakTag(\'' + q.id + '\', \'concept\')" class="px-2 py-0.5 rounded-md text-[10px] font-bold transition cursor-pointer ' + (currentTag === 'concept' ? 'bg-rose-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20') + '">🔴 Concept</button>' +
-              '<button type="button" onclick="window.setMistakeLeakTag(\'' + q.id + '\', \'silly\')" class="px-2 py-0.5 rounded-md text-[10px] font-bold transition cursor-pointer ' + (currentTag === 'silly' ? 'bg-amber-500 text-slate-950' : 'bg-slate-100 dark:bg-slate-800 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20') + '">🟡 Silly</button>' +
+              '<button type="button" onclick="window.setMistakeLeakTag(\'' + q.id + '\', \'silly\')" class="px-2 py-0.5 rounded-md text-[10px] font-bold transition cursor-pointer ' + (currentTag === 'silly' ? 'bg-amber-500 text-slate-950' : 'bg-slate-100 dark:bg-slate-800 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20') + '">🟡 Misread</button>' +
               '<button type="button" onclick="window.setMistakeLeakTag(\'' + q.id + '\', \'elimination\')" class="px-2 py-0.5 rounded-md text-[10px] font-bold transition cursor-pointer ' + (currentTag === 'elimination' ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20') + '">🔵 Over-Elim</button>' +
-              '<button type="button" onclick="window.setMistakeLeakTag(\'' + q.id + '\', \'memory\')" class="px-2 py-0.5 rounded-md text-[10px] font-bold transition cursor-pointer ' + (currentTag === 'memory' ? 'bg-purple-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20') + '">🟣 Memory</button>' +
+              '<button type="button" onclick="window.setMistakeLeakTag(\'' + q.id + '\', \'memory\')" class="px-2 py-0.5 rounded-md text-[10px] font-bold transition cursor-pointer ' + (currentTag === 'memory' ? 'bg-purple-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20') + '">🟣 Recall</button>' +
             '</div>' +
 
           '</div>' +

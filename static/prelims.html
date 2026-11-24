@@ -2172,136 +2172,147 @@
         <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
           <button id="exitMistakesBtn" type="button" class="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer group">
             <span class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition">←</span>
-            <span>Return to Prelims Dashboard</span>
+            <span>Return to Dashboard</span>
           </button>
           
           <div class="flex items-center gap-2.5">
             <span id="mistakesBleedSummaryBadge" class="px-3 py-1 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold font-mono border border-rose-500/20 flex items-center gap-1.5">
-              <span>🩸</span>
-              <span id="mistakesLivePenaltyText">-0.00M Penalty Active</span>
+              <span>📉</span>
+              <span id="mistakesLivePenaltyText">-0.00 Marks Penalty</span>
             </span>
-            <span class="px-2.5 py-1 rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-400 text-xs font-black font-mono border border-amber-500/30">
-              UPSC Error Autopsy Engine
+            <span class="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-700">
+              UPSC Error Log
             </span>
           </div>
         </div>
 
-        <!-- 1. Executive Bleed Diagnostic Command Center -->
+        <!-- 1. Executive Diagnostic Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           
-          <!-- Stat 1: Active Gaps & Direct Leak -->
+          <!-- Stat 1: Logged Mistakes -->
           <div class="light-card p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-3">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Active Mark Leaks</span>
-              <span class="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center text-sm font-bold">⚠️</span>
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Logged Mistakes</span>
+              <span class="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center text-sm font-bold">📝</span>
             </div>
             <div>
               <div class="flex items-baseline gap-2">
                 <span id="statActiveGapsCount" class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">0</span>
-                <span class="text-xs font-bold text-slate-400 font-mono">Gaps</span>
+                <span class="text-xs font-bold text-slate-400">Questions</span>
               </div>
               <span id="statDirectPenaltySubtext" class="text-[11px] font-semibold text-rose-600 dark:text-rose-400 mt-0.5 block">-0.00 Marks Penalty (-0.66/Q)</span>
             </div>
           </div>
 
-          <!-- Stat 2: Recoverable Score Potential -->
+          <!-- Stat 2: Potential Score Gain -->
           <div class="light-card p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-3">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Recoverable Score Swing</span>
-              <span class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-sm font-bold">🚀</span>
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Potential Score Gain</span>
+              <span class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-sm font-bold">📈</span>
             </div>
             <div>
               <div class="flex items-baseline gap-2">
                 <span id="statRecoverableSwingScore" class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono">+0.0</span>
-                <span class="text-xs font-bold text-slate-400 font-mono">Marks</span>
+                <span class="text-xs font-bold text-slate-400">Marks</span>
               </div>
-              <span class="text-[11px] font-semibold text-emerald-600/90 dark:text-emerald-400/90 mt-0.5 block">+2.66 Marks Net Swing Per Gap</span>
+              <span class="text-[11px] font-semibold text-emerald-600/90 dark:text-emerald-400/90 mt-0.5 block">+2.66 marks per resolved question</span>
             </div>
           </div>
 
-          <!-- Stat 3: Primary Bleeding Discipline -->
+          <!-- Stat 3: Most Frequent Subject -->
           <div class="light-card p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-3">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">#1 Bleeding Discipline</span>
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Most Frequent Subject</span>
               <span class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-sm font-bold">🏛️</span>
             </div>
             <div>
-              <span id="statTopBleedSubjectName" class="text-sm sm:text-base font-black text-slate-900 dark:text-white line-clamp-1">No Active Leaks</span>
-              <span id="statTopBleedSubjectShare" class="text-[11px] font-semibold text-amber-600 dark:text-amber-400 mt-0.5 block">0 Gaps Recorded</span>
+              <span id="statTopBleedSubjectName" class="text-sm sm:text-base font-black text-slate-900 dark:text-white line-clamp-1">All Clear</span>
+              <span id="statTopBleedSubjectShare" class="text-[11px] font-semibold text-amber-600 dark:text-amber-400 mt-0.5 block">0 Questions Recorded</span>
             </div>
           </div>
 
-          <!-- Stat 4: Dominant Trap Archetype -->
+          <!-- Stat 4: Primary Mistake Cause -->
           <div class="light-card p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-3">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Dominant Error Archetype</span>
-              <span class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-sm font-bold">🧠</span>
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Primary Mistake Cause</span>
+              <span class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-sm font-bold">🎯</span>
             </div>
             <div>
               <span id="statDominantTrapName" class="text-sm sm:text-base font-black text-slate-900 dark:text-white line-clamp-1">Uncategorized</span>
-              <span id="statDominantTrapSubtext" class="text-[11px] font-semibold text-purple-600 dark:text-purple-400 mt-0.5 block">Ready for Root-Cause Tagging</span>
+              <span id="statDominantTrapSubtext" class="text-[11px] font-semibold text-purple-600 dark:text-purple-400 mt-0.5 block">Tag errors on question cards</span>
             </div>
           </div>
 
         </div>
 
-        <!-- 2. Main Remedial Command Card -->
+        <!-- 2. Main Mistakes Card -->
         <div class="light-card rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-5 sm:p-7 flex flex-col gap-6">
           
           <!-- Header and Action Toolbelt -->
           <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
             <div class="flex items-center gap-3.5">
-              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500/20 via-amber-500/20 to-orange-500/20 border border-rose-500/30 text-rose-600 dark:text-rose-400 flex items-center justify-center text-2xl font-black shrink-0 shadow-sm">
+              <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-2xl font-black shrink-0 shadow-sm">
                 📓
               </div>
               <div>
                 <div class="flex items-center gap-2 flex-wrap">
-                  <h2 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white">Mistakes Notebook &amp; Conceptual Autopsy</h2>
-                  <span id="modalMistakesCountBadge" class="px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30 text-[10px] font-black uppercase font-mono">0 Gaps Logged</span>
+                  <h2 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white">Mistakes &amp; Weak Areas Notebook</h2>
+                  <span id="modalMistakesCountBadge" class="px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30 text-[10px] font-bold">0 Questions Recorded</span>
                 </div>
                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">
-                  Turn marks lost into marks gained: dissect the exact UPSC distractor trigger, master the static foundational rule, and re-test active recall until permanently eliminated.
+                  Review questions you got wrong across PYQs and Mocks. Master core concepts, understand distractor traps, and test your active recall before exam day.
                 </p>
               </div>
             </div>
 
             <!-- Action Buttons -->
             <div class="flex items-center gap-2 flex-wrap self-start lg:self-auto">
-              <button type="button" id="startMistakesPracticeBtn" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition-all cursor-pointer flex items-center gap-2 active:scale-95">
-                <span>⚡ Practice Filtered Gaps</span>
+              <button type="button" id="startMistakesPracticeBtn" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition-all cursor-pointer flex items-center gap-2 active:scale-95">
+                <span>⚡ Practice Selected</span>
                 <span id="practiceFilteredCountBadge" class="px-1.5 py-0.2 rounded bg-slate-950/20 text-slate-950 font-mono text-[10px]">0 Qs</span>
               </button>
               
-              <button type="button" id="toggleBlindRecallBtn" onclick="window.toggleMistakesBlindMode()" class="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-all cursor-pointer flex items-center gap-1.5" title="Hides previous picks and official answers to test blind memory recall">
-                <span id="blindRecallIcon">👁️</span>
-                <span id="blindRecallText">Blind Recall Mode</span>
+              <button type="button" id="toggleBlindRecallBtn" onclick="window.toggleMistakesBlindMode()" class="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-all cursor-pointer flex items-center gap-1.5" title="Hides solutions so you can re-attempt questions without confirmation bias">
+                <span id="blindRecallIcon">🙈</span>
+                <span id="blindRecallText">Hide Solutions (Active Recall)</span>
               </button>
 
-              <button type="button" id="exportMistakesFlashSheetBtn" class="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-all cursor-pointer flex items-center gap-1.5" title="Generate printable high-yield 2-column revision cheatsheet">
-                <span>🖨️ Export Flash-Sheet</span>
+              <button type="button" id="exportMistakesFlashSheetBtn" class="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-all cursor-pointer flex items-center gap-1.5" title="Print a clean 2-column revision sheet">
+                <span>📄 Print Revision Sheet</span>
               </button>
 
-              <button type="button" id="clearAllMistakesBtn" class="px-3 py-2.5 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 font-bold text-xs transition-colors cursor-pointer" title="Permanently clear mistakes notebook">
+              <button type="button" id="clearAllMistakesBtn" class="px-3 py-2.5 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 font-bold text-xs transition-colors cursor-pointer" title="Clear all mistakes from notebook">
                 <span>Clear All 🗑️</span>
               </button>
             </div>
           </div>
 
-          <!-- 3. Categorization & Multi-Dimensional Filter Bar -->
-          <div class="flex flex-col gap-3.5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+          <!-- Active Recall Explanatory Banner -->
+          <div id="activeRecallInfoBanner" class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-3 text-xs text-amber-900 dark:text-amber-200">
+            <div class="flex items-center gap-2.5">
+              <span class="text-base shrink-0">💡</span>
+              <span class="leading-relaxed"><strong>Active Recall Mode:</strong> Previous attempts and solutions are hidden so you can re-attempt each question from memory. Click options A, B, C, or D directly on any card to test yourself.</span>
+            </div>
+            <button type="button" onclick="window.toggleMistakesBlindMode()" class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-950 dark:text-amber-100 font-bold text-[11px] shrink-0 cursor-pointer">
+              Show Solutions
+            </button>
+          </div>
+
+          <!-- Multi-Dimensional Filter & Search Toolbelt -->
+          <div class="flex flex-col gap-3.5 bg-slate-50/80 dark:bg-slate-950/60 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800">
             
-            <!-- Row 1: Search & Sort Controls -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <!-- Row 1: Search & Sort -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               <div class="relative flex-1">
                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">🔍</span>
-                <input type="text" id="mistakesSearchInput" placeholder="Search gaps by keyword, topic, act, committee, standard book citation..." class="w-full pl-8 pr-8 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-colors">
+                <input type="text" id="mistakesSearchInput" placeholder="Search by topic, act, committee, concept, or question text..." class="w-full pl-8 pr-8 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-colors">
                 <button type="button" id="clearMistakesSearchBtn" onclick="window.clearMistakesSearch()" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs cursor-pointer">✕</button>
               </div>
 
               <div class="flex items-center gap-2 shrink-0">
-                <span class="text-[11px] font-mono text-slate-400 font-bold hidden sm:inline">Sort:</span>
-                <select id="mistakesSortSelect" onchange="window.onMistakesSortChange(this.value)" class="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold focus:outline-none focus:border-amber-500 cursor-pointer">
-                  <option value="recent">⏱️ Most Recent First</option>
+                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Sort:</span>
+                <select id="mistakesSortSelect" onchange="window.onMistakesSortChange(this.value)" class="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none focus:border-amber-500 cursor-pointer">
+                  <option value="recent">📅 Newest First</option>
                   <option value="oldest">📅 Oldest First</option>
                   <option value="subject">🏛️ By Subject (A–Z)</option>
                   <option value="hardest">🔥 Highest Difficulty</option>
@@ -2312,19 +2323,19 @@
             <!-- Row 2: Subject Discipline Pills -->
             <div class="flex flex-col gap-1.5 pt-1 border-t border-slate-200 dark:border-slate-800/80">
               <div class="flex items-center justify-between text-[11px]">
-                <span class="font-bold text-slate-600 dark:text-slate-400 uppercase font-mono text-[10px]">Filter by Core Discipline:</span>
-                <span id="mistakesSubjectCountLabel" class="text-slate-400 font-mono text-[10px]">Showing All Disciplines</span>
+                <span class="font-bold text-slate-600 dark:text-slate-400 uppercase text-[10px]">Filter by Subject:</span>
+                <span id="mistakesSubjectCountLabel" class="text-slate-400 text-[10px]">Showing All Subjects</span>
               </div>
               <div id="mistakesSubjectPillsContainer" class="flex items-center gap-1.5 flex-wrap">
                 <!-- Dynamically populated via renderMistakesModal() -->
               </div>
             </div>
 
-            <!-- Row 3: Behavioral Root Cause Pills -->
+            <!-- Row 3: Mistake Cause Pills -->
             <div class="flex flex-col gap-1.5 pt-1 border-t border-slate-200 dark:border-slate-800/80">
               <div class="flex items-center justify-between text-[11px]">
-                <span class="font-bold text-slate-600 dark:text-slate-400 uppercase font-mono text-[10px]">Filter by Error Trigger:</span>
-                <span class="text-slate-400 font-mono text-[10px]">Tag errors on card to refine</span>
+                <span class="font-bold text-slate-600 dark:text-slate-400 uppercase text-[10px]">Filter by Mistake Reason:</span>
+                <span class="text-slate-400 text-[10px]">Categorize questions to identify trends</span>
               </div>
               <div id="mistakesLeakFilterBar" class="flex items-center gap-1.5 flex-wrap">
                 <!-- Dynamically populated via renderMistakesModal() -->
@@ -2770,7 +2781,7 @@
   </div>
 
   <!-- Scripts -->
-  <script src="/static/prelims.js?v=1795500079526"></script>
+  <script src="/static/prelims.js?v=1795502761600"></script>
 
   <!-- ====================================================
        DYNAMIC REVERSE-OSMOSIS CURRENT AFFAIRS GENERATOR MODAL (Phase 5)
@@ -3626,15 +3637,6 @@
       <div class="flex items-center justify-center gap-2 text-xs font-mono text-amber-400">
         <span id="confirmTimeLabel">⏱️ Practice Time:</span>
         <span id="confirmTimeRemaining" class="font-bold">00:00</span>
-      </div>
-
-      <!-- Minimum 2 questions notice (visible when only 1 question answered) -->
-      <div id="confirmMinQuestionsWarning" class="hidden p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs leading-relaxed text-left flex items-start gap-2.5">
-        <span class="text-base shrink-0">💡</span>
-        <div class="flex flex-col gap-0.5">
-          <span class="font-bold text-amber-200">1 Question Attempted</span>
-          <span class="text-[11px] text-slate-300">UPSC scorecards and accuracy diagnostics require at least 2 questions. You can safely exit back to your section without saving an incomplete 1-question scorecard, or continue practicing.</span>
-        </div>
       </div>
 
       <!-- Action Buttons -->
