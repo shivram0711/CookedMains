@@ -1789,9 +1789,9 @@
         
         <!-- Player Top Bar -->
         <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-          <button id="exitPlayerBtn" type="button" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer">
+          <button id="exitPlayerBtn" type="button" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer" title="Return to previous section">
             <span>←</span>
-            <span>Exit to Dashboard</span>
+            <span id="exitPlayerBtnText">Exit to Dashboard</span>
           </button>
 
           <!-- Current Metadata -->
@@ -3628,13 +3628,30 @@
         <span id="confirmTimeRemaining" class="font-bold">00:00</span>
       </div>
 
-      <div class="flex items-center justify-center gap-3 pt-2">
-        <button type="button" id="returnToTestBtn" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer">
-          Continue
-        </button>
-        <button type="button" id="confirmFinalSubmitBtn" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-lg cursor-pointer flex items-center gap-1.5">
-          <span>🏁</span>
-          <span id="confirmFinalSubmitBtnText">Submit &amp; View Report</span>
+      <!-- Minimum 2 questions notice (visible when only 1 question answered) -->
+      <div id="confirmMinQuestionsWarning" class="hidden p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs leading-relaxed text-left flex items-start gap-2.5">
+        <span class="text-base shrink-0">💡</span>
+        <div class="flex flex-col gap-0.5">
+          <span class="font-bold text-amber-200">1 Question Attempted</span>
+          <span class="text-[11px] text-slate-300">UPSC scorecards and accuracy diagnostics require at least 2 questions. You can safely exit back to your section without saving an incomplete 1-question scorecard, or continue practicing.</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col gap-2 pt-1">
+        <div class="flex items-center justify-center gap-2.5">
+          <button type="button" id="returnToTestBtn" class="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs cursor-pointer transition">
+            Continue Practice
+          </button>
+          <button type="button" id="confirmFinalSubmitBtn" class="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-lg cursor-pointer transition flex items-center justify-center gap-1.5">
+            <span>🏁</span>
+            <span id="confirmFinalSubmitBtnText">Submit &amp; View Report</span>
+          </button>
+        </div>
+
+        <button type="button" id="confirmExitPracticeBtn" class="w-full px-4 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-rose-200 border border-rose-500/30 font-bold text-xs cursor-pointer transition flex items-center justify-center gap-1.5">
+          <span>🚪</span>
+          <span id="confirmExitPracticeBtnText">Leave Practice &amp; Return to Section</span>
         </button>
       </div>
 

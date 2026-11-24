@@ -243,10 +243,70 @@
     });
   }
 
+  // Helper to resolve origin section and human-friendly labels
+  function getPreviousSectionInfo() {
+    let prev = STATE.previousView;
+    if (!prev) {
+      const p = (typeof window !== 'undefined' && window.location && window.location.pathname ? window.location.pathname : '').toLowerCase();
+      if (p.includes('/current-affairs')) prev = 'current_affairs';
+      else if (p.includes('/pyqs')) prev = 'vault';
+      else if (p.includes('/csat')) prev = 'csat';
+      else prev = 'dashboard';
+      STATE.previousView = prev;
+    }
+
+    if (prev === 'current_affairs' || prev === 'ca') {
+      return { id: 'current_affairs', name: 'Current Affairs Arena', shortName: 'Current Affairs', path: '/prelims/current-affairs' };
+    }
+    if (prev === 'vault') {
+      return { id: 'vault', name: 'Prelims PYQ Vault', shortName: 'PYQ Vault', path: '/prelims/pyqs' };
+    }
+    if (prev === 'mistakes') {
+      return { id: 'mistakes', name: 'Mistakes Notebook', shortName: 'Mistakes', path: null };
+    }
+    if (prev === 'csat') {
+      return { id: 'csat', name: 'CSAT Practice', shortName: 'CSAT Practice', path: '/prelims/csat' };
+    }
+    if (prev === 'cutoff_ev') {
+      return { id: 'cutoff_ev', name: 'EV Optimizer', shortName: 'EV Optimizer', path: '/prelims/cutoff-calculator' };
+    }
+    return { id: 'dashboard', name: 'Prelims Dashboard', shortName: 'Dashboard', path: '/prelims' };
+  }
+
+  window.returnToPreviousSection = function () {
+    const info = getPreviousSectionInfo();
+    switchViewMode(info.id);
+    if (info.path && typeof window !== 'undefined' && window.history && window.history.replaceState) {
+      window.history.replaceState({}, '', info.path);
+    }
+  };
+
+  function updatePlayerExitButton() {
+    const info = getPreviousSectionInfo();
+    const exitBtnText = document.getElementById('exitPlayerBtnText');
+    const exitModalBtnText = document.getElementById('confirmExitPracticeBtnText');
+    if (exitBtnText) {
+      exitBtnText.textContent = 'Back to ' + info.shortName;
+    }
+    if (exitModalBtnText) {
+      exitModalBtnText.textContent = 'Leave Practice & Return to ' + info.shortName;
+    }
+  }
+
   function switchViewMode(mode) {
     if (!STATE.user && (mode === 'mistakes' || mode === 'csat' || mode === 'cutoff')) {
       openFreemiumGateModal(mode);
       return;
+    }
+    // Track previous non-player, non-report section
+    if (STATE.viewMode && STATE.viewMode !== 'player' && STATE.viewMode !== 'report') {
+      STATE.previousView = STATE.viewMode;
+    } else if (!STATE.previousView) {
+      const p = (typeof window !== 'undefined' && window.location && window.location.pathname ? window.location.pathname : '').toLowerCase();
+      if (p.includes('/current-affairs')) STATE.previousView = 'current_affairs';
+      else if (p.includes('/pyqs')) STATE.previousView = 'vault';
+      else if (p.includes('/csat')) STATE.previousView = 'csat';
+      else STATE.previousView = 'dashboard';
     }
     STATE.viewMode = mode;
     const dashView = document.getElementById('dashboardOverviewView');
@@ -270,10 +330,12 @@
       if (vaultView) vaultView.classList.add('hidden');
       if (playerView) playerView.classList.remove('hidden');
       updateSidebarActive('sideNavPractice');
+      updatePlayerExitButton();
       if (breadcrumb) {
+        const prevInfo = getPreviousSectionInfo();
         breadcrumb.textContent = STATE.isExamMode 
           ? (STATE.currentTest ? STATE.currentTest.title : 'Timed Exam Simulation')
-          : 'Question Player Focus Mode';
+          : ('Focus Mode (' + prevInfo.shortName + ')');
       }
       renderCurrentPlayerQuestion();
     } else if (mode === 'report') {
@@ -1368,9 +1430,21 @@
         ? 'Review your attempt status before computing your official UPSC score and forensic report:'
         : 'Analyze your net score (+2.00, -0.66), accuracy rate, subject strengths, and save mistakes to your Notebook:';
     }
-    if (submitBtnText) {
+    const minWarningEl = document.getElementById('confirmMinQuestionsWarning');
+    if (minWarningEl) {
+      if (answered === 1) {
+        minWarningEl.classList.remove('hidden');
+        if (submitBtnText) submitBtnText.textContent = 'Finish (1 Q Attempted)';
+      } else {
+        minWarningEl.classList.add('hidden');
+        if (submitBtnText) {
+          submitBtnText.textContent = isExam ? 'Submit Test & View Report' : 'Finish & View Scorecard';
+        }
+      }
+    } else if (submitBtnText) {
       submitBtnText.textContent = isExam ? 'Submit Test & View Report' : 'Finish & View Scorecard';
     }
+    updatePlayerExitButton();
 
     if (timeEl) {
       if (isExam && STATE.currentTest && STATE.currentTest.remainingSeconds !== undefined) {
@@ -1433,6 +1507,14 @@
     });
 
     const attemptedCount = correctCount + wrongCount;
+
+    // GUARD: Do NOT generate a scorecard for 1 question only!
+    if (attemptedCount < 2) {
+      showToast('Practice ended (1 question attempted). Scorecards require at least 2 questions to evaluate accuracy.', 'info');
+      window.returnToPreviousSection();
+      return;
+    }
+
     const grossScore = Number((correctCount * 2.0).toFixed(2));
     const negativeBleed = Number((wrongCount * 0.66).toFixed(2));
     const netScore = Number((grossScore - negativeBleed).toFixed(2));
@@ -6600,7 +6682,7 @@ function renderPlayerDistractorDeepDive(q) {
       if (anyAnswered) {
         window.openSubmitConfirmModal();
       } else {
-        switchViewMode('dashboard');
+        window.returnToPreviousSection();
       }
     });
 
@@ -6616,6 +6698,12 @@ function renderPlayerDistractorDeepDive(q) {
       window.openSubmitConfirmModal();
     });
     document.getElementById('returnToTestBtn')?.addEventListener('click', window.closeSubmitConfirmModal);
+    document.getElementById('confirmExitPracticeBtn')?.addEventListener('click', function () {
+      window.closeSubmitConfirmModal();
+      stopExamTimer();
+      showToast('Exited practice session.', 'info');
+      window.returnToPreviousSection();
+    });
     document.getElementById('confirmFinalSubmitBtn')?.addEventListener('click', window.submitExamSession);
 
     document.getElementById('playerPrevBtn')?.addEventListener('click', function () {
