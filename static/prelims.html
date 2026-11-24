@@ -2164,75 +2164,177 @@
 
 
       <!-- ========================================================
-           VIEW: MISTAKES NOTEBOOK & 10-MIN MICRO-CORRECTIONS
+           VIEW: MISTAKES NOTEBOOK & 10-MIN MICRO-CORRECTIONS (RE-ENGINEERED)
            ======================================================== -->
-      <div id="mistakesNotebookView" class="hidden flex flex-col gap-5">
+      <div id="mistakesNotebookView" class="hidden flex flex-col gap-6">
         
         <!-- View Top Bar -->
         <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-          <button id="exitMistakesBtn" type="button" class="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer">
-            <span>←</span>
-            <span>Exit to Dashboard</span>
+          <button id="exitMistakesBtn" type="button" class="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer group">
+            <span class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition">←</span>
+            <span>Return to Prelims Dashboard</span>
           </button>
           
-          <div class="flex items-center gap-2">
-            <span class="px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-700 dark:text-rose-400 text-xs font-black font-mono border border-rose-500/30">
-              Remedial &amp; Active Recall Hub
+          <div class="flex items-center gap-2.5">
+            <span id="mistakesBleedSummaryBadge" class="px-3 py-1 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold font-mono border border-rose-500/20 flex items-center gap-1.5">
+              <span>🩸</span>
+              <span id="mistakesLivePenaltyText">-0.00M Penalty Active</span>
+            </span>
+            <span class="px-2.5 py-1 rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-400 text-xs font-black font-mono border border-amber-500/30">
+              UPSC Error Autopsy Engine
             </span>
           </div>
         </div>
 
-        <!-- Main Card -->
-        <div class="light-card rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-6 sm:p-7 flex flex-col gap-5">
+        <!-- 1. Executive Bleed Diagnostic Command Center -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           
-          <!-- Header -->
-          <div class="flex items-start justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+          <!-- Stat 1: Active Gaps & Direct Leak -->
+          <div class="light-card p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Active Mark Leaks</span>
+              <span class="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center text-sm font-bold">⚠️</span>
+            </div>
+            <div>
+              <div class="flex items-baseline gap-2">
+                <span id="statActiveGapsCount" class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">0</span>
+                <span class="text-xs font-bold text-slate-400 font-mono">Gaps</span>
+              </div>
+              <span id="statDirectPenaltySubtext" class="text-[11px] font-semibold text-rose-600 dark:text-rose-400 mt-0.5 block">-0.00 Marks Penalty (-0.66/Q)</span>
+            </div>
+          </div>
+
+          <!-- Stat 2: Recoverable Score Potential -->
+          <div class="light-card p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Recoverable Score Swing</span>
+              <span class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-sm font-bold">🚀</span>
+            </div>
+            <div>
+              <div class="flex items-baseline gap-2">
+                <span id="statRecoverableSwingScore" class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono">+0.0</span>
+                <span class="text-xs font-bold text-slate-400 font-mono">Marks</span>
+              </div>
+              <span class="text-[11px] font-semibold text-emerald-600/90 dark:text-emerald-400/90 mt-0.5 block">+2.66 Marks Net Swing Per Gap</span>
+            </div>
+          </div>
+
+          <!-- Stat 3: Primary Bleeding Discipline -->
+          <div class="light-card p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">#1 Bleeding Discipline</span>
+              <span class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-sm font-bold">🏛️</span>
+            </div>
+            <div>
+              <span id="statTopBleedSubjectName" class="text-sm sm:text-base font-black text-slate-900 dark:text-white line-clamp-1">No Active Leaks</span>
+              <span id="statTopBleedSubjectShare" class="text-[11px] font-semibold text-amber-600 dark:text-amber-400 mt-0.5 block">0 Gaps Recorded</span>
+            </div>
+          </div>
+
+          <!-- Stat 4: Dominant Trap Archetype -->
+          <div class="light-card p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between gap-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Dominant Error Archetype</span>
+              <span class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-sm font-bold">🧠</span>
+            </div>
+            <div>
+              <span id="statDominantTrapName" class="text-sm sm:text-base font-black text-slate-900 dark:text-white line-clamp-1">Uncategorized</span>
+              <span id="statDominantTrapSubtext" class="text-[11px] font-semibold text-purple-600 dark:text-purple-400 mt-0.5 block">Ready for Root-Cause Tagging</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 2. Main Remedial Command Card -->
+        <div class="light-card rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-5 sm:p-7 flex flex-col gap-6">
+          
+          <!-- Header and Action Toolbelt -->
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
             <div class="flex items-center gap-3.5">
-              <div class="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-500 flex items-center justify-center text-2xl font-black shrink-0">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500/20 via-amber-500/20 to-orange-500/20 border border-rose-500/30 text-rose-600 dark:text-rose-400 flex items-center justify-center text-2xl font-black shrink-0 shadow-sm">
                 📓
               </div>
-              <div class="flex flex-col">
+              <div>
                 <div class="flex items-center gap-2 flex-wrap">
-                  <h2 class="text-xl font-black text-slate-900 dark:text-white">Mistakes Notebook &amp; 10-Min "Micro-Correction" Generator</h2>
-                  <span id="modalMistakesCountBadge" class="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30 text-[10px] font-black uppercase font-mono">0 Gaps Logged</span>
+                  <h2 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white">Mistakes Notebook &amp; Conceptual Autopsy</h2>
+                  <span id="modalMistakesCountBadge" class="px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30 text-[10px] font-black uppercase font-mono">0 Gaps Logged</span>
                 </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Self-clearing remedial hub: master the missing conceptual link for questions you got wrong to permanently delete them.
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">
+                  Turn marks lost into marks gained: dissect the exact UPSC distractor trigger, master the static foundational rule, and re-test active recall until permanently eliminated.
                 </p>
               </div>
             </div>
-          </div>
 
-          <!-- Action Control Bar -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs">
-            <div class="flex items-center gap-2 flex-wrap">
-              <button type="button" id="startMistakesPracticeBtn" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black shadow-md transition-all cursor-pointer flex items-center gap-1.5">
-                <span>⚡ 1-Click Practice Mistakes</span>
-                <span>(Focus Player)</span>
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-2 flex-wrap self-start lg:self-auto">
+              <button type="button" id="startMistakesPracticeBtn" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition-all cursor-pointer flex items-center gap-2 active:scale-95">
+                <span>⚡ Practice Filtered Gaps</span>
+                <span id="practiceFilteredCountBadge" class="px-1.5 py-0.2 rounded bg-slate-950/20 text-slate-950 font-mono text-[10px]">0 Qs</span>
               </button>
-              <button type="button" id="exportMistakesFlashSheetBtn" class="px-3.5 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-amber-700 dark:text-amber-400 font-bold border border-slate-300 dark:border-slate-700 transition-all cursor-pointer flex items-center gap-1.5">
-                <span>🖨️ Export 10-Min Flash-Sheet</span>
-                <span>(PDF / Print)</span>
+              
+              <button type="button" id="toggleBlindRecallBtn" onclick="window.toggleMistakesBlindMode()" class="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-all cursor-pointer flex items-center gap-1.5" title="Hides previous picks and official answers to test blind memory recall">
+                <span id="blindRecallIcon">👁️</span>
+                <span id="blindRecallText">Blind Recall Mode</span>
+              </button>
+
+              <button type="button" id="exportMistakesFlashSheetBtn" class="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-all cursor-pointer flex items-center gap-1.5" title="Generate printable high-yield 2-column revision cheatsheet">
+                <span>🖨️ Export Flash-Sheet</span>
+              </button>
+
+              <button type="button" id="clearAllMistakesBtn" class="px-3 py-2.5 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 font-bold text-xs transition-colors cursor-pointer" title="Permanently clear mistakes notebook">
+                <span>Clear All 🗑️</span>
               </button>
             </div>
-
-            <button type="button" id="clearAllMistakesBtn" class="text-xs font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 transition-colors cursor-pointer self-start sm:self-auto">
-              Clear All Mistakes 🗑️
-            </button>
           </div>
 
-          <!-- Behavioral Leak Filter Bar -->
-          <div id="mistakesLeakFilterBar" class="flex items-center gap-1.5 flex-wrap text-xs pt-1">
-            <span class="text-[10px] font-mono uppercase font-bold text-slate-500 dark:text-slate-400 mr-1">Filter by Leak Type:</span>
-            <button type="button" class="mistake-filter-btn px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-black text-[11px] cursor-pointer shadow-xs" data-filter="all">All Gaps</button>
-            <button type="button" class="mistake-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-950 text-rose-700 dark:text-rose-400 border border-slate-200 dark:border-slate-800 font-bold text-[11px] cursor-pointer" data-filter="concept">🔴 Conceptual</button>
-            <button type="button" class="mistake-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-950 text-amber-700 dark:text-amber-400 border border-slate-200 dark:border-slate-800 font-bold text-[11px] cursor-pointer" data-filter="silly">🟡 Silly Trap</button>
-            <button type="button" class="mistake-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-950 text-blue-700 dark:text-blue-400 border border-slate-200 dark:border-slate-800 font-bold text-[11px] cursor-pointer" data-filter="elimination">🔵 Over-Elim</button>
-            <button type="button" class="mistake-filter-btn px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-950 text-purple-700 dark:text-purple-400 border border-slate-200 dark:border-slate-800 font-bold text-[11px] cursor-pointer" data-filter="memory">🟣 Memory</button>
+          <!-- 3. Categorization & Multi-Dimensional Filter Bar -->
+          <div class="flex flex-col gap-3.5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+            
+            <!-- Row 1: Search & Sort Controls -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="relative flex-1">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">🔍</span>
+                <input type="text" id="mistakesSearchInput" placeholder="Search gaps by keyword, topic, act, committee, standard book citation..." class="w-full pl-8 pr-8 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-colors">
+                <button type="button" id="clearMistakesSearchBtn" onclick="window.clearMistakesSearch()" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs cursor-pointer">✕</button>
+              </div>
+
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="text-[11px] font-mono text-slate-400 font-bold hidden sm:inline">Sort:</span>
+                <select id="mistakesSortSelect" onchange="window.onMistakesSortChange(this.value)" class="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold focus:outline-none focus:border-amber-500 cursor-pointer">
+                  <option value="recent">⏱️ Most Recent First</option>
+                  <option value="oldest">📅 Oldest First</option>
+                  <option value="subject">🏛️ By Subject (A–Z)</option>
+                  <option value="hardest">🔥 Highest Difficulty</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Row 2: Subject Discipline Pills -->
+            <div class="flex flex-col gap-1.5 pt-1 border-t border-slate-200 dark:border-slate-800/80">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="font-bold text-slate-600 dark:text-slate-400 uppercase font-mono text-[10px]">Filter by Core Discipline:</span>
+                <span id="mistakesSubjectCountLabel" class="text-slate-400 font-mono text-[10px]">Showing All Disciplines</span>
+              </div>
+              <div id="mistakesSubjectPillsContainer" class="flex items-center gap-1.5 flex-wrap">
+                <!-- Dynamically populated via renderMistakesModal() -->
+              </div>
+            </div>
+
+            <!-- Row 3: Behavioral Root Cause Pills -->
+            <div class="flex flex-col gap-1.5 pt-1 border-t border-slate-200 dark:border-slate-800/80">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="font-bold text-slate-600 dark:text-slate-400 uppercase font-mono text-[10px]">Filter by Error Trigger:</span>
+                <span class="text-slate-400 font-mono text-[10px]">Tag errors on card to refine</span>
+              </div>
+              <div id="mistakesLeakFilterBar" class="flex items-center gap-1.5 flex-wrap">
+                <!-- Dynamically populated via renderMistakesModal() -->
+              </div>
+            </div>
+
           </div>
 
-          <!-- Mistakes Feed Container -->
-          <div id="modalMistakesContainer" class="flex flex-col gap-3.5 max-h-[75vh] overflow-y-auto pr-1"></div>
+          <!-- 4. Mistakes Feed Container (Cards) -->
+          <div id="modalMistakesContainer" class="flex flex-col gap-4 min-h-[300px]"></div>
 
         </div>
 
@@ -2668,7 +2770,7 @@
   </div>
 
   <!-- Scripts -->
-  <script src="/static/prelims.js?v=1795499091070"></script>
+  <script src="/static/prelims.js?v=1795500079526"></script>
 
   <!-- ====================================================
        DYNAMIC REVERSE-OSMOSIS CURRENT AFFAIRS GENERATOR MODAL (Phase 5)
