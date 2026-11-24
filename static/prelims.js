@@ -4697,7 +4697,7 @@ function renderPlayerDistractorDeepDive(q) {
 
       return (
         '<button type="button" class="vault-ca-month-pill ' + btnClass + '" data-month="' + m.id + '" onclick="window.setVaultCaMonth(\'' + m.id + '\')">' +
-          m.label + ' <span class="opacity-70 text-[10px]">(' + count + ')</span>' +
+          m.label +
         '</button>'
       );
     }).join('');
@@ -6962,15 +6962,14 @@ function renderPlayerDistractorDeepDive(q) {
 
     // Dynamically update header badges and labels
     var badge = document.getElementById('caArenaHeaderBadge');
-    if (badge) badge.textContent = '10 Dossiers · ' + totalCaCount + ' Qs';
+    if (badge) badge.textContent = '10 Monthly Dossiers';
     var subtext = document.getElementById('caDossiersCountSubtext');
-    if (subtext) subtext.textContent = '10 Comprehensive Dossiers (' + totalCaCount + ' Qs)';
+    if (subtext) subtext.textContent = '10 Comprehensive Dossiers';
     var allBtn = document.getElementById('caMonthPillAll');
-    if (allBtn) allBtn.textContent = 'All Months (' + totalCaCount + ' Qs)';
+    if (allBtn) allBtn.textContent = 'All Months';
 
     // Render 7 Monthly Dossier Hub Cards
     cardsGrid.innerHTML = MONTHLY_DOSSIERS_METADATA.map(function (meta) {
-      var count = caQuestions.filter(function (q) { return q.month === meta.month; }).length || 15;
       return (
         '<div class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between gap-4 transition-all hover:border-emerald-500/50 group">' +
           '<div class="flex flex-col gap-3">' +
@@ -6982,9 +6981,6 @@ function renderPlayerDistractorDeepDive(q) {
                   '<span class="text-[10px] text-slate-400 font-mono">' + escapeHtml(meta.leadTheme) + '</span>' +
                 '</div>' +
               '</div>' +
-              '<span class="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-mono font-bold border border-emerald-500/30">' +
-                count + ' Qs' +
-              '</span>' +
             '</div>' +
 
             '<div class="flex items-center gap-1.5 flex-wrap pt-1">' +
@@ -6997,7 +6993,7 @@ function renderPlayerDistractorDeepDive(q) {
 
           '<div class="pt-3 border-t border-slate-800 flex items-center justify-between gap-2 flex-wrap">' +
             '<button type="button" onclick="window.startMonthlyCaMock(\'' + meta.month + '\', \'exam\')" class="flex-1 py-2 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition shadow-md shadow-emerald-500/10 cursor-pointer flex items-center justify-center gap-1.5 active:scale-95">' +
-              '<span>▶️ 15 Qs Timed Mock</span>' +
+              '<span>▶️ Timed Mock</span>' +
             '</button>' +
             '<button type="button" onclick="window.startMonthlyCaMock(\'' + meta.month + '\', \'tutor\')" class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs transition cursor-pointer" title="Tutor Practice Mode with instant explanations">' +
               '<span>💡 Tutor</span>' +
