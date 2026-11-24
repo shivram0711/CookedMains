@@ -932,7 +932,7 @@
       // Filter by selected exam sources
       const sources = [];
       document.querySelectorAll('.mock-source-check:checked').forEach(function (cb) { sources.push(cb.value); });
-      let pPool = STATE.pyqs || [];
+      let pPool = (STATE.pyqs || []).concat(STATE.other_pyqs || []);
       if (sources.length > 0) {
         pPool = pPool.filter(function (q) { return sources.includes(q.exam || 'UPSC CSE'); });
       }
@@ -942,7 +942,7 @@
       document.querySelectorAll('.mock-subj-check:checked').forEach(function (cb) { checked.push(cb.value); });
       const sources = [];
       document.querySelectorAll('.mock-sec-source-check:checked').forEach(function (cb) { sources.push(cb.value); });
-      let pPool = STATE.pyqs || [];
+      let pPool = (STATE.pyqs || []).concat(STATE.other_pyqs || []);
       if (sources.length > 0) {
         pPool = pPool.filter(function (q) { return sources.includes(q.exam || 'UPSC CSE'); });
       }
@@ -1078,6 +1078,10 @@
       return;
     }
 
+    const selectedSubjects = Array.isArray(subjectFilter)
+      ? subjectFilter
+      : (subjectFilter ? [subjectFilter] : ['all']);
+
     let targetCount = options.questionCount || (format === 'full' ? 100 : (format === 'weakness' ? 15 : 25));
     let durationMins = options.durationMins || Math.max(5, Math.round(targetCount * 1.2));
     let title = 'Custom UPSC Prelims Test';
@@ -1135,13 +1139,20 @@
           sampleQuestions = sampleQuestions.concat(pad);
         }
       }
-    } else if (format === 'weakness' || (subjectFilter.length === 1 && subjectFilter[0] === 'adaptive')) {
-      title = 'Diagnostic Weakness Remedial Drill (' + targetCount + ' Qs)';
-      const mistakeList = STATE.pyqs.filter(function (q) { return STATE.mistakes.has(q.id); });
-      sampleQuestions = shuffleArray(mistakeList).slice(0, targetCount);
+    } else if (format === 'weakness' || (selectedSubjects.length === 1 && selectedSubjects[0] === 'adaptive')) {
+      const mistakeList = (STATE.pyqs || []).filter(function (q) {
+        return STATE.mistakes && STATE.mistakes.has && STATE.mistakes.has(q.id);
+      });
+      if (mistakeList.length > 0) {
+        title = 'Mistake Remedial Drill (' + targetCount + ' Qs · ' + durationMins + 'm)';
+        sampleQuestions = shuffleArray(mistakeList).slice(0, targetCount);
+      } else {
+        title = 'Diagnostic Weakness Drill (' + targetCount + ' Qs · ' + durationMins + 'm)';
+        sampleQuestions = [];
+      }
       if (sampleQuestions.length < targetCount) {
         const rem = targetCount - sampleQuestions.length;
-        const pad = shuffleArray(STATE.pyqs.filter(function (q) {
+        const pad = shuffleArray((STATE.pyqs || []).filter(function (q) {
           return !sampleQuestions.some(function (sq) { return sq.id === q.id; });
         })).slice(0, rem);
         sampleQuestions = sampleQuestions.concat(pad);
@@ -1150,7 +1161,7 @@
       title = 'Full-Length GS-1 Mock (' + targetCount + ' Qs · 120 Mins)';
       const sources = [];
       document.querySelectorAll('.mock-source-check:checked').forEach(function (cb) { sources.push(cb.value); });
-      let candidatePool = STATE.pyqs;
+      let candidatePool = (STATE.pyqs || []).concat(STATE.other_pyqs || []);
       if (sources.length > 0) {
         candidatePool = candidatePool.filter(function (q) { return sources.includes(q.exam || 'UPSC CSE'); });
       }
@@ -1182,13 +1193,12 @@
       }
     } else {
       // Custom / Sectional Mix (PYQs)
-      const selectedSubjects = Array.isArray(subjectFilter) ? subjectFilter : [subjectFilter];
       const subjTitles = selectedSubjects.map(function (s) { return s.split('&')[0].trim(); }).join(' + ');
       title = 'Sectional (PYQs): ' + subjTitles + ' (' + targetCount + ' Qs)';
 
       const sources = [];
       document.querySelectorAll('.mock-sec-source-check:checked').forEach(function (cb) { sources.push(cb.value); });
-      let candidatePool = STATE.pyqs;
+      let candidatePool = (STATE.pyqs || []).concat(STATE.other_pyqs || []);
       if (sources.length > 0) {
         candidatePool = candidatePool.filter(function (q) { return sources.includes(q.exam || 'UPSC CSE'); });
       }
@@ -3910,7 +3920,8 @@
             if (!q.exam) q.exam = 'UPSC CDS';
             q.is_official_key = true;
             if (q.id) STATE.pyqMap[q.id] = q;
-            STATE.pyqs.push(q);
+            // Exclude from STATE.pyqs (Vault is strictly 100% UPSC CSE 2011-2026)
+            // CDS and CAPF are reserved exclusively in STATE.other_pyqs for mock simulation practice
           }
         });
       }
