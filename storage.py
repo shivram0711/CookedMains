@@ -186,7 +186,9 @@ def perform_clean_slate_reset(force: bool = False) -> Dict[str, Any]:
 
 
 def _seed_vault_if_empty(cursor) -> None:
-    """Restores baseline evaluated copies, activity logs, and visitor sessions if database is fresh."""
+    """Restores baseline evaluated copies, activity logs, and visitor sessions ONLY if Supabase is unavailable and database is fresh."""
+    if _supabase_available():
+        return
     try:
         seed_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seed_vault_data.json")
         if not os.path.exists(seed_path):
@@ -3909,6 +3911,26 @@ def record_user_heartbeat(
     except Exception as e:
         print(f"Session history tracking notice: {e}")
 
+    if _supabase_available():
+        try:
+            sess_payload = {
+                "id": sid,
+                "user_email": clean_email or "Guest Aspirant",
+                "user_name": display_name,
+                "is_authenticated": 1 if clean_email else 0,
+                "started_at": ist_now,
+                "last_active_at": ist_now,
+                "duration_seconds": locals().get("dur_sec", 0),
+                "current_view": (current_view or "Browsing Platform").strip(),
+                "actions_count": 1,
+                "recent_actions": json.dumps(locals().get("actions") or [{"action": (current_view or "Browsing Platform").strip(), "time": ist_now.split(" ")[1][:5]}]),
+                "target_year": locals().get("t_year", "2026"),
+                "optional_subject": locals().get("o_subj", "PSIR")
+            }
+            supabase.table("user_sessions").upsert(sess_payload, on_conflict="id").execute()
+        except Exception:
+            pass
+
     if clean_email and is_new_session:
         log_platform_activity(
             user_email=clean_email,
@@ -3948,18 +3970,19 @@ def log_platform_activity(
         conn = get_db()
         cursor = conn.cursor()
 
-        # Deduplication Guard: Never write duplicate activity entries
+        # Deduplication Guard: Avoid duplicate eval_id entries, and debounce identical status logs to 10 minutes
         if eval_id:
             cursor.execute("SELECT id FROM activity_logs WHERE eval_id = ?", (eval_id,))
             if cursor.fetchone():
                 conn.close()
                 return
         else:
+            cutoff_10m = ((datetime.utcnow() + timedelta(hours=5, minutes=30)) - timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M:%S")
             cursor.execute("""
                 SELECT id FROM activity_logs
-                WHERE LOWER(user_email) = ? AND title = ?
+                WHERE LOWER(user_email) = ? AND title = ? AND created_at >= ?
                 ORDER BY created_at DESC LIMIT 1
-            """, (clean_email, title))
+            """, (clean_email, title, cutoff_10m))
             if cursor.fetchone():
                 conn.close()
                 return
@@ -4041,6 +4064,25 @@ def log_platform_activity(
 
 def get_admin_session_history(limit: int = 50) -> List[Dict[str, Any]]:
     """Returns chronological history of user sessions: who visited, what they did, and how long they stayed."""
+    if _supabase_available():
+        try:
+            r_sess = supabase.table("user_sessions").select("*").order("last_active_at", desc=True).limit(limit).execute()
+            if r_sess and r_sess.data:
+                out = []
+                for s in r_sess.data:
+                    em = (s.get("user_email") or "").strip().lower()
+                    if is_dummy_or_demo_email(em):
+                        continue
+                    try:
+                        s["recent_actions_list"] = json.loads(s.get("recent_actions") or "[]")
+                    except Exception:
+                        s["recent_actions_list"] = []
+                    out.append(s)
+                if out:
+                    return out
+        except Exception as se:
+            print(f"Supabase session history read fallback: {se}")
+
     try:
         cleanup_expired_guest_sessions(12.0)
     except Exception:
@@ -4988,6 +5030,62 @@ def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
 
 
 def get_all_aspirants_admin(search: Optional[str] = None) -> List[Dict[str, Any]]:
+    if _supabase_available():
+        try:
+            r_users = supabase.table("users").select("*").order("created_at", desc=True).limit(500).execute()
+            r_evals = supabase.table("evaluations").select("id, user_id, user_email, percentage, created_at, question, question_title").neq("question_title", "__USER_ACCOUNT_PROFILE__").limit(2000).execute()
+            r_pres = supabase.table("user_presence").select("*").execute()
+
+            pres_map = {str(p.get("key") or "").lower(): p for p in (r_pres.data or [])}
+            now_ts = time.time()
+            for pk, pv in _LIVE_PRESENCE_MAP.items():
+                if pk not in pres_map or float(pv.get("last_seen_ts") or 0) > float(pres_map[pk].get("last_seen_ts") or 0):
+                    pres_map[pk] = pv
+
+            evals_by_user: Dict[str, List[Dict[str, Any]]] = {}
+            for ev in (r_evals.data or []):
+                q_txt = str(ev.get("question") or ev.get("question_title") or "")
+                if q_txt == "__USER_ACCOUNT_PROFILE__" or q_txt.startswith("__SYSTEM_"):
+                    continue
+                em = str(ev.get("user_email") or "").strip().lower()
+                uid = str(ev.get("user_id") or "").strip()
+                if em:
+                    evals_by_user.setdefault(em, []).append(ev)
+                if uid:
+                    evals_by_user.setdefault(uid, []).append(ev)
+
+            if r_users and r_users.data:
+                result_list = []
+                term = (search or "").strip().lower()
+                for u in r_users.data:
+                    em = str(u.get("email") or "").strip().lower()
+                    if not em or em.startswith("__") or is_dummy_or_demo_email(em):
+                        continue
+                    if term and term not in em and term not in str(u.get("name") or "").lower() and term not in str(u.get("id") or "").lower():
+                        continue
+                    u_evals = evals_by_user.get(em) or evals_by_user.get(str(u.get("id") or "")) or []
+                    pcts = [float(x["percentage"]) for x in u_evals if x.get("percentage") is not None]
+                    today_cnt = sum(1 for x in u_evals if is_created_today_ist(x.get("created_at")))
+                    last_ev = max([str(x.get("created_at") or "") for x in u_evals], default=None)
+
+                    pres = pres_map.get(em)
+                    sec_ago = int(now_ts - float(pres["last_seen_ts"])) if pres else 999999
+                    u["is_online"] = sec_ago <= 150
+                    u["current_view"] = pres.get("current_view", "Offline") if u["is_online"] else "Offline"
+                    u["last_seen_display"] = "🟢 Online Now" if u["is_online"] else (
+                        pres.get("last_seen_ist") if pres else (last_ev or u.get("created_at") or "Never")
+                    )
+                    u["evaluations_count"] = len(u_evals)
+                    u["avg_percentage"] = round(sum(pcts) / len(pcts), 1) if pcts else 0.0
+                    u["daily_used_today"] = today_cnt
+                    u["daily_limit"] = 15
+                    u["daily_remaining_today"] = max(0, 15 - today_cnt)
+                    result_list.append(u)
+                result_list.sort(key=lambda x: (1 if x.get("is_online") else 0, str(x.get("last_seen_display") or "")), reverse=True)
+                return result_list
+        except Exception as se:
+            print(f"Supabase aspirants read fallback: {se}")
+
     conn = get_db()
     cursor = conn.cursor()
 
@@ -5066,6 +5164,78 @@ def get_admin_evaluations_feed(
     Returns evaluations across all aspirants categorized by subject, date, and keyword.
     Zero Deletion Guarantee: All evaluated copies are permanently preserved.
     """
+    if _supabase_available():
+        try:
+            q = supabase.table("evaluations").select(
+                "id, user_id, user_email, created_at, paper, max_marks, total_marks, question, question_title, overall_score, percentage, is_rewrite"
+            ).neq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(min(int(limit), 1000))
+            res = q.execute()
+            if res and res.data is not None:
+                rows = []
+                em_f = (email_filter or "").strip().lower()
+                pf = (paper_filter or "").strip().lower()
+                s_term = (search or "").strip().lower()
+                df = (date_filter or "").strip().lower()
+                ist_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
+                today_s = ist_now.strftime("%Y-%m-%d")
+                yest_s = (ist_now - timedelta(days=1)).strftime("%Y-%m-%d")
+
+                for r in res.data:
+                    q_txt = str(r.get("question") or r.get("question_title") or "")
+                    if q_txt == "__USER_ACCOUNT_PROFILE__" or q_txt.startswith("__SYSTEM_"):
+                        continue
+                    u_em = str(r.get("user_email") or "").strip().lower()
+                    if is_dummy_or_demo_email(u_em):
+                        continue
+                    if em_f and em_f not in u_em:
+                        continue
+                    p_val = str(r.get("paper") or "GS").lower()
+                    if pf and pf != "all":
+                        if pf == "optional" and p_val in ("gs1", "gs2", "gs3", "gs4", "essay", "gs-1", "gs-2", "gs-3", "gs-4"):
+                            continue
+                        elif pf in ("gs1", "gs-1") and p_val not in ("gs1", "gs-1"):
+                            continue
+                        elif pf in ("gs2", "gs-2") and p_val not in ("gs2", "gs-2"):
+                            continue
+                        elif pf in ("gs3", "gs-3") and p_val not in ("gs3", "gs-3"):
+                            continue
+                        elif pf in ("gs4", "gs-4") and p_val not in ("gs4", "gs-4"):
+                            continue
+                        elif pf == "essay" and p_val != "essay":
+                            continue
+                    c_str = str(r.get("created_at") or "")
+                    if df == "today" and not is_created_today_ist(c_str):
+                        continue
+                    elif df == "yesterday" and not c_str.startswith(yest_s):
+                        continue
+                    if date_from and c_str[:10] < date_from.strip():
+                        continue
+                    if date_to and c_str[:10] > date_to.strip():
+                        continue
+                    if s_term and s_term not in q_txt.lower() and s_term not in u_em:
+                        continue
+                    rows.append({
+                        "id": r.get("id"),
+                        "user_email": r.get("user_email") or "",
+                        "user_name": (r.get("user_email") or "Aspirant").split("@")[0].title(),
+                        "created_at": r.get("created_at"),
+                        "paper": r.get("paper") or "GS",
+                        "max_marks": r.get("max_marks") or r.get("total_marks") or 10,
+                        "question": q_txt,
+                        "overall_score": r.get("overall_score") or 0,
+                        "percentage": r.get("percentage") or 0,
+                        "is_rewrite": r.get("is_rewrite") or 0,
+                    })
+                if sort_by == "date_asc":
+                    rows.sort(key=lambda x: str(x.get("created_at") or ""))
+                elif sort_by == "score_desc":
+                    rows.sort(key=lambda x: float(x.get("overall_score") or 0), reverse=True)
+                elif sort_by == "score_asc":
+                    rows.sort(key=lambda x: float(x.get("overall_score") or 0))
+                return rows[:int(limit)]
+        except Exception as se:
+            print(f"Supabase evaluations feed fallback: {se}")
+
     conn = get_db()
     cursor = conn.cursor()
     sql = """
@@ -5145,11 +5315,6 @@ def get_admin_evaluations_feed(
 
 def get_admin_evaluations_stats() -> Dict[str, Any]:
     """Returns aggregated evaluation counts grouped by subject category and date ranges."""
-    conn = get_db()
-    cursor = conn.cursor()
-    base_where = """
-        WHERE e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
-    """
     stats: Dict[str, Any] = {
         "total": 0,
         "by_subject": {
@@ -5168,6 +5333,51 @@ def get_admin_evaluations_stats() -> Dict[str, Any]:
             "this_month": 0
         }
     }
+    if _supabase_available():
+        try:
+            res = supabase.table("evaluations").select("id, paper, created_at, question, question_title").neq("question_title", "__USER_ACCOUNT_PROFILE__").limit(2500).execute()
+            if res and res.data is not None:
+                ist_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
+                yest_s = (ist_now - timedelta(days=1)).strftime("%Y-%m-%d")
+                week_s = (ist_now - timedelta(days=7)).strftime("%Y-%m-%d")
+                month_s = (ist_now - timedelta(days=30)).strftime("%Y-%m-%d")
+                for r in res.data:
+                    q_txt = str(r.get("question") or r.get("question_title") or "")
+                    if q_txt == "__USER_ACCOUNT_PROFILE__" or q_txt.startswith("__SYSTEM_"):
+                        continue
+                    stats["total"] += 1
+                    p_up = str(r.get("paper") or "").upper()
+                    if "GS1" in p_up or "GS-1" in p_up:
+                        stats["by_subject"]["GS1"] += 1
+                    elif "GS2" in p_up or "GS-2" in p_up:
+                        stats["by_subject"]["GS2"] += 1
+                    elif "GS3" in p_up or "GS-3" in p_up:
+                        stats["by_subject"]["GS3"] += 1
+                    elif "GS4" in p_up or "GS-4" in p_up:
+                        stats["by_subject"]["GS4"] += 1
+                    elif "ESSAY" in p_up:
+                        stats["by_subject"]["Essay"] += 1
+                    else:
+                        stats["by_subject"]["Optional"] += 1
+                    c_str = str(r.get("created_at") or "")
+                    if is_created_today_ist(c_str):
+                        stats["by_date"]["today"] += 1
+                    elif c_str.startswith(yest_s):
+                        stats["by_date"]["yesterday"] += 1
+                    if c_str[:10] >= week_s:
+                        stats["by_date"]["this_week"] += 1
+                    if c_str[:10] >= month_s:
+                        stats["by_date"]["this_month"] += 1
+                stats["by_subject"]["all"] = stats["total"]
+                return stats
+        except Exception as se:
+            print(f"Supabase eval stats fallback: {se}")
+
+    conn = get_db()
+    cursor = conn.cursor()
+    base_where = """
+        WHERE e.question != '__USER_ACCOUNT_PROFILE__' AND e.question NOT LIKE '__SYSTEM_%'
+    """
     try:
         cursor.execute(f"SELECT COUNT(*), e.paper FROM evaluations e {base_where} GROUP BY e.paper")
         rows = cursor.fetchall()
