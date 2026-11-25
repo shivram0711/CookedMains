@@ -5059,7 +5059,7 @@ def get_all_aspirants_admin(search: Optional[str] = None) -> List[Dict[str, Any]
             evals_by_user: Dict[str, List[Dict[str, Any]]] = {}
             for ev in (r_evals.data or []):
                 q_txt = str(ev.get("question") or ev.get("question_title") or "")
-                if q_txt == "__USER_ACCOUNT_PROFILE__" or q_txt.startswith("__SYSTEM_"):
+                if q_txt in ("__USER_ACCOUNT_PROFILE__", "__USER_PRELIMS_DOSSIER__") or q_txt.startswith("__SYSTEM_"):
                     continue
                 em = str(ev.get("user_email") or "").strip().lower()
                 uid = str(ev.get("user_id") or "").strip()
@@ -5260,7 +5260,7 @@ def get_admin_evaluations_feed(
 
                 for raw_r in res.data:
                     q_raw = str(raw_r.get("question") or raw_r.get("question_title") or "")
-                    if q_raw == "__USER_ACCOUNT_PROFILE__" or q_raw.startswith("__SYSTEM_"):
+                    if q_raw in ("__USER_ACCOUNT_PROFILE__", "__USER_PRELIMS_DOSSIER__") or q_raw.startswith("__SYSTEM_"):
                         continue
                     r = _extract_eval_summary_fields(raw_r, user_lookup)
                     u_em = r["user_email"]
@@ -5411,7 +5411,7 @@ def get_admin_evaluations_stats() -> Dict[str, Any]:
                 month_s = (ist_now - timedelta(days=30)).strftime("%Y-%m-%d")
                 for r in res.data:
                     q_txt = str(r.get("question") or r.get("question_title") or "")
-                    if q_txt == "__USER_ACCOUNT_PROFILE__" or q_txt.startswith("__SYSTEM_"):
+                    if q_txt in ("__USER_ACCOUNT_PROFILE__", "__USER_PRELIMS_DOSSIER__") or q_txt.startswith("__SYSTEM_"):
                         continue
                     stats["total"] += 1
                     p_up = str(r.get("paper") or "").upper()
@@ -5516,7 +5516,7 @@ def get_admin_activity_stream(limit: int = 60) -> List[Dict[str, Any]]:
             ).neq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(35).execute()
             for raw_er in (r_ev.data or []):
                 q_raw = str(raw_er.get("question") or raw_er.get("question_title") or "Answer Sheet")
-                if q_raw == "__USER_ACCOUNT_PROFILE__" or q_raw.startswith("__SYSTEM_") or "Courage is resistance" in q_raw:
+                if q_raw in ("__USER_ACCOUNT_PROFILE__", "__USER_PRELIMS_DOSSIER__") or q_raw.startswith("__SYSTEM_") or "Courage is resistance" in q_raw:
                     continue
                 er = _extract_eval_summary_fields(raw_er, user_lookup)
                 em = er["user_email"]
@@ -6087,6 +6087,20 @@ def save_user_prelims_progress(email: str, progress_data: Dict[str, Any]) -> Dic
                 _safe_supabase_insert("evaluations", payload)
         except Exception as se:
             print(f"Notice: Supabase prelims progress sync notice: {se}")
+
+    try:
+        ans_cnt = len(progress_data.get("answers") or {})
+        mock_cnt = len(progress_data.get("mockHistory") or [])
+        if ans_cnt > 0 or mock_cnt > 0:
+            log_platform_activity(
+                user_email=clean_email,
+                user_name=user.get("name") or clean_email.split("@")[0].title(),
+                action_type="prelims_activity",
+                title=f"Prelims Radar Activity ({ans_cnt} Qs • {mock_cnt} Mocks)",
+                detail=f"Synced Prelims answers, mock history & mistakes notebook"
+            )
+    except Exception:
+        pass
 
     return {"status": "success", "user_email": clean_email}
 

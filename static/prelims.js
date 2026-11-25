@@ -314,6 +314,9 @@
       else STATE.previousView = 'dashboard';
     }
     STATE.viewMode = mode;
+    if (typeof sendPrelimsHeartbeat === 'function') {
+      sendPrelimsHeartbeat(mode);
+    }
     const dashView = document.getElementById('dashboardOverviewView');
     const playerView = document.getElementById('questionPlayerView');
     const reportView = document.getElementById('mockReportView');
@@ -7709,12 +7712,56 @@ function renderPlayerDistractorDeepDive(q) {
   window.renderCurrentAffairsArena = renderCurrentAffairsArena;
   window.ensureCaQuestionsLoaded = ensureCaQuestionsLoaded;
 
+  function _getPrelimsSessionId() {
+    try {
+      let sid = sessionStorage.getItem('cm_prelims_sid');
+      if (!sid) {
+        sid = 'pre_' + Math.random().toString(36).slice(2, 10) + '_' + Date.now().toString(36);
+        sessionStorage.setItem('cm_prelims_sid', sid);
+      }
+      return sid;
+    } catch (e) {
+      return 'pre_session';
+    }
+  }
+
+  function sendPrelimsHeartbeat(viewOverride) {
+    try {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      const mode = viewOverride || STATE.viewMode || 'dashboard';
+      const labelMap = {
+        dashboard: 'Prelims Radar: Overview',
+        player: 'Prelims Radar: Practice Player',
+        report: 'Prelims Radar: Mock Report',
+        vault: 'Prelims Radar: 16-Yr PYQ Vault',
+        mistakes: 'Prelims Radar: Mistakes Notebook',
+        cutoff_ev: 'Prelims Radar: Cutoff EV Simulator',
+        csat: 'Prelims Radar: CSAT Practice',
+        current_affairs: 'Prelims Radar: Current Affairs',
+        progress: 'Prelims Radar: Progress Tracker'
+      };
+      const payload = {
+        email: (STATE.user && STATE.user.email) ? STATE.user.email : null,
+        name: (STATE.user && STATE.user.name) ? STATE.user.name : (STATE.userName || null),
+        current_view: labelMap[mode] || ('Prelims Radar: ' + mode),
+        session_id: _getPrelimsSessionId()
+      };
+      fetch('/api/presence/heartbeat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
   // Initialize
   document.addEventListener('DOMContentLoaded', function () {
     loadPersistedState();
     initTheme();
     setupListeners();
     initQuestions();
+    sendPrelimsHeartbeat();
+    setInterval(function () { sendPrelimsHeartbeat(); }, 45000);
   });
 
 })();
