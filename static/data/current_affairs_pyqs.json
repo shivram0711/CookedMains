@@ -12299,5 +12299,1205 @@
     "difficulty": "Moderate",
     "upsc_official_key": "Verified: Option (A)",
     "question_text": "Regarding the 'Great Nicobar Island Holistic Development Project' and environmental and tribal safeguards, consider the following statements:\n1. Galathea Bay, designated for the International Container Transshipment Port (ICTP), is an internationally critical nesting site for the Giant Leatherback Sea Turtle.\n2. The Shompen and Great Nicobarese tribes inhabiting Great Nicobar are classified as Particularly Vulnerable Tribal Groups (PVTGs).\n3. Under the Forest Rights Act, 2006, the prior informed consent of the Gram Sabha is an optional guideline that can be bypassed for projects declared to be of strategic national defence importance.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-snt-2026-05-001",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Space Cybersecurity & Dual-Use Satellites",
+    "question": "With reference to space cybersecurity and the legal status of dual-use satellites under international law, consider the following statements:\n1. Under the Outer Space Treaty (1967) and International Humanitarian Law (IHL), commercial communication satellites utilized for military telemetry lose their immunity and may qualify as legitimate military objectives.\n2. Article 2(4) of the United Nations Charter applies exclusively to terrestrial kinetic warfare and cannot be invoked against cyberattacks disabling orbital satellites.\n3. The CERT-In and SIA-India space cybersecurity guidelines mandate a 'secure-by-design' doctrine for private satellite architectures.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 3 only",
+    "correct_index": 1,
+    "correct_option": "B",
+    "explanation": "Statements 1 and 3 are correct, while Statement 2 is incorrect.\nStatement 1 is correct: Under International Humanitarian Law (IHL) and the principle of distinction, when a civilian or commercial space asset (such as commercial low-Earth orbit broadband constellations) is integrated into military command-and-control or battlefield intelligence, it becomes a 'dual-use' object and can legally qualify as a military objective subject to proportionate engagement.\nStatement 2 is incorrect: Article 2(4) of the UN Charter prohibits the threat or use of force against the territorial integrity or political independence of any state. The International Court of Justice (Nuclear Weapons Advisory Opinion) and prevailing international state practice affirm that Article 2(4) applies to any use of force regardless of the weapons employed, including cyber operations that cause physical destruction or functional disablement of critical national space infrastructure.\nStatement 3 is correct: The joint guidelines issued by CERT-In and the Space Industry Association of India (SIA-India) establish a 'secure-by-design' framework, requiring space start-ups to embed cryptographic root-of-trust, uplink/downlink authentication, and supply-chain firmware audits to prevent ground station hijacking and signal spoofing.",
+    "option_analysis": {
+      "Option A": "Incorrect because Statement 2 is false (Article 2(4) is not limited to kinetic terrestrial weapons).",
+      "Option B": "Correct. Statements 1 and 3 accurately reflect IHL principles of dual-use assets and India's space cybersecurity framework.",
+      "Option C": "Incorrect because Statement 2 is false.",
+      "Option D": "Incorrect because Statement 2 is false."
+    },
+    "static_root": "Outer Space Treaty 1967; UN Charter Article 2(4); Cyber Warfare & International Humanitarian Law; Space Security.",
+    "standard_book_ref": "Ravi P. Agrahari, Science & Technology (Space Tech); Pavneet Singh, International Relations; CERT-In Space Cybersecurity Directives.",
+    "elimination_trap": "Literal reading trap: thinking Article 2(4) UN Charter written in 1945 only applies to kinetic armies. Modern international jurisprudence applies it equally to cyber operations amounting to use of force.",
+    "difficulty": "Hard",
+    "upsc_official_key": "Verified: Option (B)",
+    "question_text": "With reference to space cybersecurity and the legal status of dual-use satellites under international law, consider the following statements:\n1. Under the Outer Space Treaty (1967) and International Humanitarian Law (IHL), commercial communication satellites utilized for military telemetry lose their immunity and may qualify as legitimate military objectives.\n2. Article 2(4) of the United Nations Charter applies exclusively to terrestrial kinetic warfare and cannot be invoked against cyberattacks disabling orbital satellites.\n3. The CERT-In and SIA-India space cybersecurity guidelines mandate a 'secure-by-design' doctrine for private satellite architectures.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-snt-2026-05-002",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Exoplanet Atmospheres & Spectroscopy",
+    "question": "Regarding exoplanets and atmospheric transmission spectroscopy conducted by the James Webb Space Telescope (JWST), consider the following statements:\n1. 'Hot Jupiters' are gas giant exoplanets with physical characteristics similar to Jupiter but possessing very short orbital periods of typically less than 10 days.\n2. In tidally locked hot Jupiters, the rotational period of the planet about its own axis equals its orbital period around its host star.\n3. Transmission spectroscopy detects chemical species in an exoplanet's atmosphere by measuring the bright emission lines emitted during a secondary eclipse.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: 'Hot Jupiters' (such as WASP-94A b) are a class of gas giant extrasolar planets that are physically similar to Jupiter, but orbit extremely close to their parent stars (often 0.015 to 0.05 AU), leading to orbital periods of just a few Earth days and scorching atmospheric temperatures.\nStatement 2 is correct: Due to intense gravitational tidal interactions with their close parent star, hot Jupiters become tidally locked, meaning their rotational period matches their orbital period, resulting in a permanent dayside of extreme heat and a permanent frozen nightside.\nStatement 3 is incorrect: Transmission spectroscopy measures the dark *absorption* lines (gaps in wavelengths) produced when starlight filters through the thin outer fringes of the exoplanet's atmosphere during a PRIMARY transit (when the planet crosses in front of the star), not emission lines during a secondary eclipse. Each gaseous molecule absorbs light at specific characteristic frequencies, revealing atmospheric chemistry (e.g. water vapor, methane, silicates).",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 accurately define Hot Jupiters and tidal locking mechanics.",
+      "Option B": "Incorrect because Statement 3 is false (it uses absorption lines during primary transit).",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "Exoplanets; Kepler & James Webb Space Telescope; Spectroscopy (Absorption vs Emission); Orbital Mechanics (Tidal Locking).",
+    "standard_book_ref": "NCERT Class 12 Physics (Wave Optics & Spectra); Ravi P. Agrahari, Science & Technology; NASA Exoplanet Exploration Archive.",
+    "elimination_trap": "Spectroscopy technique swap: transmission spectroscopy measures starlight *absorbed* through the planet's atmospheric annulus during transit, creating absorption dips, NOT bright emission lines.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "Regarding exoplanets and atmospheric transmission spectroscopy conducted by the James Webb Space Telescope (JWST), consider the following statements:\n1. 'Hot Jupiters' are gas giant exoplanets with physical characteristics similar to Jupiter but possessing very short orbital periods of typically less than 10 days.\n2. In tidally locked hot Jupiters, the rotational period of the planet about its own axis equals its orbital period around its host star.\n3. Transmission spectroscopy detects chemical species in an exoplanet's atmosphere by measuring the bright emission lines emitted during a secondary eclipse.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-snt-2026-05-003",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Orbital Warfare & Co-Orbital Anti-Satellite Systems",
+    "question": "In the context of counter-space technologies and orbital warfare, what is meant by a 'Co-Orbital Anti-Satellite (ASAT)' system?",
+    "options": [
+      "A ground-based ballistic missile that ascends vertically to physically impact a low-Earth orbit satellite without entering orbit.",
+      "A spacecraft placed into orbit that matches the orbital plane of a target satellite to physically manipulate, blind, jam, or push it into a graveyard orbit.",
+      "A high-altitude atmospheric balloon equipped with high-power microwave jammers.",
+      "A nuclear electromagnetic pulse (EMP) device detonated exclusively in the stratosphere."
+    ],
+    "answer": "A spacecraft placed into orbit that matches the orbital plane of a target satellite to physically manipulate, blind, jam, or push it into a graveyard orbit.",
+    "correct_index": 1,
+    "correct_option": "B",
+    "explanation": "Option B is correct.\nCo-orbital ASAT systems are space-based counter-space weapons. Unlike direct-ascent ASAT weapons (like India's Mission Shakti interceptor or China's SC-19, which launch from the ground on a ballistic suborbital trajectory to strike a satellite), a co-orbital system is first launched into Earth orbit. It then conducts orbital maneuvers to rendezvous and match orbits with a target satellite. Once co-located, it can deploy robotic arms, spray chemical obscurants, deliver localized electronic jamming, or physically push the target satellite out of its operational slot into a non-functional 'graveyard orbit' (as demonstrated by China's Shijian/TJS series).",
+    "option_analysis": {
+      "Option A": "Incorrect. This describes a Direct-Ascent Anti-Satellite (DA-ASAT) weapon.",
+      "Option B": "Correct. Accurately describes the rendezvous, co-location, and orbital maneuvering of co-orbital ASAT systems.",
+      "Option C": "Incorrect. This describes high-altitude pseudo-satellites (HAPS) or balloon electronic warfare platforms.",
+      "Option D": "Incorrect. This describes high-altitude nuclear EMP bursts."
+    },
+    "static_root": "Space Warfare Technologies (Direct-Ascent vs Co-Orbital vs Electronic/Cyber); Space Debris; Graveyard Orbits.",
+    "standard_book_ref": "Ravi P. Agrahari, Science & Technology; DRDO Technical Journals; SIPRI Space Security Reports.",
+    "elimination_trap": "Direct-ascent vs Co-orbital: direct-ascent launches from Earth and intercepts on an upward trajectory; co-orbital is already in orbit and changes orbital planes to rendezvous.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (B)",
+    "question_text": "In the context of counter-space technologies and orbital warfare, what is meant by a 'Co-Orbital Anti-Satellite (ASAT)' system?"
+  },
+  {
+    "id": "ca-snt-2026-05-004",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Orbital Edge Computing & Satellite AI",
+    "question": "With reference to 'Orbital Data Centres' and satellite-based AI processing (such as the Pathfinder mission), consider the following statements:\n1. Orbital edge computing processes raw satellite sensor data onboard in space, transmitting only analysed insights to Earth rather than massive raw data streams.\n2. In the vacuum of outer space, cooling high-performance GPUs is facilitated by natural thermal convection.\n3. Ionizing cosmic rays in low Earth orbit can cause Single-Event Upsets (SEUs) in semiconductor memory circuits.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 3 only",
+    "correct_index": 2,
+    "correct_option": "C",
+    "explanation": "Statements 1 and 3 are correct, while Statement 2 is incorrect.\nStatement 1 is correct: Modern Earth observation constellations generate gigabytes of raw hyperspectral/optical data. Orbital data centres (such as the Pixxel-Sarvam Pathfinder) place data-centre class GPUs directly in orbit to run AI inference models at the edge, distilling insights (e.g., detecting a forest fire or oil spill) in orbit and sending down lightweight notifications, bypassing downlink bandwidth bottlenecks.\nStatement 2 is incorrect: In the vacuum of space, there is NO fluid or air medium; therefore, thermal CONVECTION does not exist. Cooling high-power computing chips in orbit is exceptionally difficult and relies exclusively on thermal conduction (heat pipes) transferring heat to external radiator panels that discard heat via thermal RADIATION into the cold background of space.\nStatement 3 is correct: High-energy cosmic rays and solar protons passing through silicon semiconductors generate charge tracks that flip digital bits (0 to 1 or vice-versa), known as Single-Event Upsets (SEUs), necessitating radiation-hardened components and error-correcting code (ECC) memory.",
+    "option_analysis": {
+      "Option A": "Incorrect because Statement 2 is physically false (convection cannot occur in a vacuum).",
+      "Option B": "Incorrect because Statement 2 is false.",
+      "Option C": "Correct. Statements 1 and 3 accurately describe edge computing advantages and space radiation physics.",
+      "Option D": "Incorrect because Statement 2 is false."
+    },
+    "static_root": "Thermodynamics: Heat Transfer (Conduction, Convection, Radiation in Vacuum); Space Environment & Radiation Effects (SEUs).",
+    "standard_book_ref": "NCERT Class 11 Physics, Chapter 11 (Thermal Properties of Matter); Ravi P. Agrahari, Science & Technology.",
+    "elimination_trap": "Basic physics trap: outer space is cold, but because it is a vacuum, heat cannot escape through convection. Heat rejection must rely entirely on radiative cooling.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (C)",
+    "question_text": "With reference to 'Orbital Data Centres' and satellite-based AI processing (such as the Pathfinder mission), consider the following statements:\n1. Orbital edge computing processes raw satellite sensor data onboard in space, transmitting only analysed insights to Earth rather than massive raw data streams.\n2. In the vacuum of outer space, cooling high-performance GPUs is facilitated by natural thermal convection.\n3. Ionizing cosmic rays in low Earth orbit can cause Single-Event Upsets (SEUs) in semiconductor memory circuits.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-snt-2026-05-005",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Earth Observation & Hybrid Satellite Sensors",
+    "question": "Consider the following statements regarding 'Mission Drishti' developed by Indian space-tech startup GalaxEye Space:\n1. It is the world's first satellite to house both an optical sensor and a Synthetic Aperture Radar (SAR) on a single platform, termed 'OptoSAR'.\n2. SAR instruments are active sensors that can penetrate cloud cover and darkness by transmitting their own microwave pulses.\n3. Optical sensors cannot operate under cloudy or night-time conditions because they rely on reflected ambient sunlight.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1, 2 and 3",
+    "correct_index": 3,
+    "correct_option": "D",
+    "explanation": "All three statements are correct.\nStatement 1 is correct: Mission Drishti (developed by IIT Madras-incubated GalaxEye Space) is the world's first satellite featuring 'OptoSAR'—synchronising multi-spectral optical imagery with Synthetic Aperture Radar (SAR) onto a single spacecraft bus.\nStatement 2 is correct: SAR is an active microwave remote sensing system that emits its own electromagnetic pulses (in microwave frequencies like X, C, or L bands) and measures the backscattered signal. Because microwave wavelengths are much longer than atmospheric cloud droplets, SAR penetrates clouds, fog, smoke, and operates in total darkness.\nStatement 3 is correct: Standard optical sensors are passive instruments that measure visible and near-infrared sunlight reflected from Earth's surface; they are completely blinded by cloud cover and cannot image at night without artificial illumination.",
+    "option_analysis": {
+      "Option A": "Incorrect because Statement 3 is also correct.",
+      "Option B": "Incorrect because Statement 1 is also correct.",
+      "Option C": "Incorrect because Statement 2 is also correct.",
+      "Option D": "Correct. Statements 1, 2, and 3 are all technically and factually accurate."
+    },
+    "static_root": "Remote Sensing: Active vs Passive Sensors; Synthetic Aperture Radar (SAR) vs Optical Imagery; India's Space Start-up Ecosystem.",
+    "standard_book_ref": "Ravi P. Agrahari, Science & Technology; ISRO NRSC Remote Sensing Training Manuals.",
+    "elimination_trap": "Active vs Passive sensor physics: SAR sends its own signal (active, all-weather), whereas optical sensors rely on external sunlight (passive, blocked by clouds).",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (D)",
+    "question_text": "Consider the following statements regarding 'Mission Drishti' developed by Indian space-tech startup GalaxEye Space:\n1. It is the world's first satellite to house both an optical sensor and a Synthetic Aperture Radar (SAR) on a single platform, termed 'OptoSAR'.\n2. SAR instruments are active sensors that can penetrate cloud cover and darkness by transmitting their own microwave pulses.\n3. Optical sensors cannot operate under cloudy or night-time conditions because they rely on reflected ambient sunlight.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-snt-2026-05-006",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Human Spaceflight & Life Support Systems",
+    "question": "With reference to the Environmental Control and Life Support System (ECLSS) developed for India's human spaceflight mission 'Gaganyaan', consider the following statements:\n1. Lithium hydroxide (LiOH) canisters are used in the crew module to scrub carbon dioxide exhaled by astronauts.\n2. In microgravity environments, fire behaves differently than on Earth, spreading as a spherical flame because of the absence of buoyant convective air currents.\n3. Activated charcoal beds are incorporated into the air revitalization loop to remove volatile organic compounds and trace odors.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1, 2 and 3",
+    "correct_index": 3,
+    "correct_option": "D",
+    "explanation": "All three statements are correct.\nStatement 1 is correct: In an enclosed space capsule, metabolic CO2 exhalation (~1 kg per astronaut per day) would rapidly lead to hypercapnia, cognitive impairment, and asphyxiation. ISRO utilizes chemical Lithium Hydroxide (LiOH) canisters that react with CO2 to form lithium carbonate and water, scrubbing it from the air.\nStatement 2 is correct: On Earth, gravity causes hot, less-dense air to rise, creating convective draft currents that give flames their elongated teardrop shape. In microgravity, natural convection is absent; oxygen reaches the flame purely by slow molecular diffusion, causing flames to burn as dim, spherical balls.\nStatement 3 is correct: Trace contaminants, sweat odors, and outgassing from electronic components are continuously filtered through activated charcoal beds, which possess immense surface area for physical adsorption of volatile organic compounds.",
+    "option_analysis": {
+      "Option A": "Incorrect because Statement 3 is also correct.",
+      "Option B": "Incorrect because Statement 1 is also correct.",
+      "Option C": "Incorrect because Statement 2 is also correct.",
+      "Option D": "Correct. All statements accurately depict ECLSS chemical engineering and microgravity combustion physics."
+    },
+    "static_root": "Human Spaceflight (Gaganyaan); Environmental Control & Life Support Systems (ECLSS); Microgravity Physics.",
+    "standard_book_ref": "Ravi P. Agrahari, Science & Technology; ISRO VSSC Human Space Flight Centre publications.",
+    "elimination_trap": "Microgravity combustion trap: candidates unfamiliar with space physics might think fires cannot burn in microgravity or burn normally; they burn as slow, spherical flames due to diffusion-limited oxygen supply.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (D)",
+    "question_text": "With reference to the Environmental Control and Life Support System (ECLSS) developed for India's human spaceflight mission 'Gaganyaan', consider the following statements:\n1. Lithium hydroxide (LiOH) canisters are used in the crew module to scrub carbon dioxide exhaled by astronauts.\n2. In microgravity environments, fire behaves differently than on Earth, spreading as a spherical flame because of the absence of buoyant convective air currents.\n3. Activated charcoal beds are incorporated into the air revitalization loop to remove volatile organic compounds and trace odors.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-snt-2026-05-007",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Lunar Science & Radar Remote Sensing",
+    "question": "Regarding Chandrayaan-2's findings on lunar subsurface water-ice at the Lunar South Pole, consider the following statements:\n1. Subsurface ice signatures were detected using the Dual Frequency Synthetic Aperture Radar (DFSAR) payload.\n2. Permanently Shadowed Regions (PSRs) on the Moon exist primarily because the Moon's rotational axis has a very low obliquity (tilt) of approximately 1.5 degrees relative to the ecliptic plane.\n3. 'Doubly shadowed craters' are craters situated inside larger permanently shadowed craters that receive neither direct sunlight nor reflected secondary solar radiation.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1, 2 and 3",
+    "correct_index": 3,
+    "correct_option": "D",
+    "explanation": "All three statements are correct.\nStatement 1 is correct: Chandrayaan-2's DFSAR (operating in both L-band and S-band) mapped Circular Polarization Ratio (CPR) anomalies in the lunar polar craters, confirming subsurface water-ice deposits.\nStatement 2 is correct: Unlike Earth's axial tilt of 23.5 degrees (which creates pronounced seasons), the Moon's rotational axis is tilted by only about 1.54 degrees relative to the ecliptic. Consequently, sunlight always strikes the lunar poles at grazing, nearly horizontal angles, preventing sunlight from ever reaching the floors of deep impact craters at the poles, forming permanent cold traps.\nStatement 3 is correct: Doubly shadowed craters are micro-topographical depressions located within PSRs. They are shielded not only from direct sunlight but also from secondary scatter reflected off crater rims, maintaining cryogenic temperatures around -25 Kelvin (-248°C), enabling water ice to survive for billions of years.",
+    "option_analysis": {
+      "Option A": "Incorrect because Statement 3 is also correct.",
+      "Option B": "Incorrect because Statement 1 is also correct.",
+      "Option C": "Incorrect because Statement 2 is also correct.",
+      "Option D": "Correct. All three statements accurately state the payload, orbital geometry, and cryogenic thermodynamics of lunar PSRs."
+    },
+    "static_root": "Chandrayaan Programme; Lunar Topography & Axial Tilt; Remote Sensing Radar (CPR / DFSAR).",
+    "standard_book_ref": "Ravi P. Agrahari, Science & Technology; ISRO SAC Chandrayaan-2 Science Highlights.",
+    "elimination_trap": "Axial tilt causation: candidates often fail to link the existence of permanently shadowed regions to the Moon's nearly upright 1.5° rotational axis.",
+    "difficulty": "Hard",
+    "upsc_official_key": "Verified: Option (D)",
+    "question_text": "Regarding Chandrayaan-2's findings on lunar subsurface water-ice at the Lunar South Pole, consider the following statements:\n1. Subsurface ice signatures were detected using the Dual Frequency Synthetic Aperture Radar (DFSAR) payload.\n2. Permanently Shadowed Regions (PSRs) on the Moon exist primarily because the Moon's rotational axis has a very low obliquity (tilt) of approximately 1.5 degrees relative to the ecliptic plane.\n3. 'Doubly shadowed craters' are craters situated inside larger permanently shadowed craters that receive neither direct sunlight nor reflected secondary solar radiation.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-snt-2026-05-008",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Cosmic Rays & Particle Physics Detectors",
+    "question": "With reference to the 'GRAPES-3' observatory located in Ooty, Tamil Nadu, consider the following statements:\n1. GRAPES-3 is an astronomical telescope that detects optical light from high-redshift quasars.\n2. It measures the intensity of cosmic ray muons to study solar storms, coronal mass ejections, and atmospheric temperature changes.\n3. Muons are unstable elementary subatomic particles belonging to the lepton family, with a mass significantly greater than that of an electron.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "2 and 3 only",
+    "correct_index": 1,
+    "correct_option": "B",
+    "explanation": "Statements 2 and 3 are correct, while Statement 1 is incorrect.\nStatement 1 is incorrect: GRAPES-3 (Gamma Ray Astronomy PeV EnergieS phase-3) is NOT an optical telescope. It is a specialised particle detector array consisting of plastic scintillator detectors and large-area muon tracking detectors, designed to record cosmic ray air showers.\nStatement 2 is correct: GRAPES-3 monitors cosmic ray muons produced when primary cosmic rays strike the Earth's upper atmosphere. By recording fluctuations in muon intensity, it investigates the Sun's coronal mass ejections (CMEs), geomagnetic storms, thundercloud electric potentials, and stratospheric temperature inversions.\nStatement 3 is correct: Muons are fundamental subatomic particles classified as leptons (along with electrons and taus). A muon carries a negative elementary charge and a spin of 1/2, but has a rest mass approximately 207 times greater than an electron, with a mean lifetime of 2.2 microseconds.",
+    "option_analysis": {
+      "Option A": "Incorrect because Statement 1 is false (it is a muon particle detector, not an optical telescope).",
+      "Option B": "Correct. Statements 2 and 3 accurately describe the scientific research purpose of GRAPES-3 and muon particle physics.",
+      "Option C": "Incorrect because Statement 1 is false.",
+      "Option D": "Incorrect because Statement 1 is false."
+    },
+    "static_root": "Standard Model of Particle Physics (Leptons, Quarks); Cosmic Rays; Geomagnetic Storms; TIFR Observatories.",
+    "standard_book_ref": "NCERT Class 12 Physics, Nuclei and Modern Physics; Ravi P. Agrahari, Science & Technology; TIFR GRAPES-3 portal.",
+    "elimination_trap": "Telescope naming trap: candidates assume every facility called a telescope looks at optical light. GRAPES-3 is a ground-based particle detector tracking subatomic muons.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (B)",
+    "question_text": "With reference to the 'GRAPES-3' observatory located in Ooty, Tamil Nadu, consider the following statements:\n1. GRAPES-3 is an astronomical telescope that detects optical light from high-redshift quasars.\n2. It measures the intensity of cosmic ray muons to study solar storms, coronal mass ejections, and atmospheric temperature changes.\n3. Muons are unstable elementary subatomic particles belonging to the lepton family, with a mass significantly greater than that of an electron.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-snt-2026-05-009",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Geography & Astronomy",
+    "sub_topic": "Lunar Cycles & Orbital Phenomena",
+    "question": "Consider the following statements regarding lunar orbital phenomena and eclipses:\n1. A 'Blue Moon' refers to the second full moon occurring within a single calendar month.\n2. A 'Micromoon' occurs when a full moon coincides with the Moon's apogee, making it appear smaller and dimmer than an average full moon.\n3. A total lunar eclipse occurs when the Moon enters completely into the penumbral shadow of the Earth.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: Because the synodic lunar cycle (from one full moon to the next) is roughly 29.5 days, a 30- or 31-day calendar month can occasionally host two full moons. The second full moon in that month is popularised as a 'Blue Moon' (occurring approximately once every 2.5 to 3 years).\nStatement 2 is correct: The Moon's orbit around Earth is elliptical. When a full moon occurs near its apogee (farthest orbital point, ~405,000 km), it appears about 14% smaller and 30% dimmer than a perigee full moon ('Supermoon'), and is termed a 'Micromoon'.\nStatement 3 is incorrect: A TOTAL lunar eclipse occurs when the Moon passes entirely into the Earth's UMBRA (the central, dark conical shadow where all direct sunlight is blocked). If the Moon only enters the PENUMBRA (the outer diffuse shadow), it is called a penumbral lunar eclipse, which produces only subtle, barely perceptible dimming.",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 accurately state astronomical definitions of Blue Moon and Micromoon.",
+      "Option B": "Incorrect because Statement 3 is false (total eclipse requires entering the umbra).",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "Astronomy: Lunar Phases, Elliptical Orbits (Apogee vs Perigee); Eclipse Geometry (Umbra vs Penumbra).",
+    "standard_book_ref": "NCERT Class 11 Physical Geography; Goh Cheng Leong, Certificate Physical and Human Geography.",
+    "elimination_trap": "Shadow zone inversion: umbra is the darkest region causing total eclipse; penumbra causes only partial shading or a penumbral eclipse.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "Consider the following statements regarding lunar orbital phenomena and eclipses:\n1. A 'Blue Moon' refers to the second full moon occurring within a single calendar month.\n2. A 'Micromoon' occurs when a full moon coincides with the Moon's apogee, making it appear smaller and dimmer than an average full moon.\n3. A total lunar eclipse occurs when the Moon enters completely into the penumbral shadow of the Earth.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-snt-2026-05-010",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Biotechnology & Endocrine Pharmacology",
+    "question": "With reference to Glucagon-Like Peptide-1 (GLP-1) receptor agonists used in metabolic medicine, consider the following statements:\n1. GLP-1 is an endogenous incretin peptide hormone secreted by the L-cells of the intestines in response to nutrient intake.\n2. GLP-1 receptor agonists stimulate glucose-dependent insulin secretion from pancreatic beta cells while suppressing inappropriate glucagon secretion.\n3. GLP-1 analogues accelerate gastric emptying, thereby increasing the rate of carbohydrate absorption into the bloodstream.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: GLP-1 is an incretin hormone naturally synthesized and secreted by intestinal endocrine L-cells in the ileum and colon following food ingestion.\nStatement 2 is correct: In pharmacotherapy (drugs like Semaglutide, Tirzepatide, and Berobenatide), GLP-1 receptor agonists bind to GLP-1 receptors on pancreatic beta cells to enhance insulin secretion in a glucose-dependent manner (reducing hypoglycemic risk) and suppress excess postprandial glucagon secretion by alpha cells.\nStatement 3 is incorrect: GLP-1 receptor agonists DELAY (slow down) gastric emptying and act on hypothalamic satiety centers to induce fullness and reduce appetite. They do NOT accelerate gastric emptying (accelerating emptying would increase postprandial glucose spikes).",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 accurately define the physiological origin and endocrine mechanism of GLP-1.",
+      "Option B": "Incorrect because Statement 3 is false (it delays gastric emptying).",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "Human Physiology: Endocrine System (Pancreatic Hormones & Incretins); Biotechnology in Healthcare.",
+    "standard_book_ref": "NCERT Class 11 Biology, Chapter 22 (Chemical Coordination and Integration); Ravi P. Agrahari, Science & Technology.",
+    "elimination_trap": "Physiological direction trap: incretin mimetics SLOW DOWN gastric motility to prolong fullness and prevent glucose spikes, rather than accelerating it.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "With reference to Glucagon-Like Peptide-1 (GLP-1) receptor agonists used in metabolic medicine, consider the following statements:\n1. GLP-1 is an endogenous incretin peptide hormone secreted by the L-cells of the intestines in response to nutrient intake.\n2. GLP-1 receptor agonists stimulate glucose-dependent insulin secretion from pancreatic beta cells while suppressing inappropriate glucagon secretion.\n3. GLP-1 analogues accelerate gastric emptying, thereby increasing the rate of carbohydrate absorption into the bloodstream.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-snt-2026-05-011",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Biopharmaceuticals & Biotechnology Policy",
+    "question": "Regarding the 'Biopharma SHAKTI' scheme and biopharmaceutical manufacturing in India, consider the following statements:\n1. The scheme is designed to facilitate the transition of India's pharmaceutical sector from low-margin small-molecule generic chemical drugs to high-value biologics and biosimilars.\n2. Biologics are large, complex molecular medicines produced using living biological systems such as recombinant microbial or mammalian cells.\n3. Biosimilars are identical, exact chemical copies of reference biologics, manufactured through standard chemical synthesis without any molecular micro-heterogeneity.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: The Biopharma SHAKTI scheme (announced with a ₹10,000 crore outlay) aims to establish advanced biomanufacturing clusters and CDMO capabilities in India, migrating the industry from conventional small-molecule generic APIs to high-margin biopharmaceuticals (monoclonal antibodies, cell and gene therapies).\nStatement 2 is correct: Biologics (e.g., insulin, erythropoietin, monoclonal antibodies) are intricate macromolecular protein structures produced through genetic engineering inside living host cells (CHO cells, E. coli, yeast).\nStatement 3 is incorrect: Biosimilars are NOT 'identical exact chemical copies'. Because biologics are derived from living cells, post-translational modifications (like glycosylation) result in slight natural micro-heterogeneity. Therefore, biosimilars are 'highly similar' with no clinically meaningful differences in safety, purity, or potency, but are NOT exact chemical copies like small-molecule generic drugs (e.g. paracetamol).",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 accurately describe the policy objective of Biopharma SHAKTI and the nature of biologics.",
+      "Option B": "Incorrect because Statement 3 is false (biosimilars are not identical chemical copies).",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "Biotechnology: Recombinant DNA Technology; Biologics vs Small Molecules; Biosimilars Regulatory Guidelines (CDSCO).",
+    "standard_book_ref": "NCERT Class 12 Biology, Biotechnology and its Applications; Department of Biotechnology (DBT) Annual Report.",
+    "elimination_trap": "Generic vs Biosimilar confusion: generic drugs are identical chemical copies; biosimilars are biological products that are highly similar but inherently possess micro-variations because they are grown in living cells.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "Regarding the 'Biopharma SHAKTI' scheme and biopharmaceutical manufacturing in India, consider the following statements:\n1. The scheme is designed to facilitate the transition of India's pharmaceutical sector from low-margin small-molecule generic chemical drugs to high-value biologics and biosimilars.\n2. Biologics are large, complex molecular medicines produced using living biological systems such as recombinant microbial or mammalian cells.\n3. Biosimilars are identical, exact chemical copies of reference biologics, manufactured through standard chemical synthesis without any molecular micro-heterogeneity.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-snt-2026-05-012",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Nanomedicine & Targeted Gene Therapy",
+    "question": "In targeted cancer nanomedicine, what is the primary role of 'Aptamers' when conjugated to mesoporous silica nanoparticles?",
+    "options": [
+      "They act as synthetic nuclear fuel providing thermal propulsion to the nanoparticle.",
+      "They are short, single-stranded oligonucleotides that fold into specific three-dimensional structures to bind selectively to target tumor cell-surface receptors.",
+      "They permanently alter the genomic DNA of adjacent normal somatic cells to confer radio-resistance.",
+      "They dissolve the cellular plasma membrane through high-frequency acoustic cavitation."
+    ],
+    "answer": "They are short, single-stranded oligonucleotides that fold into specific three-dimensional structures to bind selectively to target tumor cell-surface receptors.",
+    "correct_index": 1,
+    "correct_option": "B",
+    "explanation": "Option B is correct.\nAptamers are short, synthetic single-stranded DNA or RNA oligonucleotides (or peptides) that fold by intramolecular interactions into unique three-dimensional conformations. They bind with high affinity and exquisite specificity to designated molecular targets (such as the MUC1 glycoprotein receptor overexpressed on breast cancer cells), functioning as 'chemical antibodies'. In nanomedicine (such as MPPM platforms), aptamers serve as targeting ligands that guide nanoparticles directly to malignant cells, sparing healthy tissue from systemic toxicity.",
+    "option_analysis": {
+      "Option A": "Incorrect. Aptamers are biological oligonucleotides, not thermal fuel.",
+      "Option B": "Correct. Accurately describes aptamers as selective oligonucleotide targeting ligands.",
+      "Option C": "Incorrect. Aptamers do not alter genomic DNA of surrounding healthy cells.",
+      "Option D": "Incorrect. This describes sonoporation or ultrasound therapy, not aptamers."
+    },
+    "static_root": "Nanotechnology in Medicine; Targeted Drug Delivery; Aptamers vs Monoclonal Antibodies; RNA/DNA Oligonucleotides.",
+    "standard_book_ref": "Ravi P. Agrahari, Science & Technology, Nanotechnology; NCERT Class 12 Biology (Biotechnology).",
+    "elimination_trap": "Watch for pseudo-mechanical distractors: aptamers are biochemical molecular recognition agents selected via SELEX processes, functioning analogous to antibodies.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (B)",
+    "question_text": "In targeted cancer nanomedicine, what is the primary role of 'Aptamers' when conjugated to mesoporous silica nanoparticles?"
+  },
+  {
+    "id": "ca-snt-2026-05-013",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Governance & S&T",
+    "sub_topic": "AI for Informal Economy & Digital Public Infrastructure",
+    "question": "Regarding 'Mission Digital ShramSetu' proposed for India's informal labor ecosystem, consider the following statements:\n1. It integrates Artificial Intelligence (AI), Blockchain, and Immersive Learning to empower informal sector workers.\n2. Blockchain technology is utilized to provide tamper-proof, verifiable digital skill credentials and portable work histories.\n3. The initiative is restricted exclusively to gig-economy platform workers engaged with registered e-commerce aggregators.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: Mission Digital ShramSetu is conceptualised as a national digital ecosystem using AI-driven vernacular interfaces, blockchain verification, and AR/VR immersive learning modules to improve productivity, financial inclusion, and occupational mobility for India's 490 million informal workers.\nStatement 2 is correct: A fundamental application of blockchain in ShramSetu is the creation of decentralised, tamper-proof digital wallets storing verifiable skill certifications, prior learning recognitions (RPL), and cross-employer work histories.\nStatement 3 is incorrect: The mission covers the entire unorganised informal workforce—including agricultural laborers, construction workers, domestic workers, street vendors, and traditional artisans—and is NOT restricted to app-based gig workers.",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 are accurate.",
+      "Option B": "Incorrect because Statement 3 is false (it covers all unorganised workers, not just app gig workers).",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "Digital Public Infrastructure (DPI); Blockchain in Public Administration; Informal Sector & Social Security.",
+    "standard_book_ref": "Ramesh Singh, Indian Economy (Employment and Skill Development); MeitY Digital Governance Initiatives.",
+    "elimination_trap": "Exclusive restriction trap: government DPI platforms for unorganized labor (e-Shram, ShramSetu) are designed for the broad 490-million informal workforce, not solely urban app-based platform gig workers.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "Regarding 'Mission Digital ShramSetu' proposed for India's informal labor ecosystem, consider the following statements:\n1. It integrates Artificial Intelligence (AI), Blockchain, and Immersive Learning to empower informal sector workers.\n2. Blockchain technology is utilized to provide tamper-proof, verifiable digital skill credentials and portable work histories.\n3. The initiative is restricted exclusively to gig-economy platform workers engaged with registered e-commerce aggregators.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-snt-2026-05-014",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Semiconductor Memory Architectures & AI Hardware",
+    "question": "In the semiconductor industry, the phenomenon of 'memflation' and memory supply bottlenecks is primarily driven by the surging demand for High Bandwidth Memory (HBM). In this context, how does High Bandwidth Memory (HBM) differ from conventional Dynamic Random-Access Memory (DRAM)?",
+    "options": [
+      "HBM stacks multiple DRAM memory dies vertically using Through-Silicon Vias (TSVs), providing a vastly wider bus interface and higher bandwidth at lower power consumption.",
+      "HBM eliminates electronic transistors by storing information using biological DNA sequences.",
+      "HBM is non-volatile flash storage that permanently retains data when power is completely turned off.",
+      "HBM uses mechanical magnetic platters rotating at supersonic speeds inside vacuum chambers."
+    ],
+    "answer": "HBM stacks multiple DRAM memory dies vertically using Through-Silicon Vias (TSVs), providing a vastly wider bus interface and higher bandwidth at lower power consumption.",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Option A is correct.\nConventional DRAM chips are laid out horizontally in a two-dimensional arrangement with narrow 32-bit or 64-bit buses, which creates a severe 'memory wall' bottleneck for data-hungry AI GPUs. High Bandwidth Memory (HBM) solves this by vertically stacking multiple DRAM dies on top of an interposer using Through-Silicon Vias (TSVs) and microbumps. This 3D architecture enables an ultra-wide memory bus (1024 bits or more per stack) situated directly adjacent to the GPU/accelerator, delivering terabytes-per-second memory bandwidth with significantly lower latency and power consumption. However, fabricating HBM consumes 2 to 3 times more silicon wafer area than standard DRAM, causing industry-wide price inflation ('memflation').",
+    "option_analysis": {
+      "Option A": "Correct. Accurately defines 3D stacked DRAM with TSVs and wide memory interfaces.",
+      "Option B": "Incorrect. This describes theoretical DNA data storage.",
+      "Option C": "Incorrect. HBM is volatile RAM, not non-volatile flash (NAND).",
+      "Option D": "Incorrect. This is an absurd description of hard disk drives."
+    },
+    "static_root": "Semiconductor Physics; Volatile vs Non-Volatile Memory (RAM vs ROM vs NAND Flash); 3D Packaging & TSVs.",
+    "standard_book_ref": "NCERT Class 12 Physics, Semiconductor Electronics; Ravi P. Agrahari, Science & Technology.",
+    "elimination_trap": "Volatile vs Non-volatile confusion: HBM is ultra-fast *volatile* working memory (RAM), not non-volatile storage like SSDs/NAND flash.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "In the semiconductor industry, the phenomenon of 'memflation' and memory supply bottlenecks is primarily driven by the surging demand for High Bandwidth Memory (HBM). In this context, how does High Bandwidth Memory (HBM) differ from conventional Dynamic Random-Access Memory (DRAM)?"
+  },
+  {
+    "id": "ca-snt-2026-05-015",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Post-Quantum Cryptography & Cyber Security",
+    "question": "With reference to Quantum Computing threats and Post-Quantum Cryptography (PQC), consider the following statements:\n1. Shor's algorithm running on an error-corrected quantum computer can solve integer factorization and discrete logarithms in polynomial time, breaking RSA and Elliptic Curve Cryptography.\n2. The 'Harvest Now, Decrypt Later' (HNDL) strategy involves adversaries intercepting and storing encrypted high-value data today to decrypt it once quantum computers mature.\n3. Post-Quantum Cryptography algorithms require the installation of quantum processors and cannot run on existing classical binary computers.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: Modern asymmetric encryption (RSA, Diffie-Hellman, ECC) relies on mathematical problems (factoring large prime products, discrete logarithms) that are intractable for classical computers. Peter Shor's quantum algorithm can solve these in polynomial time, rendering existing public-key infrastructure obsolete once a cryptanalytically relevant quantum computer (CRQC) is realized.\nStatement 2 is correct: In 'Harvest Now, Decrypt Later' (HNDL), hostile intelligence agencies capture and archive encrypted government, military, and financial communications today, intending to decrypt the ciphertexts when quantum computing breaks RSA/ECC.\nStatement 3 is incorrect: A crucial distinction: Post-Quantum Cryptography (PQC)—such as lattice-based algorithms (ML-KEM, ML-DSA)—consists of mathematical encryption algorithms designed to run on EXISTING CLASSICAL computers and servers, but whose mathematical structure is mathematically resistant to quantum attacks. (It is Quantum Key Distribution - QKD that requires specialised quantum photonics hardware).",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 accurately describe quantum cryptographic vulnerabilities and the HNDL threat.",
+      "Option B": "Incorrect because Statement 3 is false (PQC runs on classical computers).",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "Quantum Computing & Cryptography (RSA vs Post-Quantum); Quantum Algorithms (Shor's and Grover's Algorithms); National Quantum Mission.",
+    "standard_book_ref": "Ravi P. Agrahari, Science & Technology; DST Task Force Report on Post-Quantum Cryptography.",
+    "elimination_trap": "PQC vs QKD confusion: PQC is classical math that runs on your existing laptop or server to resist quantum attacks. QKD is physical quantum hardware that transmits entangled photons.",
+    "difficulty": "Hard",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "With reference to Quantum Computing threats and Post-Quantum Cryptography (PQC), consider the following statements:\n1. Shor's algorithm running on an error-corrected quantum computer can solve integer factorization and discrete logarithms in polynomial time, breaking RSA and Elliptic Curve Cryptography.\n2. The 'Harvest Now, Decrypt Later' (HNDL) strategy involves adversaries intercepting and storing encrypted high-value data today to decrypt it once quantum computers mature.\n3. Post-Quantum Cryptography algorithms require the installation of quantum processors and cannot run on existing classical binary computers.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-snt-2026-05-016",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Superconductivity & Quantum Noise",
+    "question": "In superconducting quantum computing processors, environmental ionizing radiation causes computational crashes known as the 'radiation glitch'. This phenomenon occurs because ionizing radiation:",
+    "options": [
+      "Induces nuclear fission reactions inside the processor's silicon substrate, destroying the physical chip.",
+      "Generates phonons that break apart superconducting Cooper pairs, creating a swarm of quasiparticles that cause qubit decoherence.",
+      "Generates extreme high temperatures above 1,000°C that vaporize the dilution refrigerator.",
+      "Inverts the chemical valence of copper conductors from +2 to -1."
+    ],
+    "answer": "Generates phonons that break apart superconducting Cooper pairs, creating a swarm of quasiparticles that cause qubit decoherence.",
+    "correct_index": 1,
+    "correct_option": "B",
+    "explanation": "Option B is correct.\nSuperconducting qubits (transmons) function based on BCS superconductivity, where electrons bind into 'Cooper pairs' at millikelvin temperatures, creating a resistance-free quantum ground state. When ambient ionizing radiation (such as cosmic rays or trace radionuclides in concrete/silicon) strikes the chip substrate, it releases energy in the form of acoustic phonons (lattice vibrations). These energetic phonons break Cooper pairs into unpaired single electrons called 'quasiparticles'. The swarm of quasiparticles diffuses across the Josephson junctions, causing instantaneous energy dissipation, phase flips, and correlated decoherence across multiple qubits simultaneously.",
+    "option_analysis": {
+      "Option A": "Incorrect. Ambient ionizing radiation does not trigger nuclear fission in silicon.",
+      "Option B": "Correct. Accurately describes the breaking of Cooper pairs by phonons and the generation of quasiparticle poisoning.",
+      "Option C": "Incorrect. Dilution refrigerators maintain temperatures near 10 mK; ambient radiation causes micro-disturbances, not macroscopic 1,000°C vaporization.",
+      "Option D": "Incorrect. Chemical nonsense."
+    },
+    "static_root": "Superconductivity: Cooper Pairs & BCS Theory; Quantum Decoherence; Quantum Error Correction.",
+    "standard_book_ref": "NCERT Class 12 Physics, Superconductivity & Modern Physics; Nature Physics articles on Quasiparticle Poisoning.",
+    "elimination_trap": "Microscopic vs macroscopic damage: ionizing radiation does not melt or explode quantum chips; it breaks fragile quantum Cooper pairs, generating quasiparticles that scramble the quantum information.",
+    "difficulty": "Hard",
+    "upsc_official_key": "Verified: Option (B)",
+    "question_text": "In superconducting quantum computing processors, environmental ionizing radiation causes computational crashes known as the 'radiation glitch'. This phenomenon occurs because ionizing radiation:"
+  },
+  {
+    "id": "ca-snt-2026-05-017",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Governance & S&T",
+    "sub_topic": "Emergency Early Warning Systems & Telecommunications",
+    "question": "Regarding the 'SACHET' National Disaster Alert System and Cell Broadcast Technology in India, consider the following statements:\n1. SACHET utilizes the international Common Alerting Protocol (CAP) to disseminate geo-targeted disaster warnings across multiple channels.\n2. Unlike SMS alerts, Cell Broadcast messages do not require the mobile phone numbers of recipients and can reach millions of handsets in a designated cell tower radius simultaneously.\n3. Cell Broadcast transmissions fail during major disasters because they are subject to the same network congestion that chokes point-to-point SMS traffic.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: SACHET is an integrated early warning platform developed by the National Disaster Management Authority (NDMA) and C-DOT based on ITU's Common Alerting Protocol (CAP), aggregating alerts from IMD, CWC, INCOIS, and DGRE.\nStatement 2 is correct: Cell Broadcast Service (CBS) is a true 'one-to-many' broadcast mechanism. The cellular base station radiates the emergency packet on a dedicated broadcast channel. Any active handset connected to that tower receives the alert instantly without the telecom operator needing to query a subscriber database or know the individual phone numbers, fully preserving privacy.\nStatement 3 is incorrect: A major operational strength of Cell Broadcast is that it uses a dedicated radio signaling channel that is completely separate from standard voice/SMS traffic channels. Consequently, CBS messages bypass cellular network congestion and deliver alerts even when voice and SMS networks are completely saturated during severe emergencies.",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 accurately define the CAP architecture and Cell Broadcast mechanics.",
+      "Option B": "Incorrect because Statement 3 is false (Cell Broadcast is immune to SMS network congestion).",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "Disaster Management Act 2005; Telecommunications (Cell Broadcast vs Point-to-Point SMS); Common Alerting Protocol (CAP).",
+    "standard_book_ref": "M. Laxmikanth, Indian Polity (Disaster Management); NDMA Guidelines on Early Warning Dissemination.",
+    "elimination_trap": "Network congestion vulnerability: SMS suffers severe delays during disasters because each message must be routed individually; Cell Broadcast broadcasts like a radio beacon, bypassing traffic jams.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "Regarding the 'SACHET' National Disaster Alert System and Cell Broadcast Technology in India, consider the following statements:\n1. SACHET utilizes the international Common Alerting Protocol (CAP) to disseminate geo-targeted disaster warnings across multiple channels.\n2. Unlike SMS alerts, Cell Broadcast messages do not require the mobile phone numbers of recipients and can reach millions of handsets in a designated cell tower radius simultaneously.\n3. Cell Broadcast transmissions fail during major disasters because they are subject to the same network congestion that chokes point-to-point SMS traffic.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-snt-2026-05-018",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Atmospheric Science & Monsoon Forecasting",
+    "question": "With reference to the 'Coastal Atmospheric Research Testbed' (C-ART) established in Visakhapatnam, consider the following statements:\n1. It has been set up by the Indian Institute of Tropical Meteorology (IITM) under the Ministry of Earth Sciences.\n2. It focuses on the high-resolution measurement of raindrop size distribution, cloud microphysics, and turbulence fluxes over coastal transition zones.\n3. The observational data gathered by C-ART is used to refine parameterisation schemes in numerical weather prediction models.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1, 2 and 3",
+    "correct_index": 3,
+    "correct_option": "D",
+    "explanation": "All three statements are correct.\nStatement 1 is correct: The Coastal Atmospheric Research Testbed (C-ART) was established at Andhra University, Visakhapatnam by the Indian Institute of Tropical Meteorology (IITM, Pune), an autonomous R&D institution under the Ministry of Earth Sciences (MoES).\nStatement 2 is correct: C-ART deploys Doppler weather radars, microwave radiometers, and optical disdrometers to observe raindrop size distributions (DSD), rain microphysics, boundary layer turbulent fluxes, and aerosol-cloud interactions along the east coast.\nStatement 3 is correct: Sub-grid physical processes (such as cloud condensation and convective rain formation) cannot be explicitly resolved by global weather models. Data from testbeds like C-ART provide the empirical basis to calibrate parameterisation equations in high-resolution models (e.g. UM and WRF), significantly improving monsoon and cyclonic rainfall forecasts.",
+    "option_analysis": {
+      "Option A": "Incorrect because Statement 3 is also correct.",
+      "Option B": "Incorrect because Statement 1 is also correct.",
+      "Option C": "Incorrect because Statement 2 is also correct.",
+      "Option D": "Correct. All three statements accurately state the institutional ownership, instrument capabilities, and meteorological utility of C-ART."
+    },
+    "static_root": "Indian Monsoon Mechanism; Ministry of Earth Sciences (IITM Pune, IMD); Cloud Microphysics & Numerical Weather Prediction.",
+    "standard_book_ref": "NCERT Class 11 India: Physical Environment, Chapter on Climate; Ministry of Earth Sciences Annual Report.",
+    "elimination_trap": "Parameterisation concept: aspirants often overlook how physical observations feed into numerical computer weather models via parameterisation tuning.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (D)",
+    "question_text": "With reference to the 'Coastal Atmospheric Research Testbed' (C-ART) established in Visakhapatnam, consider the following statements:\n1. It has been set up by the Indian Institute of Tropical Meteorology (IITM) under the Ministry of Earth Sciences.\n2. It focuses on the high-resolution measurement of raindrop size distribution, cloud microphysics, and turbulence fluxes over coastal transition zones.\n3. The observational data gathered by C-ART is used to refine parameterisation schemes in numerical weather prediction models.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-snt-2026-05-019",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Nuclear Fuel Cycle & Pyroprocessing",
+    "question": "Regarding 'Pyroprocessing' utilized in the nuclear power sector and advanced metallurgy, consider the following statements:\n1. It is a high-temperature, non-aqueous electrochemical method used to reprocess spent nuclear fuel.\n2. The process dissolves spent fuel in a molten chloride salt bath (such as LiCl-KCl) operating at temperatures exceeding 500°C.\n3. Pyroprocessing completely separates pure, weapon-grade plutonium from all minor actinides, making it a high-risk proliferation pathway compared to standard aqueous PUREX solvent extraction.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: Pyroprocessing (pyrochemical reprocessing) is a high-temperature, dry, non-aqueous method used to reprocess irradiated fuel from Fast Breeder Reactors (FBRs).\nStatement 2 is correct: Spent metallic or oxide fuel is chopped and placed in an electrorefiner containing a high-temperature molten eutectic salt bath (such as lithium chloride and potassium chloride, LiCl-KCl) at 500°C or higher, where an electric current drives electrochemical separation of actinides and fission products.\nStatement 3 is incorrect: A paramount non-proliferation advantage of pyroprocessing over the traditional PUREX (aqueous solvent extraction) process is that pyroprocessing co-extracts plutonium together with other minor actinides (americium, curium, neptunium) as a blended actinide mix. It does NOT separate clean, weapon-grade plutonium by itself, making it highly proliferation-resistant.",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 accurately state the high-temperature molten salt electrochemical nature of pyroprocessing.",
+      "Option B": "Incorrect because Statement 3 is false (it co-extracts actinides, preventing clean weapon-grade plutonium separation).",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "India's Three-Stage Nuclear Power Programme; Nuclear Fuel Cycle (Open vs Closed); PUREX vs Pyroprocessing.",
+    "standard_book_ref": "Ravi P. Agrahari, Science & Technology (Nuclear Technology); Department of Atomic Energy (DAE) Technical Bulletins.",
+    "elimination_trap": "Proliferation feature inversion: pyroprocessing is favored in 4th-generation nuclear reactors precisely because it is INHERENTLY proliferation-resistant by co-extracting plutonium with radioactive minor actinides.",
+    "difficulty": "Hard",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "Regarding 'Pyroprocessing' utilized in the nuclear power sector and advanced metallurgy, consider the following statements:\n1. It is a high-temperature, non-aqueous electrochemical method used to reprocess spent nuclear fuel.\n2. The process dissolves spent fuel in a molten chloride salt bath (such as LiCl-KCl) operating at temperatures exceeding 500°C.\n3. Pyroprocessing completely separates pure, weapon-grade plutonium from all minor actinides, making it a high-risk proliferation pathway compared to standard aqueous PUREX solvent extraction.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-snt-2026-05-020",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Science & Technology",
+    "sub_topic": "Biochemical Imaging & Proteomics",
+    "question": "In cellular biology and molecular diagnostics, the 'Cleavable Light-Erased Antibody Reporter' (CLEAR) platform is designed to achieve which of the following breakthroughs?",
+    "options": [
+      "The synthesis of artificial human blood cells using genetically modified cyanobacteria.",
+      "High-resolution multiplexed spatial imaging of dozens of distinct proteins within the same biological tissue sample using a single erasable fluorescent marker.",
+      "The permanent eradication of viral RNA in human patients using acoustic shockwaves.",
+      "The 3D bioprinting of entire organ transplants without requiring cellular scaffold matrixes."
+    ],
+    "answer": "High-resolution multiplexed spatial imaging of dozens of distinct proteins within the same biological tissue sample using a single erasable fluorescent marker.",
+    "correct_index": 1,
+    "correct_option": "B",
+    "explanation": "Option B is correct.\nTraditional immunofluorescence microscopy faces a fundamental bottleneck called 'spectral overlap': because conventional dyes have overlapping optical emission spectra, researchers can image only 3 to 4 proteins simultaneously in a single cell. The CLEAR (Cleavable Light-Erased Antibody Reporter) technology solves this by using antibody probes linked to fluorescent reporters via photocleavable or light-erasable chemical bonds. After imaging one protein, a brief flash of light erases the fluorescent signal without damaging the underlying tissue, allowing the same fluorescent channel to be reused iteratively. This enables scientists to map the precise spatial organization of dozens of different proteins in tumor biopsies and neurological tissue.",
+    "option_analysis": {
+      "Option A": "Incorrect. This describes artificial blood or photosynthetic cell research.",
+      "Option B": "Correct. Accurately describes the light-erasable multiplexed spatial proteomics imaging mechanism of CLEAR.",
+      "Option C": "Incorrect. Shockwaves do not selectively eradicate intracellular viral RNA.",
+      "Option D": "Incorrect. This describes advanced organ bioprinting."
+    },
+    "static_root": "Fluorescence Microscopy; Proteomics & Protein Mapping; Cell Biology Diagnostics.",
+    "standard_book_ref": "NCERT Class 11 Biology, Chapter 8 (Cell: The Unit of Life); Scientific Reports / Nature Biotechnology.",
+    "elimination_trap": "Watch for grand science-fiction decoys: CLEAR specifically addresses multiplexed fluorescence microscopy and spatial proteomics imaging.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (B)",
+    "question_text": "In cellular biology and molecular diagnostics, the 'Cleavable Light-Erased Antibody Reporter' (CLEAR) platform is designed to achieve which of the following breakthroughs?"
+  },
+  {
+    "id": "ca-sec-2026-06-001",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "International Relations",
+    "sub_topic": "Financial Action Task Force (FATF) Governance",
+    "question": "With reference to the Financial Action Task Force (FATF) and India's multilateral leadership, consider the following statements:\n1. The FATF is an inter-governmental body established in 1989 on the initiative of the G7 to combat money laundering and terrorist financing.\n2. In 2026, India assumed the Vice-Presidency of the FATF for the first time for a fixed one-year term.\n3. Jurisdictions placed on the FATF 'Grey List' are subjected to mandatory, legally binding economic sanctions and total trade embargoes by the United Nations Security Council.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: The FATF was established at the 1989 G7 Summit in Paris to set international standards and promote effective regulatory and operational measures for combating money laundering, terrorist financing, and proliferation financing.\nStatement 2 is correct: India was elected to the FATF Vice-Presidency for the first time for the 2026–2027 term (represented by Vivek Aggarwal), highlighting international recognition of India's robust AML/CFT compliance framework.\nStatement 3 is incorrect: Placement on the 'Grey List' (formally termed 'Jurisdictions under Increased Monitoring') indicates strategic deficiencies that the country has actively committed to resolve with the FATF under an agreed action plan. It does NOT impose mandatory UNSC economic sanctions or total trade embargoes (though it causes heightened due diligence, reputational damage, and difficulties in obtaining loans from the IMF and World Bank). Strict international countermeasures are reserved for the 'Black List' ('High-Risk Jurisdictions subject to a Call for Action', e.g. North Korea, Iran).",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 are accurate historical and institutional facts.",
+      "Option B": "Incorrect because Statement 3 is false.",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "International Financial Architecture; FATF Recommendations; Money Laundering & Terror Financing; G7 Initiatives.",
+    "standard_book_ref": "Pavneet Singh, International Relations; FATF Official Mandate & Plenary Decisions.",
+    "elimination_trap": "Grey List vs Black List consequences: Grey list means 'increased monitoring' with agreed remedial timelines; it does NOT trigger mandatory UNSC trade embargoes.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "With reference to the Financial Action Task Force (FATF) and India's multilateral leadership, consider the following statements:\n1. The FATF is an inter-governmental body established in 1989 on the initiative of the G7 to combat money laundering and terrorist financing.\n2. In 2026, India assumed the Vice-Presidency of the FATF for the first time for a fixed one-year term.\n3. Jurisdictions placed on the FATF 'Grey List' are subjected to mandatory, legally binding economic sanctions and total trade embargoes by the United Nations Security Council.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-sec-2026-06-002",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Internal Security & Law",
+    "sub_topic": "Narcotics Trafficking & Synthetic Drugs",
+    "question": "Regarding synthetic narcotics and the drug 'Captagon', which was seized for the first time in India under Operation RAGEPILL, consider the following statements:\n1. Captagon is a synthetic psychotropic substance primarily comprising fenetylline, which metabolizes in the human body into amphetamine and theophylline.\n2. It acts as a central nervous system depressant that induces profound sedation and loss of consciousness.\n3. Under the Narcotic Drugs and Psychotropic Substances (NDPS) Act, 1985, illicit trafficking in commercial quantities of psychotropic substances carries stringent punishment including rigorous imprisonment of not less than 10 years.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 3 only",
+    "correct_index": 1,
+    "correct_option": "B",
+    "explanation": "Statements 1 and 3 are correct, while Statement 2 is incorrect.\nStatement 1 is correct: Captagon is the trademark name for the synthetic stimulant fenetylline (a chemical co-drug of amphetamine and theophylline). When ingested, hepatic metabolism splits the compound into amphetamine and theophylline, creating potent central nervous system stimulation.\nStatement 2 is incorrect: Captagon is a central nervous system STIMULANT (not a depressant). It suppresses fatigue, induces acute euphoria, heightens alertness, and eliminates fear and sleep—earning it notoriety in conflict zones in West Asia as the 'Jihadi drug' used by combatants to sustain combat endurance.\nStatement 3 is correct: Under Section 22(c) of the NDPS Act, 1985, offences involving commercial quantities of psychotropic substances attract rigorous imprisonment for a term which shall not be less than 10 years (extendable to 20 years) and a fine of not less than ₹1 lakh.",
+    "option_analysis": {
+      "Option A": "Incorrect because Statement 2 is false (it is a powerful stimulant, not a depressant).",
+      "Option B": "Correct. Statements 1 and 3 accurately describe the chemical identity, metabolic breakdown, and statutory penalties under the NDPS Act.",
+      "Option C": "Incorrect because Statement 2 is false.",
+      "Option D": "Incorrect because Statement 2 is false."
+    },
+    "static_root": "Narcotic Drugs and Psychotropic Substances Act 1985; Pharmacology: Stimulants vs Depressants; Organized Transnational Crime.",
+    "standard_book_ref": "Internal Security by Ashok Kumar, IPS; Narcotics Control Bureau (NCB) Annual Overview.",
+    "elimination_trap": "Pharmacological action trap: stimulants stimulate alertness, heart rate, and aggression; depressants (like opioids, barbiturates) sedate and slow down brain function. Captagon is an amphetamine stimulant.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (B)",
+    "question_text": "Regarding synthetic narcotics and the drug 'Captagon', which was seized for the first time in India under Operation RAGEPILL, consider the following statements:\n1. Captagon is a synthetic psychotropic substance primarily comprising fenetylline, which metabolizes in the human body into amphetamine and theophylline.\n2. It acts as a central nervous system depressant that induces profound sedation and loss of consciousness.\n3. Under the Narcotic Drugs and Psychotropic Substances (NDPS) Act, 1985, illicit trafficking in commercial quantities of psychotropic substances carries stringent punishment including rigorous imprisonment of not less than 10 years.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-sec-2026-06-003",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Defence & S&T",
+    "sub_topic": "Ballistic Missile Defence (BMD) Architecture",
+    "question": "With reference to India's Ballistic Missile Defence (BMD) Programme developed by the DRDO, consider the following statements:\n1. Phase-I of the BMD system consists of the Prithvi Air Defence (PAD) for exo-atmospheric interception and Advanced Air Defence (AAD) for endo-atmospheric interception.\n2. Phase-II utilizes the AD-1 and AD-2 interceptor missiles designed to engage intermediate-range and intercontinental ballistic missiles.\n3. In missile defense terminology, 'exo-atmospheric' interception takes place entirely within the Earth's troposphere below an altitude of 15 kilometres.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: Phase-I of India's BMD architecture is a dual-tier system: the Prithvi Air Defence (PAD/Pradyumna) interceptor for high-altitude exo-atmospheric interception (50 to 80 km) and the Advanced Air Defence (AAD/Ashwin) interceptor for low-altitude endo-atmospheric interception (15 to 30 km) against missiles with ranges up to 2,000 km.\nStatement 2 is correct: Phase-II BMD incorporates advanced long-range interceptors AD-1 and AD-2 powered by solid-fuel two-stage rocket motors and equipped with indigenously developed advanced seekers to neutralize ballistic missiles with ranges of 5,000 km or more (intermediate-range and ICBM-class threats).\nStatement 3 is incorrect: In aerospace and defense science, 'exo-atmospheric' refers to interception taking place OUTSIDE the Earth's atmosphere, typically at altitudes above 50 to 80 km (well above the Karman line at 100 km in true space). The troposphere extends only up to 8-18 km; interception within the troposphere and stratosphere is classified as 'endo-atmospheric'.",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 accurately describe Phase-I and Phase-II BMD architecture.",
+      "Option B": "Incorrect because Statement 3 is physically and definitionally false.",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "DRDO Missile Programmes (Integrated Guided Missile Development Programme - IGMDP & BMD); Atmospheric Layers (Troposphere vs Exosphere).",
+    "standard_book_ref": "Ravi P. Agrahari, Science & Technology; DRDO Ballistic Missile Defence Monograph.",
+    "elimination_trap": "Atmospheric altitude confusion: exo-atmospheric means beyond/outside the dense atmosphere (>50-80 km), not in the lower troposphere.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "With reference to India's Ballistic Missile Defence (BMD) Programme developed by the DRDO, consider the following statements:\n1. Phase-I of the BMD system consists of the Prithvi Air Defence (PAD) for exo-atmospheric interception and Advanced Air Defence (AAD) for endo-atmospheric interception.\n2. Phase-II utilizes the AD-1 and AD-2 interceptor missiles designed to engage intermediate-range and intercontinental ballistic missiles.\n3. In missile defense terminology, 'exo-atmospheric' interception takes place entirely within the Earth's troposphere below an altitude of 15 kilometres.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-sec-2026-06-004",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Defence & S&T",
+    "sub_topic": "Automated Air Defence Control Systems",
+    "question": "Regarding 'Project Akashteer' inducted by the Indian Army, consider the following statements:\n1. It is an indigenously developed automated Air Defence Control and Reporting System developed by Bharat Electronics Limited (BEL).\n2. It integrates battlefield surveillance radars, optical sensors, and diverse air defence weapons into a single unified situational picture.\n3. The system relies exclusively on foreign commercial GPS satellites for target geo-referencing and cannot interface with India's NavIC constellation.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: Project Akashteer is an indigenous, state-of-the-art automated Air Defence Control and Reporting System developed by state-owned Bharat Electronics Limited (BEL) in collaboration with the Indian Army under the Atmanirbhar Bharat initiative.\nStatement 2 is correct: Akashteer establishes digital sensor-to-shooter loops by connecting all tactical radar units, communication nodes, and ground-based air defence guns and missiles across forward operational areas, providing commanders with a comprehensive composite air situation picture.\nStatement 3 is incorrect: Akashteer is engineered specifically for strategic autonomy and is fully compatible with and integrated with India's indigenous satellite navigation constellation, NavIC (IRNSS), eliminating reliance on foreign satellite constellations that could be denied during conflict.",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 are accurate descriptions of BEL's Akashteer system.",
+      "Option B": "Incorrect because Statement 3 is false (it is integrated with NavIC).",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "Modern Warfare: Network-Centric Warfare & C4I Systems; Atmanirbhar Bharat in Defence; NavIC Satellite Navigation.",
+    "standard_book_ref": "Ashok Kumar, IPS, Challenges to Internal Security of India; Ministry of Defence Press Releases on Project Akashteer.",
+    "elimination_trap": "Foreign dependency trap: claiming an indigenous Indian military command-and-control platform 'cannot interface with NavIC' directly contradicts India's strategic sovereignty doctrines.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "Regarding 'Project Akashteer' inducted by the Indian Army, consider the following statements:\n1. It is an indigenously developed automated Air Defence Control and Reporting System developed by Bharat Electronics Limited (BEL).\n2. It integrates battlefield surveillance radars, optical sensors, and diverse air defence weapons into a single unified situational picture.\n3. The system relies exclusively on foreign commercial GPS satellites for target geo-referencing and cannot interface with India's NavIC constellation.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-sec-2026-06-005",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Internal Security",
+    "sub_topic": "Border Security & Quadrangular Security Grid",
+    "question": "In India's evolving border management strategy, the 'Quadrangular Security Grid' concept marks a shift towards 'territorial security' by establishing operational synergy among which four entities?",
+    "options": [
+      "Armed Forces, Central Armed Police Forces (BSF), Local State Police, and Border Public/Civil Administration",
+      "Indian Army, Indian Navy, Indian Air Force, and Coast Guard",
+      "Research and Analysis Wing (RAW), Intelligence Bureau (IB), CBI, and NIA",
+      "Border Roads Organisation, Ministry of Finance, NITI Aayog, and Panchayati Raj Institutions"
+    ],
+    "answer": "Armed Forces, Central Armed Police Forces (BSF), Local State Police, and Border Public/Civil Administration",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Option A is correct.\nThe Quadrangular Security Grid initiative (spearheaded by the Department of Border Management, Ministry of Home Affairs) redefines border management from mere linear patrolling by border-guarding forces into comprehensive 'territorial depth security'. The four pillars of the grid are: (1) The Military/Armed Forces (tactical firepower and outer perimeter defence), (2) Central Armed Police Forces like BSF/ITBP/SSB (primary line-of-control policing and border infiltration interdiction), (3) Local State Police (internal intelligence, local criminal network apprehension, and FIR registrations), and (4) Border Population and Civil Administration (eyes and ears on the ground, village defence development, and socio-economic integration through the Vibrant Villages Programme).",
+    "option_analysis": {
+      "Option A": "Correct. Identifies the exact four operational pillars constituting the Quadrangular Security Grid.",
+      "Option B": "Incorrect. This describes the tri-service/joint maritime security apparatus.",
+      "Option C": "Incorrect. This is the multi-agency intelligence coordination framework (MAC).",
+      "Option D": "Incorrect. This is an administrative and infrastructure consortium."
+    },
+    "static_root": "Border Management in India; Department of Border Management (MHA); Comprehensive Integrated Border Management System (CIBMS).",
+    "standard_book_ref": "Ashok Kumar, IPS, Challenges to Internal Security of India, Chapter on 'Border Management'; MHA Annual Report.",
+    "elimination_trap": "Don't confuse multi-agency military integration (tri-service) with the Quadrangular Border Grid, which explicitly integrates civil society and local border populations alongside police and military.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "In India's evolving border management strategy, the 'Quadrangular Security Grid' concept marks a shift towards 'territorial security' by establishing operational synergy among which four entities?"
+  },
+  {
+    "id": "ca-sec-2026-06-006",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Geography & Security",
+    "sub_topic": "Border Infrastructure & Land Ports",
+    "question": "Consider the following statements regarding border trade points and the Land Ports Authority of India (LPAI):\n1. The Land Ports Authority of India is a statutory body established under the Land Ports Authority of India Act, 2012, under the Ministry of Home Affairs.\n2. Three mountain passes are officially designated for bilateral border trade between India and China: Lipulekh Pass, Shipki La Pass, and Nathu La Pass.\n3. The Land Port Management System (LPMS) 'VINIMAY' was developed to digitize customs, cargo manifest processing, and passenger immigration at land borders.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1, 2 and 3",
+    "correct_index": 3,
+    "correct_option": "D",
+    "explanation": "All three statements are correct.\nStatement 1 is correct: The LPAI is a statutory body established in 2012 under the Land Ports Authority of India Act, 2010, functioning under the Department of Border Management, Ministry of Home Affairs, to construct and manage Integrated Check Posts (ICPs) / Land Ports across India's land borders.\nStatement 2 is correct: India and China officially designated three border trade passes under bilateral protocols: Lipulekh Pass (Uttarakhand, designated 1992), Shipki La Pass (Himachal Pradesh, designated 1995), and Nathu La Pass (Sikkim, reopened 2006).\nStatement 3 is correct: The Land Port Management System (LPMS) 'VINIMAY' (launched in 2026) is a unified digital portal that integrates Automatic Number Plate Recognition (ANPR), electronic cargo clearance, and digital immigration workflows to eliminate paperwork delays at land frontiers.",
+    "option_analysis": {
+      "Option A": "Incorrect because Statement 3 is also correct.",
+      "Option B": "Incorrect because Statement 1 is also correct.",
+      "Option C": "Incorrect because Statement 2 is also correct.",
+      "Option D": "Correct. All three statements accurately state LPAI statutory mandates, India-China border trade passes, and the VINIMAY digital portal."
+    },
+    "static_root": "India's Land Borders (15,106.7 km); Land Ports Authority of India Act 2010; Himalayan Mountain Passes.",
+    "standard_book_ref": "Ashok Kumar, IPS, Challenges to Internal Security; NCERT Class 11 India Physical Environment; LPAI Official Portal.",
+    "elimination_trap": "Border Trade vs Land Port distinction: border trade passes are high-altitude seasonal trading points; Land Ports / ICPs are integrated transit hubs equipped with customs, immigration, and cargo warehousing.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (D)",
+    "question_text": "Consider the following statements regarding border trade points and the Land Ports Authority of India (LPAI):\n1. The Land Ports Authority of India is a statutory body established under the Land Ports Authority of India Act, 2012, under the Ministry of Home Affairs.\n2. Three mountain passes are officially designated for bilateral border trade between India and China: Lipulekh Pass, Shipki La Pass, and Nathu La Pass.\n3. The Land Port Management System (LPMS) 'VINIMAY' was developed to digitize customs, cargo manifest processing, and passenger immigration at land borders.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-sec-2026-06-007",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Central Armed Police Forces (CAPFs) Governance",
+    "question": "With reference to the Central Armed Police Forces (CAPFs) in India and recent legislative and judicial developments, consider the following statements:\n1. All Central Armed Police Forces, including BSF, CRPF, CISF, ITBP, and SSB, operate under the administrative control of the Ministry of Defence.\n2. In 2025, the Supreme Court directed the Union Government to progressively reduce the quota of Indian Police Service (IPS) deputations at the DIG and IG ranks in CAPFs to protect the career progression of cadre officers.\n3. The Central Armed Police Forces are classified as 'Organised Group 'A' Services' (OGAS).\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "2 and 3 only",
+    "correct_index": 1,
+    "correct_option": "B",
+    "explanation": "Statements 2 and 3 are correct, while Statement 1 is incorrect.\nStatement 1 is incorrect: All CAPFs (BSF, CRPF, CISF, ITBP, SSB, Assam Rifles) function under the administrative and operational superintendence of the Ministry of Home Affairs (MHA), NOT the Ministry of Defence (which controls the Army, Navy, and Air Force).\nStatement 2 is correct: In a landmark decision safeguarding the morale and promotional avenues of directly recruited CAPF officers, the Supreme Court directed the Centre to restrict and progressively phase down lateral IPS deputation quotas at the middle-command levels of Deputy Inspector General (DIG) and Inspector General (IG).\nStatement 3 is correct: In 2019, the Supreme Court upheld the status of CAPF executive officers as 'Organised Group 'A' Central Services' (OGAS), entitling them to Non-Functional Financial Upgradation (NFFU) benefits.",
+    "option_analysis": {
+      "Option A": "Incorrect because Statement 1 is false (CAPFs are under MHA, not MoD).",
+      "Option B": "Correct. Statements 2 and 3 accurately depict the Supreme Court's OGAS ruling and IPS deputation curtailment directives.",
+      "Option C": "Incorrect because Statement 1 is false.",
+      "Option D": "Incorrect because Statement 1 is false."
+    },
+    "static_root": "Central Armed Police Forces (CAPFs); Article 33; Ministry of Home Affairs; Civil Services Cadre Rules.",
+    "standard_book_ref": "M. Laxmikanth, Indian Polity (Central Administration); Ashok Kumar, IPS, Challenges to Internal Security of India.",
+    "elimination_trap": "Nodal Ministry swap: aspirants often confuse paramilitary/CAPF forces with the Armed Forces. CAPFs are under the Ministry of Home Affairs.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (B)",
+    "question_text": "With reference to the Central Armed Police Forces (CAPFs) in India and recent legislative and judicial developments, consider the following statements:\n1. All Central Armed Police Forces, including BSF, CRPF, CISF, ITBP, and SSB, operate under the administrative control of the Ministry of Defence.\n2. In 2025, the Supreme Court directed the Union Government to progressively reduce the quota of Indian Police Service (IPS) deputations at the DIG and IG ranks in CAPFs to protect the career progression of cadre officers.\n3. The Central Armed Police Forces are classified as 'Organised Group 'A' Services' (OGAS).\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-sec-2026-06-008",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Defence & S&T",
+    "sub_topic": "Unmanned Aerial Systems & Fibre-Optic Drones",
+    "question": "In contemporary drone warfare, why are 'fibre-optic-guided drones' emerging as a disruptive technological capability?",
+    "options": [
+      "They rely on laser beam riders emitted from low-Earth orbit satellites, eliminating atmospheric drag.",
+      "They are connected to the operator via a spooled micro-fibre-optic tether, making them completely immune to radio-frequency (RF) electronic warfare jamming.",
+      "They are powered by micro-nuclear reactors, enabling perpetual flight without battery limitations.",
+      "They reflect 100% of incoming radar microwaves using liquid mercury coatings."
+    ],
+    "answer": "They are connected to the operator via a spooled micro-fibre-optic tether, making them completely immune to radio-frequency (RF) electronic warfare jamming.",
+    "correct_index": 1,
+    "correct_option": "B",
+    "explanation": "Option B is correct.\nConventional unmanned aerial vehicles and first-person-view (FPV) drones communicate with operators using wireless radio-frequency (RF) signals and satellite links. Electronic warfare (EW) systems easily disrupt them by jamming control frequencies or spoofing GPS coordinates. Fibre-optic-guided drones overcome this vulnerability by paying out an ultra-thin, light-weight micro-optical fiber spool (ranging up to 10 to 50 km in length) during flight. Control commands, telemetry, and uncompressed high-definition video are transmitted via light pulses through the physical glass fiber. Because there is no wireless radio emission, enemy EW jammers are completely ineffective, rendering the drone virtually impossible to jam or intercept electronically.",
+    "option_analysis": {
+      "Option A": "Incorrect. This describes theoretical space-based directed energy beam riding.",
+      "Option B": "Correct. Accurately describes the micro-fibre tether mechanism and its total immunity to RF jamming.",
+      "Option C": "Incorrect. Micro-nuclear powered tactical drones are technologically non-existent.",
+      "Option D": "Incorrect. Fanciful science-fiction distractor."
+    },
+    "static_root": "Modern Electronic Warfare (EW); Unmanned Combat Aerial Vehicles (UCAVs); Fibre-Optic Telecommunication Principles (Total Internal Reflection).",
+    "standard_book_ref": "Ravi P. Agrahari, Science & Technology; Ashok Kumar, IPS, Internal Security; Defence Technology Reviews.",
+    "elimination_trap": "Physical cable counter-intuition: candidates often assume modern weapons must be wireless; however, in heavily contested electronic environments, physical fibre-optic spools represent the ultimate counter-jamming solution.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (B)",
+    "question_text": "In contemporary drone warfare, why are 'fibre-optic-guided drones' emerging as a disruptive technological capability?"
+  },
+  {
+    "id": "ca-sec-2026-06-009",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Defence & S&T",
+    "sub_topic": "Long-Range Air Defence Systems",
+    "question": "Regarding India's indigenous air defence programme 'Project Kusha', consider the following statements:\n1. It is being developed by the Defence Research and Development Organisation (DRDO) as an indigenous Long-Range Surface-to-Air Missile (LR-SAM) system.\n2. It is engineered to intercept diverse airborne threats including stealth fighter jets, cruise missiles, and precision-guided munitions at ranges of up to 350 kilometres.\n3. The system is designed to provide only short-range point defence for naval corvettes operating in littoral waters.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: Project Kusha is DRDO's flagship initiative to develop an indigenous long-range surface-to-air missile system, creating an indigenous umbrella comparable to the Russian S-400 Triumf.\nStatement 2 is correct: Project Kusha incorporates three tiers of interceptor missiles capable of engaging aerial targets at ranges of 150 km, 250 km, and up to 350 km, capable of defeating cruise missiles, ballistic threats, stealth fighters, and drones.\nStatement 3 is incorrect: Project Kusha is a strategic area-defence system designed to protect vast territorial airspaces and strategic hinterlands (part of Mission Sudarshan Chakra), NOT a short-range point-defence system for littoral corvettes (short-range naval roles are served by systems like VL-SRSAM).",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 accurately describe the origins and capabilities of Project Kusha.",
+      "Option B": "Incorrect because Statement 3 is false (it is a strategic long-range area defence system, not short-range point defence).",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "DRDO Air Defence Systems (Akash, MRSAM, Project Kusha, S-400); Mission Sudarshan Chakra.",
+    "standard_book_ref": "Ravi P. Agrahari, Science & Technology; Ministry of Defence Technology Focus Bulletins.",
+    "elimination_trap": "Area defence vs Point defence: short-range point defence protects a single ship or airfield (<30 km); Project Kusha is a 350-km long-range area defence shield.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "Regarding India's indigenous air defence programme 'Project Kusha', consider the following statements:\n1. It is being developed by the Defence Research and Development Organisation (DRDO) as an indigenous Long-Range Surface-to-Air Missile (LR-SAM) system.\n2. It is engineered to intercept diverse airborne threats including stealth fighter jets, cruise missiles, and precision-guided munitions at ranges of up to 350 kilometres.\n3. The system is designed to provide only short-range point defence for naval corvettes operating in littoral waters.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-sec-2026-06-010",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Defence & S&T",
+    "sub_topic": "Airborne Early Warning and Control (AEW&C)",
+    "question": "With reference to the 'Netra' Airborne Early Warning and Control (AEW&C) system inducted by the Indian Air Force, consider the following statements:\n1. Netra was indigenously designed and developed by the Centre for Airborne Systems (CABS) of DRDO.\n2. It utilizes an Active Electronically Scanned Array (AESA) primary radar mounted on an Embraer-145 aircraft platform.\n3. In addition to radar surveillance, it is equipped with Electronic Support Measures (ESM) and Communication Support Measures (CSM) for electronic reconnaissance.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1, 2 and 3",
+    "correct_index": 3,
+    "correct_option": "D",
+    "explanation": "All three statements are correct.\nStatement 1 is correct: The Netra AEW&C system was conceptualized and developed by the Centre for Airborne Systems (CABS, Bengaluru), a laboratory of DRDO, positioning India among a select group of nations capable of developing airborne battle-management systems.\nStatement 2 is correct: Netra integrates an indigenous Active Electronically Scanned Array (AESA) radar antenna housed in an aerodynamic dorsal radome mounted atop a modified Brazilian Embraer EMB-145 twin-engine regional jet, providing 240-300 km air and sea detection range with 300-degree coverage.\nStatement 3 is correct: Netra functions as an airborne command post equipped not only with radar but also with passive Electronic Support Measures (ESM) to intercept enemy radar emissions and Communication Support Measures (CSM) to monitor and locate hostile radio communication networks.",
+    "option_analysis": {
+      "Option A": "Incorrect because Statement 3 is also correct.",
+      "Option B": "Incorrect because Statement 1 is also correct.",
+      "Option C": "Incorrect because Statement 2 is also correct.",
+      "Option D": "Correct. All three statements accurately state the developer, radar architecture, and electronic reconnaissance suite of Netra."
+    },
+    "static_root": "Airborne Early Warning and Control (AEW&C vs AWACS); AESA Radar Technology; Electronic Warfare (ESM / CSM).",
+    "standard_book_ref": "Ravi P. Agrahari, Science & Technology; DRDO CABS Monographs.",
+    "elimination_trap": "Don't confuse Netra (DRDO CABS on Embraer-145 platform with AESA) with Phalcon AWACS (Israeli EL/W-2090 radar on Russian IL-76 platform providing 360-degree coverage).",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (D)",
+    "question_text": "With reference to the 'Netra' Airborne Early Warning and Control (AEW&C) system inducted by the Indian Air Force, consider the following statements:\n1. Netra was indigenously designed and developed by the Centre for Airborne Systems (CABS) of DRDO.\n2. It utilizes an Active Electronically Scanned Array (AESA) primary radar mounted on an Embraer-145 aircraft platform.\n3. In addition to radar surveillance, it is equipped with Electronic Support Measures (ESM) and Communication Support Measures (CSM) for electronic reconnaissance.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-agr-2026-06-001",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Agriculture & Economy",
+    "sub_topic": "Fertilizer Subsidies & Soil Nutrient Imbalance",
+    "question": "Regarding the fertilizer sector and nutrient dynamics in Indian agriculture, consider the following statements:\n1. India manufactures nearly 100% of its domestic phosphatic and potassic fertilizer requirements from indigenous rock deposits.\n2. The Nutrient-Based Subsidy (NBS) scheme applies to Phosphatic and Potassic (P&K) fertilizers, but excludes Urea from its purview.\n3. Continuous, excessive application of urea without adequate phosphorus, potassium, and micronutrients depletes soil organic carbon and leads to declining partial factor productivity of fertilizers.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "2 and 3 only",
+    "correct_index": 1,
+    "correct_option": "B",
+    "explanation": "Statements 2 and 3 are correct, while Statement 1 is incorrect.\nStatement 1 is incorrect: India is heavily import-dependent for fertilizers: while India produces about 80% of its urea domestically (though reliant on imported natural gas feed), it imports nearly 90% of its rock phosphate and 100% of its potassic fertilizers (Muriate of Potash - MOP), possessing virtually no commercial potash mineral reserves.\nStatement 2 is correct: Under the Nutrient-Based Subsidy (NBS) regime introduced in 2010, fixed subsidy rates are announced per kilogram of nutrients (N, P, K, and S) for 28 grades of P&K fertilizers. Urea is statutorily excluded from NBS and remains under a separate, rigid Maximum Retail Price (MRP) control regime.\nStatement 3 is correct: Heavily subsidised cheap urea has severely skewed the ideal N:P:K application ratio (ideal 4:2:1, often reaching 8:3:1 or worse), causing a 'fertilizer trap' where farmers must add ever-increasing quantities of urea to achieve the same yield as soil organic carbon and microbial health degrade.",
+    "option_analysis": {
+      "Option A": "Incorrect because Statement 1 is false (India has zero potash reserves and imports 100% MOP).",
+      "Option B": "Correct. Statements 2 and 3 accurately describe the NBS policy architecture and the agronomic consequences of skewed NPK ratios.",
+      "Option C": "Incorrect because Statement 1 is false.",
+      "Option D": "Incorrect because Statement 1 is false."
+    },
+    "static_root": "Fertilizer Subsidy Regime (NBS vs Urea MRP Control); Soil Chemistry (NPK Ratios); Mineral Resources of India.",
+    "standard_book_ref": "Ramesh Singh, Indian Economy, Agriculture Sector; PMF IAS Environment, Soil Pollution and Fertilizers.",
+    "elimination_trap": "Mineral endowment trap: India has practically no indigenous potash deposits. Almost 100% of potassium fertilizers are imported from Canada, Russia, Belarus, and Jordan.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (B)",
+    "question_text": "Regarding the fertilizer sector and nutrient dynamics in Indian agriculture, consider the following statements:\n1. India manufactures nearly 100% of its domestic phosphatic and potassic fertilizer requirements from indigenous rock deposits.\n2. The Nutrient-Based Subsidy (NBS) scheme applies to Phosphatic and Potassic (P&K) fertilizers, but excludes Urea from its purview.\n3. Continuous, excessive application of urea without adequate phosphorus, potassium, and micronutrients depletes soil organic carbon and leads to declining partial factor productivity of fertilizers.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-agr-2026-06-002",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Agriculture & Environment",
+    "sub_topic": "Biochar & Carbon Sequestration",
+    "question": "With reference to 'Biochar' and its role in climate-resilient agriculture, consider the following statements:\n1. Biochar is a carbon-dense, porous solid produced through the thermochemical conversion of biomass under oxygen-limited conditions (pyrolysis).\n2. Due to its recalcitrant aromatic carbon ring structure, biochar resists biological decomposition and can lock carbon in soil for hundreds of years.\n3. Under the international VM0042 methodology, application of biochar generated from crop residue can be monetised as carbon removal credits.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1, 2 and 3",
+    "correct_index": 3,
+    "correct_option": "D",
+    "explanation": "All three statements are correct.\nStatement 1 is correct: Biochar is produced through the thermal pyrolysis of agricultural waste (e.g. paddy straw, corn stalks, coconut coir) at 400°C to 700°C in an oxygen-free or oxygen-depleted reactor.\nStatement 2 is correct: Unlike raw biomass or compost which quickly oxidises and decomposes into CO2 within 1-2 seasons, biochar contains condensed aromatic carbon rings (polycyclic aromatic hydrocarbons) that are highly recalcitrant to microbial enzyme degradation, persisting in the soil matrix for hundreds to thousands of years.\nStatement 3 is correct: Under voluntary carbon market standards such as Verra's VM0042 (Methodology for Improved Agricultural Land Management), biochar application is recognised as an authentic durable Carbon Dioxide Removal (CDR) technology, generating verified carbon units (typically 2.0 to 2.8 tonnes of CO2-equivalent per tonne of biochar applied).",
+    "option_analysis": {
+      "Option A": "Incorrect because Statement 3 is also correct.",
+      "Option B": "Incorrect because Statement 1 is also correct.",
+      "Option C": "Incorrect because Statement 2 is also correct.",
+      "Option D": "Correct. All three statements accurately state the thermochemical production, biochemical stability, and carbon credit validation of biochar."
+    },
+    "static_root": "Carbon Sequestration (Biological vs Mineral); Pyrolysis; Soil Organic Carbon (SOC); Agricultural Waste Management.",
+    "standard_book_ref": "PMF IAS Environment, Climate Change Mitigation; Shankar IAS Environment; Verra Carbon Standard VM0042.",
+    "elimination_trap": "Compost vs Biochar: compost breaks down and releases carbon rapidly; biochar's recalcitrant carbon lattice locks carbon away semi-permanently.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (D)",
+    "question_text": "With reference to 'Biochar' and its role in climate-resilient agriculture, consider the following statements:\n1. Biochar is a carbon-dense, porous solid produced through the thermochemical conversion of biomass under oxygen-limited conditions (pyrolysis).\n2. Due to its recalcitrant aromatic carbon ring structure, biochar resists biological decomposition and can lock carbon in soil for hundreds of years.\n3. Under the international VM0042 methodology, application of biochar generated from crop residue can be monetised as carbon removal credits.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-agr-2026-06-003",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Agriculture & Economy",
+    "sub_topic": "Cotton Productivity & Textile Modernization",
+    "question": "Regarding the 'Mission for Cotton Productivity' (2026–27 to 2030–31) approved by the Union Cabinet, consider the following statements:\n1. It promotes the High Density Planting System (HDPS) and Closer Spacing technologies to boost lint yield per hectare.\n2. The mission places special emphasis on expanding the domestic cultivation of Extra Long Staple (ELS) cotton to eliminate import dependency.\n3. 'Kasturi Cotton Bharat' is a national certification and traceability initiative providing premium global branding for Indian cotton.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1, 2 and 3",
+    "correct_index": 3,
+    "correct_option": "D",
+    "explanation": "All three statements are correct.\nStatement 1 is correct: India has the largest cotton area globally but significantly lower productivity (~450 kg/ha vs global average of ~800 kg/ha). The Mission for Cotton Productivity promotes the High Density Planting System (HDPS) with semi-dwarf, compact varieties planted at higher densities per acre, enabling synchronised boll bursting and mechanised harvesting.\nStatement 2 is correct: India faces an acute shortage of high-grade Extra Long Staple (ELS) cotton (staple length > 36 mm required for luxury fabrics), importing large volumes from Egypt and the US. The mission prioritises targeted breeding and MSP incentives for indigenous ELS cotton production.\nStatement 3 is correct: The Ministry of Textiles and Cotton Corporation of India launched 'Kasturi Cotton Bharat', a national brand program ensuring 100% blockchain-based farm-to-fabric traceability, DNA tagging, and low-contamination benchmarks for Indian cotton.",
+    "option_analysis": {
+      "Option A": "Incorrect because Statement 3 is also correct.",
+      "Option B": "Incorrect because Statement 1 is also correct.",
+      "Option C": "Incorrect because Statement 2 is also correct.",
+      "Option D": "Correct. Statements 1, 2, and 3 are all aligned with the Mission for Cotton Productivity and Kasturi Cotton initiatives."
+    },
+    "static_root": "Cash Crops of India (Cotton: Soil, Climate, Yield Trends); High Density Planting System (HDPS); Textiles Sector (5F Vision).",
+    "standard_book_ref": "NCERT Class 12 India: People and Economy, Chapter 5 (Land Resources and Agriculture); Ramesh Singh, Indian Economy.",
+    "elimination_trap": "Aspirants often confuse India's volume leadership with yield leadership: India leads the world in total cotton acreage, but ranks very low in per-hectare yield, which HDPS seeks to address.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (D)",
+    "question_text": "Regarding the 'Mission for Cotton Productivity' (2026–27 to 2030–31) approved by the Union Cabinet, consider the following statements:\n1. It promotes the High Density Planting System (HDPS) and Closer Spacing technologies to boost lint yield per hectare.\n2. The mission places special emphasis on expanding the domestic cultivation of Extra Long Staple (ELS) cotton to eliminate import dependency.\n3. 'Kasturi Cotton Bharat' is a national certification and traceability initiative providing premium global branding for Indian cotton.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-agr-2026-06-004",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Agriculture & Environment",
+    "sub_topic": "Agrochemicals & Chemical Safety",
+    "question": "With reference to the chemical herbicide 'Paraquat' and its regulatory status in India, consider the following statements:\n1. Paraquat is a non-selective contact herbicide that kills green plant tissue by generating reactive oxygen species (ROS) during photosynthesis.\n2. It has no known medical antidote, and human ingestion often leads to irreversible, fatal pulmonary fibrosis.\n3. The Rotterdam Convention on the Prior Informed Consent Procedure has placed a mandatory, global commercial production ban on all paraquat formulations.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: Paraquat (paraquat dichloride) is a bipyridylium non-selective broad-spectrum contact herbicide. When absorbed by plant chloroplasts, it intercepts electrons from Photosystem I, generating destructive reactive oxygen species (superoxide radicals) that disintegrate plant cell membranes within hours.\nStatement 2 is correct: Paraquat is notoriously toxic to mammals. It actively accumulates in pulmonary alveolar epithelial cells via polyamine transport chains, causing progressive, fatal lung fibrosis ('paraquat lung'). There is no specific medical antidote, and administering oxygen actually worsens lung toxicity by accelerating free radical generation.\nStatement 3 is incorrect: The Rotterdam Convention does NOT ban chemical manufacture or use (that is the role of the Stockholm Convention for POPs). Rotterdam merely manages the Prior Informed Consent (PIC) procedure for international trade in hazardous chemicals. Moreover, multiple parties (including India) have historically opposed listing paraquat under Annex III of the Rotterdam Convention.",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 accurately define the biochemical mechanism and clinical lethality of Paraquat.",
+      "Option B": "Incorrect because Statement 3 is false (Rotterdam does not ban chemicals, Stockholm does; and paraquat is not globally banned under Rotterdam).",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "Insecticides Act 1968; International Environmental Conventions (Rotterdam vs Stockholm vs Basel); Photosynthesis & Herbicide Action.",
+    "standard_book_ref": "PMF IAS Environment, Environmental Issues and Hazardous Chemicals; Shankar IAS Environment.",
+    "elimination_trap": "Convention mandate swap: Stockholm Convention bans/eliminates persistent organic pollutants (POPs); Rotterdam Convention only requires Prior Informed Consent (PIC) before trade. Candidates often confuse their scopes.",
+    "difficulty": "Hard",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "With reference to the chemical herbicide 'Paraquat' and its regulatory status in India, consider the following statements:\n1. Paraquat is a non-selective contact herbicide that kills green plant tissue by generating reactive oxygen species (ROS) during photosynthesis.\n2. It has no known medical antidote, and human ingestion often leads to irreversible, fatal pulmonary fibrosis.\n3. The Rotterdam Convention on the Prior Informed Consent Procedure has placed a mandatory, global commercial production ban on all paraquat formulations.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-agr-2026-06-005",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Agriculture & Geography",
+    "sub_topic": "Geographical Indications & Horticulture",
+    "question": "Consider the following statements regarding 'Tezpur Litchi', which received export clearance to international markets:\n1. It was granted a Geographical Indication (GI) tag associated with the Sonitpur district of Assam.\n2. It is characterised by its bright red rind, high pulp recovery, pleasant aroma, and high sugar content.\n3. The Agricultural and Processed Food Products Export Development Authority (APEDA) functions under the administrative control of the Ministry of Agriculture and Farmers Welfare.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: Tezpur Litchi was awarded the Geographical Indication (GI) tag under the Geographical Indications of Goods (Registration and Protection) Act, 1999, specifically registered for the Tezpur / Sonitpur region in Assam.\nStatement 2 is correct: Tezpur litchi (varieties include Bombaya, Bilati, Elaichi, and Sahi) is famous for its vibrant red pericarp, thick juicy aril (pulp), distinct musky aroma, and high TSS (Total Soluble Solids/sweetness).\nStatement 3 is incorrect: APEDA is an apex statutory export promotion organisation established under the APEDA Act, 1985, functioning under the Ministry of COMMERCE AND INDUSTRY, NOT the Ministry of Agriculture and Farmers Welfare.",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 are factually and geographically accurate.",
+      "Option B": "Incorrect because Statement 3 is false (APEDA is under Ministry of Commerce and Industry).",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "Geographical Indications Act 1999; Horticultural Crops of North-East India; APEDA & Agricultural Exports.",
+    "standard_book_ref": "NCERT Class 12 India: People and Economy; M. Laxmikanth, Indian Polity (Statutory Bodies); APEDA official portal.",
+    "elimination_trap": "Nodal Ministry trap: APEDA deals with food products, leading many students to guess Ministry of Agriculture or Ministry of Food Processing, but it is under the Ministry of Commerce and Industry.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "Consider the following statements regarding 'Tezpur Litchi', which received export clearance to international markets:\n1. It was granted a Geographical Indication (GI) tag associated with the Sonitpur district of Assam.\n2. It is characterised by its bright red rind, high pulp recovery, pleasant aroma, and high sugar content.\n3. The Agricultural and Processed Food Products Export Development Authority (APEDA) functions under the administrative control of the Ministry of Agriculture and Farmers Welfare.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-agr-2026-06-006",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Agriculture & Governance",
+    "sub_topic": "Sustainable Agriculture & Rainfed Farming",
+    "question": "Regarding the National Mission for Sustainable Agriculture (NMSA) and its sub-schemes, consider the following statements:\n1. NMSA was launched as one of the eight national missions under the National Action Plan on Climate Change (NAPCC).\n2. The Rainfed Area Development (RAD) component promotes Integrated Farming Systems (IFS) combining multi-cropping with animal husbandry and agro-forestry.\n3. The Soil Health Card scheme provides quantitative recommendations for twelve specific chemical and biological soil parameters.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1, 2 and 3",
+    "correct_index": 3,
+    "correct_option": "D",
+    "explanation": "All three statements are correct.\nStatement 1 is correct: The National Mission for Sustainable Agriculture (NMSA) is one of the eight core missions established under the Prime Minister's National Action Plan on Climate Change (NAPCC, 2008) to make Indian agriculture resilient to climate variability.\nStatement 2 is correct: Rainfed Area Development (RAD) focuses on Integrated Farming System (IFS) models tailored to distinct agro-climatic zones, integrating agronomic crops with horticulture, livestock, apiary, and fisheries to diversify risk for rainfed smallholders.\nStatement 3 is correct: The Soil Health Card (SHC) reports 12 physical and chemical parameters: primary macronutrients (Nitrogen, Phosphorus, Potassium - N, P, K); secondary nutrient (Sulphur - S); micronutrients (Zinc, Iron, Copper, Manganese, Boron - Zn, Fe, Cu, Mn, B); and physical/chemical properties (pH, Electrical Conductivity - EC, and Soil Organic Carbon - OC).",
+    "option_analysis": {
+      "Option A": "Incorrect because Statement 3 is also correct.",
+      "Option B": "Incorrect because Statement 1 is also correct.",
+      "Option C": "Incorrect because Statement 2 is also correct.",
+      "Option D": "Correct. All three statements accurately state NAPCC linkage, IFS models, and the 12 Soil Health Card parameters."
+    },
+    "static_root": "National Action Plan on Climate Change (8 Missions); Integrated Farming Systems (IFS); Soil Health Card 12 Parameters.",
+    "standard_book_ref": "PMF IAS Environment, Climate Change Mitigation; Ramesh Singh, Indian Economy (Agriculture); Ministry of Agriculture NMSA Guidelines.",
+    "elimination_trap": "Soil Health Card parameters: UPSC previously asked about the 12 parameters. Remember: 3 primary (N, P, K), 1 secondary (S), 5 micronutrients (Zn, Fe, Cu, Mn, B), and 3 physical indices (pH, EC, OC).",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (D)",
+    "question_text": "Regarding the National Mission for Sustainable Agriculture (NMSA) and its sub-schemes, consider the following statements:\n1. NMSA was launched as one of the eight national missions under the National Action Plan on Climate Change (NAPCC).\n2. The Rainfed Area Development (RAD) component promotes Integrated Farming Systems (IFS) combining multi-cropping with animal husbandry and agro-forestry.\n3. The Soil Health Card scheme provides quantitative recommendations for twelve specific chemical and biological soil parameters.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-agr-2026-06-007",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Agriculture & S&T",
+    "sub_topic": "Bio-priming & Smart Seed Coating",
+    "question": "With reference to 'Smart Seed Coating Technology' developed by the ICAR-Indian Institute of Oilseeds Research (IIOR), consider the following statements:\n1. It utilizes biodegradable biopolymers to encase the seed in a micro-environment containing micronutrients and beneficial microbial inoculants.\n2. The coating helps rainfed oilseed crops like groundnut and soybean germinate under low moisture stress and suppresses seedling diseases.\n3. In India, all seed coating formulations are classified as synthetic chemical insecticides and require prior environmental clearance under the EIA Notification, 2006.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: Smart seed coating developed by ICAR-IIOR utilizes natural, non-toxic, biodegradable polymer matrices to form an encapsulation layer delivering biofertilizers (Rhizobium, PSB), biocontrol agents (Trichoderma), and micronutrients directly to the emerging radicle.\nStatement 2 is correct: Field trials have shown that coated seeds achieve 15% to 35% higher seedling emergence and root vigor in dryland areas by preserving a micro-reservoir of hydration around the seed coat.\nStatement 3 is incorrect: Biodegradable biopolymer seed coatings are natural biological inputs and seed-treatment formulations; they are NOT classified as hazardous synthetic insecticides and are NOT subject to Environmental Impact Assessment (EIA) clearance under the EIA Notification, 2006 (which applies to large infrastructure, mining, and industrial chemical manufacturing units).",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 accurately describe the biochemical composition and agronomic efficacy of smart seed coating.",
+      "Option B": "Incorrect because Statement 3 is false.",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "Agricultural Biotechnology; Seed Physiology & Priming; ICAR Research Innovations; Environmental Impact Assessment (EIA 2006).",
+    "standard_book_ref": "Ramesh Singh, Indian Economy (Agriculture); ICAR Annual Highlights.",
+    "elimination_trap": "Regulatory exaggeration: EIA Notification, 2006 covers heavy industrial projects (airports, thermal plants, chemical factories), not agricultural seed-priming technologies.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "With reference to 'Smart Seed Coating Technology' developed by the ICAR-Indian Institute of Oilseeds Research (IIOR), consider the following statements:\n1. It utilizes biodegradable biopolymers to encase the seed in a micro-environment containing micronutrients and beneficial microbial inoculants.\n2. The coating helps rainfed oilseed crops like groundnut and soybean germinate under low moisture stress and suppresses seedling diseases.\n3. In India, all seed coating formulations are classified as synthetic chemical insecticides and require prior environmental clearance under the EIA Notification, 2006.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-agr-2026-06-008",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Agriculture & Governance",
+    "sub_topic": "Foodgrain Logistics & Smart Warehousing",
+    "question": "Regarding modern foodgrain storage and logistics management in India, consider the following statements:\n1. Centralised foodgrain buffer stocks are primarily managed by the Food Corporation of India (FCI) and the Central Warehousing Corporation (CWC).\n2. The 'Smart Warehousing System' incorporates IoT-enabled microclimatic sensors and AI-driven automated bag counting to minimize transit and storage losses.\n3. The Food Corporation of India is a non-statutory executive agency created by a resolution of the Planning Commission.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: The public foodgrain logistics architecture relies on FCI (procurement, transport, buffer stocking) alongside CWC and State Warehousing Corporations for scientific storage of wheat, rice, and coarse grains.\nStatement 2 is correct: Under the Smart Warehousing initiative of the Ministry of Consumer Affairs, Food and Public Distribution, storage godowns deploy IoT temperature/humidity sensors to prevent mold/spoilage, ANPR/FASTag at entry gates to curb pilferage, and computer-vision AI cameras for real-time automated bag tallying.\nStatement 3 is incorrect: The Food Corporation of India is a STATUTORY body established under the Food Corporations Act, 1964, enacted by Parliament to implement national food policy (remunerative MSP to farmers and subsidized grains to consumers via TPDS).",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 are accurate.",
+      "Option B": "Incorrect because Statement 3 is false (FCI is a statutory corporation under the 1964 Act).",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "Food Security in India; Food Corporation of India Act 1964; Buffer Norms & Post-Harvest Storage Infrastructure.",
+    "standard_book_ref": "Ramesh Singh, Indian Economy, Agriculture Sector; M. Laxmikanth, Indian Polity (Statutory Bodies); FCI Official Portal.",
+    "elimination_trap": "Statutory status trap: FCI is often mistakenly labelled an executive body; it was created by an Act of Parliament (Food Corporations Act, 1964).",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "Regarding modern foodgrain storage and logistics management in India, consider the following statements:\n1. Centralised foodgrain buffer stocks are primarily managed by the Food Corporation of India (FCI) and the Central Warehousing Corporation (CWC).\n2. The 'Smart Warehousing System' incorporates IoT-enabled microclimatic sensors and AI-driven automated bag counting to minimize transit and storage losses.\n3. The Food Corporation of India is a non-statutory executive agency created by a resolution of the Planning Commission.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-agr-2026-06-009",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Environment & Fisheries",
+    "sub_topic": "Cold Water Fisheries & Aquatic Ecology",
+    "question": "With reference to 'Cold-Water Fisheries' and aquatic biodiversity in the Himalayan region of India, consider the following statements:\n1. Cold-water aquaculture requires high-altitude water bodies with temperatures typically ranging between 5°C and 20°C and high dissolved oxygen concentrations above 6 mg/L.\n2. Rainbow trout (Oncorhynchus mykiss), an exotic species introduced during the colonial period, is the predominant commercially farmed species in Jammu & Kashmir and Himachal Pradesh.\n3. The Golden Mahseer (Tor putitora) is an indigenous cold-water sport fish listed as 'Critically Endangered' under CITES Appendix I.\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "answer": "1 and 2 only",
+    "correct_index": 0,
+    "correct_option": "A",
+    "explanation": "Statements 1 and 2 are correct, while Statement 3 is incorrect.\nStatement 1 is correct: Cold-water fish species (salmonids and rheophilic cyprinids) are stenothermal organisms requiring clear, fast-flowing mountain streams and lakes with water temperatures generally not exceeding 20°C and dissolved oxygen (DO) levels above 6 mg/L.\nStatement 2 is correct: Rainbow trout (Oncorhynchus mykiss) is the backbone of Himalayan commercial aquaculture, thriving in hatcheries across Jammu & Kashmir (India's leading trout producer), Himachal Pradesh, Uttarakhand, and Sikkim supported by Pradhan Mantri Matsya Sampada Yojana (PMMSY).\nStatement 3 is incorrect: The Golden Mahseer (Tor putitora), known as the 'Tiger of the Himalayan Rivers', is categorized as 'Endangered' on the IUCN Red List (due to damming and habitat degradation), NOT 'Critically Endangered'. Furthermore, it is NOT listed in Appendix I of CITES (CITES regulates international wildlife trade; Golden Mahseer is primarily a domestic freshwater fish subject to Indian fisheries conservation).",
+    "option_analysis": {
+      "Option A": "Correct. Statements 1 and 2 accurately describe the limnological criteria and trout farming industry in India.",
+      "Option B": "Incorrect because Statement 3 is false (Golden Mahseer is Endangered, not CITES Appendix I).",
+      "Option C": "Incorrect because Statement 3 is false.",
+      "Option D": "Incorrect because Statement 3 is false."
+    },
+    "static_root": "Limnology & Aquatic Ecosystems; Cold Water Fisheries (ICAR-DCFR Bhimtal); Blue Economy & PMMSY; IUCN Red List of Himalayan Fish.",
+    "standard_book_ref": "PMF IAS Environment, Aquatic Ecosystems; Shankar IAS Environment; Department of Fisheries Annual Report.",
+    "elimination_trap": "IUCN & CITES exaggeration: confusing Endangered status with Critically Endangered, and misattributing domestic freshwater game fish to CITES Appendix I.",
+    "difficulty": "Moderate",
+    "upsc_official_key": "Verified: Option (A)",
+    "question_text": "With reference to 'Cold-Water Fisheries' and aquatic biodiversity in the Himalayan region of India, consider the following statements:\n1. Cold-water aquaculture requires high-altitude water bodies with temperatures typically ranging between 5°C and 20°C and high dissolved oxygen concentrations above 6 mg/L.\n2. Rainbow trout (Oncorhynchus mykiss), an exotic species introduced during the colonial period, is the predominant commercially farmed species in Jammu & Kashmir and Himachal Pradesh.\n3. The Golden Mahseer (Tor putitora) is an indigenous cold-water sport fish listed as 'Critically Endangered' under CITES Appendix I.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-agr-2026-06-010",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Environment & Microbiology",
+    "sub_topic": "Soil Microbiome & Antimicrobial Resistance (AMR)",
+    "question": "A recent study in Nature Microbiology established that soil drought stress accelerates 'Antimicrobial Resistance' (AMR) in agricultural soils. What is the biological mechanism explaining this link?",
+    "options": [
+      "Drought converts non-pathogenic bacteria into photosynthetic cyanobacteria.",
+      "Desiccation stress induces bacterial SOS responses and enhances horizontal gene transfer of antibiotic resistance genes through plasmids.",
+      "Water scarcity freezes the genetic code of soil bacteria, preventing natural genetic mutations.",
+      "Lack of water causes soil bacteria to synthesize synthetic penicillin molecules from minerals."
+    ],
+    "answer": "Desiccation stress induces bacterial SOS responses and enhances horizontal gene transfer of antibiotic resistance genes through plasmids.",
+    "correct_index": 1,
+    "correct_option": "B",
+    "explanation": "Option B is correct.\nWhen soils suffer prolonged drought and desiccation stress, soil bacteria encounter acute cellular osmotic pressure and DNA damage. This activates bacterial 'SOS response' stress pathways, which dramatically increase bacterial membrane permeability and cell-to-cell contact in remaining thin moisture films. This state drastically accelerates Horizontal Gene Transfer (HGT)—primarily via plasmid conjugation and natural transformation—facilitating the rapid sharing and proliferation of Antibiotic Resistance Genes (ARGs) across divergent microbial taxa, demonstrating that climate-driven droughts can exacerbate the global AMR public health crisis.",
+    "option_analysis": {
+      "Option A": "Incorrect. Bacteria do not transform into cyanobacteria upon desiccation.",
+      "Option B": "Correct. Accurately describes the SOS response and horizontal gene transfer of ARGs mediated by plasmids under environmental stress.",
+      "Option C": "Incorrect. Dehydration does not freeze or halt genetic processes; it increases selective mutagenic pressure.",
+      "Option D": "Incorrect. Penicillin is a natural fungal metabolite (Penicillium), not synthesized from minerals by bacteria."
+    },
+    "static_root": "Microbiology: Horizontal Gene Transfer (Conjugation, Transformation, Transduction); Antimicrobial Resistance (AMR); Climate Change & Soil Health.",
+    "standard_book_ref": "NCERT Class 12 Biology, Chapter 8 (Human Health and Disease); Nature Microbiology Research Reports.",
+    "elimination_trap": "Mechanism of AMR: AMR spread is primarily driven by horizontal gene transfer (HGT) via mobile genetic elements like plasmids and integrons, amplified by environmental stress responses.",
+    "difficulty": "Hard",
+    "upsc_official_key": "Verified: Option (B)",
+    "question_text": "A recent study in Nature Microbiology established that soil drought stress accelerates 'Antimicrobial Resistance' (AMR) in agricultural soils. What is the biological mechanism explaining this link?"
   }
 ]

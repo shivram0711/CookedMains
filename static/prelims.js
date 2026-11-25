@@ -4248,7 +4248,7 @@
     try {
       const [resPyqs, resCa, resOther, resAi] = await Promise.all([
         fetch('/static/data/prelims_pyqs.json?v=20261123v2'),
-        fetch('/static/data/current_affairs_pyqs.json?v=1795586723401'),
+        fetch('/static/data/current_affairs_pyqs.json?v=1795589191873'),
         fetch('/static/data/upsc_other_exams_pyqs.json?v=20261123v2'),
         fetch('/static/data/ai_mock_questions_2026.json?v=20261123v2')
       ]);
@@ -7286,18 +7286,18 @@ function renderPlayerDistractorDeepDive(q) {
       icon: '🔥',
       color: 'red',
       title: 'May 2026 Comprehensive Dossier',
-      leadTheme: 'Thousand Pillar Sandbox & AMOC Tipping Point',
-      topics: ['Thousand Pillar Kakatiya Sandbox Foundation', 'Chola Leiden Plates Repatriation', 'Five Dhyani Buddhas (Tathagatas)', 'Somnath Temple Māru-Gurjara Style', 'Bhojshala Complex Raja Bhoja Grammar Epigraphs', 'AMOC Collapse & Global Monsoon Impacts', 'Nilgiri Prehistoric Rock Art (Irula/Kurumba)', '11th NPT Review Conference & Art VI', 'India-Nordic Clean Energy Partnership', 'PaRRVA Algorithmic Surveillance (SEBI)', 'E-PRAAPTI DISCOM Arrears Settlement', 'Methane Alert & Response System (MARS)', 'Asiatic Lion Barda Translocation', 'Nilgiri Tahr Shola Grassland Ecology', 'Conocarpus Mangrove Exotic Weed Ban'],
-      source: 'InsightsIAS May 2026 / ASI / UNEP'
+      leadTheme: 'Orbital Data Centres, Gaganyaan ECLSS, GLP-1 & Post-Quantum Cryptography',
+      topics: ['Orbital Edge AI (Pathfinder Satellite)', 'Gaganyaan ECLSS (LiOH Scrubbing & Microgravity Fire)', 'Mission Drishti OptoSAR (GalaxEye & NSIL)', 'WASP-94A b & Hot Jupiter Transit Spectroscopy', 'Co-Orbital ASAT Satellites & Space Cybersecurity', 'Chandrayaan-2 DFSAR Lunar South Pole Ice', 'GRAPES-3 Muon Detector (Ooty)', 'GLP-1 Incretin Receptor Agonists (Berobenatide)', 'Biopharma SHAKTI Scheme (Biologics & Biosimilars)', 'Cancer Nanomedicine (Mesoporous Silica & MUC1 Aptamers)', 'Semiconductor Memflation (HBM & TSVs)', 'Post-Quantum Cryptography (PQC & HNDL Threat)', 'Radiation Glitch & Quasiparticle Poisoning in Qubits', 'SACHET Disaster Alerting & Cell Broadcast System', 'Coastal Atmospheric Research Testbed (C-ART)', 'Nuclear Pyroprocessing (Molten Chloride Salts)', 'CLEAR Multiplexed Spatial Proteomics', 'Blue Micromoon & Lunar Eclipses', 'Thousand Pillar Sandbox Foundation', 'AMOC Collapse & Global Monsoon Impacts'],
+      source: 'Decode Civils May-June 2026 S&T & Polity / PIB / ISRO'
     },
     {
       month: 'June 2026',
       icon: '🌧️',
       color: 'blue',
       title: 'June 2026 Comprehensive Dossier',
-      leadTheme: 'Sanchi Relic Diplomacy & Mohenjo-daro Centenary',
-      topics: ['Sanchi Stupa & Sariputra Relics', 'Mohenjo-daro Dancing Girl Centenary (Lost-Wax)', 'Rakhigarhi Mature Harappan Urban Planning', 'Thewa Art Pratapgarh 24k Gold Glasscraft', 'Sushruta Samhita Shalya-tantra Rhinoplasty', 'Vijayanagara Sadasiva Raya Tirumala Inscriptions', 'Chapekar Brothers 1897 Rand Assassination', 'June 3rd Mountbatten Plan & Boundary Commissions', 'Maulana Barkatullah Kabul Provisional Govt 1915', 'Andaman Deepwater Eocene Hydrocarbons', 'RBI Surplus Transfer (Jalan ECF & CRB)', 'Netra AEW&C Mk-II AESA Radar', 'RudraM-II Hypersonic Anti-Radiation Missile', 'Gandhi Sagar Cheetah Sanctuary Expansion', 'Project UDAYAK Arunachal Strategic Roads'],
-      source: 'InsightsIAS Jun 2026 / National Museum / DRDO'
+      leadTheme: 'FATF Vice-Presidency, Project Kusha, Biochar Carbon Credits & Smart Agri',
+      topics: ['FATF Vice-Presidency (2026-27 AML/CFT)', 'Operation RAGEPILL & Captagon Synthetic Drug', 'Phase-II Ballistic Missile Defence & NASM-MR', 'Akashteer Automated Air Defence System (BEL)', 'Quadrangular Security Grid (Territorial Borders)', 'Land Ports Authority (LPAI) & VINIMAY Portal', 'CAPF General Administration Act 2026 & IPS Deputation', 'Fibre-Optic Guided FPV Drones (Anti-Jamming)', 'Project Kusha Long-Range Air Defence (Mission Sudarshan Chakra)', 'Netra AEW&C AESA Radar (DRDO CABS)', 'Fertilizer Trap & Nutrient-Based Subsidy (NBS)', 'Biochar Pyrolysis & VM0042 Carbon Removal Credits', 'Mission for Cotton Productivity (HDPS & Kasturi Cotton)', 'Paraquat Herbicide Ban & Rotterdam Convention', 'Tezpur Litchi GI Export (APEDA)', 'NMSA Rainfed Area Development & Soil Health Card', 'Smart Seed Coating Technology (ICAR-IIOR)', 'Smart Warehousing System (AI/IoT in CWC/FCI)', 'Cold Water Fisheries (Rainbow Trout & Golden Mahseer)', 'Soil Drought Stress & Antimicrobial Resistance (ABR)', 'Great Nicobar Project & Galathea Bay Turtles'],
+      source: 'Decode Civils May-June 2026 Security & Agriculture / MHA / ICAR'
     },
     {
       month: 'July 2026',
@@ -7343,7 +7343,7 @@ function renderPlayerDistractorDeepDive(q) {
     if (!cardsGrid) return;
 
     var caQuestions = STATE.ca_pyqs || [];
-    var totalCaCount = caQuestions.length || 330;
+    var totalCaCount = caQuestions.length || 370;
 
     // Dynamically update header badges and labels
     var badge = document.getElementById('caArenaHeaderBadge');
@@ -7536,7 +7536,7 @@ function renderPlayerDistractorDeepDive(q) {
   async function ensureCaQuestionsLoaded() {
     if (STATE.ca_pyqs && STATE.ca_pyqs.length > 0) return STATE.ca_pyqs;
     try {
-      const res = await fetch('/static/data/current_affairs_pyqs.json?v=1795586723401');
+      const res = await fetch('/static/data/current_affairs_pyqs.json?v=1795589191873');
       if (res.ok) {
         STATE.ca_pyqs = await res.json();
         if (!STATE.pyqMap) STATE.pyqMap = {};
