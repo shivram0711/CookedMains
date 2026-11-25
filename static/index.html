@@ -187,14 +187,14 @@
     <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-1 sm:gap-4">
       <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
         <!-- Authentic Logo for Light & Dark Mode + Brand Name & Subtext -->
-        <a href="/" onclick="event.preventDefault(); window.navigateToHome();" class="flex items-center gap-2 sm:gap-2.5 group shrink-0 py-1 select-none" title="Cooked Mains — Let Me Cook">
-          <img src="/static/brand_logo_light.png" alt="Cooked Mains Logo" class="brand-logo-light h-11 sm:h-13 md:h-14 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
-          <img src="/static/brand_logo_dark.png" alt="Cooked Mains Logo" class="brand-logo-dark h-11 sm:h-13 md:h-14 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
+        <a href="/" onclick="event.preventDefault(); window.navigateToHome();" class="flex items-center gap-1.5 sm:gap-2.5 group shrink-0 py-1 select-none" title="Cooked Mains — Let Me Cook">
+          <img src="/static/brand_logo_light.png" alt="Cooked Mains Logo" class="brand-logo-light h-9 sm:h-13 md:h-14 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
+          <img src="/static/brand_logo_dark.png" alt="Cooked Mains Logo" class="brand-logo-dark h-9 sm:h-13 md:h-14 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
           <div class="flex flex-col justify-center shrink-0">
-            <span class="text-sm sm:text-base md:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight whitespace-nowrap">
+            <span class="text-xs sm:text-base md:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight whitespace-nowrap">
               Cooked <span class="text-amber-500">Mains</span>
             </span>
-            <span class="text-[9px] sm:text-[10px] md:text-[11px] font-mono sm:font-sans font-bold tracking-wider text-amber-600 dark:text-amber-400 uppercase leading-none mt-0.5 whitespace-nowrap">
+            <span class="hidden min-[380px]:block text-[8px] sm:text-[10px] md:text-[11px] font-mono sm:font-sans font-bold tracking-wider text-amber-600 dark:text-amber-400 uppercase leading-none mt-0.5 whitespace-nowrap">
               Let Me Cook
             </span>
           </div>
@@ -225,8 +225,8 @@
           <span class="whitespace-nowrap text-[10px] sm:text-xs font-bold">Prelims</span>
           <span class="text-[8px] uppercase tracking-wider px-1 py-0.2 rounded bg-amber-500 text-slate-950 font-black hidden sm:inline">New</span>
         </a>
-        <!-- 1. 100% Free Access Badge -->
-        <div id="openPricingBtn" class="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 sm:gap-1.5 shrink-0 shadow-sm cursor-default" title="100% Free Evaluation for UPSC Aspirants (15 Daily Copies • 5 Rewrites)">
+        <!-- 1. 100% Free Access Badge (hidden on tiny mobile screens to prevent header overflow; shown in hero & desktop) -->
+        <div id="openPricingBtn" class="hidden sm:flex bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold items-center gap-1 sm:gap-1.5 shrink-0 shadow-sm cursor-default" title="100% Free Evaluation for UPSC Aspirants (15 Daily Copies • 5 Rewrites)">
           <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500 shrink-0"></i>
           <span id="navCreditsCountMobile" class="sm:hidden whitespace-nowrap text-[10px] font-bold">Free Access</span>
           <span id="navCreditsCount" class="hidden sm:inline whitespace-nowrap text-xs font-bold">100% Free Evaluation</span>
@@ -238,30 +238,29 @@
           <span id="themeToggleLabel" class="text-[11px] font-medium hidden md:inline text-slate-700 dark:text-slate-300">Light</span>
         </button>
 
-        <!-- 2b. Quick Feedback & Bug Report Button -->
-        <button id="navFeedbackBtn" onclick="window.openQuickFeedbackModal()" title="Send Feedback or Report an Issue" class="flex items-center space-x-1 sm:space-x-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-semibold rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 transition shadow-sm shrink-0 cursor-pointer">
+        <!-- 2b. Quick Feedback & Bug Report Button (desktop/tablet header; mobile uses floating feedback button) -->
+        <button id="navFeedbackBtn" onclick="window.openQuickFeedbackModal()" title="Send Feedback or Report an Issue" class="hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 transition shadow-sm shrink-0 cursor-pointer">
           <i data-lucide="message-square" class="w-3.5 h-3.5 text-amber-500 shrink-0"></i>
-          <span class="text-[11px] font-bold hidden sm:inline">Feedback</span>
+          <span class="text-[11px] font-bold">Feedback</span>
         </button>
 
         <!-- 3. My Account Button (Shown when logged in) -->
-        <button id="myAccountBtn" onclick="window.openAccountModal('profile')" class="hidden bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 sm:gap-2 shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm transition cursor-pointer" title="My Account Portal (Profile, Answer Locker, Tracker, Feedback)">
+        <button id="myAccountBtn" onclick="window.openAccountModal('profile')" class="hidden bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 sm:gap-2 shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm transition cursor-pointer" title="My Account Portal (Profile, Answer Locker, Tracker, Feedback)">
           <div class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs font-bold font-mono" id="navAvatarInitials">
             <i data-lucide="user" class="w-3.5 h-3.5"></i>
           </div>
-          <span id="myAccountBtnLabel" class="font-medium whitespace-nowrap text-[10px] sm:text-xs hidden min-[400px]:inline">Account</span>
+          <span id="myAccountBtnLabel" class="font-medium whitespace-nowrap text-[10px] sm:text-xs hidden min-[420px]:inline">Account</span>
           <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 hidden sm:inline"></i>
         </button>
 
         <!-- 4. Sign Out Button (Shown when logged in) -->
-        <button id="navSignOutBtn" onclick="window.logoutAspirant()" class="hidden bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 sm:gap-1.5 shrink-0 shadow-sm transition cursor-pointer" title="Sign Out / Switch Cadet Account">
+        <button id="navSignOutBtn" onclick="window.logoutAspirant()" class="hidden bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 sm:gap-1.5 shrink-0 shadow-sm transition cursor-pointer" title="Sign Out / Switch Cadet Account">
           <i data-lucide="log-out" class="w-3.5 h-3.5 text-rose-500"></i>
-          <span class="text-[10px] sm:text-xs font-bold whitespace-nowrap hidden min-[380px]:inline">Sign Out</span>
-          <span class="text-[10px] font-bold whitespace-nowrap min-[380px]:hidden">Exit</span>
+          <span class="text-[10px] sm:text-xs font-bold whitespace-nowrap hidden min-[420px]:inline">Sign Out</span>
         </button>
 
         <!-- 5. Sign In / Register Button (Shown when logged out) -->
-        <button id="loginRegisterBtn" onclick="window.openAuthModal()" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-1.5 sm:py-2 rounded-lg text-xs flex items-center gap-1.5 shadow-sm border border-amber-500/40 transition active:scale-95 cursor-pointer shrink-0">
+        <button id="loginRegisterBtn" onclick="window.openAuthModal()" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs flex items-center gap-1 sm:gap-1.5 shadow-sm border border-amber-500/40 transition active:scale-95 cursor-pointer shrink-0">
           <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
           <span class="whitespace-nowrap font-bold">Sign In</span>
         </button>
