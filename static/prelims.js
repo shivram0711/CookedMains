@@ -3636,8 +3636,8 @@
     } catch (e) {}
   }
 
-  function getActiveSprint() {
-    const data = getTargetSprintsData();
+  function getActiveSprint(dataArg) {
+    const data = dataArg || getTargetSprintsData();
     let found = (data.targets || []).find(function (t) { return t.id === data.activeId; });
     if (!found && data.targets && data.targets.length > 0) {
       found = data.targets[0];
@@ -3653,6 +3653,54 @@
       daysLeft: 4,
       daysTotal: 7
     };
+  }
+
+  function mutateActiveSprint(mutatorFn, savedLabel) {
+    const data = getTargetSprintsData();
+    const sprint = getActiveSprint(data);
+    mutatorFn(sprint, data);
+    saveTargetSprintsData(data);
+    updateTargetSprint();
+    flashSprintSavedIndicator(savedLabel);
+    return { data: data, sprint: sprint };
+  }
+
+  let _sprintSavedTimer = null;
+  function flashSprintSavedIndicator(label) {
+    const badge = document.getElementById('modalSprintSavedBadge');
+    const textEl = document.getElementById('modalSprintSavedText');
+    const card = document.getElementById('modalSprintPreviewCard');
+    if (textEl) textEl.textContent = label || 'Saved Live';
+    if (badge) {
+      badge.classList.remove('bg-emerald-500/15', 'text-emerald-700', 'dark:text-emerald-300');
+      badge.classList.add('bg-emerald-500', 'text-slate-950', 'scale-105');
+    }
+    if (card) {
+      card.classList.add('ring-2', 'ring-emerald-500/40');
+    }
+    clearTimeout(_sprintSavedTimer);
+    _sprintSavedTimer = setTimeout(function () {
+      if (textEl) textEl.textContent = 'Auto-Saved';
+      if (badge) {
+        badge.classList.remove('bg-emerald-500', 'text-slate-950', 'scale-105');
+        badge.classList.add('bg-emerald-500/15', 'text-emerald-700', 'dark:text-emerald-300');
+      }
+      if (card) {
+        card.classList.remove('ring-2', 'ring-emerald-500/40');
+      }
+    }, 900);
+  }
+
+  function isAnswerCorrect(ans, q) {
+    if (!ans) return false;
+    if (typeof ans === 'object') {
+      if (ans.isCorrect === true) return true;
+      if (q && ans.selectedIndex !== undefined && q.correct_index !== undefined) {
+        return ans.selectedIndex === q.correct_index;
+      }
+      return false;
+    }
+    return q ? ans === q.correct_index : false;
   }
 
   function getSprintQuestions(sprint) {
@@ -3681,7 +3729,7 @@
     pool.forEach(function (q) {
       if (STATE.answers[q.id]) {
         solved.push(q);
-        if (STATE.answers[q.id] === q.correct) correct.push(q);
+        if (isAnswerCorrect(STATE.answers[q.id], q)) correct.push(q);
       } else {
         unattempted.push(q);
       }
@@ -3713,18 +3761,18 @@
 
   function updateTargetSprint() {
     const data = getTargetSprintsData();
-    const sprint = getActiveSprint();
+    const sprint = getActiveSprint(data);
     const stats = calculateSprintStats(sprint);
 
     // Render Dashboard Tabs
     const tabsContainer = document.getElementById('targetSprintTabs');
     if (tabsContainer) {
-      const tabsHtml = (data.targets || []).map(function (t, idx) {
+      const tabsHtml = (data.targets || []).map(function (t) {
         const tStats = calculateSprintStats(t);
         const isActive = t.id === sprint.id;
         const activeCls = isActive
           ? 'bg-emerald-500 text-slate-950 font-black shadow-xs'
-          : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/80';
+          : 'bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/80';
         const shortSubj = t.subject.split('&')[0].trim();
         return (
           '<button type="button" class="sprint-tab-btn px-2.5 py-1 rounded-lg text-[11px] whitespace-nowrap transition cursor-pointer flex items-center gap-1 ' + activeCls + '" data-tid="' + t.id + '">' +
@@ -3735,7 +3783,7 @@
       }).join('');
 
       const addBtnHtml = (data.targets || []).length < 3
-        ? '<button type="button" id="addNewTargetTabBtn" class="px-2 py-1 rounded-lg text-[11px] font-bold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 whitespace-nowrap transition cursor-pointer flex items-center gap-1">+ Add Target</button>'
+        ? '<button type="button" id="addNewTargetTabBtn" class="px-2 py-1 rounded-lg text-[11px] font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 whitespace-nowrap transition cursor-pointer flex items-center gap-1">+ Add Target</button>'
         : '';
 
       tabsContainer.innerHTML = tabsHtml + addBtnHtml;
@@ -3743,8 +3791,9 @@
       tabsContainer.querySelectorAll('.sprint-tab-btn').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
           const tid = e.currentTarget.getAttribute('data-tid');
-          data.activeId = tid;
-          saveTargetSprintsData(data);
+          const freshData = getTargetSprintsData();
+          freshData.activeId = tid;
+          saveTargetSprintsData(freshData);
           updateTargetSprint();
         });
       });
@@ -3784,7 +3833,7 @@
       accEl.textContent = (stats.completedCount > 0 ? stats.accuracy : '--') + '% Acc';
     }
 
-    // Modal elements if open
+    // Modal elements (always kept in sync live!)
     const mSubj = document.getElementById('modalSprintSubject');
     const mTopic = document.getElementById('modalSprintTopic');
     const mBar = document.getElementById('modalSprintProgressBar');
@@ -3801,59 +3850,96 @@
     if (mRatio) mRatio.textContent = stats.completedCount + ' / ' + stats.goal;
     if (mRem) mRem.textContent = stats.pendingCount + ' Qs';
     if (mPace) mPace.textContent = stats.pace + ' Qs / Day';
-    if (mDays) mDays.textContent = stats.daysLeft + ' Days Left';
+    if (mDays) mDays.textContent = stats.daysLeft + ' Day' + (stats.daysLeft === 1 ? '' : 's') + ' Left';
     if (mAcc) mAcc.textContent = 'Accuracy: ' + (stats.completedCount > 0 ? stats.accuracy : 0) + '%';
     if (mPendingBtnText) mPendingBtnText.textContent = stats.pendingCount;
+
+    // Also update modal target tab label in-place if open
+    const activeModalTab = document.querySelector('#modalTargetTabs .modal-target-tab-btn[data-tid="' + sprint.id + '"]');
+    if (activeModalTab) {
+      const idx = (data.targets || []).findIndex(function (t) { return t.id === sprint.id; });
+      activeModalTab.textContent = 'Target ' + (idx + 1) + ': ' + sprint.subject.split('&')[0].trim() + ' (' + stats.completedCount + '/' + sprint.goal + ')';
+    }
+  }
+
+  function syncGoalAndDurationButtons(sprint) {
+    document.querySelectorAll('.sprint-goal-btn').forEach(function (btn) {
+      const g = parseInt(btn.getAttribute('data-goal'), 10);
+      if (g === sprint.goal) {
+        btn.className = 'sprint-goal-btn p-2 rounded-xl border text-xs font-mono font-bold cursor-pointer transition-all border-emerald-500 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 shadow-xs';
+      } else {
+        btn.className = 'sprint-goal-btn p-2 rounded-xl border text-xs font-mono font-bold cursor-pointer transition-all border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:border-emerald-500/40';
+      }
+    });
+
+    document.querySelectorAll('.sprint-duration-btn').forEach(function (btn) {
+      const days = parseInt(btn.getAttribute('data-days'), 10);
+      if (days === sprint.daysTotal || days === sprint.daysLeft) {
+        btn.className = 'sprint-duration-btn px-2.5 py-1 rounded-lg border text-[11px] font-mono cursor-pointer transition border-emerald-500 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold';
+      } else {
+        btn.className = 'sprint-duration-btn px-2.5 py-1 rounded-lg border text-[11px] font-mono cursor-pointer transition border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-700';
+      }
+    });
   }
 
   window.openTargetSprintModal = function (e, createNew) {
     if (e && e.stopPropagation) e.stopPropagation();
     const modal = document.getElementById('targetSprintModal');
     if (!modal) return;
+    const wasHidden = modal.classList.contains('hidden');
     modal.classList.remove('hidden');
+
+    const modalBody = document.getElementById('targetSprintModalBody');
+    const prevScrollTop = (!wasHidden && modalBody) ? modalBody.scrollTop : 0;
 
     const data = getTargetSprintsData();
 
     if (createNew) {
-      const newId = 'target_' + Date.now();
-      const existingSubjects = (data.targets || []).map(function (t) { return t.subject; });
-      const allSubjs = Object.keys(SUBJECT_TOPIC_CLUSTERS);
-      const nextSubj = allSubjs.find(function (s) { return !existingSubjects.includes(s); }) || allSubjs[0];
+      if ((data.targets || []).length >= 3) {
+        showToast('Maximum 3 concurrent sprint targets supported. Edit or delete an existing target.');
+      } else {
+        const newId = 'target_' + Date.now();
+        const existingSubjects = (data.targets || []).map(function (t) { return t.subject; });
+        const allSubjs = Object.keys(SUBJECT_TOPIC_CLUSTERS);
+        const nextSubj = allSubjs.find(function (s) { return !existingSubjects.includes(s); }) || allSubjs[0];
 
-      const newTarget = {
-        id: newId,
-        subject: nextSubj,
-        topic: 'all',
-        topicLabel: 'All Topics',
-        goal: 25,
-        daysLeft: 7,
-        daysTotal: 7
-      };
-      data.targets.push(newTarget);
-      data.activeId = newId;
-      saveTargetSprintsData(data);
+        const newTarget = {
+          id: newId,
+          subject: nextSubj,
+          topic: 'all',
+          topicLabel: 'All Topics',
+          goal: 25,
+          daysLeft: 7,
+          daysTotal: 7
+        };
+        data.targets.push(newTarget);
+        data.activeId = newId;
+        saveTargetSprintsData(data);
+        showToast('🎯 Created new target: ' + nextSubj);
+      }
     }
 
-    let sprint = getActiveSprint();
+    let sprint = getActiveSprint(data);
     updateTargetSprint();
 
     // 1. Render Modal Target Tabs
     const modalTabsContainer = document.getElementById('modalTargetTabs');
     if (modalTabsContainer) {
       const mTabsHtml = (data.targets || []).map(function (t, idx) {
+        const tStats = calculateSprintStats(t);
         const isActive = t.id === sprint.id;
         const activeCls = isActive
-          ? 'bg-emerald-500 text-slate-950 font-black'
-          : 'bg-slate-800 text-slate-300 hover:bg-slate-700';
+          ? 'bg-emerald-500 text-slate-950 font-black shadow-xs'
+          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700';
         return (
           '<button type="button" class="modal-target-tab-btn px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer transition ' + activeCls + '" data-tid="' + t.id + '">' +
-            'Target ' + (idx + 1) + ': ' + t.subject.split('&')[0].trim() +
+            'Target ' + (idx + 1) + ': ' + t.subject.split('&')[0].trim() + ' (' + tStats.completedCount + '/' + t.goal + ')' +
           '</button>'
         );
       }).join('');
 
       const mAddHtml = (data.targets || []).length < 3
-        ? '<button type="button" id="modalAddTargetBtn" class="px-2 py-1 rounded-lg text-xs font-bold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 cursor-pointer">+ Add Target</button>'
+        ? '<button type="button" id="modalAddTargetBtn" class="px-2.5 py-1 rounded-lg text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 cursor-pointer">+ Add Target</button>'
         : '';
 
       modalTabsContainer.innerHTML = mTabsHtml + mAddHtml;
@@ -3861,8 +3947,9 @@
       modalTabsContainer.querySelectorAll('.modal-target-tab-btn').forEach(function (btn) {
         btn.addEventListener('click', function (ev) {
           const tid = ev.currentTarget.getAttribute('data-tid');
-          data.activeId = tid;
-          saveTargetSprintsData(data);
+          const freshData = getTargetSprintsData();
+          freshData.activeId = tid;
+          saveTargetSprintsData(freshData);
           window.openTargetSprintModal();
         });
       });
@@ -3878,9 +3965,10 @@
       if ((data.targets || []).length > 1) {
         deleteBtn.classList.remove('hidden');
         deleteBtn.onclick = function () {
-          data.targets = data.targets.filter(function (t) { return t.id !== sprint.id; });
-          data.activeId = data.targets[0].id;
-          saveTargetSprintsData(data);
+          const freshData = getTargetSprintsData();
+          freshData.targets = freshData.targets.filter(function (t) { return t.id !== sprint.id; });
+          freshData.activeId = freshData.targets[0].id;
+          saveTargetSprintsData(freshData);
           window.openTargetSprintModal();
           showToast('🗑️ Target deleted');
         };
@@ -3896,23 +3984,27 @@
       choicesContainer.innerHTML = availableSubjects.map(function (sub) {
         let count = 0;
         let cor = 0;
+        const subClean = sub.toLowerCase().split('&')[0].trim();
         Object.keys(STATE.answers).forEach(function (qId) {
-          const q = STATE.pyqs.find(function (item) { return item.id === qId; });
-          if (q && q.subject && q.subject.toLowerCase().indexOf(sub.toLowerCase().split('&')[0].trim()) !== -1) {
+          const q = (STATE.pyqs || []).find(function (item) { return item.id === qId; });
+          if (q && q.subject && q.subject.toLowerCase().indexOf(subClean) !== -1) {
             count++;
-            if (STATE.answers[qId] === q.correct) cor++;
+            if (isAnswerCorrect(STATE.answers[qId], q)) cor++;
           }
         });
-        const acc = count > 0 ? Math.round((cor / count) * 100) + '%' : 'New';
-        const isSelected = sub.toLowerCase().split('&')[0].trim() === sprint.subject.toLowerCase().split('&')[0].trim();
+        const acc = count > 0 ? Math.round((cor / count) * 100) + '% Acc' : 'New';
+        const isSelected = subClean === sprint.subject.toLowerCase().split('&')[0].trim();
         const activeClass = isSelected
-          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500 shadow-xs'
-          : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700';
+          ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500 ring-1 ring-emerald-500/30 shadow-xs'
+          : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700';
 
         return (
-          '<button type="button" class="sprint-subj-choice-btn p-2 rounded-xl border flex flex-col justify-between gap-1 text-left cursor-pointer transition-all ' + activeClass + '" data-subj="' + escapeHtml(sub) + '">' +
-            '<span class="font-bold text-[11px] leading-tight">' + escapeHtml(sub) + '</span>' +
-            '<span class="text-[9px] font-mono px-1 py-0.2 rounded bg-slate-800 text-slate-400 w-fit">' + acc + '</span>' +
+          '<button type="button" class="sprint-subj-choice-btn p-2.5 rounded-xl border flex flex-col justify-between gap-1 text-left cursor-pointer transition-all ' + activeClass + '" data-subj="' + escapeHtml(sub) + '">' +
+            '<span class="font-bold text-[11px] leading-tight flex items-center justify-between gap-1">' +
+              '<span>' + escapeHtml(sub) + '</span>' +
+              (isSelected ? '<span class="text-emerald-600 dark:text-emerald-400">✓</span>' : '') +
+            '</span>' +
+            '<span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400 w-fit">' + acc + '</span>' +
           '</button>'
         );
       }).join('');
@@ -3920,10 +4012,11 @@
       choicesContainer.querySelectorAll('.sprint-subj-choice-btn').forEach(function (btn) {
         btn.addEventListener('click', function (ev) {
           const newSub = ev.currentTarget.getAttribute('data-subj');
-          sprint.subject = newSub;
-          sprint.topic = 'all';
-          sprint.topicLabel = 'All Topics';
-          saveTargetSprintsData(data);
+          mutateActiveSprint(function (sp) {
+            sp.subject = newSub;
+            sp.topic = 'all';
+            sp.topicLabel = 'All Topics';
+          }, 'Subject Updated');
           window.openTargetSprintModal();
           showToast('🎯 Focus subject set to ' + newSub);
         });
@@ -3941,8 +4034,8 @@
 
       // "All Topics" Pill
       const allActiveCls = isAll
-        ? 'bg-emerald-500 text-slate-950 font-black'
-        : 'bg-slate-950 text-slate-300 border border-slate-800 hover:border-slate-700';
+        ? 'bg-emerald-500 text-slate-950 font-black shadow-xs'
+        : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700';
       topicsHtml.push(
         '<button type="button" class="sprint-topic-btn px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition ' + allActiveCls + '" data-topic="all" data-label="All Topics">' +
           '📚 All ' + sprint.subject.split('&')[0].trim() + ' Topics' +
@@ -3953,8 +4046,8 @@
       clusters.forEach(function (cl) {
         const isSel = (sprint.topic === cl);
         const selCls = isSel
-          ? 'bg-emerald-500 text-slate-950 font-black'
-          : 'bg-slate-950 text-slate-300 border border-slate-800 hover:border-slate-700';
+          ? 'bg-emerald-500 text-slate-950 font-black shadow-xs'
+          : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700';
 
         // Count how many questions match this cluster
         const clKeywords = cl.toLowerCase().split(/[,&\s/]+/).filter(function (w) { return w.length > 3; });
@@ -3969,7 +4062,7 @@
         topicsHtml.push(
           '<button type="button" class="sprint-topic-btn px-2.5 py-1.5 rounded-xl text-xs font-medium cursor-pointer transition flex items-center gap-1 ' + selCls + '" data-topic="' + escapeHtml(cl) + '" data-label="' + escapeHtml(cl) + '">' +
             '<span>' + escapeHtml(cl) + '</span>' +
-            '<span class="text-[9px] font-mono px-1 py-0.2 rounded bg-slate-800/80 text-slate-300">(' + matchCount + ')</span>' +
+            '<span class="text-[9px] font-mono px-1 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300">(' + matchCount + ')</span>' +
           '</button>'
         );
       });
@@ -3985,60 +4078,96 @@
         btn.addEventListener('click', function (ev) {
           const tVal = ev.currentTarget.getAttribute('data-topic');
           const tLabel = ev.currentTarget.getAttribute('data-label');
-          sprint.topic = tVal;
-          sprint.topicLabel = tLabel;
-          saveTargetSprintsData(data);
+          mutateActiveSprint(function (sp) {
+            sp.topic = tVal;
+            sp.topicLabel = tLabel;
+          }, 'Topic Updated');
           window.openTargetSprintModal();
           showToast('🎯 Focused on: ' + tLabel);
         });
       });
     }
 
-    // 4. Step 3: Question Target Buttons & Custom Input
+    // 4. Step 3: Question Target Buttons & Live Custom Input
     const customInput = document.getElementById('sprintCustomGoalInput');
     if (customInput) {
-      customInput.value = sprint.goal || 30;
-      customInput.onchange = function () {
+      if (document.activeElement !== customInput) {
+        customInput.value = sprint.goal || 30;
+      }
+      customInput.oninput = function () {
         const val = parseInt(customInput.value, 10);
-        if (val && val >= 5) {
-          sprint.goal = val;
-          saveTargetSprintsData(data);
-          updateTargetSprint();
-          window.openTargetSprintModal();
+        if (!isNaN(val) && val >= 5 && val <= 200) {
+          const res = mutateActiveSprint(function (sp) {
+            sp.goal = val;
+          }, 'Goal Updated');
+          syncGoalAndDurationButtons(res.sprint);
         }
+      };
+      customInput.onchange = function () {
+        let val = parseInt(customInput.value, 10);
+        if (isNaN(val) || val < 5) val = 5;
+        if (val > 200) val = 200;
+        customInput.value = val;
+        const res = mutateActiveSprint(function (sp) {
+          sp.goal = val;
+        }, 'Goal Updated');
+        syncGoalAndDurationButtons(res.sprint);
       };
     }
 
+    syncGoalAndDurationButtons(sprint);
+
     document.querySelectorAll('.sprint-goal-btn').forEach(function (btn) {
       const g = parseInt(btn.getAttribute('data-goal'), 10);
-      if (g === sprint.goal) {
-        btn.className = 'sprint-goal-btn p-2 rounded-xl border text-xs font-mono font-bold cursor-pointer transition-all border-emerald-500 bg-emerald-500/20 text-emerald-300';
-      } else {
-        btn.className = 'sprint-goal-btn p-2 rounded-xl border text-xs font-mono font-bold cursor-pointer transition-all border-slate-800 bg-slate-950 text-slate-300 hover:border-emerald-500/40';
-      }
       btn.onclick = function () {
-        sprint.goal = g;
         if (customInput) customInput.value = g;
-        saveTargetSprintsData(data);
-        window.openTargetSprintModal();
+        const res = mutateActiveSprint(function (sp) {
+          sp.goal = g;
+        }, 'Goal Updated');
+        syncGoalAndDurationButtons(res.sprint);
         showToast('🎯 Goal set to ' + g + ' questions!');
       };
     });
 
-    // Duration Buttons
+    // Duration Buttons & Live Custom Days Input
+    const customDaysInput = document.getElementById('sprintCustomDaysInput');
+    if (customDaysInput) {
+      if (document.activeElement !== customDaysInput) {
+        customDaysInput.value = sprint.daysLeft || sprint.daysTotal || 7;
+      }
+      customDaysInput.oninput = function () {
+        const d = parseInt(customDaysInput.value, 10);
+        if (!isNaN(d) && d >= 1 && d <= 60) {
+          const res = mutateActiveSprint(function (sp) {
+            sp.daysTotal = d;
+            sp.daysLeft = d;
+          }, 'Timeline Updated');
+          syncGoalAndDurationButtons(res.sprint);
+        }
+      };
+      customDaysInput.onchange = function () {
+        let d = parseInt(customDaysInput.value, 10);
+        if (isNaN(d) || d < 1) d = 1;
+        if (d > 60) d = 60;
+        customDaysInput.value = d;
+        const res = mutateActiveSprint(function (sp) {
+          sp.daysTotal = d;
+          sp.daysLeft = d;
+        }, 'Timeline Updated');
+        syncGoalAndDurationButtons(res.sprint);
+      };
+    }
+
     document.querySelectorAll('.sprint-duration-btn').forEach(function (btn) {
       const days = parseInt(btn.getAttribute('data-days'), 10);
-      if (days === sprint.daysTotal) {
-        btn.className = 'sprint-duration-btn px-2.5 py-1 rounded-lg border text-[11px] font-mono cursor-pointer transition border-emerald-500 bg-emerald-500/20 text-emerald-300 font-bold';
-      } else {
-        btn.className = 'sprint-duration-btn px-2.5 py-1 rounded-lg border text-[11px] font-mono cursor-pointer transition border-slate-800 bg-slate-950 text-slate-300 hover:border-slate-700';
-      }
       btn.onclick = function () {
-        sprint.daysTotal = days;
-        sprint.daysLeft = days;
-        saveTargetSprintsData(data);
-        window.openTargetSprintModal();
-        showToast('🎯 Target timeline set to ' + days + ' days');
+        if (customDaysInput) customDaysInput.value = days;
+        const res = mutateActiveSprint(function (sp) {
+          sp.daysTotal = days;
+          sp.daysLeft = days;
+        }, 'Timeline Updated');
+        syncGoalAndDurationButtons(res.sprint);
+        showToast('🎯 Target timeline set to ' + days + ' day' + (days === 1 ? '' : 's'));
       };
     });
 
@@ -4049,16 +4178,32 @@
         window.launchSprintFocusMode(true);
       };
     }
+
+    // Restore scroll position when refreshing inside open modal, or reset to top on fresh open
+    if (modalBody) {
+      modalBody.scrollTop = wasHidden ? 0 : prevScrollTop;
+    }
   };
 
   window.closeTargetSprintModal = function () {
     const modal = document.getElementById('targetSprintModal');
     if (modal) modal.classList.add('hidden');
+    updateTargetSprint();
   };
+
+  // Close Target Sprint modal on Escape key
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape') {
+      const modal = document.getElementById('targetSprintModal');
+      if (modal && !modal.classList.contains('hidden')) {
+        window.closeTargetSprintModal();
+      }
+    }
+  });
 
   window.launchSprintFocusMode = function (onlyPending, targetId) {
     const data = getTargetSprintsData();
-    let sprint = getActiveSprint();
+    let sprint = getActiveSprint(data);
     if (targetId) {
       const match = (data.targets || []).find(function (t) { return t.id === targetId; });
       if (match) sprint = match;
@@ -4107,13 +4252,13 @@
     const subjStats = {};
     Object.keys(STATE.answers).forEach(function (qId) {
       const ans = STATE.answers[qId];
-      const q = STATE.pyqs.find(function (item) { return item.id === qId; });
+      const q = (STATE.pyqs || []).find(function (item) { return item.id === qId; });
       if (!q || !q.subject) return;
 
       const s = q.subject;
       if (!subjStats[s]) subjStats[s] = { total: 0, wrong: 0 };
       subjStats[s].total++;
-      if (!ans.isCorrect) subjStats[s].wrong++;
+      if (!isAnswerCorrect(ans, q)) subjStats[s].wrong++;
     });
 
     let worstSubj = 'History & Culture';
@@ -4125,14 +4270,12 @@
       }
     });
 
-    const data = getTargetSprintsData();
-    const sprint = getActiveSprint();
-    sprint.subject = worstSubj;
-    sprint.topic = 'all';
-    sprint.topicLabel = 'All Topics';
-    saveTargetSprintsData(data);
+    mutateActiveSprint(function (sp) {
+      sp.subject = worstSubj;
+      sp.topic = 'all';
+      sp.topicLabel = 'All Topics';
+    }, 'Weakest Subject Picked');
     window.openTargetSprintModal();
-    updateTargetSprint();
     showToast('⚡ Auto-selected your highest mark-leak subject: ' + worstSubj);
   }
 
@@ -4251,7 +4394,7 @@
     try {
       const [resPyqs, resCa, resOther, resAi] = await Promise.all([
         fetch('/static/data/prelims_pyqs.json?v=20261123v2'),
-        fetch('/static/data/current_affairs_pyqs.json?v=1795589191873'),
+        fetch('/static/data/current_affairs_pyqs.json?v=1795619934752'),
         fetch('/static/data/upsc_other_exams_pyqs.json?v=20261123v2'),
         fetch('/static/data/ai_mock_questions_2026.json?v=20261123v2')
       ]);
@@ -7539,7 +7682,7 @@ function renderPlayerDistractorDeepDive(q) {
   async function ensureCaQuestionsLoaded() {
     if (STATE.ca_pyqs && STATE.ca_pyqs.length > 0) return STATE.ca_pyqs;
     try {
-      const res = await fetch('/static/data/current_affairs_pyqs.json?v=1795589191873');
+      const res = await fetch('/static/data/current_affairs_pyqs.json?v=1795619934752');
       if (res.ok) {
         STATE.ca_pyqs = await res.json();
         if (!STATE.pyqMap) STATE.pyqMap = {};
