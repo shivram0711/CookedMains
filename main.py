@@ -2,10 +2,9 @@ try:
     import sentry_sdk
     sentry_sdk.init(
         dsn="https://9bd555734be9acd75c23679680edc311@o4512140848269312.ingest.us.sentry.io/4512140858165248",
-        send_default_pii=True,
         traces_sample_rate=1.0,
     )
-except ImportError:
+except Exception:
     sentry_sdk = None
 
 import os
