@@ -1986,10 +1986,17 @@ async def api_payment_submit_utr(request: Request):
 @app.get("/admin")
 @app.get("/admin.html")
 async def serve_admin_page():
-    """Serves the standalone secured Admin Dashboard."""
+    """Serves the standalone secured Admin Dashboard with no-store headers to prevent stale CDN/browser cache."""
     admin_html_path = os.path.join(os.path.dirname(__file__), "static", "admin.html")
     if os.path.exists(admin_html_path):
-        return FileResponse(admin_html_path)
+        return FileResponse(
+            admin_html_path,
+            headers={
+                "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            },
+        )
     return HTMLResponse("<h1>Admin Dashboard template initializing...</h1>")
 
 @app.post("/api/admin/login")
