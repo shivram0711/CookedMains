@@ -9299,5 +9299,1445 @@
     "difficulty": "Medium",
     "upsc_official_key": "Verified: Option (D)",
     "question_text": "With reference to the North Atlantic Treaty Organization (NATO), consider the following statements:\n1. Article 5 of the North Atlantic Treaty embodies the principle of collective defense, stating that an armed attack against one member shall be considered an attack against all.\n2. Article 13 of the Treaty provides that any member state may withdraw from the alliance after giving a one-year notice of denunciation.\n3. Finland and Sweden became the 31st and 32nd member states of NATO respectively.\nWhich of the statements given above are correct?"
+  },
+  {
+    "id": "ca-gov-2026-04-001",
+    "year": 2026,
+    "month": "April 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Living Wills, Clinically Assisted Nutrition and Hydration (CANH) & End-of-Life Jurisprudence",
+    "difficulty": "Tough",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Supreme Court in Harish Rana v. Union of India (2026) & Common Cause v. Union of India (2018/2023)",
+    "question_text": "With reference to Advance Medical Directives (Living Wills) and end-of-life care in India, consider the following statements:\n1. In Harish Rana v. Union of India (2026), the Supreme Court permitted the withdrawal of Clinically Assisted Nutrition and Hydration (CANH) as a medical treatment measure while requiring palliative care to continue.\n2. Under the simplified guidelines issued in 2023, an Advance Directive must be countersigned by a Judicial Magistrate of First Class to be legally operational.\n3. The Supreme Court observed that the term 'passive euthanasia' has become obsolete in modern legal and medical discourse.\n4. The ethical justification for withdrawing life-sustaining treatment draws upon the bioethical 'Theory of Double Effect' formulated by St. Thomas Aquinas.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1, 2 and 3 only",
+      "2 and 4 only",
+      "1, 3 and 4 only",
+      "1, 2, 3 and 4"
+    ],
+    "explanation": "Statement 1 is correct: In Harish Rana v. Union of India (2026), the Supreme Court for the first time permitted the withdrawal of Clinically Assisted Nutrition and Hydration (CANH) and clarified that artificial feeding may be withdrawn as a treatment measure while comfort care and palliative care continue.\nStatement 2 is incorrect: In the 2023 Common Cause judgment, the Supreme Court streamlined the procedure and removed the mandatory judicial oversight requirement (countersignature by a Judicial Magistrate of First Class); an Advance Directive now requires signatures of two witnesses and attestation by a public notary or gazetted officer.\nStatement 3 is correct: The Supreme Court noted that the phrase 'passive euthanasia' is obsolete and should not be used in legal or medical discourse because withholding or withdrawing futile treatment is not an act of killing or abandonment, but allowing natural death with dignity.\nStatement 4 is correct: Bioethical jurisprudence applies St. Thomas Aquinas's Theory of Double Effect, which holds that an action having both harmful (shortening biological existence) and beneficial (relieving intractable suffering) consequences is ethically justified if undertaken without malice and primarily to alleviate pain.",
+    "standard_book_ref": "Constitution of India, Article 21; Indian Association of Palliative Care (IAPC) Guidelines; Supreme Court Rulings",
+    "elimination_trap": "Trap on Statement 2: Believing that judicial magistrate countersignature is still mandatory. The 2023 amendment explicitly removed this cumbersome procedural bottleneck.",
+    "static_root": "Fundamental Right to Life and Dignified Death under Article 21",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is false as JMFC countersignature was removed in 2023.",
+      "B": "Incorrect: Statements 1 and 3 are also correct.",
+      "C": "Correct: Statements 1, 3 and 4 are legally and ethically accurate.",
+      "D": "Incorrect: Statement 2 is false."
+    },
+    "mains_linkage": "GS Paper II: Health, Fundamental Rights (Article 21), and Bioethics in Judicial Pronouncements",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-04-002",
+    "year": 2026,
+    "month": "April 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Vaccine Injury Compensation & Adverse Events Following Immunisation (AEFI)",
+    "difficulty": "Moderate",
+    "correct_option": "B",
+    "correct_index": 1,
+    "upsc_official_key": "Supreme Court in Rachana Gangu v. Union of India (2026) & National AEFI Guidelines",
+    "question_text": "Consider the following statements regarding Adverse Events Following Immunisation (AEFI) and vaccine injury compensation in India:\n1. The Supreme Court in Rachana Gangu v. Union of India (2026) directed the Union Government to formulate a no-fault compensation policy for severe adverse events resulting from vaccination.\n2. In traditional Indian tort law, compensation for vaccine-induced autoimmune reactions can be claimed without having to establish manufacturer negligence or state fault.\n3. Thrombosis with Thrombocytopenia Syndrome (TTS) is a recognized severe AEFI associated with adenoviral vector-based COVID-19 vaccines.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statement 1 is correct: In Rachana Gangu v. Union of India (2026), the Supreme Court directed the Union government to frame a comprehensive no-fault compensation mechanism for serious adverse events following COVID-19 immunization, rooting it in the constitutional duty under Article 21.\nStatement 2 is incorrect: Under conventional Indian tort law, liability is fault-based and requires proof of negligence, breach of duty, or defect, making it structurally unsuited for idiosyncratic immunological reactions where no negligence occurred.\nStatement 3 is correct: Thrombosis with Thrombocytopenia Syndrome (TTS)—characterized by blood clots alongside low platelet counts—is an internationally and nationally documented rare adverse reaction to viral-vector vaccines.",
+    "standard_book_ref": "Law of Torts; Ministry of Health & Family Welfare AEFI Surveillance Guidelines; Article 21",
+    "elimination_trap": "Trap on Statement 2: Confusing 'no-fault liability' (which is what is being demanded/proposed) with existing tort law (which strictly requires proof of fault or negligence).",
+    "static_root": "State Responsibility, Public Health Obligations and Article 21",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is wrong because Indian tort law requires proof of fault.",
+      "B": "Correct: Statements 1 and 3 are correct.",
+      "C": "Incorrect: Statement 1 is also correct.",
+      "D": "Incorrect: Statement 2 is false."
+    },
+    "mains_linkage": "GS Paper II: Government Policies and Interventions for Health Development; Public Accountability",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-04-003",
+    "year": 2026,
+    "month": "April 2026",
+    "subject": "Environment & Ecology",
+    "sub_topic": "One Health Quadripartite Collaboration & Zoonotic Surveillance",
+    "difficulty": "Moderate",
+    "correct_option": "A",
+    "correct_index": 0,
+    "upsc_official_key": "One Health Joint Plan of Action (2022-2026) by Quadripartite Organizations",
+    "question_text": "Which of the following international organizations constitute the 'Quadripartite' partnership driving the global One Health Joint Plan of Action?\n1. World Health Organization (WHO)\n2. Food and Agriculture Organization (FAO)\n3. United Nations Environment Programme (UNEP)\n4. World Organisation for Animal Health (WOAH)\n5. International Union for Conservation of Nature (IUCN)\n\nSelect the correct answer using the code given below:",
+    "options": [
+      "1, 2, 3 and 4 only",
+      "1, 2 and 4 only",
+      "2, 3, 4 and 5 only",
+      "1, 3, 4 and 5 only"
+    ],
+    "explanation": "The Quadripartite collaboration on One Health consists of four international entities: the Food and Agriculture Organization (FAO), the United Nations Environment Programme (UNEP), the World Health Organization (WHO), and the World Organisation for Animal Health (WOAH, formerly OIE). Together, they launched the One Health Joint Plan of Action (2022–2026) to integrate human, animal, and environmental health surveillance against emerging zoonoses, antimicrobial resistance (AMR), and food safety risks. IUCN is not a formal member of the Quadripartite partnership.",
+    "standard_book_ref": "Shankar IAS Environment; UNEP & WHO Official Briefs on One Health",
+    "elimination_trap": "Trap on Option 5: Aspirants often confuse IUCN with UNEP in global environmental health pacts. IUCN is an NGO/state membership union, not part of the UN-led Quadripartite.",
+    "static_root": "Zoonotic Disease Dynamics, Wildlife-Human Interface & Global Environmental Health",
+    "option_analysis": {
+      "A": "Correct: 1, 2, 3 and 4 are the four pillars of the Quadripartite.",
+      "B": "Incorrect: Misses UNEP, which joined the tripartite in 2022 to make it quadripartite.",
+      "C": "Incorrect: Includes IUCN and omits WHO.",
+      "D": "Incorrect: Includes IUCN and omits FAO."
+    },
+    "mains_linkage": "GS Paper III: Environment, Biodiversity, and Emerging Zoonotic Pandemic Risks",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-04-004",
+    "year": 2026,
+    "month": "April 2026",
+    "subject": "Sci-Tech",
+    "sub_topic": "PreVenTB Clinical Trial & Novel Vaccines for Extrapulmonary Tuberculosis",
+    "difficulty": "Tough",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "ICMR PreVenTB Trial Results published in the British Medical Journal (BMJ)",
+    "question_text": "In the context of the PreVenTB clinical trial conducted by the Indian Council of Medical Research (ICMR), consider the following statements:\n1. The trial evaluated the efficacy of VPM1002 and Immuvac vaccines specifically among household contacts of pulmonary tuberculosis patients.\n2. VPM1002 is a recombinant BCG vaccine modified to express listeriolysin to enhance phagosomal escape and antigen presentation.\n3. The trial demonstrated that both vaccines exhibited significant protective efficacy against Extrapulmonary Tuberculosis (EPTB), an endpoint previously unstudied in global TB vaccine trials.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1, 2 and 3",
+      "1 and 3 only"
+    ],
+    "explanation": "All statements are correct:\nStatement 1 is correct: The PreVenTB trial conducted by ICMR across 18 clinical sites involved over 12,700 household contacts of TB patients, assessing VPM1002 and Immuvac (Mycobacterium indicus pranii).\nStatement 2 is correct: VPM1002 is genetically engineered from Mycobacterium bovis BCG, incorporating the gene for listeriolysin O from Listeria monocytogenes, allowing the bacterium to perforate the phagosomal membrane and trigger robust CD4+ and CD8+ T-cell immune responses.\nStatement 3 is correct: The trial showed over 50% efficacy for VPM1002 against Extrapulmonary TB (EPTB) and over 60% for Immuvac in children, providing the world's first clinical trial efficacy evidence against EPTB endpoints.",
+    "standard_book_ref": "Science & Technology, NCERT Class 12 Biology (Microbes & Immunology); ICMR Publications",
+    "elimination_trap": "Aspirants might suspect that BCG-derived vaccines cannot protect against extrapulmonary manifestations or that EPTB endpoints are standard in vaccine trials (they were historically neglected in favor of sputum-positive pulmonary TB).",
+    "static_root": "Immunology, Biotechnology, Genetic Modification in Vaccine Platforms",
+    "option_analysis": {
+      "A": "Incorrect: Statement 3 is also correct.",
+      "B": "Incorrect: Statement 1 is also correct.",
+      "C": "Correct: All statements 1, 2 and 3 are correct.",
+      "D": "Incorrect: Statement 2 is also correct."
+    },
+    "mains_linkage": "GS Paper III: Science and Technology - Developments and their Applications in Health and Disease Control",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-04-005",
+    "year": 2026,
+    "month": "April 2026",
+    "subject": "Sci-Tech",
+    "sub_topic": "Mesenchymal Stem Cell Therapy & Cellular Biology of Frailty",
+    "difficulty": "Moderate",
+    "correct_option": "B",
+    "correct_index": 1,
+    "upsc_official_key": "Phase IIb CRATUS Trial & ICMR National Guidelines for Stem Cell Research",
+    "question_text": "With reference to Mesenchymal Stem Cells (MSCs) and recent therapeutic advances for biological frailty (such as Lomecel-B), consider the following statements:\n1. Mesenchymal stem cells are multipotent adult stem cells capable of differentiating into osteocytes, chondrocytes, and adipocytes.\n2. MSCs typically provoke a strong hyper-acute allogeneic rejection response, necessitating aggressive long-term immunosuppressive chemotherapy in recipients.\n3. Under the ICMR National Guidelines for Stem Cell Research, the commercial administration of stem cells for age-related frailty outside approved clinical trials is strictly prohibited.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "2 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statement 1 is correct: Mesenchymal stem cells (MSCs) are non-hematopoietic, multipotent stromal cells that can differentiate into mesenchymal lineages, including bone (osteocytes), cartilage (chondrocytes), and fat (adipocytes).\nStatement 2 is incorrect: One of the hallmark clinical advantages of MSCs is their 'immune-privileged' nature—they express low levels of MHC class I, lack MHC class II and co-stimulatory molecules (CD40, CD80, CD86), and secrete anti-inflammatory cytokines, allowing allogeneic transplantation without routine immunosuppressive therapy.\nStatement 3 is correct: The Indian Council of Medical Research (ICMR) explicitly categorizes stem cell treatments outside hematopoietic stem cell transplantation for approved hematological conditions as experimental, strictly barring commercial therapy for frailty, anti-aging, or autism outside clinical trials.",
+    "standard_book_ref": "NCERT Class 12 Biology; ICMR Guidelines for Stem Cell Research",
+    "elimination_trap": "Trap on Statement 2: Assuming all transplanted foreign human cells require heavy immunosuppression. MSCs are renowned in medical biology for immune-evasion.",
+    "static_root": "Stem Cell Biology, Cellular Differentiation & National Regulatory Frameworks",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is scientifically false.",
+      "B": "Correct: Statements 1 and 3 are correct.",
+      "C": "Incorrect: Statement 1 is factually true.",
+      "D": "Incorrect: Statement 2 is false."
+    },
+    "mains_linkage": "GS Paper III: Science & Technology - Applications of Biotechnology and Ethics in Medicine",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-04-006",
+    "year": 2026,
+    "month": "April 2026",
+    "subject": "Sci-Tech",
+    "sub_topic": "Human Papillomavirus (HPV) & National Cervical Cancer Elimination Campaign",
+    "difficulty": "Moderate",
+    "correct_option": "D",
+    "correct_index": 3,
+    "upsc_official_key": "WHO 90-70-90 Cervical Cancer Elimination Strategy & MoHFW Guidelines",
+    "question_text": "With reference to Human Papillomavirus (HPV) and cervical cancer elimination strategies in India, consider the following statements:\n1. Over 80% of cervical cancer cases in India are attributed to persistent infection by high-risk HPV types 16 and 18.\n2. Cervical Intraepithelial Neoplasia (CIN) represents a prolonged precancerous window that can be detected through cytological Pap smear screening.\n3. The World Health Organization (WHO) and India's National Technical Advisory Group on Immunization (NTAGI) have approved a single-dose HPV vaccination schedule for adolescent girls.\n4. India's national campaign under the Viksit Bharat 2047 roadmap provides free HPV vaccination targeted at 14-year-old girls.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1, 2 and 3 only",
+      "2 and 4 only",
+      "1 and 3 only",
+      "1, 2, 3 and 4"
+    ],
+    "explanation": "All statements are correct:\nStatement 1 is correct: High-risk HPV genotypes 16 and 18 account for approximately 85% of all invasive cervical cancer cases diagnosed in Indian women.\nStatement 2 is correct: Cervical Intraepithelial Neoplasia (CIN) takes approximately 10 to 15 years to progress into invasive carcinoma, offering an extensive window for secondary prevention via visual inspection with acetic acid (VIA) or Pap smear cytology.\nStatement 3 is correct: Following evidence from the SAGE committee of the WHO, a single-dose regimen was found to deliver comparable immunological efficacy to the multi-dose schedule, leading to its adoption in national rollouts.\nStatement 4 is correct: India launched the National HPV Vaccination Campaign on February 28, 2026, offering free vaccination to 14-year-old girls at government health centers to achieve the WHO elimination target.",
+    "standard_book_ref": "NCERT Class 12 Biology, Human Health and Disease; Ministry of Health & Family Welfare",
+    "elimination_trap": "Aspirants might assume that HPV vaccines still require a rigid 3-dose regimen or that the Indian government has not yet operationalized free single-age vaccination.",
+    "static_root": "Viral Oncology, Immunization Schedules, Public Health Disease Eradication",
+    "option_analysis": {
+      "A": "Incorrect: Statement 4 is also correct.",
+      "B": "Incorrect: Statements 1 and 3 are also correct.",
+      "C": "Incorrect: Statements 2 and 4 are also correct.",
+      "D": "Correct: All four statements are correct."
+    },
+    "mains_linkage": "GS Paper II: Welfare Schemes for Vulnerable Sections, Healthcare Management",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-05-001",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Environment & Ecology",
+    "sub_topic": "Hantavirus Transmission Dynamics & Zoonotic Reservoir Ecology",
+    "difficulty": "Moderate",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "WHO Disease Outbreak News (MV Hondius Outbreak, May 2026)",
+    "question_text": "Consider the following statements regarding Hantavirus infections:\n1. Hantaviruses are primarily transmitted to humans through inhalation of aerosolized excreta, saliva, or urine of infected rodents.\n2. Unlike most other hantaviruses, the Andes virus strain has demonstrated person-to-person transmission among close domestic contacts.\n3. Hantavirus infections in the Americas typically manifest as Haemorrhagic Fever with Renal Syndrome (HFRS), whereas Asian and European strains primarily cause Hantavirus Pulmonary Syndrome (HPS).\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 and 3 only",
+      "1 and 2 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: The primary route of human hantavirus infection is inhalation of aerosolized viral particles originating from rodent droppings, urine, or nesting materials during cleaning of poorly ventilated spaces.\nStatement 2 is correct: While almost all hantaviruses are non-contagious between humans, the Andes virus strain (endemic to South America, implicated in the 2026 MV Hondius cruise ship outbreak) has documented person-to-person transmission through intimate contact or bodily secretions.\nStatement 3 is incorrect (Reversal Trap): 'Old World' hantaviruses found in Europe and Asia (such as Hantaan, Dobrava, and Puumala viruses) primarily cause Haemorrhagic Fever with Renal Syndrome (HFRS), whereas 'New World' hantaviruses in the Americas (such as Sin Nombre and Andes viruses) primarily cause Hantavirus Pulmonary Syndrome (HPS).",
+    "standard_book_ref": "CDC Zoonotic Arboviruses & Hantaviruses; Shankar IAS / PMF IAS Biology",
+    "elimination_trap": "Classic UPSC geographical reversal trap: New World (Americas) = Pulmonary Syndrome (HPS); Old World (Asia/Europe) = Renal Syndrome (HFRS).",
+    "static_root": "Zoonotic Viral Pathologies, Host-Reservoir Dynamics & Global Epidemic Surveillance",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is also correct.",
+      "B": "Incorrect: Statement 3 has geographic manifestations reversed.",
+      "C": "Correct: Statements 1 and 2 are scientifically correct.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper III: Disaster Management, Emerging Biological Hazards & Health Security",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-05-002",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "International Relations",
+    "sub_topic": "WHO International Health Regulations (IHR 2005) & Ebola Viral Strains",
+    "difficulty": "Tough",
+    "correct_option": "B",
+    "correct_index": 1,
+    "upsc_official_key": "WHO International Health Regulations (2005) & Neglected Tropical Diseases Roadmap",
+    "question_text": "With reference to Ebola Virus Disease (EVD) and the declaration of a Public Health Emergency of International Concern (PHEIC), consider the following statements:\n1. A PHEIC is defined under the International Health Regulations (2005) as an extraordinary event that constitutes a public health risk to other States through international spread.\n2. The Director-General of the WHO is constitutionally barred from declaring a PHEIC without the prior unanimous approval of the IHR Emergency Committee.\n3. The licensed Ebola vaccines 'Ervebo' and 'Zabdeno-Mvabea' confer equal cross-protective immunity against the Bundibugyo and Sudan ebolavirus species.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "1 and 2 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statement 1 is correct: Under Article 12 of the International Health Regulations (IHR 2005), a PHEIC is formally defined as an extraordinary public health event determined to constitute a public health risk to other States through the international spread of disease and to potentially require a coordinated international response.\nStatement 2 is incorrect: Under the IHR, the final legal determination to declare a PHEIC rests with the Director-General of the WHO. The Emergency Committee provides expert advice and recommendations, but its consensus or unanimous approval is not a mandatory prerequisite; the DG may declare a PHEIC even when committee members are divided or before formal convening in rapid situations.\nStatement 3 is incorrect: Both approved Ebola vaccines—Ervebo (rVSV-ZEBOV) and Zabdeno-Mvabea (Ad26.ZEBOV/MVA-BN-Filo)—are engineered specifically against the surface glycoprotein of the Zaire ebolavirus species. They do not confer effective protective immunity against the distinct Bundibugyo or Sudan ebolavirus species, leaving outbreaks of the latter without licensed vaccines.",
+    "standard_book_ref": "WHO IHR (2005) Legal Framework; Gavi & CEPI Vaccine Portfolios",
+    "elimination_trap": "Trap on Statement 3: Assuming that vaccines against 'Ebola' provide broad pan-filovirus immunity across all five distinct viral species.",
+    "static_root": "International Health Law, Multilateral Governance & Global Health Security",
+    "option_analysis": {
+      "A": "Correct: Statement 1 is the only correct statement.",
+      "B": "Incorrect: Statement 2 is incorrect.",
+      "C": "Incorrect: Statements 2 and 3 are both incorrect.",
+      "D": "Incorrect: Statements 2 and 3 are false."
+    },
+    "mains_linkage": "GS Paper II: Role of International Institutions (WHO), Global Treaties and Health Diplomacy",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-05-003",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Sci-Tech",
+    "sub_topic": "Bacteriology of Shigellosis & Antimicrobial Resistance (AMR)",
+    "difficulty": "Moderate",
+    "correct_option": "A",
+    "correct_index": 0,
+    "upsc_official_key": "CDC Bacterial Enteric Infections & ICMR National AMR Surveillance Network",
+    "question_text": "Consider the following statements regarding the bacterium *Shigella* and the infection shigellosis:\n1. It is a Gram-negative, facultatively anaerobic bacterium that primarily invades the epithelial lining of the colon.\n2. Unlike cholera, which requires millions of bacteria to cause clinical disease, an infectious dose as low as 10 to 100 *Shigella* bacilli can trigger severe dysentery.\n3. Routine prophylactic administration of broad-spectrum fluoroquinolones to all asymptomatic community contacts is the standard public health protocol for outbreak containment in India.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: *Shigella* species (such as *S. dysenteriae*, *S. flexneri*, and *S. sonnei*) are Gram-negative, rod-shaped, facultative anaerobes that cause bacillary dysentery by penetrating and multiplying within human colonic enterocytes.\nStatement 2 is correct: *Shigella* is characterized by exceptional acid tolerance, allowing it to survive the gastric barrier in very small numbers. As few as 10–100 organisms are sufficient to cause disease, explaining its high secondary household transmission rate.\nStatement 3 is incorrect: Mass or prophylactic antibiotic administration is strongly contraindicated because multi-drug resistant (MDR) *Shigella* is rampant. Unregulated antibiotic use accelerates resistance. Management focuses on rehydration, strict sanitation, and culture-directed antibiotic use only for severe, vulnerable, or dysenteric cases.",
+    "standard_book_ref": "NCERT Class 12 Biology; ICMR Treatment Guidelines for Antimicrobial Use in Common Syndromes",
+    "elimination_trap": "Trap on Statement 3: In infectious disease control, mass antibiotic prophylaxis for enteric infections is virtually never recommended due to AMR selection pressure.",
+    "static_root": "Microbiology, Pathogen Virulence Mechanisms & Antimicrobial Resistance",
+    "option_analysis": {
+      "A": "Correct: Statements 1 and 2 are correct.",
+      "B": "Incorrect: Statement 3 violates AMR containment principles.",
+      "C": "Incorrect: Statement 3 is false.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper III: Science & Technology - Health, Microbial Pathogens and Antibiotic Stewardship",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-05-004",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Sci-Tech",
+    "sub_topic": "GLP-1 Receptor Agonists, Sarcopenia & Metabolic Phenotypes",
+    "difficulty": "Tough",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Lancet Diabetes & Endocrinology / National NCD Monitoring Survey",
+    "question_text": "With reference to novel anti-obesity therapeutics (such as Semaglutide and Tirzepatide) and metabolic health in India, consider the following statements:\n1. Semaglutide mimics the endogenous incretin hormone Glucagon-Like Peptide-1 (GLP-1), which stimulates insulin secretion in a glucose-dependent manner and delays gastric emptying.\n2. Tirzepatide functions as a dual agonist targeting both the GLP-1 receptor and the Glucose-Dependent Insulinotropic Polypeptide (GIP) receptor.\n3. A significant clinical concern observed with rapid weight loss induced by GLP-1 agonists is sarcopenia, where up to 40% of the total lost weight may consist of lean skeletal muscle mass.\n4. The 'thin-fat' Indian phenotype is characterized by a high Body Mass Index (BMI) coupled with low visceral adiposity.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2, 3 and 4 only",
+      "1, 2 and 3 only",
+      "1, 2, 3 and 4"
+    ],
+    "explanation": "Statements 1, 2 and 3 are correct; Statement 4 is incorrect:\nStatement 1 is correct: Semaglutide is a synthetic GLP-1 receptor agonist that augments glucose-dependent insulin secretion, inhibits glucagon release, and slows gastric motility to promote satiety.\nStatement 2 is correct: Tirzepatide is a 'twincretin' that binds to and activates both GLP-1 and GIP receptors, producing superior glycemic and weight-reduction outcomes compared to selective GLP-1 monotherapy.\nStatement 3 is correct: Clinical trials indicate that approximately 25% to 40% of total weight reduction on GLP-1 agonists can be skeletal muscle loss (sarcopenia), leading to impaired metabolic rate unless paired with resistance exercise and adequate dietary protein.\nStatement 4 is incorrect: The 'thin-fat' South Asian/Indian phenotype is defined by normal or relatively low general BMI but disproportionately high visceral body fat, elevated waist-to-hip ratio, and lower skeletal muscle mass, making them vulnerable to Type-2 diabetes at lower weight thresholds.",
+    "standard_book_ref": "NCERT Class 11 Human Physiology (Endocrine System); ICMR-INDIAB Study Reports",
+    "elimination_trap": "Trap on Statement 4: The 'thin-fat' phenotype is the exact inverse of high BMI: it is low/normal BMI with *high* abdominal/visceral adiposity.",
+    "static_root": "Human Physiology, Incretin Hormones, Endocrine Regulation & Metabolic Syndromes",
+    "option_analysis": {
+      "A": "Incorrect: Statement 3 is also correct.",
+      "B": "Incorrect: Statement 4 is false.",
+      "C": "Correct: Statements 1, 2 and 3 are scientifically accurate.",
+      "D": "Incorrect: Statement 4 is false."
+    },
+    "mains_linkage": "GS Paper II: Health Sector Governance, Regulation of Pharmaceuticals and Public Health",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-05-005",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Social Issues & Welfare",
+    "sub_topic": "National Health Accounts (NHA) & Health Financing Dynamics in India",
+    "difficulty": "Moderate",
+    "correct_option": "B",
+    "correct_index": 1,
+    "upsc_official_key": "National Health Accounts (NHA) Estimates 2022-23 & NSS 80th Round (2025)",
+    "question_text": "According to the National Health Accounts (NHA) estimates (2022-23) and recent health expenditure surveys, consider the following statements:\n1. Out-of-Pocket Expenditure (OOPE) as a percentage of Total Health Expenditure (THE) has dropped below 45%.\n2. In India's fiscal federalism, the Union Government finances more than 70% of total Government Health Expenditure (GHE), with States contributing the remainder.\n3. The National Health Policy (2017) target of raising public health spending to 2.5% of GDP has been officially achieved.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "1 and 2 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statement 1 is correct: As per NHA 2022-23, Out-of-Pocket Expenditure (OOPE) as a share of Total Health Expenditure (THE) declined from 64.2% in 2013-14 to 43.4% in 2022-23, driven by expanded social safety nets and primary care schemes.\nStatement 2 is incorrect: In India's federal structure, health is primarily a State subject (Seventh Schedule, List II, Entry 6). State governments contribute over 63% of total Government Health Expenditure (GHE), while the Union Government contributes approximately 36%.\nStatement 3 is incorrect: As per NHA 2022-23, Government Health Expenditure stands at approximately 1.43% to 1.48% of GDP, remaining well below both the National Health Policy 2017 target of 2.5% of GDP and the WHO global recommendation of 5% of GDP.",
+    "standard_book_ref": "National Health Accounts Guidelines; Economic Survey of India; Seventh Schedule of the Constitution",
+    "elimination_trap": "Trap on Statement 2: Thinking the Centre pays for the majority of health spending. States foot nearly two-thirds of all government health expenditure.",
+    "static_root": "Fiscal Federalism, Public Expenditure on Social Infrastructure & Seventh Schedule",
+    "option_analysis": {
+      "A": "Correct: Statement 1 is the only correct statement.",
+      "B": "Incorrect: Statement 2 is factually inverted.",
+      "C": "Incorrect: Statements 2 and 3 are both false.",
+      "D": "Incorrect: Statements 2 and 3 are false."
+    },
+    "mains_linkage": "GS Paper II: Issues Relating to Development and Management of Social Sector/Services relating to Health",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-05-006",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Higher Education Governance & Viksit Bharat Shiksha Adhisthan (VBSA) Bill",
+    "difficulty": "Tough",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Constitution of India (Seventh Schedule, Entry 66 Union List & Entry 25 Concurrent List) and VBSA Bill Analysis",
+    "question_text": "With reference to the constitutional allocation of powers over higher education in India and legislative proposals under the Viksit Bharat Shiksha Adhisthan (VBSA) Bill, consider the following statements:\n1. While 'Education' is placed on the Concurrent List, 'coordination and determination of standards in institutions for higher education or research' is an exclusive Union subject under Entry 66 of List I.\n2. The VBSA Bill proposes a tripartite regulatory structure consisting of the Viniyaman Parishad (Regulation), Gunvatta Parishad (Accreditation), and Manak Parishad (Standards).\n3. Under Entry 66 of the Union List, Parliament possesses the constitutional competence to disburse day-to-day administrative block grants to State universities without legislative authorization by State Assemblies.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 and 3 only",
+      "1 and 2 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: Under the 42nd Constitutional Amendment Act (1976), 'Education' was moved from the State List to the Concurrent List (Entry 25). However, 'coordination and determination of standards in institutions for higher education or research and scientific and technical institutions' remains an exclusive domain of Parliament under Entry 66 of the Union List.\nStatement 2 is correct: The VBSA Bill replaces multiple regulatory agencies (UGC, AICTE) with vertical functional councils: Viniyaman Parishad (regulatory enforcement), Gunvatta Parishad (accreditation), and Manak Parishad (learning standards).\nStatement 3 is incorrect: Entry 66 of List I is strictly limited to 'coordination and determination of standards'; it does not confer blanket financial or administrative power to usurp the State legislatures' authority over State universities incorporated under State statutes.",
+    "standard_book_ref": "M. Laxmikanth, Indian Polity (Seventh Schedule & Center-State Legislative Relations)",
+    "elimination_trap": "Trap on Statement 3: Overestimating the scope of Entry 66. Supreme Court precedents consistently hold that Entry 66 relates to standards of education, not administrative and financial absorption of state universities.",
+    "static_root": "Center-State Legislative Relations, Seventh Schedule & Higher Education Regulatory Architecture",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is also correct.",
+      "B": "Incorrect: Statement 3 is false.",
+      "C": "Correct: Statements 1 and 2 are correct.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper II: Federal Structure, Devolution of Powers and Higher Education Regulatory Reforms",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-06-001",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Social Issues & Welfare",
+    "sub_topic": "Section 12(1)(c) of RTE Act 2009 & Constitutional Equality of Status",
+    "difficulty": "Moderate",
+    "correct_option": "B",
+    "correct_index": 1,
+    "upsc_official_key": "Supreme Court Rulings on Section 12(1)(c) of RTE Act 2009 & Society for Unaided Private Schools v. UOI (2012)",
+    "question_text": "With reference to Section 12(1)(c) of the Right of Children to Free and Compulsory Education (RTE) Act, 2009, consider the following statements:\n1. It mandates private unaided schools to admit at least 25% of children from Economically Weaker Sections (EWS) and disadvantaged groups in Class 1 or pre-school.\n2. The Supreme Court in 2026 reaffirmed that the reservation applies equally to minority educational institutions protected under Article 30(1) of the Constitution.\n3. The statutory provision has been judicially characterized as a constitutional strategy to operationalize 'equality of status' by dismantling segregated learning environments.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 3 are correct; Statement 2 is incorrect:\nStatement 1 is correct: Section 12(1)(c) of the RTE Act, 2009 requires all private, non-minority unaided schools to reserve at least 25% of their entry-level seats (nursery/Class 1) for children belonging to disadvantaged groups and economically weaker sections.\nStatement 2 is incorrect: In Pramati Educational and Cultural Trust v. Union of India (2014), a Constitution Bench of the Supreme Court held that the RTE Act, insofar as it applies to minority institutions (both aided and unaided) protected under Article 30(1), is ultra vires the Constitution. Minority institutions remain exempt from the 25% mandate.\nStatement 3 is correct: The Supreme Court observed that Section 12(1)(c) is not merely a subsidy scheme but an affirmative constitutional measure to realize the Preamble's guarantee of 'equality of status and opportunity' through integrated classroom environments.",
+    "standard_book_ref": "M. Laxmikanth, Fundamental Rights (Articles 21A & 30); RTE Act, 2009",
+    "elimination_trap": "Trap on Statement 2: The exemption of minority educational institutions from Section 12(1)(c) under Article 30(1) is an established constitutional exception that cannot be overridden by ordinary statute.",
+    "static_root": "Right to Education (Article 21A), Minority Rights (Article 30) & Social Inclusion",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is false due to Article 30(1) exemption.",
+      "B": "Correct: Statements 1 and 3 are constitutionally sound.",
+      "C": "Incorrect: Statement 1 is also correct.",
+      "D": "Incorrect: Statement 2 is false."
+    },
+    "mains_linkage": "GS Paper II: Government Policies and Interventions for Social Justice and Education",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-06-002",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Social Issues & Welfare",
+    "sub_topic": "Disability Pensions, Article 41 & Rights of Persons with Disabilities Act 2016",
+    "difficulty": "Moderate",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Article 41, DPSP & Section 24 of RPwD Act, 2016",
+    "question_text": "Consider the following statements regarding social security for Persons with Disabilities (PwDs) in India:\n1. Article 41 of the Directive Principles of State Policy directs the State to make effective provision for securing public assistance in cases of disablement.\n2. Under Section 24 of the Rights of Persons with Disabilities Act, 2016, the State is mandated to formulate social security schemes and disability pensions within the limit of its economic capacity.\n3. India currently spends more than 1.5% of its GDP on dedicated disability pensions and social security schemes, matching the average of OECD economies.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 and 3 only",
+      "1 and 2 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: Article 41 directs that 'The State shall, within the limits of its economic capacity and development, make effective provision for securing the right to work, to education and to public assistance in cases of unemployment, old age, sickness and disablement.'\nStatement 2 is correct: Section 24(1) of the RPwD Act, 2016 requires the appropriate Government to frame schemes and programmes to safeguard and promote an adequate standard of living for persons with disabilities.\nStatement 3 is incorrect: India currently spends approximately 0.02% of its GDP on disability pensions and welfare assistance, which is significantly lower than OECD nations (averaging 2.2% of GDP) and peer emerging economies like Brazil (0.45%–0.50% of GDP).",
+    "standard_book_ref": "M. Laxmikanth, Directive Principles of State Policy (Part IV); RPwD Act, 2016",
+    "elimination_trap": "Trap on Statement 3: Gross overestimation of India's disability welfare expenditure. India spends merely 0.02% of GDP on disability welfare.",
+    "static_root": "Directive Principles of State Policy (Article 41) & Statutory Rights of Disabled Citizens",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is also correct.",
+      "B": "Incorrect: Statement 3 is false.",
+      "C": "Correct: Statements 1 and 2 are correct.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper II: Welfare Schemes for Vulnerable Sections, Performance and Mechanisms",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-06-003",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Transgender Rights, Self-Determination & NALSA v. Union of India (2014)",
+    "difficulty": "Tough",
+    "correct_option": "A",
+    "correct_index": 0,
+    "upsc_official_key": "NALSA v. Union of India (2014) & Transgender Persons (Protection of Rights) Act, 2019",
+    "question_text": "In *National Legal Services Authority (NALSA) v. Union of India (2014)*, the Supreme Court established foundational constitutional doctrines regarding gender identity. In this context, consider the following statements:\n1. The Supreme Court recognized that the right to express one's self-identified gender is an integral facet of freedom of expression under Article 19(1)(a) and personal liberty under Article 21.\n2. The judgment held that no psychological or surgical intervention can be insisted upon as a condition precedent for granting legal recognition of one's gender identity.\n3. The judgment conflated the biological definition of 'intersex persons' with 'transgender identity' as being synonymous under the Constitution.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: The Supreme Court held that gender identity falls within the core of personal autonomy and self-expression, grounded in Articles 19(1)(a) and 21 of the Constitution.\nStatement 2 is correct: NALSA explicitly ruled that insisting on Sex Reassignment Surgery (SRS) or hormonal therapy as a prerequisite for legally changing one's gender violates bodily integrity and human dignity; self-determination alone is sufficient.\nStatement 3 is incorrect: NALSA recognized the distinct scientific nature of 'intersex' (a biological variation in sex characteristics) versus 'transgender' (a self-determined psychological/social gender identity that differs from the sex assigned at birth). Conflating the two has been criticized as biologically and constitutionally flawed.",
+    "standard_book_ref": "M. Laxmikanth, Fundamental Rights (Articles 14, 19, 21); NALSA Judgment (2014)",
+    "elimination_trap": "Trap on Statement 3: Failing to distinguish between biological sex characteristics (intersex) and cognitive/social gender identity (transgender).",
+    "static_root": "Fundamental Rights, Transformative Constitutionalism & Gender Self-Determination",
+    "option_analysis": {
+      "A": "Correct: Statements 1 and 2 reflect the core legal holding of NALSA.",
+      "B": "Incorrect: Statement 3 is false.",
+      "C": "Incorrect: Statement 3 is false.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper II: Social Justice, Judiciary and Protection of Transgender Rights",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-06-004",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Foreign Contribution (Regulation) Act (FCRA) & Civil Society Asset Management",
+    "difficulty": "Tough",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Foreign Contribution (Regulation) Act, 2010 & Proposed 2026 Amendments",
+    "question_text": "With reference to the Foreign Contribution (Regulation) Act (FCRA), 2010 and the FCRA Amendment Bill, 2026, consider the following statements:\n1. An FCRA registration certificate granted to a non-governmental organization is valid for a period of five years and is subject to renewal.\n2. The 2026 Amendment proposes that upon cancellation or non-renewal of an FCRA certificate, assets acquired through foreign funds shall provisionally vest in a government-appointed Designated Authority without requiring a prior judicial decree.\n3. The administration of FCRA falls under the statutory purview of the Ministry of Finance.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "1 and 3 only",
+      "1 and 2 only",
+      "2 and 3 only"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: Under Section 12 of the FCRA, 2010, registration remains valid for five years from the date of grant and must be renewed within six months before expiry.\nStatement 2 is correct: The proposed Section 16A of the FCRA Amendment Bill, 2026 creates a statutory mechanism whereby assets and properties created through foreign contributions automatically vest provisionally in a Designated Authority upon cancellation, suspension, or non-renewal, exercisable through executive action.\nStatement 3 is incorrect: The FCRA is administered by the Ministry of Home Affairs (MHA), not the Ministry of Finance, because foreign contribution regulation is grounded in national security, public interest, and sovereignty.",
+    "standard_book_ref": "M. Laxmikanth, Non-Governmental Organisations; FCRA Act, 2010",
+    "elimination_trap": "Nodal Ministry Trap: Assuming that since FCRA deals with 'foreign funds/contributions' and banking, it is handled by the Ministry of Finance. It is administered by the Ministry of Home Affairs (MHA).",
+    "static_root": "Statutory Bodies, Executive Powers, Freedom of Association (Article 19(1)(c)) & MHA Mandate",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is also correct.",
+      "B": "Incorrect: Statement 3 is false (MHA, not MoF).",
+      "C": "Correct: Statements 1 and 2 are correct.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper II: Development Processes and the Role of NGOs, Civil Society and Statutory Regulations",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-06-005",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Sci-Tech",
+    "sub_topic": "Information Technology Act, Website Blocking & DNS Manipulation",
+    "difficulty": "Moderate",
+    "correct_option": "B",
+    "correct_index": 1,
+    "upsc_official_key": "Section 69A of Information Technology Act, 2000 & Shreya Singhal v. Union of India (2015)",
+    "question_text": "Consider the following statements regarding the legal and technical mechanisms of website blocking in India:\n1. Section 69A of the Information Technology Act, 2000 empowers the Central Government to issue directions for blocking public access to any information through any computer resource on grounds of sovereignty, integrity of India, or public order.\n2. In *Shreya Singhal v. Union of India (2015)*, the Supreme Court struck down Section 69A of the IT Act as unconstitutional.\n3. In India, Internet Service Providers (ISPs) predominantly implement website blocking through Domain Name System (DNS) poisoning, as it is computationally less resource-intensive than Deep Packet Inspection (DPI).\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 3 are correct; Statement 2 is incorrect:\nStatement 1 is correct: Section 69A authorizes the Central Government (or designated officers) to issue blocking orders in the interest of India's sovereignty, defense, security of the State, friendly relations with foreign States, or public order.\nStatement 2 is incorrect: In Shreya Singhal v. Union of India (2015), the Supreme Court struck down Section 66A of the IT Act, but expressly UPHELD the constitutional validity of Section 69A and the Blocking Rules, 2009, observing that it contains adequate procedural safeguards, including recording of reasons in writing and review by a committee.\nStatement 3 is correct: Most Indian ISPs implement court and governmental blocking orders via DNS tampering/poisoning (returning an NXDOMAIN or redirecting to a notice page) because it operates at the resolver level without requiring deep packet inspection (DPI) hardware at line rate.",
+    "standard_book_ref": "Information Technology Act, 2000; Landmark Supreme Court Judgments on Digital Rights",
+    "elimination_trap": "Trap on Statement 2: Confusing Section 66A (struck down in Shreya Singhal) with Section 69A (upheld with procedural safeguards in the same judgment).",
+    "static_root": "Freedom of Speech (Article 19(1)(a)), Reasonable Restrictions (Article 19(2)) & Cyber Law",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is false.",
+      "B": "Correct: Statements 1 and 3 are correct.",
+      "C": "Incorrect: Statement 1 is also correct.",
+      "D": "Incorrect: Statement 2 is false."
+    },
+    "mains_linkage": "GS Paper III: Cyber Security, Digital Governance, Internal Security and Freedom of Speech",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-06-006",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Capital Punishment, Fixed-Term Sentences & Bachan Singh Edifice",
+    "difficulty": "Tough",
+    "correct_option": "D",
+    "correct_index": 3,
+    "upsc_official_key": "Supreme Court in Union of India v. V. Sriharan (2015) & Swamy Shraddananda v. State of Karnataka (2008)",
+    "question_text": "With reference to the sentencing jurisprudence on capital punishment and life imprisonment in India, consider the following statements:\n1. The 'rarest of rare cases' doctrine was laid down by the Constitution Bench in *Bachan Singh v. State of Punjab (1980)*.\n2. Under Section 433A of the Code of Criminal Procedure (CrPC), a person sentenced to imprisonment for life cannot be released on remission before serving a minimum of fourteen years of actual incarceration.\n3. The special category of fixed-term life imprisonment without remission (e.g., life imprisonment for 25 or 30 years) can be imposed by Sessions Courts as well as High Courts.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1 and 2 only"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: In Bachan Singh v. State of Punjab (1980), the Supreme Court upheld the constitutional validity of the death penalty under Section 302 IPC, formulating the principle that capital punishment must only be awarded in the 'rarest of rare' cases when the alternative option of life imprisonment is unquestionably foreclosed.\nStatement 2 is correct: Section 433A of CrPC (now Section 475 of BNSS 2023) mandates that where a life sentence is imposed for an offence carrying the death penalty, the prisoner cannot be released by executive remission until they have served at least 14 years of actual imprisonment.\nStatement 3 is incorrect: In Swamy Shraddananda (2008) and reaffirmed by a Constitution Bench in Union of India v. V. Sriharan (2015), the Supreme Court ruled that the special intermediate sentencing power—substituting death with a specified term of 20, 25, or 30 years without remission—is an inherent power exercisable ONLY by Constitutional Courts (the Supreme Court and High Courts), and is NOT available to trial/Sessions courts.",
+    "standard_book_ref": "M. Laxmikanth, Judicial Reforms and Criminal Justice Administration; Code of Criminal Procedure",
+    "elimination_trap": "Trap on Statement 3: Believing that trial courts (Sessions courts) can invent custom sentences without remission. Constitutional jurisprudence strictly confines this power to High Courts and the Supreme Court.",
+    "static_root": "Judicial Sentencing Discretion, Article 21, Executive Remission Powers (Articles 72 & 161)",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is also correct.",
+      "B": "Incorrect: Statement 3 is false.",
+      "C": "Incorrect: Statement 3 is false.",
+      "D": "Correct: Statements 1 and 2 are correct."
+    },
+    "mains_linkage": "GS Paper II: Judiciary, Criminal Justice System and Due Process under Article 21",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-pol-2026-04-001",
+    "year": 2026,
+    "month": "April 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Discretionary Powers of the Governor in a Hung Assembly & Floor Test Jurisprudence",
+    "difficulty": "Moderate",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Sarkaria Commission (1988), Punchhi Commission (2010) & S.R. Bommai v. Union of India (1994)",
+    "question_text": "According to the recommendations of the Sarkaria Commission (1988) and the Punchhi Commission (2010), in what order of preference should a Governor invite parties to form the government in a hung Legislative Assembly?\n1. Post-poll coalition formed with outside support.\n2. Pre-poll alliance commanding the largest number of seats.\n3. The single largest party with the support of others.\n4. A post-poll coalition of parties willing to form the government.\n\nSelect the correct sequence using the code given below:",
+    "options": [
+      "2 - 4 - 3 - 1",
+      "3 - 2 - 4 - 1",
+      "2 - 3 - 4 - 1",
+      "4 - 2 - 3 - 1"
+    ],
+    "explanation": "Both the Sarkaria Commission (1988) and the Punchhi Commission (2010) on Centre-State Relations prescribed the following clear, objective order of preference for the Governor in a hung Assembly:\n1. An alliance of parties formed prior to the elections (pre-poll alliance) commanding a majority.\n2. The single largest party staking a claim to form the government with the support of others (including independents).\n3. A post-electoral coalition of parties, with all the partners joining the government.\n4. A post-electoral alliance of parties, with some parties joining the government and the remaining supporting from outside.\nFurthermore, in S.R. Bommai (1994), the Supreme Court held that the floor of the House is the only constitutionally ordained forum to test majority, not the subjective assessment of Raj Bhavan.",
+    "standard_book_ref": "M. Laxmikanth, Indian Polity (Governor: Discretionary Powers & Sarkaria Commission)",
+    "elimination_trap": "Aspirants frequently confuse whether the 'single largest party' precedes a 'post-poll coalition'. Sarkaria explicitly places the single largest party ahead of a newly minted post-poll coalition.",
+    "static_root": "Constitutional Discretion of the Governor (Article 163 & 164), Hung Assemblies",
+    "option_analysis": {
+      "A": "Incorrect: Places post-poll coalition ahead of the single largest party.",
+      "B": "Incorrect: Pre-poll alliance always takes first precedence.",
+      "C": "Correct: Exact Sarkaria/Punchhi sequence: Pre-poll (2) -> Single largest (3) -> Post-poll coalition (4) -> Post-poll with outside support (1).",
+      "D": "Incorrect: Pre-poll alliance is first."
+    },
+    "mains_linkage": "GS Paper II: Functions and Responsibilities of the Union and the States, Issues Pertaining to Federal Structure & Role of Governor",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-04-002",
+    "year": 2026,
+    "month": "April 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Tenth Schedule, Legal Fiction & Deeming Provisions in Party Mergers",
+    "difficulty": "Tough",
+    "correct_option": "A",
+    "correct_index": 0,
+    "upsc_official_key": "Supreme Court in Registrar Cane Cooperative Societies v. Gurdeep Singh Narval (2026) & Rajendra Singh Rana (2007)",
+    "question_text": "With reference to the interpretation of 'merger' under Paragraph 4 of the Tenth Schedule to the Constitution of India, consider the following statements:\n1. Paragraph 4 requires that the original political party must decide to merge with another political party, AND not less than two-thirds of the members of the legislature party must agree to such a merger.\n2. Paragraph 4(2) contains a deeming fiction that allows two-thirds of the legislature party to independently declare a merger even if the parent/original political party has never resolved to merge.\n3. The Supreme Court in *Registrar Cane Cooperative Societies v. Gurdeep Singh Narval (2026)* reiterated the settled jurisprudence that a statutory legal fiction must be strictly confined to the specific purpose for which it was created.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 3 only",
+      "2 and 3 only",
+      "1 and 2 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 3 are correct; Statement 2 is incorrect:\nStatement 1 is correct: Paragraph 4(1) of the Tenth Schedule provides that a member is not disqualified where their original political party merges with another political party. Paragraph 4(2) specifies that such a merger is deemed to have taken place if, and only if, not less than two-thirds of the members of the legislature party concerned agree to the merger. Both conditions are cumulative.\nStatement 2 is incorrect: In Rajendra Singh Rana (2007) and Subhash Desai (2023), the Supreme Court clarified that the deeming fiction under Paragraph 4(2) cannot be divorced from Paragraph 4(1). Two-thirds of the elected legislators cannot defect on their own and claim a 'merger' in the absence of a prior merger of the original political party.\nStatement 3 is correct: In Registrar Cane Cooperative Societies (2026), the Supreme Court reiterated the classic doctrine (originating from Bengal Immunity Co., 1955) that a legal fiction cannot be extended beyond its legitimate field to confer substantive powers not contemplated by the legislature.",
+    "standard_book_ref": "M. Laxmikanth, Tenth Schedule (Anti-Defection Law: Mergers & Splits)",
+    "elimination_trap": "Trap on Statement 2: Believing that a 2/3rd faction of MLAs/MPs can unilaterally effectuate a merger without the parent political party doing so. The Supreme Court has repeatedly held that the legislature party cannot usurp the identity of the political party.",
+    "static_root": "Tenth Schedule (Articles 102(2) & 191(2)), Anti-Defection Jurisprudence & Legal Fictions",
+    "option_analysis": {
+      "A": "Correct: Statements 1 and 3 accurately articulate the constitutional framework.",
+      "B": "Incorrect: Statement 2 misconstrues the deeming fiction.",
+      "C": "Incorrect: Statement 2 is false.",
+      "D": "Incorrect: Statement 2 is false."
+    },
+    "mains_linkage": "GS Paper II: Parliament and State Legislatures, Anti-Defection Law, and Preservation of Party Democracy",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-04-003",
+    "year": 2026,
+    "month": "April 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Disqualification of Candidates & Section 33A of Representation of the People Act, 1951",
+    "difficulty": "Moderate",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Section 33A of the Representation of the People Act, 1951 & Form 26 Rules",
+    "question_text": "With reference to the electoral disclosure regime under the Representation of the People Act (RPA), 1951, consider the following statements:\n1. Under Section 33A of the RPA, 1951, a candidate is statutorily required to disclose pending criminal cases only if charges have been framed by a competent court for an offence punishable with imprisonment for two years or more.\n2. The mere pendency of a private criminal complaint or the issuance of a pre-cognizance summons by a Magistrate automatically disqualifies a person from filing nomination papers.\n3. A Returning Officer has the statutory jurisdiction to reject a nomination paper if a candidate fails to furnish information on convictions where the candidate has been sentenced to imprisonment for one year or more.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 3 are correct; Statement 2 is incorrect:\nStatement 1 is correct: Section 33A(1)(i) mandates disclosure of any pending case in which a candidate is accused of an offence punishable with imprisonment for two years or more, BUT only where charges have been framed by a court of competent jurisdiction.\nStatement 2 is incorrect: Mere registration of a police complaint, FIR, or private complaint where charges have not been framed does NOT fall under mandatory Section 33A disqualification triggers, nor does it disqualify a candidate from contesting elections.\nStatement 3 is correct: Under Section 33A(1)(ii) read with Section 36(2) of the RPA 1951, concealing a conviction where the person has been sentenced to imprisonment for one year or more constitutes a defect of substantial character, justifying rejection of the nomination paper.",
+    "standard_book_ref": "M. Laxmikanth, Representation of the People Act, 1951 & Electoral Reforms",
+    "elimination_trap": "Trap on Statement 2: Assuming that any pending criminal case or FIR disqualifies a candidate or invalidates nomination. In Indian law, only conviction (Sec 8) or concealment of framed charges (Sec 33A) attracts statutory rejection.",
+    "static_root": "Elections, Disqualification under RPA 1951 & Supreme Court Election Jurisprudence",
+    "option_analysis": {
+      "A": "Incorrect: Statement 3 is also correct.",
+      "B": "Incorrect: Statement 2 is false.",
+      "C": "Correct: Statements 1 and 3 are correct.",
+      "D": "Incorrect: Statement 2 is false."
+    },
+    "mains_linkage": "GS Paper II: Salient Features of the Representation of the People’s Act; Criminalisation of Politics",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-05-001",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Article 25, Anti-Conversion Laws & Freedom of Conscience",
+    "difficulty": "Moderate",
+    "correct_option": "B",
+    "correct_index": 1,
+    "upsc_official_key": "Supreme Court in Rev. Stanislaus v. State of Madhya Pradesh (1977) & Article 25",
+    "question_text": "In *Rev. Stanislaus v. State of Madhya Pradesh (1977)*, the Supreme Court delivered a landmark ruling on the scope of Article 25(1). What was the core constitutional principle established in that judgment?",
+    "options": [
+      "The right to propagate religion includes a fundamental right to convert another person to one's own faith.",
+      "The right to propagate religion guarantees the freedom to transmit or spread one's religion by exposition of its tenets, but does not grant a fundamental right to convert another person.",
+      "Religious conversion is an absolute personal liberty under Article 21 that can never be regulated by State legislation.",
+      "State legislatures lack the legislative competence to enact penal statutes prohibiting forcible religious conversions."
+    ],
+    "explanation": "In Rev. Stanislaus v. State of Madhya Pradesh (1977), a Constitution Bench held that Article 25(1) guarantees 'freedom of conscience and the right freely to profess, practise and propagate religion'. The Court clarified that what the Article grants is not the right to convert another person to one’s own religion, but to transmit or spread one’s religion by an exposition of its tenets. If a person purposely undertakes the conversion of another person, as distinguished from effort to transmit the tenets of their faith, that would impinge on the 'freedom of conscience' of the other person.",
+    "standard_book_ref": "M. Laxmikanth, Fundamental Rights (Article 25: Freedom of Religion)",
+    "elimination_trap": "Aspirants frequently assume 'propagate' implies a constitutional right to convert others. The Constitution Bench explicitly rejected that interpretation.",
+    "static_root": "Fundamental Rights, Freedom of Religion (Article 25) & State Police Powers (Public Order)",
+    "option_analysis": {
+      "A": "Incorrect: This was expressly rejected by the Supreme Court.",
+      "B": "Correct: Verbatim holding of the Constitution Bench in Rev. Stanislaus (1977).",
+      "C": "Incorrect: Article 25 is expressly subject to public order, morality, and health.",
+      "D": "Incorrect: The Court upheld the legislative competence of States under Entry 1 of List II (Public Order)."
+    },
+    "mains_linkage": "GS Paper II: Secularism, Fundamental Rights and Freedom of Conscience",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-05-002",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Essential Religious Practice (ERP) Doctrine & Article 26 Religious Denominations",
+    "difficulty": "Tough",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Supreme Court in Commissioner, Hindu Religious Endowments, Madras v. Sri Lakshmindra Thirtha Swamiar of Sri Shirur Mutt (1954)",
+    "question_text": "With reference to the 'Essential Religious Practices (ERP)' doctrine and the status of a 'Religious Denomination' under Article 26 of the Constitution, consider the following statements:\n1. The ERP test, originating in the *Shirur Mutt* case (1954), requires courts to determine whether a practice is fundamental and integral to the religion with reference to its own doctrines.\n2. To qualify as a 'religious denomination' under Article 26, a group must satisfy three cumulative conditions: a common faith, a common organization, and designation by a distinctive name.\n3. In the 2018 *Indian Young Lawyers Association* judgment, the Supreme Court held that the devotees of Lord Ayyappa constitute an independent religious denomination protected under Article 26.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 and 3 only",
+      "1 and 2 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: In Shirur Mutt (1954), the Supreme Court ruled that what constitutes the essential part of a religion is primarily to be ascertained with reference to the doctrines of that religion itself, giving rise to the Essential Religious Practices (ERP) doctrine.\nStatement 2 is correct: In the same Shirur Mutt case (and reiterated in SP Mittal, 1983), the Supreme Court established a three-part test for a 'religious denomination': (a) collection of individuals who have a system of beliefs (common faith), (b) common organization, and (c) designation by a distinct name.\nStatement 3 is incorrect: In the 2018 Sabarimala judgment (Indian Young Lawyers Association), the majority held that devotees of Lord Ayyappa do not constitute a separate religious denomination because they do not have a distinct religious identity separate from Hindus at large.",
+    "standard_book_ref": "M. Laxmikanth, Right to Freedom of Religion (Articles 25 and 26)",
+    "elimination_trap": "Trap on Statement 3: Assuming Ayyappa devotees were granted denominational status. The majority explicitly denied them Article 26 denominational immunity.",
+    "static_root": "Freedom to Manage Religious Affairs (Article 26), ERP Doctrine & Judicial Review",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is also correct.",
+      "B": "Incorrect: Statement 3 is false.",
+      "C": "Correct: Statements 1 and 2 represent established constitutional jurisprudence.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper II: Structure, Organization and Functioning of the Judiciary; Secularism and Constitutional Morality",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-05-003",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Article 142 of the Constitution & Inherent Powers for Complete Justice",
+    "difficulty": "Moderate",
+    "correct_option": "A",
+    "correct_index": 0,
+    "upsc_official_key": "Article 142 of the Constitution of India & Supreme Court Bar Association v. Union of India (1998)",
+    "question_text": "With reference to the extraordinary powers of the Supreme Court under Article 142 of the Constitution of India, consider the following statements:\n1. The Supreme Court may pass such decree or order as is necessary for doing 'complete justice' in any cause or matter pending before it.\n2. The power under Article 142 can be exercised to completely supplant or override express statutory provisions enacted by Parliament.\n3. Any order made under Article 142 is enforceable throughout the territory of India in such manner as may be prescribed by Parliament by law.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 3 only",
+      "1 and 2 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 3 are correct; Statement 2 is incorrect:\nStatement 1 is correct: Article 142(1) explicitly states: 'The Supreme Court in the exercise of its jurisdiction may pass such decree or make such order as is necessary for doing complete justice in any cause or matter pending before it.'\nStatement 2 is incorrect: In Supreme Court Bar Association v. Union of India (1998) and affirmed in High Court Bar Association Allahabad v. State of UP (2024), the Supreme Court ruled that Article 142 is a corrective, supplemental power; it cannot be used to bypass, supplant, or run contrary to substantive statutory provisions enacted by the legislature.\nStatement 3 is correct: Article 142(1) explicitly provides that any decree or order passed thereunder shall be enforceable throughout the territory of India in such manner as may be prescribed by or under any law made by Parliament.",
+    "standard_book_ref": "M. Laxmikanth, Supreme Court of India (Jurisdiction and Powers under Article 142)",
+    "elimination_trap": "Trap on Statement 2: Believing Article 142 is completely unfettered. The Court has clarified that Article 142 cannot build a new edifice where positive statutory law occupies the field.",
+    "static_root": "Supreme Court Jurisdiction, Separation of Powers & Complete Justice Doctrine",
+    "option_analysis": {
+      "A": "Correct: Statements 1 and 3 are verbatim constitutional text.",
+      "B": "Incorrect: Statement 2 contradicts settled jurisprudence on limits of Article 142.",
+      "C": "Incorrect: Statement 2 is false.",
+      "D": "Incorrect: Statement 2 is false."
+    },
+    "mains_linkage": "GS Paper II: Judiciary, Scope of Judicial Review, Judicial Activism vs Separation of Powers",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-05-004",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Scheduled Caste Order, 1950 & Religious Criteria for Reservation",
+    "difficulty": "Tough",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Constitution (Scheduled Castes) Order, 1950 issued under Article 341 & Chinthada Anand v. State of AP (2026)",
+    "question_text": "With reference to the Constitution (Scheduled Castes) Order, 1950 issued under Article 341 of the Constitution, consider the following statements:\n1. In its original form in 1950, Paragraph 3 of the Order restricted Scheduled Caste (SC) recognition exclusively to persons professing Hinduism.\n2. The Order was amended by Parliament in 1956 to include persons professing Sikhism, and in 1990 to include persons professing Buddhism.\n3. The Supreme Court in *Chinthada Anand v. State of Andhra Pradesh (2026)* held that an SC individual who converts to Christianity continues to enjoy statutory protection under the SC/ST (Prevention of Atrocities) Act, 1989.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 only",
+      "2 and 3 only",
+      "1 and 2 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: The Constitution (Scheduled Castes) Order, 1950 originally specified that 'no person who professes a religion different from the Hindu religion shall be deemed to be a member of a Scheduled Caste'.\nStatement 2 is correct: Through parliamentary amendments, Paragraph 3 was modified in 1956 to include Sikhism and in 1990 to include Buddhism. Converted Dalits professing Christianity or Islam remain excluded from the Presidential SC list.\nStatement 3 is incorrect: In Chinthada Anand v. State of Andhra Pradesh (2026), the Supreme Court reiterated that the religious restriction under the 1950 Order is absolute. A person who publicly professes Christianity loses their Scheduled Caste status, and consequently cannot claim statutory protection or benefits under the SC/ST (Prevention of Atrocities) Act, 1989.",
+    "standard_book_ref": "M. Laxmikanth, Special Provisions Relating to Certain Classes (Article 341 & 342)",
+    "elimination_trap": "Trap on Statement 3: Assuming that social discrimination persists regardless of conversion (which is the political/sociological argument), the Supreme Court ruled on the strict legal text of the 1950 Order, holding that loss of SC status terminates statutory protection under the 1989 Act.",
+    "static_root": "Article 341 (Presidential Orders on Scheduled Castes), Affirmative Action & Secularism",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is also correct.",
+      "B": "Incorrect: Statement 3 is false.",
+      "C": "Correct: Statements 1 and 2 are historically and legally accurate.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper II: Reservation Policies, Rights of Marginalized Communities and Constitutional Provisions",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-06-001",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Sub-Classification within Scheduled Castes & The Creamy Layer Doctrine",
+    "difficulty": "Tough",
+    "correct_option": "B",
+    "correct_index": 1,
+    "upsc_official_key": "Supreme Court in State of Punjab v. Davinder Singh (2024) & Union of India v. Rohith Nathan (2026)",
+    "question_text": "In the 7-judge Constitution Bench judgment in *State of Punjab v. Davinder Singh (2024)*, the Supreme Court ruled on the sub-classification of Scheduled Castes (SCs). In this context, consider the following statements:\n1. The Court held that Scheduled Castes do not constitute a homogeneous, monolithic class, and States possess the legislative competence to sub-classify them under Article 15(4) and 16(4).\n2. Sub-classification permits a State government to allocate 100% of the reserved SC seats to a single sub-caste to the total exclusion of other listed castes.\n3. The judgment overruled the earlier 5-judge Bench decision in *E.V. Chinnaiah v. State of Andhra Pradesh (2005)*.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "1 and 3 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 3 are correct; Statement 2 is incorrect:\nStatement 1 is correct: By a 6:1 majority in State of Punjab v. Davinder Singh (2024), the Supreme Court held that the SCs are not a monolithic category. Under Articles 15(4) and 16(4), States have the power to create sub-quotas to direct benefits to the most disadvantaged and backward sub-groups within the SC list.\nStatement 2 is incorrect: The Supreme Court explicitly stipulated that sub-classification cannot result in 100% reservation or total exclusion of any enumerated caste in the Presidential list. The State must base sub-classification on quantifiable empirical data showing inadequate representation.\nStatement 3 is correct: The 7-judge Bench expressly overruled E.V. Chinnaiah (2005), which had held that the Presidential list under Article 341 formed a single indivisible class that could not be sub-classified by States.",
+    "standard_book_ref": "M. Laxmikanth, Indian Polity (Reservation in Public Employment, Articles 15 & 16)",
+    "elimination_trap": "Trap on Statement 2: Assuming sub-classification allows a State to completely corner all benefits for one sub-caste. The Court placed an absolute bar on the total exclusion of other sub-castes.",
+    "static_root": "Equality of Opportunity (Article 16), Sub-classification & Presidential Orders (Article 341)",
+    "option_analysis": {
+      "A": "Incorrect: Statement 3 is also correct.",
+      "B": "Correct: Statements 1 and 3 correctly reflect the Davinder Singh (2024) judgment.",
+      "C": "Incorrect: Statement 2 is false.",
+      "D": "Incorrect: Statement 2 is false."
+    },
+    "mains_linkage": "GS Paper II: Equality, Affirmative Action, and Social Justice in Constitutional Jurisprudence",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-06-002",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Doctrine of Judicial Recusal, Natural Justice & Bangalore Principles",
+    "difficulty": "Moderate",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Supreme Court in Ranjit Thakur v. Union of India (1987) & NJAC Case (2015)",
+    "question_text": "With reference to the doctrine of judicial recusal in India, consider the following statements:\n1. It is rooted in the fundamental natural justice maxim *nemo judex in causa sua* (no one should be a judge in their own cause).\n2. India currently has a statutory enactment under the Advocates Act that codifies binding standards and appeals for judicial recusal in the Higher Judiciary.\n3. In *Ranjit Thakur v. Union of India (1987)*, the Supreme Court held that a 'reasonable apprehension of bias' in the mind of a reasonable litigant, rather than proof of actual bias, is the test for recusal.\n4. Under the 'Doctrine of Necessity', a judge may be obligated to hear a matter despite a potential conflict of interest if no alternative competent forum can be legally constituted.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2, 3 and 4 only",
+      "1, 3 and 4 only",
+      "1, 2, 3 and 4"
+    ],
+    "explanation": "Statements 1, 3 and 4 are correct; Statement 2 is incorrect:\nStatement 1 is correct: Judicial recusal is anchored in the maxim 'nemo judex in causa sua' and the principle that justice must not only be done, but manifestly and undoubtedly be seen to be done.\nStatement 2 is incorrect: India has NO codified statute or statutory rules governing judicial recusal. Unlike the United States (which has 28 U.S. Code § 455), the decision in India is entirely an internal matter of individual judicial conscience, with no statutory appeal against a refusal to recuse.\nStatement 3 is correct: In Ranjit Thakur (1987), the Supreme Court ruled that the test is not whether the judge was actually biased, but whether a reasonable person, in all the circumstances, would entertain a reasonable apprehension of bias.\nStatement 4 is correct: The 'Doctrine of Necessity' is an exception to the rule against bias (invoked in the NJAC 2015 recusal hearings), holding that an adjudicator cannot recuse where their disqualification would result in a failure of justice due to the absence of any other competent forum.",
+    "standard_book_ref": "M. Laxmikanth, Principles of Natural Justice & Judicial Independence",
+    "elimination_trap": "Trap on Statement 2: Believing that India has a formal written statute regulating when Supreme Court or High Court judges must recuse themselves.",
+    "static_root": "Independence of the Judiciary, Natural Justice & The Doctrine of Necessity",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is false.",
+      "B": "Incorrect: Statement 2 is false.",
+      "C": "Correct: Statements 1, 3 and 4 are accurate.",
+      "D": "Incorrect: Statement 2 is false."
+    },
+    "mains_linkage": "GS Paper II: Structure, Organization and Ethics in the Judicial System of India",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-06-003",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Presidential Ordinance Power & Sanctioned Strength of the Supreme Court",
+    "difficulty": "Tough",
+    "correct_option": "A",
+    "correct_index": 0,
+    "upsc_official_key": "Article 124(1) & Article 123 of the Constitution of India; Supreme Court (Number of Judges) Act",
+    "question_text": "With reference to the sanctioned strength of the Supreme Court of India and the promulgation of Presidential Ordinances, consider the following statements:\n1. Article 124(1) of the Constitution mandates that the number of judges of the Supreme Court shall be prescribed by Parliament by law.\n2. An Ordinance promulgated under Article 123 possesses the same force and effect as an Act of Parliament, but ceases to operate six weeks from the reassembly of Parliament unless approved earlier.\n3. In *Krishna Kumar Singh v. State of Bihar (2017)*, a 7-judge Constitution Bench held that the re-promulgation of ordinances without placing them before the legislature constitutes a fraud on the Constitution.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1, 2 and 3",
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only"
+    ],
+    "explanation": "All statements are correct:\nStatement 1 is correct: Article 124(1) states: 'There shall be a Supreme Court of India consisting of a Chief Justice of India and, until Parliament by law prescribes a larger number, of not more than seven other Judges.' Increases in strength are enacted through the Supreme Court (Number of Judges) Act, 1956.\nStatement 2 is correct: Under Article 123(2), an Ordinance has the same force and effect as an Act of Parliament, but must be laid before both Houses and ceases to operate at the expiration of six weeks from the reassembly of Parliament, or earlier if disapproved by resolutions.\nStatement 3 is correct: In Krishna Kumar Singh (2017), affirming the principle from D.C. Wadhwa (1986), a 7-judge Bench ruled that the ordinance-making power is an emergency executive power, not a parallel legislative stream. Repeated re-promulgation without legislative scrutiny is subversive of democratic governance and an unconstitutional fraud.",
+    "standard_book_ref": "M. Laxmikanth, Ordinance-Making Power of the President (Article 123) & Supreme Court (Article 124)",
+    "elimination_trap": "Aspirants might assume that the Supreme Court's strength can ONLY be altered by a full constitutional amendment under Article 368, but it is altered by ordinary law under Article 124(1).",
+    "static_root": "Separation of Powers, Legislative Powers of the President (Article 123) & Judiciary Composition",
+    "option_analysis": {
+      "A": "Correct: All three statements are accurate.",
+      "B": "Incorrect: Statement 3 is also correct.",
+      "C": "Incorrect: Statement 1 is also correct.",
+      "D": "Incorrect: Statement 2 is also correct."
+    },
+    "mains_linkage": "GS Paper II: Separation of Powers between various organs, Executive Rule-making and Judicial Independence",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-06-004",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Economy",
+    "sub_topic": "16th Finance Commission Devolution Formula & Horizontal Criteria",
+    "difficulty": "Moderate",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Report of the 16th Finance Commission of India & Article 280 of the Constitution",
+    "question_text": "Consider the following statements regarding the 16th Finance Commission (FC) and inter-governmental fiscal transfers in India:\n1. The 16th FC retained the vertical tax devolution share to the States at 41% of the net divisible pool.\n2. Cesses and surcharges levied by the Union are constitutionally excluded from the divisible pool under Article 270 unless Parliament provides otherwise.\n3. In its horizontal tax devolution formula, the 16th FC completely removed the 'Income Distance' criterion and replaced it with States' per capita GSDP.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "2 and 3 only",
+      "1 and 2 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: The 16th Finance Commission maintained vertical devolution at 41%, continuing the baseline set by the 15th FC (adjusting for the reorganization of Jammu & Kashmir).\nStatement 2 is correct: Under Article 270 of the Constitution, taxes and duties referred to in Articles 268, 269 and any cess or surcharge levied for specific purposes under Article 271 do NOT form part of the divisible pool shared with States.\nStatement 3 is incorrect: The 'Income Distance' criterion remains the dominant equalizing factor in horizontal tax devolution, receiving the highest weight (42.5%), rather than being eliminated.",
+    "standard_book_ref": "Ramesh Singh, Indian Economy (Fiscal Federalism & Finance Commission); M. Laxmikanth",
+    "elimination_trap": "Trap on Statement 3: While southern States requested lowering the weight of Income Distance, the Commission did NOT abolish it; it retained it with the highest horizontal weight (42.5%).",
+    "static_root": "Fiscal Federalism, Finance Commission (Article 280), Taxes in Divisible Pool (Article 270)",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is also correct.",
+      "B": "Incorrect: Statement 3 is false.",
+      "C": "Correct: Statements 1 and 2 are correct.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper III: Fiscal Federalism, Center-State Financial Relations and Resource Sharing",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-06-005",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Delimitation Freeze, Nari Shakti Vandan Adhiniyam & Constitutional Seat Caps",
+    "difficulty": "Tough",
+    "correct_option": "B",
+    "correct_index": 1,
+    "upsc_official_key": "Articles 81, 82, 170, 334A of the Constitution; 84th Constitutional Amendment Act, 2002",
+    "question_text": "With reference to the delimitation of constituencies and women's reservation under the Constitution of India, consider the following statements:\n1. The 84th Constitutional Amendment Act, 2002 froze the total inter-State allocation of Lok Sabha seats based on the 1971 Census until the first Census taken after the year 2026.\n2. Readjustment and redrawing of territorial constituency boundaries within individual States is currently based on the 2011 Census.\n3. Under Article 334A (inserted by the 106th Constitutional Amendment Act, 2023), one-third reservation for women in the Lok Sabha will take effect only after an exercise of delimitation is undertaken based on the relevant figures of the first Census conducted after the commencement of the Act.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 3 are correct; Statement 2 is incorrect:\nStatement 1 is correct: The 42nd Amendment (1976) originally froze the allocation of seats based on the 1971 Census. The 84th Amendment (2002) extended this freeze until the relevant figures for the first Census taken after 2026 have been published.\nStatement 2 is incorrect: Under the 87th Constitutional Amendment Act, 2003, the internal delimitation and redrawing of boundaries of constituencies *within* States was conducted on the basis of the 2001 Census, NOT the 2011 Census.\nStatement 3 is correct: Article 334A explicitly links the operationalization of women's reservation to two sequential conditions: (1) conducting the next post-enactment Census, and (2) completion of the subsequent delimitation exercise based on that Census.",
+    "standard_book_ref": "M. Laxmikanth, Parliament (Allocation of Seats and Delimitation) & 106th Amendment Act",
+    "elimination_trap": "Census Year Trap: Confusing the Census year for seat freeze (1971), internal boundary redrawing (2001), and the current census data (2011/2027). Internal delimitation was done on 2001 Census.",
+    "static_root": "Delimitation Commission, Article 82, Federal Demographic Balance & Women's Reservation",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is false (2001 Census, not 2011).",
+      "B": "Correct: Statements 1 and 3 are correct.",
+      "C": "Incorrect: Statement 1 is also correct.",
+      "D": "Incorrect: Statement 2 is false."
+    },
+    "mains_linkage": "GS Paper II: Parliament, Elections, Federal Representation and Delimitation Challenges",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-06-006",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Special Intensive Revision (SIR) of Electoral Rolls & ECI Plenary Powers",
+    "difficulty": "Moderate",
+    "correct_option": "A",
+    "correct_index": 0,
+    "upsc_official_key": "Article 324 of the Constitution & Section 21 of the Representation of the People Act, 1950",
+    "question_text": "With reference to the powers of the Election Commission of India (ECI) regarding the revision of electoral rolls, consider the following statements:\n1. Article 324 of the Constitution vests the superintendence, direction, and control of the preparation of electoral rolls in the Election Commission.\n2. Under Section 21(3) of the Representation of the People Act, 1950, the Election Commission may at any time direct a special revision of the electoral roll for any constituency or part of a constituency.\n3. The Supreme Court has ruled that the Election Commission possesses the sole, unreviewable statutory authority to definitively strip an individual of their citizenship under the Citizenship Act, 1955.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: Article 324(1) vests the superintendence, direction, and control of the preparation of electoral rolls for, and the conduct of, all elections to Parliament and to the Legislature of every State in the Election Commission.\nStatement 2 is correct: Section 21(3) of the RPA 1950 empowers the ECI to direct a special revision of the electoral roll for any constituency or part of a constituency, or even across a State, for reasons recorded in writing.\nStatement 3 is incorrect: The Supreme Court clarified that while the ECI may conduct a summary inquiry to verify eligibility for inclusion in electoral rolls, it cannot definitively adjudicate or strip an individual's citizenship; determination of citizenship is an exclusive statutory function of the competent authorities and tribunals under the Citizenship Act, 1955.",
+    "standard_book_ref": "M. Laxmikanth, Election Commission (Powers and Functions) & RPA 1950",
+    "elimination_trap": "Trap on Statement 3: Confusing the ECI's power to clean electoral rolls with the power to determine citizenship. The ECI cannot usurp the statutory powers of the Central Government/Foreigners Tribunals under the Citizenship Act, 1955.",
+    "static_root": "Election Commission of India (Article 324), Representation of the People Act 1950 & Citizenship",
+    "option_analysis": {
+      "A": "Correct: Statements 1 and 2 are statutory and constitutional facts.",
+      "B": "Incorrect: Statement 3 is false.",
+      "C": "Incorrect: Statement 3 is false.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper II: Appointment to various Constitutional Posts, Powers, Functions and Responsibilities of ECI",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-05-005",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Model Code of Conduct (MCC), Corrupt Practices & Section 123 of RPA 1951",
+    "difficulty": "Tough",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Model Code of Conduct Guidelines & Supreme Court in Abhiram Singh v. C.D. Commachen (2017)",
+    "question_text": "With reference to the Model Code of Conduct (MCC) and 'corrupt practices' under electoral laws in India, consider the following statements:\n1. The Model Code of Conduct has statutory backing enacted by Parliament under the Representation of the People Act, 1951.\n2. In *Abhiram Singh v. C.D. Commachen (2017)*, a 7-judge Constitution Bench held that an appeal for votes on grounds of religion, race, caste, community, or language of either the candidate, their agent, OR the voter constitutes a corrupt practice under Section 123(3) of the RPA, 1951.\n3. Under the Election Symbols (Reservation and Allotment) Order, 1968, the Election Commission possesses the authority to suspend or withdraw the recognition of a political party for violating the MCC.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 2 and 3 are correct; Statement 1 is incorrect:\nStatement 1 is incorrect: The Model Code of Conduct (MCC) has NO statutory backing. It is a set of consensus-based conventions agreed upon by political parties, enforced by the ECI primarily under its plenary powers derived from Article 324.\nStatement 2 is correct: In Abhiram Singh (2017), the Supreme Court adopted a purposive interpretation of the word 'his' in Section 123(3) of the RPA, 1951, ruling that appeals based on religion, caste, community, or language of the candidate, their rival, or the voter are strictly prohibited.\nStatement 3 is correct: Under Paragraph 16A of the Election Symbols (Reservation and Allotment) Order, 1968, the Election Commission has the power to suspend or withdraw the recognition of a recognized political party if it fails to observe the Model Code of Conduct.",
+    "standard_book_ref": "M. Laxmikanth, Election Laws (Model Code of Conduct & Corrupt Practices)",
+    "elimination_trap": "Statutory Backing Trap: Believing MCC is an Act of Parliament. It has repeatedly been kept non-statutory to ensure rapid, flexible enforcement without prolonged court litigation during the brief election window.",
+    "static_root": "Electoral Governance, Article 324, Model Code of Conduct & Corrupt Practices (Section 123 RPA 1951)",
+    "option_analysis": {
+      "A": "Incorrect: Statement 1 is false (MCC has no statutory status).",
+      "B": "Incorrect: Statement 1 is false.",
+      "C": "Correct: Statements 2 and 3 are correct.",
+      "D": "Incorrect: Statement 1 is false."
+    },
+    "mains_linkage": "GS Paper II: Salient Features of the Representation of the People’s Act; Role of ECI in Ensuring Level Playing Field",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-05-006",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Tribal Governance in Nicobar Islands & Traditional Captaincy System",
+    "difficulty": "Moderate",
+    "correct_option": "B",
+    "correct_index": 1,
+    "upsc_official_key": "Andaman and Nicobar Islands (Tribal Councils) Regulation, 2009 & Anthropological Survey of India Reports",
+    "question_text": "In the context of local self-governance in the Nicobar Islands and recent draft election rules, consider the following statements:\n1. The Nicobarese tribal community is governed by a traditional 'Captaincy system', which operates through consensus-based village leadership.\n2. The 'Tuhet' represents the traditional matrilineal joint-family landholding and lineage unit central to Nicobarese customary governance.\n3. The Andaman and Nicobar Islands are administered under the Fifth Schedule to the Constitution of India.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "1 and 2 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: The Nicobarese (a Scheduled Tribe) have maintained a unique village captaincy governance structure originating in pre-colonial times, where a council of captains (First, Second, and Third Captains) manages community affairs.\nStatement 2 is correct: The 'Tuhet' is the basic social, economic, and residential building block of Nicobarese society—a joint-family clan system headed by elder male/female leaders that collectively controls ancestral lands, coconut orchards, and traditional rights.\nStatement 3 is incorrect: The Andaman and Nicobar Islands are a Union Territory governed directly by the President through a Lieutenant Governor under Article 239/240; they are NOT notified under either the Fifth Schedule (which covers 10 mainland States) or the Sixth Schedule (which covers Assam, Meghalaya, Tripura, and Mizoram).",
+    "standard_book_ref": "M. Laxmikanth, Scheduled and Tribal Areas (Fifth and Sixth Schedules); Union Territories (Article 239)",
+    "elimination_trap": "Schedule Trap: Assuming that since Nicobar has indigenous tribal populations, it must be under the Fifth Schedule. Fifth Schedule applies only to designated mainland States.",
+    "static_root": "Tribal Customary Governance, Union Territories Administration (Article 240) & Scheduled Tribes",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is also correct.",
+      "B": "Correct: Statements 1 and 2 are accurate anthropological and legal facts.",
+      "C": "Incorrect: Statement 3 is false.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper II: Governance, Protection of Vulnerable Tribes and Preservation of Indigenous Autonomy",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-04-004",
+    "year": 2026,
+    "month": "April 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Women's Representation in Panchayati Raj Institutions (Article 243D)",
+    "difficulty": "Moderate",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Article 243D of the Constitution & Ministry of Panchayati Raj Official Compendium",
+    "question_text": "With reference to the political representation of women in Panchayati Raj Institutions (PRIs) in India, consider the following statements:\n1. Article 243D of the Constitution of India mandates that not less than one-third of the total number of seats to be filled by direct election in every Panchayat shall be reserved for women.\n2. More than fifteen States in India have enacted state legislations increasing the reservation quota for women in Panchayats to 50%.\n3. Women elected to unreserved seats are statutorily counted towards fulfilling the mandatory constitutional quota prescribed under Article 243D.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "1 and 3 only",
+      "1 and 2 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: Article 243D(3) mandates that 'Not less than one-third (including the number of seats reserved for women belonging to the Scheduled Castes and the Scheduled Tribes) of the total number of seats to be filled by direct election in every Panchayat shall be reserved for women and such seats may be allotted by rotation.'\nStatement 2 is correct: At least 19 States (such as Bihar, Madhya Pradesh, Rajasthan, Kerala, Chhattisgarh, Karnataka, etc.) have amended their state Panchayati Raj Acts to increase women's reservation to 50%.\nStatement 3 is incorrect: Under constitutional law, reservation is a minimum floor, not a ceiling. Women who win elections in general/unreserved constituencies by competing openly are NOT set off against or deducted from the mandatory reserved quota seats; they are in addition to the reserved seats.",
+    "standard_book_ref": "M. Laxmikanth, Panchayati Raj (73rd Constitutional Amendment Act, 1992)",
+    "elimination_trap": "Trap on Statement 3: Confusing minimum affirmative reservation with a cap. When women win unreserved seats on merit, they do not reduce the number of seats specifically reserved for women.",
+    "static_root": "Local Self-Government (Part IX), 73rd Amendment, Gender Empowerment in Grassroots Democracy",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is also correct.",
+      "B": "Incorrect: Statement 3 is false.",
+      "C": "Correct: Statements 1 and 2 are correct.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper II: Devolution of Powers and Finances up to Local Levels; Women in Political Leadership",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-06-007",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Economy",
+    "sub_topic": "Statutory Wage Fixation: MGNREGA vs Minimum Wages Act, 1948",
+    "difficulty": "Tough",
+    "correct_option": "A",
+    "correct_index": 0,
+    "upsc_official_key": "Section 6 of MGNREGA, 2005 & Karnataka High Court in Sanjit Roy v. State of Rajasthan (1983)",
+    "question_text": "Consider the following statements regarding statutory wage determination under rural employment guarantee frameworks in India:\n1. Section 6(1) of MGNREGA, 2005 contains a non-obstante clause empowering the Central Government to notify wage rates notwithstanding anything contained in the Minimum Wages Act, 1948.\n2. In *Sanjit Roy v. State of Rajasthan (1983)*, the Supreme Court held that paying less than the minimum wage to persons employed on famine or public relief works violates Article 23 (prohibition of forced labour).\n3. Under MGNREGA, annual wage revisions are statutorily indexed to the Consumer Price Index for Industrial Workers (CPI-IW).\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: Section 6(1) of MGNREGA explicitly begins with: 'Notwithstanding anything contained in the Minimum Wages Act, 1948, the Central Government may, by notification, fix the wage rate for the purposes of this Act.'\nStatement 2 is correct: In Sanjit Roy v. State of Rajasthan (1983), the Supreme Court ruled that paying less than the prescribed minimum wage to workers, even under state famine relief programmes, amounts to taking forced labour ('begar') and violates Article 23 of the Constitution.\nStatement 3 is incorrect: MGNREGA wages are indexed annually based on changes in the Consumer Price Index for Agricultural Labourers (CPI-AL), NOT the Consumer Price Index for Industrial Workers (CPI-IW).",
+    "standard_book_ref": "M. Laxmikanth, Fundamental Rights (Article 23: Right against Exploitation); Ramesh Singh, Indian Economy",
+    "elimination_trap": "Index Trap on Statement 3: Agricultural laborers vs Industrial workers. Rural employment schemes like MGNREGA are indexed to CPI-AL, whereas industrial/urban wages track CPI-IW.",
+    "static_root": "Right against Exploitation (Article 23), Statutory Wage Fixation & Rural Livelihood Legislation",
+    "option_analysis": {
+      "A": "Correct: Statements 1 and 2 are legally and constitutionally accurate.",
+      "B": "Incorrect: Statement 3 has the incorrect inflation index.",
+      "C": "Incorrect: Statement 3 is false.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper II: Welfare Schemes for Vulnerable Sections; Labour Reforms and Living Wage Jurisprudence",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-06-008",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Regulatory Decriminalization & Jan Vishwas (Amendment of Provisions) Act 2.0",
+    "difficulty": "Moderate",
+    "correct_option": "B",
+    "correct_index": 1,
+    "upsc_official_key": "Jan Vishwas (Amendment of Provisions) Act, 2023 & Jan Vishwas 2.0 (2026)",
+    "question_text": "With reference to the Jan Vishwas (Amendment of Provisions) legislative reforms in India, consider the following statements:\n1. The primary objective of the Jan Vishwas legislation is to replace criminal imprisonment for minor procedural and technical defaults with civil monetary penalties and compounding mechanisms.\n2. Adjudication of decriminalized civil defaults under the Act is transferred exclusively to High Courts to ensure strict judicial oversight.\n3. The legislation introduces a periodic statutory escalation mechanism wherein fines and penalties automatically increase by 10% every three years.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "1 and 3 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 3 are correct; Statement 2 is incorrect:\nStatement 1 is correct: The Jan Vishwas framework decriminalizes hundreds of minor, technical, and procedural defaults across multiple Central Acts, substituting imprisonment with graded monetary penalties administered through executive adjudicating officers to improve Ease of Doing Business.\nStatement 2 is incorrect: Adjudication is entrusted to executive 'Adjudicating Officers' appointed by the respective Ministries, precisely to de-congest the formal judicial system (subordinate courts and High Courts). Appeals against orders of Adjudicating Officers lie before designated Appellate Authorities, not direct trial in High Courts.\nStatement 3 is correct: A key statutory innovation of the Jan Vishwas Acts is an inbuilt revision clause ensuring that the minimum and maximum monetary penalties and fines increase by 10% every three years to prevent erosion of deterrence through inflation.",
+    "standard_book_ref": "Economic Survey of India (Ease of Doing Business & Regulatory Reforms); Jan Vishwas Acts",
+    "elimination_trap": "Trap on Statement 2: Believing that decriminalizing offences sends them to High Courts. Decriminalization shifts adjudication *away* from courts to executive adjudicating officers.",
+    "static_root": "Administrative Law, Ease of Doing Business & Subordinate Legislation and Adjudication",
+    "option_analysis": {
+      "A": "Incorrect: Statement 3 is also correct.",
+      "B": "Correct: Statements 1 and 3 are correct.",
+      "C": "Incorrect: Statement 2 is false.",
+      "D": "Incorrect: Statement 2 is false."
+    },
+    "mains_linkage": "GS Paper II: Government Policies and Interventions for Business Growth; Reducing Judicial Pendency",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-06-009",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "UAPA Bail Jurisprudence & The Article 21 Constitutional Balancing Test",
+    "difficulty": "Tough",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Supreme Court in Union of India v. K.A. Najeeb (2021) & Syed Iftikhar Andrabi v. NIA (2026)",
+    "question_text": "In the context of statutory bail restrictions under Section 43D(5) of the Unlawful Activities (Prevention) Act (UAPA), 1967 and recent Supreme Court rulings, consider the following statements:\n1. Section 43D(5) of UAPA mandates that bail shall not be granted if the court, upon perusal of the case diary or charge-sheet, is of the opinion that there are reasonable grounds for believing that the accusation is prima facie true.\n2. In *Union of India v. K.A. Najeeb (2021)*, the Supreme Court held that the statutory bar under Section 43D(5) completely ousts the constitutional powers of High Courts and the Supreme Court to grant bail on grounds of violation of Article 21.\n3. The Supreme Court in *Syed Iftikhar Andrabi v. NIA (2026)* reiterated that prolonged pre-trial incarceration coupled with an absence of any likelihood of the trial concluding within a reasonable time constitutes a constitutional ground to melt down the rigour of Section 43D(5).\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 3 are correct; Statement 2 is incorrect:\nStatement 1 is correct: Section 43D(5) reverses the ordinary criminal law principle of 'bail is the rule, jail is the exception' by prohibiting bail if allegations appear prima facie true based on prosecution materials.\nStatement 2 is incorrect: In K.A. Najeeb (2021), a 3-judge Bench held that statutory restrictions on bail, such as Section 43D(5) of UAPA, do NOT and cannot override the constitutional jurisdiction of Constitutional Courts to enforce the fundamental right to a speedy trial under Article 21. Constitutional rights prevail over statutory prohibitions.\nStatement 3 is correct: In Syed Iftikhar Andrabi (2026), the Supreme Court reaffirmed that where an undertrial has spent years in custody and the trial cannot be completed within a reasonable horizon, prolonged incarceration without trial violates Article 21, entitling the accused to bail notwithstanding Section 43D(5).",
+    "standard_book_ref": "M. Laxmikanth, Right to Life and Personal Liberty (Article 21); UAPA Act, 1967",
+    "elimination_trap": "Constitutional Supremacy Trap: An ordinary parliamentary statute (like UAPA) cannot extinguish or subordinate the constitutional powers of High Courts (Art 226) or the Supreme Court (Art 32) under Article 21.",
+    "static_root": "Right to Speedy Trial (Article 21), Preventive & Punitive Detention, UAPA Bail Provisions",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is false.",
+      "B": "Incorrect: Statement 2 is false.",
+      "C": "Correct: Statements 1 and 3 correctly state the constitutional limitation on Section 43D(5).",
+      "D": "Incorrect: Statement 2 is false."
+    },
+    "mains_linkage": "GS Paper II & III: Fundamental Rights, National Security Laws vs Individual Liberty, Criminal Justice Administration",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-06-010",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Sedition Law, Bharatiya Nyaya Sanhita (BNS) & The Kedar Nath Precedent",
+    "difficulty": "Moderate",
+    "correct_option": "A",
+    "correct_index": 0,
+    "upsc_official_key": "Kedar Nath Singh v. State of Bihar (1962) & Section 152 of Bharatiya Nyaya Sanhita, 2023",
+    "question_text": "With reference to the law of sedition in India, consider the following statements:\n1. In *Kedar Nath Singh v. State of Bihar (1962)*, the Supreme Court upheld the constitutional validity of Section 124A IPC, restricting its application only to acts involving an incitement to violence or public disorder.\n2. In *S.G. Vombatkere v. Union of India (2022)*, the Supreme Court directed that all pending trials, appeals, and proceedings under Section 124A IPC be kept in abeyance.\n3. Under the Bharatiya Nyaya Sanhita (BNS), 2023, the word 'sedition' has been explicitly retained in Section 152 with reduced penal sentences.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: In Kedar Nath (1962), a Constitution Bench upheld Section 124A IPC by reading it down, ruling that strong criticism of government measures does not constitute sedition unless accompanied by an incitement to violence or an intention to create public disorder.\nStatement 2 is correct: In S.G. Vombatkere (2022), the Supreme Court ordered that all pending trials, appeals, and proceedings under Section 124A be kept in abeyance and no fresh FIRs be registered while the Union reconsidered the provision.\nStatement 3 is incorrect: The Bharatiya Nyaya Sanhita (BNS), 2023 does NOT use the word 'sedition'. Section 152 replaces it with offences concerning 'Act endangering sovereignty, unity and integrity of India', and actually INCREASED the minimum term of imprisonment from three years to seven years.",
+    "standard_book_ref": "M. Laxmikanth, Freedom of Speech and Expression (Article 19(1)(a) & Article 19(2)); BNS 2023",
+    "elimination_trap": "Trap on Statement 3: Assuming BNS preserved the archaic colonial word 'sedition' and lowered punishments. The term 'sedition' was omitted, but the punishment for acts threatening sovereignty was enhanced.",
+    "static_root": "Freedom of Speech (Article 19(1)(a)), Public Order Exceptions & Criminal Code Transitions",
+    "option_analysis": {
+      "A": "Correct: Statements 1 and 2 are legally and historically accurate.",
+      "B": "Incorrect: Statement 3 is false.",
+      "C": "Incorrect: Statement 3 is false.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper II: Fundamental Rights, Reasonable Restrictions, Colonial Laws and Criminal Law Reforms",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-06-011",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "DNA Evidence, Paternity Disputes & Right to Privacy under Article 21",
+    "difficulty": "Moderate",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Supreme Court in Goutam Kundu (1993), K.S. Puttaswamy (2017) & CP vs AP (2026)",
+    "question_text": "With reference to DNA testing in paternity disputes and the constitutional right to privacy in India, consider the following statements:\n1. Under the Indian Evidence Act, 1872 and the Bharatiya Sakshya Adhiniyam, 2023, birth during the continuance of a valid marriage is conclusive proof of legitimacy unless non-access is proven.\n2. In *Goutam Kundu v. State of West Bengal (1993)*, the Supreme Court held that DNA tests in paternity matters should not be directed as a matter of course or routine, and can only be ordered when a strong prima facie case is established.\n3. In *CP vs AP (2026)*, the Supreme Court ruled that an individual's right to privacy under Article 21 creates an absolute, inviolable shield that prohibits courts from ever ordering a DNA test in matrimonial disputes.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 only",
+      "2 and 3 only",
+      "1 and 2 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: Section 112 of the Indian Evidence Act (and Section 116 of Bharatiya Sakshya Adhiniyam 2023) creates a legal presumption that birth during marriage is conclusive proof of legitimacy, rebuttable only by proving that the parties had no access to each other at the time of conception.\nStatement 2 is correct: In Goutam Kundu (1993), the Supreme Court ruled that DNA tests cannot be ordered upon roving inquiries; courts must protect the child from the social stigma of illegitimacy unless a compelling prima facie case is made.\nStatement 3 is incorrect: In CP vs AP (2026) and earlier in Ivan Rathinam (2025), the Supreme Court held that the right to privacy under Article 21 is not absolute. When paternity is directly at issue and no other evidence can resolve the dispute, courts may order a DNA test as a proportionate measure of last resort in the interest of justice.",
+    "standard_book_ref": "M. Laxmikanth, Fundamental Rights (Article 21: Right to Privacy); Law of Evidence",
+    "elimination_trap": "Absolute Right Trap on Statement 3: Fundamental rights, including the right to privacy (Puttaswamy 2017), are not absolute and can be balanced against compelling legitimate state/judicial interests satisfying proportionality.",
+    "static_root": "Right to Privacy (Article 21), Law of Evidence, Presumption of Legitimacy",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is also correct.",
+      "B": "Incorrect: Statement 3 is false.",
+      "C": "Correct: Statements 1 and 2 correctly reflect Indian evidence law and judicial precedent.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper II: Judiciary, Fundamental Rights, Privacy and Application of Forensic Science in Justice",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-06-012",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Social Issues & Welfare",
+    "sub_topic": "Census 2027 Methodology & First Comprehensive Caste Count",
+    "difficulty": "Moderate",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Census Act, 1948 & Office of the Registrar General and Census Commissioner of India",
+    "question_text": "With reference to the forthcoming Census 2027 and census operations in India, consider the following statements:\n1. The Census in India is conducted under the provisions of the Census Act, 1948, and the subject of 'Census' is listed in the Union List (Entry 69) of the Seventh Schedule.\n2. India follows an 'extended de facto' enumeration method, where individuals are counted at their usual place of residence with adjustments for temporary movement.\n3. The last comprehensive, all-caste census conducted in India prior to the 2027 initiative took place in the year 1931.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1, 2 and 3",
+      "1 and 3 only"
+    ],
+    "explanation": "All statements are correct:\nStatement 1 is correct: 'Census' is an exclusive Union subject under Entry 69 of List I (Union List) in the Seventh Schedule. The exercise is governed statutorily by the Census Act, 1948, administered by the Office of the Registrar General and Census Commissioner of India under the Ministry of Home Affairs.\nStatement 2 is correct: India utilizes an 'extended de facto' system of enumeration, counting individuals at their usual place of residence over a 20-day period, while capturing persons who stayed there for at least one night during the enumeration round, culminating in a houseless enumeration on the final night.\nStatement 3 is correct: Every post-Independence decennial Census (from 1951 to 2011) enumerated caste data ONLY for Scheduled Castes (SCs) and Scheduled Tribes (STs). The last comprehensive census enumerating all castes across the population was conducted under British rule in 1931.",
+    "standard_book_ref": "M. Laxmikanth, Seventh Schedule (Union List Entry 69); Census Act, 1948",
+    "elimination_trap": "Aspirants might confuse the Socio-Economic and Caste Census (SECC) 2011 with the statutory decennial Census. SECC 2011 was an executive survey under the Ministry of Rural Development, not an official decennial Census under the Census Act, 1948.",
+    "static_root": "Seventh Schedule (Union List), Demography, Census Act 1948 & Caste Enumeration",
+    "option_analysis": {
+      "A": "Incorrect: Statement 3 is also correct.",
+      "B": "Incorrect: Statement 1 is also correct.",
+      "C": "Correct: All three statements are accurate.",
+      "D": "Incorrect: Statement 2 is also correct."
+    },
+    "mains_linkage": "GS Paper I & II: Salient Features of Indian Society; Population Dynamics and Policy Formulations",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-04-005",
+    "year": 2026,
+    "month": "April 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Constitutional Tenure of the Executive & Term Limits Debates",
+    "difficulty": "Moderate",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Constituent Assembly Debates (November 4, 1948) & Article 75/164 of the Constitution",
+    "question_text": "With reference to the constitutional framework governing executive tenure in India, consider the following statements:\n1. The Constitution of India explicitly prescribes a maximum ceiling of two consecutive five-year terms for the office of the Prime Minister and Chief Ministers.\n2. Dr. B.R. Ambedkar in the Constituent Assembly argued that in a parliamentary system, continuous daily assessment of executive responsibility by the legislature replaces the need for periodic term limits.\n3. Unlike the President of the United States, who is restricted to two terms under the 22nd Amendment to the US Constitution, the President of India is eligible for re-election without any constitutional term limit.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 2 and 3 are correct; Statement 1 is incorrect:\nStatement 1 is incorrect: The Constitution of India contains NO term limit whatsoever for the Prime Minister or Chief Ministers; under Articles 75(2) and 164(1), they hold office during the pleasure of the President/Governor, provided they command the confidence of the lower House.\nStatement 2 is correct: Introducing the Draft Constitution, Dr. B.R. Ambedkar explained that parliamentary systems prefer daily assessment of responsibility (through questions, resolutions, adjournment motions, and no-confidence motions) over periodic assessment, rendering rigid term limits unnecessary.\nStatement 3 is correct: Article 57 of the Constitution explicitly states: 'A person who holds, or who has held, office as President shall, subject to the other provisions of this Constitution, be eligible for re-election to that office.' India has no constitutional term limit for the President (unlike the 22nd US Amendment), though convention since Dr. Rajendra Prasad has largely limited incumbency.",
+    "standard_book_ref": "M. Laxmikanth, Prime Minister & President of India (Article 57, 74, 75); Constituent Assembly Debates",
+    "elimination_trap": "Trap on Statement 1: Conflating political conventions or foreign presidential systems (USA) with the text of the Indian Constitution, which imposes zero term limits on heads of government.",
+    "static_root": "Parliamentary System of Government, Collective Responsibility & Executive Tenure",
+    "option_analysis": {
+      "A": "Incorrect: Statement 1 is false.",
+      "B": "Incorrect: Statement 1 is false.",
+      "C": "Correct: Statements 2 and 3 are constitutional and historical facts.",
+      "D": "Incorrect: Statement 1 is false."
+    },
+    "mains_linkage": "GS Paper II: Comparison of the Indian Constitutional Scheme with that of other Countries",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-05-007",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Pedestrian Rights, Demarcated Footpaths & Article 21 Jurisprudence",
+    "difficulty": "Moderate",
+    "correct_option": "A",
+    "correct_index": 0,
+    "upsc_official_key": "Supreme Court in Maniyar Iliyaz @ Shaik Riyaz v. P. Ayyappan (2026) & Article 21/39(b)",
+    "question_text": "In *Maniyar Iliyaz @ Shaik Riyaz v. P. Ayyappan (2026)*, the Supreme Court expanded the horizons of fundamental rights. Which of the following best reflects the primary holding of the Court?",
+    "options": [
+      "The right to walk on comfortable, safe, and demarcated footpaths is an integral fundamental right under Article 21, taking precedence over the unrestricted movement of motor vehicles.",
+      "The right to ply private motor vehicles on urban roads is an absolute property right under Article 300A that cannot be restricted for pedestrian infrastructure.",
+      "Municipal authorities are constitutionally immune from tortious liability arising out of pedestrian fatalities caused by unmaintained pavements.",
+      "Street vendors possess an untrammeled right under Article 19(1)(g) to occupy footpaths, overriding municipal zoning regulations."
+    ],
+    "explanation": "In Maniyar Iliyaz (2026), the Supreme Court ruled that the right to safe, comfortable, and unobstructed footpaths is an essential facet of the Right to Life with Dignity under Article 21. Grounding its reasoning in Article 39(b) (equitable distribution of material resources/public spaces), the Court held that urban common spaces must not become the monopoly of the motorized classes and that pedestrian safety must be given priority in municipal planning and statutory frameworks.",
+    "standard_book_ref": "M. Laxmikanth, Fundamental Rights (Article 21: Expanding Horizons of Right to Life)",
+    "elimination_trap": "Distractor on Option D: Confusing the Street Vendors Act (which mandates regulated vending zones) with an absolute license to encroach on walking spaces.",
+    "static_root": "Article 21 (Right to Life & Personal Liberty), Directive Principles (Article 39(b)) & Urban Governance",
+    "option_analysis": {
+      "A": "Correct: Verbatim constitutional doctrine established by the Supreme Court in 2026.",
+      "B": "Incorrect: Driving is a regulated statutory privilege, not an absolute property right.",
+      "C": "Incorrect: Municipalities bear strict statutory obligations to maintain safe public spaces.",
+      "D": "Incorrect: Street vending is subject to reasonable restrictions and town vending committee demarcations."
+    },
+    "mains_linkage": "GS Paper II: Fundamental Rights, Judicial Interpretations and Urban Infrastructure Governance",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-05-008",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Sixth Schedule of the Constitution & Union Territory Governance of Ladakh",
+    "difficulty": "Tough",
+    "correct_option": "D",
+    "correct_index": 3,
+    "upsc_official_key": "Article 244(2) & Sixth Schedule to the Constitution of India; Jammu and Kashmir Reorganisation Act, 2019",
+    "question_text": "With reference to the Sixth Schedule to the Constitution of India and the governance demands in the Union Territory of Ladakh, consider the following statements:\n1. The Sixth Schedule under Article 244(2) currently applies exclusively to tribal areas in the four States of Assam, Meghalaya, Tripura, and Mizoram.\n2. Autonomous District Councils (ADCs) constituted under the Sixth Schedule possess legislative competence to make laws on land allotment, forests (other than reserved forests), and village administration.\n3. The Jammu and Kashmir Reorganisation Act, 2019 constituted Ladakh as a Union Territory without a Legislative Assembly under Article 239 of the Constitution.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "All statements are correct:\nStatement 1 is correct: Article 244(2) states that the provisions of the Sixth Schedule shall apply to the administration of the tribal areas in the States of Assam, Meghalaya, Tripura and Mizoram (often remembered by the acronym AMTM).\nStatement 2 is correct: Under Paragraph 3 of the Sixth Schedule, District and Regional Councils have the power to make laws with respect to land, management of unreserved forests, use of canal/watercourses, shifting cultivation, village committees, inheritance, marriage, and social customs (subject to the assent of the Governor).\nStatement 3 is correct: Under the J&K Reorganisation Act, 2019, the Union Territory of Jammu and Kashmir was provided with a Legislative Assembly (under Article 239A), whereas Ladakh was created as a Union Territory without a legislature, administered directly under Article 239 by a Lieutenant Governor.",
+    "standard_book_ref": "M. Laxmikanth, Scheduled and Tribal Areas (Sixth Schedule: Article 244(2))",
+    "elimination_trap": "Aspirants often confuse whether Ladakh was given a legislature like J&K. Ladakh is a UT *without* a legislature, which is the root of the agitation demanding Sixth Schedule or Statehood protections.",
+    "static_root": "Sixth Schedule (Article 244(2)), Autonomous District Councils & Union Territory Administration (Article 239)",
+    "option_analysis": {
+      "A": "Incorrect: Statement 3 is also correct.",
+      "B": "Incorrect: Statement 1 is also correct.",
+      "C": "Incorrect: Statement 2 is also correct.",
+      "D": "Correct: All three statements are accurate."
+    },
+    "mains_linkage": "GS Paper II: Functions and Responsibilities of Union and States, Sixth Schedule Autonomy and Border Security",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-06-013",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Sci-Tech",
+    "sub_topic": "Artificial Intelligence in Judiciary & Draft Supreme Court AI Rules 2026",
+    "difficulty": "Moderate",
+    "correct_option": "B",
+    "correct_index": 1,
+    "upsc_official_key": "Supreme Court AI Committee Draft Regulations for Use of AI in Courts, 2026",
+    "question_text": "With reference to the draft 'Regulations for Use of Artificial Intelligence (AI) in Courts, 2026' released by the Supreme Court AI Committee, consider the following statements:\n1. The regulations strictly prohibit the use of AI algorithms to determine judicial outcomes, evaluate bail eligibility, or predict criminal recidivism.\n2. AI tools in the judiciary are permitted for administrative and assistive functions such as automated transcription of proceedings, translation of judgments, and case cause-list management.\n3. The draft regulations permit the deployment of unexplainable, proprietary 'black-box' AI models in sentencing, provided the presiding judge concurs with the automated score.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 only",
+      "1 and 2 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: The draft regulations establish that AI can never replace human judicial adjudication. High-risk applications such as algorithmic risk-scoring for bail, predicting recidivism, determining credibility of witnesses, or deciding guilt are expressly barred.\nStatement 2 is correct: AI systems are approved in an assistive capacity for administrative efficiency, including multi-lingual translation of judgments (such as SUVAS), transcription of live court arguments, and automated case indexing.\nStatement 3 is incorrect: The regulations categorically disallow opaque or unexplainable 'black-box' AI systems in any court proceeding. Any algorithmic tool must satisfy transparency, explainability, auditability, and compliance with the Digital Personal Data Protection Act, 2023.",
+    "standard_book_ref": "Science & Technology, Artificial Intelligence Ethics & Judicial Reforms; Supreme Court AI Committee Reports",
+    "elimination_trap": "Trap on Statement 3: Believing judicial concurrence cures 'black-box' AI. Opaque, unexplainable systems are barred at the threshold to preserve open justice and Article 21 due process.",
+    "static_root": "Judicial Administration, Technology in Courts, Ethics of Artificial Intelligence & Article 21",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 is also correct.",
+      "B": "Correct: Statements 1 and 2 represent the regulatory safeguards on judicial AI.",
+      "C": "Incorrect: Statement 3 is false.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper II & III: E-Governance, Application of AI in Public Service Delivery, Ethical Concerns of Algorithmic Justice",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-pol-2026-06-014",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "Judges (Inquiry) Act, 1968 & Resignation during Removal Proceedings",
+    "difficulty": "Tough",
+    "correct_option": "A",
+    "correct_index": 0,
+    "upsc_official_key": "Article 124(4) & (5) of the Constitution; Judges (Inquiry) Act, 1968; Sarojini Ramaswami (1992)",
+    "question_text": "With reference to the procedure for removal of a Judge of the Supreme Court or a High Court under the Judges (Inquiry) Act, 1968, consider the following statements:\n1. A motion for removal of a judge must be signed by not less than 100 members in the case of Lok Sabha, or not less than 50 members in the case of Rajya Sabha.\n2. Under Rule 8 of the Judges (Inquiry) Rules, 1969, the inquiry committee may continue its proceedings and submit its findings even if the judge refuses to appear or tenders their resignation during the investigation.\n3. The finding of guilt by the three-member inquiry committee automatically results in the removal of the judge without requiring an address by Parliament.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 2 are correct; Statement 3 is incorrect:\nStatement 1 is correct: Under Section 3(1) of the Judges (Inquiry) Act, 1968, a notice of motion for presenting an address to the President for the removal of a judge requires signatures of at least 100 members of Lok Sabha or 50 members of Rajya Sabha.\nStatement 2 is correct: Under Rule 8 of the Judges (Inquiry) Rules, 1969, once notice has been served on the judge, the inquiry committee can proceed ex parte if the judge fails to appear. The Supreme Court in *Sub-Committee on Judicial Accountability (1991)* and *Sarojini Ramaswami (1992)* held that the statutory inquiry process is judicial in nature and does not become automatically infructuous simply because of non-cooperation or resignation, as establishing the truth is a matter of public interest.\nStatement 3 is incorrect: An adverse finding by the committee does not automatically remove the judge. Under Article 124(4), the report must be placed before each House of Parliament, where the address must be passed by a special majority (majority of total membership AND two-thirds of members present and voting) before the President signs the removal order.",
+    "standard_book_ref": "M. Laxmikanth, Supreme Court of India (Removal of Judges: Constitutional & Statutory Procedure)",
+    "elimination_trap": "Trap on Statement 3: Confusing the investigative stage (statutory committee) with the removal stage (parliamentary address with special majority under Article 124(4)).",
+    "static_root": "Removal of Judges (Article 124(4) & 124(5)), Judges (Inquiry) Act 1968 & Judicial Accountability",
+    "option_analysis": {
+      "A": "Correct: Statements 1 and 2 are statutorily accurate.",
+      "B": "Incorrect: Statement 3 is false.",
+      "C": "Incorrect: Statement 3 is false.",
+      "D": "Incorrect: Statement 3 is false."
+    },
+    "mains_linkage": "GS Paper II: Structure, Organization and Functioning of the Judiciary; Impeachment and Independence of Judges",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Polity"
+  },
+  {
+    "id": "ca-gov-2026-05-007",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "International Relations",
+    "sub_topic": "Deendayal Antyodaya Yojana - NRLM & South-South Development Diplomacy",
+    "difficulty": "Moderate",
+    "correct_option": "C",
+    "correct_index": 2,
+    "upsc_official_key": "Ministry of Rural Development Compendium on NRLM (15 Years) & South-South Cooperation Framework",
+    "question_text": "With reference to the National Rural Livelihoods Mission (DAY-NRLM) and its emergence in India's development diplomacy, consider the following statements:\n1. It is a Centrally Sponsored Scheme administered by the Ministry of Rural Development, designed around a federated architecture of women's Self-Help Groups (SHGs).\n2. Under DAY-NRLM, community cadres such as 'Bank Sakhis' (women banking correspondents) deliver doorstep financial inclusion across local governments.\n3. The Indian SHG-based rural livelihood model has been studied and adopted for replication by several African nations (including Kenya, Rwanda, and Ethiopia) as part of South-South technical cooperation.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 2 only",
+      "2 and 3 only",
+      "1, 2 and 3",
+      "1 and 3 only"
+    ],
+    "explanation": "All statements are correct:\nStatement 1 is correct: Launched in 2011, DAY-NRLM is India's flagship rural poverty alleviation programme, organizing rural women into federated community institutions (Village Organizations and Cluster Level Federations).\nStatement 2 is correct: Community cadres—such as Krishi Sakhis, Pashu Sakhis, and Bank Sakhis—are central to NRLM's last-mile delivery, with Bank Sakhis operating micro-ATMs and providing formal banking services in over 60% of gram panchayats.\nStatement 3 is correct: Celebrating 15 years in 2026, the NRLM architecture has evolved from domestic welfare into a tool of development diplomacy, with delegations from African nations (Ethiopia, Tanzania, Malawi, Kenya, Rwanda) studying India's SHG federations and bank linkages under South-South cooperation.",
+    "standard_book_ref": "Economic Survey of India (Rural Development & SHGs); India's Development Partnerships",
+    "elimination_trap": "Aspirants might assume that India's development diplomacy in Africa is limited to Lines of Credit (LoC) and infrastructure grants, overlooking institutional knowledge transfer of social programs like NRLM.",
+    "static_root": "Rural Development, Self-Help Groups (SHGs), Financial Inclusion & South-South Cooperation",
+    "option_analysis": {
+      "A": "Incorrect: Statement 3 is also correct.",
+      "B": "Incorrect: Statement 1 is also correct.",
+      "C": "Correct: All three statements are accurate.",
+      "D": "Incorrect: Statement 2 is also correct."
+    },
+    "mains_linkage": "GS Paper II: Development Processes and the Role of SHGs; India's Bilateral and Regional Groupings / Soft Power",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-05-008",
+    "year": 2026,
+    "month": "May 2026",
+    "subject": "Polity & Governance",
+    "sub_topic": "National Data Governance Framework Policy (NDGFP) & Non-Personal Data",
+    "difficulty": "Moderate",
+    "correct_option": "A",
+    "correct_index": 0,
+    "upsc_official_key": "Ministry of Electronics and Information Technology (MeitY) NDGFP & NITI Aayog NDAP Document",
+    "question_text": "With reference to the National Data Governance Framework Policy (NDGFP) in India, consider the following statements:\n1. It proposes the establishment of the India Data Management Office (IDMO) under MeitY to formulate standards, metadata dictionaries, and data-sharing protocols across Ministries.\n2. The NDGFP focuses exclusively on regulating sensitive personal data and enforces jail terms for privacy violations.\n3. The policy aims to create an anonymized India Datasets Platform to provide Indian researchers and AI startups access to non-personal, standardized government datasets.\n\nWhich of the statements given above are correct?",
+    "options": [
+      "1 and 3 only",
+      "1 and 2 only",
+      "2 and 3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 3 are correct; Statement 2 is incorrect:\nStatement 1 is correct: The NDGFP institutionalizes the India Data Management Office (IDMO) under the Digital India Corporation (MeitY) to set uniform data standards, audit compliance, and eliminate silos across government departments.\nStatement 2 is incorrect: The NDGFP governs non-personal and anonymized public data to boost research, AI, and evidence-based governance. Sensitive personal data is governed by a separate legislative enactment—the Digital Personal Data Protection (DPDP) Act, 2023.\nStatement 3 is correct: A cornerstone of the NDGFP is the India Datasets Platform, which collects anonymized datasets from various central and state departments to fuel the domestic artificial intelligence and machine learning research ecosystem.",
+    "standard_book_ref": "MeitY Policy Documents; Science & Technology Developments in Data Governance",
+    "elimination_trap": "Trap on Statement 2: Confusing the NDGFP (which deals with non-personal data and research datasets) with the DPDP Act 2023 (which deals with personal data and privacy protection).",
+    "static_root": "E-Governance, Big Data, Non-Personal Data Regulation & MeitY Administrative Architecture",
+    "option_analysis": {
+      "A": "Correct: Statements 1 and 3 correctly describe the NDGFP framework.",
+      "B": "Incorrect: Statement 2 confuses NDGFP with DPDP Act.",
+      "C": "Incorrect: Statement 2 is false.",
+      "D": "Incorrect: Statement 2 is false."
+    },
+    "mains_linkage": "GS Paper II: Government Policies and Interventions for Digital Infrastructure and E-Governance",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
+  },
+  {
+    "id": "ca-gov-2026-06-007",
+    "year": 2026,
+    "month": "June 2026",
+    "subject": "Social Issues & Welfare",
+    "sub_topic": "Foundational Literacy and Numeracy (FLN) & NIPUN Bharat Mission",
+    "difficulty": "Moderate",
+    "correct_option": "B",
+    "correct_index": 1,
+    "upsc_official_key": "National Education Policy (NEP) 2020 & Guidelines for NIPUN Bharat Mission",
+    "question_text": "With reference to the National Initiative for Proficiency in Reading with Understanding and Numeracy (NIPUN Bharat) Mission, consider the following statements:\n1. It was launched under the Centrally Sponsored Scheme of Samagra Shiksha by the Ministry of Education.\n2. The mission aims to ensure that every child in the country necessarily achieves foundational literacy and numeracy by the end of Grade 8.\n3. The pedagogical approach emphasizes oral reading fluency (ORF) to facilitate the transition from 'learning to read' to 'reading to learn'.\n\nWhich of the statements given above is/are correct?",
+    "options": [
+      "1 and 2 only",
+      "1 and 3 only",
+      "3 only",
+      "1, 2 and 3"
+    ],
+    "explanation": "Statements 1 and 3 are correct; Statement 2 is incorrect:\nStatement 1 is correct: NIPUN Bharat was launched in July 2021 by the Department of School Education and Literacy under the overarching framework of Samagra Shiksha.\nStatement 2 is incorrect (Target Grade Trap): The target of NIPUN Bharat is to achieve universal foundational literacy and numeracy (FLN) by the end of Grade 3 (age group 3 to 9 years), NOT Grade 8.\nStatement 3 is correct: NIPUN Bharat identifies oral reading fluency (reading text with accuracy, speed, and comprehension—e.g., reading 45–60 words per minute fluently by Grade 3) as the bedrock for transitioning from foundational mechanical decoding ('learning to read') to cognitive comprehension ('reading to learn').",
+    "standard_book_ref": "NEP 2020 Policy Document; NIPUN Bharat Operational Guidelines",
+    "elimination_trap": "Target Grade Trap: UPSC frequently alters target classes/years in education missions. NIPUN Bharat targets Grade 3 (Balvatika to Grade 3), not upper primary (Grade 8).",
+    "static_root": "Education Sector Reforms, Foundational Literacy, NEP 2020 & Samagra Shiksha",
+    "option_analysis": {
+      "A": "Incorrect: Statement 2 has the incorrect target grade (Grade 3, not Grade 8).",
+      "B": "Correct: Statements 1 and 3 are correct.",
+      "C": "Incorrect: Statement 1 is also correct.",
+      "D": "Incorrect: Statement 2 is false."
+    },
+    "mains_linkage": "GS Paper II: Issues Relating to Development and Management of Social Sector/Services relating to Education",
+    "source_tag": "Decode Civils Current Affairs (April-June 2026) - Governance"
   }
 ]

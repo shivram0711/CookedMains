@@ -4248,7 +4248,7 @@
     try {
       const [resPyqs, resCa, resOther, resAi] = await Promise.all([
         fetch('/static/data/prelims_pyqs.json?v=20261123v2'),
-        fetch('/static/data/current_affairs_pyqs.json?v=230qs_20261123v2'),
+        fetch('/static/data/current_affairs_pyqs.json?v=1795585664745qs_1795585286616'),
         fetch('/static/data/upsc_other_exams_pyqs.json?v=20261123v2'),
         fetch('/static/data/ai_mock_questions_2026.json?v=20261123v2')
       ]);
@@ -5047,7 +5047,7 @@ function renderPlayerDistractorDeepDive(q) {
 
       return (
         '<button type="button" class="vault-ca-month-pill ' + btnClass + '" data-month="' + m.id + '" onclick="window.setVaultCaMonth(\'' + m.id + '\')">' +
-          m.label +
+          m.label + ' (' + count + ')' +
         '</button>'
       );
     }).join('');
@@ -7343,18 +7343,30 @@ function renderPlayerDistractorDeepDive(q) {
     if (!cardsGrid) return;
 
     var caQuestions = STATE.ca_pyqs || [];
-    var totalCaCount = caQuestions.length || 230;
+    var totalCaCount = caQuestions.length || 278;
 
     // Dynamically update header badges and labels
     var badge = document.getElementById('caArenaHeaderBadge');
-    if (badge) badge.textContent = '10 Monthly Dossiers';
+    if (badge) badge.textContent = '10 Monthly Dossiers • ' + totalCaCount + ' Qs';
     var subtext = document.getElementById('caDossiersCountSubtext');
-    if (subtext) subtext.textContent = '10 Comprehensive Dossiers';
+    if (subtext) subtext.textContent = '10 Comprehensive Dossiers (' + totalCaCount + ' Authentic Questions)';
     var allBtn = document.getElementById('caMonthPillAll');
-    if (allBtn) allBtn.textContent = 'All Months';
+    if (allBtn) allBtn.textContent = 'All Months (' + totalCaCount + ' Qs)';
 
-    // Render 7 Monthly Dossier Hub Cards
+    // Update individual pills with live question counts
+    var pills = document.querySelectorAll('.ca-month-pill[data-month]');
+    pills.forEach(function (btn) {
+      var mId = btn.getAttribute('data-month');
+      if (mId && mId !== 'all') {
+        var count = caQuestions.filter(function (q) { return q.month === mId; }).length;
+        var iconPrefix = btn.textContent.split('(')[0].trim();
+        btn.textContent = iconPrefix + ' (' + count + ' Qs)';
+      }
+    });
+
+    // Render 10 Monthly Dossier Hub Cards
     cardsGrid.innerHTML = MONTHLY_DOSSIERS_METADATA.map(function (meta) {
+      var monthCount = caQuestions.filter(function (q) { return q.month === meta.month; }).length;
       return (
         '<div class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col justify-between gap-4 transition-all hover:border-emerald-500/50 group">' +
           '<div class="flex flex-col gap-3">' +
@@ -7366,6 +7378,7 @@ function renderPlayerDistractorDeepDive(q) {
                   '<span class="text-[10px] text-slate-400 font-mono">' + escapeHtml(meta.leadTheme) + '</span>' +
                 '</div>' +
               '</div>' +
+              '<span class="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-bold shrink-0">' + monthCount + ' Qs</span>' +
             '</div>' +
 
             '<div class="flex items-center gap-1.5 flex-wrap pt-1">' +
@@ -7523,7 +7536,7 @@ function renderPlayerDistractorDeepDive(q) {
   async function ensureCaQuestionsLoaded() {
     if (STATE.ca_pyqs && STATE.ca_pyqs.length > 0) return STATE.ca_pyqs;
     try {
-      const res = await fetch('/static/data/current_affairs_pyqs.json?v=230qs_20261123v2');
+      const res = await fetch('/static/data/current_affairs_pyqs.json?v=1795585664745qs_20261123v2');
       if (res.ok) {
         STATE.ca_pyqs = await res.json();
         if (!STATE.pyqMap) STATE.pyqMap = {};
