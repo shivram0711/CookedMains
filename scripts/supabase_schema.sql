@@ -286,14 +286,28 @@ ALTER TABLE user_sessions ADD COLUMN IF NOT EXISTS optional_subject TEXT DEFAULT
 CREATE INDEX IF NOT EXISTS idx_user_sessions_email ON user_sessions (user_email);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_last_active ON user_sessions (last_active_at DESC);
 
+-- 13b. LIVE PRESENCE (Stateless Render-safe heartbeat store)
+CREATE TABLE IF NOT EXISTS user_presence (
+    key TEXT PRIMARY KEY,
+    email TEXT,
+    name TEXT,
+    is_authenticated INTEGER DEFAULT 0,
+    current_view TEXT,
+    last_seen_ts DOUBLE PRECISION NOT NULL,
+    last_seen_ist TEXT,
+    session_id TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_presence_last_seen ON user_presence (last_seen_ts DESC);
 
 -- ==============================================================================
--- 14. ROW LEVEL SECURITY (RLS) & ACCESS CONTROL POLICIES
+-- 14. ROW LEVEL SECURITY (RLS) & ACCESS CONTROL POLICIES (Service-Role Only)
 -- ==============================================================================
 ALTER TABLE IF EXISTS evaluations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS activity_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS user_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS user_presence ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS feedback ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS admin_settings ENABLE ROW LEVEL SECURITY;
@@ -305,44 +319,20 @@ ALTER TABLE IF EXISTS essay_jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS device_bindings ENABLE ROW LEVEL SECURITY;
 
 DO $$
+DECLARE
+    tbl TEXT;
+    tables TEXT[] := ARRAY[
+        'evaluations', 'users', 'activity_logs', 'user_sessions', 'user_presence',
+        'feedback', 'transactions', 'admin_settings', 'test_series', 'test_questions',
+        'current_affairs_articles', 'daily_news_questions', 'essay_jobs', 'device_bindings'
+    ];
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'evaluations' AND policyname = 'Allow backend access on evaluations') THEN
-        CREATE POLICY "Allow backend access on evaluations" ON evaluations FOR ALL USING (true) WITH CHECK (true);
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'users' AND policyname = 'Allow backend access on users') THEN
-        CREATE POLICY "Allow backend access on users" ON users FOR ALL USING (true) WITH CHECK (true);
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'activity_logs' AND policyname = 'Allow backend access on activity_logs') THEN
-        CREATE POLICY "Allow backend access on activity_logs" ON activity_logs FOR ALL USING (true) WITH CHECK (true);
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'user_sessions' AND policyname = 'Allow backend access on user_sessions') THEN
-        CREATE POLICY "Allow backend access on user_sessions" ON user_sessions FOR ALL USING (true) WITH CHECK (true);
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'feedback' AND policyname = 'Allow backend access on feedback') THEN
-        CREATE POLICY "Allow backend access on feedback" ON feedback FOR ALL USING (true) WITH CHECK (true);
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'transactions' AND policyname = 'Allow backend access on transactions') THEN
-        CREATE POLICY "Allow backend access on transactions" ON transactions FOR ALL USING (true) WITH CHECK (true);
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'admin_settings' AND policyname = 'Allow backend access on admin_settings') THEN
-        CREATE POLICY "Allow backend access on admin_settings" ON admin_settings FOR ALL USING (true) WITH CHECK (true);
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'test_series' AND policyname = 'Allow backend access on test_series') THEN
-        CREATE POLICY "Allow backend access on test_series" ON test_series FOR ALL USING (true) WITH CHECK (true);
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'test_questions' AND policyname = 'Allow backend access on test_questions') THEN
-        CREATE POLICY "Allow backend access on test_questions" ON test_questions FOR ALL USING (true) WITH CHECK (true);
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'current_affairs_articles' AND policyname = 'Allow backend access on current_affairs_articles') THEN
-        CREATE POLICY "Allow backend access on current_affairs_articles" ON current_affairs_articles FOR ALL USING (true) WITH CHECK (true);
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'daily_news_questions' AND policyname = 'Allow backend access on daily_news_questions') THEN
-        CREATE POLICY "Allow backend access on daily_news_questions" ON daily_news_questions FOR ALL USING (true) WITH CHECK (true);
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'essay_jobs' AND policyname = 'Allow backend access on essay_jobs') THEN
-        CREATE POLICY "Allow backend access on essay_jobs" ON essay_jobs FOR ALL USING (true) WITH CHECK (true);
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'device_bindings' AND policyname = 'Allow backend access on device_bindings') THEN
-        CREATE POLICY "Allow backend access on device_bindings" ON device_bindings FOR ALL USING (true) WITH CHECK (true);
-    END IF;
+    FOREACH tbl IN ARRAY tables LOOP
+        EXECUTE format('DROP POLICY IF EXISTS "Allow backend access on %I" ON %I;', tbl, tbl);
+        EXECUTE format('DROP POLICY IF EXISTS "Service role full access on %I" ON %I;', tbl, tbl);
+        EXECUTE format(
+            'CREATE POLICY "Service role full access on %I" ON %I FOR ALL USING (auth.role() = ''service_role'') WITH CHECK (auth.role() = ''service_role'');',
+            tbl, tbl
+        );
+    END LOOP;
 END $$;

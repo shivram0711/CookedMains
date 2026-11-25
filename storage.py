@@ -66,6 +66,38 @@ def is_supabase_circuit_broken() -> bool:
     global _SUPABASE_CIRCUIT_BROKEN_UNTIL
     return time.time() < _SUPABASE_CIRCUIT_BROKEN_UNTIL
 
+def _supabase_available() -> bool:
+    return supabase is not None and not is_supabase_circuit_broken()
+
+_R2_CLIENT = None
+
+def _get_r2_client():
+    """Returns a cached S3-compatible boto3 client for Cloudflare R2 if configured."""
+    global _R2_CLIENT
+    if _R2_CLIENT is not None:
+        return _R2_CLIENT
+    account_id = os.environ.get("R2_ACCOUNT_ID", "").strip()
+    access_key = os.environ.get("R2_ACCESS_KEY_ID", "").strip()
+    secret_key = os.environ.get("R2_SECRET_ACCESS_KEY", "").strip()
+    bucket = os.environ.get("R2_BUCKET_NAME", "").strip()
+    if not (account_id and access_key and secret_key and bucket):
+        return None
+    try:
+        import boto3
+        from botocore.config import Config
+        _R2_CLIENT = boto3.client(
+            "s3",
+            endpoint_url=f"https://{account_id}.r2.cloudflarestorage.com",
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key,
+            config=Config(signature_version="s3v4"),
+            region_name="auto",
+        )
+        return _R2_CLIENT
+    except Exception as r2_err:
+        print(f"Notice: R2 client init failed: {r2_err}")
+        return None
+
 def reset_supabase_circuit_breaker() -> None:
     global _SUPABASE_CIRCUIT_BROKEN_UNTIL, _SUPABASE_CIRCUIT_BROKEN_REASON
     _SUPABASE_CIRCUIT_BROKEN_UNTIL = 0.0
@@ -1499,18 +1531,19 @@ def use_user_rewrite(email: str) -> Dict[str, Any]:
     }
 
 def save_feedback(user_email: str, user_name: str, category: str, rating: int, message: str, screenshot_data: Optional[str] = None) -> Dict[str, Any]:
-    """Persists candidate bug report, review, or suggestions along with optional screenshot."""
+    """Persists candidate bug report, review, or suggestions along with optional screenshot (offloaded to object storage)."""
     conn = get_db()
     cursor = conn.cursor()
     fid = str(uuid.uuid4())
+    stored_screenshot = _offload_base64_screenshot(fid, screenshot_data, folder="feedback-screenshots")
     cursor.execute(
         "INSERT INTO feedback (id, user_email, user_name, category, rating, message, screenshot_data) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (fid, (user_email or "").strip().lower(), (user_name or "").strip(), category, int(rating), message.strip(), screenshot_data)
+        (fid, (user_email or "").strip().lower(), (user_name or "").strip(), category, int(rating), message.strip(), stored_screenshot)
     )
     conn.commit()
     conn.close()
 
-    if supabase:
+    if _supabase_available():
         try:
             _safe_supabase_insert("feedback", {
                 "id": fid,
@@ -1518,7 +1551,9 @@ def save_feedback(user_email: str, user_name: str, category: str, rating: int, m
                 "user_name": (user_name or "").strip(),
                 "category": category,
                 "rating": int(rating),
-                "message": message.strip()
+                "message": message.strip(),
+                "screenshot_data": stored_screenshot or "",
+                "is_resolved": 0
             })
         except Exception:
             pass
@@ -1647,16 +1682,61 @@ def upload_file_to_supabase(user_id: str, file_bytes: bytes, file_ext: str = ".p
                     print(f"Notice: PDF storage re-compression fallback: {pdf_comp_err}")
 
         storage_path = f"{user_id}/{uuid.uuid4()}{clean_ext}"
-        supabase.storage.from_("answer-sheets").upload(
-            file=file_bytes,
-            path=storage_path,
-            file_options={"content-type": content_type}
-        )
-        public_url = supabase.storage.from_("answer-sheets").get_public_url(storage_path)
-        return public_url
+        return _put_object_and_get_url(storage_path, file_bytes, content_type, bucket="answer-sheets")
     except Exception as e:
-        print(f"Supabase storage upload error: {e}")
+        print(f"Object storage upload error: {e}")
         return None
+
+
+def _put_object_and_get_url(storage_path: str, file_bytes: bytes, content_type: str, bucket: str = "answer-sheets") -> Optional[str]:
+    """Uploads bytes to Cloudflare R2 (zero egress) if configured, else falls back to Supabase Storage."""
+    r2 = _get_r2_client()
+    if r2 is not None:
+        try:
+            r2_bucket = os.environ.get("R2_BUCKET_NAME", "").strip()
+            r2_key = f"{bucket}/{storage_path}".lstrip("/")
+            r2.put_object(Bucket=r2_bucket, Key=r2_key, Body=file_bytes, ContentType=content_type)
+            pub_base = os.environ.get("R2_PUBLIC_URL", "").strip().rstrip("/")
+            if pub_base:
+                return f"{pub_base}/{r2_key}"
+            return f"r2://{r2_bucket}/{r2_key}"
+        except Exception as r2_err:
+            print(f"R2 upload fallback to Supabase: {r2_err}")
+
+    if not _supabase_available():
+        return None
+    supabase.storage.from_(bucket).upload(
+        file=file_bytes,
+        path=storage_path,
+        file_options={"content-type": content_type}
+    )
+    return supabase.storage.from_(bucket).get_public_url(storage_path)
+
+
+def _offload_base64_screenshot(owner_id: str, screenshot_data: Optional[str], folder: str = "screenshots") -> Optional[str]:
+    """Converts base64 data-URI screenshots into compressed JPEG uploads so Postgres stays free of base64 bloat."""
+    if not screenshot_data or not isinstance(screenshot_data, str):
+        return screenshot_data
+    if not screenshot_data.startswith("data:image/"):
+        return screenshot_data
+    try:
+        raw_b64 = screenshot_data.split("base64,", 1)[1]
+        img_bytes = base64.b64decode(raw_b64)
+        if HAS_PIL and Image is not None:
+            img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+            if max(img.size) > 1280:
+                resample_filter = getattr(getattr(Image, "Resampling", None), "LANCZOS", getattr(Image, "LANCZOS", 1))
+                img.thumbnail((1280, 1280), resample_filter)
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG", quality=75, optimize=True)
+            img_bytes = buf.getvalue()
+        storage_path = f"{folder}/{owner_id}_{uuid.uuid4().hex[:8]}.jpg"
+        url = _put_object_and_get_url(storage_path, img_bytes, "image/jpeg", bucket="answer-sheets")
+        if url:
+            return url
+    except Exception as e:
+        print(f"Notice: screenshot offload fallback: {e}")
+    return screenshot_data
 
 def insert_supabase_evaluation(user_id: str, question_title: str, file_url: Optional[str], total_marks: int, result_json: Dict[str, Any], eval_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """Inserts evaluation record into Supabase 'evaluations' table with automatic schema resilience."""
@@ -3499,14 +3579,15 @@ def create_transaction(user_id: str, user_email: str, user_name: str, plan_id: s
         raise ValueError("This UPI Transaction / UTR number has already been submitted. Please check your reference number.")
 
     tx_id = order_id or f"ORD-2026-{uuid.uuid4().hex[:6].upper()}"
+    stored_screenshot = _offload_base64_screenshot(tx_id, screenshot_data, folder="upi-receipts")
     cursor.execute("""
         INSERT INTO transactions (id, user_id, user_email, user_name, plan_id, plan_name, amount, utr_number, payment_method, screenshot_data, status)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'UPI', ?, 'pending')
-    """, (tx_id, user_id, user_email, user_name, plan_id, plan_name, amount, clean_utr, screenshot_data))
+    """, (tx_id, user_id, user_email, user_name, plan_id, plan_name, amount, clean_utr, stored_screenshot))
     
     conn.commit()
 
-    if supabase:
+    if _supabase_available():
         try:
             _safe_supabase_insert("transactions", {
                 "id": tx_id,
@@ -3518,6 +3599,7 @@ def create_transaction(user_id: str, user_email: str, user_name: str, plan_id: s
                 "amount": amount,
                 "utr_number": clean_utr,
                 "payment_method": "UPI",
+                "screenshot_data": stored_screenshot or "",
                 "status": "pending"
             })
         except Exception:
@@ -3536,6 +3618,21 @@ def get_transaction_by_id(tx_id: str) -> Optional[Dict[str, Any]]:
     return dict(row) if row else None
 
 def get_all_transactions(status: Optional[str] = None) -> List[Dict[str, Any]]:
+    if _supabase_available():
+        try:
+            q = supabase.table("transactions").select("*").order("created_at", desc=True).limit(200)
+            if status and status.lower() != "all":
+                q = q.eq("status", status.lower())
+            res = q.execute()
+            if res and res.data is not None:
+                return [
+                    r for r in res.data
+                    if not str(r.get("id") or "").startswith("ORD-2026-")
+                    and not is_dummy_or_demo_email(r.get("user_email"))
+                ]
+        except Exception as se:
+            print(f"Supabase transactions read fallback: {se}")
+
     conn = get_db()
     cursor = conn.cursor()
     base_where = """
@@ -3601,6 +3698,15 @@ def approve_transaction(tx_id: str, admin_notes: Optional[str] = None) -> Dict[s
             _save_supabase_account_profile(dict(u_row))
         except Exception:
             pass
+    if _supabase_available():
+        try:
+            supabase.table("transactions").update({
+                "status": "approved",
+                "approved_at": datetime.now(timezone.utc).isoformat(),
+                "admin_notes": admin_notes or "Verified via SBI UPI receipt"
+            }).eq("id", tx_id).execute()
+        except Exception:
+            pass
     return dict(updated)
 
 def reject_transaction(tx_id: str, admin_notes: Optional[str] = None) -> Dict[str, Any]:
@@ -3615,6 +3721,14 @@ def reject_transaction(tx_id: str, admin_notes: Optional[str] = None) -> Dict[st
     cursor.execute("SELECT * FROM transactions WHERE id = ?", (tx_id,))
     row = cursor.fetchone()
     conn.close()
+    if _supabase_available():
+        try:
+            supabase.table("transactions").update({
+                "status": "rejected",
+                "admin_notes": admin_notes or "Payment not verified / UTR mismatch"
+            }).eq("id", tx_id).execute()
+        except Exception:
+            pass
     return dict(row)
 
 # =====================================================================
@@ -3702,6 +3816,12 @@ def record_user_heartbeat(
         "last_seen_ist": ist_now,
         "session_id": sid
     }
+
+    if _supabase_available():
+        try:
+            supabase.table("user_presence").upsert(_LIVE_PRESENCE_MAP[key], on_conflict="key").execute()
+        except Exception:
+            pass
 
     # Lightweight local SQLite session recording (<2ms, completely non-blocking for live website)
     try:
@@ -4674,66 +4794,151 @@ def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
             u_em = (er["user_email"] or "").strip().lower()
             if u_em and not is_dummy_or_demo_email(u_em):
                 eval_users_today_set.add(u_em)
+    if _supabase_available():
+        try:
+            r_today = supabase.table("evaluations").select("id, user_id, created_at").neq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(200).execute()
+            if r_today and r_today.data:
+                supa_today_cnt = 0
+                for tr in r_today.data:
+                    if is_created_today_ist(tr.get("created_at")):
+                        supa_today_cnt += 1
+                        if tr.get("user_id"):
+                            eval_users_today_set.add(str(tr.get("user_id")))
+                evals_today = max(evals_today, supa_today_cnt)
+        except Exception:
+            pass
     eval_users_today = len(eval_users_today_set)
     
-    cursor.execute("""
-        SELECT COUNT(*) as c FROM transactions 
-        WHERE status = 'pending'
-          AND id NOT LIKE 'ORD-2026-%'
-          AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
-                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
-                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
-    """)
-    pending_orders = cursor.fetchone()["c"]
-    
-    cursor.execute("""
-        SELECT COALESCE(SUM(amount), 0) as s FROM transactions 
-        WHERE status = 'approved'
-          AND id NOT LIKE 'ORD-2026-%'
-          AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
-                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
-                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
-    """)
-    total_revenue = cursor.fetchone()["s"]
+    pending_orders = 0
+    approved_orders_count = 0
+    total_revenue = 0
+    total_feedbacks = 0
+    avg_rating = 0.0
+    unresolved_feedbacks = 0
+    resolved_feedbacks = 0
+    sessions_count = 0
 
-    cursor.execute("""
-        SELECT COUNT(*) as c, COALESCE(AVG(rating), 0.0) as a FROM feedback
-        WHERE id NOT IN ('fb_001', 'fb_002', 'fb_003', 'fb_004')
-          AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
-                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
-                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
-    """)
-    fb = cursor.fetchone()
-    total_feedbacks = fb["c"]
-    avg_rating = round(fb["a"], 1) if total_feedbacks > 0 else 0.0
+    supa_tx_loaded = False
+    supa_fb_loaded = False
+    if _supabase_available():
+        try:
+            r_tx = supabase.table("transactions").select("id, user_email, amount, status").execute()
+            if r_tx and r_tx.data is not None:
+                for t in r_tx.data:
+                    tid = str(t.get("id") or "")
+                    if tid.startswith("ORD-2026-") or is_dummy_or_demo_email(t.get("user_email")):
+                        continue
+                    st = str(t.get("status") or "").lower()
+                    if st == "pending":
+                        pending_orders += 1
+                    elif st == "approved":
+                        approved_orders_count += 1
+                        total_revenue += int(t.get("amount") or 0)
+                supa_tx_loaded = True
+        except Exception:
+            pass
+        try:
+            r_fb = supabase.table("feedback").select("id, user_email, rating, is_resolved").execute()
+            if r_fb and r_fb.data is not None:
+                ratings = []
+                for f in r_fb.data:
+                    if str(f.get("id") or "") in ("fb_001", "fb_002", "fb_003", "fb_004") or is_dummy_or_demo_email(f.get("user_email")):
+                        continue
+                    total_feedbacks += 1
+                    ratings.append(float(f.get("rating") or 0))
+                    if int(f.get("is_resolved") or 0) == 1:
+                        resolved_feedbacks += 1
+                    else:
+                        unresolved_feedbacks += 1
+                avg_rating = round(sum(ratings) / len(ratings), 1) if ratings else 0.0
+                supa_fb_loaded = True
+        except Exception:
+            pass
+        try:
+            r_sess = supabase.table("user_sessions").select("id", count="exact").execute()
+            if r_sess and r_sess.count is not None:
+                sessions_count = r_sess.count
+        except Exception:
+            pass
 
-    cursor.execute("""
-        SELECT COUNT(*) as c FROM feedback 
-        WHERE COALESCE(is_resolved, 0) = 0
-          AND id NOT IN ('fb_001', 'fb_002', 'fb_003', 'fb_004')
-          AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
-                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
-                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
-    """)
-    unresolved_feedbacks = cursor.fetchone()["c"]
+    if not supa_tx_loaded:
+        cursor.execute("""
+            SELECT COUNT(*) as c FROM transactions 
+            WHERE status = 'pending'
+              AND id NOT LIKE 'ORD-2026-%'
+              AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                           'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                           'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+        """)
+        pending_orders = cursor.fetchone()["c"]
+        
+        cursor.execute("""
+            SELECT COUNT(*) as cnt, COALESCE(SUM(amount), 0) as s FROM transactions 
+            WHERE status = 'approved'
+              AND id NOT LIKE 'ORD-2026-%'
+              AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                           'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                           'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+        """)
+        tx_approved_row = cursor.fetchone()
+        approved_orders_count = tx_approved_row["cnt"]
+        total_revenue = tx_approved_row["s"]
 
-    cursor.execute("""
-        SELECT COUNT(*) as c FROM feedback 
-        WHERE COALESCE(is_resolved, 0) = 1
-          AND id NOT IN ('fb_001', 'fb_002', 'fb_003', 'fb_004')
-          AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
-                                       'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
-                                       'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
-    """)
-    resolved_feedbacks = cursor.fetchone()["c"]
+    if sessions_count == 0:
+        cursor.execute("SELECT COUNT(*) as c FROM user_sessions")
+        sessions_count = cursor.fetchone()["c"]
+
+    if not supa_fb_loaded:
+        cursor.execute("""
+            SELECT COUNT(*) as c, COALESCE(AVG(rating), 0.0) as a FROM feedback
+            WHERE id NOT IN ('fb_001', 'fb_002', 'fb_003', 'fb_004')
+              AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                           'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                           'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+        """)
+        fb = cursor.fetchone()
+        total_feedbacks = fb["c"]
+        avg_rating = round(fb["a"], 1) if total_feedbacks > 0 else 0.0
+
+        cursor.execute("""
+            SELECT COUNT(*) as c FROM feedback 
+            WHERE COALESCE(is_resolved, 0) = 0
+              AND id NOT IN ('fb_001', 'fb_002', 'fb_003', 'fb_004')
+              AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                           'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                           'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+        """)
+        unresolved_feedbacks = cursor.fetchone()["c"]
+
+        cursor.execute("""
+            SELECT COUNT(*) as c FROM feedback 
+            WHERE COALESCE(is_resolved, 0) = 1
+              AND id NOT IN ('fb_001', 'fb_002', 'fb_003', 'fb_004')
+              AND LOWER(user_email) NOT IN ('test_audit@upsc.in', 'cadet.test@gmail.com', 'aspirant.sharma@gmail.com',
+                                           'aspirant.vikram@gmail.com', 'cadet.upsc5409@gmail.com', 'cadet.instant@gmail.com',
+                                           'cadet.test2026@gmail.com', 'guest@upsc.gov.in')
+        """)
+        resolved_feedbacks = cursor.fetchone()["c"]
 
     conn.close()
 
     ist_today_prefix = (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
     now_ts = time.time()
+    merged_presence: Dict[str, Dict[str, Any]] = dict(_LIVE_PRESENCE_MAP)
+    if _supabase_available():
+        try:
+            r_pres = supabase.table("user_presence").select("*").gte("last_seen_ts", now_ts - 86400).execute()
+            if r_pres and r_pres.data:
+                for p in r_pres.data:
+                    pk = p.get("key")
+                    if pk and (pk not in merged_presence or float(p.get("last_seen_ts") or 0) > float(merged_presence[pk].get("last_seen_ts") or 0)):
+                        merged_presence[pk] = p
+        except Exception:
+            pass
+
     online_users = []
     active_today_emails = set(eval_users_today_set)
-    for k, pres in list(_LIVE_PRESENCE_MAP.items()):
+    for k, pres in list(merged_presence.items()):
         sec_ago = int(max(0, now_ts - float(pres.get("last_seen_ts", 0))))
         if str(pres.get("last_seen_ist", "")).startswith(ist_today_prefix):
             active_today_emails.add(pres.get("email") or k)
@@ -4741,7 +4946,7 @@ def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
             online_users.append({
                 "email": pres.get("email"),
                 "name": pres.get("name"),
-                "is_authenticated": pres.get("is_authenticated", False),
+                "is_authenticated": bool(pres.get("is_authenticated", False)),
                 "current_view": pres.get("current_view", "Active"),
                 "seconds_ago": sec_ago,
                 "last_seen_ist": pres.get("last_seen_ist")
@@ -4766,6 +4971,8 @@ def get_admin_dashboard_stats(force_sync: bool = False) -> Dict[str, Any]:
         "total_aspirants": total_aspirants,
         "total_evaluations": total_evals,
         "pending_orders": pending_orders,
+        "approved_orders_count": approved_orders_count,
+        "sessions_count": sessions_count,
         "total_revenue": total_revenue,
         "total_feedbacks": total_feedbacks,
         "unresolved_feedbacks": unresolved_feedbacks,
@@ -5001,10 +5208,32 @@ def get_admin_evaluations_stats() -> Dict[str, Any]:
 
 
 def get_admin_activity_stream(limit: int = 60) -> List[Dict[str, Any]]:
-    """Returns a chronological live activity stream combining activity_logs, evaluations, logins, and feedbacks."""
+    """Returns a chronological live activity stream combining Supabase activity_logs and local SQLite."""
+    events: List[Dict[str, Any]] = []
+    if _supabase_available():
+        try:
+            r_act = supabase.table("activity_logs").select("*").order("created_at", desc=True).limit(limit).execute()
+            if r_act and r_act.data:
+                for r in r_act.data:
+                    if is_dummy_or_demo_email(r.get("user_email")):
+                        continue
+                    if "Courage is resistance" in (r.get("detail") or "") or "Courage is resistance" in (r.get("title") or ""):
+                        continue
+                    events.append({
+                        "id": r.get("id"),
+                        "created_at": r.get("created_at"),
+                        "user_email": r.get("user_email"),
+                        "user_name": r.get("user_name"),
+                        "action_type": r.get("action_type"),
+                        "title": r.get("title"),
+                        "detail": r.get("detail"),
+                        "eval_id": r.get("eval_id")
+                    })
+        except Exception:
+            pass
+
     conn = get_db()
     cursor = conn.cursor()
-    events: List[Dict[str, Any]] = []
 
     try:
         cursor.execute("""
@@ -5176,6 +5405,23 @@ def update_user_credits_admin(email: str, delta_credits: int, delta_rewrites: in
 
 def get_all_feedbacks_admin(status: Optional[str] = None) -> List[Dict[str, Any]]:
     """Returns candidate feedback and bug reports, with optional resolution status filtering."""
+    if _supabase_available():
+        try:
+            q = supabase.table("feedback").select("*").order("created_at", desc=True).limit(200)
+            if status == "unresolved":
+                q = q.eq("is_resolved", 0)
+            elif status == "resolved":
+                q = q.eq("is_resolved", 1)
+            res = q.execute()
+            if res and res.data is not None:
+                return [
+                    r for r in res.data
+                    if r.get("id") not in ("fb_001", "fb_002", "fb_003", "fb_004")
+                    and not is_dummy_or_demo_email(r.get("user_email"))
+                ]
+        except Exception as se:
+            print(f"Supabase feedback read fallback: {se}")
+
     conn = get_db()
     cursor = conn.cursor()
     base_where = """
@@ -5206,6 +5452,11 @@ def resolve_feedback_admin(feedback_id: str, resolved: bool = True) -> bool:
     cursor.execute("UPDATE feedback SET is_resolved = ? WHERE id = ?", (1 if resolved else 0, str(feedback_id)))
     conn.commit()
     conn.close()
+    if _supabase_available():
+        try:
+            supabase.table("feedback").update({"is_resolved": 1 if resolved else 0}).eq("id", str(feedback_id)).execute()
+        except Exception:
+            pass
     return True
 
 

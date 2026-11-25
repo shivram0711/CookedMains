@@ -27,6 +27,8 @@ import copy
 import time
 import threading
 import hashlib
+import hmac
+import secrets
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Any, Dict, Tuple, Set, Union
 from fastapi.middleware.gzip import GZipMiddleware
@@ -336,6 +338,33 @@ def get_master_admin_password() -> str:
     from storage import get_admin_setting
     return os.environ.get("ADMIN_PASSWORD") or get_admin_setting("admin_pin", "Admin@MainsMentor2026")
 
+def _get_admin_signing_key() -> bytes:
+    master_pin = get_master_admin_password()
+    salt = os.environ.get("ADMIN_TOKEN_SECRET") or os.environ.get("SUPABASE_KEY") or "cookedmains_admin_v2"
+    return hashlib.sha256(f"{master_pin}::{salt}".encode("utf-8")).digest()
+
+def issue_admin_token(ttl_seconds: int = 43200) -> str:
+    """Issues a short-lived HMAC-SHA256 signed admin session token."""
+    exp_ts = int(time.time()) + ttl_seconds
+    nonce = secrets.token_hex(12)
+    payload = f"{exp_ts}.{nonce}"
+    sig = hmac.new(_get_admin_signing_key(), payload.encode("utf-8"), hashlib.sha256).hexdigest()
+    return f"{payload}.{sig}"
+
+def _verify_signed_admin_token(token: str) -> bool:
+    if not token or token.count(".") != 2:
+        return False
+    try:
+        exp_str, nonce, sig = token.split(".", 2)
+        exp_ts = int(exp_str)
+        if exp_ts <= int(time.time()):
+            return False
+        payload = f"{exp_str}.{nonce}"
+        expected_sig = hmac.new(_get_admin_signing_key(), payload.encode("utf-8"), hashlib.sha256).hexdigest()
+        return hmac.compare_digest(sig, expected_sig)
+    except Exception:
+        return False
+
 async def verify_admin_token(request: Request):
     auth_header = request.headers.get("Authorization", "")
     token = ""
@@ -343,16 +372,12 @@ async def verify_admin_token(request: Request):
         token = auth_header[7:].strip()
     elif "admin_token" in request.cookies:
         token = request.cookies.get("admin_token", "").strip()
-    elif "token" in request.query_params:
-        token = request.query_params.get("token", "").strip()
     x_token = request.headers.get("X-Admin-Token", "").strip()
-    
-    master_pin = get_master_admin_password()
-    expected_token = hashlib.sha256(f"mainsmentor_admin_{master_pin}".encode()).hexdigest()
-    
-    if (token and (token == expected_token or token == master_pin)) or (x_token and (x_token == expected_token or x_token == master_pin)):
+
+    candidate = token or x_token
+    if candidate and _verify_signed_admin_token(candidate):
         return True
-    raise HTTPException(status_code=401, detail="Unauthorized admin access.")
+    raise HTTPException(status_code=401, detail="Unauthorized or expired admin session.")
 
 @app.get("/api/admin/eval-trace")
 async def get_eval_trace(auth: bool = Depends(verify_admin_token)):
@@ -1969,7 +1994,7 @@ async def serve_admin_page():
     return HTMLResponse("<h1>Admin Dashboard template initializing...</h1>")
 
 @app.post("/api/admin/login")
-async def api_admin_login(request: Request):
+async def api_admin_login(request: Request, response: Response):
     """Authenticates admin with PIN/password, protected against brute force attacks."""
     client_ip = get_client_ip(request)
     if not check_rate_limit(client_ip, "admin_login", max_requests=5, window_seconds=60):
@@ -1984,10 +2009,16 @@ async def api_admin_login(request: Request):
     pin = (data.get("pin") or "").strip()
     master_pin = get_master_admin_password()
     
-    if pin == master_pin:
-        # Simple hashed token for admin session
-        token = hashlib.sha256(f"mainsmentor_admin_{master_pin}".encode()).hexdigest()
-        return {"status": "authenticated", "token": token, "role": "admin"}
+    if pin and hmac.compare_digest(pin.encode("utf-8"), master_pin.encode("utf-8")):
+        token = issue_admin_token(ttl_seconds=43200)
+        response.set_cookie(
+            key="admin_token",
+            value=token,
+            httponly=True,
+            samesite="lax",
+            max_age=43200,
+        )
+        return {"status": "authenticated", "token": token, "role": "admin", "expires_in": 43200}
     raise HTTPException(status_code=401, detail="Invalid Admin Master PIN / Password.")
 
 @app.post("/api/presence/heartbeat")
@@ -2012,8 +2043,7 @@ async def api_admin_push_to_supabase(auth: bool = Depends(verify_admin_token)):
     return res
 
 @app.post("/api/admin/sync")
-@app.get("/api/admin/sync")
-async def api_admin_sync():
+async def api_admin_sync(auth: bool = Depends(verify_admin_token)):
     """Forces an immediate synchronization of persistent Supabase data into local SQLite."""
     res = await asyncio.to_thread(sync_supabase_to_sqlite, True)
     return {"status": "success", "sync_result": res}
@@ -2094,13 +2124,12 @@ async def api_admin_activity(limit: int = 60, auth: bool = Depends(verify_admin_
     return await asyncio.to_thread(get_admin_activity_stream, limit=limit)
 
 @app.post("/api/admin/ping-telemetry")
-async def api_admin_ping_telemetry():
+async def api_admin_ping_telemetry(auth: bool = Depends(verify_admin_token)):
     """Refreshes radar telemetry without deleting any data."""
     return {"status": "success", "message": "Telemetry verified."}
 
 @app.post("/api/admin/clear-dummy-data")
-@app.get("/api/admin/clear-dummy-data")
-async def api_admin_clear_dummy_data():
+async def api_admin_clear_dummy_data(auth: bool = Depends(verify_admin_token)):
     """Permanently purges all dummy/demo/autofilled accounts and mock history."""
     res = await asyncio.to_thread(purge_all_dummy_and_demo_accounts)
     return {"status": "success", "message": "All dummy and demo accounts purged permanently.", "purged": res}
@@ -2178,7 +2207,7 @@ async def api_admin_reset_daily(request: Request, auth: bool = Depends(verify_ad
     return {"status": "success", "user": user}
 
 @app.post("/api/admin/aspirant/credits")
-async def api_admin_update_credits(request: Request):
+async def api_admin_update_credits(request: Request, auth: bool = Depends(verify_admin_token)):
     """Manually add credits, rewrites, or toggle Pro for an aspirant."""
     try:
         data = await request.json()
@@ -2200,7 +2229,7 @@ async def api_admin_transactions(status: Optional[str] = None, auth: bool = Depe
     return get_all_transactions(status)
 
 @app.post("/api/admin/transaction/approve")
-async def api_admin_approve_tx(request: Request):
+async def api_admin_approve_tx(request: Request, auth: bool = Depends(verify_admin_token)):
     """Approves transaction and automatically unlocks the plan for the aspirant."""
     try:
         data = await request.json()
@@ -2217,7 +2246,7 @@ async def api_admin_approve_tx(request: Request):
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/api/admin/transaction/reject")
-async def api_admin_reject_tx(request: Request):
+async def api_admin_reject_tx(request: Request, auth: bool = Depends(verify_admin_token)):
     """Rejects transaction."""
     try:
         data = await request.json()
@@ -2231,12 +2260,12 @@ async def api_admin_reject_tx(request: Request):
     return {"status": "success", "transaction": tx}
 
 @app.get("/api/admin/feedbacks")
-async def api_admin_feedbacks(status: Optional[str] = None):
+async def api_admin_feedbacks(status: Optional[str] = None, auth: bool = Depends(verify_admin_token)):
     """Returns candidate feedback and bug reports (supports status: all, unresolved, resolved)."""
     return await asyncio.to_thread(get_all_feedbacks_admin, status)
 
 @app.post("/api/admin/feedback/{feedback_id}/resolve")
-async def api_admin_resolve_feedback(feedback_id: str, request: Request):
+async def api_admin_resolve_feedback(feedback_id: str, request: Request, auth: bool = Depends(verify_admin_token)):
     """Marks feedback as resolved or reopens it (data is preserved permanently)."""
     try:
         data = await request.json()
@@ -2255,12 +2284,12 @@ async def api_admin_delete_feedback(feedback_id: str, auth: bool = Depends(verif
     return {"status": "success", "message": "Feedback marked as resolved (safely archived, never purged)."}
 
 @app.get("/api/admin/settings")
-async def api_admin_get_settings():
+async def api_admin_get_settings(auth: bool = Depends(verify_admin_token)):
     upi_id = get_admin_setting("admin_upi_id", "9661228832-2@ybl")
     return {"admin_upi_id": upi_id}
 
 @app.post("/api/admin/settings/upi")
-async def api_admin_set_upi(request: Request):
+async def api_admin_set_upi(request: Request, auth: bool = Depends(verify_admin_token)):
     try:
         data = await request.json()
     except Exception:
@@ -2272,7 +2301,7 @@ async def api_admin_set_upi(request: Request):
     return {"status": "success", "admin_upi_id": upi_id}
 
 @app.post("/api/admin/settings/password")
-async def api_admin_set_password(request: Request, auth: bool = Depends(verify_admin_token)):
+async def api_admin_set_password(request: Request, response: Response, auth: bool = Depends(verify_admin_token)):
     """Updates the admin master password in database."""
     try:
         data = await request.json()
@@ -2281,20 +2310,26 @@ async def api_admin_set_password(request: Request, auth: bool = Depends(verify_a
     current_pin = (data.get("current_pin") or "").strip()
     new_pin = (data.get("new_pin") or "").strip()
     
-    master_pin = os.environ.get("ADMIN_PASSWORD") or get_admin_setting("admin_pin", "Admin@MainsMentor2026")
+    master_pin = get_master_admin_password()
     
-    if current_pin != master_pin:
+    if not current_pin or not hmac.compare_digest(current_pin.encode("utf-8"), master_pin.encode("utf-8")):
         raise HTTPException(status_code=401, detail="Current master password is incorrect.")
     
-    if not new_pin or len(new_pin) < 4:
-        raise HTTPException(status_code=400, detail="New password must be at least 4 characters long.")
+    if not new_pin or len(new_pin) < 6:
+        raise HTTPException(status_code=400, detail="New password must be at least 6 characters long.")
     
     set_admin_setting("admin_pin", new_pin)
     if "ADMIN_PASSWORD" in os.environ:
         os.environ["ADMIN_PASSWORD"] = new_pin
         
-    new_token = hashlib.sha256(f"mainsmentor_admin_{new_pin}".encode()).hexdigest()
+    new_token = issue_admin_token(ttl_seconds=43200)
+    response.set_cookie(key="admin_token", value=new_token, httponly=True, samesite="lax", max_age=43200)
     return {"status": "success", "message": "Admin password updated successfully!", "token": new_token}
+
+@app.post("/api/admin/logout")
+async def api_admin_logout(response: Response):
+    response.delete_cookie("admin_token")
+    return {"status": "logged_out"}
 
 
 def is_page_image_completely_blank(img: Any) -> bool:

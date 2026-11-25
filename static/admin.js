@@ -4,11 +4,55 @@
 let adminToken = localStorage.getItem("mainsmentor_admin_token");
 let autoRefreshEnabled = true;
 let autoRefreshInterval = null;
+let activeAdminTab = "live";
 let cachedSessions = [];
 let cachedAspirants = [];
 let cachedFeedbacks = [];
 let feedbackFilterStatus = "all";
 let activeCreditCadetEmail = null;
+
+function showAdminToast(message, type = "info") {
+  const container = document.getElementById("adminToastContainer");
+  if (!container) return;
+  const colors = {
+    success: "bg-emerald-950/95 border-emerald-500/40 text-emerald-200",
+    error: "bg-rose-950/95 border-rose-500/40 text-rose-200",
+    info: "bg-slate-900/95 border-amber-500/40 text-slate-100"
+  };
+  const toast = document.createElement("div");
+  toast.className = `pointer-events-auto px-4 py-2.5 rounded-xl border text-xs font-semibold shadow-2xl backdrop-blur-md transition-opacity duration-300 max-w-sm ${colors[type] || colors.info}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
+}
+
+function handleUnauthorizedAdminSession() {
+  localStorage.removeItem("mainsmentor_admin_token");
+  adminToken = null;
+  if (autoRefreshInterval) {
+    clearInterval(autoRefreshInterval);
+    autoRefreshInterval = null;
+  }
+  const modal = document.getElementById("adminLoginModal");
+  const errEl = document.getElementById("loginError");
+  if (errEl) {
+    errEl.textContent = "Session expired or invalid. Please unlock Command Center again.";
+    errEl.classList.remove("hidden");
+  }
+  if (modal) modal.classList.remove("hidden");
+}
+
+async function adminFetch(url, options = {}) {
+  const mergedHeaders = { ...getAdminAuthHeaders(), ...(options.headers || {}) };
+  const res = await fetch(url, { ...options, headers: mergedHeaders });
+  if (res.status === 401) {
+    handleUnauthorizedAdminSession();
+  }
+  return res;
+}
 
 function getAdminAuthHeaders() {
   const token = adminToken || localStorage.getItem("mainsmentor_admin_token") || "";
@@ -35,7 +79,39 @@ function safeCreateIcons() {
 document.addEventListener("DOMContentLoaded", () => {
   safeCreateIcons();
   checkAdminAuth();
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      const qs = document.getElementById("globalQuickSearch");
+      if (qs) qs.focus();
+    }
+  });
 });
+
+function toggleMobileSidebar(open) {
+  const sb = document.getElementById("adminSidebar");
+  const bd = document.getElementById("sidebarBackdrop");
+  if (!sb) return;
+  if (open) {
+    sb.classList.remove("-translate-x-full");
+    if (bd) bd.classList.remove("hidden");
+  } else {
+    sb.classList.add("-translate-x-full");
+    if (bd) bd.classList.add("hidden");
+  }
+}
+
+function handleGlobalQuickSearch(e) {
+  if (e.key !== "Enter") return;
+  const q = (e.target.value || "").trim();
+  if (!q) return;
+  switchTab("aspirants");
+  const inp = document.getElementById("aspirantSearchInput");
+  if (inp) {
+    inp.value = q;
+    loadAspirants();
+  }
+}
 
 function checkAdminAuth() {
   const modal = document.getElementById("adminLoginModal");
@@ -53,9 +129,12 @@ function startAutoRefresh() {
   autoRefreshInterval = setInterval(() => {
     if (adminToken && autoRefreshEnabled) {
       loadAdminStats();
-      loadAdminActivity();
-      loadAdminSessions();
-      loadAspirants();
+      if (activeAdminTab === "live") {
+        loadAdminActivity();
+        loadAdminSessions();
+      } else if (activeAdminTab === "aspirants") {
+        loadAspirants();
+      }
     }
   }, 60000);
 }
@@ -104,13 +183,29 @@ async function handleAdminLogin(e) {
   }
 }
 
-function adminLogout() {
+async function adminLogout() {
+  try {
+    await fetch("/api/admin/logout", { method: "POST" });
+  } catch (e) {}
   localStorage.removeItem("mainsmentor_admin_token");
   adminToken = null;
   location.reload();
 }
 
 function switchTab(tabId) {
+  activeAdminTab = tabId;
+  const titles = {
+    live: "Overview & Live Radar",
+    aspirants: "Aspirants & Credit Ledger",
+    evaluations: "Answer Copies Inspector",
+    feedback: "Feedback & Bug Reports",
+    orders: "UPI Orders & Plan Upgrades",
+    settings: "Infra, AI Health & Security"
+  };
+  const titleEl = document.getElementById("activeSectionTitle");
+  if (titleEl) titleEl.textContent = titles[tabId] || "Command Center";
+  toggleMobileSidebar(false);
+
   const tabs = ["live", "aspirants", "evaluations", "feedback", "orders", "settings"];
   tabs.forEach(t => {
     const content = document.getElementById(`tabContent_${t}`);
@@ -118,17 +213,27 @@ function switchTab(tabId) {
     if (t === tabId) {
       if (content) content.classList.remove("hidden");
       if (btn) {
-        btn.className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-amber-500 text-slate-950 cursor-pointer shadow-sm";
+        btn.className = "tab-btn w-full px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between bg-amber-500/15 text-amber-300 border border-amber-500/30 cursor-pointer";
       }
     } else {
       if (content) content.classList.add("hidden");
       if (btn) {
-        btn.className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 bg-slate-900 text-slate-400 hover:text-white cursor-pointer";
+        btn.className = "tab-btn w-full px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between text-slate-400 hover:text-white hover:bg-slate-800/60 cursor-pointer";
       }
     }
   });
 
-  if (tabId === "orders") {
+  if (tabId === "live") {
+    loadAdminActivity();
+    loadAdminSessions();
+    renderOverviewCharts();
+  } else if (tabId === "aspirants") {
+    loadAspirants();
+  } else if (tabId === "evaluations") {
+    loadAdminEvaluations();
+  } else if (tabId === "feedback") {
+    loadAdminFeedbacks();
+  } else if (tabId === "orders") {
     loadAdminTransactions();
   } else if (tabId === "settings") {
     loadAdminSettings();
@@ -139,36 +244,41 @@ function switchTab(tabId) {
 async function clearDummyDataAdmin() {
   if (!confirm("Are you sure you want to permanently clear all dummy, demo, and autofilled test accounts? Real student accounts and genuine evaluation copies will NEVER be deleted.")) return;
   try {
-    const res = await fetch("/api/admin/clear-dummy-data", { method: "POST" });
+    const res = await adminFetch("/api/admin/clear-dummy-data", { method: "POST" });
     if (res.ok) {
-      alert("✅ All dummy and test accounts have been permanently purged from the database.");
+      showAdminToast("All dummy and test accounts have been permanently purged.", "success");
       await loadAllAdminData(true);
     } else {
       throw new Error("Server responded with error");
     }
   } catch (err) {
-    alert("Purge notice: " + err.message);
+    showAdminToast("Purge notice: " + err.message, "error");
   }
 }
 
 async function loadAllAdminData(force = false) {
   if (force) {
     try {
-      await fetch("/api/admin/sync", { method: "POST", headers: getAdminAuthHeaders() });
+      await adminFetch("/api/admin/sync", { method: "POST" });
     } catch (e) {
       console.warn("Manual sync error:", e);
     }
   }
-  await Promise.all([
-    loadAdminStats(force),
-    loadAdminActivity(),
-    loadAdminSessions(),
-    loadAspirants(),
-    loadAdminEvaluations(),
-    loadAdminFeedbacks(),
-    loadAdminTransactions(),
-    loadAdminSettings()
-  ]);
+  const tasks = [loadAdminStats(force)];
+  if (activeAdminTab === "live") {
+    tasks.push(loadAdminActivity(), loadAdminSessions(), renderOverviewCharts());
+  } else if (activeAdminTab === "aspirants") {
+    tasks.push(loadAspirants());
+  } else if (activeAdminTab === "evaluations") {
+    tasks.push(loadAdminEvaluations());
+  } else if (activeAdminTab === "feedback") {
+    tasks.push(loadAdminFeedbacks());
+  } else if (activeAdminTab === "orders") {
+    tasks.push(loadAdminTransactions());
+  } else if (activeAdminTab === "settings") {
+    tasks.push(loadAdminSettings());
+  }
+  await Promise.all(tasks);
   safeCreateIcons();
 }
 
@@ -176,15 +286,13 @@ async function forceSyncCloud() {
   const btn = document.getElementById("btnForceSyncCloud");
   if (btn) btn.innerHTML = "<span>Syncing...</span>";
   try {
-    const res = await fetch("/api/admin/sync", {
-      method: "POST",
-      headers: getAdminAuthHeaders()
-    });
-    const data = await res.json();
-    alert("Supabase Cloud Sync completed successfully!");
+    const res = await adminFetch("/api/admin/sync", { method: "POST" });
+    if (!res.ok) throw new Error("Sync failed (" + res.status + ")");
+    await res.json();
+    showAdminToast("Supabase Cloud Sync completed successfully!", "success");
     loadAllAdminData();
   } catch (err) {
-    alert("Sync error: " + err.message);
+    showAdminToast("Sync error: " + err.message, "error");
   } finally {
     if (btn) btn.innerHTML = "<span>Sync Now</span>";
   }
@@ -194,18 +302,15 @@ async function pushLocalToCloud() {
   const btn = document.getElementById("btnPushToCloud");
   if (btn) btn.innerHTML = "<span>Uploading...</span>";
   try {
-    const res = await fetch("/api/admin/push-to-supabase", {
-      method: "POST",
-      headers: getAdminAuthHeaders()
-    });
+    const res = await adminFetch("/api/admin/push-to-supabase", { method: "POST" });
     const data = await res.json();
     if (data.status === "success") {
-      alert(data.message || `Successfully synced ${data.pushed_users} users and ${data.pushed_evaluations} evaluations to Supabase!`);
+      showAdminToast(data.message || `Synced ${data.pushed_users} users and ${data.pushed_evaluations} evaluations to Supabase!`, "success");
     } else {
-      alert("Notice: " + (data.message || data.error || JSON.stringify(data)));
+      showAdminToast("Notice: " + (data.message || data.error || JSON.stringify(data)), "error");
     }
   } catch (err) {
-    alert("Push error: " + err.message);
+    showAdminToast("Push error: " + err.message, "error");
   } finally {
     if (btn) btn.innerHTML = "<span>Upload to Cloud</span>";
   }
@@ -260,7 +365,7 @@ async function runSupabaseDiag() {
 // -------------------------------------------------------------
 async function loadAdminStats(forceSync = false) {
   try {
-    const res = await fetch("/api/admin/stats" + (forceSync ? "?sync=1" : ""), { headers: getAdminAuthHeaders(), cache: "no-store" });
+    const res = await adminFetch("/api/admin/stats" + (forceSync ? "?sync=1" : ""), { cache: "no-store" });
     if (!res.ok) return;
     const stats = await res.json();
 
@@ -279,14 +384,32 @@ async function loadAdminStats(forceSync = false) {
     setTxt("statFeedbackCount", `${stats.total_feedbacks ?? 0} feedbacks received`);
 
     const unresBadge = document.getElementById("statUnresolvedBadge");
-    if (unresBadge) {
-      const unresCount = Number(stats.unresolved_feedbacks ?? 0);
+    const unresSideBadge = document.getElementById("statUnresolvedSidebarBadge");
+    const unresCount = Number(stats.unresolved_feedbacks ?? 0);
+    [unresBadge, unresSideBadge].forEach(b => {
+      if (!b) return;
       if (unresCount > 0) {
-        unresBadge.textContent = `${unresCount} new`;
-        unresBadge.classList.remove("hidden");
+        b.textContent = b === unresBadge ? `${unresCount} new` : String(unresCount);
+        b.classList.remove("hidden");
       } else {
-        unresBadge.classList.add("hidden");
+        b.classList.add("hidden");
       }
+    });
+
+    const pendingBadge = document.getElementById("statPendingOrdersBadge");
+    const pendingCount = Number(stats.pending_orders ?? 0);
+    if (pendingBadge) {
+      if (pendingCount > 0) {
+        pendingBadge.textContent = String(pendingCount);
+        pendingBadge.classList.remove("hidden");
+      } else {
+        pendingBadge.classList.add("hidden");
+      }
+    }
+
+    const evalTabBadge = document.getElementById("statEvaluationsTabBadge");
+    if (evalTabBadge && stats.total_evaluations != null) {
+      evalTabBadge.textContent = String(stats.total_evaluations);
     }
 
     if (stats.server_time_ist) {
@@ -299,8 +422,8 @@ async function loadAdminStats(forceSync = false) {
     // Update Tab 6 Database Records Diagnostics
     setTxt("diagAspirants", stats.total_aspirants ?? 0);
     setTxt("diagEvaluations", stats.total_evaluations ?? 0);
-    setTxt("diagSessions", cachedSessions ? cachedSessions.length : (stats.total_evaluations ?? 0));
-    setTxt("diagTransactions", stats.total_revenue ? "7 Approved (₹" + stats.total_revenue + ")" : "7 Approved");
+    setTxt("diagSessions", stats.sessions_count ?? (cachedSessions ? cachedSessions.length : 0));
+    setTxt("diagTransactions", `${stats.approved_orders_count ?? 0} Approved (₹${stats.total_revenue ?? 0})`);
 
     renderOnlineUsers(stats.online_users || []);
   } catch (e) {
@@ -358,16 +481,212 @@ function renderOnlineUsers(onlineList) {
 
 async function pingLiveTelemetry() {
   try {
-    const res = await fetch("/api/admin/ping-telemetry", { method: "POST" });
+    const res = await adminFetch("/api/admin/ping-telemetry", { method: "POST" });
     if (res.ok) {
       await loadAdminStats();
       await loadAdminActivity();
       await loadAdminSessions();
       safeCreateIcons();
+      showAdminToast("Live radar telemetry refreshed.", "success");
     }
   } catch (err) {
     console.error("Telemetry ping error:", err);
   }
+}
+
+async function runAiModelHealth() {
+  const btn = document.getElementById("btnAiHealth");
+  const box = document.getElementById("aiModelHealthResult");
+  if (btn) btn.textContent = "Testing...";
+  if (box) {
+    box.classList.remove("hidden");
+    box.innerHTML = '<span class="text-slate-400">Probing Gemini API keys & active models...</span>';
+  }
+  try {
+    const res = await adminFetch("/api/admin/model-health?all_keys=1", { cache: "no-store" });
+    const data = await res.json();
+    if (!box) return;
+    const keysCount = data.keys_detected_count ?? (data.keys ? data.keys.length : 0);
+    const activeOk = data.api_working ? "text-emerald-400" : "text-rose-400";
+    box.innerHTML = `
+      <div class="${activeOk} font-bold">${data.api_working ? "✅ AI Engine Healthy" : "⚠️ AI Engine Issue"} (${keysCount} keys detected)</div>
+      <div class="text-slate-300">Active Model: <span class="text-amber-300">${escapeHtml(data.active_model || data.model || "unknown")}</span> • Latency: ${data.latency_ms ?? "?"}ms</div>
+      ${data.message ? `<div class="text-slate-400">${escapeHtml(data.message)}</div>` : ""}
+    `;
+  } catch (err) {
+    if (box) box.innerHTML = `<div class="text-rose-400">❌ Health check failed: ${escapeHtml(err.message)}</div>`;
+  } finally {
+    if (btn) btn.textContent = "Test AI Keys";
+  }
+}
+
+async function loadEvalTrace() {
+  const btn = document.getElementById("btnEvalTrace");
+  const box = document.getElementById("aiEvalTraceResult");
+  if (btn) btn.textContent = "Loading...";
+  if (box) {
+    box.classList.remove("hidden");
+    box.innerHTML = '<span class="text-slate-400">Fetching recent forensic evaluation traces...</span>';
+  }
+  try {
+    const res = await adminFetch("/api/admin/eval-trace", { cache: "no-store" });
+    const data = await res.json();
+    const attempts = data.recent_attempts || [];
+    if (!box) return;
+    if (attempts.length === 0) {
+      box.innerHTML = '<span class="text-slate-400">No recent evaluation attempts recorded in this worker process yet.</span>';
+      return;
+    }
+    box.innerHTML = attempts.slice(-15).reverse().map(a => {
+      const ok = a.status === "success" || a.ok;
+      return `<div class="p-2 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-2">
+        <span class="${ok ? "text-emerald-400" : "text-rose-400"} truncate">${escapeHtml(a.model || "gemini")} • ${escapeHtml(a.key_label || "key")}</span>
+        <span class="text-slate-400 shrink-0">${a.latency_ms ? a.latency_ms + "ms" : ""} ${escapeHtml(a.error || a.status || "")}</span>
+      </div>`;
+    }).join("");
+  } catch (err) {
+    if (box) box.innerHTML = `<div class="text-rose-400">❌ Trace load failed: ${escapeHtml(err.message)}</div>`;
+  } finally {
+  if (btn) btn.textContent = "Eval Trace";
+  }
+}
+
+let _chartPaperInstance = null;
+let _chartVelocityInstance = null;
+
+async function renderOverviewCharts() {
+  if (typeof Chart === "undefined") return;
+  try {
+    const res = await adminFetch("/api/admin/evaluations/stats", { cache: "no-store" });
+    if (!res.ok) return;
+    const stats = await res.json();
+    const subj = stats.by_subject || {};
+    const dt = stats.by_date || {};
+
+    const paperCtx = document.getElementById("chartPaperBreakdown");
+    if (paperCtx) {
+      if (_chartPaperInstance) _chartPaperInstance.destroy();
+      _chartPaperInstance = new Chart(paperCtx, {
+        type: "doughnut",
+        data: {
+          labels: ["GS-1", "GS-2", "GS-3", "GS-4", "Essay", "Optional"],
+          datasets: [{
+            data: [subj.GS1 || 0, subj.GS2 || 0, subj.GS3 || 0, subj.GS4 || 0, subj.Essay || 0, subj.Optional || 0],
+            backgroundColor: ["#f59e0b", "#38bdf8", "#10b981", "#a855f7", "#f43f5e", "#64748b"],
+            borderColor: "#0f172a",
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "right", labels: { color: "#cbd5e1", font: { size: 11 } } }
+          }
+        }
+      });
+    }
+
+    const velCtx = document.getElementById("chartEvalVelocity");
+    if (velCtx) {
+      if (_chartVelocityInstance) _chartVelocityInstance.destroy();
+      _chartVelocityInstance = new Chart(velCtx, {
+        type: "bar",
+        data: {
+          labels: ["Today", "Yesterday", "Last 7 Days", "Last 30 Days"],
+          datasets: [{
+            label: "Copies Evaluated",
+            data: [dt.today || 0, dt.yesterday || 0, dt.this_week || 0, dt.this_month || 0],
+            backgroundColor: ["#10b981", "#38bdf8", "#f59e0b", "#6366f1"],
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: "#94a3b8", font: { size: 11 } }, grid: { display: false } },
+            y: { ticks: { color: "#94a3b8", font: { size: 11 } }, grid: { color: "rgba(51,65,85,0.4)" }, beginAtZero: true }
+          }
+        }
+      });
+    }
+  } catch (e) {
+    console.warn("Chart render notice:", e);
+  }
+}
+
+async function openAspirantDrawer(email) {
+  const modal = document.getElementById("aspirantDrawerModal");
+  const body = document.getElementById("drawerAspBody");
+  const nameEl = document.getElementById("drawerAspName");
+  const emailEl = document.getElementById("drawerAspEmail");
+  if (!modal || !body) return;
+
+  const asp = (cachedAspirants || []).find(a => (a.email || "").toLowerCase() === email.toLowerCase()) || { email };
+  if (nameEl) nameEl.textContent = asp.name || "Aspirant 360°";
+  if (emailEl) emailEl.textContent = email;
+  modal.classList.remove("hidden");
+
+  body.innerHTML = `
+    <div class="grid grid-cols-2 gap-3">
+      <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+        <div class="text-[10px] uppercase text-slate-400 font-bold">Plan Tier</div>
+        <div class="text-sm font-mono font-bold text-amber-400 uppercase mt-0.5">${escapeHtml(asp.plan_tier || "free")}</div>
+      </div>
+      <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+        <div class="text-[10px] uppercase text-slate-400 font-bold">Credits Remaining</div>
+        <div class="text-sm font-mono font-bold text-emerald-400 mt-0.5">${asp.free_credits ?? 0} • Rewrites: ${asp.free_rewrites ?? 0}</div>
+      </div>
+      <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+        <div class="text-[10px] uppercase text-slate-400 font-bold">Daily Quota Used</div>
+        <div class="text-sm font-mono font-bold text-white mt-0.5">${asp.daily_used_today ?? 0} / 15</div>
+      </div>
+      <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+        <div class="text-[10px] uppercase text-slate-400 font-bold">Target / Optional</div>
+        <div class="text-sm font-bold text-sky-300 mt-0.5">CSE ${escapeHtml(String(asp.target_year || "2026"))} • ${escapeHtml(asp.optional_subject || "PSIR")}</div>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button onclick="resetDailyQuota('${escapeHtml(email)}')" class="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold">Reset 15 Quota</button>
+      <button onclick="closeAspirantDrawer(); openCreditManager('${escapeHtml(email)}', '${escapeHtml(asp.plan_tier || 'starter')}')" class="px-3 py-1.5 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-500/30 font-bold">Adjust Credits</button>
+      <button onclick="closeAspirantDrawer(); filterCopiesByEmail('${escapeHtml(email)}')" class="px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold">All Copies</button>
+    </div>
+    <div class="border-t border-slate-800 pt-3">
+      <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Recent Evaluated Copies</h4>
+      <div id="drawerAspCopies" class="space-y-2 text-slate-400">Loading recent copies...</div>
+    </div>
+  `;
+
+  try {
+    const res = await adminFetch(`/api/admin/evaluations?email=${encodeURIComponent(email)}&limit=10`, { cache: "no-store" });
+    const copies = await res.json();
+    const listEl = document.getElementById("drawerAspCopies");
+    if (!listEl) return;
+    if (!copies || copies.length === 0) {
+      listEl.innerHTML = '<div class="text-slate-500">No evaluated copies found for this aspirant.</div>';
+      return;
+    }
+    listEl.innerHTML = copies.map(c => `
+      <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <div class="font-bold text-slate-200 truncate">${escapeHtml(c.paper || "GS")} • ${escapeHtml(String(c.overall_score ?? 0))}/${escapeHtml(String(c.max_marks ?? 10))}</div>
+          <div class="text-[11px] text-slate-400 truncate">${escapeHtml(c.question || "")}</div>
+        </div>
+        <button onclick="closeAspirantDrawer(); inspectEvaluation('${escapeHtml(c.id)}')" class="shrink-0 px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold">Inspect</button>
+      </div>
+    `).join("");
+  } catch (e) {
+    const listEl = document.getElementById("drawerAspCopies");
+    if (listEl) listEl.innerHTML = '<div class="text-rose-400">Failed to load copies.</div>';
+  }
+  safeCreateIcons();
+}
+
+function closeAspirantDrawer() {
+  const modal = document.getElementById("aspirantDrawerModal");
+  if (modal) modal.classList.add("hidden");
 }
 
 async function loadAdminActivity() {
@@ -744,14 +1063,17 @@ function renderFilteredAspirants(aspirants) {
           <div class="text-[10.5px] text-slate-400 font-mono">Avg Score: ${avgPct}%</div>
         </td>
         <td class="p-3.5 text-right space-x-1.5 whitespace-nowrap">
+          <button onclick="openAspirantDrawer('${escapeHtml(asp.email)}')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-bold transition">
+            360°
+          </button>
           <button onclick="filterCopiesByEmail('${escapeHtml(asp.email)}')" class="px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 font-bold text-[11px] border border-amber-500/30 transition">
-            📂 Copies (${totalCopies})
+            Copies (${totalCopies})
           </button>
           <button onclick="resetDailyQuota('${escapeHtml(asp.email)}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold transition" title="Restore 15 daily evaluations">
-            🔄 Reset 15 Quota
+            Reset 15
           </button>
           <button onclick="openCreditManager('${escapeHtml(asp.email)}', '${escapeHtml(asp.plan_tier || 'starter')}')" class="px-2.5 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 text-[11px] font-bold transition">
-            ⚡ Credits
+            Credits
           </button>
         </td>
       </tr>
