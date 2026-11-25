@@ -1338,39 +1338,44 @@
             </div>
 
             <!-- 4. Cutoff Sweet Spot & EV Calculator Card -->
-            <div id="dashboardCutoffEVCard" class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 flex flex-col gap-3 cursor-pointer transition-all shadow-md group">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+            <div id="dashboardCutoffEVCard" role="button" tabindex="0" onclick="if(typeof window.openEVSimulator==='function') window.openEVSimulator();" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();if(typeof window.openEVSimulator==='function') window.openEVSimulator();}" class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 hover:border-amber-500/60 hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.99] flex flex-col gap-3.5 cursor-pointer transition-all duration-200 shadow-md group focus:outline-none focus:ring-2 focus:ring-amber-500/50">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/25 text-amber-500 flex items-center justify-center group-hover:scale-105 transition-transform">
                     <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                   </div>
-                  <h3 class="text-sm font-extrabold text-white group-hover:text-amber-400 transition-colors">Cutoff & Guessing Calculator</h3>
+                  <div class="flex flex-col">
+                    <h3 class="text-sm font-extrabold text-white group-hover:text-amber-500 transition-colors flex items-center gap-1.5">
+                      <span>Cutoff &amp; Guessing Calculator</span>
+                    </h3>
+                    <span class="text-[10px] font-mono text-slate-400">Interactive Score &amp; Risk Simulator</span>
+                  </div>
                 </div>
-                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold">Safe Attempts</span>
+                <span class="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 text-[10px] font-mono font-bold shrink-0">Safe Attempts</span>
               </div>
               <p class="text-xs text-slate-400 leading-relaxed">
                 See how your total attempts and negative marking impact your net score.
               </p>
-              <div class="grid grid-cols-3 gap-2 pt-1 text-center font-mono">
-                <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
+              <div class="grid grid-cols-3 gap-2 pt-0.5 text-center font-mono">
+                <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 group-hover:border-slate-700/80 transition-colors flex flex-col">
                   <span class="text-[10px] text-slate-400">Safe Attempts</span>
                   <span class="text-base font-extrabold text-white">82–88</span>
                 </div>
-                <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
+                <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 group-hover:border-slate-700/80 transition-colors flex flex-col">
                   <span class="text-[10px] text-rose-400">Negative Penalty</span>
                   <span class="text-base font-extrabold text-rose-400">-0.66</span>
                 </div>
-                <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
+                <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 group-hover:border-slate-700/80 transition-colors flex flex-col">
                   <span class="text-[10px] text-emerald-400">Target Net</span>
                   <span class="text-base font-extrabold text-emerald-400">98+</span>
                 </div>
               </div>
-              <div class="flex items-center justify-between pt-1 border-t border-slate-800/80">
-                <span class="text-[11px] font-bold text-amber-500 group-hover:text-amber-400 flex items-center gap-1">
-                  <span>⚡ Launch Interactive EV Calibrator</span>
-                  <span>→</span>
-                </span>
-                <span class="text-[10px] text-slate-500 font-mono">Calibrate Educated Guesses</span>
+              <div class="flex items-center justify-between gap-2 pt-2.5 border-t border-slate-800/80">
+                <span class="text-[11px] text-slate-400 font-mono">Calibrate Educated Guesses</span>
+                <button type="button" onclick="event.stopPropagation(); if(typeof window.openEVSimulator==='function') window.openEVSimulator();" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-sm shadow-amber-500/20 group-hover:shadow-md group-hover:shadow-amber-500/30 transition-all cursor-pointer flex items-center gap-1.5 shrink-0">
+                  <span>⚡ Open EV Calibrator</span>
+                  <span class="group-hover:translate-x-0.5 transition-transform">→</span>
+                </button>
               </div>
             </div>
 
