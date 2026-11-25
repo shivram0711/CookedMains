@@ -4248,7 +4248,7 @@
     try {
       const [resPyqs, resCa, resOther, resAi] = await Promise.all([
         fetch('/static/data/prelims_pyqs.json?v=20261123v2'),
-        fetch('/static/data/current_affairs_pyqs.json?v=1795585664745qs_1795585286616'),
+        fetch('/static/data/current_affairs_pyqs.json?v=1795586723401'),
         fetch('/static/data/upsc_other_exams_pyqs.json?v=20261123v2'),
         fetch('/static/data/ai_mock_questions_2026.json?v=20261123v2')
       ]);
@@ -7314,18 +7314,18 @@ function renderPlayerDistractorDeepDive(q) {
       icon: '🌾',
       color: 'amber',
       title: 'August 2026 Comprehensive Dossier',
-      leadTheme: 'Glaw Lake Ramsar, Asan ESZ & IPMDA',
-      topics: ['Glaw Lake (101st Ramsar)', 'SC 10-km Buffer on Ramsar Mining (Asan)', 'Asiatic Lion Barda Sanctuary & Babarkot', 'Houbara / MacQueens Bustard', 'Clouded Leopard Arboreal Adaptations', 'Vulture Recovery (NSAIDs Bans)', 'Danube River Capitals', 'Lake Mead & Hoover Dam', 'Nauru & Ceuta Enclave', 'IPMDA Quad Maritime Awareness', 'GOBARdhan SATAT Bioenergy Offtake', 'Open Natural Ecosystems (ONEs)', 'Makkah Pact', 'PM Surya Sarovar Floating Solar', 'National Honour Act 1971'],
-      source: 'InsightsIAS Aug 2026 / PIB / MoEFCC / SC Judgments'
+      leadTheme: 'MMDR Sec 9D, Samudra Manthan, Glaw Lake Ramsar & NTC',
+      topics: ['MMDR Act 2026 (Section 9D vs MADA v. SAIL)', 'Samudra Manthan Offshore Hydrocarbon Scheme', 'Glaw Lake 101st Ramsar & Kamlang TR', 'National Tribunals Commission (NTC)', 'NCDC Amendment Act 2026', 'Zonal Councils & Sec 51 HC Benches', 'SC Judges Strength (Art 124)', 'Registration of Births/Deaths (Concurrent Entry 30)', 'RTI Public Authority Sec 2(h) (NSE Case)', 'MSMED Sec 19 & TReDS Mandate', 'PPVFR Sec 39(1)(iv) Farmers Rights', 'Mecca Joint Defence Agreement (MJDA)', 'Ganges Water Treaty 1996 (Farakka Expiry)', 'Schengen vs EU (Ireland & Cyprus)', 'Ganga Active Floodplain vs Regulated Zone', 'Tamirabharani Legal Personhood', 'SDRF Heatwaves & Lightning Calamities', 'Nancy Grace Roman Space Telescope', 'Vacuum Birefringence & Magnetars', 'Rotating Detonation Engines (RDE)', 'Draft SHANTI Nuclear Liability Rules', 'VIHAAN 64-bit RISC-V Chip'],
+      source: 'Sarrthi IAS Aug 2026 / PIB / MoEFCC / SC Judgments'
     },
     {
       month: 'September 2026',
       icon: '🍁',
       color: 'emerald',
       title: 'September 2026 Comprehensive Dossier',
-      leadTheme: 'Coral Bleaching GCRMN & DSR Soil Carbon',
-      topics: ['GCRMN Global Coral Reef Status (4th Bleaching)', 'Neelakurinji (WPA Sch III & Shola Masting)', 'Ammannia telanganensis (Amrabad TR)', 'Trishuli River Antecedent Drainage', 'Lake Ontario & St. Lawrence Seaway', 'Larak Island Salt Diapirs & Strait of Hormuz', 'Lake Magadi Trona Kenya Rift', 'Mount Anak Krakatau Sunda Strait', 'Kathmandu Declaration (SAWEN)', 'ECI Totaliser Machines in EVMs', 'Article 371K Ladakh Proposals', 'Lipulekh Pass & Kali River', 'Sohar Port (Gulf of Oman)', 'Djibouti & Lake Assal (-155m)', 'Indus Waters Treaty PCA Ruling', 'Direct Seeded Rice (DSR) Carbon Credits', 'Badri Cattle OPU-IVF'],
-      source: 'InsightsIAS Sep 2026 / ICRI / ECI / PCA The Hague'
+      leadTheme: 'FCRA Bill 2026, FIT 10-Yr Review, Totalisers & Western DFC',
+      topics: ['FCRA Amendment Bill 2026 (Designated Authority)', 'Census Towns Criteria vs Statutory Towns', 'FSSAI FoPL Warning Hexagon & INR Stars', 'EVM Totalisers (Rule 59A Conduct of Elections)', 'RUPPs Delisting vs Deregistration (Sec 29A RPA)', 'High Court Language (Art 348 vs Sec 7 OLA)', 'CBI General Consent (Sec 6 DSPE Act)', 'Flexible Inflation Targeting 10-Yr (Sec 45ZA RBI Act)', 'RBI USD/INR Buy/Sell Forex Swaps & Trilemma', 'Inverted Yield Curve & Fisher Effect', 'Western Dedicated Freight Corridor (Dadri-JNPT)', 'Consumer Protection Dark Patterns (CCPA)', 'Bhu-Aadhaar ULPIN (DILRMP 3.0)', 'Mega Ports (Major Port Authorities Act 2021)', '18th BRICS Summit & Diriyah Principles', 'Equal Earth Cartographic Projection', 'EOS-05 Geostationary Earth Observation', 'AstroRad Stem-Cell Radiation Shielding Vest', 'Quantum Decoherence & Cryogenics (Zero-mK India)', 'UK & EU CBAM Carbon Border Tax', '1.5°C Climate Overshoot & Tipping Points', 'Soft Coral Slumping vs Bleaching', 'UNESCO World Heritage Tentative List (Bagh, Udaigiri, Ginnorgarh)', 'Poompuhar Underwater Archaeology (Silappadikaram)', 'Outer Space Treaty 1967 & Kinetic ASAT Loophole'],
+      source: 'Sarrthi IAS Sep 2026 / UNEP / RBI Bulletin / PIB'
     },
     {
       month: 'October 2026',
@@ -7343,7 +7343,7 @@ function renderPlayerDistractorDeepDive(q) {
     if (!cardsGrid) return;
 
     var caQuestions = STATE.ca_pyqs || [];
-    var totalCaCount = caQuestions.length || 278;
+    var totalCaCount = caQuestions.length || 330;
 
     // Dynamically update header badges and labels
     var badge = document.getElementById('caArenaHeaderBadge');
@@ -7536,7 +7536,7 @@ function renderPlayerDistractorDeepDive(q) {
   async function ensureCaQuestionsLoaded() {
     if (STATE.ca_pyqs && STATE.ca_pyqs.length > 0) return STATE.ca_pyqs;
     try {
-      const res = await fetch('/static/data/current_affairs_pyqs.json?v=1795585664745qs_20261123v2');
+      const res = await fetch('/static/data/current_affairs_pyqs.json?v=1795586723401');
       if (res.ok) {
         STATE.ca_pyqs = await res.json();
         if (!STATE.pyqMap) STATE.pyqMap = {};
