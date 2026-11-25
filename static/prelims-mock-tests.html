@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>Free UPSC Prelims Mock Tests 2026 (Full &amp; Sectional Tests with Negative Marking) | CookedMains</title>
-  <meta name="description" content="Practice authentic UPSC CSE Prelims mock tests online. Simulate official 2-hour exam conditions (+2.0 / -0.66), sectional multi-subject sprints, and instant Topper explanations.">
-  <meta name="keywords" content="Free UPSC Prelims Mock Test 2026, UPSC Sectional Mock Test, UPSC GS Paper 1 Test Series, UPSC Online Test with Negative Marking, UPSC Prelims Practice Free">
+  <title>Free UPSC Prelims Mock Tests 2026 (Full 100-Q &amp; Sectional PYQ Mocks) | CookedMains</title>
+  <meta name="description" content="Practice authentic UPSC CSE Prelims mock tests online. Simulate official 2-hour exam conditions (+2.00 / -0.66), multi-subject sectional sprints, 2026 AI current affairs mocks, and forensic scorecards.">
+  <meta name="keywords" content="Free UPSC Prelims Mock Test 2026, UPSC Sectional Mock Test, UPSC GS Paper 1 Test Series, UPSC Online Test with Negative Marking, UPSC Prelims Practice Free, AI UPSC Mock Test">
   <link rel="canonical" href="https://cookedmains.com/prelims/mock-tests">
 
   <!-- OpenGraph / Social Meta -->
@@ -21,18 +21,69 @@
   <meta name="twitter:description" content="Practice authentic UPSC past-year quality mock tests with official +2.0 / -0.66 scoring and Topper's Trap analysis.">
   <meta name="twitter:image" content="https://cookedmains.com/static/brand_logo_dark.png">
 
-  <!-- Schema.org Quiz JSON-LD -->
+  <!-- Schema.org Quiz & WebApplication JSON-LD -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "Quiz",
-    "name": "UPSC Civil Services Preliminary Examination GS Paper 1 Mock Tests",
-    "description": "Authentic full-length and sectional test series for UPSC Prelims 2026 with negative marking (-0.66).",
-    "educationalLevel": "Competitive Examination (UPSC CSE)",
-    "about": {
-      "@type": "Thing",
-      "name": "UPSC General Studies Paper 1"
-    }
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "name": "UPSC Prelims Adaptive Mock Test Simulator",
+        "url": "https://cookedmains.com/prelims/mock-tests",
+        "description": "Full-length 100-question and sectional mock test simulator for UPSC Civil Services Examination GS Paper 1 with official +2.00 / -0.66 negative marking.",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "All",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "INR"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://cookedmains.com/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Prelims",
+            "item": "https://cookedmains.com/prelims"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Mock Tests",
+            "item": "https://cookedmains.com/prelims/mock-tests"
+          }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "How does the CookedMains UPSC Prelims mock test simulate the real exam?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The simulator replicates official UPSC conditions with a 2-hour countdown timer, 100 questions, strict +2.00 mark reward for correct answers, -0.66 negative penalty for wrong answers, and comprehensive post-exam forensic analysis."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I configure sectional and multi-subject sprints instead of 100 questions?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Aspirants can mix and match any combination of core subjects (e.g. Polity + Economy or Environment + Geography) and choose cohort volumes of 10, 20, 25, 30, or 50 questions."
+            }
+          }
+        ]
+      }
+    ]
   }
   </script>
 
@@ -46,250 +97,369 @@
           colors: {
             amber: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' },
             emerald: { 400: '#34d399', 500: '#10b981', 600: '#059669' },
-            slate: { 850: '#0f172a', 900: '#0b1120', 950: '#060913' }
+            slate: { 850: '#0f172a', 900: '#0b1120', 950: '#020617' }
           }
         }
       }
-    }
+    };
   </script>
 
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap">
   <link rel="icon" type="image/png" href="/static/favicon-32x32.png">
 
   <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
     html.dark { background-color: #020617; color: #f8fafc; }
     html.dark body { background-color: #020617; color: #f8fafc; }
+    html.dark .brand-logo-light { display: none !important; }
+    html.dark .brand-logo-dark { display: block !important; }
+
     html:not(.dark) { background-color: #f8fafc; color: #0f172a; }
     html:not(.dark) body { background-color: #f8fafc; color: #0f172a; }
+    html:not(.dark) .brand-logo-light { display: block !important; }
+    html:not(.dark) .brand-logo-dark { display: none !important; }
     html:not(.dark) .light-card { background-color: #ffffff !important; border-color: #e2e8f0 !important; color: #0f172a !important; }
-    html:not(.dark) .light-inner { background-color: #f8fafc !important; border-color: #e2e8f0 !important; color: #0f172a !important; }
+    html:not(.dark) .light-sidebar { background-color: #f8fafc !important; border-color: #e2e8f0 !important; color: #0f172a !important; }
+
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    html.dark .sidebar-nav-item {
+      color: #94a3b8;
+      background-color: transparent;
+      border: 1px solid transparent;
+    }
+    html.dark .sidebar-nav-item:hover {
+      background-color: rgba(245, 158, 11, 0.12) !important;
+      color: #fbbf24 !important;
+      border-color: rgba(245, 158, 11, 0.4) !important;
+      transform: translateX(3px);
+    }
+    html.dark .sidebar-nav-item.active {
+      background-color: rgba(245, 158, 11, 0.18) !important;
+      color: #fbbf24 !important;
+      border-color: rgba(245, 158, 11, 0.5) !important;
+      font-weight: 800 !important;
+    }
+
+    html:not(.dark) .sidebar-nav-item {
+      color: #334155;
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+    }
+    html:not(.dark) .sidebar-nav-item:hover {
+      background-color: rgba(245, 158, 11, 0.15) !important;
+      color: #78350f !important;
+      border-color: rgba(245, 158, 11, 0.45) !important;
+      transform: translateX(3px);
+    }
+    html:not(.dark) .sidebar-nav-item.active {
+      background-color: rgba(245, 158, 11, 0.18) !important;
+      color: #78350f !important;
+      border-color: rgba(245, 158, 11, 0.5) !important;
+      font-weight: 800 !important;
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-slate-950">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex font-sans antialiased selection:bg-amber-500 selection:text-slate-950 transition-colors duration-200 overflow-x-hidden">
 
-  <!-- Header -->
-  <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <a href="/prelims" class="flex items-center gap-3">
-        <img src="/static/brand_logo_dark.png" alt="CookedMains Logo" class="h-8 w-auto hidden dark:block">
-        <img src="/static/brand_logo_light.png" alt="CookedMains Logo" class="h-8 w-auto block dark:hidden">
-        <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-mono font-bold">Prelims 2026</span>
+  <!-- AUTHENTIC SIDEBAR NAVIGATION -->
+  <aside id="sidebarNav" class="light-sidebar fixed top-0 bottom-0 left-0 z-40 w-64 h-full max-h-screen bg-slate-950 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 transform -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none overflow-hidden">
+    
+    <div class="h-16 shrink-0 px-4 flex items-center justify-between border-b border-slate-800/80">
+      <a href="/" class="flex items-center gap-2.5 group select-none">
+        <img src="/static/brand_logo_light.png" alt="Cooked Mains Logo" class="brand-logo-light h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
+        <img src="/static/brand_logo_dark.png" alt="Cooked Mains Logo" class="brand-logo-dark h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
+        <div class="flex flex-col justify-center">
+          <span class="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight flex items-center">
+            Cooked <span class="text-amber-500 ml-1">Mains</span>
+          </span>
+          <span class="text-[9px] font-mono font-bold tracking-wider text-amber-500 uppercase leading-none mt-0.5">
+            DASHBOARD
+          </span>
+        </div>
+      </a>
+      <button id="closeSidebarMobileBtn" type="button" class="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer">
+        ✕
+      </button>
+    </div>
+
+    <nav class="flex-1 min-h-0 overflow-y-auto p-3 flex flex-col gap-1.5 text-xs font-semibold custom-scrollbar">
+      <a href="/prelims" class="sidebar-nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <span class="text-base">🏠</span>
+        <span>Home Dashboard</span>
       </a>
 
-      <nav class="flex items-center gap-3 sm:gap-4 text-xs font-bold">
-        <a href="/prelims" class="text-slate-600 dark:text-slate-300 hover:text-amber-500 transition-colors">Dashboard</a>
-        <a href="/prelims/pyqs" class="text-slate-600 dark:text-slate-300 hover:text-amber-500 transition-colors">14-Yr PYQs</a>
-        <a href="/prelims/cutoff-calculator" class="text-slate-600 dark:text-slate-300 hover:text-amber-500 transition-colors">Cutoff Calculator</a>
-        <a href="/prelims" class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-slate-950 font-bold transition-all shadow-sm">
-          Open Practice App →
-        </a>
-      </nav>
-    </div>
-  </header>
+      <a href="/prelims?mode=progress" class="sidebar-nav-item flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <div class="flex items-center gap-3">
+          <span class="text-base">📈</span>
+          <span class="font-bold">Progress Tracker</span>
+        </div>
+        <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[9px] font-black uppercase font-mono">TRACK</span>
+      </a>
 
-  <!-- Main Container -->
-  <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-8">
+      <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold px-3 pt-3 pb-1">
+        PRELIMS (1,600+ PYQS)
+      </span>
 
-    <!-- Breadcrumb Navigation -->
-    <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-mono">
-      <a href="/" class="hover:underline">Home</a>
-      <span>/</span>
-      <a href="/prelims" class="hover:underline">Prelims</a>
-      <span>/</span>
-      <span class="text-slate-800 dark:text-slate-200 font-bold">Mock Tests</span>
+      <a href="/prelims/pyqs" class="sidebar-nav-item flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <div class="flex items-center gap-3">
+          <span class="text-base">📚</span>
+          <span>Prelims PYQ Vault</span>
+        </div>
+        <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[9px] font-black uppercase">Deep Facts</span>
+      </a>
+
+      <a href="/prelims/current-affairs" class="sidebar-nav-item flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <div class="flex items-center gap-3">
+          <span class="text-base">📰</span>
+          <span>Current Affairs Arena</span>
+        </div>
+        <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[9px] font-black uppercase">2026 Mocks</span>
+      </a>
+
+      <!-- Active: Adaptive Mock Tests -->
+      <a href="/prelims/mock-tests" class="sidebar-nav-item active flex items-center justify-between px-3 py-2 rounded-xl font-bold border transition-all text-left">
+        <div class="flex items-center gap-3">
+          <span class="text-base">📝</span>
+          <span>Adaptive Mock Tests</span>
+        </div>
+        <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[9px] font-black uppercase">AI</span>
+      </a>
+
+      <a href="/prelims?mode=player" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <span class="text-base">🎯</span>
+        <span>Focus Player (Timed)</span>
+      </a>
+
+      <a href="/prelims/csat" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <span class="text-base">🧮</span>
+        <span>CSAT Practice</span>
+      </a>
+
+      <a href="/prelims?mode=mistakes" class="sidebar-nav-item flex items-center justify-between px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <div class="flex items-center gap-3">
+          <span class="text-base">📓</span>
+          <span>Mistakes Notebook</span>
+        </div>
+        <span class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px] font-black">20</span>
+      </a>
+
+      <a href="/prelims/cutoff-calculator" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <span class="text-base">📊</span>
+        <span>Cutoff EV Simulator</span>
+      </a>
+
+      <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold px-3 pt-3 pb-1">
+        MAINS EVALUATION
+      </span>
+      <a href="/" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <span class="text-base">✍️</span>
+        <span>Mains Studio</span>
+      </a>
     </nav>
 
-    <!-- Top Headline Section -->
-    <div class="flex flex-col gap-2">
-      <div class="flex items-center gap-2">
-        <span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 text-[11px] font-mono font-bold uppercase tracking-wide">
-          Strict UPSC Marking Model (+2.0 / -0.66)
-        </span>
+    <div class="p-3 border-t border-slate-800/80 flex flex-col gap-2 shrink-0">
+      <div class="grid grid-cols-2 gap-2">
+        <a href="/prelims" class="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-semibold transition-all">
+          <span class="text-amber-500 font-mono font-bold">A/अ</span>
+          <span class="text-[10px]">English</span>
+        </a>
+
+        <button id="sidebarThemeToggle" type="button" class="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500/40 text-slate-700 dark:text-slate-300 text-[11px] font-semibold cursor-pointer transition-all">
+          <span id="sidebarThemeIcon">🌓</span>
+          <span id="sidebarThemeLabel" class="text-[10px]">Theme</span>
+        </button>
       </div>
-      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-        Free UPSC Prelims Mock Tests (Full &amp; Sectional Series)
-      </h1>
-      <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
-        Test your exam temperament with authentic UPSC CSE questions. Choose a 100-question full paper simulation, customize your own sectional test by mixing disciplines, or target your specific mistake themes under timer.
-      </p>
     </div>
+  </aside>
 
-    <!-- Google Featured Snippet Definition Box (PAA Target) -->
-    <div class="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed space-y-1.5">
-      <h2 class="text-xs font-bold uppercase font-mono tracking-wider text-emerald-600 dark:text-emerald-400">What is the standard subject-wise weightage in UPSC Prelims GS Paper 1?</h2>
-      <p>
-        In UPSC Prelims GS Paper 1, 100 questions (200 marks) are distributed across 6 core pillars: <strong>Polity &amp; Governance</strong> (15–20%), <strong>Economy &amp; Banking</strong> (15–20%), <strong>Environment &amp; Ecology</strong> (18–22%), <strong>History &amp; Art-Culture</strong> (14–18%), <strong>Geography &amp; Mapping</strong> (12–16%), and <strong>Science &amp; Technology</strong> (10–14%).
-      </p>
-    </div>
+  <div id="mobileSidebarBackdrop" class="hidden fixed inset-0 z-30 bg-slate-950/70 backdrop-blur-xs md:hidden"></div>
 
-    <!-- 3 Core Mock Formats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-      
-      <!-- Format 1: Full Simulation -->
-      <div class="light-card rounded-3xl bg-white dark:bg-slate-900 border-2 border-amber-500/40 shadow-sm p-6 flex flex-col justify-between gap-5 hover:border-amber-500 hover:shadow-md transition-all">
-        <div class="flex flex-col gap-3">
-          <div class="flex items-center justify-between">
-            <span class="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-xl font-bold">🏆</span>
-            <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-mono text-xs font-bold">120 Mins</span>
-          </div>
-          <h2 class="text-lg font-black text-slate-900 dark:text-white">Full GS-1 Simulation</h2>
-          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            100 authentic questions balanced across Polity, Economy, Environment, History, Geography, and Sci-Tech. Official 2-hour countdown timer and post-exam score analysis.
-          </p>
-          <div class="flex items-center gap-2 text-xs font-mono text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <span>100 Qs</span>
-            <span>·</span>
-            <span>200 Marks</span>
-            <span>·</span>
-            <span class="text-rose-500 font-bold">-0.66 Penalty</span>
-          </div>
+  <!-- MAIN APP WORKSPACE -->
+  <div class="flex-1 md:ml-64 flex flex-col min-h-screen">
+    
+    <header class="sticky top-0 z-30 h-16 backdrop-blur-md bg-white/90 dark:bg-slate-950/85 border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 flex items-center justify-between gap-3 transition-colors">
+      <div class="flex items-center gap-3">
+        <button id="openMobileSidebarBtn" type="button" class="md:hidden p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-white border border-slate-200 dark:border-slate-800 cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="flex items-center gap-2 text-xs font-semibold">
+          <a href="/prelims" class="text-slate-500 hover:text-amber-500 transition">CookedMains</a>
+          <span class="text-slate-400">/</span>
+          <span class="text-amber-600 dark:text-amber-400 font-bold">Adaptive Mock Test Simulator</span>
         </div>
+      </div>
 
-        <a href="/prelims" class="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-slate-950 font-bold text-xs text-center shadow-md transition-all">
-          ▶ Start Full Mock Test
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="/prelims?mode=mock" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-sm flex items-center gap-1.5">
+          <span>📝</span>
+          <span>Configure &amp; Start Test</span>
         </a>
       </div>
+    </header>
 
-      <!-- Format 2: Sectional & Multi-Subject Sprint -->
-      <div class="light-card rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-500/40 shadow-sm p-6 flex flex-col justify-between gap-5 hover:border-emerald-500 hover:shadow-md transition-all">
-        <div class="flex flex-col gap-3">
-          <div class="flex items-center justify-between">
-            <span class="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center text-xl font-bold">⚡</span>
-            <span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-mono text-xs font-bold">10 to 50 Qs</span>
+    <main class="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col gap-8 max-w-6xl w-full mx-auto">
+
+      <!-- Hero Header -->
+      <div class="light-card p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-3xl shrink-0 font-black">
+              📝
+            </div>
+            <div class="flex flex-col">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 text-xs font-bold font-mono uppercase">
+                  UPSC MOCK TEST SIMULATOR
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 text-xs font-bold font-mono">
+                  1,600+ Authentic PYQs
+                </span>
+              </div>
+              <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-1.5">
+                UPSC CSE Prelims Mock Test Series (2026)
+              </h1>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-3xl leading-relaxed">
+                Timed UPSC simulation with strict negative penalty (+2.00 / -0.66), 4 distinct test formats, dynamic current affairs cohorts, and forensic scorecards.
+              </p>
+            </div>
           </div>
-          <h2 class="text-lg font-black text-slate-900 dark:text-white">Sectional &amp; Custom Mix</h2>
-          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Customize subjects as per your daily syllabus: mix Polity + Economy, Environment + Geography, or drill a single subject. Select 10, 20, 25, 30, or 50 questions.
-          </p>
-          <div class="flex items-center gap-2 text-xs font-mono text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <span>Flexible Volume</span>
-            <span>·</span>
-            <span>Auto Timer</span>
-            <span>·</span>
-            <span class="text-emerald-500 font-bold">Custom Mix</span>
+
+          <div class="shrink-0">
+            <a href="/prelims?mode=mock" class="btn-action-amber px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition shadow-md flex items-center gap-2">
+              <span>🚀 Launch Mock Test Generator</span>
+              <span>→</span>
+            </a>
           </div>
         </div>
 
-        <a href="/prelims" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs text-center shadow-md transition-all">
-          ▶ Customize &amp; Launch Sprint
-        </a>
+        <!-- 4 Authentic Simulation Modes Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-2">
+            <div class="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-xs uppercase font-mono">
+              <span>🏆</span>
+              <span>Full Simulation (PYQs)</span>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              100 Questions, 120 Minutes. Real UPSC CSE exam temperament with negative marking.
+            </p>
+            <a href="/prelims?mode=mock&format=full" class="text-xs text-amber-600 dark:text-amber-400 font-bold mt-auto hover:underline">Start Full 100 Qs →</a>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-2">
+            <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase font-mono">
+              <span>⚡</span>
+              <span>Sectional Sprints</span>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              Custom multi-subject mix (e.g. Polity + Economy) with 10, 20, 25, 30, or 50 questions.
+            </p>
+            <a href="/prelims?mode=mock&format=sectional" class="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-auto hover:underline">Start Sectional →</a>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-2">
+            <div class="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-xs uppercase font-mono">
+              <span>🤖</span>
+              <span>2026 AI Current Affairs</span>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              Reverse-engineered contemporary questions synthesized dynamically from monthly dossiers.
+            </p>
+            <a href="/prelims?mode=ca" class="text-xs text-blue-600 dark:text-blue-400 font-bold mt-auto hover:underline">Generate AI CA Mock →</a>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-2">
+            <div class="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold text-xs uppercase font-mono">
+              <span>🎯</span>
+              <span>Mistakes Notebook Drill</span>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              Target your recurring negative-mark leaks and weak conceptual traps with micro-drills.
+            </p>
+            <a href="/prelims?mode=mistakes" class="text-xs text-rose-600 dark:text-rose-400 font-bold mt-auto hover:underline">Drill Mistakes →</a>
+          </div>
+        </div>
       </div>
 
-      <!-- Format 3: Weakness Remedial Drill -->
-      <div class="light-card rounded-3xl bg-white dark:bg-slate-900 border-2 border-rose-500/40 shadow-sm p-6 flex flex-col justify-between gap-5 hover:border-rose-500 hover:shadow-md transition-all">
-        <div class="flex flex-col gap-3">
-          <div class="flex items-center justify-between">
-            <span class="w-10 h-10 rounded-2xl bg-rose-500/15 text-rose-500 flex items-center justify-center text-xl font-bold">🎯</span>
-            <span class="px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 font-mono text-xs font-bold">20 Mins</span>
-          </div>
-          <h2 class="text-lg font-black text-slate-900 dark:text-white">Mistakes Remedial Drill</h2>
-          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Intelligently samples 15 questions from topics where your accuracy is low or questions you previously got wrong. Re-test traps until concepts are fortified.
-          </p>
-          <div class="flex items-center gap-2 text-xs font-mono text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <span>15 Qs</span>
-            <span>·</span>
-            <span>30 Marks</span>
-            <span>·</span>
-            <span class="text-rose-500 font-bold">Fix Errors</span>
-          </div>
-        </div>
+      <!-- FAQ Accordion -->
+      <div class="light-card p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
+        <h2 class="text-sm font-mono uppercase tracking-wider text-slate-800 dark:text-slate-200 font-bold border-b border-slate-100 dark:border-slate-800 pb-3">
+          Frequently Asked Questions (Prelims Mock Tests)
+        </h2>
+        <div class="space-y-3 text-xs sm:text-sm">
+          <details class="group p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+            <summary class="font-bold text-slate-900 dark:text-white cursor-pointer select-none flex items-center justify-between">
+              <span>How are scorecards generated after completing a mock test?</span>
+              <span class="text-slate-400 group-open:rotate-180 transition">▼</span>
+            </summary>
+            <p class="mt-3 text-slate-600 dark:text-slate-400 leading-relaxed">
+              For any mock or drill of 5 or more questions, CookedMains computes your net score (+2.00 per correct, -0.66 per incorrect), accuracy percentage, subject breakdown, and behavioral error classification (Knowledge Gap vs Slipped Read vs Overconfidence).
+            </p>
+          </details>
 
-        <a href="/prelims" class="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs text-center shadow-md transition-all">
-          ▶ Drill My Weak Topics
-        </a>
+          <details class="group p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+            <summary class="font-bold text-slate-900 dark:text-white cursor-pointer select-none flex items-center justify-between">
+              <span>What if I get interrupted during a 2-hour simulation?</span>
+              <span class="text-slate-400 group-open:rotate-180 transition">▼</span>
+            </summary>
+            <p class="mt-3 text-slate-600 dark:text-slate-400 leading-relaxed">
+              Our Progress Tracker engine automatically preserves your in-progress mock state in localStorage. You can safely return to your session anytime from the Progress Tracker tab and resume right where you left off.
+            </p>
+          </details>
+        </div>
       </div>
 
-    </div>
+    </main>
 
-    <!-- Subject Syllabus Weightage & Coverage Grid -->
-    <div class="light-card rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-6 sm:p-8 flex flex-col gap-5">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-        <div>
-          <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white">
-            Available Prelims Subject Question Banks (2011–2026)
-          </h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Every question verified with official UPSC keys, Topper's traps, and standard NCERT references.
-          </p>
+    <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 py-6 text-center text-xs text-slate-500 dark:text-slate-400 bg-white/50 dark:bg-slate-950/50">
+      <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <span>© 2026 CookedMains · Authentic UPSC CSE Preparation Platform</span>
+        <div class="flex items-center gap-4">
+          <a href="/prelims" class="hover:underline">Prelims App</a>
+          <a href="/prelims/pyqs" class="hover:underline">PYQ Vault</a>
+          <a href="/prelims/csat" class="hover:underline">CSAT Practice</a>
+          <a href="/prelims/cutoff-calculator" class="hover:underline">Cutoff Calculator</a>
         </div>
-        <span class="text-xs font-mono font-bold text-amber-500">1,600+ Curated Questions</span>
       </div>
+    </footer>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-        
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <div class="flex flex-col">
-            <span class="text-xs font-bold text-slate-900 dark:text-white">Polity &amp; Governance</span>
-            <span class="text-[11px] text-slate-500">Preamble, Rights, Parliament, RPA</span>
-          </div>
-          <span class="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">240+ Qs</span>
-        </div>
+  </div>
 
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <div class="flex flex-col">
-            <span class="text-xs font-bold text-slate-900 dark:text-white">Economy &amp; Banking</span>
-            <span class="text-[11px] text-slate-500">Monetary Policy, BoP, Inflation</span>
-          </div>
-          <span class="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">210+ Qs</span>
-        </div>
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('prelims_theme') || 'dark';
+      if (savedTheme === 'dark') document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
 
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <div class="flex flex-col">
-            <span class="text-xs font-bold text-slate-900 dark:text-white">Environment &amp; Ecology</span>
-            <span class="text-[11px] text-slate-500">Wetlands, National Parks, Climate</span>
-          </div>
-          <span class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">225+ Qs</span>
-        </div>
+      document.getElementById('sidebarThemeToggle')?.addEventListener('click', function() {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('prelims_theme', isDark ? 'dark' : 'light');
+      });
 
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <div class="flex flex-col">
-            <span class="text-xs font-bold text-slate-900 dark:text-white">History &amp; Art-Culture</span>
-            <span class="text-[11px] text-slate-500">Modern India, 1857, Ancient &amp; Art</span>
-          </div>
-          <span class="text-xs font-mono font-bold text-orange-600 dark:text-orange-400">260+ Qs</span>
-        </div>
-
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <div class="flex flex-col">
-            <span class="text-xs font-bold text-slate-900 dark:text-white">Geography &amp; Mapping</span>
-            <span class="text-[11px] text-slate-500">Rivers, Drainage, Physical Mapping</span>
-          </div>
-          <span class="text-xs font-mono font-bold text-teal-600 dark:text-teal-400">180+ Qs</span>
-        </div>
-
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <div class="flex flex-col">
-            <span class="text-xs font-bold text-slate-900 dark:text-white">Science &amp; Technology</span>
-            <span class="text-[11px] text-slate-500">Biotech, Space, CRISPR, AI &amp; IT</span>
-          </div>
-          <span class="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">165+ Qs</span>
-        </div>
-
-      </div>
-
-      <!-- Quick Launch Link -->
-      <div class="pt-2 text-center">
-        <a href="/prelims" class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-slate-950 font-bold text-xs shadow-md transition-all">
-          <span>🚀 Open Mock Generator in Practice App</span>
-          <span>→</span>
-        </a>
-      </div>
-    </div>
-
-  </main>
-
-  <!-- Footer -->
-  <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 py-6 text-center text-xs text-slate-500 dark:text-slate-400">
-    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-      <span>© 2026 CookedMains · Authentic UPSC CSE Preparation Platform</span>
-      <div class="flex items-center gap-4">
-        <a href="/prelims/pyqs" class="hover:underline">16-Year PYQ Archive</a>
-        <a href="/prelims/cutoff-calculator" class="hover:underline">Cutoff Calculator</a>
-        <a href="/privacy-policy.html" class="hover:underline">Privacy</a>
-        <a href="/contact-us.html" class="hover:underline">Contact</a>
-      </div>
-    </div>
-  </footer>
+      const openBtn = document.getElementById('openMobileSidebarBtn');
+      const closeBtn = document.getElementById('closeSidebarMobileBtn');
+      const sidebar = document.getElementById('sidebarNav');
+      const backdrop = document.getElementById('mobileSidebarBackdrop');
+      function toggleSidebar(open) {
+        if (!sidebar) return;
+        if (open) {
+          sidebar.classList.remove('-translate-x-full');
+          backdrop?.classList.remove('hidden');
+        } else {
+          sidebar.classList.add('-translate-x-full');
+          backdrop?.classList.add('hidden');
+        }
+      }
+      openBtn?.addEventListener('click', () => toggleSidebar(true));
+      closeBtn?.addEventListener('click', () => toggleSidebar(false));
+      backdrop?.addEventListener('click', () => toggleSidebar(false));
+    })();
+  </script>
 
 </body>
 </html>

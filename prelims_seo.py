@@ -17,7 +17,7 @@ SUBJECT_META = {
     "polity": {
         "name": "Polity & Governance",
         "title": "UPSC Polity PYQs Topic-Wise with Official Answer Keys (2011–2026) | CookedMains",
-        "description": "Practice 90+ authentic UPSC Prelims Polity & Governance PYQs with official answer keys, NCERT/Laxmikanth standard references, and topper elimination traps.",
+        "description": "Practice 300+ authentic UPSC Prelims Polity & Governance PYQs with official answer keys, NCERT/Laxmikanth standard references, and topper elimination traps.",
         "icon": "🏛️",
         "badge": "High Yield Core",
         "color": "amber",
@@ -27,7 +27,7 @@ SUBJECT_META = {
     "economy": {
         "name": "Economy & Banking",
         "title": "UPSC Economy PYQs Topic-Wise with Official Explanations (2011–2026) | CookedMains",
-        "description": "Master 70+ UPSC Prelims Economy & Banking questions. Monetary policy, balance of payments, fiscal deficit, and budget concepts solved with official keys.",
+        "description": "Master 310+ authentic UPSC Prelims Economy & Banking questions. Monetary policy, balance of payments, fiscal deficit, and budget concepts solved with official keys.",
         "icon": "📈",
         "badge": "High Yield Core",
         "color": "emerald",
@@ -37,7 +37,7 @@ SUBJECT_META = {
     "environment": {
         "name": "Environment & Ecology",
         "title": "UPSC Environment & Ecology PYQs Topic-Wise with Solutions (2011–2026) | CookedMains",
-        "description": "Solve 60+ UPSC Prelims Environment & Ecology PYQs. National parks, climate treaties, IUCN statuses, and wildlife acts with official keys.",
+        "description": "Solve 270+ authentic UPSC Prelims Environment & Ecology PYQs. National parks, climate treaties, IUCN statuses, and wildlife acts with official keys.",
         "icon": "🌿",
         "badge": "20-25% Weightage",
         "color": "emerald",
@@ -47,7 +47,7 @@ SUBJECT_META = {
     "history": {
         "name": "History & Art-Culture",
         "title": "UPSC History & Art-Culture PYQs Topic-Wise with Official Keys (2011–2026) | CookedMains",
-        "description": "Master Ancient, Medieval, Modern Indian History and Art & Culture PYQs (2011–2026). Decoded elimination techniques and standard references.",
+        "description": "Practice 270+ authentic UPSC History & Art-Culture PYQs (2011–2026). Decoded elimination techniques and standard references.",
         "icon": "📜",
         "badge": "Core Foundation",
         "color": "amber",
@@ -57,7 +57,7 @@ SUBJECT_META = {
     "geography": {
         "name": "Geography & Mapping",
         "title": "UPSC Geography & Mapping PYQs Topic-Wise with Official Keys (2011–2026) | CookedMains",
-        "description": "Practice 68+ UPSC Prelims Geography and Mapping PYQs. River systems, geomorphology, oceanography, and world map locations with official solutions.",
+        "description": "Practice 200+ authentic UPSC Prelims Geography and Mapping PYQs. River systems, geomorphology, oceanography, and world map locations with official solutions.",
         "icon": "🌍",
         "badge": "Map & Concepts",
         "color": "sky",
@@ -67,7 +67,7 @@ SUBJECT_META = {
     "science-and-tech": {
         "name": "Science & Technology",
         "title": "UPSC Science & Technology PYQs Topic-Wise with Solutions (2011–2026) | CookedMains",
-        "description": "Practice authentic UPSC Prelims Science & Tech questions. Biotechnology, AI, space missions, CRISPR, and defense tech solved with official keys.",
+        "description": "Practice 210+ authentic UPSC Prelims Science & Tech questions (2011–2026). Biotechnology, AI, space missions, CRISPR, and defense tech solved with official keys.",
         "icon": "🔬",
         "badge": "Current Applied",
         "color": "indigo",
@@ -283,7 +283,7 @@ def render_subject_page(meta: Dict[str, Any], questions: List[Dict[str, Any]]) -
 
     # Years pills
     year_links = []
-    for y in range(2024, 2010, -1):
+    for y in range(2026, 2010, -1):
         year_links.append(f'''
         <a href="/prelims/pyqs/{y}" class="px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition">
           {y}
@@ -318,8 +318,24 @@ def render_subject_page(meta: Dict[str, Any], questions: List[Dict[str, Any]]) -
   {json.dumps(quiz_schema, ensure_ascii=False, indent=2)}
   </script>
 
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap">
+  <link rel="icon" type="image/png" href="/static/favicon-32x32.png">
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {{ font-family: 'Plus Jakarta Sans', sans-serif; }}
+    .font-mono {{ font-family: 'JetBrains Mono', monospace; }}
+    html.dark {{ background-color: #020617; color: #f8fafc; }}
+    html.dark body {{ background-color: #020617; color: #f8fafc; }}
+    html.dark .brand-logo-light {{ display: none !important; }}
+    html.dark .brand-logo-dark {{ display: block !important; }}
+    html:not(.dark) {{ background-color: #f8fafc; color: #0f172a; }}
+    html:not(.dark) body {{ background-color: #f8fafc; color: #0f172a; }}
+    html:not(.dark) .brand-logo-light {{ display: block !important; }}
+    html:not(.dark) .brand-logo-dark {{ display: none !important; }}
+    html:not(.dark) .light-card {{ background-color: #ffffff !important; border-color: #e2e8f0 !important; color: #0f172a !important; }}
+  </style>
   <script>
     tailwind.config = {{
       darkMode: 'class',
@@ -344,8 +360,16 @@ def render_subject_page(meta: Dict[str, Any], questions: List[Dict[str, Any]]) -
     <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
         <a href="/prelims" class="flex items-center gap-2 group">
-          <span class="w-8 h-8 rounded-lg bg-amber-500 font-black text-slate-950 flex items-center justify-center text-sm shadow group-hover:scale-105 transition">C</span>
-          <span class="font-black text-base tracking-tight text-white group-hover:text-amber-400 transition">CookedMains</span>
+          <img src="/static/brand_logo_light.png" alt="Cooked Mains Logo" class="brand-logo-light h-8 w-auto object-contain">
+          <img src="/static/brand_logo_dark.png" alt="Cooked Mains Logo" class="brand-logo-dark h-8 w-auto object-contain">
+          <div class="flex flex-col justify-center">
+            <span class="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight flex items-center">
+              Cooked <span class="text-amber-500 ml-1">Mains</span>
+            </span>
+            <span class="text-[9px] font-mono font-bold tracking-wider text-amber-500 uppercase leading-none mt-0.5">
+              DASHBOARD
+            </span>
+          </div>
         </a>
         <span class="text-slate-600">/</span>
         <a href="/prelims/pyqs" class="text-xs font-semibold text-slate-400 hover:text-slate-200 transition">PYQs Archive</a>
@@ -446,6 +470,13 @@ def render_subject_page(meta: Dict[str, Any], questions: List[Dict[str, Any]]) -
   <footer class="mt-16 border-t border-slate-800 bg-slate-950 py-8 text-center text-xs text-slate-400">
     <p>© 2026 CookedMains. Authentic UPSC CSE Prelims &amp; Mains preparation technology.</p>
   </footer>
+  <script>
+    (function() {{
+      const savedTheme = localStorage.getItem('prelims_theme') || 'dark';
+      if (savedTheme === 'dark') document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
+    }})();
+  </script>
 </body>
 </html>'''
 
@@ -556,7 +587,7 @@ def render_year_page(year: int, questions: List[Dict[str, Any]]) -> str:
 
     # Year archive strip
     year_links = []
-    for y in range(2024, 2010, -1):
+    for y in range(2026, 2010, -1):
         is_cur = (y == year)
         active_cls = "bg-amber-500 text-slate-950 font-bold" if is_cur else "bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800"
         year_links.append(f'''
@@ -586,8 +617,24 @@ def render_year_page(year: int, questions: List[Dict[str, Any]]) -> str:
   {json.dumps(quiz_schema, ensure_ascii=False, indent=2)}
   </script>
 
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap">
+  <link rel="icon" type="image/png" href="/static/favicon-32x32.png">
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {{ font-family: 'Plus Jakarta Sans', sans-serif; }}
+    .font-mono {{ font-family: 'JetBrains Mono', monospace; }}
+    html.dark {{ background-color: #020617; color: #f8fafc; }}
+    html.dark body {{ background-color: #020617; color: #f8fafc; }}
+    html.dark .brand-logo-light {{ display: none !important; }}
+    html.dark .brand-logo-dark {{ display: block !important; }}
+    html:not(.dark) {{ background-color: #f8fafc; color: #0f172a; }}
+    html:not(.dark) body {{ background-color: #f8fafc; color: #0f172a; }}
+    html:not(.dark) .brand-logo-light {{ display: block !important; }}
+    html:not(.dark) .brand-logo-dark {{ display: none !important; }}
+    html:not(.dark) .light-card {{ background-color: #ffffff !important; border-color: #e2e8f0 !important; color: #0f172a !important; }}
+  </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen antialiased">
   <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
@@ -622,6 +669,13 @@ def render_year_page(year: int, questions: List[Dict[str, Any]]) -> str:
   <footer class="mt-16 border-t border-slate-800 py-8 text-center text-xs text-slate-500">
     <p>© 2026 CookedMains. All rights reserved.</p>
   </footer>
+  <script>
+    (function() {{
+      const savedTheme = localStorage.getItem('prelims_theme') || 'dark';
+      if (savedTheme === 'dark') document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
+    }})();
+  </script>
 </body>
 </html>'''
 
@@ -817,5 +871,12 @@ def render_question_page(q: Dict[str, Any]) -> str:
   <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
     © 2026 CookedMains · Authentic UPSC CSE Prelims Question Vault
   </footer>
+  <script>
+    (function() {{
+      const savedTheme = localStorage.getItem('prelims_theme') || 'dark';
+      if (savedTheme === 'dark') document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
+    }})();
+  </script>
 </body>
 </html>"""

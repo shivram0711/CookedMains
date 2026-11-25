@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>UPSC Prelims Cutoff &amp; Negative Marking EV Calculator (2026) | CookedMains</title>
-  <meta name="description" content="Calculate your optimal UPSC CSE Prelims attempt volume. See how negative marks (-0.66) affect your net score and find your safe cutoff margin for GS Paper 1.">
-  <meta name="keywords" content="UPSC Prelims Cutoff Calculator, Safe Attempts in UPSC Prelims, UPSC Negative Marking Calculator, GS 1 Attempt Strategy, 50:50 Elimination Math UPSC">
+  <title>UPSC Prelims Cutoff &amp; Negative Marking EV Calculator (2026) | GS Paper 1 Safe Score | CookedMains</title>
+  <meta name="description" content="Calculate your optimal UPSC CSE Prelims attempt volume. See how negative marks (-0.66) affect your net score, evaluate 50:50 elimination expected value (+0.67), and find your safe cutoff margin.">
+  <meta name="keywords" content="UPSC Prelims Cutoff Calculator, Safe Attempts in UPSC Prelims, UPSC Negative Marking Calculator, GS 1 Attempt Strategy, 50:50 Elimination Math UPSC, UPSC Safe Score 2026">
   <link rel="canonical" href="https://cookedmains.com/prelims/cutoff-calculator">
 
   <!-- OpenGraph / Social Meta -->
@@ -21,21 +21,69 @@
   <meta name="twitter:description" content="Find your safe attempt volume for UPSC CSE Prelims 2026 based on probability and expected value.">
   <meta name="twitter:image" content="https://cookedmains.com/static/brand_logo_dark.png">
 
-  <!-- Schema.org WebApplication JSON-LD -->
+  <!-- Schema.org WebApplication & FAQPage JSON-LD -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "UPSC Prelims Cutoff & Negative Marking Calculator",
-    "url": "https://cookedmains.com/prelims/cutoff-calculator",
-    "description": "Interactive expected value and cutoff calculator for UPSC Civil Services Preliminary Examination GS Paper 1.",
-    "applicationCategory": "EducationalApplication",
-    "operatingSystem": "All",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "INR"
-    }
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "name": "UPSC Prelims Cutoff & Negative Marking Calculator",
+        "url": "https://cookedmains.com/prelims/cutoff-calculator",
+        "description": "Interactive mathematical expected value (EV) and safe attempt calculator for UPSC Civil Services Preliminary Examination GS Paper 1.",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "All",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "INR"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://cookedmains.com/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Prelims",
+            "item": "https://cookedmains.com/prelims"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Cutoff EV Calculator",
+            "item": "https://cookedmains.com/prelims/cutoff-calculator"
+          }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is the expected safe cutoff score for UPSC Prelims GS Paper 1?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Over the past 5 years (2020 to 2024), the General category cutoff has consistently hovered between 75 and 88 marks. A safe, resilient target score for Prelims 2026 is between 92 and 100 marks."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why is attempting questions with 50:50 elimination mathematically profitable?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "When an aspirant eliminates two options and chooses between the remaining two, the probability of being correct is 50%. The Expected Value (EV) is: (0.50 × +2.00) + (0.50 × -0.66) = +0.67 marks per question. Across 20 such questions, probability yields an expected gain of +13.4 marks."
+            }
+          }
+        ]
+      }
+    ]
   }
   </script>
 
@@ -49,312 +97,346 @@
           colors: {
             amber: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' },
             emerald: { 400: '#34d399', 500: '#10b981', 600: '#059669' },
-            slate: { 850: '#0f172a', 900: '#0b1120', 950: '#060913' }
+            slate: { 850: '#0f172a', 900: '#0b1120', 950: '#020617' }
           }
         }
       }
-    }
+    };
   </script>
 
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap">
   <link rel="icon" type="image/png" href="/static/favicon-32x32.png">
 
   <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
     html.dark { background-color: #020617; color: #f8fafc; }
     html.dark body { background-color: #020617; color: #f8fafc; }
+    html.dark .brand-logo-light { display: none !important; }
+    html.dark .brand-logo-dark { display: block !important; }
+
     html:not(.dark) { background-color: #f8fafc; color: #0f172a; }
     html:not(.dark) body { background-color: #f8fafc; color: #0f172a; }
+    html:not(.dark) .brand-logo-light { display: block !important; }
+    html:not(.dark) .brand-logo-dark { display: none !important; }
     html:not(.dark) .light-card { background-color: #ffffff !important; border-color: #e2e8f0 !important; color: #0f172a !important; }
-    html:not(.dark) .light-inner { background-color: #f8fafc !important; border-color: #e2e8f0 !important; color: #0f172a !important; }
+    html:not(.dark) .light-sidebar { background-color: #f8fafc !important; border-color: #e2e8f0 !important; color: #0f172a !important; }
+
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    html.dark .sidebar-nav-item {
+      color: #94a3b8;
+      background-color: transparent;
+      border: 1px solid transparent;
+    }
+    html.dark .sidebar-nav-item:hover {
+      background-color: rgba(245, 158, 11, 0.12) !important;
+      color: #fbbf24 !important;
+      border-color: rgba(245, 158, 11, 0.4) !important;
+      transform: translateX(3px);
+    }
+    html.dark .sidebar-nav-item.active {
+      background-color: rgba(245, 158, 11, 0.18) !important;
+      color: #fbbf24 !important;
+      border-color: rgba(245, 158, 11, 0.5) !important;
+      font-weight: 800 !important;
+    }
+
+    html:not(.dark) .sidebar-nav-item {
+      color: #334155;
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+    }
+    html:not(.dark) .sidebar-nav-item:hover {
+      background-color: rgba(245, 158, 11, 0.15) !important;
+      color: #78350f !important;
+      border-color: rgba(245, 158, 11, 0.45) !important;
+      transform: translateX(3px);
+    }
+    html:not(.dark) .sidebar-nav-item.active {
+      background-color: rgba(245, 158, 11, 0.18) !important;
+      color: #78350f !important;
+      border-color: rgba(245, 158, 11, 0.5) !important;
+      font-weight: 800 !important;
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-slate-950">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex font-sans antialiased selection:bg-amber-500 selection:text-slate-950 transition-colors duration-200 overflow-x-hidden">
 
-  <!-- Header -->
-  <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <a href="/prelims" class="flex items-center gap-3">
-        <img src="/static/brand_logo_dark.png" alt="CookedMains Logo" class="h-8 w-auto hidden dark:block">
-        <img src="/static/brand_logo_light.png" alt="CookedMains Logo" class="h-8 w-auto block dark:hidden">
-        <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-mono font-bold">Prelims 2026</span>
+  <!-- AUTHENTIC SIDEBAR NAVIGATION -->
+  <aside id="sidebarNav" class="light-sidebar fixed top-0 bottom-0 left-0 z-40 w-64 h-full max-h-screen bg-slate-950 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 transform -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none overflow-hidden">
+    
+    <div class="h-16 shrink-0 px-4 flex items-center justify-between border-b border-slate-800/80">
+      <a href="/" class="flex items-center gap-2.5 group select-none">
+        <img src="/static/brand_logo_light.png" alt="Cooked Mains Logo" class="brand-logo-light h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
+        <img src="/static/brand_logo_dark.png" alt="Cooked Mains Logo" class="brand-logo-dark h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
+        <div class="flex flex-col justify-center">
+          <span class="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight flex items-center">
+            Cooked <span class="text-amber-500 ml-1">Mains</span>
+          </span>
+          <span class="text-[9px] font-mono font-bold tracking-wider text-amber-500 uppercase leading-none mt-0.5">
+            DASHBOARD
+          </span>
+        </div>
+      </a>
+      <button id="closeSidebarMobileBtn" type="button" class="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer">
+        ✕
+      </button>
+    </div>
+
+    <nav class="flex-1 min-h-0 overflow-y-auto p-3 flex flex-col gap-1.5 text-xs font-semibold custom-scrollbar">
+      <a href="/prelims" class="sidebar-nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <span class="text-base">🏠</span>
+        <span>Home Dashboard</span>
       </a>
 
-      <nav class="flex items-center gap-3 sm:gap-4 text-xs font-bold">
-        <a href="/prelims" class="text-slate-600 dark:text-slate-300 hover:text-amber-500 transition-colors">Dashboard</a>
-        <a href="/prelims/pyqs" class="text-slate-600 dark:text-slate-300 hover:text-amber-500 transition-colors">14-Yr PYQs</a>
-        <a href="/prelims/mock-tests" class="text-slate-600 dark:text-slate-300 hover:text-amber-500 transition-colors">Mock Tests</a>
-        <a href="/prelims" class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-slate-950 font-bold transition-all shadow-sm">
-          Open Practice App →
-        </a>
-      </nav>
-    </div>
-  </header>
+      <a href="/prelims?mode=progress" class="sidebar-nav-item flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <div class="flex items-center gap-3">
+          <span class="text-base">📈</span>
+          <span class="font-bold">Progress Tracker</span>
+        </div>
+        <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[9px] font-black uppercase font-mono">TRACK</span>
+      </a>
 
-  <!-- Main Container -->
-  <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
+      <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold px-3 pt-3 pb-1">
+        PRELIMS (1,600+ PYQS)
+      </span>
 
-    <!-- Breadcrumb Navigation -->
-    <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-mono">
-      <a href="/" class="hover:underline">Home</a>
-      <span>/</span>
-      <a href="/prelims" class="hover:underline">Prelims</a>
-      <span>/</span>
-      <span class="text-slate-800 dark:text-slate-200 font-bold">Cutoff &amp; EV Calculator</span>
+      <a href="/prelims/pyqs" class="sidebar-nav-item flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <div class="flex items-center gap-3">
+          <span class="text-base">📚</span>
+          <span>Prelims PYQ Vault</span>
+        </div>
+        <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[9px] font-black uppercase">Deep Facts</span>
+      </a>
+
+      <a href="/prelims/current-affairs" class="sidebar-nav-item flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <div class="flex items-center gap-3">
+          <span class="text-base">📰</span>
+          <span>Current Affairs Arena</span>
+        </div>
+        <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[9px] font-black uppercase">2026 Mocks</span>
+      </a>
+
+      <a href="/prelims/mock-tests" class="sidebar-nav-item flex items-center justify-between px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <div class="flex items-center gap-3">
+          <span class="text-base">📝</span>
+          <span>Adaptive Mock Tests</span>
+        </div>
+        <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[9px] font-black uppercase">AI</span>
+      </a>
+
+      <a href="/prelims?mode=player" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <span class="text-base">🎯</span>
+        <span>Focus Player (Timed)</span>
+      </a>
+
+      <a href="/prelims/csat" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <span class="text-base">🧮</span>
+        <span>CSAT Practice</span>
+      </a>
+
+      <a href="/prelims?mode=mistakes" class="sidebar-nav-item flex items-center justify-between px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <div class="flex items-center gap-3">
+          <span class="text-base">📓</span>
+          <span>Mistakes Notebook</span>
+        </div>
+        <span class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px] font-black">20</span>
+      </a>
+
+      <!-- Active: Cutoff EV Simulator -->
+      <a href="/prelims/cutoff-calculator" class="sidebar-nav-item active flex items-center gap-3 px-3 py-2 rounded-xl font-bold border transition-all text-left">
+        <span class="text-base">📊</span>
+        <span>Cutoff EV Simulator</span>
+      </a>
+
+      <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold px-3 pt-3 pb-1">
+        MAINS EVALUATION
+      </span>
+      <a href="/" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <span class="text-base">✍️</span>
+        <span>Mains Studio</span>
+      </a>
     </nav>
 
-    <!-- Top Headline Section -->
-    <div class="flex flex-col gap-2">
-      <div class="flex items-center gap-2">
-        <span class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[11px] font-mono font-bold uppercase tracking-wide">
-          Official UPSC GS-1 Scoring Model (+2.0 / -0.66)
-        </span>
+    <div class="p-3 border-t border-slate-800/80 flex flex-col gap-2 shrink-0">
+      <div class="grid grid-cols-2 gap-2">
+        <a href="/prelims" class="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-semibold transition-all">
+          <span class="text-amber-500 font-mono font-bold">A/अ</span>
+          <span class="text-[10px]">English</span>
+        </a>
+
+        <button id="sidebarThemeToggle" type="button" class="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500/40 text-slate-700 dark:text-slate-300 text-[11px] font-semibold cursor-pointer transition-all">
+          <span id="sidebarThemeIcon">🌓</span>
+          <span id="sidebarThemeLabel" class="text-[10px]">Theme</span>
+        </button>
       </div>
-      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-        UPSC Prelims Cutoff &amp; Negative Marking Calculator
-      </h1>
-      <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
-        Stop losing 15+ marks to FOMO guessing. Calculate your exact attempt sweet spot based on probability and Expected Value ($EV$). Understand mathematically why attempting 82–88 questions is essential to beat negative marking.
-      </p>
     </div>
+  </aside>
 
-    <!-- Google Featured Snippet Definition Box (PAA Target) -->
-    <div class="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed space-y-1.5">
-      <h2 class="text-xs font-bold uppercase font-mono tracking-wider text-amber-600 dark:text-amber-400">What is Expected Value (EV) in UPSC Prelims Guessing?</h2>
-      <p>
-        <strong>Expected Value (EV)</strong> is the mathematical net mark expectation per question. In UPSC GS Paper-1, a correct answer awards <strong>+2.0 marks</strong> while an incorrect answer penalizes <strong>-0.66 marks</strong>. Eliminating two options (a 50:50 guess) yields a positive mathematical expectation of <strong>+0.67 marks</strong> [(0.5 × +2.0) - (0.5 × 0.66)]. Aspirants who attempt all 50:50 questions gain a statistical scoring edge over those who leave them unattempted.
-      </p>
-    </div>
+  <div id="mobileSidebarBackdrop" class="hidden fixed inset-0 z-30 bg-slate-950/70 backdrop-blur-xs md:hidden"></div>
 
-    <!-- Interactive Calculator Card -->
-    <div class="light-card rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-6 sm:p-8 flex flex-col gap-6">
-      
-      <!-- Real-Time Scorecard Output Banner -->
-      <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-3">
-        <div class="grid grid-cols-3 gap-2 text-center font-mono">
-          <div class="flex flex-col">
-            <span class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">Gross Marks</span>
-            <span id="evGrossScoreText" class="text-xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">+114.0</span>
-          </div>
-          <div class="flex flex-col">
-            <span class="text-[10px] text-rose-600 dark:text-rose-400 uppercase font-bold">Negative Penalty</span>
-            <span id="evPenaltyScoreText" class="text-xl sm:text-3xl font-black text-rose-600 dark:text-rose-400">-16.5</span>
-          </div>
-          <div class="flex flex-col">
-            <span class="text-[10px] text-amber-600 dark:text-amber-400 uppercase font-bold">Net Projected Score</span>
-            <span id="evNetScoreText" class="text-2xl sm:text-4xl font-black text-amber-600 dark:text-amber-400">97.5</span>
-          </div>
-        </div>
-
-        <div id="evCutoffDeltaNotice" class="text-xs p-3 rounded-xl font-bold flex items-center justify-between bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20">
-          <span id="evCutoffDeltaText">🎉 Clearing standard 88.0 Cutoff by +9.5 marks!</span>
-          <span class="font-mono text-[10px] uppercase text-emerald-600 dark:text-emerald-400 font-bold">Cutoff Benchmark: 88.0M</span>
+  <!-- MAIN APP WORKSPACE -->
+  <div class="flex-1 md:ml-64 flex flex-col min-h-screen">
+    
+    <header class="sticky top-0 z-30 h-16 backdrop-blur-md bg-white/90 dark:bg-slate-950/85 border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 flex items-center justify-between gap-3 transition-colors">
+      <div class="flex items-center gap-3">
+        <button id="openMobileSidebarBtn" type="button" class="md:hidden p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-white border border-slate-200 dark:border-slate-800 cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="flex items-center gap-2 text-xs font-semibold">
+          <a href="/prelims" class="text-slate-500 hover:text-amber-500 transition">CookedMains</a>
+          <span class="text-slate-400">/</span>
+          <span class="text-amber-600 dark:text-amber-400 font-bold">Cutoff Sweet Spot &amp; EV Optimizer</span>
         </div>
       </div>
 
-      <!-- Sliders Grid -->
-      <div class="flex flex-col gap-4">
-        
-        <!-- Slider 1: Total Attempt Target -->
-        <div class="flex flex-col gap-1.5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-          <div class="flex items-center justify-between text-xs font-bold">
-            <span class="text-slate-900 dark:text-white">🎯 Total Target Questions Attempted</span>
-            <span id="evTotalDisplay" class="font-mono text-amber-600 dark:text-amber-400 font-black text-sm">82 / 100</span>
-          </div>
-          <input id="evTotalSlider" type="range" min="65" max="95" value="82" class="w-full accent-amber-500 cursor-pointer">
-          <span class="text-[11px] text-slate-500 dark:text-slate-400">Recommended for GS-1: 80 to 88 attempts to buffer unavoidable human errors.</span>
-        </div>
-
-        <!-- Slider 2: Sure-Shots (90% Acc) -->
-        <div class="flex flex-col gap-1.5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-          <div class="flex items-center justify-between text-xs font-bold">
-            <span class="text-emerald-700 dark:text-emerald-400">🟢 Sure-Shot Questions (High Confidence · ~90% Accuracy)</span>
-            <span id="evSureDisplay" class="font-mono text-emerald-700 dark:text-emerald-400 font-black text-sm">44 Questions</span>
-          </div>
-          <input id="evSureSlider" type="range" min="20" max="60" value="44" class="w-full accent-emerald-500 cursor-pointer">
-          <span class="text-[11px] text-slate-500 dark:text-slate-400">Concepts you have revised thoroughly and are certain about.</span>
-        </div>
-
-        <!-- Slider 3: 50:50 Eliminators (50% Acc) -->
-        <div class="flex flex-col gap-1.5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-          <div class="flex items-center justify-between text-xs font-bold">
-            <span class="text-amber-700 dark:text-amber-400">🟡 Calculated 50:50 Elimination (Positive Expected Value · ~50% Accuracy)</span>
-            <span id="evFiftyDisplay" class="font-mono text-amber-700 dark:text-amber-400 font-black text-sm">26 Questions</span>
-          </div>
-          <input id="evFiftySlider" type="range" min="5" max="45" value="26" class="w-full accent-amber-500 cursor-pointer">
-          <span class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold text-emerald-600 dark:text-emerald-400">Math: For every 2 questions, 1 right (+2.0) and 1 wrong (-0.66) = +1.34 Net Marks gained!</span>
-        </div>
-
-        <!-- Slider 4: Wild / Blind Guesses (25% Acc) -->
-        <div class="flex flex-col gap-1.5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-          <div class="flex items-center justify-between text-xs font-bold">
-            <span class="text-rose-700 dark:text-rose-400">🔴 Blind / FOMO Guesses (Zero to 1 Option Eliminated · ~25% Accuracy)</span>
-            <span id="evWildDisplay" class="font-mono text-rose-700 dark:text-rose-400 font-black text-sm">12 Questions</span>
-          </div>
-          <input id="evWildSlider" type="range" min="0" max="25" value="12" class="w-full accent-rose-500 cursor-pointer">
-          <span class="text-[11px] text-rose-600 dark:text-rose-400">Risk: For every 4 guesses, 1 right (+2.0) and 3 wrong (-2.0) = 0 net gain, but high risk of mark-bleed.</span>
-        </div>
-
-      </div>
-
-      <!-- Call to Action Banner -->
-      <div class="p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div class="flex flex-col">
-          <h3 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
-            Ready to test your educated guessing on real UPSC questions?
-          </h3>
-          <p class="text-xs text-slate-600 dark:text-slate-400">
-            Practice 1,600+ authentic past questions with real-time scoring and Topper's elimination traps.
-          </p>
-        </div>
-        <a href="/prelims" class="px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-slate-950 font-bold text-xs whitespace-nowrap shadow-md transition-all">
-          ▶ Launch Prelims Focus Player →
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="/prelims?mode=ev" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-sm flex items-center gap-1.5">
+          <span>📊</span>
+          <span>Launch EV Simulator</span>
         </a>
       </div>
+    </header>
 
-    </div>
+    <main class="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col gap-8 max-w-6xl w-full mx-auto">
 
-    <!-- Educational Guide: Strategic UPSC Cutoff Insights -->
-    <article class="light-card rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-6 sm:p-8 flex flex-col gap-5">
-      <h2 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
-        The Mathematics of UPSC Prelims Negative Marking
-      </h2>
+      <!-- Hero Header -->
+      <div class="light-card p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-3xl shrink-0 font-black">
+              📊
+            </div>
+            <div class="flex flex-col">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 text-xs font-bold font-mono uppercase">
+                  GS PAPER 1 OPTIMIZER
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 text-xs font-bold font-mono">
+                  +2.00 / -0.66 Scoring
+                </span>
+              </div>
+              <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-1.5">
+                UPSC Prelims Cutoff &amp; Negative Marking EV Calculator
+              </h1>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-3xl leading-relaxed">
+                Determine your mathematical attempt sweet spot. Evaluate 50:50 elimination expected value (+0.67 EV) and calculate your risk buffer against the official prelims cutoff.
+              </p>
+            </div>
+          </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-2">
-          <h3 class="font-bold text-slate-900 dark:text-white text-sm">Why 65–70 Attempts Almost Never Clear</h3>
-          <p>
-            Many beginners play "too safe" by attempting only 65 questions. If an aspirant gets 52 right and 13 wrong: Gross = 104, Negative = -8.6, Net = <strong>95.4</strong>. Any slight dip in accuracy (e.g. 48 right, 17 wrong) drops the score to <strong>84.8</strong>, missing the cutoff entirely.
-          </p>
+          <div class="shrink-0">
+            <a href="/prelims?mode=ev" class="btn-action-emerald px-6 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition shadow-md flex items-center gap-2">
+              <span>⚡ Open Interactive EV Matrix</span>
+              <span>→</span>
+            </a>
+          </div>
         </div>
 
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-2">
-          <h3 class="font-bold text-slate-900 dark:text-white text-sm">The 50:50 Rule: Why You Must Guess</h3>
-          <p>
-            When you eliminate 2 options, probability is 50%. Across 20 such questions, expecting 10 right and 10 wrong gives: +20.0 - 6.6 = <strong>+13.4 Marks gained</strong>! UPSC Prelims rewards calculated, educated risk-taking.
-          </p>
+        <!-- EV Mathematical Matrix Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 text-center">
+            <span class="text-[10px] uppercase font-mono text-slate-500 font-bold">100% Sure</span>
+            <span class="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono">+2.00 EV</span>
+            <span class="text-[11px] text-slate-500">Zero error risk</span>
+          </div>
+          <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col gap-1 text-center">
+            <span class="text-[10px] uppercase font-mono text-emerald-700 dark:text-emerald-400 font-bold">50:50 Eliminator</span>
+            <span class="text-xl font-black text-emerald-700 dark:text-emerald-400 font-mono">+0.67 EV</span>
+            <span class="text-[11px] text-emerald-600 dark:text-emerald-300 font-semibold">High expected gain</span>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 text-center">
+            <span class="text-[10px] uppercase font-mono text-slate-500 font-bold">3-Way Guess</span>
+            <span class="text-xl font-black text-amber-600 dark:text-amber-400 font-mono">+0.22 EV</span>
+            <span class="text-[11px] text-slate-500">Moderate risk</span>
+          </div>
+          <div class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex flex-col gap-1 text-center">
+            <span class="text-[10px] uppercase font-mono text-rose-700 dark:text-rose-400 font-bold">Blind Guess</span>
+            <span class="text-xl font-black text-rose-600 dark:text-rose-400 font-mono">0.00 EV</span>
+            <span class="text-[11px] text-rose-500">Mathematically neutral</span>
+          </div>
         </div>
       </div>
 
-      <!-- Past Cutoff Benchmarks Table -->
-      <div class="flex flex-col gap-2 pt-2">
-        <h3 class="text-xs font-mono uppercase font-bold text-slate-400 tracking-wide">Recent UPSC Prelims General Category Cutoffs</h3>
-        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center text-xs font-mono">
-          <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
-            <span class="text-[10px] text-slate-500">2024</span>
-            <span class="font-bold text-amber-500">~87.5</span>
-          </div>
-          <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
-            <span class="text-[10px] text-slate-500">2023</span>
-            <span class="font-bold text-amber-500">75.4</span>
-          </div>
-          <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
-            <span class="text-[10px] text-slate-500">2022</span>
-            <span class="font-bold text-amber-500">88.2</span>
-          </div>
-          <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
-            <span class="text-[10px] text-slate-500">2021</span>
-            <span class="font-bold text-amber-500">87.5</span>
-          </div>
-          <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
-            <span class="text-[10px] text-slate-500">2020</span>
-            <span class="font-bold text-amber-500">92.5</span>
-          </div>
-          <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
-            <span class="text-[10px] text-slate-500">2019</span>
-            <span class="font-bold text-amber-500">98.0</span>
-          </div>
+      <!-- FAQ Accordion -->
+      <div class="light-card p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
+        <h2 class="text-sm font-mono uppercase tracking-wider text-slate-800 dark:text-slate-200 font-bold border-b border-slate-100 dark:border-slate-800 pb-3">
+          Frequently Asked Questions (Prelims Cutoff &amp; EV Strategy)
+        </h2>
+        <div class="space-y-3 text-xs sm:text-sm">
+          <details class="group p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+            <summary class="font-bold text-slate-900 dark:text-white cursor-pointer select-none flex items-center justify-between">
+              <span>How many questions should I attempt in GS Paper 1?</span>
+              <span class="text-slate-400 group-open:rotate-180 transition">▼</span>
+            </summary>
+            <p class="mt-3 text-slate-600 dark:text-slate-400 leading-relaxed">
+              Most successful candidates attempt between 82 and 92 questions. Because very few candidates know more than 40-45 questions with absolute certainty, disciplined 50:50 elimination across an additional 35-45 questions is statistically mandatory to clear the 85-92 mark threshold.
+            </p>
+          </details>
+
+          <details class="group p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+            <summary class="font-bold text-slate-900 dark:text-white cursor-pointer select-none flex items-center justify-between">
+              <span>What is the negative marking penalty in GS Paper 1?</span>
+              <span class="text-slate-400 group-open:rotate-180 transition">▼</span>
+            </summary>
+            <p class="mt-3 text-slate-600 dark:text-slate-400 leading-relaxed">
+              Each question in GS Paper 1 carries 2.00 marks. Every incorrect response subtracts 1/3rd of the question marks (-0.66 marks). Unattempted questions carry zero penalty.
+            </p>
+          </details>
         </div>
       </div>
-    </article>
 
-  </main>
+    </main>
 
-  <!-- Footer -->
-  <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 py-6 text-center text-xs text-slate-500 dark:text-slate-400">
-    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-      <span>© 2026 CookedMains · Authentic UPSC CSE Preparation Platform</span>
-      <div class="flex items-center gap-4">
-        <a href="/prelims/pyqs" class="hover:underline">16-Year PYQ Archive</a>
-        <a href="/prelims/mock-tests" class="hover:underline">Mock Tests</a>
-        <a href="/privacy-policy.html" class="hover:underline">Privacy</a>
-        <a href="/contact-us.html" class="hover:underline">Contact</a>
+    <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 py-6 text-center text-xs text-slate-500 dark:text-slate-400 bg-white/50 dark:bg-slate-950/50">
+      <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <span>© 2026 CookedMains · Authentic UPSC CSE Preparation Platform</span>
+        <div class="flex items-center gap-4">
+          <a href="/prelims" class="hover:underline">Prelims App</a>
+          <a href="/prelims/pyqs" class="hover:underline">PYQ Vault</a>
+          <a href="/prelims/csat" class="hover:underline">CSAT Practice</a>
+          <a href="/prelims/mock-tests" class="hover:underline">Mock Tests</a>
+        </div>
       </div>
-    </div>
-  </footer>
+    </footer>
 
-  <!-- Calculator Script -->
+  </div>
+
   <script>
-    (function () {
-      const totalSlider = document.getElementById('evTotalSlider');
-      const sureSlider = document.getElementById('evSureSlider');
-      const fiftySlider = document.getElementById('evFiftySlider');
-      const wildSlider = document.getElementById('evWildSlider');
+    (function() {
+      const savedTheme = localStorage.getItem('prelims_theme') || 'dark';
+      if (savedTheme === 'dark') document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
 
-      const totalDisplay = document.getElementById('evTotalDisplay');
-      const sureDisplay = document.getElementById('evSureDisplay');
-      const fiftyDisplay = document.getElementById('evFiftyDisplay');
-      const wildDisplay = document.getElementById('evWildDisplay');
+      document.getElementById('sidebarThemeToggle')?.addEventListener('click', function() {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('prelims_theme', isDark ? 'dark' : 'light');
+      });
 
-      const grossEl = document.getElementById('evGrossScoreText');
-      const penaltyEl = document.getElementById('evPenaltyScoreText');
-      const netEl = document.getElementById('evNetScoreText');
-      const noticeEl = document.getElementById('evCutoffDeltaText');
-      const verdictPill = document.getElementById('evVerdictPill');
-
-      function calculate() {
-        const total = parseInt(totalSlider.value, 10);
-        const sure = parseInt(sureSlider.value, 10);
-        const fifty = parseInt(fiftySlider.value, 10);
-        const wild = parseInt(wildSlider.value, 10);
-
-        totalDisplay.textContent = total + ' / 100';
-        sureDisplay.textContent = sure + ' Questions';
-        fiftyDisplay.textContent = fifty + ' Questions';
-        wildDisplay.textContent = wild + ' Questions';
-
-        // Accuracies: Sure ~90%, 50:50 ~50%, Wild ~25%
-        const correct = Math.round(sure * 0.90 + fifty * 0.50 + wild * 0.25);
-        const attempted = Math.min(100, sure + fifty + wild);
-        const wrong = Math.max(0, attempted - correct);
-
-        const gross = Number((correct * 2.0).toFixed(1));
-        const penalty = Number((wrong * 0.66).toFixed(1));
-        const net = Number((gross - penalty).toFixed(1));
-
-        grossEl.textContent = '+' + gross.toFixed(1);
-        penaltyEl.textContent = '-' + penalty.toFixed(1);
-        netEl.textContent = net.toFixed(1);
-
-        const benchmark = 88.0;
-        const delta = Number((net - benchmark).toFixed(1));
-
-        if (delta >= 5) {
-          noticeEl.textContent = '🎉 Safe Zone: Clearing standard 88.0 cutoff by +' + delta.toFixed(1) + ' marks!';
-          if (verdictPill) {
-            verdictPill.textContent = 'Safe Zone';
-            verdictPill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30';
-          }
-        } else if (delta >= 0) {
-          noticeEl.textContent = '⚠️ Borderline: Marginally clearing cutoff by +' + delta.toFixed(1) + ' marks. Slight negative swing is risky!';
-          if (verdictPill) {
-            verdictPill.textContent = 'Borderline';
-            verdictPill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30';
-          }
+      const openBtn = document.getElementById('openMobileSidebarBtn');
+      const closeBtn = document.getElementById('closeSidebarMobileBtn');
+      const sidebar = document.getElementById('sidebarNav');
+      const backdrop = document.getElementById('mobileSidebarBackdrop');
+      function toggleSidebar(open) {
+        if (!sidebar) return;
+        if (open) {
+          sidebar.classList.remove('-translate-x-full');
+          backdrop?.classList.remove('hidden');
         } else {
-          noticeEl.textContent = '🚨 Risk Zone: Missing standard cutoff by ' + Math.abs(delta).toFixed(1) + ' marks. Increase 50:50 attempts or cut blind guesses!';
-          if (verdictPill) {
-            verdictPill.textContent = 'Risk Zone';
-            verdictPill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30';
-          }
+          sidebar.classList.add('-translate-x-full');
+          backdrop?.classList.add('hidden');
         }
       }
-
-      totalSlider.addEventListener('input', calculate);
-      sureSlider.addEventListener('input', calculate);
-      fiftySlider.addEventListener('input', calculate);
-      wildSlider.addEventListener('input', calculate);
-
-      calculate();
+      openBtn?.addEventListener('click', () => toggleSidebar(true));
+      closeBtn?.addEventListener('click', () => toggleSidebar(false));
+      backdrop?.addEventListener('click', () => toggleSidebar(false));
     })();
   </script>
+
 </body>
 </html>

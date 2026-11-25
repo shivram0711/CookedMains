@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>UPSC CSAT Qualifying Cutoff & Safe-Score Calculator (2026) | CookedMains</title>
+  <title>UPSC CSAT Qualifying Cutoff &amp; Safe-Score Calculator (2026) | 66.67 Threshold | CookedMains</title>
   <meta name="description" content="Calculate your optimal UPSC CSAT Paper 2 attempt volume to safely clear the 33% (66.67 marks) qualifying threshold. Eliminate negative marking bleeding (-0.833 per error) with authentic UPSC past questions.">
   <meta name="keywords" content="UPSC CSAT Cutoff Calculator, CSAT safe score calculator, how many questions to attempt in CSAT, CSAT qualifying marks 66.67, UPSC Paper 2 negative marking, CSAT strategy 2026">
   <link rel="canonical" href="https://cookedmains.com/prelims/csat">
@@ -11,7 +11,7 @@
   <!-- OpenGraph / Social Meta -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://cookedmains.com/prelims/csat">
-  <meta property="og:title" content="UPSC CSAT Qualifying Cutoff & Safe-Score Calculator (2026)">
+  <meta property="og:title" content="UPSC CSAT Qualifying Cutoff &amp; Safe-Score Calculator (2026)">
   <meta property="og:description" content="Calculate your optimal UPSC CSAT attempt volume to safely clear the 66.67 qualifying cutoff and eliminate negative marks.">
   <meta property="og:image" content="https://cookedmains.com/static/brand_logo_dark.png">
 
@@ -30,7 +30,7 @@
         "@type": "WebApplication",
         "name": "UPSC CSAT Qualifying Cutoff & Safe-Score Calculator",
         "url": "https://cookedmains.com/prelims/csat",
-        "description": "Interactive mathematical attempt calculator for UPSC Civil Services Prelims CSAT Paper 2 to clear the 66.67 cutoff mark.",
+        "description": "Interactive mathematical attempt calculator for UPSC Civil Services Prelims CSAT Paper 2 to safely clear the 66.67 cutoff mark.",
         "applicationCategory": "EducationalApplication",
         "operatingSystem": "All",
         "offers": {
@@ -38,6 +38,29 @@
           "price": "0",
           "priceCurrency": "INR"
         }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://cookedmains.com/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Prelims",
+            "item": "https://cookedmains.com/prelims"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "CSAT Practice & Calculator",
+            "item": "https://cookedmains.com/prelims/csat"
+          }
+        ]
       },
       {
         "@type": "FAQPage",
@@ -81,237 +104,512 @@
         extend: {
           colors: {
             amber: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' },
+            emerald: { 400: '#34d399', 500: '#10b981', 600: '#059669' },
             slate: { 850: '#0f172a', 900: '#0b1120', 950: '#020617' }
           }
         }
       }
     };
   </script>
+
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap">
+  <link rel="icon" type="image/png" href="/static/favicon-32x32.png">
+
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
-  </style>
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950 antialiased">
 
-  <!-- Header -->
-  <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-      <a href="/" class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-xl bg-amber-500 flex items-center justify-center font-black text-slate-950 text-sm">CM</div>
-        <span class="font-black text-base tracking-tight text-white">Cooked<span class="text-amber-400">Mains</span></span>
-        <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 font-bold ml-1">CSAT Hub</span>
-      </a>
-      <div class="flex items-center gap-3">
-        <a href="/prelims/pyqs" class="text-xs font-semibold text-slate-400 hover:text-white transition hidden sm:inline-block">16-Year PYQs</a>
-        <a href="/prelims/cutoff-calculator" class="text-xs font-semibold text-slate-400 hover:text-white transition hidden sm:inline-block">GS1 EV Calculator</a>
-        <a href="/prelims?mode=csat" class="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-md shadow-amber-500/10">
-          Launch CSAT Player →
-        </a>
-      </div>
-    </div>
-  </header>
+    html.dark { background-color: #020617; color: #f8fafc; }
+    html.dark body { background-color: #020617; color: #f8fafc; }
+    html.dark .brand-logo-light { display: none !important; }
+    html.dark .brand-logo-dark { display: block !important; }
 
-  <!-- Hero Section -->
-  <main class="flex-1 max-w-5xl mx-auto px-4 sm:px-6 py-10 w-full flex flex-col gap-8">
+    html:not(.dark) { background-color: #f8fafc; color: #0f172a; }
+    html:not(.dark) body { background-color: #f8fafc; color: #0f172a; }
+    html:not(.dark) .brand-logo-light { display: block !important; }
+    html:not(.dark) .brand-logo-dark { display: none !important; }
+    html:not(.dark) .light-card { background-color: #ffffff !important; border-color: #e2e8f0 !important; color: #0f172a !important; }
+    html:not(.dark) .light-sidebar { background-color: #f8fafc !important; border-color: #e2e8f0 !important; color: #0f172a !important; }
 
-    <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-xs font-mono text-slate-500" aria-label="Breadcrumb">
-      <a href="/" class="hover:text-slate-300 transition">Home</a>
-      <span>/</span>
-      <a href="/prelims" class="hover:text-slate-300 transition">Prelims</a>
-      <span>/</span>
-      <span class="text-amber-400 font-semibold">CSAT Qualifying Calculator</span>
-    </nav>
-
-    <!-- Main Title & Featured Snippet Definition Block -->
-    <section class="flex flex-col gap-4">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-bold font-mono w-fit">
-        <span>⚖️ 33% Qualifying Threshold Simulator</span>
-        <span>•</span>
-        <span>80 Questions · 200 Marks</span>
-      </div>
-      <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-        UPSC CSAT Qualifying Cutoff &amp; Safe Attempt Calculator
-      </h1>
-      
-      <!-- Featured Snippet Definition Box (PAA Target) -->
-      <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 text-sm text-slate-300 leading-relaxed space-y-2">
-        <h2 class="text-xs font-bold uppercase font-mono tracking-wider text-amber-400">What is the safe attempt target for UPSC CSAT Paper 2?</h2>
-        <p>
-          To clear the mandatory <strong>33% qualifying cutoff (66.67 out of 200 marks)</strong> in UPSC CSAT Paper-2, an aspirant needs a net score of at least 67 marks. Because each wrong answer attracts a strict <strong>-0.833 mark negative penalty</strong>, attempting too few questions (e.g. 30 questions) leaves zero margin for error. A safe strategy targets <strong>42 to 48 disciplined attempts</strong> at 75% accuracy to guarantee a net score above 75 marks.
-        </p>
-      </div>
-    </section>
-
-    <!-- Interactive CSAT Calibration Card -->
-    <section class="p-6 sm:p-7 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col gap-6">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-        <div>
-          <h2 class="text-base font-bold text-white">Interactive CSAT Net Score Simulator</h2>
-          <p class="text-xs text-slate-400">Adjust your planned attempts and accuracy to check if your score survives negative mark variance.</p>
-        </div>
-        <span class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-slate-800 text-amber-400 border border-slate-700">Cutoff: 66.67 / 200</span>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-        <!-- Sliders Left (7 cols) -->
-        <div class="lg:col-span-7 flex flex-col gap-6">
-          <!-- Planned Attempts -->
-          <div class="flex flex-col gap-2">
-            <div class="flex items-center justify-between text-xs font-bold text-slate-300">
-              <span>Planned Questions Attempted (out of 80):</span>
-              <span id="csatAttemptVal" class="text-amber-400 font-mono text-base font-black">45 Questions</span>
-            </div>
-            <input type="range" id="csatAttemptSlider" min="27" max="75" value="45" step="1" class="w-full accent-amber-500 cursor-pointer h-2 bg-slate-800 rounded-lg">
-            <div class="flex justify-between text-[10px] text-slate-500 font-mono">
-              <span>27 Qs (100% Acc Minimum)</span>
-              <span>45 Qs (Ideal Buffer)</span>
-              <span>75 Qs (Fatigue Risk)</span>
-            </div>
-          </div>
-
-          <!-- Accuracy Rate -->
-          <div class="flex flex-col gap-2">
-            <div class="flex items-center justify-between text-xs font-bold text-slate-300">
-              <span>Estimated Accuracy Rate (%):</span>
-              <span id="csatAccuracyVal" class="text-emerald-400 font-mono text-base font-black">75%</span>
-            </div>
-            <input type="range" id="csatAccuracySlider" min="50" max="95" value="75" step="5" class="w-full accent-emerald-500 cursor-pointer h-2 bg-slate-800 rounded-lg">
-            <div class="flex justify-between text-[10px] text-slate-500 font-mono">
-              <span>50% (Wild Guesses)</span>
-              <span>75% (Disciplined Solving)</span>
-              <span>95% (Extreme Math Precision)</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Score Output Right (5 cols) -->
-        <div class="lg:col-span-5 p-6 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col gap-4">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-400">Simulated Net Score:</span>
-            <span id="csatNetScore" class="text-3xl font-black font-mono text-amber-400">75.0</span>
-          </div>
-
-          <!-- Verdict Badge -->
-          <div id="csatVerdictBadge" class="p-3.5 rounded-xl border text-center text-xs font-black transition-all bg-amber-500/15 border-amber-500/40 text-amber-300">
-            ⚠️ BORDERLINE ZONE (75.0 Marks) — Risky under negative mark variance!
-          </div>
-
-          <div class="grid grid-cols-2 gap-2 text-xs font-mono pt-3 border-t border-slate-800">
-            <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
-              <span class="text-slate-400 block text-[10px]">Correct (+2.5):</span>
-              <span id="csatCorrectCount" class="font-bold text-emerald-400 text-sm">34 Qs (+85.0)</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
-              <span class="text-slate-400 block text-[10px]">Incorrect (-0.833):</span>
-              <span id="csatWrongCount" class="font-bold text-rose-400 text-sm">11 Qs (-9.2)</span>
-            </div>
-          </div>
-
-          <a href="/prelims?mode=csat" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs text-center transition shadow-md mt-1">
-            Practice Authentic CSAT Questions →
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <!-- People Also Ask / FAQ Section -->
-    <section class="flex flex-col gap-4 pt-4">
-      <h2 class="text-xl font-bold text-white">Frequently Asked Questions: UPSC CSAT Paper 2 Cutoff</h2>
-      <div class="flex flex-col gap-3">
-        <details class="group p-4 rounded-2xl bg-slate-900 border border-slate-800 transition">
-          <summary class="font-bold text-sm text-white cursor-pointer list-none flex items-center justify-between">
-            <span>What happens if I score high in GS1 but fail CSAT?</span>
-            <span class="text-amber-400 group-open:rotate-180 transition-transform">▼</span>
-          </summary>
-          <p class="text-xs text-slate-300 pt-3 leading-relaxed">
-            If a candidate scores less than 66.67 marks in CSAT (Paper-2), they are automatically disqualified from UPSC Prelims. Their General Studies Paper-1 marks will not be evaluated for the Prelims merit cutoff, regardless of whether they scored 130+ marks in GS Paper-1.
-          </p>
-        </details>
-
-        <details class="group p-4 rounded-2xl bg-slate-900 border border-slate-800 transition">
-          <summary class="font-bold text-sm text-white cursor-pointer list-none flex items-center justify-between">
-            <span>What is the marks distribution in UPSC CSAT?</span>
-            <span class="text-amber-400 group-open:rotate-180 transition-transform">▼</span>
-          </summary>
-          <p class="text-xs text-slate-300 pt-3 leading-relaxed">
-            UPSC CSAT contains exactly 80 objective multiple-choice questions for 200 maximum marks. Each question is worth +2.5 marks. Each incorrect answer attracts a negative penalty of 1/3rd (-0.833 marks). Unattempted questions incur 0 penalty.
-          </p>
-        </details>
-
-        <details class="group p-4 rounded-2xl bg-slate-900 border border-slate-800 transition">
-          <summary class="font-bold text-sm text-white cursor-pointer list-none flex items-center justify-between">
-            <span>Which section in CSAT carries the most marks?</span>
-            <span class="text-amber-400 group-open:rotate-180 transition-transform">▼</span>
-          </summary>
-          <p class="text-xs text-slate-300 pt-3 leading-relaxed">
-            Every question in CSAT carries identical marks (+2.5 marks). Historically, CSAT is divided into Reading Comprehension (approx. 27 questions), Quantitative Aptitude (approx. 35 questions), and Logical & Analytical Reasoning (approx. 18 questions).
-          </p>
-        </details>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Footer -->
-  <footer class="border-t border-slate-800/80 bg-slate-950 py-8 mt-12 text-center text-xs text-slate-500">
-    <div class="max-w-6xl mx-auto px-4 flex flex-wrap justify-between items-center gap-4">
-      <div>© 2026 CookedMains · UPSC Prelims &amp; Mains Evaluator</div>
-      <div class="flex gap-4">
-        <a href="/prelims/pyqs" class="hover:text-amber-400">16-Year PYQs</a>
-        <a href="/prelims/cutoff-calculator" class="hover:text-amber-400">Cutoff EV Calculator</a>
-        <a href="/prelims/mock-tests" class="hover:text-amber-400">Mock Tests</a>
-        <a href="/privacy-policy" class="hover:text-slate-400">Privacy Policy</a>
-      </div>
-    </div>
-  </footer>
-
-  <script>
-    const sliderAttempts = document.getElementById('csatAttemptSlider');
-    const sliderAccuracy = document.getElementById('csatAccuracySlider');
-    const valAttempts = document.getElementById('csatAttemptVal');
-    const valAccuracy = document.getElementById('csatAccuracyVal');
-    const netScoreEl = document.getElementById('csatNetScore');
-    const verdictEl = document.getElementById('csatVerdictBadge');
-    const countCorrect = document.getElementById('csatCorrectCount');
-    const countWrong = document.getElementById('csatWrongCount');
-
-    function update() {
-      const attempts = parseInt(sliderAttempts.value, 10);
-      const acc = parseInt(sliderAccuracy.value, 10);
-      valAttempts.textContent = attempts + ' Questions';
-      valAccuracy.textContent = acc + '%';
-
-      const correct = Math.round(attempts * (acc / 100));
-      const wrong = attempts - correct;
-      const pos = correct * 2.5;
-      const neg = wrong * (2.5 / 3);
-      const net = Math.max(0, pos - neg);
-
-      netScoreEl.textContent = net.toFixed(1);
-      countCorrect.textContent = correct + ' Qs (+' + pos.toFixed(1) + ')';
-      countWrong.textContent = wrong + ' Qs (-' + neg.toFixed(1) + ')';
-
-      if (net >= 80) {
-        verdictEl.className = 'p-3.5 rounded-xl border text-center text-xs font-black transition-all bg-emerald-500/15 border-emerald-500/40 text-emerald-300';
-        verdictEl.textContent = '✅ SAFE QUALIFIED (Above 66.67 Cutoff by +' + (net - 66.67).toFixed(1) + ' buffer)';
-        netScoreEl.className = 'text-3xl font-black font-mono text-emerald-400';
-      } else if (net >= 66.67) {
-        verdictEl.className = 'p-3.5 rounded-xl border text-center text-xs font-black transition-all bg-amber-500/15 border-amber-500/40 text-amber-300';
-        verdictEl.textContent = '⚠️ BORDERLINE ZONE (' + net.toFixed(1) + ' Marks) — Risky under negative mark variance!';
-        netScoreEl.className = 'text-3xl font-black font-mono text-amber-400';
-      } else {
-        verdictEl.className = 'p-3.5 rounded-xl border text-center text-xs font-black transition-all bg-rose-500/15 border-rose-500/40 text-rose-300';
-        verdictEl.textContent = '❌ DANGER: DISQUALIFIED (' + (66.67 - net).toFixed(1) + ' marks below 66.67 Cutoff)';
-        netScoreEl.className = 'text-3xl font-black font-mono text-rose-400';
-      }
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    html.dark .sidebar-nav-item {
+      color: #94a3b8;
+      background-color: transparent;
+      border: 1px solid transparent;
+    }
+    html.dark .sidebar-nav-item:hover {
+      background-color: rgba(245, 158, 11, 0.12) !important;
+      color: #fbbf24 !important;
+      border-color: rgba(245, 158, 11, 0.4) !important;
+      transform: translateX(3px);
+    }
+    html.dark .sidebar-nav-item.active {
+      background-color: rgba(245, 158, 11, 0.18) !important;
+      color: #fbbf24 !important;
+      border-color: rgba(245, 158, 11, 0.5) !important;
+      font-weight: 800 !important;
     }
 
-    sliderAttempts.addEventListener('input', update);
-    sliderAccuracy.addEventListener('input', update);
-    update();
+    html:not(.dark) .sidebar-nav-item {
+      color: #334155;
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+    }
+    html:not(.dark) .sidebar-nav-item:hover {
+      background-color: rgba(245, 158, 11, 0.15) !important;
+      color: #78350f !important;
+      border-color: rgba(245, 158, 11, 0.45) !important;
+      transform: translateX(3px);
+    }
+    html:not(.dark) .sidebar-nav-item.active {
+      background-color: rgba(245, 158, 11, 0.18) !important;
+      color: #78350f !important;
+      border-color: rgba(245, 158, 11, 0.5) !important;
+      font-weight: 800 !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex font-sans antialiased selection:bg-amber-500 selection:text-slate-950 transition-colors duration-200 overflow-x-hidden">
+
+  <!-- ========================================================
+       AUTHENTIC SIDEBAR NAVIGATION
+       ======================================================== -->
+  <aside id="sidebarNav" class="light-sidebar fixed top-0 bottom-0 left-0 z-40 w-64 h-full max-h-screen bg-slate-950 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 transform -translate-x-full md:translate-x-0 shadow-2xl md:shadow-none overflow-hidden">
+    
+    <!-- Top Brand & Header -->
+    <div class="h-16 shrink-0 px-4 flex items-center justify-between border-b border-slate-800/80">
+      <a href="/" class="flex items-center gap-2.5 group select-none" title="Cooked Mains">
+        <img src="/static/brand_logo_light.png" alt="Cooked Mains Logo" class="brand-logo-light h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
+        <img src="/static/brand_logo_dark.png" alt="Cooked Mains Logo" class="brand-logo-dark h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform">
+        <div class="flex flex-col justify-center">
+          <span class="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight flex items-center">
+            Cooked <span class="text-amber-500 ml-1">Mains</span>
+          </span>
+          <span class="text-[9px] font-mono font-bold tracking-wider text-amber-500 uppercase leading-none mt-0.5">
+            DASHBOARD
+          </span>
+        </div>
+      </a>
+
+      <button id="closeSidebarMobileBtn" type="button" class="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer">
+        ✕
+      </button>
+    </div>
+
+    <!-- Navigation Links -->
+    <nav class="flex-1 min-h-0 overflow-y-auto p-3 flex flex-col gap-1.5 text-xs font-semibold custom-scrollbar">
+      
+      <a href="/prelims" class="sidebar-nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <span class="text-base">🏠</span>
+        <span>Home Dashboard</span>
+      </a>
+
+      <a href="/prelims?mode=progress" class="sidebar-nav-item flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <div class="flex items-center gap-3">
+          <span class="text-base">📈</span>
+          <span class="font-bold">Progress Tracker</span>
+        </div>
+        <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[9px] font-black uppercase font-mono">TRACK</span>
+      </a>
+
+      <!-- Section: PRELIMS -->
+      <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold px-3 pt-3 pb-1">
+        PRELIMS (1,600+ PYQS)
+      </span>
+
+      <a href="/prelims/pyqs" class="sidebar-nav-item flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <div class="flex items-center gap-3">
+          <span class="text-base">📚</span>
+          <span>Prelims PYQ Vault</span>
+        </div>
+        <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[9px] font-black uppercase">Deep Facts</span>
+      </a>
+
+      <a href="/prelims/current-affairs" class="sidebar-nav-item flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <div class="flex items-center gap-3">
+          <span class="text-base">📰</span>
+          <span>Current Affairs Arena</span>
+        </div>
+        <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[9px] font-black uppercase">2026 Mocks</span>
+      </a>
+
+      <a href="/prelims/mock-tests" class="sidebar-nav-item flex items-center justify-between px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <div class="flex items-center gap-3">
+          <span class="text-base">📝</span>
+          <span>Adaptive Mock Tests</span>
+        </div>
+        <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[9px] font-black uppercase">AI</span>
+      </a>
+
+      <a href="/prelims?mode=player" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <span class="text-base">🎯</span>
+        <span>Focus Player (Timed)</span>
+      </a>
+
+      <!-- Active: CSAT Practice -->
+      <a href="/prelims/csat" class="sidebar-nav-item active flex items-center gap-3 px-3 py-2 rounded-xl font-bold border transition-all text-left">
+        <span class="text-base">🧮</span>
+        <span>CSAT Practice</span>
+      </a>
+
+      <a href="/prelims?mode=mistakes" class="sidebar-nav-item flex items-center justify-between px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <div class="flex items-center gap-3">
+          <span class="text-base">📓</span>
+          <span>Mistakes Notebook</span>
+        </div>
+        <span class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px] font-black">20</span>
+      </a>
+
+      <a href="/prelims/cutoff-calculator" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <span class="text-base">📊</span>
+        <span>Cutoff EV Simulator</span>
+      </a>
+
+      <!-- Section: MAINS -->
+      <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold px-3 pt-3 pb-1">
+        MAINS EVALUATION
+      </span>
+      <a href="/" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-400 hover:text-amber-800 dark:hover:text-amber-300 transition-all text-left">
+        <span class="text-base">✍️</span>
+        <span>Mains Studio</span>
+      </a>
+    </nav>
+
+    <!-- Bottom Utility Dock (Theme Switcher) -->
+    <div class="p-3 border-t border-slate-800/80 flex flex-col gap-2 shrink-0">
+      <div class="grid grid-cols-2 gap-2">
+        <a href="/prelims" class="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-semibold transition-all">
+          <span class="text-amber-500 font-mono font-bold">A/अ</span>
+          <span class="text-[10px]">English</span>
+        </a>
+
+        <button id="sidebarThemeToggle" type="button" class="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500/40 text-slate-700 dark:text-slate-300 text-[11px] font-semibold cursor-pointer transition-all">
+          <span id="sidebarThemeIcon">🌓</span>
+          <span id="sidebarThemeLabel" class="text-[10px]">Theme</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile Backdrop Overlay -->
+  <div id="mobileSidebarBackdrop" class="hidden fixed inset-0 z-30 bg-slate-950/70 backdrop-blur-xs md:hidden"></div>
+
+  <!-- ========================================================
+       MAIN APP WORKSPACE
+       ======================================================== -->
+  <div class="flex-1 md:ml-64 flex flex-col min-h-screen">
+    
+    <!-- Top Sticky Bar -->
+    <header class="sticky top-0 z-30 h-16 backdrop-blur-md bg-white/90 dark:bg-slate-950/85 border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 flex items-center justify-between gap-3 transition-colors">
+      
+      <div class="flex items-center gap-3">
+        <button id="openMobileSidebarBtn" type="button" class="md:hidden p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-white border border-slate-200 dark:border-slate-800 cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="flex items-center gap-2 text-xs font-semibold">
+          <a href="/prelims" class="text-slate-500 hover:text-amber-500 transition">CookedMains</a>
+          <span class="text-slate-400">/</span>
+          <span class="text-amber-600 dark:text-amber-400 font-bold">CSAT Qualifying Practice &amp; 66.67 Cutoff Optimizer</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="/prelims?mode=csat" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-sm flex items-center gap-1.5">
+          <span>🧮</span>
+          <span>Launch CSAT Player</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- CONTENT CONTAINER -->
+    <main class="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col gap-8 max-w-6xl w-full mx-auto">
+
+      <!-- Hero Section -->
+      <div class="light-card p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center text-3xl shrink-0 font-black">
+              🧮
+            </div>
+            <div class="flex flex-col">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 text-xs font-bold font-mono uppercase">
+                  33% QUALIFYING THRESHOLD SIMULATOR
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 text-xs font-bold font-mono">
+                  80 Questions · 200 Marks
+                </span>
+              </div>
+              <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-1.5">
+                UPSC CSAT Qualifying Cutoff &amp; Safe-Attempt Calculator
+              </h1>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-3xl leading-relaxed">
+                Calculate your optimal question attempt volume to comfortably cross 66.67 marks in UPSC Paper 2 without bleeding negative marks (-0.833 per wrong answer).
+              </p>
+            </div>
+          </div>
+
+          <div class="shrink-0">
+            <a href="/prelims?mode=csat" class="btn-action-emerald px-6 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition shadow-md flex items-center gap-2">
+              <span>⚡ Practice CSAT in Focus Player</span>
+              <span>→</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Featured Snippet Definition Box -->
+        <div class="p-5 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed space-y-1.5">
+          <h2 class="text-xs font-bold uppercase font-mono tracking-wider text-indigo-800 dark:text-indigo-400">
+            What is the Safe Attempt Target for UPSC CSAT Paper 2?
+          </h2>
+          <p class="text-slate-700 dark:text-slate-300">
+            To clear the mandatory 33% qualifying cutoff (66.67 out of 200 marks) in UPSC CSAT Paper-2, an aspirant needs a net score of at least 67 marks. Because each wrong answer attracts a strict -0.833 mark negative penalty, attempting too few questions (e.g. 30 questions) leaves zero margin for error. A safe, mathematically resilient strategy targets <strong>42 to 48 disciplined attempts at 75% accuracy</strong> to guarantee a net score above 75 marks.
+          </p>
+        </div>
+      </div>
+
+      <!-- Interactive Net Score Simulator -->
+      <div class="light-card p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">⚙️</span>
+            <h2 class="text-sm font-mono uppercase tracking-wider text-slate-800 dark:text-slate-200 font-bold">
+              Interactive CSAT Attempt &amp; Score Simulator
+            </h2>
+          </div>
+          <span class="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400">Target Cutoff: 66.67 / 200</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          
+          <!-- Controls (7 cols) -->
+          <div class="lg:col-span-7 flex flex-col gap-5">
+            <div>
+              <div class="flex justify-between items-center text-xs font-bold mb-2">
+                <span class="text-slate-700 dark:text-slate-300">Planned Questions Attempted (out of 80):</span>
+                <span id="csatAttemptLabel" class="text-amber-600 dark:text-amber-400 font-mono text-sm">45 Questions</span>
+              </div>
+              <input type="range" id="csatAttemptSlider" min="27" max="80" value="45" class="w-full h-2 rounded-lg bg-slate-200 dark:bg-slate-800 accent-amber-500 cursor-pointer">
+              <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                <span>27 Min (Zero Margin)</span>
+                <span>45 Optimal</span>
+                <span>80 Max</span>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center text-xs font-bold mb-2">
+                <span class="text-slate-700 dark:text-slate-300">Expected Accuracy Rate:</span>
+                <span id="csatAccuracyLabel" class="text-emerald-600 dark:text-emerald-400 font-mono text-sm">75% Accuracy</span>
+              </div>
+              <input type="range" id="csatAccuracySlider" min="50" max="100" value="75" step="5" class="w-full h-2 rounded-lg bg-slate-200 dark:bg-slate-800 accent-emerald-500 cursor-pointer">
+              <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                <span>50% (High Risk)</span>
+                <span>75% (Realistic)</span>
+                <span>100% (Flawless)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Result Dashboard (5 cols) -->
+          <div class="lg:col-span-5 p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-4 text-center">
+            <span class="text-xs uppercase font-mono tracking-wider text-slate-500 font-bold">Simulated Net Score</span>
+            <div id="csatScoreDisplay" class="text-4xl sm:text-5xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">
+              75.8
+            </div>
+            <div id="csatStatusBadge" class="py-1 px-3 rounded-full text-xs font-bold font-mono bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 w-fit mx-auto">
+              ✓ QUALIFIED (Safe Zone +9.1 Marks Buffer)
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs font-mono pt-2 border-t border-slate-200 dark:border-slate-800">
+              <div class="text-left">
+                <span class="text-slate-500 block text-[10px]">Correct (+2.50)</span>
+                <span id="csatCorrectCount" class="font-bold text-slate-800 dark:text-slate-200">34 Qs (+85.0)</span>
+              </div>
+              <div class="text-right">
+                <span class="text-slate-500 block text-[10px]">Wrong (-0.833)</span>
+                <span id="csatWrongCount" class="font-bold text-rose-600 dark:text-rose-400">11 Qs (-9.2)</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 3 Core CSAT Syllabus Hubs -->
+      <div class="flex flex-col gap-4">
+        <h2 class="text-sm font-mono uppercase tracking-wider text-slate-800 dark:text-slate-200 font-bold">
+          CSAT Paper 2 Syllabus Breakdown &amp; Practice Tracks
+        </h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="light-card p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-between gap-3 shadow-xs">
+            <div>
+              <span class="text-2xl p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 inline-block mb-3">📖</span>
+              <h3 class="text-base font-bold text-slate-900 dark:text-white">Reading Comprehension</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                25 to 28 questions per paper. Critical inference, assumption detection, and central corollary traps decoded from past UPSC papers.
+              </p>
+            </div>
+            <a href="/prelims?mode=csat" class="text-xs text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1 hover:underline">
+              <span>Practice Comprehension</span> →
+            </a>
+          </div>
+
+          <div class="light-card p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-between gap-3 shadow-xs">
+            <div>
+              <span class="text-2xl p-2.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 inline-block mb-3">🔢</span>
+              <h3 class="text-base font-bold text-slate-900 dark:text-white">Quantitative Aptitude</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                30 to 35 questions. High-yield themes: Number Systems, Remainders, Permutations &amp; Combinations, Ratios, Speed &amp; Distance.
+              </p>
+            </div>
+            <a href="/prelims?mode=csat" class="text-xs text-blue-600 dark:text-blue-400 font-bold flex items-center gap-1 hover:underline">
+              <span>Practice Quantitative Aptitude</span> →
+            </a>
+          </div>
+
+          <div class="light-card p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-between gap-3 shadow-xs">
+            <div>
+              <span class="text-2xl p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 inline-block mb-3">🧩</span>
+              <h3 class="text-base font-bold text-slate-900 dark:text-white">Logical &amp; Analytical Reasoning</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                18 to 22 questions. Syllogisms, Direction tests, Blood relations, Seating arrangements, and Data Sufficiency matrix.
+              </p>
+            </div>
+            <a href="/prelims?mode=csat" class="text-xs text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1 hover:underline">
+              <span>Practice Logical Reasoning</span> →
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ Accordion (PAA Target) -->
+      <div class="light-card p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
+        <h2 class="text-sm font-mono uppercase tracking-wider text-slate-800 dark:text-slate-200 font-bold border-b border-slate-100 dark:border-slate-800 pb-3">
+          Frequently Asked Questions (UPSC CSAT Cutoff &amp; Strategy)
+        </h2>
+        <div class="space-y-3 text-xs sm:text-sm">
+          <details class="group p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+            <summary class="font-bold text-slate-900 dark:text-white cursor-pointer select-none flex items-center justify-between">
+              <span>What happens if I score above 120 in GS Paper 1 but get 66.00 in CSAT?</span>
+              <span class="text-slate-400 group-open:rotate-180 transition">▼</span>
+            </summary>
+            <p class="mt-3 text-slate-600 dark:text-slate-400 leading-relaxed">
+              If an aspirant fails to achieve 66.67 marks in CSAT Paper 2, they are automatically disqualified from UPSC Prelims regardless of their score in GS Paper 1. GS-1 marks are not considered in the merit list unless Paper-2 is qualified.
+            </p>
+          </details>
+
+          <details class="group p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+            <summary class="font-bold text-slate-900 dark:text-white cursor-pointer select-none flex items-center justify-between">
+              <span>Why has CSAT become more difficult since 2023?</span>
+              <span class="text-slate-400 group-open:rotate-180 transition">▼</span>
+            </summary>
+            <p class="mt-3 text-slate-600 dark:text-slate-400 leading-relaxed">
+              Since 2023, UPSC increased the difficulty of Quantitative Aptitude (Number Systems, Permutations, Modular Arithmetic) and shortened the length of Reading Comprehension passages while increasing inference ambiguity. A safe attempt strategy balancing both sections is now essential.
+            </p>
+          </details>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 py-6 text-center text-xs text-slate-500 dark:text-slate-400 bg-white/50 dark:bg-slate-950/50">
+      <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <span>© 2026 CookedMains · Authentic UPSC CSE Preparation Platform</span>
+        <div class="flex items-center gap-4">
+          <a href="/prelims" class="hover:underline">Prelims App</a>
+          <a href="/prelims/pyqs" class="hover:underline">PYQ Vault</a>
+          <a href="/prelims/mock-tests" class="hover:underline">Mock Tests</a>
+          <a href="/prelims/cutoff-calculator" class="hover:underline">Cutoff Calculator</a>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Interactive Calculator & Theme Sync Script -->
+  <script>
+    (function() {
+      // Theme Sync
+      const savedTheme = localStorage.getItem('prelims_theme') || 'dark';
+      if (savedTheme === 'dark') document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
+
+      document.getElementById('sidebarThemeToggle')?.addEventListener('click', function() {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('prelims_theme', isDark ? 'dark' : 'light');
+      });
+
+      // Mobile Drawer
+      const openBtn = document.getElementById('openMobileSidebarBtn');
+      const closeBtn = document.getElementById('closeSidebarMobileBtn');
+      const sidebar = document.getElementById('sidebarNav');
+      const backdrop = document.getElementById('mobileSidebarBackdrop');
+      function toggleSidebar(open) {
+        if (!sidebar) return;
+        if (open) {
+          sidebar.classList.remove('-translate-x-full');
+          backdrop?.classList.remove('hidden');
+        } else {
+          sidebar.classList.add('-translate-x-full');
+          backdrop?.classList.add('hidden');
+        }
+      }
+      openBtn?.addEventListener('click', () => toggleSidebar(true));
+      closeBtn?.addEventListener('click', () => toggleSidebar(false));
+      backdrop?.addEventListener('click', () => toggleSidebar(false));
+
+      // Simulator Logic
+      const attemptSlider = document.getElementById('csatAttemptSlider');
+      const accuracySlider = document.getElementById('csatAccuracySlider');
+      const attemptLabel = document.getElementById('csatAttemptLabel');
+      const accuracyLabel = document.getElementById('csatAccuracyLabel');
+      const scoreDisplay = document.getElementById('csatScoreDisplay');
+      const statusBadge = document.getElementById('csatStatusBadge');
+      const correctEl = document.getElementById('csatCorrectCount');
+      const wrongEl = document.getElementById('csatWrongCount');
+
+      function recalculate() {
+        const att = parseInt(attemptSlider.value, 10);
+        const acc = parseInt(accuracySlider.value, 10);
+
+        attemptLabel.textContent = att + ' Questions';
+        accuracyLabel.textContent = acc + '% Accuracy';
+
+        const correct = Math.round(att * (acc / 100));
+        const wrong = att - correct;
+
+        const net = Math.max(0, (correct * 2.5) - (wrong * 0.8333)).toFixed(1);
+        scoreDisplay.textContent = net;
+
+        correctEl.textContent = correct + ' Qs (+' + (correct * 2.5).toFixed(1) + ')';
+        wrongEl.textContent = wrong + ' Qs (-' + (wrong * 0.833).toFixed(1) + ')';
+
+        if (net >= 80) {
+          statusBadge.textContent = '✓ HIGH COMFORT ZONE (+' + (net - 66.67).toFixed(1) + ' Buffer)';
+          statusBadge.className = 'py-1 px-3 rounded-full text-xs font-bold font-mono bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 w-fit mx-auto';
+          scoreDisplay.className = 'text-4xl sm:text-5xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight';
+        } else if (net >= 66.67) {
+          statusBadge.textContent = '⚠️ SAFE QUALIFYING ZONE (+' + (net - 66.67).toFixed(1) + ' Buffer)';
+          statusBadge.className = 'py-1 px-3 rounded-full text-xs font-bold font-mono bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 w-fit mx-auto';
+          scoreDisplay.className = 'text-4xl sm:text-5xl font-black text-amber-600 dark:text-amber-400 font-mono tracking-tight';
+        } else {
+          statusBadge.textContent = '✗ FAILED CUTOFF (-' + (66.67 - net).toFixed(1) + ' Short of 66.67)';
+          statusBadge.className = 'py-1 px-3 rounded-full text-xs font-bold font-mono bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30 w-fit mx-auto';
+          scoreDisplay.className = 'text-4xl sm:text-5xl font-black text-rose-600 dark:text-rose-400 font-mono tracking-tight';
+        }
+      }
+
+      attemptSlider?.addEventListener('input', recalculate);
+      accuracySlider?.addEventListener('input', recalculate);
+      recalculate();
+    })();
   </script>
+
 </body>
 </html>
