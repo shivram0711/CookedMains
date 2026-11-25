@@ -381,7 +381,7 @@
     } else if (mode === 'progress' || mode === 'progress_tracker') {
       if (trackerView) trackerView.classList.remove('hidden');
       updateSidebarActive('sideNavProgressTracker');
-      if (breadcrumb) breadcrumb.textContent = '📈 Progress Tracker & Continuity Cockpit';
+      if (breadcrumb) breadcrumb.textContent = 'My Progress';
       if (typeof window.renderProgressTracker === 'function') {
         window.renderProgressTracker();
       }
@@ -400,44 +400,102 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // Runtime LaTeX / Display Sanitizer (prevents raw $26^{\text{th}}$ or \text{...} in UI)
+  function cleanDisplayText(str) {
+    if (typeof str !== 'string' || !str) return str || '';
+    if (str.indexOf('$') === -1 && str.indexOf('\\') === -1) return str;
+    return str
+      .replace(/\$(\d+)\s*\^\s*\{\s*\\text\{\s*(st|nd|rd|th)\s*\}\s*\}\$/gi, '$1$2')
+      .replace(/\$(\d+)\s*\^\s*(st|nd|rd|th)\$/gi, '$1$2')
+      .replace(/\$(\d+(?:\.\d+)?)\s*\^\s*\\circ\$/g, '$1°')
+      .replace(/\$\\text\{([^}]+)\}\$/g, '$1')
+      .replace(/\\text\{([^}]+)\}/g, '$1')
+      .replace(/\$NH_3\$/g, 'NH₃')
+      .replace(/\$CO\(NH_2\)_2\$/g, 'CO(NH₂)₂')
+      .replace(/\$H_2\$/g, 'H₂')
+      .replace(/\$\\theta\$/g, 'θ')
+      .replace(/\$\\sin\\theta\$/g, 'sin θ');
+  }
 
   // ==========================================================
-  // PROGRESS TRACKER & SESSION RESUMPTION ENGINE (v1)
-  // Preserves interrupted mocks, drills, and PYQs in localStorage
+  // MULTI-SESSION RESUMPTION ENGINE (v2)
+  // Preserves multiple paused mocks, drills, and PYQs in localStorage
   // ==========================================================
   const STORAGE_IN_PROGRESS_KEY = 'cm_in_progress_session_v1';
+  const STORAGE_PAUSED_LIST_KEY = 'cm_paused_sessions_v2';
 
-  function getInProgressSession() {
+  function getPausedSessions() {
+    let list = [];
     try {
-      const raw = localStorage.getItem(STORAGE_IN_PROGRESS_KEY);
-      if (!raw) return null;
-      const data = JSON.parse(raw);
-      if (!data || !Array.isArray(data.questions) || data.questions.length === 0) return null;
-      return data;
-    } catch (e) {
-      return null;
+      const rawList = localStorage.getItem(STORAGE_PAUSED_LIST_KEY);
+      if (rawList) {
+        const parsed = JSON.parse(rawList);
+        if (Array.isArray(parsed)) {
+          list = parsed.filter(function (s) {
+            return s && Array.isArray(s.questions) && s.questions.length > 0;
+          });
+        }
+      }
+    } catch (e) {}
+
+    // Migrate legacy single-session key if v2 list is empty
+    if (list.length === 0) {
+      try {
+        const rawSingle = localStorage.getItem(STORAGE_IN_PROGRESS_KEY);
+        if (rawSingle) {
+          const single = JSON.parse(rawSingle);
+          if (single && Array.isArray(single.questions) && single.questions.length > 0) {
+            if (!single.sessionId) {
+              single.sessionId = (single.currentTest && single.currentTest.id) || ('sess_' + (single.timestamp || Date.now()));
+            }
+            list = [single];
+            localStorage.setItem(STORAGE_PAUSED_LIST_KEY, JSON.stringify(list));
+          }
+        }
+      } catch (e) {}
     }
+
+    return list.sort(function (a, b) { return (b.timestamp || 0) - (a.timestamp || 0); });
+  }
+
+  function getInProgressSession(sessionId) {
+    const list = getPausedSessions();
+    if (!list.length) return null;
+    if (sessionId) {
+      return list.find(function (s) { return s.sessionId === sessionId; }) || null;
+    }
+    return list[0];
   }
 
   function saveInProgressSession() {
     try {
       if (!STATE.playerQuestions || !STATE.playerQuestions.length) return;
       if (STATE.viewMode !== 'player') return;
+      if (STATE.isReviewMode) return;
+
+      if (!STATE.currentTest) {
+        STATE.currentTest = { id: 'practice_' + Date.now(), title: STATE.isExamMode ? 'Timed Simulation Mock' : 'Sectional Focus Practice' };
+      }
+      if (!STATE.currentTest.id) {
+        STATE.currentTest.id = 'session_' + Date.now();
+      }
+      const sessionId = STATE.currentTest.id;
 
       const sessionData = {
+        sessionId: sessionId,
         title: (STATE.currentTest && STATE.currentTest.title) || (STATE.isExamMode ? 'Timed Simulation Mock' : 'Sectional Focus Practice'),
         isExamMode: !!STATE.isExamMode,
-        isReviewMode: !!STATE.isReviewMode,
-        currentTest: STATE.currentTest ? {
-          id: STATE.currentTest.id,
+        isReviewMode: false,
+        currentTest: {
+          id: sessionId,
           title: STATE.currentTest.title,
-          totalQuestions: STATE.currentTest.totalQuestions,
+          totalQuestions: STATE.currentTest.totalQuestions || STATE.playerQuestions.length,
           totalSeconds: STATE.currentTest.totalSeconds,
           remainingSeconds: STATE.currentTest.remainingSeconds,
           startTime: STATE.currentTest.startTime,
           discipline: STATE.currentTest.discipline,
           mode: STATE.currentTest.mode
-        } : null,
+        },
         playerIndex: STATE.playerIndex || 0,
         previousView: STATE.previousView || 'dashboard',
         timestamp: Date.now(),
@@ -445,6 +503,7 @@
           return {
             id: q.id,
             question: q.question,
+            question_text: q.question_text,
             options: q.options,
             correct_index: q.correct_index,
             explanation: q.explanation,
@@ -462,6 +521,11 @@
         flagged: Array.from(STATE.flagged || [])
       };
 
+      let list = getPausedSessions().filter(function (s) { return s.sessionId !== sessionId; });
+      list.unshift(sessionData);
+      if (list.length > 8) list = list.slice(0, 8);
+
+      localStorage.setItem(STORAGE_PAUSED_LIST_KEY, JSON.stringify(list));
       localStorage.setItem(STORAGE_IN_PROGRESS_KEY, JSON.stringify(sessionData));
       updateProgressTrackerBadge();
     } catch (e) {
@@ -469,22 +533,46 @@
     }
   }
 
-  function clearInProgressSession() {
+  function clearInProgressSession(sessionId) {
     try {
-      localStorage.removeItem(STORAGE_IN_PROGRESS_KEY);
+      const targetId = sessionId || (STATE.currentTest && STATE.currentTest.id);
+      if (targetId) {
+        const remaining = getPausedSessions().filter(function (s) { return s.sessionId !== targetId; });
+        localStorage.setItem(STORAGE_PAUSED_LIST_KEY, JSON.stringify(remaining));
+        if (remaining.length > 0) {
+          localStorage.setItem(STORAGE_IN_PROGRESS_KEY, JSON.stringify(remaining[0]));
+        } else {
+          localStorage.removeItem(STORAGE_IN_PROGRESS_KEY);
+        }
+      } else {
+        localStorage.removeItem(STORAGE_PAUSED_LIST_KEY);
+        localStorage.removeItem(STORAGE_IN_PROGRESS_KEY);
+      }
       updateProgressTrackerBadge();
     } catch (e) {
       console.warn('Failed to clear in-progress session', e);
     }
   }
 
+  window.clearAllPausedSessions = function () {
+    if (confirm('Clear all paused tests and drills? Completed scores in your history will stay safe.')) {
+      localStorage.removeItem(STORAGE_PAUSED_LIST_KEY);
+      localStorage.removeItem(STORAGE_IN_PROGRESS_KEY);
+      updateProgressTrackerBadge();
+      if (typeof window.renderProgressTracker === 'function') {
+        window.renderProgressTracker();
+      }
+      showToast('🗑️ All paused sessions cleared.');
+    }
+  };
+
   function updateProgressTrackerBadge() {
     const badge = document.getElementById('sidebarProgressResumeBadge');
     if (!badge) return;
-    const session = getInProgressSession();
-    if (session) {
-      badge.textContent = 'RESUME';
-      badge.className = 'px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 text-[9px] font-black uppercase font-mono animate-pulse shadow-sm';
+    const sessions = getPausedSessions();
+    if (sessions.length > 0) {
+      badge.textContent = sessions.length === 1 ? 'RESUME' : (sessions.length + ' PAUSED');
+      badge.className = 'px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 text-[9px] font-black uppercase font-mono shadow-sm';
     } else {
       badge.textContent = 'TRACK';
       badge.className = 'px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[9px] font-black uppercase font-mono';
@@ -495,10 +583,10 @@
     switchViewMode('progress');
   };
 
-  window.resumeInProgressSession = function () {
-    const session = getInProgressSession();
+  window.resumeInProgressSession = function (sessionId) {
+    const session = getInProgressSession(sessionId);
     if (!session) {
-      showToast('No active session found to resume.', 'info');
+      showToast('No paused session found to resume.', 'info');
       return;
     }
 
@@ -534,23 +622,23 @@
       startExamTimer();
     }
 
-    showToast('⚡ Resumed ' + (session.title || 'Session') + ' at Question #' + (STATE.playerIndex + 1));
+    showToast('⚡ Resumed ' + (session.title || 'Practice') + ' at Q#' + (STATE.playerIndex + 1));
   };
 
-  window.discardInProgressSession = function () {
-    if (confirm('Are you sure you want to discard this in-progress session? Any unsubmitted responses will be cleared.')) {
-      clearInProgressSession();
+  window.discardInProgressSession = function (sessionId) {
+    if (confirm('Discard this paused session? Unsubmitted answers for this test will be removed.')) {
+      clearInProgressSession(sessionId);
       if (typeof window.renderProgressTracker === 'function') {
         window.renderProgressTracker();
       }
-      showToast('🗑️ Session discarded.');
+      showToast('🗑️ Paused session discarded.');
     }
   };
 
   window.renderProgressTracker = function () {
     updateProgressTrackerBadge();
 
-    // 1. Update Momentum Strip Cards
+    // 1. Update Summary Strip Cards
     const sprint = typeof getActiveSprint === 'function' ? getActiveSprint() : null;
     const sprintStats = (sprint && typeof calculateSprintStats === 'function') ? calculateSprintStats(sprint) : null;
 
@@ -563,89 +651,109 @@
 
     if (sprint && sprintStats) {
       if (sSubjEl) sSubjEl.textContent = sprint.subject + (sprint.topicLabel && sprint.topicLabel !== 'All Topics' ? ' (' + sprint.topicLabel + ')' : '');
-      if (sRatioEl) sRatioEl.textContent = sprintStats.completedCount + ' / ' + sprintStats.goal + ' Qs Completed (' + sprintStats.pct + '%)';
+      if (sRatioEl) sRatioEl.textContent = sprintStats.completedCount + ' / ' + sprintStats.goal + ' Qs (' + sprintStats.pct + '%)';
       if (sPaceBadge) {
         if (sprintStats.completedCount >= sprintStats.goal) {
           sPaceBadge.textContent = 'Goal Met! 🎉';
-          sPaceBadge.className = 'text-sm font-extrabold text-emerald-600 dark:text-emerald-400';
+          sPaceBadge.className = 'text-xs sm:text-sm font-extrabold text-emerald-600 dark:text-emerald-400';
         } else {
           sPaceBadge.textContent = 'On Track ⚡';
-          sPaceBadge.className = 'text-sm font-extrabold text-amber-600 dark:text-amber-400';
+          sPaceBadge.className = 'text-xs sm:text-sm font-extrabold text-amber-600 dark:text-amber-400';
         }
       }
       if (sPaceAdvice) {
-        sPaceAdvice.textContent = sprintStats.completedCount >= sprintStats.goal ? 'Ready for next sprint!' : (sprintStats.pace + ' Qs/day needed');
+        sPaceAdvice.textContent = sprintStats.completedCount >= sprintStats.goal ? 'Ready for next goal' : (sprintStats.pace + ' Qs/day needed');
       }
     }
 
     const history = STATE.mockHistory || [];
-    if (sMockCount) sMockCount.textContent = history.length + ' Mock' + (history.length === 1 ? '' : 's');
+    if (sMockCount) sMockCount.textContent = history.length + ' Test' + (history.length === 1 ? '' : 's');
 
-    const badgeText = document.getElementById('heatmapThemesCountBadge')?.textContent || 'Live Analysis';
-    if (sWeakCount) sWeakCount.textContent = badgeText;
+    const badgeText = document.getElementById('heatmapThemesCountBadge')?.textContent || '0 Topics';
+    if (sWeakCount) sWeakCount.textContent = badgeText.replace('Themes Logged', 'Topics');
 
-    // 2. Render In-Progress Sessions Container
+    // 2. Render All Paused Sessions
     const container = document.getElementById('inProgressSessionsContainer');
-    if (container) {
-      const session = getInProgressSession();
-      if (session) {
-        const total = session.questions.length;
-        let answered = 0;
-        session.questions.forEach(function (q) {
-          if (session.testAnswers && session.testAnswers[q.id] !== undefined) answered++;
-        });
-        const pct = Math.round((answered / Math.max(1, total)) * 100);
-        const remQs = Math.max(0, total - answered);
-        const timeAgoMins = Math.max(1, Math.round((Date.now() - (session.timestamp || Date.now())) / 60000));
-        const timeAgoStr = timeAgoMins === 1 ? 'Just now' : (timeAgoMins + ' mins ago');
+    const statusBadge = document.getElementById('inProgressStatusBadge');
+    const clearAllBtn = document.getElementById('clearAllPausedBtn');
+    const sessions = getPausedSessions();
 
-        container.innerHTML = (
-          '<div class="p-5 rounded-2xl bg-amber-500/5 dark:bg-slate-950 border border-amber-500/30 flex flex-col gap-4 shadow-sm transition-all">' +
-            '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">' +
-              '<div class="flex items-center gap-3">' +
-                '<div class="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg font-bold">' +
-                  '⚡' +
-                '</div>' +
-                '<div class="flex flex-col">' +
-                  '<div class="flex items-center gap-2">' +
-                    '<h4 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">' + escapeHtml(session.title || 'In-Progress Practice') + '</h4>' +
-                    '<span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[10px] font-bold font-mono uppercase">In Progress</span>' +
+    if (statusBadge) {
+      statusBadge.textContent = sessions.length > 0 ? (sessions.length + ' Saved') : 'All Clear';
+    }
+    if (clearAllBtn) {
+      if (sessions.length > 1) clearAllBtn.classList.remove('hidden');
+      else clearAllBtn.classList.add('hidden');
+    }
+
+    if (container) {
+      if (sessions.length > 0) {
+        container.innerHTML = sessions.map(function (session) {
+          const total = session.questions.length;
+          let answered = 0;
+          session.questions.forEach(function (q) {
+            if (session.testAnswers && session.testAnswers[q.id] !== undefined) answered++;
+          });
+          const pct = Math.round((answered / Math.max(1, total)) * 100);
+          const remQs = Math.max(0, total - answered);
+          const timeAgoMins = Math.max(1, Math.round((Date.now() - (session.timestamp || Date.now())) / 60000));
+          const timeAgoStr = timeAgoMins < 2 ? 'Just now' : (timeAgoMins < 60 ? (timeAgoMins + 'm ago') : (Math.round(timeAgoMins / 60) + 'h ago'));
+          const safeSid = escapeHtml(session.sessionId || '');
+          const modeIcon = session.isExamMode ? '⏱️' : '⚡';
+
+          return (
+            '<div class="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-amber-500/40 flex flex-col gap-3.5 transition-all">' +
+              '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">' +
+                '<div class="flex items-start gap-3 min-w-0">' +
+                  '<div class="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-base font-bold shrink-0 mt-0.5">' +
+                    modeIcon +
                   '</div>' +
-                  '<span class="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">' +
-                    'Question ' + (session.playerIndex + 1) + ' of ' + total + ' &bull; ' + answered + ' Answered &bull; ' + (session.flagged ? session.flagged.length : 0) + ' Flagged &bull; Saved ' + timeAgoStr +
-                  '</span>' +
+                  '<div class="flex flex-col min-w-0 gap-0.5">' +
+                    '<div class="flex items-center gap-2 flex-wrap">' +
+                      '<h4 class="text-sm font-extrabold text-slate-900 dark:text-white leading-snug">' + escapeHtml(session.title || 'Paused Practice') + '</h4>' +
+                      '<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 text-[10px] font-bold font-mono uppercase whitespace-nowrap">Paused</span>' +
+                    '</div>' +
+                    '<div class="flex items-center gap-2 flex-wrap text-[11px] text-slate-500 dark:text-slate-400 font-mono">' +
+                      '<span>Q ' + ((session.playerIndex || 0) + 1) + ' of ' + total + '</span>' +
+                      '<span>&bull;</span>' +
+                      '<span>' + answered + ' answered</span>' +
+                      (session.flagged && session.flagged.length > 0 ? '<span>&bull;</span><span>' + session.flagged.length + ' flagged</span>' : '') +
+                      '<span>&bull;</span>' +
+                      '<span>' + timeAgoStr + '</span>' +
+                    '</div>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="flex items-center gap-2 shrink-0 self-end sm:self-center">' +
+                  '<button type="button" onclick="window.discardInProgressSession(\'' + safeSid + '\')" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer">' +
+                    'Discard' +
+                  '</button>' +
+                  '<button type="button" onclick="window.resumeInProgressSession(\'' + safeSid + '\')" class="btn-action-emerald px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap">' +
+                    '<span>▶ Resume</span>' +
+                    '<span>→</span>' +
+                  '</button>' +
                 '</div>' +
               '</div>' +
-              '<div class="flex items-center gap-2">' +
-                '<button type="button" onclick="window.discardInProgressSession()" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer flex items-center gap-1">' +
-                  '<span>🗑 Discard</span>' +
-                '</button>' +
-                '<button type="button" onclick="window.resumeInProgressSession()" class="btn-action-emerald px-5 py-2 rounded-xl text-xs font-bold shadow-md transition cursor-pointer flex items-center gap-1.5">' +
-                  '<span>▶ Resume Session</span>' +
-                  '<span>→</span>' +
-                '</button>' +
+              '<div class="w-full flex flex-col gap-1.5">' +
+                '<div class="flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-slate-400">' +
+                  '<span>' + pct + '% complete</span>' +
+                  '<span class="text-emerald-600 dark:text-emerald-400 font-bold">' + remQs + ' Qs left</span>' +
+                '</div>' +
+                '<div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">' +
+                  '<div class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width: ' + pct + '%;"></div>' +
+                '</div>' +
               '</div>' +
-            '</div>' +
-            '<div class="w-full flex flex-col gap-1.5">' +
-              '<div class="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-slate-400">' +
-                '<span>Progress: ' + pct + '% Complete</span>' +
-                '<span class="text-emerald-600 dark:text-emerald-400 font-bold">' + remQs + ' Qs Remaining</span>' +
-              '</div>' +
-              '<div class="w-full h-2.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">' +
-                '<div class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width: ' + pct + '%;"></div>' +
-              '</div>' +
-            '</div>' +
-          '</div>'
-        );
+            '</div>'
+          );
+        }).join('');
       } else {
         container.innerHTML = (
           '<div class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-center flex flex-col items-center justify-center gap-2">' +
             '<div class="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg">' +
               '✓' +
             '</div>' +
-            '<h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">No Interrupted Sessions</h4>' +
+            '<h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">No Paused Tests</h4>' +
             '<p class="text-xs text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">' +
-              'All your mocks and drills are completely up to date. Start a new test or sprint whenever you are ready.' +
+              'Any mock or practice set you pause will be saved here so you can pick up right where you left off.' +
             '</p>' +
           '</div>'
         );
@@ -2610,12 +2718,13 @@
 
     // Question Statement Text
     const qTextEl = document.getElementById('playerQuestionText');
-    if (qTextEl) qTextEl.textContent = q.question_text || '';
+    const cleanQText = cleanDisplayText(q.question_text || q.question || '');
+    if (qTextEl) qTextEl.textContent = cleanQText;
 
     // Statement Slicer (Numbered Statements)
     const stmtsContainer = document.getElementById('playerStatementsContainer');
     if (stmtsContainer) {
-      const statements = parseStatements(q.question_text);
+      const statements = parseStatements(cleanQText);
       if (statements.length > 0) {
         stmtsContainer.innerHTML = (
           '<div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col gap-2">' +
@@ -2626,7 +2735,7 @@
                 return (
                   '<div class="slice-stmt-row flex items-start gap-2 p-2 rounded-xl text-xs text-slate-300 hover:bg-amber-500/10 dark:hover:bg-slate-800 cursor-pointer transition-all ' + (isSliced ? 'stmt-sliced' : '') + '" data-qid="' + q.id + '" data-snum="' + st.num + '">' +
                     '<span class="font-bold font-mono px-1.5 py-0.2 rounded bg-slate-800 text-amber-400 text-[10px] shrink-0">' + st.num + '</span>' +
-                    '<span class="leading-relaxed">' + escapeHtml(st.text) + '</span>' +
+                    '<span class="leading-relaxed">' + escapeHtml(cleanDisplayText(st.text)) + '</span>' +
                     '<span class="text-rose-400 text-xs ml-auto shrink-0">' + (isSliced ? '✕ Cut' : 'Slice') + '</span>' +
                   '</div>'
                 );
@@ -2696,7 +2805,7 @@
           return (
             '<button type="button" class="player-opt-btn p-3.5 rounded-2xl flex items-center gap-3 transition-all text-left text-xs sm:text-sm cursor-pointer ' + optStyle + '" data-oidx="' + oIdx + '">' +
               '<span class="w-6 h-6 rounded-xl flex items-center justify-center font-bold text-xs bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white shrink-0 font-mono">' + letters[oIdx] + '</span>' +
-              '<span class="leading-relaxed flex-1">' + escapeHtml(opt) + '</span>' +
+              '<span class="leading-relaxed flex-1">' + escapeHtml(cleanDisplayText(opt)) + '</span>' +
               statusBadge +
             '</button>'
           );
@@ -2754,7 +2863,7 @@
           return (
             '<div class="p-3.5 rounded-2xl flex items-center gap-3 transition-all text-left text-xs sm:text-sm ' + optStyle + '">' +
               '<span class="w-6 h-6 rounded-xl flex items-center justify-center font-bold text-xs bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white shrink-0 font-mono">' + letters[oIdx] + '</span>' +
-              '<span class="leading-relaxed flex-1">' + escapeHtml(opt) + '</span>' +
+              '<span class="leading-relaxed flex-1">' + escapeHtml(cleanDisplayText(opt)) + '</span>' +
               statusBadge +
             '</div>'
           );
@@ -2786,8 +2895,8 @@
           if (marksDelta) marksDelta.textContent = '-0.66 Marks';
         }
 
-        if (trapTextEl) trapTextEl.textContent = q.elimination_trap || 'UPSC tests subtle word substitutions between statutory requirements and constitutional definitions.';
-        if (expTextEl) expTextEl.textContent = q.explanation || 'Official UPSC key validated explanation.';
+        if (trapTextEl) trapTextEl.textContent = cleanDisplayText(q.elimination_trap || 'UPSC tests subtle word substitutions between statutory requirements and constitutional definitions.');
+        if (expTextEl) expTextEl.textContent = cleanDisplayText(q.explanation || 'Official UPSC key validated explanation.');
         const citEl = document.getElementById('playerCitationText');
         if (citEl && q.standard_book_ref) citEl.textContent = 'Standard Reference: ' + q.standard_book_ref;
         renderPlayerDistractorDeepDive(q);
@@ -2833,7 +2942,7 @@
           return (
             '<button type="button" class="player-opt-btn p-3.5 rounded-2xl flex items-center gap-3 transition-all text-left text-xs sm:text-sm cursor-pointer ' + optStyle + '" data-oidx="' + oIdx + '">' +
               '<span class="w-6 h-6 rounded-xl flex items-center justify-center font-bold text-xs bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white shrink-0 font-mono">' + letters[oIdx] + '</span>' +
-              '<span class="leading-relaxed flex-1">' + escapeHtml(opt) + '</span>' +
+              '<span class="leading-relaxed flex-1">' + escapeHtml(cleanDisplayText(opt)) + '</span>' +
               statusBadge +
             '</button>'
           );
@@ -4393,8 +4502,8 @@
     }
     try {
       const [resPyqs, resCa, resOther, resAi] = await Promise.all([
-        fetch('/static/data/prelims_pyqs.json?v=20261123v2'),
-        fetch('/static/data/current_affairs_pyqs.json?v=1795619934752'),
+        fetch('/static/data/prelims_pyqs.json?v=1795622969418'),
+        fetch('/static/data/current_affairs_pyqs.json?v=1795622923123'),
         fetch('/static/data/upsc_other_exams_pyqs.json?v=20261123v2'),
         fetch('/static/data/ai_mock_questions_2026.json?v=20261123v2')
       ]);
@@ -7682,7 +7791,7 @@ function renderPlayerDistractorDeepDive(q) {
   async function ensureCaQuestionsLoaded() {
     if (STATE.ca_pyqs && STATE.ca_pyqs.length > 0) return STATE.ca_pyqs;
     try {
-      const res = await fetch('/static/data/current_affairs_pyqs.json?v=1795619934752');
+      const res = await fetch('/static/data/current_affairs_pyqs.json?v=1795622923123');
       if (res.ok) {
         STATE.ca_pyqs = await res.json();
         if (!STATE.pyqMap) STATE.pyqMap = {};

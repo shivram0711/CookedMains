@@ -1460,82 +1460,87 @@
            (Beats SuperKalam with Deeper Insights, Decoded Traps, Facts & Mains Links)
            ==================================================== -->
       <!-- ====================================================
-           VIEW: 📈 PROGRESS TRACKER & CONTINUITY COCKPIT
-           (Track in-progress sessions, sprint velocity, weak areas, and scorecards)
+           VIEW: 📈 MY PRACTICE PROGRESS
+           (Track paused mocks, daily goals, weak topics, and scorecards)
            ==================================================== -->
-      <div id="progressTrackerView" class="hidden flex flex-col gap-6">
+      <div id="progressTrackerView" class="hidden flex flex-col gap-5 sm:gap-6">
 
         <!-- Top Header Hero Banner -->
-        <div class="light-card p-6 sm:p-7 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-2xl shrink-0 font-black">
+        <div class="light-card p-5 sm:p-7 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center text-xl shrink-0">
                 📈
               </div>
-              <div class="flex flex-col">
-                <div class="flex items-center gap-2">
-                  <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                    Progress Tracker &amp; Continuity Cockpit
+              <div class="flex flex-col min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h1 class="text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                    My Practice Progress
                   </h1>
-                  <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold font-mono uppercase">
-                    Live Diagnostics
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold font-mono uppercase whitespace-nowrap">
+                    Live
                   </span>
                 </div>
-                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                  Resume interrupted practice sessions, monitor target sprint velocity, and review topic accuracy diagnostics.
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                  Pick up paused tests, stay on track with daily goals, and fix weak topics.
                 </p>
               </div>
             </div>
 
-            <div class="flex items-center gap-2">
-              <button type="button" onclick="window.switchViewMode('dashboard')" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
-                <span>← Home Dashboard</span>
+            <div class="flex items-center gap-2 shrink-0">
+              <button type="button" onclick="window.switchViewMode('dashboard')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+                <span>← Back to Home</span>
               </button>
             </div>
           </div>
 
-          <!-- Quick High-Yield Continuity & Momentum Strip -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-1">
-              <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Active Sprint Target</span>
-              <span id="trackerSprintSubject" class="text-sm font-extrabold text-slate-900 dark:text-white truncate">Polity &amp; Gov</span>
-              <span id="trackerSprintRatio" class="text-[11px] text-emerald-600 dark:text-emerald-400 font-mono font-bold">1 / 30 Qs Completed</span>
+          <!-- Quick Summary Strip -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-xs">
+            <div class="p-3 sm:p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-0.5">
+              <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wide">Current Goal</span>
+              <span id="trackerSprintSubject" class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white truncate">Polity &amp; Gov</span>
+              <span id="trackerSprintRatio" class="text-[11px] text-emerald-600 dark:text-emerald-400 font-mono font-bold">1 / 30 Qs (3%)</span>
             </div>
-            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-1">
-              <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Sprint Pace Status</span>
-              <span id="trackerPaceBadge" class="text-sm font-extrabold text-amber-600 dark:text-amber-400">On Track ⚡</span>
+            <div class="p-3 sm:p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-0.5">
+              <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wide">Daily Pace</span>
+              <span id="trackerPaceBadge" class="text-xs sm:text-sm font-extrabold text-amber-600 dark:text-amber-400">On Track ⚡</span>
               <span id="trackerPaceAdvice" class="text-[11px] text-slate-500 dark:text-slate-400">8 Qs/day needed</span>
             </div>
-            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-1">
-              <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Mock Scorecards</span>
-              <span id="trackerScorecardsCount" class="text-sm font-extrabold text-slate-900 dark:text-white">0 Mocks</span>
-              <span class="text-[11px] text-slate-500 dark:text-slate-400">Logged in History</span>
+            <div class="p-3 sm:p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-0.5">
+              <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wide">Completed</span>
+              <span id="trackerScorecardsCount" class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">0 Tests</span>
+              <span class="text-[11px] text-slate-500 dark:text-slate-400">Saved in history</span>
             </div>
-            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-1">
-              <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Weak Topics Identified</span>
-              <span id="trackerWeakTopicsCount" class="text-sm font-extrabold text-rose-600 dark:text-rose-400">0 Themes</span>
-              <span class="text-[11px] text-slate-500 dark:text-slate-400">In Accuracy Heatmap</span>
+            <div class="p-3 sm:p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-0.5">
+              <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wide">Weak Topics</span>
+              <span id="trackerWeakTopicsCount" class="text-xs sm:text-sm font-extrabold text-rose-600 dark:text-rose-400">0 Topics</span>
+              <span class="text-[11px] text-slate-500 dark:text-slate-400">Needs revision</span>
             </div>
           </div>
         </div>
 
-        <!-- 1. "CONTINUE WHERE YOU LEFT OFF" (In-Progress Sessions Section) -->
+        <!-- 1. "PAUSED TESTS & PRACTICE" (Multi-Session Resumption) -->
         <div id="continueLeftOffSection" class="light-card p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
           <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 flex-wrap gap-2">
             <div class="flex items-center gap-2.5">
               <span class="text-lg">⏳</span>
-              <div class="flex items-center gap-2">
-                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Continue Where You Left Off</h3>
-                <span id="inProgressStatusBadge" class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 text-[10px] font-bold font-mono uppercase">
-                  Session Resumption
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">Paused Tests &amp; Practice</h3>
+                <span id="inProgressStatusBadge" class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 text-[10px] font-bold font-mono uppercase whitespace-nowrap">
+                  0 Saved
                 </span>
               </div>
             </div>
-            <span class="text-xs text-slate-500 dark:text-slate-400">Interrupted mocks, PYQ vaults, or drills auto-saved</span>
+            <div class="flex items-center gap-3">
+              <span class="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline">Auto-saved when you pause or switch</span>
+              <button type="button" id="clearAllPausedBtn" onclick="window.clearAllPausedSessions()" class="hidden text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer whitespace-nowrap">
+                Clear All
+              </button>
+            </div>
           </div>
 
-          <!-- Dynamic Container for Active Resumable Session or Empty State -->
-          <div id="inProgressSessionsContainer">
+          <!-- Dynamic Container for All Paused Sessions -->
+          <div id="inProgressSessionsContainer" class="flex flex-col gap-3">
             <!-- Populated dynamically by window.renderProgressTracker() -->
           </div>
         </div>
@@ -1884,62 +1889,67 @@
 
       </div>
 
-      <div id="questionPlayerView" class="hidden flex flex-col gap-5">
+      <div id="questionPlayerView" class="hidden flex flex-col gap-4 sm:gap-5">
         
-        <!-- Player Top Bar -->
-        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-          <button id="exitPlayerBtn" type="button" class="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer" title="Return to previous section">
-            <span>←</span>
-            <span id="exitPlayerBtnText">Exit to Dashboard</span>
-          </button>
-
-          <!-- Current Metadata -->
-          <div class="flex items-center gap-2">
-            <span id="playerSubjectBadge" class="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold">Polity</span>
-            <span id="playerYearBadge" class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 text-xs font-mono font-bold">2023</span>
-            <span id="playerDiffBadge" class="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold">Moderate</span>
-          </div>
-
-          <!-- Practice Mode Finish Controls -->
-          <div id="playerPracticeControlsGroup" class="flex items-center gap-2">
-            <button id="playerFinishPracticeBtn" type="button" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5">
-              <span>🏁</span>
-              <span class="hidden sm:inline">Finish &amp; View</span> <span>Report</span>
+        <!-- Minimal & Responsive Player Top Bar -->
+        <div class="flex flex-col gap-2.5 pb-3 border-b border-slate-200 dark:border-slate-800">
+          <!-- Row 1: Navigation & Primary Controls -->
+          <div class="flex items-center justify-between gap-2">
+            <button id="exitPlayerBtn" type="button" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer whitespace-nowrap shrink-0" title="Return to previous section">
+              <span>←</span>
+              <span id="exitPlayerBtnText">Back</span>
             </button>
-          </div>
 
-          <!-- Live Exam Mode Timer & Finish Controls -->
-          <div id="playerExamControlsGroup" class="hidden flex items-center gap-2">
-            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 font-mono font-bold text-xs">
-              <span>⏱️</span>
-              <span id="playerExamTimerText">120:00</span>
+            <div class="flex items-center gap-2 shrink-0">
+              <!-- Practice Mode Finish Controls -->
+              <div id="playerPracticeControlsGroup" class="flex items-center gap-2">
+                <button id="playerFinishPracticeBtn" type="button" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-sm transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
+                  <span>🏁</span>
+                  <span class="hidden sm:inline">Finish &amp; View</span> <span>Report</span>
+                </button>
+              </div>
+
+              <!-- Live Exam Mode Timer & Finish Controls -->
+              <div id="playerExamControlsGroup" class="hidden flex items-center gap-2">
+                <div class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-mono font-bold text-xs whitespace-nowrap">
+                  <span>⏱️</span>
+                  <span id="playerExamTimerText">120:00</span>
+                </div>
+                <button id="playerSubmitExamBtn" type="button" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-sm transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap">
+                  <span>🏁</span>
+                  <span class="hidden sm:inline">Submit</span> <span>Test</span>
+                </button>
+              </div>
+
+              <!-- Question Palette Trigger -->
+              <button id="openPaletteBtn" type="button" class="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer whitespace-nowrap shrink-0">
+                <span>🔢</span>
+                <span id="playerCounterText">1 / 25</span>
+              </button>
             </div>
-            <button id="playerSubmitExamBtn" type="button" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer flex items-center gap-1">
-              <span>🏁</span>
-              <span class="hidden sm:inline">Submit</span> <span>Test</span>
-            </button>
           </div>
 
-          <!-- Question Palette Trigger -->
-          <button id="openPaletteBtn" type="button" class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer">
-            <span>🔢</span>
-            <span id="playerCounterText">Q 1 of 25</span>
-          </button>
+          <!-- Row 2: Clean Metadata Pills (Never crushed vertically on mobile) -->
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span id="playerSubjectBadge" class="px-2.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/25 text-[11px] font-bold whitespace-nowrap">Polity</span>
+            <span id="playerYearBadge" class="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 text-[11px] font-mono font-bold whitespace-nowrap">2023</span>
+            <span id="playerDiffBadge" class="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-bold whitespace-nowrap">Moderate</span>
+          </div>
         </div>
 
         <!-- Question Body Card (Focus Mode) -->
-        <div class="light-card p-6 sm:p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col gap-6">
+        <div class="light-card p-4 sm:p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col gap-5 sm:gap-6">
           
           <!-- Question Statement Header -->
           <div class="flex flex-col gap-2">
-            <div class="flex items-center justify-between text-xs text-slate-400 font-mono">
+            <div class="flex items-center justify-between gap-2 text-[11px] text-slate-400 font-mono flex-wrap">
               <div class="flex items-center gap-2 flex-wrap">
                 <span id="playerQNumberLabel" class="font-bold text-amber-500">QUESTION #1</span>
                 <span id="playerSourceTrustBadge" class="hidden px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold"></span>
               </div>
-              <span>UPSC CSE Official GS Paper 1</span>
+              <span class="text-[10px] sm:text-[11px]">UPSC CSE Official GS Paper 1</span>
             </div>
-            <h3 id="playerQuestionText" class="text-base sm:text-lg font-bold text-white leading-relaxed whitespace-pre-line">
+            <h3 id="playerQuestionText" class="text-[15px] sm:text-lg font-semibold sm:font-bold text-white leading-relaxed whitespace-pre-line">
               Loading question...
             </h3>
           </div>
@@ -2880,7 +2890,7 @@
   </div>
 
   <!-- Scripts -->
-  <script src="/static/prelims.js?v=1795619934752"></script>
+  <script src="/static/prelims.js?v=1795622923123"></script>
 
   <!-- ====================================================
        DYNAMIC REVERSE-OSMOSIS CURRENT AFFAIRS GENERATOR MODAL (Phase 5)

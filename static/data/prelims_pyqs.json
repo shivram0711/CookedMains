@@ -4593,7 +4593,7 @@
     "correct_option": "B",
     "correct_index": 1,
     "upsc_official_key": "Official UPSC Prelims 2026 Key",
-    "question_text": "Consider the following statements with reference to the Constitution of India :\n1. There is no Article in the Constitution of India that specifies that the Constitution of India will be officially called the 'Constitution of India'.\n2. There is no Article in the Constitution of India that specifies that the Indian Independence Act, 1947 and the Government of India Act, 1935 stand repealed.\n3. There is no Article in the Constitution of India that mentions $26^{\\text{th}}$ January, 1950 as the date of the commencement of the Constitution of India.\nWhich one of the following conclusions based on the above statements is correct ?",
+    "question_text": "Consider the following statements with reference to the Constitution of India :\n1. There is no Article in the Constitution of India that specifies that the Constitution of India will be officially called the 'Constitution of India'.\n2. There is no Article in the Constitution of India that specifies that the Indian Independence Act, 1947 and the Government of India Act, 1935 stand repealed.\n3. There is no Article in the Constitution of India that mentions 26th January, 1950 as the date of the commencement of the Constitution of India.\nWhich one of the following conclusions based on the above statements is correct ?",
     "options": [
       "All three statements are correct.",
       "There is no correct statement.",
@@ -6050,7 +6050,7 @@
     "correct_option": "B",
     "correct_index": 1,
     "upsc_official_key": "Official UPSC Prelims 2025 Key",
-    "explanation": "Coal gasification produces syngas (a mixture of carbon monoxide and hydrogen). Hydrogen derived from coal gasification is a crucial feedstock for producing Ammonia ($NH_3$), which is subsequently used to manufacture Urea ($CO(NH_2)_2$). Syngas can also be converted into methanol and further downstream chemicals like ethanol or acetic acid via catalytic synthesis. However, Nitroglycerine is an explosive ester produced by nitrating glycerol with nitric and sulfuric acids, not via coal gasification synthesis gas. Wait, let's verify UPSC's exact chemical pathway logic: Coal gasification produces synthesis gas (CO + $H_2$). Hydrogen from syngas is used for Ammonia/Urea production. Syngas can also be catalytically converted into Ethanol (via syngas fermentation or catalytic hydrogenation). Nitroglycerine requires glycerol and nitric acid. Therefore, coal gasification is used in the production of Ethanol and Urea (Total = 2).",
+    "explanation": "Coal gasification produces syngas (a mixture of carbon monoxide and hydrogen). Hydrogen derived from coal gasification is a crucial feedstock for producing Ammonia (NH₃), which is subsequently used to manufacture Urea (CO(NH₂)₂). Syngas can also be converted into methanol and further downstream chemicals like ethanol or acetic acid via catalytic synthesis. However, Nitroglycerine is an explosive ester produced by nitrating glycerol with nitric and sulfuric acids, not via coal gasification synthesis gas. Wait, let's verify UPSC's exact chemical pathway logic: Coal gasification produces synthesis gas (CO + H₂). Hydrogen from syngas is used for Ammonia/Urea production. Syngas can also be catalytically converted into Ethanol (via syngas fermentation or catalytic hydrogenation). Nitroglycerine requires glycerol and nitric acid. Therefore, coal gasification is used in the production of Ethanol and Urea (Total = 2).",
     "standard_book_ref": "Industrial Chemistry / NITI Aayog Coal Gasification Mission Document",
     "elimination_trap": "Aspirants might assume coal gasification is only used for power generation or steel making, ignoring its vital role as a chemical feedstock for fertilizers (urea) and petrochemical alternatives (ethanol).",
     "mains_linkage": {
@@ -6072,7 +6072,7 @@
         "badge_type": "correct",
         "diagnosis": "Coal gasification yields synthesis gas (CO + H2). Hydrogen from syngas is used to manufacture ammonia/urea, and syngas can also be converted into ethanol. Nitroglycerine is produced from glycerol and nitric/sulfuric acid, not coal gasification. Thus, exactly two (Ethanol and Urea).",
         "examiner_craft": "Advanced industrial chemistry question testing feedstock pathways from syngas.",
-        "mental_filter": "Urea needs Ammonia ($H_2$ from coal gasification). Ethanol can be made from syngas. Nitroglycerine requires glycerol."
+        "mental_filter": "Urea needs Ammonia (H₂ from coal gasification). Ethanol can be made from syngas. Nitroglycerine requires glycerol."
       },
       {
         "letter": "C",
@@ -12371,7 +12371,7 @@
     "correct_option": "C",
     "correct_index": 2,
     "upsc_official_key": "Official UPSC Prelims 2024 Key",
-    "explanation": "The Coriolis force deflects winds to the right in the Northern Hemisphere and to its left in the Southern Hemisphere. 1. It is directly proportional to the angle of latitude, mass, and wind velocity ($F_c = 2mv\\Omega \\sin\\theta$). Thus, higher wind velocity means greater Coriolis force. Statement 1 is correct. 2. Since it is proportional to $\\sin\\theta$ (where $\\theta$ is latitude), at the poles ($\\theta = 90^\\circ$), $\\sin(90^\\circ) = 1$ (maximum), and at the equator ($\\theta = 0^\\circ$), $\\sin(0^\\circ) = 0$ (absent). Statement 2 is correct.",
+    "explanation": "The Coriolis force deflects winds to the right in the Northern Hemisphere and to its left in the Southern Hemisphere. 1. It is directly proportional to the angle of latitude, mass, and wind velocity (Fc = 2mvΩ sin θ). Thus, higher wind velocity means greater Coriolis force. Statement 1 is correct. 2. Since it is proportional to sin θ (where θ is latitude), at the poles ($θ = 90°$), $sin(90°) = 1$ (maximum), and at the equator ($θ = 0°$), $sin(0°) = 0$ (absent). Statement 2 is correct.",
     "standard_book_ref": "NCERT Class XI - Fundamentals of Physical Geography (Atmosphere chapter); PMF IAS Physical Geography",
     "elimination_trap": "None; this is a direct, foundational physics-geography question tested repeatedly in various exams.",
     "mains_linkage": {
@@ -12385,7 +12385,7 @@
         "badge_type": "trap",
         "diagnosis": "Incorrect because statement 2 is also correct.",
         "examiner_craft": "Splits two correct statements to trap incomplete preparation.",
-        "mental_filter": "Verify latitude dependence ($\\sin\\theta$) for Coriolis force."
+        "mental_filter": "Verify latitude dependence (sin θ) for Coriolis force."
       },
       {
         "letter": "B",
@@ -12393,7 +12393,7 @@
         "badge_type": "trap",
         "diagnosis": "Incorrect because statement 1 is also correct.",
         "examiner_craft": "Isolates statement 2 while ignoring velocity proportionality.",
-        "mental_filter": "Remember the formula $F_c \\propto v$."
+        "mental_filter": "Remember the formula Fc ∝ v."
       },
       {
         "letter": "C",
@@ -12429,7 +12429,7 @@
     "correct_option": "D",
     "correct_index": 3,
     "upsc_official_key": "Official UPSC Prelims 2024 Key",
-    "explanation": "On June 21 (Summer Solstice), the Northern Hemisphere is tilted towards the Sun. 1. Equator always experiences exactly 12 hours of daylight and 12 hours of night year-round. 2. Tropic of Cancer ($23.5^\\circ$ N) experiences ~13.5 hours of sunlight. 3. Tropic of Capricorn ($23.5^\\circ$ S) is in the Southern Hemisphere and experiences less than 12 hours of sunlight (~10.5 hours). 4. Arctic Circle ($66.5^\\circ$ N) and all regions north of it experience 24 hours of continuous daylight (Midnight Sun / more than 12 hours). Wait, let's look at the options carefully: The options are given as single choices or combinations? Ah, looking at Q15 options: (a) 1 only, (b) 2 only, (c) 3 and 4, (d) 2 and 4. Wait, let's re-examine the image for Q15 options: \n1. Equator\n2. Tropic of Cancer\n3. Tropic of Capricorn\n4. Arctic Circle\nSelect the correct answer using the code given below:\n(a) 1 only\n(b) 2 only\n(c) 3 and 4\n(d) 2 and 4.\nBoth Tropic of Cancer (2) and Arctic Circle (4) experience more than 12 hours of sunlight on June 21. Therefore, option (d) 2 and 4 is correct.",
+    "explanation": "On June 21 (Summer Solstice), the Northern Hemisphere is tilted towards the Sun. 1. Equator always experiences exactly 12 hours of daylight and 12 hours of night year-round. 2. Tropic of Cancer (23.5° N) experiences ~13.5 hours of sunlight. 3. Tropic of Capricorn (23.5° S) is in the Southern Hemisphere and experiences less than 12 hours of sunlight (~10.5 hours). 4. Arctic Circle (66.5° N) and all regions north of it experience 24 hours of continuous daylight (Midnight Sun / more than 12 hours). Wait, let's look at the options carefully: The options are given as single choices or combinations? Ah, looking at Q15 options: (a) 1 only, (b) 2 only, (c) 3 and 4, (d) 2 and 4. Wait, let's re-examine the image for Q15 options: \n1. Equator\n2. Tropic of Cancer\n3. Tropic of Capricorn\n4. Arctic Circle\nSelect the correct answer using the code given below:\n(a) 1 only\n(b) 2 only\n(c) 3 and 4\n(d) 2 and 4.\nBoth Tropic of Cancer (2) and Arctic Circle (4) experience more than 12 hours of sunlight on June 21. Therefore, option (d) 2 and 4 is correct.",
     "standard_book_ref": "NCERT Class XI - Fundamentals of Physical Geography; GC Leong",
     "elimination_trap": "Equator has exactly 12 hours year-round (eliminate 1). Tropic of Capricorn has winter in June (<12 hours daylight, eliminate 3). Thus 2 and 4 remain.",
     "mains_linkage": {
