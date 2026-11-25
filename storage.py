@@ -1756,11 +1756,15 @@ def insert_supabase_evaluation(user_id: str, question_title: str, file_url: Opti
         slim_result.pop("thumbnail", None)
     payload = {
         "user_id": user_id,
+        "user_email": slim_result.get("_meta_user_email") or "",
+        "paper": slim_result.get("_meta_paper") or slim_result.get("detected_paper") or "GS",
         "question": question_title,
         "question_title": question_title,
         "file_url": file_url or "",
         "max_marks": total_marks,
         "total_marks": total_marks,
+        "overall_score": float(slim_result.get("overall_score") or 0.0),
+        "percentage": float(slim_result.get("percentage") or 0.0),
         "evaluation_json": slim_result
     }
     resolved_id = eval_id or (result_json.get("_meta_eval_id") if isinstance(result_json, dict) else None)
@@ -2150,6 +2154,7 @@ def _format_supabase_eval_row(row: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "id": str(row.get("id")),
         "user_id": str(row.get("user_id") or ""),
+        "user_email": str(row.get("user_email") or eval_data.get("_meta_user_email") or ""),
         "created_at": authentic_ts,
         "paper": paper_code,
         "max_marks": total_m,
@@ -5159,6 +5164,70 @@ def get_all_aspirants_admin(search: Optional[str] = None) -> List[Dict[str, Any]
     return result_list
 
 
+def _build_supabase_user_lookup() -> Dict[str, Dict[str, str]]:
+    """Builds a user_id / email lookup map from Supabase users and legacy profile markers."""
+    lookup: Dict[str, Dict[str, str]] = {}
+    if not _supabase_available():
+        return lookup
+    try:
+        r_u = supabase.table("users").select("id, email, name").limit(1000).execute()
+        for u in (r_u.data or []):
+            em = str(u.get("email") or "").strip().lower()
+            nm = str(u.get("name") or "").strip() or (em.split("@")[0].title() if em else "Aspirant")
+            uid = str(u.get("id") or "").strip()
+            if uid:
+                lookup[uid] = {"email": em, "name": nm}
+            if em:
+                lookup[em] = {"email": em, "name": nm}
+    except Exception:
+        pass
+    return lookup
+
+
+def _extract_eval_summary_fields(r: Dict[str, Any], user_lookup: Dict[str, Dict[str, str]]) -> Dict[str, Any]:
+    """Extracts real paper, email, name, score, and percentage from either top-level columns or evaluation_json."""
+    ev = r.get("evaluation_json") or {}
+    if isinstance(ev, str):
+        try:
+            ev = json.loads(ev)
+        except Exception:
+            ev = {}
+    if not isinstance(ev, dict):
+        ev = {}
+
+    uid = str(r.get("user_id") or "").strip()
+    u_meta = user_lookup.get(uid) or {}
+    u_em = str(r.get("user_email") or ev.get("_meta_user_email") or u_meta.get("email") or "").strip().lower()
+    if u_em and not u_meta and u_em in user_lookup:
+        u_meta = user_lookup[u_em]
+    u_name = str(u_meta.get("name") or (u_em.split("@")[0].title() if u_em else "Aspirant"))
+
+    paper_val = str(r.get("paper") or ev.get("_meta_paper") or ev.get("detected_paper") or ev.get("paper") or "GS").strip()
+    max_m = int(r.get("max_marks") or r.get("total_marks") or ev.get("_meta_max_marks") or ev.get("max_marks") or 10)
+    raw_score = r.get("overall_score") if r.get("overall_score") not in (None, "") else ev.get("overall_score")
+    score = float(raw_score or 0.0)
+    raw_pct = r.get("percentage") if r.get("percentage") not in (None, "") else ev.get("percentage")
+    if raw_pct not in (None, ""):
+        pct = round(float(raw_pct), 1)
+    else:
+        pct = round((score / max_m) * 100, 1) if max_m > 0 else 0.0
+
+    q_txt = str(r.get("question") or r.get("question_title") or ev.get("question") or "UPSC Mains Answer")
+    return {
+        "id": r.get("id"),
+        "user_id": uid,
+        "user_email": u_em,
+        "user_name": u_name,
+        "created_at": r.get("created_at") or ev.get("_meta_created_at") or ev.get("created_at"),
+        "paper": paper_val,
+        "max_marks": max_m,
+        "question": q_txt,
+        "overall_score": score,
+        "percentage": pct,
+        "is_rewrite": int(r.get("is_rewrite") or ev.get("_meta_is_rewrite") or 0),
+    }
+
+
 def get_admin_evaluations_feed(
     email_filter: Optional[str] = None,
     paper_filter: Optional[str] = None,
@@ -5175,8 +5244,9 @@ def get_admin_evaluations_feed(
     """
     if _supabase_available():
         try:
+            user_lookup = _build_supabase_user_lookup()
             q = supabase.table("evaluations").select(
-                "id, user_id, user_email, created_at, paper, max_marks, total_marks, question, question_title, overall_score, percentage, is_rewrite"
+                "id, user_id, user_email, created_at, paper, max_marks, total_marks, question, question_title, overall_score, percentage, is_rewrite, evaluation_json"
             ).neq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(min(int(limit), 1000))
             res = q.execute()
             if res and res.data is not None:
@@ -5186,19 +5256,19 @@ def get_admin_evaluations_feed(
                 s_term = (search or "").strip().lower()
                 df = (date_filter or "").strip().lower()
                 ist_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
-                today_s = ist_now.strftime("%Y-%m-%d")
                 yest_s = (ist_now - timedelta(days=1)).strftime("%Y-%m-%d")
 
-                for r in res.data:
-                    q_txt = str(r.get("question") or r.get("question_title") or "")
-                    if q_txt == "__USER_ACCOUNT_PROFILE__" or q_txt.startswith("__SYSTEM_"):
+                for raw_r in res.data:
+                    q_raw = str(raw_r.get("question") or raw_r.get("question_title") or "")
+                    if q_raw == "__USER_ACCOUNT_PROFILE__" or q_raw.startswith("__SYSTEM_"):
                         continue
-                    u_em = str(r.get("user_email") or "").strip().lower()
+                    r = _extract_eval_summary_fields(raw_r, user_lookup)
+                    u_em = r["user_email"]
                     if is_dummy_or_demo_email(u_em):
                         continue
                     if em_f and em_f not in u_em:
                         continue
-                    p_val = str(r.get("paper") or "GS").lower()
+                    p_val = r["paper"].lower()
                     if pf and pf != "all":
                         if pf == "optional" and p_val in ("gs1", "gs2", "gs3", "gs4", "essay", "gs-1", "gs-2", "gs-3", "gs-4"):
                             continue
@@ -5221,20 +5291,9 @@ def get_admin_evaluations_feed(
                         continue
                     if date_to and c_str[:10] > date_to.strip():
                         continue
-                    if s_term and s_term not in q_txt.lower() and s_term not in u_em:
+                    if s_term and s_term not in r["question"].lower() and s_term not in u_em and s_term not in r["user_name"].lower():
                         continue
-                    rows.append({
-                        "id": r.get("id"),
-                        "user_email": r.get("user_email") or "",
-                        "user_name": (r.get("user_email") or "Aspirant").split("@")[0].title(),
-                        "created_at": r.get("created_at"),
-                        "paper": r.get("paper") or "GS",
-                        "max_marks": r.get("max_marks") or r.get("total_marks") or 10,
-                        "question": q_txt,
-                        "overall_score": r.get("overall_score") or 0,
-                        "percentage": r.get("percentage") or 0,
-                        "is_rewrite": r.get("is_rewrite") or 0,
-                    })
+                    rows.append(r)
                 if sort_by == "date_asc":
                     rows.sort(key=lambda x: str(x.get("created_at") or ""))
                 elif sort_by == "score_desc":
@@ -5451,26 +5510,28 @@ def get_admin_activity_stream(limit: int = 60) -> List[Dict[str, Any]]:
         except Exception:
             pass
         try:
+            user_lookup = _build_supabase_user_lookup()
             r_ev = supabase.table("evaluations").select(
-                "id, user_email, created_at, paper, max_marks, total_marks, question, question_title, overall_score"
+                "id, user_id, user_email, created_at, paper, max_marks, total_marks, question, question_title, overall_score, evaluation_json"
             ).neq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(35).execute()
-            for er in (r_ev.data or []):
-                q_txt = str(er.get("question") or er.get("question_title") or "Answer Sheet")
-                if q_txt == "__USER_ACCOUNT_PROFILE__" or q_txt.startswith("__SYSTEM_") or "Courage is resistance" in q_txt:
+            for raw_er in (r_ev.data or []):
+                q_raw = str(raw_er.get("question") or raw_er.get("question_title") or "Answer Sheet")
+                if q_raw == "__USER_ACCOUNT_PROFILE__" or q_raw.startswith("__SYSTEM_") or "Courage is resistance" in q_raw:
                     continue
-                em = str(er.get("user_email") or "").strip().lower()
+                er = _extract_eval_summary_fields(raw_er, user_lookup)
+                em = er["user_email"]
                 if is_dummy_or_demo_email(em):
                     continue
-                mm = er.get("max_marks") or er.get("total_marks") or 10
+                mm = er["max_marks"]
                 events.append({
-                    "id": f"ev_{er.get('id')}",
-                    "created_at": er.get("created_at"),
+                    "id": f"ev_{er['id']}",
+                    "created_at": er["created_at"],
                     "user_email": em,
-                    "user_name": em.split("@")[0].title() if em else "Aspirant",
+                    "user_name": er["user_name"],
                     "action_type": "copy_evaluated",
-                    "title": f"Evaluated {er.get('paper') or 'GS'} ({mm}M) — Scored {er.get('overall_score') or 0}/{mm}",
-                    "detail": q_txt[:85],
-                    "eval_id": er.get("id")
+                    "title": f"Evaluated {er['paper']} ({mm}M) — Scored {er['overall_score']}/{mm}",
+                    "detail": er["question"][:85],
+                    "eval_id": er["id"]
                 })
         except Exception:
             pass
