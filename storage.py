@@ -3911,7 +3911,7 @@ def record_user_heartbeat(
     except Exception as e:
         print(f"Session history tracking notice: {e}")
 
-    if _supabase_available():
+    if _supabase_available() and (clean_email or locals().get("dur_sec", 0) > 0):
         try:
             sess_payload = {
                 "id": sid,
@@ -4066,20 +4066,29 @@ def get_admin_session_history(limit: int = 50) -> List[Dict[str, Any]]:
     """Returns chronological history of user sessions: who visited, what they did, and how long they stayed."""
     if _supabase_available():
         try:
-            r_sess = supabase.table("user_sessions").select("*").order("last_active_at", desc=True).limit(limit).execute()
+            r_sess = supabase.table("user_sessions").select("*").order("last_active_at", desc=True).limit(min(int(limit) * 2, 600)).execute()
             if r_sess and r_sess.data:
+                cutoff_12h = ((datetime.utcnow() + timedelta(hours=5, minutes=30)) - timedelta(hours=12)).strftime("%Y-%m-%d %H:%M:%S")
                 out = []
                 for s in r_sess.data:
                     em = (s.get("user_email") or "").strip().lower()
                     if is_dummy_or_demo_email(em):
+                        continue
+                    is_auth = int(s.get("is_authenticated") or 0) == 1
+                    eval_cnt = int(s.get("evaluations_count") or 0)
+                    dur_sec = int(s.get("duration_seconds") or 0)
+                    last_act = str(s.get("last_active_at") or "")
+                    # Skip 0s unauthenticated guest landing-page bounces and expired (>12h) guest bounces
+                    if not is_auth and eval_cnt == 0 and (dur_sec <= 5 or last_act < cutoff_12h or "guest" in em):
                         continue
                     try:
                         s["recent_actions_list"] = json.loads(s.get("recent_actions") or "[]")
                     except Exception:
                         s["recent_actions_list"] = []
                     out.append(s)
-                if out:
-                    return out
+                    if len(out) >= int(limit):
+                        break
+                return out
         except Exception as se:
             print(f"Supabase session history read fallback: {se}")
 
@@ -5441,6 +5450,65 @@ def get_admin_activity_stream(limit: int = 60) -> List[Dict[str, Any]]:
                     })
         except Exception:
             pass
+        try:
+            r_ev = supabase.table("evaluations").select(
+                "id, user_email, created_at, paper, max_marks, total_marks, question, question_title, overall_score"
+            ).neq("question_title", "__USER_ACCOUNT_PROFILE__").order("created_at", desc=True).limit(35).execute()
+            for er in (r_ev.data or []):
+                q_txt = str(er.get("question") or er.get("question_title") or "Answer Sheet")
+                if q_txt == "__USER_ACCOUNT_PROFILE__" or q_txt.startswith("__SYSTEM_") or "Courage is resistance" in q_txt:
+                    continue
+                em = str(er.get("user_email") or "").strip().lower()
+                if is_dummy_or_demo_email(em):
+                    continue
+                mm = er.get("max_marks") or er.get("total_marks") or 10
+                events.append({
+                    "id": f"ev_{er.get('id')}",
+                    "created_at": er.get("created_at"),
+                    "user_email": em,
+                    "user_name": em.split("@")[0].title() if em else "Aspirant",
+                    "action_type": "copy_evaluated",
+                    "title": f"Evaluated {er.get('paper') or 'GS'} ({mm}M) — Scored {er.get('overall_score') or 0}/{mm}",
+                    "detail": q_txt[:85],
+                    "eval_id": er.get("id")
+                })
+        except Exception:
+            pass
+        try:
+            r_fb = supabase.table("feedback").select("*").order("created_at", desc=True).limit(15).execute()
+            for fr in (r_fb.data or []):
+                if fr.get("id") in ("fb_001", "fb_002", "fb_003", "fb_004") or is_dummy_or_demo_email(fr.get("user_email")):
+                    continue
+                events.append({
+                    "id": f"fb_{fr.get('id')}",
+                    "created_at": fr.get("created_at"),
+                    "user_email": fr.get("user_email"),
+                    "user_name": fr.get("user_name"),
+                    "action_type": "feedback_submitted",
+                    "title": f"Submitted {fr.get('rating')}★ Feedback ({fr.get('category')})",
+                    "detail": (fr.get("message") or "")[:120],
+                    "eval_id": ""
+                })
+        except Exception:
+            pass
+        try:
+            r_us = supabase.table("users").select("id, email, name, optional_subject, created_at").order("created_at", desc=True).limit(15).execute()
+            for ur in (r_us.data or []):
+                em = str(ur.get("email") or "").strip().lower()
+                if not em or em.startswith("__") or is_dummy_or_demo_email(em):
+                    continue
+                events.append({
+                    "id": f"usr_{ur.get('id')}",
+                    "created_at": ur.get("created_at"),
+                    "user_email": em,
+                    "user_name": ur.get("name") or em.split("@")[0].title(),
+                    "action_type": "user_login",
+                    "title": f"New Aspirant Joined: {ur.get('name') or em}",
+                    "detail": f"Registered ({ur.get('optional_subject') or 'PSIR'}) • {em}",
+                    "eval_id": ""
+                })
+        except Exception:
+            pass
 
     conn = get_db()
     cursor = conn.cursor()
@@ -5557,7 +5625,8 @@ def get_admin_activity_stream(limit: int = 60) -> List[Dict[str, Any]]:
         else:
             u_email = (ev.get("user_email") or "").strip().lower()
             title = (ev.get("title") or "").strip().lower()
-            action_key = (u_email, title)
+            day_key = str(ev.get("created_at") or "")[:10]
+            action_key = (u_email, title, day_key)
             if action_key in seen_action_keys:
                 continue
             seen_action_keys.add(action_key)
