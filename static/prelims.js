@@ -335,10 +335,14 @@
     const prevMode = STATE.viewMode;
     STATE.viewMode = mode;
 
-    // Push browser history state so mobile Back button steps back cleanly instead of leaving /prelims
-    if (!skipHistory && typeof window !== 'undefined' && window.history && window.history.pushState && prevMode !== mode) {
+    // Push browser history state (or replace modal state) so mobile Back steps back cleanly
+    if (!skipHistory && typeof window !== 'undefined' && window.history && prevMode !== mode) {
       try {
-        window.history.pushState({ prelimsView: mode }, '', getUrlForViewMode(mode));
+        if (window.history.state && window.history.state.prelimsModal && window.history.replaceState) {
+          window.history.replaceState({ prelimsView: mode }, '', getUrlForViewMode(mode));
+        } else if (window.history.pushState) {
+          window.history.pushState({ prelimsView: mode }, '', getUrlForViewMode(mode));
+        }
       } catch (err) {}
     }
 
@@ -1003,6 +1007,16 @@
     mode: 'exam'
   };
 
+  function pushModalHistoryState(modalId) {
+    if (typeof window !== 'undefined' && window.history && window.history.pushState) {
+      try {
+        if (!window.history.state || window.history.state.prelimsModal !== modalId) {
+          window.history.pushState({ prelimsView: STATE.viewMode || 'dashboard', prelimsModal: modalId }, '', window.location.pathname + window.location.search + window.location.hash);
+        }
+      } catch (err) {}
+    }
+  }
+
   window.openMockGenerator = function (defaultFormat) {
     if (!STATE.user) {
       openFreemiumGateModal('mock');
@@ -1010,7 +1024,10 @@
     }
     const modal = document.getElementById('mockGeneratorModal');
     if (!modal) return;
+    const wasHidden = modal.classList.contains('hidden');
     modal.classList.remove('hidden');
+    if (wasHidden) pushModalHistoryState('targetSprintModal');
+    if (wasHidden) pushModalHistoryState('mockGeneratorModal');
 
     const fmt = defaultFormat || mockConfigState.format || 'sectional';
     window.onMockFormatChange(fmt);
@@ -4139,6 +4156,7 @@
     if (!modal) return;
     const wasHidden = modal.classList.contains('hidden');
     modal.classList.remove('hidden');
+    if (wasHidden) pushModalHistoryState('targetSprintModal');
 
     const modalBody = document.getElementById('targetSprintModalBody');
     const prevScrollTop = (!wasHidden && modalBody) ? modalBody.scrollTop : 0;
@@ -4462,7 +4480,18 @@
 
     window.closeTargetSprintModal();
 
+    const sprintSessionId = 'sprint_' + sprint.id;
     const stats = calculateSprintStats(sprint);
+
+    // 1. Continuity Check: If a paused session for this sprint exists and still has unanswered questions, resume it directly!
+    const existingPaused = typeof getInProgressSession === 'function' ? getInProgressSession(sprintSessionId) : null;
+    if (existingPaused && Array.isArray(existingPaused.questions) && existingPaused.questions.length > 0) {
+      const answeredInPaused = Object.keys(existingPaused.testAnswers || {}).length;
+      if (answeredInPaused < existingPaused.questions.length) {
+        window.resumeInProgressSession(sprintSessionId);
+        return;
+      }
+    }
 
     if (stats.pool.length === 0) {
       showToast('No questions found matching ' + sprint.subject + ' (' + (sprint.topicLabel || 'All Topics') + ')');
@@ -4470,33 +4499,32 @@
     }
 
     let selected = [];
-    if (onlyPending) {
-      if (stats.unattempted.length === 0) {
-        showToast('🎉 All questions in this target have been solved! Launching revision set.');
-        selected = shuffleArray(stats.pool).slice(0, 10);
-      } else {
-        // Take up to 15 pending questions for focused backlog clearing
-        selected = stats.unattempted.slice(0, Math.min(15, stats.unattempted.length));
-        showToast('⚡ Clearing Backlog: Loaded ' + selected.length + ' pending questions!');
-      }
+    const targetNeeded = Math.max(1, stats.pendingCount || sprint.goal || 10);
+
+    if (stats.unattempted.length === 0) {
+      showToast('🎉 All questions in this target are solved! Launching revision set.');
+      selected = shuffleArray(stats.pool).slice(0, Math.min(targetNeeded, stats.pool.length));
     } else {
-      // 5-Question quick daily pace sprint
-      const source = stats.unattempted.length >= 5 ? stats.unattempted : stats.pool;
-      selected = shuffleArray(source).slice(0, 5);
-      showToast('🚀 Sprint Focus Mode: 5 high-yield ' + sprint.subject + ' questions loaded!');
+      // Load the exact pending count needed to complete the user's sprint goal (e.g. 13 pending out of 20)
+      selected = stats.unattempted.slice(0, Math.min(targetNeeded, stats.unattempted.length));
+      showToast('⚡ Loaded ' + selected.length + ' pending ' + sprint.subject.split('&')[0].trim() + ' questions!');
     }
 
     STATE.playerQuestions = selected;
     STATE.playerIndex = 0;
     STATE.isExamMode = false;
     STATE.isReviewMode = false;
+    STATE.testAnswers = {};
+    STATE.flagged = new Set();
     STATE.currentTest = {
-      id: 'sprint_' + Date.now(),
-      title: (onlyPending ? 'Pending Backlog: ' : 'Target Sprint: ') + sprint.subject + (sprint.topicLabel && sprint.topic !== 'all' ? ' (' + sprint.topicLabel + ')' : ''),
+      id: sprintSessionId,
+      title: sprint.subject + ' Target (' + stats.completedCount + '/' + sprint.goal + ' done · ' + selected.length + ' pending)',
       totalQuestions: selected.length,
-      durationSeconds: 0
+      durationSeconds: 0,
+      startTime: Date.now()
     };
     switchViewMode('player');
+    if (typeof saveInProgressSession === 'function') saveInProgressSession();
   };
 
   function autoSelectWeakestSubject() {
@@ -4645,7 +4673,7 @@
     try {
       const [resPyqs, resCa, resOther, resAi] = await Promise.all([
         fetch('/static/data/prelims_pyqs.json?v=1795622969418'),
-        fetch('/static/data/current_affairs_pyqs.json?v=1795668633303'),
+        fetch('/static/data/current_affairs_pyqs.json?v=1795669714525'),
         fetch('/static/data/upsc_other_exams_pyqs.json?v=20261123v2'),
         fetch('/static/data/ai_mock_questions_2026.json?v=20261123v2')
       ]);
@@ -7952,7 +7980,7 @@ function renderPlayerDistractorDeepDive(q) {
   async function ensureCaQuestionsLoaded() {
     if (STATE.ca_pyqs && STATE.ca_pyqs.length > 0) return STATE.ca_pyqs;
     try {
-      const res = await fetch('/static/data/current_affairs_pyqs.json?v=1795668633303');
+      const res = await fetch('/static/data/current_affairs_pyqs.json?v=1795669714525');
       if (res.ok) {
         STATE.ca_pyqs = await res.json();
         if (!STATE.pyqMap) STATE.pyqMap = {};
@@ -8011,7 +8039,11 @@ function renderPlayerDistractorDeepDive(q) {
 
   window.openDynamicCaGeneratorModal = function () {
     const modal = document.getElementById('dynamicCaGeneratorModal');
-    if (modal) modal.classList.remove('hidden');
+    if (modal) {
+      const wasHidden = modal.classList.contains('hidden');
+      modal.classList.remove('hidden');
+      if (wasHidden) pushModalHistoryState('dynamicCaGeneratorModal');
+    }
     const progressBox = document.getElementById('dynamicCaProgressBox');
     if (progressBox) progressBox.classList.add('hidden');
     const startBtn = document.getElementById('startDynamicCaBtn');
@@ -8184,13 +8216,8 @@ function renderPlayerDistractorDeepDive(q) {
   }
 
   window.addEventListener('popstate', function (e) {
-    // 1. If a modal is open, close it and restore current view in history
+    // 1. If a modal is open, close it cleanly without leaving the current view
     if (closeTopOpenModalIfAny()) {
-      if (window.history && window.history.pushState) {
-        try {
-          window.history.pushState({ prelimsView: STATE.viewMode || 'dashboard' }, '', getUrlForViewMode(STATE.viewMode || 'dashboard'));
-        } catch (err) {}
-      }
       return;
     }
 
