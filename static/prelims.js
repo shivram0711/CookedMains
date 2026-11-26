@@ -298,13 +298,31 @@
     }
   }
 
-  function switchViewMode(mode) {
+  function getUrlForViewMode(mode) {
+    if (mode === 'vault') return '/prelims/pyqs';
+    if (mode === 'current_affairs' || mode === 'ca') return '/prelims/current-affairs';
+    if (mode === 'csat') return '/prelims/csat';
+    if (mode === 'cutoff_ev') return '/prelims/cutoff-calculator';
+    if (mode === 'progress' || mode === 'progress_tracker') return '/prelims#progress';
+    if (mode === 'mistakes') return '/prelims#mistakes';
+    if (mode === 'player') return '/prelims#practice';
+    if (mode === 'report') return '/prelims#report';
+    return '/prelims';
+  }
+
+  function switchViewMode(mode, skipHistory) {
     if (!STATE.user && (mode === 'mistakes' || mode === 'csat' || mode === 'cutoff')) {
       openFreemiumGateModal(mode);
       return;
     }
+
+    // Auto-save any active player session before navigating away via sidebar or Back
+    if (STATE.viewMode === 'player' && mode !== 'player' && mode !== 'report' && !STATE.isReviewMode) {
+      if (typeof saveInProgressSession === 'function') saveInProgressSession();
+    }
+
     // Track previous non-player, non-report section
-    if (STATE.viewMode && STATE.viewMode !== 'player' && STATE.viewMode !== 'report') {
+    if (STATE.viewMode && STATE.viewMode !== 'player' && STATE.viewMode !== 'report' && STATE.viewMode !== mode) {
       STATE.previousView = STATE.viewMode;
     } else if (!STATE.previousView) {
       const p = (typeof window !== 'undefined' && window.location && window.location.pathname ? window.location.pathname : '').toLowerCase();
@@ -313,7 +331,17 @@
       else if (p.includes('/csat')) STATE.previousView = 'csat';
       else STATE.previousView = 'dashboard';
     }
+
+    const prevMode = STATE.viewMode;
     STATE.viewMode = mode;
+
+    // Push browser history state so mobile Back button steps back cleanly instead of leaving /prelims
+    if (!skipHistory && typeof window !== 'undefined' && window.history && window.history.pushState && prevMode !== mode) {
+      try {
+        window.history.pushState({ prelimsView: mode }, '', getUrlForViewMode(mode));
+      } catch (err) {}
+    }
+
     if (typeof sendPrelimsHeartbeat === 'function') {
       sendPrelimsHeartbeat(mode);
     }
@@ -702,44 +730,36 @@
           const modeIcon = session.isExamMode ? '⏱️' : '⚡';
 
           return (
-            '<div class="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-amber-500/40 flex flex-col gap-3.5 transition-all">' +
-              '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">' +
-                '<div class="flex items-start gap-3 min-w-0">' +
-                  '<div class="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-base font-bold shrink-0 mt-0.5">' +
+            '<div class="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-amber-500/40 flex flex-col gap-3 transition-all">' +
+              '<div class="flex items-start justify-between gap-2.5">' +
+                '<div class="flex items-start gap-2.5 min-w-0">' +
+                  '<div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">' +
                     modeIcon +
                   '</div>' +
-                  '<div class="flex flex-col min-w-0 gap-0.5">' +
-                    '<div class="flex items-center gap-2 flex-wrap">' +
-                      '<h4 class="text-sm font-extrabold text-slate-900 dark:text-white leading-snug">' + escapeHtml(session.title || 'Paused Practice') + '</h4>' +
-                      '<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 text-[10px] font-bold font-mono uppercase whitespace-nowrap">Paused</span>' +
-                    '</div>' +
-                    '<div class="flex items-center gap-2 flex-wrap text-[11px] text-slate-500 dark:text-slate-400 font-mono">' +
-                      '<span>Q ' + ((session.playerIndex || 0) + 1) + ' of ' + total + '</span>' +
-                      '<span>&bull;</span>' +
-                      '<span>' + answered + ' answered</span>' +
-                      (session.flagged && session.flagged.length > 0 ? '<span>&bull;</span><span>' + session.flagged.length + ' flagged</span>' : '') +
-                      '<span>&bull;</span>' +
-                      '<span>' + timeAgoStr + '</span>' +
-                    '</div>' +
+                  '<div class="flex flex-col min-w-0">' +
+                    '<h4 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white leading-snug line-clamp-2">' + escapeHtml(session.title || 'Paused Practice') + '</h4>' +
+                    '<span class="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">' +
+                      'Q ' + ((session.playerIndex || 0) + 1) + '/' + total + ' &bull; ' + answered + ' solved' + (session.flagged && session.flagged.length > 0 ? (' &bull; ' + session.flagged.length + ' flagged') : '') + ' &bull; ' + timeAgoStr +
+                    '</span>' +
                   '</div>' +
                 '</div>' +
-                '<div class="flex items-center gap-2 shrink-0 self-end sm:self-center">' +
-                  '<button type="button" onclick="window.discardInProgressSession(\'' + safeSid + '\')" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer">' +
+                '<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 text-[10px] font-bold font-mono uppercase whitespace-nowrap shrink-0">' + pct + '%</span>' +
+              '</div>' +
+
+              '<div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">' +
+                '<div class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width: ' + pct + '%;"></div>' +
+              '</div>' +
+
+              '<div class="flex items-center justify-between gap-2 pt-0.5">' +
+                '<span class="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">' + remQs + ' Qs left</span>' +
+                '<div class="flex items-center gap-2">' +
+                  '<button type="button" onclick="window.discardInProgressSession(\'' + safeSid + '\')" class="px-2.5 py-1.5 rounded-xl text-[11px] font-semibold text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer">' +
                     'Discard' +
                   '</button>' +
-                  '<button type="button" onclick="window.resumeInProgressSession(\'' + safeSid + '\')" class="btn-action-emerald px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap">' +
+                  '<button type="button" onclick="window.resumeInProgressSession(\'' + safeSid + '\')" class="btn-action-emerald px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1 whitespace-nowrap">' +
                     '<span>▶ Resume</span>' +
                     '<span>→</span>' +
                   '</button>' +
-                '</div>' +
-              '</div>' +
-              '<div class="w-full flex flex-col gap-1.5">' +
-                '<div class="flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-slate-400">' +
-                  '<span>' + pct + '% complete</span>' +
-                  '<span class="text-emerald-600 dark:text-emerald-400 font-bold">' + remQs + ' Qs left</span>' +
-                '</div>' +
-                '<div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">' +
-                  '<div class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width: ' + pct + '%;"></div>' +
                 '</div>' +
               '</div>' +
             '</div>'
@@ -2191,12 +2211,19 @@
     if (!container) return;
 
     const history = STATE.mockHistory || [];
-    if (badge) badge.textContent = history.length + ' Session' + (history.length === 1 ? '' : 's');
+    if (badge) badge.textContent = history.length + ' Test' + (history.length === 1 ? '' : 's');
 
     if (history.length === 0) {
       container.innerHTML = (
-        '<div class="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 text-center text-xs text-slate-400 leading-relaxed">' +
-          'No practice reports yet. Complete any PYQ practice or mock test to generate your performance scorecard!' +
+        '<div class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 text-center flex flex-col items-center gap-3">' +
+          '<div class="w-10 h-10 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center text-lg">📊</div>' +
+          '<div class="flex flex-col gap-1">' +
+            '<span class="text-xs font-bold text-slate-800 dark:text-slate-200">No Scorecards Yet</span>' +
+            '<span class="text-[11px] text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">Complete a practice set of 5+ questions or any timed mock to unlock your score report.</span>' +
+          '</div>' +
+          '<button type="button" onclick="window.openMockGenerator()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-xs transition cursor-pointer">' +
+            '⚡ Start a Quick Mock →' +
+          '</button>' +
         '</div>'
       );
       return;
@@ -3111,10 +3138,11 @@
     // toast removed to prevent blocking next button
   }
 
-  // Current active filter for Heatmap
+  // Current active filters for Topic Performance
   STATE.heatmapFilter = STATE.heatmapFilter || 'all';
+  STATE.heatmapSubjectFilter = STATE.heatmapSubjectFilter || 'all';
 
-  // Compute & Render Sub-Topic Mark-Bleed Heatmap
+  // Compute & Render Categorized Topic Performance
   function updateSubTopicHeatmap() {
     const listEl = document.getElementById('subTopicHeatmapList');
     const badgeEl = document.getElementById('heatmapThemesCountBadge');
@@ -3145,7 +3173,7 @@
     });
 
     let topics = Object.values(topicStats);
-    if (badgeEl) badgeEl.textContent = topics.length + ' Theme' + (topics.length === 1 ? '' : 's') + ' Logged';
+    if (badgeEl) badgeEl.textContent = topics.length + ' Topic' + (topics.length === 1 ? '' : 's');
 
     // Sort by lowest accuracy first, then by highest attempts
     topics.sort(function (a, b) {
@@ -3155,7 +3183,7 @@
       return b.total - a.total;
     });
 
-    // Identify priority bleed alert (accuracy < 60%)
+    // Identify priority weak topic (accuracy < 60%)
     let worstTopic = null;
     for (let i = 0; i < topics.length; i++) {
       if ((topics[i].correct / topics[i].total) < 0.6) {
@@ -3167,7 +3195,7 @@
     if (adviceBox && adviceText) {
       if (worstTopic) {
         adviceBox.classList.remove('hidden');
-        adviceText.innerHTML = '<strong>⚠️ Focus Topic:</strong> Low accuracy in <strong>' + escapeHtml(worstTopic.topic) + '</strong> (' + Math.round((worstTopic.correct / worstTopic.total) * 100) + '%). Practice this topic to reduce negative marks:';
+        adviceText.innerHTML = '<strong>Needs Focus:</strong> <strong>' + escapeHtml(worstTopic.topic) + '</strong> (' + Math.round((worstTopic.correct / worstTopic.total) * 100) + '% accuracy). Revise this topic next.';
         if (drillBtn) {
           drillBtn.onclick = function () {
             launchThemeDrill(worstTopic.topic);
@@ -3178,9 +3206,13 @@
       }
     }
 
-    // Apply Filter Tab
+    // Apply Subject & Mastery Filter Tabs
     const currentFilter = STATE.heatmapFilter || 'all';
+    const currentSubj = STATE.heatmapSubjectFilter || 'all';
     let filteredTopics = topics.filter(function (t) {
+      if (currentSubj !== 'all' && (!t.subject || t.subject.toLowerCase().indexOf(currentSubj.toLowerCase()) === -1)) {
+        return false;
+      }
       const acc = (t.correct / t.total) * 100;
       if (currentFilter === 'bleed') return acc < 50;
       if (currentFilter === 'vulnerable') return acc >= 50 && acc < 75;
@@ -3190,10 +3222,10 @@
 
     if (topics.length === 0) {
       listEl.innerHTML = (
-        '<div class="p-4 text-center text-xs text-slate-500 bg-slate-950/60 rounded-xl border border-slate-800/60 flex flex-col items-center gap-2">' +
-          '<span>Solve questions in Focus Mode to generate your personalized micro-theme accuracy heatmap.</span>' +
-          '<button type="button" id="startSampleDiagnosticBtn" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs cursor-pointer shadow-xs transition-all">' +
-            '⚡ Solve 5 Diagnostic Questions' +
+        '<div class="col-span-full p-5 text-center text-xs text-slate-500 bg-slate-50 dark:bg-slate-950/60 rounded-2xl border border-slate-200 dark:border-slate-800/60 flex flex-col items-center gap-2.5">' +
+          '<span>Solve questions in Practice or Mock mode to see your topic-by-topic accuracy.</span>' +
+          '<button type="button" id="startSampleDiagnosticBtn" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs cursor-pointer shadow-xs transition-all">' +
+            '⚡ Solve 5 Quick Questions' +
           '</button>' +
         '</div>'
       );
@@ -3208,8 +3240,8 @@
 
     if (filteredTopics.length === 0) {
       listEl.innerHTML = (
-        '<div class="p-4 text-center text-xs text-slate-400 bg-slate-950/40 rounded-xl border border-slate-800/40">' +
-          'No themes found under the "' + currentFilter + '" filter.' +
+        '<div class="col-span-full p-5 text-center text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-slate-800/40">' +
+          'No topics match the selected subject and accuracy filter.' +
         '</div>'
       );
       return;
@@ -3218,53 +3250,48 @@
     listEl.innerHTML = filteredTopics.map(function (t) {
       const acc = Math.round((t.correct / t.total) * 100);
       const netMarks = (t.correct * 2.0) - (t.incorrect * 0.66);
-      const potentialRecovery = (t.incorrect * 2.66).toFixed(1);
 
       let colorClass = 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 border-emerald-500/30';
       let barColor = 'bg-emerald-500';
-      let statusLabel = 'Strong Topic';
+      let statusLabel = 'Strong';
 
       if (acc < 50) {
         colorClass = 'text-rose-700 dark:text-rose-400 bg-rose-500/15 border-rose-500/30';
         barColor = 'bg-rose-500';
-        statusLabel = 'Needs Revision';
+        statusLabel = 'Weak';
       } else if (acc < 75) {
         colorClass = 'text-amber-700 dark:text-amber-400 bg-amber-500/15 border-amber-500/30';
         barColor = 'bg-amber-500';
-        statusLabel = 'Moderate Accuracy';
+        statusLabel = 'Moderate';
       }
 
-      // Count total available questions for this theme in database
       const totalThemeQuestions = STATE.pyqs.filter(function (q) {
         return q.sub_topic && q.sub_topic.toLowerCase() === t.topic.toLowerCase();
       }).length;
 
       return (
-        '<div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col gap-2 text-xs shadow-xs hover:border-slate-700 transition-colors">' +
-          '<div class="flex items-center justify-between gap-1">' +
-            '<span class="font-bold text-slate-800 dark:text-slate-200 truncate pr-2">' + escapeHtml(t.topic) + '</span>' +
-            '<span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono border ' + colorClass + ' shrink-0">' +
-              acc + '% (' + (netMarks >= 0 ? '+' : '') + netMarks.toFixed(1) + 'M)' +
-            '</span>' +
+        '<div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 flex flex-col justify-between gap-2.5 text-xs shadow-xs hover:border-amber-500/40 transition-colors">' +
+          '<div class="flex flex-col gap-1.5">' +
+            '<div class="flex items-start justify-between gap-2">' +
+              '<span class="font-bold text-slate-900 dark:text-slate-100 leading-snug line-clamp-2">' + escapeHtml(t.topic) + '</span>' +
+              '<span class="px-2 py-0.5 rounded-lg text-[10px] font-bold font-mono border ' + colorClass + ' shrink-0 whitespace-nowrap">' +
+                acc + '% &bull; ' + (netMarks >= 0 ? '+' : '') + netMarks.toFixed(1) + 'M' +
+              '</span>' +
+            '</div>' +
+            '<div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">' +
+              '<span class="px-1.5 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold">' + escapeHtml(t.subject) + '</span>' +
+              '<span class="font-mono">' + t.correct + '/' + t.total + ' correct &bull; ' + statusLabel + '</span>' +
+            '</div>' +
+            '<div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden mt-0.5">' +
+              '<div class="h-full rounded-full ' + barColor + ' transition-all duration-500" style="width: ' + acc + '%"></div>' +
+            '</div>' +
           '</div>' +
-          '<div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">' +
-            '<div class="h-full rounded-full ' + barColor + ' transition-all duration-500" style="width: ' + acc + '%"></div>' +
-          '</div>' +
-          '<div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 flex-wrap gap-1">' +
-            '<span>' + escapeHtml(t.subject) + '</span>' +
-            '<span>' + t.correct + '/' + t.total + ' Solved • ' + statusLabel + '</span>' +
-          '</div>' +
-          (acc < 60 ? (
-            '<div class="text-[10px] text-rose-500 dark:text-rose-400 font-mono font-semibold">' +
-              '🎯 Potential Recovery: +' + potentialRecovery + 'M if fortified' +
-            '</div>'
-          ) : '') +
-          '<div class="flex items-center gap-2 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">' +
-            '<button type="button" class="theme-drill-btn flex-1 py-1.5 px-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1" data-topic="' + escapeHtml(t.topic) + '">' +
-              '<span>🎯 Drill Gap (' + totalThemeQuestions + ' Qs)</span>' +
+          '<div class="flex items-center gap-2 pt-1.5 border-t border-slate-200/70 dark:border-slate-800/70">' +
+            '<button type="button" class="theme-drill-btn flex-1 py-1.5 px-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap" data-topic="' + escapeHtml(t.topic) + '">' +
+              '<span>▶ Practice (' + totalThemeQuestions + ')</span>' +
             '</button>' +
-            '<button type="button" class="theme-vault-btn py-1.5 px-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[11px] transition-all cursor-pointer flex items-center justify-center gap-1" data-topic="' + escapeHtml(t.topic) + '">' +
-              '<span>🔍 Vault</span>' +
+            '<button type="button" class="theme-vault-btn py-1.5 px-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[11px] transition-all cursor-pointer whitespace-nowrap" data-topic="' + escapeHtml(t.topic) + '">' +
+              'Vault' +
             '</button>' +
           '</div>' +
         '</div>'
@@ -3320,61 +3347,128 @@
     }
   }
 
-  // Update Activity Numbers in Dashboard
+  // ==========================================================
+  // PER-DAY ACTIVITY TRACKING & HISTORICAL DATE SWITCHER
+  // ==========================================================
+  const DAILY_ACTIVITY_STORAGE_KEY = 'cm_daily_activity_log_v1';
+  const DAILY_MISSION_MODE_KEY = 'cm_daily_mission_subject_mode_v1';
+
+  function getLocalDateKey(d) {
+    const dt = d ? new Date(d) : new Date();
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    const day = String(dt.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+
+  function buildDailyActivityMap() {
+    const map = {};
+    // Compute per-day counts directly from timestamped STATE.answers so today resets at midnight and past days are preserved accurately
+    Object.keys(STATE.answers || {}).forEach(function (qId) {
+      const ans = STATE.answers[qId];
+      if (!ans) return;
+      const dKey = ans.timestamp ? getLocalDateKey(ans.timestamp) : getLocalDateKey();
+      if (!map[dKey]) {
+        map[dKey] = { mcqCount: 0, correctCount: 0, incorrectCount: 0 };
+      }
+      map[dKey].mcqCount++;
+      if (ans.isCorrect) map[dKey].correctCount++;
+      else map[dKey].incorrectCount++;
+    });
+
+    // Merge with any explicit daily counters saved in localStorage
+    try {
+      const raw = localStorage.getItem(DAILY_ACTIVITY_STORAGE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        Object.keys(saved).forEach(function (k) {
+          if (!map[k]) map[k] = saved[k];
+          else if ((saved[k].mcqCount || 0) > map[k].mcqCount) map[k] = saved[k];
+        });
+      }
+    } catch (e) {}
+    return map;
+  }
+
+  function recordDailyAnswerInLog(isCorrect) {
+    try {
+      const todayKey = getLocalDateKey();
+      const map = buildDailyActivityMap();
+      if (!map[todayKey]) map[todayKey] = { mcqCount: 0, correctCount: 0, incorrectCount: 0 };
+      // Re-save snapshot for today
+      localStorage.setItem(DAILY_ACTIVITY_STORAGE_KEY, JSON.stringify(map));
+    } catch (e) {}
+  }
+
+  window.shiftActivityDate = function (deltaDays) {
+    const currentKey = STATE.selectedActivityDate || getLocalDateKey();
+    const parts = currentKey.split('-').map(Number);
+    const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+    dt.setDate(dt.getDate() + deltaDays);
+    const todayKey = getLocalDateKey();
+    const nextKey = getLocalDateKey(dt);
+    if (nextKey > todayKey) return; // Do not go into future
+    STATE.selectedActivityDate = nextKey;
+    updateDashboardActivity();
+  };
+
+  window.resetActivityDateToToday = function () {
+    STATE.selectedActivityDate = getLocalDateKey();
+    updateDashboardActivity();
+  };
+
+  // Update Activity Numbers in Dashboard (True Per-Day & Historical Support)
   function updateDashboardActivity() {
     const mcqEl = document.getElementById('actMcqCount');
     const accEl = document.getElementById('actAccuracy');
-    const mainsEl = document.getElementById('actMainsCount');
-    const rankEl = document.getElementById('actRank');
-    const pscoreEl = document.getElementById('actPScoreLabel');
+    const netEl = document.getElementById('actNetScore');
+    const mistEl = document.getElementById('actMistakesDayCount');
+    const streakSumEl = document.getElementById('actStreakSummary');
     const dateEl = document.getElementById('actTodayDate');
+    const nextBtn = document.getElementById('actNextDayBtn');
     const badge = document.getElementById('sidebarMistakesBadge');
 
-    // Date
+    const todayKey = getLocalDateKey();
+    const selectedKey = STATE.selectedActivityDate || todayKey;
+    STATE.selectedActivityDate = selectedKey;
+
     if (dateEl) {
-      const today = new Date();
-      dateEl.textContent = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const parts = selectedKey.split('-').map(Number);
+      const selDate = new Date(parts[0], parts[1] - 1, parts[2]);
+      const formatted = selDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const yest = new Date();
+      yest.setDate(yest.getDate() - 1);
+      const yestKey = getLocalDateKey(yest);
+      if (selectedKey === todayKey) dateEl.textContent = 'Today · ' + formatted;
+      else if (selectedKey === yestKey) dateEl.textContent = 'Yesterday · ' + formatted;
+      else dateEl.textContent = formatted;
     }
 
-    const total = STATE.activity.mcqCount || Object.keys(STATE.answers).length || 0;
-    let correct = 0;
-    Object.keys(STATE.answers).forEach(function (k) {
-      if (STATE.answers[k] && STATE.answers[k].isCorrect) correct++;
-    });
-    STATE.activity.correctCount = correct;
-    STATE.activity.mcqCount = total;
+    if (nextBtn) {
+      nextBtn.disabled = (selectedKey >= todayKey);
+    }
 
+    const dayMap = buildDailyActivityMap();
+    const dayStats = dayMap[selectedKey] || { mcqCount: 0, correctCount: 0, incorrectCount: 0 };
+
+    const total = dayStats.mcqCount || 0;
+    const correct = dayStats.correctCount || 0;
+    const incorrect = dayStats.incorrectCount || Math.max(0, total - correct);
     const acc = total > 0 ? Math.round((correct / total) * 100) : 0;
-    const netPScore = Math.max(0, (correct * 2.0) - ((total - correct) * 0.66)).toFixed(1);
+    const netScore = ((correct * 2.0) - (incorrect * 0.66)).toFixed(1);
 
     if (mcqEl) mcqEl.textContent = total;
     if (accEl) accEl.textContent = total > 0 ? (acc + '%') : '-';
+    if (netEl) netEl.textContent = total > 0 ? ((Number(netScore) > 0 ? '+' : '') + netScore + 'M') : '0.0M';
+    if (mistEl) mistEl.textContent = incorrect;
 
-    // Scan for evaluated Mains answers across localStorage keys
-    let mainsEvaluatedCount = 0;
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('cookedmains_vault_')) {
-          const raw = localStorage.getItem(key);
-          if (raw) {
-            const list = JSON.parse(raw);
-            if (Array.isArray(list)) mainsEvaluatedCount += list.length;
-          }
-        }
-      }
-    } catch (e) {}
-    if (mainsEl) mainsEl.textContent = mainsEvaluatedCount;
+    const activeDaysCount = Object.keys(dayMap).filter(function (k) { return (dayMap[k].mcqCount || 0) > 0; }).length;
+    if (streakSumEl) {
+      streakSumEl.textContent = activeDaysCount > 0
+        ? (activeDaysCount + ' Active Day' + (activeDaysCount === 1 ? '' : 's') + ' Logged')
+        : 'Start today\'s first set';
+    }
 
-    // Percentile rank estimation based on active practice
-    let rankPercentile = 'Top 25%';
-    if (total >= 20 && acc >= 75) rankPercentile = 'Top 3%';
-    else if (total >= 15 && acc >= 60) rankPercentile = 'Top 8%';
-    else if (total >= 5) rankPercentile = 'Top 15%';
-    else rankPercentile = 'Top 25%';
-
-    if (rankEl) rankEl.textContent = rankPercentile;
-    if (pscoreEl) pscoreEl.textContent = 'P-Score: ' + netPScore;
     const mistakeCount = getAllMistakeQuestions().length;
     if (badge) badge.textContent = mistakeCount;
 
@@ -3384,6 +3478,47 @@
     updateDailyMissionCard();
   }
 
+  function resolveDailyFocusSubject() {
+    let mode = 'auto_daily';
+    try {
+      mode = localStorage.getItem(DAILY_MISSION_MODE_KEY) || 'auto_daily';
+    } catch (e) {}
+
+    const subjects = ['Polity & Governance', 'Economy', 'History & Culture', 'Environment & Ecology', 'Geography', 'Science & Technology'];
+    const selectEl = document.getElementById('dailyMissionSubjectSelect');
+    if (selectEl && selectEl.value !== mode) {
+      selectEl.value = mode;
+    }
+
+    if (mode === 'auto_sprint') {
+      const sprint = getTargetSprintState();
+      return { subject: (sprint && sprint.subject) ? sprint.subject : 'Polity & Governance', mode: mode };
+    }
+    if (mode === 'auto_weakest') {
+      const stats = {};
+      Object.keys(STATE.answers || {}).forEach(function (qId) {
+        const q = (STATE.pyqs || []).find(function (item) { return item.id === qId; });
+        if (!q || !q.subject) return;
+        if (!stats[q.subject]) stats[q.subject] = { wrong: 0, total: 0 };
+        stats[q.subject].total++;
+        if (!STATE.answers[qId].isCorrect) stats[q.subject].wrong++;
+      });
+      let worst = subjects[0];
+      let maxW = -1;
+      Object.keys(stats).forEach(function (s) {
+        if (stats[s].wrong > maxW) { maxW = stats[s].wrong; worst = s; }
+      });
+      return { subject: worst, mode: mode };
+    }
+    if (mode === 'auto_daily') {
+      // Deterministic daily rotation based on day of year so every new day shifts to the next subject!
+      const now = new Date();
+      const dayIndex = Math.floor((now.getTime() - now.getTimezoneOffset() * 60000) / 86400000);
+      return { subject: subjects[Math.abs(dayIndex) % subjects.length], mode: mode };
+    }
+    return { subject: mode, mode: mode };
+  }
+
   // Update Today's Prescribed High-Yield Mission Hero Card
   function updateDailyMissionCard() {
     const daysBadge = document.getElementById('heroDaysToPrelimsBadge');
@@ -3391,6 +3526,7 @@
     const step1TopicEl = document.getElementById('missionStep1Topic');
     const step1RecoveryEl = document.getElementById('missionStep1Recovery');
     const step2TopicEl = document.getElementById('missionStep2Topic');
+    const step2HintEl = document.getElementById('missionStep2Hint');
 
     // 1. Prelims 2027 Countdown
     const prelimsDate = new Date('2027-05-23T09:30:00');
@@ -3438,10 +3574,16 @@
       step1RecoveryEl.textContent = '+' + rec + 'M Recovery';
     }
 
-    // 4. Sprint Subject for Step 2
-    const sprint = getTargetSprintState();
+    // 4. Dynamic Focus Subject for Step 2
+    const focus = resolveDailyFocusSubject();
     if (step2TopicEl) {
-      step2TopicEl.textContent = sprint.subject || 'Economy & Banking';
+      step2TopicEl.textContent = focus.subject;
+    }
+    if (step2HintEl) {
+      if (focus.mode === 'auto_daily') step2HintEl.textContent = '5 core Qs · Rotates daily';
+      else if (focus.mode === 'auto_weakest') step2HintEl.textContent = '5 core Qs · Weakest subject';
+      else if (focus.mode === 'auto_sprint') step2HintEl.textContent = '5 core Qs · Synced to goal';
+      else step2HintEl.textContent = '5 high-yield core questions';
     }
   }
 
@@ -3452,8 +3594,8 @@
       return;
     }
 
-    const sprint = getTargetSprintState();
-    const sprintSubj = (sprint && sprint.subject) ? sprint.subject : 'Economy';
+    const focus = resolveDailyFocusSubject();
+    const sprintSubj = focus.subject || 'Polity & Governance';
 
     // Step 1: 3 questions from worst topic or error pool
     const step1Topic = document.getElementById('missionStep1Topic')?.textContent || 'Electoral Ethics & RPA';
@@ -4503,7 +4645,7 @@
     try {
       const [resPyqs, resCa, resOther, resAi] = await Promise.all([
         fetch('/static/data/prelims_pyqs.json?v=1795622969418'),
-        fetch('/static/data/current_affairs_pyqs.json?v=1795622923123'),
+        fetch('/static/data/current_affairs_pyqs.json?v=1795668633303'),
         fetch('/static/data/upsc_other_exams_pyqs.json?v=20261123v2'),
         fetch('/static/data/ai_mock_questions_2026.json?v=20261123v2')
       ]);
@@ -7402,16 +7544,35 @@ function renderPlayerDistractorDeepDive(q) {
       showToast('🎯 Loaded ' + wrong.length + ' remedial questions to master!');
     });
 
-    // 0. Today's Prescribed High-Yield Mission Launcher
+    // 0. Today's Prescribed High-Yield Mission Launcher & Focus Subject Selector
     document.getElementById('startDailyMissionBtn')?.addEventListener('click', launchDailyMission);
+    document.getElementById('dailyMissionSubjectSelect')?.addEventListener('change', function (e) {
+      try {
+        localStorage.setItem(DAILY_MISSION_MODE_KEY, e.target.value);
+      } catch (err) {}
+      updateDailyMissionCard();
+      const focus = resolveDailyFocusSubject();
+      showToast('🎯 Daily Focus Subject set to ' + focus.subject);
+    });
 
-    // 1. Heatmap Filter Tabs
+    // 1. Topic Performance Subject & Mastery Filter Tabs
+    document.querySelectorAll('.heatmap-subj-tab').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        document.querySelectorAll('.heatmap-subj-tab').forEach(function (b) {
+          b.className = 'heatmap-subj-tab px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold cursor-pointer whitespace-nowrap transition';
+        });
+        e.currentTarget.className = 'heatmap-subj-tab px-2.5 py-1 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-950 font-bold cursor-pointer whitespace-nowrap transition';
+        STATE.heatmapSubjectFilter = e.currentTarget.getAttribute('data-subj') || 'all';
+        updateSubTopicHeatmap();
+      });
+    });
+
     document.querySelectorAll('.heatmap-filter-tab').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         document.querySelectorAll('.heatmap-filter-tab').forEach(function (b) {
-          b.className = 'heatmap-filter-tab px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-bold cursor-pointer transition-all';
+          b.className = 'heatmap-filter-tab px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold cursor-pointer transition-all whitespace-nowrap';
         });
-        e.currentTarget.className = 'heatmap-filter-tab px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-black cursor-pointer shadow-xs transition-all';
+        e.currentTarget.className = 'heatmap-filter-tab px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-black cursor-pointer shadow-xs transition-all whitespace-nowrap';
         STATE.heatmapFilter = e.currentTarget.getAttribute('data-filter') || 'all';
         updateSubTopicHeatmap();
       });
@@ -7791,7 +7952,7 @@ function renderPlayerDistractorDeepDive(q) {
   async function ensureCaQuestionsLoaded() {
     if (STATE.ca_pyqs && STATE.ca_pyqs.length > 0) return STATE.ca_pyqs;
     try {
-      const res = await fetch('/static/data/current_affairs_pyqs.json?v=1795622923123');
+      const res = await fetch('/static/data/current_affairs_pyqs.json?v=1795668633303');
       if (res.ok) {
         STATE.ca_pyqs = await res.json();
         if (!STATE.pyqMap) STATE.pyqMap = {};
@@ -7840,11 +8001,6 @@ function renderPlayerDistractorDeepDive(q) {
 
   window.openCurrentAffairsArena = function (e) {
     if (e && e.preventDefault) e.preventDefault();
-    if (window.history && window.history.pushState) {
-      try {
-        window.history.pushState({}, '', '/prelims/current-affairs');
-      } catch (err) {}
-    }
     switchViewMode('current_affairs');
     if (!STATE.ca_pyqs || STATE.ca_pyqs.length === 0) {
       ensureCaQuestionsLoaded().then(function () {
@@ -8006,12 +8162,59 @@ function renderPlayerDistractorDeepDive(q) {
     } catch (e) {}
   }
 
+  // Mobile & Desktop Browser Back Button Seamless Navigation
+  function closeTopOpenModalIfAny() {
+    const modalIds = [
+      'targetSprintModal',
+      'mockGeneratorModal',
+      'dynamicCaGeneratorModal',
+      'questionPaletteModal',
+      'submitConfirmModal',
+      'exitPracticeConfirmModal',
+      'freemiumGateModal'
+    ];
+    for (let i = 0; i < modalIds.length; i++) {
+      const m = document.getElementById(modalIds[i]);
+      if (m && !m.classList.contains('hidden')) {
+        m.classList.add('hidden');
+        return true;
+      }
+    }
+    return false;
+  }
+
+  window.addEventListener('popstate', function (e) {
+    // 1. If a modal is open, close it and restore current view in history
+    if (closeTopOpenModalIfAny()) {
+      if (window.history && window.history.pushState) {
+        try {
+          window.history.pushState({ prelimsView: STATE.viewMode || 'dashboard' }, '', getUrlForViewMode(STATE.viewMode || 'dashboard'));
+        } catch (err) {}
+      }
+      return;
+    }
+
+    // 2. Navigate back to the exact previous Prelims section seamlessly
+    const targetView = (e.state && e.state.prelimsView)
+      ? e.state.prelimsView
+      : (STATE.viewMode && STATE.viewMode !== 'dashboard' ? getPreviousSectionInfo().id : 'dashboard');
+
+    if (targetView && targetView !== STATE.viewMode) {
+      switchViewMode(targetView, true);
+    }
+  });
+
   // Initialize
   document.addEventListener('DOMContentLoaded', function () {
     loadPersistedState();
     initTheme();
     setupListeners();
     initQuestions();
+    if (window.history && window.history.replaceState) {
+      try {
+        window.history.replaceState({ prelimsView: STATE.viewMode || 'dashboard' }, '', window.location.pathname + window.location.search);
+      } catch (err) {}
+    }
     sendPrelimsHeartbeat();
     setInterval(function () { sendPrelimsHeartbeat(); }, 45000);
   });

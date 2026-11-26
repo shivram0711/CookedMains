@@ -998,10 +998,23 @@
               <span class="text-[11px] text-slate-500 dark:text-slate-400">3 questions to avoid negative marks</span>
             </div>
 
-            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1">
-              <span class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">2. Focus Subject</span>
-              <span id="missionStep2Topic" class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">Economy &amp; Banking</span>
-              <span class="text-[11px] text-slate-500 dark:text-slate-400">5 high-yield core questions</span>
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1.5">
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">2. Focus Subject</span>
+                <select id="dailyMissionSubjectSelect" aria-label="Change focus subject" class="text-[10px] font-bold bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-300 border border-blue-500/30 rounded-lg px-1.5 py-0.5 cursor-pointer focus:outline-none focus:border-blue-500">
+                  <option value="auto_daily">↻ Daily Auto</option>
+                  <option value="auto_sprint">🎯 Sprint Goal</option>
+                  <option value="auto_weakest">⚡ Weakest</option>
+                  <option value="Polity & Governance">Polity</option>
+                  <option value="Economy">Economy</option>
+                  <option value="History & Culture">History</option>
+                  <option value="Environment & Ecology">Environment</option>
+                  <option value="Geography">Geography</option>
+                  <option value="Science & Technology">Sci-Tech</option>
+                </select>
+              </div>
+              <span id="missionStep2Topic" class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">Polity &amp; Governance</span>
+              <span id="missionStep2Hint" class="text-[11px] text-slate-500 dark:text-slate-400">5 high-yield core questions</span>
             </div>
 
             <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-1">
@@ -1384,27 +1397,33 @@
           <!-- Right 5 Cols: Forensics, Consistency & Real-Time Tracking -->
           <div class="lg:col-span-5 flex flex-col gap-6">
             
-            <!-- 1. Today's Activity & Live All-India Cohort Rank -->
+            <!-- 1. Daily Prelims Activity & Historical Date Navigator -->
             <div id="todayActivityCard" class="light-card p-5 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col gap-3.5 shadow-lg">
-              <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 gap-2">
                 <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                  <h3 class="text-xs font-mono uppercase tracking-wider text-slate-300 font-bold">
-                    TODAY'S ACTIVITY
+                  <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                  <h3 class="text-xs font-mono uppercase tracking-wider text-slate-300 font-bold whitespace-nowrap">
+                    DAILY ACTIVITY
                   </h3>
                 </div>
-                <span id="actTodayDate" class="text-[10px] font-mono text-slate-400 font-semibold">Today</span>
+
+                <!-- Previous / Next Day Navigator -->
+                <div class="flex items-center gap-1 bg-slate-950 border border-slate-800 rounded-xl px-1.5 py-0.5">
+                  <button type="button" id="actPrevDayBtn" onclick="window.shiftActivityDate(-1)" title="Previous day" class="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer font-bold text-xs">‹</button>
+                  <button type="button" id="actTodayDate" onclick="window.resetActivityDateToToday()" title="Jump to Today" class="px-1.5 text-[11px] font-mono text-amber-500 font-bold whitespace-nowrap cursor-pointer hover:underline">Today</button>
+                  <button type="button" id="actNextDayBtn" onclick="window.shiftActivityDate(1)" title="Next day" class="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer font-bold text-xs disabled:opacity-30 disabled:pointer-events-none">›</button>
+                </div>
               </div>
 
-              <!-- 4-Stat Metric Grid -->
-              <div class="grid grid-cols-2 gap-2 text-xs">
+              <!-- 4-Stat Prelims Activity Grid -->
+              <div class="grid grid-cols-2 gap-2.5 text-xs">
                 
                 <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800/80 flex flex-col hover:border-amber-500/40 transition-colors">
                   <div class="flex items-center gap-1.5 text-amber-500 font-bold">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <span id="actMcqCount" class="text-lg font-black text-white font-mono">0</span>
                   </div>
-                  <span class="text-[10px] text-slate-400 mt-0.5">MCQ Practiced</span>
+                  <span class="text-[10px] text-slate-400 mt-0.5">MCQs Solved</span>
                 </div>
 
                 <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800/80 flex flex-col hover:border-blue-500/40 transition-colors">
@@ -1417,30 +1436,30 @@
 
                 <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800/80 flex flex-col hover:border-emerald-500/40 transition-colors">
                   <div class="flex items-center gap-1.5 text-emerald-400 font-bold">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                    <span id="actMainsCount" class="text-lg font-black text-white font-mono">0</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                    <span id="actNetScore" class="text-lg font-black text-white font-mono">0.0M</span>
                   </div>
-                  <span class="text-[10px] text-slate-400 mt-0.5">Mains Evaluated</span>
+                  <span class="text-[10px] text-slate-400 mt-0.5">Net Marks (+2 / -0.66)</span>
                 </div>
 
-                <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800/80 flex flex-col hover:border-amber-500/40 transition-colors">
-                  <div class="flex items-center gap-1.5 text-amber-400 font-bold">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
-                    <span id="actRank" class="text-lg font-black text-white font-mono">Top 25%</span>
+                <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800/80 flex flex-col hover:border-rose-500/40 transition-colors">
+                  <div class="flex items-center gap-1.5 text-rose-400 font-bold">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span id="actMistakesDayCount" class="text-lg font-black text-white font-mono">0</span>
                   </div>
-                  <span class="text-[10px] text-slate-400 mt-0.5" id="actPScoreLabel">P-Score: 0.0</span>
+                  <span class="text-[10px] text-slate-400 mt-0.5">Mistakes Logged</span>
                 </div>
 
               </div>
 
-              <!-- Leaderboard Trigger -->
-              <div id="openTodayLeaderboardBtn" class="flex items-center justify-between pt-2.5 border-t border-slate-800/80 text-xs cursor-pointer hover:bg-slate-800/40 p-2 rounded-xl transition-all">
-                <span class="flex items-center gap-1.5 text-amber-400 font-bold">
-                  <span>🏆</span> Today's Leaderboard
+              <!-- Footer: Streak & Progress Link -->
+              <div onclick="window.openProgressTracker()" class="flex items-center justify-between pt-2.5 border-t border-slate-800/80 text-xs cursor-pointer hover:bg-slate-800/40 px-2.5 py-2 rounded-xl transition-all">
+                <span class="flex items-center gap-1.5 text-emerald-500 font-bold">
+                  <span>🔥</span> <span id="actStreakSummary">Active Practice</span>
                 </span>
-                <span class="text-slate-400 text-[11px] font-semibold hover:text-white flex items-center gap-1">
-                  <span>View All-India Cohort</span>
-                  <span>&gt;</span>
+                <span class="text-amber-500 text-[11px] font-bold flex items-center gap-1">
+                  <span>View My Progress</span>
+                  <span>→</span>
                 </span>
               </div>
             </div>
@@ -1554,35 +1573,45 @@
             <div id="subTopicHeatmapCard" class="light-card p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
               <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 flex-wrap gap-2">
                 <div class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343a7.975 7.975 0 010 11.314z"/></svg>
-                  <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Topic Accuracy &amp; Weak Areas</h3>
+                  <span class="w-7 h-7 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center text-sm">🎯</span>
+                  <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">Topic Performance</h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Categorised by subject &amp; accuracy</p>
+                  </div>
                 </div>
-                <span id="heatmapThemesCountBadge" class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[10px] font-black font-mono">0 Themes Logged</span>
+                <span id="heatmapThemesCountBadge" class="px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 text-[10px] font-bold font-mono">0 Topics</span>
               </div>
 
-              <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Pinpoints high-yield topics where negative mark leaks (-0.66) are occurring so you can fortify them before exam day.
-              </p>
+              <!-- Subject Category Filter -->
+              <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[11px] scrollbar-none" id="heatmapSubjectTabs">
+                <button type="button" class="heatmap-subj-tab px-2.5 py-1 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-950 font-bold cursor-pointer whitespace-nowrap transition" data-subj="all">All Subjects</button>
+                <button type="button" class="heatmap-subj-tab px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold cursor-pointer whitespace-nowrap transition" data-subj="Polity">Polity</button>
+                <button type="button" class="heatmap-subj-tab px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold cursor-pointer whitespace-nowrap transition" data-subj="Economy">Economy</button>
+                <button type="button" class="heatmap-subj-tab px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold cursor-pointer whitespace-nowrap transition" data-subj="History">History</button>
+                <button type="button" class="heatmap-subj-tab px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold cursor-pointer whitespace-nowrap transition" data-subj="Environment">Environment</button>
+                <button type="button" class="heatmap-subj-tab px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold cursor-pointer whitespace-nowrap transition" data-subj="Geography">Geography</button>
+                <button type="button" class="heatmap-subj-tab px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold cursor-pointer whitespace-nowrap transition" data-subj="Science">Sci-Tech</button>
+              </div>
 
-              <!-- Interactive Heatmap Filter Tabs -->
-              <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-xs font-mono scrollbar-none" id="heatmapFilterTabs">
-                <button type="button" class="heatmap-filter-tab px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-black cursor-pointer shadow-xs transition-all" data-filter="all">All Topics</button>
-                <button type="button" class="heatmap-filter-tab px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold cursor-pointer transition-all" data-filter="bleed">⚠️ Weak Areas</button>
-                <button type="button" class="heatmap-filter-tab px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold cursor-pointer transition-all" data-filter="vulnerable">Moderate</button>
-                <button type="button" class="heatmap-filter-tab px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold cursor-pointer transition-all" data-filter="fortified">Strong</button>
+              <!-- Mastery Filter Tabs -->
+              <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[11px] font-mono scrollbar-none" id="heatmapFilterTabs">
+                <button type="button" class="heatmap-filter-tab px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-black cursor-pointer shadow-xs transition-all whitespace-nowrap" data-filter="all">All</button>
+                <button type="button" class="heatmap-filter-tab px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold cursor-pointer transition-all whitespace-nowrap" data-filter="bleed">Weak (&lt;50%)</button>
+                <button type="button" class="heatmap-filter-tab px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold cursor-pointer transition-all whitespace-nowrap" data-filter="vulnerable">Moderate</button>
+                <button type="button" class="heatmap-filter-tab px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold cursor-pointer transition-all whitespace-nowrap" data-filter="fortified">Strong (75%+)</button>
               </div>
 
               <!-- Priority Fix Advice Box -->
-              <div id="heatmapAdviceBox" class="hidden p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs flex flex-col gap-2">
+              <div id="heatmapAdviceBox" class="hidden p-3.5 rounded-2xl bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/25 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <p id="heatmapAdviceText" class="text-rose-800 dark:text-rose-300 text-xs leading-relaxed"></p>
-                <button type="button" id="heatmapDrillGapBtn" onclick="window.launchPriorityTopicFix()" class="self-start px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">
-                  <span>⚡ Practice This Weak Area Now</span>
+                <button type="button" id="heatmapDrillGapBtn" onclick="window.launchPriorityTopicFix()" class="shrink-0 px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
+                  <span>⚡ Fix Weakest Topic</span>
                   <span>→</span>
                 </button>
               </div>
 
-              <!-- Heatmap Grid -->
-              <div id="subTopicHeatmapList" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-96 overflow-y-auto pr-1">
+              <!-- Topic Cards Grid -->
+              <div id="subTopicHeatmapList" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[420px] overflow-y-auto pr-1">
                 <!-- Dynamically populated by updateSubTopicHeatmap() -->
               </div>
             </div>
@@ -1594,15 +1623,15 @@
 
             <div id="dashMockHistoryCard" class="light-card p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-4 shadow-sm">
               <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                <span class="text-xs font-mono uppercase tracking-wider text-slate-800 dark:text-slate-200 font-bold flex items-center gap-1.5">
-                  <span>📊</span>
-                  <span>Practice &amp; Mock Scorecards</span>
-                </span>
-                <span id="dashMockCountBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/30">0 Sessions</span>
+                <div class="flex items-center gap-2">
+                  <span class="w-7 h-7 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm">📊</span>
+                  <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">Test Scorecards</h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Net marks &amp; accuracy history</p>
+                  </div>
+                </div>
+                <span id="dashMockCountBadge" class="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/30">0 Tests</span>
               </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                Track your net marks (+2.00, -0.66), accuracy rate, and inspect behavioral mistake leaks from your recent sessions.
-              </p>
               <div id="dashMockHistoryContainer" class="flex flex-col gap-2.5 max-h-[460px] overflow-y-auto pr-1">
                 <!-- Dynamically populated by renderDashboardMockHistory() -->
               </div>
@@ -2890,7 +2919,7 @@
   </div>
 
   <!-- Scripts -->
-  <script src="/static/prelims.js?v=1795622923123"></script>
+  <script src="/static/prelims.js?v=1795668633303"></script>
 
   <!-- ====================================================
        DYNAMIC REVERSE-OSMOSIS CURRENT AFFAIRS GENERATOR MODAL (Phase 5)
